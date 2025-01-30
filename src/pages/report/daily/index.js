@@ -5,6 +5,7 @@ import {
   Card,
   CardHeader,
   Checkbox,
+  CircularProgress,
   FormControl,
   FormHelperText,
   Grid,
@@ -15,7 +16,7 @@ import {
 import { DataGrid } from '@mui/x-data-grid'
 import { forwardRef, useState, useRef } from 'react'
 import SingleDatePicker from 'src/components/SingleDatePicker'
-import { getAnimalReport } from 'src/lib/api/report'
+import { getAnimalReport, getReportTitle, getUserReport, getMedicalReport } from 'src/lib/api/report'
 import { AuthContext } from 'src/context/AuthContext'
 import Error404 from 'src/pages/404'
 
@@ -25,6 +26,8 @@ const Animal = () => {
   const [startDate, setStartDate] = useState(null)
   const [endDate, setEndDate] = useState(null)
   const [errors, setErrors] = useState({})
+  const [reportData, setReportData] = useState([])
+  const [downloadingRowId, setDownloadingRowId] = useState(null)
 
   const authData = useContext(AuthContext)
   const reports_module = authData?.userData?.roles?.settings?.enable_reports_module
@@ -51,7 +54,7 @@ const Animal = () => {
   }, [])
 
   const CustomInput = forwardRef(({ ...props }, ref) => {
-    return <TextField inputRef={ref} {...props} sx={{ width: '100%' }} />
+    return <TextField inputRef={ref} {...props} />
   })
 
   const [popoverData, setPopoverData] = useState({
@@ -84,6 +87,20 @@ const Animal = () => {
     return [header, ...rows].join('\n')
   }
 
+  useEffect(() => {
+    const fetchReportType = async () => {
+      debugger
+      const response = await getReportTitle()
+
+      if (response) {
+        setReportData(response)
+      } else {
+        console.log('error >')
+      }
+    }
+    fetchReportType()
+  }, [])
+
   const downloadNewCSVFile = csvContent => {
     try {
       // const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
@@ -109,14 +126,21 @@ const Animal = () => {
         params.end_date = endDate
       }
       params.response_type = 'csv'
-      const response = await getAnimalReport(params)
+      let response = []
+      if (type === 'user_report') {
+        response = await getUserReport(params)
+      } else if (type === 'medical_report') {
+        response = await getMedicalReport(params)
+      } else {
+        response = await getAnimalReport(params)
+      }
       if (response?.success) {
         downloadNewCSVFile(response?.data)
       } else {
-        console.warn('No natality data available to export')
+        console.warn('No  data available to export')
       }
     } catch (error) {
-      console.error('Error exporting natality data:', error)
+      console.error('Error exporting data:', error)
     }
   }
 
@@ -188,12 +212,7 @@ const Animal = () => {
     })
   }
 
-  const reportRows = [
-    { id: 1, title: 'Natality', action: 'Download Natality' },
-    { id: 2, title: 'Accession', action: 'Download Accession' },
-    { id: 3, title: 'Mortality', action: 'Download Mortality' },
-    { id: 4, title: 'External Transfer', action: 'Download Transfer' }
-  ]
+  const reportRows = reportData
   const open = Boolean(anchorEl)
   const id = open ? 'filter-popover' : undefined
 
@@ -214,22 +233,31 @@ const Animal = () => {
       headerName: 'Action',
       flex: 0.7,
       renderCell: params => {
-        const handleExport = () => {
-          if (params.row.title === 'Natality') {
-            getDataToExport('birth')
-          } else if (params.row.title === 'Mortality') {
-            // getMortalityDataToExport()
-            getDataToExport('death')
-          } else if (params.row.title === 'External Transfer') {
-            getDataToExport('transfer')
-          } else if (params.row.title === 'Accession') {
-            getDataToExport('accession')
-          }
+        const handleExport = params => {
+          const { row } = params
+          setDownloadingRowId(row.id)
+          getDataToExport(row.key)
+            .then(() => setDownloadingRowId(null))
+            .catch(() => setDownloadingRowId(null))
         }
 
         return (
-          <Button variant='contained' onClick={handleExport}>
-            {params.row.action}
+          <Button
+            variant='contained'
+            onClick={() => handleExport(params)}
+            sx={{
+              width: '120px',
+              height: '40px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}
+          >
+            {downloadingRowId === params.row.id ? (
+              <CircularProgress size={20} sx={{ color: 'white' }} />
+            ) : (
+              params.row.action
+            )}
           </Button>
         )
       }
@@ -240,16 +268,35 @@ const Animal = () => {
     <>
       {reports_module ? (
         <Card>
-          <CardHeader title='Animal Report' sx={{ mb: '16px' }} />
-
-          <Box sx={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'flex-end', px: '16px', mb: '16px' }}>
-            <Box display={{ display: 'flex', gap: 6 }}>
+          <CardHeader title='Daily Report' sx={{ mb: '16px' }} />
+          <Box
+            sx={{
+              display: 'flex',
+              flexWrap: 'wrap',
+              justifyContent: 'flex-end',
+              px: '16px',
+              mb: '16px'
+            }}
+          >
+            <Box sx={{ display: 'flex', gap: 3 }}>
               <FormControl fullWidth>
                 <SingleDatePicker
                   value={startDate}
                   name='FromDate*'
                   onChange={handleStartDateChange}
-                  customInput={<CustomInput label='Start Date*' error={Boolean(errors.startDate)} />}
+                  customInput={
+                    <TextField
+                      label='Start Date*'
+                      error={Boolean(errors.startDate)}
+                      sx={{
+                        '& .MuiInputBase-input': {
+                          mt: 1,
+                          height: '25px',
+                          padding: '8px'
+                        }
+                      }}
+                    />
+                  }
                   maxDate={new Date()}
                   ref={startDateRef}
                 />
@@ -257,12 +304,25 @@ const Animal = () => {
                   <FormHelperText sx={{ color: 'error.main' }}>Start date should be less than end date</FormHelperText>
                 )}
               </FormControl>
+
               <FormControl fullWidth>
                 <SingleDatePicker
                   value={endDate}
                   name='EndDate*'
                   onChange={handleEndDateChange}
-                  customInput={<CustomInput label='End Date*' error={Boolean(errors.endDate)} />}
+                  customInput={
+                    <TextField
+                      label='End Date*'
+                      error={Boolean(errors.endDate)}
+                      sx={{
+                        '& .MuiInputBase-input': {
+                          mt: 1,
+                          height: '25px',
+                          padding: '8px'
+                        }
+                      }}
+                    />
+                  }
                   maxDate={new Date()}
                   ref={endDateRef}
                 />
@@ -279,27 +339,30 @@ const Animal = () => {
                   variant='outlined'
                   aria-describedby={'popoverButton'}
                   sx={{
-                    width: '180px',
-                    height: '40px',
-                    mt: 2,
+                    width: '140px', // Width of Show/Hide button
+                    height: '45px', // Height of Show/Hide button
                     display: 'flex',
+                    borderRadius: '8px',
                     color: '#44544A',
                     fontWeight: 400,
                     fontSize: '16px',
                     fontFamily: 'Inter',
                     alignItems: 'center',
                     justifyContent: 'center',
-
-                    // gap: 2,
                     minWidth: '100px'
                   }}
                 >
                   <img
                     src='/images/show_popup.png'
-                    style={{ width: '24px', height: '24px', marginBottom: '2px' }}
+                    style={{
+                      width: '24px',
+                      height: '24px',
+                      marginBottom: '2px',
+                      marginRight: '3px',
+                      marginTop: '2px'
+                    }}
                     alt='Filter Icon'
                   />
-
                   <Typography sx={{ color: '#1F515B', textTransform: 'capitalize' }}>Show/Hide</Typography>
                 </Button>
                 <Popover
@@ -362,20 +425,62 @@ const Animal = () => {
               </Box>
             </Box>
           </Box>
+          <Box sx={{ width: '98%', margin: 4 }}>
+            <Box sx={{ borderRadius: '8px' }}>
+              <DataGrid
+                sx={{
+                  mt: 3,
+                  mx: 2,
+                  borderRadius: '8px',
+                  '.MuiDataGrid-cell:focus': {
+                    outline: 'none'
+                  },
+                  '& .MuiDataGrid-columnHeader': {
+                    backgroundColor: '#DDEBE9',
+                    color: '#1F415B',
+                    fontWeight: 600,
+                    fontSize: '12px',
+                    fontFamily: 'Inter',
+                    textTransform: 'capitalize',
+                    borderBottom: '2px solid #C3CEC7'
+                  },
+                  '.MuiDataGrid-main': {
+                    borderLeft: '1px solid #C3CEC7',
+                    borderRight: '1px solid #C3CEC7',
+                    borderTop: '1px solid #C3CEC7',
+                    borderBottom: '1px solid #C3CEC7',
+                    borderRadius: '8px',
+                    overflow: 'hidden'
+                  },
+                  '& .MuiDataGrid-footerContainer': {
+                    borderTop: 'none'
+                  },
 
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', px: 2 }}></Box>
-          <DataGrid
-            sx={{
-              '.MuiDataGrid-cell:focus': { outline: 'none' },
-              '& .MuiDataGrid-row:hover': { cursor: 'pointer' }
-            }}
-            hideFooterPagination
-            autoHeight
-            rows={reportRows}
-            hideFooterSelectedRowCount
-            rowHeight={70}
-            columns={columns}
-          />
+                  '& .MuiDataGrid-cell': {
+                    fontFamily: 'Inter',
+                    fontSize: '14px',
+                    fontWeight: 400,
+                    lineHeight: '16.94px',
+                    textAlign: 'left',
+                    color: '#44544A'
+                  }
+                }}
+                rows={reportRows}
+                disableColumnSorting={true}
+                columns={columns}
+                sortingMode='server'
+                paginationMode='server'
+                pageSizeOptions={[7, 10, 25, 50]}
+                paginationModel={paginationModel}
+                onPaginationModelChange={setPaginationModel}
+                autoHeight
+                disableColumnFilter={false}
+                hideFooterSelectedRowCount
+                rowHeight={70}
+                scrollbarSize={10}
+              />
+            </Box>
+          </Box>
         </Card>
       ) : (
         <>
