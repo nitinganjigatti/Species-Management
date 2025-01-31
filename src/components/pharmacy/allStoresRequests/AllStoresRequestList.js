@@ -138,9 +138,10 @@ const AllStoresRequestList = () => {
   })
 
   const [loading, setLoading] = useState(false)
-  const [uniquePendingItems, setUniquePendingItems] = useState(0)
-  const [isDrawerOpen, setIsDrawerOpen] = useState(false)
   const [excelLoader, setExcelLoader] = useState(false)
+  const [uniquePendingItems, setUniquePendingItems] = useState(0)
+  const [activeTab, setActiveTab] = useState('1')
+  const [isDrawerOpen, setIsDrawerOpen] = useState(false)
 
   const [page, setPage] = useState(1)
   const [isLoadingMore, setIsLoadingMore] = useState(false)
@@ -185,7 +186,7 @@ const AllStoresRequestList = () => {
         })
         setLoading(false)
       } catch (e) {
-        console.log(e)
+        console.error(e)
         setLoading(false)
       }
     },
@@ -246,7 +247,7 @@ const AllStoresRequestList = () => {
 
   const handleDrawerClose = () => {
     setIsDrawerOpen(false)
-
+    setActiveTab('1')
     // Resetting page and data when drawer is closed
     setPage(1)
     setTotalUniqueItems(0)
@@ -328,12 +329,10 @@ const AllStoresRequestList = () => {
     [uniquePendingData, isLoadingMore]
   )
 
-  const [value, setValue] = useState('1')
-
   const handleChange = useCallback(
     (event, newValue) => {
       resetStates()
-      setValue(newValue)
+      setActiveTab(newValue)
 
       let stockStatus = ''
       switch (newValue) {
@@ -369,7 +368,7 @@ const AllStoresRequestList = () => {
         const nextPage = currentPageRef.current + 1
         let stockStatus = ''
 
-        switch (value) {
+        switch (activeTab) {
           case '2':
             stockStatus = 'Available'
             break
@@ -388,21 +387,84 @@ const AllStoresRequestList = () => {
         })
       }
     },
-    [isLoadingMore, hasMore, value, fetchUniquePendingData]
+    [isLoadingMore, hasMore, activeTab, fetchUniquePendingData]
   )
 
   const handleButtonClick = useCallback(() => {
     setIsDrawerOpen(true)
+    setActiveTab('1')
+    let stockStatus = ''
+    switch (activeTab) {
+      case '2':
+        stockStatus = 'Available'
+        break
+      case '3':
+        stockStatus = 'NotAvailable'
+        break
+      default:
+        stockStatus = ''
+    }
+
     resetStates()
-    fetchUniquePendingData({ stock_status: '', page: 1, limit: 10 })
-  }, [resetStates, fetchUniquePendingData])
+    fetchUniquePendingData({
+      stock_status: stockStatus,
+      page: 1,
+      limit: 10
+    })
+  }, [resetStates, fetchUniquePendingData, activeTab])
+
+  // const handleButtonClick = useCallback(() => {
+  //   setIsDrawerOpen(true)
+  //   resetStates()
+  //   fetchUniquePendingData({ stock_status: '', page: 1, limit: 10 })
+  // }, [resetStates, fetchUniquePendingData])
 
   // Reset scroll
   useEffect(() => {
     if (scrollContainerRef.current) {
       scrollContainerRef.current.scrollTop = 0
     }
-  }, [value])
+  }, [activeTab])
+
+  // download Excel
+  const handleExcelExport = async title => {
+    setExcelLoader(true)
+    try {
+      let stockStatus = ''
+      switch (title) {
+        case 'Available items':
+          stockStatus = 'Available'
+          break
+        case 'Not available items':
+          stockStatus = 'NotAvailable'
+          break
+        case 'All items':
+        default:
+          stockStatus = ''
+      }
+
+      const params = {
+        stock_status: stockStatus,
+        response_type: 'csv'
+      }
+
+      const response = await getAllUniquePendingList({ params })
+      if (response?.success && response?.data) {
+        const link = document.createElement('a')
+        link.href = response.data
+        // Trigger download
+        document.body.appendChild(link)
+        link.click()
+        link.remove()
+      } else {
+        console.error('No download URL received')
+      }
+    } catch (error) {
+      console.error('Error downloading Excel:', error)
+    } finally {
+      setExcelLoader(false)
+    }
+  }
 
   // Render header section
   const renderHeader = title => (
@@ -422,17 +484,15 @@ const AllStoresRequestList = () => {
           {totalUniqueItems}
         </Typography>
       </Typography>
-      {/* <ExcelExportButton
-        action={() => {
-          console.log('Download')
-        }}
+      <ExcelExportButton
+        action={() => handleExcelExport(title)}
         loader={excelLoader}
         title='Download'
         sx={{
           width: { xs: '100%', sm: 'auto' },
           textAlign: 'center'
         }}
-      /> */}
+      />
     </Box>
   )
 
@@ -453,7 +513,10 @@ const AllStoresRequestList = () => {
           <Grid container spacing={2} direction='column'>
             {uniquePendingData.map((med, index) => (
               <Grid item xs={12} key={index}>
-                <MedicineCard {...med} pendingColor={value === '2' ? 'customColors.Error' : 'customColors.Tertiary'} />
+                <MedicineCard
+                  {...med}
+                  pendingColor={activeTab === '2' ? 'customColors.Error' : 'customColors.Tertiary'}
+                />
               </Grid>
             ))}
           </Grid>
@@ -580,8 +643,10 @@ const AllStoresRequestList = () => {
                 top: 0,
                 backgroundColor: 'customColors.OnPrimary',
                 zIndex: 1,
-                borderBottom: '1px solid #e0e0e0',
-                px: 4
+                // borderBottom: '1px solid #e0e0e0',
+                // borderBottom: `1px solid ${theme.palette.customColors.Background}`,
+                px: 4,
+                mb: 0.5
               }}
             >
               <Box display='flex' justifyContent='space-between' alignItems='center'>
@@ -602,12 +667,11 @@ const AllStoresRequestList = () => {
                 position: 'sticky',
                 top: 0,
                 zIndex: 1,
-                backgroundColor: 'customColors.OnPrimary',
-                borderBottom: '1px solid #e0e0e0'
+                backgroundColor: 'customColors.OnPrimary'
               }}
             >
               {/* Wrap TabContext here */}
-              <TabContext value={value}>
+              <TabContext value={activeTab}>
                 <TabList
                   onChange={handleChange}
                   aria-label='simple tabs example'
@@ -617,6 +681,7 @@ const AllStoresRequestList = () => {
                     '& .MuiTabs-flexContainer': {
                       borderBottom: '1px solid',
                       borderColor: '#e0e0e0',
+                      // borderBottom: `1px solid ${theme.palette.customColors.neutralSecondary}`,
                       display: 'flex',
                       justifyContent: 'center'
                     }
@@ -640,7 +705,7 @@ const AllStoresRequestList = () => {
               }}
               onScroll={handleScroll}
             >
-              <TabContext value={value}>
+              <TabContext value={activeTab}>
                 <TabPanel value='1' sx={{ p: 4 }}>
                   {renderContent('All items')}
                 </TabPanel>
