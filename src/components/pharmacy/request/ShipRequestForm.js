@@ -190,9 +190,10 @@ const ShipRequest = ({ dispatchedItems, storeDetails, resetForm }) => {
         reset(defaultValues)
         if (resetForm) {
           resetForm()
+        } else {
+          Router.back()
         }
         // close()
-        Router.back()
       } else {
         setSubmitLoader(false)
         setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message, severity: 'error' })
