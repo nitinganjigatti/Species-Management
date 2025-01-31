@@ -406,20 +406,33 @@ const AllStoresRequestList = () => {
 
   // Render header section
   const renderHeader = title => (
-    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
+    <Box
+      sx={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: { xs: null, sm: 'center' },
+        flexDirection: { xs: 'column', sm: 'row' },
+        mb: 3,
+        gap: 2
+      }}
+    >
       <Typography sx={{ fontSize: '16px', fontWeight: 400, color: 'customColors.OnSurfaceVariant' }}>
         {`${title} - `}
         <Typography component='span' sx={{ fontWeight: 500, color: 'customColors.OnSurfaceVariant' }}>
           {totalUniqueItems}
         </Typography>
       </Typography>
-      <ExcelExportButton
+      {/* <ExcelExportButton
         action={() => {
           console.log('Download')
         }}
         loader={excelLoader}
         title='Download'
-      />
+        sx={{
+          width: { xs: '100%', sm: 'auto' },
+          textAlign: 'center'
+        }}
+      /> */}
     </Box>
   )
 
@@ -548,7 +561,9 @@ const AllStoresRequestList = () => {
             PaperProps={{
               sx: {
                 width: {
-                  xs: 560
+                  xs: '80%', // Full width on extra small screens
+                  sm: '80%',
+                  md: 560
                 },
                 backgroundColor: 'customColors.Background',
                 display: 'flex',
