@@ -7,7 +7,9 @@ import {
   getNoOfLab,
   UpdateStatus,
   DeleteLAbRequestAttachment,
-  GetLabListByTestId
+  GetLabListByTestId,
+  postBulkStatus,
+  postBulkTransfer
 } from 'src/lib/api/lab/getLabRequest'
 
 import FallbackSpinner from 'src/@core/components/spinner/index'
@@ -100,6 +102,7 @@ const RequestDetails = () => {
   const [transferStatus, setTransferStatus] = useState('')
 
   const { id, lab_id } = Router.query
+  console.log('id', id)
 
   const searchParams = useSearchParams()
   const Selectedlab_id = searchParams.get('lab_id')
@@ -120,7 +123,7 @@ const RequestDetails = () => {
 
   // const storedData = JSON.parse(localStorage.getItem('userDetails'))
 
-  const [status, setStatus] = React.useState()
+  const [status, setStatus] = React.useState('awaiting_sample')
 
   const localLabData = authData?.userData?.modules?.lab_data?.lab
 
@@ -143,6 +146,7 @@ const RequestDetails = () => {
   const [labId, setLab_id] = useState('')
 
   const [fileId, setFileId] = useState()
+  const [file, setFile] = useState([])
   const [testName, setTestName] = useState()
   const [testSampleName, setTestSampleName] = useState('')
 
@@ -153,6 +157,10 @@ const RequestDetails = () => {
   const [statusId, setStatusId] = useState()
   const [showTestFile, setShowTestFile] = useState(false)
   const [transferTestId, setTransferTestId] = useState('')
+  const [headerStatus, setHeaderStatus] = useState('awaiting_sample')
+  console.log('headerStatus', headerStatus)
+  const [selectedRow, setSelectedRow] = useState([])
+  console.log('selectedRow', selectedRow)
 
   const setAlertDefaults = ({ message, severity, status }) => {
     setOpenSnackbar(status)
@@ -171,7 +179,22 @@ const RequestDetails = () => {
   }, [])
 
   const handleChangeStatus = async (event, params) => {
-    setStatus(event.target.value)
+    const value = event.target.value
+
+    if (
+      (value === 'completed_positive' ||
+        value === 'completed_negative' ||
+        value === 'completed_detected' ||
+        value === 'completed_not_detected' ||
+        value === 'completed_inconclusive') &&
+      !(image || document) // Ensuring at least one attachment is present
+    ) {
+      Toaster({ type: 'error', message: 'Please add attachments before completing' })
+      fetchRequestDetails()
+
+      return
+    }
+    setStatus(value)
 
     const id = params
 
@@ -208,9 +231,8 @@ const RequestDetails = () => {
     setOpen(false)
   }
 
-  const fetchRequestDetails = async (sort, q) => {
+  const fetchRequestDetails = useCallback(async (sort, q) => {
     try {
-      // Make your API call here
       setLoading(true)
 
       const params = {
@@ -219,25 +241,33 @@ const RequestDetails = () => {
         sort
       }
 
-      const response = await GetRequestDetails(id, { params }).then(res => {
-        setLab_id(res?.data.result[0]?.lab_id)
-        setAnimalId(res?.data?.result[0]?.animal_details?.animal_id)
-        setLabRequestId(res?.data?.result[0]?.request_id)
-        setMedicineId(res?.data?.result[0]?.medical_record_id)
-        setRequest(res?.data?.result)
-        setRequestId(res?.data?.result[0]?.id)
-        setRows(loadServerRows(paginationModel.page, res?.data?.result[0].test_reports))
-        setTotal(parseInt(res?.data?.total_count))
-        setImage(res?.data?.result[0]?.files?.images)
-        setDocument(res?.data?.result[0]?.files?.files)
-        setMedicalDocument(res?.data?.result[0]?.medical_attachements?.files)
-        setMedicalImage(res?.data?.result[0]?.medical_attachements?.images)
-        setLoading(false)
-      })
+      const response = await GetRequestDetails(id, { params })
+
+      setLab_id(response?.data.result[0]?.lab_id)
+      setAnimalId(response?.data?.result[0]?.animal_details?.animal_id)
+      setLabRequestId(response?.data?.result[0]?.request_id)
+      setMedicineId(response?.data?.result[0]?.medical_record_id)
+      setRequest(response?.data?.result)
+      setRequestId(response?.data?.result[0]?.id)
+      setRows(loadServerRows(paginationModel.page, response?.data?.result[0].test_reports))
+      setTotal(parseInt(response?.data?.total_count))
+      setImage(response?.data?.result[0]?.files?.images)
+      setDocument(response?.data?.result[0]?.files?.files)
+      setMedicalDocument(response?.data?.result[0]?.medical_attachements?.files)
+      setMedicalImage(response?.data?.result[0]?.medical_attachements?.images)
     } catch (error) {
       console.error('Error fetching data:', error)
+    } finally {
       setLoading(false)
     }
+  }, [])
+
+  const getLabList = async params => {
+    await GetLabListByTestId({ params }).then(res => {
+      setLab(res?.data?.result)
+
+      // setRows(loadServerRows(paginationModel.page, res?.data?.result))
+    })
   }
 
   const handleOpenTransfer = async params => {
@@ -258,11 +288,7 @@ const RequestDetails = () => {
         lab_id: labId,
         show_external_labs: 1
       }
-      await GetLabListByTestId({ params: params }).then(res => {
-        setLab(res?.data?.result)
-
-        // setRows(loadServerRows(paginationModel.page, res?.data?.result))
-      })
+      await getLabList(params)
     }
   }
 
@@ -367,7 +393,7 @@ const RequestDetails = () => {
                   size='small'
                   labelId='demo-simple-select-label'
                   id='demo-simple-select'
-                  defaultValue={params.row.status === 'transferred' ? 'awaiting_sample' : params.row.status}
+                  defaultValue={status === 'transferred' ? 'awaiting_sample' : params.row.status}
                   value={params.row.status}
                   onChange={event => handleChangeStatus(event, params?.row?.id)}
                   sx={{
@@ -596,7 +622,9 @@ const RequestDetails = () => {
                                 backgroundColor: 'rgba(68, 84, 74, 0.1)' // Change background color on hover
                               }
                             }}
-                            onClick={e => handleOpenUploader(e, params)}
+                            onClick={e => {
+                              e.stopPropagation(), handleOpenUploader(e, params)
+                            }}
                           >
                             <Icon icon='tabler:upload' width='24' height='24' color={'rgba(68, 84, 74, 1)'} />
                           </IconButton>
@@ -615,7 +643,9 @@ const RequestDetails = () => {
                                 backgroundColor: 'rgba(68, 84, 74, 0.1)' // Change background color on hover
                               }
                             }}
-                            onClick={() => handleOpenTransfer(params)}
+                            onClick={e => {
+                              e.stopPropagation(), handleOpenTransfer(params)
+                            }}
                           >
                             <Icon
                               icon='mingcute:transfer-3-line'
@@ -744,17 +774,26 @@ const RequestDetails = () => {
 
   const onSubmit = async params => {
     // setSubmitLoader(true)
-    const { lab_name, replaced_lab_id, transfer_reason } = {
-      ...params
-    }
-    const id = testId
 
-    const payload = {
-      replaced_lab_id,
-      transfer_reason
-    }
+    // if (transferStatus !== 'completed') {
 
-    if (transferStatus !== 'completed') {
+    if (selectedRow > 1) {
+      const params = {
+        lab_test_ids: selectedRow,
+        replaced_lab_id,
+        transfer_reason
+      }
+      const res = await postBulkTransfer({ params })
+    } else {
+      const { lab_name, replaced_lab_id, transfer_reason } = {
+        ...params
+      }
+      const id = testId
+
+      const payload = {
+        replaced_lab_id,
+        transfer_reason
+      }
       const response = await transferLab(id, payload)
       if (response?.success) {
         handleCloseTransfer()
@@ -769,11 +808,14 @@ const RequestDetails = () => {
         reset()
         Toaster({ type: 'error', message: response.message })
       }
-    } else {
-      handleCloseTransfer()
-      reset()
-      Toaster({ type: 'error', message: 'Completed test can not be transferred' })
     }
+
+    // }
+    //  else {
+    //   handleCloseTransfer()
+    //   reset()
+    //   Toaster({ type: 'error', message: 'Completed test can not be transferred' })
+    // }
 
     // // setSubmitLoader(false)
   }
@@ -814,6 +856,54 @@ const RequestDetails = () => {
       return
     }
     setOpenSnackbar(false)
+  }
+
+  const handleSelectionModelChange = value => {
+    setSelectedRow(value)
+
+    // console.log('value', value)
+  }
+
+  const postMultipleStatus = async (testIds, status) => {
+    try {
+      // Make your API call here
+
+      const params = {
+        status: status || headerStatus,
+        lab_request: id,
+        test_ids: testIds || selectedRow
+      }
+
+      const res = await postBulkStatus({ params })
+      if (res?.success) {
+        // console.log('res', res)
+        Toaster({ type: 'success', message: res.message })
+        fetchRequestDetails()
+      }
+    } catch (error) {
+      console.error('Error fetching data:', error)
+      Toaster({ type: 'error', message: res.message })
+    }
+  }
+
+  const handleHeaderDropdown = e => {
+    const value = e.target.value
+
+    if (
+      (value === 'completed_positive' ||
+        value === 'completed_negative' ||
+        value === 'completed_detected' ||
+        value === 'completed_not_detected' ||
+        value === 'completed_inconclusive') &&
+      !(image || document)
+    ) {
+      setHeaderStatus('awaiting_sample')
+      Toaster({ type: 'error', message: 'Please add attachments before completing' })
+      fetchRequestDetails()
+    } else {
+      setHeaderStatus(value)
+      postMultipleStatus(selectedRow, value)
+    }
   }
 
   return (
@@ -912,9 +1002,133 @@ const RequestDetails = () => {
           />
 
           <Card sx={{ mt: 5 }}>
-            <CardHeader title='Lab Tests' />
+            {/* <CardHeader title='Lab Tests' /> */}
+            <Box
+              sx={{
+                px: 5,
+                py: 3,
+                display: 'flex',
+                width: '100%',
+                justifyContent: 'space-between',
+                alignItems: 'center'
+              }}
+            >
+              <Typography sx={{ fontSize: '20px', fontWeight: 500 }}>Lab Tests </Typography>
+              {selectedRow?.length > 0 && (
+                <Box sx={{ display: 'flex', gap: 4, alignItems: 'center' }}>
+                  <Box
+                    sx={{
+                      p: 2,
+                      bgcolor: '#0000000D',
+                      width: '35px',
+                      height: '35px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      borderRadius: '8px'
+                    }}
+                  >
+                    <Typography sx={{ fontSize: '15px', fontWeight: 400 }}>{selectedRow?.length}</Typography>
+                  </Box>
+
+                  {/* <Button variant='contained' sx={{ display: 'flex', gap: 2 }} onClick={() => setOpenTransfer(true)}>
+                    <Icon icon='mingcute:transfer-3-line' width='24px' height='24px' /> Transfer
+                  </Button> */}
+                  <Box>
+                    <FormControl fullWidth variant='outlined'>
+                      <Select
+                        size='small'
+                        labelId='demo-simple-select-label'
+                        id='demo-simple-select'
+                        // defaultValue={'awaiting_sample'}
+                        value={headerStatus}
+                        onChange={e => handleHeaderDropdown(e)}
+                        sx={{
+                          width: 237,
+                          fontSize: '14px',
+
+                          // border: '1px solid red',
+
+                          backgroundColor:
+                            headerStatus === 'pending' ||
+                            headerStatus === 'transferred' ||
+                            headerStatus === 'awaiting_sample' ||
+                            headerStatus === 'sample_rejected' ||
+                            headerStatus === 'sample_received'
+                              ? 'rgba(255, 0, 0, 0.1)' // light red background for pending
+                              : headerStatus === 'completed'
+                              ? '#37BD69' // light green background for completed
+                              : headerStatus === 'inprogress'
+                              ? 'rgba(228, 184, 25, 0.1)' // light yellow background for in progress
+                              : 'rgba(0, 128, 0, 0.1)',
+
+                          color:
+                            headerStatus === 'pending' ||
+                            headerStatus === 'transferred' ||
+                            headerStatus === 'awaiting_sample' ||
+                            headerStatus === 'sample_rejected' ||
+                            headerStatus === 'sample_received'
+                              ? '#FA6140'
+                              : headerStatus === 'completed'
+                              ? '#37BD69'
+                              : headerStatus === 'inprogress'
+                              ? '#E4B819 '
+                              : '#37BD69',
+
+                          borderRadius: '8px',
+
+                          '& .MuiSelect-icon': {
+                            color:
+                              headerStatus === 'pending' ||
+                              headerStatus === 'transferred' ||
+                              headerStatus === 'awaiting_sample' ||
+                              headerStatus === 'sample_rejected' ||
+                              headerStatus === 'sample_received'
+                                ? '#FA6140'
+                                : headerStatus === 'completed'
+                                ? '#37BD69'
+                                : headerStatus === 'inprogress'
+                                ? '#E4B819'
+                                : '#37BD69'
+                          },
+
+                          '&:hover .MuiOutlinedInput-notchedOutline': {
+                            border: '0',
+
+                            borderColor:
+                              headerStatus === 'pending' ||
+                              headerStatus === 'transferred' ||
+                              headerStatus === 'awaiting_sample' ||
+                              headerStatus === 'sample_rejected' ||
+                              headerStatus === 'sample_received'
+                                ? '#FA6140' // Custom red border for these statuses
+                                : headerStatus === 'completed'
+                                ? '#37BD69' // Custom green border for completed
+                                : headerStatus === 'inprogress'
+                                ? '#E4B819' // Custom yellow border for in progress
+                                : '#37BD69' // Default green border
+                          },
+
+                          '& .MuiOutlinedInput-notchedOutline': {
+                            border: '0'
+                          }
+                        }}
+                      >
+                        {statusData?.map((item, index) => (
+                          <MenuItem key={index} value={item?.id}>
+                            {item?.name}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
+                  </Box>
+                </Box>
+              )}
+            </Box>
 
             <DataGrid
+              checkboxSelection
+              onRowSelectionModelChange={handleSelectionModelChange}
               sx={{
                 '& .MuiDataGrid-row:hover .customButton': {
                   display: 'block'
@@ -929,9 +1143,7 @@ const RequestDetails = () => {
               rows={indexedRows === undefined ? [] : indexedRows}
               rowCount={total}
               columns={columns}
-              // getRowId={row => row?.test_id}
               onSortModelChange={handleSortModel}
-              // slots={{ toolbar: ServerSideToolbar }}
               loading={loading}
               slotProps={{
                 baseButton: {
