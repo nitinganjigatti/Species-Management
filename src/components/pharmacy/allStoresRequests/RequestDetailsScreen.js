@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useState, useEffect, useCallback } from 'react'
 
 import { CardHeader, Grid, Card, Chip } from '@mui/material'
 import Tab from '@mui/material/Tab'
@@ -18,17 +18,44 @@ const RequestDetailsScreen = () => {
   const { id } = router.query
   const { selectedPharmacy } = usePharmacyContext()
 
-  const updateUrlParams = params => {
-    const query = { ...router.query, ...params }
-    router.push({ pathname: router.pathname, query }, undefined, { shallow: true })
-  }
-  const [status, setStatus] = useState('Pending')
-  const [detailsTab, setDetailsTab] = useState('Pending')
+  console.log('router.query.mainTab ', router.query.mainTab)
+  const [detailsTab, setDetailsTab] = useState(router.query.mainTab || 'Pending')
 
   const [selectedStoreDetails, setSelectedStoreDetails] = useState({
     storeId: '',
     storeName: ''
   })
+
+  const updateUrlParams = useCallback(
+    params => {
+      // const query = { ...router.query, ...params }
+      // router.replace({ pathname: router.pathname, query }, undefined, { shallow: true })
+      // console.log('in function', router.query)
+      // debugger
+      const newQuery = { ...router.query, ...params }
+
+      router.replace({ pathname: router.pathname, query: newQuery }, undefined, { shallow: true }).then(() => {
+        console.log('Updated Query:', router.query)
+      })
+    },
+    [router, detailsTab]
+  )
+
+  // useEffect(() => {
+  //   if (router.query.mainTab) {
+  //     setDetailsTab(router.query.mainTab)
+  //   }
+  // }, [router.query.mainTab, router.query.subTab])
+
+  // const updateUrlParams = useCallback(
+  //   async params => {
+  //     const newQuery = { ...router.query, ...params }
+  //     await router.replace({ pathname: router.pathname, query: newQuery }, undefined, { shallow: true })
+  //     debugger
+  //     console.log('Updated Query:', router.query)
+  //   },
+  //   [router]
+  // )
 
   const TabBadge = ({ label, totalCount }) => (
     <div style={{ display: 'flex', alignItems: 'center', justifyItems: 'center', justifyContent: 'space-between' }}>
@@ -69,14 +96,21 @@ const RequestDetailsScreen = () => {
             <TabList
               sx={{ borderBottom: `1px solid ${theme.palette.customColors.neutral05} !important` }}
               onChange={(event, newValue) => {
+                console.log('new tab value: ', newValue)
                 setDetailsTab(newValue)
+                updateUrlParams({
+                  mainTab: newValue
+                })
               }}
             >
               <Tab
                 value='Pending'
-                label={<TabBadge label='Requested Items' totalCount={status === 'Pending' ? 0 : null} />}
+                label={<TabBadge label='Requested Items' totalCount={detailsTab === 'Pending' ? 0 : null} />}
               />
-              <Tab value='Shipped' label={<TabBadge label='Shipment' totalCount={status === 'Shipped' ? 0 : null} />} />
+              <Tab
+                value='Shipped'
+                label={<TabBadge label='Shipment' totalCount={detailsTab === 'Shipped' ? 0 : null} />}
+              />
             </TabList>
 
             <TabPanel
@@ -88,6 +122,7 @@ const RequestDetailsScreen = () => {
               <RequestedItems
                 selectedStoreDetails={selectedStoreDetails}
                 setSelectedStoreDetails={setSelectedStoreDetails}
+                updateUrlParams={updateUrlParams}
               />
             </TabPanel>
 
@@ -103,7 +138,7 @@ const RequestDetailsScreen = () => {
                   px: '0 !important'
                 }}
               >
-                <ShipmentRequests />
+                <ShipmentRequests updateUrlParams={updateUrlParams} />
               </Grid>
             </TabPanel>
           </TabContext>

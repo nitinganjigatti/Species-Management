@@ -232,6 +232,12 @@ export const All_STORES_REQUESTS = 'request-item-store'
 
 export const SELECTED_STORES_REQUESTS = 'request-store-item'
 
+export const ALL_SHIPPING_ITEMS_OF_SELECTED_STORE = 'dispatch-store-item'
+
+export const ALL_SHIPPED_ITEMS_OF_SELECTED_STORE = 'shipment-store-item'
+
+export const SELECTED_STORE_SHIPMENT_ORDER_DETAILS = 'shipment-store-item/shipped'
+
 export const PRODUCT_DISPATCH = 'v1/pharma/stock/dispatch-details'
 
 export const PRODUCT_PURCHASE = 'v1/pharma/stock/purchase-details'

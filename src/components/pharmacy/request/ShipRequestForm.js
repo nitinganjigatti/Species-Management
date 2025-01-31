@@ -54,7 +54,7 @@ const CustomInput = forwardRef(({ ...props }, ref) => {
   return <TextField fullWidth inputRef={ref} {...props} />
 })
 
-const ShipRequest = ({ dispatchedItems, storeDetails }) => {
+const ShipRequest = ({ dispatchedItems, storeDetails, resetForm }) => {
   // ** Hooks
   const [submitLoader, setSubmitLoader] = useState(false)
   const [total, setTotal] = useState(0)
@@ -188,7 +188,9 @@ const ShipRequest = ({ dispatchedItems, storeDetails }) => {
         setOpenSnackbar({ ...openSnackbar, open: true, message: response?.data, severity: 'success' })
         setSubmitLoader(false)
         reset(defaultValues)
-
+        if (resetForm) {
+          resetForm()
+        }
         // close()
         Router.back()
       } else {
@@ -226,8 +228,8 @@ const ShipRequest = ({ dispatchedItems, storeDetails }) => {
       payloadItem.person_shipping = person_shipping
       payloadItem.receiver_name = receiver_name
       payloadItem.status = deliveryType.Ship ? 'Shipped' : 'PickedUp'
-      payloadItem.to_store_id = storeDetails.to_store_id
-      payloadItem.from_store_id = storeDetails.from_store_id
+      payloadItem.to_store_id = value?.to_store_id ? value?.to_store_id : storeDetails.to_store_id
+      payloadItem.from_store_id = value?.from_store_id ? value?.from_store_id : storeDetails.from_store_id
       payloadItem.vehicle_no = vehicle_no
       payloadItem.phone_number = phone_number
       payloadItem.carton_box = carton_box

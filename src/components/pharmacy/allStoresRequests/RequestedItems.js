@@ -40,15 +40,15 @@ const Transition = forwardRef(function Transition(props, ref) {
   return <Fade ref={ref} {...props} />
 })
 
-export default function RequestedItems({ selectedStoreDetails, setSelectedStoreDetails }) {
+export default function RequestedItems({ selectedStoreDetails, setSelectedStoreDetails, updateUrlParams }) {
   const theme = useTheme()
   const router = useRouter()
   const { id } = router.query
 
-  const updateUrlParams = params => {
-    const query = { ...router.query, ...params }
-    router.replace({ pathname: router.pathname, query }, undefined, { shallow: true })
-  }
+  // const updateUrlParams = params => {
+  //   const query = { ...router.query, ...params }
+  //   router.replace({ pathname: router.pathname, query }, undefined, { shallow: true })
+  // }
   const { selectedPharmacy } = usePharmacyContext()
   const [total, setTotal] = useState(0)
 
@@ -57,7 +57,7 @@ export default function RequestedItems({ selectedStoreDetails, setSelectedStoreD
   const [searchValue, setSearchValue] = useState(router.query.q || '')
   const [sortColumn, setSortColumn] = useState(router.query.column || 'priority')
   const [controlledDrug, setControlledDrug] = useState(router.query.controlledDrug || 'all')
-  const [priority, setPriority] = useState(router.query.priority || 'all')
+  const [priority, setPriority] = useState(router.query.priority || 'emergency')
   const [loading, setLoading] = useState(false)
   const [showDrawer, setShowDrawer] = useState(false)
   const [drawerLoader, setDrawerLoader] = useState(false)
@@ -70,7 +70,6 @@ export default function RequestedItems({ selectedStoreDetails, setSelectedStoreD
   })
   const [showAlternativeMedicineDialog, setShowAlternativeMedicineDialog] = useState(false)
   const [rejectRequestMedicineDialog, setRejectRequestMedicineDialog] = useState(false)
-  const [shipmentDetailsDialog, setShipmentDetailsDialog] = useState(false)
   const [productNotAvailableDialog, setProductNotAvailableDialog] = useState(false)
 
   const [sideDrawerItemDetails, setSideDrawerItemDetails] = useState({
@@ -625,7 +624,6 @@ export default function RequestedItems({ selectedStoreDetails, setSelectedStoreD
               >
                 <MenuItem value='all'>All</MenuItem>
                 <MenuItem value='high'>High</MenuItem>
-                {/* <MenuItem value='normal'>Normal</MenuItem> */}
                 <MenuItem value='emergency'>Emergency</MenuItem>
               </Select>
             </FormControl>

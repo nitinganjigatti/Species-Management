@@ -13,7 +13,9 @@ const CommonTable = ({
   loading,
   searchValue,
   onCellClick,
-  columnVisibilityModel
+  columnVisibilityModel,
+  checkBoxOption,
+  onRowSelectionModelChange
 }) => {
   const theme = useTheme()
 
@@ -83,6 +85,8 @@ const CommonTable = ({
         }
       }}
       onRowClick={onRowClick ? onRowClick : null}
+      checkboxSelection={checkBoxOption ? true : false}
+      onRowSelectionModelChange={onRowSelectionModelChange ? onRowSelectionModelChange : null}
     />
   )
 }
