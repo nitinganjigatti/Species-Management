@@ -36,23 +36,18 @@ const formatDate = dateString => {
   return `${year}-${month}-${day}`
 }
 
-function Purchase({ tabValue }) {
+function Purchase({ tabValue, updateUrlParams }) {
   const router = useRouter()
   const theme = useTheme()
 
-  const updateUrlParams = params => {
-    const query = { ...router.query, ...params }
-    router.replace({ pathname: router.pathname, query }, undefined, { shallow: true })
-  }
-
-  console.log(router.query, 'router.query')
+  console.log(router.query, 'router.queryP')
 
   const [loading, setLoading] = useState(false)
   const [sort, setSort] = useState(router.query.sort || 'desc')
 
   const [rows, setRows] = useState([])
   const [searchValue, setSearchValue] = useState(router.query.searchValue || '')
-  const [sortColumn, setSortColumn] = useState('po_no')
+  const [sortColumn, setSortColumn] = useState(router.query.column || 'po_no')
   const [total, setTotal] = useState(0)
 
   const [paginationModel, setPaginationModel] = useState({
@@ -72,6 +67,27 @@ function Purchase({ tabValue }) {
     return data
   }
 
+  useEffect(() => {
+    if (router.query.tab !== tabValue) {
+      // debugger
+      setPaginationModel({ page: 0, pageSize: 10 })
+      setSortColumn('po_no')
+      setSort('desc')
+      setSearchValue('')
+      setFilterDates({ startDate: '', endDate: '' })
+      updateUrlParams({
+        tab: tabValue,
+        sort: 'desc',
+        column: 'po_no',
+        searchValue: '',
+        from_date: '',
+        to_date: '',
+        page: 0,
+        limit: 10
+      })
+    }
+  }, [tabValue, updateUrlParams])
+
   const columns = [
     {
       width: 70,
@@ -84,7 +100,7 @@ function Purchase({ tabValue }) {
       )
     },
     {
-      width: 140,
+      width: 160,
       field: 'po_no',
       headerName: 'INVOICE NUMBER',
       renderCell: params => (
@@ -319,6 +335,16 @@ function Purchase({ tabValue }) {
             console.log(res, 'res')
             setTotal(parseInt(res?.count))
             setRows(loadServerRows(paginationModel.page, res?.data))
+            updateUrlParams({
+              tab: tabValue,
+              sort: sort,
+              searchValue: q,
+              column: column,
+              from_date: from_date,
+              to_date: to_date,
+              page: paginationModel.page,
+              limit: paginationModel.pageSize
+            })
           } else {
             setRows([])
             setTotal(0)
@@ -335,7 +361,7 @@ function Purchase({ tabValue }) {
   )
 
   useEffect(() => {
-    if (id) {
+    if (id && router.query.tab === tabValue) {
       fetchTableData({
         sort,
         q: searchValue,
@@ -343,18 +369,8 @@ function Purchase({ tabValue }) {
         from_date: filterDates.startDate,
         to_date: filterDates.endDate
       })
-      updateUrlParams({
-        tab: tabValue,
-        sort: sort,
-        searchValue: searchValue,
-        column: sortColumn,
-        from_date: filterDates.startDate,
-        to_date: filterDates.endDate,
-        page: paginationModel.page,
-        limit: paginationModel.pageSize
-      })
     }
-  }, [fetchTableData, filterDates])
+  }, [fetchTableData, updateUrlParams, router.query.tab])
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
@@ -369,16 +385,6 @@ function Purchase({ tabValue }) {
       setSearchValue(q)
       try {
         await fetchTableData({ sort, q, column })
-        updateUrlParams({
-          tab: tabValue,
-          sort: sort,
-          searchValue: q,
-          column: column,
-          from_date: filterDates.startDate,
-          to_date: filterDates.endDate,
-          page: paginationModel.page,
-          limit: paginationModel.pageSize
-        })
       } catch (error) {
         console.error(error)
       }
@@ -402,26 +408,16 @@ function Purchase({ tabValue }) {
       setSort(newSort)
       setSortColumn(newColumn)
       fetchTableData({ sort: newSort, q: searchValue, column: newColumn })
-      updateUrlParams({
-        tab: tabValue,
-        sort: newSort,
-        searchValue: searchValue,
-        column: newColumn,
-        from_date: filterDates.startDate,
-        to_date: filterDates.endDate,
-        page: paginationModel.page,
-        limit: paginationModel.pageSize
-      })
     }
   }
 
   const onRowClick = params => {
     var data = params.row
-
-    // Router.push({
-    //   pathname: `/pharmacy/medicine/${id}/purchase-details`,
-    //   query: { id: data?.id }
-    // })
+    console.log(data, 'data123')
+    Router.push({
+      pathname: `/pharmacy/medicine/${id}/purchase-details`,
+      query: { p_id: data?.id, po_no: data?.po_no, action: 'edit' }
+    })
   }
 
   const handleDateRangeChange = (startDate, endDate) => {
@@ -432,60 +428,45 @@ function Purchase({ tabValue }) {
         startDate: formattedStartDate,
         endDate: formattedEndDate
       })
-
-      updateUrlParams({
-        tab: tabValue,
-        sort: sort,
-        searchValue: searchValue,
+      fetchTableData({
+        sort,
+        q: searchValue,
         column: sortColumn,
         from_date: formattedStartDate,
-        to_date: formattedEndDate,
-        page: paginationModel.page,
-        limit: paginationModel.pageSize
+        to_date: formattedEndDate
       })
-      console.log('Date range selected:', { startDate, endDate })
     } else {
       // If startDate or endDate is empty, pass empty values and fetch data without filtering by date
       setFilterDates({
         startDate: '',
         endDate: ''
       })
-
-      updateUrlParams({
-        tab: tabValue,
-        sort: sort,
-        searchValue: searchValue,
+      fetchTableData({
+        sort,
+        q: searchValue,
         column: sortColumn,
         from_date: '',
-        to_date: '',
-        page: paginationModel.page,
-        limit: paginationModel.pageSize
+        to_date: ''
       })
-      console.log('Empty date range selected, fetching data without date filters')
     }
   }
 
   return (
     <>
-      {/* <Grid container>
-        <Grid item xs={12} sm='auto'>
-          <CommonDateRangePickers onChange={handleDateRangeChange} />
-        </Grid>
-      </Grid> */}
-
       <Grid
         container
-        spacing={2}
+        gap={5}
+        // spacing={5}
         sx={{
-          mt: 3,
+          mt: 5,
           flexWrap: 'wrap',
           display: 'flex',
           justifyContent: 'space-between',
           alignItems: 'center'
         }}
       >
-        <Grid item xs={12} sm='auto'>
-          <CommonDateRangePickers onChange={handleDateRangeChange} />
+        <Grid item xs={12} sm={12} md='auto' lg='auto' sx={{ width: '100%' }}>
+          <CommonDateRangePickers onChange={handleDateRangeChange} filterDates={filterDates} />
         </Grid>
         <Grid item xs={12} sm={12} md={3} lg={3}>
           <Box
@@ -520,85 +501,6 @@ function Purchase({ tabValue }) {
         </Grid>
       </Grid>
 
-      {/* <Grid
-        container
-        sm={12}
-        xs={12}
-        sx={{
-          display: 'flex',
-          justifyContent: 'flex-end',
-          alignItems: 'center'
-        }}
-      >
-        <Grid item>
-          <Box
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-              border: theme => `1px solid ${theme.palette.customColors.OutlineVariant}`,
-              borderRadius: '8px',
-              padding: '0 8px',
-              height: '40px',
-              width: '100%'
-            }}
-          >
-            <Icon icon='mi:search' fontSize={24} color={theme => theme.palette.customColors.neutralSecondary} />
-            <TextField
-              variant='outlined'
-              value={searchValue}
-              placeholder='Search...'
-              onChange={e => handleSearch(e.target.value)}
-              fullWidth
-              sx={{
-                '& .MuiOutlinedInput-root': {
-                  border: 'none',
-                  padding: '0',
-                  '& fieldset': {
-                    border: 'none'
-                  }
-                }
-              }}
-            />
-          </Box>
-          <Grid container justifyContent='flex-end' alignItems='center' sx={{ mt: 3 }}>
-            <Grid item>
-              <Select
-                defaultValue='Date Range'
-                variant='outlined'
-                sx={{
-                  borderRadius: '8px',
-                  height: '40px',
-
-                  //   width: '150px',
-                  marginRight: '16px',
-                  '& .MuiOutlinedInput-notchedOutline': {
-                    border: `1px solid ${theme.palette.customColors.OutlineVariant}`
-                  }
-                }}
-              >
-                <MenuItem value='Date Range'>Date Range</MenuItem>
-                <MenuItem value='Last Week'>Last Week</MenuItem>
-                <MenuItem value='Last Month'>Last Month</MenuItem>
-              </Select>
-            </Grid>
-
-            <Grid item>
-              <Button
-                variant='outlined'
-                startIcon={<FilterListIcon />}
-                sx={{
-                  border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-                  borderRadius: '8px',
-                  height: '40px',
-                  textTransform: 'none'
-                }}
-              >
-                Filter
-              </Button>
-            </Grid>
-          </Grid>
-        </Grid>
-      </Grid> */}
       <Grid>
         <CommonTable
           onRowClick={onRowClick}

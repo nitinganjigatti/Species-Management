@@ -241,3 +241,5 @@ export const SELECTED_STORE_SHIPMENT_ORDER_DETAILS = 'shipment-store-item/shippe
 export const PRODUCT_DISPATCH = 'v1/pharma/stock/dispatch-details'
 
 export const PRODUCT_PURCHASE = 'v1/pharma/stock/purchase-details'
+
+export const PRODUCT_PURCHASE_BATCH_LIST = 'purchase'

@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import {
   Box,
   Typography,
@@ -45,69 +45,6 @@ import CloseIcon from '@mui/icons-material/Close'
 import SearchIcon from '@mui/icons-material/Search'
 import { useTheme } from '@emotion/react'
 
-// const TabsSimple = ({ productDetails }) => {
-//   const router = useRouter()
-//   const { id, tab } = router.query
-//   const defaultTab = 'overview'
-//   const [value, setValue] = React.useState(tab || defaultTab)
-
-//   const updateUrlParams = newTab => {
-//     //query object to keep only `tab` and `id`
-//     const updatedQuery = { tab: newTab }
-//     if (id) updatedQuery.id = id
-//     router.push({ pathname: router.pathname, query: updatedQuery }, undefined, { shallow: true })
-//   }
-//   // const updateUrlParams = params => {
-//   //   const query = { ...router.query, ...params }
-//   //   router.push({ pathname: router.pathname, query }, undefined, { shallow: true })
-//   // }
-
-//   useEffect(() => {
-//     if (tab) {
-//       setValue(tab)
-//     } else {
-//       setValue(defaultTab)
-//     }
-//   }, [tab])
-
-//   const handleChange = (event, newValue) => {
-//     setValue(newValue)
-//     // updateUrlParams({ tab: newValue })
-//     updateUrlParams(newValue)
-//   }
-
-//   return (
-//     <TabContext value={value}>
-//       <TabList
-//         onChange={handleChange}
-//         sx={{
-//           '& .MuiTabs-flexContainer': {
-//             borderBottom: '1px solid',
-//             borderColor: 'customColors.neutral05'
-//           }
-//         }}
-//       >
-//         <Tab value='overview' label='Overview' />
-//         {/* <Tab value='purchase' label='Purchase' />*/}
-//         <Tab value='dispatch' label='Dispatch' />
-//         <Tab value='ledger' label='Ledger' />
-//       </TabList>
-//       <TabPanel value='overview' sx={{ p: 0 }}>
-//         <Overview productDetails={productDetails} tabValue={value} />
-//       </TabPanel>
-//       <TabPanel value='purchase'>
-//         <Purchase />
-//       </TabPanel>
-//       <TabPanel value='dispatch' sx={{ p: 0 }}>
-//         <Dispatch tabValue={value} />
-//       </TabPanel>
-//       <TabPanel value='ledger' sx={{ p: 0 }}>
-//         <Ledger tabValue={value} />
-//       </TabPanel>
-//     </TabContext>
-//   )
-// }
-
 const ProductDetailsList = () => {
   const theme = useTheme()
   const router = useRouter()
@@ -125,22 +62,17 @@ const ProductDetailsList = () => {
   const defaultTab = 'overview'
   const [value, setValue] = React.useState(tab || defaultTab)
 
-  // const updateUrlParams = newTab => {
-  //   //query object to keep only `tab` and `id`
-  //   const updatedQuery = { tab: newTab }
-  //   if (id) updatedQuery.id = id
-  //   router.replace({ pathname: router.pathname, query: updatedQuery }, undefined, { shallow: true })
-  // }
-
-  const updateUrlParams = params => {
-    const query = { ...router.query, ...params }
-    router.replace({ pathname: router.pathname, query }, undefined, { shallow: true })
-  }
+  const updateUrlParams = useCallback(
+    params => {
+      const query = { ...router.query, ...params }
+      router.replace({ pathname: router.pathname, query }, undefined, { shallow: true })
+    },
+    [router.query.tab] // Only depend on router.query
+  )
 
   const handleChange = (event, newValue) => {
     setValue(newValue)
-    updateUrlParams({ tab: newValue })
-    // updateUrlParams(newValue)
+    // updateUrlParams({ tab: newValue })
   }
 
   const handleEdit = async row => {
@@ -504,50 +436,6 @@ const ProductDetailsList = () => {
                       </Box>
                     </Box>
                   </Grid>
-
-                  {/* <Grid item xs={12} sm={5}>
-                    <Box>
-                      <Typography variant='body2' mt={2} component='div'>
-                        <Box
-                          component='span'
-                          sx={{
-                            color: 'customColors.neutralSecondary',
-                            fontWeight: 400,
-                            fontSize: '14px'
-                          }}
-                        >
-                          Available Packages:
-                        </Box>{' '}
-                        <Box
-                          component='span'
-                          sx={{
-                            color: 'primary.light',
-                            fontWeight: 500,
-                            fontSize: '14px'
-                          }}
-                        >
-                          ({productDetails?.package})
-                        </Box>
-                      </Typography>
-                      <Box mt={1} display='flex' gap={1} flexWrap='wrap'>
-                        {variantProductList.map((option, inx) => (
-                          <Chip
-                            key={option?.id}
-                            label={option?.unit_multiplier}
-                            variant='outlined'
-                            clickable
-                            sx={{
-                              '&.MuiChip-outlined': {
-                                borderColor: '#006D3566',
-                                backgroundColor: 'customColors.tableHeaderBg'
-                              },
-                              marginBottom: '8px'
-                            }}
-                          />
-                        ))}
-                      </Box>
-                    </Box>
-                  </Grid> */}
                 </Grid>
 
                 {/* Additional Info */}
@@ -635,16 +523,17 @@ const ProductDetailsList = () => {
                   productDashboardData={productDashboardData}
                   purchaseData={purchaseData}
                   dispatchData={dispatchData}
+                  updateUrlParams={updateUrlParams}
                 />
               </TabPanel>
               <TabPanel value='purchase' sx={{ p: 0 }}>
-                <Purchase tabValue={value} />
+                <Purchase tabValue={value} updateUrlParams={updateUrlParams} />
               </TabPanel>
               <TabPanel value='dispatch' sx={{ p: 0 }}>
-                <Dispatch tabValue={value} />
+                <Dispatch tabValue={value} updateUrlParams={updateUrlParams} />
               </TabPanel>
               <TabPanel value='ledger' sx={{ p: 0 }}>
-                <Ledger tabValue={value} />
+                <Ledger tabValue={value} updateUrlParams={updateUrlParams} />
               </TabPanel>
             </TabContext>
           </Card>
@@ -740,36 +629,6 @@ const ProductDetailsList = () => {
                 </Typography>
               </Box>
             )}
-
-            {/* <List>
-              {filteredListAllVariant.map(variant => (
-                <ListItem
-                  key={variant.id}
-                  disablePadding
-                  sx={{
-                    border: '1px solid #ccc',
-                    borderRadius: '4px',
-                    marginBottom: '8px',
-                    px: 4
-                  }}
-                >
-                  <Checkbox
-                    edge='start'
-                    checked={checkedItems.includes(variant.id)}
-                    tabIndex={-1}
-                    disableRipple
-                    onChange={() => handleToggle(variant.id)}
-                  />
-                  <ListItemText
-                    primary={`Unit Multiplier: ${variant.unit_multiplier}`}
-                    secondary={`Description: ${variant.description}`}
-                  />
-                </ListItem>
-              ))}
-            </List> */}
-            {/* <Button variant='contained' color='primary' fullWidth sx={{ mt: 2 }} onClick={handleAddVariants}>
-              add variant
-            </Button> */}
           </Card>
         </Box>
         <Box

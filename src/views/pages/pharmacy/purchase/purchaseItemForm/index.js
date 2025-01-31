@@ -1491,7 +1491,7 @@ const PurchaseItemForm = props => {
                   px: 2
                 }}
               >
-                30%
+                5%
               </Typography>
               compared to the previous purchase price.
               <br /> Please review before proceeding.

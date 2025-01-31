@@ -34,6 +34,13 @@ export async function getAllRequestsOfSelectedProduct(storeId, itemId) {
   return response?.data
 }
 
+export async function getAllUniquePendingList({ params }) {
+  const url = `${PHARMACY_BASE_URL}${SELECTED_STORES_REQUESTS}`
+  const response = await axiosGet({ url, params, pharmacy })
+
+  return response?.data
+}
+
 export async function getAllShipmentsSelectedStore({ params }, storeId) {
   const url = `${PHARMACY_BASE_URL}${ALL_SHIPPING_ITEMS_OF_SELECTED_STORE}/${storeId}/show`
 
@@ -51,7 +58,6 @@ export async function getAllShippedItemsOfSelectedStore({ params }, storeId) {
 }
 
 export async function getShipmentDetailOfOrder(shipmentId) {
-  // const url = `${PHARMACY_BASE_URL}${SELECTED_STORE_SHIPMENT_ORDER_DETAILS}/${shipmentId}/${requestId}`
   const url = `${PHARMACY_BASE_URL}${SELECTED_STORE_SHIPMENT_ORDER_DETAILS}/${shipmentId}`
 
   const response = await axiosGet({ url, pharmacy })

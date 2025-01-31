@@ -65,7 +65,7 @@ const validationSchema = yup.object().shape({
 
 const Overview = props => {
   console.log(props, 'props')
-  const { productDetails, productDashboardData, purchaseData, dispatchData, tabValue } = props
+  const { productDetails, productDashboardData, purchaseData, dispatchData, tabValue, updateUrlParams } = props
   const theme = useTheme()
 
   const router = useRouter()
@@ -76,6 +76,14 @@ const Overview = props => {
   // const [dispatchData, setDispatchData] = useState({ dispatch_count: [], dispatch_value: [] })
   const [isAlternativeMedicinesDrawerOpen, setAlternativeMedicinesDrawerOpen] = useState(false)
   const [addMedicinesDrawerOpen, setAddMedicinesDrawerOpen] = useState(false)
+
+  useEffect(() => {
+    if (router.query.tab !== tabValue) {
+      updateUrlParams({
+        tab: tabValue
+      })
+    }
+  }, [tabValue, updateUrlParams])
 
   const medicines = [
     {
