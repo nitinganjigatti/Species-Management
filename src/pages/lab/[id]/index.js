@@ -189,7 +189,7 @@ const RequestDetails = () => {
         value === 'completed_inconclusive') &&
       !(image || document) // Ensuring at least one attachment is present
     ) {
-      Toaster({ type: 'error', message: 'Please add attachments before completing' })
+      Toaster({ type: 'error', message: 'Attach the report before completing the test' })
       fetchRequestDetails()
 
       return
@@ -898,7 +898,7 @@ const RequestDetails = () => {
       !(image || document)
     ) {
       setHeaderStatus('awaiting_sample')
-      Toaster({ type: 'error', message: 'Please add attachments before completing' })
+      Toaster({ type: 'error', message: 'Attach the report before completing the test' })
       fetchRequestDetails()
     } else {
       setHeaderStatus(value)
