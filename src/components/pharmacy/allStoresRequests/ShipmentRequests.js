@@ -86,6 +86,12 @@ export default function ShipmentRequests({ updateUrlParams }) {
   const openShippingDialog = () => {
     setShippingDialog(true)
   }
+  useEffect(() => {
+    updateUrlParams({
+      subTab: shipmentTab
+    })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [shipmentTab])
 
   const columns = [
     {
@@ -351,11 +357,6 @@ export default function ShipmentRequests({ updateUrlParams }) {
       subTab: shipmentTab === 'Ready To Ship' ? 'Ready To Ship' : 'Shipped'
     })
   }, [fetchTableData])
-  useEffect(() => {
-    if (router.query.mainTab) {
-      setShipmentTab(router.query.subTab)
-    }
-  }, [router.query.mainTab, router.query.subTab])
 
   return (
     <TabContext value={shipmentTab}>

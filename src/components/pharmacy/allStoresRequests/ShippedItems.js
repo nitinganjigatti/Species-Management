@@ -12,11 +12,6 @@ export default function ShippedItems({ updateUrlParams, setTotalShippedCounts })
 
   const { id } = router.query
 
-  // const updateUrlParams = params => {
-  //   const query = { ...router.query, ...params }
-  //   router.push({ pathname: router.pathname, query }, undefined, { shallow: true })
-  // }
-
   // /***** Serverside pagination */
 
   const [total, setTotal] = useState(0)

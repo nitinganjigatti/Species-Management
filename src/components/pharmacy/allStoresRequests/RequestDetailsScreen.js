@@ -1,3 +1,4 @@
+/* eslint-disable react-hooks/exhaustive-deps */
 import React, { useState, useEffect, useCallback } from 'react'
 
 import { CardHeader, Grid, Card, Chip } from '@mui/material'
@@ -18,7 +19,6 @@ const RequestDetailsScreen = () => {
   const { id } = router.query
   const { selectedPharmacy } = usePharmacyContext()
 
-  console.log('router.query.mainTab ', router.query.mainTab)
   const [detailsTab, setDetailsTab] = useState(router.query.mainTab || 'Pending')
 
   const [selectedStoreDetails, setSelectedStoreDetails] = useState({
@@ -31,31 +31,19 @@ const RequestDetailsScreen = () => {
       // const query = { ...router.query, ...params }
       // router.replace({ pathname: router.pathname, query }, undefined, { shallow: true })
       // console.log('in function', router.query)
-      // debugger
+
       const newQuery = { ...router.query, ...params }
 
-      router.replace({ pathname: router.pathname, query: newQuery }, undefined, { shallow: true }).then(() => {
-        console.log('Updated Query:', router.query)
-      })
+      router.replace({ pathname: router.pathname, query: newQuery }, undefined)
     },
     [router, detailsTab]
   )
 
-  // useEffect(() => {
-  //   if (router.query.mainTab) {
-  //     setDetailsTab(router.query.mainTab)
-  //   }
-  // }, [router.query.mainTab, router.query.subTab])
-
-  // const updateUrlParams = useCallback(
-  //   async params => {
-  //     const newQuery = { ...router.query, ...params }
-  //     await router.replace({ pathname: router.pathname, query: newQuery }, undefined, { shallow: true })
-  //     debugger
-  //     console.log('Updated Query:', router.query)
-  //   },
-  //   [router]
-  // )
+  useEffect(() => {
+    updateUrlParams({
+      mainTab: detailsTab
+    })
+  }, [detailsTab])
 
   const TabBadge = ({ label, totalCount }) => (
     <div style={{ display: 'flex', alignItems: 'center', justifyItems: 'center', justifyContent: 'space-between' }}>
