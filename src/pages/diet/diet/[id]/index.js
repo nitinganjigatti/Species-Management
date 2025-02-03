@@ -24,10 +24,14 @@ import Tab from '@mui/material/Tab'
 import TabList from '@mui/lab/TabList'
 import TabPanel from '@mui/lab/TabPanel'
 import TabContext from '@mui/lab/TabContext'
-import { getDietDetails } from 'src/lib/api/diet/dietList'
+import { getDietDetails, getSpeciesList } from 'src/lib/api/diet/dietList'
 import moment from 'moment'
 import { AuthContext } from 'src/context/AuthContext'
 import Error404 from 'src/pages/404'
+import SpeciesMappedtoDiet from 'src/components/diet/SpeciesMappedtoDiet'
+import ListOfSpeciesMapped from 'src/components/diet/ListofSpeciesMapped'
+import SpeciesMappedtoDietFilter from './speciesMappedFilter'
+import { GetNurseryList } from 'src/lib/api/egg/nursery'
 
 const DietDetail = () => {
   const router = useRouter()
@@ -37,6 +41,38 @@ const DietDetail = () => {
   const [loaderTwo, setLoaderTwo] = useState(false)
   const [dietDetails, setDietDetails] = useState({})
   const [value, setValue] = useState('full')
+  const [isOpen, setIsOpen] = useState(false)
+  const [isOpennew, setIsOpennew] = useState(false)
+  const [selectedSpecies, setSelectedSpecies] = useState([])
+  const [speciesview, setspeciesview] = useState('')
+  const [openFilterDrawer, setOpenFilterDrawer] = useState(false)
+  const [activeTab, setActiveTab] = useState('Site')
+  const [searchTerm, setSearchTerm] = useState('')
+  const [speciesData, setspeciesData] = useState([])
+  const [searchQuery, setSearchQuery] = useState('')
+  const [pageNo, setPageNo] = useState(1)
+  const [loading, setLoading] = useState(false)
+  const [speciestotalcount, setspeciestotalcount] = useState('')
+  const [selectedItems, setSelectedItems] = useState({
+    Site: [],
+    Section: [],
+    Enclosure: []
+  })
+  const [items, setItems] = useState({
+    Site: [],
+    Section: [
+      { id: 1, name: 'Alpha' },
+      { id: 2, name: 'Beta' },
+      { id: 3, name: 'Gamma' },
+      { id: 4, name: 'Delta' }
+    ],
+    Enclosure: [
+      { id: 1, name: 'Enclosure A' },
+      { id: 2, name: 'Enclosure B' },
+      { id: 3, name: 'Enclosure C' }
+    ]
+  })
+
   const schedule = []
 
   let startArry = []
@@ -45,9 +81,97 @@ const DietDetail = () => {
   const dietModule = authData?.userData?.roles?.settings?.diet_module
   const dietModuleAccess = authData?.userData?.roles?.settings?.diet_module_access
 
+  const tabsforfilter = ['Site', 'Section', 'Enclosure']
+
   const handleChange = (event, newValue) => {
     setValue(newValue)
   }
+
+  const handleSpeciesClick = () => {
+    setIsOpen(true)
+  }
+
+  const handleSpeciesClicknew = val => {
+    setIsOpennew(true)
+    setspeciesview(val)
+  }
+
+  const handleSelectedSpeciesChange = updatedSelectedSpecies => {
+    setSelectedSpecies(updatedSelectedSpecies)
+  }
+
+  const siteList = async (q = '') => {
+    try {
+      const params = { search: q }
+      const res = await GetNurseryList({ params })
+      if (res?.data?.result) {
+        setItems(prev => ({
+          ...prev,
+          Site: res.data.result
+        }))
+      }
+    } catch (e) {
+      console.error('Error fetching site list:', e)
+    }
+  }
+
+  const SpeciesList = async (searchQuery, type = null) => {
+    try {
+      setLoading(true)
+      const params = { q: searchQuery, page_no: pageNo, diet_id: id, ...(type && { type }) }
+      const res = await getSpeciesList(params)
+      console.log(res, 'res')
+      if (res?.data?.result) {
+        if (pageNo === 1) {
+          setspeciesData(res.data.result)
+        } else {
+          setspeciesData(prevData => {
+            const combinedData = [...prevData, ...res.data.result]
+            const uniqueData = combinedData.filter(
+              (item, index, self) => index === self.findIndex(t => t.species_id === item.species_id)
+            )
+            return uniqueData
+          })
+        }
+        setspeciestotalcount(res?.data?.count)
+      }
+    } catch (e) {
+      console.error('Error fetching site list:', e)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // Callback to trigger SpeciesList
+  const refreshSpeciesData = () => {
+    if (speciesview !== '') {
+      SpeciesList(searchQuery, 'mapped')
+    } else {
+      SpeciesList(searchQuery)
+    }
+  }
+
+  useEffect(() => {
+    siteList()
+    console.log(speciesview, 'speciesview')
+    if (speciesview !== '') {
+      SpeciesList(searchQuery, 'mapped')
+    } else {
+      SpeciesList(searchQuery)
+    }
+  }, [isOpen, isOpennew, pageNo, searchQuery])
+
+  useEffect(() => {
+    if (searchQuery) {
+      setPageNo(1)
+      setspeciesData([])
+      if (speciesview !== '') {
+        SpeciesList(searchQuery, 'mapped')
+      } else {
+        SpeciesList(searchQuery)
+      }
+    }
+  }, [searchQuery])
 
   useEffect(() => {
     if (dietModule) {
@@ -70,6 +194,33 @@ const DietDetail = () => {
       }
     }
   }, [id, value, dietModule])
+
+  const handleScroll = scrollEvent => {
+    const { target } = scrollEvent
+    const isBottom = target.scrollHeight === target.scrollTop + target.clientHeight
+    if (isBottom && !loading && speciesData.length < speciestotalcount) {
+      setPageNo(prevPageNo => prevPageNo + 1) // Increment page number
+    }
+  }
+
+  const getDietDetailsCallback = async () => {
+    if (dietModule) {
+      if (id) {
+        try {
+          setLoaderTwo(true)
+          const response = await getDietDetails(id, { week_day: value === 'full' ? '' : value })
+          if (response.success === true) {
+            setDietDetails(response?.data)
+          }
+        } catch (error) {
+          console.error('Error fetching diet details:', error)
+        } finally {
+          setLoaderTwo(false)
+          setLoader(false)
+        }
+      }
+    }
+  }
 
   const useStyles = styled({
     table: {
@@ -159,33 +310,42 @@ const DietDetail = () => {
                   dietModulePermission={dietModule}
                   dietModuleAccess={dietModuleAccess}
                 />
-                <Card sx={{ p: '24px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
-                  <Typography sx={{ fontWeight: 500, fontSize: '20px', lineHeight: '24.2px' }}>
-                    Meals Plan - {dietDetails?.diet_type_name}
-                  </Typography>
-                  {/* <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <Box>
-                  <Typography sx={{ fontWeight: 500, fontSize: '16px', lineHeight: '19.36px', color: '#7A8684' }}>
-                    You have added{' '}
-                    <span
-                      style={{
-                        fontWeight: 500,
-                        fontSize: '20px',
-                        lineHeight: '24.2px',
-                        color: theme.palette.primary.main
-                      }}
-                    >
-                      {' '}
-                      13 species{' '}
-                    </span>{' '}
-                    for this diet plan
-                  </Typography>
-                </Box>
+                <Card sx={{ p: '24px', display: 'flex', flexDirection: 'column', mt: 2 }}>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 5 }}>
+                    <Typography sx={{ fontWeight: 500, fontSize: '20px' }}>
+                      Meals Plan - {dietDetails?.diet_type_name}
+                    </Typography>
+                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                      {dietDetails?.species_count > 0 ? (
+                        <Typography
+                          sx={{ fontWeight: 500, fontSize: '14px', color: '#7A8684', mr: 6 }}
+                          onClick={() => handleSpeciesClicknew('details')}
+                        >
+                          <span
+                            style={{
+                              fontWeight: 500,
+                              fontSize: '16px',
+                              lineHeight: '24.2px',
+                              color: theme.palette.primary.dark,
+                              background: theme.palette.background.default,
+                              padding: '10px',
+                              borderRadius: '50px',
+                              cursor: 'pointer'
+                            }}
+                          >
+                            Species assigned- {dietDetails?.species_count}
+                          </span>{' '}
+                        </Typography>
+                      ) : (
+                        ''
+                      )}
 
-                <Button startIcon={<Icon icon='mi:add' />} variant='contained'>
-                  ADD SPECIES
-                </Button>
-              </Box> */}
+                      <Button startIcon={<Icon icon='mi:add' />} variant='contained' onClick={handleSpeciesClick}>
+                        ADD SPECIES
+                      </Button>
+                    </Box>
+                  </Box>
+
                   <Box>
                     <TabContext value={value}>
                       <TabList
@@ -3024,6 +3184,64 @@ const DietDetail = () => {
               </Box>
             </Box>
           )}
+          <SpeciesMappedtoDiet
+            isOpen={isOpen}
+            setIsOpen={setIsOpen}
+            dietname={dietDetails?.diet_name}
+            dietid={dietDetails?.id}
+            speciesData={speciesData}
+            selectedSpecies={selectedSpecies}
+            onSelectedSpeciesChange={handleSelectedSpeciesChange}
+            setIsOpennew={setIsOpennew}
+            setspeciesview={setspeciesview}
+            setOpenFilterDrawer={setOpenFilterDrawer}
+            openFilterDrawer={openFilterDrawer}
+            selectedItems={selectedItems}
+            dietId={id}
+            speciestotalcount={speciestotalcount}
+            refreshSpeciesData={refreshSpeciesData}
+            refreshDietDetails={getDietDetailsCallback}
+            searchQuery={searchQuery}
+            setSearchQuery={setSearchQuery}
+            handleScroll={handleScroll}
+            loading={loading}
+            setPageNo={setPageNo}
+          />
+          <ListOfSpeciesMapped
+            isOpennew={isOpennew}
+            setIsOpennew={setIsOpennew}
+            dietname={dietDetails?.diet_name}
+            dietid={dietDetails?.id}
+            speciesData={speciesData}
+            onSelectedSpeciesChange={handleSelectedSpeciesChange}
+            selectedSpecies={selectedSpecies}
+            speciesview={speciesview}
+            dietDetails={dietDetails}
+            dietId={id}
+            refreshSpeciesData={refreshSpeciesData}
+            refreshDietDetails={getDietDetailsCallback}
+            searchQuery={searchQuery}
+            setSearchQuery={setSearchQuery}
+            speciestotalcount={speciestotalcount}
+            setspeciesview={setspeciesview}
+            handleScroll={handleScroll}
+            setLoading={setLoading}
+            loading={loading}
+            setPageNo={setPageNo}
+          />
+          <SpeciesMappedtoDietFilter
+            setOpenFilterDrawer={setOpenFilterDrawer}
+            openFilterDrawer={openFilterDrawer}
+            tabsforfilter={tabsforfilter}
+            setActiveTab={setActiveTab}
+            tabs={tabs}
+            activeTab={activeTab}
+            setSearchTerm={setSearchTerm}
+            searchTerm={searchTerm}
+            setSelectedItems={setSelectedItems}
+            selectedItems={selectedItems}
+            items={items}
+          />
         </>
       ) : (
         <>

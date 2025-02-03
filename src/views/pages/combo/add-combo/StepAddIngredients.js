@@ -14,19 +14,29 @@ import { useForm, useFieldArray } from 'react-hook-form'
 import { Controller } from 'react-hook-form'
 import IconButton from '@mui/material/IconButton'
 import { getPreparationTypeList } from 'src/lib/api/diet/getIngredients'
-import { Divider } from '@mui/material'
+import { Divider, CardContent } from '@mui/material'
 import CancelIcon from '@mui/icons-material/Cancel'
 import * as yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
 import toast from 'react-hot-toast'
 import Toaster from 'src/components/Toaster'
+import { useRouter } from 'next/router'
+import Router from 'next/router'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
 import AddCutSize from '../../diet/cutSizes/addCutSizes'
 import { addCutSize, getCutsizeList } from 'src/lib/api/diet/settings/cutSizes'
+import CustomFileUploaderSingle from 'src/views/forms/form-elements/file-uploader/CustomFileUploaderSingle'
 
 const defaultValues = {
+  recipe_name: '',
+  portion_size: '',
+  portion_uom_id: '',
+  portion_uom_name: '',
+  nutrional_value: '',
+  nutrional_uom_id: '',
+  kcal: '',
   by_percentage: [
     {
       ingredient_id: '',
@@ -56,6 +66,7 @@ const defaultValues = {
 }
 
 const schema = yup.object().shape({
+  recipe_name: yup.string().required('Combo name is required')
   // by_percentage: yup.array().of(
   //   yup.object().shape({
   //     ingredient_id: yup.string().required('Ingredient is required'),
@@ -111,6 +122,7 @@ const StepAddIngredients = ({
     { label: 'Cut Size' }
   ]
   const editParamsInitialState = { id: null, label: null, status: null }
+  const [uploadedImage, setUploadedImage] = useState(null)
   const [preparationTypeListPercentage, setPreparationTypeListPercentage] = useState([])
   const [preparationTypeListQuantity, setPreparationTypeListQuantity] = useState([])
   const [openDrawer, setOpenDrawer] = useState(false)
@@ -315,10 +327,24 @@ const StepAddIngredients = ({
   //   }
   // }
 
-  const handlePrevClick = () => {
-    window.scrollTo(0, 0)
-    handlePrev()
+  // const handlePrevClick = () => {
+  //   window.scrollTo(0, 0)
+  //   handlePrev()
+  // }
+
+  const cancelBack = () => {
+    Router.push('/diet/combo/')
   }
+
+  const handleImageUpload = imageData => {
+    setUploadedImage(imageData)
+  }
+
+  useEffect(() => {
+    if (formData) {
+      setUploadedImage(formData.recipe_image)
+    }
+  }, [formData])
 
   useEffect(() => {
     if (formData) {
@@ -481,7 +507,15 @@ const StepAddIngredients = ({
 
       try {
         await schema.validate(data, { abortEarly: false })
-        handleNext(data)
+        const imageData = await handleImageUpload()
+        console.log(imageData, 'imageData')
+
+        // Merge the image data with other form data
+        const formDataWithImage = {
+          ...data,
+          recipe_image: uploadedImage
+        }
+        handleNext(formDataWithImage)
       } catch (validationErrors) {
         validationErrors.inner.forEach(error => {
           setError(error.path, { message: error.message })
@@ -547,6 +581,16 @@ const StepAddIngredients = ({
 
   const ScrollToFieldError = ({ errors, index }) => {
     // if (!errors) return
+    useEffect(() => {
+      if (!errors) return
+      console.log(Object.keys(errors)[0], 'check')
+      const firstErrorField = Object.keys(errors)[0]
+      const errorElement = document.querySelector(`input[name="${firstErrorField}"]`)
+      console.log(errorElement, 'errorElement')
+      if (errorElement) {
+        errorElement.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      }
+    }, [errors])
     const firstErrorField = Object.keys(errors)[0]
 
     if (firstErrorField === 'by_percentage') {
@@ -583,7 +627,46 @@ const StepAddIngredients = ({
 
   return (
     <>
+      <Box sx={{ mb: 1, px: 5, mt: 5, float: 'left' }}>
+        <Typography variant='h6'>Combo details</Typography>
+      </Box>
       <form onSubmit={handleSubmit(onSubmit)}>
+        <ScrollToFieldError errors={errors} />
+        <Grid container spacing={5} sx={{ px: 5 }}>
+          <Grid item xs={12} sm={6}>
+            <FormControl fullWidth>
+              <Controller
+                name='recipe_name'
+                control={control}
+                rules={{ required: true }}
+                render={({ field: { value, onChange } }) => (
+                  <TextField
+                    value={value}
+                    label='Combo name *'
+                    name='recipe_name'
+                    error={Boolean(errors.recipe_name)}
+                    onChange={onChange}
+                  />
+                )}
+              />
+
+              {errors.recipe_name && (
+                <FormHelperText sx={{ color: 'error.main' }}>{errors?.recipe_name?.message}</FormHelperText>
+              )}
+            </FormControl>
+          </Grid>
+          <Divider sx={{ mb: 2, mx: 3, pb: 1, mt: 8, width: '98%', ml: 5 }} />
+
+          <Box sx={{ mb: 0, px: 5, mt: 3, float: 'left', width: '100%' }}>
+            <Typography variant='h6'>Add image</Typography>
+          </Box>
+          {console.log(uploadedImage, 'uploadedImage')}
+          <Grid item xs={6} sx={{ pt: 0 }}>
+            <CardContent sx={{ px: 0, paddingTop: 2 }}>
+              <CustomFileUploaderSingle onImageUpload={handleImageUpload} uploadedImagenew={uploadedImage} />
+            </CardContent>
+          </Grid>
+        </Grid>
         <Grid container spacing={5} sx={{ px: 5, pt: 6 }}>
           <Grid item xs={12}>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4, mt: 2, mr: 4 }}>
@@ -625,6 +708,7 @@ const StepAddIngredients = ({
               {fieldsIngredients.map((field, index) => (
                 <Grid container spacing={5} sx={{ px: 5, py: 5 }} key={field.id} id={'test' + index}>
                   <ScrollToFieldError errors={errors} index={index} />
+
                   <Grid item xs={12} sm={2.85}>
                     <FormControl fullWidth>
                       <Controller
@@ -1126,11 +1210,11 @@ const StepAddIngredients = ({
               <Button
                 color='secondary'
                 variant='outlined'
-                onClick={handlePrevClick}
+                onClick={cancelBack}
                 startIcon={<Icon icon='mdi:arrow-left' fontSize={20} />}
                 sx={{ mr: 6 }}
               >
-                Go back
+                Cancel
               </Button>
               <Button type='submit' variant='contained' endIcon={<Icon icon='mdi:arrow-right' fontSize={20} />}>
                 Next
