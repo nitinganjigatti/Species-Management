@@ -394,8 +394,8 @@ export default function RequestedItems({ selectedStoreDetails, setSelectedStoreD
           q,
           sort,
           column,
-          ...(filterDates.startDate !== '' && { from_date: filterDates.startDate }),
-          ...(filterDates.endDate !== '' && { to_date: filterDates.endDate }),
+          ...(filterDates?.startDate !== '' && { from_date: filterDates?.startDate }),
+          ...(filterDates?.endDate !== '' && { to_date: filterDates?.endDate }),
           ...(controlledDrug !== 'all' && { controlled: controlledDrug }),
           ...(priority !== 'all' && { priority: priority })
         }
