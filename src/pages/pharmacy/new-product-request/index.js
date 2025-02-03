@@ -89,9 +89,21 @@ export default function NewProductList() {
         // Trigger table data refresh after status change
         // Call fetchTableData for 'Pending' tab if the new status is 'Cancelled'
         if (status === 'Cancelled' || 'Approved' || 'Rejected') {
-          fetchTableData({ sort, q: searchValue, column: sortColumn, status: 'Pending' }) // Refresh pending tab
+          fetchTableData({
+            sort,
+            q: searchValue,
+            column: sortColumn,
+            status: 'Pending',
+            filterByPharmacyId: filterByPharmacyId === 'all' ? '' : filterByPharmacyId
+          }) // Refresh pending tab
         } else {
-          fetchTableData({ sort, q: searchValue, column: sortColumn, status: status })
+          fetchTableData({
+            sort,
+            q: searchValue,
+            column: sortColumn,
+            status: status,
+            filterByPharmacyId: filterByPharmacyId === 'all' ? '' : filterByPharmacyId
+          })
         }
       }
     } catch (error) {
