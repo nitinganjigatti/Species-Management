@@ -93,6 +93,7 @@ function Purchase({ tabValue, updateUrlParams }) {
       width: 70,
       field: 'sl',
       headerName: 'S.NO',
+      sortable: false,
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.sl_no + '.'}

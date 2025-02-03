@@ -99,6 +99,7 @@ function Dispatch({ tabValue, updateUrlParams }) {
       Width: 60,
       field: 'sl_no',
       headerName: 'S.NO',
+      sortable: false,
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.sl_no + '.'}

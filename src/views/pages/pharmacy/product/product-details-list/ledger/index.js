@@ -112,7 +112,7 @@ function Ledger({ tabValue, updateUrlParams }) {
   const [rows, setRows] = useState([])
   const [searchValue, setSearchValue] = useState(router.query.searchValue || '')
   const [sort, setSort] = useState(router.query.sort || 'desc')
-  const [sortColumn, setSortColumn] = useState(router.query.column || 'number')
+  const [sortColumn, setSortColumn] = useState(router.query.column || 'created_at')
 
   const [paginationModel, setPaginationModel] = useState({
     page: parseInt(router.query.page) || 0,
@@ -157,13 +157,13 @@ function Ledger({ tabValue, updateUrlParams }) {
     if (router.query.tab !== tabValue) {
       // debugger
       setPaginationModel({ page: 0, pageSize: 10 })
-      setSortColumn('number')
+      setSortColumn('created_at')
       setSelectedTabs([])
       setSelectedBatches([])
       updateUrlParams({
         tab: tabValue,
         sort: 'desc',
-        column: 'number',
+        column: 'created_at',
         searchValue: '',
         batch_no: [],
         filters: [],
@@ -183,6 +183,7 @@ function Ledger({ tabValue, updateUrlParams }) {
       width: 70,
       field: 'sl_no',
       headerName: 'S.NO',
+      sortable: false,
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.sl_no + '.'}
@@ -454,10 +455,12 @@ function Ledger({ tabValue, updateUrlParams }) {
   ]
 
   const getLedger = useCallback(
-    async ({ stock_id, batch_no, q, tab }) => {
+    async ({ sort, column, stock_id, batch_no, q, tab }) => {
       try {
         setLoading(true)
         const params = {
+          sort_value: sort,
+          sort_column: column,
           stock_id,
           batch_no,
           q,
@@ -475,6 +478,8 @@ function Ledger({ tabValue, updateUrlParams }) {
             setLoading(false)
             updateUrlParams({
               tab: tabValue,
+              sort: sort,
+              column: column,
               batch_no: batch_no,
               searchValue: q,
               filters: tab,
@@ -500,6 +505,8 @@ function Ledger({ tabValue, updateUrlParams }) {
   useEffect(() => {
     if (id && router.query.tab === tabValue) {
       getLedger({
+        sort,
+        column: sortColumn,
         stock_id: id,
         batch_no: selectedBatches,
         q: searchValue,
@@ -527,6 +534,8 @@ function Ledger({ tabValue, updateUrlParams }) {
     debounce(async ({ q }) => {
       try {
         await getLedger({
+          sort,
+          column: sortColumn,
           stock_id: id,
           batch_no: selectedBatches,
           q: q,
@@ -548,6 +557,8 @@ function Ledger({ tabValue, updateUrlParams }) {
     }
     setSelectedTabs(updatedTabs)
     getLedger({
+      sort,
+      column: sortColumn,
       stock_id: id,
       batch_no: selectedBatches,
       q: searchValue,
@@ -630,6 +641,8 @@ function Ledger({ tabValue, updateUrlParams }) {
   const handleApplyFilter = async () => {
     try {
       await getLedger({
+        sort,
+        column: sortColumn,
         stock_id: id,
         batch_no: selectedBatches,
         q: searchValue,
@@ -650,6 +663,8 @@ function Ledger({ tabValue, updateUrlParams }) {
       setSelectedBatches([])
 
       await getLedger({
+        sort,
+        column: sortColumn,
         stock_id: id,
         batch_no: [],
         q: searchValue,
@@ -663,6 +678,23 @@ function Ledger({ tabValue, updateUrlParams }) {
   }
 
   const onRowClick = params => {}
+
+  const handleSortModel = newModel => {
+    if (newModel.length) {
+      const newSort = newModel[0].sort
+      const newColumn = newModel[0].field
+      setSort(newSort)
+      setSortColumn(newColumn)
+      getLedger({
+        sort: newSort,
+        column: newColumn,
+        stock_id: id,
+        batch_no: selectedBatches,
+        q: searchValue,
+        tab: selectedTabs
+      })
+    }
+  }
 
   return (
     <>
@@ -908,7 +940,7 @@ function Ledger({ tabValue, updateUrlParams }) {
           total={total}
           columns={columns}
           paginationModel={paginationModel}
-          // handleSortModel={handleSortModel}
+          handleSortModel={handleSortModel}
           setPaginationModel={setPaginationModel}
           loading={loading}
           searchValue={searchValue}
