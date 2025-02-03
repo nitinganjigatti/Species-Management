@@ -14,16 +14,28 @@ export async function getPurchaseList({ params }) {
 }
 
 export async function getPurchaseListById(id) {
-  const response = await axiosGet({ url: `${PURCHASE}/${id}/show`, pharmacy: true })
+  const response = await axiosGet({ url: `v1/pharma/${PURCHASE}/${id}/show`, pharmacy: true })
+
+  return response.data
+}
+
+export async function postDeleteInvoiceById(id, params) {
+  console.log('params', params)
+
+  const response = await axiosFormPost({
+    url: `v1/pharma/${PURCHASE}/${id}/deleteinvoicetranscript`,
+    body: params,
+    pharmacy: true
+  })
 
   return response.data
 }
 
 export async function addPurchase(payload) {
   try {
-    const url = `${PHARMACY_BASE_URL}${PURCHASE}`
+    const url = `v2/pharma/${PURCHASE}`
     var data = payload
-    const response = await axiosPost({ url, body: data, pharmacy: true })
+    const response = await axiosFormPost({ url, body: data, pharmacy: true })
 
     return response?.data
   } catch (error) {
@@ -60,10 +72,11 @@ export async function updatePurchase(id, payload) {
 
 export async function updatePurchasePrice(id, payload) {
   try {
-    const url = `${UPDATE_PURCHASE_BASE_URL}${PURCHASE}/${id}/update`
+    // const url = `${UPDATE_PURCHASE_BASE_URL}${PURCHASE}/${id}/update`
+    const url = `v3/pharma/${PURCHASE}/${id}/update`
     var data = payload
     data.id = id
-    const response = await axiosPost({ url, body: data, pharmacy: true })
+    const response = await axiosFormPost({ url, body: data, pharmacy: true })
 
     return response?.data
   } catch (error) {
