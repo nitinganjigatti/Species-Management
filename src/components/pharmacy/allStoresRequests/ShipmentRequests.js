@@ -421,12 +421,13 @@ export default function ShipmentRequests({ updateUrlParams }) {
               <Button
                 fullWidth
                 size='big'
+                sx={{ px: 2 }}
                 variant='contained'
                 onClick={() => {
                   openShippingDialog()
                 }}
               >
-                Ship All Items
+                {selectedRows?.length > 0 ? 'Ship Selected Items' : 'Ship All Items'}
               </Button>
             </Grid>
           ) : null}

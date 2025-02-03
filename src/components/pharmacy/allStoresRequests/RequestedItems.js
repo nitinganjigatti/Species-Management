@@ -406,6 +406,7 @@ export default function RequestedItems({ selectedStoreDetails, setSelectedStoreD
               storeId: res?.data?.id,
               storeName: res?.data?.store_name
             })
+            updateUrlParams({ selectedStoreName: res?.data?.store_name })
           }
           if (res?.success === true && res?.data?.list_items?.length > 0) {
             setTotal(parseInt(res?.data?.total_count))
