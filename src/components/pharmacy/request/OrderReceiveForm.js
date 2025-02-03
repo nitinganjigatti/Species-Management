@@ -1582,8 +1582,7 @@ function OrderReceiveForm({ orderId, requestId }) {
               margin-top: 16px;
 
             }
-
-            .MuiDataGrid-footerContainer{
+              .MuiDataGrid-footerContainer{
               display:none!important;
               opacity: 0;
             }

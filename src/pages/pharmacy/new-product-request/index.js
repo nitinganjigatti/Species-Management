@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react'
+import React, { useState, useEffect, useCallback, useContext } from 'react'
 
 import TableWithFilter from 'src/components/TableWithFilter'
 import FallbackSpinner from 'src/@core/components/spinner/index'
@@ -18,7 +18,19 @@ import TabContext from '@mui/lab/TabContext'
 import TabList from '@mui/lab/TabList'
 import Tab from '@mui/material/Tab'
 import TabPanel from '@mui/lab/TabPanel'
-import { Box, Button, Card, CardContent, Grid, TextField, debounce } from '@mui/material'
+import {
+  Box,
+  Button,
+  Card,
+  CardContent,
+  FormControl,
+  Grid,
+  InputLabel,
+  MenuItem,
+  Select,
+  TextField,
+  debounce
+} from '@mui/material'
 
 import {
   addNonExistingProductStatus,
@@ -39,6 +51,7 @@ import toast from 'react-hot-toast'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import { AddButtonContained } from 'src/components/ButtonContained'
 import RenderUtility from 'src/utility/render'
+import { AuthContext } from 'src/context/AuthContext'
 
 export default function NewProductList() {
   const theme = useTheme()
@@ -49,9 +62,15 @@ export default function NewProductList() {
   const [productDetails, setProductDetails] = useState({})
   const [reasonText, setReasonText] = useState('')
   const [submitLoader, setSubmitLoader] = useState(false)
+  const [filterByPharmacyId, setFilterByPharmacyId] = useState('' || 'all')
+
   const [prescriptionImages, setPrescriptionImages] = useState()
   const [statusCall, setStatusCall] = useState(false)
   const { selectedPharmacy } = usePharmacyContext()
+  const [selectedPharmacyState, setSelectedPharmacyState] = useState(selectedPharmacy)
+  const authData = useContext(AuthContext)
+
+  console.log('Selected Pharmacy', authData.userData.modules.pharmacy_data.pharmacy)
 
   const handleRequestStatus = async (status, id, productDetails) => {
     const payload = {
@@ -70,9 +89,21 @@ export default function NewProductList() {
         // Trigger table data refresh after status change
         // Call fetchTableData for 'Pending' tab if the new status is 'Cancelled'
         if (status === 'Cancelled' || 'Approved' || 'Rejected') {
-          fetchTableData({ sort, q: searchValue, column: sortColumn, status: 'Pending' }) // Refresh pending tab
+          fetchTableData({
+            sort,
+            q: searchValue,
+            column: sortColumn,
+            status: 'Pending',
+            filterByPharmacyId: filterByPharmacyId === 'all' ? '' : filterByPharmacyId
+          }) // Refresh pending tab
         } else {
-          fetchTableData({ sort, q: searchValue, column: sortColumn, status: status })
+          fetchTableData({
+            sort,
+            q: searchValue,
+            column: sortColumn,
+            status: status,
+            filterByPharmacyId: filterByPharmacyId === 'all' ? '' : filterByPharmacyId
+          })
         }
       }
     } catch (error) {
@@ -277,10 +308,21 @@ export default function NewProductList() {
   const [status, setStatus] = useState('Approved')
 
   const handleChange = (event, newValue) => {
+    // Reset total and search value
     setTotal(0)
     setSearchValue('')
 
+    // Update the status
     setStatus(newValue)
+
+    // Fetch table data with the new status
+    fetchTableData({
+      sort,
+      q: '', // Clear the search value when status changes
+      column: sortColumn,
+      status: newValue, // Use the updated status
+      filterByPharmacyId: filterByPharmacyId === 'all' ? '' : filterByPharmacyId // Use the current pharmacy filter
+    })
   }
 
   function loadServerRows(currentPage, data) {
@@ -288,7 +330,7 @@ export default function NewProductList() {
   }
 
   const fetchTableData = useCallback(
-    async ({ sort, q, column, status }) => {
+    async ({ sort, q, column, status, filterByPharmacyId, page, limit }) => {
       try {
         setLoading(true)
 
@@ -296,15 +338,16 @@ export default function NewProductList() {
           sort,
           q,
           column,
-          page: paginationModel.page + 1,
-          limit: paginationModel.pageSize,
-          type: status
+          page: page || paginationModel.page + 1, // Fallback to current page if not provided
+          limit: limit || paginationModel.pageSize, // Fallback to current limit if not provided
+          type: status,
+          pharmacy: filterByPharmacyId === 'all' ? '' : filterByPharmacyId
         }
 
-        await getNonExistingProductList({ params: params }).then(res => {
+        await getNonExistingProductList({ params }).then(res => {
           if (res?.data?.length > 0) {
-            setTotal(parseInt(res?.count))
-            setRows(loadServerRows(paginationModel.page, res?.data))
+            setTotal(parseInt(res?.count, 10))
+            setRows(loadServerRows(params.page - 1, res?.data)) // Convert back to 0-indexed for client-side
           } else {
             setTotal(0)
             setRows([])
@@ -314,11 +357,11 @@ export default function NewProductList() {
       } catch (e) {
         setTotal(0)
         setRows([])
-        console.log(e)
+        console.error(e)
         setLoading(false)
       }
     },
-    [paginationModel]
+    [paginationModel.page, paginationModel.pageSize] // Ensure state is watched properly
   )
 
   const handleSortModel = async newModel => {
@@ -351,11 +394,19 @@ export default function NewProductList() {
   )
 
   const searchTableData = useCallback(
-    debounce(async ({ sort, q, column, status }) => {
-      debugger
+    debounce(async ({ sort, q, column, status, filterByPharmacyId }) => {
       setSearchValue(q)
+
+      setPaginationModel({ page: 0, pageSize: 10 })
+
       try {
-        await fetchTableData({ sort, q, column, status })
+        await fetchTableData({
+          sort,
+          q,
+          column,
+          status,
+          filterByPharmacyId: filterByPharmacyId === 'all' ? '' : filterByPharmacyId
+        })
       } catch (error) {
         console.error(error)
       }
@@ -364,18 +415,48 @@ export default function NewProductList() {
   )
 
   const handleSearch = async value => {
-    debugger
     setSearchValue(value)
     if (value === '') {
-      await searchTableData({ sort, q: value, column: 'id', status })
+      await searchTableData({ sort, q: value, column: 'id', status, filterByPharmacyId })
     } else {
-      await searchTableData({ sort, q: value, column: 'request_number', status })
+      await searchTableData({ sort, q: value, column: 'request_number', status, filterByPharmacyId })
     }
   }
 
+  // useEffect(() => {
+  //   fetchTableData({
+  //     sort,
+  //     q: searchValue,
+  //     column: sortColumn,
+  //     status,
+  //     filterByPharmacyId: selectedPharmacy.type == 'central' ? '' : selectedPharmacy.id
+  //   })
+  // }, [fetchTableData, status, filterByPharmacyId])
+
+  // useEffect(() => {
+  //   if (selectedPharmacy.id && selectedPharmacy.type !== 'central') {
+  //     setFilterByPharmacyId(selectedPharmacy.id) // Update dropdown to reflect selectedPharmacy
+  //   } else {
+  //     setFilterByPharmacyId('all')
+  //   }
+  // }, [selectedPharmacy])
+
   useEffect(() => {
-    fetchTableData({ sort, q: searchValue, column: sortColumn, status })
-  }, [fetchTableData, selectedPharmacy.id, status])
+    const pharmacyFilterValue = selectedPharmacy.type === 'central' ? '' : selectedPharmacy.id || ''
+
+    setFilterByPharmacyId(selectedPharmacy.type === 'central' ? 'all' : selectedPharmacy.id || 'all')
+
+    setPaginationModel({ page: 0, pageSize: 10 })
+
+    // Fetch table data with the appropriate filter value
+    fetchTableData({
+      sort,
+      q: searchValue,
+      column: sortColumn,
+      status,
+      filterByPharmacyId: pharmacyFilterValue
+    })
+  }, [sort, sortColumn, selectedPharmacy])
 
   const handleEdit = id => {
     router.push({
@@ -430,51 +511,103 @@ export default function NewProductList() {
           />
 
           <Box
-            display='flex'
-            justifyContent='space-between'
-            flexDirection={{ xs: 'column', sm: 'row' }} // Adjust direction based on screen size
-            gap={2} // Gap between items on smaller screens
+            sx={{
+              display: 'flex',
+              flexDirection: { xs: 'column', md: 'row' },
+              justifyContent: { xs: 'center', md: 'space-between' },
+              alignItems: 'center',
+
+              // padding: '2px',
+              margin: selectedPharmacy?.type === 'local' ? '1rem 1.375rem 0px 1.375rem' : '0rem 1.375rem 0px 1.375rem',
+              gap: { xs: 2, md: 3 }
+            }}
           >
-            {/* Left Box (Search Field) */}
-            <Grid
-              item
-              xs={12}
-              sm={8}
-              md={6}
-              sx={{
-                mx: { xs: 3, md: 5 }
-              }}
-            >
-              <Box
+            {/* <Box
                 sx={{
                   display: 'flex',
                   alignItems: 'center',
                   border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                   borderRadius: '8px',
-
                   padding: '0 8px',
                   height: '40px',
-                  width: { xs: '100%', sm: '240px' }
+
+                  // ml: { sm: 4.5},
+                  width: { xs: '100%', md: '290px' },
+                  marginBottom: { xs: 2, md: 0 }
                 }}
               >
-                <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
-                <TextField
-                  variant='outlined'
-                  placeholder='Search...'
-                  value={searchValue}
-                  onChange={e => handleSearch(e.target.value)}
-                  fullWidth
-                  sx={{
-                    '& .MuiOutlinedInput-root': {
-                      border: 'none',
-                      padding: '0',
-                      '& fieldset': {
-                        border: 'none'
-                      }
-                    }
-                  }}
-                />
-              </Box>
+                <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} /> */}
+            <TextField
+              variant='outlined'
+              size='small'
+              placeholder='Search...'
+              value={searchValue}
+              onChange={e => handleSearch(e.target.value)}
+              fullWidth
+              sx={{
+                borderRadius: '8px',
+                width: { xs: '100%', md: '290px' }
+              }}
+            />
+            {/* </Box> */}
+
+            {/* Filters */}
+            <Grid
+              container
+              spacing={2}
+              sx={{
+                display: 'flex',
+                flexWrap: { xs: 'wrap', md: 'nowrap' },
+                justifyContent: { xs: 'center', md: 'flex-end' },
+                alignItems: 'center'
+
+                // width: '100%'
+              }}
+            >
+              {/* Filter by Stores */}
+              <Grid
+                item
+                xs={12}
+                sx={{
+                  maxWidth: { xs: '100%', md: '250px' },
+                  width: '100%',
+                  height: '48px',
+                  mt: { xs: 2, md: 0 }
+                }}
+              >
+                <FormControl fullWidth size='small'>
+                  <InputLabel>Filter by Pharmacy</InputLabel>
+                  <Select
+                    value={filterByPharmacyId}
+                    label='Filter by Pharmacy'
+                    onChange={e => {
+                      setPaginationModel({ page: 0, pageSize: 10 })
+                      const selectedId = e.target.value
+
+                      // Update the dropdown value
+                      setFilterByPharmacyId(selectedId)
+
+                      // Fetch table data with the selected pharmacy filter
+                      fetchTableData({
+                        sort,
+                        q: searchValue,
+                        column: sortColumn,
+                        status,
+                        filterByPharmacyId: selectedId === 'all' ? '' : selectedId,
+                        page: 0,
+                        limit: 10
+                      })
+                    }}
+                  >
+                    <MenuItem value='all'>All</MenuItem>
+                    {authData.userData.modules.pharmacy_data.pharmacy?.map(item => (
+                      <MenuItem key={item.id} value={item.id}>
+                        {item.name}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Grid>
             </Grid>
           </Box>
 
@@ -488,11 +621,27 @@ export default function NewProductList() {
               indexedRows={indexedRows}
               total={total}
               columns={columns}
-              paginationModel={paginationModel}
+              paginationModel={paginationModel} // Controlled model
+              setPaginationModel={model => {
+                // Update state first
+                setPaginationModel(model)
+
+                // Destructure the updated page and pageSize for clarity
+                const { page, pageSize } = model
+
+                // Fetch table data with the updated page and pageSize
+                fetchTableData({
+                  sort,
+                  q: searchValue,
+                  column: sortColumn,
+                  status,
+                  page: page + 1, // Convert to 1-indexed pages for API
+                  limit: pageSize,
+                  filterByPharmacyId: filterByPharmacyId === 'all' ? '' : filterByPharmacyId
+                })
+              }}
               handleSortModel={handleSortModel}
-              setPaginationModel={setPaginationModel}
               loading={loading}
-              searchValue={searchValue}
             />
           </Grid>
         </Card>

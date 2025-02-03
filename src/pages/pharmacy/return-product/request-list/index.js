@@ -155,9 +155,8 @@ const ReturnRequestList = () => {
         let params = {}
 
         if (
-          startDate &&
-          endDate && // Checks if startDate and endDate are truthy (not empty or undefined)
-          (filterDates?.startDate || filterDates?.endDate) // Checks if filterDates' startDate and endDate are truthy (not empty or undefined)
+          startDate ||
+          endDate // Checks if startDate and endDate are truthy (not empty or undefined)
         ) {
           params = {
             sort,
@@ -534,17 +533,13 @@ const ReturnRequestList = () => {
       headerName: 'Returned by ',
       headerAlign: 'left',
       renderCell: params => (
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          {Utility.renderUserAvatar(params.row.user_created_profile_pic)}
-          <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-            <Typography variant='subtitle2' sx={{ color: 'text.primary' }}>
-              {params?.row?.created_by_user_name ? params?.row?.created_by_user_name : 'NA'}
-            </Typography>
-            <Typography variant='caption' sx={{ lineHeight: 1.6667 }}>
-              {Utility.formatDisplayDate(params.row.request_date)}
-            </Typography>
-          </Box>
-        </Box>
+        <>
+          {RenderUtility?.renderUserAvatarDetails(
+            params?.row?.user_created_profile_pic,
+            params?.row?.created_by_user_name,
+            params?.row?.created_at
+          )}
+        </>
       )
     }
   ]

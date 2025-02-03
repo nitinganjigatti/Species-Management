@@ -729,12 +729,16 @@ const AddMedicine = () => {
     try {
       const response = await updateMedicineById(payload, id)
       if (response?.success) {
+        debugger
         setAlertDefaults({ status: true, message: response?.message, severity: 'success' })
 
         //setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message, severity: 'success' })
         setSubmitLoader(true)
         reset(defaultValues)
-        Router.push('/pharmacy/medicine/product-list')
+
+        Router.replace(`/pharmacy/medicine/${id}`)
+
+        // Router.back()
       } else {
         setSubmitLoader(false)
 
@@ -772,7 +776,10 @@ const AddMedicine = () => {
           setDefaultSalts([])
           setShouldClearFields(false)
         } else {
-          Router.push('/pharmacy/medicine/product-list')
+          debugger
+
+          // Router.push('/pharmacy/medicine/product-list')
+          Router.replace(`/pharmacy/medicine/${response?.data?.stock_item_id}`)
         }
         setSubmitLoader(false)
       } else {

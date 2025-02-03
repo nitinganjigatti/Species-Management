@@ -125,7 +125,6 @@ const RequestList = () => {
         if (
           startDate ||
           endDate // Checks if startDate and endDate are truthy (not empty or undefined)
-          // (filterDates?.startDate || filterDates?.endDate) // Checks if filterDates' startDate and endDate are truthy (not empty or undefined)
         ) {
           params = {
             type: 'request',
@@ -406,27 +405,36 @@ const RequestList = () => {
     },
 
     {
-      width: 4,
+      width: 5,
       field: 'priority',
       headerName: '',
       headerAlign: 'left',
       textAlign: 'center',
-      renderCell: params => (
-        <Box>
-          {params.row.priority !== null && (
-            <span
-              style={{
-                width: '10px',
-                height: '10px',
-                borderRadius: '100%',
-                background: theme.palette.customColors.Error,
-                display: 'inline-block'
-              }}
-            ></span>
-          )}
-        </Box>
-      )
+      renderCell: params => <Box>{RenderUtility.getPriorityIcons(params.row.priority)}</Box>
     },
+
+    // {
+    //   width: 4,
+    //   field: 'priority',
+    //   headerName: '',
+    //   headerAlign: 'left',
+    //   textAlign: 'center',
+    //   renderCell: params => (
+    //     <Box>
+    //       {params.row.priority !== null && (
+    //         <span
+    //           style={{
+    //             width: '10px',
+    //             height: '10px',
+    //             borderRadius: '100%',
+    //             background: theme.palette.customColors.Error,
+    //             display: 'inline-block'
+    //           }}
+    //         ></span>
+    //       )}
+    //     </Box>
+    //   )
+    // },
 
     {
       width: 120,
@@ -469,7 +477,7 @@ const RequestList = () => {
     },
     {
       minWidth: 100,
-      field: 'request_date',
+      field: 'created_at',
       headerName: 'Days',
       renderCell: params => (
         <Typography
@@ -648,17 +656,13 @@ const RequestList = () => {
       field: 'created_by_user_name',
       headerName: 'Requested by ',
       renderCell: params => (
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          {Utility.renderUserAvatar(params.row.user_created_profile_pic)}
-          <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-            <Typography variant='subtitle2' sx={{ color: 'text.primary' }}>
-              {params?.row?.created_by_user_name ? params?.row?.created_by_user_name : 'NA'}
-            </Typography>
-            <Typography variant='caption' sx={{ lineHeight: 1.6667 }}>
-              {Utility.formatDisplayDate(params.row.created_at)}
-            </Typography>
-          </Box>
-        </Box>
+        <>
+          {RenderUtility?.renderUserAvatarDetails(
+            params?.row?.user_created_profile_pic,
+            params?.row?.created_by_user_name,
+            params?.row?.created_at
+          )}
+        </>
       )
     }
   ]
