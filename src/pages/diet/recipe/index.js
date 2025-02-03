@@ -251,7 +251,7 @@ const RecipeList = () => {
       )
     },
     {
-      flex: 0.3,
+      flex: 0.4,
       minWidth: 20,
       field: 'ingredient_name',
       headerName: 'NO OF INGREDIENTS',
@@ -272,13 +272,13 @@ const RecipeList = () => {
 
             // style={{ background: '#1F515B' }}
           >
-            <span>{params.row.ingredients_count ? params.row.ingredients_count : '-'}</span>
+            <Typography sx={{ pl: 2 }}>{params.row.ingredients_count ? params.row.ingredients_count : '-'}</Typography>
           </Tooltip>
         </Typography>
       )
     },
     {
-      flex: 0.6,
+      flex: 0.5,
       minWidth: 60,
       field: 'user_name',
       headerName: 'CREATED BY',

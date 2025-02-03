@@ -238,7 +238,7 @@ const RecipeList = () => {
       headerName: 'COMBO ID',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary', pl: 2 }}>
-          {params.row.id ? 'COM' + params.row.id : '-'}
+          {params.row.id ? 'CMB' + params.row.id : '-'}
         </Typography>
       )
     },
@@ -275,13 +275,13 @@ const RecipeList = () => {
 
             // style={{ background: '#1F515B' }}
           >
-            <span>{params.row.ingredients_count ? params.row.ingredients_count : '-'}</span>
+            <Typography>{params.row.ingredients_count ? params.row.ingredients_count : '-'}</Typography>
           </Tooltip>
         </Typography>
       )
     },
     {
-      flex: 0.6,
+      flex: 0.5,
       minWidth: 60,
       field: 'user_name',
       headerName: 'CREATED BY',

@@ -13,8 +13,7 @@ import {
   CircularProgress,
   Avatar,
   InputAdornment,
-  Tooltip,
-  collapseClasses
+  Tooltip
 } from '@mui/material'
 import Icon from 'src/@core/components/icon'
 import InputLabel from '@mui/material/InputLabel'
@@ -27,7 +26,6 @@ import toast from 'react-hot-toast'
 import { getIngredientList } from 'src/lib/api/diet/getIngredients'
 import { getUnitsForRecipe } from 'src/lib/api/diet/recipe'
 import { getCutsizeList } from 'src/lib/api/diet/settings/cutSizes'
-import { getPreparationTypeList } from 'src/lib/api/diet/settings/preparationTypes'
 import { getFeedTypeList } from 'src/lib/api/diet/feedType'
 
 const AddIngredients = props => {
@@ -689,10 +687,11 @@ const AddIngredients = props => {
             <Box
               key={item?.id}
               sx={{
-                bgcolor: 'white',
+                bgcolor: '#fff',
                 mx: '24px',
                 borderRadius: '8px',
                 my: 4,
+                width: '92%',
                 ...(selectedCard.some(card => card.ingredient_id === item.id) && {
                   border: '2px solid #37bd69' // Change border color when isVisible is true
                 })

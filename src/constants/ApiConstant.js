@@ -295,3 +295,9 @@ export const UPDATE_CUT_SIZE = 'diet/recipes/master/cutsizeupdate'
 export const GET_CUT_SIZEBY_ID = 'diet/recipes/master/cutsizeList'
 
 export const RECIPE_PARTOF_DIET_LIST = 'recipe_ingredient_part_of_diet_list'
+
+export const SPECIES = 'species'
+
+export const ASSIGN_TO_SPECIES = 'assign-to-species'
+
+export const DELETE_SPECIES = 'delete-species'

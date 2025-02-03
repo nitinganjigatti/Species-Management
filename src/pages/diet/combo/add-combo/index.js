@@ -486,32 +486,32 @@ const AddCombo = () => {
     switch (step) {
       case 0:
         return (
-          <StepBasicDetails
-            handleNext={handleNext}
-            formData={formData}
-            updateFormData={updateFormData}
-            uomList={uomList}
-          />
+          <>
+            {/* <StepBasicDetails
+              handleNext={handleNext}
+              formData={formData}
+              updateFormData={updateFormData}
+              uomList={uomList}
+            /> */}
+            <StepAddIngredients
+              handleNext={handleNext}
+              handlePrev={handlePrev}
+              handleIngredientChange={handleIngredientChange}
+              updateFormData={updateFormData}
+              formData={formData}
+              uomList={uomList}
+              cutsizeList={cutsizeList}
+              fullIngredientList={fullIngredientList}
+              setFullIngredientList={setFullIngredientList}
+              IngredientTypeListSearch={IngredientTypeListSearch}
+              onCancelIconClick={handleCancelIconClick}
+              setcutSize={setcutSize}
+            />
+          </>
         )
       case 1:
-        return (
-          <StepAddIngredients
-            handleNext={handleNext}
-            handlePrev={handlePrev}
-            handleIngredientChange={handleIngredientChange}
-            updateFormData={updateFormData}
-            formData={formData}
-            uomList={uomList}
-            cutsizeList={cutsizeList}
-            fullIngredientList={fullIngredientList}
-            setFullIngredientList={setFullIngredientList}
-            IngredientTypeListSearch={IngredientTypeListSearch}
-            onCancelIconClick={handleCancelIconClick}
-            setcutSize={setcutSize}
-          />
-        )
-      case 2:
         return <StepBillingDetails handlePrev={handlePrev} handleSubmit={handleStepBillingSubmit} formData={formData} />
+
       default:
         return null
     }

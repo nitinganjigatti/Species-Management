@@ -1,5 +1,17 @@
-import { LISTING, DIET, UPDATE_STATUS, DETAILS, DELETE, TYPE, ADD, UPDATE } from 'src/constants/ApiConstant'
-import { axiosFormPost, axiosGet } from '../utility'
+import {
+  LISTING,
+  DIET,
+  UPDATE_STATUS,
+  DETAILS,
+  SPECIES,
+  ASSIGN_TO_SPECIES,
+  DELETE,
+  DELETE_SPECIES,
+  TYPE,
+  ADD,
+  UPDATE
+} from 'src/constants/ApiConstant'
+import { axiosFormPost, axiosGet, axiosPost } from '../utility'
 
 export async function getDietList({ params }) {
   const response = await axiosGet({ url: `${DIET}/${LISTING}`, params })
@@ -11,6 +23,40 @@ export async function getDietDetails(id, params) {
   const response = await axiosGet({ url: `${DIET}/${DETAILS}/${id}`, params })
 
   return response.data
+}
+
+export async function getSpeciesList(params) {
+  const response = await axiosGet({ url: `${DIET}/${SPECIES}`, params })
+
+  return response.data
+}
+
+export async function deleteSpeciesFromDiet(payload) {
+  try {
+    const response = await axiosFormPost({ url: `${DIET}/${DELETE_SPECIES}`, body: payload })
+
+    return response?.data
+  } catch (error) {
+    if (error.response) {
+      console.error(error.response.data)
+    }
+
+    return error
+  }
+}
+
+export async function addSpeciestoDiet(payload) {
+  try {
+    const response = await axiosPost({ url: `${DIET}/${ASSIGN_TO_SPECIES}`, body: payload })
+
+    return response?.data
+  } catch (error) {
+    if (error.response) {
+      console.error(error.response.data)
+    }
+
+    return error
+  }
 }
 
 export async function dietStatusChange(payload, id) {
