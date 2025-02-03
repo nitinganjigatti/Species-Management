@@ -248,6 +248,7 @@ const AllStoresRequestList = () => {
   const handleDrawerClose = () => {
     setIsDrawerOpen(false)
     setActiveTab('1')
+
     // Resetting page and data when drawer is closed
     setPage(1)
     setTotalUniqueItems(0)
@@ -452,6 +453,7 @@ const AllStoresRequestList = () => {
       if (response?.success && response?.data) {
         const link = document.createElement('a')
         link.href = response.data
+
         // Trigger download
         document.body.appendChild(link)
         link.click()
@@ -643,6 +645,7 @@ const AllStoresRequestList = () => {
                 top: 0,
                 backgroundColor: 'customColors.OnPrimary',
                 zIndex: 1,
+
                 // borderBottom: '1px solid #e0e0e0',
                 // borderBottom: `1px solid ${theme.palette.customColors.Background}`,
                 px: 4,
@@ -681,6 +684,7 @@ const AllStoresRequestList = () => {
                     '& .MuiTabs-flexContainer': {
                       borderBottom: '1px solid',
                       borderColor: '#e0e0e0',
+
                       // borderBottom: `1px solid ${theme.palette.customColors.neutralSecondary}`,
                       display: 'flex',
                       justifyContent: 'center'
