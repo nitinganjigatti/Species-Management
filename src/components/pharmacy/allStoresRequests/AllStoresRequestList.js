@@ -427,6 +427,45 @@ const AllStoresRequestList = () => {
   }, [activeTab])
 
   // download Excel
+  // const handleExcelExport = async title => {
+  //   setExcelLoader(true)
+  //   try {
+  //     let stockStatus = ''
+  //     switch (title) {
+  //       case 'Available items':
+  //         stockStatus = 'Available'
+  //         break
+  //       case 'Not available items':
+  //         stockStatus = 'NotAvailable'
+  //         break
+  //       case 'All items':
+  //       default:
+  //         stockStatus = ''
+  //     }
+
+  //     const params = {
+  //       stock_status: stockStatus,
+  //       response_type: 'csv'
+  //     }
+
+  //     const response = await getAllUniquePendingList({ params })
+  //     if (response?.success && response?.data) {
+  //       const link = document.createElement('a')
+  //       link.href = response.data
+  //       // Trigger download
+  //       document.body.appendChild(link)
+  //       link.click()
+  //       link.remove()
+  //     } else {
+  //       console.error('No download URL received')
+  //     }
+  //   } catch (error) {
+  //     console.error('Error downloading Excel:', error)
+  //   } finally {
+  //     setExcelLoader(false)
+  //   }
+  // }
+
   const handleExcelExport = async title => {
     setExcelLoader(true)
     try {
@@ -450,12 +489,25 @@ const AllStoresRequestList = () => {
 
       const response = await getAllUniquePendingList({ params })
       if (response?.success && response?.data) {
+        // Create blob from the URL
+        const fetchResponse = await fetch(response.data)
+        const blob = await fetchResponse.blob()
+
+        // Create object URL from blob
+        const url = window.URL.createObjectURL(blob)
+
+        // Create download link
         const link = document.createElement('a')
-        link.href = response.data
-        // Trigger download
+        link.href = url
+        link.download = `${title.toLowerCase().replace(/\s+/g, '-')}-report.csv` // Add appropriate filename
+
+        // Append to document, click, and cleanup
         document.body.appendChild(link)
         link.click()
-        link.remove()
+        document.body.removeChild(link)
+
+        // Cleanup object URL
+        window.URL.revokeObjectURL(url)
       } else {
         console.error('No download URL received')
       }
