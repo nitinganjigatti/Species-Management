@@ -260,19 +260,17 @@ export default function ShippedItems({ updateUrlParams, setTotalShippedCounts })
   }
 
   return (
-    <Card sx={{ minWidth: '100%', ml: -2, boxShadow: 'none !important' }}>
-      <CommonTable
-        // eslint-disable-next-line lines-around-comment
-        onRowClick={handleRowClick}
-        indexedRows={indexedRows}
-        total={total}
-        columns={shippedColumns}
-        paginationModel={paginationModel}
-        handleSortModel={handleSortModel}
-        setPaginationModel={setPaginationModel}
-        loading={loading}
-        searchValue={searchValue}
-      />
-    </Card>
+    <CommonTable
+      // eslint-disable-next-line lines-around-comment
+      onRowClick={handleRowClick}
+      indexedRows={indexedRows}
+      total={total}
+      columns={shippedColumns}
+      paginationModel={paginationModel}
+      handleSortModel={handleSortModel}
+      setPaginationModel={setPaginationModel}
+      loading={loading}
+      searchValue={searchValue}
+    />
   )
 }
