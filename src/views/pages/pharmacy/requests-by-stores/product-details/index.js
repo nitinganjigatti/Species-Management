@@ -397,7 +397,7 @@ const RequestedProductDetails = props => {
               position: 'fixed',
               top: 0,
 
-              minWidth: { lg: '642px', md: '642px', xs: 'auto' },
+              minWidth: { lg: '642px', md: '642px', sm: '642px', xs: 'auto' },
               maxWidth: '642px',
               backgroundColor: 'white',
               p: '24px',
