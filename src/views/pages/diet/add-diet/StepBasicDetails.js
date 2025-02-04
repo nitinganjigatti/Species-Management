@@ -1036,7 +1036,17 @@ const StepBasicDetails = ({
                     <Typography variant='h6'>Recipes</Typography>
                   </Box>
 
-                  <Grid container spacing={5} sx={{ border: '1px solid #C3CEC7', borderRadius: '0.5rem', mx: 0 }}>
+                  <Grid
+                    container
+                    spacing={5}
+                    sx={{
+                      borderLeft: '1px solid #C3CEC7',
+                      borderRight: '1px solid #C3CEC7',
+                      borderTop: '1px solid #C3CEC7',
+                      borderRadius: '0.5rem',
+                      mx: 0
+                    }}
+                  >
                     <Grid container spacing={5} sx={{ background: '#E8F4F2', mt: 0, borderRadius: 0.9, mx: 0 }}>
                       {recipes.map((recipe, index) => (
                         <Grid
@@ -1076,7 +1086,11 @@ const StepBasicDetails = ({
 
                         if (matchingField) {
                           return (
-                            <Grid container sx={{ px: 5, py: 5, borderBottom: '1px solid #C3CEC7' }} key={index}>
+                            <Grid
+                              container
+                              sx={{ px: 5, py: 5, borderBottom: '1px solid #C3CEC7', borderRadius: '7px' }}
+                              key={index}
+                            >
                               <Grid item xs={12} sm={0.5} md={0.5}>
                                 <Avatar
                                   variant='square'
@@ -1168,7 +1182,17 @@ const StepBasicDetails = ({
                     <Typography variant='h6'>Combo</Typography>
                   </Box>
 
-                  <Grid container spacing={5} sx={{ border: '1px solid #C3CEC7', borderRadius: '0.5rem', mx: 0 }}>
+                  <Grid
+                    container
+                    spacing={5}
+                    sx={{
+                      borderLeft: '1px solid #C3CEC7',
+                      borderRight: '1px solid #C3CEC7',
+                      borderTop: '1px solid #C3CEC7',
+                      borderRadius: '0.5rem',
+                      mx: 0
+                    }}
+                  >
                     <Grid container spacing={5} sx={{ background: '#E8F4F2', mt: 0, borderRadius: 0.9, mx: 0 }}>
                       {combos.map((recipe, index) => (
                         <Grid
@@ -1208,7 +1232,11 @@ const StepBasicDetails = ({
 
                         if (matchingField) {
                           return (
-                            <Grid container sx={{ px: 5, py: 5, borderBottom: '1px solid #C3CEC7' }} key={index}>
+                            <Grid
+                              container
+                              sx={{ px: 5, py: 5, borderBottom: '1px solid #C3CEC7', borderRadius: '7px' }}
+                              key={index}
+                            >
                               <Grid item xs={12} sm={0.5} md={0.5}>
                                 <Avatar
                                   variant='square'
@@ -1299,7 +1327,17 @@ const StepBasicDetails = ({
                     <Typography variant='h6'>Ingredients</Typography>
                   </Box>
 
-                  <Grid container spacing={5} sx={{ border: '1px solid #C3CEC7', borderRadius: '0.5rem', mx: 0 }}>
+                  <Grid
+                    container
+                    spacing={5}
+                    sx={{
+                      borderLeft: '1px solid #C3CEC7',
+                      borderRight: '1px solid #C3CEC7',
+                      borderTop: '1px solid #C3CEC7',
+                      borderRadius: '0.5rem',
+                      mx: 0
+                    }}
+                  >
                     <Grid container spacing={5} sx={{ background: '#E8F4F2', mt: 0, borderRadius: 0.9, mx: 0 }}>
                       {ingredients.map((ingredient, index) => (
                         <Grid
@@ -1338,7 +1376,11 @@ const StepBasicDetails = ({
 
                         if (matchingField) {
                           return (
-                            <Grid container sx={{ px: 5, py: 5, borderBottom: '1px solid #C3CEC7' }} key={index}>
+                            <Grid
+                              container
+                              sx={{ px: 5, py: 5, borderBottom: '1px solid #C3CEC7', borderRadius: '7px' }}
+                              key={index}
+                            >
                               <Grid item xs={12} sm={0.5} md={0.5}>
                                 <Avatar
                                   variant='square'
@@ -1419,7 +1461,17 @@ const StepBasicDetails = ({
                     <Typography variant='h6'>Ingredients with choice</Typography>
                   </Box>
 
-                  <Grid container spacing={5} sx={{ border: '1px solid #C3CEC7', borderRadius: '0.5rem', mx: 0 }}>
+                  <Grid
+                    container
+                    spacing={5}
+                    sx={{
+                      borderLeft: '1px solid #C3CEC7',
+                      borderRight: '1px solid #C3CEC7',
+                      borderTop: '1px solid #C3CEC7',
+                      borderRadius: '0.5rem',
+                      mx: 0
+                    }}
+                  >
                     <Grid container spacing={5} sx={{ background: '#E8F4F2', mt: 0, borderRadius: 0.9, mx: 0 }}>
                       {ingredients.map((ingredient, index) => (
                         <Grid
@@ -1449,7 +1501,11 @@ const StepBasicDetails = ({
 
                         if (matchingField) {
                           return (
-                            <Grid container sx={{ px: 5, py: 5, borderBottom: '1px solid #C3CEC7' }} key={index}>
+                            <Grid
+                              container
+                              sx={{ px: 5, py: 5, borderBottom: '1px solid #C3CEC7', borderRadius: '7px' }}
+                              key={index}
+                            >
                               {/* <Grid item xs={12} sm={0.5}>
                                 <Typography>1</Typography>
                               </Grid> */}
