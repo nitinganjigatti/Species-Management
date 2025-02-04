@@ -361,6 +361,7 @@ export default function ShipmentRequests({ updateUrlParams }) {
   return (
     <TabContext value={shipmentTab}>
       <TabLists
+        container
         onChange={(event, newValue) => {
           setShipmentTab(newValue)
           updateUrlParams({
@@ -376,12 +377,9 @@ export default function ShipmentRequests({ updateUrlParams }) {
           // justifyContent: 'center',
           alignItems: 'center',
           justifyContent: 'space-between',
-
-          // py: 2,
           mt: 6
         }}
       >
-        {console.log('total', total)}
         <Tab value='Ready To Ship' label={`Ready To Ship - ${total}`} />
         <Tab value='Shipped' label={`Shipped - ${totalShippedCounts} `} />
 
@@ -392,12 +390,12 @@ export default function ShipmentRequests({ updateUrlParams }) {
             flexDirection: { xs: 'row', md: 'row' },
             width: '100%',
             justifyContent: { xs: 'space-between', md: 'flex-end' },
-            gap: { xs: 2, md: 3 },
+            gap: { xs: 2, md: 3, sm: 1 },
             py: 1
           }}
         >
           {shipmentTab === 'Ready To Ship' && (
-            <Grid item xs={5.5} md={2.5} lg={2.5}>
+            <Grid item xs={5} sm={4.5} md={4} lg={3}>
               <FormControl fullWidth size='small'>
                 <InputLabel sx={{ py: '2px' }}>Priority</InputLabel>
                 <Select
@@ -415,13 +413,13 @@ export default function ShipmentRequests({ updateUrlParams }) {
               </FormControl>
             </Grid>
           )}
-          {(shipmentTab === 'Ready To Ship' && indexedRows.length > 0 && selectedPharmacy?.permission.key === 'ADD') ||
-          selectedPharmacy?.permission.key === 'allow_full_access' ? (
-            <Grid item xs={5.5} md={2.5} lg={2.5}>
+          {shipmentTab === 'Ready To Ship' &&
+          indexedRows.length > 0 &&
+          (selectedPharmacy?.permission.key === 'ADD' || selectedPharmacy?.permission.key === 'allow_full_access') ? (
+            <Grid item xs={5} sm='auto' md={4} lg={3}>
               <Button
                 fullWidth
                 size='big'
-                sx={{ px: 2 }}
                 variant='contained'
                 onClick={() => {
                   openShippingDialog()
@@ -497,7 +495,7 @@ export default function ShipmentRequests({ updateUrlParams }) {
       <Grid container sx>
         <CommonDialogBox
           noWidth={'noWidth'}
-          title={'Add Alternative Supply'}
+          title={''}
           dialogBoxStatus={shippingDialog}
           formComponent={
             <ShipRequest
