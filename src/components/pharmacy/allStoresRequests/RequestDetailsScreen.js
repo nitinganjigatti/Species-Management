@@ -67,7 +67,7 @@ const RequestDetailsScreen = () => {
               icon='ep:back'
             />
           }
-          title={selectedStoreDetails?.storeName ? selectedStoreDetails?.storeName : 'NA'}
+          title={selectedStoreDetails?.storeName ? selectedStoreDetails?.storeName : router?.query?.selectedStoreName}
         />
 
         <Grid
