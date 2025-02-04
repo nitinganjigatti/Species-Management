@@ -40,7 +40,9 @@ const SpeciesMappedtoDiet = ({
   setSearchQuery,
   handleScroll,
   loading,
-  setPageNo
+  setPageNo,
+  isLoadingMore,
+  pageNo
 }) => {
   const listInnerRef = useRef(null)
   const [tempSelectedSpecies, setTempSelectedSpecies] = useState([...selectedSpecies])
@@ -343,7 +345,7 @@ const SpeciesMappedtoDiet = ({
           </Box>
         </Box>
 
-        {loading ? (
+        {loading && pageNo === 1 ? (
           <CardContent>
             <Box sx={{ display: 'flex', justifyContent: 'center', mt: 20 }}>
               <CircularProgress />
@@ -398,7 +400,15 @@ const SpeciesMappedtoDiet = ({
                 }}
               >
                 <ListItemAvatar>
-                  <Avatar src={species.default_icon} alt={species.scientific_name} />
+                  <Avatar
+                    sx={{
+                      '& img': {
+                        objectFit: 'contain'
+                      }
+                    }}
+                    src={species.default_icon}
+                    alt={species.scientific_name}
+                  />
                 </ListItemAvatar>
                 <ListItemText
                   primary={species.scientific_name ? species.scientific_name : '-'}
@@ -423,6 +433,20 @@ const SpeciesMappedtoDiet = ({
                 />
               </ListItem>
             ))}
+            {isLoadingMore && (
+              <Box
+                sx={{
+                  position: 'fixed',
+                  bottom: '135px',
+                  transform: 'translateX(217px)',
+                  zIndex: 999,
+                  justifyContent: 'center',
+                  display: 'flex'
+                }}
+              >
+                <CircularProgress />
+              </Box>
+            )}
           </List>
         )}
       </Box>

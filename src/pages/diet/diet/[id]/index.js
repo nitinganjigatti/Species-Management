@@ -52,6 +52,7 @@ const DietDetail = () => {
   const [searchQuery, setSearchQuery] = useState('')
   const [pageNo, setPageNo] = useState(1)
   const [loading, setLoading] = useState(false)
+  const [isLoadingMore, setIsLoadingMore] = useState(false)
   const [speciestotalcount, setspeciestotalcount] = useState('')
   const [selectedItems, setSelectedItems] = useState({
     Site: [],
@@ -117,10 +118,16 @@ const DietDetail = () => {
 
   const SpeciesList = async (searchQuery, type = null) => {
     try {
-      setLoading(true)
+      if (pageNo === 1) {
+        setLoading(true)
+      } else {
+        setIsLoadingMore(true)
+      }
+
       const params = { q: searchQuery, page_no: pageNo, diet_id: id, ...(type && { type }) }
       const res = await getSpeciesList(params)
       console.log(res, 'res')
+
       if (res?.data?.result) {
         if (pageNo === 1) {
           setspeciesData(res.data.result)
@@ -139,6 +146,7 @@ const DietDetail = () => {
       console.error('Error fetching site list:', e)
     } finally {
       setLoading(false)
+      setIsLoadingMore(false)
     }
   }
 
@@ -3206,6 +3214,8 @@ const DietDetail = () => {
             handleScroll={handleScroll}
             loading={loading}
             setPageNo={setPageNo}
+            isLoadingMore={isLoadingMore}
+            pageNo={pageNo}
           />
           <ListOfSpeciesMapped
             isOpennew={isOpennew}
@@ -3228,6 +3238,8 @@ const DietDetail = () => {
             setLoading={setLoading}
             loading={loading}
             setPageNo={setPageNo}
+            isLoadingMore={isLoadingMore}
+            pageNo={pageNo}
           />
           <SpeciesMappedtoDietFilter
             setOpenFilterDrawer={setOpenFilterDrawer}

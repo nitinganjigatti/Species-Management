@@ -37,7 +37,9 @@ const ListOfSpeciesMapped = ({
   handleScroll,
   setLoading,
   loading,
-  setPageNo
+  setPageNo,
+  pageNo,
+  isLoadingMore
 }) => {
   const theme = useTheme()
   const [tempSelectedSpecies, setTempSelectedSpecies] = useState([])
@@ -258,25 +260,28 @@ const ListOfSpeciesMapped = ({
               ''
             )}
             <>
-              {speciesview === 'select' ? (
-                // <Typography>You have selected {mappedSpecies?.length} species</Typography>
-                <Typography>You have selected {speciestotalcount} species</Typography>
+              {!loading ? (
+                speciesview === 'select' ? (
+                  <Typography>You have selected {speciestotalcount || ''} species</Typography>
+                ) : (
+                  <Typography
+                    variant='body2'
+                    sx={{
+                      color: theme.palette.secondary.dark,
+                      fontSize: '14px',
+                      fontWeight: 600,
+                      pb: 1
+                    }}
+                  >
+                    {speciestotalcount || ''} Species
+                  </Typography>
+                )
               ) : (
-                <Typography
-                  variant='body2'
-                  sx={{
-                    color: theme.palette.secondary.dark,
-                    fontSize: '14px',
-                    fontWeight: 600,
-                    pb: 1
-                  }}
-                >
-                  {speciestotalcount} Species
-                </Typography>
+                <Typography>{''}</Typography> // Show empty value when loading
               )}
             </>
             <List>
-              {loading ? (
+              {loading && pageNo === 1 ? (
                 <CardContent>
                   <Box sx={{ display: 'flex', justifyContent: 'center', mt: 20 }}>
                     <CircularProgress />
@@ -296,7 +301,15 @@ const ListOfSpeciesMapped = ({
                     }}
                   >
                     <ListItemAvatar>
-                      <Avatar src={species.default_icon} alt={species.scientific_name} />
+                      <Avatar
+                        src={species.default_icon}
+                        alt={species.scientific_name}
+                        sx={{
+                          '& img': {
+                            objectFit: 'contain'
+                          }
+                        }}
+                      />
                     </ListItemAvatar>
                     <ListItemText
                       primary={species.scientific_name ? species.scientific_name : '-'}
@@ -336,6 +349,20 @@ const ListOfSpeciesMapped = ({
                     </IconButton>
                   </ListItem>
                 ))
+              )}
+              {isLoadingMore && (
+                <Box
+                  sx={{
+                    position: 'fixed',
+                    bottom: '25px',
+                    transform: 'translateX(217px)',
+                    zIndex: 999,
+                    justifyContent: 'center',
+                    display: 'flex'
+                  }}
+                >
+                  <CircularProgress />
+                </Box>
               )}
             </List>
           </>
