@@ -14,9 +14,11 @@ import RenderUtility from 'src/utility/render'
 import { getAllShipmentsSelectedStore } from 'src/lib/api/pharmacy/storeWiseRequest'
 import { alpha } from '@mui/material'
 import ShippedItems from './ShippedItems'
+import { usePharmacyContext } from 'src/context/PharmacyContext'
 import { useDynamicStateContext } from 'src/context/DynamicStatesContext'
 
 export default function ShipmentRequests({ updateUrlParams }) {
+  const { selectedPharmacy } = usePharmacyContext()
   const { data, updateMultipleStates } = useDynamicStateContext()
   console.log('data', data)
 
@@ -408,7 +410,9 @@ export default function ShipmentRequests({ updateUrlParams }) {
               </FormControl>
             </Grid>
           )}
-          {shipmentTab === 'Ready To Ship' && indexedRows.length > 0 ? (
+          {shipmentTab === 'Ready To Ship' &&
+          (indexedRows?.length > 0 || selectedRows?.length > 0) &&
+          (selectedPharmacy.permission.key === 'ADD' || selectedPharmacy.permission.key === 'allow_full_access') ? (
             <Grid item xs={5} sm='auto' md={4} lg={3}>
               <Button
                 fullWidth
@@ -447,7 +451,8 @@ export default function ShipmentRequests({ updateUrlParams }) {
                 backgroundColor: alpha(theme.palette.customColors.neutral05, 0.05),
                 display: 'flex',
                 justifyContent: 'flex-start',
-                alignItems: 'center'
+                alignItems: 'center',
+                borderRadius: '8px'
               }}
             >
               {selectedRows?.length} Items Selected

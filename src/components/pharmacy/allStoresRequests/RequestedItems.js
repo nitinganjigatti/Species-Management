@@ -582,7 +582,7 @@ export default function RequestedItems({ selectedStoreDetails, setSelectedStoreD
   }, [paginationModel, controlledDrug, priority, filterDates, selectedPharmacy?.id])
 
   return (
-    <Box sx={{ my: 5 }}>
+    <Box sx={{ my: 5, mt: 6 }}>
       <Box>
         <Grid
           container
