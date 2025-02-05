@@ -119,7 +119,7 @@ const AuthProvider = ({ children }) => {
               } else {
                 setSelectedPharmacy(await readAsync('selectedStore'))
 
-                //findSelectedPharmacy()
+                // findSelectedPharmacy()
               }
 
               const userData = {
