@@ -22,8 +22,8 @@ import Toaster from 'src/components/Toaster'
 const ListOfSpeciesMapped = ({
   isOpennew,
   setIsOpennew,
-  selectedSpecies,
   onSelectedSpeciesChange,
+  setSelectedSpecies,
   speciesData,
   speciesview,
   dietDetails,
@@ -39,56 +39,60 @@ const ListOfSpeciesMapped = ({
   loading,
   setPageNo,
   pageNo,
-  isLoadingMore
+  isLoadingMore,
+  tempSelectedSpecies,
+  setTempSelectedSpecies
 }) => {
   const theme = useTheme()
-  const [tempSelectedSpecies, setTempSelectedSpecies] = useState([])
-
-  useEffect(() => {
-    if (isOpennew) {
-      // const speciesWithDiet = speciesData.filter(species => species.mapped_to_diet)
-      // const speciesIds = speciesWithDiet.map(species => species.species_id)
-    } else {
-      setTempSelectedSpecies(selectedSpecies)
-    }
-  }, [isOpennew, selectedSpecies, speciesData])
 
   const handleSearch = event => {
     setSearchQuery(event.target.value)
   }
 
+  useEffect(() => {
+    setPageNo(1)
+  }, [isOpennew])
+
   const handleRemove = async species => {
-    const speciesIds = [species.species_id]
-    setLoading(true)
-    const payload = {
-      diet_id: dietId,
-      species_ids: JSON.stringify(speciesIds)
-    }
-    try {
-      const response = await deleteSpeciesFromDiet(payload)
-      console.log(response, 'response')
-      if (response.success === true) {
-        Toaster({ type: 'success', message: response?.message })
-        const updatedSelectedSpecies = selectedSpecies.filter(item => item.species_id !== species.species_id)
-        onSelectedSpeciesChange(updatedSelectedSpecies)
-        refreshSpeciesData()
-        setLoading(false)
-        setPageNo(1)
-      } else {
-        Toaster({
-          type: 'error',
-          message: response?.message
-        })
+    if (speciesview === 'select') {
+      // Remove the matching species_id from tempSelectedSpecies
+      const updatedTempSelectedSpecies = tempSelectedSpecies.filter(id => id !== species.species_id)
+      setTempSelectedSpecies(updatedTempSelectedSpecies)
+    } else {
+      const speciesIds = [species.species_id]
+      setLoading(true)
+      const payload = {
+        diet_id: dietId,
+        species_ids: JSON.stringify(speciesIds)
+      }
+      try {
+        const response = await deleteSpeciesFromDiet(payload)
+        console.log(response, 'response')
+        if (response.success === true) {
+          await refreshSpeciesData()
+          // const updatedSelectedSpecies = selectedSpecies.filter(item => item.species_id !== species.species_id)
+          // onSelectedSpeciesChange(updatedSelectedSpecies)
+          setPageNo(1)
+          Toaster({ type: 'success', message: response?.message, duration: 2000 })
+          setTempSelectedSpecies([])
+          setSelectedSpecies([])
+        } else {
+          Toaster({
+            type: 'error',
+            message: response?.message
+          })
+          setLoading(false)
+        }
+      } catch (error) {
+        console.error('Error removing species:', error)
+      } finally {
         setLoading(false)
       }
-    } catch (error) {
-      console.error('Error removing species:', error)
-    } finally {
-      setLoading(false)
     }
   }
 
   const handelClose = () => {
+    //alert('hi')
     setIsOpennew(false)
     refreshDietDetails()
     setspeciesview('')
@@ -98,8 +102,12 @@ const ListOfSpeciesMapped = ({
     setSearchQuery('')
   }
 
-  const mappedSpecies = speciesData.filter(species => species.mapped_to_diet)
-
+  const mappedSpecies =
+    speciesview === 'select'
+      ? speciesData.filter(species => tempSelectedSpecies.includes(species.species_id))
+      : speciesData.filter(species => species.mapped_to_diet)
+  console.log(tempSelectedSpecies, 'tempSelectedSpecies')
+  console.log(mappedSpecies, 'mappedSpecies')
   return (
     <Drawer
       anchor='right'
@@ -153,7 +161,6 @@ const ListOfSpeciesMapped = ({
               '-ms-overflow-style': 'none',
               scrollbarWidth: 'none'
             }}
-            //ref={listInnerRef}
           >
             <>
               <Box
@@ -208,7 +215,7 @@ const ListOfSpeciesMapped = ({
         }}
         onScroll={handleScroll}
       >
-        {mappedSpecies.length === 0 ? (
+        {!loading && speciesData?.length === 0 ? (
           <Typography
             variant='body2'
             sx={{
@@ -262,7 +269,8 @@ const ListOfSpeciesMapped = ({
             <>
               {!loading ? (
                 speciesview === 'select' ? (
-                  <Typography>You have selected {speciestotalcount || ''} species</Typography>
+                  // <Typography>You have selected {speciestotalcount || ''} species</Typography>
+                  <Typography>You have selected {tempSelectedSpecies?.length} species</Typography>
                 ) : (
                   <Typography
                     variant='body2'
@@ -277,7 +285,7 @@ const ListOfSpeciesMapped = ({
                   </Typography>
                 )
               ) : (
-                <Typography>{''}</Typography> // Show empty value when loading
+                <Typography>{''}</Typography>
               )}
             </>
             <List>
