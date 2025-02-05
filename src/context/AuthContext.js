@@ -117,8 +117,9 @@ const AuthProvider = ({ children }) => {
                   localStorage.removeItem('selectedStore')
                 }
               } else {
-                // setSelectedPharmacy(await readAsync('selectedStore'))
-                findSelectedPharmacy()
+                setSelectedPharmacy(await readAsync('selectedStore'))
+
+                //findSelectedPharmacy()
               }
 
               const userData = {
