@@ -4,7 +4,6 @@ import Tab from '@mui/material/Tab'
 import TabPanel from '@mui/lab/TabPanel'
 import TabContext from '@mui/lab/TabContext'
 import { useTheme } from '@emotion/react'
-import { usePharmacyContext } from 'src/context/PharmacyContext'
 import { styled } from '@mui/material/styles'
 import MuiTabList from '@mui/lab/TabList'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
@@ -15,10 +14,14 @@ import RenderUtility from 'src/utility/render'
 import { getAllShipmentsSelectedStore } from 'src/lib/api/pharmacy/storeWiseRequest'
 import { alpha } from '@mui/material'
 import ShippedItems from './ShippedItems'
-import CommonDialogBox from 'src/components/CommonDialogBox'
-import ShipRequest from 'src/components/pharmacy/request/ShipRequestForm'
+import { usePharmacyContext } from 'src/context/PharmacyContext'
+import { useDynamicStateContext } from 'src/context/DynamicStatesContext'
 
 export default function ShipmentRequests({ updateUrlParams }) {
+  const { selectedPharmacy } = usePharmacyContext()
+  const { data, updateMultipleStates } = useDynamicStateContext()
+  console.log('data', data)
+
   // Styled TabList component
   const TabLists = styled(MuiTabList)(({ theme }) => ({
     '& .MuiTabs-indicator': {
@@ -49,12 +52,7 @@ export default function ShipmentRequests({ updateUrlParams }) {
   const router = useRouter()
   const { id } = router.query
 
-  // const updateUrlParams = params => {
-  //   const query = { ...router.query, ...params }
-  //   router.replace({ pathname: router.pathname, query }, undefined, { shallow: true })
-  // }
   const [shipmentTab, setShipmentTab] = useState(router.query.subTab || 'Ready To Ship')
-  const { selectedPharmacy } = usePharmacyContext()
 
   // /***** Serverside pagination */
 
@@ -75,17 +73,16 @@ export default function ShipmentRequests({ updateUrlParams }) {
     return data
   }
   const [selectedRows, setSelectedRows] = useState([])
-  const [shippingDialog, setShippingDialog] = useState(false)
 
   const [totalShippedCounts, setTotalShippedCounts] = useState(0)
 
-  const closeShippingDialog = () => {
-    setShippingDialog(false)
+  const shipItems = () => {
+    updateMultipleStates({
+      dispatchedItems: selectedRows?.length > 0 ? selectedRows : indexedRows
+    })
+    router.push(`/pharmacy/requests-by-store/${id}/ship-all-items`)
   }
 
-  const openShippingDialog = () => {
-    setShippingDialog(true)
-  }
   useEffect(() => {
     updateUrlParams({
       subTab: shipmentTab
@@ -414,15 +411,15 @@ export default function ShipmentRequests({ updateUrlParams }) {
             </Grid>
           )}
           {shipmentTab === 'Ready To Ship' &&
-          indexedRows.length > 0 &&
-          (selectedPharmacy?.permission.key === 'ADD' || selectedPharmacy?.permission.key === 'allow_full_access') ? (
+          (indexedRows?.length > 0 || selectedRows?.length > 0) &&
+          (selectedPharmacy.permission.key === 'ADD' || selectedPharmacy.permission.key === 'allow_full_access') ? (
             <Grid item xs={5} sm='auto' md={4} lg={3}>
               <Button
                 fullWidth
                 size='big'
                 variant='contained'
                 onClick={() => {
-                  openShippingDialog()
+                  shipItems()
                 }}
               >
                 {selectedRows?.length > 0 ? 'Ship Selected Items' : 'Ship All Items'}
@@ -454,7 +451,8 @@ export default function ShipmentRequests({ updateUrlParams }) {
                 backgroundColor: alpha(theme.palette.customColors.neutral05, 0.05),
                 display: 'flex',
                 justifyContent: 'flex-start',
-                alignItems: 'center'
+                alignItems: 'center',
+                borderRadius: '8px'
               }}
             >
               {selectedRows?.length} Items Selected
@@ -492,26 +490,6 @@ export default function ShipmentRequests({ updateUrlParams }) {
           <ShippedItems updateUrlParams={updateUrlParams} setTotalShippedCounts={setTotalShippedCounts} />
         </Card>
       </TabPanel>
-      <Grid container sx>
-        <CommonDialogBox
-          noWidth={'noWidth'}
-          title={''}
-          dialogBoxStatus={shippingDialog}
-          formComponent={
-            <ShipRequest
-              dispatchedItems={selectedRows?.length > 0 ? selectedRows : indexedRows}
-              storeDetails={selectedRows?.length > 0 ? selectedRows : indexedRows}
-              resetForm={() => {
-                closeShippingDialog(), fetchTableData({ sort, q: searchValue, column: sortColumn })
-              }}
-              close={false}
-              permissionView={true}
-            />
-          }
-          close={closeShippingDialog}
-          show={openShippingDialog}
-        />
-      </Grid>
     </TabContext>
   )
 }

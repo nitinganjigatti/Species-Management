@@ -106,6 +106,7 @@ const AuthProvider = ({ children }) => {
                   setSelectedPharmacy(foundPharmacy)
                 }
               }
+
               findSelectedPharmacy()
               if (storedPharmacy === '' || foundStored() === false) {
                 if (options?.length > 0) {
@@ -116,7 +117,8 @@ const AuthProvider = ({ children }) => {
                   localStorage.removeItem('selectedStore')
                 }
               } else {
-                setSelectedPharmacy(storedPharmacy)
+                // setSelectedPharmacy(await readAsync('selectedStore'))
+                findSelectedPharmacy()
               }
 
               const userData = {

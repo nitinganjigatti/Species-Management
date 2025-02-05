@@ -26,6 +26,8 @@ export const ProductDetail = ({
   const { selectedPharmacy } = usePharmacyContext()
   const [visibleArea, setVisibleArea] = useState(false)
 
+  console.log('Selected Pharmacy: ', selectedPharmacy)
+
   const router = useRouter()
 
   // useEffect(() => {
@@ -161,43 +163,46 @@ export const ProductDetail = ({
                 {selectedPharmacy.type === 'local'
                   ? (selectedPharmacy.permission.key === 'allow_full_access' ||
                       selectedPharmacy.permission.key === 'ADD') && (
-                      <Grid sx={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'flex-end', mb: '20px' }}>
+                      <Grid
+                        sx={{
+                          display: 'flex',
+                          alignItems: 'flex-end',
+                          justifyContent: 'flex-end',
+                          mb: '20px'
+                        }}
+                      >
                         {productDetails?.status === 'Pending' && (
                           <Button
                             variant='outlined'
                             sx={{ color: 'error' }}
                             color='error'
-                            onClick={() => {
-                              handleRequestStatus('Cancelled', productDetails.id, productDetails)
-                            }}
+                            onClick={() => handleRequestStatus('Cancelled', productDetails.id, productDetails)}
                           >
                             Cancel Request
                           </Button>
                         )}
                       </Grid>
                     )
-                  : !visibleArea && (
+                  : !visibleArea &&
+                    (selectedPharmacy?.permission?.key === 'allow_full_access' ||
+                      selectedPharmacy?.permission?.key === 'ADD') && (
                       <Grid sx={{ display: 'flex', justifyContent: 'flex-end', mb: '20px' }}>
                         {productDetails?.status === 'Pending' && (
                           <LoadingButton
                             loading={submitLoader}
                             sx={{ margin: '2px' }}
                             variant='outlined'
-                            onClick={() => {
-                              handleRequestStatus('Approved', productDetails.id, productDetails)
-                            }}
+                            onClick={() => handleRequestStatus('Approved', productDetails.id, productDetails)}
                           >
                             Order Placed
                           </LoadingButton>
                         )}
                         {productDetails?.status === 'Pending' && (
                           <LoadingButton
-                            sx={{ margin: '2px', color: 'error' }}
+                            sx={{ margin: '2px' }}
                             variant='outlined'
                             color='error'
-                            onClick={() => {
-                              setVisibleArea(true)
-                            }}
+                            onClick={() => setVisibleArea(true)}
                           >
                             Reject Request
                           </LoadingButton>
@@ -205,6 +210,7 @@ export const ProductDetail = ({
                       </Grid>
                     )}
               </Grid>
+
               {visibleArea && (
                 <Card sx={{ width: '100%', ml: '30px' }}>
                   <CardContent>

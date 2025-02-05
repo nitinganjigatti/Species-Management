@@ -57,7 +57,7 @@ export default function RequestedItems({ selectedStoreDetails, setSelectedStoreD
   const [searchValue, setSearchValue] = useState(router.query.q || '')
   const [sortColumn, setSortColumn] = useState(router.query.column || 'priority')
   const [controlledDrug, setControlledDrug] = useState(router.query.controlledDrug || 'all')
-  const [priority, setPriority] = useState(router.query.priority || 'emergency')
+  const [priority, setPriority] = useState(router.query.priority || 'all')
   const [loading, setLoading] = useState(false)
   const [showDrawer, setShowDrawer] = useState(false)
   const [drawerLoader, setDrawerLoader] = useState(false)
@@ -582,7 +582,7 @@ export default function RequestedItems({ selectedStoreDetails, setSelectedStoreD
   }, [paginationModel, controlledDrug, priority, filterDates, selectedPharmacy?.id])
 
   return (
-    <Box sx={{ my: 5 }}>
+    <Box sx={{ my: 5, mt: 6 }}>
       <Box>
         <Grid
           container
