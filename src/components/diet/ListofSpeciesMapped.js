@@ -132,8 +132,11 @@ const ListOfSpeciesMapped = ({
         }}
       >
         <Box sx={{ mt: 2, display: 'flex', flexDirection: 'row', gap: 2, alignItems: 'center' }}>
-          <Icon icon='mage:filter' fontSize={30} />
-          <Typography sx={{ fontSize: '24px', fontWeight: 500 }}>
+          <Icon
+            icon='material-symbols-light:add-notes-outline'
+            style={{ color: theme.palette.customColors.OnSurfaceVariant, fontWeight: 500, fontSize: '34px' }}
+          />
+          <Typography sx={{ fontSize: '24px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}>
             {speciesview === 'details' ? 'Species assigned' : 'Selected species'}
           </Typography>
         </Box>
