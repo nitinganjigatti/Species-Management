@@ -138,7 +138,10 @@ const ListOfSpeciesMapped = ({
           </Typography>
         </Box>
 
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }} onClick={handelClose}>
+        <Box
+          sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', mr: '28px', mt: '4px' }}
+          onClick={handelClose}
+        >
           <IconButton size='small' sx={{ color: 'text.primary' }}>
             <Icon icon='mdi:close' fontSize={24} />
           </IconButton>
@@ -151,7 +154,7 @@ const ListOfSpeciesMapped = ({
               bgcolor: theme.palette.background.paper,
               p: '16px',
               borderRadius: '8px',
-              width: '525px',
+              width: '555px',
               overflowY: 'auto',
               //height: 'calc(100vh - 250px)',
               '&::-webkit-scrollbar': {

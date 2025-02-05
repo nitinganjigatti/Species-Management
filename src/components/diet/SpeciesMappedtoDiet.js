@@ -162,7 +162,10 @@ const SpeciesMappedtoDiet = ({
           <Typography sx={{ fontSize: '24px', fontWeight: 500 }}>Assign species</Typography>
         </Box>
 
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }} onClick={handelClose}>
+        <Box
+          sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', mr: '14px', mt: '4px' }}
+          onClick={handelClose}
+        >
           <IconButton size='small' sx={{ color: 'text.primary' }}>
             <Icon icon='mdi:close' fontSize={24} />
           </IconButton>
@@ -177,7 +180,7 @@ const SpeciesMappedtoDiet = ({
             bgcolor: theme.palette.background.paper,
             p: '16px',
             borderRadius: '8px',
-            width: '560px',
+            width: '575px',
             overflowY: 'auto',
             '&::-webkit-scrollbar': { width: 0, height: 0 },
             '-ms-overflow-style': 'none',
