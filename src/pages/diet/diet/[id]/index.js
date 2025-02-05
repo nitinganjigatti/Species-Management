@@ -54,6 +54,7 @@ const DietDetail = () => {
   const [loading, setLoading] = useState(false)
   const [isLoadingMore, setIsLoadingMore] = useState(false)
   const [speciestotalcount, setspeciestotalcount] = useState('')
+  const [tempSelectedSpecies, setTempSelectedSpecies] = useState([])
   const [selectedItems, setSelectedItems] = useState({
     Site: [],
     Section: [],
@@ -123,7 +124,7 @@ const DietDetail = () => {
       } else {
         setIsLoadingMore(true)
       }
-
+      setLoading(true)
       const params = { q: searchQuery, page_no: pageNo, diet_id: id, ...(type && { type }) }
       const res = await getSpeciesList(params)
       console.log(res, 'res')
@@ -151,19 +152,19 @@ const DietDetail = () => {
   }
 
   // Callback to trigger SpeciesList
-  const refreshSpeciesData = () => {
-    if (speciesview !== '') {
-      SpeciesList(searchQuery, 'mapped')
+  const refreshSpeciesData = async () => {
+    if (speciesview !== '' && speciesview !== 'select') {
+      return SpeciesList(searchQuery, 'mapped')
     } else {
-      SpeciesList(searchQuery)
+      return SpeciesList(searchQuery)
     }
   }
 
   useEffect(() => {
-    siteList()
-    console.log(speciesview, 'speciesview')
-    if (speciesview !== '') {
+    //siteList()
+    if (speciesview !== '' && speciesview !== 'select') {
       SpeciesList(searchQuery, 'mapped')
+    } else if (speciesview === 'select') {
     } else {
       SpeciesList(searchQuery)
     }
@@ -173,7 +174,7 @@ const DietDetail = () => {
     if (searchQuery) {
       setPageNo(1)
       setspeciesData([])
-      if (speciesview !== '') {
+      if (speciesview !== '' && speciesview !== 'select') {
         SpeciesList(searchQuery, 'mapped')
       } else {
         SpeciesList(searchQuery)
@@ -203,11 +204,21 @@ const DietDetail = () => {
     }
   }, [id, value, dietModule])
 
+  // const handleScroll = scrollEvent => {
+  //   const { target } = scrollEvent
+  //   const isBottom = target.scrollHeight === target.scrollTop + target.clientHeight
+  //   if (isBottom && !loading && speciesData.length < speciestotalcount) {
+  //     setPageNo(prevPageNo => prevPageNo + 1) // Increment page number
+  //   }
+  // }
+
   const handleScroll = scrollEvent => {
     const { target } = scrollEvent
-    const isBottom = target.scrollHeight === target.scrollTop + target.clientHeight
+    const threshold = 10
+    const isBottom = target.scrollHeight - target.scrollTop - target.clientHeight <= threshold
+
     if (isBottom && !loading && speciesData.length < speciestotalcount) {
-      setPageNo(prevPageNo => prevPageNo + 1) // Increment page number
+      setPageNo(prevPageNo => prevPageNo + 1)
     }
   }
 
@@ -3216,6 +3227,8 @@ const DietDetail = () => {
             setPageNo={setPageNo}
             isLoadingMore={isLoadingMore}
             pageNo={pageNo}
+            tempSelectedSpecies={tempSelectedSpecies}
+            setTempSelectedSpecies={setTempSelectedSpecies}
           />
           <ListOfSpeciesMapped
             isOpennew={isOpennew}
@@ -3240,6 +3253,9 @@ const DietDetail = () => {
             setPageNo={setPageNo}
             isLoadingMore={isLoadingMore}
             pageNo={pageNo}
+            tempSelectedSpecies={tempSelectedSpecies}
+            setTempSelectedSpecies={setTempSelectedSpecies}
+            setSelectedSpecies={setSelectedSpecies}
           />
           <SpeciesMappedtoDietFilter
             setOpenFilterDrawer={setOpenFilterDrawer}

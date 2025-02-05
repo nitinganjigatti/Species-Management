@@ -20,7 +20,7 @@ import {
 import { LoadingButton } from '@mui/lab'
 import Toaster from 'src/components/Toaster'
 import Icon from 'src/@core/components/icon'
-import { addSpeciestoDiet, getDietDetails } from 'src/lib/api/diet/dietList'
+import { addSpeciestoDiet } from 'src/lib/api/diet/dietList'
 
 const SpeciesMappedtoDiet = ({
   isOpen,
@@ -42,27 +42,17 @@ const SpeciesMappedtoDiet = ({
   loading,
   setPageNo,
   isLoadingMore,
-  pageNo
+  pageNo,
+  tempSelectedSpecies,
+  setTempSelectedSpecies
 }) => {
   const listInnerRef = useRef(null)
-  const [tempSelectedSpecies, setTempSelectedSpecies] = useState([...selectedSpecies])
 
   const theme = useTheme()
 
   const handleSearch = event => {
     setSearchQuery(event.target.value)
   }
-
-  useEffect(() => {
-    if (isOpen && searchQuery === '') {
-      // const speciesWithDiet = speciesData.filter(species => species.mapped_to_diet)
-      // const speciesIds = speciesWithDiet.map(species => species.species_id)
-      setTempSelectedSpecies([])
-    } else {
-      // If isOpen is false, you can reset tempSelectedSpecies or do any other logic
-      // setTempSelectedSpecies(selectedSpecies)
-    }
-  }, [isOpen, searchQuery])
 
   const handleToggle = species => {
     const isAlreadySelected = tempSelectedSpecies.includes(species.species_id)
@@ -122,10 +112,17 @@ const SpeciesMappedtoDiet = ({
   }
 
   const handleSelectedclick = val => {
-    setIsOpennew(true)
-    setIsOpen(false)
-    setspeciesview(val)
-    setTempSelectedSpecies([...selectedSpecies])
+    console.log(tempSelectedSpecies, 'ppp')
+    if (val === 'select') {
+      setIsOpennew(true)
+      setIsOpen(false)
+      setspeciesview(val)
+    } else {
+      setIsOpennew(true)
+      setIsOpen(false)
+      setspeciesview(val)
+      setTempSelectedSpecies([...selectedSpecies])
+    }
   }
 
   const handleFilter = () => {
@@ -161,11 +158,20 @@ const SpeciesMappedtoDiet = ({
         }}
       >
         <Box sx={{ mt: 2, display: 'flex', flexDirection: 'row', gap: 2, alignItems: 'center' }}>
-          <Icon icon='mage:filter' fontSize={30} />
-          <Typography sx={{ fontSize: '24px', fontWeight: 500 }}>Assign species</Typography>
+          {/* <Icon icon='mage:filter' fontSize={30} /> */}
+          <Icon
+            icon='material-symbols-light:add-notes-outline'
+            style={{ color: theme.palette.customColors.OnSurfaceVariant, fontWeight: 500, fontSize: '34px' }}
+          />
+          <Typography sx={{ fontSize: '24px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}>
+            Assign species
+          </Typography>
         </Box>
 
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }} onClick={handelClose}>
+        <Box
+          sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', mr: '14px', mt: '4px' }}
+          onClick={handelClose}
+        >
           <IconButton size='small' sx={{ color: 'text.primary' }}>
             <Icon icon='mdi:close' fontSize={24} />
           </IconButton>
@@ -180,7 +186,7 @@ const SpeciesMappedtoDiet = ({
             bgcolor: theme.palette.background.paper,
             p: '16px',
             borderRadius: '8px',
-            width: '560px',
+            width: '575px',
             overflowY: 'auto',
             '&::-webkit-scrollbar': { width: 0, height: 0 },
             '-ms-overflow-style': 'none',
@@ -315,7 +321,10 @@ const SpeciesMappedtoDiet = ({
             <Button
               size='small'
               sx={{
-                color: selectedSpecies?.length === speciesData?.length ? '#7A8684' : theme.palette.primary.main,
+                color:
+                  tempSelectedSpecies?.length === speciesData.filter(species => !species.mapped_to_diet).length
+                    ? '#7A8684'
+                    : theme.palette.primary.main,
                 fontSize: '12px',
                 fontWeight: 600,
                 textTransform: 'none'
@@ -326,6 +335,7 @@ const SpeciesMappedtoDiet = ({
             </Button>
 
             <Checkbox
+              //disabled={tempSelectedSpecies?.length === speciesData.filter(species => !species.mapped_to_diet).length}
               checked={tempSelectedSpecies?.length === speciesData.filter(species => !species.mapped_to_diet).length}
               onChange={handleSelectAll}
               inputProps={{ 'aria-label': 'Select all species' }}
@@ -337,7 +347,10 @@ const SpeciesMappedtoDiet = ({
                   borderRadius: '4px',
                   width: '22px',
                   height: '22px',
-                  color: selectedSpecies?.length === speciesData?.length ? '#7A8684' : theme.palette.primary.main
+                  color:
+                    tempSelectedSpecies?.length === speciesData.filter(species => !species.mapped_to_diet).length
+                      ? '#7A8684'
+                      : theme.palette.primary.main
                 },
                 mr: 1
               }}
@@ -470,7 +483,7 @@ const SpeciesMappedtoDiet = ({
           pl: 7
         }}
       >
-        {speciesData.filter(species => species.mapped_to_diet)?.length > 0 ? (
+        {tempSelectedSpecies?.length > 0 ? (
           <Box
             sx={{ display: 'flex', alignItems: 'center', width: '35%', color: theme.palette.primary.main }}
             onClick={() => handleSelectedclick('select')}
@@ -483,7 +496,8 @@ const SpeciesMappedtoDiet = ({
                 mr: 1
               }}
             >
-              {speciesData.filter(species => species.mapped_to_diet)?.length} Selected
+              {/* {speciesData.filter(species => species.mapped_to_diet)?.length} Selected */}
+              {tempSelectedSpecies?.length} Selected
             </Typography>
             <Icon icon='mdi:chevron-down' />
           </Box>
