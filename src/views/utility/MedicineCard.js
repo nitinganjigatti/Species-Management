@@ -1,15 +1,19 @@
 import React from 'react'
 import { Card, Typography, Box, Avatar, alpha } from '@mui/material'
+import { useTheme } from '@emotion/react'
 
 const MedicineCard = ({ name, description, pending, icon, pendingColor }) => {
+  const theme = useTheme()
+
   return (
     <Card
       sx={{
         display: 'flex',
         alignItems: 'center',
-        p: 5,
-        mb: 2,
-        minHeight: 100
+        padding: '16px',
+        boxShadow: `0px 2px 12px 0px ${theme.palette.customColors.neutral05}`,
+        borderRadius: '8px',
+        mb: '12px'
       }}
     >
       <Box

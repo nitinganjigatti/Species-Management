@@ -34,6 +34,12 @@ import CommonDialogBox from 'src/components/CommonDialogBox'
 import AlternativeMedicine from 'src/components/pharmacy/request/AlternativeMedicine'
 import RejectRequestItem from 'src/components/pharmacy/request/RejectRequestItem'
 import ProductNotAvailable from 'src/components/pharmacy/request/ProductNotAvailable'
+import { styled } from '@mui/material/styles'
+import MuiTabList from '@mui/lab/TabList'
+import Tab from '@mui/material/Tab'
+import TabPanel from '@mui/lab/TabPanel'
+import TabContext from '@mui/lab/TabContext'
+import { alpha } from '@mui/material'
 
 // import Drawer from '@mui/material/Drawer'
 const Transition = forwardRef(function Transition(props, ref) {
@@ -45,10 +51,26 @@ export default function RequestedItems({ selectedStoreDetails, setSelectedStoreD
   const router = useRouter()
   const { id } = router.query
 
-  // const updateUrlParams = params => {
-  //   const query = { ...router.query, ...params }
-  //   router.replace({ pathname: router.pathname, query }, undefined, { shallow: true })
-  // }
+  const TabLists = styled(MuiTabList)(({ theme }) => ({
+    '& .MuiTabs-indicator': {
+      display: 'none'
+    },
+
+    '& .MuiTab-root': {
+      minHeight: '40px !important',
+      maxHeight: '40px !important',
+      minWidth: 110,
+      backgroundColor: alpha(theme.palette.customColors.neutral05, 0.05),
+      borderRadius: 8,
+      marginRight: theme.spacing(3)
+    },
+    '& .Mui-selected': {
+      backgroundColor: theme.palette.customColors.OnSecondaryContainer,
+      color: theme.palette.common.white,
+      maxHeight: '40px !important',
+      minHeight: '40px !important'
+    }
+  }))
   const { selectedPharmacy } = usePharmacyContext()
   const [total, setTotal] = useState(0)
 
@@ -88,6 +110,7 @@ export default function RequestedItems({ selectedStoreDetails, setSelectedStoreD
   const [requestItems, setRequestItems] = useState([])
   const [fulfillMedicine, setFulfillMedicine] = useState(false)
   const [show, setShow] = useState(false)
+  const [requestedItemsSubTab, setRequestedItemsSubTab] = useState(router.query.requestedItemsSubTab || 'all')
 
   const showDialog = () => {
     setShow(true)
@@ -207,7 +230,7 @@ export default function RequestedItems({ selectedStoreDetails, setSelectedStoreD
     },
     {
       width: 300,
-      field: 'name',
+      field: 'stock_name',
       headerName: 'PRODUCT NAME',
       renderCell: params => (
         <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
@@ -347,7 +370,6 @@ export default function RequestedItems({ selectedStoreDetails, setSelectedStoreD
         //   setRequestedProducts(res?.data)
         //   setLoading(false)
         // }
-
         if (res?.success === true && res?.data?.list_items?.length > 0) {
           const updatedListItems = res?.data?.list_items.map(item => {
             const parentQuantityStatus = generateQuantityStats(item)
@@ -374,6 +396,7 @@ export default function RequestedItems({ selectedStoreDetails, setSelectedStoreD
         } else {
           setRequestedProducts([])
           setDrawerLoader(false)
+          closeDrawer()
         }
       })
     } catch (e) {
@@ -397,7 +420,8 @@ export default function RequestedItems({ selectedStoreDetails, setSelectedStoreD
           ...(filterDates?.startDate !== '' && { from_date: filterDates?.startDate }),
           ...(filterDates?.endDate !== '' && { to_date: filterDates?.endDate }),
           ...(controlledDrug !== 'all' && { controlled: controlledDrug }),
-          ...(priority !== 'all' && { priority: priority })
+          ...(priority !== 'all' && { priority: priority }),
+          ...(requestedItemsSubTab !== 'all' && { stock_status: requestedItemsSubTab })
         }
 
         await getAllRequestsOfSelectedStore({ params: params }, currentStoreId).then(res => {
@@ -406,7 +430,7 @@ export default function RequestedItems({ selectedStoreDetails, setSelectedStoreD
               storeId: res?.data?.id,
               storeName: res?.data?.store_name
             })
-            updateUrlParams({ selectedStoreName: res?.data?.store_name })
+            updateUrlParams({ selectedStoreName: res?.data?.store_name, requestedItemsSubTab: requestedItemsSubTab })
           }
           if (res?.success === true && res?.data?.list_items?.length > 0) {
             setTotal(parseInt(res?.data?.total_count))
@@ -423,7 +447,7 @@ export default function RequestedItems({ selectedStoreDetails, setSelectedStoreD
         setLoading(false)
       }
     },
-    [paginationModel, controlledDrug, priority, filterDates, selectedPharmacy?.id]
+    [paginationModel, controlledDrug, priority, filterDates, selectedPharmacy?.id, requestedItemsSubTab]
   )
 
   const searchTableData = useCallback(
@@ -513,7 +537,7 @@ export default function RequestedItems({ selectedStoreDetails, setSelectedStoreD
           action: () => {
             setMedicineParentId(prevState => ({
               ...prevState,
-              parentEndPointId: params.request_item_id,
+              parentEndPointId: params?.request_item_id,
               parent_id: parentId,
               request_item_id: params?.id,
               qty_requested: params?.qty,
@@ -577,202 +601,259 @@ export default function RequestedItems({ selectedStoreDetails, setSelectedStoreD
       q: searchValue,
       column: sortColumn,
       page: paginationModel?.page,
-      limit: paginationModel?.pageSize
+      limit: paginationModel?.pageSize,
+      requestedItemsSubTab: requestedItemsSubTab
     })
-  }, [paginationModel, controlledDrug, priority, filterDates, selectedPharmacy?.id])
+  }, [paginationModel, controlledDrug, priority, filterDates, selectedPharmacy?.id, requestedItemsSubTab])
 
-  return (
-    <Box sx={{ my: 5, mt: 6 }}>
-      <Box>
-        <Grid
-          container
-          spacing={2}
+  useEffect(() => {
+    updateUrlParams({
+      requestedItemsSubTab: requestedItemsSubTab
+    })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [requestedItemsSubTab])
+
+  const pageContent = () => {
+    return (
+      <Box sx={{ mt: 6 }}>
+        <Box>
+          <Grid
+            container
+            spacing={2}
+            sx={{
+              display: 'flex',
+              flexWrap: { xs: 'wrap', md: 'nowrap' },
+              justifyContent: { xs: 'center', md: 'space-between' },
+              alignItems: 'center',
+              gap: { xs: 2, md: 0 }
+            }}
+          >
+            <Grid item xs={12} sm={12} md='auto' lg='auto' xl='auto'>
+              <CommonDateRangePickers onChange={handleDateRangeChange} filterDates={filterDates} />
+            </Grid>
+            <Grid item xs={12} md={2.5} lg={2.5}>
+              <FormControl fullWidth size='small'>
+                <InputLabel>Controlled</InputLabel>
+                <Select
+                  value={controlledDrug}
+                  label='Controlled'
+                  onChange={e => {
+                    setControlledDrug(e.target.value)
+                  }}
+                >
+                  <MenuItem value='all'>All</MenuItem>
+                  <MenuItem value='1'>Controlled Drug</MenuItem>
+                </Select>
+              </FormControl>
+            </Grid>
+            <Grid item xs={12} md={2.5} lg={2.5}>
+              <FormControl fullWidth size='small'>
+                <InputLabel>Priority</InputLabel>
+                <Select
+                  value={priority}
+                  label='Priority'
+                  onChange={e => {
+                    setPriority(e.target.value)
+                  }}
+                >
+                  <MenuItem value='all'>All</MenuItem>
+                  <MenuItem value='high'>High</MenuItem>
+                  <MenuItem value='emergency'>Emergency</MenuItem>
+                </Select>
+              </FormControl>
+            </Grid>
+            <Grid item xs={12} md={3} lg={3}>
+              <TextField
+                variant='outlined'
+                size='small'
+                placeholder='Search...'
+                value={searchValue}
+                onChange={e => handleSearch(e.target.value)}
+                fullWidth
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position='start'>
+                      <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
+                    </InputAdornment>
+                  )
+                }}
+                sx={{
+                  borderRadius: '8px'
+                }}
+              />
+            </Grid>
+          </Grid>
+        </Box>
+        <CommonTable
+          // eslint-disable-next-line lines-around-comment
+          onRowClick={requestedItemsSubTab === 'Available' ? handleRowClick : null}
+          indexedRows={indexedRows}
+          total={total}
+          columns={columns}
+          paginationModel={paginationModel}
+          handleSortModel={handleSortModel}
+          setPaginationModel={setPaginationModel}
+          loading={loading}
+          searchValue={searchValue}
+        />
+        <RequestedProductDetails
+          addEventSidebarOpen={showDrawer}
+          handleSidebarClose={closeDrawer}
+          requestedProducts={requestedProducts}
+          generateOptions={generateOptions}
+          fullFillRequestItem={fullFillRequestItem}
+          drawerLoader={drawerLoader}
+        />
+        <Dialog
+          fullWidth
+          open={show}
+          maxWidth='md'
+          scroll='body'
           sx={{
-            display: 'flex',
-            flexWrap: { xs: 'wrap', md: 'nowrap' },
-            justifyContent: { xs: 'center', md: 'space-between' },
-            alignItems: 'center',
-            gap: { xs: 2, md: 0 }
+            '& .MuiDialog-paper': {
+              backgroundColor: 'primary.contrastText'
+            }
           }}
+          onClose={() => closeFulfillDialog()}
+          TransitionComponent={Transition}
+          onBackdropClick={() => closeFulfillDialog()}
         >
-          <Grid item xs={12} sm={12} md='auto' lg='auto' xl='auto'>
-            <CommonDateRangePickers onChange={handleDateRangeChange} filterDates={filterDates} />
+          <Grid
+            container
+            sx={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center'
+            }}
+          >
+            <CardHeader title={`Fulfillment`} />
+            <IconButton size='small' onClick={() => closeFulfillDialog()} sx={{ mx: 4 }}>
+              <Icon icon='mdi:close' />
+            </IconButton>
           </Grid>
-          <Grid item xs={12} md={2.5} lg={2.5}>
-            <FormControl fullWidth size='small'>
-              <InputLabel>Controlled</InputLabel>
-              <Select
-                value={controlledDrug}
-                label='Controlled'
-                onChange={e => {
-                  setControlledDrug(e.target.value)
-                }}
-              >
-                <MenuItem value='all'>All</MenuItem>
-                <MenuItem value='1'>Controlled Drug</MenuItem>
-              </Select>
-            </FormControl>
-          </Grid>
-          <Grid item xs={12} md={2.5} lg={2.5}>
-            <FormControl fullWidth size='small'>
-              <InputLabel>Priority</InputLabel>
-              <Select
-                value={priority}
-                label='Priority'
-                onChange={e => {
-                  setPriority(e.target.value)
-                }}
-              >
-                <MenuItem value='all'>All</MenuItem>
-                <MenuItem value='high'>High</MenuItem>
-                <MenuItem value='emergency'>Emergency</MenuItem>
-              </Select>
-            </FormControl>
-          </Grid>
-          <Grid item xs={12} md={3} lg={3}>
-            <TextField
-              variant='outlined'
-              size='small'
-              placeholder='Search...'
-              value={searchValue}
-              onChange={e => handleSearch(e.target.value)}
-              fullWidth
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position='start'>
-                    <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
-                  </InputAdornment>
-                )
-              }}
-              sx={{
-                borderRadius: '8px'
 
-                // width: { xs: '100%', md: '290px' }
-              }}
-            />
-          </Grid>
+          <FulfillDialog
+            fulfillMedicine={fulfillMedicine}
+            storeDetails={requestItems}
+            close={() => {
+              closeFulfillDialog()
+              fetchRequestedItemsById(sideDrawerItemDetails?.selectedStoreId, sideDrawerItemDetails?.selectedItemId)
+            }}
+          />
+        </Dialog>
+        <Grid container sx>
+          <CommonDialogBox
+            noWidth={'noWidth'}
+            title={'Add Alternative Supply'}
+            dialogBoxStatus={showAlternativeMedicineDialog}
+            formComponent={
+              <AlternativeMedicine
+                parentId={medicineParentId}
+                existingListItems={requestedProducts}
+                closeAlternativeMedicineDialog={closeAlternativeMedicineDialog}
+                updateRequestItems={() => {
+                  fetchTableData({ sort, q: searchValue, column: sortColumn })
+                  closeAlternativeMedicineDialog()
+                  fetchRequestedItemsById(sideDrawerItemDetails?.selectedStoreId, sideDrawerItemDetails?.selectedItemId)
+                }}
+              />
+            }
+            close={closeAlternativeMedicineDialog}
+            show={openAlternativeMedicineDialog}
+          />
+        </Grid>
+        <Grid container>
+          <CommonDialogBox
+            noWidth={'noWidth'}
+            title={'Supply Stopped'}
+            dialogBoxStatus={productNotAvailableDialog}
+            formComponent={
+              <ProductNotAvailable
+                payload={medicineParentId}
+                closeProductNotAvailableDialog={closeProductNotAvailableDialog}
+                updateRequestItems={() => {
+                  closeProductNotAvailableDialog()
+                  fetchTableData({ sort, q: searchValue, column: sortColumn })
+                  fetchRequestedItemsById(sideDrawerItemDetails?.selectedStoreId, sideDrawerItemDetails?.selectedItemId)
+                }}
+              />
+            }
+            close={closeProductNotAvailableDialog}
+            show={openProductNotAvailableDialog}
+          />
+        </Grid>
+        <Grid container>
+          <CommonDialogBox
+            noWidth={'noWidth'}
+            title={'Decline Request'}
+            dialogBoxStatus={rejectRequestMedicineDialog}
+            formComponent={
+              <RejectRequestItem
+                parentId={medicineParentId}
+                closeRejectMedicineDialog={closeRejectMedicineDialog}
+                updateRequestItems={() => {
+                  closeRejectMedicineDialog()
+                  fetchTableData({ sort, q: searchValue, column: sortColumn })
+                  fetchRequestedItemsById(sideDrawerItemDetails?.selectedStoreId, sideDrawerItemDetails?.selectedItemId)
+                }}
+              />
+            }
+            close={closeRejectMedicineDialog}
+            show={openRejectMedicineDialog}
+          />
         </Grid>
       </Box>
+    )
+  }
 
-      <CommonTable
-        // eslint-disable-next-line lines-around-comment
-        onRowClick={handleRowClick}
-        indexedRows={indexedRows}
-        total={total}
-        columns={columns}
-        paginationModel={paginationModel}
-        handleSortModel={handleSortModel}
-        setPaginationModel={setPaginationModel}
-        loading={loading}
-        searchValue={searchValue}
-      />
-
-      <RequestedProductDetails
-        addEventSidebarOpen={showDrawer}
-        handleSidebarClose={closeDrawer}
-        requestedProducts={requestedProducts}
-        generateOptions={generateOptions}
-        fullFillRequestItem={fullFillRequestItem}
-        drawerLoader={drawerLoader}
-      />
-      <Dialog
-        fullWidth
-        open={show}
-        maxWidth='md'
-        scroll='body'
-        sx={{
-          '& .MuiDialog-paper': {
-            backgroundColor: 'primary.contrastText'
-          }
+  return (
+    <TabContext value={requestedItemsSubTab}>
+      <TabLists
+        container
+        onChange={(event, newValue) => {
+          setRequestedItemsSubTab(newValue)
+          updateUrlParams({
+            requestedItemsSubTab: newValue
+          })
         }}
-        onClose={() => closeFulfillDialog()}
-        TransitionComponent={Transition}
-        onBackdropClick={() => closeFulfillDialog()}
+        sx={{
+          height: 'auto',
+          display: 'flex',
+          flexDirection: { xs: 'column', md: 'row' },
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          mt: 5
+        }}
       >
-        <Grid
-          container
-          sx={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center'
-          }}
-        >
-          <CardHeader title={`Fulfillment`} />
-          <IconButton size='small' onClick={() => closeFulfillDialog()} sx={{ mx: 4 }}>
-            <Icon icon='mdi:close' />
-          </IconButton>
-        </Grid>
+        <Tab value='all' label={'All'} />
+        <Tab value='Available' label={'Available'} />
+        <Tab value='NotAvailable' label={'NotAvailable'} />
+      </TabLists>
 
-        <FulfillDialog
-          fulfillMedicine={fulfillMedicine}
-          storeDetails={requestItems}
-          close={() => {
-            closeFulfillDialog()
-            fetchRequestedItemsById(sideDrawerItemDetails?.selectedStoreId, sideDrawerItemDetails?.selectedItemId)
-          }}
-        />
-      </Dialog>
-      <Grid container sx>
-        <CommonDialogBox
-          noWidth={'noWidth'}
-          title={'Add Alternative Supply'}
-          dialogBoxStatus={showAlternativeMedicineDialog}
-          formComponent={
-            <AlternativeMedicine
-              parentId={medicineParentId}
-              existingListItems={requestedProducts}
-              closeAlternativeMedicineDialog={closeAlternativeMedicineDialog}
-              updateRequestItems={() => {
-                fetchTableData({ sort, q: searchValue, column: sortColumn })
-                closeAlternativeMedicineDialog()
-                fetchRequestedItemsById(sideDrawerItemDetails?.selectedStoreId, sideDrawerItemDetails?.selectedItemId)
-              }}
-            />
-          }
-          close={closeAlternativeMedicineDialog}
-          show={openAlternativeMedicineDialog}
-        />
-      </Grid>
-      <Grid container>
-        <CommonDialogBox
-          noWidth={'noWidth'}
-          title={'Supply Stopped'}
-          dialogBoxStatus={productNotAvailableDialog}
-          formComponent={
-            <ProductNotAvailable
-              payload={medicineParentId}
-              closeProductNotAvailableDialog={closeProductNotAvailableDialog}
-              updateRequestItems={() => {
-                closeProductNotAvailableDialog()
-                fetchTableData({ sort, q: searchValue, column: sortColumn })
-                fetchRequestedItemsById(sideDrawerItemDetails?.selectedStoreId, sideDrawerItemDetails?.selectedItemId)
-              }}
-            />
-          }
-          close={closeProductNotAvailableDialog}
-          show={openProductNotAvailableDialog}
-        />
-      </Grid>
-      <Grid container>
-        <CommonDialogBox
-          noWidth={'noWidth'}
-          title={'Decline Request'}
-          dialogBoxStatus={rejectRequestMedicineDialog}
-          formComponent={
-            <RejectRequestItem
-              parentId={medicineParentId}
-              closeRejectMedicineDialog={closeRejectMedicineDialog}
-              updateRequestItems={() => {
-                closeRejectMedicineDialog()
-                fetchTableData({ sort, q: searchValue, column: sortColumn })
-                fetchRequestedItemsById(sideDrawerItemDetails?.selectedStoreId, sideDrawerItemDetails?.selectedItemId)
-              }}
-            />
-          }
-          close={closeRejectMedicineDialog}
-          show={openRejectMedicineDialog}
-        />
-      </Grid>
-    </Box>
+      <TabPanel
+        value='all'
+        sx={{
+          padding: '0px !important'
+        }}
+      >
+        {pageContent()}
+      </TabPanel>
+      <TabPanel
+        value='Available'
+        sx={{
+          padding: '0px !important'
+        }}
+      >
+        {pageContent()}
+      </TabPanel>
+      <TabPanel
+        value='NotAvailable'
+        sx={{
+          padding: '0px !important'
+        }}
+      >
+        {pageContent()}
+      </TabPanel>
+    </TabContext>
   )
 }

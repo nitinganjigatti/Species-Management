@@ -563,9 +563,9 @@ const AllStoresRequestList = () => {
       <>
         {renderHeader(title)}
         <Box sx={{ flexGrow: 1 }}>
-          <Grid container spacing={2} direction='column'>
+          <Grid container direction='column' gap={1}>
             {uniquePendingData.map((med, index) => (
-              <Grid item xs={12} key={index}>
+              <Grid item xs={12} key={index} sx={{ padding: 0, margin: 0 }}>
                 <MedicineCard
                   {...med}
                   pendingColor={activeTab === '2' ? 'customColors.Error' : 'customColors.Tertiary'}
@@ -738,11 +738,12 @@ const AllStoresRequestList = () => {
 
                       // borderBottom: `1px solid ${theme.palette.customColors.neutralSecondary}`,
                       display: 'flex',
-                      justifyContent: 'center'
+
+                      justifyContent: 'space-between'
                     }
                   }}
                 >
-                  <Tab value='1' label='All items' />
+                  <Tab value='1' label='All items' sx={{ width: '30%' }} />
                   <Tab value='2' label='Available items' />
                   <Tab value='3' label='Not Available items' />
                 </TabList>
@@ -761,13 +762,13 @@ const AllStoresRequestList = () => {
               onScroll={handleScroll}
             >
               <TabContext value={activeTab}>
-                <TabPanel value='1' sx={{ p: 4 }}>
+                <TabPanel value='1' sx={{ px: '24px' }}>
                   {renderContent('All items')}
                 </TabPanel>
-                <TabPanel value='2' sx={{ p: 4 }}>
+                <TabPanel value='2' sx={{ px: '24px' }}>
                   {renderContent('Available items')}
                 </TabPanel>
-                <TabPanel value='3' sx={{ p: 4 }}>
+                <TabPanel value='3' sx={{ px: '24px' }}>
                   {renderContent('Not available items')}
                 </TabPanel>
               </TabContext>

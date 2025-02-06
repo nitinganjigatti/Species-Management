@@ -16,11 +16,15 @@ import { alpha } from '@mui/material'
 import ShippedItems from './ShippedItems'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import { useDynamicStateContext } from 'src/context/DynamicStatesContext'
+import Icon from 'src/@core/components/icon'
+import ConfirmDialogBox from 'src/components/ConfirmDialogBox'
+import { deleteFulfillItem } from 'src/lib/api/pharmacy/getRequestItemsList'
+import toast from 'react-hot-toast'
+import { LoadingButton } from '@mui/lab'
 
 export default function ShipmentRequests({ updateUrlParams }) {
   const { selectedPharmacy } = usePharmacyContext()
   const { data, updateMultipleStates } = useDynamicStateContext()
-  console.log('data', data)
 
   // Styled TabList component
   const TabLists = styled(MuiTabList)(({ theme }) => ({
@@ -72,15 +76,26 @@ export default function ShipmentRequests({ updateUrlParams }) {
   function loadServerRows(currentPage, data) {
     return data
   }
-  const [selectedRows, setSelectedRows] = useState([])
-
-  const [totalShippedCounts, setTotalShippedCounts] = useState(0)
+  const [selectedRows, setSelectedRows] = useState(data?.dispatchedItems || [])
+  const [totalShippedCounts, setTotalShippedCounts] = useState()
+  const [deleteDialog, setDeleteDialog] = useState(false)
+  const [deleteFullFillId, setDeleteFullFillId] = useState(null)
+  const [deleteItemLoader, setDeleteItemLoader] = useState(false)
 
   const shipItems = () => {
     updateMultipleStates({
-      dispatchedItems: selectedRows?.length > 0 ? selectedRows : indexedRows
+      dispatchedItems: selectedRows?.length > 0 ? selectedRows : []
     })
     router.push(`/pharmacy/requests-by-store/${id}/ship-all-items`)
+  }
+
+  const closeDeleteDialog = () => {
+    setDeleteDialog(false)
+    setDeleteFullFillId(null)
+  }
+
+  const openDeleteDialog = () => {
+    setDeleteDialog(true)
   }
 
   useEffect(() => {
@@ -264,6 +279,23 @@ export default function ShipmentRequests({ updateUrlParams }) {
           {Utility?.formatDisplayDate(params.row.requested_date)}
         </Typography>
       )
+    },
+    {
+      minWidth: 20,
+      headerName: 'Action',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary', display: 'flex', alignItems: 'center' }}>
+          <Box sx={{ mr: 2 }}>
+            <Icon
+              onClick={() => {
+                setDeleteDialog(true)
+                setDeleteFullFillId(params?.row?.dispatch_item_id)
+              }}
+              icon='mdi:delete-outline'
+            />
+          </Box>
+        </Typography>
+      )
     }
   ]
 
@@ -294,6 +326,10 @@ export default function ShipmentRequests({ updateUrlParams }) {
               id: item?.dispatch_item_id
             }))
             setRows(loadServerRows(paginationModel?.page, updatedRows))
+            if (data?.dispatchedItems?.length > 0) {
+              const dispatchItems = data?.dispatchedItems
+              setSelectedRows(dispatchItems)
+            }
           } else {
             setTotal(0)
             setRows([])
@@ -343,6 +379,30 @@ export default function ShipmentRequests({ updateUrlParams }) {
     sl_no: getSlNo(index)
   }))
 
+  const deleteFullFillItem = async dispatchedItemId => {
+    if (dispatchedItemId) {
+      try {
+        setDeleteItemLoader(true)
+        const result = await deleteFulfillItem(dispatchedItemId)
+        if (result?.success === true) {
+          toast.success(result.data)
+          closeDeleteDialog()
+          fetchTableData({ sort, q: searchValue, column: sortColumn })
+          setDeleteItemLoader(false)
+        } else {
+          closeDeleteDialog()
+          toast.error(result.data)
+          setDeleteItemLoader(false)
+        }
+      } catch (error) {
+        toast.error(error.data)
+        setDeleteItemLoader(false)
+
+        console.log('error', error)
+      }
+    }
+  }
+
   useEffect(() => {
     fetchTableData({ sort, q: searchValue, column: sortColumn })
     updateUrlParams({
@@ -353,6 +413,7 @@ export default function ShipmentRequests({ updateUrlParams }) {
       limit: paginationModel?.pageSize,
       subTab: shipmentTab === 'Ready To Ship' ? 'Ready To Ship' : 'Shipped'
     })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fetchTableData])
 
   return (
@@ -378,7 +439,7 @@ export default function ShipmentRequests({ updateUrlParams }) {
         }}
       >
         <Tab value='Ready To Ship' label={`Ready To Ship - ${total}`} />
-        <Tab value='Shipped' label={`Shipped - ${totalShippedCounts} `} />
+        <Tab value='Shipped' label={totalShippedCounts ? `Shipped-${totalShippedCounts}` : 'Shipped'} />
 
         <Grid
           container
@@ -412,10 +473,11 @@ export default function ShipmentRequests({ updateUrlParams }) {
           )}
           {shipmentTab === 'Ready To Ship' &&
           (indexedRows?.length > 0 || selectedRows?.length > 0) &&
-          (selectedPharmacy.permission.key === 'ADD' || selectedPharmacy.permission.key === 'allow_full_access') ? (
+          (selectedPharmacy?.permission.key === 'ADD' || selectedPharmacy?.permission.key === 'allow_full_access') ? (
             <Grid item xs={5} sm='auto' md={4} lg={3}>
               <Button
                 fullWidth
+                disabled={selectedRows?.length === 0}
                 size='big'
                 variant='contained'
                 onClick={() => {
@@ -428,7 +490,6 @@ export default function ShipmentRequests({ updateUrlParams }) {
           ) : null}
         </Grid>
       </TabLists>
-
       <TabPanel
         value='Ready To Ship'
         sx={{
@@ -458,6 +519,7 @@ export default function ShipmentRequests({ updateUrlParams }) {
               {selectedRows?.length} Items Selected
             </Box>
           )}
+
           <CommonTable
             // eslint-disable-next-line lines-around-comment
             // onRowClick={handleRowClick}
@@ -471,14 +533,59 @@ export default function ShipmentRequests({ updateUrlParams }) {
             searchValue={searchValue}
             checkBoxOption={true}
             onRowSelectionModelChange={newSelection => {
-              console.log('RowSelectionModel', newSelection.row)
-              const selectedData = indexedRows.filter(row => newSelection.includes(row?.id))
-              console.log('selectedData', selectedData)
-
+              const selectedData = indexedRows.filter(row => newSelection?.includes(row?.id))
               setSelectedRows(selectedData)
             }}
+            selectedRows={selectedRows?.map(row => row?.id)}
           />
         </Card>
+
+        <ConfirmDialogBox
+          open={deleteDialog}
+          closeDialog={() => {
+            closeDeleteDialog()
+          }}
+          action={() => {
+            closeDeleteDialog()
+          }}
+          content={
+            <Typography
+              sx={{
+                fontWeight: 400,
+                fontSize: '16px',
+                margin: '0px',
+                padding: '0px'
+              }}
+            >
+              'Are you sure you want to delete this item?'
+            </Typography>
+          }
+          dialogActions={
+            <>
+              <Button
+                variant='contained'
+                size='small'
+                color='primary'
+                onClick={() => {
+                  closeDeleteDialog()
+                }}
+              >
+                Cancel
+              </Button>
+              <LoadingButton
+                loading={deleteItemLoader}
+                size='small'
+                variant='contained'
+                color='error'
+                onClick={() => {
+                  deleteFullFillItem(deleteFullFillId)
+                }}
+              >
+                Confirm
+              </LoadingButton>
+            </>
+          }
+        />
       </TabPanel>
       <TabPanel
         value='Shipped'

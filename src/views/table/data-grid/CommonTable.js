@@ -16,6 +16,7 @@ const CommonTable = ({
   columnVisibilityModel,
   checkBoxOption,
   onRowSelectionModelChange,
+  selectedRows,
   disablePagination = false // New prop to control pagination
 }) => {
   const theme = useTheme()
@@ -94,6 +95,7 @@ const CommonTable = ({
       onRowClick={onRowClick ? onRowClick : null}
       checkboxSelection={checkBoxOption ? true : false}
       onRowSelectionModelChange={onRowSelectionModelChange ? onRowSelectionModelChange : null}
+      rowSelectionModel={selectedRows ? selectedRows : []}
     />
   )
 }
