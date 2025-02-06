@@ -26,8 +26,9 @@ export const ProductDetail = ({
   const { selectedPharmacy } = usePharmacyContext()
   const [visibleArea, setVisibleArea] = useState(false)
 
+  console.log('Selected Pharmacy: ', selectedPharmacy)
+
   const router = useRouter()
-  
 
   // useEffect(() => {
   //   if (statusCall) {
@@ -183,8 +184,8 @@ export const ProductDetail = ({
                       </Grid>
                     )
                   : !visibleArea &&
-                    (selectedPharmacy.permission.key === 'allow_full_access' ||
-                      selectedPharmacy.permission.key === 'ADD') && (
+                    (selectedPharmacy?.permission?.key === 'allow_full_access' ||
+                      selectedPharmacy?.permission?.key === 'ADD') && (
                       <Grid sx={{ display: 'flex', justifyContent: 'flex-end', mb: '20px' }}>
                         {productDetails?.status === 'Pending' && (
                           <LoadingButton
