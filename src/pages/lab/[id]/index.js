@@ -961,9 +961,9 @@ const RequestDetails = () => {
                     </Box>
                     <Box sx={{ display: 'flex', flexDirection: 'column', flexWrap: 'wrap' }}>
                       <Typography>
-                        Medical Record{' '}
+                        Medical Record :{' '}
                         <span style={{ fontSize: '15px', fontWeight: 'bold', color: '#7A8684' }}>
-                          {item?.medical_record_id}
+                          {item?.medical_record_code}
                         </span>
                       </Typography>
                     </Box>

@@ -87,7 +87,7 @@ const AnimalParentCard = ({ data, backgroundColor }) => {
               gap: '2px'
             }}
           >
-            {data?.local_id_type && data?.local_identifier_value && (
+            {data?.local_identifier_name && data?.local_identifier_value && (
               <Typography
                 sx={{
                   color: theme.palette.customColors.OnSurfaceVariant,
@@ -96,7 +96,7 @@ const AnimalParentCard = ({ data, backgroundColor }) => {
                   lineHeight: '19.36px'
                 }}
               >
-                <span> {data?.local_id_type}: </span>
+                <span> {data?.local_identifier_name}: </span>
                 <span> {data?.local_identifier_value}</span>
               </Typography>
             )}
