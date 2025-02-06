@@ -92,7 +92,6 @@ const ListOfSpeciesMapped = ({
   }
 
   const handelClose = () => {
-    //alert('hi')
     setIsOpennew(false)
     refreshDietDetails()
     setspeciesview('')
@@ -113,7 +112,11 @@ const ListOfSpeciesMapped = ({
       anchor='right'
       open={isOpennew}
       sx={{
-        '& .MuiDrawer-paper': { width: ['100%', '562px'], height: '100vh' },
+        '& .MuiDrawer-paper': {
+          width: ['100%', '562px'],
+          height: '100vh',
+          mt: speciesview === 'select' ? '64px' : '0px'
+        },
         position: 'relative',
         display: 'flex',
         flexDirection: 'column',
@@ -142,10 +145,10 @@ const ListOfSpeciesMapped = ({
         </Box>
 
         <Box
-          sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', mr: '28px', mt: '4px' }}
+          sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', mr: '14px', mt: '4px' }}
           onClick={handelClose}
         >
-          <IconButton size='small' sx={{ color: 'text.primary' }}>
+          <IconButton size='small' sx={{ color: theme.palette.primary.light }}>
             <Icon icon='mdi:close' fontSize={24} />
           </IconButton>
         </Box>
@@ -176,7 +179,7 @@ const ListOfSpeciesMapped = ({
                   border: '1px solid #C3CEC7',
                   borderRadius: '4px',
                   padding: '0 8px',
-                  height: '40px',
+                  height: '50px',
                   mb: 0,
                   backgroundColor: theme.palette.background.paper
                 }}
@@ -202,7 +205,7 @@ const ListOfSpeciesMapped = ({
                     }
                   }}
                 />
-                {searchQuery ? <Icon icon='mdi:close' onClick={searchClose} /> : ''}
+                {searchQuery ? <Icon style={{ marginRight: '14px' }} icon='mdi:close' onClick={searchClose} /> : ''}
               </Box>
             </>
           </Box>
@@ -253,14 +256,14 @@ const ListOfSpeciesMapped = ({
                 <ListItemText
                   primary={dietDetails.diet_name}
                   primaryTypographyProps={{
-                    sx: { color: theme.palette.secondary.dark, fontSize: '16px', fontWeight: 600 }
+                    sx: { color: theme.palette.customColors.OnSurfaceVariant, fontSize: '16px', fontWeight: 600 }
                   }}
                   secondary={
                     <Typography
                       variant='body2'
                       sx={{
-                        color: theme.palette.secondary.dark,
-                        fontSize: '14px',
+                        color: theme.palette.customColors.OnSurfaceVariant,
+                        fontSize: '16px',
                         fontWeight: 400
                       }}
                     >
@@ -276,7 +279,14 @@ const ListOfSpeciesMapped = ({
               {!loading ? (
                 speciesview === 'select' ? (
                   // <Typography>You have selected {speciestotalcount || ''} species</Typography>
-                  <Typography>You have selected {tempSelectedSpecies?.length} species</Typography>
+                  <Typography
+                    sx={{
+                      color: theme.palette.customColors.OnSurfaceVariant,
+                      pb: 1
+                    }}
+                  >
+                    You have selected {tempSelectedSpecies?.length} species
+                  </Typography>
                 ) : (
                   <Typography
                     variant='body2'
@@ -294,7 +304,11 @@ const ListOfSpeciesMapped = ({
                 <Typography>{''}</Typography>
               )}
             </>
-            <List>
+            <List
+              sx={{
+                mb: speciesview === 'select' ? '12%' : '0%'
+              }}
+            >
               {loading && pageNo === 1 ? (
                 <CardContent>
                   <Box sx={{ display: 'flex', justifyContent: 'center', mt: 20 }}>
@@ -328,15 +342,15 @@ const ListOfSpeciesMapped = ({
                     <ListItemText
                       primary={species.scientific_name ? species.scientific_name : '-'}
                       primaryTypographyProps={{
-                        sx: { color: theme.palette.secondary.dark, fontSize: '16px', fontWeight: 600 }
+                        sx: { color: theme.palette.customColors.OnSurfaceVariant, fontSize: '16px', fontWeight: 600 }
                       }}
                       secondary={
                         <>
                           <Typography
                             variant='body2'
                             sx={{
-                              color: theme.palette.secondary.dark,
-                              fontSize: '14px',
+                              color: theme.palette.customColors.OnSurfaceVariant,
+                              fontSize: '16px',
                               fontWeight: 400,
                               fontStyle: 'italic'
                             }}
@@ -350,12 +364,12 @@ const ListOfSpeciesMapped = ({
                       edge='end'
                       onClick={() => handleRemove(species)}
                       sx={{
-                        color: theme.palette.error.main,
+                        color: theme.palette.error.dark,
                         position: 'absolute',
                         right: 38,
                         borderRadius: '50%',
-                        border: '1px solid',
-                        borderColor: 'theme.palette.error.main',
+                        border: '2px solid',
+                        borderColor: theme.palette.error.dark,
                         padding: '0px'
                       }}
                     >
