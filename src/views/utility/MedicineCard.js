@@ -9,7 +9,9 @@ const MedicineCard = ({ name, description, pending, icon, pendingColor }) => {
         alignItems: 'center',
         p: 5,
         mb: 2,
-        minHeight: 100
+        minHeight: 100,
+        boxShadow: `0px 2px 12px 0px #0000000D`,
+        borderRadius: '8px'
       }}
     >
       <Box
@@ -23,9 +25,9 @@ const MedicineCard = ({ name, description, pending, icon, pendingColor }) => {
           mr: 3
         }}
       >
+        {/* Avatar for Medicine Icon */}
         <Avatar variant='square' src={icon} alt={name} sx={{ width: 32, height: 32 }} />
       </Box>
-      {/* Avatar for Medicine Icon */}
 
       <Box sx={{ flexGrow: 1 }}>
         <Typography sx={{ fontSize: '14px', fontWeight: 600, color: 'customColors.OnSurfaceVariant' }}>
