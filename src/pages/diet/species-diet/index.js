@@ -20,7 +20,7 @@ import { AuthContext } from 'src/context/AuthContext'
 // import Styles from './dot.module.css'
 import Utility from 'src/utility'
 import ErrorScreen from 'src/pages/Error'
-import data from './ojbect'
+// import data from './ojbect'
 import DashboardFilter from './speciesDietFilter'
 import SpeciesDetails from './speciesDetails'
 
