@@ -135,10 +135,7 @@ const ListOfSpeciesMapped = ({
         }}
       >
         <Box sx={{ mt: 2, display: 'flex', flexDirection: 'row', gap: 2, alignItems: 'center' }}>
-          <Icon
-            icon='material-symbols-light:add-notes-outline'
-            style={{ color: theme.palette.customColors.OnSurfaceVariant, fontWeight: 500, fontSize: '34px' }}
-          />
+          <img src='/icons/Activity.svg' alt='Grocery Icon' width='35px' />
           <Typography sx={{ fontSize: '24px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}>
             {speciesview === 'details' ? 'Species assigned' : 'Selected species'}
           </Typography>
