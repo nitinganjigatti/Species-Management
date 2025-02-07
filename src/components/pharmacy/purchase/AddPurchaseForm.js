@@ -567,7 +567,6 @@ const AddPurchaseForm = () => {
   }
 
   const onSubmit = async data => {
-    debugger
     setSubmitLoader(true)
     // console.log('data', data)
 
@@ -598,12 +597,14 @@ const AddPurchaseForm = () => {
     postData.freight_total_charges = String(totalFreightCharges)
     postData.additional_charges = data.additional_charges
     postData.round_off = roundup_select == '-' ? roundup_select + roundUpValue : roundUpValue
-    debugger
-    postData.net_amount =
-      totalLineItemsPurchase +
-      totalFreightCharges +
-      parseFloat(data.additional_charges) +
-      parseFloat(roundup_select == '-' ? roundup_select + roundUpValue : roundUpValue)
+
+    // postData.net_amount =
+    //   totalLineItemsPurchase +
+    //   totalFreightCharges +
+    //   parseFloat(data.additional_charges) +
+    //   parseFloat(roundup_select == '-' ? roundup_select + roundUpValue : roundUpValue)
+    postData.net_amount = grandTotalAmount
+    // added grand total amount
 
     // debugger
     // console.log('postData', postData)
