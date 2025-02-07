@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect } from 'react'
+import React, { useRef } from 'react'
 import { useTheme } from '@mui/material/styles'
 import {
   Box,
@@ -34,6 +34,7 @@ const SpeciesMappedtoDiet = ({
   setOpenFilterDrawer,
   selectedItems,
   dietId,
+  dietname,
   refreshSpeciesData,
   refreshDietDetails,
   searchQuery,
@@ -87,7 +88,10 @@ const SpeciesMappedtoDiet = ({
       const response = await addSpeciestoDiet(payload)
       console.log('API Response:', response)
       if (response.success === true) {
-        Toaster({ type: 'success', message: response?.message })
+        Toaster({
+          type: 'success',
+          message: tempSelectedSpecies?.length + ' ' + `Species successfully added to ${dietname} diet`
+        })
         onSelectedSpeciesChange(updatedSpeciesIds)
         refreshDietDetails()
         setIsOpen(false)
@@ -115,7 +119,7 @@ const SpeciesMappedtoDiet = ({
     console.log(tempSelectedSpecies, 'ppp')
     if (val === 'select') {
       setIsOpennew(true)
-      setIsOpen(false)
+      // setIsOpen(false)
       setspeciesview(val)
     } else {
       setIsOpennew(true)
@@ -172,7 +176,7 @@ const SpeciesMappedtoDiet = ({
           sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', mr: '14px', mt: '4px' }}
           onClick={handelClose}
         >
-          <IconButton size='small' sx={{ color: 'text.primary' }}>
+          <IconButton size='small' sx={{ color: theme.palette.primary.light }}>
             <Icon icon='mdi:close' fontSize={24} />
           </IconButton>
         </Box>
@@ -305,7 +309,7 @@ const SpeciesMappedtoDiet = ({
           <Typography
             variant='body2'
             sx={{
-              color: theme.palette.secondary.dark,
+              color: theme.palette.customColors.OnSurfaceVariant,
               fontSize: '14px',
               fontWeight: 600
             }}
@@ -323,15 +327,16 @@ const SpeciesMappedtoDiet = ({
               sx={{
                 color:
                   tempSelectedSpecies?.length === speciesData.filter(species => !species.mapped_to_diet).length
-                    ? '#7A8684'
-                    : theme.palette.primary.main,
+                    ? theme.palette.primary.main
+                    : '#44544A',
                 fontSize: '12px',
                 fontWeight: 600,
-                textTransform: 'none'
+                textTransform: 'none',
+                p: 0
               }}
               onClick={handleSelectAll}
             >
-              {tempSelectedSpecies?.length === speciesData.length ? 'Select All' : 'Select All'}
+              {tempSelectedSpecies?.length === speciesData.length ? 'Select all' : 'Select all'}
             </Button>
 
             <Checkbox
@@ -344,13 +349,17 @@ const SpeciesMappedtoDiet = ({
                   color: theme.palette.primary.main
                 },
                 '& .MuiSvgIcon-root': {
-                  borderRadius: '4px',
-                  width: '22px',
-                  height: '22px',
+                  width: '19px',
+                  height: '19px',
+                  border: '2px dotted',
+                  borderColor:
+                    tempSelectedSpecies?.length === speciesData.filter(species => !species.mapped_to_diet).length
+                      ? theme.palette.primary.main
+                      : '#44544A',
                   color:
                     tempSelectedSpecies?.length === speciesData.filter(species => !species.mapped_to_diet).length
-                      ? '#7A8684'
-                      : theme.palette.primary.main
+                      ? theme.palette.primary.main
+                      : '#44544A'
                 },
                 mr: 1
               }}
@@ -405,6 +414,9 @@ const SpeciesMappedtoDiet = ({
                 sx={{
                   background: species.mapped_to_diet ? '#DAE7DF' : theme.palette.background.paper,
                   borderRadius: '8px',
+                  border: tempSelectedSpecies.includes(species.species_id)
+                    ? '1px solid' + theme.palette.primary.main
+                    : '',
                   mb: 3,
 
                   '& .MuiListItemSecondaryAction-root': {
@@ -426,15 +438,15 @@ const SpeciesMappedtoDiet = ({
                 <ListItemText
                   primary={species.scientific_name ? species.scientific_name : '-'}
                   primaryTypographyProps={{
-                    sx: { color: theme.palette.secondary.dark, fontSize: '16px', fontWeight: 600 }
+                    sx: { color: theme.palette.customColors.OnSurfaceVariant, fontSize: '16px', fontWeight: 600 }
                   }}
                   secondary={
                     <>
                       <Typography
                         variant='body2'
                         sx={{
-                          color: theme.palette.secondary.dark,
-                          fontSize: '14px',
+                          color: theme.palette.customColors.OnSurfaceVariant,
+                          fontSize: '16px',
                           fontWeight: 400,
                           fontStyle: 'italic'
                         }}

@@ -348,6 +348,8 @@ const DietDetail = () => {
                               color: theme.palette.primary.dark,
                               background: theme.palette.background.default,
                               padding: '10px',
+                              paddingLeft: '20px',
+                              paddingRight: '20px',
                               borderRadius: '50px',
                               cursor: 'pointer'
                             }}
@@ -3209,6 +3211,7 @@ const DietDetail = () => {
             dietname={dietDetails?.diet_name}
             dietid={dietDetails?.id}
             speciesData={speciesData}
+            dietDetails={dietDetails}
             selectedSpecies={selectedSpecies}
             onSelectedSpeciesChange={handleSelectedSpeciesChange}
             setIsOpennew={setIsOpennew}

@@ -228,16 +228,11 @@ const DietDetailCard = ({ dietDetails, dietModulePermission, dietModuleAccess })
             </Box>
           </Grid>
           <Grid item md={7.8}>
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <Box>
+                <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
                   <Typography sx={{ fontWeight: 500, fontSize: '22px', color: '#44544A' }}>
                     {dietDetails?.diet_no}
-                  </Typography>
-                  <Typography
-                    sx={{ fontWeight: 400, fontSize: '16px', color: '#44544A', lineHeight: '19.36px', pt: 2 }}
-                  >
-                    {dietDetails?.diet_name}
                   </Typography>
                 </Box>
                 <Box sx={{ display: 'flex', gap: '24px', alignItems: 'center' }}>
@@ -289,6 +284,9 @@ const DietDetailCard = ({ dietDetails, dietModulePermission, dietModuleAccess })
                   )}
                 </Box>
               </Box>
+              <Typography sx={{ fontWeight: 400, fontSize: '16px', color: '#44544A' }}>
+                {dietDetails?.diet_name}
+              </Typography>
               <Box>
                 {dietDetails?.desc ? (
                   <div>
