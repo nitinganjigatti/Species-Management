@@ -452,16 +452,14 @@ const RequestedProductDetails = props => {
                         fontFamily: 'Inter'
                       }}
                     >
-                      {/* {requestedProducts?.generic_name ? requestedProducts?.generic_name : 'NA'} */}
-                      {requestedProducts?.package &&
-                      requestedProducts?.package_qty &&
-                      requestedProducts?.package_uom_label
-                        ? // requestedProducts?.product_form_label
-                          `${requestedProducts?.package} of ${Utility.formatNumber(requestedProducts?.package_qty)} ${
+                      {requestedProducts?.package ||
+                      requestedProducts?.package_qty ||
+                      requestedProducts?.package_uom_label ||
+                      requestedProducts?.product_form_label
+                        ? `${requestedProducts?.package} of ${Utility.formatNumber(requestedProducts?.package_qty)} ${
                             requestedProducts?.package_uom_label
                           } `
                         : 'NA'}
-                      {/* // ${requestedProducts?.product_form_label}` */}
                     </Typography>
                     <Typography
                       sx={{

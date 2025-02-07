@@ -16,6 +16,7 @@ const CommonTable = ({
   columnVisibilityModel,
   checkBoxOption,
   onRowSelectionModelChange,
+  selectedRows,
   disablePagination = false // New prop to control pagination
 }) => {
   const theme = useTheme()
@@ -72,7 +73,7 @@ const CommonTable = ({
       // paginationMode='server'
       // pageSizeOptions={[7, 10, 25, 50]}
       paginationMode={disablePagination ? undefined : 'server'}
-      pageSizeOptions={disablePagination ? [total] : [7, 10, 25, 50]}
+      pageSizeOptions={disablePagination ? [total] : [7, 10, 25, 50, 100]}
       onCellClick={onCellClick ? onCellClick : null}
       // paginationModel={paginationModel}
       paginationModel={disablePagination ? undefined : paginationModel}
@@ -94,6 +95,7 @@ const CommonTable = ({
       onRowClick={onRowClick ? onRowClick : null}
       checkboxSelection={checkBoxOption ? true : false}
       onRowSelectionModelChange={onRowSelectionModelChange ? onRowSelectionModelChange : null}
+      rowSelectionModel={selectedRows ? selectedRows : []}
     />
   )
 }

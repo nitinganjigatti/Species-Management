@@ -1283,7 +1283,7 @@ const AddRequestForm = () => {
                 width: '602px',
                 height: '46px',
                 gap: 5,
-                mt:2
+                mt: 2
               }}
             >
               <Button
@@ -1308,7 +1308,9 @@ const AddRequestForm = () => {
                       : `1.5px solid ${theme.palette.customColors.OutlineVariant}60 !important`,
                   '&:hover': {
                     backgroundColor:
-                      nestedRowMedicine.priority_item === 'high' ?  `${theme.palette.customColors.TertiaryContainer}20 !important` : 'transparent !important'
+                      nestedRowMedicine.priority_item === 'high'
+                        ? `${theme.palette.customColors.TertiaryContainer}20 !important`
+                        : 'transparent !important'
                   }
                 }}
                 onClick={() => {
@@ -1349,7 +1351,7 @@ const AddRequestForm = () => {
                       : theme.palette.customColors.customHeadingTextColor,
                   opacity: nestedRowMedicine.priority_item === 'emergency' && 2,
                   outline:
-                    nestedRowMedicine.priority_item === 'emergency' 
+                    nestedRowMedicine.priority_item === 'emergency'
                       ? `1px solid ${theme.palette.customColors.Error} !important`
                       : `1.5px solid ${theme.palette.customColors.OutlineVariant}60 !important`,
                   // '&:hover': {
@@ -1556,7 +1558,7 @@ const AddRequestForm = () => {
             nestedRowMedicine.prescription_required_file ? (
               <Grid item xs={12} sm={12} sx={{ mr: 'auto' }}>
                 <Typography
-                  sx={{ mb: 2,mt:2 , fontSize: '16px', fontWeight: 500, color: 'customColors.customTextColorGray2' }}
+                  sx={{ mb: 2, mt: 2, fontSize: '16px', fontWeight: 500, color: 'customColors.customTextColorGray2' }}
                 >
                   Add prescription*
                 </Typography>
@@ -2215,20 +2217,9 @@ const AddRequestForm = () => {
                     return (
                       <TableRow key={index}>
                         <TableCell align='left'>
-                          {index + 1}.
-                          {el?.priority_item === 'high' && (
-                            <>
-                              &nbsp; {/* Adds space between index and bullet */}
-                              <span
-                                style={{
-                                  color: el?.priority_item === 'high' && 'red',
-                                  fontSize: '26px'
-                                }}
-                              >
-                                •
-                              </span>
-                            </>
-                          )}
+                          <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                            {index + 1}.{RenderUtility.getPriorityIcons(el?.priority_item)}
+                          </Box>
                         </TableCell>
                         {/* <TableCell>
                           <Typography variant='body2' sx={{ color: 'text.primary' }}>

@@ -567,6 +567,7 @@ const AddPurchaseForm = () => {
   }
 
   const onSubmit = async data => {
+    debugger
     setSubmitLoader(true)
     // console.log('data', data)
 
@@ -584,7 +585,7 @@ const AddPurchaseForm = () => {
     postData.igst = calculate_igst_tax_amount
 
     postData.total_amount = totalLineItemsAmount
-    postData.net_amount = totalLineItemsPurchase
+
     // postData.tax_amount = calculate_cgst_tax_amount + calculate_sgst_tax_amount
     postData.discount_amount = totalLineItemsDiscount
     postData.taxable_amount = totalLineItemsTaxableAmount
@@ -597,6 +598,12 @@ const AddPurchaseForm = () => {
     postData.freight_total_charges = String(totalFreightCharges)
     postData.additional_charges = data.additional_charges
     postData.round_off = roundup_select == '-' ? roundup_select + roundUpValue : roundUpValue
+    debugger
+    postData.net_amount =
+      totalLineItemsPurchase +
+      totalFreightCharges +
+      parseFloat(data.additional_charges) +
+      parseFloat(roundup_select == '-' ? roundup_select + roundUpValue : roundUpValue)
 
     // debugger
     // console.log('postData', postData)

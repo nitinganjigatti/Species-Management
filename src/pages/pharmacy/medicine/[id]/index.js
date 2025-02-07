@@ -72,6 +72,7 @@ const ProductDetailsList = () => {
 
   const handleChange = (event, newValue) => {
     setValue(newValue)
+
     // updateUrlParams({ tab: newValue })
   }
 
@@ -331,7 +332,7 @@ const ProductDetailsList = () => {
                   variant='square'
                   src={uploadedImage}
                   alt='Medicine Image'
-                  sx={{ width: 'auto', height: 180, borderRadius: 2 }}
+                  sx={{ objectFit: 'contain', width: 'auto', height: 180, borderRadius: 2 }}
                 />
               </Grid>
 

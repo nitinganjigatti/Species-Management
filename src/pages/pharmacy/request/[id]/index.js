@@ -1,5 +1,5 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import React, { forwardRef, useState, useEffect } from 'react'
+import React, { forwardRef, useState, useEffect, useCallback } from 'react'
 
 import {
   getRequestItemsListById,
@@ -85,6 +85,8 @@ const IndividualRequest = () => {
       paddingBottom: theme.spacing(2)
     }
   }))
+  const router = useRouter()
+
   const [requestItems, setRequestItems] = useState([])
   const [loader, setLoader] = useState(false)
   const [show, setShow] = useState(false)
@@ -111,7 +113,6 @@ const IndividualRequest = () => {
   const [productNotAvailableLoading, setProductNotAvailableLoading] = useState(false)
   const [permissionView, setPermissionView] = useState(false)
 
-  const router = useRouter()
   const { selectedPharmacy } = usePharmacyContext()
 
   const { id, request_number } = router.query
@@ -129,8 +130,8 @@ const IndividualRequest = () => {
     product: ''
   })
   const [status, setStatus] = useState('Pending')
-  const [detailsTab, setDetailsTab] = useState('Pending')
-  const [shipmentTab, setShipmentTab] = useState('Ready To Ship')
+  const [detailsTab, setDetailsTab] = useState(router?.query?.detailsTab || 'Pending')
+  const [shipmentTab, setShipmentTab] = useState(router?.query?.shipmentTab || 'Ready To Ship')
   const theme = useTheme()
 
   const TabBadge = ({ label, totalCount }) => (
@@ -166,6 +167,14 @@ const IndividualRequest = () => {
   const openAlternativeMedicineDialog = () => {
     setShowAlternativeMedicineDialog(true)
   }
+
+  const updateUrlParams = useCallback(
+    params => {
+      const newQuery = { ...router.query, ...params }
+      router.replace({ pathname: router.pathname, query: newQuery }, undefined)
+    },
+    [router, detailsTab, shipmentTab]
+  )
 
   const closeRejectMedicineDialog = () => {
     setRejectRequestMedicineDialog(false)
@@ -1810,6 +1819,9 @@ const IndividualRequest = () => {
                       sx={{ borderBottom: `1px solid ${theme.palette.customColors.neutral05} !important` }}
                       onChange={(event, newValue) => {
                         setDetailsTab(newValue)
+                        updateUrlParams({
+                          detailsTab: newValue
+                        })
                       }}
                     >
                       <Tab
@@ -1859,6 +1871,7 @@ const IndividualRequest = () => {
                           <Box sx={{ my: 5 }}>
                             {shippedItems?.length > 0 ? (
                               <>
+                                hello
                                 <Card sx={{ mb: 6, minWidth: '100%', ml: -2, boxShadow: 'none !important' }}>
                                   {/* <CardHeader title={`Shipments`}></CardHeader> */}
                                   <TableBasic
@@ -1868,7 +1881,7 @@ const IndividualRequest = () => {
                                       setOrderId(e.id)
                                       Router.push({
                                         pathname: `/pharmacy/request/${id}/shipment-details`,
-                                        query: { orderId: e.id }
+                                        query: { orderId: e.id, requestId: id }
                                       })
                                     }}
                                   ></TableBasic>
@@ -1979,6 +1992,9 @@ const IndividualRequest = () => {
                               <TabLists
                                 onChange={(event, newValue) => {
                                   setShipmentTab(newValue)
+                                  updateUrlParams({
+                                    shipmentTab: newValue
+                                  })
                                 }}
                                 sx={{ width: '100%', height: '56px', py: '8px', gap: '6px' }}
                               >
@@ -2054,7 +2070,7 @@ const IndividualRequest = () => {
                                           setOrderId(e.id)
                                           Router.push({
                                             pathname: `/pharmacy/request/${id}/shipment-details`,
-                                            query: { orderId: e.id }
+                                            query: { orderId: e.id, requestId: id }
                                           })
                                         }}
                                       ></TableBasic>
