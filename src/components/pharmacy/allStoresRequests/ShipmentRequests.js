@@ -207,7 +207,7 @@ export default function ShipmentRequests({ updateUrlParams }) {
             fontFamily: 'Inter'
           }}
         >
-          {params.row.ro_no}
+          {params?.row?.ro_no}
         </Typography>
       )
     },

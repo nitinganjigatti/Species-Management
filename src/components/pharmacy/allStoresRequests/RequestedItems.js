@@ -258,9 +258,9 @@ export default function RequestedItems({ selectedStoreDetails, setSelectedStoreD
           </Tooltip>
           <Tooltip
             title={
-              params?.row?.package &&
-              params?.row?.package_qty &&
-              params?.row?.package_uom_label &&
+              params?.row?.package ||
+              params?.row?.package_qty ||
+              params?.row?.package_uom_label ||
               params?.row?.product_form_label
                 ? `${params?.row?.package} of ${Utility.formatNumber(params?.row?.package_qty)} ${
                     params?.row?.package_uom_label
@@ -278,9 +278,9 @@ export default function RequestedItems({ selectedStoreDetails, setSelectedStoreD
                 ...RenderUtility?.getEllipsisStyleForText()
               }}
             >
-              {params?.row?.package &&
-              params?.row?.package_qty &&
-              params?.row?.package_uom_label &&
+              {params?.row?.package ||
+              params?.row?.package_qty ||
+              params?.row?.package_uom_label ||
               params?.row?.product_form_label
                 ? `${params?.row?.package} of ${Utility.formatNumber(params?.row?.package_qty)} ${
                     params?.row?.package_uom_label
@@ -686,7 +686,7 @@ export default function RequestedItems({ selectedStoreDetails, setSelectedStoreD
         </Box>
         <CommonTable
           // eslint-disable-next-line lines-around-comment
-          onRowClick={requestedItemsSubTab === 'Available' ? handleRowClick : null}
+          onRowClick={handleRowClick}
           indexedRows={indexedRows}
           total={total}
           columns={columns}
