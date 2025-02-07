@@ -11,14 +11,14 @@ import { Stack } from '@mui/system'
 import { Tooltip } from '@mui/material'
 import { Title } from 'chart.js'
 
-const RecipeCard = ({
+const ComboCard = ({
   rows,
-  setSelectedCardRecipe,
-  selectedCardRecipe,
+  setSelectedCardCombo,
+  selectedCardCombo,
   checkid,
   onChange,
   handleSidebarClose,
-  allRecipeSelectedValues,
+  allComboSelectedValues,
   formData,
   addEventSidebarOpen,
   searchValue,
@@ -45,7 +45,7 @@ const RecipeCard = ({
 
   useEffect(() => {
     // Filter out duplicates based on id and mealid
-    const uniqueSelectedValues = allRecipeSelectedValues?.filter(
+    const uniqueSelectedValues = allComboSelectedValues?.filter(
       (value, index, self) =>
         index === self.findIndex(v => v?.recipe_id === value?.recipe_id && v?.mealid === value?.mealid)
     )
@@ -53,8 +53,8 @@ const RecipeCard = ({
     // Compare uniqueSelectedValues with checkid
     const selectedValuesWithCheckId = uniqueSelectedValues?.filter(item => item?.mealid === checkid)
 
-    // Initialize a new array to store the updated selectedCardRecipe
-    let updatedSelectedCardRecipe = []
+    // Initialize a new array to store the updated selectedCardCombo
+    let updatedselectedCardCombo = []
 
     // Iterate over rows and check for matches
     rows.forEach(row => {
@@ -66,32 +66,32 @@ const RecipeCard = ({
           updatedRow[key] = match[key] !== undefined ? match[key] : row[key]
         }
 
-        // Add the updated row object to updatedSelectedCardRecipe
-        updatedSelectedCardRecipe.push(updatedRow)
+        // Add the updated row object to updatedselectedCardCombo
+        updatedselectedCardCombo.push(updatedRow)
       }
     })
 
-    // Update selectedCardRecipe with merged objects
-    const currentSelectedCardRecipe = selectedCardRecipe || []
+    // Update selectedCardCombo with merged objects
+    const currentselectedCardCombo = selectedCardCombo || []
     const updatedSelectedCard = [
-      ...currentSelectedCardRecipe,
+      ...currentselectedCardCombo,
       ...selectedValuesWithCheckId
         .map(item => ({
           ...item,
           id: String(item.recipe_id)
         }))
-        .filter(item => !currentSelectedCardRecipe.some(existingItem => existingItem.recipe_id === item.recipe_id)) // Avoid duplicates
+        .filter(item => !currentselectedCardCombo.some(existingItem => existingItem.recipe_id === item.recipe_id)) // Avoid duplicates
     ]
     if (!searchValue) {
-      setSelectedCardRecipe(updatedSelectedCard)
+      setSelectedCardCombo(updatedSelectedCard)
     }
 
     const previousSelectedDays = selectedDays || [] // Keep track of previous selections
 
     if (
-      allRecipeSelectedValues &&
-      allRecipeSelectedValues?.length > 0 &&
-      allRecipeSelectedValues.some(item => item?.mealid === checkid)
+      allComboSelectedValues &&
+      allComboSelectedValues?.length > 0 &&
+      allComboSelectedValues.some(item => item?.mealid === checkid)
     ) {
       const cardIds = selectedValuesWithCheckId.map(item => item.recipe_id)
       const days = selectedValuesWithCheckId.map(item => item.days_of_week)
@@ -134,9 +134,9 @@ const RecipeCard = ({
 
       setRemarks(newRemarks)
     } else if (
-      allRecipeSelectedValues &&
-      allRecipeSelectedValues?.length > 0 &&
-      allRecipeSelectedValues.some(item => item?.mealid !== checkid) &&
+      allComboSelectedValues &&
+      allComboSelectedValues?.length > 0 &&
+      allComboSelectedValues.some(item => item?.mealid !== checkid) &&
       searchValue
     ) {
       const finalSelectedDays = rows.map(row => {
@@ -155,10 +155,10 @@ const RecipeCard = ({
       setRemarks({})
     } else if (
       !searchValue &&
-      allRecipeSelectedValues &&
-      allRecipeSelectedValues?.length > 0 &&
-      allRecipeSelectedValues.some(item => item?.mealid === checkid) &&
-      selectedCardRecipe?.length > 0
+      allComboSelectedValues &&
+      allComboSelectedValues?.length > 0 &&
+      allComboSelectedValues.some(item => item?.mealid === checkid) &&
+      selectedCardCombo?.length > 0
     ) {
       const previousSelectedDays = selectedDays || []
       const initialSelectedDays = rows.map(row => ({
@@ -168,7 +168,7 @@ const RecipeCard = ({
 
       setSelectedDays(initialSelectedDays)
       setRemarks({})
-    } else if (selectedCardRecipe?.length > 0 && allRecipeSelectedValues && allRecipeSelectedValues?.length <= 0) {
+    } else if (selectedCardCombo?.length > 0 && allComboSelectedValues && allComboSelectedValues?.length <= 0) {
       const previousSelectedDays = selectedDays || []
 
       // Map over rows to retain previously selected days for matching cards
@@ -202,7 +202,7 @@ const RecipeCard = ({
       setSelectedDays(initialSelectedDays)
       setRemarks({})
     }
-  }, [allRecipeSelectedValues, checkid, formData, rows, addEventSidebarOpen, searchValue])
+  }, [allComboSelectedValues, checkid, formData, rows, addEventSidebarOpen, searchValue])
 
   const handleSelectedDays = (dayId, dayName, cardId) => {
     let updatedDays = selectedDays.map(card => {
@@ -261,7 +261,7 @@ const RecipeCard = ({
   }
 
   const handleCardClick = item => {
-    const index = selectedCardRecipe.findIndex(card => card.id === item.id)
+    const index = selectedCardCombo.findIndex(card => card.id === item.id)
 
     const selectedDaysForItem = Day.filter(day =>
       selectedDays.some(
@@ -273,11 +273,11 @@ const RecipeCard = ({
     const daysSelected = selectedDaysForItem.length > 0
 
     if (index !== -1) {
-      setSelectedCardRecipe(prevValues => prevValues.filter(card => card.id !== item.id))
+      setSelectedCardCombo(prevValues => prevValues.filter(card => card.id !== item.id))
     } else {
-      setSelectedCardRecipe(prevValues => {
+      setSelectedCardCombo(prevValues => {
         if (daysSelected) {
-          setSelectedCount(selectedCardRecipe.length)
+          setSelectedCount(selectedCardCombo.length)
         }
 
         return [...prevValues, item]
@@ -288,8 +288,8 @@ const RecipeCard = ({
   const handleSelected = () => {
     handleSidebarClose()
     setSearchValue('')
-    console.log(selectedCardRecipe, 'selectedCardRecipe')
-    const filteredItems = selectedCardRecipe.map(item => {
+
+    const filteredItems = selectedCardCombo.map(item => {
       // Find the selected days for the current item
 
       const selectedDaysForItem = selectedDays.find(selectedDay => selectedDay.cardId === item.id)
@@ -299,15 +299,15 @@ const RecipeCard = ({
       const selectedDayId = selectedDaysForItem?.days.filter(d => d.isActive).map(d => d.id) || []
 
       // Find the remarks for the current item
-      const cardRemarks = selectedCardRecipe.find(card => card.id === item.id)?.remarks || ''
+      const cardRemarks = selectedCardCombo.find(card => card.id === item.id)?.remarks || ''
 
       // Extract ingredient details
       const ingredientNames = item?.ingredients?.map(ingredient => ingredient.ingredient_name)
       const quantity = item?.ingredients?.map(ingredient => ingredient.quantity)
       const quantityper = item?.ingredients?.map(ingredient => ingredient.quantity_type)
 
-      // Find the existing card in selectedCardRecipe to preserve previous data
-      const existingCard = selectedCardRecipe.find(card => card.id === item.id)
+      // Find the existing card in selectedCardCombo to preserve previous data
+      const existingCard = selectedCardCombo.find(card => card.id === item.id)
 
       // Preserve the previous days_of_week if new ones are not selected
       const preservedDaysOfWeek = selectedDayId?.length ? selectedDayId : existingCard?.days_of_week || []
@@ -328,14 +328,14 @@ const RecipeCard = ({
       }
     })
 
-    setSelectedCardRecipe(filteredItems)
+    setSelectedCardCombo(filteredItems)
 
     // Trigger onChange callback with the updated recipe
     onChange(filteredItems)
   }
 
   const handleAddRemarks = (event, cardId) => {
-    const updatedCards = selectedCardRecipe.map(item => {
+    const updatedCards = selectedCardCombo.map(item => {
       if (item.id === cardId) {
         return {
           ...item,
@@ -358,7 +358,7 @@ const RecipeCard = ({
       [cardId]: event.target.value
     })
 
-    setSelectedCardRecipe(updatedCards)
+    setSelectedCardCombo(updatedCards)
   }
 
   const filteredRecipeList = rows.filter(
@@ -377,19 +377,16 @@ const RecipeCard = ({
 
   return (
     <Box>
-      {console.log(sortedRecipeList, 'sortedRecipeList')}
-      {console.log(selectedCardRecipe, 'selectedCardRecipe')}
       {sortedRecipeList?.map((item, index) => {
         return (
           <>
             <Box
               sx={{
                 bgcolor: 'background.paper',
-                border: selectedCardRecipe?.some(card => card.id === item.id) ? '2px solid #37BD69' : '#fff',
-                boxShadow: 1,
+                border: selectedCardCombo?.some(card => card.id === item.id) ? '2px solid #37BD69' : '#fff',
+                boxShadow: 0,
                 mt: 4,
-
-                // borderRadius: '12px',
+                borderRadius: '10px',
                 cursor: 'pointer'
               }}
             >
@@ -407,11 +404,11 @@ const RecipeCard = ({
                     position: 'relative',
                     top: '2px',
 
-                    bgcolor: selectedCardRecipe?.some(card => card.id === item.id) ? '#37BD69' : '#E8F4F2',
+                    bgcolor: selectedCardCombo?.some(card => card.id === item.id) ? '#37BD69' : '#E8F4F2',
                     borderRadius: '10.88px'
                   }}
                 >
-                  {selectedCardRecipe?.some(card => card.id === item.id) ? (
+                  {selectedCardCombo?.some(card => card.id === item.id) ? (
                     <>
                       <Box sx={{ width: '48px', height: '48px', position: 'relative', top: '10px', left: '10px' }}>
                         <DoneIcon
@@ -449,7 +446,6 @@ const RecipeCard = ({
                           fontSize: '20px',
                           color: '#44544A',
                           width: '400px',
-                          height: '24px',
                           overflow: 'hidden',
                           textOverflow: 'ellipsis',
                           whiteSpace: 'nowrap'
@@ -458,21 +454,24 @@ const RecipeCard = ({
                         {item?.recipe_name}
                       </Typography>
                     </Tooltip>
-                    <Typography variant='body' sx={{ ml: 4, fontSize: '14px', width: '79px', height: '17px', mt: 3 }}>
+                    <Typography
+                      variant='body'
+                      sx={{ ml: 4, fontSize: '14px', width: '79px', mt: 1, mb: 0, float: 'left' }}
+                    >
                       {item?.recipe_no ? item?.recipe_no : 'RCP- 000'}
                     </Typography>
                   </Box>
 
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '333px', height: '33px' }}>
-                    <Divider sx={{ borderLeft: '1px solid #D9D9D9', height: 30, ml: 4, mt: 3 }}></Divider>
-                    <Box sx={{ ml: '10px' }}>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '333px', height: '45px' }}>
+                    {/* <Divider sx={{ borderLeft: '1px solid #D9D9D9', height: 30, ml: 4, mt: 3 }}></Divider> */}
+                    <Box sx={{ ml: '10px', ml: 4 }}>
                       <Typography sx={{ mt: 2, fontSize: '12px', fontWeight: 'bold', color: '#000' }}>
                         {item?.ingredients_count}&nbsp;
                         <span style={{ color: '#e55b3e' }}> ({calculateTotalQuantity(item?.by_percentage)}%)</span>
                       </Typography>
                       <Typography sx={{ fontSize: '10px', width: '100px' }}>Ingredients by %</Typography>
                     </Box>
-                    <Divider sx={{ borderLeft: '1px solid #D9D9D9', height: 30, mr: 2, mt: 3 }}></Divider>
+                    {/* <Divider sx={{ borderLeft: '1px solid #D9D9D9', height: 30, mr: 2, mt: 3 }}></Divider>
                     <Box>
                       <Typography sx={{ mt: 2, fontSize: '12px', color: '#000', fontWeight: 'bold' }}>
                         {' '}
@@ -487,11 +486,11 @@ const RecipeCard = ({
                         {item?.total_kcal ? item?.total_kcal : 0}
                       </Typography>
                       <Typography sx={{ fontSize: '10px', width: '100px' }}>Calories by 100g</Typography>
-                    </Box>
+                    </Box> */}
                   </Box>
                 </Box>
               </Box>
-              {selectedCardRecipe?.some(card => card.id === item.id) ? (
+              {selectedCardCombo?.some(card => card.id === item.id) ? (
                 <>
                   <Divider />
                   <Typography sx={{ py: 3, px: 2, ml: 3 }}>Feeding Days</Typography>
@@ -560,7 +559,7 @@ const RecipeCard = ({
           </>
         )
       })}
-      {/* {selectedCardRecipe?.length > 0 && ( */}
+      {/* {selectedCardCombo?.length > 0 && ( */}
       <Box
         sx={{
           height: '122px',
@@ -582,7 +581,7 @@ const RecipeCard = ({
         }}
       >
         <Button fullWidth size='large' variant='contained' onClick={handleSelected}>
-          ADD RECIPE - {selectedCardRecipe?.length} SELECTED
+          ADD COMBO - {selectedCardCombo?.length} SELECTED
         </Button>
       </Box>
       {/* )} */}
@@ -590,4 +589,4 @@ const RecipeCard = ({
   )
 }
 
-export default RecipeCard
+export default ComboCard

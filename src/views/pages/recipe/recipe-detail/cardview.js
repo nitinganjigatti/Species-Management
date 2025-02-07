@@ -37,15 +37,15 @@ const RecipeDetailCardview = ({ IngredientsDetailsval, permission, getRecipeDeta
     const newIsActive = event.target.checked ? 1 : 0
     setActivePayload(newIsActive)
     setDeleteDialogBox(true)
-    console.log(deleteDialogBox, 'deleteDialogBox')
   }
 
   const confirmDeleteAction = async () => {
-    console.log(isActive, 'ooo')
     try {
       setDeleteDialogBox(false)
-      const response = await updateRecipeStatus(IngredientsDetailsval?.id, { status: activePayload })
-      console.log(response, 'response')
+      const response = await updateRecipeStatus(IngredientsDetailsval?.id, {
+        status: activePayload,
+        meal_type: 'recipe'
+      })
       if (response.success === true) {
         //Router.push(`/diet/recipe`)
         getRecipeDetailval(IngredientsDetailsval?.id)
@@ -97,15 +97,14 @@ const RecipeDetailCardview = ({ IngredientsDetailsval, permission, getRecipeDeta
           </CardContent>
         </div>
         {/* <Divider sx={{ mt: 3, mx: 4, borderColor: '#C3CEC7' }} /> */}
-        <CardContent>
+        <CardContent sx={{ pt: 0 }}>
           <Box
             sx={{
               width: '100%',
               display: 'flex',
               flexWrap: 'wrap',
               alignItems: 'center',
-              justifyContent: 'space-between',
-              my: 3
+              justifyContent: 'space-between'
             }}
           >
             <Box sx={{ mr: 2, display: 'flex', flexDirection: 'column' }}>
@@ -172,7 +171,7 @@ const RecipeDetailCardview = ({ IngredientsDetailsval, permission, getRecipeDeta
               </Typography>
             </Box>
           </Box>
-          <Box
+          {/* <Box
             sx={{
               width: '100%',
               display: 'flex',
@@ -192,7 +191,7 @@ const RecipeDetailCardview = ({ IngredientsDetailsval, permission, getRecipeDeta
                 {IngredientsDetailsval.kcal ? IngredientsDetailsval.kcal + ' Kcal' : 0 + ' Kcal'}
               </Typography>
             </Box>
-          </Box>
+          </Box> */}
         </CardContent>
       </Card>
       <DeleteDialogConfirmation

@@ -12,6 +12,7 @@ import Autocomplete from '@mui/material/Autocomplete'
 import { useForm, useFieldArray } from 'react-hook-form'
 import { Controller } from 'react-hook-form'
 import IconButton from '@mui/material/IconButton'
+import { AddButton } from 'src/components/Buttons'
 import { getPreparationTypeList } from 'src/lib/api/diet/getIngredients'
 import { Divider } from '@mui/material'
 import CancelIcon from '@mui/icons-material/Cancel'
@@ -22,6 +23,8 @@ import Toaster from 'src/components/Toaster'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
+import AddCutSize from '../../diet/cutSizes/addCutSizes'
+import { addCutSize, getCutsizeList } from 'src/lib/api/diet/settings/cutSizes'
 
 const defaultValues = {
   by_percentage: [
@@ -88,6 +91,7 @@ const StepAddIngredients = ({
   cutsizeList,
   fullIngredientList,
   IngredientTypeListSearch,
+  setcutSize,
   setFullIngredientList,
   onCancelIconClick,
   handleIngredientChange
@@ -106,8 +110,12 @@ const StepAddIngredients = ({
     { label: 'Preparation Type' },
     { label: 'Cut Size' }
   ]
+  const editParamsInitialState = { id: null, label: null, status: null }
   const [preparationTypeListPercentage, setPreparationTypeListPercentage] = useState([])
   const [preparationTypeListQuantity, setPreparationTypeListQuantity] = useState([])
+  const [openDrawer, setOpenDrawer] = useState(false)
+  const [submitLoader, setSubmitLoader] = useState(false)
+  const [editParams, setEditParams] = useState(editParamsInitialState)
 
   const {
     reset,
@@ -244,15 +252,15 @@ const StepAddIngredients = ({
     )
   }
 
-  const handleAddRemoveingredient = (fields, index) => {
-    if (fields.length - 1 === index && index > 0) {
-      return <>{addIngredientsButton()}</>
-    } else if (index <= 0 && fields.length - 1 <= 0) {
-      return <>{addIngredientsButton()}</>
-    } else {
-      return <>{removeIngredientButton(index)}</>
-    }
-  }
+  // const handleAddRemoveingredient = (fields, index) => {
+  //   if (fields.length - 1 === index && index > 0) {
+  //     return <>{addIngredientsButton()}</>
+  //   } else if (index <= 0 && fields.length - 1 <= 0) {
+  //     return <>{addIngredientsButton()}</>
+  //   } else {
+  //     return <>{removeIngredientButton(index)}</>
+  //   }
+  // }
 
   const handleAddRemoveQuantity = (fields, index) => {
     if (fields.length - 1 === index && index > 0) {
@@ -261,6 +269,49 @@ const StepAddIngredients = ({
       return <>{addQuantityButton()}</>
     } else {
       return <>{removebyQuantityButton(index)}</>
+    }
+  }
+
+  const addEventSidebarOpen = () => {
+    setEditParams({ id: null, name: null, status: null })
+    setOpenDrawer(true)
+  }
+
+  const handleSidebarClose = () => {
+    setOpenDrawer(false)
+  }
+
+  const getCutsizeListdata = async () => {
+    try {
+      const params = {
+        page: 1,
+        limit: 100
+      }
+      await getCutsizeList(params).then(res => {
+        setcutSize(res?.data?.result)
+      })
+    } catch (e) {
+      console.log(e)
+    }
+  }
+
+  const handleSubmitData = async payload => {
+    try {
+      setSubmitLoader(true)
+      const response = await addCutSize(payload)
+      if (response?.success) {
+        Toaster({ type: 'success', message: response?.message })
+        setSubmitLoader(false)
+        setOpenDrawer(false)
+        getCutsizeListdata()
+      } else {
+        setSubmitLoader(false)
+        Toaster({ type: 'error', message: response?.message })
+      }
+    } catch (e) {
+      console.log(e)
+      setSubmitLoader(false)
+      Toaster({ type: 'error', message: JSON.stringify(e) })
     }
   }
 
@@ -274,6 +325,10 @@ const StepAddIngredients = ({
       reset(formData)
     }
   }, [formData, reset])
+
+  useEffect(() => {
+    getCutsizeListdata()
+  }, [])
 
   const onSubmit = async data => {
     // Filter out incomplete entries
@@ -296,58 +351,59 @@ const StepAddIngredients = ({
     console.log(data, 'data')
     // Check if all entries in by_quantity have all required fields
     const isByQuantityValid = data.by_quantity.every(
-      item => item.ingredient_id && item.quantity && item.uom_id && item.preparation_type_id
+      item => item.ingredient_id && item.quantity && item.uom_id && item.preparation_type_id && item.cut_size_id
     )
 
     // If both arrays are empty or have incomplete entries, show an error
-    if (data.by_percentage.length === 0 && data.by_quantity.length === 0) {
+    if (data.by_quantity.length === 0) {
       window.scrollTo(0, 0)
       //return toast.error('Please fill in all fields in either "By Percentage" or "By Quantity".')
       return Toaster({
         type: 'error',
-        message: 'Please fill in all fields in either "By Percentage" or "By Quantity".'
+        message: 'Please fill in all fields for By Quantity.'
       })
     }
 
-    if (!isByPercentageValid && !isByQuantityValid) {
-      window.scrollTo(0, 0)
-      //return toast.error('Please fill in all fields in either "By Percentage" or "By Quantity".')
-      return Toaster({
-        type: 'error',
-        message: 'Please fill in all fields in either "By Percentage" or "By Quantity".'
-      })
-    }
-
-    if (data.by_percentage.length > 0 && !isByPercentageValid) {
-      const firstIncompleteIndex = findFirstIncompleteIndex(data.by_percentage, [
-        'ingredient_id',
-        'quantity',
-        'preparation_type_id'
-      ])
-      window.scrollTo(0, 0)
-      //return toast.error(`Please fill in all fields in "By Percentage" at index ${firstIncompleteIndex + 1}.`)
-      return Toaster({
-        type: 'error',
-        message: `Please fill in all fields in "By Percentage" at index ${firstIncompleteIndex + 1}.`
-      })
-    }
+    // if (data.by_percentage.length > 0 && !isByPercentageValid) {
+    //   const firstIncompleteIndex = findFirstIncompleteIndex(data.by_percentage, [
+    //     'ingredient_id',
+    //     'quantity',
+    //     'preparation_type_id'
+    //   ])
+    //   window.scrollTo(0, 0)
+    //   //return toast.error(`Please fill in all fields in "By Percentage" at index ${firstIncompleteIndex + 1}.`)
+    //   return Toaster({
+    //     type: 'error',
+    //     message: `Please fill in all fields in "By Percentage" at index ${firstIncompleteIndex + 1}.`
+    //   })
+    // }
 
     if (data.by_quantity.length > 0 && !isByQuantityValid) {
       const firstIncompleteIndex = findFirstIncompleteIndex(data.by_quantity, [
         'ingredient_id',
         'quantity',
         'uom_id',
-        'preparation_type_id'
+        'preparation_type_id',
+        'cut_size_id'
       ])
       window.scrollTo(0, 0)
       //return toast.error(`Please fill in all fields in "By Quantity" at index ${firstIncompleteIndex + 1}.`)
       return Toaster({
         type: 'error',
-        message: `Please fill in all fields in "By Quantity" at index ${firstIncompleteIndex + 1}.`
+        message: `Please fill in all fields in By Quantity at index ${firstIncompleteIndex + 1}.`
+      })
+    }
+
+    if (!isByQuantityValid || data.by_quantity.some(item => item.cut_size_id === 'null' || item.cut_size_id === '0')) {
+      window.scrollTo(0, 0)
+      //return toast.error('Please fill in all fields in either "By Percentage" or "By Quantity".')
+      return Toaster({
+        type: 'error',
+        message: 'Please fill in all fields for By Quantity.'
       })
     }
     console.log(data, 'data')
-    if (calculateTotalQuantity() > 100 && data.by_percentage.length > 0) {
+    if (!isByPercentageValid && calculateTotalQuantity() > 100 && data.by_percentage.length > 0) {
       window.scrollTo(0, 0)
 
       return toast(
@@ -380,7 +436,7 @@ const StepAddIngredients = ({
           }
         }
       )
-    } else if (calculateTotalQuantity() < 100 && data.by_percentage.length > 0) {
+    } else if (!isByPercentageValid && calculateTotalQuantity() < 100 && data.by_percentage.length > 0) {
       window.scrollTo(0, 0)
 
       return toast(
@@ -394,7 +450,7 @@ const StepAddIngredients = ({
                 </Typography>
                 <Divider sx={{ my: 2 }} />
                 <Typography variant='body2' sx={{ color: '#44544A' }}>
-                  Percentage added should be qual to 100%
+                  Percentage added should be equal to 100%
                 </Typography>
               </div>
             </Box>
@@ -533,7 +589,7 @@ const StepAddIngredients = ({
       <form onSubmit={handleSubmit(onSubmit)}>
         {console.log(fieldsIngredients, 'fieldsIngredients')}
         <Grid container spacing={5} sx={{ px: 5, pt: 6 }}>
-          <Box sx={{ mb: 4, px: 5, mt: 2, float: 'left' }}>
+          {/* <Box sx={{ mb: 4, px: 5, mt: 2, float: 'left' }}>
             <Typography variant='h6'>Add Ingredient- by Percentage</Typography>
           </Box>
           <Grid container spacing={5} sx={{ px: 5, background: '#E8F4F2', my: 1, borderRadius: 0.5, mx: 4 }}>
@@ -563,10 +619,10 @@ const StepAddIngredients = ({
                 </Typography>
               </Grid>
             ))}
-          </Grid>
+          </Grid> */}
 
           <Grid container spacing={5} sx={{ px: 5, py: 5 }}>
-            <Grid container spacing={5} sx={{ px: 5, py: 5 }}>
+            {/* <Grid container spacing={5} sx={{ px: 5, py: 5 }}>
               {fieldsIngredients.map((field, index) => (
                 <Grid container spacing={5} sx={{ px: 5, py: 5 }} key={field.id} id={'test' + index}>
                   <ScrollToFieldError errors={errors} index={index} />
@@ -797,11 +853,14 @@ const StepAddIngredients = ({
                   <Grid>{handleAddRemoveingredient(fieldsIngredients, index)}</Grid>
                 </Grid>
               ))}
+            </Grid> */}
+            <Grid item xs={12}>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4, mt: 2, mr: 4 }}>
+                <Typography variant='h6'>Add Ingredient- by Quantity</Typography>
+                <AddButton title='Add Cut Size' action={() => addEventSidebarOpen()} />
+              </Box>
             </Grid>
 
-            <Box sx={{ mb: 2, px: 5, mt: 2, float: 'left' }}>
-              <Typography variant='h6'>Add Ingredient- by Quantity</Typography>
-            </Box>
             <Grid container spacing={5} sx={{ px: 5, background: '#E8F4F2', my: 4, borderRadius: 0.5, mx: 4 }}>
               {ingredientsbyqun.map((ingredient, index) => (
                 <Grid item xs={12} sm={ingredient.label !== 'Quantity' ? 2.4 : 2} key={index} sx={{ py: 4 }}>
@@ -1016,7 +1075,7 @@ const StepAddIngredients = ({
                             <Autocomplete
                               id={`by_quantity[${index}].cut_size`}
                               getOptionLabel={option => option.cut_size}
-                              renderInput={params => <TextField {...params} label='Select Cut size' />}
+                              renderInput={params => <TextField {...params} label='Select Cut size *' />}
                               options={cutsizeList || []}
                               onChange={(e, val) => {
                                 if (val === null) {
@@ -1092,6 +1151,15 @@ const StepAddIngredients = ({
           </Grid>
         </Grid>
       </form>
+      <AddCutSize
+        drawerWidth={400}
+        addEventSidebarOpen={openDrawer}
+        handleSidebarClose={handleSidebarClose}
+        handleSubmitData={handleSubmitData}
+        //resetForm={resetForm}
+        submitLoader={submitLoader}
+        editParams={editParams}
+      />
     </>
   )
 }

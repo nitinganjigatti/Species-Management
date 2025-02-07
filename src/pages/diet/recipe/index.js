@@ -73,13 +73,11 @@ const RecipeList = () => {
           searchColumns,
           page: paginationModel.page + 1,
           limit: paginationModel.pageSize,
-          status
+          status,
+          meal_type: 'recipe'
         }
 
         await getRecipeList({ params: params }).then(res => {
-          console.log('response', res)
-
-          // Generate uid field based on the index
           const startingIndex = paginationModel.page * paginationModel.pageSize
           let listWithId = res.data.result.map((el, i) => {
             return { ...el, uid: startingIndex + i + 1 }
@@ -249,7 +247,7 @@ const RecipeList = () => {
       field: 'id',
       headerName: 'RECIPE ID',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography variant='body2' sx={{ color: 'text.primary', pl: 2 }}>
           {params.row.id ? 'REP' + params.row.id : '-'}
         </Typography>
       )
@@ -257,21 +255,21 @@ const RecipeList = () => {
     {
       flex: 0.3,
       minWidth: 10,
-      field: 'total_kcal',
-      headerName: 'KCAL',
+      field: 'portion_size',
+      headerName: 'PORTION SIZE',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.total_kcal ? params.row.total_kcal + ' Kcal' : '-'}
+          {params.row.portion_size ? `${params.row.portion_size} ${params.row.portion_uom_name || ''}`.trim() : '-'}
         </Typography>
       )
     },
     {
-      flex: 0.3,
+      flex: 0.4,
       minWidth: 20,
       field: 'ingredient_name',
       headerName: 'NO OF INGREDIENTS',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary', pl: 2 }}>
+        <Typography variant='body2' sx={{ color: 'text.primary', pl: 3 }}>
           <Tooltip
             title={
               params.row.ingredients && params.row.ingredients.length > 0
@@ -287,13 +285,13 @@ const RecipeList = () => {
 
             // style={{ background: '#1F515B' }}
           >
-            <span>{params.row.ingredients_count ? params.row.ingredients_count : '-'}</span>
+            <Typography sx={{ pl: 2 }}>{params.row.ingredients_count ? params.row.ingredients_count : '-'}</Typography>
           </Tooltip>
         </Typography>
       )
     },
     {
-      flex: 0.6,
+      flex: 0.5,
       minWidth: 60,
       field: 'user_name',
       headerName: 'CREATED BY',
@@ -373,10 +371,7 @@ const RecipeList = () => {
     // }
   ]
 
-  console.log('total Count ?>>>', total)
-
   const onCellClick = params => {
-    console.log(params, 'params')
     const clickedColumn = params.field !== 'switch'
 
     if (clickedColumn) {

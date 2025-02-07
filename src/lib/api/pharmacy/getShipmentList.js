@@ -1,4 +1,10 @@
-import { SHIPMENT, DISPUTE_ITEM, DENIED_COMMENTS, DISPENSE_ITEM } from '../../../constants/ApiConstant'
+import {
+  SHIPMENT,
+  DISPUTE_ITEM,
+  DENIED_COMMENTS,
+  DISPENSE_ITEM,
+  PHARMACY_BASE_URL
+} from '../../../constants/ApiConstant'
 import { axiosGet, axiosPost } from '../utility'
 
 export async function getShipmentList() {
@@ -9,6 +15,16 @@ export async function getShipmentList() {
 
 export async function getShipmentOrderDetails(id) {
   const response = await axiosGet({ url: `${SHIPMENT}/shipped/${id}`, pharmacy: true })
+
+  return response.data
+}
+
+// new api added for oder receive form for normal request
+export async function getShipmentOrderDetailsOfRequests(shipmentId, requestId) {
+  const response = await axiosGet({
+    url: `${PHARMACY_BASE_URL}${SHIPMENT}/shipped/${shipmentId}/${requestId}`,
+    pharmacy: true
+  })
 
   return response.data
 }

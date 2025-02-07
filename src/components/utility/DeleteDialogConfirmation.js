@@ -244,7 +244,15 @@ const DeleteDialogConfirmation = ({
           {type === 'diet' ? null : (
             <Typography sx={{ mt: 2 }}>
               This{' '}
-              {type === 'ingredient' ? 'ingredient' : type === 'feed' ? 'feed' : type === 'diet' ? 'diet' : 'recipe'}{' '}
+              {type === 'ingredient'
+                ? 'ingredient'
+                : type === 'feed'
+                ? 'feed'
+                : type === 'diet'
+                ? 'diet'
+                : type === 'combo'
+                ? 'combo'
+                : 'recipe'}{' '}
               has been used in{' '}
               {type === 'ingredient'
                 ? `${recipeCount} recipes and ${dietCount} diets.`
@@ -279,7 +287,9 @@ const DeleteDialogConfirmation = ({
                 color: message.props.children == "Deletion isn't possible!" ? 'rgb(76 78 100 / 87%)' : '#FA6140'
               }}
             >
-              This {type === 'ingredient' ? 'ingredient' : type === 'feed' ? 'feed' : 'recipe'} is part of{' '}
+              This{' '}
+              {type === 'ingredient' ? 'ingredient' : type === 'feed' ? 'feed' : type === 'combo' ? 'combo' : 'recipe'}{' '}
+              is part of{' '}
               {type === 'ingredient'
                 ? `${recipeCount} recipes and ${dietCount} diets.`
                 : type === 'feed'
@@ -301,6 +311,8 @@ const DeleteDialogConfirmation = ({
                       ? 'feed'
                       : type === 'diet'
                       ? 'diet'
+                      : type === 'combo'
+                      ? 'combo'
                       : 'recipe'}{' '}
                     in all records
                   </span>
@@ -312,7 +324,14 @@ const DeleteDialogConfirmation = ({
               <Grid sx={{ alignItems: 'center' }} item>
                 <Typography sx={{ fontSize: 14, pl: 7, lineHeight: 0 }}>
                   Option to swap it with another{' '}
-                  {type === 'ingredient' ? 'ingredient' : type === 'feed' ? 'feed' : 'recipe'} is still possible
+                  {type === 'ingredient'
+                    ? 'ingredient'
+                    : type === 'feed'
+                    ? 'feed'
+                    : type === 'combo'
+                    ? 'combo'
+                    : 'recipe'}{' '}
+                  is still possible
                 </Typography>
               </Grid>
             )}

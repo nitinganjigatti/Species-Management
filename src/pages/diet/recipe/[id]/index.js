@@ -100,7 +100,7 @@ const RecipeDetail = () => {
   const getRecipeDetailval = async id => {
     try {
       const response = await getRecipeDetail(id)
-      console.log(response, 'response')
+
       if (response.data.success === true && response.data.data !== null) {
         setIngredientsDetailsval(response.data.data)
         setLoader(false)
@@ -132,8 +132,11 @@ const RecipeDetail = () => {
     try {
       const activePayload = isActive == 0 ? 1 : 0
       setDeleteDialogBox(false)
-      const response = await updateRecipeStatus(IngredientsDetailsval?.id, { status: activePayload })
-      console.log(response, 'response')
+      const response = await updateRecipeStatus(IngredientsDetailsval?.id, {
+        status: activePayload,
+        meal_type: 'recipe'
+      })
+
       if (response.success === true) {
         //Router.push(`/diet/ingredient`)
         getRecipeDetailval(id)
@@ -150,15 +153,13 @@ const RecipeDetail = () => {
   const confirmDeleteAction = async () => {
     try {
       setDeleteDialogBox(false)
-      const response = await deleteRecipe(id)
+      const response = await deleteRecipe(id, { meal_type: 'recipe' })
 
-      // console.log(response, 'response')
       if (response.success === true) {
         Router.push(`/diet/recipe`)
-        //Toaster({ type: 'success', message: `Recipe ${'REP' + id} has been successfully deleted` })
-        Toaster({ type: 'success', message: `Recipe Deleted Successfully` })
+        Toaster({ type: 'success', message: response.message })
       } else {
-        Toaster({ type: 'error', message: 'something went wrong' })
+        Toaster({ type: 'error', message: response.message })
       }
     } catch (error) {}
   }
@@ -322,6 +323,7 @@ const RecipeDetail = () => {
             setIsOpen={setIsOpen}
             recipename={IngredientsDetailsval.recipe_name}
             recipeid={id}
+            type='recipe'
           />
           <ConfirmationDialog
             icon={'mdi:delete'}

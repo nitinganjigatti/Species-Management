@@ -52,12 +52,6 @@ export async function getAllAnimalReport(params) {
   return response.data
 }
 
-export async function getAnimalReport(params) {
-  const response = await axiosGet({ url: `${ANIMAL_REPORT}`, params })
-
-  return response.data
-}
-
 export async function getUserReport(params) {
   const response = await axiosGet({ url: `${USER_REPORT}`, params })
 

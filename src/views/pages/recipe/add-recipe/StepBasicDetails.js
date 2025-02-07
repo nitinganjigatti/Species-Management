@@ -33,10 +33,9 @@ const defaultValues = {
 }
 
 const schema = yup.object().shape({
-  recipe_name: yup.string().required('Recipe name is required')
-
-  //portion_size: yup.string().required('Portion size is required')
-  // portion_uom_id: yup.string().required('Unit of measurement is required'),
+  recipe_name: yup.string().required('Recipe name is required'),
+  portion_size: yup.string().required('Portion size is required'),
+  portion_uom_id: yup.string().required('Unit of measurement is required')
   // nutrional_value: yup.string().required('Nutritional values are required'),
   // nutrional_uom_id: yup.string().required('Unit of measurement is required'),
   // kcal: yup.string().required('Total calories are required')
@@ -174,7 +173,7 @@ const StepBasicDetails = ({ handleNext, formData, uomList }) => {
                     <TextField
                       value={value}
                       type='number'
-                      label='Portion size'
+                      label='Portion size *'
                       name='portion_size'
                       error={Boolean(errors.portion_size)}
                       onChange={onChange}
@@ -220,7 +219,7 @@ const StepBasicDetails = ({ handleNext, formData, uomList }) => {
                       renderInput={params => (
                         <TextField
                           {...params}
-                          label='Select unit of measurement (UOM)'
+                          label='Select unit of measurement (UOM) *'
                           placeholder='Search & Select'
                           error={Boolean(errors.portion_uom_id)}
                         />
@@ -236,7 +235,7 @@ const StepBasicDetails = ({ handleNext, formData, uomList }) => {
             </Grid>
           </Grid>
 
-          <Divider sx={{ mb: 4, mx: 3, pb: 1, mt: 2, width: '98%', ml: 5 }} />
+          {/* <Divider sx={{ mb: 4, mx: 3, pb: 1, mt: 2, width: '98%', ml: 5 }} />
 
           <Box sx={{ mb: 1, px: 5, mt: 3, float: 'left' }}>
             <Typography variant='h6'>Calories</Typography>
@@ -272,7 +271,7 @@ const StepBasicDetails = ({ handleNext, formData, uomList }) => {
             </Grid>
             <Grid item xs={12} sm={3.2}>
               <FormControl fullWidth>
-                {/* <InputLabel id='uom'> Select unit of measurement (UOM)</InputLabel> */}
+                
                 {console.log(uomList, 'uomList')}
                 <Controller
                   name='nutrional_uom_id'
@@ -336,7 +335,7 @@ const StepBasicDetails = ({ handleNext, formData, uomList }) => {
                 {errors.kcal && <FormHelperText sx={{ color: 'error.main' }}>{errors?.kcal?.message}</FormHelperText>}
               </FormControl>
             </Grid>
-          </Grid>
+          </Grid> */}
 
           <Divider sx={{ mb: 2, mx: 3, pb: 1, mt: 2, width: '98%', ml: 5 }} />
 

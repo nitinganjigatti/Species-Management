@@ -25,11 +25,11 @@ export async function getAnimalMaster(params) {
   return response.data
 }
 
-// export async function getZoosSectionListing(params) {
-//   const response = await axiosGet({ url: `zoos/section/listing`, params })
+export async function getZoosSectionListing(params) {
+  const response = await axiosGet({ url: `zoos/section/listing`, params })
 
-//   return response.data
-// }
+  return response.data
+}
 
 export async function getMasterInstitutes(params) {
   const response = await axiosGet({ url: `master/institutes`, params })

@@ -216,6 +216,36 @@ export const VALIDATE_PURCHASE = 'validate'
 
 export const REQUEST_PENDING_PRODUCTS = 'v1/pharmacy/request-pending-products'
 
+export const LEDGER = 'v1/pharma/stock/ledger-log'
+
+export const PRODUCT_DASHBOARD = 'v1/pharma/stock/dashboard'
+
+export const PRODUCT_DASHBOARD_MONTHLY_PURCHASE = 'v1/pharma/stock/monthly-purchase'
+
+export const PRODUCT_DASHBOARD_MONTHLY_DISPATCH = 'v1/pharma/stock/monthly-dispatch'
+
+export const PRODUCT_ABOUT_TO_EXPIRE = 'v1/pharma/stock/about-to-expire'
+
+export const PRODUCT_EXPIRED_BATCHES = 'v1/pharma/stock/expired'
+
+export const PRODUCT_QUANTITY_IN_STORE = 'v1/pharma/stock/quantity-details'
+
+export const All_STORES_REQUESTS = 'request-item-store'
+
+export const SELECTED_STORES_REQUESTS = 'request-store-item'
+
+export const ALL_SHIPPING_ITEMS_OF_SELECTED_STORE = 'dispatch-store-item'
+
+export const ALL_SHIPPED_ITEMS_OF_SELECTED_STORE = 'shipment-store-item'
+
+export const SELECTED_STORE_SHIPMENT_ORDER_DETAILS = 'shipment-store-item/shipped'
+
+export const PRODUCT_DISPATCH = 'v1/pharma/stock/dispatch-details'
+
+export const PRODUCT_PURCHASE = 'v1/pharma/stock/purchase-details'
+
+export const PRODUCT_PURCHASE_BATCH_LIST = 'purchase'
+
 export const FEED_DETAILS = 'details'
 
 export const FEED = 'feed'
@@ -363,6 +393,12 @@ export const UPDATE_CUT_SIZE = 'diet/recipes/master/cutsizeupdate'
 export const GET_CUT_SIZEBY_ID = 'diet/recipes/master/cutsizeList'
 
 export const RECIPE_PARTOF_DIET_LIST = 'recipe_ingredient_part_of_diet_list'
+
+export const SPECIES = 'species'
+
+export const ASSIGN_TO_SPECIES = 'assign-to-species'
+
+export const DELETE_SPECIES = 'delete-species'
 
 export const USERS_REPORT = '/user/report'
 

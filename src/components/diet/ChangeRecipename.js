@@ -21,7 +21,7 @@ const defaultValues = {
   label: ''
 }
 
-const ChangeRecipeName = ({ isOpen, setIsOpen, recipeid, recipename }) => {
+const ChangeRecipeName = ({ isOpen, setIsOpen, recipeid, recipename, type }) => {
   const theme = useTheme()
   const router = useRouter()
   const handelClose = () => {
@@ -54,14 +54,21 @@ const ChangeRecipeName = ({ isOpen, setIsOpen, recipeid, recipename }) => {
   const onSubmit = () => {
     const updatedRecipeName = getValues('label')
 
-    // Check if the updated recipe name is the same as the original recipe name
+    // Check if the updated name is the same as the original
     if (updatedRecipeName === recipename) {
-      Toaster({ type: 'error', message: 'Recipe name should be unique. Please enter a different name.' })
+      const message =
+        type === 'recipe'
+          ? 'Recipe name should be unique. Please enter a different name.'
+          : 'Combo name should be unique. Please enter a different name.'
 
+      Toaster({ type: 'error', message })
       return
     }
+
+    const pathname = type === 'recipe' ? '/diet/recipe/add-recipe' : '/diet/combo/add-combo'
+
     Router.push({
-      pathname: '/diet/recipe/add-recipe',
+      pathname,
       query: { id: recipeid, action: 'copy', name: updatedRecipeName }
     })
   }
@@ -80,6 +87,7 @@ const ChangeRecipeName = ({ isOpen, setIsOpen, recipeid, recipename }) => {
           gap: '24px'
         }}
       >
+        {console.log(type, 'type')}
         <Box sx={{ bgcolor: theme.palette.customColors.lightBg, width: '100%' }}>
           <Box
             className='sidebar-header'
@@ -98,7 +106,7 @@ const ChangeRecipeName = ({ isOpen, setIsOpen, recipeid, recipename }) => {
                 icon='material-symbols-light:add-notes-outline-rounded'
                 fontSize={'32px'}
               />
-              <Typography variant='h6'>Update Recipe Name</Typography>
+              <Typography variant='h6'> {type === 'combo' ? 'Update Combo Name' : 'Update Recipe Name'}</Typography>
             </Box>
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
               <IconButton size='small' onClick={() => handelClose()} sx={{ color: 'text.primary' }}>
@@ -116,7 +124,7 @@ const ChangeRecipeName = ({ isOpen, setIsOpen, recipeid, recipename }) => {
                 rules={{ required: true }}
                 render={({ field: { value, onChange } }) => (
                   <TextField
-                    label='Recipe Name'
+                    label={type === 'combo' ? 'Combo Name' : 'Recipe Name'}
                     value={value}
                     onChange={onChange}
                     focused={value !== ''}

@@ -5,6 +5,7 @@ import pharmacyNavigation from 'src/components/navigation/pharmacy'
 import labNavigation from 'src/components/navigation/lab'
 import dashboardNavigation from 'src/components/navigation/dashboard'
 import dietNavigation from 'src/components/navigation/diet'
+import mastersNavigation from 'src/components/navigation/masters'
 import eggNavigation from 'src/components/navigation/egg'
 import pariveshNavigation from 'src/components/navigation/parivesh/index'
 import reportNavigation from 'src/components/navigation/report'
@@ -53,6 +54,9 @@ const ComposeNavigation = () => {
   if (dietModule) {
     const dietNav = dietNavigation()
     navigationArray.push(...dietNav)
+
+    const masterNav = mastersNavigation()
+    navigationArray.push(...masterNav)
   }
   if (egg_nursery || egg_collection) {
     const eggNav = eggNavigation({ egg_nursery, egg_collection })

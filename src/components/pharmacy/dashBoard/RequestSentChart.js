@@ -103,7 +103,7 @@ const RequestSentChart = () => {
       intersect: false,
       y: {
         formatter: function (val) {
-          return val + ' requests'
+          return val > 1 ? val + ' requests' : val + ' request'
         }
       }
     },

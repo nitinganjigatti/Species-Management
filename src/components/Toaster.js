@@ -49,6 +49,7 @@ const Toaster = ({ type = 'success', message }) => {
       </Box>
     ),
     {
+      duration: 2000,
       style: {
         minWidth: '450px',
         minHeight: '130px'

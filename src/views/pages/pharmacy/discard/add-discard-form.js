@@ -502,7 +502,7 @@ export const AddItemsForm = ({
               variant='subtitle1'
               sx={{ color: 'customColors.customTextColorGray2', fontSize: '14px', fontWeight: 500 }}
             >
-              Batch No and Expiry Date
+              {getValues('stock_type') === 'non_medical' ? 'Batch No' : 'Batch No and Expiry Date'}
             </Typography>
           </Grid>
 

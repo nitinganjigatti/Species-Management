@@ -111,7 +111,6 @@ const Diet = () => {
         }
 
         await getDietList({ params: params }).then(res => {
-          console.log('response', res)
           const startingIndex = paginationModel.page * paginationModel.pageSize
 
           let listWithId = res.data.result.map((el, i) => {
@@ -128,7 +127,6 @@ const Diet = () => {
     },
     [paginationModel]
   )
-  console.log('total <<<', total)
 
   useEffect(() => {
     if (dietModule) {
@@ -182,57 +180,6 @@ const Diet = () => {
     </>
   )
 
-  const handleSwitchChange = async (event, rowData) => {
-    console.log(event.target.checked, 'lll')
-    console.log(rowData, 'rowData')
-    const newIsActive = event.target.checked ? 1 : 0
-    try {
-      const response = await updateIngredientStatus(rowData?.id, { active: newIsActive })
-
-      console.log(response, 'response')
-
-      if (response.success === true) {
-        fetchTableData(sort, searchValue, sortColumn, status)
-
-        return toast(
-          t => (
-            <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                <Icon icon='ooui:success' style={{ marginRight: '20px', fontSize: 30, color: '#37BD69' }} />
-                <div>
-                  <Typography sx={{ fontWeight: 500 }} variant='h5'>
-                    Success!
-                  </Typography>
-                  <Divider sx={{ my: 2 }} />
-                  <Typography variant='body2' sx={{ color: '#44544A' }}>
-                    Ingredient {'ING' + rowData.id} has been successfully{' '}
-                    {newIsActive === 1 ? 'actiavted' : 'deactivated'}
-                  </Typography>
-                </div>
-              </Box>
-              <IconButton
-                onClick={() => toast.dismiss(t.id)}
-                style={{ position: 'absolute', top: 5, right: 5, float: 'right' }}
-              >
-                <Icon icon='mdi:close' fontSize={24} />
-              </IconButton>
-            </Box>
-          ),
-          {
-            style: {
-              minWidth: '450px',
-              minHeight: '130px'
-            }
-          }
-        )
-      } else {
-        alert('something went wrong')
-      }
-    } catch (error) {
-      console.error('Error updating ingredient status:', error)
-    }
-  }
-
   const handleSearch = value => {
     // debugger
     setSearchValue(value)
@@ -254,8 +201,8 @@ const Diet = () => {
     {
       flex: 0.5,
       minWidth: 30,
-      field: 'diet_name',
-      headerName: 'Diet',
+      field: 'diet_no',
+      headerName: 'Diet Id',
       renderCell: params => (
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           <Avatar
@@ -265,22 +212,9 @@ const Diet = () => {
             src={params.row.diet_image ? params.row.diet_image : '/icons/icon_diet_fill.png'}
           ></Avatar>
           <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-            <Tooltip title={params.row.diet_name} placement='right'>
-              <Typography
-                noWrap
-                variant='body2'
-                sx={{
-                  color: 'text.primary',
-                  fontSize: '14px',
-                  fontWeight: '500',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  maxWidth: '150px'
-                }}
-              >
-                {params.row.diet_name ? params.row.diet_name : '-'}
-              </Typography>
-            </Tooltip>
+            <Typography noWrap variant='body2' sx={{ color: 'text.primary', fontSize: '14px', fontWeight: '500' }}>
+              {params.row.diet_no ? params.row.diet_no : '-'}
+            </Typography>
           </Box>
         </Box>
       )
@@ -401,7 +335,6 @@ const Diet = () => {
   ]
 
   const onCellClick = params => {
-    console.log(params, 'params')
     const clickedColumn = params.field !== 'switch'
 
     if (clickedColumn) {

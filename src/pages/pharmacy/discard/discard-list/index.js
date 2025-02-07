@@ -273,17 +273,25 @@ const ListOfDiscardProducts = () => {
       field: 'created_at',
       headerName: 'Discarded by ',
       renderCell: params => (
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          {Utility.renderUserAvatar(params.row.user_profile_pic)}
-          <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-            <Typography variant='subtitle2' sx={{ color: 'text.primary' }}>
-              {params?.row?.created_by_user_name ? params?.row?.created_by_user_name : 'NA'}
-            </Typography>
-            <Typography variant='caption' sx={{ lineHeight: 1.6667 }}>
-              {Utility.formatDisplayDate(params.row.created_at)}
-            </Typography>
-          </Box>
-        </Box>
+        <>
+          {RenderUtility?.renderUserAvatarDetails(
+            params?.row?.user_profile_pic,
+            params?.row?.created_by_user_name,
+            params?.row?.created_at
+          )}
+        </>
+
+        // <Box sx={{ display: 'flex', alignItems: 'center' }}>
+        //   {Utility.renderUserAvatar(params.row.user_profile_pic)}
+        //   <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+        //     <Typography variant='subtitle2' sx={{ color: 'text.primary' }}>
+        //       {params?.row?.created_by_user_name ? params?.row?.created_by_user_name : 'NA'}
+        //     </Typography>
+        //     <Typography variant='caption' sx={{ lineHeight: 1.6667 }}>
+        //       {Utility.formatDisplayDate(params.row.created_at)}
+        //     </Typography>
+        //   </Box>
+        // </Box>
       )
     }
   ]

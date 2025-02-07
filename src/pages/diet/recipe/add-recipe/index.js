@@ -180,10 +180,10 @@ const AddRecipe = () => {
   const getIngredientsDetailval = async id => {
     try {
       const response = await getRecipeDetail(id)
-      console.log(response, 'response')
+
       if (response.data.success === true && response.data.data !== null) {
         const data = response.data.data
-        console.log(name, 'name')
+
         // Update recipe_name based on urlType
         if (urlType === 'copy') {
           data.recipe_name = name
@@ -236,7 +236,6 @@ const AddRecipe = () => {
           (item, index, self) => index === self.findIndex(i => i.id === item.id)
         )
 
-        console.log(uniqueIngredientList, 'uniqueIngredientList')
         setFullIngredientList(uniqueIngredientList)
       }
     } catch (error) {
@@ -248,13 +247,12 @@ const AddRecipe = () => {
     if (id) {
       const url = new URL(window.location.href)
       const action = url.searchParams.get('action')
-      console.log(action, 'action')
+
       seturlType(action || '')
     }
   }, [id])
 
   useEffect(() => {
-    console.log(id, 'id')
     if (id && urlType) {
       getIngredientsDetailval(id)
     }
@@ -339,14 +337,16 @@ const AddRecipe = () => {
       // Remove unnecessary fields from formData
       const updatedFormData = {
         ...numericFormData,
-        by_percentage: numericFormData.by_percentage,
+        //by_percentage: numericFormData.by_percentage,
+        by_percentage: [],
         by_quantity: numericFormData.by_quantity,
-        recipe_image: numericFormData?.recipe_image?.[0] || null
+        recipe_image: numericFormData?.recipe_image?.[0] || null,
+        meal_type: 'recipe'
       }
 
       console.log(updatedFormData, 'updatedFormData')
       const apival = await addNewRecipe(updatedFormData)
-      console.log(apival, 'apival')
+
       if (apival.success === true) {
         Router.push(`/diet/recipe`)
 
@@ -389,10 +389,12 @@ const AddRecipe = () => {
 
       const updatedFormData = {
         ...numericFormData,
-        by_percentage: numericFormData.by_percentage,
-        by_quantity: numericFormData.by_quantity
+        //by_percentage: numericFormData.by_percentage,
+        by_percentage: [],
+        by_quantity: numericFormData.by_quantity,
+        meal_type: 'recipe'
       }
-      console.log(formData.recipe_image, 'klkl')
+
       if (formData.recipe_image === null) {
         delete updatedFormData.recipe_image
         delete updatedFormData.remove_current_image
@@ -406,7 +408,7 @@ const AddRecipe = () => {
 
       console.log(updatedFormData, 'updatedFormData')
       const apival = await addNewRecipe(updatedFormData)
-      console.log(apival, 'apival')
+
       if (apival.success === true) {
         Router.push(`/diet/recipe`)
 
@@ -449,10 +451,12 @@ const AddRecipe = () => {
 
       const updatedFormData = {
         ...numericFormData,
-        by_percentage: numericFormData.by_percentage,
-        by_quantity: numericFormData.by_quantity
+        //by_percentage: numericFormData.by_percentage,
+        by_percentage: [],
+        by_quantity: numericFormData.by_quantity,
+        meal_type: 'recipe'
       }
-      console.log(formData.recipe_image, 'klkl')
+
       if (formData.recipe_image === null) {
         delete updatedFormData.recipe_image
         delete updatedFormData.remove_current_image
@@ -466,7 +470,7 @@ const AddRecipe = () => {
 
       console.log(updatedFormData, 'updatedFormData')
       const apival = await updateRecipe(id, updatedFormData)
-      console.log(apival, 'apival')
+
       if (apival.success === true) {
         Router.push(`/diet/recipe`)
 
@@ -505,6 +509,7 @@ const AddRecipe = () => {
             setFullIngredientList={setFullIngredientList}
             IngredientTypeListSearch={IngredientTypeListSearch}
             onCancelIconClick={handleCancelIconClick}
+            setcutSize={setcutSize}
           />
         )
       case 2:
@@ -515,8 +520,6 @@ const AddRecipe = () => {
   }
 
   const renderContent = () => {
-    console.log(formData, 'formdat')
-
     return getStepContent(activeStep)
   }
 
@@ -526,10 +529,10 @@ const AddRecipe = () => {
         <Link underline='hover' color='inherit' href='/diet/recipe/'>
           Recipe
         </Link>
-        {console.log(id, 'id')}
+
         <Typography color='text.primary'>{id ? 'Edit recipe' : 'Add new recipe'}</Typography>
       </Breadcrumbs>
-      {console.log(formData, 'ppp')}
+
       <Card>
         <CardContent>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>

@@ -13,7 +13,11 @@ const CommonTable = ({
   loading,
   searchValue,
   onCellClick,
-  columnVisibilityModel
+  columnVisibilityModel,
+  checkBoxOption,
+  onRowSelectionModelChange,
+  selectedRows,
+  disablePagination = false // New prop to control pagination
 }) => {
   const theme = useTheme()
 
@@ -59,17 +63,23 @@ const CommonTable = ({
       hideFooterSelectedRowCount
       disableColumnSelector={true}
       autoHeight
-      pagination
+      // pagination
+      pagination={!disablePagination}
       rows={indexedRows === undefined ? [] : indexedRows}
-      rowCount={total}
+      // rowCount={total}
+      rowCount={disablePagination ? undefined : total}
       columns={columns}
       sortingMode='server'
-      paginationMode='server'
-      pageSizeOptions={[7, 10, 25, 50]}
+      // paginationMode='server'
+      // pageSizeOptions={[7, 10, 25, 50]}
+      paginationMode={disablePagination ? undefined : 'server'}
+      pageSizeOptions={disablePagination ? [total] : [7, 10, 25, 50, 100]}
       onCellClick={onCellClick ? onCellClick : null}
-      paginationModel={paginationModel}
+      // paginationModel={paginationModel}
+      paginationModel={disablePagination ? undefined : paginationModel}
       onSortModelChange={handleSortModel}
-      onPaginationModelChange={setPaginationModel}
+      // onPaginationModelChange={setPaginationModel}
+      onPaginationModelChange={disablePagination ? undefined : setPaginationModel}
       loading={loading ? loading : null}
       disableColumnMenu
       slotProps={{
@@ -83,6 +93,9 @@ const CommonTable = ({
         }
       }}
       onRowClick={onRowClick ? onRowClick : null}
+      checkboxSelection={checkBoxOption ? true : false}
+      onRowSelectionModelChange={onRowSelectionModelChange ? onRowSelectionModelChange : null}
+      rowSelectionModel={selectedRows ? selectedRows : []}
     />
   )
 }

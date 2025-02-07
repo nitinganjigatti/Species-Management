@@ -142,9 +142,37 @@ function formatAmountToReadableDigit(value) {
     }
 
     return `₹ ${value}.00`
+
+    // return value.toLocaleString('de-DE')
   }
 
   return '0'
+}
+
+const downloadFileFromURL = async (fileUrl, title = 'report') => {
+  if (!fileUrl) {
+    console.error('No file URL provided')
+    return
+  }
+  try {
+    const fileExtension = fileUrl.split('.').pop()
+    const fetchResponse = await fetch(fileUrl)
+    if (!fetchResponse.ok) {
+      throw new Error(`Failed to fetch file: ${fetchResponse.statusText}`)
+    }
+    const blob = await fetchResponse.blob()
+    const url = window.URL.createObjectURL(blob)
+    const fileName = `${title.toLowerCase().replace(/\s+/g, '-')}-report.${fileExtension}`
+    const link = document.createElement('a')
+    link.href = url
+    link.download = fileName
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    window.URL.revokeObjectURL(url)
+  } catch (error) {
+    console.error('Download failed:', error)
+  }
 }
 
 function toPascalSentenceCase(str) {
@@ -172,6 +200,7 @@ const Utility = {
   extractHoursAndMinutes,
   formatNumberToDisplay,
   formatAmountToReadableDigit,
+  downloadFileFromURL,
   toPascalSentenceCase,
   renderUserAvatar
 }

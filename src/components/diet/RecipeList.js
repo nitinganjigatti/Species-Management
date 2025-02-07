@@ -9,7 +9,7 @@ import Avatar from 'src/@core/components/mui/avatar'
 import Button from '@mui/material/Button'
 import { margin, padding } from '@mui/system'
 import { useState, useEffect, useCallback } from 'react'
-import RecipeCard from 'src/views/pages/diet/test/recipeCard'
+import RecipeCard from 'src/views/pages/diet/add_recipe_combo-List/recipeCard'
 import { getRecipeList } from 'src/lib/api/diet/recipe'
 import { CircularProgress, debounce } from '@mui/material'
 
@@ -39,7 +39,7 @@ const RecipeList = props => {
   useEffect(() => {
     const getRecipeListData = async () => {
       setReachedEnd(true)
-      const params = { page: ingredientPage, q: searchValue, sort, status: 1 }
+      const params = { page: ingredientPage, q: searchValue, sort, status: 1, meal_type: 'recipe' }
       const res = await getRecipeList({ params })
 
       if (res?.data?.result?.length > 0) {
@@ -75,7 +75,7 @@ const RecipeList = props => {
         setReachedEnd(true) // Prevent multiple API calls
 
         try {
-          const params = { page: ingredientPage + 1, q: searchValue, sort, status: 1 }
+          const params = { page: ingredientPage + 1, q: searchValue, sort, status: 1, meal_type: 'recipe' }
           const res = await getRecipeList({ params })
 
           if (res?.data?.result?.length > 0) {
@@ -105,7 +105,7 @@ const RecipeList = props => {
     debounce(async search => {
       if (search.trim()) {
         try {
-          const params = { page: 1, q: search, sort, status: 1 }
+          const params = { page: 1, q: search, sort, status: 1, meal_type: 'recipe' }
           const res = await getRecipeList({ params })
           if (res?.data?.result.length > 0) {
             // Append new results while ensuring unique IDs
@@ -201,7 +201,11 @@ const RecipeList = props => {
       </Box>
 
       {/* on scroll */}
-      <Box sx={{ marginTop: 30, height: '70%', overflowY: 'auto', bgcolor: '#dbe0de', p: 4 }} onScroll={handleScroll}>
+      <Box
+        className='raghu'
+        sx={{ marginTop: 30, height: '70%', overflowY: 'auto', bgcolor: '#dbe0de', p: 4 }}
+        onScroll={handleScroll}
+      >
         <RecipeCard
           rows={ingredientList}
           setSelectedCardRecipe={setSelectedCardRecipe}

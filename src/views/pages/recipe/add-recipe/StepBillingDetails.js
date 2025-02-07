@@ -72,7 +72,7 @@ const StepBillingDetails = ({ handlePrev, formData, handleSubmit }) => {
       field: 'cut_size',
       headerName: 'Cut Size',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary', pl: 5 }}>
+        <Typography variant='body2' sx={{ color: 'text.primary', pl: 2 }}>
           {params?.row?.cut_size ? params?.row?.cut_size : '-'}
         </Typography>
       )
@@ -225,7 +225,7 @@ const StepBillingDetails = ({ handlePrev, formData, handleSubmit }) => {
                             </div>
                           </CardContent>
                         </div>
-                        <CardContent>
+                        <CardContent sx={{ pt: 1 }}>
                           <Box
                             sx={{
                               width: '100%',
@@ -259,7 +259,7 @@ const StepBillingDetails = ({ handlePrev, formData, handleSubmit }) => {
                             }}
                           >
                             <Box sx={{ mr: 2, display: 'flex', flexDirection: 'column' }}>
-                              <Typography variant='body2' sx={{ mb: 0.5, fontWeight: 600, color: 'text.primary' }}>
+                              <Typography variant='body2' sx={{ fontWeight: 600, color: 'text.primary' }}>
                                 Ingredients used
                               </Typography>
                             </Box>
@@ -275,11 +275,10 @@ const StepBillingDetails = ({ handlePrev, formData, handleSubmit }) => {
                               display: 'flex',
                               flexWrap: 'wrap',
                               alignItems: 'center',
-                              justifyContent: 'space-between',
-                              my: 3
+                              justifyContent: 'space-between'
                             }}
                           >
-                            <Box sx={{ mr: 2, display: 'flex', flexDirection: 'column' }}>
+                            {/* <Box sx={{ mr: 2, display: 'flex', flexDirection: 'column' }}>
                               <Typography variant='body2' sx={{ mb: 0.5, fontWeight: 600, color: 'text.primary' }}>
                                 Calories per 100gms
                               </Typography>
@@ -288,7 +287,7 @@ const StepBillingDetails = ({ handlePrev, formData, handleSubmit }) => {
                               <Typography variant='body2' sx={{ mr: 1.5, color: '#7A8684' }}>
                                 {formData.kcal ? formData.kcal + ' Kcal' : ' 0 Kcal'}
                               </Typography>
-                            </Box>
+                            </Box> */}
                           </Box>
                         </CardContent>
                       </Card>
@@ -305,9 +304,9 @@ const StepBillingDetails = ({ handlePrev, formData, handleSubmit }) => {
               </Card>
 
               <Card sx={{ boxShadow: 'none' }}>
-                <CardContent sx={{ mb: 5, mt: 2 }}>
+                <CardContent sx={{ mb: 5, pt: 0 }}>
                   <Card sx={{ boxShadow: 'none' }}>
-                    <CardHeader title='Ingredient by percentage' />
+                    {/* <CardHeader title='Ingredient by percentage' />
 
                     <DataGrid
                       sx={{
@@ -325,8 +324,9 @@ const StepBillingDetails = ({ handlePrev, formData, handleSubmit }) => {
                       rows={rowsPercentage}
                       columns={columnsforPercentage}
                       hideFooter={true}
-                    />
-                    <CardHeader title='Ingredient by Quantity' sx={{ mt: 8 }} />
+                    /> */}
+
+                    <CardHeader title='Ingredient by Quantity' />
                     <DataGrid
                       sx={{
                         '.MuiDataGrid-cell:focus': {

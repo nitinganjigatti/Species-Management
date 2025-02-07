@@ -430,18 +430,13 @@ const DirectDispatchList = () => {
       field: 'created_by_user_name',
       headerName: 'Dispatched by ',
       renderCell: params => (
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          {Utility.renderUserAvatar(params.row.user_created_profile_pic)}
-          <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-            <Typography variant='subtitle2' sx={{ color: 'text.primary' }}>
-              {params?.row?.created_by_user_name ? params?.row?.created_by_user_name : 'NA'}
-            </Typography>
-            <Typography variant='caption' sx={{ lineHeight: 1.6667 }}>
-              {/* {Utility.formatDisplayDate(params.row.adjusted_at)} */}
-              {Utility.formatDisplayDate(params.row.request_date)}
-            </Typography>
-          </Box>
-        </Box>
+        <>
+          {RenderUtility?.renderUserAvatarDetails(
+            params?.row?.user_created_profile_pic,
+            params?.row?.created_by_user_name,
+            params?.row?.created_at
+          )}
+        </>
       )
     }
   ]
@@ -589,7 +584,6 @@ const DirectDispatchList = () => {
           />
           <Tab value='cancel' label={<TabBadge label='Cancelled' totalCount={status === 'cancel' ? total : null} />} />
           <Tab
-            // value={status === 'all' ? 'all' : 'completed'}
             value='all'
             label={<TabBadge label='All' totalCount={['all', 'completed'].includes(status) ? total : null} />}
           />

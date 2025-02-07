@@ -561,7 +561,9 @@ export const AddItemsForm = ({
             )}
           </Grid>
           <Grid item xs={12} sm={12}>
-            <Typography variant='subtitle1'>Batch No and Expiry Date</Typography>
+            <Typography variant='subtitle1'>
+              {getValues('stock_type') === 'non_medical' ? 'Batch No' : 'Batch No and Expiry Date'}
+            </Typography>
           </Grid>
           <Grid item xs={12} sm={6}>
             {/* <FormControl fullWidth>
