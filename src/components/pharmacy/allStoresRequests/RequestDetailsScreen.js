@@ -29,12 +29,7 @@ const RequestDetailsScreen = () => {
 
   const updateUrlParams = useCallback(
     params => {
-      // const query = { ...router.query, ...params }
-      // router.replace({ pathname: router.pathname, query }, undefined, { shallow: true })
-      // console.log('in function', router.query)
-
       const newQuery = { ...router.query, ...params }
-
       router.replace({ pathname: router.pathname, query: newQuery }, undefined)
     },
     [router, detailsTab]

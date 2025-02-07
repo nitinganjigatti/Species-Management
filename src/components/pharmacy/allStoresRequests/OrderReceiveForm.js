@@ -8,30 +8,23 @@ import {
   Select,
   MenuItem,
   TextField,
-  Divider,
   Box,
   Button,
   IconButton,
   CardContent,
   CardHeader,
   Tooltip,
-  InputAdornment,
   FormGroup,
   FormControlLabel,
   Checkbox,
-  Alert,
-  AlertTitle,
   alpha
 } from '@mui/material'
 import { LoadingButton } from '@mui/lab'
 import FormHelperText from '@mui/material/FormHelperText'
 import Icon from 'src/@core/components/icon'
 import CircularProgress from '@mui/material/CircularProgress'
-import DialogTitle from '@mui/material/DialogTitle'
 import DialogActions from '@mui/material/DialogActions'
 import DialogContent from '@mui/material/DialogContent'
-import DialogContentText from '@mui/material/DialogContentText'
-import Card from '@mui/material/Card'
 import Chip from '@mui/material/Chip'
 import Avatar from '@mui/material/Avatar'
 // ** MUI Imports
@@ -52,10 +45,7 @@ import { usePharmacyContext } from 'src/context/PharmacyContext'
 import Utility from 'src/utility'
 import FallbackSpinner from 'src/@core/components/spinner'
 import ConfirmDialogBox from 'src/components/ConfirmDialogBox'
-import select from 'src/@core/theme/overrides/select'
 import { useRouter } from 'next/router'
-import { CheckBox } from '@mui/icons-material'
-import Link from 'next/link'
 import { useTheme } from '@emotion/react'
 import { getShipmentDetailOfOrder } from 'src/lib/api/pharmacy/storeWiseRequest'
 
@@ -331,8 +321,6 @@ function OrderReceiveForm({ shipmentId }) {
     setDisputeItemDetails(updatedData)
   }
 
-  // const options = ['Received', 'Broken', 'Missing', 'Wrong count', 'Expired']
-
   const getStatusList = async () => {
     try {
       const status = await getShipmentStatusList()
@@ -347,9 +335,7 @@ function OrderReceiveForm({ shipmentId }) {
   const getOrderDetails = async shipmentId => {
     try {
       setShowSpinner(true)
-      // const response = await getShipmentOrderDetails(shipmentId)
       const response = await getShipmentDetailOfOrder(shipmentId)
-      debugger
       if (response?.success === true && response?.data !== '') {
         const disputeLineItems = response?.data?.shipment_item_details?.map((el, index) => {
           const data = {
@@ -372,7 +358,8 @@ function OrderReceiveForm({ shipmentId }) {
             request_item_id: el?.request_item_id ? el?.request_item_id : '',
             dispute_id: el?.dispute_id,
             shipment_id: el?.shipment_id,
-            total_deny_comments: el?.total_deny_comments
+            total_deny_comments: el?.total_deny_comments,
+            ro_no: el?.ro_no
           }
 
           return data
@@ -823,8 +810,7 @@ function OrderReceiveForm({ shipmentId }) {
       }
     },
     {
-      flex: 0.5,
-      Width: 100,
+      width: 400,
       field: 'stock_name',
       headerName: 'Product Name',
       renderCell: (params, rowId) => (
@@ -839,8 +825,7 @@ function OrderReceiveForm({ shipmentId }) {
       )
     },
     {
-      flex: 0.2,
-      minWidth: 20,
+      minWidth: 100,
       field: 'batch_no',
       headerName: 'Batch',
       renderCell: params => (
@@ -849,15 +834,34 @@ function OrderReceiveForm({ shipmentId }) {
         </Typography>
       )
     },
+    {
+      minWidth: 160,
+      field: 'ro_no',
+      headerName: 'Request Id',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {params.row.ro_no}
+        </Typography>
+      )
+    },
 
     {
-      flex: 0.2,
       minWidth: 20,
       field: 'count',
       headerName: 'qty',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.count}
+        </Typography>
+      )
+    },
+    {
+      minWidth: 160,
+      field: 'expiry',
+      headerName: 'Expire date',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {Utility.formatDisplayDate(params.row.expiry)}
         </Typography>
       )
     },

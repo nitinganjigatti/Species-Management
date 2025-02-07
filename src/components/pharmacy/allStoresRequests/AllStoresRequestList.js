@@ -28,6 +28,7 @@ import Error404 from 'src/pages/404'
 import { TabContext, TabList, TabPanel } from '@mui/lab'
 import { ExcelExportButton } from 'src/components/Buttons'
 import MedicineCard from 'src/views/utility/MedicineCard'
+import Utility from 'src/utility'
 
 const AllStoresRequestList = () => {
   const theme = useTheme()
@@ -414,58 +415,12 @@ const AllStoresRequestList = () => {
     })
   }, [resetStates, fetchUniquePendingData, activeTab])
 
-  // const handleButtonClick = useCallback(() => {
-  //   setIsDrawerOpen(true)
-  //   resetStates()
-  //   fetchUniquePendingData({ stock_status: '', page: 1, limit: 10 })
-  // }, [resetStates, fetchUniquePendingData])
-
   // Reset scroll
   useEffect(() => {
     if (scrollContainerRef.current) {
       scrollContainerRef.current.scrollTop = 0
     }
   }, [activeTab])
-
-  // download Excel
-  // const handleExcelExport = async title => {
-  //   setExcelLoader(true)
-  //   try {
-  //     let stockStatus = ''
-  //     switch (title) {
-  //       case 'Available items':
-  //         stockStatus = 'Available'
-  //         break
-  //       case 'Not available items':
-  //         stockStatus = 'NotAvailable'
-  //         break
-  //       case 'All items':
-  //       default:
-  //         stockStatus = ''
-  //     }
-
-  //     const params = {
-  //       stock_status: stockStatus,
-  //       response_type: 'csv'
-  //     }
-
-  //     const response = await getAllUniquePendingList({ params })
-  //     if (response?.success && response?.data) {
-  //       const link = document.createElement('a')
-  //       link.href = response.data
-  //       // Trigger download
-  //       document.body.appendChild(link)
-  //       link.click()
-  //       link.remove()
-  //     } else {
-  //       console.error('No download URL received')
-  //     }
-  //   } catch (error) {
-  //     console.error('Error downloading Excel:', error)
-  //   } finally {
-  //     setExcelLoader(false)
-  //   }
-  // }
 
   const handleExcelExport = async title => {
     setExcelLoader(true)
@@ -490,27 +445,7 @@ const AllStoresRequestList = () => {
 
       const response = await getAllUniquePendingList({ params })
       if (response?.success && response?.data) {
-        // Create blob from the URL
-        const fetchResponse = await fetch(response.data)
-        const blob = await fetchResponse.blob()
-
-        // Create object URL from blob
-        const url = window.URL.createObjectURL(blob)
-
-        // Create download link
-        const link = document.createElement('a')
-        link.href = url
-        link.download = `${title.toLowerCase().replace(/\s+/g, '-')}-report.csv` // Add appropriate filename
-
-        // Append to document, click, and cleanup
-        document.body.appendChild(link)
-        link.click()
-        document.body.removeChild(link)
-
-        // Cleanup object URL
-        window.URL.revokeObjectURL(url)
-      } else {
-        console.error('No download URL received')
+        Utility.downloadFileFromURL(response.data, title)
       }
     } catch (error) {
       console.error('Error downloading Excel:', error)
@@ -563,9 +498,9 @@ const AllStoresRequestList = () => {
       <>
         {renderHeader(title)}
         <Box sx={{ flexGrow: 1 }}>
-          <Grid container spacing={2} direction='column'>
+          <Grid container direction='column' gap={1}>
             {uniquePendingData.map((med, index) => (
-              <Grid item xs={12} key={index}>
+              <Grid item xs={12} key={index} sx={{ padding: 0, margin: 0 }}>
                 <MedicineCard
                   {...med}
                   pendingColor={activeTab === '2' ? 'customColors.Error' : 'customColors.Tertiary'}
@@ -738,11 +673,12 @@ const AllStoresRequestList = () => {
 
                       // borderBottom: `1px solid ${theme.palette.customColors.neutralSecondary}`,
                       display: 'flex',
-                      justifyContent: 'center'
+
+                      justifyContent: 'space-between'
                     }
                   }}
                 >
-                  <Tab value='1' label='All items' />
+                  <Tab value='1' label='All items' sx={{ width: '30%' }} />
                   <Tab value='2' label='Available items' />
                   <Tab value='3' label='Not Available items' />
                 </TabList>
@@ -761,13 +697,13 @@ const AllStoresRequestList = () => {
               onScroll={handleScroll}
             >
               <TabContext value={activeTab}>
-                <TabPanel value='1' sx={{ p: 4 }}>
+                <TabPanel value='1' sx={{ px: '24px' }}>
                   {renderContent('All items')}
                 </TabPanel>
-                <TabPanel value='2' sx={{ p: 4 }}>
+                <TabPanel value='2' sx={{ px: '24px' }}>
                   {renderContent('Available items')}
                 </TabPanel>
-                <TabPanel value='3' sx={{ p: 4 }}>
+                <TabPanel value='3' sx={{ px: '24px' }}>
                   {renderContent('Not available items')}
                 </TabPanel>
               </TabContext>

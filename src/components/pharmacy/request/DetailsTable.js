@@ -195,7 +195,7 @@ export default function DetailsTable({ ...props }) {
                         }}
                       >
                         {/* {console.log('items', paginatedItems)} */}
-                        {el.priority == 'high' ? (
+                        {el.priority == 'high' || el.priority == 'emergency' ? (
                           <Box
                             sx={{
                               color: 'error.main',
@@ -209,17 +209,18 @@ export default function DetailsTable({ ...props }) {
                               alignItems: 'center'
                             }}
                           >
-                            <Icon
+                            {/* <Icon
                               icon='material-symbols-light:circle'
                               style={{
                                 color: 'primary.error',
                                 minHeight: '8px',
                                 maxHeight: '8px'
                               }}
-                            ></Icon>
+                            ></Icon> */}
+                            {RenderUtility.getPriorityIcons(el?.priority)}
                           </Box>
                         ) : null}
-                        {el?.priority !== 'high' && el?.alt_parent?.length > 0 && (
+                        {el?.priority !== 'high' && el?.priority !== 'emergency' && el?.alt_parent?.length > 0 && (
                           <Grid
                             key={index}
                             sx={{
