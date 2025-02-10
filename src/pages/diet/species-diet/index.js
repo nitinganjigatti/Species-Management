@@ -25,6 +25,7 @@ import { getSpeciesList, speciesAttachmentUpload } from 'src/lib/api/diet/specie
 import Toaster from 'src/components/Toaster'
 
 const IncubatorsList = () => {
+  const colWidths = [40, 300, 170, 100]
   const theme = useTheme()
   const [total, setTotal] = useState(0)
   const [rows, setRows] = useState([])
@@ -191,7 +192,7 @@ const IncubatorsList = () => {
 
   const columns = [
     {
-      width: 40,
+      width: colWidths[0],
       field: 'id',
       headerName: '#',
       align: 'center',
@@ -211,7 +212,7 @@ const IncubatorsList = () => {
     },
 
     {
-      width: 300,
+      width: colWidths[1],
       sortable: false,
       field: 'species',
       headerName: 'SPECIES',
@@ -273,7 +274,7 @@ const IncubatorsList = () => {
       )
     },
     {
-      width: 170,
+      width: colWidths[2],
       sortable: false,
       field: 'diet_assigned',
       headerName: 'DIETS ASSIGNED',
@@ -298,7 +299,7 @@ const IncubatorsList = () => {
     },
     {
       // width: ,
-      flex: '1',
+      width: attachmentWidth,
       sortable: false,
       field: 'diet_attached',
       headerName: 'DIETS ATTACHED',
@@ -307,10 +308,7 @@ const IncubatorsList = () => {
         return (
           <Box sx={{ ml: 1, width: '100%', display: 'flex', gap: 2, justifyContent: 'space-between' }}>
             {/* Attachment Section */}
-            <Box
-              onClick={() => setSpeciesDetailsDrawer(true)}
-              sx={{ display: 'flex', gap: 2, justifyContent: 'space-between' }}
-            >
+            <Box onClick={() => setSpeciesDetailsDrawer(true)} sx={{ width: '100%', display: 'flex', gap: 2 }}>
               {uploadingAttachment === true && speciesId == row.species_id && (
                 <Box
                   sx={{
@@ -325,7 +323,7 @@ const IncubatorsList = () => {
                   }}
                 >
                   <Avatar variant='rounded' alt='Medicine Image' sx={{ width: 20, height: 20, overflow: 'hidden' }}>
-                    <img style={{ width: '100%', height: '100%' }} src={'/icons/files_green.png'} alt='Profile' />
+                    <img style={{ width: '100%', height: '100%' }} src={'/icons/files_green.svg'} alt='Profile' />
                   </Avatar>
                   <Box sx={{ width: '110px' }}>
                     <Typography
@@ -351,6 +349,10 @@ const IncubatorsList = () => {
                     {row.attachments.slice(0, Math.floor((attachmentWidth - 100) / 150)).map((item, index) => (
                       <Box
                         key={index}
+                        onClick={e => {
+                          e.stopPropagation()
+                          window.open(item.file, '_blank')
+                        }}
                         sx={{
                           width: '144px',
                           height: '32px',
@@ -369,7 +371,7 @@ const IncubatorsList = () => {
                         >
                           <img
                             style={{ width: '100%', height: '100%' }}
-                            src={'/icons/little_pdf_icon.png'}
+                            src={'/icons/little_pdf_icon.svg'}
                             alt='Profile'
                           />
                         </Avatar>
@@ -443,46 +445,54 @@ const IncubatorsList = () => {
             </Box>
 
             {/* Upload Section */}
-            <Box
-              onClick={e => {
-                // setspeciesId(.row?.species_id)
-                // e.stopPropagation()
-                fileInputRef.current.click()
-              }}
-              sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px' }}
-            >
-              <Typography
-                sx={{
-                  color: theme.palette.primary.dark,
-                  fontSize: '14px',
-                  fontWeight: 500,
-                  lineHeight: '16.96px',
-                  letterSpacing: '0.1px'
-                }}
-              >
-                Upload
-              </Typography>
-              <Avatar
-                variant='square'
-                alt='Medicine Image'
-                sx={{ width: 20, height: 20, background: 'transparent', overflow: 'hidden' }}
-              >
-                <img style={{ width: '100%', height: '100%' }} src={'/icons/little_upload_icon.png'} alt='Profile' />
-              </Avatar>
-              <input
-                type='file'
-                multiple
-                accept='application/pdf'
-                ref={fileInputRef}
-                style={{ display: 'none' }}
-                onChange={e => {
-                  handleFileUpload(e, speciesId)
-                }}
-              />
-            </Box>
           </Box>
         )
       }
+    },
+    {
+      width: colWidths[3],
+      sortable: false,
+      field: 'diet_attachment',
+      headerName: '',
+      renderCell: params => (
+        <Box sx={{ width: '100%', display: 'flex', justifyContent: 'end' }}>
+          <Box
+            onClick={e => {
+              fileInputRef.current.click()
+            }}
+            sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px' }}
+          >
+            <Typography
+              sx={{
+                color: theme.palette.primary.dark,
+                fontSize: '14px',
+                fontWeight: 500,
+                lineHeight: '16.96px',
+                letterSpacing: '0.1px'
+              }}
+            >
+              Upload
+            </Typography>
+            <Avatar
+              variant='square'
+              alt='Medicine Image'
+              sx={{ width: 20, height: 20, background: 'transparent', overflow: 'hidden' }}
+            >
+              <img style={{ width: '100%', height: '100%' }} src={'/icons/little_upload_icon.svg'} alt='Profile' />
+            </Avatar>
+            <input
+              type='file'
+              multiple
+              accept='application/pdf'
+              ref={fileInputRef}
+              style={{ display: 'none' }}
+              onChange={e => {
+                handleFileUpload(e, speciesId)
+              }}
+            />
+          </Box>
+        </Box>
+      )
     }
   ]
 
@@ -491,8 +501,8 @@ const IncubatorsList = () => {
     setspeciesId(e.row.species_id)
   }
   useEffect(() => {
-    const totalColumnsWidth = columns.reduce((sum, col) => sum + (col.width || 0), 0)
-    const newAttachmentWidth = gridWidth - (totalColumnsWidth + 80)
+    const totalColumnsWidth = colWidths.reduce((sum, col) => sum + (col || 0), 0)
+    const newAttachmentWidth = gridWidth - (totalColumnsWidth + 30)
     setAttachmentWidth(newAttachmentWidth > 0 ? newAttachmentWidth : 0)
   }, [gridWidth])
 

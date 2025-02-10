@@ -1,5 +1,5 @@
 import { LoadingButton } from '@mui/lab'
-import { Avatar, Drawer, IconButton, LinearProgress, Tooltip, Typography } from '@mui/material'
+import { Avatar, CircularProgress, Drawer, IconButton, LinearProgress, Tooltip, Typography } from '@mui/material'
 import { Box } from '@mui/system'
 import React, { useEffect, useRef, useState } from 'react'
 import Icon from 'src/@core/components/icon'
@@ -252,7 +252,11 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
             border: '1px solid #C3CEC7',
             display: 'flex',
             gap: 1,
+            cursor: 'pointer',
             padding: '20px 16px'
+          }}
+          onClick={() => {
+            window.open(item.file, '_blank')
           }}
         >
           <Box
@@ -361,7 +365,10 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
             </Box>
             <Box>
               <Icon
-                onClick={() => removeAttachment(item?.attachment_id)}
+                onClick={e => {
+                  e.stopPropagation()
+                  removeAttachment(item?.attachment_id)
+                }}
                 icon='akar-icons:cross'
                 style={{ cursor: 'pointer' }}
                 fontSize={20}
@@ -382,7 +389,11 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
           borderRadius: '8px',
           display: 'flex',
           gap: 1,
+          cursor: 'pointer',
           padding: '20px 16px'
+        }}
+        onClick={() => {
+          window.open(item.file, '_blank')
         }}
       >
         <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -534,12 +545,11 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
       >
         {!!detailsLoader ? (
           <Box sx={{ height: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-            <Typography>Loading...</Typography>
+            <CircularProgress />
           </Box>
         ) : (
           <>
             {SpeciesDietCard(specieDetails)}
-
             <Box
               sx={{
                 display: 'flex',
@@ -547,17 +557,19 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
                 gap: 3
               }}
             >
-              <Typography
-                sx={{
-                  fontSize: 20,
-                  fontWeight: 500,
-                  color: theme.palette.customColors.OnSurfaceVariant,
-                  lineHeight: '24.2px'
-                }}
-              >
-                Diets attached ({specieDetails.active_attachments_count})
-              </Typography>
-              {uploadingAttachment && <SpeciesDietUploadingCard />}
+              {specieDetails?.active_attachments_count > 0 && (
+                <Typography
+                  sx={{
+                    fontSize: 20,
+                    fontWeight: 500,
+                    color: theme.palette.customColors.OnSurfaceVariant,
+                    lineHeight: '24.2px'
+                  }}
+                >
+                  Diets attached ({specieDetails.active_attachments_count})
+                </Typography>
+              )}
+              {uploadingAttachment && specieDetails?.active_attachments_count > 0 && <SpeciesDietUploadingCard />}
               {specieDetails?.active_attachments?.map((item, index) => (
                 <DietAttachedCard index={index} item={item} />
               ))}
@@ -569,9 +581,11 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
                 gap: 3
               }}
             >
-              <Typography sx={{ fontSize: 20, fontWeight: 500, color: '#E93353', lineHeight: '24.2px' }}>
-                Diets detached ({specieDetails.deactive_attachments_count})
-              </Typography>
+              {specieDetails?.deactive_attachments_count > 0 && (
+                <Typography sx={{ fontSize: 20, fontWeight: 500, color: '#E93353', lineHeight: '24.2px' }}>
+                  Diets detached ({specieDetails.deactive_attachments_count})
+                </Typography>
+              )}
               {specieDetails?.deactive_attachments?.map((item, index) => (
                 <DietDetachedCard index={index} item={item} />
               ))}
