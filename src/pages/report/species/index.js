@@ -20,11 +20,13 @@ import { Popover, List, ListItem, ListItemIcon, ListItemText } from '@mui/materi
 import CheckIcon from '@mui/icons-material/Check'
 import toast from 'react-hot-toast'
 import { getReportFilterList } from 'src/lib/api/report'
+import { useRouter } from 'next/router'
 import Error404 from 'src/pages/404'
 import SiteSheet from 'src/views/pages/pharmacy/report/siteSheet'
 import FilterSheet from 'src/views/pages/pharmacy/report/FilterSheet'
 
 const SpeciesReport = () => {
+  const router = useRouter()
   const theme = useTheme()
   const authData = useContext(AuthContext)
   const reports_module = authData?.userData?.roles?.settings?.enable_reports_module
@@ -76,6 +78,19 @@ const SpeciesReport = () => {
     // Breed: ['Breed A', 'Breed B']
   }
 
+  const initialFilterParams = {
+    include_housing: 0,
+    include_enclosure: 0,
+    include_section: 0,
+    include_cluster: 0,
+    include_class: 0,
+    include_organization: 0,
+    include_order: 0,
+    include_family: 0,
+    include_genus: 0,
+    include_site: 0
+  }
+
   const [apiFilterParams, setApiFilterParams] = useState({
     include_housing: 0,
     include_enclosure: 0,
@@ -116,7 +131,6 @@ const SpeciesReport = () => {
 
     // debugger
   }
-
 
   const title = (
     <>
@@ -319,6 +333,10 @@ const SpeciesReport = () => {
   )
 
   useEffect(() => {
+    sessionStorage.setItem('apiFilterParams', JSON.stringify(apiFilterParams))
+  }, [apiFilterParams])
+
+  useEffect(() => {
     if (reports_module) {
       fetchData(apiFilterParams, paginationModel)
     }
@@ -451,6 +469,34 @@ const SpeciesReport = () => {
     // Update API parameters and reset pagination
     setApiFilterParams(updatedApiParams)
     setPaginationModel({ ...paginationModel, page: 0 })
+  }
+
+  // const handleRowClick = params => {
+  //   console.log('Params >', params)
+  //   router.push({
+  //     pathname: `/report/animalList/${params.row?.tsn_id}`
+  //   })
+  // }
+
+  const handleRowClick = params => {
+    console.log('Params >', params)
+
+    const hasFilterChanged = JSON.stringify(apiFilterParams) !== JSON.stringify(initialFilterParams)
+
+    // Store additional data in sessionStorage
+    sessionStorage.setItem(
+      'animalListData',
+      JSON.stringify({
+        default_icon: params.row?.default_icon,
+        scientific_name: params.row?.scientific_name,
+        common_name: params.row?.common_name,
+        apiFilterParams: hasFilterChanged ? apiFilterParams : null, // Store only if changed
+        filterChanged: hasFilterChanged // Boolean flag
+      })
+    )
+
+    // Navigate to the new page
+    router.push(`/report/animalList/${params.row?.tsn_id}`)
   }
 
   return (
@@ -793,6 +839,7 @@ const SpeciesReport = () => {
                     paginationModel={paginationModel}
                     onPaginationModelChange={setPaginationModel}
                     loading={isLoading}
+                    onRowClick={handleRowClick}
                     autoHeight
                     disableColumnFilter={false}
                     hideFooterSelectedRowCount
