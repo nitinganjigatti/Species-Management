@@ -1,31 +1,20 @@
 import {
   Avatar,
   Box,
-  Card,
-  CardHeader,
   Grid,
   TextField,
   Typography,
   debounce,
   FormControlLabel,
-  Switch,
   Button,
-  IconButton,
-  Drawer,
-  List,
-  ListItem,
-  ListItemText,
-  Divider,
   Checkbox,
-  CardContent,
   CircularProgress
 } from '@mui/material'
-import { DataGrid } from '@mui/x-data-grid'
 import { useRouter } from 'next/router'
-import React, { useCallback, useEffect, useState, useRef } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 
 // ** Icon Imports
-import { getBatchList, getDispenseList } from 'src/lib/api/pharmacy/dispenseProduct'
+import { getBatchList } from 'src/lib/api/pharmacy/dispenseProduct'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import Error404 from 'src/pages/404'
 import Utility from 'src/utility'
@@ -33,13 +22,12 @@ import CommonTable from 'src/views/table/data-grid/CommonTable'
 import { Icon } from '@iconify/react'
 import { useTheme } from '@emotion/react'
 import FilterListIcon from '@mui/icons-material/FilterList'
-import auth from 'src/configs/auth'
 import { getLedgerList } from 'src/lib/api/pharmacy/getMedicineList'
-import TableBasic from 'src/views/table/data-grid/TableBasic'
 import toast from 'react-hot-toast'
 import ClearIcon from '@mui/icons-material/Clear'
+import FilterDrawer from 'src/components/FilterDrawer'
 
-const DoctorCard = ({ name, title, site, isSelected, onSelectDoctor }) => {
+const DoctorCard = ({ id, name, title, site, isSelected, onSelectDoctor }) => {
   return (
     <Box
       p={2}
@@ -68,33 +56,25 @@ const DoctorCard = ({ name, title, site, isSelected, onSelectDoctor }) => {
         </Box>
         <Box>
           <Typography component='span' sx={{ color: 'primary.light', fontSize: '16px', fontWeight: 500 }}>
-            {name}
+            {name || 'NA'}
           </Typography>
           <Typography
             component='div'
             variant='body2'
             sx={{ color: 'customColors.customHeadingTextColor', fontSize: '12px', fontWeight: 400 }}
           >
-            {title} | {site}
+            {title || 'NA'} | {site || 'NA'}
           </Typography>
         </Box>
       </Box>
-      <Checkbox checked={isSelected} onChange={() => onSelectDoctor(!isSelected)} color='primary' />
+      <Checkbox checked={isSelected} onChange={() => onSelectDoctor(id)} color='primary' />
     </Box>
   )
 }
 
-const filterLists = [
-  'Batch Details'
-  // 'Transaction Type'
-  //  'Dispatch By', 'Dispatch To', 'Created By', 'Date'
-]
-
-const dispatchBy = ['Central Pharmacy', 'Gagva', 'Local Store', 'Amreli Site', 'A2D Site']
-const dispatchTo = ['Gagva', 'Local Store', 'Amreli Site', 'A2D Site']
 const dates = ['Last 7 days', 'Current month', 'Last 3 months', 'Current year']
+const tabs = ['request', 'purchase', 'dispatch', 'return', 'dispense', 'shipment']
 
-const tabs = ['request', 'purchase', 'dispatch', 'return', 'dispense']
 const doctors = [
   { name: 'Dr Pau', title: 'Doctor', site: 'Amreli Site' },
   { name: 'Dr Pau', title: 'Doctor', site: 'Amreli Site' },
@@ -105,7 +85,7 @@ const doctors = [
 function Ledger({ tabValue, updateUrlParams }) {
   const theme = useTheme()
   const router = useRouter()
-  const { id, batch_no, filters } = router.query
+  const { id, batch_no } = router.query
 
   const [loading, setLoading] = useState(false)
   const [total, setTotal] = useState(0)
@@ -141,17 +121,33 @@ function Ledger({ tabValue, updateUrlParams }) {
     dispense: false
   })
   const [searchTerm, setSearchTerm] = useState('')
-  const [selectedLocations, setSelectedLocations] = useState([])
   const [stockDetails, setStockDetails] = useState({})
 
-  const filteredDispatchBy = dispatchBy.filter(location => location.toLowerCase().includes(searchTerm.toLowerCase()))
-  const filteredDispatchTo = dispatchTo.filter(location => location.toLowerCase().includes(searchTerm.toLowerCase()))
-  const filteredDates = dates.filter(location => location.toLowerCase().includes(searchTerm.toLowerCase()))
+  const [dispatchedByOptions, setDispatchedByOptions] = useState([])
+  const [selectedDispatchedBy, setSelectedDispatchedBy] = useState([])
 
-  const filteredBatchDetails = batchDetailsList?.filter(location =>
-    location.batch_no.toLowerCase().includes(searchTerm.toLowerCase())
+  const [dispatchedToOptions, setDispatchedToOptions] = useState([])
+  const [selectedDispatchedTo, setSelectedDispatchedTo] = useState(
+    router.query.dispatchedTo
+      ? Array.isArray(router.query.dispatchedTo)
+        ? router.query.dispatchedTo
+        : [router.query.dispatchedTo]
+      : []
   )
-  const [selectedDoctors, setSelectedDoctors] = React.useState([])
+
+  const [createByOptions, setCreateByOptions] = useState([])
+  const [selectedCreateBy, setSelectedCreateBy] = useState(
+    router.query.createdBy
+      ? Array.isArray(router.query.createdBy)
+        ? router.query.createdBy
+        : [router.query.createdBy]
+      : []
+  )
+  const [selectedDate, setSelectedDate] = useState('')
+  const [filterDates, setFilterDates] = useState({
+    startDate: router.query.from_date || '',
+    endDate: router.query.to_date || ''
+  })
 
   useEffect(() => {
     if (router.query.tab !== tabValue) {
@@ -160,6 +156,10 @@ function Ledger({ tabValue, updateUrlParams }) {
       setSortColumn('created_at')
       setSelectedTabs([])
       setSelectedBatches([])
+      setSelectedDispatchedTo([])
+      setSelectedCreateBy([])
+      setSelectedDate('')
+      setFilterDates({})
       updateUrlParams({
         tab: tabValue,
         sort: 'desc',
@@ -167,6 +167,10 @@ function Ledger({ tabValue, updateUrlParams }) {
         searchValue: '',
         batch_no: [],
         filters: [],
+        dispatchedTo: [],
+        createdBy: [],
+        from_date: '',
+        to_date: '',
         page: 0,
         limit: 10
       })
@@ -454,8 +458,21 @@ function Ledger({ tabValue, updateUrlParams }) {
     }
   ]
 
+  // Helper function to merge
+  const mergeOptions = (existingOptions, newOptions) => {
+    const mergedOptionsMap = new Map(existingOptions.map(option => [option.id, option]))
+
+    newOptions.forEach(newOption => {
+      if (!mergedOptionsMap.has(newOption.id)) {
+        mergedOptionsMap.set(newOption.id, newOption)
+      }
+    })
+
+    return Array.from(mergedOptionsMap.values())
+  }
+
   const getLedger = useCallback(
-    async ({ sort, column, stock_id, batch_no, q, tab }) => {
+    async ({ sort, column, stock_id, batch_no, q, tab, dispatched_to, created_by, from_date, to_date }) => {
       try {
         setLoading(true)
         const params = {
@@ -465,6 +482,10 @@ function Ledger({ tabValue, updateUrlParams }) {
           batch_no,
           q,
           tab,
+          dispatched_to,
+          created_by,
+          from_date,
+          to_date,
           page: paginationModel.page + 1,
           limit: paginationModel.pageSize
         }
@@ -475,6 +496,46 @@ function Ledger({ tabValue, updateUrlParams }) {
             setTotal(parseInt(res?.total))
             setStockDetails(res?.data)
             setRows(loadServerRows(paginationModel.page, res?.data?.ledger_data))
+
+            // Extract unique dispatched_to options
+            const uniqueDispatchedBy = Array.from(
+              new Map(
+                res?.data?.ledger_data
+                  ?.filter(item => item.dispatched_pharmacy_id && item.dispatched_pharmacy)
+                  .map(item => [
+                    item.dispatched_pharmacy_id,
+                    { id: item.dispatched_pharmacy_id, name: item.dispatched_pharmacy }
+                  ])
+              ).values()
+            )
+
+            const uniqueDispatchedTo = Array.from(
+              new Map(
+                res?.data?.ledger_data
+                  ?.filter(item => item.receiving_pharmacy_id && item.receiving_pharmacy)
+                  .map(item => [
+                    item.receiving_pharmacy_id,
+                    { id: item.receiving_pharmacy_id, name: item.receiving_pharmacy }
+                  ])
+              ).values()
+            )
+
+            const uniqueCreateBy = Array.from(
+              new Map(
+                res?.data?.ledger_data
+                  ?.filter(item => item.created_by && item.transaction_created_by)
+                  .map(item => [item.created_by, { id: item.created_by, name: item.transaction_created_by }])
+              ).values()
+            )
+
+            // Merge and update options, ensuring all unique options are preserved
+            //  setDispatchedByOptions(prevOptions =>
+            //   mergeOptions(prevOptions, uniqueDispatchedBy)
+            // )
+
+            setDispatchedToOptions(prevOptions => mergeOptions(prevOptions, uniqueDispatchedTo))
+            setCreateByOptions(prevOptions => mergeOptions(prevOptions, uniqueCreateBy))
+
             setLoading(false)
             updateUrlParams({
               tab: tabValue,
@@ -483,6 +544,10 @@ function Ledger({ tabValue, updateUrlParams }) {
               batch_no: batch_no,
               searchValue: q,
               filters: tab,
+              dispatchedTo: dispatched_to,
+              createdBy: created_by,
+              from_date: from_date,
+              to_date: to_date,
               page: paginationModel.page,
               limit: paginationModel.pageSize
             })
@@ -510,7 +575,11 @@ function Ledger({ tabValue, updateUrlParams }) {
         stock_id: id,
         batch_no: selectedBatches,
         q: searchValue,
-        tab: selectedTabs
+        tab: selectedTabs,
+        dispatched_to: selectedDispatchedTo,
+        created_by: selectedCreateBy,
+        from_date: filterDates.startDate,
+        to_date: filterDates.endDate
       })
     }
   }, [getLedger, router.query.tab])
@@ -539,7 +608,11 @@ function Ledger({ tabValue, updateUrlParams }) {
           stock_id: id,
           batch_no: selectedBatches,
           q: q,
-          tab: selectedTabs
+          tab: selectedTabs,
+          dispatched_to: selectedDispatchedTo,
+          created_by: selectedCreateBy,
+          from_date: filterDates.startDate,
+          to_date: filterDates.endDate
         })
       } catch (error) {
         console.error(error)
@@ -562,18 +635,18 @@ function Ledger({ tabValue, updateUrlParams }) {
       stock_id: id,
       batch_no: selectedBatches,
       q: searchValue,
-      tab: updatedTabs
+      tab: updatedTabs,
+      dispatched_to: selectedDispatchedTo,
+      created_by: selectedCreateBy,
+      from_date: filterDates.startDate,
+      to_date: filterDates.endDate
     })
   }
 
   // Toggle Drawer open/close
   const toggleDrawer = () => {
     setOpen(!open)
-  }
-
-  // Handle the menu item click
-  const handleMenuItemClick = item => {
-    setSelectedItem(item)
+    // setSelectedItem('Batch Details')
   }
 
   const handleCheckboxChange = event => {
@@ -595,30 +668,32 @@ function Ledger({ tabValue, updateUrlParams }) {
     })
   }
 
+  const handleDispatchByCheckboxChange = event => {
+    const { value, checked } = event.target
+    setSelectedDispatchedBy(prevSelected =>
+      checked ? [...prevSelected, value] : prevSelected.filter(id => id !== value)
+    )
+  }
+
+  const handleDispatchToCheckboxChange = event => {
+    const { value, checked } = event.target
+    setSelectedDispatchedTo(prevSelected =>
+      checked ? [...prevSelected, value] : prevSelected.filter(id => id !== value)
+    )
+  }
+
   // Handle change in search input
   const handleSearchChange = event => {
     setSearchTerm(event.target.value)
   }
 
-  // Handle change in checkbox selection
-  const handleDispatchCheckboxChange = event => {
-    const { value, checked } = event.target
-
-    // Update the selected locations based on checkbox change
-    if (checked) {
-      setSelectedLocations(prevSelected => [...prevSelected, value])
-    } else {
-      setSelectedLocations(prevSelected => prevSelected.filter(location => location !== value))
-    }
-  }
-
-  const handleDoctorSelect = (index, selected) => {
-    setSelectedDoctors(prevState => {
-      const newState = [...prevState]
-      newState[index] = selected
-
-      return newState
-    })
+  const handleCreateBySelect = id => {
+    setSelectedCreateBy(
+      prevSelected =>
+        prevSelected.includes(id)
+          ? prevSelected.filter(selectedId => selectedId !== id) // Remove if already selected
+          : [...prevSelected, id] // Add if not selected
+    )
   }
 
   const getBatchListDetails = useCallback(async id => {
@@ -640,13 +715,18 @@ function Ledger({ tabValue, updateUrlParams }) {
 
   const handleApplyFilter = async () => {
     try {
+      toggleDrawer()
       await getLedger({
         sort,
         column: sortColumn,
         stock_id: id,
         batch_no: selectedBatches,
         q: searchValue,
-        tab: selectedTabs
+        tab: selectedTabs,
+        dispatched_to: selectedDispatchedTo,
+        created_by: selectedCreateBy,
+        from_date: filterDates.startDate,
+        to_date: filterDates.endDate
       })
     } catch (error) {
       console.error(error)
@@ -654,21 +734,26 @@ function Ledger({ tabValue, updateUrlParams }) {
     toggleDrawer()
   }
 
-  // const handleClearFilter = () => {
-  //   toggleDrawer()
-  // }
-
   const handleClearFilter = async () => {
     try {
+      setSelectedItem('Batch Details')
       setSelectedBatches([])
-
+      setSelectedDispatchedTo([])
+      setSelectedCreateBy([])
+      setSelectedDate('')
+      setFilterDates({})
+      toggleDrawer()
       await getLedger({
         sort,
         column: sortColumn,
         stock_id: id,
         batch_no: [],
         q: searchValue,
-        tab: []
+        tab: [],
+        dispatched_to: [],
+        created_by: [],
+        from_date: '',
+        to_date: ''
       })
     } catch (error) {
       console.error(error)
@@ -691,9 +776,39 @@ function Ledger({ tabValue, updateUrlParams }) {
         stock_id: id,
         batch_no: selectedBatches,
         q: searchValue,
-        tab: selectedTabs
+        tab: selectedTabs,
+        dispatched_to: selectedDispatchedTo,
+        created_by: selectedCreateBy,
+        from_date: filterDates.startDate,
+        to_date: filterDates.endDate
       })
     }
+  }
+
+  const handleDateSelect = dateRange => {
+    const currentDate = new Date()
+    let startDate = ''
+    let endDate = Utility.formattedPresentDate()
+
+    switch (dateRange) {
+      case 'Last 7 days':
+        startDate = Utility.formatDate(
+          new Date(currentDate.getFullYear(), currentDate.getMonth(), currentDate.getDate() - 7)
+        )
+        break
+      case 'Current month':
+        startDate = Utility.formatDate(new Date(currentDate.getFullYear(), currentDate.getMonth(), 1))
+        break
+      case 'Last 3 months':
+        startDate = Utility.formatDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 3, 1))
+        break
+      case 'Current year':
+        startDate = Utility.formatDate(new Date(currentDate.getFullYear(), 0, 1))
+        break
+    }
+
+    setSelectedDate(dateRange)
+    setFilterDates({ startDate, endDate })
   }
 
   return (
@@ -932,8 +1047,6 @@ function Ledger({ tabValue, updateUrlParams }) {
         </Box>
       </Box>
       <Grid mt={6}>
-        {/* <TableBasic rows={indexedRows} columns={columns} loading={loading} /> */}
-
         <CommonTable
           onRowClick={onRowClick}
           indexedRows={indexedRows}
@@ -947,281 +1060,192 @@ function Ledger({ tabValue, updateUrlParams }) {
         />
       </Grid>
 
-      <>{/* <Error404></Error404> */}</>
-      <Drawer
-        anchor='right'
+      <FilterDrawer
         open={open}
         onClose={toggleDrawer}
-        PaperProps={{
-          sx: {
-            width: { xs: '100%', sm: 560 },
-            backgroundColor: 'customColors.Background',
-            height: '100%',
-            display: 'flex',
-            flexDirection: 'column'
-          }
-        }}
+        selectedItem={selectedItem}
+        onSelectItem={setSelectedItem}
+        filterLists={[
+          'Batch Details',
+          // 'Transaction Type',
+          // 'Dispatch By',
+          'Dispatch To',
+          'Created By',
+          'Date'
+        ]}
+        handleApplyFilter={handleApplyFilter}
+        handleClearFilter={handleClearFilter}
       >
-        <Box display='flex' justifyContent='space-between' alignItems='center' p={2}>
-          <Typography variant='h6' fontWeight='bold' ml={3}>
-            Filter
-          </Typography>
-          <IconButton onClick={toggleDrawer}>
-            <Icon icon='mdi:close' />
-          </IconButton>
-        </Box>
-
-        <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, flexGrow: 1 }}>
-          {/* Left side - List of menu items */}
-          <Box sx={{ flex: 24, display: 'flex', flexDirection: 'column', width: { xs: '100%', sm: 'auto' } }}>
-            <List sx={{ p: 0, ml: 5 }}>
-              {filterLists.map(item => (
-                <ListItem
-                  button
-                  key={item}
-                  onClick={() => handleMenuItemClick(item)}
-                  sx={{
-                    color: 'primary.light',
-                    fontSize: '16px',
-                    fontWeight: 400,
-                    backgroundColor: selectedItem === item ? '#FFFFFF' : 'transparent',
-                    '&:hover': {
-                      backgroundColor: '#f0f0f0'
-                    }
-                  }}
-                >
-                  <ListItemText
-                    primary={item}
-                    sx={{
-                      '& .MuiListItemText-primary': {
-                        color: 'customColors.OnPrimaryContainer',
-                        fontSize: '16px',
-                        fontWeight: 400
+        {selectedItem === 'Batch Details' && (
+          <Box sx={{ overflowY: 'scroll', height: '82.5vh', px: 5 }}>
+            {/* <Box sx={{ position: 'sticky', top: 0, backgroundColor: 'white', zIndex: 1, mb: 2 }}>
+              <TextField
+                label='Search'
+                variant='outlined'
+                fullWidth
+                value={searchValue}
+                onChange={e => setSearchValue(e.target.value)}
+                size='small'
+                sx={{ mt: 2 }}
+              />
+            </Box> */}
+            {batchDetailsList.map(location => (
+              <Box key={location.batch_no}>
+                <FormControlLabel
+                  control={
+                    <Checkbox
+                      name='batchDetails'
+                      value={location.batch_no}
+                      checked={selectedBatches.includes(location.batch_no)}
+                      onChange={e =>
+                        setSelectedBatches(
+                          e.target.checked
+                            ? [...selectedBatches, location.batch_no]
+                            : selectedBatches.filter(batch => batch !== location.batch_no)
+                        )
                       }
-                    }}
-                  />
-                </ListItem>
-              ))}
-            </List>
-          </Box>
-
-          {/* Right side - Display selected item */}
-          <Box
-            sx={{
-              width: { xs: '100%', sm: 360 },
-              backgroundColor: '#FFFFFF',
-              flexGrow: 1,
-              pt: 3
-            }}
-          >
-            {selectedItem === 'Batch Details' && (
-              <>
-                <Box
-                  sx={{
-                    overflowY: 'scroll',
-                    height: '82.5vh',
-                    px: 5
-                  }}
-                >
-                  <Box
-                    sx={{
-                      position: 'sticky',
-                      top: 0,
-                      backgroundColor: 'white',
-                      zIndex: 1,
-                      mb: 2
-                    }}
-                  >
-                    <TextField
-                      label='Search'
-                      variant='outlined'
-                      fullWidth
-                      value={searchTerm}
-                      onChange={handleSearchChange}
-                      size='small'
-                      sx={{ mt: 2 }}
                     />
-                  </Box>
-                  {filteredBatchDetails?.map(location => (
-                    <Box key={location.batch_no}>
-                      <FormControlLabel
-                        control={
-                          <Checkbox
-                            name='batchDetails'
-                            value={location.batch_no}
-                            checked={selectedBatches?.includes(location.batch_no)}
-                            onChange={handleBatchCheckbox}
-                            sx={{
-                              color: 'customColors.Outline',
-                              '&.Mui-checked': {
-                                color: 'primary.main'
-                              }
-                            }}
-                          />
-                        }
-                        sx={{
-                          fontSize: '16px',
-                          fontWeight: 400,
-                          '& .MuiFormControlLabel-label': {
-                            color: 'customColors.Outline'
-                          }
-                        }}
-                        label={`${location.batch_no}`}
+                  }
+                  label={location.batch_no}
+                />
+              </Box>
+            ))}
+          </Box>
+        )}
+
+        {selectedItem === 'Transaction Type' && (
+          <>
+            {['request', 'directDispatch', 'return', 'purchase', 'dispense'].map(type => (
+              <Box
+                key={type}
+                sx={{
+                  overflowY: 'scroll',
+                  px: 5
+                }}
+              >
+                <FormControlLabel
+                  control={<Checkbox name={type} checked={transactionTypes[type]} onChange={handleCheckboxChange} />}
+                  label={type.charAt(0).toUpperCase() + type.slice(1)}
+                />
+              </Box>
+            ))}
+          </>
+        )}
+
+        {selectedItem === 'Dispatch By' && (
+          <>
+            <Box
+              sx={{
+                overflowY: 'scroll',
+                height: '82.5vh',
+                px: 5
+              }}
+            >
+              {dispatchedByOptions.map(option => (
+                <Box key={option.id}>
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        name='dispatchBy'
+                        value={option.id} // Store ID instead of name
+                        checked={selectedDispatchedBy.includes(option.id)} // Check if ID is selected
+                        onChange={handleDispatchByCheckboxChange}
                       />
-                    </Box>
-                  ))}
-                </Box>
-              </>
-            )}
-            {selectedItem === 'Transaction Type' && (
-              <>
-                {['request', 'directDispatch', 'return', 'purchase', 'dispense'].map(type => (
-                  <Box
-                    key={type}
-                    sx={{
-                      overflowY: 'scroll',
-                      px: 5
-                    }}
-                  >
-                    <FormControlLabel
-                      control={
-                        <Checkbox name={type} checked={transactionTypes[type]} onChange={handleCheckboxChange} />
-                      }
-                      label={type.charAt(0).toUpperCase() + type.slice(1)}
-                    />
-                  </Box>
-                ))}
-              </>
-            )}
-
-            {selectedItem === 'Dispatch By' && (
-              <>
-                <Box mb={2}>
-                  <TextField
-                    label='Search'
-                    variant='outlined'
-                    fullWidth
-                    value={searchTerm}
-                    onChange={handleSearchChange}
+                    }
+                    label={option.name}
                   />
                 </Box>
+              ))}
+            </Box>
+          </>
+        )}
 
-                {filteredDispatchBy.map(location => (
-                  <Box key={location}>
-                    <FormControlLabel
-                      control={
-                        <Checkbox
-                          name='dispatchBy'
-                          value={location}
-                          checked={selectedLocations.includes(location)}
-                          onChange={handleDispatchCheckboxChange}
-                        />
-                      }
-                      label={location}
-                    />
-                  </Box>
-                ))}
-              </>
-            )}
-            {selectedItem === 'Dispatch To' && (
-              <>
-                <Box mb={2}>
-                  <TextField
-                    label='Search'
-                    variant='outlined'
-                    fullWidth
-                    value={searchTerm}
-                    onChange={handleSearchChange}
+        {selectedItem === 'Dispatch To' && (
+          <>
+            <Box
+              sx={{
+                overflowY: 'scroll',
+                height: '82.5vh',
+                px: 5
+              }}
+            >
+              {dispatchedToOptions.map(option => (
+                <Box key={option.id}>
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        name='dispatchTo'
+                        value={option.id} // Store ID instead of name
+                        checked={selectedDispatchedTo.includes(option.id)} // Check if ID is selected
+                        onChange={handleDispatchToCheckboxChange}
+                      />
+                    }
+                    label={option.name}
                   />
                 </Box>
+              ))}
+            </Box>
+          </>
+        )}
 
-                {filteredDispatchTo.map(location => (
-                  <Box key={location}>
-                    <FormControlLabel
-                      control={
-                        <Checkbox
-                          name='dispatchTo'
-                          value={location}
-                          checked={selectedLocations.includes(location)}
-                          onChange={handleDispatchCheckboxChange}
-                        />
-                      }
-                      label={location}
-                    />
-                  </Box>
+        {selectedItem === 'Created By' && (
+          <>
+            <Box
+              sx={{
+                overflowY: 'scroll',
+                height: '82.5vh',
+                px: 5
+                // mt: 2
+              }}
+            >
+              <Box display='grid' gap={2} pt={2}>
+                {createByOptions.map((doctor, index) => (
+                  <DoctorCard
+                    key={doctor.id}
+                    id={doctor.id}
+                    name={doctor.name}
+                    title={doctor.title}
+                    site={doctor.site}
+                    isVerified={doctor.isVerified}
+                    isSelected={selectedCreateBy.includes(doctor.id)}
+                    onSelectDoctor={handleCreateBySelect}
+                  />
                 ))}
-              </>
-            )}
-            {selectedItem === 'Created By' && (
-              <>
-                <Box display='grid' gridTemplateColumns='repeat(auto-fit, minmax(300px, 1fr))' gap={2}>
-                  {doctors.map((doctor, index) => (
-                    <DoctorCard
-                      key={index}
-                      name={doctor.name}
-                      title={doctor.title}
-                      site={doctor.site}
-                      isVerified={doctor.isVerified}
-                      isSelected={selectedDoctors[index] || false}
-                      onSelectDoctor={selected => handleDoctorSelect(index, selected)}
-                    />
-                  ))}
-                </Box>
-              </>
-            )}
-            {selectedItem === 'Date' && (
-              <>
-                <Box mb={2}>
-                  <TextField
-                    label='Search'
-                    variant='outlined'
-                    fullWidth
-                    value={searchTerm}
-                    onChange={handleSearchChange}
+              </Box>
+            </Box>
+          </>
+        )}
+        {selectedItem === 'Date' && (
+          <>
+            <Box
+              sx={{
+                overflowY: 'scroll',
+                height: '82.5vh',
+                px: 5
+                // mt: 2
+              }}
+            >
+              {dates.map(location => (
+                <Box key={location}>
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        name='date'
+                        value={location}
+                        checked={selectedDate === location}
+                        onChange={() => handleDateSelect(location)}
+                      />
+                    }
+                    label={location}
                   />
                 </Box>
+              ))}
+            </Box>
+          </>
+        )}
+      </FilterDrawer>
 
-                {filteredDates.map(location => (
-                  <Box key={location}>
-                    <FormControlLabel
-                      control={
-                        <Checkbox
-                          name='date'
-                          value={location}
-                          checked={selectedLocations.includes(location)}
-                          onChange={handleDispatchCheckboxChange}
-                        />
-                      }
-                      label={location}
-                    />
-                  </Box>
-                ))}
-              </>
-            )}
-          </Box>
-        </Box>
-
-        {/* Footer Buttons */}
-        <Box
-          sx={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            marginTop: 'auto',
-            bgcolor: '#FFFFFF',
-            p: 4,
-            boxShadow: 3,
-            flexDirection: { xs: 'column', sm: 'row' },
-            gap: 2
-          }}
-        >
-          <Button size='large' variant='outlined' sx={{ width: '100%' }} onClick={handleClearFilter}>
-            Clear All
-          </Button>
-          <Button size='large' variant='contained' sx={{ width: '100%' }} onClick={handleApplyFilter}>
-            Apply Filter
-          </Button>
-        </Box>
-      </Drawer>
+      <>{/* <Error404></Error404> */}</>
     </>
   )
 }
