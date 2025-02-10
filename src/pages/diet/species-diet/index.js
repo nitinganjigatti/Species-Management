@@ -35,10 +35,9 @@ const IncubatorsList = () => {
 
   const [speciesDetailsDrawer, setSpeciesDetailsDrawer] = useState(false) // has to be modified
 
-  const [discardList, setDiscardList] = useState([]) // has to be modified
   const [isSearchOpen, setIsSearchOpen] = useState(false)
   const [search, setSearch] = useState('')
-  const [selectedDropDown, setSelectedDropDown] = useState('all')
+  // const [selectedDropDown, setSelectedDropDown] = useState('all')
   const [isFilterOpen, setIsFilterOpen] = useState(false)
   const [showFilters, setShowFilters] = useState(false)
 
@@ -87,9 +86,6 @@ const IncubatorsList = () => {
 
   const authData = useContext(AuthContext)
 
-  const egg_nursery_permission = authData?.userData?.permission?.user_settings?.add_nursery_permisson
-  const egg_collection_permission = authData?.userData?.roles?.settings?.enable_egg_collection_module
-
   function loadServerRows(currentPage, data) {
     return data
   }
@@ -102,20 +98,17 @@ const IncubatorsList = () => {
   const fetchTableData = useCallback(
     async q => {
       try {
+        console.log('applyFilters', applyFilters)
+        const siteIds = applyFilters.Site?.map(option => option.id)
         setLoading(true)
-
+        console.log('siteIds', siteIds)
         const params = {
-          // site_ids: "[774]",
-          // "section_ids": "[1350]",
-          // "enclosure_ids": "[18960]",
-          // "page_no": 1,
-          // "q": ""
+          site_ids: siteIds.length > 0 ? JSON.stringify(siteIds) : '',
+          // section_ids: ids.SectionIds.length > 0 ? JSON.stringify(ids.SectionIds) : '',
+          // enclosure_ids: ids.EnclosureIds.length > 0 ? JSON.stringify(ids.EnclosureIds) : '',
           q,
           page_no: paginationModel.page + 1,
-          limit: paginationModel.pageSize,
-          site_ids: [],
-          section_ids: [],
-          enclosure_ids: []
+          limit: paginationModel.pageSize
         }
         // // console.log('params', params)
         await getSpeciesList(params).then(res => {
@@ -141,10 +134,10 @@ const IncubatorsList = () => {
   )
 
   useEffect(() => {
-    if (egg_nursery_permission || egg_collection_permission) {
-      fetchTableData(searchValue)
-    }
-  }, [fetchTableData])
+    // if (egg_nursery_permission || egg_collection_permission) {
+    fetchTableData(searchValue)
+    // }
+  }, [fetchTableData, applyFilters])
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
@@ -568,7 +561,7 @@ const IncubatorsList = () => {
                 }}
               />
             </Box>
-            <Box
+            {/* <Box
               sx={{
                 display: 'flex',
                 justifyContent: 'center',
@@ -599,7 +592,7 @@ const IncubatorsList = () => {
               {filterList?.length > 0 && (
                 <Typography sx={{ color: '#fff', fontSize: '14px', fontWeight: 400 }}>{filterList?.length}</Typography>
               )}
-            </Box>
+            </Box> */}
           </Box>
         </Box>
 
@@ -647,10 +640,9 @@ const IncubatorsList = () => {
           setFilterList={setFilterList}
           setApplyFilters={setApplyFilters}
           filterList={filterList}
-          setDiscardList={setDiscardList}
           setSearch={setSearch}
           setIsSearchOpen={setIsSearchOpen}
-          setSelectedDropDown={setSelectedDropDown}
+          // setSelectedDropDown={setSelectedDropDown}
         />
       )}
       {speciesDetailsDrawer && (
