@@ -646,6 +646,7 @@ function Ledger({ tabValue, updateUrlParams }) {
   // Toggle Drawer open/close
   const toggleDrawer = () => {
     setOpen(!open)
+    // setSelectedItem('Batch Details')
   }
 
   const handleCheckboxChange = event => {
@@ -735,6 +736,7 @@ function Ledger({ tabValue, updateUrlParams }) {
 
   const handleClearFilter = async () => {
     try {
+      setSelectedItem('Batch Details')
       setSelectedBatches([])
       setSelectedDispatchedTo([])
       setSelectedCreateBy([])
