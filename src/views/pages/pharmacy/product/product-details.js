@@ -14,6 +14,7 @@ export const ProductDetail = ({
   detailsData,
   prescriptionImages,
   productDetails,
+  filterByPharmacyId,
   submitLoader,
   handleRequestStatus,
   statusCall,
@@ -160,7 +161,7 @@ export const ProductDetail = ({
                   left: '33px'
                 }}
               >
-                {selectedPharmacy.type === 'local'
+                {selectedPharmacy.type === 'local' && selectedPharmacy.id === filterByPharmacyId
                   ? (selectedPharmacy.permission.key === 'allow_full_access' ||
                       selectedPharmacy.permission.key === 'ADD') && (
                       <Grid
@@ -184,6 +185,7 @@ export const ProductDetail = ({
                       </Grid>
                     )
                   : !visibleArea &&
+                    selectedPharmacy.type === 'central' &&
                     (selectedPharmacy?.permission?.key === 'allow_full_access' ||
                       selectedPharmacy?.permission?.key === 'ADD') && (
                       <Grid sx={{ display: 'flex', justifyContent: 'flex-end', mb: '20px' }}>
