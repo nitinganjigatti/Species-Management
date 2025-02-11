@@ -737,8 +737,9 @@ const RequestDetails = () => {
 
   const schema = yup.object().shape({
     lab_name: yup.string(),
-    replaced_lab_id: yup.string().required('Transfer to is required'),
-    transfer_reason: yup.string().required('Transfer reason is required')
+    replaced_lab_id: yup.string().required('Transfer to is required')
+
+    // transfer_reason: yup.string().required('Transfer reason is required')
   })
 
   const {
