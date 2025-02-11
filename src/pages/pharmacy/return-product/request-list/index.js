@@ -136,6 +136,25 @@ const ReturnRequestList = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedPharmacy.type])
 
+  useEffect(() => {
+    if (router.query.status !== status) {
+      // debugger
+      setPaginationModel({ page: 0, pageSize: 10 })
+      updateUrlParams({
+        status: status,
+        page: 0,
+        limit: 10,
+        q: '',
+        sort: sort,
+        column: sortColumn,
+        startDate: '',
+        endDate: '',
+        store: filterByStoreId,
+        filterSwitch: false
+      })
+    }
+  }, [router.query.status])
+
   const handleChange = (event, newValue) => {
     setTotal(0)
     setFilterSwitch(false)
@@ -144,6 +163,18 @@ const ReturnRequestList = () => {
     setFilterDates({ startDate: '', endDate: '' })
     setSelectDays('all')
     setStatus(newValue)
+    updateUrlParams({
+      status: newValue,
+      page: 0,
+      limit: 10,
+      q: '',
+      sort: sort,
+      column: sortColumn,
+      startDate: '',
+      endDate: '',
+      store: filterByStoreId,
+      filterSwitch: false
+    })
   }
 
   const fetchTableData = useCallback(
@@ -298,30 +329,31 @@ const ReturnRequestList = () => {
   // }, [selectedPharmacy.id])
 
   useEffect(() => {
-    const currentStatus = filterSwitch === true ? 'completed' : status
-
-    const tabStatus = status === 'all' ? currentStatus : status
-    fetchTableData(
-      sort,
-      searchValue,
-      sortColumn,
-      tabStatus,
-      filterDates.startDate,
-      filterDates.endDate,
-      filterByStoreId
-    )
-    updateUrlParams({
-      sort,
-      q: searchValue,
-      column: sortColumn,
-      status: tabStatus,
-      page: paginationModel.page,
-      startDate: filterDates.startDate,
-      endDate: filterDates.endDate,
-      limit: paginationModel.pageSize,
-      filterSwitch,
-      store: filterByStoreId
-    })
+    if (router.query.status === status) {
+      const currentStatus = filterSwitch === true ? 'completed' : status
+      const tabStatus = status === 'all' ? currentStatus : status
+      fetchTableData(
+        sort,
+        searchValue,
+        sortColumn,
+        tabStatus,
+        filterDates.startDate,
+        filterDates.endDate,
+        filterByStoreId
+      )
+      updateUrlParams({
+        sort,
+        q: searchValue,
+        column: sortColumn,
+        status: tabStatus,
+        page: paginationModel.page,
+        startDate: filterDates.startDate,
+        endDate: filterDates.endDate,
+        limit: paginationModel.pageSize,
+        filterSwitch,
+        store: filterByStoreId
+      })
+    }
 
     // }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -332,7 +364,8 @@ const ReturnRequestList = () => {
     filterDates,
     selectedPharmacy.id,
     paginationModel.page,
-    paginationModel.pageSize
+    paginationModel.pageSize,
+    router.query.status
   ])
 
   const onRowClick = params => {
