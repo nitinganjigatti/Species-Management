@@ -75,8 +75,6 @@ const DietDetail = () => {
     ]
   })
 
-  const schedule = []
-
   let startArry = []
 
   const authData = useContext(AuthContext)
