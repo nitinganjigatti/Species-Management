@@ -124,7 +124,7 @@ export default function NewProductList() {
       )
     },
     {
-      // flex: 0.3,
+      flex: 0.3,
       minWidth: 100,
       field: 'request_number',
       headerName: 'Request Number',
@@ -144,9 +144,9 @@ export default function NewProductList() {
         </div>
       )
     },
-    selectedPharmacy?.type === 'central' && {
-      // flex: 0.2,
-      minWidth: 40,
+    (selectedPharmacy?.type === 'central' || filterByPharmacyId === 'all') && {
+      flex: 0.2,
+      minWidth: 70,
       field: 'to_store_name',
       headerName: 'From Store',
       renderCell: (params, rowId) => (
@@ -311,6 +311,7 @@ export default function NewProductList() {
     // Reset total and search value
     setTotal(0)
     setSearchValue('')
+    setPaginationModel({ page: 0, pageSize: 10 })
 
     // Update the status
     setStatus(newValue)
@@ -660,7 +661,10 @@ export default function NewProductList() {
                       }}
                     >
                       <div>Product Details - {productDetails?.request_number}</div>
-                      {selectedPharmacy.type === 'local' &&
+
+                      {selectedPharmacy.id === filterByPharmacyId &&
+                        selectedPharmacy.type !== 'central' &&
+                        filterByPharmacyId !== 'all' &&
                         (selectedPharmacy.permission.key === 'allow_full_access' ||
                           selectedPharmacy.permission.key === 'ADD') &&
                         productDetails.status === 'Pending' && (
@@ -698,6 +702,7 @@ export default function NewProductList() {
                       itemId={itemId}
                       handleEdit={handleEdit}
                       productDetails={productDetails}
+                      filterByPharmacyId={filterByPharmacyId}
                     />
                   }
                   close={() => {

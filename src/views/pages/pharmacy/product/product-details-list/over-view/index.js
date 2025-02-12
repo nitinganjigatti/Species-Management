@@ -50,6 +50,7 @@ import {
 } from 'src/lib/api/pharmacy/getMedicineList'
 import FallbackSpinner from 'src/@core/components/spinner'
 import Utility from 'src/utility'
+import MonthlyChart from 'src/views/utility/monthlychart'
 
 const validationSchema = yup.object().shape({
   alternatives: yup.array().of(
@@ -317,26 +318,37 @@ const Overview = props => {
                     </TableCell>
                   </TableRow>
                 ) : (
-                  data.map((row, index) => (
-                    <TableRow
-                      key={index}
-                      sx={{
-                        '&:last-child td, &:last-child th': {
-                          border: 0 // Removes borders for the last row
-                        }
-                      }}
-                    >
-                      <TableCell>{row.batch_no}</TableCell>
-                      <TableCell>
-                        {/* {row.expiry_date} */}
-                        {Utility.formatDisplayDate(Utility.convertUTCToLocal(row.expiry_date))}
-                      </TableCell>
-                      <TableCell>{row.qty}</TableCell>
-                      <TableCell>₹{row.unit_price}</TableCell>
-                      <TableCell>₹{(parseFloat(row.qty) * parseFloat(row.unit_price)).toFixed(2)}</TableCell>
-                      <TableCell sx={{ color: 'customColors.Tertiary' }}>{row.days_left} Days</TableCell>
-                    </TableRow>
-                  ))
+                  data.map((row, index) => {
+                    const value = (parseFloat(row.qty) * parseFloat(row.unit_price)).toFixed(2)
+                    const formattedValue = Number(value).toLocaleString('en-IN', {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2
+                    })
+                    const newValue = parseInt(row.qty) * parseInt(row.unit_price)
+
+                    // formatAmountToReadableDigit
+                    return (
+                      <TableRow
+                        key={index}
+                        sx={{
+                          '&:last-child td, &:last-child th': {
+                            border: 0 // Removes borders for the last row
+                          }
+                        }}
+                      >
+                        <TableCell>{row.batch_no}</TableCell>
+                        <TableCell>
+                          {/* {row.expiry_date} */}
+                          {Utility.formatDisplayDate(Utility.convertUTCToLocal(row.expiry_date))}
+                        </TableCell>
+                        <TableCell>{row.qty}</TableCell>
+                        <TableCell>₹{row.unit_price}</TableCell>
+                        {/* <TableCell>₹{formattedValue}</TableCell> */}
+                        <TableCell>{Utility.formatAmountToReadableDigit(newValue)}</TableCell>
+                        <TableCell sx={{ color: 'customColors.Tertiary' }}>{row.days_left} Days</TableCell>
+                      </TableRow>
+                    )
+                  })
                 )}
               </TableBody>
             </Table>
@@ -385,6 +397,11 @@ const Overview = props => {
                 ) : (
                   data.map((item, index) => {
                     const value = (parseFloat(item.qty) * parseFloat(item.unit_price)).toFixed(2)
+                    const formattedValue = Number(value).toLocaleString('en-IN', {
+                      minimumFractionDigits: 2,
+                      maximumFractionDigits: 2
+                    })
+                    const newValue = parseInt(item.qty) * parseInt(item.unit_price)
                     return (
                       <TableRow
                         key={index}
@@ -403,7 +420,8 @@ const Overview = props => {
                         </TableCell>
                         <TableCell>{item.qty}</TableCell>
                         <TableCell>₹{item.unit_price}</TableCell>
-                        <TableCell>₹{value}</TableCell>
+                        {/* <TableCell>₹{formattedValue}</TableCell> */}
+                        <TableCell>{Utility.formatAmountToReadableDigit(newValue)}</TableCell>
                         <TableCell sx={{ color: 'customColors.Error' }}>{item.days_overdue} Days</TableCell>
                       </TableRow>
                     )
@@ -510,8 +528,13 @@ const Overview = props => {
           console.log('Calculated Totals:', { totalQuantity, totalStores })
         } else {
           const totalValue = result.data.reduce((acc, item) => {
-            return acc + parseFloat(item.qty) * parseFloat(item.unit_price)
+            return acc + parseInt(item.qty) * parseInt(item.unit_price)
           }, 0)
+
+          // const totalValue = formattedTotalValue.toLocaleString('en-IN', {
+          //   minimumFractionDigits: 2,
+          //   maximumFractionDigits: 2
+          // })
           const totalBatches = new Set(result.data.map(item => item.batch_no)).size
           setTotalValue({
             totalQuantity: 0,
@@ -665,6 +688,15 @@ const Overview = props => {
       <Grid container spacing={4} sx={{ display: 'flex', alignItems: 'stretch' }}>
         <Grid item xs={12} md={6} sx={{ flexDirection: 'column' }}>
           <Card sx={{ height: '100%' }}>
+            {/* <MonthlyChart
+              title='Dispatch'
+              data={dispatchData}
+              barColor='#006D35'
+              lineColor='#37BD69'
+              barName='Dispatch Value'
+              lineName='Dispatch Count'
+              viewMorePath=''
+            /> */}
             <ProductsChart
               title='Dispatch'
               data={dispatchData}
@@ -672,8 +704,8 @@ const Overview = props => {
               frequencies={['Monthly', 'Weekly']}
               barColor={'#006D35'}
               lineColor={'#37BD69'}
-              seriesBarName='Dispatch Count'
-              seriesLineName='Dispatch Value'
+              seriesBarName='Dispatch Value'
+              seriesLineName='Dispatch Count'
               countLabel='Show Dispatch Count'
               valueLabel='Show Dispatch Value'
             />
@@ -688,8 +720,8 @@ const Overview = props => {
               frequencies={['Monthly', 'Weekly']}
               barColor={'#00AFD699'}
               lineColor={'#AFEFEB'}
-              seriesBarName='Purchase Count'
-              seriesLineName='Purchase Value'
+              seriesBarName='Purchase Value'
+              seriesLineName='Purchase Count'
               countLabel='Show Purchase Count'
               valueLabel='Show Purchase Value'
             />
