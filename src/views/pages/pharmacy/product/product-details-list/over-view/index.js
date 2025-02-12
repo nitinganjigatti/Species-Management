@@ -50,6 +50,7 @@ import {
 } from 'src/lib/api/pharmacy/getMedicineList'
 import FallbackSpinner from 'src/@core/components/spinner'
 import Utility from 'src/utility'
+import MonthlyChart from 'src/views/utility/monthlychart'
 
 const validationSchema = yup.object().shape({
   alternatives: yup.array().of(
@@ -687,6 +688,15 @@ const Overview = props => {
       <Grid container spacing={4} sx={{ display: 'flex', alignItems: 'stretch' }}>
         <Grid item xs={12} md={6} sx={{ flexDirection: 'column' }}>
           <Card sx={{ height: '100%' }}>
+            {/* <MonthlyChart
+              title='Dispatch'
+              data={dispatchData}
+              barColor='#006D35'
+              lineColor='#37BD69'
+              barName='Dispatch Value'
+              lineName='Dispatch Count'
+              viewMorePath=''
+            /> */}
             <ProductsChart
               title='Dispatch'
               data={dispatchData}
@@ -694,8 +704,8 @@ const Overview = props => {
               frequencies={['Monthly', 'Weekly']}
               barColor={'#006D35'}
               lineColor={'#37BD69'}
-              seriesBarName='Dispatch Count'
-              seriesLineName='Dispatch Value'
+              seriesBarName='Dispatch Value'
+              seriesLineName='Dispatch Count'
               countLabel='Show Dispatch Count'
               valueLabel='Show Dispatch Value'
             />
@@ -710,8 +720,8 @@ const Overview = props => {
               frequencies={['Monthly', 'Weekly']}
               barColor={'#00AFD699'}
               lineColor={'#AFEFEB'}
-              seriesBarName='Purchase Count'
-              seriesLineName='Purchase Value'
+              seriesBarName='Purchase Value'
+              seriesLineName='Purchase Count'
               countLabel='Show Purchase Count'
               valueLabel='Show Purchase Value'
             />
