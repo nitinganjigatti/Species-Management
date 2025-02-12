@@ -354,11 +354,17 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
 
     pharmacyNavigationArray.push(
       productsList,
-      purchaseList,
-      existingPurchase
+      purchaseList
 
       //  nonExistingProductRequestList
     )
+
+    if (
+      selectedPharmacy?.permission?.pharmacy_module === 'allow_full_access' ||
+      selectedPharmacy?.permission?.pharmacy_module === 'ADD'
+    ) {
+      pharmacyNavigationArray.push(existingPurchase)
+    }
 
     if (
       selectedPharmacy?.permission?.pharmacy_module === 'allow_full_access' ||
