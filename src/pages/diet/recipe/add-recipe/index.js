@@ -47,6 +47,7 @@ const AddRecipe = () => {
   const [IngredientTypeList, setIngredientTypeList] = useState([])
   const [fullIngredientList, setFullIngredientList] = useState([])
   const [urlType, seturlType] = useState('')
+  const [loader, setLoader] = useState(false)
 
   const [formData, setFormData] = useState({
     recipe_name: '',
@@ -179,6 +180,7 @@ const AddRecipe = () => {
 
   const getIngredientsDetailval = async id => {
     try {
+      setLoader(true)
       const response = await getRecipeDetail(id)
 
       if (response.data.success === true && response.data.data !== null) {
@@ -235,7 +237,7 @@ const AddRecipe = () => {
         const uniqueIngredientList = combinedIngredients.filter(
           (item, index, self) => index === self.findIndex(i => i.id === item.id)
         )
-
+        setLoader(false)
         setFullIngredientList(uniqueIngredientList)
       }
     } catch (error) {
@@ -493,6 +495,7 @@ const AddRecipe = () => {
             formData={formData}
             updateFormData={updateFormData}
             uomList={uomList}
+            loader={loader}
           />
         )
       case 1:

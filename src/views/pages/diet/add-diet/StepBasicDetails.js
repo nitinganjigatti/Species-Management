@@ -9,7 +9,16 @@ import TextField from '@mui/material/TextField'
 import Typography from '@mui/material/Typography'
 import FormControl from '@mui/material/FormControl'
 import Autocomplete from '@mui/material/Autocomplete'
-import { Divider, CardContent, FormHelperText, Card, CardHeader, Avatar, Tooltip } from '@mui/material'
+import {
+  Divider,
+  CardContent,
+  FormHelperText,
+  Card,
+  CardHeader,
+  Avatar,
+  Tooltip,
+  CircularProgress
+} from '@mui/material'
 import { useRouter } from 'next/router'
 import Router from 'next/router'
 import { useForm, useFieldArray } from 'react-hook-form'
@@ -85,7 +94,8 @@ const StepBasicDetails = ({
   selectedCardCombo,
   setUomprevnew,
   id,
-  diettypechildvalues
+  diettypechildvalues,
+  loader
 }) => {
   // ** States
   const [uploadedImage, setUploadedImage] = useState(null)
@@ -166,6 +176,16 @@ const StepBasicDetails = ({
 
   const handleImageUpload = imageData => {
     setUploadedImage(imageData)
+  }
+
+  const handleclickRecipeDetail = val => {
+    const url = `/diet/recipe/${val}`
+    window.open(url, '_blank')
+  }
+
+  const handleclickComboDetail = val => {
+    const url = `/diet/combo/${val}`
+    window.open(url, '_blank')
   }
 
   const handleChildStateChange = value => {
@@ -795,1062 +815,1099 @@ const StepBasicDetails = ({
 
   return (
     <>
-      <form onSubmit={handleSubmit(onSubmit)}>
-        <Card sx={{ boxShadow: 'none', borderTopLeftRadius: 0, borderTopRightRadius: 0 }}>
-          <Box sx={{ mb: 1, px: 5, mt: 5, float: 'left' }}>
-            <Typography variant='h6'>Basic Information</Typography>
+      {loader ? (
+        <CardContent sx={{ background: '#fff', height: '100vh' }}>
+          <Box sx={{ display: 'flex', justifyContent: 'center', mt: 20 }}>
+            <CircularProgress />
           </Box>
-          <ScrollToFieldError errors={errors} />
-          <Grid container spacing={5} sx={{ px: 5 }}>
-            <Grid item xs={12} sm={6}>
-              <FormControl fullWidth>
-                <Controller
-                  name='diet_name'
-                  control={control}
-                  rules={{ required: true }}
-                  render={({ field: { value, onChange } }) => (
-                    <TextField
-                      value={value}
-                      label='Diet name *'
-                      name='diet_name'
-                      error={Boolean(errors.diet_name)}
-                      onChange={onChange}
-                    />
-                  )}
-                />
-                {errors.diet_name && (
-                  <FormHelperText sx={{ color: 'error.main' }}>{errors?.diet_name?.message}</FormHelperText>
-                )}
-              </FormControl>
-            </Grid>
-
-            <Grid item xs={12} sm={6}>
-              <FormControl fullWidth>
-                {/* <InputLabel id='uom'> Select unit of measurement (UOM)</InputLabel> */}
-
-                <Controller
-                  name='diet_type_id'
-                  control={control}
-                  rules={{ required: true }}
-                  render={({ field: { value, onChange } }) => {
-                    console.log(value, 'value')
-
-                    return (
-                      <Autocomplete
-                        value={uomList?.find(option => option.id === value) || null}
-                        // disablePortal
-                        id='diet_type_id'
-                        options={uomList || []}
-                        getOptionLabel={option => option.diet_type_name}
-                        isOptionEqualToValue={(option, value) => option?.id === value}
-                        //disabled={id ? true : false}
-                        onChange={(e, val) => {
-                          if (val === null) {
-                            setFormValue('diet_type_id', '')
-                            setFormValue('diet_type_name', '')
-                            setFormValue('child', '')
-                          } else {
-                            setFormValue('diet_type_id', val.id)
-                            setFormValue('diet_type_name', val.diet_type_name)
-                            setFormValue('child', val.child)
-                            trigger('diet_type_id')
-                            deleteCookie('dietTypeChildValues')
-                            deleteCookie('dietTypeChildVal')
-                          }
-                        }}
-                        //sx={{ background: id ? '#80808021' : '' }}
-                        renderInput={params => (
-                          <TextField
-                            {...params}
-                            label='Diet Type *'
-                            placeholder='Search & Select'
-                            error={Boolean(errors.diet_type_id)}
-                            name='diet_type_id'
-                          />
-                        )}
-                      />
-                    )
-                  }}
-                />
-
-                {errors?.diet_type_id && (
-                  <FormHelperText sx={{ color: 'error.main' }}>{errors?.diet_type_id?.message}</FormHelperText>
-                )}
-              </FormControl>
-            </Grid>
-
-            <Grid item xs={6}>
-              <CardContent sx={{ px: 0, paddingTop: 2 }}>
-                <CustomFileUploaderSingle onImageUpload={handleImageUpload} uploadedImagenew={uploadedImage} />
-              </CardContent>
-            </Grid>
-
-            <Grid item xs={12} sx={{ pt: 0, pb: 8 }}>
-              <Controller
-                name='desc'
-                control={control}
-                rules={{ required: true }}
-                render={({ field: { value, onChange } }) => (
-                  <TextField
-                    multiline
-                    fullWidth
-                    value={value}
-                    label='Description (Optional)'
-                    name='desc'
-                    error={Boolean(errors.desc)}
-                    onChange={onChange}
-                    id='textarea-outlined'
-                    rows={5}
-                  />
-                )}
-              />
-            </Grid>
-          </Grid>
-        </Card>
-
-        {fieldsIngredients.map((field, index) => (
-          <Card sx={{ mt: 7 }} key={field.id}>
-            <CardHeader title={`Add Meal ${index + 1}`} sx={{ float: 'left', width: '50%' }} />
-            {(fieldsIngredients.length - 1 === index && index > 0) ||
-            (!index <= 0 && !fieldsIngredients.length - 1 <= 0) ? (
-              <Grid sx={{ float: 'right', width: '4%', marginRight: '24px', cursor: 'pointer' }}>
-                {removeIngredientButton(index)}
-              </Grid>
-            ) : (
-              ''
-            )}
-            <CardContent>
-              <Grid container spacing={6}>
-                <Grid item xs={12} sm={3}>
-                  <FormControl fullWidth>
-                    <Controller
-                      name={`meal_data[${index}].meal_name`}
-                      control={control}
-                      rules={{ required: true }}
-                      render={({ field: { value, onChange } }) => (
-                        <TextField
-                          value={value}
-                          type='text'
-                          label='Meal name'
-                          name={`meal_data[${index}].meal_name`}
-                          error={
-                            errors.meal_data && errors.meal_data[index] && errors.meal_data[index].meal_name?.message
-                              ? true
-                              : false
-                          }
-                          onChange={onChange}
-                          placeholder=''
-                          onInput={e => {
-                            if (e.target.value < 0) {
-                              e.target.value = ''
-                            }
-                          }}
-                        />
-                      )}
-                    />
-                    {errors.meal_data && errors.meal_data[index] && (
-                      <FormHelperText sx={{ color: 'error.main' }}>
-                        {errors.meal_data[index].meal_name?.message}
-                      </FormHelperText>
-                    )}
-                  </FormControl>
-                </Grid>
-                <Grid item xs={12} sm={3.2}>
-                  <FormControl fullWidth>
-                    <Controller
-                      name={`meal_data[${index}].meal_from_time`}
-                      control={control}
-                      rules={{ required: true }}
-                      render={({ field: { value, onChange } }) => (
-                        <LocalizationProvider dateAdapter={AdapterDayjs}>
-                          {console.log(value, 'value')}
-                          <TimePicker
-                            label='Select time - from'
-                            onChange={onChange}
-                            name={`meal_data[${index}].meal_from_time`}
-                            defaultValue={value ? dayjs(value) : null}
-                            sx={{
-                              '& fieldset': {
-                                borderColor:
-                                  errors.meal_data && errors.meal_data[index] && errors.meal_data[index]?.meal_from_time
-                                    ? 'red'
-                                    : undefined // Change border color to red if there's an error
-                              }
-                            }}
-                            renderInput={params => (
-                              <TextField
-                                {...params}
-                                label='Diet Type *'
-                                placeholder='Search & Select'
-                                error={Boolean(errors.meal_data[index].meal_from_time?.message)}
-                                name={`meal_data[${index}].meal_from_time`}
-                                sx={{
-                                  '& fieldset': {
-                                    borderColor: errors.meal_data?.[index]?.meal_from_time ? 'red' : undefined // Change border color to red if there's an error
-                                  }
-                                }}
-                              />
-                            )}
-                          />
-                        </LocalizationProvider>
-                      )}
-                    />
-
-                    {errors.meal_data && errors.meal_data[index] && (
-                      <FormHelperText sx={{ color: 'error.main' }}>
-                        {errors.meal_data[index].meal_from_time?.message}
-                      </FormHelperText>
-                    )}
-                  </FormControl>
-                </Grid>
-
-                <Grid item xs={12} sm={3}>
-                  <FormControl fullWidth>
-                    <Controller
-                      name={`meal_data[${index}].meal_to_time`}
-                      control={control}
-                      rules={{ required: true }}
-                      render={({ field: { value, onChange } }) => (
-                        <LocalizationProvider dateAdapter={AdapterDayjs}>
-                          <TimePicker
-                            label='Select time - to'
-                            onChange={onChange}
-                            defaultValue={value ? dayjs(value) : null}
-                          />
-                        </LocalizationProvider>
-                      )}
-                    />
-                    {errors.meal_data && errors.meal_data[index] && (
-                      <FormHelperText sx={{ color: 'error.main' }}>
-                        {errors.meal_data[index].meal_to_time?.message}
-                      </FormHelperText>
-                    )}
-                  </FormControl>
-                </Grid>
-              </Grid>
-
-              {allRecipeSelectedValues?.length > 0 &&
-              allRecipeSelectedValues.some(value => value?.mealid === field.mealid) ? (
-                <Grid container spacing={5} sx={{ px: 5, pt: 10 }}>
-                  <Box sx={{ mb: 10, mt: 2, float: 'left' }}>
-                    <Typography variant='h6'>Recipes</Typography>
-                  </Box>
-
-                  <Grid
-                    container
-                    spacing={5}
-                    sx={{
-                      borderLeft: '1px solid #C3CEC7',
-                      borderRight: '1px solid #C3CEC7',
-                      borderTop: '1px solid #C3CEC7',
-                      borderRadius: '0.5rem',
-                      mx: 0
-                    }}
-                  >
-                    <Grid container spacing={5} sx={{ background: '#E8F4F2', mt: 0, borderRadius: 0.9, mx: 0 }}>
-                      {recipes.map((recipe, index) => (
-                        <Grid
-                          item
-                          xs={12}
-                          sm={
-                            recipe.label === 'No'
-                              ? 0.5
-                              : recipe.label === 'Recipe'
-                              ? 2.2
-                              : recipe.label === 'Ingredients'
-                              ? 1.9
-                              : 3.7
-                          }
-                          md={
-                            recipe.label === 'No'
-                              ? 0.5
-                              : recipe.label === 'Recipe'
-                              ? 2.2
-                              : recipe.label === 'Ingredients'
-                              ? 1.5
-                              : 3.7
-                          }
-                          key={index}
-                          sx={{ py: 4, px: 2, textAlign: 'center' }}
-                        >
-                          <Typography sx={{ textTransform: 'uppercase', fontSize: 14, fontWeight: 600 }}>
-                            <div style={{ display: 'flex', alignItems: 'center' }}>{recipe.label} </div>
-                          </Typography>
-                        </Grid>
-                      ))}
-                    </Grid>
-
-                    {allRecipeSelectedValues?.length > 0 ? (
-                      allRecipeSelectedValues.map((all, index) => {
-                        const matchingField = all?.mealid === field.mealid
-
-                        if (matchingField) {
-                          return (
-                            <Grid
-                              container
-                              sx={{ px: 5, py: 5, borderBottom: '1px solid #C3CEC7', borderRadius: '7px' }}
-                              key={index}
-                            >
-                              <Grid item xs={12} sm={0.5} md={0.5}>
-                                <Avatar
-                                  variant='square'
-                                  alt='Diet Image'
-                                  sx={{
-                                    width: 40,
-                                    height: 40,
-                                    mr: 4,
-                                    background: '#E8F4F2',
-                                    padding: '8px',
-                                    borderRadius: '50%'
-                                  }}
-                                  src={all.recipe_image ? all.recipe_image : '/icons/icon_diet_fill.png'}
-                                ></Avatar>
-                              </Grid>
-                              <Grid item xs={12} sm={2.2} md={2.2}>
-                                <Tooltip title={all.recipe_name}>
-                                  <Typography
-                                    className='recipe_name'
-                                    sx={{
-                                      pl: 3
-                                    }}
-                                  >
-                                    {all?.recipe_name}
-                                  </Typography>
-                                </Tooltip>
-                                <Typography sx={{ color: '#7A8684', fontSize: '12px', pl: 3 }}>
-                                  {'REP' + all?.recipe_id}
-                                </Typography>
-                              </Grid>
-                              {console.log(all, 'all')}
-                              <Grid item xs={12} sm={1.4} md={1.0} sx={{ pl: 2 }}>
-                                <Typography>{all?.ingredients_count}</Typography>
-                                {/* {all?.ingredients ? (
-                                  <Typography>{all?.ingredients?.length}</Typography>
-                                ) : (
-                                  <Typography>{all?.ingredient_name?.length}</Typography>
-                                )} */}
-                              </Grid>
-                              <Grid item xs={12} sm={3.7} md={3.7}>
-                                <Grid container spacing={1} sx={{ pl: 2 }}>
-                                  {days.map((day, index) => (
-                                    <Grid item key={index}>
-                                      <Typography
-                                        sx={{
-                                          color: all?.days_of_week?.includes(index + 1) ? '#1F415B' : '#839D8D',
-                                          marginRight: 4
-                                        }}
-                                      >
-                                        {day}
-                                      </Typography>
-                                    </Grid>
-                                  ))}
-                                </Grid>
-                              </Grid>
-                              <Grid item xs={12} sm={3.7} md={3.7}>
-                                <Grid sx={{ pl: 7 }}>
-                                  <Typography className='w_280'>
-                                    <Tooltip title={all?.remarks} arrow placement='bottom'>
-                                      <span className='text_overflow_moduled'>{all?.remarks ? all.remarks : '-'}</span>
-                                    </Tooltip>
-                                  </Typography>
-                                </Grid>
-                              </Grid>
-                              <Icon
-                                onClick={() => removeingClickRecipe(all.recipe_id, all.mealid)}
-                                style={{ position: 'relative', left: '1%' }}
-                                icon='iconoir:cancel'
-                              />
-                            </Grid>
-                          )
-                        }
-
-                        return null
-                      })
-                    ) : (
-                      <Typography sx={{ pt: 4, pb: 4, textAlign: 'center', fontWeight: 500, width: '100%' }}>
-                        No Records to show
-                      </Typography>
-                    )}
-                  </Grid>
-                </Grid>
-              ) : null}
-
-              {allComboSelectedValues?.length > 0 &&
-              allComboSelectedValues.some(value => value?.mealid === field.mealid) ? (
-                <Grid container spacing={5} sx={{ px: 5, pt: 10 }}>
-                  <Box sx={{ mb: 10, mt: 2, float: 'left' }}>
-                    <Typography variant='h6'>Combo</Typography>
-                  </Box>
-
-                  <Grid
-                    container
-                    spacing={5}
-                    sx={{
-                      borderLeft: '1px solid #C3CEC7',
-                      borderRight: '1px solid #C3CEC7',
-                      borderTop: '1px solid #C3CEC7',
-                      borderRadius: '0.5rem',
-                      mx: 0
-                    }}
-                  >
-                    <Grid container spacing={5} sx={{ background: '#E8F4F2', mt: 0, borderRadius: 0.9, mx: 0 }}>
-                      {combos.map((recipe, index) => (
-                        <Grid
-                          item
-                          xs={12}
-                          sm={
-                            recipe.label === 'No'
-                              ? 0.5
-                              : recipe.label === 'Combo'
-                              ? 2.2
-                              : recipe.label === 'Ingredients'
-                              ? 1.9
-                              : 3.7
-                          }
-                          md={
-                            recipe.label === 'No'
-                              ? 0.5
-                              : recipe.label === 'Combo'
-                              ? 2.2
-                              : recipe.label === 'Ingredients'
-                              ? 1.5
-                              : 3.7
-                          }
-                          key={index}
-                          sx={{ py: 4, px: 2, textAlign: 'center' }}
-                        >
-                          <Typography sx={{ textTransform: 'uppercase', fontSize: 14, fontWeight: 600 }}>
-                            <div style={{ display: 'flex', alignItems: 'center' }}>{recipe.label} </div>
-                          </Typography>
-                        </Grid>
-                      ))}
-                    </Grid>
-
-                    {allComboSelectedValues?.length > 0 ? (
-                      allComboSelectedValues.map((all, index) => {
-                        const matchingField = all?.mealid === field.mealid
-
-                        if (matchingField) {
-                          return (
-                            <Grid
-                              container
-                              sx={{ px: 5, py: 5, borderBottom: '1px solid #C3CEC7', borderRadius: '7px' }}
-                              key={index}
-                            >
-                              <Grid item xs={12} sm={0.5} md={0.5}>
-                                <Avatar
-                                  variant='square'
-                                  alt='Diet Image'
-                                  sx={{
-                                    width: 40,
-                                    height: 40,
-                                    mr: 4,
-                                    background: '#E8F4F2',
-                                    padding: '8px',
-                                    borderRadius: '50%'
-                                  }}
-                                  src={all.recipe_image ? all.recipe_image : '/icons/icon_diet_fill.png'}
-                                ></Avatar>
-                              </Grid>
-                              <Grid item xs={12} sm={2.2} md={2.2}>
-                                <Tooltip title={all.recipe_name}>
-                                  <Typography
-                                    className='recipe_name'
-                                    sx={{
-                                      pl: 3
-                                    }}
-                                  >
-                                    {all?.recipe_name}
-                                  </Typography>
-                                </Tooltip>
-                                <Typography sx={{ color: '#7A8684', fontSize: '12px', pl: 3 }}>
-                                  {'REP' + all?.recipe_id}
-                                </Typography>
-                              </Grid>
-                              {console.log(all, 'all')}
-                              <Grid item xs={12} sm={1.4} md={1.0} sx={{ pl: 2 }}>
-                                <Typography>{all?.ingredients_count}</Typography>
-                                {/* {all?.ingredients ? (
-                                  <Typography>{all?.ingredients?.length}</Typography>
-                                ) : (
-                                  <Typography>{all?.ingredient_name?.length}</Typography>
-                                )} */}
-                              </Grid>
-                              <Grid item xs={12} sm={3.7} md={3.7}>
-                                <Grid container spacing={1} sx={{ pl: 2 }}>
-                                  {days.map((day, index) => (
-                                    <Grid item key={index}>
-                                      <Typography
-                                        sx={{
-                                          color: all?.days_of_week?.includes(index + 1) ? '#1F415B' : '#839D8D',
-                                          marginRight: 4
-                                        }}
-                                      >
-                                        {day}
-                                      </Typography>
-                                    </Grid>
-                                  ))}
-                                </Grid>
-                              </Grid>
-                              <Grid item xs={12} sm={3.7} md={3.7}>
-                                <Grid sx={{ pl: 7 }}>
-                                  <Typography className='w_280'>
-                                    <Tooltip title={all?.remarks} arrow placement='bottom'>
-                                      <span className='text_overflow_moduled'>{all?.remarks ? all.remarks : '-'}</span>
-                                    </Tooltip>
-                                  </Typography>
-                                </Grid>
-                              </Grid>
-                              <Icon
-                                onClick={() => removeingClickCombo(all.recipe_id, all.mealid)}
-                                style={{ position: 'relative', left: '1%' }}
-                                icon='iconoir:cancel'
-                              />
-                            </Grid>
-                          )
-                        }
-
-                        return null
-                      })
-                    ) : (
-                      <Typography sx={{ pt: 4, pb: 4, textAlign: 'center', fontWeight: 500, width: '100%' }}>
-                        No Records to show
-                      </Typography>
-                    )}
-                  </Grid>
-                </Grid>
-              ) : null}
-
-              {allSelectedValues?.length > 0 && allSelectedValues.some(value => value?.mealid === field.mealid) ? (
-                <Grid container spacing={5} sx={{ px: 5, pt: 10 }}>
-                  <Box sx={{ mb: 10, mt: 2, float: 'left' }}>
-                    <Typography variant='h6'>Ingredients</Typography>
-                  </Box>
-
-                  <Grid
-                    container
-                    spacing={5}
-                    sx={{
-                      borderLeft: '1px solid #C3CEC7',
-                      borderRight: '1px solid #C3CEC7',
-                      borderTop: '1px solid #C3CEC7',
-                      borderRadius: '0.5rem',
-                      mx: 0
-                    }}
-                  >
-                    <Grid container spacing={5} sx={{ background: '#E8F4F2', mt: 0, borderRadius: 0.9, mx: 0 }}>
-                      {ingredients.map((ingredient, index) => (
-                        <Grid
-                          item
-                          xs={12}
-                          sm={
-                            ingredient.label === 'No'
-                              ? 0.5
-                              : ingredient.label === 'Ingredient'
-                              ? 2.4
-                              : ingredient.label === 'Prep types'
-                              ? 2.0
-                              : 3.3
-                          }
-                          md={
-                            ingredient.label === 'No'
-                              ? 0.5
-                              : ingredient.label === 'Ingredient'
-                              ? 2.2
-                              : ingredient.label === 'Prep types'
-                              ? 1.5
-                              : 3.8
-                          }
-                          key={index}
-                          sx={{ py: 4, px: 2, textAlign: 'center' }}
-                        >
-                          <Typography sx={{ textTransform: 'uppercase', fontSize: 14, fontWeight: 600 }}>
-                            <div style={{ display: 'flex', alignItems: 'center' }}>{ingredient.label} </div>
-                          </Typography>
-                        </Grid>
-                      ))}
-                    </Grid>
-                    {allSelectedValues.length > 0 ? (
-                      allSelectedValues.map((all, index) => {
-                        const matchingField = all?.mealid === field.mealid
-
-                        if (matchingField) {
-                          return (
-                            <Grid
-                              container
-                              sx={{ px: 5, py: 5, borderBottom: '1px solid #C3CEC7', borderRadius: '7px' }}
-                              key={index}
-                            >
-                              <Grid item xs={12} sm={0.5} md={0.5}>
-                                <Avatar
-                                  variant='square'
-                                  alt='Diet Image'
-                                  sx={{
-                                    width: 40,
-                                    height: 40,
-                                    mr: 4,
-                                    background: '#E8F4F2',
-                                    padding: '8px',
-                                    borderRadius: '50%'
-                                  }}
-                                  src={all.ingredient_image ? all.ingredient_image : '/icons/icon_diet_fill.png'}
-                                ></Avatar>
-                              </Grid>
-                              <Grid item xs={12} sm={2.2} md={1.8}>
-                                <Tooltip title={all.ingredient_name}>
-                                  <Typography className='recipe_name' sx={{ pl: 3 }}>
-                                    {all.ingredient_name}
-                                  </Typography>
-                                </Tooltip>
-                                <Typography sx={{ color: '#7A8684', fontSize: '12px', pl: 3 }}>
-                                  {'ING' + all?.ingredient_id}
-                                </Typography>
-                              </Grid>
-                              <Grid item xs={12} sm={1.7} md={1.5} sx={{ pl: 2 }}>
-                                <Typography>{all.preparation_type}</Typography>
-                              </Grid>
-                              <Grid item xs={12} sm={3.3} md={3.7}>
-                                <Grid container spacing={1} sx={{ pl: 2 }}>
-                                  {days.map((day, index) => (
-                                    <Grid item key={day}>
-                                      <Typography
-                                        sx={{
-                                          color: all.days_of_week?.includes(index + 1) ? '#1F415B' : '#839D8D',
-                                          marginRight: 4
-                                        }}
-                                      >
-                                        {day}
-                                      </Typography>
-                                    </Grid>
-                                  ))}
-                                </Grid>
-                              </Grid>
-                              <Grid item xs={12} sm={3.6} md={3.7}>
-                                <Grid sx={{ pl: 7 }}>
-                                  <Typography className='w_280'>
-                                    <Tooltip title={all?.remarks} arrow placement='bottom'>
-                                      <span className='text_overflow_moduled'>{all?.remarks ? all.remarks : '-'}</span>
-                                    </Tooltip>
-                                  </Typography>
-                                </Grid>
-                              </Grid>
-                              <Icon
-                                onClick={() => removeingClick(all.ingredient_id, all.mealid)}
-                                style={{ position: 'relative', left: '1%' }}
-                                icon='iconoir:cancel'
-                              />
-                            </Grid>
-                          )
-                        }
-                      })
-                    ) : (
-                      <Typography sx={{ pt: 4, pb: 4, textAlign: 'center', fontWeight: 500, width: '100%' }}>
-                        No Records to show
-                      </Typography>
-                    )}
-                  </Grid>
-                </Grid>
-              ) : (
-                ''
-              )}
-
-              {allIngredientchoiceSelectedValues?.length > 0 &&
-              allIngredientchoiceSelectedValues.some(value => value?.mealid === field.mealid) ? (
-                <Grid container spacing={5} sx={{ px: 5, pt: 10 }}>
-                  <Box sx={{ mb: 10, mt: 2, float: 'left' }}>
-                    <Typography variant='h6'>Ingredients with choice</Typography>
-                  </Box>
-
-                  <Grid
-                    container
-                    spacing={5}
-                    sx={{
-                      borderLeft: '1px solid #C3CEC7',
-                      borderRight: '1px solid #C3CEC7',
-                      borderTop: '1px solid #C3CEC7',
-                      borderRadius: '0.5rem',
-                      mx: 0
-                    }}
-                  >
-                    <Grid container spacing={5} sx={{ background: '#E8F4F2', mt: 0, borderRadius: 0.9, mx: 0 }}>
-                      {ingredients.map((ingredient, index) => (
-                        <Grid
-                          item
-                          xs={12}
-                          sm={
-                            ingredient.label === 'Ingredient'
-                              ? 2.2
-                              : ingredient.label === 'Prep types'
-                              ? 2.3
-                              : ingredient.label === 'Feeding days'
-                              ? 2.7
-                              : 3.9
-                          }
-                          key={index}
-                          sx={{ py: 4, px: 2, textAlign: 'center' }}
-                        >
-                          <Typography sx={{ textTransform: 'uppercase', fontSize: 14, fontWeight: 600 }}>
-                            <div style={{ display: 'flex', alignItems: 'center' }}>{ingredient.label} </div>
-                          </Typography>
-                        </Grid>
-                      ))}
-                    </Grid>
-                    {allIngredientchoiceSelectedValues.length > 0 ? (
-                      allIngredientchoiceSelectedValues.map((all, index) => {
-                        const matchingField = all?.mealid === field.mealid
-
-                        if (matchingField) {
-                          return (
-                            <Grid
-                              container
-                              sx={{ px: 5, py: 5, borderBottom: '1px solid #C3CEC7', borderRadius: '7px' }}
-                              key={index}
-                            >
-                              {/* <Grid item xs={12} sm={0.5}>
-                                <Typography>1</Typography>
-                              </Grid> */}
-                              <Grid item xs={12} sm={2.2}>
-                                <Typography>
-                                  Offer Minimum{' '}
-                                  <span style={{ color: '#37BD69', fontSize: '17px', fontWeight: 600 }}>
-                                    {all.no_of_component_required}
-                                  </span>{' '}
-                                </Typography>
-                              </Grid>
-                              <Grid item xs={12} sm={2.3} sx={{ pl: 2 }}>
-                                <Typography className='w_155'>
-                                  <Tooltip
-                                    title={all?.ingredientList.map(all => all.preparation_type).join(', ')}
-                                    arrow
-                                    placement='bottom'
-                                    className='text_overflow_moduled'
-                                  >
-                                    <span>{all?.ingredientList.map(all => all.preparation_type).join(', ')}</span>
-                                  </Tooltip>
-                                </Typography>
-                              </Grid>
-                              <Grid item xs={12} sm={2.7}>
-                                <Grid container spacing={1} sx={{ pl: 2 }}>
-                                  {days.map((day, index) => (
-                                    <Grid item key={day}>
-                                      <Typography
-                                        sx={{
-                                          color: all?.days_of_week?.includes(index + 1) ? '#1F415B' : '#839D8D',
-                                          marginRight: 4
-                                        }}
-                                      >
-                                        {day}
-                                      </Typography>
-                                    </Grid>
-                                  ))}
-                                </Grid>
-                              </Grid>
-                              <Grid item xs={12} sm={4.5}>
-                                <Grid sx={{ pl: 7 }}>
-                                  <Typography className='w_280'>
-                                    <Tooltip title={all?.remarks} arrow placement='bottom'>
-                                      <span className='text_overflow_moduled'>{all?.remarks ? all.remarks : '-'}</span>
-                                    </Tooltip>
-                                  </Typography>
-                                </Grid>
-                              </Grid>
-                              <Grid item xs={12} sm={0.3}>
-                                <Icon
-                                  onClick={() => removeingClicking(index, all.mealid)}
-                                  style={{ position: 'relative', left: '1%' }}
-                                  icon='iconoir:cancel'
-                                />
-                              </Grid>
-
-                              <Grid
-                                container
-                                sx={{
-                                  background: '#00afd633',
-                                  padding: '0px 0px 15px 15px',
-                                  borderRadius: '8px',
-                                  mt: 3
-                                }}
-                              >
-                                {all?.ingredientList?.map((all, index) => {
-                                  return (
-                                    <Grid item key={index}>
-                                      <Card sx={{ width: '280px', height: '90px', mr: 4, boxShadow: 'none', mt: 3 }}>
-                                        <CardContent
-                                          sx={{
-                                            gap: 3,
-                                            display: 'flex',
-                                            alignItems: 'center',
-                                            justifyContent: 'flex-start',
-                                            padding: '14px'
-                                          }}
-                                        >
-                                          <Avatar
-                                            variant='square'
-                                            alt='Diet Image'
-                                            sx={{
-                                              width: 40,
-                                              height: 40,
-                                              mr: 4,
-                                              background: '#E8F4F2',
-                                              padding: '8px',
-                                              borderRadius: '50%'
-                                            }}
-                                            src={
-                                              all.ingredient_image ? all.ingredient_image : '/icons/icon_diet_fill.png'
-                                            }
-                                          ></Avatar>
-                                          <Box
-                                            sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}
-                                          >
-                                            <span
-                                              title={all?.ingredient_name}
-                                              style={{
-                                                width: '75px',
-                                                overflow: 'hidden',
-                                                whiteSpace: 'nowrap',
-                                                textOverflow: 'ellipsis'
-                                              }}
-                                            >
-                                              {all?.ingredient_name}
-                                            </span>
-                                            <span style={{ color: '#7A8684', fontSize: 13 }}>
-                                              {'ING' + all?.ingredient_id}
-                                            </span>
-
-                                            <span style={{ color: '#7A8684', fontSize: 13 }}>
-                                              {all?.preparation_type}
-                                            </span>
-                                          </Box>
-                                          <Icon
-                                            onClick={() => removeingClickingwithChoice(all.ingredient_id, all.mealid)}
-                                            style={{ position: 'relative', left: '28%' }}
-                                            icon='iconoir:cancel'
-                                          />
-                                        </CardContent>
-                                      </Card>
-                                    </Grid>
-                                  )
-                                })}
-
-                                <Grid item>
-                                  <Card
-                                    sx={{ width: '100px', height: '90px', mr: 4, boxShadow: 'none', mt: 3, padding: 3 }}
-                                  >
-                                    <CardContent
-                                      sx={{
-                                        alignItems: 'center',
-                                        justifyContent: 'flex-start',
-                                        padding: 2
-                                      }}
-                                      onClick={() => handleAddIngerdientChoicewithindex(field, index, 'addingIndex')}
-                                    >
-                                      <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}>
-                                        <Icon
-                                          style={{ marginLeft: '14px', color: '#00D6C9', fontWeight: 600 }}
-                                          icon='material-symbols:add'
-                                        />
-
-                                        <span style={{ marginLeft: '12px', color: '#00D6C9', fontWeight: 500 }}>
-                                          Add
-                                        </span>
-                                      </Box>
-                                    </CardContent>
-                                  </Card>
-                                </Grid>
-                              </Grid>
-                            </Grid>
-                          )
-                        }
-                      })
-                    ) : (
-                      <Typography sx={{ pt: 4, pb: 4, textAlign: 'center', fontWeight: 500, width: '100%' }}>
-                        No Records to show
-                      </Typography>
-                    )}
-                  </Grid>
-                </Grid>
-              ) : (
-                ''
-              )}
-
-              <Grid sx={{ pb: 12 }}>
-                <Typography
-                  sx={{
-                    mb: 1,
-                    mt: 6,
-                    float: 'left',
-                    color: '#37BD69',
-                    display: 'flex',
-                    alignItems: 'center',
-                    cursor: 'pointer',
-                    fontWeight: 600
-                  }}
-                  onClick={() => addEventSidebarOpen(field, index, 'recipe')}
-                >
-                  <Icon icon='material-symbols:add' />
-                  ADD RECIPE
-                </Typography>
-                <Typography
-                  sx={{
-                    mb: 1,
-                    mt: 6,
-                    ml: 12,
-                    float: 'left',
-                    color: '#37BD69',
-                    display: 'flex',
-                    alignItems: 'center',
-                    cursor: 'pointer',
-                    fontWeight: 600
-                  }}
-                  onClick={() => addEventSidebarOpen(field, index, 'combo')}
-                >
-                  <Icon icon='material-symbols:add' />
-                  ADD COMBO
-                </Typography>
-                <Typography
-                  sx={{
-                    mb: 1,
-                    mt: 6,
-                    ml: 12,
-                    float: 'left',
-                    color: '#37BD69',
-                    display: 'flex',
-                    alignItems: 'center',
-                    cursor: 'pointer',
-                    fontWeight: 600
-                  }}
-                  onClick={() => handleAddIngerdient(field, index)}
-                >
-                  <Icon icon='material-symbols:add' />
-                  ADD INGREDIENT
-                </Typography>
-
-                <Typography
-                  sx={{
-                    mb: 1,
-                    mt: 6,
-                    ml: 12,
-                    float: 'left',
-                    color: '#37BD69',
-                    display: 'flex',
-                    alignItems: 'center',
-                    cursor: 'pointer',
-                    fontWeight: 600
-                  }}
-                  onClick={() => handleAddIngerdientChoice(field, index, 'addingd')}
-                >
-                  <Icon icon='material-symbols:add' />
-                  ADD INGREDIENT WITH CHOICE
-                </Typography>
-              </Grid>
-
-              <Divider sx={{ mb: 4, pb: 1, mt: 6, width: '98%' }} />
-
-              <Grid>
-                <Typography variant='h6'>Add Notes</Typography>
-                <Grid item xs={12} sx={{ pt: 5 }}>
+        </CardContent>
+      ) : (
+        <form onSubmit={handleSubmit(onSubmit)}>
+          <Card sx={{ boxShadow: 'none', borderTopLeftRadius: 0, borderTopRightRadius: 0 }}>
+            <Box sx={{ mb: 1, px: 5, mt: 5, float: 'left' }}>
+              <Typography variant='h6'>Basic Information</Typography>
+            </Box>
+            <ScrollToFieldError errors={errors} />
+            <Grid container spacing={5} sx={{ px: 5 }}>
+              <Grid item xs={12} sm={6}>
+                <FormControl fullWidth>
                   <Controller
-                    name={`meal_data[${index}].notes`}
+                    name='diet_name'
                     control={control}
                     rules={{ required: true }}
                     render={({ field: { value, onChange } }) => (
                       <TextField
-                        multiline
-                        fullWidth
                         value={value}
-                        label='Enter Notes '
-                        name={`meal_data[${index}].notes`}
-                        error={Boolean(errors.desc)}
+                        label='Diet name *'
+                        name='diet_name'
+                        error={Boolean(errors.diet_name)}
                         onChange={onChange}
-                        id='textarea-outlined'
-                        rows={5}
                       />
                     )}
                   />
-                </Grid>
+                  {errors.diet_name && (
+                    <FormHelperText sx={{ color: 'error.main' }}>{errors?.diet_name?.message}</FormHelperText>
+                  )}
+                </FormControl>
               </Grid>
-              <Grid>{handleAddRemoveingredient(fieldsIngredients, index)}</Grid>
-            </CardContent>
-          </Card>
-        ))}
 
-        <Card sx={{ mt: 8 }}>
-          <Grid item xs={12}>
-            <Box sx={{ display: 'flex', justifyContent: 'flex-end', my: 7, mr: 6 }}>
-              <Button
-                color='secondary'
-                variant='outlined'
-                //startIcon={<Icon icon='mdi:arrow-left' fontSize={20} />}
-                sx={{ mr: 6 }}
-                onClick={cancelBack}
-              >
-                Cancel
-              </Button>
-              <Button type='submit' variant='contained' endIcon={<Icon icon='mdi:arrow-right' fontSize={20} />}>
-                Next
-              </Button>
-            </Box>
-          </Grid>
-        </Card>
-        <AddIngredientswithChoice
-          open={OpenIngredientchoice}
-          handleSidebarClose={handleSidebarClose}
-          checkid={checkid}
-          onChange={handleIngredientchoiceStateChange}
-          allIngredientchoiceSelectedValues={allIngredientchoiceSelectedValues}
-          setAllIngredientchoiceSelectedValues={setAllIngredientchoiceSelectedValues}
-          formData={formData}
-          childIngredeintchoiceStateValue={childIngredeintchoiceStateValue}
-          setOpenIngredientchoice={setOpenIngredientchoice}
-          ingType={ingType}
-          ingredientChoiceIndex={ingredientChoiceIndex}
-          setingType={setingType}
-          onRemove={removeingClickingwithChoice}
-        />
-        <AddIngredients
-          open={openIngredient}
-          handleSidebarClose={handleSidebarClose}
-          onChange={handleChildStateChange}
-          onRemove={removeingClick}
-          childStateValue={childStateValue}
-          checkid={checkid}
-          allSelectedValues={allSelectedValues}
-          setAllSelectedValues={setAllSelectedValues}
-          formData={formData}
-          setSelectedIngredient={setSelectedIngredient}
-          setUomprevnew={setUomprevnew}
-        />
-        <RecipeList
-          recipeList={recipeList}
-          setSelectedCardRecipe={setSelectedCardRecipe}
-          selectedCardRecipe={selectedCardRecipe}
-          drawerWidth={400}
-          addEventSidebarOpen={openDrawer}
-          handleSidebarClose={handleSidebarCloseRecipe}
-          submitLoader={submitLoader}
-          checkid={checkid}
-          onChange={handleRecipeStateChange}
-          allRecipeSelectedValues={allRecipeSelectedValues}
-          setAllRecipeSelectedValues={setAllRecipeSelectedValues}
-          formData={formData}
-          onRemove={removeingClickRecipe}
-        />
-        <ComboList
-          recipeList={recipeList}
-          setSelectedCardCombo={setSelectedCardCombo}
-          selectedCardCombo={selectedCardCombo}
-          drawerWidth={400}
-          addEventSidebarOpen={openDrawercombo}
-          handleSidebarClose={handleSidebarCloseRecipe}
-          submitLoader={submitLoader}
-          checkid={checkid}
-          onChange={handleComboStateChange}
-          allComboSelectedValues={allComboSelectedValues}
-          setAllComboSelectedValues={setAllComboSelectedValues}
-          formData={formData}
-          onRemove={removeingClickCombo}
-        />
-      </form>
+              <Grid item xs={12} sm={6}>
+                <FormControl fullWidth>
+                  {/* <InputLabel id='uom'> Select unit of measurement (UOM)</InputLabel> */}
+
+                  <Controller
+                    name='diet_type_id'
+                    control={control}
+                    rules={{ required: true }}
+                    render={({ field: { value, onChange } }) => {
+                      console.log(value, 'value')
+
+                      return (
+                        <Autocomplete
+                          value={uomList?.find(option => option.id === value) || null}
+                          // disablePortal
+                          id='diet_type_id'
+                          options={uomList || []}
+                          getOptionLabel={option => option.diet_type_name}
+                          isOptionEqualToValue={(option, value) => option?.id === value}
+                          //disabled={id ? true : false}
+                          onChange={(e, val) => {
+                            if (val === null) {
+                              setFormValue('diet_type_id', '')
+                              setFormValue('diet_type_name', '')
+                              setFormValue('child', '')
+                            } else {
+                              setFormValue('diet_type_id', val.id)
+                              setFormValue('diet_type_name', val.diet_type_name)
+                              setFormValue('child', val.child)
+                              trigger('diet_type_id')
+                              deleteCookie('dietTypeChildValues')
+                              deleteCookie('dietTypeChildVal')
+                            }
+                          }}
+                          //sx={{ background: id ? '#80808021' : '' }}
+                          renderInput={params => (
+                            <TextField
+                              {...params}
+                              label='Diet Type *'
+                              placeholder='Search & Select'
+                              error={Boolean(errors.diet_type_id)}
+                              name='diet_type_id'
+                            />
+                          )}
+                        />
+                      )
+                    }}
+                  />
+
+                  {errors?.diet_type_id && (
+                    <FormHelperText sx={{ color: 'error.main' }}>{errors?.diet_type_id?.message}</FormHelperText>
+                  )}
+                </FormControl>
+              </Grid>
+
+              <Grid item xs={6}>
+                <CardContent sx={{ px: 0, paddingTop: 2 }}>
+                  <CustomFileUploaderSingle onImageUpload={handleImageUpload} uploadedImagenew={uploadedImage} />
+                </CardContent>
+              </Grid>
+
+              <Grid item xs={12} sx={{ pt: 0, pb: 8 }}>
+                <Controller
+                  name='desc'
+                  control={control}
+                  rules={{ required: true }}
+                  render={({ field: { value, onChange } }) => (
+                    <TextField
+                      multiline
+                      fullWidth
+                      value={value}
+                      label='Description (Optional)'
+                      name='desc'
+                      error={Boolean(errors.desc)}
+                      onChange={onChange}
+                      id='textarea-outlined'
+                      rows={5}
+                    />
+                  )}
+                />
+              </Grid>
+            </Grid>
+          </Card>
+
+          {fieldsIngredients.map((field, index) => (
+            <Card sx={{ mt: 7 }} key={field.id}>
+              <CardHeader title={`Add Meal ${index + 1}`} sx={{ float: 'left', width: '50%' }} />
+              {(fieldsIngredients.length - 1 === index && index > 0) ||
+              (!index <= 0 && !fieldsIngredients.length - 1 <= 0) ? (
+                <Grid sx={{ float: 'right', width: '4%', marginRight: '24px', cursor: 'pointer' }}>
+                  {removeIngredientButton(index)}
+                </Grid>
+              ) : (
+                ''
+              )}
+              <CardContent>
+                <Grid container spacing={6}>
+                  <Grid item xs={12} sm={3}>
+                    <FormControl fullWidth>
+                      <Controller
+                        name={`meal_data[${index}].meal_name`}
+                        control={control}
+                        rules={{ required: true }}
+                        render={({ field: { value, onChange } }) => (
+                          <TextField
+                            value={value}
+                            type='text'
+                            label='Meal name'
+                            name={`meal_data[${index}].meal_name`}
+                            error={
+                              errors.meal_data && errors.meal_data[index] && errors.meal_data[index].meal_name?.message
+                                ? true
+                                : false
+                            }
+                            onChange={onChange}
+                            placeholder=''
+                            onInput={e => {
+                              if (e.target.value < 0) {
+                                e.target.value = ''
+                              }
+                            }}
+                          />
+                        )}
+                      />
+                      {errors.meal_data && errors.meal_data[index] && (
+                        <FormHelperText sx={{ color: 'error.main' }}>
+                          {errors.meal_data[index].meal_name?.message}
+                        </FormHelperText>
+                      )}
+                    </FormControl>
+                  </Grid>
+                  <Grid item xs={12} sm={3.2}>
+                    <FormControl fullWidth>
+                      <Controller
+                        name={`meal_data[${index}].meal_from_time`}
+                        control={control}
+                        rules={{ required: true }}
+                        render={({ field: { value, onChange } }) => (
+                          <LocalizationProvider dateAdapter={AdapterDayjs}>
+                            {console.log(value, 'value')}
+                            <TimePicker
+                              label='Select time - from'
+                              onChange={onChange}
+                              name={`meal_data[${index}].meal_from_time`}
+                              defaultValue={value ? dayjs(value) : null}
+                              sx={{
+                                '& fieldset': {
+                                  borderColor:
+                                    errors.meal_data &&
+                                    errors.meal_data[index] &&
+                                    errors.meal_data[index]?.meal_from_time
+                                      ? 'red'
+                                      : undefined // Change border color to red if there's an error
+                                }
+                              }}
+                              renderInput={params => (
+                                <TextField
+                                  {...params}
+                                  label='Diet Type *'
+                                  placeholder='Search & Select'
+                                  error={Boolean(errors.meal_data[index].meal_from_time?.message)}
+                                  name={`meal_data[${index}].meal_from_time`}
+                                  sx={{
+                                    '& fieldset': {
+                                      borderColor: errors.meal_data?.[index]?.meal_from_time ? 'red' : undefined // Change border color to red if there's an error
+                                    }
+                                  }}
+                                />
+                              )}
+                            />
+                          </LocalizationProvider>
+                        )}
+                      />
+
+                      {errors.meal_data && errors.meal_data[index] && (
+                        <FormHelperText sx={{ color: 'error.main' }}>
+                          {errors.meal_data[index].meal_from_time?.message}
+                        </FormHelperText>
+                      )}
+                    </FormControl>
+                  </Grid>
+
+                  <Grid item xs={12} sm={3}>
+                    <FormControl fullWidth>
+                      <Controller
+                        name={`meal_data[${index}].meal_to_time`}
+                        control={control}
+                        rules={{ required: true }}
+                        render={({ field: { value, onChange } }) => (
+                          <LocalizationProvider dateAdapter={AdapterDayjs}>
+                            {console.log(value, 'value')}
+                            <TimePicker
+                              label='Select time - to'
+                              name={`meal_data[${index}].meal_to_time`}
+                              onChange={onChange}
+                              defaultValue={value ? dayjs(value) : null}
+                            />
+                          </LocalizationProvider>
+                        )}
+                      />
+                      {errors.meal_data && errors.meal_data[index] && (
+                        <FormHelperText sx={{ color: 'error.main' }}>
+                          {errors.meal_data[index].meal_to_time?.message}
+                        </FormHelperText>
+                      )}
+                    </FormControl>
+                  </Grid>
+                </Grid>
+
+                {allRecipeSelectedValues?.length > 0 &&
+                allRecipeSelectedValues.some(value => value?.mealid === field.mealid) ? (
+                  <Grid container spacing={5} sx={{ px: 5, pt: 10 }}>
+                    <Box sx={{ mb: 10, mt: 2, float: 'left' }}>
+                      <Typography variant='h6'>Recipes</Typography>
+                    </Box>
+
+                    <Grid
+                      container
+                      spacing={5}
+                      sx={{
+                        borderLeft: '1px solid #C3CEC7',
+                        borderRight: '1px solid #C3CEC7',
+                        borderTop: '1px solid #C3CEC7',
+                        borderRadius: '0.5rem',
+                        mx: 0
+                      }}
+                    >
+                      <Grid container spacing={5} sx={{ background: '#E8F4F2', mt: 0, borderRadius: 0.9, mx: 0 }}>
+                        {recipes.map((recipe, index) => (
+                          <Grid
+                            item
+                            xs={12}
+                            sm={
+                              recipe.label === 'No'
+                                ? 0.5
+                                : recipe.label === 'Recipe'
+                                ? 2.2
+                                : recipe.label === 'Ingredients'
+                                ? 1.9
+                                : 3.7
+                            }
+                            md={
+                              recipe.label === 'No'
+                                ? 0.5
+                                : recipe.label === 'Recipe'
+                                ? 2.2
+                                : recipe.label === 'Ingredients'
+                                ? 1.5
+                                : 3.7
+                            }
+                            key={index}
+                            sx={{ py: 4, px: 2, textAlign: 'center' }}
+                          >
+                            <Typography sx={{ textTransform: 'uppercase', fontSize: 14, fontWeight: 600 }}>
+                              <div style={{ display: 'flex', alignItems: 'center' }}>{recipe.label} </div>
+                            </Typography>
+                          </Grid>
+                        ))}
+                      </Grid>
+
+                      {allRecipeSelectedValues?.length > 0 ? (
+                        allRecipeSelectedValues.map((all, index) => {
+                          const matchingField = all?.mealid === field.mealid
+
+                          if (matchingField) {
+                            return (
+                              <Grid
+                                container
+                                sx={{ px: 5, py: 5, borderBottom: '1px solid #C3CEC7', borderRadius: '7px' }}
+                                key={index}
+                              >
+                                <Grid item xs={12} sm={0.5} md={0.5}>
+                                  <Avatar
+                                    variant='square'
+                                    alt='Diet Image'
+                                    sx={{
+                                      width: 40,
+                                      height: 40,
+                                      mr: 4,
+                                      background: '#E8F4F2',
+                                      padding: '8px',
+                                      borderRadius: '50%'
+                                    }}
+                                    src={all.recipe_image ? all.recipe_image : '/icons/icon_diet_fill.png'}
+                                  ></Avatar>
+                                </Grid>
+                                <Grid item xs={12} sm={2.2} md={2.2}>
+                                  <Tooltip title={all.recipe_name}>
+                                    <Typography
+                                      className='recipe_name'
+                                      sx={{
+                                        pl: 3
+                                      }}
+                                      onClick={() => handleclickRecipeDetail(all.recipe_id)}
+                                    >
+                                      {all?.recipe_name}
+                                    </Typography>
+                                  </Tooltip>
+                                  <Typography sx={{ color: '#7A8684', fontSize: '12px', pl: 3 }}>
+                                    {'REP' + all?.recipe_id}
+                                  </Typography>
+                                </Grid>
+                                {console.log(all, 'all')}
+                                <Grid item xs={12} sm={1.4} md={1.0} sx={{ pl: 2 }}>
+                                  <Typography>{all?.ingredients_count}</Typography>
+                                  {/* {all?.ingredients ? (
+                                  <Typography>{all?.ingredients?.length}</Typography>
+                                ) : (
+                                  <Typography>{all?.ingredient_name?.length}</Typography>
+                                )} */}
+                                </Grid>
+                                <Grid item xs={12} sm={3.7} md={3.7}>
+                                  <Grid container spacing={1} sx={{ pl: 2 }}>
+                                    {days.map((day, index) => (
+                                      <Grid item key={index}>
+                                        <Typography
+                                          sx={{
+                                            color: all?.days_of_week?.includes(index + 1) ? '#1F415B' : '#839D8D',
+                                            marginRight: 4
+                                          }}
+                                        >
+                                          {day}
+                                        </Typography>
+                                      </Grid>
+                                    ))}
+                                  </Grid>
+                                </Grid>
+                                <Grid item xs={12} sm={3.7} md={3.7}>
+                                  <Grid sx={{ pl: 7 }}>
+                                    <Typography className='w_280'>
+                                      <Tooltip title={all?.remarks} arrow placement='bottom'>
+                                        <span className='text_overflow_moduled'>
+                                          {all?.remarks ? all.remarks : '-'}
+                                        </span>
+                                      </Tooltip>
+                                    </Typography>
+                                  </Grid>
+                                </Grid>
+                                <Icon
+                                  onClick={() => removeingClickRecipe(all.recipe_id, all.mealid)}
+                                  style={{ position: 'relative', left: '1%' }}
+                                  icon='iconoir:cancel'
+                                />
+                              </Grid>
+                            )
+                          }
+
+                          return null
+                        })
+                      ) : (
+                        <Typography sx={{ pt: 4, pb: 4, textAlign: 'center', fontWeight: 500, width: '100%' }}>
+                          No Records to show
+                        </Typography>
+                      )}
+                    </Grid>
+                  </Grid>
+                ) : null}
+
+                {allComboSelectedValues?.length > 0 &&
+                allComboSelectedValues.some(value => value?.mealid === field.mealid) ? (
+                  <Grid container spacing={5} sx={{ px: 5, pt: 10 }}>
+                    <Box sx={{ mb: 10, mt: 2, float: 'left' }}>
+                      <Typography variant='h6'>Combo</Typography>
+                    </Box>
+
+                    <Grid
+                      container
+                      spacing={5}
+                      sx={{
+                        borderLeft: '1px solid #C3CEC7',
+                        borderRight: '1px solid #C3CEC7',
+                        borderTop: '1px solid #C3CEC7',
+                        borderRadius: '0.5rem',
+                        mx: 0
+                      }}
+                    >
+                      <Grid container spacing={5} sx={{ background: '#E8F4F2', mt: 0, borderRadius: 0.9, mx: 0 }}>
+                        {combos.map((recipe, index) => (
+                          <Grid
+                            item
+                            xs={12}
+                            sm={
+                              recipe.label === 'No'
+                                ? 0.5
+                                : recipe.label === 'Combo'
+                                ? 2.2
+                                : recipe.label === 'Ingredients'
+                                ? 1.9
+                                : 3.7
+                            }
+                            md={
+                              recipe.label === 'No'
+                                ? 0.5
+                                : recipe.label === 'Combo'
+                                ? 2.2
+                                : recipe.label === 'Ingredients'
+                                ? 1.5
+                                : 3.7
+                            }
+                            key={index}
+                            sx={{ py: 4, px: 2, textAlign: 'center' }}
+                          >
+                            <Typography sx={{ textTransform: 'uppercase', fontSize: 14, fontWeight: 600 }}>
+                              <div style={{ display: 'flex', alignItems: 'center' }}>{recipe.label} </div>
+                            </Typography>
+                          </Grid>
+                        ))}
+                      </Grid>
+
+                      {allComboSelectedValues?.length > 0 ? (
+                        allComboSelectedValues.map((all, index) => {
+                          const matchingField = all?.mealid === field.mealid
+
+                          if (matchingField) {
+                            return (
+                              <Grid
+                                container
+                                sx={{ px: 5, py: 5, borderBottom: '1px solid #C3CEC7', borderRadius: '7px' }}
+                                key={index}
+                              >
+                                <Grid item xs={12} sm={0.5} md={0.5}>
+                                  <Avatar
+                                    variant='square'
+                                    alt='Diet Image'
+                                    sx={{
+                                      width: 40,
+                                      height: 40,
+                                      mr: 4,
+                                      background: '#E8F4F2',
+                                      padding: '8px',
+                                      borderRadius: '50%'
+                                    }}
+                                    src={all.recipe_image ? all.recipe_image : '/icons/icon_diet_fill.png'}
+                                  ></Avatar>
+                                </Grid>
+                                <Grid item xs={12} sm={2.2} md={2.2}>
+                                  <Tooltip title={all.recipe_name}>
+                                    <Typography
+                                      className='recipe_name'
+                                      sx={{
+                                        pl: 3
+                                      }}
+                                      onClick={() => handleclickComboDetail(all.recipe_id)}
+                                    >
+                                      {all?.recipe_name}
+                                    </Typography>
+                                  </Tooltip>
+                                  <Typography sx={{ color: '#7A8684', fontSize: '12px', pl: 3 }}>
+                                    {'CMB' + all?.recipe_id}
+                                  </Typography>
+                                </Grid>
+                                {console.log(all, 'all')}
+                                <Grid item xs={12} sm={1.4} md={1.0} sx={{ pl: 2 }}>
+                                  <Typography>{all?.ingredients_count}</Typography>
+                                  {/* {all?.ingredients ? (
+                                  <Typography>{all?.ingredients?.length}</Typography>
+                                ) : (
+                                  <Typography>{all?.ingredient_name?.length}</Typography>
+                                )} */}
+                                </Grid>
+                                <Grid item xs={12} sm={3.7} md={3.7}>
+                                  <Grid container spacing={1} sx={{ pl: 2 }}>
+                                    {days.map((day, index) => (
+                                      <Grid item key={index}>
+                                        <Typography
+                                          sx={{
+                                            color: all?.days_of_week?.includes(index + 1) ? '#1F415B' : '#839D8D',
+                                            marginRight: 4
+                                          }}
+                                        >
+                                          {day}
+                                        </Typography>
+                                      </Grid>
+                                    ))}
+                                  </Grid>
+                                </Grid>
+                                <Grid item xs={12} sm={3.7} md={3.7}>
+                                  <Grid sx={{ pl: 7 }}>
+                                    <Typography className='w_280'>
+                                      <Tooltip title={all?.remarks} arrow placement='bottom'>
+                                        <span className='text_overflow_moduled'>
+                                          {all?.remarks ? all.remarks : '-'}
+                                        </span>
+                                      </Tooltip>
+                                    </Typography>
+                                  </Grid>
+                                </Grid>
+                                <Icon
+                                  onClick={() => removeingClickCombo(all.recipe_id, all.mealid)}
+                                  style={{ position: 'relative', left: '1%' }}
+                                  icon='iconoir:cancel'
+                                />
+                              </Grid>
+                            )
+                          }
+
+                          return null
+                        })
+                      ) : (
+                        <Typography sx={{ pt: 4, pb: 4, textAlign: 'center', fontWeight: 500, width: '100%' }}>
+                          No Records to show
+                        </Typography>
+                      )}
+                    </Grid>
+                  </Grid>
+                ) : null}
+
+                {allSelectedValues?.length > 0 && allSelectedValues.some(value => value?.mealid === field.mealid) ? (
+                  <Grid container spacing={5} sx={{ px: 5, pt: 10 }}>
+                    <Box sx={{ mb: 10, mt: 2, float: 'left' }}>
+                      <Typography variant='h6'>Ingredients</Typography>
+                    </Box>
+
+                    <Grid
+                      container
+                      spacing={5}
+                      sx={{
+                        borderLeft: '1px solid #C3CEC7',
+                        borderRight: '1px solid #C3CEC7',
+                        borderTop: '1px solid #C3CEC7',
+                        borderRadius: '0.5rem',
+                        mx: 0
+                      }}
+                    >
+                      <Grid container spacing={5} sx={{ background: '#E8F4F2', mt: 0, borderRadius: 0.9, mx: 0 }}>
+                        {ingredients.map((ingredient, index) => (
+                          <Grid
+                            item
+                            xs={12}
+                            sm={
+                              ingredient.label === 'No'
+                                ? 0.5
+                                : ingredient.label === 'Ingredient'
+                                ? 2.4
+                                : ingredient.label === 'Prep types'
+                                ? 2.0
+                                : 3.3
+                            }
+                            md={
+                              ingredient.label === 'No'
+                                ? 0.5
+                                : ingredient.label === 'Ingredient'
+                                ? 2.2
+                                : ingredient.label === 'Prep types'
+                                ? 1.5
+                                : 3.8
+                            }
+                            key={index}
+                            sx={{ py: 4, px: 2, textAlign: 'center' }}
+                          >
+                            <Typography sx={{ textTransform: 'uppercase', fontSize: 14, fontWeight: 600 }}>
+                              <div style={{ display: 'flex', alignItems: 'center' }}>{ingredient.label} </div>
+                            </Typography>
+                          </Grid>
+                        ))}
+                      </Grid>
+                      {allSelectedValues.length > 0 ? (
+                        allSelectedValues.map((all, index) => {
+                          const matchingField = all?.mealid === field.mealid
+
+                          if (matchingField) {
+                            return (
+                              <Grid
+                                container
+                                sx={{ px: 5, py: 5, borderBottom: '1px solid #C3CEC7', borderRadius: '7px' }}
+                                key={index}
+                              >
+                                <Grid item xs={12} sm={0.5} md={0.5}>
+                                  <Avatar
+                                    variant='square'
+                                    alt='Diet Image'
+                                    sx={{
+                                      width: 40,
+                                      height: 40,
+                                      mr: 4,
+                                      background: '#E8F4F2',
+                                      padding: '8px',
+                                      borderRadius: '50%'
+                                    }}
+                                    src={all.ingredient_image ? all.ingredient_image : '/icons/icon_diet_fill.png'}
+                                  ></Avatar>
+                                </Grid>
+                                <Grid item xs={12} sm={2.2} md={1.8}>
+                                  <Tooltip title={all.ingredient_name}>
+                                    <Typography className='recipe_name' sx={{ pl: 3 }}>
+                                      {all.ingredient_name}
+                                    </Typography>
+                                  </Tooltip>
+                                  <Typography sx={{ color: '#7A8684', fontSize: '12px', pl: 3 }}>
+                                    {'ING' + all?.ingredient_id}
+                                  </Typography>
+                                </Grid>
+                                <Grid item xs={12} sm={1.7} md={1.5} sx={{ pl: 2 }}>
+                                  <Typography>{all.preparation_type}</Typography>
+                                </Grid>
+                                <Grid item xs={12} sm={3.3} md={3.7}>
+                                  <Grid container spacing={1} sx={{ pl: 2 }}>
+                                    {days.map((day, index) => (
+                                      <Grid item key={day}>
+                                        <Typography
+                                          sx={{
+                                            color: all.days_of_week?.includes(index + 1) ? '#1F415B' : '#839D8D',
+                                            marginRight: 4
+                                          }}
+                                        >
+                                          {day}
+                                        </Typography>
+                                      </Grid>
+                                    ))}
+                                  </Grid>
+                                </Grid>
+                                <Grid item xs={12} sm={3.6} md={3.7}>
+                                  <Grid sx={{ pl: 7 }}>
+                                    <Typography className='w_280'>
+                                      <Tooltip title={all?.remarks} arrow placement='bottom'>
+                                        <span className='text_overflow_moduled'>
+                                          {all?.remarks ? all.remarks : '-'}
+                                        </span>
+                                      </Tooltip>
+                                    </Typography>
+                                  </Grid>
+                                </Grid>
+                                <Icon
+                                  onClick={() => removeingClick(all.ingredient_id, all.mealid)}
+                                  style={{ position: 'relative', left: '1%' }}
+                                  icon='iconoir:cancel'
+                                />
+                              </Grid>
+                            )
+                          }
+                        })
+                      ) : (
+                        <Typography sx={{ pt: 4, pb: 4, textAlign: 'center', fontWeight: 500, width: '100%' }}>
+                          No Records to show
+                        </Typography>
+                      )}
+                    </Grid>
+                  </Grid>
+                ) : (
+                  ''
+                )}
+
+                {allIngredientchoiceSelectedValues?.length > 0 &&
+                allIngredientchoiceSelectedValues.some(value => value?.mealid === field.mealid) ? (
+                  <Grid container spacing={5} sx={{ px: 5, pt: 10 }}>
+                    <Box sx={{ mb: 10, mt: 2, float: 'left' }}>
+                      <Typography variant='h6'>Ingredients with choice</Typography>
+                    </Box>
+
+                    <Grid
+                      container
+                      spacing={5}
+                      sx={{
+                        borderLeft: '1px solid #C3CEC7',
+                        borderRight: '1px solid #C3CEC7',
+                        borderTop: '1px solid #C3CEC7',
+                        borderRadius: '0.5rem',
+                        mx: 0
+                      }}
+                    >
+                      <Grid container spacing={5} sx={{ background: '#E8F4F2', mt: 0, borderRadius: 0.9, mx: 0 }}>
+                        {ingredients.map((ingredient, index) => (
+                          <Grid
+                            item
+                            xs={12}
+                            sm={
+                              ingredient.label === 'Ingredient'
+                                ? 2.2
+                                : ingredient.label === 'Prep types'
+                                ? 2.3
+                                : ingredient.label === 'Feeding days'
+                                ? 2.7
+                                : 3.9
+                            }
+                            key={index}
+                            sx={{ py: 4, px: 2, textAlign: 'center' }}
+                          >
+                            <Typography sx={{ textTransform: 'uppercase', fontSize: 14, fontWeight: 600 }}>
+                              <div style={{ display: 'flex', alignItems: 'center' }}>{ingredient.label} </div>
+                            </Typography>
+                          </Grid>
+                        ))}
+                      </Grid>
+                      {allIngredientchoiceSelectedValues.length > 0 ? (
+                        allIngredientchoiceSelectedValues.map((all, index) => {
+                          const matchingField = all?.mealid === field.mealid
+
+                          if (matchingField) {
+                            return (
+                              <Grid
+                                container
+                                sx={{ px: 5, py: 5, borderBottom: '1px solid #C3CEC7', borderRadius: '7px' }}
+                                key={index}
+                              >
+                                {/* <Grid item xs={12} sm={0.5}>
+                                <Typography>1</Typography>
+                              </Grid> */}
+                                <Grid item xs={12} sm={2.2}>
+                                  <Typography>
+                                    Offer Minimum{' '}
+                                    <span style={{ color: '#37BD69', fontSize: '17px', fontWeight: 600 }}>
+                                      {all.no_of_component_required}
+                                    </span>{' '}
+                                  </Typography>
+                                </Grid>
+                                <Grid item xs={12} sm={2.3} sx={{ pl: 2 }}>
+                                  <Typography className='w_155'>
+                                    <Tooltip
+                                      title={all?.ingredientList.map(all => all.preparation_type).join(', ')}
+                                      arrow
+                                      placement='bottom'
+                                      className='text_overflow_moduled'
+                                    >
+                                      <span>{all?.ingredientList.map(all => all.preparation_type).join(', ')}</span>
+                                    </Tooltip>
+                                  </Typography>
+                                </Grid>
+                                <Grid item xs={12} sm={2.7}>
+                                  <Grid container spacing={1} sx={{ pl: 2 }}>
+                                    {days.map((day, index) => (
+                                      <Grid item key={day}>
+                                        <Typography
+                                          sx={{
+                                            color: all?.days_of_week?.includes(index + 1) ? '#1F415B' : '#839D8D',
+                                            marginRight: 4
+                                          }}
+                                        >
+                                          {day}
+                                        </Typography>
+                                      </Grid>
+                                    ))}
+                                  </Grid>
+                                </Grid>
+                                <Grid item xs={12} sm={4.5}>
+                                  <Grid sx={{ pl: 7 }}>
+                                    <Typography className='w_280'>
+                                      <Tooltip title={all?.remarks} arrow placement='bottom'>
+                                        <span className='text_overflow_moduled'>
+                                          {all?.remarks ? all.remarks : '-'}
+                                        </span>
+                                      </Tooltip>
+                                    </Typography>
+                                  </Grid>
+                                </Grid>
+                                <Grid item xs={12} sm={0.3}>
+                                  <Icon
+                                    onClick={() => removeingClicking(index, all.mealid)}
+                                    style={{ position: 'relative', left: '1%' }}
+                                    icon='iconoir:cancel'
+                                  />
+                                </Grid>
+
+                                <Grid
+                                  container
+                                  sx={{
+                                    background: '#00afd633',
+                                    padding: '0px 0px 15px 15px',
+                                    borderRadius: '8px',
+                                    mt: 3
+                                  }}
+                                >
+                                  {all?.ingredientList?.map((all, index) => {
+                                    return (
+                                      <Grid item key={index}>
+                                        <Card sx={{ width: '280px', height: '90px', mr: 4, boxShadow: 'none', mt: 3 }}>
+                                          <CardContent
+                                            sx={{
+                                              gap: 3,
+                                              display: 'flex',
+                                              alignItems: 'center',
+                                              justifyContent: 'flex-start',
+                                              padding: '14px'
+                                            }}
+                                          >
+                                            <Avatar
+                                              variant='square'
+                                              alt='Diet Image'
+                                              sx={{
+                                                width: 40,
+                                                height: 40,
+                                                mr: 4,
+                                                background: '#E8F4F2',
+                                                padding: '8px',
+                                                borderRadius: '50%'
+                                              }}
+                                              src={
+                                                all.ingredient_image
+                                                  ? all.ingredient_image
+                                                  : '/icons/icon_diet_fill.png'
+                                              }
+                                            ></Avatar>
+                                            <Box
+                                              sx={{
+                                                display: 'flex',
+                                                flexDirection: 'column',
+                                                alignItems: 'flex-start'
+                                              }}
+                                            >
+                                              <span
+                                                title={all?.ingredient_name}
+                                                style={{
+                                                  width: '148px',
+                                                  overflow: 'hidden',
+                                                  whiteSpace: 'nowrap',
+                                                  textOverflow: 'ellipsis'
+                                                }}
+                                              >
+                                                {all?.ingredient_name}
+                                              </span>
+                                              <span style={{ color: '#7A8684', fontSize: 13 }}>
+                                                {'ING' + all?.ingredient_id}
+                                              </span>
+
+                                              <span style={{ color: '#7A8684', fontSize: 13 }}>
+                                                {all?.preparation_type}
+                                              </span>
+                                            </Box>
+                                            <Icon
+                                              onClick={() => removeingClickingwithChoice(all.ingredient_id, all.mealid)}
+                                              style={{ position: 'relative', left: '0%' }}
+                                              icon='iconoir:cancel'
+                                            />
+                                          </CardContent>
+                                        </Card>
+                                      </Grid>
+                                    )
+                                  })}
+
+                                  <Grid item>
+                                    <Card
+                                      sx={{
+                                        width: '100px',
+                                        height: '90px',
+                                        mr: 4,
+                                        boxShadow: 'none',
+                                        mt: 3,
+                                        padding: 3
+                                      }}
+                                    >
+                                      <CardContent
+                                        sx={{
+                                          alignItems: 'center',
+                                          justifyContent: 'flex-start',
+                                          padding: 2
+                                        }}
+                                        onClick={() => handleAddIngerdientChoicewithindex(field, index, 'addingIndex')}
+                                      >
+                                        <Box
+                                          sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}
+                                        >
+                                          <Icon
+                                            style={{ marginLeft: '14px', color: '#00D6C9', fontWeight: 600 }}
+                                            icon='material-symbols:add'
+                                          />
+
+                                          <span style={{ marginLeft: '12px', color: '#00D6C9', fontWeight: 500 }}>
+                                            Add
+                                          </span>
+                                        </Box>
+                                      </CardContent>
+                                    </Card>
+                                  </Grid>
+                                </Grid>
+                              </Grid>
+                            )
+                          }
+                        })
+                      ) : (
+                        <Typography sx={{ pt: 4, pb: 4, textAlign: 'center', fontWeight: 500, width: '100%' }}>
+                          No Records to show
+                        </Typography>
+                      )}
+                    </Grid>
+                  </Grid>
+                ) : (
+                  ''
+                )}
+
+                <Grid sx={{ pb: 12 }}>
+                  <Typography
+                    sx={{
+                      mb: 1,
+                      mt: 6,
+                      float: 'left',
+                      color: '#37BD69',
+                      display: 'flex',
+                      alignItems: 'center',
+                      cursor: 'pointer',
+                      fontWeight: 600
+                    }}
+                    onClick={() => addEventSidebarOpen(field, index, 'recipe')}
+                  >
+                    <Icon icon='material-symbols:add' />
+                    ADD RECIPE
+                  </Typography>
+                  <Typography
+                    sx={{
+                      mb: 1,
+                      mt: 6,
+                      ml: 12,
+                      float: 'left',
+                      color: '#37BD69',
+                      display: 'flex',
+                      alignItems: 'center',
+                      cursor: 'pointer',
+                      fontWeight: 600
+                    }}
+                    onClick={() => addEventSidebarOpen(field, index, 'combo')}
+                  >
+                    <Icon icon='material-symbols:add' />
+                    ADD COMBO
+                  </Typography>
+                  <Typography
+                    sx={{
+                      mb: 1,
+                      mt: 6,
+                      ml: 12,
+                      float: 'left',
+                      color: '#37BD69',
+                      display: 'flex',
+                      alignItems: 'center',
+                      cursor: 'pointer',
+                      fontWeight: 600
+                    }}
+                    onClick={() => handleAddIngerdient(field, index)}
+                  >
+                    <Icon icon='material-symbols:add' />
+                    ADD INGREDIENT
+                  </Typography>
+
+                  <Typography
+                    sx={{
+                      mb: 1,
+                      mt: 6,
+                      ml: 12,
+                      float: 'left',
+                      color: '#37BD69',
+                      display: 'flex',
+                      alignItems: 'center',
+                      cursor: 'pointer',
+                      fontWeight: 600
+                    }}
+                    onClick={() => handleAddIngerdientChoice(field, index, 'addingd')}
+                  >
+                    <Icon icon='material-symbols:add' />
+                    ADD INGREDIENT WITH CHOICE
+                  </Typography>
+                </Grid>
+
+                <Divider sx={{ mb: 4, pb: 1, mt: 6, width: '98%' }} />
+
+                <Grid>
+                  <Typography variant='h6'>Add Notes</Typography>
+                  <Grid item xs={12} sx={{ pt: 5 }}>
+                    <Controller
+                      name={`meal_data[${index}].notes`}
+                      control={control}
+                      rules={{ required: true }}
+                      render={({ field: { value, onChange } }) => (
+                        <TextField
+                          multiline
+                          fullWidth
+                          value={value}
+                          label='Enter Notes '
+                          name={`meal_data[${index}].notes`}
+                          error={Boolean(errors.desc)}
+                          onChange={onChange}
+                          id='textarea-outlined'
+                          rows={5}
+                        />
+                      )}
+                    />
+                  </Grid>
+                </Grid>
+                <Grid>{handleAddRemoveingredient(fieldsIngredients, index)}</Grid>
+              </CardContent>
+            </Card>
+          ))}
+
+          <Card sx={{ mt: 8 }}>
+            <Grid item xs={12}>
+              <Box sx={{ display: 'flex', justifyContent: 'flex-end', my: 7, mr: 6 }}>
+                <Button
+                  color='secondary'
+                  variant='outlined'
+                  //startIcon={<Icon icon='mdi:arrow-left' fontSize={20} />}
+                  sx={{ mr: 6 }}
+                  onClick={cancelBack}
+                >
+                  Cancel
+                </Button>
+                <Button type='submit' variant='contained' endIcon={<Icon icon='mdi:arrow-right' fontSize={20} />}>
+                  Next
+                </Button>
+              </Box>
+            </Grid>
+          </Card>
+          <AddIngredientswithChoice
+            open={OpenIngredientchoice}
+            handleSidebarClose={handleSidebarClose}
+            checkid={checkid}
+            onChange={handleIngredientchoiceStateChange}
+            allIngredientchoiceSelectedValues={allIngredientchoiceSelectedValues}
+            setAllIngredientchoiceSelectedValues={setAllIngredientchoiceSelectedValues}
+            formData={formData}
+            childIngredeintchoiceStateValue={childIngredeintchoiceStateValue}
+            setOpenIngredientchoice={setOpenIngredientchoice}
+            ingType={ingType}
+            ingredientChoiceIndex={ingredientChoiceIndex}
+            setingType={setingType}
+            onRemove={removeingClickingwithChoice}
+          />
+          <AddIngredients
+            open={openIngredient}
+            handleSidebarClose={handleSidebarClose}
+            onChange={handleChildStateChange}
+            onRemove={removeingClick}
+            childStateValue={childStateValue}
+            checkid={checkid}
+            allSelectedValues={allSelectedValues}
+            setAllSelectedValues={setAllSelectedValues}
+            formData={formData}
+            setSelectedIngredient={setSelectedIngredient}
+            setUomprevnew={setUomprevnew}
+          />
+          <RecipeList
+            recipeList={recipeList}
+            setSelectedCardRecipe={setSelectedCardRecipe}
+            selectedCardRecipe={selectedCardRecipe}
+            drawerWidth={400}
+            addEventSidebarOpen={openDrawer}
+            handleSidebarClose={handleSidebarCloseRecipe}
+            submitLoader={submitLoader}
+            checkid={checkid}
+            onChange={handleRecipeStateChange}
+            allRecipeSelectedValues={allRecipeSelectedValues}
+            setAllRecipeSelectedValues={setAllRecipeSelectedValues}
+            formData={formData}
+            onRemove={removeingClickRecipe}
+          />
+          <ComboList
+            recipeList={recipeList}
+            setSelectedCardCombo={setSelectedCardCombo}
+            selectedCardCombo={selectedCardCombo}
+            drawerWidth={400}
+            addEventSidebarOpen={openDrawercombo}
+            handleSidebarClose={handleSidebarCloseRecipe}
+            submitLoader={submitLoader}
+            checkid={checkid}
+            onChange={handleComboStateChange}
+            allComboSelectedValues={allComboSelectedValues}
+            setAllComboSelectedValues={setAllComboSelectedValues}
+            formData={formData}
+            onRemove={removeingClickCombo}
+          />
+        </form>
+      )}
     </>
   )
 }

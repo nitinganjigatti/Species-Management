@@ -33,7 +33,7 @@ const StepBillingDetails = ({ handlePrev, formData, handleSubmit }) => {
       )
     },
     {
-      flex: 0.3,
+      flex: 0.9,
       minWidth: 20,
       field: 'feed_type_label',
       headerName: 'Feed Type',
@@ -103,7 +103,7 @@ const StepBillingDetails = ({ handlePrev, formData, handleSubmit }) => {
       )
     },
     {
-      flex: 0.3,
+      flex: 0.4,
       minWidth: 20,
       field: 'feed_type_label',
       headerName: 'Feed Type',

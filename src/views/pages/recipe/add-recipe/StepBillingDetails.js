@@ -16,7 +16,7 @@ const StepBillingDetails = ({ handlePrev, formData, handleSubmit }) => {
       field: 'ingredient_name',
       headerName: 'Ingredient Name',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography variant='body2' sx={{ color: 'text.primary', pl: 2 }}>
           {params.row.ingredient_name}
         </Typography>
       )
@@ -33,7 +33,7 @@ const StepBillingDetails = ({ handlePrev, formData, handleSubmit }) => {
       )
     },
     {
-      flex: 0.3,
+      flex: 0.4,
       minWidth: 20,
       field: 'feed_type_label',
       headerName: 'Feed Type',
@@ -44,7 +44,7 @@ const StepBillingDetails = ({ handlePrev, formData, handleSubmit }) => {
       )
     },
     {
-      flex: 0.4,
+      flex: 0.43,
       minWidth: 10,
       field: 'quantity',
       headerName: 'Quantity',
@@ -334,6 +334,16 @@ const StepBillingDetails = ({ handlePrev, formData, handleSubmit }) => {
                         },
                         '& .MuiDataGrid-row:hover': {
                           cursor: 'pointer'
+                        },
+                        '& .MuiDataGrid-columnHeader': {
+                          whiteSpace: 'nowrap', // Prevents text wrapping in header
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis'
+                        },
+                        '& .MuiDataGrid-cell': {
+                          whiteSpace: 'nowrap', // Prevents text wrapping in cell
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis'
                         }
                       }}
                       columnVisibilityModel={{

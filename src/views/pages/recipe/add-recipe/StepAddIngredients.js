@@ -20,6 +20,7 @@ import * as yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
 import toast from 'react-hot-toast'
 import Toaster from 'src/components/Toaster'
+import { useTheme, useMediaQuery } from '@mui/material'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
@@ -116,6 +117,8 @@ const StepAddIngredients = ({
   const [openDrawer, setOpenDrawer] = useState(false)
   const [submitLoader, setSubmitLoader] = useState(false)
   const [editParams, setEditParams] = useState(editParamsInitialState)
+  const theme = useTheme()
+  const isSmallDevice = useMediaQuery(theme.breakpoints.down('md'))
 
   const {
     reset,
@@ -883,6 +886,12 @@ const StepAddIngredients = ({
                         rules={{ required: true }}
                         render={({ field: { value, onChange } }) => (
                           <Autocomplete
+                            sx={{
+                              '&.MuiAutocomplete-hasPopupIcon.MuiAutocomplete-hasClearIcon .MuiOutlinedInput-root':
+                                isSmallDevice ? { paddingRight: '10px' } : {},
+                              '& .MuiAutocomplete-clearIndicator': isSmallDevice ? { display: 'none' } : {},
+                              '& .MuiAutocomplete-popupIndicator': isSmallDevice ? { display: 'none' } : {}
+                            }}
                             value={fullIngredientList.find(option => option.id === value) || null}
                             disablePortal
                             id={`by_quantity[${index}].ingredient_id`}
@@ -980,6 +989,12 @@ const StepAddIngredients = ({
                           console.log(value, 'value')
                           return (
                             <Autocomplete
+                              sx={{
+                                '&.MuiAutocomplete-hasPopupIcon.MuiAutocomplete-hasClearIcon .MuiOutlinedInput-root':
+                                  isSmallDevice ? { paddingRight: '10px' } : {},
+                                '& .MuiAutocomplete-clearIndicator': isSmallDevice ? { display: 'none' } : {},
+                                '& .MuiAutocomplete-popupIndicator': isSmallDevice ? { display: 'none' } : {}
+                              }}
                               id={`by_quantity[${index}].uom_id`}
                               getOptionLabel={option => option.name}
                               renderInput={params => (
@@ -1027,6 +1042,12 @@ const StepAddIngredients = ({
                         render={({ field: { value, onChange } }) => {
                           return (
                             <Autocomplete
+                              sx={{
+                                '&.MuiAutocomplete-hasPopupIcon.MuiAutocomplete-hasClearIcon .MuiOutlinedInput-root':
+                                  isSmallDevice ? { paddingRight: '10px' } : {},
+                                '& .MuiAutocomplete-clearIndicator': isSmallDevice ? { display: 'none' } : {},
+                                '& .MuiAutocomplete-popupIndicator': isSmallDevice ? { display: 'none' } : {}
+                              }}
                               id={`by_quantity[${index}].preparation_type_id`}
                               getOptionLabel={option => option.label || ''}
                               renderInput={params => (
@@ -1073,6 +1094,12 @@ const StepAddIngredients = ({
                           console.log(value, 'value')
                           return (
                             <Autocomplete
+                              sx={{
+                                '&.MuiAutocomplete-hasPopupIcon.MuiAutocomplete-hasClearIcon .MuiOutlinedInput-root':
+                                  isSmallDevice ? { paddingRight: '10px' } : {},
+                                '& .MuiAutocomplete-clearIndicator': isSmallDevice ? { display: 'none' } : {},
+                                '& .MuiAutocomplete-popupIndicator': isSmallDevice ? { display: 'none' } : {}
+                              }}
                               id={`by_quantity[${index}].cut_size`}
                               getOptionLabel={option => option.cut_size}
                               renderInput={params => <TextField {...params} label='Select Cut size *' />}

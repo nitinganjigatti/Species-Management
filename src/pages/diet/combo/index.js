@@ -43,7 +43,7 @@ const RecipeList = () => {
   const [sortColumn, setSortColumn] = useState('created_at')
   const [rows, setRows] = useState([])
   const [searchValue, setSearchValue] = useState('')
-  const [searchColumns, setSearchColumns] = useState('recipe_name')
+  const [searchColumns, setSearchColumns] = useState('')
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [loading, setLoading] = useState(false)
   const [status, setStatus] = useState('')
