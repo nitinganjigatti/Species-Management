@@ -90,7 +90,8 @@ const SpeciesMappedtoDiet = ({
       if (response.success === true) {
         Toaster({
           type: 'success',
-          message: tempSelectedSpecies?.length + ' ' + `Species successfully added to ${dietname} diet`
+          //message: tempSelectedSpecies?.length + ' ' + `Species successfully added to ${dietname} diet`,
+          message: response.message
         })
         onSelectedSpeciesChange(updatedSpeciesIds)
         refreshDietDetails()

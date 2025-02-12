@@ -113,7 +113,7 @@ const IngredientsListforRecipeDetail = ({ IngredientsDetailsval }) => {
       field: 'ingredient_id',
       headerName: 'INGREDIENT ID',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary', pl: 7 }}>
+        <Typography variant='body2' sx={{ color: 'text.primary', pl: 2 }}>
           {params.row.ingredient_id ? 'ING' + params.row.ingredient_id : '-'}
         </Typography>
       )
@@ -130,7 +130,7 @@ const IngredientsListforRecipeDetail = ({ IngredientsDetailsval }) => {
       )
     },
     {
-      flex: 0.4,
+      flex: 0.43,
       minWidth: 10,
       field: 'quantity',
       headerName: 'QUANTITY',

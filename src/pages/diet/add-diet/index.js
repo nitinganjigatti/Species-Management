@@ -2,7 +2,17 @@
 import { useState, useEffect, useContext } from 'react'
 
 // ** MUI Imports
-import { Card, CardContent, Divider, Breadcrumbs, Link, debounce, Box, Typography } from '@mui/material'
+import {
+  Card,
+  CardContent,
+  Divider,
+  Breadcrumbs,
+  Link,
+  debounce,
+  Box,
+  Typography,
+  CircularProgress
+} from '@mui/material'
 import Icon from 'src/@core/components/icon'
 import Step from '@mui/material/Step'
 import Stepper from '@mui/material/Stepper'
@@ -48,6 +58,7 @@ const AddDiet = () => {
   const [selectedCardCombo, setSelectedCardCombo] = useState([])
   const [diettypechildvalues, setdiettypechildvalues] = useState([])
   const [urlType, seturlType] = useState('')
+  const [loader, setLoader] = useState(false)
 
   const authData = useContext(AuthContext)
   const dietModule = authData?.userData?.roles?.settings?.diet_module
@@ -168,6 +179,7 @@ const AddDiet = () => {
 
   const getIngredientsDetailval = async id => {
     try {
+      setLoader(true)
       const response = await getDietDetails(id, { week_day: 0 })
       console.log(response, 'response')
       if (response.success === true && response.data !== null) {
@@ -184,11 +196,22 @@ const AddDiet = () => {
           diet_image: data.diet_image,
           desc: data.desc,
           remarks: data.remarks,
-          meal_data: data.meal_data.map(meal => ({
-            ...meal,
-            meal_from_time: dayjs(meal.meal_from_time, 'HH:mm'),
-            meal_to_time: dayjs(meal.meal_to_time, 'HH:mm')
-          }))
+          meal_data: data.meal_data.map(meal => {
+            const parseTime = time => {
+              // Check if time includes AM/PM (indicative of 12-hour format)
+              if (time.toLowerCase().includes('am') || time.toLowerCase().includes('pm')) {
+                return dayjs(time, 'hh:mm A') // Parse 12-hour format
+              }
+              // Otherwise, assume it's in 24-hour format
+              return dayjs(time, 'HH:mm')
+            }
+
+            return {
+              ...meal,
+              meal_from_time: parseTime(meal.meal_from_time),
+              meal_to_time: parseTime(meal.meal_to_time)
+            }
+          })
         }))
 
         const dietTypesData = data.child
@@ -223,6 +246,7 @@ const AddDiet = () => {
 
         document.cookie = `dietTypeChildValues=${JSON.stringify(data.child)}; path=/`
         document.cookie = `dietTypeChildVal=${JSON.stringify(newarr)}; path=/`
+        setLoader(false)
       }
     } catch (error) {
       console.log('Feed list', error)
@@ -538,6 +562,7 @@ const AddDiet = () => {
             setUomprevnew={setUomprevnew}
             diettypechildvalues={diettypechildvalues}
             id={id}
+            loader={loader}
           />
         )
       case 1:

@@ -766,6 +766,16 @@ const StepPreviewDiet = ({
     return day ? day.name : ''
   }
 
+  const handleclickRecipeDetail = val => {
+    const url = `/diet/recipe/${val}`
+    window.open(url, '_blank')
+  }
+
+  const handleclickComboDetail = val => {
+    const url = `/diet/combo/${val}`
+    window.open(url, '_blank')
+  }
+
   const getModal = (index, item) => {
     console.log(getValues())
     return (
@@ -1941,7 +1951,10 @@ const StepPreviewDiet = ({
                                                 gap: '12px'
                                               }}
                                             >
-                                              <Box sx={{ display: 'flex' }}>
+                                              <Box
+                                                sx={{ display: 'flex' }}
+                                                onClick={() => handleclickRecipeDetail(item.recipe_id)}
+                                              >
                                                 {item?.recipe_name && (
                                                   <Typography
                                                     sx={{
@@ -2448,7 +2461,10 @@ const StepPreviewDiet = ({
                                                 gap: '12px'
                                               }}
                                             >
-                                              <Box sx={{ display: 'flex' }}>
+                                              <Box
+                                                sx={{ display: 'flex' }}
+                                                onClick={() => handleclickComboDetail(item.recipe_id)}
+                                              >
                                                 {item?.recipe_name && (
                                                   <Typography
                                                     sx={{
