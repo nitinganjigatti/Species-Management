@@ -115,6 +115,13 @@ function convertUTCToLocal(date) {
   return local
 }
 
+function convertUTCToLocalDate(date) {
+  var stillUtc = moment.utc(date).toDate()
+  var local = moment(stillUtc).local(true).format('YYYY-MM-DD')
+
+  return local
+}
+
 function convertUTCToLocaltime(date) {
   var stillUtc = moment.utc(date).toDate()
   var local = moment(stillUtc).local(true).format('h:mm A')
@@ -200,6 +207,7 @@ const Utility = {
   getPreviousDaysDate,
   daysFromToday,
   convertUTCToLocal,
+  convertUTCToLocalDate,
   convertUTCToLocaltime,
   extractHoursAndMinutes,
   formatNumberToDisplay,

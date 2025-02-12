@@ -1,17 +1,6 @@
 import { useTheme } from '@mui/material/styles'
 import { LoadingButton } from '@mui/lab'
-import {
-  Box,
-  Checkbox,
-  debounce,
-  Divider,
-  Drawer,
-  FormControl,
-  Grid,
-  IconButton,
-  TextField,
-  Typography
-} from '@mui/material'
+import { Box, Checkbox, debounce, Divider, Drawer, Grid, IconButton, TextField, Typography } from '@mui/material'
 import React, { useState } from 'react'
 import Icon from 'src/@core/components/icon'
 
@@ -36,14 +25,6 @@ const SpeciesMappedtoDietFilter = ({
     setSelectedItems(tempSelectedItems)
     handleCloseDrawer()
   }
-
-  // to remove values only from active tab on click of cancel
-  // const handleCancelAll = () => {
-  //   setTempSelectedItems({ ...tempSelectedItems, [activeTab]: [] })
-
-  //   setSelectedItems({ ...selectedItems, [activeTab]: [] })
-  //   setOpenFilterDrawer(false)
-  // }
 
   const handleCancelAll = () => {
     // Clear all tabs in tempSelectedItems

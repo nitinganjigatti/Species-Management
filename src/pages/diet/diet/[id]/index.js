@@ -75,8 +75,6 @@ const DietDetail = () => {
     ]
   })
 
-  const schedule = []
-
   let startArry = []
 
   const authData = useContext(AuthContext)
@@ -299,9 +297,13 @@ const DietDetail = () => {
   }
 
   const handleclickRecipeDetail = val => {
-    Router.push({
-      pathname: `/diet/recipe/${val}`
-    })
+    const url = `/diet/recipe/${val}`
+    window.open(url, '_blank')
+  }
+
+  const handleclickComboDetail = val => {
+    const url = `/diet/combo/${val}`
+    window.open(url, '_blank')
   }
 
   return (
@@ -2390,7 +2392,7 @@ const DietDetail = () => {
                                                                             cursor: 'pointer'
                                                                           }}
                                                                           onClick={() =>
-                                                                            handleclickRecipeDetail(item.recipe_id)
+                                                                            handleclickComboDetail(item.recipe_id)
                                                                           }
                                                                         >
                                                                           {item?.recipe_name}

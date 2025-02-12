@@ -47,6 +47,7 @@ const AddCombo = () => {
   const [IngredientTypeList, setIngredientTypeList] = useState([])
   const [fullIngredientList, setFullIngredientList] = useState([])
   const [urlType, seturlType] = useState('')
+  const [loader, setLoader] = useState(false)
 
   const [formData, setFormData] = useState({
     recipe_name: '',
@@ -179,6 +180,7 @@ const AddCombo = () => {
 
   const getIngredientsDetailval = async id => {
     try {
+      setLoader(true)
       const response = await getRecipeDetail(id)
 
       if (response.data.success === true && response.data.data !== null) {
@@ -235,7 +237,7 @@ const AddCombo = () => {
         const uniqueIngredientList = combinedIngredients.filter(
           (item, index, self) => index === self.findIndex(i => i.id === item.id)
         )
-
+        setLoader(false)
         setFullIngredientList(uniqueIngredientList)
       }
     } catch (error) {
@@ -506,6 +508,7 @@ const AddCombo = () => {
               IngredientTypeListSearch={IngredientTypeListSearch}
               onCancelIconClick={handleCancelIconClick}
               setcutSize={setcutSize}
+              loader={loader}
             />
           </>
         )

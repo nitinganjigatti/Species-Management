@@ -5,7 +5,7 @@ import FallbackSpinner from 'src/@core/components/spinner/index'
 import { DataGrid } from '@mui/x-data-grid'
 import { debounce } from 'lodash'
 import moment from 'moment'
-import { Avatar, Button, Tooltip, Box, Breadcrumbs, TextField } from '@mui/material'
+import { Avatar, Button, Tooltip, Box, Breadcrumbs, TextField, LinearProgress } from '@mui/material'
 
 // ** MUI Imports
 import Card from '@mui/material/Card'
@@ -13,59 +13,60 @@ import Typography from '@mui/material/Typography'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
-import Router from 'next/router'
 import { useTheme } from '@mui/material/styles'
 
 import { AuthContext } from 'src/context/AuthContext'
-// import Styles from './dot.module.css'
 import Utility from 'src/utility'
 import ErrorScreen from 'src/pages/Error'
 // import data from './ojbect'
-import DashboardFilter from './speciesDietFilter'
+// import DashboardFilter from './speciesDietFilter'
 import SpeciesDetails from './speciesDetails'
+import { getSpeciesList, speciesAttachmentUpload } from 'src/lib/api/diet/speciesDiet'
+import Toaster from 'src/components/Toaster'
+// import { minWidth } from '@mui/system'
 
-const IncubatorsList = () => {
-  const cuurent_date = moment().format('YYYY-MM-DD')
-
+const SpeciesDietList = () => {
+  const colWidths = [40, 300, 100]
   const theme = useTheme()
-  const [loader, setLoader] = useState(false)
   const [total, setTotal] = useState(0)
-  const [sort, setSort] = useState('desc')
   const [rows, setRows] = useState([])
   const [searchValue, setSearchValue] = useState('')
-  const [sortColumning, setsortColumning] = useState('ingredient_name')
+  // const [sortColumning, setsortColumning] = useState('ingredient_name')
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [loading, setLoading] = useState(false)
-  const [dialog, setDialog] = useState(false)
 
   const [speciesDetailsDrawer, setSpeciesDetailsDrawer] = useState(false) // has to be modified
 
-  const [discardList, setDiscardList] = useState([]) // has to be modified
-  const [isSearchOpen, setIsSearchOpen] = useState(false)
-  const [search, setSearch] = useState('')
-  const [selectedDropDown, setSelectedDropDown] = useState('all')
-  const [isFilterOpen, setIsFilterOpen] = useState(false)
-  const [showFilters, setShowFilters] = useState(false)
+  ///////////////////////Filter-Code////////////////////////////
+  // const [isSearchOpen, setIsSearchOpen] = useState(false)
+  // const [search, setSearch] = useState('')
+  // const [isFilterOpen, setIsFilterOpen] = useState(false)
+  // const [showFilters, setShowFilters] = useState(false)
 
-  const [applyFilters, setApplyFilters] = useState({
-    Site: [],
-    Section: [],
-    Enclosure: []
-  })
+  // const [applyFilters, setApplyFilters] = useState({
+  //   Site: [],
+  //   Section: [],
+  //   Enclosure: []
+  // })
 
-  const [selectedOptions, setSelectedOptions] = useState({
-    Site: [],
-    Section: [],
-    Enclosure: []
-  })
+  // const [selectedOptions, setSelectedOptions] = useState({
+  //   Site: [],
+  //   Section: [],
+  //   Enclosure: []
+  // })
+  // const [filterList, setFilterList] = useState([])
+  ///////////////////////////////////////////////////
 
-  const [attachmentWidth, setttachmentWidth] = useState(0)
-  const [filterList, setFilterList] = useState([])
+  const [attachmentWidth, setAttachmentWidth] = useState(0)
+  const [uploadingAttachment, setUploadingAttachment] = useState(false)
+  const [speciesId, setspeciesId] = useState(null)
 
   ///////////////////////////////////////////////////
 
   const gridRef = useRef()
   const [gridWidth, setGridWidth] = useState(0)
+
+  // const [siteList, setSiteList] = useState([])
 
   // Function to update grid height
   const updateGridWidth = () => {
@@ -88,22 +89,7 @@ const IncubatorsList = () => {
   ///////////////////////////////////////////////////
   const fileInputRef = useRef(null)
 
-  const handleFileUpload = event => {
-    const file = event.target.files[0]
-    if (file && file.type === 'application/pdf') {
-      console.log('Selected PDF:', file)
-      // Handle the uploaded PDF file here
-    } else {
-      alert('Please select a valid PDF file.')
-    }
-  }
-  ///////////////////////////////////////////////////
-  ///////////////////////////////////////////////////
-
   const authData = useContext(AuthContext)
-
-  const egg_nursery_permission = authData?.userData?.permission?.user_settings?.add_nursery_permisson
-  const egg_collection_permission = authData?.userData?.roles?.settings?.enable_egg_collection_module
 
   function loadServerRows(currentPage, data) {
     return data
@@ -117,36 +103,32 @@ const IncubatorsList = () => {
   const fetchTableData = useCallback(
     async q => {
       try {
+        ///////////////////////Filter-Code////////////////////////////
+        // console.log('applyFilters', applyFilters)
+        // const siteIds = applyFilters.Site?.map(option => option.id)
+        // const sectionIds = applyFilters.Section?.map(option => option.id)
+        // const enclosureIds = applyFilters.Enclosure?.map(option => option.id)
         setLoading(true)
+        const params = {
+          ///////////////////////Filter-Code////////////////////////////
+          // site_ids: siteIds.length > 0 ? JSON.stringify(siteIds) : '',
+          // section_ids: sectionIds.length > 0 ? JSON.stringify(ids.sectionIds) : '',
+          // enclosure_ids: enclosureIds.length > 0 ? JSON.stringify(ids.enclosureIds) : '',
+          q,
+          page_no: paginationModel.page + 1,
+          limit: paginationModel.pageSize
+        }
+        await getSpeciesList(params).then(res => {
+          // Generate uid field based on the index
+          let listWithId = res?.data?.result?.map((el, i) => {
+            return { ...el, id: i + 1 }
+          })
 
-        // const params = {
-        //   q,
-        //   sort,
-        //   from_date: '2024-05-29',
-        //   til_date: cuurent_date,
-        //   page: paginationModel.page + 1,
-        //   limit: paginationModel.pageSize,
-        //   room_id: '',
-        //   nursery_id: '',
-        //   site_id: ''
-        // }
-        // // console.log('params', params)
-        // await getIncubatorList({ params }).then(res => {
-        //   // console.log('response', res)
+          setTotal(parseInt(res?.data?.count))
+          setRows(loadServerRows(paginationModel.page, listWithId))
 
-        //   // Generate uid field based on the index
-        //   let listWithId = res?.data?.data?.result?.map((el, i) => {
-        //     return { ...el, id: i + 1 }
-        //   })
-        let listWithId = data?.map((el, i) => {
-          return { ...el, id: i + 1 }
+          // setstatusCheckval(res?.data?.result.map(all => all.active))
         })
-        //   setTotal(parseInt(res?.data?.data?.total_count))
-        setTotal(9)
-        setRows(loadServerRows(paginationModel.page, listWithId))
-
-        //   // setstatusCheckval(res?.data?.result.map(all => all.active))
-        // })
         setLoading(false)
       } catch (e) {
         console.log(e)
@@ -157,9 +139,7 @@ const IncubatorsList = () => {
   )
 
   useEffect(() => {
-    if (egg_nursery_permission || egg_collection_permission) {
-      fetchTableData(searchValue)
-    }
+    fetchTableData(searchValue)
   }, [fetchTableData])
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
@@ -183,39 +163,38 @@ const IncubatorsList = () => {
     []
   )
 
-  // const handleSidebarOpen = () => {
-  //   setDialog(true)
-  // }
-
-  const handleSidebarClose = () => {
-    setDialog(false)
-  }
-
-  const headerAction = (
-    <>
-      {egg_nursery_permission && (
-        <Button
-          sx={{ height: '40px', width: '126px' }}
-          size='small'
-          variant='contained'
-          //   onClick={() => setDialog(true)}
-        >
-          <Icon icon='mdi:add' fontSize={20} />
-          &nbsp; Add New
-        </Button>
-      )}
-      {/* )} */}
-    </>
-  )
-
   const handleSearch = value => {
     setSearchValue(value)
     searchTableData(value)
   }
 
+  const handleFileUpload = async (event, speciesId) => {
+    const file = event?.target?.files[0]
+
+    if (!file || file.type !== 'application/pdf') {
+      Toaster({ type: 'error', message: 'Please select a valid PDF file.' })
+      return
+    }
+
+    setAttachmentWidth(prev => prev - 150)
+    setUploadingAttachment(true)
+
+    try {
+      const res = await speciesAttachmentUpload({ species_id: speciesId, attachment: file })
+      Toaster({ type: 'success', message: res.message })
+      fetchTableData()
+    } catch (error) {
+      Toaster({ type: 'error', message: error.message || 'File upload failed.' })
+    } finally {
+      event.target.value = null
+      setAttachmentWidth(prev => prev + 150)
+      setUploadingAttachment(false)
+    }
+  }
+
   const columns = [
     {
-      width: 40,
+      width: colWidths[0],
       field: 'id',
       headerName: '#',
       align: 'center',
@@ -235,7 +214,7 @@ const IncubatorsList = () => {
     },
 
     {
-      width: 300,
+      width: colWidths[1],
       sortable: false,
       field: 'species',
       headerName: 'SPECIES',
@@ -260,7 +239,7 @@ const IncubatorsList = () => {
           </Avatar>
 
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-            <Tooltip title={params.row.complete_name ? params.row.complete_name : '-'}>
+            <Tooltip title={params.row.scientific_name ? params.row.scientific_name : '-'}>
               <Typography
                 sx={{
                   color: theme.palette.primary.light,
@@ -273,10 +252,10 @@ const IncubatorsList = () => {
                   width: 240
                 }}
               >
-                {params.row.complete_name ? params.row.complete_name : '-'}
+                {params.row.scientific_name ? params.row.scientific_name : '-'}
               </Typography>
             </Tooltip>
-            <Tooltip title={params.row?.default_common_name ? params.row?.default_common_name : '-'}>
+            <Tooltip title={params.row?.common_name ? params.row?.common_name : '-'}>
               <Typography
                 sx={{
                   color: theme.palette.primary.light,
@@ -289,57 +268,244 @@ const IncubatorsList = () => {
                   width: 240
                 }}
               >
-                {params.row?.default_common_name ? params.row?.default_common_name : '-'}
+                {params.row?.common_name ? params.row?.common_name : '-'}
               </Typography>
             </Tooltip>
           </Box>
         </Box>
       )
     },
-    {
-      width: 170,
-      sortable: false,
-      field: 'diet_assigned',
-      headerName: 'DIETS ASSIGNED',
-      renderCell: params => (
-        <Tooltip title={params.row.diet_assigned ? params.row.diet_assigned : '-'}>
-          <Typography
-            noWrap
-            sx={{
-              color: theme.palette.customColors.OnSurfaceVariant,
-              fontSize: '16px',
-              fontWeight: '400',
-              lineHeight: '19.36px',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              ml: 2
-            }}
-          >
-            {params.row.diet_assigned ? params.row.diet_assigned : '-'}
-          </Typography>
-        </Tooltip>
-      )
-    },
+    ///////////////////////Code-For-Show-Rsponsive-Multiple-Attachment////////////////////////////
+    // {
+    //   width: colWidths[2],
+    //   sortable: false,
+    //   field: 'diet_assigned',
+    //   headerName: 'DIETS ASSIGNED',
+    //   renderCell: params => (
+    //     <Tooltip title={params.row.attachment_count ? params.row.attachment_count : '-'}>
+    //       <Typography
+    //         noWrap
+    //         sx={{
+    //           color: theme.palette.customColors.OnSurfaceVariant,
+    //           fontSize: '16px',
+    //           fontWeight: '400',
+    //           lineHeight: '19.36px',
+    //           overflow: 'hidden',
+    //           textOverflow: 'ellipsis',
+    //           ml: 2
+    //         }}
+    //       >
+    //         {params.row.attachment_count ? params.row.attachment_count : '-'}
+    //       </Typography>
+    //     </Tooltip>
+    //   )
+    // },
+    // {
+    //   // width: ,
+    //   width: attachmentWidth,
+    //   sortable: false,
+    //   field: 'diet_attached',
+    //   headerName: 'DIETS ATTACHED',
+    //   renderCell: ({ row }) => {
+    //     return (
+    //       <Box sx={{ ml: 1, width: '100%', display: 'flex', gap: 2, justifyContent: 'space-between' }}>
+    //         {/* Attachment Section */}
+    //         <Box onClick={() => setSpeciesDetailsDrawer(true)} sx={{ width: '100%', display: 'flex', gap: 2 }}>
+    //           {uploadingAttachment === true && speciesId == row.species_id && (
+    //             <Box
+    //               sx={{
+    //                 width: '144px',
+    //                 height: '32px',
+    //                 padding: '6px',
+    //                 borderRadius: '4px',
+    //                 display: 'flex',
+    //                 alignItems: 'center',
+    //                 gap: '4px',
+    //                 backgroundColor: theme.components.MuiDialog.styleOverrides.paper.backgroundColor
+    //               }}
+    //             >
+    //               <Avatar variant='rounded' alt='Medicine Image' sx={{ width: 20, height: 20, overflow: 'hidden' }}>
+    //                 <img style={{ width: '100%', height: '100%' }} src={'/icons/files_green.svg'} alt='Profile' />
+    //               </Avatar>
+    //               <Box sx={{ width: '110px' }}>
+    //                 <Typography
+    //                   noWrap
+    //                   sx={{
+    //                     color: theme.palette.customColors.OnSurfaceVariant,
+    //                     fontSize: '16px',
+    //                     fontWeight: '400',
+    //                     lineHeight: '19.36px',
+    //                     overflow: 'hidden',
+    //                     textOverflow: 'ellipsis'
+    //                   }}
+    //                 >
+    //                   name of pdf file
+    //                 </Typography>
+    //                 <LinearProgress sx={{ height: '2px' }} value={50} />
+    //               </Box>
+    //             </Box>
+    //           )}
+    //           {row.attachments.length > 0 ? (
+    //             attachmentWidth > 250 ? (
+    //               <>
+    //                 {row.attachments.slice(0, Math.floor((attachmentWidth - 100) / 150)).map((item, index) => (
+    //                   <Box
+    //                     key={index}
+    //                     onClick={e => {
+    //                       e.stopPropagation()
+    //                       window.open(item.file, '_blank')
+    //                     }}
+    //                     sx={{
+    //                       width: '144px',
+    //                       height: '32px',
+    //                       padding: '6px',
+    //                       borderRadius: '4px',
+    //                       display: 'flex',
+    //                       alignItems: 'center',
+    //                       gap: '4px',
+    //                       backgroundColor: theme.components.MuiDialog.styleOverrides.paper.backgroundColor
+    //                     }}
+    //                   >
+    //                     <Avatar
+    //                       variant='rounded'
+    //                       alt='Medicine Image'
+    //                       sx={{ width: 20, height: 20, overflow: 'hidden' }}
+    //                     >
+    //                       <img
+    //                         style={{ width: '100%', height: '100%' }}
+    //                         src={'/icons/little_pdf_icon.svg'}
+    //                         alt='Profile'
+    //                       />
+    //                     </Avatar>
+    //                     <Typography
+    //                       noWrap
+    //                       sx={{
+    //                         color: theme.palette.customColors.OnSurfaceVariant,
+    //                         fontSize: '16px',
+    //                         fontWeight: '400',
+    //                         lineHeight: '19.36px',
+    //                         overflow: 'hidden',
+    //                         textOverflow: 'ellipsis'
+    //                       }}
+    //                     >
+    //                       {item.file_original_name}
+    //                     </Typography>
+    //                   </Box>
+    //                 ))}
+    //                 {/* Show extra count if any */}
+    //                 {row.attachments.length > Math.floor((attachmentWidth - 100) / 150) && (
+    //                   <Box
+    //                     sx={{
+    //                       height: '32px',
+    //                       padding: '6px',
+    //                       borderRadius: '4px',
+    //                       backgroundColor: theme.components.MuiDialog.styleOverrides.paper.backgroundColor,
+    //                       display: 'flex',
+    //                       alignItems: 'center',
+    //                       justifyContent: 'center'
+    //                     }}
+    //                   >
+    //                     <Typography
+    //                       noWrap
+    //                       sx={{
+    //                         color: theme.palette.primary.dark,
+    //                         fontSize: '14px',
+    //                         fontWeight: '600',
+    //                         lineHeight: '16.94px'
+    //                       }}
+    //                     >
+    //                       +{row.attachments.length - Math.floor((attachmentWidth - 100) / 150)}
+    //                     </Typography>
+    //                   </Box>
+    //                 )}
+    //               </>
+    //             ) : (
+    //               <Typography
+    //                 sx={{
+    //                   color: theme.palette.primary.dark,
+    //                   fontSize: '14px',
+    //                   fontWeight: '600',
+    //                   lineHeight: '16.94px'
+    //                 }}
+    //               >
+    //                 +{row.attachments.length}
+    //               </Typography>
+    //             )
+    //           ) : (
+    //             <Typography
+    //               sx={{
+    //                 color: '#E93353',
+    //                 fontSize: '14px',
+    //                 fontWeight: 500,
+    //                 lineHeight: '16.96px',
+    //                 letterSpacing: '0.1px'
+    //               }}
+    //             >
+    //               -
+    //             </Typography>
+    //           )}
+    //         </Box>
 
+    //         {/* Upload Section */}
+    //       </Box>
+    //     )
+    //   }
+    // },
+    ////////////////////////////////////////////////////////////////////////////////
     {
-      // width: ,
-      flex: '1',
+      // flex: '8',
+      width: attachmentWidth,
       sortable: false,
       field: 'diet_attached',
       headerName: 'DIETS ATTACHED',
-      renderCell: params => (
-        <Box
-          onClick={() => setSpeciesDetailsDrawer(true)}
-          sx={{ ml: 1, width: '100%', display: 'flex', gap: 2, justifyContent: 'space-between' }}
-        >
-          {/* Attachment Section */}
-          <Box sx={{ display: 'flex', gap: 2, justifyContent: 'space-between' }}>
-            {params.row.diet_attached.length > 0 ? (
-              attachmentWidth > 250 ? (
+      renderCell: ({ row }) => {
+        return (
+          <Box sx={{ ml: 1, width: '100%', display: 'flex', gap: 2, justifyContent: 'space-between' }}>
+            {/* Attachment Section */}
+            <Box sx={{ width: '100%', display: 'flex', gap: 2 }}>
+              {uploadingAttachment === true && speciesId == row.species_id && (
+                <Box
+                  sx={{
+                    width: '144px',
+                    height: '32px',
+                    padding: '6px',
+                    borderRadius: '4px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px',
+                    backgroundColor: theme.components.MuiDialog.styleOverrides.paper.backgroundColor
+                  }}
+                >
+                  <Avatar variant='rounded' alt='Medicine Image' sx={{ width: 20, height: 20, overflow: 'hidden' }}>
+                    <img style={{ width: '100%', height: '100%' }} src={'/icons/files_green.svg'} alt='Profile' />
+                  </Avatar>
+                  <Box sx={{ width: '110px' }}>
+                    <Typography
+                      noWrap
+                      sx={{
+                        color: theme.palette.customColors.OnSurfaceVariant,
+                        fontSize: '16px',
+                        fontWeight: '400',
+                        lineHeight: '19.36px',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis'
+                      }}
+                    >
+                      name of pdf file
+                    </Typography>
+                    <LinearProgress sx={{ height: '2px' }} value={50} />
+                  </Box>
+                </Box>
+              )}
+              {row.attachments.length > 0 ? (
                 <>
-                  {params.row.diet_attached.slice(0, Math.floor((attachmentWidth - 100) / 150)).map((item, index) => (
+                  {row.attachments.map((item, index) => (
                     <Box
                       key={index}
+                      onClick={e => {
+                        e.stopPropagation()
+                        window.open(item.file, '_blank')
+                      }}
                       sx={{
                         width: '144px',
                         height: '32px',
@@ -354,7 +520,7 @@ const IncubatorsList = () => {
                       <Avatar variant='rounded' alt='Medicine Image' sx={{ width: 20, height: 20, overflow: 'hidden' }}>
                         <img
                           style={{ width: '100%', height: '100%' }}
-                          src={'/icons/little_pdf_icon.png'}
+                          src={'/icons/little_pdf_icon.svg'}
                           alt='Profile'
                         />
                       </Avatar>
@@ -369,63 +535,38 @@ const IncubatorsList = () => {
                           textOverflow: 'ellipsis'
                         }}
                       >
-                        {item}
+                        {item.file_original_name}
                       </Typography>
                     </Box>
                   ))}
-                  {/* Show extra count if any */}
-                  {params.row.diet_attached.length > Math.floor((attachmentWidth - 100) / 150) && (
-                    <Box
-                      sx={{
-                        height: '32px',
-                        padding: '6px',
-                        borderRadius: '4px',
-                        backgroundColor: theme.components.MuiDialog.styleOverrides.paper.backgroundColor,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center'
-                      }}
-                    >
-                      <Typography
-                        noWrap
-                        sx={{
-                          color: theme.palette.primary.dark,
-                          fontSize: '14px',
-                          fontWeight: '600',
-                          lineHeight: '16.94px'
-                        }}
-                      >
-                        +{params.row.diet_attached.length - Math.floor((attachmentWidth - 100) / 150)}
-                      </Typography>
-                    </Box>
-                  )}
                 </>
               ) : (
                 <Typography
-                  sx={{ color: theme.palette.primary.dark, fontSize: '14px', fontWeight: '600', lineHeight: '16.94px' }}
+                  sx={{
+                    color: '#E93353',
+                    fontSize: '14px',
+                    fontWeight: 500,
+                    lineHeight: '16.96px',
+                    letterSpacing: '0.1px'
+                  }}
                 >
-                  +{params.row.diet_attached.length}
+                  -
                 </Typography>
-              )
-            ) : (
-              <Typography
-                sx={{
-                  color: '#E93353',
-                  fontSize: '14px',
-                  fontWeight: 500,
-                  lineHeight: '16.96px',
-                  letterSpacing: '0.1px'
-                }}
-              >
-                -
-              </Typography>
-            )}
+              )}
+            </Box>
           </Box>
-
-          {/* Upload Section */}
+        )
+      }
+    },
+    {
+      width: colWidths[2],
+      sortable: false,
+      field: 'diet_attachment_upload',
+      headerName: '',
+      renderCell: params => (
+        <Box sx={{ width: '100%', display: 'flex', justifyContent: 'end' }}>
           <Box
             onClick={e => {
-              e.stopPropagation()
               fileInputRef.current.click()
             }}
             sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px' }}
@@ -446,14 +587,17 @@ const IncubatorsList = () => {
               alt='Medicine Image'
               sx={{ width: 20, height: 20, background: 'transparent', overflow: 'hidden' }}
             >
-              <img style={{ width: '100%', height: '100%' }} src={'/icons/little_upload_icon.png'} alt='Profile' />
+              <img style={{ width: '100%', height: '100%' }} src={'/icons/little_upload_icon.svg'} alt='Profile' />
             </Avatar>
             <input
               type='file'
+              multiple
               accept='application/pdf'
               ref={fileInputRef}
               style={{ display: 'none' }}
-              onChange={handleFileUpload}
+              onChange={e => {
+                handleFileUpload(e, speciesId)
+              }}
             />
           </Box>
         </Box>
@@ -461,209 +605,194 @@ const IncubatorsList = () => {
     }
   ]
 
-  const onCellClick = params => {
-    // console.log(params, 'params')
-    // Router.push({
-    //   pathname: `/egg/incubators/${params.row?.incubator_id}`
-    // })
+  const onCellClick = e => {
+    // console.log('e.row.species_id', e.row.species_id)
+    setspeciesId(e.row.species_id)
   }
   useEffect(() => {
-    const totalColumnsWidth = columns.reduce((sum, col) => sum + (col.width || 0), 0)
-    const newAttachmentWidth = gridWidth - (totalColumnsWidth + 80)
-    setttachmentWidth(newAttachmentWidth > 0 ? newAttachmentWidth : 0)
+    const totalColumnsWidth = colWidths.reduce((sum, col) => sum + (col || 0), 0)
+    const newAttachmentWidth = gridWidth - (totalColumnsWidth + 30)
+    setAttachmentWidth(newAttachmentWidth > 300 ? newAttachmentWidth : 300)
   }, [gridWidth])
 
   return (
     <>
-      {egg_nursery_permission || egg_collection_permission ? (
-        loader ? (
-          <FallbackSpinner />
-        ) : (
-          <>
-            <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
-              <Typography color='inherit'>Egg</Typography>
+      <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
+        <Typography color='inherit'>Egg</Typography>
 
-              <Typography sx={{ cursor: 'pointer' }} color='text.primary'>
-                Incubator List
-              </Typography>
-            </Breadcrumbs>
-            <Card>
-              <Box
+        <Typography sx={{ cursor: 'pointer' }} color='text.primary'>
+          Species Diet List
+        </Typography>
+      </Breadcrumbs>
+      <Card>
+        <Box
+          sx={{
+            m: 4,
+            display: 'flex',
+            flexDirection: 'row',
+            alignItems: 'center',
+            justifyContent: 'space-between'
+          }}
+        >
+          <Typography
+            sx={{
+              color: theme.palette.customColors.OnSurfaceVariant,
+              fontWeight: '500',
+              fontSize: '24px',
+              lineHeight: '29.05px'
+            }}
+          >
+            Species Diet
+          </Typography>
+          {/* <p>DataGrid Width: {gridWidth}px</p> */}
+          {/* <p>Attachment Width: {attachmentWidth}px</p> */}
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                border: '1px solid #C3CEC7',
+                borderRadius: '4px',
+                padding: '0 8px',
+                height: '40px'
+              }}
+            >
+              <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.OnSurfaceVariant} />
+              <TextField
+                value={searchValue}
+                // clearSearch={() => handleSearch('')}
+                onChange={event => handleSearch(event.target.value)}
+                variant='outlined'
+                placeholder='Search...'
+                InputProps={
+                  {
+                    // disableUnderline: true
+                  }
+                }
                 sx={{
-                  m: 4,
-                  display: 'flex',
-                  flexDirection: 'row',
-                  alignItems: 'center',
-                  justifyContent: 'space-between'
+                  '& .MuiOutlinedInput-root': {
+                    border: 'none',
+                    padding: '0',
+                    '& fieldset': {
+                      border: 'none'
+                    }
+                  }
+                }}
+              />
+            </Box>
+            {/* <Box
+              sx={{
+                display: 'flex',
+                justifyContent: 'center',
+                gap: '8px',
+                py: '6px',
+                px: '12px',
+                height: '36px',
+                border: 1,
+                borderRadius: '4px',
+                borderColor: '#c3cec7',
+                alignItems: 'center',
+                cursor: 'pointer'
+              }}
+              onClick={() => setIsFilterOpen(true)}
+            >
+              <Icon icon='fluent:filter-16-filled' fontSize={20} color={theme.palette.customColors.OnSurfaceVariant} />
+              <Typography
+                sx={{
+                  color: theme.palette.customColors.OnSurfaceVariant,
+                  fontSize: '14px',
+                  fontWeight: 400,
+                  lineHeight: '19.36px'
                 }}
               >
-                <Typography
+                Filter
+              </Typography>
+
+              {filterList?.length > 0 && (
+                <Box
                   sx={{
-                    color: theme.palette.customColors.OnSurfaceVariant,
-                    fontWeight: '500',
-                    fontSize: '24px',
-                    lineHeight: '29.05px'
+                    p: '4px',
+                    minWidth: '30px',
+                    minHeight: '26px',
+                    borderRadius: '50%',
+                    backgroundColor: theme.palette.primary.light,
+                    display: 'flex',
+                    justifyContent: 'center',
+                    alignItems: 'center'
                   }}
                 >
-                  Species Diet
-                </Typography>
-                <p>DataGrid Width: {gridWidth}px</p>
-                <p>Attachment Width: {attachmentWidth}px</p>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                  <Box
-                    sx={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      border: '1px solid #C3CEC7',
-                      borderRadius: '4px',
-                      padding: '0 8px',
-                      height: '40px'
-                    }}
-                  >
-                    <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.OnSurfaceVariant} />
-                    <TextField
-                      variant='outlined'
-                      placeholder='Search...'
-                      InputProps={
-                        {
-                          // disableUnderline: true
-                        }
-                      }
-                      sx={{
-                        '& .MuiOutlinedInput-root': {
-                          border: 'none',
-                          padding: '0',
-                          '& fieldset': {
-                            border: 'none'
-                          }
-                        }
-                      }}
-                    />
-                  </Box>
-                  <Box
-                    sx={{
-                      display: 'flex',
-                      justifyContent: 'center',
-                      gap: '8px',
-                      py: '6px',
-                      px: '12px',
-                      //   width: '50px',
-                      //   width: filterList?.length > 0 ? '50px' : '34px',
-                      height: '36px',
-                      border: 1,
-                      borderRadius: '4px',
-                      borderColor: '#c3cec7',
-                      //   bgcolor: filterList?.length > 0 ? theme?.palette.primary.dark : null,
-                      alignItems: 'center',
-                      cursor: 'pointer'
-                    }}
-                    onClick={() => setIsFilterOpen(true)}
-                  >
-                    <Icon
-                      icon='fluent:filter-16-filled'
-                      fontSize={20}
-                      color={theme.palette.customColors.OnSurfaceVariant}
-                      //   color={filterList?.length > 0 ? '#fff' : 'Black'}
-                    />
-                    <Typography
-                      sx={{
-                        color: theme.palette.customColors.OnSurfaceVariant,
-                        fontSize: '14px',
-                        fontWeight: 400,
-                        lineHeight: '19.36px'
-                      }}
-                    >
-                      Filter
-                    </Typography>
-
-                    {filterList?.length > 0 && (
-                      <Typography sx={{ color: '#fff', fontSize: '14px', fontWeight: 400 }}>
-                        {filterList?.length}
-                      </Typography>
-                    )}
-                  </Box>
+                  <Typography sx={{ textAlign: 'center', color: '#fff', fontSize: '14px', fontWeight: 400 }}>
+                    {filterList?.length}
+                  </Typography>
                 </Box>
-              </Box>
+              )}
+            </Box> */}
+          </Box>
+        </Box>
 
-              <DataGrid
-                ref={gridRef}
-                sx={{
-                  '.MuiDataGrid-cell:focus': {
-                    outline: 'none'
-                  },
+        <DataGrid
+          ref={gridRef}
+          sx={{
+            '.MuiDataGrid-cell:focus': {
+              outline: 'none'
+            },
 
-                  '& .MuiDataGrid-row:hover': {
-                    cursor: 'pointer'
-                  }
-                }}
-                columnVisibilityModel={{
-                  sl_no: false
-                }}
-                // sortModel={}
-                hideFooterSelectedRowCount
-                disableColumnSelector={true}
-                autoHeight
-                pagination
-                rows={indexedRows === undefined ? [] : indexedRows}
-                rowCount={total}
-                rowHeight={64}
-                disableRowSelectionOnClick
-                columns={columns}
-                sortingMode='server'
-                paginationMode='server'
-                pageSizeOptions={[7, 10, 25, 50]}
-                paginationModel={paginationModel}
-                onSortModelChange={handleSortModel}
-                // slots={{ toolbar: ServerSideToolbarWithFilter }}
-                onPaginationModelChange={setPaginationModel}
-                loading={loading}
-                slotProps={{
-                  baseButton: {
-                    variant: 'outlined'
-                  },
-                  toolbar: {
-                    value: searchValue,
-                    clearSearch: () => handleSearch(''),
-                    onChange: event => handleSearch(event.target.value)
-                  }
-                }}
-                onCellClick={onCellClick}
-              />
-              {/* <AddIncubators actionApi={fetchTableData} sidebarOpen={dialog} handleSidebarClose={handleSidebarClose} /> */}
-            </Card>
-
-            {isFilterOpen && (
-              <DashboardFilter
-                setShowFilters={setShowFilters}
-                isFilterOpen={isFilterOpen}
-                setIsFilterOpen={setIsFilterOpen}
-                selectedOptions={selectedOptions}
-                setSelectedOptions={setSelectedOptions}
-                setFilterList={setFilterList}
-                setApplyFilters={setApplyFilters}
-                filterList={filterList}
-                setDiscardList={setDiscardList}
-                setSearch={setSearch}
-                setIsSearchOpen={setIsSearchOpen}
-                setSelectedDropDown={setSelectedDropDown}
-              />
-            )}
-            {speciesDetailsDrawer && (
-              <SpeciesDetails
-                fileInputRef={fileInputRef}
-                speciesDetailsDrawer={speciesDetailsDrawer}
-                setSpeciesDetailsDrawer={setSpeciesDetailsDrawer}
-              />
-            )}
-          </>
-        )
-      ) : (
-        <>
-          <ErrorScreen></ErrorScreen>
-        </>
+            '& .MuiDataGrid-row:hover': {
+              cursor: 'pointer'
+            }
+          }}
+          columnVisibilityModel={{
+            sl_no: false
+          }}
+          hideFooterSelectedRowCount
+          disableColumnSelector={true}
+          autoHeight
+          pagination
+          rows={indexedRows === undefined ? [] : indexedRows}
+          rowCount={total}
+          rowHeight={64}
+          disableRowSelectionOnClick
+          columns={columns}
+          sortingMode='server'
+          paginationMode='server'
+          pageSizeOptions={[7, 10, 25, 50]}
+          paginationModel={paginationModel}
+          onSortModelChange={handleSortModel}
+          onPaginationModelChange={setPaginationModel}
+          loading={loading}
+          onRowClick={() => setSpeciesDetailsDrawer(true)}
+          onCellClick={onCellClick}
+        />
+      </Card>
+      {/* ///////////////////////Filter-Code//////////////////////////// */}
+      {/* {isFilterOpen && (
+        <DashboardFilter
+          setShowFilters={setShowFilters}
+          isFilterOpen={isFilterOpen}
+          setIsFilterOpen={setIsFilterOpen}
+          selectedOptions={selectedOptions}
+          setSelectedOptions={setSelectedOptions}
+          setFilterList={setFilterList}
+          setApplyFilters={setApplyFilters}
+          filterList={filterList}
+          setSearch={setSearch}
+          setIsSearchOpen={setIsSearchOpen}
+          siteList={siteList}
+          setSiteList={setSiteList}
+        />
+      )} */}
+      {speciesDetailsDrawer && (
+        <SpeciesDetails
+          fetchTableData={fetchTableData}
+          speciesId={speciesId}
+          setspeciesId={setspeciesId}
+          fileInputRef={fileInputRef}
+          speciesDetailsDrawer={speciesDetailsDrawer}
+          setSpeciesDetailsDrawer={setSpeciesDetailsDrawer}
+        />
       )}
     </>
   )
 }
 
-export default IncubatorsList
+export default SpeciesDietList
