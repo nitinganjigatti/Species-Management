@@ -3,11 +3,8 @@ import { LoadingButton } from '@mui/lab'
 import { Box, Checkbox, debounce, Divider, Drawer, Grid, IconButton, TextField, Typography } from '@mui/material'
 import React, { useState, useEffect, useContext, useCallback } from 'react'
 import Icon from 'src/@core/components/icon'
-import { GetEggMaster } from 'src/lib/api/egg/egg'
-import { GetNurseryList } from 'src/lib/api/egg/nursery'
 
-import { getSpecieList, getTaxonomyList, getZoosSectionListing } from 'src/lib/api/egg/egg/createAnimal'
-// import { getFilterBatchList } from 'src/lib/api/egg/dashboard'
+import { getSpecieList, getZoosSectionListing } from 'src/lib/api/egg/egg/createAnimal'
 import { AuthContext } from 'src/context/AuthContext'
 
 const leftMenu = [
@@ -25,24 +22,18 @@ const DashboardFilter = ({
   setFilterList, //
   setShowFilters, //
   setApplyFilters, //
-  setDiscardList, // has to be modified
   setSearch, //
   setIsSearchOpen, //
-  setSelectedDropDown //
+  siteList,
+  setSiteList
 }) => {
   const theme = useTheme()
   const authData = useContext(AuthContext)
   const [selectedMenu, setSelectedMenu] = useState(leftMenu[0])
   const [searchQuery, setSearchQuery] = useState('')
-  const [eggMaster, setEggMaster] = useState(null)
   const [selectAll, setSelectAll] = useState(false)
-  const [taxonomyList, setTaxonomyList] = useState([])
 
-  const [nurseryList, setNurseryList] = useState([])
-  const [batchList, setBatchList] = useState([])
-  const [conditionList, setConditionList] = useState([])
-
-  const [siteList, setSiteList] = useState([])
+  // const [siteList, setSiteList] = useState([])
   const [sectionList, setSectionList] = useState([])
   const [enclosure, setEnclosure] = useState([])
 
@@ -64,74 +55,36 @@ const DashboardFilter = ({
     searchData('')
 
     const allOptions = getOptionsForMenu(menu)
+    console.log('menu', menu)
     // Always update selectAll based on the new selection state
     setSelectAll(() => selectedOptions[menu?.name]?.length === allOptions.length)
   }
 
-  const NurseryList = async q => {
-    try {
-      const params = {
-        search: q ? q : ''
-      }
-      await GetNurseryList({ params: params }).then(res => {
-        setNurseryList(res?.data?.result)
-      })
-    } catch (e) {
-      console.log(e)
-    }
-  }
-  const SectionList = async q => {
-    try {
-      const params = {
-        search: q ? q : ''
-      }
-      await getZoosSectionListing({ params: params }).then(res => {
-        console.log('setSectionList', res)
-        // setSectionList(res?.data?.result)
-      })
-    } catch (e) {
-      console.log(e)
-    }
-  }
+  useEffect(() => {
+    const allOptions = getOptionsForMenu(leftMenu[0])
+    setSelectAll(() => selectedOptions[leftMenu[0]?.name]?.length === allOptions.length)
+  }, [siteList])
 
-  const getEggMasterData = async () => {
-    try {
-      await GetEggMaster().then(res => {
-        if (res.success) {
-          setEggMaster(res?.data)
-
-          setConditionList(res?.data?.egg_condition)
-        }
-      })
-    } catch (e) {
-      console.log(e)
-    }
-  }
-
-  const getTaxonomyListFunc = async q => {
-    try {
-      const params = {
-        q: q ? q : ''
-      }
-      await getSpecieList(params).then(res => {
-        if (res?.result?.length > 0) {
-          setTaxonomyList(res?.result)
-        }
-      })
-    } catch (error) {
-      console.log('error', error)
-    }
-  }
-
-  // const getBatchList = async q => {
+  // const Enclouser = async q => {
   //   try {
   //     const params = {
-  //       q
+  //       search: q ? q : ''
   //     }
-  //     await getFilterBatchList(params).then(res => {
-  //       if (res?.data?.data.success) {
-  //         setBatchList(res?.data?.data?.data?.result)
-  //       }
+  //     await GetNurseryList({ params: params }).then(res => {
+  //       setNurseryList(res?.data?.result)
+  //     })
+  //   } catch (e) {
+  //     console.log(e)
+  //   }
+  // }
+  // const SectionList = async q => {
+  //   try {
+  //     const params = {
+  //       search: q ? q : ''
+  //     }
+  //     await getZoosSectionListing({ params: params }).then(res => {
+  //       // console.log('setSectionList', res)
+  //       // setSectionList(res?.data?.result)
   //     })
   //   } catch (e) {
   //     console.log(e)
@@ -141,10 +94,8 @@ const DashboardFilter = ({
   useEffect(() => {
     if (isFilterOpen) {
       // NurseryList()
-      // getEggMasterData()
-      // getTaxonomyListFunc()
-      // getBatchList()
-      SectionList()
+      // getEnclouser()
+      // SectionList()
       if (authData?.userData?.user?.zoos[0]?.sites.length > 0) {
         setSiteList(authData?.userData?.user?.zoos[0].sites)
       }
@@ -260,13 +211,15 @@ const DashboardFilter = ({
     setIsSearchOpen(false)
     setSearch('')
     setSearchQuery('')
-    setDiscardList([])
 
-    const combinedSelectedOptions = [...selectedOptions?.Reason, ...selectedOptions?.Site]
-    setSelectedDropDown('all')
+    const combinedSelectedOptions = [
+      ...selectedOptions?.Site,
+      ...selectedOptions?.Section,
+      ...selectedOptions?.Enclosure
+    ]
 
-    setFilterList(combinedSelectedOptions)
     setApplyFilters(selectedOptions)
+    setFilterList(combinedSelectedOptions)
     setIsFilterOpen(false)
   }
 

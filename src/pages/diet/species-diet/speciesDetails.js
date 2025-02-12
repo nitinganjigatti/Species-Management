@@ -1,10 +1,24 @@
 import { LoadingButton } from '@mui/lab'
-import { Avatar, CircularProgress, Drawer, IconButton, LinearProgress, Tooltip, Typography } from '@mui/material'
+import {
+  Avatar,
+  Button,
+  CircularProgress,
+  Drawer,
+  IconButton,
+  LinearProgress,
+  Tooltip,
+  Typography
+} from '@mui/material'
 import { Box } from '@mui/system'
 import React, { useEffect, useRef, useState } from 'react'
 import Icon from 'src/@core/components/icon'
 import { useTheme } from '@mui/material/styles'
-import { getSpecieDetailById, speciesAttachmentRemoveById, speciesAttachmentUpload } from 'src/lib/api/diet/speciesDiet'
+import {
+  getSpecieDetailById,
+  speciesAttachmentActive,
+  speciesAttachmentRemoveById,
+  speciesAttachmentUpload
+} from 'src/lib/api/diet/speciesDiet'
 import Toaster from 'src/components/Toaster'
 import moment from 'moment'
 import Utility from 'src/utility'
@@ -43,10 +57,27 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
       try {
         const res = await speciesAttachmentRemoveById(attachment_id)
         Toaster({ type: 'success', message: res.message || 'Attachment removed successfully' })
-        fetchTableData()
-        getSpecieDetail()
+        await fetchTableData()
+        await getSpecieDetail()
       } catch (error) {
         Toaster({ type: 'error', message: error.message || 'Failed to remove attachment' })
+      } finally {
+        setDetailsLoader(false)
+      }
+    }
+  }
+  // speciesAttachmentActive({ species_id: speciesId, attachment_id: item.attachment_id })
+
+  const speciesAttachmentActiveFunc = async (speciesId, attachmentId) => {
+    if (speciesId && attachmentId) {
+      setDetailsLoader(true)
+      try {
+        const res = await speciesAttachmentActive({ species_id: speciesId, attachment_id: attachmentId })
+        Toaster({ type: 'success', message: res.message || 'Attachment activated successfully' })
+        await fetchTableData()
+        await getSpecieDetail()
+      } catch (error) {
+        Toaster({ type: 'error', message: error.message || 'Failed to activate attachment' })
       } finally {
         setDetailsLoader(false)
       }
@@ -382,100 +413,110 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
   }
 
   const DietDetachedCard = ({ item }) => (
-    <Box>
-      <Box
-        sx={{
-          backgroundColor: '#DAE7DF',
-          borderRadius: '8px',
-          display: 'flex',
-          gap: 1,
-          cursor: 'pointer',
-          padding: '20px 16px'
-        }}
-        onClick={() => {
-          window.open(item.file, '_blank')
-        }}
-      >
-        <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <Avatar
-            variant='rounded'
-            alt='Medicine Image'
-            sx={{
-              width: 48,
-              height: 48,
-              background: '#0000000D',
-              overflow: 'hidden'
-            }}
-          >
-            <img style={{ width: '100%', height: '100%' }} src={'/icons/pdf_Icon.png'} alt='Profile' />
-          </Avatar>
+    <Box
+      sx={{
+        backgroundColor: '#DAE7DF',
+        borderRadius: '8px',
+        // alignItems: 'center',
+        justifyContent: 'space-between',
+        display: 'flex',
+        gap: 1,
+        cursor: 'pointer',
+        padding: '20px 16px'
+      }}
+      onClick={() => {
+        window.open(item.file, '_blank')
+      }}
+    >
+      <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <Avatar
+          variant='rounded'
+          alt='Medicine Image'
+          sx={{
+            width: 48,
+            height: 48,
+            background: '#0000000D',
+            overflow: 'hidden'
+          }}
+        >
+          <img style={{ width: '100%', height: '100%' }} src={'/icons/pdf_Icon.png'} alt='Profile' />
+        </Avatar>
 
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-            <Box sx={{ display: 'flex', flexDirection: 'row', gap: '8px' }}>
-              <Tooltip title={item.file_original_name ? item.file_original_name : '-'}>
-                <Typography
-                  sx={{
-                    color: theme.palette.customColors.OnSurfaceVariant,
-                    fontSize: '16px',
-                    fontWeight: '500',
-                    lineHeight: '19.36px',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                    whiteSpace: 'nowrap',
-                    width: 240
-                  }}
-                >
-                  {item.file_original_name}
-                </Typography>
-              </Tooltip>
-
-              <Box sx={{ backgroundColor: '#0000000D', padding: '5px 8px', borderRadius: '4px' }}>
-                <Typography sx={{ color: '#00000066', fontSize: '12px', fontWeight: '5040', lineHeight: '14.52px' }}>
-                  {Number(item?.file_size) >= 1048576
-                    ? (item?.file_size / (1024 * 1024)).toFixed(2) + ' MB'
-                    : (item?.file_size / 1024).toFixed(2) + ' KB'}
-                </Typography>
-              </Box>
-            </Box>
-            <Box sx={{ display: 'flex', gap: '8px', alignItems: 'end' }}>
-              <Typography
-                sx={{
-                  color: '#E93353',
-                  fontSize: '12px',
-                  fontWeight: 400,
-                  lineHeight: '14.52px',
-                  mr: 1
-                }}
-              >
-                Detached by
-              </Typography>
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+          <Box sx={{ display: 'flex', flexDirection: 'row', gap: '8px' }}>
+            <Tooltip title={item.file_original_name ? item.file_original_name : '-'}>
               <Typography
                 sx={{
                   color: theme.palette.customColors.OnSurfaceVariant,
-                  fontSize: '14px',
-                  fontWeight: 500,
-                  lineHeight: '16.96px',
-                  letterSpacing: '0.1px'
+                  fontSize: '16px',
+                  fontWeight: '500',
+                  lineHeight: '19.36px',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap',
+                  width: 240
                 }}
               >
-                {item.detached_by}
+                {item.file_original_name}
               </Typography>
-              <Typography
-                sx={{
-                  color: theme.palette.customColors.neutralSecondary,
-                  fontSize: '12px',
-                  fontWeight: 400,
-                  lineHeight: '14.52px'
-                }}
-              >
-                {Utility.convertUTCToLocalDate(item.modified_at) +
-                  ' | ' +
-                  Utility.convertUTCToLocaltime(item.modified_at)}{' '}
+            </Tooltip>
+
+            <Box sx={{ backgroundColor: '#0000000D', padding: '5px 8px', borderRadius: '4px' }}>
+              <Typography sx={{ color: '#00000066', fontSize: '12px', fontWeight: '5040', lineHeight: '14.52px' }}>
+                {Number(item?.file_size) >= 1048576
+                  ? (item?.file_size / (1024 * 1024)).toFixed(2) + ' MB'
+                  : (item?.file_size / 1024).toFixed(2) + ' KB'}
               </Typography>
             </Box>
           </Box>
+          <Box sx={{ display: 'flex', gap: '8px', alignItems: 'end' }}>
+            <Typography
+              sx={{
+                color: '#E93353',
+                fontSize: '12px',
+                fontWeight: 400,
+                lineHeight: '14.52px',
+                mr: 1
+              }}
+            >
+              Detached by
+            </Typography>
+            <Typography
+              sx={{
+                color: theme.palette.customColors.OnSurfaceVariant,
+                fontSize: '14px',
+                fontWeight: 500,
+                lineHeight: '16.96px',
+                letterSpacing: '0.1px'
+              }}
+            >
+              {item.detached_by}
+            </Typography>
+            <Typography
+              sx={{
+                color: theme.palette.customColors.neutralSecondary,
+                fontSize: '12px',
+                fontWeight: 400,
+                lineHeight: '14.52px'
+              }}
+            >
+              {Utility.convertUTCToLocalDate(item.modified_at) +
+                ' | ' +
+                Utility.convertUTCToLocaltime(item.modified_at)}{' '}
+            </Typography>
+          </Box>
         </Box>
       </Box>
+      <Button
+        onClick={e => {
+          e.stopPropagation()
+          speciesAttachmentActiveFunc(speciesId, item.attachment_id)
+        }}
+        sx={{ height: '32px' }}
+        variant='contained'
+      >
+        Attach
+      </Button>
     </Box>
   )
 

@@ -43,6 +43,20 @@ export async function speciesAttachmentRemove(id) {
   }
 }
 
+export async function speciesAttachmentActive(payload) {
+  try {
+    const response = await axiosPost({ url: `${DIET}/species-attachment-active`, body: payload })
+
+    return response?.data
+  } catch (error) {
+    if (error.response) {
+      console.error(error.response.data)
+    }
+
+    return error
+  }
+}
+
 // export async function updateRecipeStatus(id, payload) {
 //   try {
 //     const response = await axiosPost({ url: `${DIET}/${RECIPES}/${UPDATE_STATUS}/${id}`, body: payload })
