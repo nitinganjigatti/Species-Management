@@ -230,7 +230,7 @@ function Ledger({ tabValue, updateUrlParams }) {
             fontFamily: 'Inter'
           }}
         >
-          {params.row.type || 'NA'}
+          {Utility.formatText(params.row.type) || 'NA'}
         </Typography>
       )
     },
@@ -415,7 +415,7 @@ function Ledger({ tabValue, updateUrlParams }) {
             fontFamily: 'Inter'
           }}
         >
-          {params.row.transaction || 'NA'}
+          {Utility.formatText(params.row.transaction) || 'NA'}
         </Typography>
       )
     },
