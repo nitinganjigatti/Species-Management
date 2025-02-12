@@ -26,6 +26,7 @@ import { getLedgerList } from 'src/lib/api/pharmacy/getMedicineList'
 import toast from 'react-hot-toast'
 import ClearIcon from '@mui/icons-material/Clear'
 import FilterDrawer from 'src/components/FilterDrawer'
+import { getPharmacyTransactionConstants } from 'src/constants/PharmacyConstants'
 
 const DoctorCard = ({ id, name, title, site, isSelected, onSelectDoctor }) => {
   return (
@@ -230,7 +231,7 @@ function Ledger({ tabValue, updateUrlParams }) {
             fontFamily: 'Inter'
           }}
         >
-          {Utility.formatText(params.row.type) || 'NA'}
+          {getPharmacyTransactionConstants(params.row.type) || 'NA'}
         </Typography>
       )
     },
@@ -435,8 +436,8 @@ function Ledger({ tabValue, updateUrlParams }) {
               mr: 4
             }}
             variant='circular'
-            alt={params?.row?.profile_pic}
-            src={params?.row?.profile_pic}
+            alt={params?.row?.transaction_created_by_profile_pic}
+            src={params?.row?.transaction_created_by_profile_pic}
           />
           <Typography
             variant='body2'
