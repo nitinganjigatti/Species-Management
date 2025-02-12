@@ -984,6 +984,8 @@ const IndividualReturnRequest = () => {
                       title={`Return Items`}
                       action={
                         selectedPharmacy.type === 'local' &&
+                        (selectedPharmacy.permission.key === 'allow_full_access' ||
+                          selectedPharmacy.permission.key === 'ADD') &&
                         shippedItems.length === 0 &&
                         requestItems.status !== 'Cancelled' ? (
                           <Button

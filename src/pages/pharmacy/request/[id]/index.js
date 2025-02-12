@@ -1416,6 +1416,29 @@ const IndividualRequest = () => {
 
   console.log(shippedItems, 'shippedItems')
 
+  const hasNotFulfilledItems = requestItems?.request_item_details?.some(
+    el =>
+      el?.dispatch_status === 'Not Fulfilled' &&
+      el?.request_status !== 'Rejected' &&
+      el?.request_status !== 'Not Available'
+  )
+
+  useEffect(() => {
+    if (hasNotFulfilledItems) {
+      setStatus('Pending')
+    } else if (requestItems?.request_item_details?.length > 0) {
+      setStatus('All')
+    }
+  }, [hasNotFulfilledItems, requestItems?.request_item_details?.length > 0])
+
+  useEffect(() => {
+    if (dispatchedItems?.length > 0) {
+      setShipmentTab('Ready To Ship')
+    } else if (shippedItems?.length > 0) {
+      setShipmentTab('Shipped')
+    }
+  }, [dispatchedItems?.length > 0, shippedItems?.length > 0])
+
   return (
     <>
       {loader ? (
@@ -1871,7 +1894,6 @@ const IndividualRequest = () => {
                           <Box sx={{ my: 5 }}>
                             {shippedItems?.length > 0 ? (
                               <>
-                                hello
                                 <Card sx={{ mb: 6, minWidth: '100%', ml: -2, boxShadow: 'none !important' }}>
                                   {/* <CardHeader title={`Shipments`}></CardHeader> */}
                                   <TableBasic

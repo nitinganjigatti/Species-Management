@@ -251,14 +251,13 @@ const ProductDetailsList = () => {
     try {
       const result = await getProductMonthWisePurchaseList(id)
       if (result?.success === true && result?.data) {
-        console.log(result, 'result')
+        // console.log(result, 'result')
 
         const adjustedData = {
           purchase_count: result.data.purchase_count,
           purchase_value: result.data.purchase_value
         }
-
-        setPurchaseData(adjustedData)
+        setPurchaseData(result.data)
       }
     } catch (error) {
       console.error(error)
@@ -269,13 +268,13 @@ const ProductDetailsList = () => {
     try {
       const result = await getProductMonthWiseDispatchList(id)
       if (result?.success === true && result?.data) {
-        console.log(result, 'dispatch_count')
+        // console.log(result, 'dispatch_count')
 
         const adjustedData = {
           dispatch_count: result.data.dispatch_count,
           dispatch_value: result.data.dispatch_value
         }
-        setDispatchData(adjustedData)
+        setDispatchData(result.data)
       }
     } catch (error) {
       console.error(error)
@@ -332,7 +331,7 @@ const ProductDetailsList = () => {
                   variant='square'
                   src={uploadedImage}
                   alt='Medicine Image'
-                  sx={{ objectFit: 'contain', width: 'auto', height: 180, borderRadius: 2 }}
+                  sx={{ objectFit: 'contain', width: 'auto', height: 'auto', borderRadius: 2 }}
                 />
               </Grid>
 

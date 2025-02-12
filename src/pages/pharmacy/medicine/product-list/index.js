@@ -222,7 +222,7 @@ const ListOfMedicine = () => {
               textTransform: 'capitalize'
             }}
           >
-            {params.row.stock_type}
+            {Utility.formatText(params.row.stock_type)}
           </Typography>
         </Tooltip>
       )
