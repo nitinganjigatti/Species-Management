@@ -372,8 +372,17 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
 
   if (selectedPharmacy?.type === 'local') {
     requestParent.children.push(requestListing)
-    requestParent.children.push(requestByStoreListing)
+
+    // requestParent.children.push(requestByStoreListing)
     requestParent.children.push(nonExistingProductRequestList)
+
+    // debugger
+    // requestParent.children.push({
+    //   title: 'Requests By Store',
+
+    //   // icon: 'material-symbols:request-quote-outline',
+    //   path: `/pharmacy/requests-by-store/${selectedPharmacy.id}`
+    // })
 
     // requestByStoresParent.children.push(requestByStoreListing)
     returnParent.children.push(returnListing)
