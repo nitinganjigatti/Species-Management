@@ -102,6 +102,7 @@ function Ledger({ tabValue, updateUrlParams }) {
   const [selectedTabs, setSelectedTabs] = useState(
     router.query.filters ? (Array.isArray(router.query.filters) ? router.query.filters : [router.query.filters]) : []
   )
+
   const [selectedBatches, setSelectedBatches] = useState(
     router.query.batch_no
       ? Array.isArray(router.query.batch_no)
@@ -127,6 +128,7 @@ function Ledger({ tabValue, updateUrlParams }) {
   const [selectedDispatchedBy, setSelectedDispatchedBy] = useState([])
 
   const [dispatchedToOptions, setDispatchedToOptions] = useState([])
+
   const [selectedDispatchedTo, setSelectedDispatchedTo] = useState(
     router.query.dispatchedTo
       ? Array.isArray(router.query.dispatchedTo)
@@ -136,6 +138,7 @@ function Ledger({ tabValue, updateUrlParams }) {
   )
 
   const [createByOptions, setCreateByOptions] = useState([])
+
   const [selectedCreateBy, setSelectedCreateBy] = useState(
     router.query.createdBy
       ? Array.isArray(router.query.createdBy)
@@ -144,6 +147,7 @@ function Ledger({ tabValue, updateUrlParams }) {
       : []
   )
   const [selectedDate, setSelectedDate] = useState('')
+
   const [filterDates, setFilterDates] = useState({
     startDate: router.query.from_date || '',
     endDate: router.query.to_date || ''
@@ -475,6 +479,7 @@ function Ledger({ tabValue, updateUrlParams }) {
     async ({ sort, column, stock_id, batch_no, q, tab, dispatched_to, created_by, from_date, to_date }) => {
       try {
         setLoading(true)
+
         const params = {
           sort_value: sort,
           sort_column: column,
@@ -646,6 +651,7 @@ function Ledger({ tabValue, updateUrlParams }) {
   // Toggle Drawer open/close
   const toggleDrawer = () => {
     setOpen(!open)
+
     // setSelectedItem('Batch Details')
   }
 
@@ -664,6 +670,7 @@ function Ledger({ tabValue, updateUrlParams }) {
       if (checked) {
         return [...new Set([...prev, value])]
       }
+
       return prev.filter(batch => batch !== value)
     })
   }
@@ -758,6 +765,7 @@ function Ledger({ tabValue, updateUrlParams }) {
     } catch (error) {
       console.error(error)
     }
+
     // Close the filter drawer
     toggleDrawer()
   }
@@ -915,6 +923,7 @@ function Ledger({ tabValue, updateUrlParams }) {
                 border: theme => `1px solid ${theme.palette.customColors.OutlineVariant}`,
                 borderRadius: '8px',
                 height: '40px',
+
                 // textTransform: 'none',
                 width: { xs: '100%', md: 'auto' },
                 color: 'customColors.OnSurfaceVariant'
@@ -1036,7 +1045,9 @@ function Ledger({ tabValue, updateUrlParams }) {
                       {stockDetails
                         ? Number(stockDetails?.total_request_qty || 0) +
                           Number(stockDetails?.total_dispatch_qty || 0) +
-                          Number(stockDetails?.total_dispense_qty || 0)
+                          Number(stockDetails?.total_dispense_qty || 0) +
+                          Number(stockDetails?.total_discard_qty || 0) +
+                          Number(stockDetails?.total_stock_adjusted_qty || 0)
                         : '0'}
                     </Typography>
                   </Box>
@@ -1067,6 +1078,7 @@ function Ledger({ tabValue, updateUrlParams }) {
         onSelectItem={setSelectedItem}
         filterLists={[
           'Batch Details',
+
           // 'Transaction Type',
           // 'Dispatch By',
           'Dispatch To',
@@ -1089,7 +1101,7 @@ function Ledger({ tabValue, updateUrlParams }) {
                 sx={{ mt: 2 }}
               />
             </Box> */}
-            {batchDetailsList.map(location => (
+            {batchDetailsList?.map(location => (
               <Box key={location.batch_no}>
                 <FormControlLabel
                   control={
@@ -1195,6 +1207,7 @@ function Ledger({ tabValue, updateUrlParams }) {
                 overflowY: 'scroll',
                 height: '82.5vh',
                 px: 5
+
                 // mt: 2
               }}
             >
@@ -1222,6 +1235,7 @@ function Ledger({ tabValue, updateUrlParams }) {
                 overflowY: 'scroll',
                 height: '82.5vh',
                 px: 5
+
                 // mt: 2
               }}
             >
