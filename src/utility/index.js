@@ -175,6 +175,10 @@ const downloadFileFromURL = async (fileUrl, title = 'report') => {
   }
 }
 
+const formatText = text => {
+  return text.replace(/_/g, ' ').replace(/\b\w/g, char => char.toUpperCase())
+}
+
 function toPascalSentenceCase(str) {
   return str
     .replace(/[-_]+/g, ' ')
@@ -201,6 +205,7 @@ const Utility = {
   formatNumberToDisplay,
   formatAmountToReadableDigit,
   downloadFileFromURL,
+  formatText,
   toPascalSentenceCase,
   renderUserAvatar
 }

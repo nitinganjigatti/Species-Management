@@ -67,6 +67,7 @@ const ProductsChart = ({
 
   // Conditionally add series based on checkbox selections
   const series = []
+
   if (showBar) {
     series.push({
       name: seriesBarName,
@@ -100,7 +101,7 @@ const ProductsChart = ({
         }
       }
     },
-    dataLabels: { enabled: false },
+    // dataLabels: { enabled: false },
     stroke: {
       width: [0, 3],
       curve: 'smooth',
@@ -110,10 +111,10 @@ const ProductsChart = ({
       show: true,
       padding: { left: 24, top: -4, right: 4 }
     },
-    fill: {
-      type: 'solid',
-      colors: ['#FA6140']
-    },
+    // fill: {
+    //   type: 'solid',
+    //   colors: ['#FA6140']
+    // },
     xaxis: { categories: shortMonths, labels: { rotate: -45, show: true } },
     yaxis: [
       showBar
