@@ -331,30 +331,34 @@ const ListOfPurchase = () => {
   }
 
   const headerAction = (
-    <Box
-      sx={{
-        display: 'flex',
-        gap: 2,
-        justifyContent: 'flex-start',
-        whiteSpace: 'nowrap'
-      }}
-    >
-      <ExcelExportButton
-        disabled={total === 0}
-        action={() => {
-          Router.push({
-            pathname: '/pharmacy/purchase/import-purchases/'
-          })
-        }}
-        title='Import Inventory'
-        fullWidth='fullWidth'
-      />
-      <AddButtonContained
-        title='Add Inventory'
-        action={() => Router.push({ pathname: '/pharmacy/purchase/add-purchase/' })}
-        fullWidth='fullWidth'
-      />
-    </Box>
+    <>
+      {(selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') && (
+        <Box
+          sx={{
+            display: 'flex',
+            gap: 2,
+            justifyContent: 'flex-start',
+            whiteSpace: 'nowrap'
+          }}
+        >
+          <ExcelExportButton
+            disabled={total === 0}
+            action={() => {
+              Router.push({
+                pathname: '/pharmacy/purchase/import-purchases/'
+              })
+            }}
+            title='Import Inventory'
+            fullWidth='fullWidth'
+          />
+          <AddButtonContained
+            title='Add Inventory'
+            action={() => Router.push({ pathname: '/pharmacy/purchase/add-purchase/' })}
+            fullWidth='fullWidth'
+          />
+        </Box>
+      )}
+    </>
   )
 
   const onRowClick = params => {
