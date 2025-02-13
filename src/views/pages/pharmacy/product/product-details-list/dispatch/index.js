@@ -43,7 +43,7 @@ function Dispatch({ tabValue, updateUrlParams }) {
   const [sort, setSort] = useState(router.query.sort || 'desc')
   const [rows, setRows] = useState([])
   const [searchValue, setSearchValue] = useState(router.query.searchValue || '')
-  const [sortColumn, setSortColumn] = useState(router.query.column || 'shipment_id')
+  const [sortColumn, setSortColumn] = useState(router.query.column || 'shipment_date')
   const [total, setTotal] = useState(0)
 
   const [paginationModel, setPaginationModel] = useState({
@@ -76,7 +76,7 @@ function Dispatch({ tabValue, updateUrlParams }) {
     if (router.query.tab !== tabValue) {
       // debugger
       setPaginationModel({ page: 0, pageSize: 10 })
-      setSortColumn('shipment_id')
+      setSortColumn('shipment_date')
       setFilterDates({ startDate: '', endDate: '' })
       setSelectedType('')
       setSelectedDispatchedTo('')
@@ -84,7 +84,7 @@ function Dispatch({ tabValue, updateUrlParams }) {
       updateUrlParams({
         tab: tabValue,
         sort: 'desc',
-        column: 'shipment_id',
+        column: 'shipment_date',
         searchValue: '',
         from_date: '',
         to_date: '',
