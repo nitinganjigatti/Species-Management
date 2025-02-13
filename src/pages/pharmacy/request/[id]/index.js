@@ -1416,6 +1416,12 @@ const IndividualRequest = () => {
 
   console.log(shippedItems, 'shippedItems')
 
+  // const pendingItems = () => {
+  //   return requestItems?.request_item_details?.length > 0
+  //     ? requestItems?.request_item_details?.filter(el => el?.dispatch_status === 'Not Fulfilled')
+  //     : []
+  // }
+
   return (
     <>
       {loader ? (
@@ -1540,10 +1546,11 @@ const IndividualRequest = () => {
                               fontSize: '16px',
                               color: 'customColors.OnSurfaceVariant',
                               lineHeight: '19.36px',
-                              mx: 2
+                              mx: 2,
+                              ...RenderUtility?.getEllipsisStyleForText('100')
                             }}
                           >
-                            {requestItems?.to_store}
+                            {RenderUtility?.getToolTipForText(requestItems?.to_store)}
                           </Box>
                         </Typography>
                         <Typography
@@ -1562,10 +1569,11 @@ const IndividualRequest = () => {
                               fontSize: '16px',
                               color: 'customColors.OnSurfaceVariant',
                               lineHeight: '19.36px',
-                              mx: 2
+                              mx: 2,
+                              ...RenderUtility?.getEllipsisStyleForText('100')
                             }}
                           >
-                            {requestItems?.request_number}
+                            {RenderUtility?.getToolTipForText(requestItems?.request_number)}
                           </Box>
                         </Typography>
                       </Grid>
@@ -1638,10 +1646,14 @@ const IndividualRequest = () => {
                               fontSize: '16px',
                               color: 'primary.light',
                               lineHeight: '19.36px',
-                              mx: 2
+                              mx: 2,
+                              ...RenderUtility?.getEllipsisStyleForText('100')
                             }}
                           >
-                            ₹{Utility.formatNumberToDisplay(requestItems?.requested_amount)}
+                            ₹
+                            {RenderUtility?.getToolTipForText(
+                              Utility.formatNumberToDisplay(requestItems?.requested_amount)
+                            )}
                           </Box>
                         </Typography>
 
@@ -1871,7 +1883,6 @@ const IndividualRequest = () => {
                           <Box sx={{ my: 5 }}>
                             {shippedItems?.length > 0 ? (
                               <>
-                                hello
                                 <Card sx={{ mb: 6, minWidth: '100%', ml: -2, boxShadow: 'none !important' }}>
                                   {/* <CardHeader title={`Shipments`}></CardHeader> */}
                                   <TableBasic

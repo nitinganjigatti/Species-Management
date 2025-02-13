@@ -12,11 +12,9 @@ import {
   Stack,
   Divider
 } from '@mui/material'
-import { DatePicker } from '@mui/x-date-pickers'
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday'
 import ChevronRightIcon from '@mui/icons-material/ChevronRight'
-import KeyboardArrowDownIcon from '@mui/icons-material/KeyboardArrowDown'
-import { format, subDays, startOfMonth, endOfMonth, subMonths } from 'date-fns'
+import { format, subDays, subMonths } from 'date-fns'
 import CloseIcon from '@mui/icons-material/Close'
 import IconButton from '@mui/material/IconButton'
 import { useTheme } from '@emotion/react'
@@ -50,7 +48,7 @@ const CommonDateRangePickers = ({ onChange, filterDates }) => {
       label: 'Yesterday',
       subLabel: format(subDays(today, 1), 'dd MMM, yyyy'),
       startDate: subDays(today, 1),
-      endDate: today
+      endDate: subDays(today, 1)
     },
     {
       label: 'Last 7 days',
@@ -85,6 +83,7 @@ const CommonDateRangePickers = ({ onChange, filterDates }) => {
     // Handle All time case (no dates)
     if (!startDateProp && !endDateProp) {
       setSelectedRange(`All time - Upto - ${format(today, 'dd MMM, yyyy')}`)
+
       return
     }
 
@@ -223,6 +222,7 @@ const CommonDateRangePickers = ({ onChange, filterDates }) => {
           width: '100%',
           '&:hover': {
             backgroundColor: '#E8EBE8'
+
             // customColors.neutral05
           }
         }}
@@ -230,6 +230,7 @@ const CommonDateRangePickers = ({ onChange, filterDates }) => {
         <Box
           sx={{
             backgroundColor: 'customColors.Outline',
+
             // borderRadius: '4px',
             borderRadius: '4px 0 0 4px',
             width: '40px',
@@ -277,6 +278,7 @@ const CommonDateRangePickers = ({ onChange, filterDates }) => {
             '& .MuiList-root': {
               padding: 0
             }
+
             // borderRadius: '8px'
             // border: '1px solid #E0E0E0'
           }
@@ -289,6 +291,7 @@ const CommonDateRangePickers = ({ onChange, filterDates }) => {
             <MenuItem
               key={range.label}
               onClick={() => handleSelect(range)}
+              // eslint-disable-next-line lines-around-comment
               // divider={index < dateRanges.length - 1}
               sx={{
                 py: 3,

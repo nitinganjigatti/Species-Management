@@ -52,6 +52,7 @@ import CommonTable from 'src/views/table/data-grid/CommonTable'
 import { AddButtonContained } from 'src/components/ButtonContained'
 import RenderUtility from 'src/utility/render'
 import { AuthContext } from 'src/context/AuthContext'
+import { width } from '@mui/system'
 
 export default function NewProductList() {
   const theme = useTheme()
@@ -67,7 +68,8 @@ export default function NewProductList() {
   const [prescriptionImages, setPrescriptionImages] = useState()
   const [statusCall, setStatusCall] = useState(false)
   const { selectedPharmacy } = usePharmacyContext()
-  const [selectedPharmacyState, setSelectedPharmacyState] = useState(selectedPharmacy)
+  const [selectedPharmacyId, setSelectedPharmacyId] = useState('')
+
   const authData = useContext(AuthContext)
 
   console.log('Selected Pharmacy', authData.userData.modules.pharmacy_data.pharmacy)
@@ -113,8 +115,8 @@ export default function NewProductList() {
 
   const columns = [
     {
-      // flex: 0.2,
-      minWidth: 150,
+      width: 80,
+      minWidth: 80,
       field: 'id',
       headerName: 'S.NO',
       renderCell: params => (
@@ -124,8 +126,8 @@ export default function NewProductList() {
       )
     },
     {
-      // flex: 0.3,
-      minWidth: 100,
+      width: 150,
+      minWidth: 150,
       field: 'request_number',
       headerName: 'Request Number',
       renderCell: (params, rowId) => (
@@ -145,8 +147,8 @@ export default function NewProductList() {
       )
     },
     selectedPharmacy?.type === 'central' && {
-      // flex: 0.2,
-      minWidth: 40,
+      width: 150,
+      minWidth: 150,
       field: 'to_store_name',
       headerName: 'From Store',
       renderCell: (params, rowId) => (
@@ -314,6 +316,7 @@ export default function NewProductList() {
 
     // Update the status
     setStatus(newValue)
+    setPaginationModel({ page: 0, pageSize: 10 })
 
     // Fetch table data with the new status
     fetchTableData({
@@ -396,9 +399,7 @@ export default function NewProductList() {
   const searchTableData = useCallback(
     debounce(async ({ sort, q, column, status, filterByPharmacyId }) => {
       setSearchValue(q)
-
       setPaginationModel({ page: 0, pageSize: 10 })
-
       try {
         await fetchTableData({
           sort,
@@ -468,6 +469,7 @@ export default function NewProductList() {
   const onRowClick = async params => {
     console.log('Status', params)
     setShow(true)
+    setSelectedPharmacyId(params?.row?.to_store)
     setItemId(params.id)
     await getNonExistingProductById(params.id)
       .then(res => {
@@ -661,6 +663,7 @@ export default function NewProductList() {
                     >
                       <div>Product Details - {productDetails?.request_number}</div>
                       {selectedPharmacy.type === 'local' &&
+                        selectedPharmacyId == selectedPharmacy.id &&
                         (selectedPharmacy.permission.key === 'allow_full_access' ||
                           selectedPharmacy.permission.key === 'ADD') &&
                         productDetails.status === 'Pending' && (
@@ -698,6 +701,7 @@ export default function NewProductList() {
                       itemId={itemId}
                       handleEdit={handleEdit}
                       productDetails={productDetails}
+                      selectedPharmacyId={selectedPharmacyId}
                     />
                   }
                   close={() => {
