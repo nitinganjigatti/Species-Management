@@ -403,26 +403,28 @@ const RequestDetails = () => {
                       params.row.status === 'pending' ||
                       params.row.status === 'transferred' ||
                       params.row.status === 'awaiting_sample' ||
-                      params.row.status === 'sample_rejected' ||
-                      params.row.status === 'sample_received'
+                      params.row.status === 'sample_rejected'
                         ? 'rgba(255, 0, 0, 0.1)' // light red background for pending
                         : params.row.status === 'completed'
                         ? '#37BD69' // light green background for completed
                         : params.row.status === 'inprogress'
                         ? 'rgba(228, 184, 25, 0.1)' // light yellow background for in progress
+                        : params.row.status === 'sample_received'
+                        ? 'rgba(0, 128, 0, 0.1)'
                         : 'rgba(0, 128, 0, 0.1)',
 
                     color:
                       params.row.status === 'pending' ||
                       params.row.status === 'transferred' ||
                       params.row.status === 'awaiting_sample' ||
-                      params.row.status === 'sample_rejected' ||
-                      params.row.status === 'sample_received'
+                      params.row.status === 'sample_rejected'
                         ? '#FA6140'
                         : params.row.status === 'completed'
                         ? '#37BD69'
                         : params.row.status === 'inprogress'
                         ? '#E4B819 '
+                        : params.row.status === 'sample_received'
+                        ? '#37BD69'
                         : '#37BD69',
 
                     borderRadius: '8px',
@@ -431,13 +433,14 @@ const RequestDetails = () => {
                         params.row.status === 'pending' ||
                         params.row.status === 'transferred' ||
                         params.row.status === 'awaiting_sample' ||
-                        params.row.status === 'sample_rejected' ||
-                        params.row.status === 'sample_received'
+                        params.row.status === 'sample_rejected'
                           ? '#FA6140'
                           : params.row.status === 'completed'
                           ? '#37BD69'
                           : params.row.status === 'inprogress'
                           ? '#E4B819'
+                          : params.row.status === 'sample_received'
+                          ? '#37BD69'
                           : '#37BD69'
                     },
 
