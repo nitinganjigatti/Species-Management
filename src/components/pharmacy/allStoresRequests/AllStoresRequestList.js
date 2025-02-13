@@ -277,7 +277,13 @@ const AllStoresRequestList = () => {
 
       setIsLoadingMore(true)
       try {
-        const params = { stock_status, page, limit }
+        const params = {
+          stock_status,
+          sort: 'asc',
+          column: 'stock_name',
+          page,
+          limit
+        }
         const res = await getAllUniquePendingList({ params })
 
         if (res?.success && res?.data?.list_items?.length > 0) {
