@@ -163,7 +163,7 @@ const ListOfRacks = () => {
 
   useEffect(() => {
     getRacksLists()
-  }, [selectedPharmacy.id])
+  }, [selectedPharmacy?.id])
 
   useEffect(() => {
     setData(racks)
@@ -360,7 +360,7 @@ const ListOfRacks = () => {
         <>
           {/* <TableWithFilter TableTitle={title} headerActions={addRackButton} columns={columns} rows={racks} /> */}
           <Card sx={{ cursor: 'pointer' }}>
-            <CardHeader title={RenderUtility.pageTitle('Rack List')} action={addRackButton} />
+            <CardHeader title={RenderUtility?.pageTitle('Rack List')} action={addRackButton} />
 
             <Box display='flex' justifyContent='space-between' alignItems='center'>
               {/* Left Box (Search Field) */}
@@ -416,7 +416,7 @@ const ListOfRacks = () => {
             >
               <CommonTable
                 onRowClick={''}
-                indexedRows={filteredData.length ? filteredData : data}
+                indexedRows={filteredData?.length ? filteredData : data}
                 total={''}
                 columns={columns}
                 paginationModel={paginationModel}
@@ -444,7 +444,7 @@ const ListOfRacks = () => {
             submitLoader={submitLoader}
             editParams={editParams}
           />
-          {openSnackbar.open ? (
+          {openSnackbar?.open ? (
             <UserSnackbar severity={openSnackbar?.severity} status={true} message={openSnackbar?.message} />
           ) : null}
         </>
