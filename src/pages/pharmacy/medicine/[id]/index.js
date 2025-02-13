@@ -227,12 +227,12 @@ const ProductDetailsList = () => {
     variant => variant.active !== '0' && !variantProductList.some(item => item.variant_id === variant.id)
   )
 
-  console.log(listAllVariant, 'listAllVariant')
-  console.log(variantProductList, 'variantProductList')
-  console.log(filteredListAllVariant, 'filteredListAllVariant')
+  // console.log(listAllVariant, 'listAllVariant')
+  // console.log(variantProductList, 'variantProductList')
+  // console.log(filteredListAllVariant, 'filteredListAllVariant')
 
   const [productDashboardData, setProductDashboardData] = useState()
-  const [purchaseData, setPurchaseData] = useState({ dispatch_count: [], dispatch_value: [] })
+  const [purchaseData, setPurchaseData] = useState({ purchase_count: [], purchase_value: [] })
   const [dispatchData, setDispatchData] = useState({ dispatch_count: [], dispatch_value: [] })
 
   const productDashboardList = async id => {
@@ -251,7 +251,7 @@ const ProductDetailsList = () => {
     try {
       const result = await getProductMonthWisePurchaseList(id)
       if (result?.success === true && result?.data) {
-        // console.log(result, 'result')
+        // console.log(result.data, 'purchase')
 
         const adjustedData = {
           purchase_count: result.data.purchase_count,
@@ -268,7 +268,7 @@ const ProductDetailsList = () => {
     try {
       const result = await getProductMonthWiseDispatchList(id)
       if (result?.success === true && result?.data) {
-        // console.log(result, 'dispatch_count')
+        // console.log(result.data, 'dispatch')
 
         const adjustedData = {
           dispatch_count: result.data.dispatch_count,
