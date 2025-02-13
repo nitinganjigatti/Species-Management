@@ -185,7 +185,7 @@ const RecipeDetail = () => {
               {/* <Link underline='hover' color='inherit' href='/diet/recipe/'>
                 Recipe 
               </Link> */}
-              <Typography color='inherit' sx={{ cursor: 'pointer' }} onClick={() => Router.push('/diet/recipe/')}>
+              <Typography color='inherit' sx={{ cursor: 'pointer' }} onClick={() => Router.push('/diet/combo/')}>
                 Combo
               </Typography>
               <Typography color='text.primary'>Combo Details</Typography>
@@ -284,6 +284,7 @@ const RecipeDetail = () => {
                             <DietListTabview
                               IngredientName={IngredientsDetailsval.ingredient_name}
                               onTotalChange={setDietListTotal}
+                              type='combo'
                             />
                           </TabPanel>
                         </TabContext>

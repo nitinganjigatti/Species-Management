@@ -282,6 +282,7 @@ const RecipeDetail = () => {
                             <DietListTabview
                               IngredientName={IngredientsDetailsval.ingredient_name}
                               onTotalChange={setDietListTotal}
+                              type='recipe'
                             />
                           </TabPanel>
                         </TabContext>
