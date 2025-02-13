@@ -10,6 +10,7 @@ import IconButton from '@mui/material/IconButton'
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
 import { Divider } from '@mui/material'
+import Utility from 'src/utility'
 
 const CommonDrawerBox = ({
   title,
@@ -105,9 +106,11 @@ const CommonDrawerBox = ({
                 Total Batches: <strong>{totalBatches}</strong>
               </Typography>
             )}
+
             {totalValue !== undefined && (
               <Typography sx={{ fontSize: '14px' }}>
-                Total Value: <strong>₹ {totalValue}</strong>
+                {/* Total Value: <strong>₹ {totalValue}</strong> */}
+                Total Value: <strong>{Utility.formatAmountToReadableDigit(totalValue)}</strong>
               </Typography>
             )}
           </Box>

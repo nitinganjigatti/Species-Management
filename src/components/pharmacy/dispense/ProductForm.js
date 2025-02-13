@@ -578,9 +578,16 @@ function ProductForm({
                     />
                     {errors?.stock_id && (
                       <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
-                        {errors?.stock_id?.message || 'Product Name is required'}
+                        {errors?.stock_id?.message?.includes('cannot be null')
+                          ? 'Product Name is required'
+                          : errors?.stock_id?.message || 'Product Name is required'}
                       </FormHelperText>
                     )}
+                    {/* {errors?.stock_id && (
+                      <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
+                        {errors?.stock_id?.message || 'Product Name is required'}
+                      </FormHelperText>
+                    )} */}
                   </>
                 )}
               />
@@ -634,11 +641,18 @@ function ProductForm({
                           />
                           {errors?.product_batches?.[index]?.batch_no && (
                             <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
-                              {errors?.product_batches?.[index]?.batch_no?.message === 'batch_no cannot be null'
-                                ? 'Batch No is required'
+                              {errors?.product_batches?.[index]?.batch_no?.message?.includes('cannot be null') ||
+                              errors?.product_batches?.[index]?.batch_no?.message?.includes('must be a `object` type')
+                                ? 'Batch No. is required'
                                 : errors?.product_batches?.[index]?.batch_no?.message ||
                                   'Batch number already exists for this product' ||
                                   'Batch No. is required'}
+                              {/* {errors?.product_batches?.[index]?.batch_no?.message ===
+                              `product_batches[${index}].batch_no cannot be null`
+                                ? 'Batch No. is required'
+                                : errors?.product_batches?.[index]?.batch_no?.message ||
+                                  'Batch number already exists for this product' ||
+                                  'Batch No. is required'} */}
                             </FormHelperText>
                           )}
                         </>

@@ -185,7 +185,8 @@ export default function DetailsTable({ ...props }) {
                             alignItems: 'center'
                           }}
                         >
-                          {el.sl_no}.
+                          {/* {el.sl_no}. */}
+                          {index + 1}.
                         </Typography>
                       </TableCell>
                       <TableCell

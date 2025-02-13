@@ -168,6 +168,10 @@ const downloadFileFromURL = async (fileUrl, title = 'report') => {
   }
 }
 
+const formatText = text => {
+  return text.replace(/_/g, ' ').replace(/\b\w/g, char => char.toUpperCase())
+}
+
 const Utility = {
   formatDate,
   formatNumber,
@@ -183,7 +187,8 @@ const Utility = {
   extractHoursAndMinutes,
   formatNumberToDisplay,
   formatAmountToReadableDigit,
-  downloadFileFromURL
+  downloadFileFromURL,
+  formatText
 }
 
 export default Utility

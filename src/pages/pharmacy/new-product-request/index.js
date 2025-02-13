@@ -313,6 +313,7 @@ export default function NewProductList() {
     // Reset total and search value
     setTotal(0)
     setSearchValue('')
+    setPaginationModel({ page: 0, pageSize: 10 })
 
     // Update the status
     setStatus(newValue)

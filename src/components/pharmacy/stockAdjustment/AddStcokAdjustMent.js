@@ -98,6 +98,7 @@ const AddStockAdjustment = () => {
   const [selectedStockId, setSelectedStockId] = useState('')
   const [ConfirmDialog, setConfirmDialog] = useState(false)
   const [tempItems, setTempItems] = useState(null)
+  const [errorState, setErrorState] = useState(false)
   const router = useRouter()
   const { selectedPharmacy } = usePharmacyContext()
   const { id, action } = router.query
@@ -141,9 +142,12 @@ const AddStockAdjustment = () => {
   const fetchBatchData = async (id, productType) => {
     if (id !== '') {
       try {
+        setLoader(true)
+        setErrorState(false)
         const data = { stock_item_id: id }
         const searchResults = await getAvailableMedicineByMedicineIdToReturn(id, data, 'local', productType, 1)
-        setLoader(true)
+        setErrorState(false)
+
         if (searchResults?.success) {
           if (searchResults?.data?.items.length > 0) {
             const data = searchResults?.data?.items?.map(item => ({
@@ -161,13 +165,14 @@ const AddStockAdjustment = () => {
           }
         } else {
           setOptionsBatchList([])
-
-          toast.error(searchResults?.data)
+          setErrorState(true)
+          // toast.error(searchResults?.data)
           setLoader(false)
         }
       } catch (e) {
         console.log('error', e)
         setOptionsBatchList([])
+        setErrorState(true)
         setLoader(false)
       }
     }
@@ -514,7 +519,7 @@ const AddStockAdjustment = () => {
                     Search product :
                   </Typography>
                 </Grid>
-                <FormControl fullWidth>
+                <FormControl style={{ width: 'calc(100% - 40px)' }}>
                   <Autocomplete
                     id='autocomplete-controlled'
                     options={optionsMedicineList}
@@ -555,10 +560,19 @@ const AddStockAdjustment = () => {
                       />
                     )}
                   />
+                  {errorState && (
+                    <FormHelperText sx={{ color: 'error.main' }}>
+                      Stock unavailable for the selected product.
+                    </FormHelperText>
+                  )}
                 </FormControl>
+                {loader && (
+                  <span style={{ display: 'inline-block', marginLeft: '10px', marginTop: '12px' }}>
+                    <CircularProgress size={30} />
+                  </span>
+                )}
               </Grid>
             </Grid>
-            {loader ? <CircularProgress size={60} /> : null}
           </Grid>
         </form>
       </CardContent>

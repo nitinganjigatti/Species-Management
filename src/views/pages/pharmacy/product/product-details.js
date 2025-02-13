@@ -14,6 +14,7 @@ export const ProductDetail = ({
   detailsData,
   prescriptionImages,
   productDetails,
+  filterByPharmacyId,
   submitLoader,
   handleRequestStatus,
   statusCall,

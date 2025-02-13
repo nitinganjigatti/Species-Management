@@ -1416,11 +1416,28 @@ const IndividualRequest = () => {
 
   console.log(shippedItems, 'shippedItems')
 
-  // const pendingItems = () => {
-  //   return requestItems?.request_item_details?.length > 0
-  //     ? requestItems?.request_item_details?.filter(el => el?.dispatch_status === 'Not Fulfilled')
-  //     : []
-  // }
+  const hasNotFulfilledItems = requestItems?.request_item_details?.some(
+    el =>
+      el?.dispatch_status === 'Not Fulfilled' &&
+      el?.request_status !== 'Rejected' &&
+      el?.request_status !== 'Not Available'
+  )
+
+  useEffect(() => {
+    if (hasNotFulfilledItems) {
+      setStatus('Pending')
+    } else if (requestItems?.request_item_details?.length > 0) {
+      setStatus('All')
+    }
+  }, [hasNotFulfilledItems, requestItems?.request_item_details?.length > 0])
+
+  useEffect(() => {
+    if (dispatchedItems?.length > 0) {
+      setShipmentTab('Ready To Ship')
+    } else if (shippedItems?.length > 0) {
+      setShipmentTab('Shipped')
+    }
+  }, [dispatchedItems?.length > 0, shippedItems?.length > 0])
 
   return (
     <>
