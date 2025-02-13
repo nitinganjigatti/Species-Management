@@ -37,15 +37,18 @@ const RecipeDetailCardview = ({ IngredientsDetailsval, permission, getRecipeDeta
     const newIsActive = event.target.checked ? 1 : 0
     setActivePayload(newIsActive)
     setDeleteDialogBox(true)
+    console.log(deleteDialogBox, 'deleteDialogBox')
   }
 
   const confirmDeleteAction = async () => {
+    console.log(isActive, 'ooo')
     try {
       setDeleteDialogBox(false)
       const response = await updateRecipeStatus(IngredientsDetailsval?.id, {
         status: activePayload,
-        meal_type: 'recipe'
+        meal_type: 'combo'
       })
+      console.log(response, 'response')
       if (response.success === true) {
         //Router.push(`/diet/recipe`)
         getRecipeDetailval(IngredientsDetailsval?.id)
@@ -105,11 +108,12 @@ const RecipeDetailCardview = ({ IngredientsDetailsval, permission, getRecipeDeta
               flexWrap: 'wrap',
               alignItems: 'center',
               justifyContent: 'space-between'
+              //my: 3
             }}
           >
             <Box sx={{ mr: 2, display: 'flex', flexDirection: 'column' }}>
               <Typography variant='body2' sx={{ mb: 0.5, fontWeight: 600, color: 'text.primary' }}>
-                {'REP' + IngredientsDetailsval.id}
+                {'CMB' + IngredientsDetailsval.id}
               </Typography>
             </Box>
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
@@ -128,7 +132,7 @@ const RecipeDetailCardview = ({ IngredientsDetailsval, permission, getRecipeDeta
               </Grid>
             </Box>
           </Box>
-          <Box
+          {/* <Box
             sx={{
               width: '100%',
               display: 'flex',
@@ -149,7 +153,7 @@ const RecipeDetailCardview = ({ IngredientsDetailsval, permission, getRecipeDeta
                   : '0 g'}
               </Typography>
             </Box>
-          </Box>
+          </Box> */}
           <Box
             sx={{
               width: '100%',
@@ -200,11 +204,11 @@ const RecipeDetailCardview = ({ IngredientsDetailsval, permission, getRecipeDeta
         open={deleteDialogBox}
         active={isActive}
         dietCount={IngredientsDetailsval.diet_count}
-        type='recipe'
+        type='combo'
         ingredientCount={IngredientsDetailsval?.total_ingredients}
         message={
           <span style={{ fontSize: '24px', fontWeight: '600', lineHeight: '1px' }}>
-            {isActive === '1' ? 'Deactivate' : 'Activate'} Recipe?
+            {isActive === '1' ? 'Deactivate' : 'Activate'} Combo?
           </span>
         }
       />

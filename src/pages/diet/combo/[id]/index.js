@@ -19,7 +19,7 @@ import {
   Divider,
   IconButton
 } from '@mui/material'
-import RecipeDetailCardview from 'src/views/pages/recipe/recipe-detail/cardview'
+import RecipeDetailCardview from 'src/views/pages/combo/combo-detail/cardview'
 import Router from 'next/router'
 import { useRouter } from 'next/router'
 import { getRecipeDetail, updateRecipeStatus } from 'src/lib/api/diet/recipe'
@@ -100,7 +100,6 @@ const RecipeDetail = () => {
   const getRecipeDetailval = async id => {
     try {
       const response = await getRecipeDetail(id)
-
       if (response.data.success === true && response.data.data !== null) {
         setIngredientsDetailsval(response.data.data)
         setLoader(false)
@@ -134,9 +133,9 @@ const RecipeDetail = () => {
       setDeleteDialogBox(false)
       const response = await updateRecipeStatus(IngredientsDetailsval?.id, {
         status: activePayload,
-        meal_type: 'recipe'
+        meal_type: 'combo'
       })
-
+      console.log(response, 'response')
       if (response.success === true) {
         //Router.push(`/diet/ingredient`)
         getRecipeDetailval(id)
@@ -153,13 +152,15 @@ const RecipeDetail = () => {
   const confirmDeleteAction = async () => {
     try {
       setDeleteDialogBox(false)
-      const response = await deleteRecipe(id, { meal_type: 'recipe' })
+      const response = await deleteRecipe(id, { meal_type: 'combo' })
 
+      // console.log(response, 'response')
       if (response.success === true) {
-        Router.push(`/diet/recipe`)
-        Toaster({ type: 'success', message: response.message })
+        Router.push(`/diet/combo`)
+        //Toaster({ type: 'success', message: `Recipe ${'REP' + id} has been successfully deleted` })
+        Toaster({ type: 'success', message: response?.message })
       } else {
-        Toaster({ type: 'error', message: response.message })
+        Toaster({ type: 'error', message: response?.message })
       }
     } catch (error) {}
   }
@@ -182,12 +183,12 @@ const RecipeDetail = () => {
             <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
               <Typography color='inherit'>Diet</Typography>
               {/* <Link underline='hover' color='inherit' href='/diet/recipe/'>
-                Recipe
+                Recipe 
               </Link> */}
               <Typography color='inherit' sx={{ cursor: 'pointer' }} onClick={() => Router.push('/diet/recipe/')}>
-                Recipe
+                Combo
               </Typography>
-              <Typography color='text.primary'>Recipe Details</Typography>
+              <Typography color='text.primary'>Combo Details</Typography>
             </Breadcrumbs>
             {Object.keys(IngredientsDetailsval).length !== 0 ? (
               <>
@@ -220,7 +221,7 @@ const RecipeDetail = () => {
                                 style={{ cursor: 'pointer', marginLeft: '10px' }}
                                 onClick={() =>
                                   Router.push({
-                                    pathname: '/diet/recipe/add-recipe',
+                                    pathname: '/diet/combo/add-combo',
                                     query: { id: id, action: 'edit' }
                                   })
                                 }
@@ -272,6 +273,7 @@ const RecipeDetail = () => {
                             <Tab
                               style={{ borderTopLeftRadius: 0, borderBottomLeftRadius: 0 }}
                               value='2'
+                              //label={'USED IN DIET' + ' -' + ' ' + dietListTotal}
                               label={`USED IN DIET${dietListTotal > 0 ? ` - ${dietListTotal}` : ''}`}
                             />
                           </TabList>
@@ -323,12 +325,12 @@ const RecipeDetail = () => {
             setIsOpen={setIsOpen}
             recipename={IngredientsDetailsval.recipe_name}
             recipeid={id}
-            type='recipe'
+            type='combo'
           />
           <ConfirmationDialog
             icon={'mdi:delete'}
             iconColor={'#ff3838'}
-            title={'Are you sure you want to delete this Recipe?'}
+            title={'Are you sure you want to delete this Combo?'}
             dialogBoxStatus={deleteDialogBox}
             onClose={handleClosenew}
             ConfirmationText={'Delete'}
@@ -340,7 +342,7 @@ const RecipeDetail = () => {
             open={statusDialog}
             active={isActive == '1'}
             actionType={'confirm'}
-            type='recipe'
+            type='combo'
             dietCount={IngredientsDetailsval.diet_count}
             ingredientCount={IngredientsDetailsval.total_ingredients}
             message={

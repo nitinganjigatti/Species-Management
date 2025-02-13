@@ -16,7 +16,7 @@ const StepBillingDetails = ({ handlePrev, formData, handleSubmit }) => {
       field: 'ingredient_name',
       headerName: 'Ingredient Name',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary', pl: 2 }}>
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.ingredient_name}
         </Typography>
       )
@@ -33,7 +33,7 @@ const StepBillingDetails = ({ handlePrev, formData, handleSubmit }) => {
       )
     },
     {
-      flex: 0.4,
+      flex: 0.9,
       minWidth: 20,
       field: 'feed_type_label',
       headerName: 'Feed Type',
@@ -44,7 +44,7 @@ const StepBillingDetails = ({ handlePrev, formData, handleSubmit }) => {
       )
     },
     {
-      flex: 0.43,
+      flex: 0.4,
       minWidth: 10,
       field: 'quantity',
       headerName: 'Quantity',
@@ -72,7 +72,7 @@ const StepBillingDetails = ({ handlePrev, formData, handleSubmit }) => {
       field: 'cut_size',
       headerName: 'Cut Size',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary', pl: 2 }}>
+        <Typography variant='body2' sx={{ color: 'text.primary', pl: 5 }}>
           {params?.row?.cut_size ? params?.row?.cut_size : '-'}
         </Typography>
       )
@@ -103,7 +103,7 @@ const StepBillingDetails = ({ handlePrev, formData, handleSubmit }) => {
       )
     },
     {
-      flex: 0.3,
+      flex: 0.4,
       minWidth: 20,
       field: 'feed_type_label',
       headerName: 'Feed Type',
@@ -142,7 +142,7 @@ const StepBillingDetails = ({ handlePrev, formData, handleSubmit }) => {
       field: 'cut_size',
       headerName: 'Cut Size',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary', pl: 5 }}>
+        <Typography variant='body2' sx={{ color: 'text.primary', pl: 2 }}>
           {params?.row?.cut_size ? params?.row?.cut_size : '-'}
         </Typography>
       )
@@ -225,8 +225,8 @@ const StepBillingDetails = ({ handlePrev, formData, handleSubmit }) => {
                             </div>
                           </CardContent>
                         </div>
-                        <CardContent sx={{ pt: 1 }}>
-                          <Box
+                        <CardContent sx={{ pt: 0 }}>
+                          {/* <Box
                             sx={{
                               width: '100%',
                               display: 'flex',
@@ -247,8 +247,29 @@ const StepBillingDetails = ({ handlePrev, formData, handleSubmit }) => {
                                   : '0' + ' g'}
                               </Typography>
                             </Box>
-                          </Box>
+                          </Box> */}
                           <Box
+                            sx={{
+                              width: '100%',
+                              display: 'flex',
+                              flexWrap: 'wrap',
+                              alignItems: 'center',
+                              justifyContent: 'space-between',
+                              my: 1
+                            }}
+                          >
+                            <Box sx={{ mr: 2, display: 'flex', flexDirection: 'column' }}>
+                              <Typography variant='body2' sx={{ mb: 0.5, fontWeight: 600, color: 'text.primary' }}>
+                                Ingredients used
+                              </Typography>
+                            </Box>
+                            <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                              <Typography variant='body2' sx={{ mr: 1.5, color: '#7A8684' }}>
+                                {formData.by_percentage.length + ' nos'}
+                              </Typography>
+                            </Box>
+                          </Box>
+                          {/* <Box
                             sx={{
                               width: '100%',
                               display: 'flex',
@@ -259,26 +280,6 @@ const StepBillingDetails = ({ handlePrev, formData, handleSubmit }) => {
                             }}
                           >
                             <Box sx={{ mr: 2, display: 'flex', flexDirection: 'column' }}>
-                              <Typography variant='body2' sx={{ fontWeight: 600, color: 'text.primary' }}>
-                                Ingredients used
-                              </Typography>
-                            </Box>
-                            <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                              <Typography variant='body2' sx={{ mr: 1.5, color: '#7A8684' }}>
-                                {formData.by_percentage.length + formData.by_quantity.length + ' nos'}
-                              </Typography>
-                            </Box>
-                          </Box>
-                          <Box
-                            sx={{
-                              width: '100%',
-                              display: 'flex',
-                              flexWrap: 'wrap',
-                              alignItems: 'center',
-                              justifyContent: 'space-between'
-                            }}
-                          >
-                            {/* <Box sx={{ mr: 2, display: 'flex', flexDirection: 'column' }}>
                               <Typography variant='body2' sx={{ mb: 0.5, fontWeight: 600, color: 'text.primary' }}>
                                 Calories per 100gms
                               </Typography>
@@ -287,8 +288,8 @@ const StepBillingDetails = ({ handlePrev, formData, handleSubmit }) => {
                               <Typography variant='body2' sx={{ mr: 1.5, color: '#7A8684' }}>
                                 {formData.kcal ? formData.kcal + ' Kcal' : ' 0 Kcal'}
                               </Typography>
-                            </Box> */}
-                          </Box>
+                            </Box>
+                          </Box> */}
                         </CardContent>
                       </Card>
                     </Grid>
@@ -304,9 +305,9 @@ const StepBillingDetails = ({ handlePrev, formData, handleSubmit }) => {
               </Card>
 
               <Card sx={{ boxShadow: 'none' }}>
-                <CardContent sx={{ mb: 5, pt: 0 }}>
+                <CardContent sx={{ mb: 5, mt: 2 }}>
                   <Card sx={{ boxShadow: 'none' }}>
-                    {/* <CardHeader title='Ingredient by percentage' />
+                    <CardHeader title='Ingredient by percentage' />
 
                     <DataGrid
                       sx={{
@@ -324,9 +325,9 @@ const StepBillingDetails = ({ handlePrev, formData, handleSubmit }) => {
                       rows={rowsPercentage}
                       columns={columnsforPercentage}
                       hideFooter={true}
-                    /> */}
+                    />
 
-                    <CardHeader title='Ingredient by Quantity' />
+                    {/* <CardHeader title='Ingredient by Quantity' sx={{ mt: 8 }} />
                     <DataGrid
                       sx={{
                         '.MuiDataGrid-cell:focus': {
@@ -334,16 +335,6 @@ const StepBillingDetails = ({ handlePrev, formData, handleSubmit }) => {
                         },
                         '& .MuiDataGrid-row:hover': {
                           cursor: 'pointer'
-                        },
-                        '& .MuiDataGrid-columnHeader': {
-                          whiteSpace: 'nowrap', // Prevents text wrapping in header
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis'
-                        },
-                        '& .MuiDataGrid-cell': {
-                          whiteSpace: 'nowrap', // Prevents text wrapping in cell
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis'
                         }
                       }}
                       columnVisibilityModel={{
@@ -355,7 +346,7 @@ const StepBillingDetails = ({ handlePrev, formData, handleSubmit }) => {
                       hideFooter={true}
                       rows={rowsQuantity}
                       columns={columns}
-                    />
+                    /> */}
                   </Card>
                 </CardContent>
               </Card>

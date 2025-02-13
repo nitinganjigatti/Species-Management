@@ -30,10 +30,10 @@ const schema = yup.object().shape({
     .string()
     .transform(value => (value ? value.trim() : value))
     .required('Cut Size Name is Required'),
-  comments: yup
-    .string()
-    .transform(value => (value ? value.trim() : value))
-    .required('Cut Size Comment is Required'),
+  // comments: yup
+  //   .string()
+  //   .transform(value => (value ? value.trim() : value))
+  //   .required('Cut Size Comment is Required'),
   status: yup.string().nullable()
 })
 
@@ -173,7 +173,7 @@ const AddCutSize = props => {
               rules={{ required: true }}
               render={({ field: { value, onChange } }) => (
                 <TextField
-                  label='Cut Size Comment*'
+                  label='Cut Size Comment'
                   value={value}
                   onChange={onChange}
                   focused={value !== ''}

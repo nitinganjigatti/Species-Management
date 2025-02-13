@@ -42,9 +42,9 @@ export async function addNewRecipe(payload) {
   }
 }
 
-export async function deleteRecipe(id) {
+export async function deleteRecipe(id, payload) {
   try {
-    const response = await axiosPost({ url: `${DIET}/${RECIPES}/${DELETE}/${id}` })
+    const response = await axiosPost({ url: `${DIET}/${RECIPES}/${DELETE}/${id}`, body: payload })
 
     return response?.data
   } catch (error) {

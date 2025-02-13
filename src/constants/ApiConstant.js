@@ -364,6 +364,12 @@ export const GET_CUT_SIZEBY_ID = 'diet/recipes/master/cutsizeList'
 
 export const RECIPE_PARTOF_DIET_LIST = 'recipe_ingredient_part_of_diet_list'
 
+export const SPECIES = 'species'
+
+export const ASSIGN_TO_SPECIES = 'assign-to-species'
+
+export const DELETE_SPECIES = 'delete-species'
+
 export const USERS_REPORT = '/user/report'
 
 export const HOUSING_REPORT = 'v1/species/report?include_housing=1'
