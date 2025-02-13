@@ -1563,10 +1563,11 @@ const IndividualRequest = () => {
                               fontSize: '16px',
                               color: 'customColors.OnSurfaceVariant',
                               lineHeight: '19.36px',
-                              mx: 2
+                              mx: 2,
+                              ...RenderUtility?.getEllipsisStyleForText('100')
                             }}
                           >
-                            {requestItems?.to_store}
+                            {RenderUtility?.getToolTipForText(requestItems?.to_store)}
                           </Box>
                         </Typography>
                         <Typography
@@ -1585,10 +1586,11 @@ const IndividualRequest = () => {
                               fontSize: '16px',
                               color: 'customColors.OnSurfaceVariant',
                               lineHeight: '19.36px',
-                              mx: 2
+                              mx: 2,
+                              ...RenderUtility?.getEllipsisStyleForText('100')
                             }}
                           >
-                            {requestItems?.request_number}
+                            {RenderUtility?.getToolTipForText(requestItems?.request_number)}
                           </Box>
                         </Typography>
                       </Grid>
@@ -1661,10 +1663,14 @@ const IndividualRequest = () => {
                               fontSize: '16px',
                               color: 'primary.light',
                               lineHeight: '19.36px',
-                              mx: 2
+                              mx: 2,
+                              ...RenderUtility?.getEllipsisStyleForText('100')
                             }}
                           >
-                            ₹{Utility.formatNumberToDisplay(requestItems?.requested_amount)}
+                            ₹
+                            {RenderUtility?.getToolTipForText(
+                              Utility.formatNumberToDisplay(requestItems?.requested_amount)
+                            )}
                           </Box>
                         </Typography>
 

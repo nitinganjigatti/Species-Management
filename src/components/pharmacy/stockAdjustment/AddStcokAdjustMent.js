@@ -79,6 +79,7 @@ const AddStockAdjustment = () => {
       .typeError('Quantity must be a number')
       .positive('Quantity must be a positive number')
       .moreThan(0, 'Quantity must be greater than zero')
+      .integer('Quantity must be an integer')
       .test('is-less-than-available', 'Quantity must be less than available quantity', function (value) {
         return value <= this.parent.availableQty
       }),
@@ -365,11 +366,10 @@ const AddStockAdjustment = () => {
                     onChange={onChange}
                   />
                 )}
-              >
-                {errors.adjustment_quantity && (
-                  <FormHelperText sx={{ color: 'error.main' }}>{errors?.adjustment_quantity?.message}</FormHelperText>
-                )}
-              </Controller>
+              ></Controller>
+              {errors.adjustment_quantity && (
+                <FormHelperText sx={{ color: 'error.main' }}>{errors?.adjustment_quantity?.message}</FormHelperText>
+              )}
             </FormControl>
           </Grid>
 
@@ -423,11 +423,10 @@ const AddStockAdjustment = () => {
                     onChange={onChange}
                   />
                 )}
-              >
-                {errors.comments && (
-                  <FormHelperText sx={{ color: 'error.main' }}>{errors?.comments?.message}</FormHelperText>
-                )}
-              </Controller>
+              ></Controller>
+              {errors.comments && (
+                <FormHelperText sx={{ color: 'error.main' }}>{errors?.comments?.message}</FormHelperText>
+              )}
             </FormControl>
           </Grid>
           <Grid item xs={12}>
