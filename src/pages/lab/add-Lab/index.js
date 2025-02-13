@@ -39,7 +39,6 @@ import * as yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
 import { useForm, Controller } from 'react-hook-form'
 import FileUploaderSingle from 'src/views/forms/form-elements/file-uploader/FileUploaderSingle'
-import UserSnackbar from 'src/components/utility/snackbar'
 import Image from 'next/image'
 import { AuthContext } from 'src/context/AuthContext'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
@@ -84,10 +83,6 @@ const AddLab = () => {
   // for handle reset form
 
   const shouldClearFieldsRef = useRef(false)
-
-  const [openSnackbar, setOpenSnackbar] = useState(false)
-  const [snackbarMessage, setSnackbarMessage] = useState('')
-  const [severity, setSeverity] = useState('success')
   // id for edit
   const router = useRouter()
   const { id, action } = router.query
@@ -98,13 +93,6 @@ const AddLab = () => {
   const [displayFile, setDisplayFile] = useState('')
   const [imgArr, setImgArr] = useState([])
   // console.log('imgArr :>> ', imgArr[0])
-
-  // edit call
-  const setAlertDefaults = ({ message, severity, status }) => {
-    setOpenSnackbar(status)
-    setSnackbarMessage(message)
-    setSeverity(severity)
-  }
 
   const updateTestData = () => {
     try {
@@ -531,14 +519,6 @@ const AddLab = () => {
     }
 
     setOpen(false)
-  }
-
-  const handleCloseSnackBar = (event, reason) => {
-    if (reason === 'clickaway') {
-      return
-    }
-
-    setOpenSnackbar(false)
   }
 
   const handleCheckBox = (sample, parent, child, isChecked) => {
@@ -1153,7 +1133,7 @@ const AddLab = () => {
 
                                       {sample?.tests?.map((parent, parentId) => (
                                         <Card sx={{ p: 2, mb: 2 }}>
-                                          {/* {parent.full_test === true ? ( 
+                                          {/* {parent.full_test === true ? (
                                           <Stack
                                             gap={1}
                                             direction='row'
@@ -1170,7 +1150,7 @@ const AddLab = () => {
                                               </IconButton>
                                             </>
                                           </Stack>
-                                          {/* ) : null} 
+                                          {/* ) : null}
                                           <Stack>
                                             {parent.child_tests?.map((child, childId) =>
                                               child.value === true ? (
@@ -1478,13 +1458,6 @@ const AddLab = () => {
                                 Submit
                               </LoadingButton>
                             </Box>
-
-                            <UserSnackbar
-                              status={openSnackbar}
-                              message={snackbarMessage}
-                              severity={severity}
-                              handleClose={handleCloseSnackBar}
-                            />
                           </Grid>
                         </Grid>
                       </form>
