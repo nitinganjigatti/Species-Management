@@ -47,7 +47,7 @@ function Purchase({ tabValue, updateUrlParams }) {
 
   const [rows, setRows] = useState([])
   const [searchValue, setSearchValue] = useState(router.query.searchValue || '')
-  const [sortColumn, setSortColumn] = useState(router.query.column || 'po_no')
+  const [sortColumn, setSortColumn] = useState(router.query.column || 'po_date')
   const [total, setTotal] = useState(0)
 
   const [paginationModel, setPaginationModel] = useState({
@@ -71,14 +71,14 @@ function Purchase({ tabValue, updateUrlParams }) {
     if (router.query.tab !== tabValue) {
       // debugger
       setPaginationModel({ page: 0, pageSize: 10 })
-      setSortColumn('po_no')
+      setSortColumn('po_date')
       setSort('desc')
       setSearchValue('')
       setFilterDates({ startDate: '', endDate: '' })
       updateUrlParams({
         tab: tabValue,
         sort: 'desc',
-        column: 'po_no',
+        column: 'po_date',
         searchValue: '',
         from_date: '',
         to_date: '',
@@ -235,7 +235,7 @@ function Purchase({ tabValue, updateUrlParams }) {
       headerName: 'VENDOR NAME',
       renderCell: params => (
         <>
-          <Avatar
+          {/* <Avatar
             sx={{
               '& > img': {
                 objectFit: 'contain'
@@ -247,7 +247,7 @@ function Purchase({ tabValue, updateUrlParams }) {
             variant='circular'
             alt={params?.row?.profile_pic}
             src={params?.row?.profile_pic}
-          />
+          /> */}
           <Typography
             variant='body2'
             sx={{
@@ -257,15 +257,15 @@ function Purchase({ tabValue, updateUrlParams }) {
               fontFamily: 'Inter'
             }}
           >
-            {params.row.supplier_name}
-            <Typography
+            {Utility.formatText(params.row.supplier_name)}
+            {/* <Typography
               sx={{
                 fontSize: '12px',
                 fontWeight: 400
               }}
             >
               {Utility.formatDisplayDate(Utility.convertUTCToLocal(params.row.created_at))}
-            </Typography>
+            </Typography> */}
           </Typography>
         </>
       )
