@@ -34,6 +34,7 @@ import Utility from 'src/utility'
 import dayjs from 'dayjs'
 import ConfirmDialogBox from 'src/components/ConfirmDialogBox'
 import { useTheme } from '@emotion/react'
+import { useRouter } from 'next/router'
 
 const defaultValues = {
   product: {
@@ -90,7 +91,8 @@ const PurchaseItemForm = props => {
     setProductVariantOptions
   } = props
   const theme = useTheme()
-
+  const router = useRouter()
+  const { id } = router.query
   const [defaultProduct, setDefaultProduct] = useState({ label: '', value: '', stock_type: '' })
 
   const schema = yup.object().shape({
@@ -499,7 +501,8 @@ const PurchaseItemForm = props => {
 
       const productData = {
         purchase_stock_item_id: nestedRowMedicine.purchase_unit_id,
-        purchase_unit_price: nestedRowMedicine.purchase_unit_price
+        purchase_unit_price: nestedRowMedicine.purchase_unit_price,
+        ...(id !== '' && { purchase_detail_id: id })
       }
       getRecentPurchasePriceOfProduct(productData)
       setValue('product', {
@@ -740,7 +743,8 @@ const PurchaseItemForm = props => {
 
                     const productData = {
                       purchase_stock_item_id: watch('product')?.value,
-                      purchase_unit_price: watch('purchase_unit_price')
+                      purchase_unit_price: watch('purchase_unit_price'),
+                      ...(id !== '' && { purchase_detail_id: id })
                     }
                     if (productData?.purchase_stock_item_id !== '' && productData?.purchase_unit_price !== '') {
                       getRecentPurchasePriceOfProduct(productData)

@@ -1090,21 +1090,6 @@ const AddPurchaseForm = () => {
 
   // validatePurchaseProducts
 
-  // const getRecentPurchasePriceOfProduct = async productDetails => {
-  //   if (productDetails) {
-  //     try {
-  //       const response = await validatePurchaseProducts(productDetails)
-  //       console.log('response,', response)
-  //       if (response?.success === false) {
-  //         setPriceValidationError(true)
-  //       } else {
-  //         setPriceValidationError(false)
-  //       }
-  //     } catch (error) {
-  //       console.log('supplier error', error)
-  //     }
-  //   }
-  // }
   const getRecentPurchasePriceOfProduct = useCallback(
     debounce(async productDetails => {
       if (productDetails) {
@@ -1537,7 +1522,7 @@ const AddPurchaseForm = () => {
                       {...field}
                       type='text'
                       name='requested_by'
-                      disabled={id ? true : false}
+                      // disabled={id ? true : false}
                       error={Boolean(errors.requested_by)}
                       label='Requested by'
                     />

@@ -1,4 +1,4 @@
-import { Typography, Box, Avatar } from '@mui/material'
+import { Typography, Box, Avatar, Tooltip } from '@mui/material'
 import CustomAvatar from 'src/@core/components/mui/avatar'
 import Utility from 'src/utility'
 import Icon from 'src/@core/components/icon'
@@ -115,13 +115,22 @@ export const attachedFiles = args => {
   )
 }
 
+export const getToolTipForText = text => {
+  return (
+    <Tooltip title={text} arrow>
+      <span>{text}</span>
+    </Tooltip>
+  )
+}
+
 const RenderUtility = {
   getEllipsisStyleForText,
   renderControlLabel,
   pageTitle,
   renderUserAvatarDetails,
   getPriorityIcons,
-  attachedFiles
+  attachedFiles,
+  getToolTipForText
 }
 
 export default RenderUtility
