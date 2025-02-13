@@ -581,7 +581,6 @@ function ProductForm({
                         {errors?.stock_id?.message?.includes('cannot be null')
                           ? 'Product Name is required'
                           : errors?.stock_id?.message || 'Product Name is required'}
-                        -549 f
                       </FormHelperText>
                     )}
                     {/* {errors?.stock_id && (
