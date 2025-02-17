@@ -69,7 +69,7 @@ const composeDietNavigation = () => {
     ingredientsList,
     dietList,
 
-    // speciesDietList,
+    speciesDietList,
     recipeList,
     comboList,
     settingsParent
