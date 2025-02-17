@@ -584,7 +584,8 @@ const SpeciesDietList = () => {
         <Box sx={{ width: '100%', display: 'flex', justifyContent: 'end' }}>
           <Box
             onClick={e => {
-              if (Number(params.row.attachment_count) > 0) {
+              // console.log('e', e.target)
+              if (e.target.tagName.toLowerCase() === 'p' && Number(params.row.attachment_count) > 0) {
                 setAttachmentUploadConfirmDialog(true)
               } else {
                 fileInputRef.current.click()
