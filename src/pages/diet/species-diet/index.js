@@ -179,9 +179,9 @@ const SpeciesDietList = () => {
     searchTableData(value)
   }
 
-  const handleFileUpload = async (event, speciesId) => {
+  const handleFileUpload = async (event, speciesid) => {
     const file = event?.target?.files[0]
-
+    console.log('speciesIdup', speciesId)
     if (!file || file.type !== 'application/pdf') {
       Toaster({ type: 'error', message: 'Please select a valid PDF file.' })
       return
@@ -191,7 +191,7 @@ const SpeciesDietList = () => {
     setUploadingAttachment(true)
 
     try {
-      const res = await speciesAttachmentUpload({ species_id: speciesId, attachment: file })
+      const res = await speciesAttachmentUpload({ species_id: speciesid, attachment: file })
       Toaster({ type: 'success', message: res.message })
       fetchTableData()
     } catch (error) {
@@ -480,7 +480,7 @@ const SpeciesDietList = () => {
           >
             {/* Attachment Section */}
             <Box sx={{ width: '100%', display: 'flex', gap: 2 }}>
-              {/* {uploadingAttachment === true && speciesId == row?.species_id && (
+              {uploadingAttachment === true && speciesId == row?.species_id && (
                 <Box
                   sx={{
                     width: '144px',
@@ -513,7 +513,7 @@ const SpeciesDietList = () => {
                     <LinearProgress sx={{ height: '2px' }} value={50} />
                   </Box>
                 </Box>
-              )} */}
+              )}
               {row.attachments.length > 0 ? (
                 <>
                   {row.attachments.map((item, index) => (
@@ -584,14 +584,11 @@ const SpeciesDietList = () => {
         <Box sx={{ width: '100%', display: 'flex', justifyContent: 'end' }}>
           <Box
             onClick={e => {
-              // setTimeout(() => {
-              //   console.log('col')
-              //   if (attachmentCount > 0) {
-              //     setAttachmentUploadConfirmDialog(true)
-              //   } else {
-              //     fileInputRef.current.click()
-              //   }
-              // }, 0)
+              if (Number(params.row.attachment_count) > 0) {
+                setAttachmentUploadConfirmDialog(true)
+              } else {
+                fileInputRef.current.click()
+              }
             }}
             sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px' }}
           >
@@ -628,17 +625,11 @@ const SpeciesDietList = () => {
       )
     }
   ]
-
   const onCellClick = e => {
-    // console.log('e.row.species_id', e)
-    // console.log('cell')
-    if (e.field === 'diet_attachment_upload') {
-      if (Number(e.row.attachment_count) > 0) {
-        setAttachmentUploadConfirmDialog(true)
-      } else {
-        fileInputRef.current.click()
-      }
-    }
+    // console.log('e.row.species_id', e.row.species_id)
+    // console.log('e.field', e.field)
+    // console.log('e.field', e)
+
     setspeciesId(e.row.species_id)
   }
   useEffect(() => {
@@ -861,12 +852,19 @@ const SpeciesDietList = () => {
             >
               Cancel
             </Button>
+            {/* <div onClick={() => console.log('first')}>fghjk</div> */}
             <Button
-              sx={{ width: '100%', height: '58px' }}
+              sx={{ zIndex: 10000, width: '100%', height: '58px' }}
               variant='contained'
               size='small'
               disabled={uploadingAttachment}
-              onClick={() => fileInputRef.current.click()}
+              onClick={event => {
+                event.stopPropagation() // Stop event propagation
+                console.log('speciesId', speciesId)
+                // setspeciesId(speciesId)
+                fileInputRef.current.click()
+                setspeciesId(speciesId)
+              }}
             >
               {uploadingAttachment ? 'Uploading' : 'Continue'}
             </Button>
