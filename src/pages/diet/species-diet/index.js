@@ -480,7 +480,7 @@ const SpeciesDietList = () => {
           >
             {/* Attachment Section */}
             <Box sx={{ width: '100%', display: 'flex', gap: 2 }}>
-              {uploadingAttachment === true && speciesId == row.species_id && (
+              {/* {uploadingAttachment === true && speciesId == row?.species_id && (
                 <Box
                   sx={{
                     width: '144px',
@@ -508,12 +508,12 @@ const SpeciesDietList = () => {
                         textOverflow: 'ellipsis'
                       }}
                     >
-                      name of pdf file
+                      uploading
                     </Typography>
                     <LinearProgress sx={{ height: '2px' }} value={50} />
                   </Box>
                 </Box>
-              )}
+              )} */}
               {row.attachments.length > 0 ? (
                 <>
                   {row.attachments.map((item, index) => (
@@ -856,6 +856,7 @@ const SpeciesDietList = () => {
               sx={{ width: '100%', height: '58px' }}
               variant='outlined'
               size='small'
+              disabled={uploadingAttachment}
               onClick={() => closeattachmentUploadConfirmDialog()}
             >
               Cancel
@@ -867,7 +868,7 @@ const SpeciesDietList = () => {
               disabled={uploadingAttachment}
               onClick={() => fileInputRef.current.click()}
             >
-              Continue
+              {uploadingAttachment ? 'Uploading' : 'Continue'}
             </Button>
           </Box>
         </Box>
