@@ -4,8 +4,20 @@ import React, { useState, useEffect, useCallback, useContext, useRef } from 'rea
 import FallbackSpinner from 'src/@core/components/spinner/index'
 import { DataGrid } from '@mui/x-data-grid'
 import { debounce } from 'lodash'
-import moment from 'moment'
-import { Avatar, Button, Tooltip, Box, Breadcrumbs, TextField, LinearProgress } from '@mui/material'
+import {
+  Avatar,
+  Button,
+  Tooltip,
+  Box,
+  Breadcrumbs,
+  TextField,
+  LinearProgress,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  Grid
+} from '@mui/material'
 
 // ** MUI Imports
 import Card from '@mui/material/Card'
@@ -18,12 +30,10 @@ import { useTheme } from '@mui/material/styles'
 import { AuthContext } from 'src/context/AuthContext'
 import Utility from 'src/utility'
 import ErrorScreen from 'src/pages/Error'
-// import data from './ojbect'
 // import DashboardFilter from './speciesDietFilter'
 import SpeciesDetails from './speciesDetails'
 import { getSpeciesList, speciesAttachmentUpload } from 'src/lib/api/diet/speciesDiet'
 import Toaster from 'src/components/Toaster'
-// import { minWidth } from '@mui/system'
 
 const SpeciesDietList = () => {
   const colWidths = [40, 300, 100]
@@ -36,6 +46,7 @@ const SpeciesDietList = () => {
   const [loading, setLoading] = useState(false)
 
   const [speciesDetailsDrawer, setSpeciesDetailsDrawer] = useState(false) // has to be modified
+  const [attachmentUploadConfirmDialog, setAttachmentUploadConfirmDialog] = useState(false) // has to be modified
 
   ///////////////////////Filter-Code////////////////////////////
   // const [isSearchOpen, setIsSearchOpen] = useState(false)
@@ -87,17 +98,17 @@ const SpeciesDietList = () => {
     }
   }, [])
   ///////////////////////////////////////////////////
+
+  const closeattachmentUploadConfirmDialog = () => {
+    setAttachmentUploadConfirmDialog(false)
+  }
+
   const fileInputRef = useRef(null)
 
   const authData = useContext(AuthContext)
 
   function loadServerRows(currentPage, data) {
     return data
-  }
-
-  const handleChange = (event, newValue) => {
-    setTotal(0)
-    // setStatus(newValue)
   }
 
   const fetchTableData = useCallback(
@@ -189,6 +200,7 @@ const SpeciesDietList = () => {
       event.target.value = null
       setAttachmentWidth(prev => prev + 150)
       setUploadingAttachment(false)
+      closeattachmentUploadConfirmDialog()
     }
   }
 
@@ -201,6 +213,7 @@ const SpeciesDietList = () => {
       sortable: false,
       renderCell: params => (
         <Typography
+          onClick={() => setSpeciesDetailsDrawer(true)}
           sx={{
             color: theme.palette.customColors.OnSurfaceVariant,
             fontWeight: '400',
@@ -219,7 +232,7 @@ const SpeciesDietList = () => {
       field: 'species',
       headerName: 'SPECIES',
       renderCell: params => (
-        <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+        <Box onClick={() => setSpeciesDetailsDrawer(true)} sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <Avatar
             variant='rounded'
             alt='Medicine Image'
@@ -460,7 +473,10 @@ const SpeciesDietList = () => {
       headerName: 'DIETS ATTACHED',
       renderCell: ({ row }) => {
         return (
-          <Box sx={{ ml: 1, width: '100%', display: 'flex', gap: 2, justifyContent: 'space-between' }}>
+          <Box
+            onClick={() => setSpeciesDetailsDrawer(true)}
+            sx={{ ml: 1, width: '100%', display: 'flex', gap: 2, justifyContent: 'space-between' }}
+          >
             {/* Attachment Section */}
             <Box sx={{ width: '100%', display: 'flex', gap: 2 }}>
               {uploadingAttachment === true && speciesId == row.species_id && (
@@ -507,7 +523,7 @@ const SpeciesDietList = () => {
                         window.open(item.file, '_blank')
                       }}
                       sx={{
-                        width: '144px',
+                        width: '240px',
                         height: '32px',
                         padding: '6px',
                         borderRadius: '4px',
@@ -567,7 +583,14 @@ const SpeciesDietList = () => {
         <Box sx={{ width: '100%', display: 'flex', justifyContent: 'end' }}>
           <Box
             onClick={e => {
-              fileInputRef.current.click()
+              // setTimeout(() => {
+              //   console.log('col')
+              //   if (attachmentCount > 0) {
+              //     setAttachmentUploadConfirmDialog(true)
+              //   } else {
+              //     fileInputRef.current.click()
+              //   }
+              // }, 0)
             }}
             sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px' }}
           >
@@ -606,7 +629,15 @@ const SpeciesDietList = () => {
   ]
 
   const onCellClick = e => {
-    // console.log('e.row.species_id', e.row.species_id)
+    // console.log('e.row.species_id', e)
+    // console.log('cell')
+    if (e.field === 'diet_attachment_upload') {
+      if (e.row.attachment_count > 0) {
+        setAttachmentUploadConfirmDialog(true)
+      } else {
+        fileInputRef.current.click()
+      }
+    }
     setspeciesId(e.row.species_id)
   }
   useEffect(() => {
@@ -644,8 +675,6 @@ const SpeciesDietList = () => {
           >
             Species Diet
           </Typography>
-          {/* <p>DataGrid Width: {gridWidth}px</p> */}
-          {/* <p>Attachment Width: {attachmentWidth}px</p> */}
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
             <Box
               sx={{
@@ -760,7 +789,7 @@ const SpeciesDietList = () => {
           onSortModelChange={handleSortModel}
           onPaginationModelChange={setPaginationModel}
           loading={loading}
-          onRowClick={() => setSpeciesDetailsDrawer(true)}
+          // onRowClick={() => setSpeciesDetailsDrawer(true)}
           onCellClick={onCellClick}
         />
       </Card>
@@ -791,6 +820,57 @@ const SpeciesDietList = () => {
           setSpeciesDetailsDrawer={setSpeciesDetailsDrawer}
         />
       )}
+
+      <Dialog
+        open={attachmentUploadConfirmDialog}
+        disableEscapeKeyDown
+        onClose={(event, reason) => {
+          if (reason !== 'backdropClick') {
+            closeattachmentUploadConfirmDialog()
+          }
+        }}
+      >
+        <Box sx={{ backgroundColor: '#fff', padding: '40px' }}>
+          <Typography
+            sx={{
+              color: theme.palette.customColors.OnSurfaceVariant,
+              fontSize: '16px',
+              fontWeight: 400,
+              lineHeight: '19.36px',
+              textAlign: 'center',
+              mb: '32px'
+            }}
+          >
+            New upload will become the primary diet for this species. You can still edit this later.{' '}
+          </Typography>
+          <Box
+            sx={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              gap: '24px',
+              width: '100%'
+            }}
+          >
+            <Button
+              sx={{ width: '100%', height: '58px' }}
+              variant='outlined'
+              size='small'
+              onClick={() => closeattachmentUploadConfirmDialog()}
+            >
+              Cancel
+            </Button>
+            <Button
+              sx={{ width: '100%', height: '58px' }}
+              variant='contained'
+              size='small'
+              disabled={uploadingAttachment}
+              onClick={() => fileInputRef.current.click()}
+            >
+              Continue
+            </Button>
+          </Box>
+        </Box>
+      </Dialog>
     </>
   )
 }
