@@ -27,7 +27,7 @@ const composeDietNavigation = () => {
     title: 'Species Diet List',
     path: '/diet/species-diet',
     icon: <img src='/icons/icon_species_diet.png' alt='Grocery Icon' />,
-    activeIcon: <img src='/icons/icon_species_diet.png' alt='Grocery Icon' />
+    activeIcon: <img src='/icons/icon_species_diet_white.png' alt='Grocery Icon' />
   }
 
   const recipeList = {

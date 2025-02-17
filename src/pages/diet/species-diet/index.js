@@ -272,6 +272,7 @@ const SpeciesDietList = () => {
               <Typography
                 sx={{
                   color: theme.palette.primary.light,
+                  fontStyle: 'italic',
                   fontSize: '14px',
                   fontWeight: '400',
                   lineHeight: '16.94px',
@@ -470,7 +471,7 @@ const SpeciesDietList = () => {
       width: attachmentWidth,
       sortable: false,
       field: 'diet_attached',
-      headerName: 'DIETS ATTACHED',
+      headerName: 'ACTIVE DIET',
       renderCell: ({ row }) => {
         return (
           <Box
@@ -632,7 +633,7 @@ const SpeciesDietList = () => {
     // console.log('e.row.species_id', e)
     // console.log('cell')
     if (e.field === 'diet_attachment_upload') {
-      if (e.row.attachment_count > 0) {
+      if (Number(e.row.attachment_count) > 0) {
         setAttachmentUploadConfirmDialog(true)
       } else {
         fileInputRef.current.click()
