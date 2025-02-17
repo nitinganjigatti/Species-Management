@@ -22,6 +22,7 @@ import {
 } from 'src/lib/api/diet/speciesDiet'
 import Toaster from 'src/components/Toaster'
 import Utility from 'src/utility'
+import moment from 'moment'
 
 function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, speciesId, setspeciesId, fetchTableData }) {
   const theme = useTheme()
@@ -35,6 +36,13 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
   const [dietAttachmentActiveConfirm, setDietAttachmentActiveConfirm] = useState(false)
   const [dietAttachmentUploadConfirm, setDietAttachmentUploadConfirm] = useState(false)
   const [dietAttachmentId, setDietAttachmentId] = useState(null)
+
+  function convertUTCToLocalDate(date) {
+    var stillUtc = moment.utc(date).toDate()
+    var local = moment(stillUtc).local(true).format('YYYY-MM-DD')
+
+    return local
+  }
 
   const getSpecieDetail = async () => {
     setDetailsLoader(true)
@@ -392,9 +400,7 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
                         width: 240
                       }}
                     >
-                      {Utility.convertUTCToLocalDate(item.created_at) +
-                        ' | ' +
-                        Utility.convertUTCToLocaltime(item.created_at)}{' '}
+                      {convertUTCToLocalDate(item.created_at) + ' | ' + Utility.convertUTCToLocaltime(item.created_at)}{' '}
                       {/* which time wll be use here modified or created? */}
                     </Typography>
                   </Box>
@@ -515,9 +521,7 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
                 lineHeight: '14.52px'
               }}
             >
-              {Utility.convertUTCToLocalDate(item.modified_at) +
-                ' | ' +
-                Utility.convertUTCToLocaltime(item.modified_at)}{' '}
+              {convertUTCToLocalDate(item.modified_at) + ' | ' + Utility.convertUTCToLocaltime(item.modified_at)}{' '}
             </Typography>
           </Box>
         </Box>
