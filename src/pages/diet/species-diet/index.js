@@ -130,7 +130,7 @@ const SpeciesDietList = () => {
           // site_ids: siteIds.length > 0 ? JSON.stringify(siteIds) : '',
           // section_ids: sectionIds.length > 0 ? JSON.stringify(ids.sectionIds) : '',
           // enclosure_ids: enclosureIds.length > 0 ? JSON.stringify(ids.enclosureIds) : '',
-          q,
+          q: q ? q : searchValue,
           page_no: paginationModel.page + 1,
           limit: paginationModel.pageSize,
           with_diet: filterByDiet
@@ -193,8 +193,19 @@ const SpeciesDietList = () => {
   const handleFileUpload = async (event, speciesid) => {
     const file = event?.target?.files[0]
     console.log('speciesIdup', speciesId)
-    if (!file || file.type !== 'application/pdf') {
-      Toaster({ type: 'error', message: 'Please select a valid PDF file.' })
+    const allowedTypes = [
+      'application/pdf',
+      'image/jpeg',
+      'image/png',
+      'image/gif',
+      'application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'application/vnd.ms-excel',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'text/csv'
+    ]
+    if (!file || !allowedTypes.includes(file.type)) {
+      Toaster({ type: 'error', message: 'Please select a valid file.' })
       return
     }
 
@@ -370,11 +381,7 @@ const SpeciesDietList = () => {
                       }}
                     >
                       <Avatar variant='rounded' alt='Medicine Image' sx={{ width: 20, height: 20, overflow: 'hidden' }}>
-                        <img
-                          style={{ width: '100%', height: '100%' }}
-                          src={'/icons/little_pdf_icon.svg'}
-                          alt='Profile'
-                        />
+                        <img style={{ width: '100%', height: '100%' }} src={'/icons/document_icon.svg'} alt='Profile' />
                       </Avatar>
                       <Typography
                         noWrap
@@ -420,7 +427,7 @@ const SpeciesDietList = () => {
           <Box
             onClick={e => {
               // console.log('e', e.target)
-              if (e.target.tagName.toLowerCase() === 'p' && Number(params.row.attachment_count) > 0) {
+              if (Number(params.row.attachment_count) > 0) {
                 setAttachmentUploadConfirmDialog(true)
               } else {
                 fileInputRef.current.click()
@@ -446,16 +453,6 @@ const SpeciesDietList = () => {
             >
               <img style={{ width: '100%', height: '100%' }} src={'/icons/little_upload_icon.svg'} alt='Profile' />
             </Avatar>
-            <input
-              type='file'
-              multiple
-              accept='application/pdf'
-              ref={fileInputRef}
-              style={{ display: 'none' }}
-              onChange={e => {
-                handleFileUpload(e, speciesId)
-              }}
-            />
           </Box>
         </Box>
       )
@@ -790,7 +787,16 @@ const SpeciesDietList = () => {
             </Box> */}
           </Box>
         </Box>
-
+        <input
+          type='file'
+          multiple
+          accept='application/pdf, image/*, application/msword, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/vnd.ms-excel, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, text/csv'
+          ref={fileInputRef}
+          style={{ display: 'none' }}
+          onChange={e => {
+            handleFileUpload(e, speciesId)
+          }}
+        />
         <DataGrid
           ref={gridRef}
           sx={{
