@@ -9,7 +9,8 @@ import {
   DeleteLAbRequestAttachment,
   GetLabListByTestId,
   postBulkStatus,
-  postBulkTransfer
+  postBulkTransfer,
+  getLabListByMultipleIds
 } from 'src/lib/api/lab/getLabRequest'
 
 import FallbackSpinner from 'src/@core/components/spinner/index'
@@ -52,7 +53,8 @@ import {
   Breadcrumbs,
   Divider,
   Tooltip,
-  DialogContent
+  DialogContent,
+  Toolbar
 } from '@mui/material'
 import IconButton from '@mui/material/IconButton'
 import Router from 'next/router'
@@ -141,7 +143,7 @@ const RequestDetails = () => {
   const [sortColumn, setSortColumn] = useState('name')
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [loading, setLoading] = useState(false)
-  const [testId, setTestId] = useState()
+  const [testId, setTestId] = useState([])
   const [requestId, setRequestId] = useState()
   const [labId, setLab_id] = useState('')
 
@@ -160,7 +162,10 @@ const RequestDetails = () => {
   const [headerStatus, setHeaderStatus] = useState('awaiting_sample')
   console.log('headerStatus', headerStatus)
   const [selectedRow, setSelectedRow] = useState([])
-  console.log('selectedRow', selectedRow)
+  const [selectedRowData, setSelectedRowData] = useState([])
+  console.log('selectedRowData', selectedRowData)
+
+  // console.log('selectedRow', selectedRow)
 
   const setAlertDefaults = ({ message, severity, status }) => {
     setOpenSnackbar(status)
@@ -270,26 +275,47 @@ const RequestDetails = () => {
     })
   }
 
+  const getAccessLabs = async (id, labId) => {
+    const params = {
+      test_ids: labId
+    }
+    await getLabListByMultipleIds(id, params).then(res => {
+      console.log('res', res?.data)
+      setLab(res?.data)
+    })
+  }
+
   const handleOpenTransfer = async params => {
-    setTestId(params?.row?.id)
+    console.log('params', params)
+    setOpenTransfer(true)
+    setTestId([params?.row?.id])
+
     setTransferTestId(params?.row?.test_id)
-    const transferId = params?.row?.test_id
+    const labTestId = [params?.row?.id]
     setTransferStatus(params?.row?.status)
     setTestName(params?.row?.test_name)
     setTestSampleName(params?.row?.sample_name)
 
-    if (permissions?.transfer_tests === true || permissions?.allow_full_access === true) {
-      setOpenTransfer(true)
-
-      // setSelectedLab(params.row)
-
-      const params = {
-        test_id: transferTestId || transferId,
-        lab_id: labId,
-        show_external_labs: 1
-      }
-      await getLabList(params)
+    if (selectedRow.length >= 1) {
+      await getAccessLabs(LabRequestId, selectedRow)
+    } else {
+      await getAccessLabs(LabRequestId, labTestId)
     }
+
+    // if()
+
+    // if (permissions?.transfer_tests === true || permissions?.allow_full_access === true) {
+    //   setOpenTransfer(true)
+
+    //   // setSelectedLab(params.row)
+
+    //   const params = {
+    //     test_id: transferTestId || transferId,
+    //     lab_id: labId,
+    //     show_external_labs: 1
+    //   }
+    //   await getLabList(params)
+    // }
   }
 
   useEffect(() => {
@@ -719,6 +745,7 @@ const RequestDetails = () => {
   }
 
   const handleCloseTransfer = () => {
+    reset()
     setOpenTransfer(false)
     handleClosePopover()
   }
@@ -740,9 +767,8 @@ const RequestDetails = () => {
 
   const schema = yup.object().shape({
     lab_name: yup.string(),
-    replaced_lab_id: yup.string().required('Transfer to is required')
-
-    // transfer_reason: yup.string().required('Transfer reason is required')
+    replaced_lab_id: yup.string().required('Transfer to is required'),
+    transfer_reason: yup.string().required('Transfer reason is required')
   })
 
   const {
@@ -777,17 +803,34 @@ const RequestDetails = () => {
   }
 
   const onSubmit = async params => {
+    const { lab_name, replaced_lab_id, transfer_reason } = {
+      ...params
+    }
+
     // setSubmitLoader(true)
 
     // if (transferStatus !== 'completed') {
+    console.log('selectedRow', selectedRow)
 
-    if (selectedRow > 1) {
+    if (selectedRow?.length > 1) {
       const params = {
-        lab_test_ids: selectedRow,
+        test_ids: selectedRow,
         replaced_lab_id,
         transfer_reason
       }
       const res = await postBulkTransfer({ params })
+      if (res?.success) {
+        handleCloseTransfer()
+        Toaster({ type: 'success', message: res.message })
+        reset()
+        fetchRequestDetails()
+      } else {
+        handleCloseTransfer()
+        reset()
+        Toaster({ type: 'error', message: res.message })
+      }
+
+      console.log('res', res)
     } else {
       const { lab_name, replaced_lab_id, transfer_reason } = {
         ...params
@@ -862,10 +905,26 @@ const RequestDetails = () => {
     setOpenSnackbar(false)
   }
 
-  const handleSelectionModelChange = value => {
-    setSelectedRow(value)
+  // const handleSelectionModelChange = (value, details, rowSelectionModel, params) => {
+  //   console.log('details', details, rowSelectionModel, value, params)
+  //   setSelectedRow(value)
 
-    // console.log('value', value)
+  //   // console.log('value', value)
+  // }
+
+  const handleRowSelection = (rowSelectionModel, details) => {
+    setSelectedRow(rowSelectionModel)
+
+    // console.log('Selected Row IDs:', rowSelectionModel)
+
+    // Retrieve the complete row data based on selected row IDs
+    const selectedRowData = rows.filter(row => rowSelectionModel.includes(row.id))
+    setSelectedRowData(selectedRowData)
+
+    // console.log('Complete Selected Row Data:', selectedRowData)
+
+    // You can access other details in the 'details' parameter if needed
+    // console.log('Selection event details:', details)
   }
 
   const postMultipleStatus = async (testIds, status) => {
@@ -1035,9 +1094,12 @@ const RequestDetails = () => {
                     <Typography sx={{ fontSize: '15px', fontWeight: 400 }}>{selectedRow?.length}</Typography>
                   </Box>
 
-                  {/* <Button variant='contained' sx={{ display: 'flex', gap: 2 }} onClick={() => setOpenTransfer(true)}>
-                    <Icon icon='mingcute:transfer-3-line' width='24px' height='24px' /> Transfer
-                  </Button> */}
+                  {(permissions?.transfer_tests === true || permissions?.allow_full_access === true) && (
+                    <Button variant='contained' sx={{ display: 'flex', gap: 2 }} onClick={() => handleOpenTransfer()}>
+                      <Icon icon='mingcute:transfer-3-line' width='24px' height='24px' /> Transfer
+                    </Button>
+                  )}
+
                   <Box>
                     <FormControl fullWidth variant='outlined'>
                       <Select
@@ -1132,7 +1194,7 @@ const RequestDetails = () => {
 
             <DataGrid
               checkboxSelection
-              onRowSelectionModelChange={handleSelectionModelChange}
+              onRowSelectionModelChange={handleRowSelection}
               sx={{
                 '& .MuiDataGrid-row:hover .customButton': {
                   display: 'block'
@@ -1412,15 +1474,74 @@ const RequestDetails = () => {
                 <Typography sx={{ fontSize: '14px' }}>Request ID : </Typography>
                 <Typography sx={{ fontSize: '14px', fontWeight: 600 }}>{request[0]?.request_id || '-'} </Typography>
               </Box>
-              <Box sx={{ display: 'flex', gap: 1, flexDirection: 'column' }}>
+              <Box sx={{ display: 'flex', gap: 1, flexDirection: 'column', alignItems: 'center' }}>
                 <Typography sx={{ fontSize: '14px' }}>Test Name : </Typography>
-                <Typography sx={{ fontSize: '14px', fontWeight: 600 }}>{testName ? testName : '-'}</Typography>
+                {selectedRowData?.length > 1 ? (
+                  <Tooltip
+                    title={
+                      <Box>
+                        {selectedRowData.map(name => (
+                          <Typography key={name?.id} sx={{ fontSize: '15px', color: '#fff' }}>
+                            {name?.test_name}
+                          </Typography>
+                        ))}
+                      </Box>
+                    }
+                  >
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        width: '30px',
+                        height: '30px',
+                        border: '1px solid #C3CEC7',
+                        borderRadius: '8px',
+                        fontSize: '15px'
+                      }}
+                    >
+                      {selectedRowData?.length}
+                    </Box>
+                  </Tooltip>
+                ) : (
+                  <Typography sx={{ fontSize: '14px', fontWeight: 600 }}>{testName || '-'}</Typography>
+                )}
               </Box>
-              <Box sx={{ display: 'flex', gap: 1, flexDirection: 'column' }}>
+              <Box sx={{ display: 'flex', gap: 1, flexDirection: 'column', alignItems: 'center' }}>
                 <Typography sx={{ fontSize: '14px' }}>Sample Name : </Typography>
-                <Typography sx={{ fontSize: '14px', fontWeight: 600 }}>
-                  {testSampleName ? testSampleName : '-'}
-                </Typography>
+                {selectedRowData?.length > 1 ? (
+                  <Tooltip
+                    title={
+                      <Box>
+                        {selectedRowData.map(name => (
+                          <Typography key={name?.id} sx={{ fontSize: '15px', color: '#fff' }}>
+                            {name?.sample_name}
+                          </Typography>
+                        ))}
+                      </Box>
+                    }
+                  >
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        width: '30px',
+                        height: '30px',
+
+                        border: '1px solid #C3CEC7',
+                        borderRadius: '8px',
+                        fontSize: '15px'
+                      }}
+                    >
+                      {selectedRowData?.length}
+                    </Box>
+                  </Tooltip>
+                ) : (
+                  <Typography sx={{ fontSize: '14px', fontWeight: 600 }}>
+                    {testSampleName ? testSampleName : '-'}
+                  </Typography>
+                )}
               </Box>{' '}
               <Box sx={{ display: 'flex', gap: 1, flexDirection: 'column' }}>
                 <Typography sx={{ fontSize: '14px' }}>Site : </Typography>
