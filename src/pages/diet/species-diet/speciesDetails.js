@@ -90,8 +90,19 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
   const handleFileUpload = async (event, speciesId) => {
     const file = event?.target?.files[0]
 
-    if (!file || file.type !== 'application/pdf') {
-      Toaster({ type: 'error', message: 'Please select a valid PDF file.' })
+    const allowedTypes = [
+      'application/pdf',
+      'image/jpeg',
+      'image/png',
+      'image/gif',
+      'application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'application/vnd.ms-excel',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'text/csv'
+    ]
+    if (!file || !allowedTypes.includes(file.type)) {
+      Toaster({ type: 'error', message: 'Please select a valid file.' })
       return
     }
     setUploadingFileName(file.name)
@@ -311,7 +322,7 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
                   overflow: 'hidden'
                 }}
               >
-                <img style={{ width: '100%', height: '100%' }} src={'/icons/pdf_Icon_attachment.svg'} alt='Profile' />
+                <img style={{ width: '100%', height: '100%' }} src={'/icons/document_icon.svg'} alt='Profile' />
               </Avatar>
 
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
@@ -454,7 +465,7 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
             overflow: 'hidden'
           }}
         >
-          <img style={{ width: '100%', height: '100%' }} src={'/icons/pdf_Icon_attachment.svg'} alt='Profile' />
+          <img style={{ width: '100%', height: '100%' }} src={'/icons/document_icon.svg'} alt='Profile' />
         </Avatar>
 
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
@@ -693,7 +704,7 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
         <input
           type='file'
           multiple
-          accept='application/pdf'
+          accept='application/pdf, image/*, application/msword, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/vnd.ms-excel, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, text/csv'
           ref={fileInputRef}
           style={{ display: 'none' }}
           onChange={e => {
