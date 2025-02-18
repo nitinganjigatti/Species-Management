@@ -65,11 +65,10 @@ const composeDietNavigation = () => {
 
   const dietNavigation = [
     pharmacyTitle,
+    speciesDietList,
     feedTypes,
     ingredientsList,
     dietList,
-
-    speciesDietList,
     recipeList,
     comboList,
     settingsParent

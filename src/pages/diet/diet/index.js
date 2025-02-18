@@ -186,6 +186,13 @@ const Diet = () => {
             <Typography noWrap variant='body2' sx={{ color: 'text.primary', fontSize: '14px', fontWeight: '500' }}>
               {params.row.diet_no ? params.row.diet_no : '-'}
             </Typography>
+            <Typography
+              noWrap
+              variant='body2'
+              sx={{ color: 'text.primary', fontSize: '12px', fontWeight: '500', fontStyle: 'italic' }}
+            >
+              {params.row.diet_name}
+            </Typography>
           </Box>
         </Box>
       )
