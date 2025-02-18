@@ -19,8 +19,10 @@ import SingleDatePicker from 'src/components/SingleDatePicker'
 import { getAnimalReport, getReportTitle, getUserReport, getMedicalReport } from 'src/lib/api/report'
 import { AuthContext } from 'src/context/AuthContext'
 import Error404 from 'src/pages/404'
+import { useTheme } from '@emotion/react'
 
 const Animal = () => {
+  const theme = useTheme()
   const [anchorEl, setAnchorEl] = useState(null)
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [startDate, setStartDate] = useState(null)
@@ -262,11 +264,26 @@ const Animal = () => {
     }
   ]
 
+  const title = (
+    <>
+      <Typography
+        sx={{
+          fontSize: '24px',
+          fontWeight: 500,
+          fontFamily: 'Inter',
+          color: theme.palette.customColors.OnSurfaceVariant
+        }}
+      >
+        Daily Report
+      </Typography>
+    </>
+  )
+
   return (
     <>
       {reports_module ? (
         <Card>
-          <CardHeader title='Daily Report' sx={{ mb: '16px' }} />
+          <CardHeader title={title} sx={{ mb: '16px' }} />
           <Box
             sx={{
               display: 'flex',
