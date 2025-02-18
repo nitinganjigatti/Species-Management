@@ -204,6 +204,9 @@ const DietDetailCard = ({ dietDetails, dietModulePermission, dietModuleAccess })
                   <Typography sx={{ fontWeight: 500, fontSize: '22px', color: '#44544A' }}>
                     {dietDetails?.diet_no}
                   </Typography>
+                  <Typography sx={{ fontWeight: 500, fontSize: '16px', color: '#44544A', fontStyle: 'italic' }}>
+                    {dietDetails?.diet_name}
+                  </Typography>
                 </Box>
                 <Box
                   sx={{

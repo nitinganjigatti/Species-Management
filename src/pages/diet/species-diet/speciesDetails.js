@@ -187,7 +187,7 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
             </Box>
           </Box>
         </Box>
-        <Box
+        {/* <Box
           sx={{
             backgroundColor: theme.palette.customColors.tableHeaderBg,
             borderRadius: '4px',
@@ -210,7 +210,7 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
           >
             Deits
           </Typography>
-        </Box>
+        </Box> */}
       </Box>
     </Box>
   )
@@ -485,7 +485,7 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
             </Box>
           </Box>
           <Box sx={{ display: 'flex', gap: '8px', alignItems: 'end' }}>
-            <Typography
+            {/* <Typography
               sx={{
                 color: '#E93353',
                 fontSize: '12px',
@@ -495,7 +495,7 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
               }}
             >
               Detached by
-            </Typography>
+            </Typography> */}
             <Typography
               sx={{
                 color: theme.palette.customColors.OnSurfaceVariant,
@@ -634,7 +634,8 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
                     lineHeight: '24.2px'
                   }}
                 >
-                  Active diet ({specieDetails.active_attachments_count})
+                  Primary diet
+                  {/* ({specieDetails.active_attachments_count}) */}
                 </Typography>
               )}
               {uploadingAttachment && specieDetails?.active_attachments_count > 0 && <SpeciesDietUploadingCard />}
@@ -651,7 +652,7 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
             >
               {specieDetails?.deactive_attachments_count > 0 && (
                 <Typography sx={{ fontSize: 20, fontWeight: 500, color: '#E93353', lineHeight: '24.2px' }}>
-                  Inactive diet ({specieDetails.deactive_attachments_count})
+                  Additional diet ({specieDetails.deactive_attachments_count})
                 </Typography>
               )}
               {specieDetails?.deactive_attachments?.map((item, index) => (

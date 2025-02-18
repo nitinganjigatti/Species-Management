@@ -64,10 +64,10 @@ const composeDietNavigation = () => {
   settingsParent.children.push(preparationTypes, cutSize)
   const dietNavigation = [
     pharmacyTitle,
+    speciesDietList,
     feedTypes,
     ingredientsList,
     dietList,
-    speciesDietList,
     recipeList,
     comboList,
     settingsParent

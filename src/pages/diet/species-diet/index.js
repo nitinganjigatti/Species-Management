@@ -46,12 +46,12 @@ const SpeciesDietList = () => {
   const [rows, setRows] = useState([])
   const [searchValue, setSearchValue] = useState('')
   // const [sortColumning, setsortColumning] = useState('ingredient_name')
-  const [speciesDietDropdown, setSpeciesDietDropdown] = useState(-1)
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [loading, setLoading] = useState(false)
 
   const [speciesDetailsDrawer, setSpeciesDetailsDrawer] = useState(false) // has to be modified
   const [attachmentUploadConfirmDialog, setAttachmentUploadConfirmDialog] = useState(false) // has to be modified
+  const [filterByDiet, setFilterByDiet] = useState('-1')
 
   ///////////////////////Filter-Code////////////////////////////
   // const [isSearchOpen, setIsSearchOpen] = useState(false)
@@ -133,7 +133,7 @@ const SpeciesDietList = () => {
           q,
           page_no: paginationModel.page + 1,
           limit: paginationModel.pageSize,
-          with_diet: speciesDietDropdown
+          with_diet: filterByDiet
         }
         await getSpeciesList(params).then(res => {
           // Generate uid field based on the index
@@ -152,7 +152,7 @@ const SpeciesDietList = () => {
         setLoading(false)
       }
     },
-    [paginationModel, speciesDietDropdown]
+    [paginationModel, filterByDiet]
   )
 
   useEffect(() => {
@@ -177,7 +177,7 @@ const SpeciesDietList = () => {
         console.error(error)
       }
     }, 1000),
-    [speciesDietDropdown]
+    []
   )
 
   const handleSearch = value => {
@@ -306,7 +306,7 @@ const SpeciesDietList = () => {
       width: attachmentWidth,
       sortable: false,
       field: 'diet_attached',
-      headerName: 'ACTIVE DIET',
+      headerName: 'Primary Diet',
       renderCell: ({ row }) => {
         return (
           <Box
@@ -681,25 +681,33 @@ const SpeciesDietList = () => {
             Species Diet
           </Typography>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-            <Select
-              sx={{
-                width: 200,
-                height: 40,
-                minHeight: 32,
-                fontSize: 14,
-                '& .MuiSelect-select': {
-                  paddingY: '4px'
-                }
-              }}
-              labelId='demo-simple-select-label'
-              id='demo-simple-select'
-              value={speciesDietDropdown}
-              onChange={speciesDietDropdownChange}
-            >
-              <MenuItem value={-1}>All</MenuItem>
-              <MenuItem value={0}>Species Without Diet</MenuItem>
-              <MenuItem value={1}>Species With Diet</MenuItem>
-            </Select>
+            <Box>
+              <FormControl
+                sx={{
+                  width: { xs: '98%', sm: 200, md: 200 },
+                  ml: { xs: 1, sm: 2, md: 1 },
+                  mt: { xs: 3, sm: 0, md: 0 }
+                }}
+              >
+                <InputLabel id='controlled-select-label'>Filter Species</InputLabel>
+                <Select
+                  onChange={e => {
+                    setFilterByDiet(e.target.value)
+                  }}
+                  label='Filter Species'
+                  value={filterByDiet}
+                  id='controlled-select'
+                  labelId='controlled-select-label'
+                  sx={{ width: '100%' }}
+                  size='small'
+                >
+                  <MenuItem value='-1'>All</MenuItem>
+                  <MenuItem value='1'>Species With Diet</MenuItem>
+                  <MenuItem value='0'>Species Without Diet</MenuItem>
+                </Select>
+              </FormControl>
+            </Box>
+
             <Box
               sx={{
                 display: 'flex',
