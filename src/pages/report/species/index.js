@@ -8,7 +8,8 @@ import {
   CircularProgress,
   TextField,
   debounce,
-  InputAdornment
+  InputAdornment,
+  Tooltip
 } from '@mui/material'
 import { useCallback, useContext, useEffect, useRef, useState } from 'react'
 import { DataGrid } from '@mui/x-data-grid'
@@ -286,7 +287,7 @@ const SpeciesReport = () => {
         // setApiFilterParams(initialFilterParams)
         fetchData(apiFilterParams, searchValue, paginationModel)
     }
-  }, [fetchData,apiFilterParams])
+  }, [fetchData, apiFilterParams])
 
   const columns = headerList.map(header => {
     if (header.key.includes('default_icon')) {
@@ -300,6 +301,7 @@ const SpeciesReport = () => {
         width: 400,
         renderCell: params => (
           <CardHeader
+            sx={{ paddingX: 0 }}
             avatar={
               <img
                 src={params.row.default_icon}
@@ -328,40 +330,57 @@ const SpeciesReport = () => {
     return {
       field: header.key,
       headerName: header.label,
-      width: 200,
+      minWidth: 200,
       sortable: false,
       disableColumnMenu: true,
       textAlign: 'center',
       renderCell: params => (
-        <Box
-          sx={{
-            width: ['Male', 'Female', 'Indeterminate', 'Undetermined'].includes(header.label) ? '50px' : '90px',
-            height: '25px',
-            backgroundColor: getCellBackgroundColor(header.label),
-            color: getCellTextColor(header.label),
-            fontWeight: 400,
-            borderRadius: '4px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: ['Male', 'Female', 'Indeterminate', 'Undetermined'].includes(header.label)
-              ? 'center'
-              : header.label === 'total'
-              ? 'flex-end'
-              : 'flex-start',
-            textAlign: ['Male', 'Female', 'Indeterminate', 'Undetermined'].includes(header.label)
-              ? 'center'
-              : header.label === 'total'
-              ? 'right'
-              : 'left'
-          }}
+        <Tooltip
+          title={
+            params?.row
+              ? params?.row[header.key]
+              : ['Male', 'Female', 'Indeterminate', 'Undetermined', 'Total'].includes(header.label) &&
+                params?.row[header.key] === undefined
+              ? 0
+              : '-'
+          }
         >
-          {params?.row
-            ? params?.row[header.key]
-            : ['Male', 'Female', 'Indeterminate', 'Undetermined', 'Total'].includes(header.label) &&
-              params?.row[header.key] === undefined
-            ? 0
-            : '-'}
-        </Box>
+          <Box
+            sx={{
+              width: ['Male', 'Female', 'Indeterminate', 'Undetermined'].includes(header.label) ? '50px' : '90px',
+              height: '25px',
+              backgroundColor: getCellBackgroundColor(header.label),
+              color: getCellTextColor(header.label),
+              fontWeight: 400,
+              borderRadius: '4px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: ['Male', 'Female', 'Indeterminate', 'Undetermined'].includes(header.label)
+                ? 'center'
+                : header.label === 'total'
+                ? 'flex-end'
+                : 'flex-start',
+              textAlign: ['Male', 'Female', 'Indeterminate', 'Undetermined'].includes(header.label)
+                ? 'center'
+                : header.label === 'total'
+                ? 'right'
+                : 'left',
+              overflow: 'hidden',
+              whiteSpace: 'nowrap',
+              textOverflow: 'ellipsis',
+              position: 'relative',
+              cursor: 'pointer',
+              padding: '0 5px' // Thoda padding de diya better UX ke liye
+            }}
+          >
+            {params?.row
+              ? params?.row[header.key]
+              : ['Male', 'Female', 'Indeterminate', 'Undetermined', 'Total'].includes(header.label) &&
+                params?.row[header.key] === undefined
+              ? 0
+              : '-'}
+          </Box>
+        </Tooltip>
       )
     }
   })
@@ -1051,6 +1070,7 @@ const SpeciesReport = () => {
                       rows={reportRows}
                       rowCount={total}
                       rowHeight={70}
+                      headerHeight={47}
                       pagination={true}
                       columns={columns.length && columns}
                       pageSizeOptions={[7, 10, 25, 50]}

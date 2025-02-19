@@ -335,6 +335,11 @@ const StickyTable = ({
                 ...borderStyle,
                 ...col?.headerStyle
               }}
+              style={{
+                height: `${headerHeight}px`,
+                paddingTop: 0,
+                paddingBottom: 0
+              }}
               colSpan={isGrouped ? col.subHeader.length : 1}
             >
               {col.pinned && (
@@ -342,7 +347,7 @@ const StickyTable = ({
                   fontSize='10px'
                   style={{
                     position: 'absolute',
-                    top: 26,
+                    // top: headerHeight / 3,
                     left: 4,
                     color: col.pinned === 'left' ? '#1976d2' : '#d32f2f'
                   }}
@@ -614,6 +619,7 @@ const StickyTable = ({
             }
           }}
           sx={{
+            height: rowHeight,
             backgroundColor: rowIndex % 2 === 0 ? '#f9f9f9' : 'white',
             position: 'relative',
             cursor: onRowClick && 'pointer',
@@ -625,6 +631,7 @@ const StickyTable = ({
           {rowSelection && (
             <TableCell
               sx={{
+                padding: 0,
                 height: rowHeight,
                 position: 'sticky',
                 left: 0,
@@ -669,8 +676,8 @@ const StickyTable = ({
               }
             }
             // console.log('col', col)
-            console.log('row', row)
-            console.log('render', col.renderCell({ row }))
+            // console.log('row', row)
+            // console.log('render', col.renderCell({ row }))
 
             return isSubHeader ? (
               col.subHeader.map((subCol, subIndex) => {
@@ -728,7 +735,7 @@ const StickyTable = ({
                       ...pinnedStyle,
                       ...borderStyle,
                       ...col.columnStyle,
-                      ...subCol?.subheaderStyle // Optional: Custom subheader styles
+                      ...subCol?.subheaderStyle
                     }}
                   >
                     {/* {subCol.label || subCol.field} */}
@@ -738,6 +745,7 @@ const StickyTable = ({
               })
             ) : (
               <TableCell
+                style={{ paddingTop: 0, paddingBottom: 0 }}
                 onClick={e => {
                   if (onCellClick) {
                     onCellClick({ cell: row[col.field], row })
@@ -748,6 +756,7 @@ const StickyTable = ({
                   width: col.width,
                   minWidth: col.width,
                   maxWidth: col.width,
+
                   backgroundColor: 'inherit',
                   cursor: onCellClick && 'pointer',
                   '&:hover': {
@@ -755,7 +764,9 @@ const StickyTable = ({
                   },
                   ...pinnedStyle,
                   ...borderStyle,
-                  ...col.columnStyle
+                  ...col.columnStyle,
+                  minHeight: '70px',
+                  maxHeight: '70px'
                 }}
               >
                 {col.renderCell ? col.renderCell({ row }) : row[col.field[0]]}
@@ -853,8 +864,8 @@ const StickyTable = ({
     )
 
   return (
-    <Card>
-      <Box sx={{ m: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+    <>
+      {/* <Box sx={{ m: 3, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 4 }}>
           {headerName && (
             <Typography sx={{ fontSize: 22, fontWeight: '600', color: '#444', ...headerStyle }}>
@@ -879,11 +890,13 @@ const StickyTable = ({
             }}
           />
         </Box>
-      </Box>
+      </Box> */}
       <div style={{ position: 'relative', borderRadius: 2 }}>
         <TableContainer
+          style={{ borderRadius: 6 }}
           component={Paper}
           sx={{
+            borderRadius: 2,
             height: rowSelection
               ? Math.max(5 * (rowHeight + 0.88), defaultRowsInView * (rowHeight + 0.88)) +
                 headerHeight +
@@ -900,7 +913,7 @@ const StickyTable = ({
             '&::-webkit-scrollbar-track': { backgroundColor: '#f0f0f0' }
           }}
         >
-          <Table sx={{}} stickyHeader>
+          <Table stickyHeader>
             <TableHead>{renderTableHeader()}</TableHead>
             {rearrangedColumns.some(column => Array.isArray(column.subHeader) && column.subHeader.length > 0) && (
               <TableHead>{renderSubHeaders()}</TableHead>
@@ -929,7 +942,7 @@ const StickyTable = ({
         )}
         {renderFooter()}
       </div>
-    </Card>
+    </>
   )
 }
 
