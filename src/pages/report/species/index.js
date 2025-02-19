@@ -23,6 +23,7 @@ import { useRouter } from 'next/router'
 import Error404 from 'src/pages/404'
 import SiteSheet from 'src/views/pages/pharmacy/report/siteSheet'
 import FilterSheet from 'src/views/pages/pharmacy/report/FilterSheet'
+import StickyTable from 'src/views/table/sticky-table'
 import Icon from 'src/@core/components/icon'
 import { useAnimalContext } from 'src/context/AnimalContext'
 
@@ -293,6 +294,7 @@ const SpeciesReport = () => {
         field: 'speciesAndCommonName',
         headerName: header.label,
         isAvatar: true,
+        pinned: 'left',
         sortable: false,
         disableColumnMenu: true,
         width: 400,
@@ -353,10 +355,10 @@ const SpeciesReport = () => {
               : 'left'
           }}
         >
-          {params?.value
-            ? params?.value
+          {params?.row
+            ? params?.row[header.key]
             : ['Male', 'Female', 'Indeterminate', 'Undetermined', 'Total'].includes(header.label) &&
-              params?.value === undefined
+              params?.row[header.key] === undefined
             ? 0
             : '-'}
         </Box>
@@ -990,7 +992,7 @@ const SpeciesReport = () => {
 
               <Box sx={{ width: '98%', margin: 4 }}>
                 <Box sx={{ borderRadius: '8px' }}>
-                  <DataGrid
+                  {/* <DataGrid
                     sx={{
                       mt: 3,
                       borderRadius: '8px',
@@ -1043,7 +1045,33 @@ const SpeciesReport = () => {
                     hideFooterSelectedRowCount
                     rowHeight={70}
                     scrollbarSize={10}
-                  />
+                  /> */}
+                  {columns.length > 0 && (
+                    <StickyTable
+                      rows={reportRows}
+                      rowCount={total}
+                      rowHeight={70}
+                      pagination={true}
+                      columns={columns.length && columns}
+                      pageSizeOptions={[7, 10, 25, 50]}
+                      rowsInView={7}
+                      rowsInViewOptions={[5, 7, 10, 25, 50]}
+                      paginationModel={paginationModel}
+                      onPaginationModelChange={setPaginationModel}
+                      loading={isLoading}
+                      // sortConfig={sortModel}
+                      // onSortChange={handleSortModelChange}
+                      // onCellClick={onCellClick}
+                      onRowClick={handleRowClick}
+                      // rowSelection
+                      // onRowSelect={onRowSelect}
+                      downloadExcel
+                      // modifyColumnPinning
+                      headerName='Species'
+                      searchMode='server'
+                      // onSearch={onSearch}
+                    />
+                  )}
                 </Box>
               </Box>
             </TabContext>
