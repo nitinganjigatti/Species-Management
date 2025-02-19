@@ -7,6 +7,7 @@ import {
   Checkbox,
   CircularProgress,
   FormControl,
+  InputAdornment,
   Popover,
   TextField,
   Typography
@@ -14,22 +15,31 @@ import {
 import { DataGrid } from '@mui/x-data-grid'
 import { useTheme } from '@emotion/react'
 import { AuthContext } from 'src/context/AuthContext'
+import { useRouter } from 'next/router'
+import { useAnimalContext } from 'src/context/AnimalContext'
 import { usePariveshContext } from 'src/context/PariveshContext'
 import { useCallback, useContext, useEffect, useRef, useState } from 'react'
 import SiteSheet from 'src/views/pages/pharmacy/report/siteSheet'
-import { getAllAnimalReport, getReportFilterList } from 'src/lib/api/report'
+import { getAllAnimalReport, getAnimalReportById, getReportFilterList } from 'src/lib/api/report'
 import toast from 'react-hot-toast'
 import FilterSheet from 'src/views/pages/pharmacy/report/FilterSheet'
 import Organization from 'src/pages/parivesh/home/overview/organization'
 import Error404 from 'src/pages/404'
+
+import Icon from 'src/@core/components/icon'
 import Tooltip from '@mui/material/Tooltip'
 
 const AnimalList = () => {
+  const router = useRouter()
   const theme = useTheme()
   const { organizationList } = usePariveshContext()
   const authData = useContext(AuthContext)
   const reports_module = authData?.userData?.roles?.settings?.enable_reports_module
   const categories = ['Site', 'Organization']
+
+  const { animalId } = router.query
+
+  console.log('Animal Id >>', animalId)
 
   const options = {
     Site:
@@ -45,18 +55,29 @@ const AnimalList = () => {
   }
 
   const [status, setStatus] = useState('statistics')
-  const [selectedSites, setSelectedSites] = useState([])
+  // const [selectedSites, setSelectedSites] = useState([])
+  const [animalList, setAnimalList] = useState([])
+
   const [dataList, setDataList] = useState([])
   const [anchorEl, setAnchorEl] = useState(null)
   const [openSiteDrawer, setOpenSiteDrawer] = useState(false)
   const [openFilterDrawer, setOpenFilterDrawer] = useState(false)
+  const {
+    selectedAnimal,
+    apiFilterParams,
+    setApiFilterParams,
+    selectedSites,
+    setSelectedSites,
+    selectedOptions,
+    setSelectedOptions
+  } = useAnimalContext()
 
   const [sites, setSites] = useState(
     authData?.userData?.user?.zoos[0]?.sites?.slice().sort((a, b) => a.site_name.localeCompare(b.site_name)) || [] || []
   )
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [total, setTotal] = useState(0)
-  const [selectedOptions, setSelectedOptions] = useState([])
+  // const [selectedOptions, setSelectedOptions] = useState([])
   const [headerList, setHeaderList] = useState([])
   const [isLoading, setIsLoading] = useState(false)
   const [isDownloading, setIsDownloading] = useState(false)
@@ -77,7 +98,7 @@ const AnimalList = () => {
     ]
   })
 
-  const [apiFilterParams, setApiFilterParams] = useState({
+  const [filterParams, setFilterParams] = useState({
     include_housing: 0,
     include_enclosure: 0,
     include_section: 0,
@@ -91,8 +112,39 @@ const AnimalList = () => {
     include_genus: 0
   })
 
+  // const [apiFilterParams, setApiFilterParams] = useState({
+  //   include_housing: 0,
+  //   include_enclosure: 0,
+  //   include_section: 0,
+  //   include_cluster: 0,
+  //   include_class: 0,
+  //   include_organization: 0,
+  //   include_order: 0,
+  //   include_family: 0,
+  //   include_genus: 0,
+  //   include_site: 0,
+  //   include_genus: 0
+  // })
+
   const handleClick = event => {
-    setAnchorEl(event.currentTarget)
+    if (animalId) {
+      setAnchorEl(event.currentTarget)
+
+      setPopoverData(prevData => {
+        const updatedData = { ...prevData }
+
+        Object.keys(updatedData).forEach(category => {
+          updatedData[category] = updatedData[category].map(item => ({
+            ...item,
+            checked: item.checked || apiFilterParams?.[item.key] === 1 // Preserve existing checked items
+          }))
+        })
+
+        return updatedData
+      })
+    } else {
+      setAnchorEl(event.currentTarget)
+    }
   }
 
   const handleClose = () => {
@@ -104,6 +156,62 @@ const AnimalList = () => {
   const open = Boolean(anchorEl)
   const id = open ? 'filter-popover' : undefined
 
+  // useEffect(() => {
+  //   if (router.pathname === '/report/animalList') {
+  //     debugger
+  //     setSelectedSites([])
+  //     setSelectedOptions([])
+
+  //     setApiFilterParams(prevParams => {
+  //       const updatedParams = { ...prevParams }
+  //       delete updatedParams.site_ids
+  //       delete updatedParams.sids
+  //       return updatedParams
+  //     })
+  //   }
+  // }, [router.pathname])
+
+  // const handleSelection = async (selectedIDs, category) => {
+  //   let params = {}
+  //   const isAllSelected = category === 'Site' ? 'All Sites' : 'All Organizations'
+  //   const key = category === 'Site' ? 'sids' : 'oids'
+  //   const stateSetter = category === 'Site' ? setSelectedSites : setSelectedOptions
+
+  //   if (selectedIDs.includes(isAllSelected)) {
+  //     // "All Sites/All Organizations" selected
+  //     if (category === 'Site' && !selectedSites.includes(isAllSelected)) {
+  //       stateSetter(['All Sites'])
+  //       params[key] = '' // Reset to empty for all sites
+  //     } else if (category === 'Organization' && !selectedOptions.Organization.includes(isAllSelected)) {
+  //       stateSetter(prev => ({ ...prev, Organization: ['All Organizations'] }))
+  //       params[key] = '' // Reset to empty for all organizations
+  //     } else {
+  //       // If "All Sites/All Organizations" is re-selected, use filtered IDs
+  //       const filteredIDs = selectedIDs.filter(id => id !== isAllSelected)
+  //       params[key] = filteredIDs.toString()
+  //       stateSetter(filteredIDs)
+  //     }
+  //   } else if (selectedIDs.length === 0) {
+  //     // No items selected, reset the parameter
+  //     params[key] = ''
+  //   } else {
+  //     // Specific IDs selected
+  //     params[key] = selectedIDs.toString()
+  //     if (category === 'Site') {
+  //       stateSetter(selectedIDs)
+  //     } else {
+  //       stateSetter(prev => ({ ...prev, Organization: selectedIDs }))
+  //     }
+  //   }
+
+  //   // Reset pagination and update filter parameters
+  //   setPaginationModel(prev => ({ ...prev, page: 0 }))
+  //   setApiFilterParams(prev => ({
+  //     ...prev,
+  //     [key]: params[key] // Update only the relevant key
+  //   }))
+  // }
+
   const handleSelection = async (selectedIDs, category) => {
     let params = {}
     const isAllSelected = category === 'Site' ? 'All Sites' : 'All Organizations'
@@ -111,25 +219,15 @@ const AnimalList = () => {
     const stateSetter = category === 'Site' ? setSelectedSites : setSelectedOptions
 
     if (selectedIDs.includes(isAllSelected)) {
-      // "All Sites/All Organizations" selected
-      if (category === 'Site' && !selectedSites.includes(isAllSelected)) {
-        stateSetter(['All Sites'])
-        params[key] = '' // Reset to empty for all sites
-      } else if (category === 'Organization' && !selectedOptions.Organization.includes(isAllSelected)) {
-        stateSetter(prev => ({ ...prev, Organization: ['All Organizations'] }))
-        params[key] = '' // Reset to empty for all organizations
+      if (category === 'Site') {
+        stateSetter(allSites) // Store actual site IDs
+        params[key] = ''
       } else {
-        // If "All Sites/All Organizations" is re-selected, use filtered IDs
-        const filteredIDs = selectedIDs.filter(id => id !== isAllSelected)
-        params[key] = filteredIDs.toString()
-        stateSetter(filteredIDs)
+        stateSetter(prev => ({ ...prev, Organization: allOrganizations }))
+        params[key] = ''
       }
-    } else if (selectedIDs.length === 0) {
-      // No items selected, reset the parameter
-      params[key] = ''
     } else {
-      // Specific IDs selected
-      params[key] = selectedIDs.toString()
+      params[key] = selectedIDs.length ? selectedIDs.toString() : ''
       if (category === 'Site') {
         stateSetter(selectedIDs)
       } else {
@@ -137,11 +235,11 @@ const AnimalList = () => {
       }
     }
 
-    // Reset pagination and update filter parameters
+    // Ensure pagination and API params are updated
     setPaginationModel(prev => ({ ...prev, page: 0 }))
     setApiFilterParams(prev => ({
       ...prev,
-      [key]: params[key] // Update only the relevant key
+      [key]: params[key]
     }))
   }
 
@@ -217,6 +315,11 @@ const AnimalList = () => {
     // await fetchAndSetDataList({ ...apiFilterParams, response_type: 'csv' }, { responseType: 'csv' })
   }
 
+  const getSpecificAnimalDataToExport = async () => {
+    debugger
+    await getSpecificAnimal(animalId, { response_type: 'csv' }, { responseType: 'csv' })
+  }
+
   const fetchData = useCallback(
     async (param, paginationModel) => {
       const params = {
@@ -234,13 +337,86 @@ const AnimalList = () => {
     [paginationModel]
   )
 
-  useEffect(() => { 
-    fetchData(apiFilterParams, paginationModel)
+  useEffect(() => {
+    if (!animalId) {
+      debugger
+      fetchData(apiFilterParams, paginationModel)
+    }
   }, [fetchData])
 
-  // const getAnimalDataToExport = async () => {
-  //   await fetchAndSetDataList({ ...apiFilterParams, response_type: 'csv' }, { responseType: 'csv' })
-  // }
+  const getSpecificAnimal = async (id, options = {}) => {
+    debugger
+    try {
+      // Ensure apiFilterParams is always an object from context
+      const parsedParams = apiFilterParams || {}
+
+      // Check if 'All Sites' is selected in the selectedSites from context
+      let siteParam = selectedSites.includes('All Sites') ? '' : parsedParams.site_ids
+
+      // If 'All Sites' is selected, remove site_ids from the params and update context
+      if (selectedSites.includes('All Sites')) {
+        let updatedParams = { ...parsedParams }
+        delete updatedParams.site_ids
+
+        // Update context with the modified params (without site_ids)
+        setApiFilterParams(updatedParams) // Update context instead of sessionStorage
+        setSelectedSites([])
+      }
+
+      // Remove site_ids from the API payload
+      const { site_ids, ...filteredParams } = parsedParams
+
+      const params = {
+        tids: id,
+        page: paginationModel.page + 1,
+        limit: paginationModel.pageSize,
+        sids: siteParam, // Use the updated siteParam (empty if 'All Sites' selected)
+        ...filteredParams // Include other stored filter parameters except site_ids
+      }
+
+      if (options.response_type === 'csv') {
+        setIsDownloading(true)
+        try {
+          const csvResponse = await getAnimalReportById({ ...params, response_type: 'csv' })
+          if (csvResponse && csvResponse.data) {
+            const fileName = 'specific_animal_data.csv' // Default filename
+            handleCsvResponse(csvResponse.data, fileName)
+          }
+        } finally {
+          setIsDownloading(false)
+        }
+        return
+      }
+
+      setIsLoading(true)
+      const response = await getAnimalReportById(params)
+      if (response.success) {
+        console.log('Response Data >', response?.data)
+        const { header, animal_list, total_animal } = response.data
+
+        setTotal(total_animal)
+        setHeaderList(header)
+        setAnimalList(loadServerRows(paginationModel.page, animal_list))
+      } else {
+        setTotal(0)
+        setAnimalList([])
+        toast.error('Something went wrong')
+      }
+    } catch (error) {
+      toast.error('Error connecting to the server')
+    } finally {
+      setIsLoading(false) // Only affects table, not CSV
+    }
+  }
+
+  console.log('List >>', headerList, animalList)
+
+  useEffect(() => {
+    if (animalId) {
+      debugger
+      getSpecificAnimal(animalId)
+    }
+  }, [animalId, filterParams, selectedSites, paginationModel]) // Fetch data when filters or pagination change
 
   const handleOptionChange = (category, itemIndex) => {
     setPopoverData(prevData => {
@@ -260,6 +436,41 @@ const AnimalList = () => {
     return text
   }
 
+  const handleFilterConfirm = async () => {
+    debugger
+    let updatedApiParams = {}
+
+    // Process `popoverData` to extract only checked options for other categories
+    Object.keys(popoverData).forEach(category => {
+      popoverData[category].forEach(option => {
+        if (option.checked) {
+          updatedApiParams[option.key] = 1 // Store only selected options
+        }
+      })
+    })
+
+    // Store selected site IDs from selectedSites state
+    const selectedSiteIds = selectedSites.length > 0 ? selectedSites : ''
+
+    // ✅ Apply `.join(',')` only if selectedSiteIds is an array (not empty string)
+    updatedApiParams.sids =
+      Array.isArray(selectedSiteIds) && selectedSiteIds.length > 0 ? selectedSiteIds.join(',') : ''
+
+    // Update selected sites in the context state
+    setSelectedSites(selectedSiteIds.includes('All Sites') ? sites : selectedSiteIds)
+
+    // Update filterParams and reset pagination
+    setApiFilterParams(updatedApiParams) // Store filter params in context
+    setAnchorEl(null)
+    setPaginationModel(prev => ({ ...prev, page: 0 }))
+  }
+
+  const getSpecificTotalSelectedFilters = selectedOptions => {
+    // Use Object.values to extract arrays of selected items
+    return Object.values(selectedOptions)
+      .flat() // Flatten to combine all selected items into a single array
+      .filter(item => item !== 'All Sites' && item !== 'All Organizations').length // Exclude "All" selections if needed // Count the total number of items
+  }
 
   const columns = headerList.map(header => {
     if (header.key.includes('default_icon')) {
@@ -367,7 +578,7 @@ const AnimalList = () => {
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
-  const reportRows = dataList?.map((item, index) => ({
+  const reportRows = (animalId ? animalList : dataList)?.map((item, index) => ({
     id: index + 1,
     ...item,
     sl_no: getSlNo(index)
@@ -402,49 +613,112 @@ const AnimalList = () => {
         <>
           <Card>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', px: 2, pt: 2 }}>
-              <CardHeader title='Species Animal List' />
+              <CardHeader
+                title={
+                  animalId ? (
+                    <CardHeader
+                      avatar={
+                        <img
+                          src={selectedAnimal?.default_icon}
+                          alt={selectedAnimal?.common_name}
+                          style={{ width: 60, height: 60, borderRadius: '118px', mr: 2 }}
+                        />
+                      }
+                      subheader={
+                        <>
+                          <Typography
+                            sx={{
+                              fontSize: '24px',
+                              fontWeight: 600,
+                              fontFamily: 'Inter',
+                              color: theme.palette.customColors.OnSurfaceVariant,
+                              whiteSpace: 'nowrap',
+                              overflow: 'hidden'
+                            }}
+                            variant='body2'
+                          >
+                            {selectedAnimal?.scientific_name}
+                            {/* {truncateText(params.row.scientific_name, 40)} */}
+                          </Typography>
 
-              <Button
-                variant='contained'
-                onClick={() => getAnimalDataToExport()}
+                          <Typography
+                            sx={{
+                              fontSize: '16px',
+                              fontWeight: 400,
+                              ml: 1,
+                              fontFamily: 'Inter',
+                              color: theme.palette.customColors.OnSurfaceVariant,
+                              whiteSpace: 'nowrap',
+                              overflow: 'hidden'
+                            }}
+                            variant='body2'
+                          >
+                            {selectedAnimal?.common_name}
+                            {/* {truncateText(params.row.common_name, 53)} */}
+                          </Typography>
+                        </>
+                      }
+                    />
+                  ) : (
+                    <Typography
+                      sx={{
+                        fontSize: '24px',
+                        fontWeight: 500,
+                        fontFamily: 'Inter',
+                        color: theme.palette.customColors.OnSurfaceVariant
+                      }}
+                    >
+                      Animal Report List
+                    </Typography>
+                  )
+                }
+              />
+
+              <Typography
+                onClick={() => (animalId ? getSpecificAnimalDataToExport() : getAnimalDataToExport())}
                 sx={{
-                  width: '250px',
-                  height: '38px',
-                  fontSize: '14px',
+                  fontSize: '20px',
+                  fontWeight: '400',
                   fontFamily: 'Inter',
+                  color: '#006D35',
                   display: 'flex',
                   alignItems: 'center',
-                  justifyContent: 'center',
-                  mr: 4,
-                  mt: 2
+                  cursor: 'pointer',
+                  mr: 4
                 }}
               >
-                {isDownloading ? (
-                  <CircularProgress size={20} sx={{ color: 'white' }} />
-                ) : (
-                  <>
-                    Download Report
-                    <img src='/images/download.png' alt='download icon' style={{ marginLeft: 8 }} />
-                  </>
-                )}
-              </Button>
+                Download report
+                <img src='/images/download1.png' alt='download icon' style={{ marginLeft: 8, width: 30, height: 30 }} />
+              </Typography>
             </Box>
 
             <TabContext value={status}>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', px: 2 }}>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', px: 2, mt: 3 }}>
                 {/* Search box and Tabs */}
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 0 }}>
                   {/* Search Box */}
-                  {/* <TextField
-                variant='outlined'
-                size='small'
-                placeholder='Search'
-                sx={{
-                  width: '300px',
-                  backgroundColor: '#fff'
-                }}
-                onChange={''} // Define this handler to update the search state
-              /> */}
+                  <TextField
+                    variant='outlined'
+                    size='small'
+                    placeholder='Search'
+                    InputProps={{
+                      startAdornment: (
+                        <InputAdornment position='start'>
+                          <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
+                        </InputAdornment>
+                      )
+                    }}
+                    sx={{
+                      width: '320px',
+                      backgroundColor: '#fff',
+                      ml: 4,
+                      mt: 3,
+                      borderRadius: '4px', // Applies to the container
+                      '& .MuiOutlinedInput-root': {
+                        borderRadius: '4px' // Applies to the input field
+                      }
+                    }}
+                  />
                   {/* Tabs */}
                   <TabList onChange={''}></TabList> {/* Add `handleTabChange` for tab switching */}
                 </Box>
@@ -567,7 +841,9 @@ const AnimalList = () => {
                           fontWeight: 500
                         }}
                       >
-                        {getTotalSelectedFilters(selectedOptions)}
+                        {animalId
+                          ? getSpecificTotalSelectedFilters(selectedOptions)
+                          : getTotalSelectedFilters(selectedOptions)}
                         {/* Replace this with the actual count from your state */}
                       </Box>
                     </Button>
@@ -580,11 +856,12 @@ const AnimalList = () => {
                         setSites={setSites}
                         selectedSites={selectedSites}
                         setSelectedSites={setSelectedSites}
+                        animalId={animalId}
                         options={options}
                         selectedOptions={selectedOptions}
                         setSelectedOptions={setSelectedOptions}
                         handleSelection={handleSelection}
-                        getTotalSelectedFilters={getTotalSelectedFilters}
+                        getTotalSelectedFilters={animalId ? getSpecificTotalSelectedFilters : getTotalSelectedFilters}
                       />
                     }
 
@@ -680,7 +957,7 @@ const AnimalList = () => {
                         </Button>
                         <Button
                           variant='contained'
-                          onClick={handleConfirm}
+                          onClick={animalId ? handleFilterConfirm : handleConfirm}
                           sx={{
                             minWidth: '100px',
                             padding: '6px 16px'

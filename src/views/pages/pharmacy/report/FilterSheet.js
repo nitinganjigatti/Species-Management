@@ -1,4 +1,4 @@
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import { Box, Drawer, Checkbox, Typography, TextField, IconButton, Grid, Divider } from '@mui/material'
 import Icon from 'src/@core/components/icon'
 import { useTheme } from '@emotion/react'
@@ -9,17 +9,37 @@ const FilterSheet = ({
   setOpenFilterDrawer,
   categories,
   options,
+  animalId,
   selectedOptions,
   setSelectedOptions,
+  selectedSites,
   handleSelection,
+  activeTab,
   getTotalSelectedFilters
 }) => {
-
   const theme = useTheme()
   const [activeCategory, setActiveCategory] = useState(categories[0])
   const [searchValue, setSearchValue] = useState('')
 
+  // useEffect(() => {
+  //   if (open) {
+  //     setSelectedOptions(prev => ({
+  //       ...prev,
+  //       Site: selectedSites
+  //     }))
+  //   }
+  // }, [open, selectedSites])
+  useEffect(() => {
+    if (open && animalId) {
+      setSelectedOptions(prev => ({
+        ...prev,
+        Site: selectedSites.length ? selectedSites : []
+      }))
+    }
+  }, [open])
+
   const handleSelectAll = event => {
+    debugger
     if (event.target.checked) {
       const currentOptions = options[activeCategory]?.map(option =>
         activeCategory === 'Site' ? option.site_id : option.id
@@ -55,6 +75,7 @@ const FilterSheet = ({
   }
 
   const handleConfirmSelection = () => {
+    debugger
     // Handle Sites
     const selectedSiteIDs = selectedOptions.Site || []
     handleSelection(selectedSiteIDs, 'Site')
