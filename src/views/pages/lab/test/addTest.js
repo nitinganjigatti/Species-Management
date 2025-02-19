@@ -51,6 +51,9 @@ const AddTest = props => {
 
   console.log('newSubTests', newSubTests)
   const [deletedSubTests, setDeletedSubTests] = useState([])
+  console.log('deletedSubTests', deletedSubTests)
+  const [deletedIds, setDeletedIds] = useState([])
+  console.log('deletedIds', deletedIds)
 
   console.log('deletedSubTests', deletedSubTests)
 
@@ -128,16 +131,16 @@ const AddTest = props => {
     if (editParams?.id !== null) {
       const payload = {
         label: params?.test_name,
-        sample_ids: JSON.stringify(sampleIdsOnly),
+        sample_ids: sampleIdsOnly,
 
         // New sub-tests
-        sub_tests: JSON.stringify(newSubTests),
+        sub_tests: newSubTests,
 
         // Existing sub-tests
-        existing_sub_tests: JSON.stringify(existingSubTests),
+        existing_sub_tests: existingSubTests,
 
         // deleted sub-tests
-        delete_sub_task: JSON.stringify(deletedSubTests)
+        delete_sub_task: deletedIds
       }
 
       await handleSubmitData(payload)
@@ -189,14 +192,23 @@ const AddTest = props => {
   }
 
   // Restore a deleted test back to existingSubTests
-  const restoreDeletedTest = testName => {
-    const testToRestore = deletedSubTests.find(t => t.name === testName)
+  useEffect(() => {
+    setDeletedIds(deletedSubTests.map(test => test.id))
+  }, [deletedSubTests])
 
-    if (testToRestore) {
-      setDeletedSubTests(prev => prev.filter(t => t.name !== testName))
-      setExistingSubTests(prev => [...prev, testToRestore]) // Add back to existingSubTests
-      setSubTests(prev => [...prev, testName]) // Re-add to displayed list
-    }
+  const restoreDeletedTest = testName => {
+    setDeletedSubTests(prevDeletedTests => {
+      const testToRestore = prevDeletedTests.find(t => t.name === testName)
+
+      if (testToRestore) {
+        setExistingSubTests(prev => [...prev, testToRestore]) // Restore test
+        setSubTests(prev => [...prev, testName]) // Re-add to displayed list
+
+        return prevDeletedTests.filter(t => t.name !== testName) // Update state
+      }
+
+      return prevDeletedTests
+    })
   }
 
   // const handleRemoveSubTest = params => {
