@@ -77,6 +77,8 @@ const statusData = [
   { id: 'sample_received', name: 'Sample Received' },
   { id: 'sample_rejected', name: 'Sample Rejected' },
   { id: 'inprogress', name: 'In Progress' },
+  { id: 'completed', name: 'Completed' },
+  { id: 'completed_insufficient_samples', name: 'Completed - Insufficient Samples' },
   { id: 'completed_positive', name: 'Completed - Positive' },
   { id: 'completed_negative', name: 'Completed - Negative' },
   { id: 'completed_detected', name: 'Completed - Detected' },
