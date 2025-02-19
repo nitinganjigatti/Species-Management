@@ -169,6 +169,7 @@ const LabTest = () => {
     console.log('Delete:', testId)
     setIsModalOpenDelete(true)
     setSelectedId(testId?.id)
+
     // Add your logic to handle the delete action
   }
 
@@ -262,6 +263,7 @@ const LabTest = () => {
       field: 'Action',
       headerName: 'Action',
       sortable: false,
+
       // headerAlign: 'center',
       renderCell: params => (
         <>
