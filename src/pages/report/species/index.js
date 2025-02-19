@@ -18,7 +18,7 @@ import { AuthContext } from 'src/context/AuthContext'
 import { Popover, List, ListItem, ListItemIcon, ListItemText } from '@mui/material'
 import CheckIcon from '@mui/icons-material/Check'
 import toast from 'react-hot-toast'
-import { getReportFilterList } from 'src/lib/api/report'
+import { getReportFilterList, getSpeciesList, getSpeciesListing } from 'src/lib/api/report'
 import { useRouter } from 'next/router'
 import Error404 from 'src/pages/404'
 import SiteSheet from 'src/views/pages/pharmacy/report/siteSheet'
@@ -47,6 +47,7 @@ const SpeciesReport = () => {
   const [anchorEl, setAnchorEl] = useState(null)
   const [openSiteDrawer, setOpenSiteDrawer] = useState(false)
   const [openFilterDrawer, setOpenFilterDrawer] = useState(false)
+  const [speciesList, setSpeciesList] = useState([])
   const [searchValue, setSearchValue] = useState('')
 
   const [sites, setSites] = useState(
@@ -72,7 +73,7 @@ const SpeciesReport = () => {
     ]
   })
 
-  const categories = ['Site']
+  const categories = ['Site', 'Species']
 
   const options = {
     // Gender: ['Male', 'Female'],
@@ -81,7 +82,8 @@ const SpeciesReport = () => {
     Site:
       authData?.userData?.user?.zoos[0]?.sites?.slice().sort((a, b) => a.site_name.localeCompare(b.site_name)) ||
       [] ||
-      []
+      [],
+    Species: speciesList
 
     // Section: ['North', 'South', 'East', 'West'],
     // Enclosure: ['Enclosure 1', 'Enclosure 2'],
@@ -102,20 +104,6 @@ const SpeciesReport = () => {
     include_site: 0
   }
 
-  // const [apiFilterParams, setApiFilterParams] = useState({
-  //   include_housing: 0,
-  //   include_enclosure: 0,
-  //   include_section: 0,
-  //   include_cluster: 0,
-  //   include_class: 0,
-  //   include_organization: 0,
-  //   include_order: 0,
-  //   include_family: 0,
-  //   include_genus: 0,
-  //   include_site: 0,
-  //   include_genus: 0
-  // })
-
   const handleClick = event => {
     setAnchorEl(event.currentTarget)
   }
@@ -124,30 +112,26 @@ const SpeciesReport = () => {
     setAnchorEl(null)
   }
 
-  useEffect(() => {
-    if (router.pathname === '/report/species') {
-      setSelectedSites([])
-      setSelectedOptions([])
-      setApiFilterParams({})
-    }
-  }, [router.pathname])
-
   const open = Boolean(anchorEl)
   const id = open ? 'filter-popover' : undefined
 
   const getStatisticsDataToExport = async () => {
     await fetchDownList({ ...apiFilterParams, response_type: 'csv' }, { responseType: 'csv' })
-    // const params = {
-    //   response_type: 'csv',
-    //   ...Object.keys(apiFilterParams).reduce((acc, key) => {
-    //     if (apiFilterParams[key] === 1) {
-    //       acc[key] = 1
-    //     }
-
-    //     return acc
-    //   }, {})
-    // }
   }
+
+  useEffect(() => {
+    debugger
+    const fetchSpeciesList = async () => {
+      const response = await getSpeciesListing()
+      if (response.success) {
+        console.log('Response >', response.data)
+        setSpeciesList(response.data.result)
+      } else {
+        console.log('Error something went wrong')
+      }
+    }
+    fetchSpeciesList()
+  }, [])
 
   const title = (
     <>
@@ -252,86 +236,6 @@ const SpeciesReport = () => {
     })
   }
 
-  // const handleSelectedSite = async selectedSiteIDs => {
-  //   let params = {}
-
-  //   if (selectedSiteIDs.includes('All Sites') && !selectedSites.includes('All Sites')) {
-  //     // "All Sites" selected and was not already selected
-  //     params = {
-  //       ...Object.keys(apiFilterParams).reduce((acc, key) => {
-  //         if (apiFilterParams[key] === 1) acc[key] = 1
-
-  //         return acc
-  //       }, {})
-  //     }
-  //     setSelectedSites(['All Sites'])
-  //   } else if (selectedSiteIDs.includes('All Sites')) {
-  //     // Remove "All Sites" and use specific site IDs
-  //     const filteredSiteIDs = selectedSiteIDs.filter(id => id !== 'All Sites')
-  //     params = {
-  //       site_ids: filteredSiteIDs.toString(),
-  //       ...Object.keys(apiFilterParams).reduce((acc, key) => {
-  //         if (apiFilterParams[key] === 1) acc[key] = 1
-
-  //         return acc
-  //       }, {})
-  //     }
-  //     setSelectedSites(filteredSiteIDs)
-  //   } else if (selectedSiteIDs.length === 0) {
-  //     // No sites selected, fallback to "All Sites"
-  //     params = {
-  //       ...Object.keys(apiFilterParams).reduce((acc, key) => {
-  //         if (apiFilterParams[key] === 1) acc[key] = 1
-
-  //         return acc
-  //       }, {})
-  //     }
-  //     setSelectedSites(['All Sites'])
-  //   } else {
-  //     // Specific site IDs selected
-  //     params = {
-  //       site_ids: selectedSiteIDs.toString(),
-  //       ...Object.keys(apiFilterParams).reduce((acc, key) => {
-  //         if (apiFilterParams[key] === 1) acc[key] = 1
-
-  //         return acc
-  //       }, {})
-  //     }
-  //     setSelectedSites(selectedSiteIDs)
-  //   }
-
-  //   // if (value.length > 1 && !value.includes('All Sites')) {
-  //   //   setPopoverData(prevData => {
-  //   //     const updatedData = {
-  //   //       ...prevData,
-  //   //       ['Housing']: prevData['Housing'].map((el, index) =>
-  //   //         el?.key === 'include_site' ? { ...el, checked: true } : el
-  //   //       )
-  //   //     }
-
-  //   //     return updatedData
-  //   //   })
-  //   //   params = { ...params, include_site: 1 }
-  //   // } else {
-  //   //   setPopoverData(prevData => {
-  //   //     const updatedData = {
-  //   //       ...prevData,
-  //   //       ['Housing']: prevData['Housing'].map((el, index) =>
-  //   //         el?.key === 'include_site' ? { ...el, checked: false } : el
-  //   //       )
-  //   //     }
-
-  //   //     return updatedData
-  //   //   })
-  //   //   params = { ...params, include_site: 0 }
-  //   // }
-  //   setPaginationModel({ ...paginationModel, page: 0 })
-  //   setApiFilterParams(params)
-
-  //   // Optionally fetch the data
-  //   // await fetchData({ ...params }, { ...paginationModel, page: 0 });
-  // }
-
   function loadServerRows(currentPage, data) {
     return data
   }
@@ -363,10 +267,25 @@ const SpeciesReport = () => {
   )
 
   useEffect(() => {
-    if (reports_module) {
-      fetchData(apiFilterParams, searchValue, paginationModel)
+    debugger
+    if (router.pathname === '/report/species') {
+      console.log('Before apiFilterParams', apiFilterParams)
+      setSelectedSites([])
+      setSelectedOptions({})
+      setApiFilterParams(() => initialFilterParams) // Ensures the update happens correctly
     }
-  }, [fetchData])
+  }, [router.pathname])
+
+  useEffect(() => {
+    if (reports_module) {
+      debugger
+      if (router.pathname === '/report/species')
+        // setSelectedSites([])
+        // setSelectedOptions([])
+        // setApiFilterParams(initialFilterParams)
+        fetchData(apiFilterParams, searchValue, paginationModel)
+    }
+  }, [fetchData,apiFilterParams])
 
   const columns = headerList.map(header => {
     if (header.key.includes('default_icon')) {
@@ -597,7 +516,7 @@ const SpeciesReport = () => {
   const handleSpeciesSelection = async (selectedIDs, category) => {
     let params = {}
     const isAllSelected = category === 'Site' ? 'All Sites' : 'All Organizations'
-    const key = category === 'Site' ? 'site_ids' : 'oids'
+    const key = category === 'Site' ? 'site_ids' : 'sids'
     const stateSetter = category === 'Site' ? setSelectedSites : setSelectedOptions
 
     if (selectedIDs.includes(isAllSelected)) {

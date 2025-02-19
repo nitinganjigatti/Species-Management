@@ -35,7 +35,7 @@ const AnimalList = () => {
   const { organizationList } = usePariveshContext()
   const authData = useContext(AuthContext)
   const reports_module = authData?.userData?.roles?.settings?.enable_reports_module
-  const categories = ['Site', 'Organization']
+  const categories = ['Site']
 
   const { animalId } = router.query
 
@@ -156,20 +156,20 @@ const AnimalList = () => {
   const open = Boolean(anchorEl)
   const id = open ? 'filter-popover' : undefined
 
-  // useEffect(() => {
-  //   if (router.pathname === '/report/animalList') {
-  //     debugger
-  //     setSelectedSites([])
-  //     setSelectedOptions([])
+  useEffect(() => {
+    if (router.pathname === '/report/animalList' && !animalId) {
+      debugger
+      setSelectedSites([])
+      setSelectedOptions([])
 
-  //     setApiFilterParams(prevParams => {
-  //       const updatedParams = { ...prevParams }
-  //       delete updatedParams.site_ids
-  //       delete updatedParams.sids
-  //       return updatedParams
-  //     })
-  //   }
-  // }, [router.pathname])
+      setApiFilterParams(prevParams => {
+        const updatedParams = { ...prevParams }
+        delete updatedParams.site_ids
+        delete updatedParams.sids
+        return updatedParams
+      })
+    }
+  }, [router.pathname])
 
   // const handleSelection = async (selectedIDs, category) => {
   //   let params = {}
@@ -316,7 +316,6 @@ const AnimalList = () => {
   }
 
   const getSpecificAnimalDataToExport = async () => {
-    debugger
     await getSpecificAnimal(animalId, { response_type: 'csv' }, { responseType: 'csv' })
   }
 
@@ -339,10 +338,9 @@ const AnimalList = () => {
 
   useEffect(() => {
     if (!animalId) {
-      debugger
       fetchData(apiFilterParams, paginationModel)
     }
-  }, [fetchData])
+  }, [fetchData, apiFilterParams])
 
   const getSpecificAnimal = async (id, options = {}) => {
     debugger

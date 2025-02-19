@@ -39,10 +39,9 @@ const FilterSheet = ({
   }, [open])
 
   const handleSelectAll = event => {
-    debugger
     if (event.target.checked) {
       const currentOptions = options[activeCategory]?.map(option =>
-        activeCategory === 'Site' ? option.site_id : option.id
+        activeCategory === 'Site' ? option.site_id : option.taxonomy_id
       )
       setSelectedOptions(prev => ({
         ...prev,
@@ -81,8 +80,8 @@ const FilterSheet = ({
     handleSelection(selectedSiteIDs, 'Site')
 
     // Handle Organizations
-    const selectedOrganizationIDs = selectedOptions.Organization || []
-    handleSelection(selectedOrganizationIDs, 'Organization')
+    const selectedOrganizationIDs = selectedOptions.Species || []
+    handleSelection(selectedOrganizationIDs, 'Species')
 
     // Close the drawer
     setOpenFilterDrawer(false)
@@ -98,8 +97,8 @@ const FilterSheet = ({
         return option?.site_name?.toLowerCase().includes(searchValue.toLowerCase())
       }
 
-      if (activeCategory === 'Organization') {
-        return option?.organization_name?.toLowerCase().includes(searchValue.toLowerCase())
+      if (activeCategory === 'Species') {
+        return option?.default_common_name?.toLowerCase().includes(searchValue.toLowerCase())
       }
     }) || []
 
@@ -107,6 +106,8 @@ const FilterSheet = ({
     setActiveCategory(category)
     setSearchValue('')
   }
+
+  console.log('Filter oPTIONS >', filteredOptions)
 
   return (
     <Drawer
@@ -255,14 +256,17 @@ const FilterSheet = ({
                 <Box key={index} sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
                   <Checkbox
                     checked={(selectedOptions[activeCategory] || []).includes(
-                      activeCategory === 'Site' ? option.site_id : option.id
+                      activeCategory === 'Site' ? option.site_id : option.taxonomy_id
                     )}
                     onChange={() =>
-                      handleToggleOption(activeCategory === 'Site' ? option.site_id : option.id, activeCategory)
+                      handleToggleOption(
+                        activeCategory === 'Site' ? option.site_id : option.taxonomy_id,
+                        activeCategory
+                      )
                     }
                   />
                   <Typography sx={{ fontSize: '14px', color: theme.palette.customColors.OnSurfaceVariant }}>
-                    {activeCategory === 'Site' ? option.site_name : option.organization_name}
+                    {activeCategory === 'Site' ? option.site_name : option.default_common_name}
                   </Typography>
                 </Box>
               ))}
