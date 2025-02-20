@@ -1103,49 +1103,34 @@ const RequestDetails = () => {
                   )}
 
                   <Box>
-                    <FormControl fullWidth variant='outlined'>
-                      <Select
-                        size='small'
-                        labelId='demo-simple-select-label'
-                        id='demo-simple-select'
-                        // defaultValue={'awaiting_sample'}
-                        value={headerStatus}
-                        onChange={e => handleHeaderDropdown(e)}
-                        sx={{
-                          width: 237,
-                          fontSize: '14px',
+                    {(permissions?.allow_full_access || permissions?.perform_tests) && (
+                      <FormControl fullWidth variant='outlined'>
+                        <Select
+                          size='small'
+                          labelId='demo-simple-select-label'
+                          id='demo-simple-select'
+                          // defaultValue={'awaiting_sample'}
+                          value={headerStatus}
+                          onChange={e => handleHeaderDropdown(e)}
+                          sx={{
+                            width: 237,
+                            fontSize: '14px',
 
-                          // border: '1px solid red',
+                            // border: '1px solid red',
 
-                          backgroundColor:
-                            headerStatus === 'pending' ||
-                            headerStatus === 'transferred' ||
-                            headerStatus === 'awaiting_sample' ||
-                            headerStatus === 'sample_rejected' ||
-                            headerStatus === 'sample_received'
-                              ? 'rgba(255, 0, 0, 0.1)' // light red background for pending
-                              : headerStatus === 'completed'
-                              ? '#37BD69' // light green background for completed
-                              : headerStatus === 'inprogress'
-                              ? 'rgba(228, 184, 25, 0.1)' // light yellow background for in progress
-                              : 'rgba(0, 128, 0, 0.1)',
+                            backgroundColor:
+                              headerStatus === 'pending' ||
+                              headerStatus === 'transferred' ||
+                              headerStatus === 'awaiting_sample' ||
+                              headerStatus === 'sample_rejected' ||
+                              headerStatus === 'sample_received'
+                                ? 'rgba(255, 0, 0, 0.1)' // light red background for pending
+                                : headerStatus === 'completed'
+                                ? '#37BD69' // light green background for completed
+                                : headerStatus === 'inprogress'
+                                ? 'rgba(228, 184, 25, 0.1)' // light yellow background for in progress
+                                : 'rgba(0, 128, 0, 0.1)',
 
-                          color:
-                            headerStatus === 'pending' ||
-                            headerStatus === 'transferred' ||
-                            headerStatus === 'awaiting_sample' ||
-                            headerStatus === 'sample_rejected' ||
-                            headerStatus === 'sample_received'
-                              ? '#FA6140'
-                              : headerStatus === 'completed'
-                              ? '#37BD69'
-                              : headerStatus === 'inprogress'
-                              ? '#E4B819 '
-                              : '#37BD69',
-
-                          borderRadius: '8px',
-
-                          '& .MuiSelect-icon': {
                             color:
                               headerStatus === 'pending' ||
                               headerStatus === 'transferred' ||
@@ -1156,46 +1141,65 @@ const RequestDetails = () => {
                                 : headerStatus === 'completed'
                                 ? '#37BD69'
                                 : headerStatus === 'inprogress'
-                                ? '#E4B819'
-                                : '#37BD69'
-                          },
+                                ? '#E4B819 '
+                                : '#37BD69',
 
-                          '&:hover .MuiOutlinedInput-notchedOutline': {
-                            border: '0',
+                            borderRadius: '8px',
 
-                            borderColor:
-                              headerStatus === 'pending' ||
-                              headerStatus === 'transferred' ||
-                              headerStatus === 'awaiting_sample' ||
-                              headerStatus === 'sample_rejected' ||
-                              headerStatus === 'sample_received'
-                                ? '#FA6140' // Custom red border for these statuses
-                                : headerStatus === 'completed'
-                                ? '#37BD69' // Custom green border for completed
-                                : headerStatus === 'inprogress'
-                                ? '#E4B819' // Custom yellow border for in progress
-                                : '#37BD69' // Default green border
-                          },
+                            '& .MuiSelect-icon': {
+                              color:
+                                headerStatus === 'pending' ||
+                                headerStatus === 'transferred' ||
+                                headerStatus === 'awaiting_sample' ||
+                                headerStatus === 'sample_rejected' ||
+                                headerStatus === 'sample_received'
+                                  ? '#FA6140'
+                                  : headerStatus === 'completed'
+                                  ? '#37BD69'
+                                  : headerStatus === 'inprogress'
+                                  ? '#E4B819'
+                                  : '#37BD69'
+                            },
 
-                          '& .MuiOutlinedInput-notchedOutline': {
-                            border: '0'
-                          }
-                        }}
-                      >
-                        {statusData?.map((item, index) => (
-                          <MenuItem key={index} value={item?.id}>
-                            {item?.name}
-                          </MenuItem>
-                        ))}
-                      </Select>
-                    </FormControl>
+                            '&:hover .MuiOutlinedInput-notchedOutline': {
+                              border: '0',
+
+                              borderColor:
+                                headerStatus === 'pending' ||
+                                headerStatus === 'transferred' ||
+                                headerStatus === 'awaiting_sample' ||
+                                headerStatus === 'sample_rejected' ||
+                                headerStatus === 'sample_received'
+                                  ? '#FA6140' // Custom red border for these statuses
+                                  : headerStatus === 'completed'
+                                  ? '#37BD69' // Custom green border for completed
+                                  : headerStatus === 'inprogress'
+                                  ? '#E4B819' // Custom yellow border for in progress
+                                  : '#37BD69' // Default green border
+                            },
+
+                            '& .MuiOutlinedInput-notchedOutline': {
+                              border: '0'
+                            }
+                          }}
+                        >
+                          {statusData?.map((item, index) => (
+                            <MenuItem key={index} value={item?.id}>
+                              {item?.name}
+                            </MenuItem>
+                          ))}
+                        </Select>
+                      </FormControl>
+                    )}
                   </Box>
                 </Box>
               )}
             </Box>
 
             <DataGrid
-              checkboxSelection
+              checkboxSelection={
+                permissions?.perform_tests || permissions?.allow_full_access || permissions?.transfer_tests
+              }
               onRowSelectionModelChange={handleRowSelection}
               sx={{
                 '& .MuiDataGrid-row:hover .customButton': {
