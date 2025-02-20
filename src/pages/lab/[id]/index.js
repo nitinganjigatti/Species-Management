@@ -106,7 +106,6 @@ const RequestDetails = () => {
   const [transferStatus, setTransferStatus] = useState('')
 
   const { id, lab_id } = Router.query
-  console.log('id', id)
 
   const searchParams = useSearchParams()
   const Selectedlab_id = searchParams.get('lab_id')
@@ -162,14 +161,11 @@ const RequestDetails = () => {
   const [showTestFile, setShowTestFile] = useState(false)
   const [transferTestId, setTransferTestId] = useState('')
   const [headerStatus, setHeaderStatus] = useState('awaiting_sample')
-  console.log('headerStatus', headerStatus)
+
   const [selectedRow, setSelectedRow] = useState([])
-  console.log('selectedRow', selectedRow)
+
   const [selectedRowData, setSelectedRowData] = useState([])
-
-  // console.log('selectedRowData', selectedRowData)
-
-  // console.log('selectedRow', selectedRow)
+  const [hasCompletedStatus, setHasCompletedStatus] = useState(true)
 
   const setAlertDefaults = ({ message, severity, status }) => {
     setOpenSnackbar(status)
@@ -189,7 +185,6 @@ const RequestDetails = () => {
 
   const handleChangeStatus = async (event, params) => {
     const value = event.target.value
-    console.log('value', value)
 
     if (
       (value === 'completed_positive' ||
@@ -207,7 +202,7 @@ const RequestDetails = () => {
       return
     }
     setStatus(value)
-    console.log('params', params?.id)
+
     let testIds = [params?.id] // Single ID ko array me store karna
 
     postMultipleStatus(testIds, value)
@@ -291,13 +286,17 @@ const RequestDetails = () => {
       test_ids: labId
     }
     await getLabListByMultipleIds(id, params).then(res => {
-      console.log('res', res?.data)
+      // console.log('res', res?.data)
       setLab(res?.data)
     })
   }
 
   const handleOpenTransfer = async params => {
-    console.log('params', params)
+    const hasCompleted = selectedRowData.some(item => item.status.startsWith('completed'))
+    if (hasCompleted) {
+      setHasCompletedStatus(true)
+    }
+
     setOpenTransfer(true)
     setTestId([params?.row?.id])
 
@@ -789,7 +788,6 @@ const RequestDetails = () => {
     // setSubmitLoader(true)
 
     // if (transferStatus !== 'completed') {
-    console.log('selectedRow', selectedRow)
 
     if (selectedRow?.length > 1) {
       const params = {
@@ -808,8 +806,6 @@ const RequestDetails = () => {
         reset()
         Toaster({ type: 'error', message: res.message })
       }
-
-      console.log('res', res)
     } else {
       const { lab_name, replaced_lab_id, transfer_reason } = {
         ...params
@@ -884,26 +880,12 @@ const RequestDetails = () => {
     setOpenSnackbar(false)
   }
 
-  // const handleSelectionModelChange = (value, details, rowSelectionModel, params) => {
-  //   console.log('details', details, rowSelectionModel, value, params)
-  //   setSelectedRow(value)
-
-  //   // console.log('value', value)
-  // }
-
   const handleRowSelection = (rowSelectionModel, details) => {
     setSelectedRow(rowSelectionModel)
-
-    // console.log('Selected Row IDs:', rowSelectionModel)
 
     // Retrieve the complete row data based on selected row IDs
     const selectedRowData = rows.filter(row => rowSelectionModel.includes(row.id))
     setSelectedRowData(selectedRowData)
-
-    // console.log('Complete Selected Row Data:', selectedRowData)
-
-    // You can access other details in the 'details' parameter if needed
-    // console.log('Selection event details:', details)
   }
 
   const postMultipleStatus = async (testIds, status) => {
@@ -1463,72 +1445,86 @@ const RequestDetails = () => {
                 <Typography sx={{ fontSize: '14px', fontWeight: 600 }}>{request[0]?.request_id || '-'} </Typography>
               </Box>
               <Box sx={{ display: 'flex', gap: 1, flexDirection: 'column', alignItems: 'center' }}>
-                <Typography sx={{ fontSize: '14px' }}>Test Name : </Typography>
                 {selectedRowData?.length > 1 ? (
-                  <Tooltip
-                    title={
-                      <Box>
-                        {selectedRowData.map(name => (
-                          <Typography key={name?.id} sx={{ fontSize: '15px', color: '#fff' }}>
-                            {name?.test_name}
-                          </Typography>
-                        ))}
-                      </Box>
-                    }
-                  >
-                    <Box
-                      sx={{
-                        display: 'flex',
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                        width: '30px',
-                        height: '30px',
-                        border: '1px solid #C3CEC7',
-                        borderRadius: '8px',
-                        fontSize: '15px'
-                      }}
+                  <>
+                    <Typography sx={{ fontSize: '14px' }}>No of Tests : </Typography>
+
+                    <Tooltip
+                      title={
+                        <Box>
+                          {selectedRowData.map(name => (
+                            <Typography key={name?.id} sx={{ fontSize: '15px', color: '#fff' }}>
+                              {name?.test_name}
+                            </Typography>
+                          ))}
+                        </Box>
+                      }
                     >
-                      {selectedRowData?.length}
-                    </Box>
-                  </Tooltip>
+                      <Box
+                        sx={{
+                          display: 'flex',
+                          justifyContent: 'center',
+                          alignItems: 'center',
+                          width: '30px',
+                          height: '30px',
+                          border: '1px solid #C3CEC7',
+                          borderRadius: '8px',
+                          fontSize: '15px'
+                        }}
+                      >
+                        {selectedRowData?.length}
+                      </Box>
+                    </Tooltip>
+                  </>
                 ) : (
-                  <Typography sx={{ fontSize: '14px', fontWeight: 600 }}>{testName || '-'}</Typography>
+                  <>
+                    <Typography sx={{ fontSize: '14px' }}>Test Name : </Typography>
+
+                    <Typography sx={{ fontSize: '14px', fontWeight: 600 }}>{testName || '-'}</Typography>
+                  </>
                 )}
               </Box>
               <Box sx={{ display: 'flex', gap: 1, flexDirection: 'column', alignItems: 'center' }}>
-                <Typography sx={{ fontSize: '14px' }}>Sample Name : </Typography>
                 {selectedRowData?.length > 1 ? (
-                  <Tooltip
-                    title={
-                      <Box>
-                        {selectedRowData.map(name => (
-                          <Typography key={name?.id} sx={{ fontSize: '15px', color: '#fff' }}>
-                            {name?.sample_name}
-                          </Typography>
-                        ))}
-                      </Box>
-                    }
-                  >
-                    <Box
-                      sx={{
-                        display: 'flex',
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                        width: '30px',
-                        height: '30px',
+                  <>
+                    <Typography sx={{ fontSize: '14px' }}>No of Samples : </Typography>
 
-                        border: '1px solid #C3CEC7',
-                        borderRadius: '8px',
-                        fontSize: '15px'
-                      }}
+                    <Tooltip
+                      title={
+                        <Box>
+                          {selectedRowData.map(name => (
+                            <Typography key={name?.id} sx={{ fontSize: '15px', color: '#fff' }}>
+                              {name?.sample_name}
+                            </Typography>
+                          ))}
+                        </Box>
+                      }
                     >
-                      {selectedRowData?.length}
-                    </Box>
-                  </Tooltip>
+                      <Box
+                        sx={{
+                          display: 'flex',
+                          justifyContent: 'center',
+                          alignItems: 'center',
+                          width: '30px',
+                          height: '30px',
+
+                          border: '1px solid #C3CEC7',
+                          borderRadius: '8px',
+                          fontSize: '15px'
+                        }}
+                      >
+                        {selectedRowData?.length}
+                      </Box>
+                    </Tooltip>
+                  </>
                 ) : (
-                  <Typography sx={{ fontSize: '14px', fontWeight: 600 }}>
-                    {testSampleName ? testSampleName : '-'}
-                  </Typography>
+                  <>
+                    <Typography sx={{ fontSize: '14px' }}>Sample Name : </Typography>
+
+                    <Typography sx={{ fontSize: '14px', fontWeight: 600 }}>
+                      {testSampleName ? testSampleName : '-'}
+                    </Typography>
+                  </>
                 )}
               </Box>{' '}
               <Box sx={{ display: 'flex', gap: 1, flexDirection: 'column' }}>
@@ -1632,6 +1628,12 @@ const RequestDetails = () => {
                     </FormControl>
                   </Grid>
                 </Grid>
+                {hasCompletedStatus && (
+                  <Typography color='error' sx={{}}>
+                    This transfer cannot be processed because one or more selected tests have been marked as completed.
+                  </Typography>
+                )}
+
                 <Box
                   sx={{
                     display: 'flex',
@@ -1655,7 +1657,11 @@ const RequestDetails = () => {
                     type='submit'
                     variant='contained'
                     size='large'
-                    disabled={permissions?.allow_full_access !== true || permissions?.transfer_tests !== true}
+                    disabled={
+                      permissions?.allow_full_access !== true ||
+                      permissions?.transfer_tests !== true ||
+                      hasCompletedStatus
+                    }
                   >
                     CONFIRM
                   </LoadingButton>
