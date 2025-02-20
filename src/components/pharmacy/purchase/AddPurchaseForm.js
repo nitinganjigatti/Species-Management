@@ -1804,7 +1804,7 @@ const AddPurchaseForm = () => {
                 }}
               >
                 <Typography sx={{ fontSize: '16px', fontWeight: 400 }}>
-                  Total fright charge - {totalFreightCharges?.toFixed(2)}
+                  Total freight charge - {totalFreightCharges?.toFixed(2)}
                 </Typography>
               </Box>
             </Grid>
