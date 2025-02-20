@@ -469,7 +469,7 @@ const SpeciesReport = () => {
   // }
 
   const handleRowClick = params => {
-    console.log('Params >', params)
+    // console.log('Params >', params)
     // const { setSelectedAnimal, setApiFilterParams, setSelectedSites } = useAnimalContext();
 
     const hasFilterChanged = JSON.stringify(apiFilterParams) !== JSON.stringify(initialFilterParams)
@@ -490,7 +490,7 @@ const SpeciesReport = () => {
       Site: selectedSites ? selectedSites : ''
     }))
 
-    router.push(`/report/animalList?animalId=${params.row?.tsn_id}`)
+    router.push(`/report/animalList?animalId=${params?.tsn_id}`)
   }
 
   const handleSelection = async (selectedIDs, category) => {
