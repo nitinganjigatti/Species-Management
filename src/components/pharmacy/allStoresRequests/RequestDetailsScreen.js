@@ -27,13 +27,12 @@ const RequestDetailsScreen = () => {
     storeName: ''
   })
 
-  const updateUrlParams = useCallback(
-    params => {
-      const newQuery = { ...router.query, ...params }
-      router.replace({ pathname: router.pathname, query: newQuery }, undefined)
-    },
-    [router, detailsTab]
-  )
+  const updateUrlParams = useCallback(params => {
+    // debugger
+    const newQuery = { ...router.query, ...params }
+    router.replace({ pathname: router.pathname, query: newQuery }, undefined)
+  }, [])
+  console.log(selectedStoreDetails, 'selectedStoreDetails')
 
   useEffect(() => {
     updateUrlParams({
@@ -52,88 +51,97 @@ const RequestDetailsScreen = () => {
 
   return (
     <Grid container>
-      {selectedPharmacy.type === 'central' ? (
-        <Card sx={{ mb: 6, width: '100%', boxShadow: 'none !important' }}>
+      {/* {selectedPharmacy.type === 'central' ? ( */}
+      <Card sx={{ mb: 6, width: '100%', boxShadow: 'none !important' }}>
+        {selectedPharmacy.type === 'local' ? null : (
           <CardHeader
             avatar={
               <Icon
                 style={{ cursor: 'pointer' }}
                 onClick={() => {
-                  router.back()
+                  if (selectedPharmacy.type === 'local') {
+                    router.push({
+                      pathname: `/pharmacy/requests-by-product`,
+                      query: selectedPharmacy?.id
+                    })
+                  } else {
+                    router.back()
+                  }
                 }}
                 icon='ep:back'
               />
             }
             title={selectedStoreDetails?.storeName ? selectedStoreDetails?.storeName : router?.query?.selectedStoreName}
           />
+        )}
 
-          <Grid
-            spacing={2}
-            sx={{
-              px: 6,
-              display: 'flex',
-              flexDirection: 'column',
-              justifyContent: 'center',
-              mb: 4
-            }}
-          >
-            <TabContext value={detailsTab}>
-              <TabList
-                sx={{ borderBottom: `1px solid ${theme.palette.customColors.neutral05} !important` }}
-                onChange={(event, newValue) => {
-                  console.log('new tab value: ', newValue)
-                  setDetailsTab(newValue)
-                  updateUrlParams({
-                    mainTab: newValue
-                  })
-                }}
-              >
-                <Tab
-                  value='Pending'
-                  label={<TabBadge label='Requested Items' totalCount={detailsTab === 'Pending' ? 0 : null} />}
-                />
-                <Tab
-                  value='Shipped'
-                  label={<TabBadge label='Shipment' totalCount={detailsTab === 'Shipped' ? 0 : null} />}
-                />
-              </TabList>
-
-              <TabPanel
+        <Grid
+          spacing={2}
+          sx={{
+            px: 6,
+            display: 'flex',
+            flexDirection: 'column',
+            justifyContent: 'center',
+            mb: 4
+          }}
+        >
+          <TabContext value={detailsTab}>
+            <TabList
+              sx={{ borderBottom: `1px solid ${theme.palette.customColors.neutral05} !important` }}
+              onChange={(event, newValue) => {
+                console.log('new tab value: ', newValue)
+                setDetailsTab(newValue)
+                updateUrlParams({
+                  mainTab: newValue
+                })
+              }}
+            >
+              <Tab
                 value='Pending'
-                sx={{
-                  padding: '0 !important'
-                }}
-              >
-                <RequestedItems
-                  selectedStoreDetails={selectedStoreDetails}
-                  setSelectedStoreDetails={setSelectedStoreDetails}
-                  updateUrlParams={updateUrlParams}
-                />
-              </TabPanel>
-
-              <TabPanel
+                label={<TabBadge label='Requested Items' totalCount={detailsTab === 'Pending' ? 0 : null} />}
+              />
+              <Tab
                 value='Shipped'
+                label={<TabBadge label='Shipment' totalCount={detailsTab === 'Shipped' ? 0 : null} />}
+              />
+            </TabList>
+
+            <TabPanel
+              value='Pending'
+              sx={{
+                padding: '0 !important'
+              }}
+            >
+              <RequestedItems
+                selectedStoreDetails={selectedStoreDetails}
+                setSelectedStoreDetails={setSelectedStoreDetails}
+                updateUrlParams={updateUrlParams}
+              />
+            </TabPanel>
+
+            <TabPanel
+              value='Shipped'
+              sx={{
+                padding: '0 !important'
+              }}
+            >
+              <Grid
                 sx={{
-                  padding: '0 !important'
+                  width: '100%',
+                  px: '0 !important'
                 }}
               >
-                <Grid
-                  sx={{
-                    width: '100%',
-                    px: '0 !important'
-                  }}
-                >
-                  <ShipmentRequests updateUrlParams={updateUrlParams} />
-                </Grid>
-              </TabPanel>
-            </TabContext>
-          </Grid>
-        </Card>
-      ) : (
-        <Grid sx={{ mb: 6, width: '100%' }}>
+                <ShipmentRequests updateUrlParams={updateUrlParams} />
+              </Grid>
+            </TabPanel>
+          </TabContext>
+        </Grid>
+      </Card>
+      {/* ) : (
+      <Grid sx={{ mb: 6, width: '100%' }}>
           <Error404></Error404>
         </Grid>
-      )}
+      )} */}
     </Grid>
   )
 }

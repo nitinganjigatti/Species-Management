@@ -16,7 +16,8 @@ import {
   IconButton,
   Drawer,
   Tab,
-  Box
+  Box,
+  Button
 } from '@mui/material'
 import CircularProgress from '@mui/material/CircularProgress'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
@@ -29,6 +30,8 @@ import { TabContext, TabList, TabPanel } from '@mui/lab'
 import { ExcelExportButton } from 'src/components/Buttons'
 import MedicineCard from 'src/views/utility/MedicineCard'
 import Utility from 'src/utility'
+import RequestDetailsScreen from './RequestDetailsScreen'
+import RequestByProduct from 'src/pages/pharmacy/requests-by-product'
 
 const AllStoresRequestList = () => {
   const theme = useTheme()
@@ -41,7 +44,7 @@ const AllStoresRequestList = () => {
 
   const updateUrlParams = params => {
     const query = { ...router.query, ...params }
-    router.push({ pathname: router.pathname, query }, undefined, { shallow: true })
+    router.replace({ pathname: router.pathname, query }, undefined, { shallow: true })
   }
   const { selectedPharmacy } = usePharmacyContext()
 
@@ -50,6 +53,19 @@ const AllStoresRequestList = () => {
       pathname: `/pharmacy/requests-by-store/${params?.row?.requested_store_id}`
     })
   }
+
+  const navigateToLocalStore = useCallback(() => {
+    if (
+      selectedPharmacy?.type === 'local' &&
+      router.pathname === '/pharmacy/requests-by-store/all-stores-request-list'
+    ) {
+      debugger
+      router.push({
+        pathname: `/pharmacy/requests-by-product`,
+        query: selectedPharmacy?.id
+      })
+    }
+  }, [selectedPharmacy?.id])
 
   const columns = [
     {
@@ -716,7 +732,7 @@ const AllStoresRequestList = () => {
             </Box>
           </Drawer>
         </Card>
-      ) : (
+      ) : selectedPharmacy.type === 'local' ? null : (
         <Error404></Error404>
       )}
     </>

@@ -77,7 +77,9 @@ export default function RequestedItems({ selectedStoreDetails, setSelectedStoreD
   const [sort, setSort] = useState(router.query.sort || 'asc')
   const [rows, setRows] = useState([])
   const [searchValue, setSearchValue] = useState(router.query.q || '')
-  const [sortColumn, setSortColumn] = useState(router.query.column || 'priority')
+  const [sortColumn, setSortColumn] = useState(
+    selectedPharmacy.type === 'local' ? 'priority' : router.query.column || 'priority'
+  )
   const [controlledDrug, setControlledDrug] = useState(router.query.controlledDrug || 'all')
   const [priority, setPriority] = useState(router.query.priority || 'all')
   const [loading, setLoading] = useState(false)
@@ -604,7 +606,7 @@ export default function RequestedItems({ selectedStoreDetails, setSelectedStoreD
       limit: paginationModel?.pageSize,
       requestedItemsSubTab: requestedItemsSubTab
     })
-  }, [paginationModel, controlledDrug, priority, filterDates, selectedPharmacy?.id, requestedItemsSubTab])
+  }, [paginationModel, controlledDrug, priority, filterDates, selectedPharmacy.id, requestedItemsSubTab])
 
   useEffect(() => {
     updateUrlParams({
@@ -826,8 +828,12 @@ export default function RequestedItems({ selectedStoreDetails, setSelectedStoreD
         }}
       >
         <Tab value='all' label={'All'} />
-        <Tab value='Available' label={'Available'} />
-        <Tab value='NotAvailable' label={'NotAvailable'} />
+        {selectedPharmacy.type === 'local' ? null : (
+          <>
+            <Tab value='Available' label={'Available'} />
+            <Tab value='NotAvailable' label={'NotAvailable'} />
+          </>
+        )}
       </TabLists>
 
       <TabPanel
