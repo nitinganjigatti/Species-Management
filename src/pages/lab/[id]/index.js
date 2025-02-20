@@ -164,8 +164,10 @@ const RequestDetails = () => {
   const [headerStatus, setHeaderStatus] = useState('awaiting_sample')
   console.log('headerStatus', headerStatus)
   const [selectedRow, setSelectedRow] = useState([])
+  console.log('selectedRow', selectedRow)
   const [selectedRowData, setSelectedRowData] = useState([])
-  console.log('selectedRowData', selectedRowData)
+
+  // console.log('selectedRowData', selectedRowData)
 
   // console.log('selectedRow', selectedRow)
 
@@ -187,13 +189,16 @@ const RequestDetails = () => {
 
   const handleChangeStatus = async (event, params) => {
     const value = event.target.value
+    console.log('value', value)
 
     if (
       (value === 'completed_positive' ||
         value === 'completed_negative' ||
         value === 'completed_detected' ||
         value === 'completed_not_detected' ||
-        value === 'completed_inconclusive') &&
+        value === 'completed_inconclusive' ||
+        value === 'completed' ||
+        value === 'completed_insufficient_samples') &&
       !(image || document) // Ensuring at least one attachment is present
     ) {
       Toaster({ type: 'error', message: 'Attach the report before completing the test' })
@@ -202,23 +207,27 @@ const RequestDetails = () => {
       return
     }
     setStatus(value)
+    console.log('params', params?.id)
+    let testIds = [params?.id] // Single ID ko array me store karna
 
-    const id = params
+    postMultipleStatus(testIds, value)
 
-    const payload = {
-      status: event.target.value
-    }
+    // const id = params
 
-    const response = await UpdateStatus(id, payload)
-    if (response?.success) {
-      Toaster({ type: 'success', message: response.message })
+    // const payload = {
+    //   status: event.target.value
+    // }
 
-      fetchRequestDetails()
-    } else {
-      fetchRequestDetails()
-      setStatus(params?.row?.status)
-      Toaster({ type: 'error', message: response.message })
-    }
+    // const response = await UpdateStatus(id, payload)
+    // if (response?.success) {
+    //   Toaster({ type: 'success', message: response.message })
+
+    //   fetchRequestDetails()
+    // } else {
+    //   fetchRequestDetails()
+    //   setStatus(params?.row?.status)
+    //   Toaster({ type: 'error', message: response.message })
+    // }
   }
 
   const handleClickOpen = async item => {
@@ -423,7 +432,7 @@ const RequestDetails = () => {
                   id='demo-simple-select'
                   defaultValue={status === 'transferred' ? 'awaiting_sample' : params.row.status}
                   value={params.row.status}
-                  onChange={event => handleChangeStatus(event, params?.row?.id)}
+                  onChange={event => handleChangeStatus(event, params?.row)}
                   sx={{
                     width: 237,
                     fontSize: '14px',
@@ -586,38 +595,6 @@ const RequestDetails = () => {
                       </Typography>
                     </Box>
                   ) : null}
-                  {/* <IconButton size='small' onClick={e => handleOpenPopOver(e, params)}>
-                    <Icon icon='charm:menu-kebab' />
-                  </IconButton> */}
-                  {/* <Popover
-                    sx={{
-                      '& .MuiPaper-root': {
-                        minWidth: 140,
-                        borderRadius: '5px'
-                      },
-                      '& .MuiBackdrop-root': {
-                        bgcolor: 'transparent'
-                      }
-                    }}
-                    open={openPopover}
-                    anchorEl={anchorEl}
-                    onClose={handleClosePopover}
-                    anchorOrigin={{
-                      vertical: 'bottom',
-                      horizontal: 'right'
-                    }}
-                    transformOrigin={{
-                      vertical: 'top',
-                      horizontal: 'right'
-                    }}
-                  >
-                    {(permissions?.allow_full_access || permissions?.transfer_tests) && (
-                      <MenuItem onClick={() => handleOpenTransfer(params)}>Transfer</MenuItem>
-                    )}
-                    {(permissions?.allow_full_access || permissions?.perform_tests) && (
-                      <MenuItem onClick={handleOpenUploader}>Upload</MenuItem>
-                    )}
-                  </Popover> */}
 
                   <Stack
                     direction='row'
@@ -959,7 +936,9 @@ const RequestDetails = () => {
         value === 'completed_negative' ||
         value === 'completed_detected' ||
         value === 'completed_not_detected' ||
-        value === 'completed_inconclusive') &&
+        value === 'completed_inconclusive' ||
+        value === 'completed' ||
+        value === 'completed_insufficient_samples') &&
       !(image || document)
     ) {
       setHeaderStatus('awaiting_sample')
