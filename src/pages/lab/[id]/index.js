@@ -151,7 +151,9 @@ const RequestDetails = () => {
   const [fileId, setFileId] = useState()
   const [file, setFile] = useState([])
   const [testName, setTestName] = useState()
+  console.log('testName', testName)
   const [testSampleName, setTestSampleName] = useState('')
+  console.log('testSampleName', testSampleName)
 
   // ........... snackbar
   const [openSnackbar, setOpenSnackbar] = useState(false)
@@ -305,8 +307,13 @@ const RequestDetails = () => {
     setTransferTestId(params?.row?.test_id)
     const labTestId = [params?.row?.id]
     setTransferStatus(params?.row?.status)
-    setTestName(params?.row?.test_name)
-    setTestSampleName(params?.row?.sample_name)
+    if (selectedRow?.length === 1) {
+      setTestName(selectedRowData[0]?.test_name)
+      setTestSampleName(selectedRowData[0]?.sample_name)
+    } else {
+      setTestName(params?.row?.test_name)
+      setTestSampleName(params?.row?.sample_name)
+    }
 
     if (selectedRow.length >= 1) {
       await getAccessLabs(LabRequestId, selectedRow)
@@ -1446,7 +1453,15 @@ const RequestDetails = () => {
                 <Typography sx={{ fontSize: '14px' }}>Request ID : </Typography>
                 <Typography sx={{ fontSize: '14px', fontWeight: 600 }}>{request[0]?.request_id || '-'} </Typography>
               </Box>
-              <Box sx={{ display: 'flex', gap: 1, flexDirection: 'column', alignItems: 'center' }}>
+              <Box
+                sx={{
+                  display: 'flex',
+                  gap: 1,
+                  flexDirection: 'column',
+                  flexDirection: 'column',
+                  alignItems: selectedRowData?.length > 1 && 'center'
+                }}
+              >
                 {selectedRowData?.length > 1 ? (
                   <>
                     <Typography sx={{ fontSize: '14px' }}>No of Tests : </Typography>
@@ -1482,11 +1497,20 @@ const RequestDetails = () => {
                   <>
                     <Typography sx={{ fontSize: '14px' }}>Test Name : </Typography>
 
-                    <Typography sx={{ fontSize: '14px', fontWeight: 600 }}>{testName || '-'}</Typography>
+                    <Typography sx={{ fontSize: '14px', fontWeight: 600, textTransform: 'capitalize' }}>
+                      {testName || '-'}
+                    </Typography>
                   </>
                 )}
               </Box>
-              <Box sx={{ display: 'flex', gap: 1, flexDirection: 'column', alignItems: 'center' }}>
+              <Box
+                sx={{
+                  display: 'flex',
+                  gap: 1,
+                  flexDirection: 'column',
+                  alignItems: selectedRowData?.length > 1 && 'center'
+                }}
+              >
                 {selectedRowData?.length > 1 ? (
                   <>
                     <Typography sx={{ fontSize: '14px' }}>No of Samples : </Typography>
@@ -1523,7 +1547,7 @@ const RequestDetails = () => {
                   <>
                     <Typography sx={{ fontSize: '14px' }}>Sample Name : </Typography>
 
-                    <Typography sx={{ fontSize: '14px', fontWeight: 600 }}>
+                    <Typography sx={{ fontSize: '14px', fontWeight: 600, textTransform: 'capitalize' }}>
                       {testSampleName ? testSampleName : '-'}
                     </Typography>
                   </>
