@@ -4,7 +4,7 @@ import { axiosGet, axiosPost, axiosFormPost } from '../utility'
 const pharmacy = true
 
 export async function getDirectDispatchItemsList({ params }) {
-  const response = await axiosGet({ url: DIRECT_DISPATCH, params, pharmacy })
+  const response = await axiosGet({ url: `${DIRECT_DISPATCH}`, params, pharmacy })
 
   return response.data
 }
@@ -35,7 +35,7 @@ export async function cancelDirectDispatchItems(id) {
 
 export async function addDirectDispatchItems(payload) {
   try {
-    const url = `${DIRECT_DISPATCH}`
+    const url = `v2/${DIRECT_DISPATCH}`
     var data = payload
     const response = await axiosFormPost({ url, body: data, pharmacy })
 
@@ -54,7 +54,7 @@ export async function addDirectDispatchItems(payload) {
 
 export async function updateDirectDispatchItems(id, payload) {
   try {
-    const url = `${DIRECT_DISPATCH}/${id}/update`
+    const url = `v2/${DIRECT_DISPATCH}/${id}/update`
     var data = payload
     data.id = id
 

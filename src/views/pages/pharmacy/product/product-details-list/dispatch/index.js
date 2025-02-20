@@ -193,7 +193,7 @@ function Dispatch({ tabValue, updateUrlParams }) {
             fontFamily: 'Inter'
           }}
         >
-          {params.row.price}
+          {Utility.formatAmountToReadableDigit(params.row.price)}
         </Typography>
       )
     },
