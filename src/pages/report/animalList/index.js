@@ -158,7 +158,6 @@ const AnimalList = () => {
 
   useEffect(() => {
     if (router.pathname === '/report/animalList' && !animalId) {
-      debugger
       setSelectedSites([])
       setSelectedOptions([])
 
@@ -343,7 +342,6 @@ const AnimalList = () => {
   }, [fetchData, apiFilterParams])
 
   const getSpecificAnimal = async (id, options = {}) => {
-    debugger
     try {
       // Ensure apiFilterParams is always an object from context
       const parsedParams = apiFilterParams || {}
@@ -411,7 +409,6 @@ const AnimalList = () => {
 
   useEffect(() => {
     if (animalId) {
-      debugger
       getSpecificAnimal(animalId)
     }
   }, [animalId, filterParams, selectedSites, paginationModel]) // Fetch data when filters or pagination change
@@ -435,7 +432,6 @@ const AnimalList = () => {
   }
 
   const handleFilterConfirm = async () => {
-    debugger
     let updatedApiParams = {}
 
     // Process `popoverData` to extract only checked options for other categories

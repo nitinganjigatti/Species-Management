@@ -122,7 +122,6 @@ const SpeciesReport = () => {
   }
 
   useEffect(() => {
-    debugger
     const fetchSpeciesList = async () => {
       const response = await getSpeciesListing()
       if (response.success) {
@@ -249,7 +248,6 @@ const SpeciesReport = () => {
 
   const fetchData = useCallback(
     async (param, q, paginationModel) => {
-      debugger
       let params = {
         page: paginationModel.page + 1,
         limit: paginationModel.pageSize,
@@ -269,7 +267,6 @@ const SpeciesReport = () => {
   )
 
   useEffect(() => {
-    debugger
     if (router.pathname === '/report/species') {
       console.log('Before apiFilterParams', apiFilterParams)
       setSelectedSites([])
@@ -280,12 +277,7 @@ const SpeciesReport = () => {
 
   useEffect(() => {
     if (reports_module) {
-      debugger
-      if (router.pathname === '/report/species')
-        // setSelectedSites([])
-        // setSelectedOptions([])
-        // setApiFilterParams(initialFilterParams)
-        fetchData(apiFilterParams, searchValue, paginationModel)
+      fetchData(apiFilterParams, searchValue, paginationModel)
     }
   }, [fetchData, apiFilterParams])
 
@@ -477,9 +469,9 @@ const SpeciesReport = () => {
 
     // Store values in Context instead of sessionStorage
     setSelectedAnimal({
-      default_icon: params.row?.default_icon,
-      scientific_name: params.row?.scientific_name,
-      common_name: params.row?.common_name
+      default_icon: params?.default_icon,
+      scientific_name: params?.scientific_name,
+      common_name: params?.common_name
     })
 
     if (hasFilterChanged) setApiFilterParams(apiFilterParams)
@@ -537,7 +529,7 @@ const SpeciesReport = () => {
   const handleSpeciesSelection = async (selectedIDs, category) => {
     let params = {}
     const isAllSelected = category === 'Site' ? 'All Sites' : 'All Organizations'
-    const key = category === 'Site' ? 'site_ids' : 'sids'
+    const key = category === 'Site' ? 'site_ids' : 'oids'
     const stateSetter = category === 'Site' ? setSelectedSites : setSelectedOptions
 
     if (selectedIDs.includes(isAllSelected)) {
