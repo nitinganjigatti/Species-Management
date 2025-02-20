@@ -434,7 +434,7 @@ const RequestDetails = () => {
                       params.row.status === 'sample_rejected'
                         ? 'rgba(255, 0, 0, 0.1)' // light red background for pending
                         : params.row.status === 'completed'
-                        ? '#37BD69' // light green background for completed
+                        ? 'rgba(0, 128, 0, 0.1)' // light green background for completed
                         : params.row.status === 'inprogress'
                         ? 'rgba(228, 184, 25, 0.1)' // light yellow background for in progress
                         : params.row.status === 'sample_received'
@@ -1122,26 +1122,28 @@ const RequestDetails = () => {
                               headerStatus === 'pending' ||
                               headerStatus === 'transferred' ||
                               headerStatus === 'awaiting_sample' ||
-                              headerStatus === 'sample_rejected' ||
-                              headerStatus === 'sample_received'
+                              headerStatus === 'sample_rejected'
                                 ? 'rgba(255, 0, 0, 0.1)' // light red background for pending
                                 : headerStatus === 'completed'
-                                ? '#37BD69' // light green background for completed
+                                ? 'rgba(0, 128, 0, 0.1)' // light green background for completed
                                 : headerStatus === 'inprogress'
-                                ? 'rgba(228, 184, 25, 0.1)' // light yellow background for in progress
+                                ? 'rgba(228, 184, 25, 0.1)'
+                                : headerStatus === 'sample_received'
+                                ? 'rgba(0, 128, 0, 0.1)'
                                 : 'rgba(0, 128, 0, 0.1)',
 
                             color:
                               headerStatus === 'pending' ||
                               headerStatus === 'transferred' ||
                               headerStatus === 'awaiting_sample' ||
-                              headerStatus === 'sample_rejected' ||
-                              headerStatus === 'sample_received'
+                              headerStatus === 'sample_rejected'
                                 ? '#FA6140'
                                 : headerStatus === 'completed'
                                 ? '#37BD69'
                                 : headerStatus === 'inprogress'
                                 ? '#E4B819 '
+                                : headerStatus === 'sample_received'
+                                ? '#37BD69'
                                 : '#37BD69',
 
                             borderRadius: '8px',
@@ -1151,13 +1153,14 @@ const RequestDetails = () => {
                                 headerStatus === 'pending' ||
                                 headerStatus === 'transferred' ||
                                 headerStatus === 'awaiting_sample' ||
-                                headerStatus === 'sample_rejected' ||
-                                headerStatus === 'sample_received'
+                                headerStatus === 'sample_rejected'
                                   ? '#FA6140'
                                   : headerStatus === 'completed'
                                   ? '#37BD69'
                                   : headerStatus === 'inprogress'
                                   ? '#E4B819'
+                                  : headerStatus === 'sample_received'
+                                  ? '#37BD69'
                                   : '#37BD69'
                             },
 
