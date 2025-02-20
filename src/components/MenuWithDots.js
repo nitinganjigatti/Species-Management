@@ -5,7 +5,7 @@ import IconButton from '@mui/material/IconButton'
 import Icon from 'src/@core/components/icon'
 import Box from '@mui/material/Box'
 
-const MenuWithDots = ({ options }) => {
+const MenuWithDots = ({ options, disabled = false }) => {
   const [anchorEl, setAnchorEl] = useState(null)
 
   const handleClick = event => {
@@ -49,6 +49,7 @@ const MenuWithDots = ({ options }) => {
                     backgroundColor: 'customColors.displaybgPrimary'
                   }
                 }}
+                disabled={disabled}
                 key={index}
                 onClick={() => {
                   option.action()
