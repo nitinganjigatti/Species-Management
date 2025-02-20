@@ -59,7 +59,7 @@ const CutSizes = () => {
 
   const columns = [
     {
-      flex: 0.1,
+      flex: 0.14,
       Width: 40,
       field: 'uid',
       headerName: 'SL No',

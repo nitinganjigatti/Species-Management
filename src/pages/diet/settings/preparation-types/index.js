@@ -62,7 +62,7 @@ const PreparationTypes = () => {
 
   const columns = [
     {
-      flex: 0.05,
+      flex: 0.07,
       Width: 40,
       field: 'uid',
       headerName: 'SL No',
