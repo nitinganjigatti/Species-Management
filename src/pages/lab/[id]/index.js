@@ -295,6 +295,8 @@ const RequestDetails = () => {
     const hasCompleted = selectedRowData.some(item => item.status.startsWith('completed'))
     if (hasCompleted) {
       setHasCompletedStatus(true)
+    } else {
+      setHasCompletedStatus(false)
     }
 
     setOpenTransfer(true)
