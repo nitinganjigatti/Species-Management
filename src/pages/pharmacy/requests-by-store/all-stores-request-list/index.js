@@ -8,7 +8,7 @@ export default function StoresRequestList() {
   const { selectedPharmacy } = usePharmacyContext()
   const navigateToLocalStore = useCallback(() => {
     if (selectedPharmacy?.type === 'local' && router.pathname !== '/pharmacy/requests-by-product') {
-      debugger
+      // debugger
       router.push({
         pathname: `/pharmacy/requests-by-product`,
         query: selectedPharmacy?.id

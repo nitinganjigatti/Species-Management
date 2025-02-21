@@ -32,7 +32,6 @@ const RequestDetailsScreen = () => {
     const newQuery = { ...router.query, ...params }
     router.replace({ pathname: router.pathname, query: newQuery }, undefined)
   }, [])
-  console.log(selectedStoreDetails, 'selectedStoreDetails')
 
   useEffect(() => {
     updateUrlParams({

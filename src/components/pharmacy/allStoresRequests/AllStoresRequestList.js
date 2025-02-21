@@ -54,19 +54,6 @@ const AllStoresRequestList = () => {
     })
   }
 
-  const navigateToLocalStore = useCallback(() => {
-    if (
-      selectedPharmacy?.type === 'local' &&
-      router.pathname === '/pharmacy/requests-by-store/all-stores-request-list'
-    ) {
-      debugger
-      router.push({
-        pathname: `/pharmacy/requests-by-product`,
-        query: selectedPharmacy?.id
-      })
-    }
-  }, [selectedPharmacy?.id])
-
   const columns = [
     {
       width: 100,
@@ -732,7 +719,7 @@ const AllStoresRequestList = () => {
             </Box>
           </Drawer>
         </Card>
-      ) : selectedPharmacy.type === 'local' ? null : (
+      ) : (
         <Error404></Error404>
       )}
     </>
