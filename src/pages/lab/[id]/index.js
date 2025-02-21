@@ -63,7 +63,8 @@ import FileUploaderSingle from 'src/views/forms/form-elements/file-uploader/File
 import UploadReports from 'src/components/lab/request/UploadReports'
 import { useRouter } from 'next/navigation'
 import { useSearchParams } from 'next/navigation'
-import UserSnackbar from 'src/components/utility/snackbar'
+
+// import UserSnackbar from 'src/components/utility/snackbar'
 import moment from 'moment'
 import CommonMediaView from 'src/components/lab/CommonMediaView'
 import { AuthContext } from 'src/context/AuthContext'
@@ -155,11 +156,6 @@ const RequestDetails = () => {
   const [testSampleName, setTestSampleName] = useState('')
   console.log('testSampleName', testSampleName)
 
-  // ........... snackbar
-  const [openSnackbar, setOpenSnackbar] = useState(false)
-  const [snackbarMessage, setSnackbarMessage] = useState('')
-  const [severity, setSeverity] = useState('success')
-  const [statusId, setStatusId] = useState()
   const [showTestFile, setShowTestFile] = useState(false)
   const [transferTestId, setTransferTestId] = useState('')
   const [headerStatus, setHeaderStatus] = useState('awaiting_sample')
@@ -168,14 +164,6 @@ const RequestDetails = () => {
 
   const [selectedRowData, setSelectedRowData] = useState([])
   const [hasCompletedStatus, setHasCompletedStatus] = useState(true)
-
-  const setAlertDefaults = ({ message, severity, status }) => {
-    setOpenSnackbar(status)
-    setSnackbarMessage(message)
-    setSeverity(severity)
-  }
-
-  //...........
 
   useEffect(() => {
     const labObject = localLabData?.find(item => item?.lab_id === lab_id)
@@ -865,15 +853,11 @@ const RequestDetails = () => {
       if (response?.success) {
         Toaster({ type: 'success', message: response.message })
 
-        // setAlertDefaults({ status: true, message: response?.message, severity: 'success' })
-
         fetchRequestDetails()
         setShowTestFile(false)
       } else {
         setShowTestFile(false)
         Toaster({ type: 'error', message: response.message })
-
-        // setAlertDefaults({ status: true, message: response?.message, severity: 'error' })
       }
     } catch (error) {}
   }
@@ -882,12 +866,12 @@ const RequestDetails = () => {
     window.open(imageUrl, '_blank')
   }
 
-  const handleCloseSnackBar = (event, reason) => {
-    if (reason === 'clickaway') {
-      return
-    }
-    setOpenSnackbar(false)
-  }
+  // const handleCloseSnackBar = (event, reason) => {
+  //   if (reason === 'clickaway') {
+  //     return
+  //   }
+  //   setOpenSnackbar(false)
+  // }
 
   const handleRowSelection = (rowSelectionModel, details) => {
     setSelectedRow(rowSelectionModel)
@@ -1028,13 +1012,6 @@ const RequestDetails = () => {
               </>
             ))}
           </Card>
-          <UserSnackbar
-            status={openSnackbar}
-            message={snackbarMessage}
-            severity={severity}
-            handleClose={handleCloseSnackBar}
-            indexedRows
-          />
 
           <Card sx={{ mt: 5 }}>
             {/* <CardHeader title='Lab Tests' /> */}
@@ -1226,7 +1203,6 @@ const RequestDetails = () => {
                   type='lab_test_request'
                   id={requestId === null ? '0' : requestId}
                   handleCloseUploader={setOpenUploader}
-                  setAlertDefaults={setAlertDefaults}
                   handleClosePopover={handleClosePopover}
                   fetchRequestDetails={fetchRequestDetails}
                   buttonText='Submit Reports'
@@ -1728,7 +1704,6 @@ const RequestDetails = () => {
               type='lab_test'
               id={testId}
               handleCloseUploader={() => setOpenUploader(false)}
-              setAlertDefaults={setAlertDefaults}
               handleClosePopover={handleClosePopover}
               fetchRequestDetails={fetchRequestDetails}
               buttonText='Upload'
