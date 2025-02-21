@@ -55,11 +55,13 @@ const DietDetail = () => {
   const [isLoadingMore, setIsLoadingMore] = useState(false)
   const [speciestotalcount, setspeciestotalcount] = useState('')
   const [tempSelectedSpecies, setTempSelectedSpecies] = useState([])
+
   const [selectedItems, setSelectedItems] = useState({
     Site: [],
     Section: [],
     Enclosure: []
   })
+
   const [items, setItems] = useState({
     Site: [],
     Section: [
@@ -133,9 +135,11 @@ const DietDetail = () => {
         } else {
           setspeciesData(prevData => {
             const combinedData = [...prevData, ...res.data.result]
+
             const uniqueData = combinedData.filter(
               (item, index, self) => index === self.findIndex(t => t.species_id === item.species_id)
             )
+
             return uniqueData
           })
         }
@@ -320,7 +324,7 @@ const DietDetail = () => {
             <Box container spacing={6}>
               <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
                 <Typography color='inherit'>Diet</Typography>
-                <Typography sx={{ cursor: 'pointer' }} color='inherit' onClick={() => Router.push('/diet/diet')}>
+                <Typography sx={{ cursor: 'pointer' }} color='inherit' onClick={() => router.back()}>
                   Diet
                 </Typography>
                 <Typography color='text.primary'>Diet Details</Typography>
@@ -1443,8 +1447,10 @@ const DietDetail = () => {
                                                                 left: '160px',
                                                                 border: 'none',
                                                                 backgroundColor: '#fff'
+
                                                                 //float: 'left'
                                                               }}
+
                                                               // className={
                                                               //   dietDetails.diet_type_name === 'Generic'
                                                               //     ? 'cell_dimn'
@@ -1855,8 +1861,10 @@ const DietDetail = () => {
                                                                 border: 'none',
 
                                                                 backgroundColor: '#fff'
+
                                                                 //float: 'left'
                                                               }}
+
                                                               // className={
                                                               //   dietDetails.diet_type_name === 'Generic'
                                                               //     ? 'cell_dimn'
@@ -2322,8 +2330,10 @@ const DietDetail = () => {
                                                                 border: 'none',
 
                                                                 backgroundColor: '#fff'
+
                                                                 //float: 'left'
                                                               }}
+
                                                               // className={
                                                               //   dietDetails.diet_type_name === 'Generic'
                                                               //     ? 'cell_dimn'
@@ -2803,8 +2813,10 @@ const DietDetail = () => {
                                                               left: '160px',
                                                               border: 'none',
                                                               backgroundColor: '#fff'
+
                                                               // float: 'left'
                                                             }}
+
                                                             // className={
                                                             //   dietDetails.diet_type_name === 'Generic'
                                                             //     ? 'cell_dimn'

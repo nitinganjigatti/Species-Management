@@ -6,6 +6,7 @@ import {
   Drawer,
   IconButton,
   LinearProgress,
+  Switch,
   Tooltip,
   Typography
 } from '@mui/material'
@@ -20,7 +21,6 @@ import {
   speciesAttachmentUpload
 } from 'src/lib/api/diet/speciesDiet'
 import Toaster from 'src/components/Toaster'
-import moment from 'moment'
 import Utility from 'src/utility'
 
 function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, speciesId, setspeciesId, fetchTableData }) {
@@ -31,6 +31,10 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
   const [specieDetails, setSpecieDetails] = useState({})
   const [uploadingAttachment, setUploadingAttachment] = useState(false)
   const [uploadingFileName, setUploadingFileName] = useState('')
+
+  const [dietAttachmentActiveConfirm, setDietAttachmentActiveConfirm] = useState(false)
+  const [dietAttachmentUploadConfirm, setDietAttachmentUploadConfirm] = useState(false)
+  const [dietAttachmentId, setDietAttachmentId] = useState(null)
 
   const getSpecieDetail = async () => {
     setDetailsLoader(true)
@@ -51,7 +55,6 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
   }, [speciesDetailsDrawer])
 
   const removeAttachment = async attachment_id => {
-    // console.log(attachment_id)
     if (attachment_id) {
       setDetailsLoader(true)
       try {
@@ -66,7 +69,6 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
       }
     }
   }
-  // speciesAttachmentActive({ species_id: speciesId, attachment_id: item.attachment_id })
 
   const speciesAttachmentActiveFunc = async (speciesId, attachmentId) => {
     if (speciesId && attachmentId) {
@@ -80,6 +82,7 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
         Toaster({ type: 'error', message: error.message || 'Failed to activate attachment' })
       } finally {
         setDetailsLoader(false)
+        setDietAttachmentActiveConfirm(false)
       }
     }
   }
@@ -87,8 +90,19 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
   const handleFileUpload = async (event, speciesId) => {
     const file = event?.target?.files[0]
 
-    if (!file || file.type !== 'application/pdf') {
-      Toaster({ type: 'error', message: 'Please select a valid PDF file.' })
+    const allowedTypes = [
+      'application/pdf',
+      'image/jpeg',
+      'image/png',
+      'image/gif',
+      'application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'application/vnd.ms-excel',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'text/csv'
+    ]
+    if (!file || !allowedTypes.includes(file.type)) {
+      Toaster({ type: 'error', message: 'Please select a valid file.' })
       return
     }
     setUploadingFileName(file.name)
@@ -103,6 +117,7 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
       Toaster({ type: 'error', message: error.message || 'File upload failed.' })
     } finally {
       event.target.value = null
+      setDietAttachmentUploadConfirm(false)
       setUploadingAttachment(false)
       setUploadingFileName('')
     }
@@ -133,6 +148,7 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
               sx={{
                 width: 35,
                 height: 35,
+                border: '1px solid #C3CEC7',
                 borderRadius: '50%',
                 background: '#E8F4F2',
                 overflow: 'hidden'
@@ -166,6 +182,7 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
                 <Typography
                   sx={{
                     color: theme.palette.primary.light,
+                    fontStyle: 'italic',
                     fontSize: '14px',
                     fontWeight: '400',
                     lineHeight: '16.94px',
@@ -181,7 +198,7 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
             </Box>
           </Box>
         </Box>
-        <Box
+        {/* <Box
           sx={{
             backgroundColor: theme.palette.customColors.tableHeaderBg,
             borderRadius: '4px',
@@ -204,7 +221,7 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
           >
             Deits
           </Typography>
-        </Box>
+        </Box> */}
       </Box>
     </Box>
   )
@@ -298,13 +315,14 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
                 variant='rounded'
                 alt='Medicine Image'
                 sx={{
+                  pt: '6px',
                   width: 48,
                   height: 48,
                   background: '#FFD3D34D',
                   overflow: 'hidden'
                 }}
               >
-                <img style={{ width: '100%', height: '100%' }} src={'/icons/pdf_Icon.png'} alt='Profile' />
+                <img style={{ width: '100%', height: '100%' }} src={'/icons/document_icon.svg'} alt='Profile' />
               </Avatar>
 
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
@@ -395,7 +413,7 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
               </Box>
             </Box>
             <Box>
-              <Icon
+              {/* <Icon
                 onClick={e => {
                   e.stopPropagation()
                   removeAttachment(item?.attachment_id)
@@ -404,6 +422,13 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
                 style={{ cursor: 'pointer' }}
                 fontSize={20}
                 color={'#839D8D'}
+              /> */}
+              <Switch
+                onClick={e => {
+                  e.stopPropagation()
+                  removeAttachment(item?.attachment_id)
+                }}
+                defaultChecked
               />
             </Box>
           </Box>
@@ -433,13 +458,14 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
           variant='rounded'
           alt='Medicine Image'
           sx={{
+            pt: '6px',
             width: 48,
             height: 48,
             background: '#0000000D',
             overflow: 'hidden'
           }}
         >
-          <img style={{ width: '100%', height: '100%' }} src={'/icons/pdf_Icon.png'} alt='Profile' />
+          <img style={{ width: '100%', height: '100%' }} src={'/icons/document_icon.svg'} alt='Profile' />
         </Avatar>
 
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
@@ -470,7 +496,7 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
             </Box>
           </Box>
           <Box sx={{ display: 'flex', gap: '8px', alignItems: 'end' }}>
-            <Typography
+            {/* <Typography
               sx={{
                 color: '#E93353',
                 fontSize: '12px',
@@ -480,7 +506,7 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
               }}
             >
               Detached by
-            </Typography>
+            </Typography> */}
             <Typography
               sx={{
                 color: theme.palette.customColors.OnSurfaceVariant,
@@ -507,16 +533,28 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
           </Box>
         </Box>
       </Box>
-      <Button
+      {/* <Button
         onClick={e => {
           e.stopPropagation()
-          speciesAttachmentActiveFunc(speciesId, item.attachment_id)
+          setDietAttachmentId(item.attachment_id)
+          setDietAttachmentActiveConfirm(true)
         }}
         sx={{ height: '32px' }}
         variant='contained'
       >
         Attach
-      </Button>
+      </Button> */}
+      <Switch
+        onClick={e => {
+          e.stopPropagation()
+          setDietAttachmentId(item.attachment_id)
+          if (Number(specieDetails.active_attachments_count) === 0) {
+            speciesAttachmentActiveFunc(speciesId, dietAttachmentId)
+          } else {
+            setDietAttachmentActiveConfirm(true)
+          }
+        }}
+      />
     </Box>
   )
 
@@ -607,7 +645,8 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
                     lineHeight: '24.2px'
                   }}
                 >
-                  Diets attached ({specieDetails.active_attachments_count})
+                  Primary diet
+                  {/* ({specieDetails.active_attachments_count}) */}
                 </Typography>
               )}
               {uploadingAttachment && specieDetails?.active_attachments_count > 0 && <SpeciesDietUploadingCard />}
@@ -624,7 +663,7 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
             >
               {specieDetails?.deactive_attachments_count > 0 && (
                 <Typography sx={{ fontSize: 20, fontWeight: 500, color: '#E93353', lineHeight: '24.2px' }}>
-                  Diets detached ({specieDetails.deactive_attachments_count})
+                  Additional diet ({specieDetails.deactive_attachments_count})
                 </Typography>
               )}
               {specieDetails?.deactive_attachments?.map((item, index) => (
@@ -635,7 +674,6 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
         )}
       </Box>
       {/* bottom buttons */}
-
       <Box
         sx={{
           height: '122px',
@@ -657,7 +695,7 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
           size='large'
           sx={{ height: '58px', width: '514px' }}
           onClick={() => {
-            fileInputRef.current.click()
+            setDietAttachmentUploadConfirm(true)
           }}
           // loading={loader}
         >
@@ -666,7 +704,7 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
         <input
           type='file'
           multiple
-          accept='application/pdf'
+          accept='application/pdf, image/*, application/msword, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/vnd.ms-excel, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, text/csv'
           ref={fileInputRef}
           style={{ display: 'none' }}
           onChange={e => {
@@ -674,6 +712,153 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
           }}
         />
       </Box>
+
+      {/* ///////////////////////////dietAttachmentActiveConfirm////////////////////////////////// */}
+      <Drawer
+        anchor='bottom'
+        open={dietAttachmentActiveConfirm}
+        sx={{
+          '& .MuiDrawer-paper': {
+            width: 562, // Set a fixed width
+            marginLeft: 'auto', // Push it to the right
+            right: 0 // Ensure it aligns to the right
+          },
+          height: '248px',
+          '& .css-e1dg5m-MuiCardContent-root': {
+            pt: 0
+          }
+        }}
+      >
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: '24px', py: '16px' }}>
+          <Box
+            className='sidebar-header'
+            sx={{
+              px: '24px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              backgroundColor: '#fff',
+              borderBottom: '1px solid #C3CEC7'
+            }}
+          >
+            <Box sx={{ my: '16px', display: 'flex', flexDirection: 'row', gap: 2, alignItems: 'center' }}>
+              <Typography sx={{ fontSize: '24px', fontWeight: 500 }}>Activate diet</Typography>
+            </Box>
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
+              <IconButton
+                size='small'
+                sx={{ color: 'text.primary' }}
+                onClick={() => {
+                  setDietAttachmentActiveConfirm(false)
+                }}
+              >
+                <Icon icon='mdi:close' fontSize={24} />
+              </IconButton>
+            </Box>
+          </Box>
+
+          <Typography
+            sx={{
+              px: '16px',
+              color: theme.palette.formContent.tertiary,
+              fontSize: '16px',
+              fontWeight: 500,
+              lineHeight: '19.36px',
+              letterSpacing: '0.1px',
+              textAlign: 'center'
+            }}
+          >
+            Activating this diet will deactivate the current primary diet for this species. You can still edit this
+            later.
+          </Typography>
+
+          <LoadingButton
+            fullWidth
+            variant='contained'
+            size='large'
+            sx={{ mx: '24px', height: '58px', width: '514px' }}
+            onClick={() => {
+              speciesAttachmentActiveFunc(speciesId, dietAttachmentId)
+            }}
+            loading={detailsLoader}
+          >
+            CONFIRM
+          </LoadingButton>
+        </Box>
+      </Drawer>
+      {/* ////////////////////////dietAttachmentUploadConfirm///////////////////////////////////// */}
+      <Drawer
+        anchor='bottom'
+        open={dietAttachmentUploadConfirm}
+        sx={{
+          '& .MuiDrawer-paper': {
+            width: 562, // Set a fixed width
+            marginLeft: 'auto', // Push it to the right
+            right: 0 // Ensure it aligns to the right
+          },
+          height: '248px',
+          '& .css-e1dg5m-MuiCardContent-root': {
+            pt: 0
+          }
+        }}
+      >
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: '24px', py: '16px' }}>
+          <Box
+            className='sidebar-header'
+            sx={{
+              px: '24px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              backgroundColor: '#fff',
+              borderBottom: '1px solid #C3CEC7'
+            }}
+          >
+            <Box sx={{ my: '16px', display: 'flex', flexDirection: 'row', gap: 2, alignItems: 'center' }}>
+              <Typography sx={{ fontSize: '24px', fontWeight: 500 }}>Upload new diet</Typography>
+            </Box>
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
+              <IconButton
+                size='small'
+                sx={{ color: 'text.primary' }}
+                onClick={() => {
+                  setDietAttachmentUploadConfirm(false)
+                }}
+              >
+                <Icon icon='mdi:close' fontSize={24} />
+              </IconButton>
+            </Box>
+          </Box>
+
+          <Typography
+            sx={{
+              px: '16px',
+              color: theme.palette.formContent.tertiary,
+              fontSize: '16px',
+              fontWeight: 500,
+              lineHeight: '19.36px',
+              letterSpacing: '0.1px',
+              textAlign: 'center'
+            }}
+          >
+            New upload will become the primary diet for this species. You can still edit this later.
+          </Typography>
+
+          <LoadingButton
+            fullWidth
+            variant='contained'
+            size='large'
+            sx={{ mx: '24px', height: '58px', width: '514px' }}
+            onClick={() => {
+              // speciesAttachmentActiveFunc(speciesId, dietAttachmentId)
+              fileInputRef.current.click()
+            }}
+            loading={detailsLoader || uploadingAttachment}
+          >
+            CONTINUE
+          </LoadingButton>
+        </Box>
+      </Drawer>
     </Drawer>
   )
 }

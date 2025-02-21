@@ -66,6 +66,7 @@ const TabList = styled(MuiTabList)(({ theme }) => ({
 const FeedDetails = () => {
   const router = useRouter()
   const { id } = router.query
+  const { query } = router
   const [value, setValue] = useState('1')
   const [FeedDetailsValue, setFeedDetails] = useState([])
   const [loader, setLoader] = useState(true)
@@ -317,7 +318,16 @@ const FeedDetails = () => {
               <Grid item xs={12}>
                 <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
                   <Typography color='inherit'>Diet</Typography>
-                  <Typography sx={{ cursor: 'pointer' }} color='inherit' onClick={() => Router.push('/diet/feed')}>
+                  <Typography
+                    sx={{
+                      cursor: 'pointer',
+                      '&:hover': {
+                        textDecoration: 'underline'
+                      }
+                    }}
+                    color='inherit'
+                    onClick={() => router.back()}
+                  >
                     Feed
                   </Typography>
                   <Typography color='text.primary'>Feed Details</Typography>

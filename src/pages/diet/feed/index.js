@@ -14,7 +14,7 @@ import {
 import { Box } from '@mui/system'
 import Icon from 'src/@core/components/icon'
 import React, { useCallback, useEffect, useState, useContext } from 'react'
-import Router from 'next/router'
+import Router, { useRouter } from 'next/router'
 import { getFeedTypeList } from 'src/lib/api/diet/feedType'
 import { DataGrid } from '@mui/x-data-grid'
 import CustomChip from 'src/@core/components/mui/chip'
@@ -29,14 +29,20 @@ import { AuthContext } from 'src/context/AuthContext'
 import Toaster from 'src/components/Toaster'
 
 const FeedTypes = () => {
+  const router = useRouter()
+  const { query } = router
   const [rows, setRows] = useState([])
   const [total, setTotal] = useState(0)
   const [sort, setSort] = useState('desc')
   const [sortColumning, setsortColumning] = useState('feed_type_name')
-  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
+
+  const [paginationModel, setPaginationModel] = useState({
+    page: parseInt(query.page || 0, 10),
+    pageSize: parseInt(query.pageSize || 10, 10)
+  })
   const [loading, setLoading] = useState(false)
   const [status, setStatus] = useState('')
-  const [searchValue, setSearchValue] = useState('')
+  const [searchValue, setSearchValue] = useState(query.q || '')
 
   const authData = useContext(AuthContext)
 
@@ -46,6 +52,31 @@ const FeedTypes = () => {
   function loadServerRows(currentPage, data) {
     return data
   }
+
+  // Common function to update URL query parameters
+  const updateQueryParams = useCallback(
+    newParams => {
+      router.replace(
+        {
+          pathname: router.pathname,
+          query: {
+            ...router.query,
+            ...newParams
+          }
+        },
+        undefined,
+        { shallow: true }
+      )
+    },
+    [router]
+  )
+
+  useEffect(() => {
+    const page = parseInt(query.page || 0, 10)
+    const pageSize = parseInt(query.pageSize || 10, 10)
+
+    setPaginationModel({ page: page, pageSize: pageSize })
+  }, [query.page, query.pageSize])
 
   const handleChange = (event, newValue) => {
     setTotal(0)
@@ -70,6 +101,7 @@ const FeedTypes = () => {
         await getFeedTypeList(params).then(res => {
           if (res?.success) {
             const startingIndex = paginationModel.page * paginationModel.pageSize
+
             let listWithId = res.data.result.map((el, i) => {
               return { ...el, uid: startingIndex + i + 1 }
             })
@@ -94,7 +126,7 @@ const FeedTypes = () => {
 
   const columns = [
     {
-      flex: 0.05,
+      flex: 0.1,
       minWidth: 30,
       field: 'id',
       headerName: 'SL',
@@ -163,7 +195,7 @@ const FeedTypes = () => {
 
   const onCellClick = params => {
     // Router.push({ pathname: `/diet/feed/${id}`, query: { id: params?.id } })
-    Router.push({ pathname: `/diet/feed/${params?.id}` })
+    router.push({ pathname: `/diet/feed/${params?.id}` })
   }
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
@@ -195,6 +227,7 @@ const FeedTypes = () => {
   )
 
   const handleSearch = value => {
+    updateQueryParams({ q: value, page: 0 })
     setSearchValue(value)
     searchTableData(sort, value, sortColumning, status)
   }
@@ -251,7 +284,13 @@ const FeedTypes = () => {
           paginationModel={paginationModel}
           onSortModelChange={handleSortModel}
           slots={{ toolbar: ServerSideToolbarWithFilter }}
-          onPaginationModelChange={setPaginationModel}
+          onPaginationModelChange={newPaginationModel => {
+            updateQueryParams({
+              page: newPaginationModel.page,
+              pageSize: newPaginationModel.pageSize
+            })
+            setPaginationModel(newPaginationModel)
+          }}
           loading={loading}
           slotProps={{
             baseButton: {
