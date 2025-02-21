@@ -4,9 +4,6 @@ import TextField from '@mui/material/TextField'
 import IconButton from '@mui/material/IconButton'
 import Typography from '@mui/material/Typography'
 import Icon from 'src/@core/components/icon'
-import Divider from '@mui/material/Divider'
-import Avatar from 'src/@core/components/mui/avatar'
-import Button from '@mui/material/Button'
 import { margin, padding } from '@mui/system'
 import { useState, useEffect, useCallback } from 'react'
 import { getRecipeList } from 'src/lib/api/diet/recipe'
@@ -24,7 +21,10 @@ const ComboList = props => {
     onChange,
     allComboSelectedValues,
     setallComboSelectedValues,
-    formData
+    formData,
+    fromrow,
+    comboid,
+    cutsizelist
   } = props
 
   const [rows, setRows] = useState([])
@@ -68,10 +68,12 @@ const ComboList = props => {
 
   const handleScroll = async e => {
     const container = e.target
-
+    const threshold = 20
     // Check if user has reached the bottom and more data is available
     if (totalCount > ingredientList?.length && !reachedEnd) {
-      if (container.scrollHeight - Math.round(container.scrollTop) === container.clientHeight) {
+      const isNearBottom =
+        container.scrollHeight - Math.round(container.scrollTop) <= container.clientHeight + threshold
+      if (isNearBottom) {
         setReachedEnd(true) // Prevent multiple API calls
 
         try {
@@ -202,7 +204,7 @@ const ComboList = props => {
 
       {/* on scroll */}
       <Box
-        className='raghu'
+        className=''
         sx={{ marginTop: 30, height: '70%', overflowY: 'auto', bgcolor: '#dbe0de', p: 4 }}
         onScroll={handleScroll}
       >
@@ -219,6 +221,9 @@ const ComboList = props => {
           addEventSidebarOpen={addEventSidebarOpen}
           searchValue={searchValue}
           setSearchValue={setSearchValue}
+          fromrow={fromrow}
+          comboid={comboid}
+          cutsizelist={cutsizelist}
         />
 
         {/* End Card Section */}

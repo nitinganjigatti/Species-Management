@@ -1504,7 +1504,6 @@ const StepPreviewDiet = ({
                                                     {item?.ingredient_name}
                                                   </Typography>
                                                 )}
-
                                                 {item?.preparation_type &&
                                                   (item?.master_cut_size ? (
                                                     <Typography
@@ -2477,6 +2476,34 @@ const StepPreviewDiet = ({
                                                     {item?.recipe_name}
                                                   </Typography>
                                                 )}
+                                                {/* {console.log(item, 'klkl')}
+                                                {item?.ingredients.map(all =>
+                                                  all ? (
+                                                    <Typography
+                                                      sx={{
+                                                        fontWeight: 400,
+                                                        fontSize: '14px',
+                                                        lineHeight: '18px',
+                                                        color: '#1F415B'
+                                                      }}
+                                                    >
+                                                      &nbsp;-&nbsp; {all?.preparation_type}
+                                                      &nbsp;-&nbsp;
+                                                      {item?.master_cut_size}
+                                                    </Typography>
+                                                  ) : (
+                                                    <Typography
+                                                      sx={{
+                                                        fontWeight: 400,
+                                                        fontSize: '14px',
+                                                        lineHeight: '18px',
+                                                        color: '#1F415B'
+                                                      }}
+                                                    >
+                                                      &nbsp;-&nbsp; {all?.preparation_type}
+                                                    </Typography>
+                                                  )
+                                                )} */}
                                               </Box>
 
                                               <Box sx={{ display: 'flex', flexWrap: 'wrap' }}>
@@ -3013,6 +3040,7 @@ const StepPreviewDiet = ({
                                                       >
                                                         {item?.ingredient_name}
                                                       </Typography>
+
                                                       {item?.master_cut_size ? (
                                                         <Typography
                                                           sx={{

@@ -9,7 +9,7 @@ import DoneIcon from '@mui/icons-material/Done'
 import { useEffect, useState } from 'react'
 import { Stack } from '@mui/system'
 import { Tooltip } from '@mui/material'
-import { Title } from 'chart.js'
+import toast from 'react-hot-toast'
 
 const RecipeCard = ({
   rows,
@@ -22,7 +22,9 @@ const RecipeCard = ({
   formData,
   addEventSidebarOpen,
   searchValue,
-  setSearchValue
+  setSearchValue,
+  fromrow,
+  recipeid
 }) => {
   const [remarks, setRemarks] = useState({})
   console.log('remarks', remarks)
@@ -146,7 +148,7 @@ const RecipeCard = ({
         const enabledAllDays = Day.map(day => ({
           id: day.id,
           name: day.name,
-          isActive: true // Enable all days if mealid does not match checkid
+          isActive: true
         }))
 
         return previousDay ? previousDay : { cardId: row.id, days: enabledAllDays } // Keep previously selected days if available, or enable all days
@@ -286,9 +288,10 @@ const RecipeCard = ({
   }
 
   const handleSelected = () => {
-    handleSidebarClose()
-    setSearchValue('')
-
+    if (selectedCardRecipe.length === 0) {
+      toast.error('Recipes are required.')
+      return // Exit early to prevent further processing
+    }
     const filteredItems = selectedCardRecipe.map(item => {
       // Find the selected days for the current item
 
@@ -315,7 +318,7 @@ const RecipeCard = ({
       return {
         recipe_name: item.recipe_name,
         recipe_id: item.id ? item.id : null,
-        days_of_week: preservedDaysOfWeek, // Retain previous days_of_week if new one is empty
+        days_of_week: preservedDaysOfWeek,
         remarks: cardRemarks,
         mealid: checkid,
         recipe_image: item.recipe_image,
@@ -329,9 +332,9 @@ const RecipeCard = ({
     })
 
     setSelectedCardRecipe(filteredItems)
-
-    // Trigger onChange callback with the updated recipe
     onChange(filteredItems)
+    handleSidebarClose()
+    setSearchValue('')
   }
 
   const handleAddRemarks = (event, cardId) => {
@@ -365,7 +368,12 @@ const RecipeCard = ({
     item => item.recipe_name.toLowerCase().includes(searchValue.toLowerCase()) // filter by search
   )
 
-  const sortedRecipeList = [...filteredRecipeList].sort((a, b) => a.recipe_name.localeCompare(b.recipe_name))
+  let sortedRecipeList = [...filteredRecipeList].sort((a, b) => a.recipe_name.localeCompare(b.recipe_name))
+
+  // Filter sortedRecipeList based on remarks and fromrow condition
+  if (fromrow !== '' && fromrow === 'rowedit_recipe') {
+    sortedRecipeList = sortedRecipeList.filter(item => item.id === recipeid) // Compare with recipeid state
+  }
 
   const calculateTotalQuantity = ingredients => {
     const total = ingredients.reduce((total, ingredient) => {
@@ -580,9 +588,15 @@ const RecipeCard = ({
           // bgcolor: 'yellow'
         }}
       >
-        <Button fullWidth size='large' variant='contained' onClick={handleSelected}>
-          ADD RECIPE - {selectedCardRecipe?.length} SELECTED
-        </Button>
+        {fromrow === 'rowedit_recipe' ? (
+          <Button fullWidth size='large' variant='contained' onClick={handleSelected}>
+            ADD RECIPE
+          </Button>
+        ) : (
+          <Button fullWidth size='large' variant='contained' onClick={handleSelected}>
+            ADD RECIPE - {selectedCardRecipe?.length} SELECTED
+          </Button>
+        )}
       </Box>
       {/* )} */}
     </Box>

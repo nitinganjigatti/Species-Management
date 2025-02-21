@@ -4,9 +4,6 @@ import TextField from '@mui/material/TextField'
 import IconButton from '@mui/material/IconButton'
 import Typography from '@mui/material/Typography'
 import Icon from 'src/@core/components/icon'
-import Divider from '@mui/material/Divider'
-import Avatar from 'src/@core/components/mui/avatar'
-import Button from '@mui/material/Button'
 import { margin, padding } from '@mui/system'
 import { useState, useEffect, useCallback } from 'react'
 import RecipeCard from 'src/views/pages/diet/add_recipe_combo-List/recipeCard'
@@ -24,7 +21,9 @@ const RecipeList = props => {
     onChange,
     allRecipeSelectedValues,
     setAllRecipeSelectedValues,
-    formData
+    formData,
+    fromrow,
+    recipeid
   } = props
 
   const [rows, setRows] = useState([])
@@ -62,16 +61,15 @@ const RecipeList = props => {
     getRecipeListData()
   }, [ingredientPage, searchValue, sort])
 
-  function loadServerRows(currentPage, data) {
-    return data
-  }
-
   const handleScroll = async e => {
     const container = e.target
-
+    const threshold = 20
     // Check if user has reached the bottom and more data is available
     if (totalCount > ingredientList?.length && !reachedEnd) {
-      if (container.scrollHeight - Math.round(container.scrollTop) === container.clientHeight) {
+      const isNearBottom =
+        container.scrollHeight - Math.round(container.scrollTop) <= container.clientHeight + threshold
+
+      if (isNearBottom) {
         setReachedEnd(true) // Prevent multiple API calls
 
         try {
@@ -202,7 +200,7 @@ const RecipeList = props => {
 
       {/* on scroll */}
       <Box
-        className='raghu'
+        className=''
         sx={{ marginTop: 30, height: '70%', overflowY: 'auto', bgcolor: '#dbe0de', p: 4 }}
         onScroll={handleScroll}
       >
@@ -219,6 +217,8 @@ const RecipeList = props => {
           addEventSidebarOpen={addEventSidebarOpen}
           searchValue={searchValue}
           setSearchValue={setSearchValue}
+          fromrow={fromrow}
+          recipeid={recipeid}
         />
 
         {/* End Card Section */}

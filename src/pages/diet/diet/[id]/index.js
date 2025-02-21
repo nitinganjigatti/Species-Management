@@ -407,7 +407,8 @@ const DietDetail = () => {
                                       all =>
                                         (!all?.ingredient || all?.ingredient?.length === 0) &&
                                         (!all?.ingredientwithchoice || all?.ingredientwithchoice?.length === 0) &&
-                                        (!all?.recipe || all?.recipe?.length === 0)
+                                        (!all?.recipe || all?.recipe?.length === 0) &&
+                                        (!all?.combo || all?.combo?.length === 0)
                                     ) ? (
                                       <div>No records to show</div>
                                     ) : (
@@ -2398,6 +2399,23 @@ const DietDetail = () => {
                                                                           {item?.recipe_name}
                                                                         </Typography>
                                                                       )}
+                                                                      {/* {console.log(item, 'klkl')}
+                                                                      {item?.ingredients.map(all => {
+                                                                        return (
+                                                                          <Typography
+                                                                            sx={{
+                                                                              color: '#1F515B',
+                                                                              lineHeight: '16.94px',
+                                                                              fontWeight: 400,
+                                                                              fontSize: '14px'
+                                                                            }}
+                                                                          >
+                                                                            &nbsp;-&nbsp; {all?.preparation_type}
+                                                                            &nbsp;-&nbsp;
+                                                                              {item?.master_cut_size}
+                                                                          </Typography>
+                                                                        )
+                                                                      })} */}
                                                                     </Box>
 
                                                                     <Box sx={{ display: 'flex', flexWrap: 'wrap' }}>

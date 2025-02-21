@@ -15,12 +15,10 @@ import { Controller } from 'react-hook-form'
 import IconButton from '@mui/material/IconButton'
 import { getPreparationTypeList } from 'src/lib/api/diet/getIngredients'
 import { Divider, CardContent } from '@mui/material'
-import CancelIcon from '@mui/icons-material/Cancel'
 import * as yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
 import toast from 'react-hot-toast'
 import Toaster from 'src/components/Toaster'
-import { useRouter } from 'next/router'
 import Router from 'next/router'
 
 // ** Icon Imports
@@ -45,9 +43,9 @@ const defaultValues = {
       feed_type_label: '',
       quantity: '',
       preparation_type_id: '',
-      preparation_type: '',
-      cut_size: '',
-      cut_size_id: ''
+      preparation_type: ''
+      // cut_size: '',
+      // cut_size_id: ''
     }
   ],
   by_quantity: [
@@ -112,8 +110,8 @@ const StepAddIngredients = ({
   const ingredients = [
     { label: ' Ingredients' },
     { label: 'Quantity' },
-    { label: 'Preparation Type' },
-    { label: 'Cut Size' }
+    { label: 'Preparation Type' }
+    // { label: 'Cut Size' }
   ]
 
   const ingredientsbyqun = [
@@ -187,8 +185,8 @@ const StepAddIngredients = ({
             appendIngredients({
               ingredient_id: '',
               quantity: '',
-              preparation_type_id: '',
-              cut_size_id: ''
+              preparation_type_id: ''
+              //cut_size_id: ''
             })
           }}
         >
@@ -225,8 +223,8 @@ const StepAddIngredients = ({
           appendByQuantity({
             ingredient_id: '',
             quantity: '',
-            preparation_type_id: '',
-            cut_size_id: ''
+            preparation_type_id: ''
+            //cut_size_id: ''
           })
         }}
       >
@@ -363,7 +361,7 @@ const StepAddIngredients = ({
   const onSubmit = async data => {
     // Filter out incomplete entries
     data.by_percentage = data.by_percentage.filter(
-      item => item.ingredient_id || item.quantity || item.preparation_type_id || item.cut_size_id
+      item => item.ingredient_id || item.quantity || item.preparation_type_id
     )
     data.by_quantity = data.by_quantity.filter(
       item => item.ingredient_id || item.quantity || item.preparation_type_id || item.uom_id
@@ -376,7 +374,7 @@ const StepAddIngredients = ({
 
     // Check if all entries in by_percentage have all required fields
     const isByPercentageValid = data.by_percentage.every(
-      item => item.ingredient_id && item.quantity && item.preparation_type_id && item.cut_size_id
+      item => item.ingredient_id && item.quantity && item.preparation_type_id
     )
     // Check if all entries in by_quantity have all required fields
     const isByQuantityValid = data.by_quantity.every(
@@ -397,8 +395,8 @@ const StepAddIngredients = ({
       const firstIncompleteIndex = findFirstIncompleteIndex(data.by_percentage, [
         'ingredient_id',
         'quantity',
-        'preparation_type_id',
-        'cut_size_id'
+        'preparation_type_id'
+        //'cut_size_id'
       ])
       window.scrollTo(0, 0)
       //return toast.error(`Please fill in all fields in "By Percentage" at index ${firstIncompleteIndex + 1}.`)
@@ -408,17 +406,17 @@ const StepAddIngredients = ({
       })
     }
 
-    if (
-      !isByPercentageValid ||
-      data.by_percentage.some(item => item.cut_size_id === 'null' || item.cut_size_id === '0')
-    ) {
-      window.scrollTo(0, 0)
-      //return toast.error('Please fill in all fields in either "By Percentage" or "By Quantity".')
-      return Toaster({
-        type: 'error',
-        message: 'Please fill in all fields for By Percentage'
-      })
-    }
+    // if (
+    //   !isByPercentageValid ||
+    //   data.by_percentage.some(item => item.cut_size_id === 'null' || item.cut_size_id === '0')
+    // ) {
+    //   window.scrollTo(0, 0)
+    //   //return toast.error('Please fill in all fields in either "By Percentage" or "By Quantity".')
+    //   return Toaster({
+    //     type: 'error',
+    //     message: 'Please fill in all fields for By Percentage'
+    //   })
+    // }
 
     // if (data.by_quantity.length > 0 && !isByQuantityValid) {
     //   const firstIncompleteIndex = findFirstIncompleteIndex(data.by_quantity, [
@@ -576,10 +574,10 @@ const StepAddIngredients = ({
   useEffect(() => {
     // Initialize fieldsByQuantity and fieldsIngredients with at least one empty object if empty
     if (fieldsByQuantity.length === 0) {
-      appendByQuantity({ ingredient_id: '', quantity: '', uom_id: '', preparation_type_id: '', cut_size_id: '' })
+      appendByQuantity({ ingredient_id: '', quantity: '', uom_id: '', preparation_type_id: '' })
     }
     if (fieldsIngredients.length === 0) {
-      appendIngredients({ ingredient_id: '', quantity: '', preparation_type_id: '', cut_size_id: '' })
+      appendIngredients({ ingredient_id: '', quantity: '', preparation_type_id: '' })
     }
   }, [fieldsByQuantity, fieldsIngredients, appendByQuantity, appendIngredients])
 
@@ -682,12 +680,12 @@ const StepAddIngredients = ({
             <Grid item xs={12}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4, mt: 2, mr: 4 }}>
                 <Typography variant='h6'>Add Ingredient - by Percentage</Typography>
-                <AddButton title='Add Cut Size' action={() => addEventSidebarOpen()} />
+                {/* <AddButton title='Add Cut Size' action={() => addEventSidebarOpen()} /> */}
               </Box>
             </Grid>
             <Grid container spacing={5} sx={{ px: 5, background: '#E8F4F2', my: 1, borderRadius: 0.5, mx: 4 }}>
               {ingredients.map((ingredient, index) => (
-                <Grid item xs={12} sm={2.85} key={index} sx={{ py: 4 }}>
+                <Grid item xs={12} sm={4} key={index} sx={{ py: 4 }}>
                   <Typography sx={{ textTransform: 'uppercase', fontSize: 14, fontWeight: 600 }}>
                     <div style={{ display: 'flex', alignItems: 'center' }}>
                       {ingredient.label}{' '}
@@ -720,7 +718,7 @@ const StepAddIngredients = ({
                   <Grid container spacing={5} sx={{ px: 5, py: 5 }} key={field.id} id={'test' + index}>
                     <ScrollToFieldError errors={errors} index={index} />
 
-                    <Grid item xs={12} sm={2.85}>
+                    <Grid item xs={12} sm={3.8}>
                       <FormControl fullWidth>
                         <Controller
                           name={`by_percentage[${index}].ingredient_id`}
@@ -793,7 +791,7 @@ const StepAddIngredients = ({
                       </FormControl>
                     </Grid>
 
-                    <Grid item xs={12} sm={2.85}>
+                    <Grid item xs={12} sm={3.8}>
                       <FormControl fullWidth>
                         <Controller
                           name={`by_percentage[${index}].quantity`}
@@ -860,7 +858,7 @@ const StepAddIngredients = ({
                       </FormControl>
                     </Grid>
 
-                    <Grid item xs={12} sm={2.85}>
+                    <Grid item xs={12} sm={3.8}>
                       <FormControl fullWidth>
                         <Controller
                           name={`by_percentage[${index}].preparation_type_id`}
@@ -913,7 +911,7 @@ const StepAddIngredients = ({
                       </FormControl>
                     </Grid>
 
-                    <Grid item xs={12} sm={2.85}>
+                    {/* <Grid item xs={12} sm={2.85}>
                       <FormControl fullWidth>
                         <Controller
                           name={`by_percentage[${index}].cut_size`}
@@ -950,7 +948,7 @@ const StepAddIngredients = ({
                           }}
                         />
                       </FormControl>
-                    </Grid>
+                    </Grid> */}
                     {fieldsIngredients.length - 1 === index && index > 0 ? (
                       <Grid>{removeIngredientButton(index)}</Grid>
                     ) : (

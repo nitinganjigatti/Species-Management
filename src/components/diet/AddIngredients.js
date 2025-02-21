@@ -38,7 +38,9 @@ const AddIngredients = props => {
     allSelectedValues,
     formData,
     setSelectedIngredient,
-    setUomprevnew
+    setUomprevnew,
+    uom,
+    feedType
   } = props
   const [feed, setFeed] = React.useState('')
   const [selectFeed, setSelectFeed] = useState({})
@@ -58,9 +60,9 @@ const AddIngredients = props => {
   let [ingredientPage, setIngredientPage] = useState(1)
   const [reachedEnd, setReachedEnd] = useState(false)
   const [sort, setSort] = useState('desc')
-  const [uom, setUom] = useState([])
+  // const [uom, setUom] = useState([])
   const [uomnew, setUomnew] = useState([])
-  const [feedType, setFeedType] = useState([])
+  // const [feedType, setFeedType] = useState([])
   const [selectedDays, setSelectedDays] = useState([])
 
   const handelShowBottom = (event, item, index) => {
@@ -337,22 +339,30 @@ const AddIngredients = props => {
   }
 
   const handleAllSelect = event => {
-    setSelectedCard(selectedCard)
-    onChange(selectedCard)
     event?.stopPropagation()
-    setSelectedIngredient(selectedCard)
 
-    if (selectedCard?.length > 0) {
+    if (Object.keys(selectFeed).length === 0) {
+      toast.error('Ingredients are required', {
+        duration: 1000
+      })
+    } else if (
+      (Object.keys(selectFeed).length > 0 && Object.keys(size).length === 0) ||
+      Object.keys(selectFeed).length !== Object.keys(size).length
+    ) {
+      toast.error('Please select a Cutsize', {
+        duration: 1000
+      })
+    } else if (selectedCard?.length > 0) {
       handleSidebarClose()
-
+      setSelectedCard(selectedCard)
+      onChange(selectedCard)
+      setSelectedIngredient(selectedCard)
       return toast.success('Ingredient selected')
-    } else {
-      return toast.error('Ingredients are required')
     }
   }
 
   useEffect(() => {
-    getUnitsList()
+    //getUnitsList()
     getUnitsListnew()
     setReachedEnd(true)
 
@@ -373,36 +383,36 @@ const AddIngredients = props => {
   }, [])
 
   // Top Feed Type
-  const fetchData = async () => {
-    const params = { page: 1, limit: 50, status: 1 }
-    try {
-      const response = await getFeedTypeList(params)
+  // const fetchData = async () => {
+  //   const params = { page: 1, limit: 50, status: 1 }
+  //   try {
+  //     const response = await getFeedTypeList(params)
 
-      setFeedType(response?.data?.result)
-    } catch (error) {
-      console.log('error', error)
-    }
-  }
+  //     setFeedType(response?.data?.result)
+  //   } catch (error) {
+  //     console.log('error', error)
+  //   }
+  // }
 
-  useEffect(() => {
-    fetchData()
-  }, [])
+  // useEffect(() => {
+  //   fetchData()
+  // }, [])
 
-  const getUnitsList = async () => {
-    try {
-      const params = {
-        //type: ['length', 'weight'],
-        page: 1,
-        limit: 50
-      }
-      await getCutsizeList(params).then(res => {
-        setUom(res?.data?.result)
-        setUomprev(res?.data?.result)
-      })
-    } catch (e) {
-      console.log(e)
-    }
-  }
+  // const getUnitsList = async () => {
+  //   try {
+  //     const params = {
+  //       //type: ['length', 'weight'],
+  //       page: 1,
+  //       limit: 50
+  //     }
+  //     await getCutsizeList(params).then(res => {
+  //       setUom(res?.data?.result)
+  //       setUomprev(res?.data?.result)
+  //     })
+  //   } catch (e) {
+  //     console.log(e)
+  //   }
+  // }
 
   const getUnitsListnew = async () => {
     try {
@@ -546,25 +556,25 @@ const AddIngredients = props => {
     [searchValue]
   )
 
-  const handelInputCutSize = (event, item) => {
-    event.stopPropagation()
-    const newCutSize = event.target.value
+  // const handelInputCutSize = (event, item) => {
+  //   event.stopPropagation()
+  //   const newCutSize = event.target.value
 
-    // Set cutSize state
-    setCutSize(prevState => ({
-      ...prevState,
-      [item.id]: {
-        id: event.target.value
-        // name: selectedFeedType.label
-      }
-    }))
+  //   // Set cutSize state
+  //   setCutSize(prevState => ({
+  //     ...prevState,
+  //     [item.id]: {
+  //       id: event.target.value
+  //       // name: selectedFeedType.label
+  //     }
+  //   }))
 
-    if (newCutSize) {
-      handelCardSelection(event, item, null, newCutSize, null, selectedDays)
-    } else {
-      removeSelectedCard(event, item.id)
-    }
-  }
+  //   if (newCutSize) {
+  //     handelCardSelection(event, item, null, newCutSize, null, selectedDays)
+  //   } else {
+  //     removeSelectedCard(event, item.id)
+  //   }
+  // }
 
   const removeSelectedCard = (event, itemId) => {
     event.stopPropagation()
