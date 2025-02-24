@@ -91,7 +91,7 @@ const Animal = () => {
   }
 
   useEffect(() => {
-    if (enable_daily_report && enable_reports_module) {
+    if (enable_daily_report && reports_module && enable_daily_report) {
       const fetchReportType = async () => {
         const response = await getReportTitle()
         if (response) {
