@@ -35,6 +35,7 @@ const AnimalList = () => {
   const { organizationList } = usePariveshContext()
   const authData = useContext(AuthContext)
   const reports_module = authData?.userData?.roles?.settings?.enable_reports_module
+  const enable_animal_report = authData?.userData?.permission?.user_settings?.enable_animal_report
   const categories = ['Site']
 
   const { animalId } = router.query
@@ -55,6 +56,7 @@ const AnimalList = () => {
   }
 
   const [status, setStatus] = useState('statistics')
+
   // const [selectedSites, setSelectedSites] = useState([])
   const [animalList, setAnimalList] = useState([])
 
@@ -62,6 +64,7 @@ const AnimalList = () => {
   const [anchorEl, setAnchorEl] = useState(null)
   const [openSiteDrawer, setOpenSiteDrawer] = useState(false)
   const [openFilterDrawer, setOpenFilterDrawer] = useState(false)
+
   const {
     selectedAnimal,
     apiFilterParams,
@@ -77,6 +80,7 @@ const AnimalList = () => {
   )
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [total, setTotal] = useState(0)
+
   // const [selectedOptions, setSelectedOptions] = useState([])
   const [headerList, setHeaderList] = useState([])
   const [isLoading, setIsLoading] = useState(false)
@@ -165,6 +169,7 @@ const AnimalList = () => {
         const updatedParams = { ...prevParams }
         delete updatedParams.site_ids
         delete updatedParams.sids
+
         return updatedParams
       })
     }
@@ -336,7 +341,7 @@ const AnimalList = () => {
   )
 
   useEffect(() => {
-    if (!animalId) {
+    if (!animalId && reports_module && enable_animal_report) {
       fetchData(apiFilterParams, paginationModel)
     }
   }, [fetchData, apiFilterParams])
@@ -381,6 +386,7 @@ const AnimalList = () => {
         } finally {
           setIsDownloading(false)
         }
+
         return
       }
 
@@ -428,6 +434,7 @@ const AnimalList = () => {
     if (text.length > maxLength) {
       return <>{`${text.substring(0, maxLength)}...`}</>
     }
+
     return text
   }
 
@@ -603,7 +610,7 @@ const AnimalList = () => {
 
   return (
     <>
-      {reports_module ? (
+      {reports_module && enable_animal_report ? (
         <>
           <Card>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', px: 2, pt: 2 }}>

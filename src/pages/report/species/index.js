@@ -33,6 +33,8 @@ const SpeciesReport = () => {
   const theme = useTheme()
   const authData = useContext(AuthContext)
   const reports_module = authData?.userData?.roles?.settings?.enable_reports_module
+  const enable_specie_report = authData?.userData?.permission?.user_settings?.enable_specie_report
+
   const {
     selectedAnimal,
     setSelectedAnimal,
@@ -44,6 +46,7 @@ const SpeciesReport = () => {
     setSelectedOptions
   } = useAnimalContext()
   const [status, setStatus] = useState('statistics')
+
   // const [selectedSites, setSelectedSites] = useState([])
   const [dataList, setDataList] = useState([])
   const [anchorEl, setAnchorEl] = useState(null)
@@ -57,8 +60,10 @@ const SpeciesReport = () => {
   )
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [total, setTotal] = useState(0)
+
   // const [selectedOptions, setSelectedOptions] = useState([])
   const [isDownloading, setIsDownloading] = useState(false)
+
   const [popoverData, setPopoverData] = useState({
     Taxonomy: [
       { label: 'Class', key: 'include_class', checked: false },
@@ -276,7 +281,7 @@ const SpeciesReport = () => {
   }, [router.pathname])
 
   useEffect(() => {
-    if (reports_module) {
+    if (reports_module && enable_specie_report) {
       fetchData(apiFilterParams, searchValue, paginationModel)
     }
   }, [fetchData, apiFilterParams])
@@ -612,7 +617,7 @@ const SpeciesReport = () => {
 
   return (
     <>
-      {reports_module ? (
+      {reports_module && enable_specie_report ? (
         <>
           <Card>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', px: 2, pt: 2 }}>
@@ -918,6 +923,7 @@ const SpeciesReport = () => {
                         fontFamily: 'Inter',
                         alignItems: 'center',
                         justifyContent: 'center',
+
                         // mr: 2,
                         gap: 1,
                         minWidth: '100px'
@@ -1081,6 +1087,7 @@ const SpeciesReport = () => {
                       // modifyColumnPinning
                       headerName='Species'
                       searchMode='server'
+
                       // onSearch={onSearch}
                     />
                   )}
