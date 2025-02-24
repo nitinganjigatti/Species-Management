@@ -29,6 +29,7 @@ const AnimalList = () => {
   const { organizationList } = usePariveshContext()
   const authData = useContext(AuthContext)
   const reports_module = authData?.userData?.roles?.settings?.enable_reports_module
+  const enable_animal_report = authData?.userData?.permission?.user_settings?.enable_animal_report
   const categories = ['Site', 'Organization']
 
   const options = {
@@ -234,8 +235,10 @@ const AnimalList = () => {
     [paginationModel]
   )
 
-  useEffect(() => { 
-    fetchData(apiFilterParams, paginationModel)
+  useEffect(() => {
+    if (reports_module && enable_animal_report) {
+      fetchData(apiFilterParams, paginationModel)
+    }
   }, [fetchData])
 
   // const getAnimalDataToExport = async () => {
@@ -257,9 +260,9 @@ const AnimalList = () => {
     if (text.length > maxLength) {
       return <>{`${text.substring(0, maxLength)}...`}</>
     }
+
     return text
   }
-
 
   const columns = headerList.map(header => {
     if (header.key.includes('default_icon')) {
@@ -398,7 +401,7 @@ const AnimalList = () => {
 
   return (
     <>
-      {reports_module ? (
+      {reports_module && enable_animal_report ? (
         <>
           <Card>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', px: 2, pt: 2 }}>

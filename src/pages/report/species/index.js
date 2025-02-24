@@ -28,6 +28,7 @@ const SpeciesReport = () => {
   const theme = useTheme()
   const authData = useContext(AuthContext)
   const reports_module = authData?.userData?.roles?.settings?.enable_reports_module
+  const enable_specie_report = authData?.userData?.permission?.user_settings?.enable_specie_report
 
   const [status, setStatus] = useState('statistics')
   const [selectedSites, setSelectedSites] = useState([])
@@ -43,6 +44,7 @@ const SpeciesReport = () => {
   const [total, setTotal] = useState(0)
   const [selectedOptions, setSelectedOptions] = useState([])
   const [isDownloading, setIsDownloading] = useState(false)
+
   const [popoverData, setPopoverData] = useState({
     Taxonomy: [
       { label: 'Class', key: 'include_class', checked: false },
@@ -103,6 +105,7 @@ const SpeciesReport = () => {
 
   const getStatisticsDataToExport = async () => {
     await fetchDownList({ ...apiFilterParams, response_type: 'csv' }, { responseType: 'csv' })
+
     // const params = {
     //   response_type: 'csv',
     //   ...Object.keys(apiFilterParams).reduce((acc, key) => {
@@ -116,7 +119,6 @@ const SpeciesReport = () => {
 
     // debugger
   }
-
 
   const title = (
     <>
@@ -319,7 +321,7 @@ const SpeciesReport = () => {
   )
 
   useEffect(() => {
-    if (reports_module) {
+    if (reports_module && enable_specie_report) {
       fetchData(apiFilterParams, paginationModel)
     }
   }, [fetchData])
@@ -455,7 +457,7 @@ const SpeciesReport = () => {
 
   return (
     <>
-      {reports_module ? (
+      {reports_module && enable_specie_report ? (
         <>
           <Card>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', px: 2, pt: 2 }}>
@@ -661,6 +663,7 @@ const SpeciesReport = () => {
                         fontFamily: 'Inter',
                         alignItems: 'center',
                         justifyContent: 'center',
+
                         // mr: 2,
                         gap: 1,
                         minWidth: '100px'
