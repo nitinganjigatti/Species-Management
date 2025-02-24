@@ -24,6 +24,7 @@ import { Box } from '@mui/system'
 import PushPinIcon from '@mui/icons-material/PushPin'
 import MoreVertIcon from '@mui/icons-material/MoreVert'
 import SearchIcon from '@mui/icons-material/Search'
+import { useTheme } from '@emotion/react'
 
 const StickyTable = ({
   rows = [], // Data rows for the table
@@ -51,6 +52,7 @@ const StickyTable = ({
   onSearch = () => {},
   modifyColumnPinning = false
 }) => {
+  const theme = useTheme()
   const [defaultRowsInView, setDefaultRowsInView] = useState(rowsInView)
   const [defaultRowsInViewOption, setDefaultRowsInViewOption] = useState(rowsInViewOptions)
   const [rowPerPageCount, setRowPerPageCount] = useState(paginationModel?.pageSize || 10)
@@ -298,9 +300,9 @@ const StickyTable = ({
             // Add a right border to the last left-pinned column
             if (index === leftPinnedColumns.length - 1) {
               borderStyle = {
-                borderRight: '2px solid #ccc',
+                borderRight: '1px solid #DAE7DF'
                 // boxShadow: '4px 0 12px -6px rgba(0, 0, 0, 0.3)',
-                boxShadow: `-20px 0 10px -24px rgba(0,0,0,0.45) inset`
+                // boxShadow: `-20px 0 10px -24px rgba(0,0,0,0.45) inset`
               }
             }
           } else if (col.pinned === 'right') {
@@ -314,9 +316,9 @@ const StickyTable = ({
             // Add a right border to the last left-pinned column
             if (index === rearrangedColumns.length - rightPinnedColumns.length) {
               borderStyle = {
-                borderLeft: '2px solid #ccc',
+                borderLeft: '1px solid #DAE7DF'
                 // boxShadow: '-4px 0 12px -6px rgba(0, 0, 0, 0.3)',
-                boxShadow: `20px 0 10px -24px rgba(0,0,0,0.45) inset`
+                // boxShadow: `20px 0 10px -24px rgba(0,0,0,0.45) inset`
                 // boxShadow: `rgba(33, 35, 38, 0.1) -10px 0px 10px -10px`
               }
             }
@@ -330,7 +332,9 @@ const StickyTable = ({
                 maxWidth: isGrouped ? widthWithSubHeader : col.width,
                 fontWeight: 'bold',
                 backgroundColor: '#e8f5f2',
+                color: theme.palette.customColors.OnSecondaryContainer,
                 // borderRight: '1px solid pink',
+                borderBottom: 'none',
                 ...pinnedStyle,
                 ...borderStyle,
                 ...col?.headerStyle
@@ -342,7 +346,7 @@ const StickyTable = ({
               }}
               colSpan={isGrouped ? col.subHeader.length : 1}
             >
-              {col.pinned && (
+              {/* {col.pinned && (
                 <PushPinIcon
                   fontSize='10px'
                   style={{
@@ -353,7 +357,7 @@ const StickyTable = ({
                   }}
                   titleAccess={`Pinned to ${col.pinned}`}
                 />
-              )}
+              )} */}
               {isGrouped ? (
                 transformText(col?.headerName, col?.textTransform)
               ) : (
@@ -465,8 +469,8 @@ const StickyTable = ({
             }
             if (leftPinnedColumns?.length - 1 === index && !isSubHeader) {
               borderStyle = {
-                borderRight: '2px solid #ccc',
-                boxShadow: `-20px 0 10px -24px rgba(0,0,0,0.45) inset`
+                borderRight: '1px solid #DAE7DF'
+                // boxShadow: `-20px 0 10px -24px rgba(0,0,0,0.45) inset`
               }
             }
             leftOffset += isSubHeader ? 0 : colGroup.width
@@ -480,8 +484,8 @@ const StickyTable = ({
             // Add a right border to the last left-pinned column
             if (index === rearrangedColumns.length - rightPinnedColumns.length && !isSubHeader) {
               borderStyle = {
-                borderLeft: '2px solid #ccc',
-                boxShadow: `20px 0 10px -24px rgba(0,0,0,0.45) inset`
+                borderLeft: '1px solid #DAE7DF'
+                // boxShadow: `20px 0 10px -24px rgba(0,0,0,0.45) inset`
               }
             }
           }
@@ -500,8 +504,8 @@ const StickyTable = ({
                 if (leftPinnedColumns?.length - 1 === index && subIndex === colGroup?.subHeader?.length - 1) {
                   // console.log('colGroup', colGroup.field)
                   borderStyle = {
-                    borderRight: '2px solid #ccc',
-                    boxShadow: `-20px 0 10px -24px rgba(0,0,0,0.45) inset`
+                    borderRight: '1px solid #DAE7DF'
+                    // boxShadow: `-20px 0 10px -24px rgba(0,0,0,0.45) inset`
                   }
                 }
               } else if (colGroup.pinned === 'right') {
@@ -515,8 +519,8 @@ const StickyTable = ({
                 // Add a right border to the last left-pinned column
                 if (subIndex === 0) {
                   borderStyle = {
-                    borderLeft: '2px solid #ccc',
-                    boxShadow: `20px 0 10px -24px rgba(0,0,0,0.45) inset`
+                    borderLeft: '1px solid #DAE7DF'
+                    // boxShadow: `20px 0 10px -24px rgba(0,0,0,0.45) inset`
                   }
                 }
               }
@@ -620,7 +624,8 @@ const StickyTable = ({
           }}
           sx={{
             height: rowHeight,
-            backgroundColor: rowIndex % 2 === 0 ? '#f9f9f9' : 'white',
+            // backgroundColor: rowIndex % 2 === 0 ? '#f9f9f9' : 'white',
+            backgroundColor: 'white',
             position: 'relative',
             cursor: onRowClick && 'pointer',
             '&:hover': {
@@ -654,8 +659,8 @@ const StickyTable = ({
               }
               if (leftPinnedColumns?.length - 1 === index && !isSubHeader) {
                 borderStyle = {
-                  borderRight: '2px solid #ccc',
-                  boxShadow: `-20px 0 10px -24px rgba(0,0,0,0.45) inset`
+                  borderRight: '1px solid #DAE7DF'
+                  // boxShadow: `-20px 0 10px -24px rgba(0,0,0,0.45) inset`
                 }
               }
               leftOffset += isSubHeader ? 0 : col.width
@@ -670,8 +675,8 @@ const StickyTable = ({
               // Add a right border to the last left-pinned column
               if (index === rearrangedColumns.length - rightPinnedColumns.length && !isSubHeader) {
                 borderStyle = {
-                  borderLeft: '2px solid #ccc',
-                  boxShadow: `20px 0 10px -24px rgba(0,0,0,0.45) inset`
+                  borderLeft: '1px solid #DAE7DF'
+                  // boxShadow: `20px 0 10px -24px rgba(0,0,0,0.45) inset`
                 }
               }
             }
@@ -694,8 +699,8 @@ const StickyTable = ({
 
                   if (leftPinnedColumns?.length - 1 === index && subIndex === col?.subHeader?.length - 1) {
                     borderStyle = {
-                      borderRight: '2px solid #ccc',
-                      boxShadow: `-20px 0 10px -24px rgba(0,0,0,0.45) inset`
+                      borderRight: '1px solid #DAE7DF'
+                      // boxShadow: `-20px 0 10px -24px rgba(0,0,0,0.45) inset`
                     }
                   }
                 } else if (col.pinned === 'right') {
@@ -710,8 +715,8 @@ const StickyTable = ({
                   // Add a right border to the last left-pinned column
                   if (subIndex === 0) {
                     borderStyle = {
-                      borderLeft: '2px solid #ccc',
-                      boxShadow: `20px 0 10px -24px rgba(0,0,0,0.45) inset`
+                      borderLeft: '1px solid #DAE7DF'
+                      // boxShadow: `20px 0 10px -24px rgba(0,0,0,0.45) inset`
                     }
                   }
                 }
@@ -735,7 +740,8 @@ const StickyTable = ({
                       ...pinnedStyle,
                       ...borderStyle,
                       ...col.columnStyle,
-                      ...subCol?.subheaderStyle
+                      ...subCol?.subheaderStyle,
+                      borderBottom: filteredRows.length != rowIndex && '1px solid #DAE7DF'
                     }}
                   >
                     {/* {subCol.label || subCol.field} */}
@@ -766,7 +772,9 @@ const StickyTable = ({
                   ...borderStyle,
                   ...col.columnStyle,
                   minHeight: '70px',
-                  maxHeight: '70px'
+                  maxHeight: '70px',
+                  borderBottom: filteredRows.length != rowIndex && '1px solid #DAE7DF'
+                  // borderBottom: '1px solid #DAE7DF'
                 }}
               >
                 {col.renderCell ? col.renderCell({ row }) : row[col.field[0]]}
@@ -854,8 +862,8 @@ const StickyTable = ({
             }}
             sx={{
               background: loading ? '#f5f5f5' : '#fff',
-              borderTop: '1px solid #ddd',
-              boxShadow: '0px -2px 5px rgba(0,0,0,0.1)',
+              // borderTop: '1px solid #ddd',
+              // boxShadow: '0px -2px 5px rgba(0,0,0,0.1)',
               pointerEvents: loading ? 'none' : 'auto' // Disable interactions when loading
             }}
           />
@@ -902,7 +910,9 @@ const StickyTable = ({
                 headerHeight +
                 subHeaderHeight +
                 16
-              : Math.max(5 * (rowHeight + 0.8), defaultRowsInView * (rowHeight + 0.8)) + headerHeight + subHeaderHeight,
+              : Math.max(5 * (rowHeight + 0.8), defaultRowsInView * (rowHeight + -0.1)) +
+                headerHeight +
+                subHeaderHeight,
             overflowY: 'auto',
             position: 'relative',
             border: '1px solid #ddd',

@@ -339,38 +339,46 @@ const SpeciesReport = () => {
         >
           <Box
             sx={{
-              width: ['Male', 'Female', 'Indeterminate', 'Undetermined'].includes(header.label) ? '50px' : '90px',
+              // width: ['Male', 'Female', 'Indeterminate', 'Undetermined'].includes(header.label) ? '50px' : '140px',
+              width: '140px',
               height: '25px',
-              backgroundColor: getCellBackgroundColor(header.label),
-              color: getCellTextColor(header.label),
-              fontWeight: 400,
-              borderRadius: '4px',
               display: 'flex',
               alignItems: 'center',
-              justifyContent: ['Male', 'Female', 'Indeterminate', 'Undetermined'].includes(header.label)
-                ? 'center'
-                : header.label === 'total'
-                ? 'flex-end'
-                : 'flex-start',
-              textAlign: ['Male', 'Female', 'Indeterminate', 'Undetermined'].includes(header.label)
-                ? 'center'
-                : header.label === 'total'
-                ? 'right'
-                : 'left',
-              overflow: 'hidden',
-              whiteSpace: 'nowrap',
-              textOverflow: 'ellipsis',
+              // justifyContent: ['Male', 'Female', 'Indeterminate', 'Undetermined'].includes(header.label)
+              // ? 'center'
+              // : header.label === 'total'
+              // ? 'flex-end'
+              // : 'flex-start',
+
               position: 'relative',
-              cursor: 'pointer',
-              padding: '0 5px' // Thoda padding de diya better UX ke liye
+              cursor: 'pointer'
             }}
           >
-            {params?.row
-              ? params?.row[header.key]
-              : ['Male', 'Female', 'Indeterminate', 'Undetermined', 'Total'].includes(header.label) &&
-                params?.row[header.key] === undefined
-              ? 0
-              : '-'}
+            <Typography
+              sx={{
+                color: getCellTextColor(header.label),
+                backgroundColor: getCellBackgroundColor(header.label),
+                borderRadius: '4px',
+                padding: '4px 16px', // Thoda padding de diya better UX ke liye
+                fontWeight: 400,
+                // textAlign: ['Male', 'Female', 'Indeterminate', 'Undetermined'].includes(header.label)
+                //   ? 'center'
+                //   : header.label === 'total'
+                //   ? 'right'
+                //   : 'left',
+                textAlign: 'left',
+                overflow: 'hidden',
+                whiteSpace: 'nowrap',
+                textOverflow: 'ellipsis'
+              }}
+            >
+              {params?.row
+                ? params?.row[header.key]
+                : ['Male', 'Female', 'Indeterminate', 'Undetermined', 'Total'].includes(header.label) &&
+                  params?.row[header.key] === undefined
+                ? 0
+                : '-'}
+            </Typography>
           </Box>
         </Tooltip>
       )
@@ -631,7 +639,7 @@ const SpeciesReport = () => {
                 }}
               >
                 Download report
-                <img src='/images/download1.png' alt='download icon' style={{ marginLeft: 8, width: 30, height: 30 }} />
+                <img src='/images/download1.svg' alt='download icon' style={{ marginLeft: 8, width: 30, height: 30 }} />
               </Typography>
 
               {/* <Button
@@ -854,13 +862,21 @@ const SpeciesReport = () => {
                       }}
                     >
                       <img
-                        src='/images/filterIcon.png'
+                        src={`/images/${
+                          getTotalSelectedFilters(selectedOptions) > 0 ? 'filterIconActive' : 'filterIcon'
+                        }.svg`}
                         style={{ width: '30px', height: '30px', marginBottom: '3px', marginTop: '7px' }}
                         alt='Filter Icon'
                       />
 
                       <Typography
-                        sx={{ color: '#1F515B', textTransform: 'capitalize', mr: 8, fontSize: '16px', fontWeight: 400 }}
+                        sx={{
+                          color: getTotalSelectedFilters(selectedOptions) > 0 ? '#1F515B' : '#44544A',
+                          textTransform: 'capitalize',
+                          mr: 8,
+                          fontSize: '16px',
+                          fontWeight: 400
+                        }}
                       >
                         Filter
                       </Typography>
