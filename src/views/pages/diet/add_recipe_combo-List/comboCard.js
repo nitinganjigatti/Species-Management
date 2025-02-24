@@ -536,7 +536,7 @@ const ComboCard = ({
                       variant='body'
                       sx={{ ml: 4, fontSize: '14px', width: '79px', mt: 1, mb: 0, float: 'left' }}
                     >
-                      {item?.recipe_no ? item?.recipe_no : 'RCP- 000'}
+                      {item?.recipe_no ? item?.recipe_no : 'CMB- 000'}
                     </Typography>
                   </Box>
 

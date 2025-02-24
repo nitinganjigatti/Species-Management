@@ -255,7 +255,8 @@ const IngredientDetail = () => {
                               <Tab
                                 style={{ borderRadius: 0 }}
                                 value='2'
-                                label={'USED IN RECIPE' + ' -' + ' ' + recipeListTotal}
+                                // label={'USED IN RECIPE' + ' -' + ' ' + recipeListTotal}
+                                label={`USED IN RECIPE${recipeListTotal > 0 ? ` - ${recipeListTotal}` : ''}`}
                               />
                               <Tab
                                 style={{ borderTopLeftRadius: 0, borderBottomLeftRadius: 0 }}
