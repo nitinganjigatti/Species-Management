@@ -398,18 +398,18 @@ const RequestedProductDetails = props => {
         <>
           <Box
             sx={{
-              position: 'fixed',
+              position: 'sticky',
               top: 0,
-
+              left: 0,
               minWidth: { lg: '642px', md: '642px', sm: '642px', xs: 'auto' },
               maxWidth: '642px',
               backgroundColor: 'white',
               p: '24px',
-              zIndex: 100
+              zIndex: 1
             }}
           >
             <Box
-              className='sidebar-header'
+              // className='sidebar-header'
               sx={{
                 display: 'flex',
                 width: '100%',
@@ -545,14 +545,15 @@ const RequestedProductDetails = props => {
               container
               sx={{
                 backgroundColor: theme.palette.customColors.Background,
-
                 // height: '100%',
                 overflowY: 'auto',
-                mt: '167px',
-                padding: '24px'
+                // mt: '167px',
+                padding: '24px',
+                minWidth: { lg: '642px', md: '642px', sm: '642px', xs: 'auto' },
+                maxWidth: '642px'
               }}
             >
-              <Grid item xs={12} sm={12} md={12} sx={{ display: 'inline-flex' }}>
+              <Grid item xs={12} sm={12} md={12}>
                 <Typography
                   sx={{
                     color: theme.palette.customColors.OnSurfaceVariant,
