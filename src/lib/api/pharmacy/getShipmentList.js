@@ -43,7 +43,7 @@ export async function getDisputeItemById(id) {
 
 export async function addDisputeItems(payload) {
   try {
-    const url = `${DISPUTE_ITEM}`
+    const url = `v2/${DISPUTE_ITEM}`
     var data = payload
 
     const response = await axiosPost({ url, body: data, pharmacy: true })
@@ -64,7 +64,7 @@ export async function addDisputeItems(payload) {
 
 export async function upDateDisputeItems(id, payload) {
   try {
-    const url = `${DISPUTE_ITEM}/${id}/update`
+    const url = `v2/${DISPUTE_ITEM}/${id}/update`
     var data = payload
     data.id = id
 
@@ -107,7 +107,7 @@ export async function addDispenseItems(payload) {
 
 export async function resolveDisputeItems(payload) {
   try {
-    const url = `${DISPUTE_ITEM}/resolve`
+    const url = `v2/${DISPUTE_ITEM}/resolve`
     var data = payload
 
     const response = await axiosPost({ url, body: data, pharmacy: true })

@@ -310,6 +310,7 @@ export default function NewProductList() {
   const [status, setStatus] = useState('Approved')
 
   const handleChange = (event, newValue) => {
+    
     // Reset total and search value
     setTotal(0)
     setSearchValue('')
@@ -317,7 +318,6 @@ export default function NewProductList() {
 
     // Update the status
     setStatus(newValue)
-    setPaginationModel({ page: 0, pageSize: 10 })
 
     // Fetch table data with the new status
     fetchTableData({
@@ -325,7 +325,9 @@ export default function NewProductList() {
       q: '', // Clear the search value when status changes
       column: sortColumn,
       status: newValue, // Use the updated status
-      filterByPharmacyId: filterByPharmacyId === 'all' ? '' : filterByPharmacyId // Use the current pharmacy filter
+      filterByPharmacyId: filterByPharmacyId === 'all' ? '' : filterByPharmacyId, // Use the current pharmacy filter
+      page: 1,
+      limit: paginationModel.pageSize
     })
   }
 

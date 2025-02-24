@@ -1055,15 +1055,34 @@ const IndividualRequest = () => {
       headerName: 'Action',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary', display: 'flex', alignItems: 'center' }}>
-          <Box sx={{ mr: 2 }}>
+          {/* <Box sx={{ mr: 2 }}> */}
+          <Button
+            sx={{
+              mr: 2,
+              padding: 2,
+              minWidth: 'auto',
+              borderRadius: '50%',
+              backgroundColor: 'transparent',
+              color: 'customColors.neutralSecondary',
+              '&:hover': {
+                backgroundColor: 'transparent'
+              }
+            }}
+            onClick={() => {
+              setDeleteDialog(true)
+              setDeleteFullFillId(params.row.dispatch_item_id)
+            }}
+            disabled={selectedPharmacy?.permission.key === 'VIEW'}
+          >
             <Icon
-              onClick={() => {
-                setDeleteDialog(true)
-                setDeleteFullFillId(params.row.dispatch_item_id)
-              }}
+              // onClick={() => {
+              //   setDeleteDialog(true)
+              //   setDeleteFullFillId(params.row.dispatch_item_id)
+              // }}
               icon='mdi:delete-outline'
             />
-          </Box>
+          </Button>
+          {/* </Box> */}
         </Typography>
       )
     }

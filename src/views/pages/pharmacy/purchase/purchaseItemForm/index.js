@@ -500,9 +500,9 @@ const PurchaseItemForm = props => {
       })
 
       const productData = {
-        purchase_stock_item_id: nestedRowMedicine.purchase_unit_id,
-        purchase_unit_price: nestedRowMedicine.purchase_unit_price,
-        ...(id !== '' && { purchase_detail_id: id })
+        purchase_stock_item_id: nestedRowMedicine?.purchase_unit_id,
+        purchase_unit_price: nestedRowMedicine?.purchase_unit_price,
+        ...(id !== '' && { purchase_detail_id: nestedRowMedicine?.id })
       }
       getRecentPurchasePriceOfProduct(productData)
       setValue('product', {
@@ -744,7 +744,7 @@ const PurchaseItemForm = props => {
                     const productData = {
                       purchase_stock_item_id: watch('product')?.value,
                       purchase_unit_price: watch('purchase_unit_price'),
-                      ...(id !== '' && { purchase_detail_id: id })
+                      ...(id !== '' && { purchase_detail_id: nestedRowMedicine?.id })
                     }
                     if (productData?.purchase_stock_item_id !== '' && productData?.purchase_unit_price !== '') {
                       getRecentPurchasePriceOfProduct(productData)

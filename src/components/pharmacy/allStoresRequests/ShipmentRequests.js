@@ -64,7 +64,7 @@ export default function ShipmentRequests({ updateUrlParams }) {
   const [sort, setSort] = useState(router.query.sort || 'asc')
   const [rows, setRows] = useState([])
   const [searchValue, setSearchValue] = useState(router.query.q || '')
-  const [sortColumn, setSortColumn] = useState(router.query.column || '')
+  const [sortColumn, setSortColumn] = useState('')
   const [loading, setLoading] = useState(false)
 
   const [paginationModel, setPaginationModel] = useState({
@@ -82,11 +82,13 @@ export default function ShipmentRequests({ updateUrlParams }) {
   const [deleteFullFillId, setDeleteFullFillId] = useState(null)
   const [deleteItemLoader, setDeleteItemLoader] = useState(false)
 
+  const currentStoreId = selectedPharmacy.type === 'local' ? selectedPharmacy.id : id
+
   const shipItems = () => {
     updateMultipleStates({
       dispatchedItems: selectedRows?.length > 0 ? selectedRows : []
     })
-    router.push(`/pharmacy/requests-by-store/${id}/ship-all-items`)
+    router.push(`/pharmacy/requests-by-store/${currentStoreId}/ship-all-items`)
   }
 
   const closeDeleteDialog = () => {
@@ -313,7 +315,7 @@ export default function ShipmentRequests({ updateUrlParams }) {
           ...(priority !== 'all' && { priority: priority })
         }
 
-        await getAllShipmentsSelectedStore({ params: params }, id).then(res => {
+        await getAllShipmentsSelectedStore({ params: params }, currentStoreId).then(res => {
           console.log('result', res)
 
           if (res?.success === true && res?.data?.dispatch_items?.length > 0) {
@@ -416,6 +418,15 @@ export default function ShipmentRequests({ updateUrlParams }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fetchTableData])
 
+  useEffect(() => {
+    if (selectedPharmacy.type === 'local') {
+      setShipmentTab('Shipped')
+      updateUrlParams({
+        subTab: 'Shipped'
+      })
+    }
+  }, [selectedPharmacy.type === 'local'])
+
   return (
     <TabContext value={shipmentTab}>
       <TabLists
@@ -438,7 +449,7 @@ export default function ShipmentRequests({ updateUrlParams }) {
           mt: 6
         }}
       >
-        <Tab value='Ready To Ship' label={`Ready To Ship - ${total}`} />
+        {selectedPharmacy.type === 'local' ? null : <Tab value='Ready To Ship' label={`Ready To Ship - ${total}`} />}
         <Tab value='Shipped' label={totalShippedCounts ? `Shipped-${totalShippedCounts}` : 'Shipped'} />
 
         <Grid
