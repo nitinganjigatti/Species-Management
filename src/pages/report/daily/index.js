@@ -33,6 +33,7 @@ const Animal = () => {
 
   const authData = useContext(AuthContext)
   const reports_module = authData?.userData?.roles?.settings?.enable_reports_module
+  const enable_daily_report = authData?.userData?.permission?.user_settings?.enable_daily_report
 
   const startDateRef = useRef()
   const endDateRef = useRef()
@@ -90,15 +91,17 @@ const Animal = () => {
   }
 
   useEffect(() => {
-    const fetchReportType = async () => {
-      const response = await getReportTitle()
-      if (response) {
-        setReportData(response)
-      } else {
-        console.log('error >')
+    if (enable_daily_report && reports_module && enable_daily_report) {
+      const fetchReportType = async () => {
+        const response = await getReportTitle()
+        if (response) {
+          setReportData(response)
+        } else {
+          console.log('error >')
+        }
       }
+      fetchReportType()
     }
-    fetchReportType()
   }, [])
 
   const downloadNewCSVFile = csvContent => {
@@ -281,7 +284,7 @@ const Animal = () => {
 
   return (
     <>
-      {reports_module ? (
+      {reports_module && enable_daily_report ? (
         <Card>
           <CardHeader title={title} sx={{ mb: '16px' }} />
           <Box
