@@ -92,6 +92,12 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
     // icon: 'material-symbols:request-quote-outline',
     path: '/pharmacy/requests-by-store/all-stores-request-list'
   }
+  const requestByProductListing = {
+    title: 'Request By Products',
+
+    // icon: 'material-symbols:request-quote-outline',
+    path: '/pharmacy/requests-by-product'
+  }
 
   const returnParent = {
     title: 'Return',
@@ -311,6 +317,7 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
     requestParent.children.push(requestListing)
     requestParent.children.push(requestByStoreListing)
     requestParent.children.push(nonExistingProductRequestList)
+    // requestParent.children.push(requestByProductListing)
 
     // returnParent.children.push(returnListing)
     // directDispatchParent.children.push(directDispatchList)
@@ -378,6 +385,7 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
 
   if (selectedPharmacy?.type === 'local') {
     requestParent.children.push(requestListing)
+    requestParent.children.push(requestByProductListing)
 
     // requestParent.children.push(requestByStoreListing)
     requestParent.children.push(nonExistingProductRequestList)
