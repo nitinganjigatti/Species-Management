@@ -25,6 +25,7 @@ import RenderUtility from 'src/utility/render'
 import TextEllipsisWithModal from 'src/components/TextEllipsisWithModal'
 import Utility from 'src/utility'
 import MenuWithDots from 'src/components/MenuWithDots'
+import { usePharmacyContext } from 'src/context/PharmacyContext'
 
 // ** Icon Imports
 
@@ -39,6 +40,7 @@ const RequestedProductDetails = props => {
     drawerLoader
   } = props
   const theme = useTheme()
+  const { selectedPharmacy } = usePharmacyContext()
 
   // ** State
 
@@ -225,14 +227,14 @@ const RequestedProductDetails = props => {
                     parseInt(nestedChildElm?.requested_qty) - parseInt(nestedChildElm?.dispatch_qty) >= 1 &&
                     nestedChildElm?.request_status !== 'Alternate' &&
                     nestedChildElm?.request_status !== 'Not Available' &&
-                    nestedChildElm?.request_status !== 'Rejected' && (
+                    nestedChildElm?.request_status !== 'Rejected' &&
+                    selectedPharmacy.type !== 'local' && (
                       // eslint-disable-next-line lines-around-comment
-                      <MenuWithDots options={generateOptions(nestedChildElm, nestedChildElm?.id)} />
 
-                      // <OptionsMenu
-                      //   options={['Add Alternative', 'Decline Request', 'Supply Stopped']}
-                      //   iconButtonProps={{ size: 'small', className: 'card-more-options' }}
-                      // />
+                      <MenuWithDots
+                        options={generateOptions(nestedChildElm, nestedChildElm?.id)}
+                        disabled={selectedPharmacy.type === 'local'}
+                      />
                     )
                   }
                 />
@@ -326,13 +328,15 @@ const RequestedProductDetails = props => {
                         {parseInt(nestedChildElm?.requested_qty) - parseInt(nestedChildElm?.dispatch_qty) >= 1 &&
                         nestedChildElm?.request_status !== 'Alternate' &&
                         nestedChildElm?.request_status !== 'Not Available' &&
-                        nestedChildElm?.request_status !== 'Rejected' ? (
+                        nestedChildElm?.request_status !== 'Rejected' &&
+                        selectedPharmacy.type !== 'local' ? (
                           <Button
                             onClick={() => {
                               fullFillRequestItem(nestedChildElm)
                             }}
                             variant='contained'
                             size='small'
+                            disabled={selectedPharmacy.type === 'local'}
                           >
                             Full fill
                           </Button>
@@ -394,18 +398,18 @@ const RequestedProductDetails = props => {
         <>
           <Box
             sx={{
-              position: 'fixed',
+              position: 'sticky',
               top: 0,
-
+              left: 0,
               minWidth: { lg: '642px', md: '642px', sm: '642px', xs: 'auto' },
               maxWidth: '642px',
               backgroundColor: 'white',
               p: '24px',
-              zIndex: 100
+              zIndex: 1
             }}
           >
             <Box
-              className='sidebar-header'
+              // className='sidebar-header'
               sx={{
                 display: 'flex',
                 width: '100%',
@@ -541,14 +545,15 @@ const RequestedProductDetails = props => {
               container
               sx={{
                 backgroundColor: theme.palette.customColors.Background,
-
                 // height: '100%',
                 overflowY: 'auto',
-                mt: '167px',
-                padding: '24px'
+                // mt: '167px',
+                padding: '24px',
+                minWidth: { lg: '642px', md: '642px', sm: '642px', xs: 'auto' },
+                maxWidth: '642px'
               }}
             >
-              <Grid item xs={12} sm={12} md={12} sx={{ display: 'inline-flex' }}>
+              <Grid item xs={12} sm={12} md={12}>
                 <Typography
                   sx={{
                     color: theme.palette.customColors.OnSurfaceVariant,
@@ -658,13 +663,17 @@ const RequestedProductDetails = props => {
                           parseInt(parentItems?.requested_qty) - parseInt(parentItems?.dispatch_qty) >= 1 &&
                           parentItems?.request_status !== 'Alternate' &&
                           parentItems?.request_status !== 'Not Available' &&
-                          parentItems?.request_status !== 'Rejected' && (
+                          parentItems?.request_status !== 'Rejected' &&
+                          selectedPharmacy.type !== 'local' && (
                             // eslint-disable-next-line lines-around-comment
                             // <OptionsMenu
                             //   options={['Add Alternative', 'Decline Request', 'Supply Stopped']}
                             //   iconButtonProps={{ size: 'small', className: 'card-more-options' }}
                             // />
-                            <MenuWithDots options={generateOptions(parentItems, parentItems?.id)} />
+                            <MenuWithDots
+                              options={generateOptions(parentItems, parentItems?.id)}
+                              disabled={selectedPharmacy.type === 'local'}
+                            />
                           )
                         }
                       />
@@ -764,13 +773,15 @@ const RequestedProductDetails = props => {
                               {parseInt(parentItems?.requested_qty) - parseInt(parentItems?.dispatch_qty) >= 1 &&
                               parentItems?.request_status !== 'Alternate' &&
                               parentItems?.request_status !== 'Not Available' &&
-                              parentItems?.request_status !== 'Rejected' ? (
+                              parentItems?.request_status !== 'Rejected' &&
+                              selectedPharmacy.type !== 'local' ? (
                                 <Button
                                   onClick={() => {
                                     fullFillRequestItem(parentItems)
                                   }}
                                   variant='contained'
                                   size='small'
+                                  disabled={selectedPharmacy.type === 'local'}
                                 >
                                   Full fill
                                 </Button>

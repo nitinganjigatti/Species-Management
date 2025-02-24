@@ -6,9 +6,11 @@ import { debounce } from 'lodash'
 import Utility from 'src/utility'
 import { getAllShippedItemsOfSelectedStore } from 'src/lib/api/pharmacy/storeWiseRequest'
 import Icon from 'src/@core/components/icon'
+import { usePharmacyContext } from 'src/context/PharmacyContext'
 
 export default function ShippedItems({ updateUrlParams, setTotalShippedCounts }) {
   const router = useRouter()
+  const { selectedPharmacy } = usePharmacyContext()
 
   const { id } = router.query
 
@@ -185,7 +187,9 @@ export default function ShippedItems({ updateUrlParams, setTotalShippedCounts })
           column
         }
 
-        await getAllShippedItemsOfSelectedStore({ params: params }, id).then(res => {
+        const currentStoreId = selectedPharmacy.type === 'local' ? selectedPharmacy.id : id
+
+        await getAllShippedItemsOfSelectedStore({ params: params }, currentStoreId).then(res => {
           if (res?.success === true && res?.data?.items?.length > 0) {
             setTotal(parseInt(res?.data?.total))
             setTotalShippedCounts(parseInt(res?.data?.total))
