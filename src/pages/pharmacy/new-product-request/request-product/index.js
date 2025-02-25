@@ -285,8 +285,8 @@ export default function AddProduct() {
         reset()
         const toastMessage = id ? 'Product Updated Successfully' : 'New Product Created Successfully'
         toast.success(toastMessage)
-
-        router.push('/pharmacy/new-product-request/')
+        router.back()
+        // router.push('/pharmacy/new-product-request/')
       } else {
         setSubmitLoader(false)
       }
@@ -304,7 +304,8 @@ export default function AddProduct() {
     } else if (previousPrescriptionLength) {
       setConfirmationBox(true)
     } else {
-      router.push('/pharmacy/new-product-request/')
+      router.back()
+      // router.push('/pharmacy/new-product-request/')
     }
   }
 
@@ -434,7 +435,8 @@ export default function AddProduct() {
     } else if (previousPrescriptionLength) {
       handleCancelDialogBox()
     } else {
-      router.push('/pharmacy/new-product-request/')
+      router.back()
+      // router.push('/pharmacy/new-product-request/')
     }
   }
 
@@ -451,9 +453,8 @@ export default function AddProduct() {
                   <Icon
                     style={{ cursor: 'pointer' }}
                     onClick={() => {
-                      isDirty || imgSrcChange || previousPrescriptionLength
-                        ? handleCancelDialogBox()
-                        : router.push('/pharmacy/new-product-request/')
+                      isDirty || imgSrcChange || previousPrescriptionLength ? handleCancelDialogBox() : router.back()
+                      // router.push('/pharmacy/new-product-request/')
                     }}
                     icon='ep:back'
                   />
@@ -767,7 +768,10 @@ export default function AddProduct() {
                           open={() => setConfirmationBox(true)}
                           content={'Are you sure you want to cancel?'}
                           closeDialog={() => setConfirmationBox(false)}
-                          action={() => router.push('/pharmacy/new-product-request/')}
+                          action={() => {
+                            // router.push('/pharmacy/new-product-request/')
+                            router.back()
+                          }}
                         />
                       )}
 
