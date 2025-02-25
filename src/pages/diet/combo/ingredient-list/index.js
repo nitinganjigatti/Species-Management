@@ -203,7 +203,7 @@ const IngredientsListforRecipeDetail = ({ IngredientsDetailsval }) => {
       )
     },
     {
-      flex: 0.3,
+      flex: 0.4,
       minWidth: 20,
       field: 'feed_type',
       headerName: 'FEED TYPE',
@@ -235,18 +235,18 @@ const IngredientsListforRecipeDetail = ({ IngredientsDetailsval }) => {
           {params.row.preparation_type ? params.row.preparation_type : '-'}
         </Typography>
       )
-    },
-    {
-      flex: 0.4,
-      minWidth: 20,
-      field: 'cut_size',
-      headerName: 'CUT SIZE',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary', pl: 2 }} title={params.row.preparation_type}>
-          {params.row.cut_size ? params.row.cut_size : '-'}
-        </Typography>
-      )
     }
+    // {
+    //   flex: 0.4,
+    //   minWidth: 20,
+    //   field: 'cut_size',
+    //   headerName: 'CUT SIZE',
+    //   renderCell: params => (
+    //     <Typography variant='body2' sx={{ color: 'text.primary', pl: 2 }} title={params.row.preparation_type}>
+    //       {params.row.cut_size ? params.row.cut_size : '-'}
+    //     </Typography>
+    //   )
+    // }
   ]
 
   // const onCellClick = params => {

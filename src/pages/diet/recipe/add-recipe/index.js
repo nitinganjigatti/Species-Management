@@ -553,7 +553,10 @@ const AddRecipe = () => {
 
         <Divider sx={{ mx: '20px !important', pb: 1 }} />
 
-        <StepperWrapper sx={{ mb: 5, mt: 5, pt: 5, display: 'flex', justifyContent: 'center' }}>
+        <StepperWrapper
+          sx={{ mb: 5, mt: 5, pt: 5, display: 'flex', justifyContent: 'center' }}
+          className='recipe_steps'
+        >
           <Stepper activeStep={activeStep} sx={{ width: '75%', px: 15 }}>
             {steps.map((step, index) => {
               return (

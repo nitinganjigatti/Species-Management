@@ -38,7 +38,9 @@ const AddIngredients = props => {
     allSelectedValues,
     formData,
     setSelectedIngredient,
-    setUomprevnew
+    setUomprevnew,
+    uom,
+    feedType
   } = props
   const [feed, setFeed] = React.useState('')
   const [selectFeed, setSelectFeed] = useState({})
@@ -58,9 +60,9 @@ const AddIngredients = props => {
   let [ingredientPage, setIngredientPage] = useState(1)
   const [reachedEnd, setReachedEnd] = useState(false)
   const [sort, setSort] = useState('desc')
-  const [uom, setUom] = useState([])
+  // const [uom, setUom] = useState([])
   const [uomnew, setUomnew] = useState([])
-  const [feedType, setFeedType] = useState([])
+  // const [feedType, setFeedType] = useState([])
   const [selectedDays, setSelectedDays] = useState([])
 
   const handelShowBottom = (event, item, index) => {
@@ -337,22 +339,30 @@ const AddIngredients = props => {
   }
 
   const handleAllSelect = event => {
-    setSelectedCard(selectedCard)
-    onChange(selectedCard)
     event?.stopPropagation()
-    setSelectedIngredient(selectedCard)
 
-    if (selectedCard?.length > 0) {
+    if (Object.keys(selectFeed).length === 0) {
+      toast.error('Ingredients are required', {
+        duration: 1000
+      })
+    } else if (
+      (Object.keys(selectFeed).length > 0 && Object.keys(size).length === 0) ||
+      Object.keys(selectFeed).length !== Object.keys(size).length
+    ) {
+      toast.error('Please select a Cutsize', {
+        duration: 1000
+      })
+    } else if (selectedCard?.length > 0) {
       handleSidebarClose()
-
+      setSelectedCard(selectedCard)
+      onChange(selectedCard)
+      setSelectedIngredient(selectedCard)
       return toast.success('Ingredient selected')
-    } else {
-      return toast.error('Ingredients are required')
     }
   }
 
   useEffect(() => {
-    getUnitsList()
+    //getUnitsList()
     getUnitsListnew()
     setReachedEnd(true)
 
@@ -373,36 +383,36 @@ const AddIngredients = props => {
   }, [])
 
   // Top Feed Type
-  const fetchData = async () => {
-    const params = { page: 1, limit: 50, status: 1 }
-    try {
-      const response = await getFeedTypeList(params)
+  // const fetchData = async () => {
+  //   const params = { page: 1, limit: 50, status: 1 }
+  //   try {
+  //     const response = await getFeedTypeList(params)
 
-      setFeedType(response?.data?.result)
-    } catch (error) {
-      console.log('error', error)
-    }
-  }
+  //     setFeedType(response?.data?.result)
+  //   } catch (error) {
+  //     console.log('error', error)
+  //   }
+  // }
 
-  useEffect(() => {
-    fetchData()
-  }, [])
+  // useEffect(() => {
+  //   fetchData()
+  // }, [])
 
-  const getUnitsList = async () => {
-    try {
-      const params = {
-        //type: ['length', 'weight'],
-        page: 1,
-        limit: 50
-      }
-      await getCutsizeList(params).then(res => {
-        setUom(res?.data?.result)
-        setUomprev(res?.data?.result)
-      })
-    } catch (e) {
-      console.log(e)
-    }
-  }
+  // const getUnitsList = async () => {
+  //   try {
+  //     const params = {
+  //       //type: ['length', 'weight'],
+  //       page: 1,
+  //       limit: 50
+  //     }
+  //     await getCutsizeList(params).then(res => {
+  //       setUom(res?.data?.result)
+  //       setUomprev(res?.data?.result)
+  //     })
+  //   } catch (e) {
+  //     console.log(e)
+  //   }
+  // }
 
   const getUnitsListnew = async () => {
     try {
@@ -546,25 +556,25 @@ const AddIngredients = props => {
     [searchValue]
   )
 
-  const handelInputCutSize = (event, item) => {
-    event.stopPropagation()
-    const newCutSize = event.target.value
+  // const handelInputCutSize = (event, item) => {
+  //   event.stopPropagation()
+  //   const newCutSize = event.target.value
 
-    // Set cutSize state
-    setCutSize(prevState => ({
-      ...prevState,
-      [item.id]: {
-        id: event.target.value
-        // name: selectedFeedType.label
-      }
-    }))
+  //   // Set cutSize state
+  //   setCutSize(prevState => ({
+  //     ...prevState,
+  //     [item.id]: {
+  //       id: event.target.value
+  //       // name: selectedFeedType.label
+  //     }
+  //   }))
 
-    if (newCutSize) {
-      handelCardSelection(event, item, null, newCutSize, null, selectedDays)
-    } else {
-      removeSelectedCard(event, item.id)
-    }
-  }
+  //   if (newCutSize) {
+  //     handelCardSelection(event, item, null, newCutSize, null, selectedDays)
+  //   } else {
+  //     removeSelectedCard(event, item.id)
+  //   }
+  // }
 
   const removeSelectedCard = (event, itemId) => {
     event.stopPropagation()
@@ -592,11 +602,11 @@ const AddIngredients = props => {
           position: 'relative',
           display: 'flex',
           flexDirection: 'column',
-          bgcolor: '#dbe0de',
+          bgcolor: '#EFF5F2',
           gap: '24px'
         }}
       >
-        <Box sx={{ position: 'fixed', top: 0, bgcolor: '#dbe0de', zIndex: 10, width: '562px' }}>
+        <Box sx={{ position: 'fixed', top: 0, bgcolor: '#EFF5F2', zIndex: 10, width: '562px' }}>
           <Box
             className='sidebar-header'
             sx={{
@@ -607,16 +617,14 @@ const AddIngredients = props => {
             }}
           >
             <Box sx={{ gap: 2, display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
-              <Icon
-                style={{ marginLeft: -8 }}
-                icon='material-symbols-light:add-notes-outline-rounded'
-                fontSize={'32px'}
-              />
-              <Typography variant='h6'>Add Ingredients</Typography>
+              <img src='/icons/Activity.svg' alt='Grocery Icon' width='35px' />
+              <Typography variant='h6' sx={{ color: '#44544A' }}>
+                Add Ingredients
+              </Typography>
             </Box>
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
-              <IconButton size='small' onClick={handleSidebarClose} sx={{ color: 'text.primary' }}>
-                <Icon icon='mdi:close' fontSize={20} />
+              <IconButton size='small' onClick={handleSidebarClose} sx={{ color: '#1F515B' }}>
+                <Icon icon='mdi:close' fontSize={25} />
               </IconButton>
             </Box>
           </Box>
@@ -628,12 +636,20 @@ const AddIngredients = props => {
                 value={searchValue}
                 fullWidth
                 InputProps={{
-                  startAdornment: <Icon style={{ marginRight: 10 }} icon={'ion:search-outline'} />
+                  startAdornment: <Icon style={{ marginRight: 10, color: '#44544A' }} icon={'ion:search-outline'} />
                 }}
-                placeholder='Search'
+                placeholder='Search ingredient'
                 onKeyUp={e => searchData(e.target.value)}
                 onChange={e => {
                   setSearchValue(e.target.value)
+                }}
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    borderColor: '#839D8D',
+                    '& fieldset': {
+                      borderColor: '#839D8D'
+                    }
+                  }
                 }}
               />
             </Box>
@@ -646,6 +662,17 @@ const AddIngredients = props => {
                   value={feed}
                   label='Feed'
                   onChange={handleChangeTopFeed}
+                  sx={{
+                    '& .MuiOutlinedInput-notchedOutline': {
+                      borderColor: '#839D8D'
+                    },
+                    '&:hover .MuiOutlinedInput-notchedOutline': {
+                      borderColor: '#839D8D'
+                    },
+                    '& .MuiOutlinedInput-root': {
+                      borderRadius: '0px'
+                    }
+                  }}
                   MenuProps={{
                     PaperProps: {
                       style: {
@@ -680,7 +707,7 @@ const AddIngredients = props => {
 
         <Box
           key={feed}
-          sx={{ marginTop: 35, height: '65%', overflowY: 'auto', bgcolor: '#dbe0de' }}
+          sx={{ marginTop: 35, height: '65%', overflowY: 'auto', bgcolor: '#EFF5F2' }}
           onScroll={handleScroll}
         >
           {sortedIngredientList?.map((item, index) => (
@@ -783,11 +810,21 @@ const AddIngredients = props => {
                           value={selectFeed[item.id]?.id || ''}
                           onChange={e => handleChangeFeed(e, item)}
                           displayEmpty
-                          // color=
                           error={
                             visibility?.find(visItem => visItem && visItem.id === item.id)?.isVisible &&
                             !selectFeed[item.id]?.id
                           }
+                          sx={{
+                            '& .MuiOutlinedInput-notchedOutline': {
+                              borderColor: '#839D8D'
+                            },
+                            '&:hover .MuiOutlinedInput-notchedOutline': {
+                              borderColor: '#839D8D'
+                            },
+                            '& .MuiOutlinedInput-root': {
+                              borderRadius: '0px'
+                            }
+                          }}
                         >
                           <MenuItem value='' disabled>
                             Select
@@ -848,6 +885,17 @@ const AddIngredients = props => {
                                 visibility?.find(visItem => visItem && visItem.id === item.id)?.isVisible &&
                                 !size[item.id]?.id
                               }
+                              sx={{
+                                '& .MuiOutlinedInput-notchedOutline': {
+                                  borderColor: '#839D8D'
+                                },
+                                '&:hover .MuiOutlinedInput-notchedOutline': {
+                                  borderColor: '#839D8D'
+                                },
+                                '& .MuiOutlinedInput-root': {
+                                  borderRadius: '0px'
+                                }
+                              }}
                               MenuProps={{
                                 PaperProps: {
                                   style: {
@@ -957,7 +1005,7 @@ const AddIngredients = props => {
 
         <Box
           sx={{
-            height: '122px',
+            height: '100px',
             width: '100%',
             maxWidth: '562px',
             position: 'fixed',

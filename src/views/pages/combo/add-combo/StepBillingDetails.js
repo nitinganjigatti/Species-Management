@@ -9,75 +9,75 @@ import Typography from '@mui/material/Typography'
 import 'react-credit-cards/es/styles-compiled.css'
 
 const StepBillingDetails = ({ handlePrev, formData, handleSubmit }) => {
-  const columns = [
-    {
-      flex: 0.5,
-      minWidth: 30,
-      field: 'ingredient_name',
-      headerName: 'Ingredient Name',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.ingredient_name}
-        </Typography>
-      )
-    },
-    {
-      flex: 0.3,
-      minWidth: 10,
-      field: 'ingredient_id',
-      headerName: 'Ingredient ID',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary', pl: 7 }}>
-          {params.row.ingredient_id}
-        </Typography>
-      )
-    },
-    {
-      flex: 0.9,
-      minWidth: 20,
-      field: 'feed_type_label',
-      headerName: 'Feed Type',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary', pl: 3 }}>
-          {params.row.feed_type_label}
-        </Typography>
-      )
-    },
-    {
-      flex: 0.4,
-      minWidth: 10,
-      field: 'quantity',
-      headerName: 'Quantity',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary', pl: 3 }}>
-          {parseFloat(params.row.quantity).toFixed(2)}
-          {params.row.uom_text ? ` ${params.row.uom_text}` : ''}
-        </Typography>
-      )
-    },
-    {
-      flex: 0.4,
-      minWidth: 20,
-      field: 'preparation_type',
-      headerName: 'Preparation Type',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary', pl: 3 }}>
-          {params.row.preparation_type}
-        </Typography>
-      )
-    },
-    {
-      flex: 0.4,
-      minWidth: 20,
-      field: 'cut_size',
-      headerName: 'Cut Size',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary', pl: 5 }}>
-          {params?.row?.cut_size ? params?.row?.cut_size : '-'}
-        </Typography>
-      )
-    }
-  ]
+  // const columns = [
+  //   {
+  //     flex: 0.5,
+  //     minWidth: 30,
+  //     field: 'ingredient_name',
+  //     headerName: 'Ingredient Name',
+  //     renderCell: params => (
+  //       <Typography variant='body2' sx={{ color: 'text.primary' }}>
+  //         {params.row.ingredient_name}
+  //       </Typography>
+  //     )
+  //   },
+  //   {
+  //     flex: 0.3,
+  //     minWidth: 10,
+  //     field: 'ingredient_id',
+  //     headerName: 'Ingredient ID',
+  //     renderCell: params => (
+  //       <Typography variant='body2' sx={{ color: 'text.primary', pl: 7 }}>
+  //         {params.row.ingredient_id}
+  //       </Typography>
+  //     )
+  //   },
+  //   {
+  //     flex: 0.9,
+  //     minWidth: 20,
+  //     field: 'feed_type_label',
+  //     headerName: 'Feed Type',
+  //     renderCell: params => (
+  //       <Typography variant='body2' sx={{ color: 'text.primary', pl: 3 }}>
+  //         {params.row.feed_type_label}
+  //       </Typography>
+  //     )
+  //   },
+  //   {
+  //     flex: 0.4,
+  //     minWidth: 10,
+  //     field: 'quantity',
+  //     headerName: 'Quantity',
+  //     renderCell: params => (
+  //       <Typography variant='body2' sx={{ color: 'text.primary', pl: 3 }}>
+  //         {parseFloat(params.row.quantity).toFixed(2)}
+  //         {params.row.uom_text ? ` ${params.row.uom_text}` : ''}
+  //       </Typography>
+  //     )
+  //   },
+  //   {
+  //     flex: 0.4,
+  //     minWidth: 20,
+  //     field: 'preparation_type',
+  //     headerName: 'Preparation Type',
+  //     renderCell: params => (
+  //       <Typography variant='body2' sx={{ color: 'text.primary', pl: 3 }}>
+  //         {params.row.preparation_type}
+  //       </Typography>
+  //     )
+  //   },
+  //   {
+  //     flex: 0.4,
+  //     minWidth: 20,
+  //     field: 'cut_size',
+  //     headerName: 'Cut Size',
+  //     renderCell: params => (
+  //       <Typography variant='body2' sx={{ color: 'text.primary', pl: 5 }}>
+  //         {params?.row?.cut_size ? params?.row?.cut_size : '-'}
+  //       </Typography>
+  //     )
+  //   }
+  // ]
 
   const columnsforPercentage = [
     {
@@ -135,18 +135,18 @@ const StepBillingDetails = ({ handlePrev, formData, handleSubmit }) => {
           {params.row.preparation_type}
         </Typography>
       )
-    },
-    {
-      flex: 0.4,
-      minWidth: 20,
-      field: 'cut_size',
-      headerName: 'Cut Size',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary', pl: 2 }}>
-          {params?.row?.cut_size ? params?.row?.cut_size : '-'}
-        </Typography>
-      )
     }
+    // {
+    //   flex: 0.4,
+    //   minWidth: 20,
+    //   field: 'cut_size',
+    //   headerName: 'Cut Size',
+    //   renderCell: params => (
+    //     <Typography variant='body2' sx={{ color: 'text.primary', pl: 2 }}>
+    //       {params?.row?.cut_size ? params?.row?.cut_size : '-'}
+    //     </Typography>
+    //   )
+    // }
   ]
 
   const rowsPercentage = formData.by_percentage.map((ingredient, index) => ({

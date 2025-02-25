@@ -95,6 +95,7 @@ const ListOfSpeciesMapped = ({
     setIsOpennew(false)
     refreshDietDetails()
     setspeciesview('')
+    setSearchQuery('')
   }
 
   const searchClose = () => {

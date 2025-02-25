@@ -248,7 +248,7 @@ const NewDashboard = () => {
                     <Tab value='1' label='Expired products' />
                     <Tab value='2' label='Fast moving products' />
                   </TabList>
-                  <CardContent>
+                  <CardContent sx={{ height: '630px', msOverflowY: 'scroll' }}>
                     <TabPanel value='1' sx={{ p: 0 }}>
                       <ExpiredProducts />
                     </TabPanel>
@@ -291,7 +291,7 @@ const NewDashboard = () => {
                     <Tab value='1' label='Expired products' />
                     <Tab value='2' label='Fast moving products' />
                   </TabList>
-                  <CardContent>
+                  <CardContent sx={{ height: '630px', msOverflowY: 'scroll' }}>
                     <TabPanel value='1' sx={{ p: 0 }}>
                       <ExpiredProducts />
                     </TabPanel>

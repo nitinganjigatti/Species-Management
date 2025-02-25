@@ -25,13 +25,13 @@ import { getCutsizeList } from 'src/lib/api/diet/settings/cutSizes'
 
 const steps = [
   {
-    title: 'Basic Information',
+    title: 'Basic Information with Ingredients',
     subtitle: 'Enter details'
   },
-  {
-    title: 'Add Ingredients',
-    subtitle: 'Enter details'
-  },
+  // {
+  //   title: 'Add Ingredients',
+  //   subtitle: 'Enter details'
+  // },
   {
     title: 'Preview',
     subtitle: 'Preview & Submit'
@@ -551,7 +551,7 @@ const AddCombo = () => {
 
         <Divider sx={{ mx: '20px !important', pb: 1 }} />
 
-        <StepperWrapper sx={{ mb: 5, mt: 5, pt: 5, display: 'flex', justifyContent: 'center' }}>
+        <StepperWrapper sx={{ mb: 5, mt: 5, pt: 5, display: 'flex', justifyContent: 'center' }} className='combo_steps'>
           <Stepper activeStep={activeStep} sx={{ width: '75%', px: 15 }}>
             {steps.map((step, index) => {
               return (

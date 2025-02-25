@@ -99,22 +99,22 @@ const OverviewTabView = ({ IngredientsDetailsval }) => {
             </div>
           </Typography>
 
-          <Box sx={{ display: 'flex', marginLeft: 'auto', cursor: 'pointer' }}>
-            <Typography onClick={() => setActivitySidebarOpen(true)} sx={{ color: '#000000', my: 3, fontSize: 14 }}>
-              Activity Log
-            </Typography>
+          <Box
+            onClick={() => setActivitySidebarOpen(true)}
+            sx={{ display: 'flex', marginLeft: 'auto', cursor: 'pointer' }}
+          >
+            <Typography sx={{ color: '#000000', my: 3, fontSize: 14 }}>Activity Log</Typography>
             <Icon icon='ph:clock' style={{ marginLeft: '4px', marginTop: '13px', fontSize: 20 }} />
-
-            <ActivityLogs
-              activitySidebarOpen={activitySidebarOpen}
-              activity_type='ingredient'
-              detailsValue={IngredientsDetailsval}
-              searchValue={searchValue}
-              setSearchValue={setSearchValue}
-              handleSidebarClose={handleSidebarClose}
-            />
           </Box>
         </Box>
+        <ActivityLogs
+          activitySidebarOpen={activitySidebarOpen}
+          activity_type='ingredient'
+          detailsValue={IngredientsDetailsval}
+          searchValue={searchValue}
+          setSearchValue={setSearchValue}
+          handleSidebarClose={handleSidebarClose}
+        />
       </div>
     </Grid>
   )
