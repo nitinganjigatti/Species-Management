@@ -6,10 +6,12 @@ import Divider from '@mui/material/Divider'
 import Avatar from 'src/@core/components/mui/avatar'
 import Button from '@mui/material/Button'
 import DoneIcon from '@mui/icons-material/Done'
+import FormControl from '@mui/material/FormControl'
 import { useEffect, useState } from 'react'
 import { Stack } from '@mui/system'
-import { Tooltip } from '@mui/material'
-import { Title } from 'chart.js'
+import toast from 'react-hot-toast'
+import { Tooltip, Select, MenuItem } from '@mui/material'
+import SizeSelector from 'src/components/SelectCutsize'
 
 const ComboCard = ({
   rows,
@@ -22,7 +24,10 @@ const ComboCard = ({
   formData,
   addEventSidebarOpen,
   searchValue,
-  setSearchValue
+  setSearchValue,
+  fromrow,
+  comboid,
+  cutsizelist
 }) => {
   const [remarks, setRemarks] = useState({})
   console.log('remarks', remarks)
@@ -31,6 +36,8 @@ const ComboCard = ({
   const [selectedDays, setSelectedDays] = useState()
 
   const [expandedIndex, setExpandedIndex] = useState([])
+  const [size, setSize] = useState({})
+  const [showErrors, setShowErrors] = useState(false)
 
   const Day = [
     { id: 0, name: 'All', isActive: true },
@@ -84,6 +91,27 @@ const ComboCard = ({
     ]
     if (!searchValue) {
       setSelectedCardCombo(updatedSelectedCard)
+    }
+
+    // Set the `size` state for the selected combos
+    if (selectedValuesWithCheckId?.length) {
+      console.log(selectedValuesWithCheckId, 'selectedValuesWithCheckId')
+      const updatedSize = {}
+      selectedValuesWithCheckId.forEach(combo => {
+        if (combo.mealid === checkid) {
+          console.log(combo, 'combo')
+          const ingredientCutSizes = {}
+          combo?.combo_ingredients?.forEach(ingredient => {
+            if (ingredient.ingredient_id && ingredient.ingredient_cut_size_id) {
+              ingredientCutSizes[ingredient.ingredient_id] = { id: ingredient.ingredient_cut_size_id }
+            }
+          })
+          updatedSize[combo.recipe_id] = ingredientCutSizes
+        }
+      })
+      setSize(updatedSize) // Merge with the existing size state
+    } else {
+      setSize({})
     }
 
     const previousSelectedDays = selectedDays || [] // Keep track of previous selections
@@ -286,8 +314,26 @@ const ComboCard = ({
   }
 
   const handleSelected = () => {
-    handleSidebarClose()
-    setSearchValue('')
+    if (selectedCardCombo.length === 0) {
+      toast.error('Combos are required.', {
+        duration: 1000
+      })
+      return
+    }
+    // Check for missing cut sizes in all selected combos
+    const cardsWithMissingCutSize = selectedCardCombo.filter(item =>
+      item.ingredients.some(ingredient => !size[item.id]?.[ingredient.ingredient_id]?.id)
+    )
+
+    // Show error if any card has missing cut sizes
+    if (cardsWithMissingCutSize.length > 0) {
+      toast.error('Please select a cut size for all ingredients in the selected combo(s).', {
+        duration: 1000
+      })
+      setShowErrors(true)
+      return
+    }
+    setShowErrors(false)
 
     const filteredItems = selectedCardCombo.map(item => {
       // Find the selected days for the current item
@@ -305,6 +351,12 @@ const ComboCard = ({
       const ingredientNames = item?.ingredients?.map(ingredient => ingredient.ingredient_name)
       const quantity = item?.ingredients?.map(ingredient => ingredient.quantity)
       const quantityper = item?.ingredients?.map(ingredient => ingredient.quantity_type)
+
+      // Create the combo_ingredients array
+      const comboIngredients = item.ingredients.map(ingredient => ({
+        ingredient_id: ingredient.ingredient_id,
+        ingredient_cut_size_id: size[item.id]?.[ingredient.ingredient_id]?.id || null
+      }))
 
       // Find the existing card in selectedCardCombo to preserve previous data
       const existingCard = selectedCardCombo.find(card => card.id === item.id)
@@ -324,14 +376,17 @@ const ComboCard = ({
         quantity: quantity,
         quantity_type: quantityper,
         ingredients: item.ingredients,
-        desc: item.desc
+        desc: item.desc,
+        combo_ingredients: comboIngredients
       }
     })
-
+    console.log('Final Data:', filteredItems)
     setSelectedCardCombo(filteredItems)
 
-    // Trigger onChange callback with the updated recipe
     onChange(filteredItems)
+
+    handleSidebarClose()
+    setSearchValue('')
   }
 
   const handleAddRemarks = (event, cardId) => {
@@ -365,7 +420,32 @@ const ComboCard = ({
     item => item.recipe_name.toLowerCase().includes(searchValue.toLowerCase()) // filter by search
   )
 
-  const sortedRecipeList = [...filteredRecipeList].sort((a, b) => a.recipe_name.localeCompare(b.recipe_name))
+  let sortedRecipeList = [...filteredRecipeList].sort((a, b) => a.recipe_name.localeCompare(b.recipe_name))
+
+  // Filter sortedRecipeList based on remarks and fromrow condition
+  if (fromrow !== '' && fromrow === 'rowedit_combo') {
+    sortedRecipeList = sortedRecipeList.filter(item => item.id === comboid) // Compare with comboid state
+  }
+
+  const handleChangeSize = (event, item, ingredient) => {
+    console.log(ingredient, 'ingredient')
+    event.stopPropagation()
+    const { value } = event.target
+
+    const newCutSize = cutsizelist.find(type => Number(type.id) === Number(value))
+    console.log('uomValue :>> ', newCutSize)
+
+    setSize(prevState => ({
+      ...prevState,
+      [item.id]: {
+        ...prevState[item.id],
+        [ingredient.ingredient_id]: {
+          id: value,
+          name: newCutSize?.cut_size
+        }
+      }
+    }))
+  }
 
   const calculateTotalQuantity = ingredients => {
     const total = ingredients.reduce((total, ingredient) => {
@@ -383,7 +463,7 @@ const ComboCard = ({
             <Box
               sx={{
                 bgcolor: 'background.paper',
-                border: selectedCardCombo?.some(card => card.id === item.id) ? '2px solid #37BD69' : '#fff',
+                border: selectedCardCombo?.some(card => card?.id === item?.id) ? '2px solid #37BD69' : '#fff',
                 boxShadow: 0,
                 mt: 4,
                 borderRadius: '10px',
@@ -391,7 +471,7 @@ const ComboCard = ({
               }}
             >
               <Box
-                sx={{ display: 'flex', m: 1, cursor: 'pointer', padding: '16px' }}
+                sx={{ display: 'flex', m: 1, cursor: 'pointer', padding: '16px', pb: '4px', pt: '10px' }}
                 onClick={() => {
                   handleCardClick(item, index)
                 }}
@@ -404,11 +484,11 @@ const ComboCard = ({
                     position: 'relative',
                     top: '2px',
 
-                    bgcolor: selectedCardCombo?.some(card => card.id === item.id) ? '#37BD69' : '#E8F4F2',
+                    bgcolor: selectedCardCombo?.some(card => card?.id === item?.id) ? '#37BD69' : '#E8F4F2',
                     borderRadius: '10.88px'
                   }}
                 >
-                  {selectedCardCombo?.some(card => card.id === item.id) ? (
+                  {selectedCardCombo?.some(card => card?.id === item?.id) ? (
                     <>
                       <Box sx={{ width: '48px', height: '48px', position: 'relative', top: '10px', left: '10px' }}>
                         <DoneIcon
@@ -456,9 +536,9 @@ const ComboCard = ({
                     </Tooltip>
                     <Typography
                       variant='body'
-                      sx={{ ml: 4, fontSize: '14px', width: '79px', mt: 1, mb: 0, float: 'left' }}
+                      sx={{ ml: 4, fontSize: '14px', width: '79px', mt: 0, mb: 0, float: 'left' }}
                     >
-                      {item?.recipe_no ? item?.recipe_no : 'RCP- 000'}
+                      {item?.recipe_no ? item?.recipe_no : 'CMB- 000'}
                     </Typography>
                   </Box>
 
@@ -490,7 +570,139 @@ const ComboCard = ({
                   </Box>
                 </Box>
               </Box>
-              {selectedCardCombo?.some(card => card.id === item.id) ? (
+              <Divider />
+
+              {selectedCardCombo?.some(card => card?.id === item?.id) ? (
+                <Box sx={{ pl: 5, pr: 5, mt: 3, mb: 3 }}>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0 }}>
+                    <Typography sx={{ fontWeight: '500', color: '#00000066', fontSize: '16px' }}>
+                      Ingredients
+                    </Typography>
+                    <Typography sx={{ fontWeight: '500', color: '#00000066', fontSize: '16px', mr: 20 }}>
+                      Cut size
+                    </Typography>
+                  </Box>
+                  {item.ingredients.map((ingredient, index) => (
+                    <Box
+                      key={index}
+                      sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        pb: 2,
+                        pt: 1
+                      }}
+                    >
+                      {/* Ingredient Image */}
+
+                      <Avatar
+                        variant='square'
+                        alt={ingredient.ingredient_name}
+                        sx={{
+                          width: 45,
+                          height: 50,
+                          mr: 4,
+                          background: '#E8F4F2',
+                          padding: '8px',
+                          borderRadius: '4px'
+                        }}
+                        src={ingredient.image ? ingredient.image : '/icons/icon_ingredient.svg'}
+                      ></Avatar>
+
+                      {/* Ingredient Details */}
+
+                      <Box sx={{ flex: 1 }}>
+                        <Tooltip
+                          title={`${ingredient.ingredient_name} ${ingredient.quantity} ${
+                            ingredient.quantity_type === 'percentage' ? '%' : ''
+                          }`}
+                        >
+                          <Box
+                            sx={{
+                              display: 'flex',
+                              alignItems: 'center',
+                              width: '250px',
+                              overflow: 'hidden'
+                            }}
+                          >
+                            <Typography
+                              variant='body1'
+                              sx={{
+                                fontWeight: '600',
+                                color: '#44544A',
+                                textOverflow: 'ellipsis',
+                                overflow: 'hidden',
+                                whiteSpace: 'nowrap',
+                                flexShrink: 1
+                              }}
+                            >
+                              {ingredient.ingredient_name}
+                            </Typography>
+                            <Typography
+                              variant='body1'
+                              sx={{
+                                fontWeight: '600',
+                                color: '#44544A',
+                                marginLeft: 1,
+                                flexShrink: 0
+                              }}
+                            >
+                              {ingredient.quantity} {ingredient.quantity_type === 'percentage' ? '%' : ''}
+                            </Typography>
+                          </Box>
+                        </Tooltip>
+
+                        <Typography variant='body2' color='#44544A'>
+                          Id - {'ING' + ingredient.id}
+                        </Typography>
+
+                        <Typography variant='body2' color='#7A8684'>
+                          {ingredient.preparation_type}
+                        </Typography>
+                      </Box>
+
+                      {/* <Box sx={{ pl: 5 }}>
+                        <FormControl fullWidth>
+                          <Select
+                            size='small'
+                            value={size[item.id]?.[ingredient.ingredient_id]?.id || ''}
+                            onChange={event => handleChangeSize(event, item, ingredient)}
+                            displayEmpty
+                            error={!size[item.id]?.[ingredient.ingredient_id]?.id && showErrors}
+                            //sx={{ border: '1px solid #1F515B' }}
+                            MenuProps={{
+                              PaperProps: {
+                                style: {
+                                  maxHeight: 300
+                                }
+                              }
+                            }}
+                          >
+                            <MenuItem value='' disabled>
+                              Select
+                            </MenuItem>
+                            {cutsizelist?.map(unit => (
+                              <MenuItem key={unit.id} value={unit.id}>
+                                {unit.cut_size}
+                              </MenuItem>
+                            ))}
+                          </Select>
+                        </FormControl>
+                      </Box> */}
+                      <SizeSelector
+                        size={size}
+                        cutsizelist={cutsizelist}
+                        item={item}
+                        ingredient={ingredient}
+                        handleChangeSize={handleChangeSize}
+                        showErrors={showErrors}
+                      />
+                    </Box>
+                  ))}
+                </Box>
+              ) : (
+                ''
+              )}
+              {selectedCardCombo?.some(card => card?.id === item?.id) ? (
                 <>
                   <Divider />
                   <Typography sx={{ py: 3, px: 2, ml: 3 }}>Feeding Days</Typography>
@@ -562,7 +774,7 @@ const ComboCard = ({
       {/* {selectedCardCombo?.length > 0 && ( */}
       <Box
         sx={{
-          height: '122px',
+          height: '100px',
           ml: -4,
 
           width: '100%',
@@ -580,9 +792,15 @@ const ComboCard = ({
           // bgcolor: 'yellow'
         }}
       >
-        <Button fullWidth size='large' variant='contained' onClick={handleSelected}>
-          ADD COMBO - {selectedCardCombo?.length} SELECTED
-        </Button>
+        {fromrow === 'rowedit_combo' ? (
+          <Button fullWidth size='large' variant='contained' onClick={handleSelected}>
+            ADD COMBO
+          </Button>
+        ) : (
+          <Button fullWidth size='large' variant='contained' onClick={handleSelected}>
+            ADD COMBO - {selectedCardCombo?.length} SELECTED
+          </Button>
+        )}
       </Box>
       {/* )} */}
     </Box>

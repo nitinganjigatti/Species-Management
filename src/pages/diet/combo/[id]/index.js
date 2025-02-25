@@ -131,6 +131,7 @@ const RecipeDetail = () => {
     try {
       const activePayload = isActive == 0 ? 1 : 0
       setDeleteDialogBox(false)
+
       const response = await updateRecipeStatus(IngredientsDetailsval?.id, {
         status: activePayload,
         meal_type: 'combo'
@@ -140,6 +141,7 @@ const RecipeDetail = () => {
         //Router.push(`/diet/ingredient`)
         getRecipeDetailval(id)
         setstatusDialog(false)
+
         return Toaster({ type: 'success', message: response?.message })
       } else {
         return Toaster({ type: 'error', message: response?.message })
@@ -157,6 +159,7 @@ const RecipeDetail = () => {
       // console.log(response, 'response')
       if (response.success === true) {
         Router.push(`/diet/combo`)
+
         //Toaster({ type: 'success', message: `Recipe ${'REP' + id} has been successfully deleted` })
         Toaster({ type: 'success', message: response?.message })
       } else {
@@ -185,7 +188,7 @@ const RecipeDetail = () => {
               {/* <Link underline='hover' color='inherit' href='/diet/recipe/'>
                 Recipe 
               </Link> */}
-              <Typography color='inherit' sx={{ cursor: 'pointer' }} onClick={() => Router.push('/diet/recipe/')}>
+              <Typography color='inherit' sx={{ cursor: 'pointer' }} onClick={() => Router.push('/diet/combo/')}>
                 Combo
               </Typography>
               <Typography color='text.primary'>Combo Details</Typography>
@@ -284,6 +287,7 @@ const RecipeDetail = () => {
                             <DietListTabview
                               IngredientName={IngredientsDetailsval.ingredient_name}
                               onTotalChange={setDietListTotal}
+                              type='combo'
                             />
                           </TabPanel>
                         </TabContext>

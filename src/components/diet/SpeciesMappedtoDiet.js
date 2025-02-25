@@ -100,6 +100,7 @@ const SpeciesMappedtoDiet = ({
         setspeciesview('')
         setTempSelectedSpecies([])
         setPageNo(1)
+        setSearchQuery('')
       } else {
         Toaster({
           type: 'error',
@@ -114,6 +115,7 @@ const SpeciesMappedtoDiet = ({
   const handelClose = () => {
     setTempSelectedSpecies(selectedSpecies)
     setIsOpen(false)
+    setSearchQuery('')
   }
 
   const handleSelectedclick = val => {
@@ -513,15 +515,19 @@ const SpeciesMappedtoDiet = ({
         ) : (
           ''
         )}
-        <LoadingButton
-          fullWidth
-          variant='contained'
-          size='large'
-          disabled={tempSelectedSpecies?.length === 0}
-          onClick={handleAdd}
-        >
-          ADD
-        </LoadingButton>
+        {!loading ? (
+          <LoadingButton
+            fullWidth
+            variant='contained'
+            size='large'
+            disabled={tempSelectedSpecies?.length === 0}
+            onClick={handleAdd}
+          >
+            ADD
+          </LoadingButton>
+        ) : (
+          ''
+        )}
       </Box>
     </Drawer>
   )

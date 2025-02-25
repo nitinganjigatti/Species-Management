@@ -40,7 +40,7 @@ import { getSpeciesList, speciesAttachmentUpload } from 'src/lib/api/diet/specie
 import Toaster from 'src/components/Toaster'
 
 const SpeciesDietList = () => {
-  const colWidths = [40, 300, 100]
+  const colWidths = [65, 300, 100]
   const theme = useTheme()
   const [total, setTotal] = useState(0)
   const [rows, setRows] = useState([])
@@ -125,6 +125,7 @@ const SpeciesDietList = () => {
         // const sectionIds = applyFilters.Section?.map(option => option.id)
         // const enclosureIds = applyFilters.Enclosure?.map(option => option.id)
         setLoading(true)
+
         const params = {
           ///////////////////////Filter-Code////////////////////////////
           // site_ids: siteIds.length > 0 ? JSON.stringify(siteIds) : '',
@@ -193,6 +194,7 @@ const SpeciesDietList = () => {
   const handleFileUpload = async (event, speciesid) => {
     const file = event?.target?.files[0]
     console.log('speciesIdup', speciesId)
+
     const allowedTypes = [
       'application/pdf',
       'image/jpeg',
@@ -206,6 +208,7 @@ const SpeciesDietList = () => {
     ]
     if (!file || !allowedTypes.includes(file.type)) {
       Toaster({ type: 'error', message: 'Please select a valid file.' })
+
       return
     }
 
@@ -635,6 +638,7 @@ const SpeciesDietList = () => {
     // },
     ////////////////////////////////////////////////////////////////////////////////
   ]
+
   const onCellClick = e => {
     // console.log('e.row.species_id', e.row.species_id)
     // console.log('e.field', e.field)

@@ -93,6 +93,9 @@ const StepBasicDetails = ({
   selectedCardRecipe,
   selectedCardCombo,
   setUomprevnew,
+  cutsizelist,
+  uom,
+  feedType,
   id,
   diettypechildvalues,
   loader
@@ -244,9 +247,10 @@ const StepBasicDetails = ({
   }
 
   const handleComboStateChange = value => {
+    console.log('Received value:', value)
     setComboChildStateValue(value)
     const uniqueValues = value.filter(
-      (val, index, self) => index === self.findIndex(v => v.recipe_id === val.recipe_id && v.mealid === val.mealid)
+      (val, index, self) => index === self.findIndex(v => v?.recipe_id === val?.recipe_id && v?.mealid === val?.mealid)
     )
 
     setAllComboSelectedValues(prevState => {
@@ -254,7 +258,7 @@ const StepBasicDetails = ({
       const filteredPrevState = prevState.filter(
         prevVal =>
           !uniqueValues.some(
-            uniqueVal => uniqueVal.recipe_id === prevVal?.recipe_id && uniqueVal.mealid === prevVal?.mealid
+            uniqueVal => uniqueVal?.recipe_id === prevVal?.recipe_id && uniqueVal?.mealid === prevVal?.mealid
           )
       )
       const updatedValues = [...filteredPrevState, ...uniqueValues]
@@ -1078,7 +1082,17 @@ const StepBasicDetails = ({
                         mx: 0
                       }}
                     >
-                      <Grid container spacing={5} sx={{ background: '#E8F4F2', mt: 0, borderRadius: 0.9, mx: 0 }}>
+                      <Grid
+                        container
+                        spacing={5}
+                        sx={{
+                          background: '#E1F9ED',
+                          mt: 0,
+                          borderTopLeftRadius: 7,
+                          borderTopRightRadius: 7,
+                          mx: 0
+                        }}
+                      >
                         {recipes.map((recipe, index) => (
                           <Grid
                             item
@@ -1227,7 +1241,17 @@ const StepBasicDetails = ({
                         mx: 0
                       }}
                     >
-                      <Grid container spacing={5} sx={{ background: '#E8F4F2', mt: 0, borderRadius: 0.9, mx: 0 }}>
+                      <Grid
+                        container
+                        spacing={5}
+                        sx={{
+                          background: '#DAE7DF99',
+                          mt: 0,
+                          borderTopLeftRadius: 7,
+                          borderTopRightRadius: 7,
+                          mx: 0
+                        }}
+                      >
                         {combos.map((recipe, index) => (
                           <Grid
                             item
@@ -1375,7 +1399,11 @@ const StepBasicDetails = ({
                         mx: 0
                       }}
                     >
-                      <Grid container spacing={5} sx={{ background: '#E8F4F2', mt: 0, borderRadius: 0.9, mx: 0 }}>
+                      <Grid
+                        container
+                        spacing={5}
+                        sx={{ background: '#00d6c957', mt: 0, borderTopLeftRadius: 7, borderTopRightRadius: 7, mx: 0 }}
+                      >
                         {ingredients.map((ingredient, index) => (
                           <Grid
                             item
@@ -1511,7 +1539,11 @@ const StepBasicDetails = ({
                         mx: 0
                       }}
                     >
-                      <Grid container spacing={5} sx={{ background: '#E8F4F2', mt: 0, borderRadius: 0.9, mx: 0 }}>
+                      <Grid
+                        container
+                        spacing={5}
+                        sx={{ background: '#00d6c957', mt: 0, borderTopLeftRadius: 7, borderTopRightRadius: 7, mx: 0 }}
+                      >
                         {ingredients.map((ingredient, index) => (
                           <Grid
                             item
@@ -1793,6 +1825,7 @@ const StepBasicDetails = ({
                       cursor: 'pointer',
                       fontWeight: 600
                     }}
+                    className='ing_choice'
                     onClick={() => handleAddIngerdientChoice(field, index, 'addingd')}
                   >
                     <Icon icon='material-symbols:add' />
@@ -1862,6 +1895,8 @@ const StepBasicDetails = ({
             ingredientChoiceIndex={ingredientChoiceIndex}
             setingType={setingType}
             onRemove={removeingClickingwithChoice}
+            uom={uom}
+            feedType={feedType}
           />
           <AddIngredients
             open={openIngredient}
@@ -1875,6 +1910,8 @@ const StepBasicDetails = ({
             formData={formData}
             setSelectedIngredient={setSelectedIngredient}
             setUomprevnew={setUomprevnew}
+            uom={uom}
+            feedType={feedType}
           />
           <RecipeList
             recipeList={recipeList}
@@ -1905,6 +1942,7 @@ const StepBasicDetails = ({
             setAllComboSelectedValues={setAllComboSelectedValues}
             formData={formData}
             onRemove={removeingClickCombo}
+            cutsizelist={cutsizelist}
           />
         </form>
       )}

@@ -55,11 +55,13 @@ const DietDetail = () => {
   const [isLoadingMore, setIsLoadingMore] = useState(false)
   const [speciestotalcount, setspeciestotalcount] = useState('')
   const [tempSelectedSpecies, setTempSelectedSpecies] = useState([])
+
   const [selectedItems, setSelectedItems] = useState({
     Site: [],
     Section: [],
     Enclosure: []
   })
+
   const [items, setItems] = useState({
     Site: [],
     Section: [
@@ -133,9 +135,11 @@ const DietDetail = () => {
         } else {
           setspeciesData(prevData => {
             const combinedData = [...prevData, ...res.data.result]
+
             const uniqueData = combinedData.filter(
               (item, index, self) => index === self.findIndex(t => t.species_id === item.species_id)
             )
+
             return uniqueData
           })
         }
@@ -320,7 +324,7 @@ const DietDetail = () => {
             <Box container spacing={6}>
               <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
                 <Typography color='inherit'>Diet</Typography>
-                <Typography sx={{ cursor: 'pointer' }} color='inherit' onClick={() => Router.push('/diet/diet')}>
+                <Typography sx={{ cursor: 'pointer' }} color='inherit' onClick={() => router.back()}>
                   Diet
                 </Typography>
                 <Typography color='text.primary'>Diet Details</Typography>
@@ -375,6 +379,7 @@ const DietDetail = () => {
                         sx={{ '& button': { borderBottom: '0.5px solid #839D8D', color: '#839D8D' } }}
                         onChange={handleChange}
                         aria-label='simple tabs example'
+                        className='tabs_diet_dtl'
                       >
                         {tabs.map((item, index) => (
                           <Tab key={index} value={item.value} label={item.label} />
@@ -407,7 +412,8 @@ const DietDetail = () => {
                                       all =>
                                         (!all?.ingredient || all?.ingredient?.length === 0) &&
                                         (!all?.ingredientwithchoice || all?.ingredientwithchoice?.length === 0) &&
-                                        (!all?.recipe || all?.recipe?.length === 0)
+                                        (!all?.recipe || all?.recipe?.length === 0) &&
+                                        (!all?.combo || all?.combo?.length === 0)
                                     ) ? (
                                       <div>No records to show</div>
                                     ) : (
@@ -452,9 +458,10 @@ const DietDetail = () => {
                                               backgroundColor: '#fff',
                                               position: 'sticky',
                                               left: '160px',
-                                              p: 0,
-                                              width: '580px'
+                                              p: 0
+                                              // width: '580px'
                                             }}
+                                            className='meal_dtl_hd'
                                           >
                                             <Box
                                               sx={{
@@ -1442,8 +1449,10 @@ const DietDetail = () => {
                                                                 left: '160px',
                                                                 border: 'none',
                                                                 backgroundColor: '#fff'
+
                                                                 //float: 'left'
                                                               }}
+
                                                               // className={
                                                               //   dietDetails.diet_type_name === 'Generic'
                                                               //     ? 'cell_dimn'
@@ -1854,8 +1863,10 @@ const DietDetail = () => {
                                                                 border: 'none',
 
                                                                 backgroundColor: '#fff'
+
                                                                 //float: 'left'
                                                               }}
+
                                                               // className={
                                                               //   dietDetails.diet_type_name === 'Generic'
                                                               //     ? 'cell_dimn'
@@ -2321,8 +2332,10 @@ const DietDetail = () => {
                                                                 border: 'none',
 
                                                                 backgroundColor: '#fff'
+
                                                                 //float: 'left'
                                                               }}
+
                                                               // className={
                                                               //   dietDetails.diet_type_name === 'Generic'
                                                               //     ? 'cell_dimn'
@@ -2398,6 +2411,23 @@ const DietDetail = () => {
                                                                           {item?.recipe_name}
                                                                         </Typography>
                                                                       )}
+                                                                      {/* {console.log(item, 'klkl')}
+                                                                      {item?.ingredients.map(all => {
+                                                                        return (
+                                                                          <Typography
+                                                                            sx={{
+                                                                              color: '#1F515B',
+                                                                              lineHeight: '16.94px',
+                                                                              fontWeight: 400,
+                                                                              fontSize: '14px'
+                                                                            }}
+                                                                          >
+                                                                            &nbsp;-&nbsp; {all?.preparation_type}
+                                                                            &nbsp;-&nbsp;
+                                                                              {item?.master_cut_size}
+                                                                          </Typography>
+                                                                        )
+                                                                      })} */}
                                                                     </Box>
 
                                                                     <Box sx={{ display: 'flex', flexWrap: 'wrap' }}>
@@ -2785,8 +2815,10 @@ const DietDetail = () => {
                                                               left: '160px',
                                                               border: 'none',
                                                               backgroundColor: '#fff'
+
                                                               // float: 'left'
                                                             }}
+
                                                             // className={
                                                             //   dietDetails.diet_type_name === 'Generic'
                                                             //     ? 'cell_dimn'

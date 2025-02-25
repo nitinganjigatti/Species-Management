@@ -64,8 +64,8 @@ export async function getRecipeListonIngredientDtl(id, params) {
   return await axiosGet({ url: `${DIET}/${RECIPE}/${RECIPE_LIST}/${id}`, params })
 }
 
-export async function getDietListonRecipeDtl(id, params) {
-  return await axiosGet({ url: `${DIET}/${RECIPE_PARTOF_DIET_LIST}/${RECIPE}/${id}`, params })
+export async function getDietListonRecipeDtl(id, params, type) {
+  return await axiosGet({ url: `${DIET}/${RECIPE_PARTOF_DIET_LIST}/${type}/${id}`, params })
 }
 
 export async function getDietListonIngredientDtl(id, params) {
