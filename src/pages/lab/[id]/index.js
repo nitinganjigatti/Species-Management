@@ -846,6 +846,7 @@ const RequestDetails = () => {
     const testId = item?.id
 
     setFileId(item?.id)
+    console.log('item', item)
     try {
       const params = { lab_test_id: id }
       const response = await DeleteLAbRequestAttachment(testId, params)
@@ -1216,6 +1217,7 @@ const RequestDetails = () => {
                 <Box sx={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', gap: 4 }}>
                   {image && (
                     <CommonMediaView
+                      rows={rows}
                       image={image}
                       handleDeleteImg={handleDeleteImg}
                       fileViews={fileViews}
@@ -1224,6 +1226,7 @@ const RequestDetails = () => {
                   )}
                   {document && (
                     <CommonMediaView
+                      rows={rows}
                       document={document}
                       handleDeleteImg={handleDeleteImg}
                       fileViews={fileViews}
@@ -1251,6 +1254,7 @@ const RequestDetails = () => {
                   <Box sx={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', gap: 4, mt: '16px' }}>
                     {medicalImage && (
                       <CommonMediaView
+                        rows={rows}
                         image={medicalImage}
                         handleDeleteImg={handleDeleteImg}
                         fileViews={fileViews}
@@ -1260,6 +1264,7 @@ const RequestDetails = () => {
                     )}
                     {medicalDocument && (
                       <CommonMediaView
+                        rows={rows}
                         document={medicalDocument}
                         handleDeleteImg={handleDeleteImg}
                         fileViews={fileViews}
@@ -1748,6 +1753,8 @@ const RequestDetails = () => {
                         }}
                       >
                         <CommonMediaView
+                          individual={true}
+                          rows={rows}
                           image={testImage}
                           handleDeleteImg={handleDeleteImg}
                           fileViews={fileViews}
@@ -1762,6 +1769,8 @@ const RequestDetails = () => {
                       <Typography sx={{ fontSize: '18px', mb: 3, mt: 3 }}>Document</Typography>
                       <Box sx={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', gap: 4 }}>
                         <CommonMediaView
+                          individual={true}
+                          rows={rows}
                           document={testDoc}
                           handleDeleteImg={handleDeleteImg}
                           fileViews={fileViews}
