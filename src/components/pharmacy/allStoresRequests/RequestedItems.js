@@ -808,6 +808,12 @@ export default function RequestedItems({ selectedStoreDetails, setSelectedStoreD
     )
   }
 
+  useEffect(() => {
+    if (selectedPharmacy.type === 'local') {
+      setRequestedItemsSubTab('all')
+    }
+  }, [selectedPharmacy.type === 'local'])
+
   return (
     <TabContext value={requestedItemsSubTab}>
       <TabLists
@@ -828,12 +834,8 @@ export default function RequestedItems({ selectedStoreDetails, setSelectedStoreD
         }}
       >
         <Tab value='all' label={'All'} />
-        {selectedPharmacy.type === 'local' ? null : (
-          <>
-            <Tab value='Available' label={'Available'} />
-            <Tab value='NotAvailable' label={'NotAvailable'} />
-          </>
-        )}
+        {selectedPharmacy.type === 'central' && <Tab value='Available' label={'Available'} />}
+        {selectedPharmacy.type === 'central' && <Tab value='NotAvailable' label={'NotAvailable'} />}
       </TabLists>
 
       <TabPanel
@@ -844,22 +846,26 @@ export default function RequestedItems({ selectedStoreDetails, setSelectedStoreD
       >
         {pageContent()}
       </TabPanel>
-      <TabPanel
-        value='Available'
-        sx={{
-          padding: '0px !important'
-        }}
-      >
-        {pageContent()}
-      </TabPanel>
-      <TabPanel
-        value='NotAvailable'
-        sx={{
-          padding: '0px !important'
-        }}
-      >
-        {pageContent()}
-      </TabPanel>
+      {selectedPharmacy.type === 'central' && (
+        <TabPanel
+          value='Available'
+          sx={{
+            padding: '0px !important'
+          }}
+        >
+          {pageContent()}
+        </TabPanel>
+      )}
+      {selectedPharmacy.type === 'central' && (
+        <TabPanel
+          value='NotAvailable'
+          sx={{
+            padding: '0px !important'
+          }}
+        >
+          {pageContent()}
+        </TabPanel>
+      )}
     </TabContext>
   )
 }
