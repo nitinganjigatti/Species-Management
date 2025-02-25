@@ -449,10 +449,10 @@ const AddStockAdjustment = () => {
           content={
             <Box sx={{ m: 0 }}>
               <>
-                <DialogContent>
-                  <DialogContentText sx={{ mb: 3 }}>Are you sure..?</DialogContentText>
-                </DialogContent>
-                <DialogActions className='dialog-actions-dense'>
+                {/* <DialogContent> */}
+                <DialogContentText sx={{ mb: 3 }}>Are you sure about adjusting the quantity?</DialogContentText>
+                {/* </DialogContent> */}
+                {/* <DialogActions className='dialog-actions-dense'>
                   <LoadingButton
                     variant='contained'
                     color='error'
@@ -475,9 +475,35 @@ const AddStockAdjustment = () => {
                   >
                     Save
                   </LoadingButton>
-                </DialogActions>
+                </DialogActions> */}
               </>
             </Box>
+          }
+          dialogActions={
+            <>
+              <LoadingButton
+                variant='contained'
+                color='error'
+                size='small'
+                onClick={() => {
+                  closeConfirmDialog()
+                }}
+              >
+                Cancel
+              </LoadingButton>
+
+              <LoadingButton
+                onClick={() => {
+                  confirmSubmit()
+                }}
+                loading={submitLoader}
+                sx={{ mr: 2 }}
+                size='small'
+                variant='contained'
+              >
+                Save
+              </LoadingButton>
+            </>
           }
         />
       </form>

@@ -129,17 +129,34 @@ function formatNumberToDisplay(number) {
 }
 
 function formatAmountToReadableDigit(value) {
-  if (value) {
-    if (value > 10000) {
-      return `₹ ${value.toString().replace(/\B(?=(\d{2})+(?!\d))/g, ',')}.00`
-    }
+  debugger
 
-    return `₹ ${value}.00`
+  const num = parseFloat(value)
+  if (isNaN(num)) return 'Invalid number'
 
-    // return value.toLocaleString('de-DE')
+  const roundedNum = num.toFixed(2) // Round to 2 decimal places
+
+  if (num > 999) {
+    return Number(roundedNum).toLocaleString('en-IN', {
+      style: 'currency',
+      currency: 'INR',
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    })
   }
+  return `₹${Number(roundedNum)}`
 
-  return '0'
+  // if (value) {
+  //   if (value > 10000) {
+  //     return `₹ ${value.toString().replace(/\B(?=(\d{2})+(?!\d))/g, ',')}.00`
+  //   }
+
+  //   return `₹ ${value}.00`
+
+  //   // return value.toLocaleString('de-DE')
+  // }
+
+  // return '0'
 }
 
 const downloadFileFromURL = async (fileUrl, title = 'report') => {
