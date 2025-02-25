@@ -445,6 +445,7 @@ const AddStockAdjustment = () => {
           action={() => {
             closeConfirmDialog()
           }}
+          title={'Confirmation'}
           content={
             <Box sx={{ m: 0 }}>
               <>
