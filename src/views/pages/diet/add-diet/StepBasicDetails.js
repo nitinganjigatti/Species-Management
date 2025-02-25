@@ -1245,7 +1245,7 @@ const StepBasicDetails = ({
                         container
                         spacing={5}
                         sx={{
-                          background: '#C3CEC7',
+                          background: '#DAE7DF99',
                           mt: 0,
                           borderTopLeftRadius: 7,
                           borderTopRightRadius: 7,
@@ -1825,6 +1825,7 @@ const StepBasicDetails = ({
                       cursor: 'pointer',
                       fontWeight: 600
                     }}
+                    className='ing_choice'
                     onClick={() => handleAddIngerdientChoice(field, index, 'addingd')}
                   >
                     <Icon icon='material-symbols:add' />

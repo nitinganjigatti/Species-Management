@@ -11,6 +11,7 @@ import { useEffect, useState } from 'react'
 import { Stack } from '@mui/system'
 import toast from 'react-hot-toast'
 import { Tooltip, Select, MenuItem } from '@mui/material'
+import SizeSelector from 'src/components/SelectCutsize'
 
 const ComboCard = ({
   rows,
@@ -427,6 +428,7 @@ const ComboCard = ({
   }
 
   const handleChangeSize = (event, item, ingredient) => {
+    console.log(ingredient, 'ingredient')
     event.stopPropagation()
     const { value } = event.target
 
@@ -469,7 +471,7 @@ const ComboCard = ({
               }}
             >
               <Box
-                sx={{ display: 'flex', m: 1, cursor: 'pointer', padding: '16px' }}
+                sx={{ display: 'flex', m: 1, cursor: 'pointer', padding: '16px', pb: '4px', pt: '10px' }}
                 onClick={() => {
                   handleCardClick(item, index)
                 }}
@@ -534,7 +536,7 @@ const ComboCard = ({
                     </Tooltip>
                     <Typography
                       variant='body'
-                      sx={{ ml: 4, fontSize: '14px', width: '79px', mt: 1, mb: 0, float: 'left' }}
+                      sx={{ ml: 4, fontSize: '14px', width: '79px', mt: 0, mb: 0, float: 'left' }}
                     >
                       {item?.recipe_no ? item?.recipe_no : 'CMB- 000'}
                     </Typography>
@@ -571,8 +573,8 @@ const ComboCard = ({
               <Divider />
 
               {selectedCardCombo?.some(card => card?.id === item?.id) ? (
-                <Box sx={{ pl: 5, pr: 5, mt: 5, mb: 5 }}>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
+                <Box sx={{ pl: 5, pr: 5, mt: 3, mb: 3 }}>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0 }}>
                     <Typography sx={{ fontWeight: '500', color: '#00000066', fontSize: '16px' }}>
                       Ingredients
                     </Typography>
@@ -586,7 +588,8 @@ const ComboCard = ({
                       sx={{
                         display: 'flex',
                         alignItems: 'center',
-                        py: 2
+                        pb: 2,
+                        pt: 1
                       }}
                     >
                       {/* Ingredient Image */}
@@ -613,21 +616,41 @@ const ComboCard = ({
                             ingredient.quantity_type === 'percentage' ? '%' : ''
                           }`}
                         >
-                          <Typography
-                            variant='body1'
+                          <Box
                             sx={{
-                              fontWeight: '600',
-                              color: '#44544A',
+                              display: 'flex',
+                              alignItems: 'center',
                               width: '250px',
-                              textOverflow: 'ellipsis',
-                              overflow: 'hidden',
-                              whiteSpace: 'nowrap'
+                              overflow: 'hidden'
                             }}
                           >
-                            {ingredient.ingredient_name} {'   '}
-                            {ingredient.quantity} {ingredient.quantity_type === 'percentage' ? '%' : ''}
-                          </Typography>
+                            <Typography
+                              variant='body1'
+                              sx={{
+                                fontWeight: '600',
+                                color: '#44544A',
+                                textOverflow: 'ellipsis',
+                                overflow: 'hidden',
+                                whiteSpace: 'nowrap',
+                                flexShrink: 1
+                              }}
+                            >
+                              {ingredient.ingredient_name}
+                            </Typography>
+                            <Typography
+                              variant='body1'
+                              sx={{
+                                fontWeight: '600',
+                                color: '#44544A',
+                                marginLeft: 1,
+                                flexShrink: 0
+                              }}
+                            >
+                              {ingredient.quantity} {ingredient.quantity_type === 'percentage' ? '%' : ''}
+                            </Typography>
+                          </Box>
                         </Tooltip>
+
                         <Typography variant='body2' color='#44544A'>
                           Id - {'ING' + ingredient.id}
                         </Typography>
@@ -637,7 +660,7 @@ const ComboCard = ({
                         </Typography>
                       </Box>
 
-                      <Box sx={{ pl: 5 }}>
+                      {/* <Box sx={{ pl: 5 }}>
                         <FormControl fullWidth>
                           <Select
                             size='small'
@@ -664,7 +687,15 @@ const ComboCard = ({
                             ))}
                           </Select>
                         </FormControl>
-                      </Box>
+                      </Box> */}
+                      <SizeSelector
+                        size={size}
+                        cutsizelist={cutsizelist}
+                        item={item}
+                        ingredient={ingredient}
+                        handleChangeSize={handleChangeSize}
+                        showErrors={showErrors}
+                      />
                     </Box>
                   ))}
                 </Box>
@@ -743,7 +774,7 @@ const ComboCard = ({
       {/* {selectedCardCombo?.length > 0 && ( */}
       <Box
         sx={{
-          height: '122px',
+          height: '100px',
           ml: -4,
 
           width: '100%',

@@ -140,27 +140,25 @@ const ComboList = props => {
         position: 'relative',
         display: 'flex',
         flexDirection: 'column',
-        bgcolor: '#dbe0de',
+        bgcolor: '#EFF5F2',
         gap: '24px'
       }}
     >
-      <Box sx={{ position: 'fixed', top: 0, bgcolor: '#dbe0de', zIndex: 10, width: '562px' }}>
+      <Box sx={{ position: 'fixed', top: 0, bgcolor: '#EFF5F2', zIndex: 10, width: '562px' }}>
         <Box
           className='sidebar-header'
           sx={{
             display: 'flex',
             justifyContent: 'space-between',
             p: theme => theme.spacing(3, 3.255, 3, 5.255),
-            px: '24px'
+            px: '16px'
           }}
         >
           <Box sx={{ gap: 2, display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
-            <Icon
-              style={{ marginLeft: -8 }}
-              icon='material-symbols-light:add-notes-outline-rounded'
-              fontSize={'32px'}
-            />
-            <Typography variant='h6'>Add Combo</Typography>
+            <img src='/icons/Activity.svg' alt='Grocery Icon' width='35px' />
+            <Typography variant='h6' sx={{ color: '#44544A' }}>
+              Add Combo
+            </Typography>
           </Box>
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
             <IconButton
@@ -169,20 +167,17 @@ const ComboList = props => {
                 handleSidebarClose()
                 setSearchValue('')
               }}
-              sx={{ color: 'text.primary' }}
+              sx={{ color: '#1F515B' }}
             >
-              <Icon icon='mdi:close' fontSize={20} />
+              <Icon icon='mdi:close' fontSize={25} />
             </IconButton>
           </Box>
         </Box>
         <Box
           sx={{
             alignItems: 'center',
-
             p: 2,
-            px: '24px'
-
-            // width: '100%'
+            px: '16px'
           }}
         >
           <Box>
@@ -190,12 +185,20 @@ const ComboList = props => {
               value={searchValue}
               fullWidth
               InputProps={{
-                startAdornment: <Icon style={{ marginRight: 10 }} icon={'ion:search-outline'} />
+                startAdornment: <Icon style={{ marginRight: 10, color: '#44544A' }} icon={'ion:search-outline'} />
               }}
-              placeholder='Search'
+              placeholder='Search combo'
               onKeyUp={e => searchData(e.target.value)}
               onChange={e => {
                 setSearchValue(e.target.value)
+              }}
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  borderColor: '#839D8D',
+                  '& fieldset': {
+                    borderColor: '#839D8D'
+                  }
+                }
               }}
             />
           </Box>
@@ -205,7 +208,7 @@ const ComboList = props => {
       {/* on scroll */}
       <Box
         className=''
-        sx={{ marginTop: 30, height: '70%', overflowY: 'auto', bgcolor: '#dbe0de', p: 4 }}
+        sx={{ marginTop: 30, height: '70%', overflowY: 'auto', bgcolor: '#EFF5F2', p: 4 }}
         onScroll={handleScroll}
       >
         <ComboCard

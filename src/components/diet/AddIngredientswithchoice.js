@@ -623,11 +623,11 @@ const AddIngredientswithChoice = props => {
           position: 'relative',
           display: 'flex',
           flexDirection: 'column',
-          bgcolor: '#dbe0de',
+          bgcolor: '#EFF5F2',
           gap: '24px'
         }}
       >
-        <Box sx={{ position: 'fixed', top: 0, bgcolor: '#dbe0de', zIndex: 10, width: '562px' }}>
+        <Box sx={{ position: 'fixed', top: 0, bgcolor: '#EFF5F2', zIndex: 10, width: '562px' }}>
           <Box
             className='sidebar-header'
             sx={{
@@ -638,16 +638,14 @@ const AddIngredientswithChoice = props => {
             }}
           >
             <Box sx={{ gap: 2, display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
-              <Icon
-                style={{ marginLeft: -8 }}
-                icon='material-symbols-light:add-notes-outline-rounded'
-                fontSize={'32px'}
-              />
-              <Typography variant='h6'>Select Multiple Items</Typography>
+              <img src='/icons/Activity.svg' alt='Grocery Icon' width='35px' />
+              <Typography variant='h6' sx={{ color: '#44544A' }}>
+                Select Multiple Items
+              </Typography>
             </Box>
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
-              <IconButton size='small' onClick={handleSidebarClose} sx={{ color: 'text.primary' }}>
-                <Icon icon='mdi:close' fontSize={20} />
+              <IconButton size='small' onClick={handleSidebarClose} sx={{ color: '#1F515B' }}>
+                <Icon icon='mdi:close' fontSize={25} />
               </IconButton>
             </Box>
           </Box>
@@ -659,12 +657,20 @@ const AddIngredientswithChoice = props => {
                 value={searchValue}
                 fullWidth
                 InputProps={{
-                  startAdornment: <Icon style={{ marginRight: 10 }} icon={'ion:search-outline'} />
+                  startAdornment: <Icon style={{ marginRight: 10, color: '#44544A' }} icon={'ion:search-outline'} />
                 }}
-                placeholder='Search'
+                placeholder='Search ingredient'
                 onKeyUp={e => searchData(e.target.value)}
                 onChange={e => {
                   setSearchValue(e.target.value)
+                }}
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    borderColor: '#839D8D',
+                    '& fieldset': {
+                      borderColor: '#839D8D'
+                    }
+                  }
                 }}
               />
             </Box>
@@ -677,6 +683,17 @@ const AddIngredientswithChoice = props => {
                   value={feed}
                   label='Feed'
                   onChange={handleChangeTopFeed}
+                  sx={{
+                    '& .MuiOutlinedInput-notchedOutline': {
+                      borderColor: '#839D8D'
+                    },
+                    '&:hover .MuiOutlinedInput-notchedOutline': {
+                      borderColor: '#839D8D'
+                    },
+                    '& .MuiOutlinedInput-root': {
+                      borderRadius: '0px'
+                    }
+                  }}
                   MenuProps={{
                     PaperProps: {
                       style: {
@@ -711,7 +728,7 @@ const AddIngredientswithChoice = props => {
 
         <Box
           key={feed}
-          sx={{ marginTop: 35, height: '65%', overflowY: 'auto', bgcolor: '#dbe0de' }}
+          sx={{ marginTop: 35, height: '65%', overflowY: 'auto', bgcolor: '#EFF5F2' }}
           onScroll={handleScroll}
         >
           {sortedIngredientList?.map((item, index) => (
@@ -814,6 +831,17 @@ const AddIngredientswithChoice = props => {
                             visibility?.find(visItem => visItem && visItem.id === item.id)?.isVisible &&
                             !selectFeed[item.id]?.id
                           }
+                          sx={{
+                            '& .MuiOutlinedInput-notchedOutline': {
+                              borderColor: '#839D8D'
+                            },
+                            '&:hover .MuiOutlinedInput-notchedOutline': {
+                              borderColor: '#839D8D'
+                            },
+                            '& .MuiOutlinedInput-root': {
+                              borderRadius: '0px'
+                            }
+                          }}
                         >
                           <MenuItem value='' disabled>
                             Select
@@ -876,6 +904,17 @@ const AddIngredientswithChoice = props => {
                                 visibility?.find(visItem => visItem && visItem.id === item.id)?.isVisible &&
                                 !size[item.id]?.id
                               }
+                              sx={{
+                                '& .MuiOutlinedInput-notchedOutline': {
+                                  borderColor: '#839D8D'
+                                },
+                                '&:hover .MuiOutlinedInput-notchedOutline': {
+                                  borderColor: '#839D8D'
+                                },
+                                '& .MuiOutlinedInput-root': {
+                                  borderRadius: '0px'
+                                }
+                              }}
                               MenuProps={{
                                 PaperProps: {
                                   style: {
@@ -911,7 +950,7 @@ const AddIngredientswithChoice = props => {
 
         <Box
           sx={{
-            height: showDays ? '370px' : '122px',
+            height: showDays ? '370px' : '100px',
             width: '100%',
             maxWidth: '562px',
             position: 'fixed',
@@ -1014,7 +1053,7 @@ const AddIngredientswithChoice = props => {
           {/* -------------------------------------------- */}
 
           {!showDays && (
-            <Button fullWidth variant='contained' size='large' sx={{ mb: 4 }} onClick={() => handleContinueClick()}>
+            <Button fullWidth variant='contained' size='large' sx={{ mb: 2 }} onClick={() => handleContinueClick()}>
               {selectedCardIngchoice?.length} SELECTED - CONTINUE
             </Button>
           )}

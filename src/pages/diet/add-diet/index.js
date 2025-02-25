@@ -380,7 +380,7 @@ const AddDiet = () => {
     if (!id) {
       // Omitting child field from formData
       // const { child, ...formDataWithoutChild } = formData
-
+      setLoader(true)
       const numericFormData = {
         // ...formDataWithoutChild,
         ...formData,
@@ -427,15 +427,17 @@ const AddDiet = () => {
         Router.push(`/diet/diet`)
         deleteCookie('dietTypeChildValues')
         deleteCookie('dietTypeChildVal')
-
+        setLoader(false)
         return Toaster({ type: 'success', message: apival.message })
       } else {
+        setLoader(false)
         return Toaster({
           type: 'error',
           message: apival?.message?.diet_image ? 'Image type only PNG and JPG is allowed' : apival?.message
         })
       }
     } else if (id && urlType === 'copy') {
+      setLoader(true)
       const numericFormData = {
         //...formDataWithoutChild,
         ...formData,
@@ -491,9 +493,10 @@ const AddDiet = () => {
         Router.push(`/diet/diet`)
         deleteCookie('dietTypeChildValues')
         deleteCookie('dietTypeChildVal')
-
+        setLoader(false)
         return Toaster({ type: 'success', message: apival.message })
       } else {
+        setLoader(false)
         return Toaster({
           type: 'error',
           message: apival?.message?.diet_image ? 'Image type only PNG and JPG is allowed' : apival?.message
@@ -502,7 +505,7 @@ const AddDiet = () => {
     } else {
       // Omitting child field from formData
       // const { child, ...formDataWithoutChild } = formData
-
+      setLoader(true)
       const numericFormData = {
         //...formDataWithoutChild,
         ...formData,
@@ -559,9 +562,10 @@ const AddDiet = () => {
         Router.push(`/diet/diet`)
         deleteCookie('dietTypeChildValues')
         deleteCookie('dietTypeChildVal')
-
+        setLoader(false)
         return Toaster({ type: 'success', message: apival.message })
       } else {
+        setLoader(false)
         return Toaster({
           type: 'error',
           message: apival?.message?.diet_image ? 'Image type only PNG and JPG is allowed' : apival?.message
@@ -610,7 +614,7 @@ const AddDiet = () => {
             id={id}
             remarks={formData.remarks}
             onRemarksChange={handleRemarksChange}
-
+            loader={loader}
             // onDietTypeChildValuesChange={handleDietTypeChildValuesChange}
             // diettypechildvalues={diettypechildvalues}
           />
@@ -637,7 +641,7 @@ const AddDiet = () => {
           </Typography>
         </Breadcrumbs>
 
-        <Card sx={{ borderBottomLeftRadius: 0, borderBottomRightRadius: 0 }}>
+        <Card sx={{ borderBottomLeftRadius: 0, borderBottomRightRadius: 0, boxShadow: 'none' }}>
           <CardContent>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <div style={{ width: '90%' }}>
@@ -653,7 +657,7 @@ const AddDiet = () => {
             </div>
           </CardContent>
 
-          <StepperWrapper sx={{ mb: 5, display: 'flex', justifyContent: 'center' }}>
+          <StepperWrapper sx={{ mb: 5, display: 'flex', justifyContent: 'center' }} className='diet_steps'>
             <Stepper activeStep={activeStep} sx={{ width: '55%', px: 15 }}>
               {steps.map((step, index) => {
                 return (

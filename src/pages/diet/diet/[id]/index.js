@@ -379,6 +379,7 @@ const DietDetail = () => {
                         sx={{ '& button': { borderBottom: '0.5px solid #839D8D', color: '#839D8D' } }}
                         onChange={handleChange}
                         aria-label='simple tabs example'
+                        className='tabs_diet_dtl'
                       >
                         {tabs.map((item, index) => (
                           <Tab key={index} value={item.value} label={item.label} />
@@ -457,9 +458,10 @@ const DietDetail = () => {
                                               backgroundColor: '#fff',
                                               position: 'sticky',
                                               left: '160px',
-                                              p: 0,
-                                              width: '580px'
+                                              p: 0
+                                              // width: '580px'
                                             }}
+                                            className='meal_dtl_hd'
                                           >
                                             <Box
                                               sx={{

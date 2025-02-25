@@ -399,7 +399,7 @@ const RecipeCard = ({
               }}
             >
               <Box
-                sx={{ display: 'flex', m: 1, cursor: 'pointer', padding: '16px' }}
+                sx={{ display: 'flex', m: 1, cursor: 'pointer', padding: '16px', pb: '10px', pt: '10px' }}
                 onClick={() => {
                   handleCardClick(item, index)
                 }}
@@ -464,7 +464,7 @@ const RecipeCard = ({
                     </Tooltip>
                     <Typography
                       variant='body'
-                      sx={{ ml: 4, fontSize: '14px', width: '79px', mt: 1, mb: 0, float: 'left' }}
+                      sx={{ ml: 4, fontSize: '14px', width: '79px', mt: 0, mb: 0, float: 'left' }}
                     >
                       {item?.recipe_no ? item?.recipe_no : 'RCP- 000'}
                     </Typography>
@@ -570,7 +570,7 @@ const RecipeCard = ({
       {/* {selectedCardRecipe?.length > 0 && ( */}
       <Box
         sx={{
-          height: '122px',
+          height: '100px',
           ml: -4,
 
           width: '100%',

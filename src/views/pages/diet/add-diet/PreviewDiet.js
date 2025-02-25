@@ -21,7 +21,8 @@ import {
   TableBody,
   TableCell,
   TableHead,
-  TableRow
+  TableRow,
+  CircularProgress
 } from '@mui/material'
 import { Divider, Card } from '@mui/material'
 import AddDietType from './AddDietType'
@@ -52,7 +53,8 @@ const StepPreviewDiet = ({
   setFormData,
   id,
   remarks,
-  onRemarksChange
+  onRemarksChange,
+  loader
 }) => {
   const [open, setOpen] = useState(false)
   const [mealData, setmealType] = useState([])
@@ -1077,6 +1079,7 @@ const StepPreviewDiet = ({
                             p: 0,
                             width: '500px'
                           }}
+                          className='meal_dtl_hd'
                         >
                           <Box
                             sx={{
@@ -1469,18 +1472,18 @@ const StepPreviewDiet = ({
                                                 ? 'cellmodule22'
                                                 : formData?.child?.length > 3
                                                 ? 'cellmodule3'
-                                                : 'cellmodule4' // Default for By Weight if no other condition is met
+                                                : 'cellmodule4'
                                               : formData?.diet_type_name === 'By Gender'
                                               ? formData?.child?.length === 2
                                                 ? 'cellmodule5'
-                                                : 'cellmodule4' // Default if By Gender does not match other conditions
+                                                : 'cellmodule4'
                                               : formData?.diet_type_name === 'Generic'
-                                              ? 'cellmodule6' // Always 'cellmodule6' for Generic
+                                              ? 'cellmodule6'
                                               : formData?.diet_type_name === 'By Lifestage'
                                               ? formData?.child?.length > 2
                                                 ? 'cellmodule7'
-                                                : 'cellmodule4' // Default if By Lifestage does not match other conditions
-                                              : 'cellmodule4' // Default for all other cases
+                                                : 'cellmodule4'
+                                              : 'cellmodule4'
                                           }
                                         >
                                           <Box>
@@ -1928,18 +1931,18 @@ const StepPreviewDiet = ({
                                                 ? 'cellmodule22'
                                                 : formData?.child?.length > 3
                                                 ? 'cellmodule3'
-                                                : 'cellmodule4' // Default for By Weight if no other condition is met
+                                                : 'cellmodule4'
                                               : formData?.diet_type_name === 'By Gender'
                                               ? formData?.child?.length === 2
                                                 ? 'cellmodule5'
-                                                : 'cellmodule4' // Default if By Gender does not match other conditions
+                                                : 'cellmodule4'
                                               : formData?.diet_type_name === 'Generic'
-                                              ? 'cellmodule6' // Always 'cellmodule6' for Generic
+                                              ? 'cellmodule6'
                                               : formData?.diet_type_name === 'By Lifestage'
                                               ? formData?.child?.length > 2
                                                 ? 'cellmodule7'
-                                                : 'cellmodule4' // Default if By Lifestage does not match other conditions
-                                              : 'cellmodule4' // Default for all other cases
+                                                : 'cellmodule4'
+                                              : 'cellmodule4'
                                           }
                                         >
                                           <Box>
@@ -2438,18 +2441,18 @@ const StepPreviewDiet = ({
                                                 ? 'cellmodule22'
                                                 : formData?.child?.length > 3
                                                 ? 'cellmodule3'
-                                                : 'cellmodule4' // Default for By Weight if no other condition is met
+                                                : 'cellmodule4'
                                               : formData?.diet_type_name === 'By Gender'
                                               ? formData?.child?.length === 2
                                                 ? 'cellmodule5'
-                                                : 'cellmodule4' // Default if By Gender does not match other conditions
+                                                : 'cellmodule4'
                                               : formData?.diet_type_name === 'Generic'
-                                              ? 'cellmodule6' // Always 'cellmodule6' for Generic
+                                              ? 'cellmodule6'
                                               : formData?.diet_type_name === 'By Lifestage'
                                               ? formData?.child?.length > 2
                                                 ? 'cellmodule7'
-                                                : 'cellmodule4' // Default if By Lifestage does not match other conditions
-                                              : 'cellmodule4' // Default for all other cases
+                                                : 'cellmodule4'
+                                              : 'cellmodule4'
                                           }
                                         >
                                           <Box>
@@ -2973,18 +2976,18 @@ const StepPreviewDiet = ({
                                                 ? 'cellmodule22'
                                                 : formData?.child?.length > 3
                                                 ? 'cellmodule3'
-                                                : 'cellmodule4' // Default for By Weight if no other condition is met
+                                                : 'cellmodule4'
                                               : formData?.diet_type_name === 'By Gender'
                                               ? formData?.child?.length === 2
                                                 ? 'cellmodule5'
-                                                : 'cellmodule4' // Default if By Gender does not match other conditions
+                                                : 'cellmodule4'
                                               : formData?.diet_type_name === 'Generic'
-                                              ? 'cellmodule6' // Always 'cellmodule6' for Generic
+                                              ? 'cellmodule6'
                                               : formData?.diet_type_name === 'By Lifestage'
                                               ? formData?.child?.length > 2
                                                 ? 'cellmodule7'
-                                                : 'cellmodule4' // Default if By Lifestage does not match other conditions
-                                              : 'cellmodule4' // Default for all other cases
+                                                : 'cellmodule4'
+                                              : 'cellmodule4'
                                           }
                                         >
                                           <Box
@@ -3400,12 +3403,34 @@ const StepPreviewDiet = ({
               >
                 Go back
               </Button>
-              <Button
+              {/* <Button
                 onClick={finalhandleSubmit}
                 variant='contained'
                 endIcon={<Icon icon='mdi:arrow-right' fontSize={20} />}
               >
                 Submit
+              </Button> */}
+              <Button
+                onClick={finalhandleSubmit}
+                variant='contained'
+                endIcon={!loader && <Icon icon='mdi:arrow-right' fontSize={20} />}
+                disabled={loader}
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 1,
+                  minWidth: 120
+                }}
+              >
+                {loader ? (
+                  <>
+                    <CircularProgress size={20} sx={{ color: '#fff' }} />
+                    <span>Submit</span>
+                  </>
+                ) : (
+                  'Submit'
+                )}
               </Button>
             </Box>
           </Grid>
