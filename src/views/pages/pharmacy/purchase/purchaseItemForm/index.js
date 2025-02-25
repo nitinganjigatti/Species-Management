@@ -482,8 +482,6 @@ const PurchaseItemForm = props => {
   }
 
   useEffect(() => {
-    // alert('1')
-
     if (productExpiryDate !== '') {
       setValue('purchase_expiry_date', dayjs(productExpiryDate))
     } else {
@@ -560,6 +558,12 @@ const PurchaseItemForm = props => {
           >
             Products Details
           </Typography>
+          {!getValues('product')?.value && getValues('product')?.label && (
+            <Typography sx={{ fontSize: '12px', color: 'error.main' }}>
+              The product <span style={{ color: '#D32F2F', fontWeight: 'bold' }}>{getValues('product')?.label}</span>{' '}
+              you entered is not available, please search and select.
+            </Typography>
+          )}
         </Grid>
         <Grid item xs={12} sm={8}>
           <FormControl fullWidth>
@@ -571,7 +575,7 @@ const PurchaseItemForm = props => {
                 <Autocomplete
                   disabled={nestedRowMedicine?.id ? true : false}
                   options={optionsMedicineList}
-                  value={value}
+                  value={getValues('product')?.value ? value : null}
                   renderOption={(props, option) => (
                     <li
                       {...props}
@@ -588,15 +592,17 @@ const PurchaseItemForm = props => {
                   isOptionEqualToValue={(option, value) => option.value === value.value}
                   onChange={(e, val) => {
                     if (val === null) {
-                      setValue('purchase_batch_no', '')
-                      setValue('purchase_expiry_date', null)
+                      // setValue('purchase_batch_no', '')
+                      // setValue('purchase_expiry_date', null)
                       setValue('package_details', '')
                       setValue('manufacture', '')
-                      setValue('purchase_variant_id', '')
+
+                      // setValue('purchase_variant_id', '')
                       setProductVariantOptions([])
-                      setValue('purchase_unit_qty', '')
-                      setValue('purchase_qty', '')
-                      setValue('purchase_variant_ratio', '')
+
+                      // setValue('purchase_unit_qty', '')
+                      // setValue('purchase_qty', '')
+                      // setValue('purchase_variant_ratio', '')
 
                       return onChange(null)
                     } else {
@@ -610,15 +616,21 @@ const PurchaseItemForm = props => {
                         setValue('manufacture', val?.manufacture)
 
                         // setValue('purchase_expiry_date', dayjs(Date()))
-                        setValue('purchase_expiry_date', null)
+                        // setValue('purchase_expiry_date', null)
+                        // setValue('purchase_unit_qty', '')
+                        // setValue('purchase_qty', '')
+                        // setValue('purchase_variant_ratio', '')
                       } else {
                         setNonMedicalProduct(false)
                         setProductVariantOptions([])
-                        setValue('purchase_variant_id', '')
-
                         getProductVariantByproductId(val?.value)
                         setValue('package_details', val?.package_details)
                         setValue('manufacture', val?.manufacture)
+
+                        // setValue('purchase_variant_id', '')
+                        // setValue('purchase_unit_qty', '')
+                        // setValue('purchase_qty', '')
+                        // setValue('purchase_variant_ratio', '')
                       }
 
                       return onChange(val)
@@ -627,6 +639,7 @@ const PurchaseItemForm = props => {
                   onBlur={e => {
                     if (!nonMedicalProduct) {
                       const product = getValues()
+
                       if (product?.product?.value !== '' && product?.purchase_batch_no !== '') {
                         checkMedicineExpiryDate(product?.product?.value, product?.purchase_batch_no)
                       }
@@ -739,6 +752,9 @@ const PurchaseItemForm = props => {
                 <TextField
                   {...field}
                   onKeyUp={e => {
+                    setValue('purchase_variant_id', '')
+                    setValue('purchase_unit_qty', '')
+                    setValue('purchase_qty', '')
                     calculateStuff()
 
                     const productData = {
@@ -851,11 +867,9 @@ const PurchaseItemForm = props => {
               rules={{ required: true }}
               render={({ field: { onChange, value, ...rest } }) => (
                 <Select
-                  disabled={nestedRowMedicine?.id ? true : false}
                   {...rest}
                   value={value}
                   onChange={(e, val) => {
-                    console.log(e, 'eeeeeeeee')
                     setValue('purchase_variant_ratio', Number(val?.props?.children))
                     setValue('purchase_unit_qty', '')
                     setValue('purchase_qty', '')
@@ -886,7 +900,6 @@ const PurchaseItemForm = props => {
               control={control}
               render={({ field }) => (
                 <TextField
-                  disabled={nestedRowMedicine?.id ? true : false}
                   {...field}
                   label='Purchase Quantity*'
                   onKeyUp={e => {
@@ -947,7 +960,10 @@ const PurchaseItemForm = props => {
                 mb: 0.5
               }}
             >
-              Total Quantity-{productVariantOptions?.length > 0 ? watch('purchase_unit_qty') : watch('purchase_qty')}
+              Total Quantity-
+              {productVariantOptions?.length > 0 && watch('purchase_variant_ratio? watch')
+                ? 'purchase_unit_qty'
+                : watch('purchase_qty')}
             </Typography>
           </Box>
         </Grid>

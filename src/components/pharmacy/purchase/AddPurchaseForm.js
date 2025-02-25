@@ -277,11 +277,15 @@ const AddPurchaseForm = () => {
       roundUp = parseFloat(roundUpValue) || 0 // Add the exact value when '+' is selected
     }
 
-    // console.log('roundUp:', roundUp) // Debugging output
-    // console.log('roundUpValue:', roundUpValue)
-    // console.log('roundup_select:', roundup_select)
+    const totalFreight = parseFloat(totalFreightCharges) || 0
+    const additional = parseFloat(additionalCharges) || 0
+    const totalItems = parseFloat(totalLineItemsPurchase) || 0
 
-    return totalLineItemsPurchase + parseFloat(totalFreightCharges) + parseFloat(additionalCharges) + roundUp
+    const result = totalItems + totalFreight + additional + roundUp
+
+    return result
+
+    // return totalLineItemsPurchase + parseFloat(totalFreightCharges) + parseFloat(additionalCharges) + roundUp
   }, [totalLineItemsPurchase, totalFreightCharges, additionalCharges, roundUpValue, roundup_select])
 
   // console.log('grandTotalAmount', grandTotalAmount)
