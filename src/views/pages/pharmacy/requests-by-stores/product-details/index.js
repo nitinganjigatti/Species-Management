@@ -465,29 +465,31 @@ const RequestedProductDetails = props => {
                           } `
                         : 'NA'}
                     </Typography>
-                    <Typography
-                      sx={{
-                        color: theme.palette.customColors.OnSurfaceVariant,
-                        fontSize: '12px',
-                        fontWeight: 400,
-                        fontFamily: 'Inter'
-                      }}
-                    >
-                      Available Quantity:
+                    {selectedPharmacy.type === 'central' && (
                       <Typography
-                        component='span'
                         sx={{
-                          color: theme.palette.customColors.neutralPrimary,
-                          fontSize: '14px',
+                          color: theme.palette.customColors.OnSurfaceVariant,
+                          fontSize: '12px',
                           fontWeight: 400,
                           fontFamily: 'Inter'
                         }}
                       >
-                        {requestedProducts?.total_available_quantity
-                          ? requestedProducts?.total_available_quantity
-                          : 'NA'}
+                        Available Quantity:
+                        <Typography
+                          component='span'
+                          sx={{
+                            color: theme.palette.customColors.neutralPrimary,
+                            fontSize: '14px',
+                            fontWeight: 400,
+                            fontFamily: 'Inter'
+                          }}
+                        >
+                          {requestedProducts?.total_available_quantity
+                            ? requestedProducts?.total_available_quantity
+                            : 'NA'}
+                        </Typography>
                       </Typography>
-                    </Typography>
+                    )}
                   </Box>
                 </Grid>
                 <Grid item xs={1} sm={1} sx={{ float: 'right', textAlign: 'right', height: 'auto' }}>
