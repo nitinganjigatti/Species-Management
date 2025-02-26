@@ -81,7 +81,9 @@ const initialNestedRowMedicine = {
   medicine_name: '',
   uuid: '',
   stock_type: '',
-  reason: ''
+  reason: '',
+  variant_id: '',
+  multiplier: ''
 }
 
 const CustomInput = forwardRef(({ ...props }, ref) => {
@@ -344,7 +346,9 @@ const AddDiscardProducts = () => {
                 expiry_date: item?.expiry_date,
                 available_item_qty: item?.qty,
                 packageDetails: `${item?.package} of ${item?.package_qty} ${item?.package_uom_label} ${item?.product_form_label}`,
-                manufacture: item?.manufacturer_name
+                manufacture: item?.manufacturer_name,
+                variant_id: item?.variant_id,
+                multiplier: item?.multiplier
               }))
             )
             setTotalBatchQuantity(searchResults?.data?.total_quantity)

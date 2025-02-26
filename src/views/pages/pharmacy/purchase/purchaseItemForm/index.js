@@ -63,7 +63,8 @@ const defaultValues = {
   manufacture: '',
   purchase_variant_id: '',
   purchase_unit_qty: 0,
-  purchase_variant_ratio: ''
+  purchase_variant_ratio: '',
+  isVariantIdPresent: false
 }
 
 const PurchaseItemForm = props => {
@@ -113,16 +114,17 @@ const PurchaseItemForm = props => {
     }),
     purchase_batch_no: yup
       .string()
-      .test('is-unique', 'Product with same batch exist', function (value, { parent }) {
-        const isDuplicate = purchase_details?.some(
-          (entry, index) =>
-            index !== (medicineItemId ? nestedRowMedicine?.index : -1) &&
-            entry?.purchase_unit_id === parent?.product?.value &&
-            entry?.purchase_batch_no?.trim()?.toLowerCase() === value?.trim()?.toLowerCase()
-        )
 
-        return !isDuplicate
-      })
+      // .test('is-unique', 'Product with same batch exist', function (value, { parent }) {
+      //   const isDuplicate = purchase_details?.some(
+      //     (entry, index) =>
+      //       index !== (medicineItemId ? nestedRowMedicine?.index : -1) &&
+      //       entry?.purchase_unit_id === parent?.product?.value &&
+      //       entry?.purchase_batch_no?.trim()?.toLowerCase() === value?.trim()?.toLowerCase()
+      //   )
+
+      //   return !isDuplicate
+      // })
       .required('Batch number is required'),
 
     purchase_unit_price: yup
@@ -278,7 +280,8 @@ const PurchaseItemForm = props => {
       manufacture,
       purchase_variant_id,
       purchase_unit_qty,
-      purchase_variant_ratio
+      purchase_variant_ratio,
+      isVariantIdPresent
 
       // purchase_purchase_price,
     } = params
@@ -314,7 +317,8 @@ const PurchaseItemForm = props => {
       manufacture,
       purchase_variant_id,
       purchase_unit_qty,
-      purchase_variant_ratio
+      purchase_variant_ratio,
+      isVariantIdPresent
     }
     if (priceValidationError === true) {
       setValidatePurchaseDialog(true)
@@ -365,9 +369,6 @@ const PurchaseItemForm = props => {
 
     // calculate total unity qty
     const totalUnitQty = checkNumber(updatedValues?.purchase_variant_ratio * purchase_qty)
-    console.log('totalUnitQty', totalUnitQty)
-    console.log('updatedValues?.purchase_variant_ratio', updatedValues?.purchase_variant_ratio)
-    console.log('updatedValues.purchase_qty', updatedValues.purchase_qty)
 
     // debugger
 
@@ -480,12 +481,21 @@ const PurchaseItemForm = props => {
       // netAmount >= 0.01 ? parseFloat(netAmount).toFixed(2) : parseFloat(netAmount).toFixed(5)
     )
   }
-
   useEffect(() => {
     if (productExpiryDate !== '') {
       setValue('purchase_expiry_date', dayjs(productExpiryDate))
+      setValue('purchase_variant_id', nestedRowMedicine?.purchase_variant_id)
+      setValue('purchase_variant_ratio', nestedRowMedicine?.purchase_variant_ratio)
+      const totalUnitQty = checkNumber(nestedRowMedicine?.purchase_variant_ratio * nestedRowMedicine?.purchase_qty)
+      setValue('isVariantIdPresent', true)
+      setValue('purchase_unit_qty', totalUnitQty)
     } else {
       setValue('purchase_expiry_date', '')
+      setValue('purchase_variant_id', '')
+      setValue('purchase_variant_ratio', '')
+      setValue('isVariantIdPresent', false)
+
+      setValue('purchase_unit_qty', nestedRowMedicine?.purchase_qty)
     }
   }, [productExpiryDate, expiryDateLoader])
 
@@ -498,28 +508,35 @@ const PurchaseItemForm = props => {
       })
 
       const productData = {
-        purchase_stock_item_id: nestedRowMedicine?.purchase_unit_id,
-        purchase_unit_price: nestedRowMedicine?.purchase_unit_price,
+        purchase_stock_item_id: nestedRowMedicine.purchase_unit_id,
+        purchase_unit_price: nestedRowMedicine.purchase_unit_price,
         ...(id !== '' && { purchase_detail_id: nestedRowMedicine?.id })
       }
       getRecentPurchasePriceOfProduct(productData)
       setValue('product', {
+        // label: nestedRowMedicine?.purchase_unit_id ? nestedRowMedicine.medicine_name : '',
         label: nestedRowMedicine.medicine_name,
         value: nestedRowMedicine.purchase_unit_id,
         stock_type: nestedRowMedicine.stock_type
       })
       setValue('package_details', nestedRowMedicine?.package_details)
       setValue('manufacture', nestedRowMedicine?.manufacture)
+      setValue('manufacture', nestedRowMedicine?.manufacture)
+      setValue('purchase_variant_id', nestedRowMedicine?.purchase_variant_id)
+      setValue('purchase_variant_ratio', nestedRowMedicine?.purchase_variant_ratio)
+      setValue('isVariantIdPresent', nestedRowMedicine?.isVariantIdPresent)
 
       if (nestedRowMedicine.stock_type === 'non_medical') {
         setNonMedicalProduct(true)
       }
-
       setValue('purchase_expiry_date', dayjs(nestedRowMedicine.purchase_expiry_date))
     } else {
       setValue('purchase_expiry_date', null)
-      setValue('package_details', '')
-      setValue('manufacture', '')
+      setValue('package_details', ''),
+        setValue('manufacture', ''),
+        setValue('purchase_variant_id', ''),
+        setValue('isVariantIdPresent', false)
+      setValue('purchase_variant_ratio', '')
       searchMedicineData('')
     }
   }, [])
@@ -597,8 +614,9 @@ const PurchaseItemForm = props => {
                       setValue('package_details', '')
                       setValue('manufacture', '')
 
-                      // setValue('purchase_variant_id', '')
+                      setValue('purchase_variant_id', '')
                       setProductVariantOptions([])
+                      setValue('isVariantIdPresent', false)
 
                       // setValue('purchase_unit_qty', '')
                       // setValue('purchase_qty', '')
@@ -700,6 +718,11 @@ const PurchaseItemForm = props => {
                       if (product?.product?.value !== '' && e?.target?.value !== '') {
                         field?.onBlur()
                         checkMedicineExpiryDate(product?.product?.value, e.target.value)
+                      } else {
+                        setValue('purchase_qty', '')
+                        setValue('purchase_unit_qty', '')
+                        setValue('purchase_variant_id', '')
+                        setValue('purchase_variant_ratio', ''), setValue('isVariantIdPresent', false)
                       }
                     }
                   }}
@@ -752,7 +775,6 @@ const PurchaseItemForm = props => {
                 <TextField
                   {...field}
                   onKeyUp={e => {
-                    setValue('purchase_variant_id', '')
                     setValue('purchase_unit_qty', '')
                     setValue('purchase_qty', '')
                     calculateStuff()
@@ -868,6 +890,7 @@ const PurchaseItemForm = props => {
               render={({ field: { onChange, value, ...rest } }) => (
                 <Select
                   {...rest}
+                  disabled={watch('isVariantIdPresent') === true || nestedRowMedicine?.id ? true : false}
                   value={value}
                   onChange={(e, val) => {
                     setValue('purchase_variant_ratio', Number(val?.props?.children))
@@ -961,8 +984,8 @@ const PurchaseItemForm = props => {
               }}
             >
               Total Quantity-
-              {productVariantOptions?.length > 0 && watch('purchase_variant_ratio? watch')
-                ? 'purchase_unit_qty'
+              {productVariantOptions?.length > 0 && watch('purchase_variant_ratio')
+                ? watch('purchase_unit_qty')
                 : watch('purchase_qty')}
             </Typography>
           </Box>
