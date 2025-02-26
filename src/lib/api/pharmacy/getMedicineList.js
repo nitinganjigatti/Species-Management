@@ -271,15 +271,24 @@ export async function getProductQuantityInStoresList(id) {
 
 export async function getDispatchList(params, id) {
   const response = await axiosGet({ url: `${PRODUCT_DISPATCH}/${id}`, params, pharmacy: true })
+
   return response.data
 }
 
 export async function getPurchaseDetailsList(params, id) {
   const response = await axiosGet({ url: `${PRODUCT_PURCHASE}/${id}`, params, pharmacy: true })
+
   return response.data
 }
 
 export async function getPurchaseBatchDetailsList(id, params) {
   const response = await axiosGet({ url: `${PRODUCT_PURCHASE_BATCH_LIST}/${id}/show`, params, pharmacy: true })
+
+  return response.data
+}
+
+export async function getAvailableProductsInPharmacy({ params }) {
+  const response = await axiosGet({ url: `${PHARMACY_BASE_URL}/stock/local/list`, params, pharmacy: true })
+
   return response.data
 }

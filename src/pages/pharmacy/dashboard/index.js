@@ -113,8 +113,6 @@ const NewDashboard = () => {
     getAllTotalLists()
   }, [selectedPharmacy.type])
 
-  console.log('selected', selectedPharmacy.type)
-
   // {selectedPharmacy.type === 'central' &&
   return (
     <ApexChartWrapper>
@@ -146,7 +144,7 @@ const NewDashboard = () => {
                 <Grid container sx={{ display: 'flex', justifyContent: 'space-between' }} className='match-height'>
                   <Grid item xs={6} sm={11 / 2}>
                     <CriticalInfoCards
-                      title={expiredMedicine ? '₹ ' + expiredMedicine?.value : ''}
+                      title={expiredMedicine?.value === 0 ? '0' : '₹ ' + expiredMedicine?.value}
                       subTitle={expiredMedicine?.name}
                       modifiedProperties={modifiedProperties}
                     />
