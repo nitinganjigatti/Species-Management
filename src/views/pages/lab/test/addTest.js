@@ -45,6 +45,7 @@ const AddTest = props => {
   const [searchValue, setSearchValue] = useState('')
 
   const [existingSubTests, setExistingSubTests] = useState([])
+  console.log('existingSubTests', existingSubTests)
 
   console.log('existingSubTests', existingSubTests)
   const [newSubTests, setNewSubTests] = useState([])
@@ -92,11 +93,10 @@ const AddTest = props => {
         // const testIdsName = response?.data?.child_tests.map(test => test.name)
 
         const testData = response?.data?.child_tests.map(test => ({
-          id: test.id, // Store ID
-          name: test.name // Store Name
+          [test.id]: test.name // Dynamic key-value pair
         }))
 
-        setSubTests(testData.map(test => test.name)) // Store only names for display
+        setSubTests(testData.map(test => Object.values(test)[0])) // Store only names for display
         setExistingSubTests(testData) // Store full object (id & name)
         setDeletedSubTests([]) // Reset deleted tests
         setNewSubTests([])
@@ -129,22 +129,30 @@ const AddTest = props => {
     const sampleIdsOnly = params.sample_ids.map(sample => sample.id)
 
     if (editParams?.id !== null) {
-      const payload = {
-        label: params?.test_name,
-        sample_ids: sampleIdsOnly,
+      const sampleIdsOnly = params.sample_ids.map(sample => sample.id)
 
-        // New sub-tests
-        sub_tests: newSubTests,
+      const formData = new FormData()
+      formData.append('label', params.test_name)
 
-        // Existing sub-tests
-        existing_sub_tests: existingSubTests,
+      sampleIdsOnly.forEach(id => formData.append('sample_ids[]', id))
 
-        // deleted sub-tests
-        delete_sub_task: deletedIds
-      }
+      // new sub-tests
+      newSubTests.forEach(test => formData.append('sub_tests[]', test))
 
-      await handleSubmitData(payload)
-      console.log('payload', payload)
+      // existing sub-tests
+      Object.entries(existingSubTests).forEach(([_, obj]) => {
+        Object.entries(obj).forEach(([testId, name]) => {
+          formData.append(`existing_sub_tests[${testId}]`, name)
+        })
+      })
+
+      deletedIds.forEach(id => formData.append('delete_sub_task[]', id))
+
+      // for (const pair of formData.entries()) {
+      //   console.log('Form', pair[0], pair[1])
+      // }
+
+      await handleSubmitData(formData)
     } else {
       const payload = {
         label: params?.test_name,
@@ -172,13 +180,13 @@ const AddTest = props => {
 
   // Remove a sub-test
   const handleRemoveSubTest = testName => {
-    const existingTest = existingSubTests.find(t => t.name === testName)
+    const existingTest = existingSubTests.find(t => Object.values(t)[0] === testName)
     const isNewTest = newSubTests.includes(testName)
-    const isDeletedTest = deletedSubTests.find(t => t.name === testName)
+    const isDeletedTest = deletedSubTests.find(t => Object.values(t)[0] === testName)
 
     if (existingTest) {
       // Move to deletedSubTests with ID
-      setExistingSubTests(prev => prev.filter(t => t.name !== testName))
+      setExistingSubTests(prev => prev.filter(t => Object.values(t)[0] !== testName))
       setDeletedSubTests(prev => [...prev, existingTest])
     } else if (isNewTest) {
       // Remove directly from newSubTests
@@ -193,18 +201,18 @@ const AddTest = props => {
 
   // Restore a deleted test back to existingSubTests
   useEffect(() => {
-    setDeletedIds(deletedSubTests.map(test => test.id))
+    setDeletedIds(deletedSubTests.map(test => Object.keys(test)[0])) // Extracting test ID
   }, [deletedSubTests])
 
   const restoreDeletedTest = testName => {
     setDeletedSubTests(prevDeletedTests => {
-      const testToRestore = prevDeletedTests.find(t => t.name === testName)
+      const testToRestore = prevDeletedTests.find(t => Object.values(t)[0] === testName)
 
       if (testToRestore) {
         setExistingSubTests(prev => [...prev, testToRestore]) // Restore test
         setSubTests(prev => [...prev, testName]) // Re-add to displayed list
 
-        return prevDeletedTests.filter(t => t.name !== testName) // Update state
+        return prevDeletedTests.filter(t => Object.values(t)[0] !== testName) // Update state
       }
 
       return prevDeletedTests
@@ -506,19 +514,24 @@ const AddTest = props => {
                 <Box>
                   <label>Deleted Tests</label>
                   <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mt: 2 }}>
-                    {deletedSubTests.map((test, index) => (
-                      <Chip
-                        key={index}
-                        label={`${test.name} (ID: ${test.id})`} // Show ID & name
-                        onDelete={() => restoreDeletedTest(test.name)} // Restore to existingSubTests
-                        sx={{
-                          backgroundColor: '#ffebe5',
-                          color: '#FA6140',
-                          '& .MuiChip-deleteIcon': { color: '#FA6140' },
-                          borderRadius: '6px'
-                        }}
-                      />
-                    ))}
+                    {deletedSubTests.map((test, index) => {
+                      const testId = Object.keys(test)[0] // Extract the test ID
+                      const testName = test[testId] // Extract the test name
+
+                      return (
+                        <Chip
+                          key={index}
+                          label={`${testName} (ID: ${testId})`} // Show name and ID
+                          onDelete={() => restoreDeletedTest(testName)} // Restore using name
+                          sx={{
+                            backgroundColor: '#ffebe5',
+                            color: '#FA6140',
+                            '& .MuiChip-deleteIcon': { color: '#FA6140' },
+                            borderRadius: '6px'
+                          }}
+                        />
+                      )
+                    })}
                   </Box>
                 </Box>
               )}
