@@ -342,7 +342,8 @@ const Overview = props => {
                           {Utility.formatDisplayDate(Utility.convertUTCToLocal(row.expiry_date))}
                         </TableCell>
                         <TableCell>{row.qty}</TableCell>
-                        <TableCell>₹{row.unit_price}</TableCell>
+                        <TableCell>{Utility.formatAmountToReadableDigit(row.unit_price)}</TableCell>
+                        {/* <TableCell>₹{row.unit_price}</TableCell> */}
                         {/* <TableCell>₹{formattedValue}</TableCell> */}
                         <TableCell>{Utility.formatAmountToReadableDigit(newValue)}</TableCell>
                         <TableCell sx={{ color: 'customColors.Tertiary' }}>{row.days_left} Days</TableCell>
@@ -419,7 +420,8 @@ const Overview = props => {
                           }
                         </TableCell>
                         <TableCell>{item.qty}</TableCell>
-                        <TableCell>₹{item.unit_price}</TableCell>
+                        <TableCell>{Utility.formatAmountToReadableDigit(item.unit_price)}</TableCell>
+                        {/* <TableCell>₹{item.unit_price}</TableCell> */}
                         {/* <TableCell>₹{formattedValue}</TableCell> */}
                         <TableCell>{Utility.formatAmountToReadableDigit(newValue)}</TableCell>
                         <TableCell sx={{ color: 'customColors.Error' }}>{item.days_overdue} Days</TableCell>

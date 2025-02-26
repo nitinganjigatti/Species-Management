@@ -56,6 +56,15 @@ import { width } from '@mui/system'
 
 export default function NewProductList() {
   const theme = useTheme()
+  const router = useRouter()
+
+  const updateUrlParams = useCallback(params => {
+    // debugger
+    const newQuery = { ...router.query, ...params }
+    router.replace({ pathname: router.pathname, query: newQuery }, undefined)
+  }, [])
+
+  console.log(router.query, 'updateUrlParams')
 
   const [loader, setLoader] = useState(false)
   const [show, setShow] = useState(false)
@@ -63,7 +72,7 @@ export default function NewProductList() {
   const [productDetails, setProductDetails] = useState({})
   const [reasonText, setReasonText] = useState('')
   const [submitLoader, setSubmitLoader] = useState(false)
-  const [filterByPharmacyId, setFilterByPharmacyId] = useState('' || 'all')
+  const [filterByPharmacyId, setFilterByPharmacyId] = useState(router.query.filterByPharmacyId || '' || 'all')
 
   const [prescriptionImages, setPrescriptionImages] = useState()
   const [statusCall, setStatusCall] = useState(false)
@@ -97,7 +106,17 @@ export default function NewProductList() {
             column: sortColumn,
             status: 'Pending',
             filterByPharmacyId: filterByPharmacyId === 'all' ? '' : filterByPharmacyId
-          }) // Refresh pending tab
+          })
+          updateUrlParams({
+            sort,
+            q: searchValue,
+            column: sortColumn,
+            status: 'Pending',
+            filterByPharmacyId: filterByPharmacyId === 'all' ? '' : filterByPharmacyId,
+            page: paginationModel?.page,
+            limit: paginationModel?.pageSize
+          })
+          // Refresh pending tab
         } else {
           fetchTableData({
             sort,
@@ -105,6 +124,15 @@ export default function NewProductList() {
             column: sortColumn,
             status: status,
             filterByPharmacyId: filterByPharmacyId === 'all' ? '' : filterByPharmacyId
+          })
+          updateUrlParams({
+            sort,
+            q: searchValue,
+            column: sortColumn,
+            status: status,
+            filterByPharmacyId: filterByPharmacyId === 'all' ? '' : filterByPharmacyId,
+            page: paginationModel?.page,
+            limit: paginationModel?.pageSize
           })
         }
       }
@@ -295,22 +323,23 @@ export default function NewProductList() {
       )
     }
   ]
-  const router = useRouter()
 
   const [loading, setLoading] = useState(false)
 
-  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
-  const [searchValue, setSearchValue] = useState('')
+  const [paginationModel, setPaginationModel] = useState({
+    page: parseInt(router.query.page) || 0,
+    pageSize: parseInt(router.query.limit) || 10
+  })
+  const [searchValue, setSearchValue] = useState(router.query.q || '')
   const [total, setTotal] = useState(0)
-  const [sortColumn, setSortColumn] = useState('id')
-  const [sort, setSort] = useState('desc')
+  const [sortColumn, setSortColumn] = useState(router.query.column || 'id')
+  const [sort, setSort] = useState(router.query.sort || 'desc')
   const [itemId, setItemId] = useState()
   const [imgUrl, setImageUrl] = useState()
   const [rows, setRows] = useState([])
-  const [status, setStatus] = useState('Approved')
+  const [status, setStatus] = useState(router.query.status || 'Approved')
 
   const handleChange = (event, newValue) => {
-    
     // Reset total and search value
     setTotal(0)
     setSearchValue('')
@@ -328,6 +357,15 @@ export default function NewProductList() {
       filterByPharmacyId: filterByPharmacyId === 'all' ? '' : filterByPharmacyId, // Use the current pharmacy filter
       page: 1,
       limit: paginationModel.pageSize
+    })
+    updateUrlParams({
+      sort,
+      q: '',
+      column: sortColumn,
+      status: newValue,
+      filterByPharmacyId: filterByPharmacyId === 'all' ? '' : filterByPharmacyId,
+      page: paginationModel?.page,
+      limit: paginationModel?.pageSize
     })
   }
 
@@ -373,6 +411,15 @@ export default function NewProductList() {
   const handleSortModel = async newModel => {
     if (newModel.length > 0) {
       await searchTableData({ sort: newModel[0].sort, q: searchValue, column: newModel[0].field, status })
+      updateUrlParams({
+        sort: newModel[0].sort,
+        q: searchValue,
+        column: newModel[0].field,
+        status: status,
+        filterByPharmacyId: filterByPharmacyId === 'all' ? '' : filterByPharmacyId,
+        page: paginationModel.page,
+        limit: paginationModel.pageSize
+      })
     } else {
     }
   }
@@ -410,6 +457,15 @@ export default function NewProductList() {
           column,
           status,
           filterByPharmacyId: filterByPharmacyId === 'all' ? '' : filterByPharmacyId
+        })
+        updateUrlParams({
+          sort: sort,
+          q: q,
+          column: column,
+          status: status,
+          filterByPharmacyId: filterByPharmacyId === 'all' ? '' : filterByPharmacyId,
+          page: paginationModel.page,
+          limit: paginationModel.pageSize
         })
       } catch (error) {
         console.error(error)
@@ -459,6 +515,15 @@ export default function NewProductList() {
       column: sortColumn,
       status,
       filterByPharmacyId: pharmacyFilterValue
+    })
+    updateUrlParams({
+      sort,
+      q: searchValue,
+      column: sortColumn,
+      status: status,
+      filterByPharmacyId: pharmacyFilterValue,
+      page: paginationModel?.page,
+      limit: paginationModel?.pageSize
     })
   }, [sort, sortColumn, selectedPharmacy])
 
@@ -643,6 +708,15 @@ export default function NewProductList() {
                   page: page + 1, // Convert to 1-indexed pages for API
                   limit: pageSize,
                   filterByPharmacyId: filterByPharmacyId === 'all' ? '' : filterByPharmacyId
+                })
+                updateUrlParams({
+                  sort,
+                  q: searchValue,
+                  column: sortColumn,
+                  status: status,
+                  filterByPharmacyId: filterByPharmacyId === 'all' ? '' : filterByPharmacyId,
+                  page: page,
+                  limit: pageSize
                 })
               }}
               handleSortModel={handleSortModel}

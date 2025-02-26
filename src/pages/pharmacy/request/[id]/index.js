@@ -1686,10 +1686,11 @@ const IndividualRequest = () => {
                               ...RenderUtility?.getEllipsisStyleForText('100')
                             }}
                           >
-                            ₹
+                            {Utility?.formatAmountToReadableDigit(requestItems?.requested_amount)}
+                            {/* ₹
                             {RenderUtility?.getToolTipForText(
                               Utility.formatNumberToDisplay(requestItems?.requested_amount)
-                            )}
+                            )} */}
                           </Box>
                         </Typography>
 
