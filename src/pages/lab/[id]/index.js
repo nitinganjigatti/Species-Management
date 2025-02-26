@@ -63,7 +63,8 @@ import FileUploaderSingle from 'src/views/forms/form-elements/file-uploader/File
 import UploadReports from 'src/components/lab/request/UploadReports'
 import { useRouter } from 'next/navigation'
 import { useSearchParams } from 'next/navigation'
-import UserSnackbar from 'src/components/utility/snackbar'
+
+// import UserSnackbar from 'src/components/utility/snackbar'
 import moment from 'moment'
 import CommonMediaView from 'src/components/lab/CommonMediaView'
 import { AuthContext } from 'src/context/AuthContext'
@@ -151,13 +152,10 @@ const RequestDetails = () => {
   const [fileId, setFileId] = useState()
   const [file, setFile] = useState([])
   const [testName, setTestName] = useState()
+  console.log('testName', testName)
   const [testSampleName, setTestSampleName] = useState('')
+  console.log('testSampleName', testSampleName)
 
-  // ........... snackbar
-  const [openSnackbar, setOpenSnackbar] = useState(false)
-  const [snackbarMessage, setSnackbarMessage] = useState('')
-  const [severity, setSeverity] = useState('success')
-  const [statusId, setStatusId] = useState()
   const [showTestFile, setShowTestFile] = useState(false)
   const [transferTestId, setTransferTestId] = useState('')
   const [headerStatus, setHeaderStatus] = useState('awaiting_sample')
@@ -166,14 +164,6 @@ const RequestDetails = () => {
 
   const [selectedRowData, setSelectedRowData] = useState([])
   const [hasCompletedStatus, setHasCompletedStatus] = useState(true)
-
-  const setAlertDefaults = ({ message, severity, status }) => {
-    setOpenSnackbar(status)
-    setSnackbarMessage(message)
-    setSeverity(severity)
-  }
-
-  //...........
 
   useEffect(() => {
     const labObject = localLabData?.find(item => item?.lab_id === lab_id)
@@ -305,8 +295,13 @@ const RequestDetails = () => {
     setTransferTestId(params?.row?.test_id)
     const labTestId = [params?.row?.id]
     setTransferStatus(params?.row?.status)
-    setTestName(params?.row?.test_name)
-    setTestSampleName(params?.row?.sample_name)
+    if (selectedRow?.length === 1) {
+      setTestName(selectedRowData[0]?.test_name)
+      setTestSampleName(selectedRowData[0]?.sample_name)
+    } else {
+      setTestName(params?.row?.test_name)
+      setTestSampleName(params?.row?.sample_name)
+    }
 
     if (selectedRow.length >= 1) {
       await getAccessLabs(LabRequestId, selectedRow)
@@ -851,6 +846,7 @@ const RequestDetails = () => {
     const testId = item?.id
 
     setFileId(item?.id)
+    console.log('item', item)
     try {
       const params = { lab_test_id: id }
       const response = await DeleteLAbRequestAttachment(testId, params)
@@ -858,15 +854,11 @@ const RequestDetails = () => {
       if (response?.success) {
         Toaster({ type: 'success', message: response.message })
 
-        // setAlertDefaults({ status: true, message: response?.message, severity: 'success' })
-
         fetchRequestDetails()
         setShowTestFile(false)
       } else {
         setShowTestFile(false)
         Toaster({ type: 'error', message: response.message })
-
-        // setAlertDefaults({ status: true, message: response?.message, severity: 'error' })
       }
     } catch (error) {}
   }
@@ -875,12 +867,12 @@ const RequestDetails = () => {
     window.open(imageUrl, '_blank')
   }
 
-  const handleCloseSnackBar = (event, reason) => {
-    if (reason === 'clickaway') {
-      return
-    }
-    setOpenSnackbar(false)
-  }
+  // const handleCloseSnackBar = (event, reason) => {
+  //   if (reason === 'clickaway') {
+  //     return
+  //   }
+  //   setOpenSnackbar(false)
+  // }
 
   const handleRowSelection = (rowSelectionModel, details) => {
     setSelectedRow(rowSelectionModel)
@@ -1021,13 +1013,6 @@ const RequestDetails = () => {
               </>
             ))}
           </Card>
-          <UserSnackbar
-            status={openSnackbar}
-            message={snackbarMessage}
-            severity={severity}
-            handleClose={handleCloseSnackBar}
-            indexedRows
-          />
 
           <Card sx={{ mt: 5 }}>
             {/* <CardHeader title='Lab Tests' /> */}
@@ -1219,7 +1204,6 @@ const RequestDetails = () => {
                   type='lab_test_request'
                   id={requestId === null ? '0' : requestId}
                   handleCloseUploader={setOpenUploader}
-                  setAlertDefaults={setAlertDefaults}
                   handleClosePopover={handleClosePopover}
                   fetchRequestDetails={fetchRequestDetails}
                   buttonText='Submit Reports'
@@ -1233,6 +1217,7 @@ const RequestDetails = () => {
                 <Box sx={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', gap: 4 }}>
                   {image && (
                     <CommonMediaView
+                      rows={rows}
                       image={image}
                       handleDeleteImg={handleDeleteImg}
                       fileViews={fileViews}
@@ -1241,6 +1226,7 @@ const RequestDetails = () => {
                   )}
                   {document && (
                     <CommonMediaView
+                      rows={rows}
                       document={document}
                       handleDeleteImg={handleDeleteImg}
                       fileViews={fileViews}
@@ -1268,6 +1254,7 @@ const RequestDetails = () => {
                   <Box sx={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', gap: 4, mt: '16px' }}>
                     {medicalImage && (
                       <CommonMediaView
+                        rows={rows}
                         image={medicalImage}
                         handleDeleteImg={handleDeleteImg}
                         fileViews={fileViews}
@@ -1277,6 +1264,7 @@ const RequestDetails = () => {
                     )}
                     {medicalDocument && (
                       <CommonMediaView
+                        rows={rows}
                         document={medicalDocument}
                         handleDeleteImg={handleDeleteImg}
                         fileViews={fileViews}
@@ -1446,7 +1434,15 @@ const RequestDetails = () => {
                 <Typography sx={{ fontSize: '14px' }}>Request ID : </Typography>
                 <Typography sx={{ fontSize: '14px', fontWeight: 600 }}>{request[0]?.request_id || '-'} </Typography>
               </Box>
-              <Box sx={{ display: 'flex', gap: 1, flexDirection: 'column', alignItems: 'center' }}>
+              <Box
+                sx={{
+                  display: 'flex',
+                  gap: 1,
+                  flexDirection: 'column',
+                  flexDirection: 'column',
+                  alignItems: selectedRowData?.length > 1 && 'center'
+                }}
+              >
                 {selectedRowData?.length > 1 ? (
                   <>
                     <Typography sx={{ fontSize: '14px' }}>No of Tests : </Typography>
@@ -1482,11 +1478,20 @@ const RequestDetails = () => {
                   <>
                     <Typography sx={{ fontSize: '14px' }}>Test Name : </Typography>
 
-                    <Typography sx={{ fontSize: '14px', fontWeight: 600 }}>{testName || '-'}</Typography>
+                    <Typography sx={{ fontSize: '14px', fontWeight: 600, textTransform: 'capitalize' }}>
+                      {testName || '-'}
+                    </Typography>
                   </>
                 )}
               </Box>
-              <Box sx={{ display: 'flex', gap: 1, flexDirection: 'column', alignItems: 'center' }}>
+              <Box
+                sx={{
+                  display: 'flex',
+                  gap: 1,
+                  flexDirection: 'column',
+                  alignItems: selectedRowData?.length > 1 && 'center'
+                }}
+              >
                 {selectedRowData?.length > 1 ? (
                   <>
                     <Typography sx={{ fontSize: '14px' }}>No of Samples : </Typography>
@@ -1523,7 +1528,7 @@ const RequestDetails = () => {
                   <>
                     <Typography sx={{ fontSize: '14px' }}>Sample Name : </Typography>
 
-                    <Typography sx={{ fontSize: '14px', fontWeight: 600 }}>
+                    <Typography sx={{ fontSize: '14px', fontWeight: 600, textTransform: 'capitalize' }}>
                       {testSampleName ? testSampleName : '-'}
                     </Typography>
                   </>
@@ -1704,7 +1709,6 @@ const RequestDetails = () => {
               type='lab_test'
               id={testId}
               handleCloseUploader={() => setOpenUploader(false)}
-              setAlertDefaults={setAlertDefaults}
               handleClosePopover={handleClosePopover}
               fetchRequestDetails={fetchRequestDetails}
               buttonText='Upload'
@@ -1749,6 +1753,8 @@ const RequestDetails = () => {
                         }}
                       >
                         <CommonMediaView
+                          individual={true}
+                          rows={rows}
                           image={testImage}
                           handleDeleteImg={handleDeleteImg}
                           fileViews={fileViews}
@@ -1763,6 +1769,8 @@ const RequestDetails = () => {
                       <Typography sx={{ fontSize: '18px', mb: 3, mt: 3 }}>Document</Typography>
                       <Box sx={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', gap: 4 }}>
                         <CommonMediaView
+                          individual={true}
+                          rows={rows}
                           document={testDoc}
                           handleDeleteImg={handleDeleteImg}
                           fileViews={fileViews}

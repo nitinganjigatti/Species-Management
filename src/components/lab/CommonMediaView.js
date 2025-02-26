@@ -18,10 +18,12 @@ import React, { useState } from 'react'
 import moment from 'moment'
 import Utility from 'src/utility'
 
-const CommonMediaView = ({ type, image, document, handleDeleteImg, fileViews, permissions }) => {
-  // console.log('image :>> ', image)
+const CommonMediaView = ({ type, image, document, handleDeleteImg, fileViews, permissions, rows, individual }) => {
+  console.log('individual', individual)
   const [openConfirmDialog, setOpenConfirmDialog] = useState(false)
   const [selectedItem, setSelectedItem] = useState(null)
+  const [error, setError] = useState(false)
+  console.log('error', error)
   console.log('selectedItem', selectedItem)
 
   function extractHoursAndMinutes(date) {
@@ -37,12 +39,31 @@ const CommonMediaView = ({ type, image, document, handleDeleteImg, fileViews, pe
   }
 
   const handleConfirmDialog = (e, item) => {
+    let attachments = image !== undefined ? image : document !== undefined ? document : []
     e.preventDefault()
     e.stopPropagation()
-
-    // Prevent click event from bubbling
     setSelectedItem(item)
     setOpenConfirmDialog(true)
+
+    // Check if all statuses start with "completed"
+    const allCompleted = rows.every(row => row.status.startsWith('completed'))
+
+    const totalAttachments = attachments.flat().length // Merge image & document arrays into one
+
+    console.log('Total Attachments:', totalAttachments)
+
+    if (individual && attachments.length === 1) {
+      setError(true)
+
+      return
+    }
+
+    // Check if total rows are equal to total attachments
+    if (allCompleted && rows.length === totalAttachments) {
+      setError(true)
+
+      return
+    }
   }
 
   const handleDelete = async e => {
@@ -275,21 +296,31 @@ const CommonMediaView = ({ type, image, document, handleDeleteImg, fileViews, pe
           </Typography>
         </DialogTitle>
         <DialogContent>
-          <DialogContentText>
-            Are you sure you want to delete{' '}
-            <Typography component='span' sx={{ color: '#E93353', fontWeight: 'bold' }}>
-              {selectedItem?.file_original_name}
-            </Typography>
-            &nbsp;?
-          </DialogContentText>
+          {error ? (
+            <DialogContentText>
+              <Typography>
+                Either upload the new report or change the test status to pending to delete this report.
+              </Typography>
+            </DialogContentText>
+          ) : (
+            <DialogContentText>
+              Are you sure you want to delete{' '}
+              <Typography component='span' sx={{ color: '#E93353', fontWeight: 'bold' }}>
+                {selectedItem?.file_original_name}
+              </Typography>
+              &nbsp;?
+            </DialogContentText>
+          )}
         </DialogContent>
         <DialogActions>
           <Button onClick={() => setOpenConfirmDialog(false)} variant='outlined'>
             CANCEL
           </Button>
-          <Button onClick={handleDelete} variant='contained' color='error'>
-            DELETE
-          </Button>
+          {!error && (
+            <Button onClick={handleDelete} variant='contained' color='error'>
+              DELETE
+            </Button>
+          )}
         </DialogActions>
       </Dialog>
     </>

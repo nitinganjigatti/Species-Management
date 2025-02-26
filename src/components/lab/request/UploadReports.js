@@ -21,7 +21,7 @@ const UploadReports = ({
   type,
   id,
   handleCloseUploader,
-  setAlertDefaults,
+
   handleClosePopover,
   fetchRequestDetails,
   buttonText
@@ -164,7 +164,6 @@ const UploadReports = ({
     if (!imgArr?.length) {
       Toaster({ type: 'error', message: 'File is Required' })
 
-      // setAlertDefaults({ status: true, message: 'Upload File is Required', severity: 'error' })
       setSubmitting(false)
     } else {
       const payload = {
@@ -188,14 +187,13 @@ const UploadReports = ({
           reset()
           setImgArr([])
 
-          // setAlertDefaults({ status: true, message: response?.message, severity: 'success' })
           Toaster({ type: 'success', message: response.message })
 
           fetchRequestDetails()
           setKey(key + 1)
         } else {
           reset(defaultValues)
-          // setAlertDefaults({ status: true, message: response?.message, severity: 'error' })
+
           Toaster({ type: 'error', message: response.message })
         }
         // Reset the form after successful submission
