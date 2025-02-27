@@ -19,7 +19,8 @@ import {
   getKeyInsights,
   getEggAnalytics,
   getAnimalActivity,
-  getAnimalTransfer
+  getAnimalTransfer,
+  getPendingRequests
 } from 'src/lib/api/dashboard'
 
 function Dashboard() {
@@ -28,11 +29,14 @@ function Dashboard() {
   const [keyInsightsData, setKeyInsightsData] = useState([])
   const [eggAnalytics, setEggAnalytics] = useState([])
   const [animalActivityData, setAnimalActivityData] = useState([])
+
   const [animalTransfer, setAnimalTransfer] = useState({
     totalTransfers: 0,
     transferPercentage: 0,
     transferProgress: []
   })
+
+  const [pendingRequests, setPendingRequests] = useState([])
 
   const fetchAnalyticsData = useCallback(async () => {
     try {
@@ -118,6 +122,7 @@ function Dashboard() {
     fetchAnimalActivityData()
     fetchEggAnalytics()
     fetchAnimalTransferData()
+    fetchPendingRequests()
   }, [])
 
   const fetchEggAnalytics = useCallback(async () => {
@@ -131,6 +136,25 @@ function Dashboard() {
         }
 
         console.log(res, 'getEggAnalytics')
+      })
+      setLoading(false)
+    } catch (e) {
+      console.log(e)
+      setLoading(false)
+    }
+  }, [])
+
+  const fetchPendingRequests = useCallback(async () => {
+    try {
+      setLoading(true)
+
+      const params = {}
+      await getPendingRequests({ params: params }).then(res => {
+        if (res.length > 0) {
+          setPendingRequests(res)
+        }
+
+        console.log(res, 'getPendingRequests')
       })
       setLoading(false)
     } catch (e) {
@@ -185,7 +209,7 @@ function Dashboard() {
               </Grid>
               <Grid item xs={12} sm={6} md={2.5} sx={{ order: [1, 1, 2] }}>
                 <DashboardCardHeader title='Pharmacy - Pending requests'>
-                  <PharmacyPendingReqChart />
+                  <PharmacyPendingReqChart pendingRequests={pendingRequests} />
                 </DashboardCardHeader>
               </Grid>
               <Grid item xs={12} sm={6} md={2.5} sx={{ order: [1, 1, 2] }}>

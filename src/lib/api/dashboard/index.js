@@ -34,3 +34,10 @@ export async function getAnimalTransfer({ params }) {
 
   return response.data
 }
+
+export async function getPendingRequests({ params }) {
+  const url = `5e0fd4aa-06a9-4999-af4d-07e0c346b674`
+  const response = await axiosGetExternal({ url: `${url}`, params })
+
+  return response.data
+}
