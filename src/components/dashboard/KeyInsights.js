@@ -5,19 +5,17 @@ const KeyInsights = ({ insights }) => {
   const bgColors = {
     Natality: '#E1F9ED',
     Mortality: '#FFBDA866',
-    UnallocatedAnimals: '#FCF4AE66',
-    Animalsundertreatment: '#AFEFEB66',
-    Newmedicalcases: '#EFF5F2'
+    'Unallocated Animals': '#FCF4AE66',
+    'Animals under treatment': '#AFEFEB66',
+    'New medical cases': '#EFF5F2'
   }
   const insightsIcons = {
     Natality: '/dashboard/insights/paws.svg',
     Mortality: '/dashboard/insights/bones.svg',
-    UnallocatedAnimals: '/dashboard/insights/Enclosure.svg',
-    Animalsundertreatment: '/dashboard/insights/health.svg',
-    Newmedicalcases: '/dashboard/insights/cases.svg'
+    'Unallocated Animals': '/dashboard/insights/Enclosure.svg',
+    'Animals under treatment': '/dashboard/insights/health.svg',
+    'New medical cases': '/dashboard/insights/cases.svg'
   }
-
-  const getTitleKey = title => title?.trim()
 
   return (
     <>
@@ -27,14 +25,14 @@ const KeyInsights = ({ insights }) => {
           <Avatar
             variant='square'
             sx={{
-              backgroundColor: bgColors[getTitleKey(insight?.title)],
+              backgroundColor: bgColors[insight?.title],
               width: 40,
               height: 40,
               borderRadius: '8px',
               p: 2,
               mr: 2
             }}
-            src={insightsIcons[getTitleKey(insight?.title)]}
+            src={insightsIcons[insight?.title]}
           />
 
           <Box sx={{ flexGrow: 1, textAlign: 'start', overflow: 'hidden', paddingRight: '10px' }}>
