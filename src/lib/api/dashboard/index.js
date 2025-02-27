@@ -41,3 +41,10 @@ export async function getPendingRequests({ params }) {
 
   return response.data
 }
+
+export async function getNotes({ params }) {
+  const url = `v1/dashboard/notes/stats`
+  const response = await axiosGet({ url: `${url}`, params })
+
+  return response.data
+}

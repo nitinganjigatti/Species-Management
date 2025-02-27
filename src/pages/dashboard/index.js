@@ -20,7 +20,8 @@ import {
   getEggAnalytics,
   getAnimalActivity,
   getAnimalTransfer,
-  getPendingRequests
+  getPendingRequests,
+  getNotes
 } from 'src/lib/api/dashboard'
 
 function Dashboard() {
@@ -37,6 +38,7 @@ function Dashboard() {
   })
 
   const [pendingRequests, setPendingRequests] = useState([])
+  const [notes, setNotes] = useState([])
 
   const fetchAnalyticsData = useCallback(async () => {
     try {
@@ -123,6 +125,7 @@ function Dashboard() {
     fetchEggAnalytics()
     fetchAnimalTransferData()
     fetchPendingRequests()
+    fetchNotes()
   }, [])
 
   const fetchEggAnalytics = useCallback(async () => {
@@ -155,6 +158,26 @@ function Dashboard() {
         }
 
         console.log(res, 'getPendingRequests')
+      })
+      setLoading(false)
+    } catch (e) {
+      console.log(e)
+      setLoading(false)
+    }
+  }, [])
+
+  const fetchNotes = useCallback(async () => {
+    try {
+      setLoading(true)
+
+      const params = {}
+      await getNotes({ params: params }).then(res => {
+        debugger
+        if (res.length > 0) {
+          setNotes(res)
+        }
+
+        console.log(res, 'getNotes')
       })
       setLoading(false)
     } catch (e) {
@@ -213,8 +236,11 @@ function Dashboard() {
                 </DashboardCardHeader>
               </Grid>
               <Grid item xs={12} sm={6} md={2.5} sx={{ order: [1, 1, 2] }}>
-                <DashboardCardHeader title='Administer medicine'>
-                  <AdministerMedicineChart />
+                <DashboardCardHeader title='Notes'>
+                  {/* <AdministerMedicineChart /> */}
+                  <Grid sx={{ px: '16px' }}>
+                    <EggChart eggAnalytics={notes} />
+                  </Grid>
                 </DashboardCardHeader>
               </Grid>
               <Grid item xs={12} sm={6} md={2.5} sx={{ order: [1, 1, 2] }}>
