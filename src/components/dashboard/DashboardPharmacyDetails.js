@@ -47,15 +47,23 @@ const data = [
   }
 ]
 
-const Slides = () => {
+const slidesImg = {
+  Pharmacy: '/dashboard/medical_record1.svg',
+  'Medical records': '/dashboard/p1.svg'
+}
+
+const Slides = ({ sliderData }) => {
+  console.log(sliderData, 'sliderData')
+
   return (
     <>
-      {data.map((slide, index) => {
-        return (
-          <Box key={index} className='keen-slider__slide'>
-            <Box sx={{ mb: 5, display: 'flex', alignItems: 'stretch' }}>
-              {/* <Box component='img' src={slide.img} alt={slide.title} sx={{ mr: 3, width: 100 }} /> */}
-              {/* <Avatar
+      {sliderData.length > 0 &&
+        sliderData.map((slide, index) => {
+          return (
+            <Box key={index} className='keen-slider__slide'>
+              <Box sx={{ mb: 5, display: 'flex', alignItems: 'stretch' }}>
+                {/* <Box component='img' src={slide.img} alt={slide.title} sx={{ mr: 3, width: 100 }} /> */}
+                {/* <Avatar
                 variant='square'
                 sx={{
                   width: 'auto', // Automatically adjust width
@@ -65,69 +73,70 @@ const Slides = () => {
                 src={slide.img}
               /> */}
 
-              {/* Image Box */}
-              <Box
-                sx={{
-                  flexShrink: 0, // Prevents the image from shrinking
-                  maxWidth: 120, // Prevents the image from taking too much space
-                  minWidth: 100, // Ensures image does not get too small
-                  display: 'flex',
-                  mr: 6
-                }}
-              >
-                <Avatar
-                  variant='square'
+                {/* Image Box */}
+                <Box
                   sx={{
-                    width: '100%', // Takes full width of the box
-                    height: '100%', // Matches the height of right content
-                    objectFit: 'cover' // Ensures proper scaling without distortion
+                    flexShrink: 0, // Prevents the image from shrinking
+                    maxWidth: 120, // Prevents the image from taking too much space
+                    minWidth: 100, // Ensures image does not get too small
+                    display: 'flex',
+                    mr: 6
                   }}
-                  src={slide.img}
-                />
-              </Box>
-              <Box sx={{ width: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                <Typography sx={{ mb: 5, fontWeight: 600, color: '#FFFFFF', textAlign: 'start' }}>
-                  {slide.title}
-                </Typography>
-                <Grid container spacing={2.5}>
-                  {Object.keys(slide.details).map((key, index) => (
-                    <Grid item xs={6} key={index}>
-                      <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                        <CustomAvatar
-                          skin='light'
-                          variant='rounded'
-                          sx={{
-                            mr: 1.5,
-                            width: 50,
-                            height: 40,
-                            fontSize: '1.25rem',
-                            borderRadius: '6px',
-                            color: '#1F515B',
-                            bgcolor: '#52F990'
-                          }}
-                        >
-                          {slide.details[key]}
-                        </CustomAvatar>
-                        <Typography variant='caption' sx={{ color: '#FFFFFF' }}>
-                          {key}
-                        </Typography>
-                      </Box>
-                    </Grid>
-                  ))}
-                </Grid>
+                >
+                  <Avatar
+                    variant='square'
+                    sx={{
+                      width: '100%', // Takes full width of the box
+                      height: '100%', // Matches the height of right content
+                      objectFit: 'cover' // Ensures proper scaling without distortion
+                    }}
+                    src={slidesImg[slide.title]}
+                  />
+                </Box>
+                <Box sx={{ width: '100%', display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                  <Typography sx={{ mb: 5, fontWeight: 600, color: '#FFFFFF', textAlign: 'start' }}>
+                    {slide.subtitle}
+                  </Typography>
+                  <Grid container spacing={2.5}>
+                    {Object.keys(slide.details).map((key, index) => (
+                      <Grid item xs={6} key={index}>
+                        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                          <CustomAvatar
+                            skin='light'
+                            variant='rounded'
+                            sx={{
+                              mr: 1.5,
+                              width: 50,
+                              height: 40,
+                              fontSize: '1.25rem',
+                              borderRadius: '6px',
+                              color: '#1F515B',
+                              bgcolor: '#52F990'
+                            }}
+                          >
+                            {slide.details[key]}
+                          </CustomAvatar>
+                          <Typography variant='caption' sx={{ color: '#FFFFFF' }}>
+                            {key}
+                          </Typography>
+                        </Box>
+                      </Grid>
+                    ))}
+                  </Grid>
+                </Box>
               </Box>
             </Box>
-          </Box>
-        )
-      })}
+          )
+        })}
     </>
   )
 }
 
-const DashboardPharmacyDetails = () => {
+const DashboardPharmacyDetails = ({ pharmacyData }) => {
   // ** States
   const [loaded, setLoaded] = useState(false)
   const [currentSlide, setCurrentSlide] = useState(0)
+  console.log(pharmacyData, 'pharmacyData')
 
   // ** Hook
   const theme = useTheme()
@@ -152,7 +161,7 @@ const DashboardPharmacyDetails = () => {
         // title='Pharmacy'
         title={
           <Typography sx={{ fontSize: '20px', fontWeight: 500, color: '#FFFFFF', textAlign: 'start' }}>
-            {'Pharmacy'}
+            {pharmacyData[currentSlide]?.title}
           </Typography>
         }
         titleTypographyProps={{
@@ -163,9 +172,15 @@ const DashboardPharmacyDetails = () => {
         sx={{ '& .swiper-dots': { mt: 0.75, mr: -1.75 } }}
         subheader={
           <Box sx={{ display: 'flex', alignItems: 'center', '& svg': { color: 'success.main' } }}>
-            <Typography variant='caption' sx={{ mr: 1.5, color: '#FFFFFF' }}>
-              299 Recent requests
-            </Typography>
+            {pharmacyData[currentSlide]?.title === 'Pharmacy' ? (
+              <Typography variant='caption' sx={{ mr: 1.5, color: '#FFFFFF' }}>
+                {pharmacyData[currentSlide]?.title_value} recent requests
+              </Typography>
+            ) : (
+              <Typography variant='caption' sx={{ mr: 1.5, color: '#FFFFFF' }}>
+                Total sick animals : {pharmacyData[currentSlide]?.title_value}
+              </Typography>
+            )}
           </Box>
         }
         action={
@@ -204,9 +219,11 @@ const DashboardPharmacyDetails = () => {
         }
       />
       <CardContent>
-        <Box ref={sliderRef} className='keen-slider'>
-          <Slides />
-        </Box>
+        {pharmacyData.length > 0 && (
+          <Box ref={sliderRef} className='keen-slider'>
+            <Slides sliderData={pharmacyData} />
+          </Box>
+        )}
       </CardContent>
     </Card>
   )

@@ -41,6 +41,12 @@ export async function getPendingRequests({ params }) {
 
   return response.data
 }
+export async function getDashboardPharmacy({ params }) {
+  const url = `a84085fa-2095-4368-bf4b-2dee7d549036`
+  const response = await axiosGetExternal({ url: `${url}`, params })
+
+  return response.data
+}
 
 export async function getNotes({ params }) {
   const url = `v1/dashboard/notes/stats`
