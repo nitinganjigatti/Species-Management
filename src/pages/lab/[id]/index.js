@@ -796,11 +796,17 @@ const RequestDetails = () => {
       if (res?.success) {
         handleCloseTransfer()
         Toaster({ type: 'success', message: res.message })
-        reset()
+        reset({
+          replaced_lab_id: '',
+          transfer_reason: ''
+        })
         fetchRequestDetails()
       } else {
         handleCloseTransfer()
-        reset()
+        reset({
+          replaced_lab_id: '',
+          transfer_reason: ''
+        })
         Toaster({ type: 'error', message: res.message })
       }
     } else {
@@ -819,12 +825,18 @@ const RequestDetails = () => {
 
         Toaster({ type: 'success', message: response.message })
 
-        reset()
+        reset({
+          replaced_lab_id: '',
+          transfer_reason: ''
+        })
 
         fetchRequestDetails()
       } else {
         handleCloseTransfer()
-        reset()
+        reset({
+          replaced_lab_id: '',
+          transfer_reason: ''
+        })
         Toaster({ type: 'error', message: response.message })
       }
     }
