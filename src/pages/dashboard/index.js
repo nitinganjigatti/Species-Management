@@ -14,7 +14,13 @@ import DashboardPharmacyDetails from '../../components/dashboard/DashboardPharma
 import PharmacyPendingReqChart from '../../components/dashboard/charts/PharmacyPendingReqChart'
 import AdministerMedicineChart from '../../components/dashboard/charts/AdministerMedicineChart'
 import DashboardLabRequests from '../../components/dashboard/DashboardLabRequests'
-import { getDashboardAnalytics, getKeyInsights, getEggAnalytics, getAnimalActivity } from 'src/lib/api/dashboard'
+import {
+  getDashboardAnalytics,
+  getKeyInsights,
+  getEggAnalytics,
+  getAnimalActivity,
+  getAnimalTransfer
+} from 'src/lib/api/dashboard'
 
 function Dashboard() {
   const [loading, setLoading] = useState(false)
@@ -22,6 +28,11 @@ function Dashboard() {
   const [keyInsightsData, setKeyInsightsData] = useState([])
   const [eggAnalytics, setEggAnalytics] = useState([])
   const [animalActivityData, setAnimalActivityData] = useState([])
+  const [animalTransfer, setAnimalTransfer] = useState({
+    totalTransfers: 0,
+    transferPercentage: 0,
+    transferProgress: []
+  })
 
   const fetchAnalyticsData = useCallback(async () => {
     try {
@@ -80,11 +91,33 @@ function Dashboard() {
     }
   }, [])
 
+  const fetchAnimalTransferData = useCallback(async () => {
+    try {
+      setLoading(true)
+
+      const params = {}
+      await getAnimalTransfer({ params: params }).then(res => {
+        if (res && Object.keys(res).length > 0) {
+          setAnimalTransfer({
+            totalTransfers: res.totalTransfers,
+            transferPercentage: res.transferPercentage,
+            transferProgress: res.transferProgress
+          })
+        }
+      })
+      setLoading(false)
+    } catch (e) {
+      console.log(e)
+      setLoading(false)
+    }
+  }, [])
+
   useEffect(() => {
     fetchAnalyticsData()
     fetchKeyInsightsData()
     fetchAnimalActivityData()
     fetchEggAnalytics()
+    fetchAnimalTransferData()
   }, [])
 
   const fetchEggAnalytics = useCallback(async () => {
@@ -137,7 +170,7 @@ function Dashboard() {
               <Grid item xs={12} sm={6} md={3}>
                 <DashboardCardHeader title='Animal transfer'>
                   <Box sx={{ p: 6 }}>
-                    <AnimalTransferProgress />
+                    <AnimalTransferProgress animalTransfer={animalTransfer} />
                     {/* <AnimalTransferContent /> */}
                   </Box>
                 </DashboardCardHeader>

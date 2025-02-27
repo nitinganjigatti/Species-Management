@@ -27,3 +27,10 @@ export async function getAnimalActivity({ params }) {
 
   return response.data
 }
+
+export async function getAnimalTransfer({ params }) {
+  const url = `639ae40d-4fd1-44a3-ae17-755a94ed06bf`
+  const response = await axiosGetExternal({ url: `${url}`, params })
+
+  return response.data
+}

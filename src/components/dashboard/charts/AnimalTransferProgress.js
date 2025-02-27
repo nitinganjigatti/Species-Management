@@ -1,16 +1,11 @@
 // ** MUI Imports
 import Box from '@mui/material/Box'
-import Card from '@mui/material/Card'
 import Typography from '@mui/material/Typography'
-import CardHeader from '@mui/material/CardHeader'
-import CardContent from '@mui/material/CardContent'
 import LinearProgress from '@mui/material/LinearProgress'
-
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
 
 // ** Custom Components Importss
-import OptionsMenu from 'src/@core/components/option-menu'
 
 const data = [
   {
@@ -33,22 +28,12 @@ const data = [
   }
 ]
 
-const AnimalTransferProgress = () => {
+const AnimalTransferProgress = ({ animalTransfer }) => {
   return (
     <>
-      {/* <CardHeader
-        title='Total Earning'
-        action={
-          <OptionsMenu
-            options={['Last 28 Days', 'Last Month', 'Last Year']}
-            iconButtonProps={{ size: 'small', sx: { color: 'text.primary' } }}
-          />
-        }
-      /> */}
-      {/* <CardContent sx={{ pt: theme => `${theme.spacing(2.5)} !important` }}> */}
       <Box sx={{ mb: 6, display: 'flex', alignItems: 'center' }}>
         <Typography variant='h4' sx={{ mr: 2, fontWeight: 600, fontSize: '3rem', lineHeight: 1.1, color: '#1F515B' }}>
-          42,880
+          {animalTransfer?.totalTransfers}
         </Typography>
         <Box
           sx={{
@@ -60,26 +45,22 @@ const AnimalTransferProgress = () => {
             '& svg': { mr: 0.5 }
           }}
         >
-          <Icon icon='mdi:menu-up' fontSize='1.875rem' />
+          <Icon icon={animalTransfer.transferPercentage > 0 ? 'mdi:menu-up' : 'mdi:menu-down'} fontSize='1.875rem' />
           <Typography variant='body2' sx={{ fontWeight: 600, fontSize: '0.875rem', color: '#1F515B' }}>
-            22%
+            {animalTransfer?.transferPercentage} %
           </Typography>
         </Box>
       </Box>
 
-      {/* <Typography component='p' variant='caption' sx={{ mb: 7.5 }}>
-          Compared to $84,325 last year
-        </Typography> */}
-
-      {data.map((item, index) => {
+      {animalTransfer?.transferProgress.map((item, index) => {
         return (
-          <Box key={item.title} sx={{ mb: index !== data.length - 1 ? 6.5 : undefined }}>
+          <Box key={item.title} sx={{ mb: index !== animalTransfer?.transferProgress.length - 1 ? 6.5 : undefined }}>
             <Box sx={{ mb: 1.5, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <Typography sx={{ mr: 2, fontWeight: 500, fontSize: '16px', color: '#44544A' }}>{item.title}</Typography>
-              <Typography sx={{ fontWeight: 600, fontSize: '24px', color: '#44544A' }}>{item.amount}</Typography>
+              <Typography sx={{ fontWeight: 600, fontSize: '24px', color: '#44544A' }}>{item.value}</Typography>
             </Box>
             <LinearProgress
-              value={item.progress}
+              value={item.progressPercentage}
               variant='determinate'
               sx={{
                 bgcolor: '#AFEFEB80',
