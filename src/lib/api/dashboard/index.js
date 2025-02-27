@@ -13,3 +13,10 @@ export async function getKeyInsights({ params }) {
 
   return response.data
 }
+
+export async function getEggAnalytics({ params }) {
+  const url = `94877635-4608-4411-8ce8-2f5627dee76a`
+  const response = await axiosGetExternal({ url: `${url}`, params })
+
+  return response.data
+}

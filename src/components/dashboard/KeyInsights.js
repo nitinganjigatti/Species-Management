@@ -9,6 +9,7 @@ const KeyInsights = ({ insights }) => {
     'Animals under treatment': '#AFEFEB66',
     'New medical cases': '#EFF5F2'
   }
+
   const insightsIcons = {
     Natality: '/dashboard/insights/paws.svg',
     Mortality: '/dashboard/insights/bones.svg',

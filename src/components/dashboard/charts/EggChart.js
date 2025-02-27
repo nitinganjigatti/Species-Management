@@ -17,7 +17,7 @@ const series = [
   }
 ]
 
-const EggChart = () => {
+const EggChart = ({ eggAnalytics }) => {
   // ** Hook
   const theme = useTheme()
 
