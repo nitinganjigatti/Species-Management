@@ -33,14 +33,37 @@ const KeyInsights = ({ insights }) => {
           >
             {insight.icon}
           </Box> */}
-          <Box sx={{ flexGrow: 1, textAlign: 'start' }}>
-            <Typography variant='subtitle2' sx={{ fontWeight: 500, fontSize: '16px', color: '#44544A' }}>
+          <Box sx={{ flexGrow: 1, textAlign: 'start', overflow: 'hidden', paddingRight: '10px' }}>
+            <Typography
+              variant='subtitle2'
+              sx={{
+                fontWeight: 500,
+                fontSize: '16px',
+                color: '#44544A',
+                whiteSpace: 'nowrap',
+                textOverflow: 'ellipsis',
+                display: 'block',
+                overflow: 'hidden'
+              }}
+            >
               {insight.title}
             </Typography>
             <Typography
               variant='caption'
               color='text.secondary'
-              sx={{ fontWeight: 400, fontSize: '14px', color: '#7A8684' }}
+              sx={{
+                fontWeight: 400,
+                fontSize: '14px',
+                color: '#7A8684',
+                // whiteSpace: 'nowrap',
+                // textOverflow: 'ellipsis',
+                // width: 'calc(100% - 64px)',
+                // display: 'inline-block',
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                display: 'block'
+              }}
             >
               {insight.subtitle}
             </Typography>

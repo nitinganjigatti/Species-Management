@@ -17,6 +17,8 @@ import Icon from 'src/@core/components/icon'
 // ** Custom Components Imports
 import CustomAvatar from 'src/@core/components/mui/avatar'
 import OptionsMenu from 'src/@core/components/option-menu'
+import { Avatar } from '@mui/material'
+import { bgcolor } from '@mui/system'
 
 const data = [
   {
@@ -58,8 +60,9 @@ const DashboardLabRequests = () => {
       /> */}
       <CardContent sx={{ pt: theme => `${theme.spacing(2.5)} !important` }}>
         <Box sx={{ mb: 5.75, display: 'flex', alignItems: 'center' }}>
-          <CustomAvatar skin='light' variant='rounded' sx={{ mr: 4, width: 50, height: 50 }}>
-            <Icon icon='mdi:credit-card' fontSize='2rem' />
+          <CustomAvatar variant='rounded' sx={{ mr: 4, width: 50, height: 50, bgcolor: '#00AFD633' }}>
+            {/* <Icon icon='mdi:credit-card' fontSize='2rem' /> */}
+            <Avatar variant='square' src='/dashboard/export_notes1.svg' sx={{ p: 0.5 }} />
           </CustomAvatar>
           <Box sx={{ display: 'flex', flexDirection: 'column', textAlign: 'start' }}>
             <Typography variant='h4'>100</Typography>
