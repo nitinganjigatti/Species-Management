@@ -278,7 +278,7 @@ function Dashboard() {
                 <DashboardPharmacyDetails pharmacyData={pharmacyData} />
               </Grid>
               <Grid item xs={12} sm={6} md={2.5} sx={{ order: [1, 1, 2] }}>
-                <DashboardCardHeader title='Pharmacy - Pending requests'>
+                <DashboardCardHeader title='Pending requests(Pharmacy)' isSmall={true}>
                   <PharmacyPendingReqChart pendingRequests={pendingRequests} />
                 </DashboardCardHeader>
               </Grid>

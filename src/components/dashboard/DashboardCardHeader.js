@@ -7,16 +7,36 @@ const DashboardCardHeader = ({
   title = 'Sales Country',
   timeOptions = ['Last 28 Days', 'Last Month', 'Last Year'],
   children,
-  theme
+  theme,
+  isSmall = false
 }) => {
   return (
     <Card>
       <CardHeader
         // title={title}
         title={
-          <Typography sx={{ fontSize: '20px', fontWeight: 500, color: '#44544A', textAlign: 'start' }}>
-            {title}
-          </Typography>
+          isSmall ? (
+            <Typography
+              sx={{
+                fontSize: '20px',
+                fontWeight: 500,
+                color: '#44544A',
+                textAlign: 'start',
+                lineHeight: '3px',
+                marginTop: '6px'
+              }}
+            >
+              {title.split('(')[0]}
+              <Typography component='span' sx={{ fontSize: '14px' }}>
+                {' '}
+                ({title.split('(')[1]}
+              </Typography>
+            </Typography>
+          ) : (
+            <Typography sx={{ fontSize: '20px', fontWeight: 500, color: '#44544A', textAlign: 'start' }}>
+              {title}
+            </Typography>
+          )
         }
         subheaderTypographyProps={{ sx: { lineHeight: 1.429 } }}
         // titleTypographyProps={{
