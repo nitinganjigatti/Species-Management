@@ -172,7 +172,6 @@ function Dashboard() {
 
       const params = {}
       await getNotes({ params: params }).then(res => {
-        debugger
         if (res.length > 0) {
           setNotes(res)
         }
@@ -224,7 +223,7 @@ function Dashboard() {
               </Grid>
               <Grid item xs={12} sm={6} md={3}>
                 <DashboardCardHeader title='Eggs'>
-                  <EggChart eggAnalytics={eggAnalytics} />
+                  <EggChart eggAnalytics={eggAnalytics} height={332} />
                 </DashboardCardHeader>
               </Grid>
               <Grid item xs={12} sm={6} md={4.5} sx={{ order: [2, 2, 1] }}>
@@ -239,7 +238,7 @@ function Dashboard() {
                 <DashboardCardHeader title='Notes'>
                   {/* <AdministerMedicineChart /> */}
                   <Grid sx={{ px: '16px' }}>
-                    <EggChart eggAnalytics={notes} />
+                    <EggChart eggAnalytics={notes} height={260} />
                   </Grid>
                 </DashboardCardHeader>
               </Grid>

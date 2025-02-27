@@ -17,7 +17,7 @@ import { hexToRGBA } from 'src/@core/utils/hex-to-rgba'
 //   }
 // ]
 
-const EggChart = ({ eggAnalytics }) => {
+const EggChart = ({ eggAnalytics, height }) => {
   // ** Hook
   const theme = useTheme()
 
@@ -103,7 +103,7 @@ const EggChart = ({ eggAnalytics }) => {
 
   return (
     <>
-      <ReactApexcharts type='bar' height={332} series={[{ data: values, name: '' }]} options={options} />
+      <ReactApexcharts type='bar' height={height} series={[{ data: values, name: '' }]} options={options} />
       {/* <Card>
         <CardHeader
           title='Sales Country'

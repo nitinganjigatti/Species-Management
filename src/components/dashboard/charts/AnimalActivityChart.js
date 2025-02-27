@@ -17,6 +17,7 @@ const AnimalActivityChart = ({ animalActivityData }) => {
   const theme = useTheme()
 
   const seriesData = animalActivityData.map(item => item.value)
+  const labels = animalActivityData.map(item => item.label)
   const opacityLevels = [1, 0.8, 0.6, 0.4, 0.2]
 
   console.log(animalActivityData, 'animalActivityData')
@@ -36,7 +37,7 @@ const AnimalActivityChart = ({ animalActivityData }) => {
     tooltip: { enabled: false },
     dataLabels: { enabled: false },
     stroke: { width: 3, lineCap: 'round', colors: [theme.palette.background.paper] },
-    labels: ['Newly added', 'Transferred', 'Deleted', 'Missing/Escaped', 'Sick'],
+    labels: labels,
     states: {
       hover: {
         filter: { type: 'none' }
