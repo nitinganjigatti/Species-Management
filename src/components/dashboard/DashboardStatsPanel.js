@@ -1,11 +1,5 @@
 import React from 'react'
 import { Box, Card, Typography, Grid, Avatar } from '@mui/material'
-import PetsIcon from '@mui/icons-material/Pets'
-import EggIcon from '@mui/icons-material/Egg'
-import DescriptionIcon from '@mui/icons-material/Description'
-import ScienceIcon from '@mui/icons-material/Science'
-import PeopleIcon from '@mui/icons-material/People'
-import MedicalServicesIcon from '@mui/icons-material/MedicalServices'
 import Utility from 'src/utility'
 
 const iconMap = {
@@ -15,6 +9,15 @@ const iconMap = {
   labRequests: '/dashboard/lab_req.svg',
   activeUsers: '/dashboard/user.svg',
   lowStockMedicines: '/dashboard/medicines.svg'
+}
+
+const bgColors = {
+  pets: '#E1F9ED',
+  eggs: '#FCF4AE99',
+  medicalRecords: '#FFBDA84D',
+  labRequests: '#AFEFEB66',
+  activeUsers: '#E8F4F2',
+  lowStockMedicines: '#FFD3D366'
 }
 
 const StatCard = ({ icon, value, label, bgColor }) => {
@@ -57,7 +60,7 @@ const DashboardStatsPanel = ({ stats }) => {
       <Grid container spacing={3}>
         {stats.map(({ key, value, label, bgColor, icon }) => (
           <Grid item xs={12} sm={6} md={4} lg={2} key={key}>
-            <StatCard icon={icon || iconMap[key]} value={value} label={label} bgColor={bgColor} />
+            <StatCard icon={icon || iconMap[key]} value={value} label={label} bgColor={bgColor || bgColors[key]} />
           </Grid>
         ))}
       </Grid>

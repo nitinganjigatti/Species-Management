@@ -26,22 +26,12 @@ const data = [
     color: '#FA6140',
     amount: '5',
     trendNumber: '85%'
-    // trend: (
-    //   <Box sx={{ color: '#FA6140' }}>
-    //     <Icon icon='mdi:chevron-up' />
-    //   </Box>
-    // )
   },
   {
     title: 'In-progress',
     amount: '8',
     color: '#E4B819',
     trendNumber: '4%'
-    // trend: (
-    //   <Box sx={{ color: '#E4B819' }}>
-    //     <Icon icon='mdi:chevron-up' />
-    //   </Box>
-    // )
   }
 ]
 

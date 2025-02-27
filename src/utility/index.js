@@ -214,7 +214,7 @@ function toPascalSentenceCase(str) {
 }
 
 function formatAmountCompactDisplay(value) {
-  debugger
+  // debugger
 
   const num = parseFloat(value)
   if (isNaN(num)) return 'Invalid number'
@@ -228,7 +228,7 @@ function formatAmountCompactDisplay(value) {
       compactDisplay: 'short'
     })
   }
-  return `₹${Number(roundedNum)}`
+  return `${Number(roundedNum)}`
 }
 
 const Utility = {

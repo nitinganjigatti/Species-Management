@@ -27,7 +27,7 @@ import { Avatar } from '@mui/material'
 const data = [
   {
     title: 'Transactions',
-    img: '/dashboard/pharmacy_medical_report.svg',
+    img: '/dashboard/medical_record1.svg',
     details: {
       Requests: '5k',
       Purchase: '2k',
@@ -37,22 +37,12 @@ const data = [
   },
   {
     title: 'Active records',
-    img: '/dashboard/p_details.svg',
+    img: '/dashboard/p1.svg',
     details: {
       'Medical Records': '18',
       Complaints: '28',
       Diagnosis: '30',
       Prescriptions: '80'
-    }
-  },
-  {
-    title: 'Sales Overview',
-    img: '/dashboard/pharmacy_medical_reco.svg',
-    details: {
-      Open: '68',
-      Converted: '52',
-      Lost: '04',
-      Quotations: '12'
     }
   }
 ]
@@ -82,7 +72,7 @@ const Slides = () => {
                   maxWidth: 120, // Prevents the image from taking too much space
                   minWidth: 100, // Ensures image does not get too small
                   display: 'flex',
-                  mr: 3
+                  mr: 6
                 }}
               >
                 <Avatar

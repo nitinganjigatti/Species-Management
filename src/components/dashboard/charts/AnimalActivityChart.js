@@ -89,7 +89,7 @@ const AnimalActivityChart = () => {
         <Box sx={{ mx: 3, display: 'flex', alignItems: 'center', '& svg': { mr: 1.25, color: 'primary.OnSurface' } }}>
           <Icon icon='mdi:circle' fontSize='0.75rem' />
           <Typography variant='body2' color={'#44544A'}>
-            Newly added
+            Newly added - 100
           </Typography>
         </Box>
         <Box

@@ -13,7 +13,6 @@ import { hexToRGBA } from 'src/@core/utils/hex-to-rgba'
 
 const series = [
   {
-    name: 'Sales',
     data: [17165, 13850, 12375, 9567, 7880]
   }
 ]
