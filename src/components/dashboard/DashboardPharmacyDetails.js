@@ -126,7 +126,7 @@ const Slides = ({ sliderData }) => {
                           >
                             {Utility.formatAmountCompactDisplay(slide.details[key])}
                           </CustomAvatar>
-                          <Typography variant='caption' sx={{ color: '#FFFFFF', letterSpacing: 0 }}>
+                          <Typography variant='caption' sx={{ color: '#FFFFFF', letterSpacing: 0, textAlign: 'left' }}>
                             {formatTitleCase(key)}
                           </Typography>
                         </Box>
