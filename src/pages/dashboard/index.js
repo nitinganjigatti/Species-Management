@@ -286,7 +286,7 @@ function Dashboard() {
                 <DashboardCardHeader title='Notes'>
                   {/* <AdministerMedicineChart /> */}
                   <Grid sx={{ px: '16px' }}>
-                    <EggChart eggAnalytics={notes} height={260} />
+                    <EggChart eggAnalytics={notes} height={240} />
                   </Grid>
                 </DashboardCardHeader>
               </Grid>
