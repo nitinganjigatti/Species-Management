@@ -222,7 +222,7 @@ function formatAmountCompactDisplay(value) {
   const roundedNum = num.toFixed(2) // Round to 2 decimal places
 
   if (num > 999) {
-    return Number(roundedNum).toLocaleString('en-IN', {
+    return Number(roundedNum).toLocaleString('en-US', {
       maximumFractionDigits: 2,
       notation: 'compact',
       compactDisplay: 'short'

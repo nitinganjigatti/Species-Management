@@ -21,8 +21,9 @@ import Icon from 'src/@core/components/icon'
 
 // ** Custom Components Imports
 import CustomAvatar from 'src/@core/components/mui/avatar'
-import { bgcolor } from '@mui/system'
+import { bgcolor, fontWeight, padding } from '@mui/system'
 import { Avatar } from '@mui/material'
+import Utility from 'src/utility'
 
 const data = [
   {
@@ -55,6 +56,13 @@ const slidesImg = {
 const Slides = ({ sliderData }) => {
   console.log(sliderData, 'sliderData')
 
+  const formatTitleCase = str => {
+    return str
+      .replace(/_/g, ' ') // Replace underscores with spaces
+      .toLowerCase() // Convert the entire string to lowercase
+      .replace(/\b\w/g, char => char.toUpperCase()) // Capitalize the first letter of each word
+  }
+
   return (
     <>
       {sliderData.length > 0 &&
@@ -77,8 +85,8 @@ const Slides = ({ sliderData }) => {
                 <Box
                   sx={{
                     flexShrink: 0, // Prevents the image from shrinking
-                    maxWidth: 120, // Prevents the image from taking too much space
-                    minWidth: 100, // Ensures image does not get too small
+                    maxWidth: 140, // Prevents the image from taking too much space
+                    minWidth: 120, // Ensures image does not get too small
                     display: 'flex',
                     mr: 6
                   }}
@@ -88,7 +96,8 @@ const Slides = ({ sliderData }) => {
                     sx={{
                       width: '100%', // Takes full width of the box
                       height: '100%', // Matches the height of right content
-                      objectFit: 'cover' // Ensures proper scaling without distortion
+                      objectFit: 'cover', // Ensures proper scaling without distortion
+                      alignItems: 'flex-end'
                     }}
                     src={slidesImg[slide.title]}
                   />
@@ -105,19 +114,20 @@ const Slides = ({ sliderData }) => {
                             skin='light'
                             variant='rounded'
                             sx={{
-                              mr: 1.5,
-                              width: 50,
-                              height: 40,
+                              mr: 2,
+                              width: 48,
+                              height: 38,
                               fontSize: '1.25rem',
+                              fontWeight: 600,
                               borderRadius: '6px',
                               color: '#1F515B',
                               bgcolor: '#52F990'
                             }}
                           >
-                            {slide.details[key]}
+                            {Utility.formatAmountCompactDisplay(slide.details[key])}
                           </CustomAvatar>
-                          <Typography variant='caption' sx={{ color: '#FFFFFF' }}>
-                            {key}
+                          <Typography variant='caption' sx={{ color: '#FFFFFF', letterSpacing: 0 }}>
+                            {formatTitleCase(key)}
                           </Typography>
                         </Box>
                       </Grid>
