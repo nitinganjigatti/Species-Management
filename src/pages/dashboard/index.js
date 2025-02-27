@@ -22,7 +22,8 @@ import {
   getAnimalTransfer,
   getPendingRequests,
   getNotes,
-  getDashboardPharmacy
+  getDashboardPharmacy,
+  getLabRequests
 } from 'src/lib/api/dashboard'
 
 function Dashboard() {
@@ -41,6 +42,13 @@ function Dashboard() {
 
   const [pendingRequests, setPendingRequests] = useState([])
   const [notes, setNotes] = useState([])
+
+  const [labRequests, setLabRequests] = useState({
+    total_requests: 0,
+    completed_request: 0,
+    completed_requests_percentage: 0,
+    lab_stats: []
+  })
 
   const fetchAnalyticsData = useCallback(async () => {
     try {
@@ -146,6 +154,7 @@ function Dashboard() {
     fetchPendingRequests()
     fetchNotes()
     fetchPharmacyData()
+    fetchLabRequests()
   }, [])
 
   const fetchEggAnalytics = useCallback(async () => {
@@ -197,6 +206,25 @@ function Dashboard() {
         }
 
         console.log(res, 'getNotes')
+      })
+      setLoading(false)
+    } catch (e) {
+      console.log(e)
+      setLoading(false)
+    }
+  }, [])
+
+  const fetchLabRequests = useCallback(async () => {
+    try {
+      setLoading(true)
+
+      const params = {}
+      await getLabRequests({ params: params }).then(res => {
+        if (res) {
+          setLabRequests(res)
+        }
+
+        console.log(res, 'getLabRequests')
       })
       setLoading(false)
     } catch (e) {
@@ -264,7 +292,7 @@ function Dashboard() {
               </Grid>
               <Grid item xs={12} sm={6} md={2.5} sx={{ order: [1, 1, 2] }}>
                 <DashboardCardHeader title='Lab requests'>
-                  <DashboardLabRequests />
+                  <DashboardLabRequests labRequests={labRequests} />
                 </DashboardCardHeader>
               </Grid>
             </Grid>
