@@ -110,7 +110,7 @@ const PharmacyPendingReqChart = () => {
         subheaderTypographyProps={{ sx: { color: theme => `${theme.palette.text.disabled} !important` } }}
       /> */}
       {/* <CardContent> */}
-      <ReactApexcharts type='donut' height={210} options={options} series={[85, 49, 10]} />
+      <ReactApexcharts type='donut' height={240} options={options} series={[85, 49, 10]} />
       {/* </CardContent> */}
     </>
   )
