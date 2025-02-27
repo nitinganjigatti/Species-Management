@@ -49,3 +49,11 @@ export const axiosFormPost = async ({ url, body, pharmacy }) => {
 
   return axios.post(completeUrl, body, { headers })
 }
+
+export const axiosGetExternal = async ({ url, params, pharmacy }) => {
+  const headers = await GetAPIHeader({ pharmacy })
+  const completeUrl = `https://mocki.io/v1/${url}`
+  headers['Content-Type'] = 'application/json'
+
+  return axios.get(completeUrl, { headers: headers, params: params })
+}

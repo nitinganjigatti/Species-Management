@@ -1,23 +1,240 @@
-import React from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import Image from 'next/image'
 import welcomeToAntz from 'public/images/intro_antz_all.jpg'
-import DashboardStatsPanel from './DashboardStatsPanel'
-import PetsIcon from '@mui/icons-material/Pets'
-
+import DashboardStatsPanel from '../../components/dashboard/DashboardStatsPanel'
 import { Typography, Box, Grid } from '@mui/material'
-import DashboardCardHeader from './DashboardCardHeader'
-import EggChart from './EggChart'
+import DashboardCardHeader from '../../components/dashboard/DashboardCardHeader'
+import EggChart from '../../components/dashboard/charts/EggChart'
 import ApexChartWrapper from 'src/@core/styles/libs/react-apexcharts'
-import AnimalActivityChart from './AnimalActivityChart'
-import KeyInsights from './KeyInsights'
-import AnimalTransferProgress from './AnimalTransferProgress'
+import AnimalActivityChart from '../../components/dashboard/charts/AnimalActivityChart'
+import KeyInsights from '../../components/dashboard/KeyInsights'
+import AnimalTransferProgress from '../../components/dashboard/charts/AnimalTransferProgress'
 import KeenSliderWrapper from 'src/@core/styles/libs/keen-slider'
-import DashboardPharmacyDetails from './DashboardPharmacyDetails'
-import PharmacyPendingReqChart from './PharmacyPendingReqChart'
-import AdministerMedicineChart from './AdministerMedicineChart'
-import DashboardLabRequests from './DashboardLabRequests'
+import DashboardPharmacyDetails from '../../components/dashboard/DashboardPharmacyDetails'
+import PharmacyPendingReqChart from '../../components/dashboard/charts/PharmacyPendingReqChart'
+import AdministerMedicineChart from '../../components/dashboard/charts/AdministerMedicineChart'
+import DashboardLabRequests from '../../components/dashboard/DashboardLabRequests'
+import {
+  getDashboardAnalytics,
+  getKeyInsights,
+  getEggAnalytics,
+  getAnimalActivity,
+  getAnimalTransfer,
+  getPendingRequests,
+  getNotes,
+  getDashboardPharmacy,
+  getLabRequests
+} from 'src/lib/api/dashboard'
 
 function Dashboard() {
+  const [loading, setLoading] = useState(false)
+  const [dashboardAnalyticsData, setDashboardAnalyticsData] = useState([])
+  const [keyInsightsData, setKeyInsightsData] = useState([])
+  const [eggAnalytics, setEggAnalytics] = useState([])
+  const [animalActivityData, setAnimalActivityData] = useState([])
+
+  const [animalTransfer, setAnimalTransfer] = useState({
+    totalTransfers: 0,
+    transferPercentage: 0,
+    transferProgress: []
+  })
+  const [pharmacyData, setPharmacyData] = useState([])
+
+  const [pendingRequests, setPendingRequests] = useState([])
+  const [notes, setNotes] = useState([])
+
+  const [labRequests, setLabRequests] = useState({
+    total_requests: 0,
+    completed_request: 0,
+    completed_requests_percentage: 0,
+    lab_stats: []
+  })
+
+  const fetchAnalyticsData = useCallback(async () => {
+    try {
+      setLoading(true)
+
+      const params = {}
+      await getDashboardAnalytics({ params: params }).then(res => {
+        if (res.length > 0) {
+          setDashboardAnalyticsData(res)
+        }
+
+        console.log(res, 'res')
+      })
+      setLoading(false)
+    } catch (e) {
+      console.log(e)
+      setLoading(false)
+    }
+  }, [])
+
+  const fetchKeyInsightsData = useCallback(async () => {
+    try {
+      setLoading(true)
+
+      const params = {}
+      await getKeyInsights({ params: params }).then(res => {
+        if (res.length > 0) {
+          setKeyInsightsData(res)
+        }
+
+        console.log(res, 'getKeyInsights')
+      })
+      setLoading(false)
+    } catch (e) {
+      console.log(e)
+      setLoading(false)
+    }
+  }, [])
+
+  const fetchAnimalActivityData = useCallback(async () => {
+    try {
+      setLoading(true)
+
+      const params = {}
+      await getAnimalActivity({ params: params }).then(res => {
+        if (res.length > 0) {
+          setAnimalActivityData(res)
+        }
+
+        // console.log(res, 'getAnimalActivity')
+      })
+      setLoading(false)
+    } catch (e) {
+      console.log(e)
+      setLoading(false)
+    }
+  }, [])
+
+  const fetchAnimalTransferData = useCallback(async () => {
+    try {
+      setLoading(true)
+
+      const params = {}
+      await getAnimalTransfer({ params: params }).then(res => {
+        if (res && Object.keys(res).length > 0) {
+          setAnimalTransfer({
+            totalTransfers: res.totalTransfers,
+            transferPercentage: res.transferPercentage,
+            transferProgress: res.transferProgress
+          })
+        }
+      })
+      setLoading(false)
+    } catch (e) {
+      console.log(e)
+      setLoading(false)
+    }
+  }, [])
+
+  const fetchPharmacyData = useCallback(async () => {
+    try {
+      setLoading(true)
+
+      const params = {}
+      await getDashboardPharmacy({ params: params }).then(res => {
+        if (res.length > 0) {
+          setPharmacyData(res)
+        }
+      })
+      setLoading(false)
+    } catch (e) {
+      console.log(e)
+      setLoading(false)
+    }
+  }, [])
+
+  useEffect(() => {
+    fetchAnalyticsData()
+    fetchKeyInsightsData()
+    fetchAnimalActivityData()
+    fetchEggAnalytics()
+    fetchAnimalTransferData()
+    fetchPendingRequests()
+    fetchNotes()
+    fetchPharmacyData()
+    fetchLabRequests()
+  }, [])
+
+  const fetchEggAnalytics = useCallback(async () => {
+    try {
+      setLoading(true)
+
+      const params = {}
+      await getEggAnalytics({ params: params }).then(res => {
+        if (res.length > 0) {
+          setEggAnalytics(res)
+        }
+
+        console.log(res, 'getEggAnalytics')
+      })
+      setLoading(false)
+    } catch (e) {
+      console.log(e)
+      setLoading(false)
+    }
+  }, [])
+
+  const fetchPendingRequests = useCallback(async () => {
+    try {
+      setLoading(true)
+
+      const params = {}
+      await getPendingRequests({ params: params }).then(res => {
+        if (res.length > 0) {
+          setPendingRequests(res)
+        }
+
+        console.log(res, 'getPendingRequests')
+      })
+      setLoading(false)
+    } catch (e) {
+      console.log(e)
+      setLoading(false)
+    }
+  }, [])
+
+  const fetchNotes = useCallback(async () => {
+    try {
+      setLoading(true)
+
+      const params = {}
+      await getNotes({ params: params }).then(res => {
+        if (res.length > 0) {
+          setNotes(res)
+        }
+
+        console.log(res, 'getNotes')
+      })
+      setLoading(false)
+    } catch (e) {
+      console.log(e)
+      setLoading(false)
+    }
+  }, [])
+
+  const fetchLabRequests = useCallback(async () => {
+    try {
+      setLoading(true)
+
+      const params = {}
+      await getLabRequests({ params: params }).then(res => {
+        if (res) {
+          setLabRequests(res)
+        }
+
+        console.log(res, 'getLabRequests')
+      })
+      setLoading(false)
+    } catch (e) {
+      console.log(e)
+      setLoading(false)
+    }
+  }, [])
+
+  console.log(dashboardAnalyticsData, 'dashboardAnalyticsData')
+
   return (
     <div style={{ textAlign: 'center' }}>
       {/* <Image
@@ -26,34 +243,7 @@ function Dashboard() {
         alt='Welcome to Antz'
       /> */}
 
-      <DashboardStatsPanel
-        stats={[
-          { key: 'pets', value: 107400, label: 'All animals', bgColor: '#E1F9ED', icon: '/dashboard/all_animal.svg' },
-          { key: 'eggs', value: 245, label: 'Eggs collected', bgColor: '#FCF4AE99', icon: '/dashboard/Egg.svg' },
-          {
-            key: 'medicalRecords',
-            value: 512,
-            label: 'Medical records',
-            bgColor: '#FFBDA84D',
-            icon: '/dashboard/medical_record.svg'
-          },
-          {
-            key: 'labRequests',
-            value: 345,
-            label: 'Lab requests',
-            bgColor: '#AFEFEB66',
-            icon: '/dashboard/lab_req.svg'
-          },
-          { key: 'activeUsers', value: 192, label: 'Active users', bgColor: '#E8F4F2', icon: '/dashboard/user.svg' },
-          {
-            key: 'lowStockMedicines',
-            value: 54,
-            label: 'Low stock medicines',
-            bgColor: '#FFD3D366',
-            icon: '/dashboard/medicines.svg'
-          }
-        ]}
-      />
+      <DashboardStatsPanel stats={dashboardAnalyticsData} />
       <Box sx={{ mt: 3 }}>
         <ApexChartWrapper>
           <KeenSliderWrapper>
@@ -61,83 +251,48 @@ function Dashboard() {
               <Grid item xs={12} sm={6} md={3}>
                 <DashboardCardHeader title='Key insights'>
                   <Box sx={{ p: 6 }}>
-                    <KeyInsights
-                      insights={[
-                        {
-                          icon: '/dashboard/insights/paws.svg',
-                          title: 'Natality',
-                          subtitle: 'Total births recorded',
-                          value: '54',
-                          bgColor: '#E1F9ED'
-                        },
-                        {
-                          icon: '/dashboard/insights/bones.svg',
-                          title: 'Mortality',
-                          subtitle: 'Total deaths recorded',
-                          value: '16',
-                          bgColor: '#FFBDA866'
-                        },
-                        {
-                          icon: '/dashboard/insights/Enclosure.svg',
-                          title: 'Transferred but unallocated',
-                          subtitle: 'Animals awaiting enclosure assignment',
-                          value: '32',
-                          bgColor: '#FCF4AE66'
-                        },
-                        {
-                          icon: '/dashboard/insights/health.svg',
-                          title: 'Animals under treatment',
-                          subtitle: 'Latest health issues',
-                          value: '05',
-                          bgColor: '#AFEFEB66'
-                        },
-                        {
-                          icon: '/dashboard/insights/cases.svg',
-                          title: 'New medical cases',
-                          subtitle: 'Latest health issues',
-                          value: '12',
-                          bgColor: '#EFF5F2'
-                        }
-                      ]}
-                    />
+                    <KeyInsights insights={keyInsightsData} />
                     {/* <KeyInsightsContent /> */}
                   </Box>
                 </DashboardCardHeader>
               </Grid>
               <Grid item xs={12} sm={6} md={3}>
                 <DashboardCardHeader title='Animal activity'>
-                  <AnimalActivityChart />
+                  <AnimalActivityChart animalActivityData={animalActivityData} />
                 </DashboardCardHeader>
               </Grid>
               <Grid item xs={12} sm={6} md={3}>
                 <DashboardCardHeader title='Animal transfer'>
                   <Box sx={{ p: 6 }}>
-                    <AnimalTransferProgress />
+                    <AnimalTransferProgress animalTransfer={animalTransfer} />
                     {/* <AnimalTransferContent /> */}
                   </Box>
                 </DashboardCardHeader>
               </Grid>
               <Grid item xs={12} sm={6} md={3}>
                 <DashboardCardHeader title='Eggs'>
-                  <EggChart />
+                  <EggChart eggAnalytics={eggAnalytics} height={332} />
                 </DashboardCardHeader>
               </Grid>
               <Grid item xs={12} sm={6} md={4.5} sx={{ order: [2, 2, 1] }}>
-                <DashboardPharmacyDetails />
+                <DashboardPharmacyDetails pharmacyData={pharmacyData} />
               </Grid>
               <Grid item xs={12} sm={6} md={2.5} sx={{ order: [1, 1, 2] }}>
                 <DashboardCardHeader title='Pharmacy - Pending requests'>
-                  <PharmacyPendingReqChart />
+                  <PharmacyPendingReqChart pendingRequests={pendingRequests} />
                 </DashboardCardHeader>
               </Grid>
               <Grid item xs={12} sm={6} md={2.5} sx={{ order: [1, 1, 2] }}>
-                <DashboardCardHeader title='Administer medicine'>
-                  <AdministerMedicineChart />
+                <DashboardCardHeader title='Notes'>
+                  {/* <AdministerMedicineChart /> */}
+                  <Grid sx={{ px: '16px' }}>
+                    <EggChart eggAnalytics={notes} height={240} />
+                  </Grid>
                 </DashboardCardHeader>
               </Grid>
               <Grid item xs={12} sm={6} md={2.5} sx={{ order: [1, 1, 2] }}>
                 <DashboardCardHeader title='Lab requests'>
-                  <DashboardLabRequests />
+                  <DashboardLabRequests labRequests={labRequests} />
                 </DashboardCardHeader>
               </Grid>
             </Grid>

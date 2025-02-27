@@ -20,32 +20,9 @@ import OptionsMenu from 'src/@core/components/option-menu'
 import { Avatar } from '@mui/material'
 import { bgcolor } from '@mui/system'
 
-const data = [
-  {
-    title: 'Pending',
-    color: '#FA6140',
-    amount: '5',
-    trendNumber: '85%'
-    // trend: (
-    //   <Box sx={{ color: '#FA6140' }}>
-    //     <Icon icon='mdi:chevron-up' />
-    //   </Box>
-    // )
-  },
-  {
-    title: 'In-progress',
-    amount: '8',
-    color: '#E4B819',
-    trendNumber: '4%'
-    // trend: (
-    //   <Box sx={{ color: '#E4B819' }}>
-    //     <Icon icon='mdi:chevron-up' />
-    //   </Box>
-    // )
-  }
-]
+const data = ['#FA6140', '#E4B819']
 
-const DashboardLabRequests = () => {
+const DashboardLabRequests = ({ labRequests }) => {
   return (
     <>
       {/* <CardHeader
@@ -65,24 +42,29 @@ const DashboardLabRequests = () => {
             <Avatar variant='square' src='/dashboard/export_notes1.svg' sx={{ p: 0.5 }} />
           </CustomAvatar>
           <Box sx={{ display: 'flex', flexDirection: 'column', textAlign: 'start' }}>
-            <Typography variant='h4'>100</Typography>
+            <Typography variant='h4'>{labRequests.total_requests}</Typography>
             <Typography variant='caption'>Total requests</Typography>
           </Box>
         </Box>
 
         <Box sx={{ mb: 1.5, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-          <Typography sx={{ mr: 2, fontWeight: 500, fontSize: '16px', color: '#44544A' }}> Completed - 87</Typography>
-          <Typography sx={{ fontWeight: 600, fontSize: '20px', color: '#37BD69' }}>85%</Typography>
+          <Typography sx={{ mr: 2, fontWeight: 500, fontSize: '16px', color: '#44544A' }}>
+            {' '}
+            Completed - {labRequests.completed_request}
+          </Typography>
+          <Typography sx={{ fontWeight: 600, fontSize: '20px', color: '#37BD69' }}>
+            {labRequests.completed_requests_percentage}%
+          </Typography>
         </Box>
 
         {/* <Typography sx={{ mb: 1.5, fontWeight: 600, textAlign: 'start' }}>Current Activity</Typography> */}
 
-        <LinearProgress value={85} sx={{ mb: 4 }} variant='determinate' />
+        <LinearProgress value={labRequests.completed_requests_percentage} sx={{ mb: 4 }} variant='determinate' />
 
         <TableContainer>
           <Table>
             <TableBody>
-              {data.map(row => {
+              {labRequests?.lab_stats?.map((row, index) => {
                 return (
                   <TableRow
                     key={row.title}
@@ -96,7 +78,9 @@ const DashboardLabRequests = () => {
                     }}
                   >
                     <TableCell>
-                      <Box sx={{ display: 'flex', alignItems: 'center', '& svg': { mr: 1.8, color: `${row.color}` } }}>
+                      <Box
+                        sx={{ display: 'flex', alignItems: 'center', '& svg': { mr: 1.8, color: `${data[index]}` } }}
+                      >
                         <Icon icon='mdi:circle' fontSize='1rem' />
                         <Typography variant='body2' sx={{ color: '#44544A', fontWeight: 400, fontSize: '16px' }}>
                           {row.title}
@@ -105,7 +89,7 @@ const DashboardLabRequests = () => {
                     </TableCell>
                     <TableCell align='right'>
                       <Typography variant='body2' sx={{ fontWeight: 600, fontSize: '16px', color: '#44544A' }}>
-                        {row.amount}
+                        {row.value}
                       </Typography>
                     </TableCell>
                     <TableCell>
@@ -114,7 +98,7 @@ const DashboardLabRequests = () => {
                           variant='body2'
                           sx={{ mr: 1.5, fontWeight: 500, fontSize: '16px', color: '#FA6140' }}
                         >
-                          {row.trendNumber}
+                          {row.percentage}
                         </Typography>
                         {/* {row.trend} */}
                       </Box>

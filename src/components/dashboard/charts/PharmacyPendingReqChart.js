@@ -13,13 +13,16 @@ const donutColors = {
   series3: '#FA6140'
 }
 
-const PharmacyPendingReqChart = () => {
+const PharmacyPendingReqChart = ({ pendingRequests }) => {
   // ** Hook
   const theme = useTheme()
 
+  const labels = pendingRequests.map(item => item.label)
+  const values = pendingRequests.map(item => item.value)
+
   const options = {
     stroke: { width: 0 },
-    labels: ['Low priority', 'High priority ', 'Emergency'],
+    labels: labels,
     colors: [donutColors.series1, donutColors.series2, donutColors.series3],
     dataLabels: {
       enabled: false,
@@ -41,6 +44,7 @@ const PharmacyPendingReqChart = () => {
             show: true,
             name: {
               show: false
+
               //   fontSize: '0.5rem'
             },
             value: {
@@ -53,6 +57,7 @@ const PharmacyPendingReqChart = () => {
               fontSize: '1.2rem',
               formatter: w => {
                 const total = w.globals.seriesTotals.reduce((a, b) => a + b, 0)
+
                 return `${total}` // Dynamically calculated total
               },
               color: theme.palette.text.primary
@@ -110,7 +115,7 @@ const PharmacyPendingReqChart = () => {
         subheaderTypographyProps={{ sx: { color: theme => `${theme.palette.text.disabled} !important` } }}
       /> */}
       {/* <CardContent> */}
-      <ReactApexcharts type='donut' height={240} options={options} series={[85, 49, 10]} />
+      <ReactApexcharts type='donut' height={240} options={options} series={values} />
       {/* </CardContent> */}
     </>
   )

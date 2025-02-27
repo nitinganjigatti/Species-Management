@@ -213,6 +213,24 @@ function toPascalSentenceCase(str) {
     .join(' ')
 }
 
+function formatAmountCompactDisplay(value) {
+  // debugger
+
+  const num = parseFloat(value)
+  if (isNaN(num)) return 'Invalid number'
+
+  const roundedNum = num.toFixed(2) // Round to 2 decimal places
+
+  if (num > 999) {
+    return Number(roundedNum).toLocaleString('en-US', {
+      maximumFractionDigits: 2,
+      notation: 'compact',
+      compactDisplay: 'short'
+    })
+  }
+  return `${Number(roundedNum)}`
+}
+
 const Utility = {
   formatDate,
   formatNumber,
@@ -232,7 +250,8 @@ const Utility = {
   downloadFileFromURL,
   formatText,
   toPascalSentenceCase,
-  renderUserAvatar
+  renderUserAvatar,
+  formatAmountCompactDisplay
 }
 
 export default Utility
