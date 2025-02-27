@@ -19,7 +19,7 @@ import { getDashboardAnalytics, getKeyInsights, getEggAnalytics, getAnimalActivi
 function Dashboard() {
   const [loading, setLoading] = useState(false)
   const [dashboardAnalyticsData, setDashboardAnalyticsData] = useState([])
-  const [keyInsightsData, setKeyInsights] = useState([])
+  const [keyInsightsData, setKeyInsightsData] = useState([])
   const [eggAnalytics, setEggAnalytics] = useState([])
   const [animalActivityData, setAnimalActivityData] = useState([])
 
