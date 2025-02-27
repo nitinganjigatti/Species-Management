@@ -12,9 +12,14 @@ import ReactApexcharts from 'src/@core/components/react-apexcharts'
 // ** Util Import
 import { hexToRGBA } from 'src/@core/utils/hex-to-rgba'
 
-const AnimalActivityChart = () => {
+const AnimalActivityChart = ({ animalActivityData }) => {
   // ** Hook
   const theme = useTheme()
+
+  const seriesData = animalActivityData.map(item => item.value)
+  const opacityLevels = [1, 0.8, 0.6, 0.4, 0.2]
+
+  console.log(animalActivityData, 'animalActivityData')
 
   const options = {
     chart: {
@@ -58,7 +63,7 @@ const AnimalActivityChart = () => {
               offsetY: -15,
               fontWeight: 500,
               fontSize: '2.125rem',
-              formatter: value => `${value}k`,
+              formatter: value => `${value}`,
               color: theme.palette.text.primary
             },
             total: {
@@ -66,7 +71,7 @@ const AnimalActivityChart = () => {
               label: 'Today',
               fontSize: '1rem',
               color: theme.palette.text.secondary,
-              formatter: value => `${value.globals.seriesTotals.reduce((total, num) => total + num)}k`
+              formatter: value => `${value.globals.seriesTotals.reduce((total, num) => total + num)}`
             }
           }
         }
@@ -84,66 +89,27 @@ const AnimalActivityChart = () => {
 
   return (
     <>
-      <ReactApexcharts type='donut' height={290} options={options} series={[13, 18, 18, 24, 16]} />
+      <ReactApexcharts type='donut' height={290} options={options} series={seriesData} />
       <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center', mb: 4 }}>
-        <Box sx={{ mx: 3, display: 'flex', alignItems: 'center', '& svg': { mr: 1.25, color: 'primary.OnSurface' } }}>
-          <Icon icon='mdi:circle' fontSize='0.75rem' />
-          <Typography variant='body2' color={'#44544A'}>
-            Newly added - 100
-          </Typography>
-        </Box>
-        <Box
-          sx={{
-            mx: 3,
-            display: 'flex',
-            alignItems: 'center',
-            '& svg': { mr: 1.25, color: hexToRGBA(theme.palette.primary.OnSurface, 0.8) }
-          }}
-        >
-          <Icon icon='mdi:circle' fontSize='0.75rem' />
-          <Typography variant='body2' color={'#44544A'}>
-            Transferred
-          </Typography>
-        </Box>
-        <Box
-          sx={{
-            mx: 3,
-            display: 'flex',
-            alignItems: 'center',
-            '& svg': { mr: 1.25, color: hexToRGBA(theme.palette.primary.OnSurface, 0.6) }
-          }}
-        >
-          <Icon icon='mdi:circle' fontSize='0.75rem' />
-          <Typography variant='body2' color={'#44544A'}>
-            Deleted
-          </Typography>
-        </Box>
-        <Box
-          sx={{
-            mx: 3,
-            display: 'flex',
-            alignItems: 'center',
-            '& svg': { mr: 1.25, color: hexToRGBA(theme.palette.primary.OnSurface, 0.4) }
-          }}
-        >
-          <Icon icon='mdi:circle' fontSize='0.75rem' />
-          <Typography variant='body2' color={'#44544A'}>
-            Missing/Escaped
-          </Typography>
-        </Box>
-        <Box
-          sx={{
-            mx: 3,
-            display: 'flex',
-            alignItems: 'center',
-            '& svg': { mr: 1.25, color: hexToRGBA(theme.palette.primary.OnSurface, 0.2) }
-          }}
-        >
-          <Icon icon='mdi:circle' fontSize='0.75rem' />
-          <Typography variant='body2' color={'#44544A'}>
-            Sick
-          </Typography>
-        </Box>
+        {animalActivityData.map((status, index) => (
+          <Box
+            key={status.label}
+            sx={{
+              mx: 3,
+              display: 'flex',
+              alignItems: 'center',
+              '& svg': { mr: 1.25, color: hexToRGBA(theme.palette.primary.OnSurface, opacityLevels[index]) }
+            }}
+          >
+            <Icon icon='mdi:circle' fontSize='0.75rem' />
+            <Typography variant='body2' sx={{ fontWeight: 400, fontSize: '14px', color: '#44544A' }}>
+              {status.label}{' '}
+              <Typography component='span' variant='body2' sx={{ fontWeight: 600, fontSize: '14px', color: '#44544A' }}>
+                - {status.value}
+              </Typography>
+            </Typography>
+          </Box>
+        ))}
       </Box>
     </>
   )

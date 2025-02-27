@@ -14,13 +14,14 @@ import DashboardPharmacyDetails from '../../components/dashboard/DashboardPharma
 import PharmacyPendingReqChart from '../../components/dashboard/charts/PharmacyPendingReqChart'
 import AdministerMedicineChart from '../../components/dashboard/charts/AdministerMedicineChart'
 import DashboardLabRequests from '../../components/dashboard/DashboardLabRequests'
-import { getDashboardAnalytics, getKeyInsights, getEggAnalytics } from 'src/lib/api/dashboard'
+import { getDashboardAnalytics, getKeyInsights, getEggAnalytics, getAnimalActivity } from 'src/lib/api/dashboard'
 
 function Dashboard() {
   const [loading, setLoading] = useState(false)
   const [dashboardAnalyticsData, setDashboardAnalyticsData] = useState([])
   const [keyInsightsData, setKeyInsights] = useState([])
   const [eggAnalytics, setEggAnalytics] = useState([])
+  const [animalActivityData, setAnimalActivityData] = useState([])
 
   const fetchAnalyticsData = useCallback(async () => {
     try {
@@ -48,7 +49,7 @@ function Dashboard() {
       const params = {}
       await getKeyInsights({ params: params }).then(res => {
         if (res.length > 0) {
-          setKeyInsights(res)
+          setKeyInsightsData(res)
         }
 
         console.log(res, 'getKeyInsights')
@@ -60,9 +61,29 @@ function Dashboard() {
     }
   }, [])
 
+  const fetchAnimalActivityData = useCallback(async () => {
+    try {
+      setLoading(true)
+
+      const params = {}
+      await getAnimalActivity({ params: params }).then(res => {
+        if (res.length > 0) {
+          setAnimalActivityData(res)
+        }
+
+        // console.log(res, 'getAnimalActivity')
+      })
+      setLoading(false)
+    } catch (e) {
+      console.log(e)
+      setLoading(false)
+    }
+  }, [])
+
   useEffect(() => {
     fetchAnalyticsData()
     fetchKeyInsightsData()
+    fetchAnimalActivityData()
   }, [])
 
   const fetchEggAnalytics = useCallback(async () => {
@@ -109,7 +130,7 @@ function Dashboard() {
               </Grid>
               <Grid item xs={12} sm={6} md={3}>
                 <DashboardCardHeader title='Animal activity'>
-                  <AnimalActivityChart />
+                  <AnimalActivityChart animalActivityData={animalActivityData} />
                 </DashboardCardHeader>
               </Grid>
               <Grid item xs={12} sm={6} md={3}>

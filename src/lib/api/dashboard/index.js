@@ -20,3 +20,10 @@ export async function getEggAnalytics({ params }) {
 
   return response.data
 }
+
+export async function getAnimalActivity({ params }) {
+  const url = `8a764b3e-d33b-4e64-a83f-2e1eb4fe9336`
+  const response = await axiosGetExternal({ url: `${url}`, params })
+
+  return response.data
+}
