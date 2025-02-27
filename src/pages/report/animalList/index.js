@@ -28,6 +28,7 @@ import Error404 from 'src/pages/404'
 
 import Icon from 'src/@core/components/icon'
 import Tooltip from '@mui/material/Tooltip'
+import StickyTable from 'src/views/table/sticky-table'
 
 const AnimalList = () => {
   const router = useRouter()
@@ -479,9 +480,10 @@ const AnimalList = () => {
         field: 'Animals',
         headerName: header.label,
         isAvatar: true,
+        pinned: 'left',
         sortable: false,
         disableColumnMenu: true,
-        width: 280,
+        width: 300,
         renderCell: params => (
           <CardHeader
             avatar={
@@ -492,20 +494,39 @@ const AnimalList = () => {
               />
             }
             title={
-              params.row.primary_identifier_value ? (
-                <Typography sx={{ fontSize: '16px', fontWeight: 500, fontFamily: 'Inter', color: '#006D35' }}>
-                  {params.row.primary_identifier_type}: {params.row.primary_identifier_value}
-                </Typography>
-              ) : null
+              <>
+                {params.row.primary_identifier_value ? (
+                  <Tooltip
+                    title={params.row.primary_identifier_value.length > 10 ? params.row.primary_identifier_value : null}
+                    placement='bottom'
+                  >
+                    <Typography
+                      sx={{
+                        cursor: 'pointer',
+                        width: '100%',
+                        fontSize: '16px',
+                        fontWeight: 500,
+                        fontFamily: 'Inter',
+                        color: '#006D35'
+                      }}
+                    >
+                      {params.row.primary_identifier_type}: {truncateText(params.row.primary_identifier_value, 10)}
+                    </Typography>
+                  </Tooltip>
+                ) : (
+                  <Typography></Typography>
+                )}
+              </>
             }
             subheader={
               <>
                 <Tooltip
-                  title={params.row.scientific_name.length > 40 ? params.row.scientific_name : null}
+                  title={params.row.scientific_name.length > 25 ? params.row.scientific_name : null}
                   placement='bottom'
                 >
                   <Typography
                     sx={{
+                      cursor: 'pointer',
                       fontSize: '14px',
                       fontWeight: 400,
                       fontFamily: 'Inter',
@@ -513,16 +534,21 @@ const AnimalList = () => {
                       whiteSpace: 'nowrap',
                       overflow: 'hidden',
                       textOverflow: 'ellipsis',
-                      maxWidth: '200px'
+                      // maxWidth: '200px'\
+                      textAlign: 'left',
+                      overflow: 'hidden',
+                      whiteSpace: 'nowrap',
+                      textOverflow: 'ellipsis'
                     }}
                     variant='body2'
                   >
-                    {truncateText(params.row.scientific_name, 40)}
+                    {truncateText(params.row.scientific_name, 25)}
                   </Typography>
                 </Tooltip>
-                <Tooltip title={params.row.common_name.length > 53 ? params.row.common_name : null} placement='bottom'>
+                <Tooltip title={params.row.common_name.length > 25 ? params.row.common_name : null} placement='bottom'>
                   <Typography
                     sx={{
+                      cursor: 'pointer',
                       fontSize: '14px',
                       fontWeight: 400,
                       fontFamily: 'Inter',
@@ -530,11 +556,15 @@ const AnimalList = () => {
                       whiteSpace: 'nowrap',
                       overflow: 'hidden',
                       textOverflow: 'ellipsis',
-                      maxWidth: '200px'
+                      // maxWidth: '200px',
+                      textAlign: 'left',
+                      overflow: 'hidden',
+                      whiteSpace: 'nowrap',
+                      textOverflow: 'ellipsis'
                     }}
                     variant='body2'
                   >
-                    {truncateText(params.row.common_name, 53)}
+                    {truncateText(params.row.common_name, 25)}
                   </Typography>
                 </Tooltip>
               </>
@@ -547,12 +577,12 @@ const AnimalList = () => {
     return {
       field: header.key,
       headerName: header.label,
-      width: 310,
+      width: 210,
       sortable: false,
       disableColumnMenu: true,
       textAlign: 'center',
       renderCell: params => {
-        const truncatedValue = params?.value ? truncateText(params.value, 60) : params?.value
+        const truncatedValue = params?.row[header.key] ? truncateText(params?.row[header.key], 20) : ''
 
         const showTooltip = params?.value?.length > 20
 
@@ -971,8 +1001,8 @@ const AnimalList = () => {
                   </Box>
                 )}
               </Box>
-              <Box sx={{ width: '98%', margin: 4 }}>
-                <Box sx={{ borderRadius: '8px' }}>
+              <Box sx={{ width: '100%', px: 5, mt: 4 }}>
+                {/* <Box sx={{ borderRadius: '8px' }}>
                   <DataGrid
                     sx={{
                       mt: 3,
@@ -1027,7 +1057,41 @@ const AnimalList = () => {
                     rowHeight={70}
                     scrollbarSize={10}
                   />
-                </Box>
+                </Box> */}
+
+                {columns.length > 0 && (
+                  <StickyTable
+                    rows={reportRows}
+                    rowCount={total}
+                    rowHeight={86}
+                    headerHeight={47}
+                    pagination={true}
+                    columns={columns.length && columns}
+                    pageSizeOptions={[7, 10, 25, 50]}
+                    rowsInView={7}
+                    rowsInViewOptions={[5, 7, 10, 25, 50]}
+                    paginationModel={paginationModel}
+                    onPaginationModelChange={setPaginationModel}
+                    loading={isLoading}
+                    // sortConfig={sortModel}
+                    // onSortChange={handleSortModelChange}
+                    // onCellClick={onCellClick}
+                    // onRowClick={handleRowClick}
+                    // rowSelection
+                    // onRowSelect={onRowSelect}
+                    downloadExcel
+                    // modifyColumnPinning
+                    headerName='Species'
+                    searchMode='server'
+                    // onSearch={onSearch}
+                    disableColumnSorting={true}
+
+                    // autoHeight
+                    // disableColumnFilter={false}
+                    // hideFooterSelectedRowCount
+                    // scrollbarSize={10}
+                  />
+                )}
               </Box>
             </TabContext>
           </Card>
