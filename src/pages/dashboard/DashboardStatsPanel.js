@@ -6,6 +6,7 @@ import DescriptionIcon from '@mui/icons-material/Description'
 import ScienceIcon from '@mui/icons-material/Science'
 import PeopleIcon from '@mui/icons-material/People'
 import MedicalServicesIcon from '@mui/icons-material/MedicalServices'
+import Utility from 'src/utility'
 
 const iconMap = {
   pets: '/dashboard/all_animal.svg',
@@ -40,7 +41,9 @@ const StatCard = ({ icon, value, label, bgColor }) => {
           src={icon}
         />
         <Box textAlign={'start'}>
-          <Typography sx={{ fontSize: '34px', fontWeight: 600, color: '#44544A' }}>{value}</Typography>
+          <Typography sx={{ fontSize: '34px', fontWeight: 600, color: '#44544A' }}>
+            {Utility.formatAmountCompactDisplay(value)}
+          </Typography>
           <Typography sx={{ fontSize: '14px', fontWeight: 400, color: '#44544A' }}>{label}</Typography>
         </Box>
       </Box>
