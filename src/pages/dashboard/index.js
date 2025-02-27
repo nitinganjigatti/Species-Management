@@ -84,6 +84,7 @@ function Dashboard() {
     fetchAnalyticsData()
     fetchKeyInsightsData()
     fetchAnimalActivityData()
+    fetchEggAnalytics()
   }, [])
 
   const fetchEggAnalytics = useCallback(async () => {

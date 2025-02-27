@@ -11,15 +11,18 @@ import ReactApexcharts from 'src/@core/components/react-apexcharts'
 // ** Util Import
 import { hexToRGBA } from 'src/@core/utils/hex-to-rgba'
 
-const series = [
-  {
-    data: [17165, 13850, 12375, 9567, 7880]
-  }
-]
+// const series = [
+//   {
+//     data: [17165, 13850, 12375, 9567, 7880]
+//   }
+// ]
 
 const EggChart = ({ eggAnalytics }) => {
   // ** Hook
   const theme = useTheme()
+
+  const labels = eggAnalytics.map(item => item.label)
+  const values = eggAnalytics.map(item => item.value)
 
   const options = {
     chart: {
@@ -77,7 +80,7 @@ const EggChart = ({ eggAnalytics }) => {
     xaxis: {
       axisTicks: { show: false },
       axisBorder: { show: false },
-      categories: ['Collected', 'In nest', 'In nursery', 'Hatched', 'Discarded'],
+      categories: labels,
       labels: {
         formatter: val => `${Number(val) / 1000}k`,
         style: {
@@ -100,7 +103,7 @@ const EggChart = ({ eggAnalytics }) => {
 
   return (
     <>
-      <ReactApexcharts type='bar' height={332} series={series} options={options} />
+      <ReactApexcharts type='bar' height={332} series={[{ data: values, name: '' }]} options={options} />
       {/* <Card>
         <CardHeader
           title='Sales Country'
