@@ -476,6 +476,7 @@ const SpeciesMappedtoDiet = ({
       </Box>
 
       {/* bottom buttons */}
+
       <Box
         sx={{
           height: '122px',
@@ -515,19 +516,16 @@ const SpeciesMappedtoDiet = ({
         ) : (
           ''
         )}
-        {!loading ? (
-          <LoadingButton
-            fullWidth
-            variant='contained'
-            size='large'
-            disabled={tempSelectedSpecies?.length === 0}
-            onClick={handleAdd}
-          >
-            ADD
-          </LoadingButton>
-        ) : (
-          ''
-        )}
+
+        <LoadingButton
+          fullWidth
+          variant='contained'
+          size='large'
+          disabled={tempSelectedSpecies?.length === 0}
+          onClick={handleAdd}
+        >
+          ASSIGN
+        </LoadingButton>
       </Box>
     </Drawer>
   )
