@@ -29,7 +29,7 @@ import { forwardRef, useState, useEffect, useCallback } from 'react'
 import CommonDialogBox from 'src/components/CommonDialogBox'
 import { debounce } from 'lodash'
 
-import { getMedicineList } from 'src/lib/api/pharmacy/getMedicineList'
+import { getAvailableProductsInPharmacy } from 'src/lib/api/pharmacy/getMedicineList'
 import { getAvailableMedicineByMedicineIdToReturn } from 'src/lib/api/pharmacy/getRequestItemsList'
 
 import { getReasonsList, addStocksAdjust } from 'src/lib/api/pharmacy/stockAdjustment'
@@ -201,7 +201,7 @@ const AddStockAdjustment = () => {
         limit: 20
       }
 
-      const searchResults = await getMedicineList({ params: params })
+      const searchResults = await getAvailableProductsInPharmacy({ params: params })
       if (searchResults?.data?.list_items.length > 0) {
         setOptionsMedicineList(
           searchResults?.data?.list_items?.map(item => ({
