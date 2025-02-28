@@ -115,7 +115,7 @@ const PharmacyPendingReqChart = ({ pendingRequests }) => {
         subheaderTypographyProps={{ sx: { color: theme => `${theme.palette.text.disabled} !important` } }}
       /> */}
       {/* <CardContent> */}
-      <ReactApexcharts type='donut' height={240} options={options} series={values} />
+      <ReactApexcharts type='donut' height={260} options={options} series={values} />
       {/* </CardContent> */}
     </>
   )

@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useCallback } from 'react'
-import { Box, Grid, Skeleton } from '@mui/material'
+import { Box, CircularProgress, Grid, Skeleton } from '@mui/material'
 import DashboardStatsPanel from '../../components/dashboard/DashboardStatsPanel'
 import DashboardCardHeader from '../../components/dashboard/DashboardCardHeader'
 import EggChart from '../../components/dashboard/charts/EggChart'
@@ -26,6 +26,7 @@ import DashboardLabRequests from 'src/components/dashboard/DashboardLabRequests'
 
 function Dashboard() {
   const [loading, setLoading] = useState(false)
+  const [firstLoad, setFirstLoad] = useState(true)
   const [dashboardAnalyticsData, setDashboardAnalyticsData] = useState([])
   const [keyInsightsData, setKeyInsightsData] = useState([])
   const [eggAnalytics, setEggAnalytics] = useState([])
@@ -55,7 +56,8 @@ function Dashboard() {
 
   const fetchAllData = useCallback(async () => {
     try {
-      setLoading(true)
+      if (firstLoad) setLoading(true)
+      // setLoading(true)
 
       const params = {}
       const [
@@ -106,12 +108,13 @@ function Dashboard() {
       if (pharmacyRes.length > 0) setPharmacyData(pharmacyRes)
       if (labRequestsRes) setLabRequests(labRequestsRes)
 
+      if (firstLoad) setFirstLoad(false)
       setLoading(false)
     } catch (e) {
       console.error(e)
       setLoading(false)
     }
-  }, [])
+  }, [firstLoad])
 
   useEffect(() => {
     fetchAllData()
@@ -122,17 +125,36 @@ function Dashboard() {
   return (
     <div style={{ textAlign: 'center' }}>
       {loading ? (
-        <Box sx={{ mt: 3, display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-          <Grid container spacing={3}>
-            {Array.from(new Array(10)).map((_, index) => (
-              <Grid item xs={12} sm={6} md={3} key={index}>
-                <Skeleton variant='rectangular' height={120} sx={{ borderRadius: 2 }} />
-                <Skeleton variant='text' width={200} height={30} sx={{ mt: 2 }} />
-                <Skeleton variant='text' width={120} height={30} sx={{ mt: 2 }} />
-              </Grid>
-            ))}
-          </Grid>
-        </Box>
+        <>
+          <Box
+            sx={{
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              height: '80vh'
+            }}
+          >
+            <CircularProgress />
+          </Box>
+          {/* <Box sx={{ mt: 3 }}>
+            <Grid container spacing={3}>
+              {Array.from(new Array(6)).map((_, index) => (
+                <Grid item xs={12} sm={6} md={4} lg={2} key={index}>
+                  <Skeleton variant='rectangular' height={160} width={200} sx={{ borderRadius: 2 }} />
+                  <Skeleton variant='text' width={150} height={30} sx={{ mt: 2 }} />
+                </Grid>
+              ))}
+            </Grid>
+            <Grid container spacing={3} sx={{ mt: 3 }}>
+              {Array.from(new Array(4)).map((_, index) => (
+                <Grid item xs={12} sm={6} md={3} key={index}>
+                  <Skeleton variant='rectangular' height={400} width={300} sx={{ borderRadius: 2 }} />
+                  <Skeleton variant='text' width={150} height={30} sx={{ mt: 2 }} />
+                </Grid>
+              ))}
+            </Grid>
+          </Box> */}
+        </>
       ) : (
         <>
           <DashboardStatsPanel stats={dashboardAnalyticsData} />
