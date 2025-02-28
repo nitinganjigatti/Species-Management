@@ -238,12 +238,11 @@ function Dashboard() {
 
   return (
     <div style={{ textAlign: 'center' }}>
-      <Image
+      {/* <Image
         src={welcomeToAntz}
         style={{ maxWidth: '600px', width: '100%', height: 'calc(100vh - 180px)', objectFit: 'contain' }}
         alt='Welcome to Antz'
-      />{' '}
-      */}
+      />{' '} */}
       <DashboardStatsPanel stats={dashboardAnalyticsData} />
       <Box sx={{ mt: 3 }}>
         <ApexChartWrapper>
