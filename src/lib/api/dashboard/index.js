@@ -31,6 +31,7 @@ export async function getAnimalActivity({ params }) {
 export async function getAnimalTransfer({ params }) {
   const url = `v1/dashboard/animal/transfer/insights`
   const response = await axiosGet({ url: `${url}`, params })
+
   return response.data
 }
 
