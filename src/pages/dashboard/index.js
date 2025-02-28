@@ -25,6 +25,7 @@ import {
   getDashboardPharmacy,
   getLabRequests
 } from 'src/lib/api/dashboard'
+import DashboardNotes from 'src/components/dashboard/charts/DashboardNotes'
 
 function Dashboard() {
   const [loading, setLoading] = useState(false)
@@ -285,9 +286,10 @@ function Dashboard() {
               <Grid item xs={12} sm={6} md={2.5} sx={{ order: [1, 1, 2] }}>
                 <DashboardCardHeader title='Notes'>
                   {/* <AdministerMedicineChart /> */}
-                  <Grid sx={{ px: '16px' }}>
-                    <EggChart eggAnalytics={notes} height={240} />
-                  </Grid>
+                  {/* <Grid> */}
+                  <DashboardNotes notesData={notes} />
+                  {/* <EggChart eggAnalytics={notes} height={240} /> */}
+                  {/* </Grid> */}
                 </DashboardCardHeader>
               </Grid>
               <Grid item xs={12} sm={6} md={2.5} sx={{ order: [1, 1, 2] }}>

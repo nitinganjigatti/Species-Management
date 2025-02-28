@@ -5,13 +5,16 @@ import { hexToRGBA } from 'src/@core/utils/hex-to-rgba'
 import Box from '@mui/material/Box'
 import Typography from '@mui/material/Typography'
 
-const DashboardNotes = () => {
+const DashboardNotes = ({ notesData }) => {
   const theme = useTheme()
 
-  const categories = ['All', 'Low', 'Moderate', 'High', 'Critical']
-  const values = [38, 55, 48, 65, 80]
+  const categories = notesData.map(item => item.label)
+  const values = notesData.map(item => item.value)
+
+  //   const categories = ['All', 'Low', 'Moderate', 'High', 'Critical']
+  //   const values = [38, 55, 48, 65, 80]
   const colors = [
-    hexToRGBA('#1F415B', 1),
+    // hexToRGBA('#1F415B', 1),
     hexToRGBA('#00D6C9', 1),
     hexToRGBA('#E4B819', 1),
     hexToRGBA('#FA6140', 1),
@@ -27,7 +30,7 @@ const DashboardNotes = () => {
       bar: {
         borderRadius: 8,
         distributed: true,
-        columnWidth: '40%',
+        columnWidth: '36%',
         endingShape: 'rounded',
         startingShape: 'rounded'
       }
@@ -60,13 +63,13 @@ const DashboardNotes = () => {
     <>
       <ReactApexcharts type='bar' height={215} options={options} series={[{ data: values }]} />
       {/* Custom Legend with Text & Values */}
-      <Box display='flex' justifyContent='center' flexWrap='wrap' mb={3}>
+      <Box display='flex' justifyContent='start' flexWrap='wrap' mb={4} sx={{ px: '16px' }}>
         {categories.map((label, index) => (
-          <Box key={index} display='flex' alignItems='center' mx={1}>
+          <Box key={index} display='flex' alignItems='center' mx={1.2}>
             <Box sx={{ width: 11, height: 11, borderRadius: '50%', backgroundColor: colors[index], mr: 0.5 }} />
-            <Typography variant='body2' sx={{ color: '#44544A', fontSize: '14px', fontWeight: 400 }}>
+            <Typography variant='body2' sx={{ color: '#44544A', fontSize: '13px', fontWeight: 400 }}>
               {label} -{' '}
-              <Typography component='span' sx={{ color: '#44544A', fontSize: '14px', fontWeight: 600 }}>
+              <Typography component='span' sx={{ color: '#44544A', fontSize: '13px', fontWeight: 600 }}>
                 {values[index]}
               </Typography>
             </Typography>
