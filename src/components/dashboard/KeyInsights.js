@@ -21,7 +21,7 @@ const KeyInsights = ({ insights }) => {
   return (
     <>
       {insights.map((insight, index) => (
-        <Box key={index} sx={{ display: 'flex', alignItems: 'center', mb: 4 }}>
+        <Box key={index} sx={{ display: 'flex', alignItems: 'center', mb: 6 }}>
           {console.log(insight, 'insight')}
           <Avatar
             variant='square'

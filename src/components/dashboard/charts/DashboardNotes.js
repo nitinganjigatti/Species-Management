@@ -61,7 +61,7 @@ const DashboardNotes = ({ notesData }) => {
 
   return (
     <>
-      <ReactApexcharts type='bar' height={215} options={options} series={[{ data: values }]} />
+      <ReactApexcharts type='bar' height={200} options={options} series={[{ data: values }]} />
       {/* Custom Legend with Text & Values */}
       <Box display='flex' justifyContent='start' flexWrap='wrap' mb={4} sx={{ px: '16px' }}>
         {categories.map((label, index) => (

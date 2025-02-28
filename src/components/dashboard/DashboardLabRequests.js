@@ -42,8 +42,12 @@ const DashboardLabRequests = ({ labRequests }) => {
             <Avatar variant='square' src='/dashboard/export_notes1.svg' sx={{ p: 0.5 }} />
           </CustomAvatar>
           <Box sx={{ display: 'flex', flexDirection: 'column', textAlign: 'start' }}>
-            <Typography variant='h4'>{labRequests.total_requests}</Typography>
-            <Typography variant='caption'>Total requests</Typography>
+            <Typography sx={{ color: '#44544A', fontSize: '24px', fontWeight: 600 }}>
+              {labRequests.total_requests}
+            </Typography>
+            <Typography variant='caption' sx={{ color: '#44544A', fontSize: '14px', fontWeight: 400 }}>
+              Total requests
+            </Typography>
           </Box>
         </Box>
 
