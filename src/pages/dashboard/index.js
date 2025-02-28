@@ -41,7 +41,12 @@ function Dashboard() {
   })
   const [pharmacyData, setPharmacyData] = useState([])
 
-  const [pendingRequests, setPendingRequests] = useState([])
+  const [pendingRequests, setPendingRequests] = useState({
+    total_requests: 0,
+    completed_requests: 0,
+    completed_requests_percentage: 0,
+    priority_stats: []
+  })
   const [notes, setNotes] = useState([])
 
   const [labRequests, setLabRequests] = useState({
@@ -61,7 +66,7 @@ function Dashboard() {
           setDashboardAnalyticsData(res)
         }
 
-        console.log(res, 'res')
+        console.log(res, 'getDashboardAnalytics')
       })
       setLoading(false)
     } catch (e) {
@@ -183,11 +188,15 @@ function Dashboard() {
 
       const params = {}
       await getPendingRequests({ params: params }).then(res => {
-        if (res.length > 0) {
-          setPendingRequests(res)
+        if (res && Object.keys(res).length > 0) {
+          console.log(res, 'getPendingRequests')
+          setPendingRequests({
+            total_requests: res?.total_requests,
+            completed_requests: res?.completed_requests,
+            completed_requests_percentage: res?.completed_requests_percentage,
+            priority_stats: res?.priority_stats
+          })
         }
-
-        console.log(res, 'getPendingRequests')
       })
       setLoading(false)
     } catch (e) {
@@ -233,8 +242,6 @@ function Dashboard() {
       setLoading(false)
     }
   }, [])
-
-  console.log(dashboardAnalyticsData, 'dashboardAnalyticsData')
 
   return (
     <div style={{ textAlign: 'center' }}>
