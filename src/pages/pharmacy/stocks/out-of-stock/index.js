@@ -61,7 +61,6 @@ const StockOut = () => {
           limit: paginationModel.pageSize,
           is_low_stock: status === 'out_of_stock' ? 'no' : 'yes'
         }
-
         const res = await getStockOutItems({ params })
         if (res?.list_items?.length > 0) {
           setTotal(parseInt(res?.total_count, 10))
@@ -81,7 +80,7 @@ const StockOut = () => {
     [paginationModel]
   )
   useEffect(() => {
-    fetchTableData(sort, searchValue, sortColumn)
+    fetchTableData(sort, searchValue, sortColumn, status)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fetchTableData, selectedPharmacy.id, changeSwitch])
 
