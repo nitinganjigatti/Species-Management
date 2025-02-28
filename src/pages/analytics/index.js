@@ -97,7 +97,7 @@ const Analytics = () => {
             loop
             controls
             style={{
-              width: '90%',
+              width: '60%',
               height: '90%',
               objectFit: 'contain',
               borderRadius: '8px'
@@ -164,7 +164,7 @@ const VideoTile = ({ video, onExpand }) => {
         style={{
           width: '100%',
           height: '100%',
-          objectFit: 'cover'
+          objectFit: 'contain'
         }}
       />
       {showOverlay && (
