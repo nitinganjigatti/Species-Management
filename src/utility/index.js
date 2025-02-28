@@ -129,6 +129,8 @@ function formatNumberToDisplay(number) {
 }
 
 function formatAmountToReadableDigit(value) {
+  debugger
+
   const num = parseFloat(value)
   if (isNaN(num)) return 'Invalid number'
 
@@ -142,7 +144,9 @@ function formatAmountToReadableDigit(value) {
       maximumFractionDigits: 2
     })
   }
+
   return `₹${Number(roundedNum)}`
+
   // if (value) {
   //   if (value > 10000) {
   //     return `₹ ${value.toString().replace(/\B(?=(\d{2})+(?!\d))/g, ',')}.00`
@@ -159,6 +163,7 @@ function formatAmountToReadableDigit(value) {
 const downloadFileFromURL = async (fileUrl, title = 'report') => {
   if (!fileUrl) {
     console.error('No file URL provided')
+
     return
   }
   try {

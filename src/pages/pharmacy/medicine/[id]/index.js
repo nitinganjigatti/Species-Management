@@ -312,13 +312,19 @@ const ProductDetailsList = () => {
                     />
                   }
                   action={
-                    <Button
-                      variant='contained'
-                      startIcon={<Icon icon='material-symbols:edit-outline' />}
-                      onClick={handleEdit}
-                    >
-                      Edit
-                    </Button>
+                    <>
+                      {selectedPharmacy.type === 'central' &&
+                        (selectedPharmacy.permission.key === 'allow_full_access' ||
+                          selectedPharmacy.permission.key === 'ADD') && (
+                          <Button
+                            variant='contained'
+                            startIcon={<Icon icon='material-symbols:edit-outline' />}
+                            onClick={handleEdit}
+                          >
+                            Edit
+                          </Button>
+                        )}
+                    </>
                   }
                 />
               </Grid>
@@ -403,17 +409,21 @@ const ProductDetailsList = () => {
                             ({productDetails?.package}) of
                           </Box>
                         </Typography>
-                        <Button
-                          variant='outlined'
-                          color='primary'
-                          onClick={handleDrawerOpen}
-                          sx={{
-                            ml: 1
-                          }}
-                          size='small'
-                        >
-                          Add Variant
-                        </Button>
+                        {selectedPharmacy.type === 'central' &&
+                          (selectedPharmacy.permission.key === 'allow_full_access' ||
+                            selectedPharmacy.permission.key === 'ADD') && (
+                            <Button
+                              variant='outlined'
+                              color='primary'
+                              onClick={handleDrawerOpen}
+                              sx={{
+                                ml: 1
+                              }}
+                              size='small'
+                            >
+                              Add Variant
+                            </Button>
+                          )}
                       </Box>
                       {/* Chips for Variant List */}
                       <Box mt={1} display='flex' gap={1} flexWrap='wrap'>

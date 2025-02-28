@@ -213,8 +213,9 @@ const RequestedProductDetails = props => {
                                 color: theme.palette.customColors.OnSurfaceVariant,
                                 fontSize: '12px',
                                 fontWeight: 400,
-                                maxWidth: '100%'
+                                maxWidth: '50%'
                               }}
+                              limit='150'
                               iconColor={theme.palette.customColors.moderateSecondary}
                             />
                           )}
@@ -409,7 +410,6 @@ const RequestedProductDetails = props => {
             }}
           >
             <Box
-              // className='sidebar-header'
               sx={{
                 display: 'flex',
                 width: '100%',
@@ -465,29 +465,31 @@ const RequestedProductDetails = props => {
                           } `
                         : 'NA'}
                     </Typography>
-                    <Typography
-                      sx={{
-                        color: theme.palette.customColors.OnSurfaceVariant,
-                        fontSize: '12px',
-                        fontWeight: 400,
-                        fontFamily: 'Inter'
-                      }}
-                    >
-                      Available Quantity:
+                    {selectedPharmacy.type === 'central' && (
                       <Typography
-                        component='span'
                         sx={{
-                          color: theme.palette.customColors.neutralPrimary,
-                          fontSize: '14px',
+                          color: theme.palette.customColors.OnSurfaceVariant,
+                          fontSize: '12px',
                           fontWeight: 400,
                           fontFamily: 'Inter'
                         }}
                       >
-                        {requestedProducts?.total_available_quantity
-                          ? requestedProducts?.total_available_quantity
-                          : 'NA'}
+                        Available Quantity:
+                        <Typography
+                          component='span'
+                          sx={{
+                            color: theme.palette.customColors.neutralPrimary,
+                            fontSize: '14px',
+                            fontWeight: 400,
+                            fontFamily: 'Inter'
+                          }}
+                        >
+                          {requestedProducts?.total_available_quantity
+                            ? requestedProducts?.total_available_quantity
+                            : 'NA'}
+                        </Typography>
                       </Typography>
-                    </Typography>
+                    )}
                   </Box>
                 </Grid>
                 <Grid item xs={1} sm={1} sx={{ float: 'right', textAlign: 'right', height: 'auto' }}>
@@ -545,8 +547,10 @@ const RequestedProductDetails = props => {
               container
               sx={{
                 backgroundColor: theme.palette.customColors.Background,
+
                 // height: '100%',
                 overflowY: 'auto',
+
                 // mt: '167px',
                 padding: '24px',
                 minWidth: { lg: '642px', md: '642px', sm: '642px', xs: 'auto' },
@@ -649,8 +653,9 @@ const RequestedProductDetails = props => {
                                       color: theme.palette.customColors.OnSurfaceVariant,
                                       fontSize: '12px',
                                       fontWeight: 400,
-                                      maxWidth: '100%'
+                                      maxWidth: '50%'
                                     }}
+                                    limit='150'
                                     iconColor={theme.palette.customColors.moderateSecondary}
                                   />
                                 )}

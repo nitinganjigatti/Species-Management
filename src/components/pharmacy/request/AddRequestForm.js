@@ -2401,7 +2401,8 @@ const AddRequestForm = () => {
                         <TableCell align='left'>
                           {el?.unit_price * el?.request_item_qty > 0
                             ? Utility?.formatAmountToReadableDigit(el?.unit_price * el?.request_item_qty)
-                            : 'NA'}
+                            : //  `₹ ${el?.unit_price * el?.request_item_qty}`
+                              'NA'}
                         </TableCell>
                         {/* <TableCell align='left'>
                           <Tooltip title={el?.notes}>

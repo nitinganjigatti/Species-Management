@@ -730,8 +730,8 @@ const AddMedicine = () => {
     try {
       const response = await updateMedicineById(payload, id)
       if (response?.success) {
-        debugger
-        setAlertDefaults({ status: true, message: response?.message, severity: 'success' })
+        // setAlertDefaults({ status: true, message: response?.message, severity: 'success' })
+        toast.success(response?.message)
 
         //setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message, severity: 'success' })
         setSubmitLoader(true)
@@ -744,11 +744,14 @@ const AddMedicine = () => {
         setSubmitLoader(false)
 
         // setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message, severity: 'error' })
-        setAlertDefaults({ status: true, message: response?.message, severity: 'error' })
+        // setAlertDefaults({ status: true, message: response?.message, severity: 'error' })
+        toast.error(response?.message)
       }
     } catch (e) {
       setSubmitLoader(false)
-      setAlertDefaults({ status: true, message: 'Error', severity: 'error' })
+      toast.error('error')
+
+      // setAlertDefaults({ status: true, message: 'Error', severity: 'error' })
 
       // setOpenSnackbar({ ...openSnackbar, open: true, message: 'Error', severity: 'error' })
     }
@@ -759,7 +762,8 @@ const AddMedicine = () => {
       const response = await addMedicine(payload)
 
       if (response?.success) {
-        setAlertDefaults({ status: true, message: response?.message, severity: 'success' })
+        // setAlertDefaults({ status: true, message: response?.message, severity: 'success' })
+        toast.success(response?.message)
 
         // setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message, severity: 'success' })
         setSubmitLoader(true)
@@ -788,13 +792,17 @@ const AddMedicine = () => {
 
         // setOpenSnackbar({ ...openSnackbar, open: false, message: response?.message, severity: 'error' })
         shouldClearFieldsRef.current = false
-        setAlertDefaults({ status: true, message: response?.message, severity: 'error' })
+
+        // setAlertDefaults({ status: true, message: response?.message, severity: 'error' })
+        toast.error(response?.message)
       }
     } catch (e) {
       setSubmitLoader(false)
 
       // setOpenSnackbar({ ...openSnackbar, open: true, message: 'Error', severity: 'error' })
-      setAlertDefaults({ status: true, message: 'Error', severity: 'error' })
+      // setAlertDefaults({ status: true, message: 'Error', severity: 'error' })
+      toast.error('error')
+
       shouldClearFieldsRef.current = false
     }
   }

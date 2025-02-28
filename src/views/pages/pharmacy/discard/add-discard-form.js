@@ -45,7 +45,9 @@ const defaultValues = {
   manufacture: '',
   comments: '',
   reason: '',
-  control_substance: false
+  control_substance: false,
+  variant_id: '',
+  multiplier: ''
 }
 
 // const schema = yup.object().shape({
@@ -195,6 +197,8 @@ export const AddItemsForm = ({
       manufacture,
       comments,
       reason,
+      variant_id,
+      multiplier,
       control_substance
     } = {
       ...params
@@ -239,7 +243,9 @@ export const AddItemsForm = ({
         manufacture,
         comments,
         reason,
-        control_substance
+        control_substance,
+        variant_id,
+        multiplier
       },
       type
     )
@@ -296,7 +302,9 @@ export const AddItemsForm = ({
         packageDetails: nestedMedicine?.packageDetails,
         manufacture: nestedMedicine?.manufacture,
         comments: nestedMedicine?.comments,
-        reason: nestedMedicine?.reason
+        reason: nestedMedicine?.reason,
+        variant_id: nestedMedicine?.variant_id,
+        multiplier: nestedMedicine?.multiplier
       })
       async function searchMedicine() {
         await searchMedicineData(nestedMedicine?.stock_id, nestedMedicine.stock_type)
@@ -506,7 +514,7 @@ export const AddItemsForm = ({
             </Typography>
           </Grid>
 
-          <Grid item xs={12} sm={getValues('stock_type') === 'non_medical' ? 12 : 6}>
+          <Grid item xs={12} sm={getValues('stock_type') === 'non_medical' ? 6 : 4}>
             <FormControl fullWidth>
               <Controller
                 name='batch_no'
@@ -527,10 +535,12 @@ export const AddItemsForm = ({
                       } else {
                         setValue('reason', '')
                       }
-
+                      console.log('value', value)
                       setValue('batch_no', value)
                       setValue('expiry_date', value?.expiry_date)
                       setValue('available_item_qty', value?.available_item_qty)
+                      setValue('multiplier', value?.multiplier)
+                      setValue('variant_id', value?.variant_id)
                       clearErrors('batch_no')
                       setQuantityError(false)
                       checkTotalCount()
@@ -614,8 +624,32 @@ export const AddItemsForm = ({
               ) : null} */}
             </FormControl>
           </Grid>
+          <Grid item xs={12} sm={getValues('stock_type') === 'non_medical' ? 6 : 4}>
+            <FormControl fullWidth>
+              <Controller
+                name='multiplier'
+                control={control}
+                rules={{ required: true }}
+                render={({ field: { value, onChange } }) => (
+                  <TextField
+                    disabled
+                    type='text'
+                    value={value}
+                    label='Product Variant'
+                    name='multiplier'
+                    error={Boolean(errors.multiplier)}
+                    onChange={onChange}
+                  />
+                )}
+              >
+                {errors.multiplier && (
+                  <FormHelperText sx={{ color: 'error.main' }}>{errors?.multiplier?.message}</FormHelperText>
+                )}
+              </Controller>
+            </FormControl>
+          </Grid>
           {getValues('stock_type') === 'non_medical' ? null : (
-            <Grid item xs={12} sm={6}>
+            <Grid item xs={12} sm={4}>
               <FormControl fullWidth>
                 <Controller
                   name='expiry_date'
@@ -639,6 +673,7 @@ export const AddItemsForm = ({
               </FormControl>
             </Grid>
           )}
+
           <Grid item xs={12} sm={12}>
             <Typography
               variant='subtitle1'

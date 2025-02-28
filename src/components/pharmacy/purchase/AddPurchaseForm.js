@@ -66,6 +66,8 @@ import UploadIcon from 'public/images/upload_invoice_icon.png'
 import TotalAmountIcon from 'public/images/amount_summary.png'
 import { borderRadius, getValue } from '@mui/system'
 import { getVariantFOrProduct } from 'src/lib/api/pharmacy/variant'
+// import PurchaseInvoiceUpload from './PurchaseInvoiceUpload'
+import { v4 as uuidv4 } from 'uuid'
 
 const CalcWrapper = styled(Box)(({ theme }) => ({
   display: 'flex',
@@ -101,6 +103,7 @@ const editParamsInitialState = {
 }
 
 const initialNestedRowMedicine = {
+  uid: '',
   medicine_name: '',
   purchase_unit_id: '',
   purchase_qty: 0,
@@ -121,7 +124,8 @@ const initialNestedRowMedicine = {
   manufacturer: '',
   purchase_variant_id: '',
   purchase_unit_qty: '',
-  purchase_variant_ratio: ''
+  purchase_variant_ratio: '',
+  isVariantIdPresent: false
 }
 
 const CustomInput = forwardRef(({ ...props }, ref) => {
@@ -176,7 +180,6 @@ const AddPurchaseForm = () => {
 
   const [displayFile, setDisplayFile] = useState('')
   const [deleteId, setDeleteId] = useState('')
-  console.log('deleteId', deleteId)
   const [deleteLoader, setDeleteLoader] = useState(false)
   const [confirmDeleteDialog, setConfirmDeleteDialog] = useState(false)
   //----------
@@ -190,6 +193,8 @@ const AddPurchaseForm = () => {
 
   const [inputValue, setInputValue] = useState('')
   const [isError, setIsError] = useState(false)
+  const [invoiceUploadDialog, setInvoiceUploadDialog] = useState(false)
+  const [itemIdIdErrors, setItemIdErrors] = useState({})
 
   const schema = yup.object().shape({
     // product: yup.string().required('Product name is required'),
@@ -247,19 +252,22 @@ const AddPurchaseForm = () => {
 
   // local nested items delete
   const removeItemsFroTable = itemId => {
-    const updatedItems = editParams.purchase_details.filter(el => {
-      return el.purchase_unit_id != itemId
+    // const updatedItems = editParams.purchase_details.filter(el => {
+    //   return el.purchase_unit_id != itemId
+    // })
+    const updatedItems = editParams?.purchase_details.filter(el => {
+      return el?.uid != itemId
     })
     setEditParams({ ...editParams, purchase_details: updatedItems })
     setMedicineItemId('')
   }
 
-  const totalLineItemsAmount = editParams.purchase_details?.reduce(
+  const totalLineItemsAmount = editParams?.purchase_details?.reduce(
     (acc, row) => acc + parseFloat(row.purchase_gross_amount ? row.purchase_gross_amount : 0),
     0
   )
 
-  const totalLineItemsTaxableAmount = editParams.purchase_details?.reduce(
+  const totalLineItemsTaxableAmount = editParams?.purchase_details?.reduce(
     (acc, row) => acc + parseFloat(row.purchase_taxable_amount ? row.purchase_taxable_amount : 0),
     0
   )
@@ -277,11 +285,13 @@ const AddPurchaseForm = () => {
       roundUp = parseFloat(roundUpValue) || 0 // Add the exact value when '+' is selected
     }
 
-    // console.log('roundUp:', roundUp) // Debugging output
-    // console.log('roundUpValue:', roundUpValue)
-    // console.log('roundup_select:', roundup_select)
+    const totalFreight = parseFloat(totalFreightCharges) || 0
+    const additional = parseFloat(additionalCharges) || 0
+    const totalItems = parseFloat(totalLineItemsPurchase) || 0
 
-    return totalLineItemsPurchase + parseFloat(totalFreightCharges) + parseFloat(additionalCharges) + roundUp
+    const result = totalItems + totalFreight + additional + roundUp
+
+    return result
   }, [totalLineItemsPurchase, totalFreightCharges, additionalCharges, roundUpValue, roundup_select])
 
   // console.log('grandTotalAmount', grandTotalAmount)
@@ -394,8 +404,11 @@ const AddPurchaseForm = () => {
     //   purchase_gst_type: payload.purchase_gst_type,
     //   purchase_tax_amount: payload.purchase_tax_amount
     // }
+    const updatedPayload = { ...payload, uid: uuidv4() } // Add a unique ID to payload
 
-    const updatedNestedRows = [...editParams.purchase_details, payload]
+    const updatedNestedRows = [...editParams.purchase_details, updatedPayload]
+    // const updatedNestedRows = [...editParams.purchase_details, payload]
+
     setEditParams({
       ...editParams,
       purchase_details: updatedNestedRows
@@ -487,16 +500,16 @@ const AddPurchaseForm = () => {
     // }
 
     if (!medicineItemId) {
-      const isMedicineAlreadyExists = editParams.purchase_details.some(
-        item =>
-          item.purchase_unit_id === payload.purchase_unit_id && item.purchase_batch_no === payload.purchase_batch_no
-      )
+      // const isMedicineAlreadyExists = editParams.purchase_details.some(
+      //   item =>
+      //     item.purchase_unit_id === payload.purchase_unit_id && item.purchase_batch_no === payload.purchase_batch_no
+      // )
 
-      if (isMedicineAlreadyExists) {
-        setDuplicateMedError('Medicine already exists')
+      // if (isMedicineAlreadyExists) {
+      //   setDuplicateMedError('Medicine already exists')
 
-        return
-      }
+      //   return
+      // }
       setErrors({})
       addItemsToTable(payload)
     } else {
@@ -509,11 +522,12 @@ const AddPurchaseForm = () => {
     const updatedState = { ...editParams }
 
     const updatedIndex = updatedState.purchase_details.findIndex(
-      row => row.purchase_unit_id === itemId && row.purchase_batch_no === nestedRowMedicine.purchase_batch_no
+      // row => row.purchase_unit_id === itemId && row.purchase_batch_no === nestedRowMedicine.purchase_batch_no
+      row => row?.uid === itemId && row.purchase_batch_no === nestedRowMedicine.purchase_batch_no
     )
 
     if (updatedIndex !== -1) {
-      const updatedNestedRows = [...updatedState.purchase_details]
+      const updatedNestedRows = [...updatedState?.purchase_details]
       updatedNestedRows[updatedIndex] = {
         ...updatedNestedRows[updatedIndex],
         ...payload
@@ -605,9 +619,8 @@ const AddPurchaseForm = () => {
     //   parseFloat(roundup_select == '-' ? roundup_select + roundUpValue : roundUpValue)
     postData.net_amount = grandTotalAmount
     // added grand total amount
-
-    // debugger
-    // console.log('postData', postData)
+    console.log('postData', postData)
+    debugger
     try {
       if (id) {
         postData.antz_pharmacy_purchase_id = id
@@ -750,17 +763,22 @@ const AddPurchaseForm = () => {
       setExpiryDateLoader(true)
       setProductExpiryDate('')
       const response = await getBatchExpiry({ batch: batch, stock_id: product_id })
-
-      if (response.success && response.data !== null) {
+      if (response?.success && response?.data !== null) {
         setNestedRowMedicine(prevState => ({
           ...prevState,
-          purchase_expiry_date: response.data.expiry_date
+          purchase_expiry_date: response?.data?.expiry_date,
+          purchase_variant_id: response?.data?.variant_id,
+          purchase_variant_ratio: response?.data?.multiplier,
+          isVariantIdPresent: response?.data?.variant_id && response?.data?.multiplier ? true : false
         }))
+
         setProductExpiryDate(response.data.expiry_date)
       } else {
         setNestedRowMedicine(prevState => ({
           ...prevState,
-          purchase_expiry_date: ''
+          purchase_expiry_date: '',
+          purchase_variant_id: '',
+          purchase_variant_ratio: ''
         }))
         setProductExpiryDate('')
       }
@@ -820,6 +838,7 @@ const AddPurchaseForm = () => {
         const lineItems = result?.data?.purchase_detailss?.map(el => {
           return {
             ...el,
+            uid: uuidv4(),
             medicine_name: el?.stock_item_name,
             id: el?.id,
             stock_type: el?.stock_type,
@@ -827,9 +846,9 @@ const AddPurchaseForm = () => {
             manufacture: el?.manufacturer,
             purchase_expiry_date: el?.stock_type === 'non_medical' ? null : el?.purchase_expiry_date,
             purchase_variant_id: el?.purchase_variant_id,
-            purchase_variant_ratio: el?.unit_multiplier ? el?.unit_multiplier : 1,
-            purchase_unit_qty: el?.purchase_total_qty ? el?.purchase_total_qty : el?.purchase_qty
-
+            purchase_variant_ratio: el?.unit_multiplier,
+            purchase_unit_qty: el?.purchase_total_qty ? el?.purchase_total_qty : el?.purchase_qty,
+            isVariantIdPresent: el?.purchase_variant_id && el?.unit_multiplier ? true : false
             // medicine_name: el?.stock_item_name,
             // stock_type: el?.stock_type,
             // purchase_batch_no: el?.purchase_batch_no,
@@ -924,10 +943,11 @@ const AddPurchaseForm = () => {
   }
 
   // ****** edit section //////
-  const editTableData = (itemId, index, purchase_batch_no) => {
+  const editTableData = (itemId, index, purchase_batch_no, medicineName) => {
     if (id != undefined && action === 'edit') {
       const getItems = editParams.purchase_details.filter(el => {
-        return el.purchase_unit_id === itemId && el.purchase_batch_no === purchase_batch_no
+        // return el.purchase_unit_id === itemId && el.purchase_batch_no === purchase_batch_no
+        return el.uid === itemId && el.medicine_name === medicineName && el.purchase_batch_no === purchase_batch_no
       })
 
       setOptionsMedicineList([
@@ -945,6 +965,7 @@ const AddPurchaseForm = () => {
         ...nestedRowMedicine,
         id: getItems[0]?.id,
         index,
+        uid: getItems[0]?.uid,
         medicine_name: getItems[0]?.medicine_name,
         stock_type: getItems[0]?.stock_type,
         purchase_unit_id: getItems[0]?.purchase_unit_id,
@@ -973,19 +994,23 @@ const AddPurchaseForm = () => {
         package_details: getItems[0]?.package_details,
         manufacture: getItems[0]?.manufacture,
         purchase_variant_id: getItems[0]?.purchase_variant_id,
-        purchase_unit_qty: getItems[0]?.purchase_unit_qty
+        purchase_unit_qty: getItems[0]?.purchase_unit_qty,
+        purchase_variant_ratio: getItems[0]?.purchase_variant_ratio,
+        isVariantIdPresent: getItems[0]?.isVariantIdPresent
 
         // purchase_gst_type: getItems[0].purchase_gst_type,
         // purchase_tax_amount: getItems[0].purchase_tax_amount
       })
     } else {
+      console.log('on else', editParams.purchase_details)
+
       const getItems = editParams.purchase_details.filter(el => {
-        return el.purchase_unit_id === itemId && el.purchase_batch_no === purchase_batch_no
+        return el.uid === itemId && el.medicine_name === medicineName && el.purchase_batch_no === purchase_batch_no
       })
 
       setOptionsMedicineList([
         {
-          value: getItems[0].purchase_unit_id,
+          value: getItems[0]?.purchase_unit_id,
           label: getItems[0]?.medicine_name,
           stock_type: getItems[0]?.stock_type,
           package_details: getItems[0]?.package_details,
@@ -1001,6 +1026,7 @@ const AddPurchaseForm = () => {
         medicine_name: getItems[0]?.medicine_name,
         stock_type: getItems[0]?.stock_type,
         index,
+        uid: getItems[0]?.uid,
         purchase_unit_id: getItems[0]?.purchase_unit_id,
         purchase_stock_item_id: getItems[0]?.purchase_stock_item_id
           ? getItems[0]?.purchase_stock_item_id
@@ -1028,7 +1054,9 @@ const AddPurchaseForm = () => {
         package_details: getItems[0]?.package_details,
         manufacture: getItems[0]?.manufacture,
         purchase_variant_id: getItems[0]?.purchase_variant_id,
-        purchase_unit_qty: getItems[0]?.purchase_unit_qty
+        purchase_unit_qty: getItems[0]?.purchase_unit_qty,
+        purchase_variant_ratio: getItems[0]?.purchase_variant_ratio,
+        isVariantIdPresent: getItems[0]?.isVariantIdPresent
       })
     }
   }
@@ -1218,8 +1246,43 @@ const AddPurchaseForm = () => {
     fileInputRef?.current?.click()
   }
 
-  const handleInputImageChange = event => {
-    const { files } = event.target
+  // const handleInputImageChange = event => {
+  //   const { files } = event.target
+  //   if (files && files.length !== 0) {
+  //     const newFileSrc = []
+  //     const newFileArr = []
+
+  //     for (let i = 0; i < files.length; i++) {
+  //       const currentFile = files[i]
+
+  //       // Generate object URL for the new file
+  //       newFileSrc.push(URL.createObjectURL(currentFile))
+  //       newFileArr.push(currentFile)
+  //     }
+
+  //     // Append the new files to the existing state
+  //     setFileSrc(prev => [...prev, ...newFileSrc])
+  //     setFileArr(prev => [...prev, ...newFileArr])
+
+  //     // Update file display and set form values
+  //     setDisplayFile(files.length > 1 ? `${files.length} files selected` : files[0]?.name)
+  //     setValue('invoice_transcript', prev => [...prev, ...newFileSrc]) // Append new files to the form value
+  //     clearErrors('invoice_transcript')
+  //   }
+  // }
+  const handleInputImageChange = eventOrFiles => {
+    // this function is modified to use in invoice upload form
+    let files = []
+
+    // Check if the function is called with an event or directly with a file list
+    if (eventOrFiles?.target) {
+      files = eventOrFiles?.target.files
+    } else if (Array?.isArray(eventOrFiles)) {
+      files = eventOrFiles
+    } else {
+      files = [eventOrFiles] // Single file case
+    }
+
     if (files && files.length !== 0) {
       const newFileSrc = []
       const newFileArr = []
@@ -1227,18 +1290,20 @@ const AddPurchaseForm = () => {
       for (let i = 0; i < files.length; i++) {
         const currentFile = files[i]
 
-        // Generate object URL for the new file
+        // Generate object URL for preview
         newFileSrc.push(URL.createObjectURL(currentFile))
         newFileArr.push(currentFile)
       }
 
-      // Append the new files to the existing state
+      // Append the new files to state
       setFileSrc(prev => [...prev, ...newFileSrc])
       setFileArr(prev => [...prev, ...newFileArr])
 
-      // Update file display and set form values
+      // Update display text
       setDisplayFile(files.length > 1 ? `${files.length} files selected` : files[0]?.name)
-      setValue('invoice_transcript', prev => [...prev, ...newFileSrc]) // Append new files to the form value
+
+      // Update form values
+      setValue('invoice_transcript', prev => [...prev, ...newFileSrc])
       clearErrors('invoice_transcript')
     }
   }
@@ -1325,6 +1390,27 @@ const AddPurchaseForm = () => {
     }
   }, [grandTotalAmount])
 
+  const validateErrorForItemId = (index, el) => {
+    setItemIdErrors(prevErrors => {
+      const newErrors = { ...prevErrors }
+
+      if (!el?.purchase_stock_item_id) {
+        newErrors[index] = 'Product Information not found, please update the details'
+      } else {
+        delete newErrors[index] // Remove error if the issue is resolved
+      }
+
+      return newErrors
+    })
+  }
+  useEffect(() => {
+    if (editParams.purchase_details) {
+      editParams.purchase_details.forEach((el, index) => {
+        validateErrorForItemId(index, el)
+      })
+    }
+  }, [editParams.purchase_details])
+
   return (
     <Card>
       <Grid container spacing={6}>
@@ -1334,8 +1420,9 @@ const AddPurchaseForm = () => {
           xs={12}
           sx={{
             display: 'flex',
+            flexDirection: { lg: 'row', md: 'row', xl: 'row', sm: 'column', xs: 'column' },
             justifyContent: 'space-between',
-            alignItems: 'center',
+            alignItems: { lg: 'center', md: 'center', xl: 'center', sm: 'start', xs: 'start' },
             mr: 5
           }}
         >
@@ -1355,15 +1442,36 @@ const AddPurchaseForm = () => {
             }
             title={id ? 'Edit Inventory List' : 'Add Inventory'}
           />
-          {authData?.userData?.roles?.settings?.add_pharmacy && (
-            <AddButton
-              // sx={{ mx: 24 }}
-              title='Add Supplier'
-              action={() => {
-                setSupplierDialog(true)
-              }}
-            />
-          )}
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: { lg: 'row', md: 'row', xl: 'row', sm: 'row', xs: 'column' },
+              justifyContent: 'space-between',
+              alignItems: { lg: 'center', md: 'center', xl: 'center', sm: 'center', xs: 'center' }
+              // mr: 5,
+              // mx: 6,
+              // gap: 2
+            }}
+          >
+            {/* {authData?.userData?.roles?.settings?.add_pharmacy && (
+              <AddButton
+                // sx={{ mx: 24 }}
+                title='Upload Invoice '
+                action={() => {
+                  setInvoiceUploadDialog(true)
+                }}
+              />
+            )} */}
+            {authData?.userData?.roles?.settings?.add_pharmacy && (
+              <AddButton
+                // sx={{ mx: 24 }}
+                title='Add Supplier'
+                action={() => {
+                  setSupplierDialog(true)
+                }}
+              />
+            )}
+          </Box>
         </Grid>
       </Grid>
 
@@ -1804,7 +1912,7 @@ const AddPurchaseForm = () => {
                 }}
               >
                 <Typography sx={{ fontSize: '16px', fontWeight: 400 }}>
-                  Total freight charge - {totalFreightCharges?.toFixed(2)}
+                  Total fright charge - {totalFreightCharges?.toFixed(2)}
                 </Typography>
               </Box>
             </Grid>
@@ -2092,7 +2200,6 @@ const AddPurchaseForm = () => {
                   <TableCell
                     sx={{
                       textAlign: 'center',
-
                       minWidth: 130
                     }}
                   >
@@ -2106,7 +2213,7 @@ const AddPurchaseForm = () => {
                       </Grid>
                     </Grid>
                   </TableCell>
-                  <TableCell sx={{ textAlign: 'center' }}>
+                  <TableCell sx={{ textAlign: 'center', minWidth: 130 }}>
                     IGST
                     <Grid container>
                       <Grid item xs={6}>
@@ -2121,8 +2228,10 @@ const AddPurchaseForm = () => {
                 </TableRow>
               </TableHead>
               <TableBody>
-                {editParams.purchase_details
-                  ? editParams.purchase_details.map((el, index) => {
+                {editParams?.purchase_details
+                  ? editParams?.purchase_details.map((el, index) => {
+                      // validateErrorForItemId(index, el)
+
                       return (
                         <TableRow key={index} sx={{ overflowX: 'scroll' }}>
                           <TableCell>
@@ -2130,8 +2239,14 @@ const AddPurchaseForm = () => {
                           </TableCell>
                           <TableCell>
                             {el?.medicine_name}
+
                             <Typography variant='body2'>{el?.package_details}</Typography>
                             <Typography variant='body2'>{el?.manufacture}</Typography>
+                            {!el?.purchase_stock_item_id && (
+                              <Typography sx={{ color: 'error.main', fontSize: '12px' }}>
+                                {itemIdIdErrors[index]}
+                              </Typography>
+                            )}
                           </TableCell>
                           <TableCell>{el?.purchase_batch_no}</TableCell>
                           <TableCell>
@@ -2177,8 +2292,10 @@ const AddPurchaseForm = () => {
                                 sx={{ mr: 0.5 }}
                                 aria-label='Edit'
                                 onClick={() => {
-                                  setMedicineItemId(el.purchase_unit_id)
-                                  editTableData(el.purchase_unit_id, index, el.purchase_batch_no)
+                                  // setMedicineItemId(el.purchase_unit_id || el?.uid)
+                                  setMedicineItemId(el?.uid)
+                                  // editTableData(el?.purchase_unit_id, index, el?.purchase_batch_no, el?.medicine_name)
+                                  editTableData(el?.uid, index, el?.purchase_batch_no, el?.medicine_name)
                                   showDialog()
                                 }}
                               >
@@ -2188,7 +2305,8 @@ const AddPurchaseForm = () => {
                               {id && el.id ? null : (
                                 <IconButton
                                   onClick={() => {
-                                    removeItemsFroTable(el.purchase_unit_id)
+                                    // removeItemsFroTable(el.purchase_unit_id)
+                                    removeItemsFroTable(el?.uid)
                                   }}
                                   size='small'
                                   sx={{ mr: 0.5 }}
@@ -2668,7 +2786,14 @@ const AddPurchaseForm = () => {
           <Box sx={{ float: 'right', my: 4, mx: 6 }}>
             <LoadingButton
               // disabled={editParams.purchase_details.length > 0 && inputValue ? false : true}
-              disabled={editParams.purchase_details.length > 0 && inputValue && !isError ? false : true}
+              disabled={
+                editParams.purchase_details.length > 0 &&
+                inputValue &&
+                !isError &&
+                !Object.keys(itemIdIdErrors)?.length > 0
+                  ? false
+                  : true
+              }
               sx={{ marginRight: '8px' }}
               size='large'
               type='submit'
@@ -2740,6 +2865,42 @@ const AddPurchaseForm = () => {
           deleteLoader={deleteLoader}
         />
       )}
+      {/* <CommonDialogBox
+        noWidth={800}
+        title={
+          <Box
+            sx={{
+              fontWeight: 500,
+              fontSize: '20px',
+              margin: '0px',
+              padding: '0px',
+              color: 'customColors.OnSurfaceVariant',
+              display: 'flex',
+              gap: 2,
+              alignItems: 'center'
+            }}
+          >
+            Upload Invoice
+          </Box>
+        }
+        dialogBoxStatus={invoiceUploadDialog}
+        formComponent={
+          <PurchaseInvoiceUpload
+            setPurchaseItems={setEditParams}
+            reset={reset}
+            closeDialog={() => {
+              setInvoiceUploadDialog(false)
+            }}
+            handleInputImageChange={handleInputImageChange}
+          />
+        }
+        close={() => {
+          setInvoiceUploadDialog(false)
+        }}
+        show={() => {
+          setInvoiceUploadDialog(true)
+        }}
+      /> */}
     </Card>
   )
 }
