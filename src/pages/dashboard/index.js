@@ -131,10 +131,10 @@ function Dashboard() {
               display: 'flex',
               justifyContent: 'center',
               alignItems: 'center',
-              height: '80vh' // Full screen height
+              height: '80vh'
             }}
           >
-            <CircularProgress /> {/* MUI Loader */}
+            <CircularProgress />
           </Box>
           {/* <Box sx={{ mt: 3 }}>
             <Grid container spacing={3}>
