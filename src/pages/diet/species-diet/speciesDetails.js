@@ -647,8 +647,8 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
                     lineHeight: '24.2px'
                   }}
                 >
-                  Primary diet
-                  {/* ({specieDetails.active_attachments_count}) */}
+                  Primary diet{specieDetails.active_attachments_count > 1 && `s`}{' '}
+                  {specieDetails.active_attachments_count > 1 && `(${specieDetails.active_attachments_count})`}
                 </Typography>
               )}
               {uploadingAttachment && specieDetails?.active_attachments_count > 0 && <SpeciesDietUploadingCard />}
