@@ -14,8 +14,11 @@ import Icon from 'src/@core/components/icon'
 // ** Configs
 import themeConfig from 'src/configs/themeConfig'
 
-import logo from 'public/images/branding/Antz_logo_h_color.svg'
-import logoAlt from 'public/images/branding/Antz_logomark_h_color.svg'
+import antzLogo from 'public/images/branding/Antz_logo_h_color.svg'
+import antzLogoAlt from 'public/images/branding/Antz_logomark_h_color.svg'
+
+import vantaraLogo from 'public/branding/vantara/Weblogo_vantara.png'
+import vantaraLogoAlt from 'public/branding/vantara/Weblogo_vantara_V.png'
 
 // ** Styled Components
 const MenuHeaderWrapper = styled(Box)(({ theme }) => ({
@@ -118,9 +121,19 @@ const VerticalNavHeader = props => {
       ) : (
         <LinkStyled href='/' style={{ marginVertical: 10 }}>
           {navCollapsed && !navHover ? (
-            <Image src={logoAlt} height={30} quality={75} alt='Antz Systems' />
+            <Image
+              src={process.env.NEXT_PUBLIC_BRANDING == 'vantara' ? vantaraLogoAlt : antzLogoAlt}
+              height={30}
+              quality={75}
+              alt='Antz Systems'
+            />
           ) : (
-            <Image src={logo} height={46} quality={75} alt='Antz Systems' />
+            <Image
+              src={process.env.NEXT_PUBLIC_BRANDING == 'vantara' ? vantaraLogo : antzLogo}
+              height={process.env.NEXT_PUBLIC_BRANDING == 'vantara' ? 40 : 46}
+              quality={75}
+              alt='Antz Systems'
+            />
           )}
 
           {/* <svg width={40} fill='none' height={22} viewBox='0 0 268 150' xmlns='http://www.w3.org/2000/svg'>

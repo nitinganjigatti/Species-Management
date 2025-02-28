@@ -12,7 +12,7 @@ const composeLabNavigation = () => {
   const analytics = {
     title: 'Analytics',
     path: '/analytics',
-    icon: 'lets-icons:home-duotone'
+    icon: 'mdi:home-analytics'
   }
 
   const dashboardNavigationArray = []
