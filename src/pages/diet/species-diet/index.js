@@ -40,7 +40,7 @@ import { getSpeciesList, speciesAttachmentUpload } from 'src/lib/api/diet/specie
 import Toaster from 'src/components/Toaster'
 
 const SpeciesDietList = () => {
-  const colWidths = [65, 300, 100]
+  const colWidths = [65, 300, 140, 100]
   const theme = useTheme()
   const [total, setTotal] = useState(0)
   const [rows, setRows] = useState([])
@@ -212,8 +212,8 @@ const SpeciesDietList = () => {
 
       return
     }
-
-    setAttachmentWidth(prev => prev - 150)
+    // commented both setState for fixing attachment width UI for table
+    // setAttachmentWidth(prev => prev - 150)
     setUploadingAttachment(true)
 
     try {
@@ -224,7 +224,7 @@ const SpeciesDietList = () => {
       Toaster({ type: 'error', message: error.message || 'File upload failed.' })
     } finally {
       event.target.value = null
-      setAttachmentWidth(prev => prev + 150)
+      // setAttachmentWidth(prev => prev + 150)
       setUploadingAttachment(false)
       // closeattachmentUploadConfirmDialog()
     }
@@ -315,8 +315,31 @@ const SpeciesDietList = () => {
         </Box>
       )
     },
+    {
+      width: colWidths[2],
+      sortable: false,
+      field: 'diet_assigned',
+      headerName: 'DIETS ASSIGNED',
+      renderCell: params => (
+        <Tooltip title={params.row.attachment_count ? params.row.attachment_count : '-'}>
+          <Typography
+            noWrap
+            sx={{
+              color: theme.palette.customColors.OnSurfaceVariant,
+              fontSize: '16px',
+              fontWeight: '400',
+              lineHeight: '19.36px',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              ml: 2
+            }}
+          >
+            {params.row.attachment_count ? params.row.attachment_count : '-'}
+          </Typography>
+        </Tooltip>
+      )
+    },
 
-    ,
     // {
     //   // flex: '8',
     //   width: attachmentWidth,
@@ -573,8 +596,9 @@ const SpeciesDietList = () => {
         )
       }
     },
+
     {
-      width: colWidths[2],
+      width: colWidths[3],
       sortable: false,
       field: 'diet_attachment_upload',
       headerName: '',
@@ -615,30 +639,6 @@ const SpeciesDietList = () => {
       )
     }
     ///////////////////////Code-For-Show-Rsponsive-Multiple-Attachment////////////////////////////
-    // {
-    //   width: colWidths[2],
-    //   sortable: false,
-    //   field: 'diet_assigned',
-    //   headerName: 'DIETS ASSIGNED',
-    //   renderCell: params => (
-    //     <Tooltip title={params.row.attachment_count ? params.row.attachment_count : '-'}>
-    //       <Typography
-    //         noWrap
-    //         sx={{
-    //           color: theme.palette.customColors.OnSurfaceVariant,
-    //           fontSize: '16px',
-    //           fontWeight: '400',
-    //           lineHeight: '19.36px',
-    //           overflow: 'hidden',
-    //           textOverflow: 'ellipsis',
-    //           ml: 2
-    //         }}
-    //       >
-    //         {params.row.attachment_count ? params.row.attachment_count : '-'}
-    //       </Typography>
-    //     </Tooltip>
-    //   )
-    // },
 
     ////////////////////////////////////////////////////////////////////////////////
   ]
