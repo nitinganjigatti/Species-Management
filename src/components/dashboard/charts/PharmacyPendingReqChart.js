@@ -17,8 +17,8 @@ const PharmacyPendingReqChart = ({ pendingRequests }) => {
   // ** Hook
   const theme = useTheme()
 
-  const labels = pendingRequests.map(item => item.label)
-  const values = pendingRequests.map(item => item.value)
+  const labels = pendingRequests?.priority_stats?.map(item => item.label)
+  const values = pendingRequests?.priority_stats?.map(item => item.value)
 
   const options = {
     stroke: { width: 0 },
