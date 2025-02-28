@@ -410,7 +410,6 @@ const RequestedProductDetails = props => {
             }}
           >
             <Box
-              // className='sidebar-header'
               sx={{
                 display: 'flex',
                 width: '100%',
