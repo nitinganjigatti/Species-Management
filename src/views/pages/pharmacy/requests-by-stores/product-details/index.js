@@ -213,8 +213,9 @@ const RequestedProductDetails = props => {
                                 color: theme.palette.customColors.OnSurfaceVariant,
                                 fontSize: '12px',
                                 fontWeight: 400,
-                                maxWidth: '100%'
+                                maxWidth: '50%'
                               }}
+                              limit='150'
                               iconColor={theme.palette.customColors.moderateSecondary}
                             />
                           )}
@@ -409,7 +410,6 @@ const RequestedProductDetails = props => {
             }}
           >
             <Box
-              // className='sidebar-header'
               sx={{
                 display: 'flex',
                 width: '100%',
@@ -547,8 +547,10 @@ const RequestedProductDetails = props => {
               container
               sx={{
                 backgroundColor: theme.palette.customColors.Background,
+
                 // height: '100%',
                 overflowY: 'auto',
+
                 // mt: '167px',
                 padding: '24px',
                 minWidth: { lg: '642px', md: '642px', sm: '642px', xs: 'auto' },
@@ -651,8 +653,9 @@ const RequestedProductDetails = props => {
                                       color: theme.palette.customColors.OnSurfaceVariant,
                                       fontSize: '12px',
                                       fontWeight: 400,
-                                      maxWidth: '100%'
+                                      maxWidth: '50%'
                                     }}
+                                    limit='150'
                                     iconColor={theme.palette.customColors.moderateSecondary}
                                   />
                                 )}

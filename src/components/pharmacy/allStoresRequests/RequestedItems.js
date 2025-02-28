@@ -77,6 +77,7 @@ export default function RequestedItems({ selectedStoreDetails, setSelectedStoreD
   const [sort, setSort] = useState(router.query.sort || 'asc')
   const [rows, setRows] = useState([])
   const [searchValue, setSearchValue] = useState(router.query.q || '')
+
   const [sortColumn, setSortColumn] = useState(
     selectedPharmacy.type === 'local' ? 'priority' : router.query.column || 'priority'
   )
