@@ -3,7 +3,7 @@ import { DataGrid } from '@mui/x-data-grid'
 import Box from '@mui/material/Box'
 import Grid from '@mui/material/Grid'
 import Button from '@mui/material/Button'
-import { Card, CardContent, Avatar } from '@mui/material'
+import { Card, CardContent, Avatar, Tooltip } from '@mui/material'
 import Icon from 'src/@core/components/icon'
 import Typography from '@mui/material/Typography'
 import 'react-credit-cards/es/styles-compiled.css'
@@ -16,9 +16,11 @@ const StepBillingDetails = ({ handlePrev, formData, handleSubmit }) => {
       field: 'ingredient_name',
       headerName: 'Ingredient Name',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary', pl: 2 }}>
-          {params.row.ingredient_name}
-        </Typography>
+        <Tooltip title={params.row.ingredient_name}>
+          <Typography variant='body2' sx={{ color: 'text.primary', pl: 2 }} className='text_overflow_moduled'>
+            {params.row.ingredient_name}
+          </Typography>
+        </Tooltip>
       )
     },
     {
@@ -49,10 +51,18 @@ const StepBillingDetails = ({ handlePrev, formData, handleSubmit }) => {
       field: 'quantity',
       headerName: 'Quantity',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary', pl: 3 }}>
-          {parseFloat(params.row.quantity).toFixed(2)}
-          {params.row.uom_text ? ` ${params.row.uom_text}` : ''}
-        </Typography>
+        <>
+          <Tooltip
+            title={`${parseFloat(params.row.quantity).toFixed(2)}${
+              params.row.uom_text ? ` ${params.row.uom_text}` : ''
+            }`}
+          >
+            <Typography variant='body2' className='text_overflow_moduled' sx={{ color: 'text.primary', pl: 3 }}>
+              {parseFloat(params.row.quantity).toFixed(2)}
+              {params.row.uom_text ? ` ${params.row.uom_text}` : ''}
+            </Typography>
+          </Tooltip>
+        </>
       )
     },
     {

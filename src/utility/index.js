@@ -230,7 +230,6 @@ function formatAmountCompactDisplay(value) {
       compactDisplay: 'short'
     })
   }
-
   return `${Number(roundedNum)}`
 }
 
