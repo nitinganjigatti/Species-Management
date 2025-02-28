@@ -9,11 +9,18 @@ const composeLabNavigation = () => {
     icon: 'lets-icons:home-duotone'
   }
 
+  const analytics = {
+    title: 'Analytics',
+    path: '/analytics',
+    icon: 'lets-icons:home-duotone'
+  }
+
   const dashboardNavigationArray = []
 
   dashboardNavigationArray.push(Title)
 
   dashboardNavigationArray.push(dashboard)
+  dashboardNavigationArray.push(analytics)
 
   return dashboardNavigationArray
 }
