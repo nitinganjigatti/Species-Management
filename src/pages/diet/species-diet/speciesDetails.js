@@ -54,11 +54,12 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
     }
   }, [speciesDetailsDrawer])
 
-  const removeAttachment = async attachment_id => {
+  const removeAttachment = async (speciesId, attachment_id) => {
     if (attachment_id) {
       setDetailsLoader(true)
       try {
-        const res = await speciesAttachmentRemoveById(attachment_id)
+        // const res = await speciesAttachmentRemoveById(attachment_id)
+        const res = await speciesAttachmentActive({ status: '0', species_id: speciesId, attachment_id: attachment_id })
         Toaster({ type: 'success', message: res.message || 'Attachment removed successfully' })
         await fetchTableData()
         await getSpecieDetail()
@@ -74,7 +75,7 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
     if (speciesId && attachmentId) {
       setDetailsLoader(true)
       try {
-        const res = await speciesAttachmentActive({ species_id: speciesId, attachment_id: attachmentId })
+        const res = await speciesAttachmentActive({ status: '1', species_id: speciesId, attachment_id: attachmentId })
         Toaster({ type: 'success', message: res.message || 'Attachment activated successfully' })
         await fetchTableData()
         await getSpecieDetail()
@@ -322,7 +323,7 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
                   overflow: 'hidden'
                 }}
               >
-                <img style={{ width: '100%', height: '100%' }} src={'/icons/document_icon.svg'} alt='Profile' />
+                <img style={{ width: '100%', height: '100%' }} src={'/icons/documents_icon.svg'} alt='Profile' />
               </Avatar>
 
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
@@ -426,7 +427,7 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
               <Switch
                 onClick={e => {
                   e.stopPropagation()
-                  removeAttachment(item?.attachment_id)
+                  removeAttachment(speciesId, item?.attachment_id)
                 }}
                 defaultChecked
               />
@@ -465,7 +466,7 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
             overflow: 'hidden'
           }}
         >
-          <img style={{ width: '100%', height: '100%' }} src={'/icons/document_icon.svg'} alt='Profile' />
+          <img style={{ width: '100%', height: '100%' }} src={'/icons/documents_icon.svg'} alt='Profile' />
         </Avatar>
 
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
@@ -548,11 +549,12 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
         onClick={e => {
           e.stopPropagation()
           setDietAttachmentId(item.attachment_id)
-          if (Number(specieDetails.active_attachments_count) === 0) {
-            speciesAttachmentActiveFunc(speciesId, dietAttachmentId)
-          } else {
-            setDietAttachmentActiveConfirm(true)
-          }
+          // if (Number(specieDetails.active_attachments_count) === 0) {
+          //   speciesAttachmentActiveFunc(speciesId, dietAttachmentId)
+          // } else {
+          //   setDietAttachmentActiveConfirm(true)
+          // }
+          speciesAttachmentActiveFunc(speciesId, dietAttachmentId)
         }}
       />
     </Box>
@@ -645,8 +647,8 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
                     lineHeight: '24.2px'
                   }}
                 >
-                  Primary diet
-                  {/* ({specieDetails.active_attachments_count}) */}
+                  Primary diet{specieDetails.active_attachments_count > 1 && `s`}{' '}
+                  {specieDetails.active_attachments_count > 1 && `(${specieDetails.active_attachments_count})`}
                 </Typography>
               )}
               {uploadingAttachment && specieDetails?.active_attachments_count > 0 && <SpeciesDietUploadingCard />}
@@ -695,7 +697,8 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
           size='large'
           sx={{ height: '58px', width: '514px' }}
           onClick={() => {
-            setDietAttachmentUploadConfirm(true)
+            fileInputRef.current.click()
+            // setDietAttachmentUploadConfirm(true)
           }}
           // loading={loader}
         >
@@ -714,7 +717,7 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
       </Box>
 
       {/* ///////////////////////////dietAttachmentActiveConfirm////////////////////////////////// */}
-      <Drawer
+      {/* <Drawer
         anchor='bottom'
         open={dietAttachmentActiveConfirm}
         sx={{
@@ -785,9 +788,9 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
             CONFIRM
           </LoadingButton>
         </Box>
-      </Drawer>
+      </Drawer> */}
       {/* ////////////////////////dietAttachmentUploadConfirm///////////////////////////////////// */}
-      <Drawer
+      {/* <Drawer
         anchor='bottom'
         open={dietAttachmentUploadConfirm}
         sx={{
@@ -858,7 +861,7 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
             CONTINUE
           </LoadingButton>
         </Box>
-      </Drawer>
+      </Drawer> */}
     </Drawer>
   )
 }

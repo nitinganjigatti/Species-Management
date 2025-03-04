@@ -17,8 +17,8 @@ const PharmacyPendingReqChart = ({ pendingRequests }) => {
   // ** Hook
   const theme = useTheme()
 
-  const labels = pendingRequests.map(item => item.label)
-  const values = pendingRequests.map(item => item.value)
+  const labels = pendingRequests?.priority_stats?.map(item => item.label)
+  const values = pendingRequests?.priority_stats?.map(item => item.value)
 
   const options = {
     stroke: { width: 0 },
@@ -115,7 +115,7 @@ const PharmacyPendingReqChart = ({ pendingRequests }) => {
         subheaderTypographyProps={{ sx: { color: theme => `${theme.palette.text.disabled} !important` } }}
       /> */}
       {/* <CardContent> */}
-      <ReactApexcharts type='donut' height={240} options={options} series={values} />
+      <ReactApexcharts type='donut' height={260} options={options} series={values} />
       {/* </CardContent> */}
     </>
   )

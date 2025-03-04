@@ -5,7 +5,7 @@ import Utility from 'src/utility'
 const iconMap = {
   pets: '/dashboard/all_animal.svg',
   // eggs: '/dashboard/Egg.svg',
-  eggs: ' /dashboard/insights/Enclosure.svg',
+  enclosures: ' /dashboard/insights/Enclosure.svg',
   medicalRecords: '/dashboard/medical_record.svg',
   labRequests: '/dashboard/lab_req.svg',
   activeUsers: '/dashboard/user.svg',
@@ -14,7 +14,7 @@ const iconMap = {
 
 const bgColors = {
   pets: '#E1F9ED',
-  eggs: '#FCF4AE99',
+  enclosures: '#FCF4AE99',
   medicalRecords: '#FFBDA84D',
   labRequests: '#AFEFEB66',
   activeUsers: '#E8F4F2',

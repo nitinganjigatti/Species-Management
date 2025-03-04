@@ -62,11 +62,11 @@ const EggChart = ({ eggAnalytics, height }) => {
       }
     },
     colors: [
-      hexToRGBA(theme.palette.primary.light, 1),
-      hexToRGBA(theme.palette.success.light, 1),
-      hexToRGBA(theme.palette.warning.light, 1),
-      hexToRGBA(theme.palette.info.light, 1),
-      hexToRGBA(theme.palette.error.light, 1)
+      hexToRGBA('#1F515B', 1),
+      hexToRGBA('#E4B819', 1),
+      hexToRGBA('#00D6C9', 1),
+      hexToRGBA('#37BD69', 1),
+      hexToRGBA('#FD4666', 1)
     ],
     legend: { show: false },
     states: {

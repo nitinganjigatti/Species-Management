@@ -90,7 +90,7 @@ const AnimalActivityChart = ({ animalActivityData }) => {
 
   return (
     <>
-      <ReactApexcharts type='donut' height={290} options={options} series={seriesData} />
+      <ReactApexcharts type='donut' height={280} options={options} series={seriesData} />
       <Box sx={{ display: 'flex', flexWrap: 'wrap', alignItems: 'center', justifyContent: 'center', mb: 4 }}>
         {animalActivityData.map((status, index) => (
           <Box
