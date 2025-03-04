@@ -59,7 +59,11 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
       setDetailsLoader(true)
       try {
         // const res = await speciesAttachmentRemoveById(attachment_id)
-        const res = await speciesAttachmentActive({ status: '0', species_id: speciesId, attachment_id: attachment_id })
+        const res = await speciesAttachmentActive({
+          status: '0',
+          species_id: `${speciesId}`,
+          attachment_id: `${attachment_id}`
+        })
         Toaster({ type: 'success', message: res.message || 'Attachment removed successfully' })
         await fetchTableData()
         await getSpecieDetail()
@@ -75,7 +79,11 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
     if (speciesId && attachmentId) {
       setDetailsLoader(true)
       try {
-        const res = await speciesAttachmentActive({ status: '1', species_id: speciesId, attachment_id: attachmentId })
+        const res = await speciesAttachmentActive({
+          status: '1',
+          species_id: `${speciesId}`,
+          attachment_id: `${attachmentId}`
+        })
         Toaster({ type: 'success', message: res.message || 'Attachment activated successfully' })
         await fetchTableData()
         await getSpecieDetail()
