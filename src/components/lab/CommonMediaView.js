@@ -17,14 +17,13 @@ import Icon from 'src/@core/components/icon'
 import React, { useState } from 'react'
 import moment from 'moment'
 import Utility from 'src/utility'
+import { useEffect } from 'react'
 
-const CommonMediaView = ({ type, image, document, handleDeleteImg, fileViews, permissions, rows, individual }) => {
-  console.log('individual', individual)
+const CommonMediaView = ({ type, image, document, handleDeleteImg, fileViews, permissions, allCompleted }) => {
   const [openConfirmDialog, setOpenConfirmDialog] = useState(false)
   const [selectedItem, setSelectedItem] = useState(null)
   const [error, setError] = useState(false)
-  console.log('error', error)
-  console.log('selectedItem', selectedItem)
+  console.log('allCompleted', allCompleted)
 
   function extractHoursAndMinutes(date) {
     //9:21 PM
@@ -46,20 +45,19 @@ const CommonMediaView = ({ type, image, document, handleDeleteImg, fileViews, pe
     setOpenConfirmDialog(true)
 
     // Check if all statuses start with "completed"
-    const allCompleted = rows.every(row => row.status.startsWith('completed'))
 
-    const totalAttachments = attachments.flat().length // Merge image & document arrays into one
+    // const totalAttachments = attachments.flat().length // Merge image & document arrays into one
 
-    console.log('Total Attachments:', totalAttachments)
+    // console.log('Total Attachments:', totalAttachments)
 
-    if (individual && attachments.length === 1) {
-      setError(true)
+    // if (individual && attachments.length === 1) {
+    //   setError(true)
 
-      return
-    }
+    //   return
+    // }
 
     // Check if total rows are equal to total attachments
-    if (allCompleted && rows.length === totalAttachments) {
+    if (allCompleted) {
       setError(true)
 
       return
@@ -313,10 +311,16 @@ const CommonMediaView = ({ type, image, document, handleDeleteImg, fileViews, pe
           )}
         </DialogContent>
         <DialogActions>
-          <Button onClick={() => setOpenConfirmDialog(false)} variant='outlined'>
+          <Button
+            onClick={() => {
+              setOpenConfirmDialog(false)
+              setError(false)
+            }}
+            variant='outlined'
+          >
             CANCEL
           </Button>
-          {!error && (
+          {!error && !allCompleted && (
             <Button onClick={handleDelete} variant='contained' color='error'>
               DELETE
             </Button>
