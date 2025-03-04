@@ -122,33 +122,6 @@ const App = props => {
                           <ReactHotToast>
                             <Toaster
                               position={settings.toastPosition}
-                              containerClassName='react-hot-toast-container'
-                              toastOptions={{ className: 'react-hot-toast' }}
-                            />
-                          </ReactHotToast>
-                        </ThemeComponent>
-                      )
-                    }}
-                  </SettingsConsumer>
-                </SettingsProvider>
-              </AuthProvider>
-            </EggProvider>
-
-            <EggProvider>
-              <AuthProvider>
-                <SettingsProvider {...(setConfig ? { pageSettings: setConfig() } : {})}>
-                  <SettingsConsumer>
-                    {({ settings }) => {
-                      return (
-                        <ThemeComponent settings={settings}>
-                          <Guard authGuard={authGuard} guestGuard={guestGuard}>
-                            <AclGuard aclAbilities={aclAbilities} guestGuard={guestGuard} authGuard={authGuard}>
-                              {getLayout(<Component {...pageProps} />)}
-                            </AclGuard>
-                          </Guard>
-                          <ReactHotToast>
-                            <Toaster
-                              position={settings.toastPosition}
                               toastOptions={{ className: 'react-hot-toast' }}
                             />
                           </ReactHotToast>
