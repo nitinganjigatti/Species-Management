@@ -3,12 +3,12 @@ import { DataGrid } from '@mui/x-data-grid'
 import Box from '@mui/material/Box'
 import Grid from '@mui/material/Grid'
 import Button from '@mui/material/Button'
-import { Card, CardContent, Avatar } from '@mui/material'
+import { Card, CardContent, Avatar, CircularProgress } from '@mui/material'
 import Icon from 'src/@core/components/icon'
 import Typography from '@mui/material/Typography'
 import 'react-credit-cards/es/styles-compiled.css'
 
-const StepBillingDetails = ({ handlePrev, formData, handleSubmit }) => {
+const StepBillingDetails = ({ handlePrev, formData, handleSubmit, loader }) => {
   // const columns = [
   //   {
   //     flex: 0.5,
@@ -364,12 +364,24 @@ const StepBillingDetails = ({ handlePrev, formData, handleSubmit }) => {
               >
                 Go back
               </Button>
+
               <Button
                 onClick={handleSubmit}
                 variant='contained'
                 endIcon={<Icon icon='mdi:arrow-right' fontSize={20} />}
+                disabled={loader}
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 1,
+                  minWidth: 120
+                }}
               >
-                Submit
+                <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  Submit
+                  {loader && <CircularProgress size={16} sx={{ color: '#ccc' }} />}
+                </span>
               </Button>
             </Box>
           </Grid>
