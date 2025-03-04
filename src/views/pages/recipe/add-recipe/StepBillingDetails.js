@@ -3,7 +3,7 @@ import { DataGrid } from '@mui/x-data-grid'
 import Box from '@mui/material/Box'
 import Grid from '@mui/material/Grid'
 import Button from '@mui/material/Button'
-import { Card, CardContent, Avatar } from '@mui/material'
+import { Card, CardContent, Avatar, Tooltip } from '@mui/material'
 import Icon from 'src/@core/components/icon'
 import Typography from '@mui/material/Typography'
 import 'react-credit-cards/es/styles-compiled.css'
@@ -16,9 +16,11 @@ const StepBillingDetails = ({ handlePrev, formData, handleSubmit }) => {
       field: 'ingredient_name',
       headerName: 'Ingredient Name',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.ingredient_name}
-        </Typography>
+        <Tooltip title={params.row.ingredient_name}>
+          <Typography variant='body2' sx={{ color: 'text.primary', pl: 2 }} className='text_overflow_moduled'>
+            {params.row.ingredient_name}
+          </Typography>
+        </Tooltip>
       )
     },
     {
@@ -33,7 +35,7 @@ const StepBillingDetails = ({ handlePrev, formData, handleSubmit }) => {
       )
     },
     {
-      flex: 0.3,
+      flex: 0.4,
       minWidth: 20,
       field: 'feed_type_label',
       headerName: 'Feed Type',
@@ -44,15 +46,23 @@ const StepBillingDetails = ({ handlePrev, formData, handleSubmit }) => {
       )
     },
     {
-      flex: 0.4,
+      flex: 0.43,
       minWidth: 10,
       field: 'quantity',
       headerName: 'Quantity',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary', pl: 3 }}>
-          {parseFloat(params.row.quantity).toFixed(2)}
-          {params.row.uom_text ? ` ${params.row.uom_text}` : ''}
-        </Typography>
+        <>
+          <Tooltip
+            title={`${parseFloat(params.row.quantity).toFixed(2)}${
+              params.row.uom_text ? ` ${params.row.uom_text}` : ''
+            }`}
+          >
+            <Typography variant='body2' className='text_overflow_moduled' sx={{ color: 'text.primary', pl: 3 }}>
+              {parseFloat(params.row.quantity).toFixed(2)}
+              {params.row.uom_text ? ` ${params.row.uom_text}` : ''}
+            </Typography>
+          </Tooltip>
+        </>
       )
     },
     {
@@ -72,7 +82,7 @@ const StepBillingDetails = ({ handlePrev, formData, handleSubmit }) => {
       field: 'cut_size',
       headerName: 'Cut Size',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary', pl: 5 }}>
+        <Typography variant='body2' sx={{ color: 'text.primary', pl: 2 }}>
           {params?.row?.cut_size ? params?.row?.cut_size : '-'}
         </Typography>
       )
@@ -225,7 +235,7 @@ const StepBillingDetails = ({ handlePrev, formData, handleSubmit }) => {
                             </div>
                           </CardContent>
                         </div>
-                        <CardContent>
+                        <CardContent sx={{ pt: 1 }}>
                           <Box
                             sx={{
                               width: '100%',
@@ -259,7 +269,7 @@ const StepBillingDetails = ({ handlePrev, formData, handleSubmit }) => {
                             }}
                           >
                             <Box sx={{ mr: 2, display: 'flex', flexDirection: 'column' }}>
-                              <Typography variant='body2' sx={{ mb: 0.5, fontWeight: 600, color: 'text.primary' }}>
+                              <Typography variant='body2' sx={{ fontWeight: 600, color: 'text.primary' }}>
                                 Ingredients used
                               </Typography>
                             </Box>
@@ -275,11 +285,10 @@ const StepBillingDetails = ({ handlePrev, formData, handleSubmit }) => {
                               display: 'flex',
                               flexWrap: 'wrap',
                               alignItems: 'center',
-                              justifyContent: 'space-between',
-                              my: 3
+                              justifyContent: 'space-between'
                             }}
                           >
-                            <Box sx={{ mr: 2, display: 'flex', flexDirection: 'column' }}>
+                            {/* <Box sx={{ mr: 2, display: 'flex', flexDirection: 'column' }}>
                               <Typography variant='body2' sx={{ mb: 0.5, fontWeight: 600, color: 'text.primary' }}>
                                 Calories per 100gms
                               </Typography>
@@ -288,7 +297,7 @@ const StepBillingDetails = ({ handlePrev, formData, handleSubmit }) => {
                               <Typography variant='body2' sx={{ mr: 1.5, color: '#7A8684' }}>
                                 {formData.kcal ? formData.kcal + ' Kcal' : ' 0 Kcal'}
                               </Typography>
-                            </Box>
+                            </Box> */}
                           </Box>
                         </CardContent>
                       </Card>
@@ -305,9 +314,9 @@ const StepBillingDetails = ({ handlePrev, formData, handleSubmit }) => {
               </Card>
 
               <Card sx={{ boxShadow: 'none' }}>
-                <CardContent sx={{ mb: 5, mt: 2 }}>
+                <CardContent sx={{ mb: 5, pt: 0 }}>
                   <Card sx={{ boxShadow: 'none' }}>
-                    <CardHeader title='Ingredient by percentage' />
+                    {/* <CardHeader title='Ingredient by percentage' />
 
                     <DataGrid
                       sx={{
@@ -325,8 +334,9 @@ const StepBillingDetails = ({ handlePrev, formData, handleSubmit }) => {
                       rows={rowsPercentage}
                       columns={columnsforPercentage}
                       hideFooter={true}
-                    />
-                    <CardHeader title='Ingredient by Quantity' sx={{ mt: 8 }} />
+                    /> */}
+
+                    <CardHeader title='Ingredient by Quantity' />
                     <DataGrid
                       sx={{
                         '.MuiDataGrid-cell:focus': {
@@ -334,6 +344,16 @@ const StepBillingDetails = ({ handlePrev, formData, handleSubmit }) => {
                         },
                         '& .MuiDataGrid-row:hover': {
                           cursor: 'pointer'
+                        },
+                        '& .MuiDataGrid-columnHeader': {
+                          whiteSpace: 'nowrap', // Prevents text wrapping in header
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis'
+                        },
+                        '& .MuiDataGrid-cell': {
+                          whiteSpace: 'nowrap', // Prevents text wrapping in cell
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis'
                         }
                       }}
                       columnVisibilityModel={{

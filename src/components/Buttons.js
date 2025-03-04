@@ -10,12 +10,15 @@ import { LoadingButton } from '@mui/lab'
 function AddButton({ action, title, disabled, styles }) {
   return (
     <Button
+      // sx={{(title === "request")? ml:2: ""}}
+
       disabled={disabled || false}
       onClick={action ? action : null}
       size='large'
       variant='outlined'
       startIcon={<Icon icon='material-symbols-light:add' />}
-      style={{ ...styles }}
+      sx={{ mr: 1 }}
+      // style={{ ...styles }}
     >
       {title ? title : null}
     </Button>
@@ -59,7 +62,7 @@ function RequestCancelButton({ action, title }) {
     </Button>
   )
 }
-function ExcelExportButton({ action, title, loader, disabled }) {
+function ExcelExportButton({ action, title, loader, disabled, fullWidth }) {
   return (
     <LoadingButton
       disabled={disabled}
@@ -68,6 +71,7 @@ function ExcelExportButton({ action, title, loader, disabled }) {
       size='large'
       variant='outlined'
       startIcon={<Icon icon='vscode-icons:file-type-excel' />}
+      fullWidth={fullWidth ? fullWidth : null}
     >
       {title ? title : null}
     </LoadingButton>

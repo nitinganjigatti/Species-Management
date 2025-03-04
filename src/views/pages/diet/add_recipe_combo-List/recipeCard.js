@@ -9,7 +9,7 @@ import DoneIcon from '@mui/icons-material/Done'
 import { useEffect, useState } from 'react'
 import { Stack } from '@mui/system'
 import { Tooltip } from '@mui/material'
-import { Title } from 'chart.js'
+import toast from 'react-hot-toast'
 
 const RecipeCard = ({
   rows,
@@ -22,7 +22,9 @@ const RecipeCard = ({
   formData,
   addEventSidebarOpen,
   searchValue,
-  setSearchValue
+  setSearchValue,
+  fromrow,
+  recipeid
 }) => {
   const [remarks, setRemarks] = useState({})
   console.log('remarks', remarks)
@@ -146,7 +148,7 @@ const RecipeCard = ({
         const enabledAllDays = Day.map(day => ({
           id: day.id,
           name: day.name,
-          isActive: true // Enable all days if mealid does not match checkid
+          isActive: true
         }))
 
         return previousDay ? previousDay : { cardId: row.id, days: enabledAllDays } // Keep previously selected days if available, or enable all days
@@ -286,9 +288,10 @@ const RecipeCard = ({
   }
 
   const handleSelected = () => {
-    handleSidebarClose()
-    setSearchValue('')
-    console.log(selectedCardRecipe, 'selectedCardRecipe')
+    if (selectedCardRecipe.length === 0) {
+      toast.error('Recipes are required.')
+      return // Exit early to prevent further processing
+    }
     const filteredItems = selectedCardRecipe.map(item => {
       // Find the selected days for the current item
 
@@ -315,7 +318,7 @@ const RecipeCard = ({
       return {
         recipe_name: item.recipe_name,
         recipe_id: item.id ? item.id : null,
-        days_of_week: preservedDaysOfWeek, // Retain previous days_of_week if new one is empty
+        days_of_week: preservedDaysOfWeek,
         remarks: cardRemarks,
         mealid: checkid,
         recipe_image: item.recipe_image,
@@ -329,9 +332,9 @@ const RecipeCard = ({
     })
 
     setSelectedCardRecipe(filteredItems)
-
-    // Trigger onChange callback with the updated recipe
     onChange(filteredItems)
+    handleSidebarClose()
+    setSearchValue('')
   }
 
   const handleAddRemarks = (event, cardId) => {
@@ -365,7 +368,12 @@ const RecipeCard = ({
     item => item.recipe_name.toLowerCase().includes(searchValue.toLowerCase()) // filter by search
   )
 
-  const sortedRecipeList = [...filteredRecipeList].sort((a, b) => a.recipe_name.localeCompare(b.recipe_name))
+  let sortedRecipeList = [...filteredRecipeList].sort((a, b) => a.recipe_name.localeCompare(b.recipe_name))
+
+  // Filter sortedRecipeList based on remarks and fromrow condition
+  if (fromrow !== '' && fromrow === 'rowedit_recipe') {
+    sortedRecipeList = sortedRecipeList.filter(item => item.id === recipeid) // Compare with recipeid state
+  }
 
   const calculateTotalQuantity = ingredients => {
     const total = ingredients.reduce((total, ingredient) => {
@@ -377,8 +385,6 @@ const RecipeCard = ({
 
   return (
     <Box>
-      {console.log(sortedRecipeList, 'sortedRecipeList')}
-      {console.log(selectedCardRecipe, 'selectedCardRecipe')}
       {sortedRecipeList?.map((item, index) => {
         return (
           <>
@@ -386,15 +392,14 @@ const RecipeCard = ({
               sx={{
                 bgcolor: 'background.paper',
                 border: selectedCardRecipe?.some(card => card.id === item.id) ? '2px solid #37BD69' : '#fff',
-                boxShadow: 1,
+                boxShadow: 0,
                 mt: 4,
-
-                // borderRadius: '12px',
+                borderRadius: '10px',
                 cursor: 'pointer'
               }}
             >
               <Box
-                sx={{ display: 'flex', m: 1, cursor: 'pointer', padding: '16px' }}
+                sx={{ display: 'flex', m: 1, cursor: 'pointer', padding: '16px', pb: '10px', pt: '10px' }}
                 onClick={() => {
                   handleCardClick(item, index)
                 }}
@@ -449,7 +454,6 @@ const RecipeCard = ({
                           fontSize: '20px',
                           color: '#44544A',
                           width: '400px',
-                          height: '24px',
                           overflow: 'hidden',
                           textOverflow: 'ellipsis',
                           whiteSpace: 'nowrap'
@@ -458,13 +462,16 @@ const RecipeCard = ({
                         {item?.recipe_name}
                       </Typography>
                     </Tooltip>
-                    <Typography variant='body' sx={{ ml: 4, fontSize: '14px', width: '79px', height: '17px', mt: 3 }}>
+                    <Typography
+                      variant='body'
+                      sx={{ ml: 4, fontSize: '14px', width: '79px', mt: 0, mb: 0, float: 'left' }}
+                    >
                       {item?.recipe_no ? item?.recipe_no : 'RCP- 000'}
                     </Typography>
                   </Box>
 
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '333px', height: '33px' }}>
-                    <Divider sx={{ borderLeft: '1px solid #D9D9D9', height: 30, ml: 4, mt: 3 }}></Divider>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '333px', height: '45px' }}>
+                    {/* <Divider sx={{ borderLeft: '1px solid #D9D9D9', height: 30, ml: 4, mt: 3 }}></Divider>
                     <Box sx={{ ml: '10px' }}>
                       <Typography sx={{ mt: 2, fontSize: '12px', fontWeight: 'bold', color: '#000' }}>
                         {item?.ingredients_count}&nbsp;
@@ -472,22 +479,22 @@ const RecipeCard = ({
                       </Typography>
                       <Typography sx={{ fontSize: '10px', width: '100px' }}>Ingredients by %</Typography>
                     </Box>
-                    <Divider sx={{ borderLeft: '1px solid #D9D9D9', height: 30, mr: 2, mt: 3 }}></Divider>
-                    <Box>
+                    <Divider sx={{ borderLeft: '1px solid #D9D9D9', height: 30, mr: 2, mt: 3 }}></Divider> */}
+                    <Box sx={{ ml: 4 }}>
                       <Typography sx={{ mt: 2, fontSize: '12px', color: '#000', fontWeight: 'bold' }}>
                         {' '}
                         {item?.by_quantity?.length} nos
                       </Typography>
                       <Typography sx={{ fontSize: '10px', width: '100px' }}>Ingredients by qty</Typography>
                     </Box>
-                    <Divider sx={{ borderLeft: '1px solid #D9D9D9', height: 30, mr: 2, mt: 3 }}></Divider>
+                    {/* <Divider sx={{ borderLeft: '1px solid #D9D9D9', height: 30, mr: 2, mt: 3 }}></Divider>
                     <Box>
                       <Typography sx={{ mt: 2, fontSize: '12px', color: '#000', fontWeight: 'bold' }}>
                         {' '}
                         {item?.total_kcal ? item?.total_kcal : 0}
                       </Typography>
                       <Typography sx={{ fontSize: '10px', width: '100px' }}>Calories by 100g</Typography>
-                    </Box>
+                    </Box> */}
                   </Box>
                 </Box>
               </Box>
@@ -563,7 +570,7 @@ const RecipeCard = ({
       {/* {selectedCardRecipe?.length > 0 && ( */}
       <Box
         sx={{
-          height: '122px',
+          height: '100px',
           ml: -4,
 
           width: '100%',
@@ -581,9 +588,15 @@ const RecipeCard = ({
           // bgcolor: 'yellow'
         }}
       >
-        <Button fullWidth size='large' variant='contained' onClick={handleSelected}>
-          ADD RECIPE - {selectedCardRecipe?.length} SELECTED
-        </Button>
+        {fromrow === 'rowedit_recipe' ? (
+          <Button fullWidth size='large' variant='contained' onClick={handleSelected}>
+            ADD RECIPE
+          </Button>
+        ) : (
+          <Button fullWidth size='large' variant='contained' onClick={handleSelected}>
+            ADD RECIPE - {selectedCardRecipe?.length} SELECTED
+          </Button>
+        )}
       </Box>
       {/* )} */}
     </Box>

@@ -11,7 +11,13 @@ const CommonTable = ({
   handleSortModel,
   setPaginationModel,
   loading,
-  searchValue
+  searchValue,
+  onCellClick,
+  columnVisibilityModel,
+  checkBoxOption,
+  onRowSelectionModelChange,
+  selectedRows,
+  disablePagination = false // New prop to control pagination
 }) => {
   const theme = useTheme()
 
@@ -25,16 +31,17 @@ const CommonTable = ({
 
         '& .MuiDataGrid-columnHeaders': {
           backgroundColor: theme.palette.customColors.customTableHeaderBg,
-          color: theme.palette.customColors.customHeadingTextColor // Your desired background color
+          color: theme.palette.customColors.customHeadingTextColor
         },
         '& .MuiDataGrid-row:hover': {
           cursor: 'pointer'
         },
         '.MuiDataGrid-virtualScroller': {
-          overflow: 'hidden'
+          // overflow: 'hidden',
+          overflowX: 'auto'
         },
         '.MuiDataGrid-main': {
-          margin: '2px',
+          // margin: '2px',
           borderLeft: '1px solid #0000000D',
           borderRight: '1px solid #0000000D',
 
@@ -52,23 +59,28 @@ const CommonTable = ({
           borderBottom: 'none' // Make sure no extra bottom border is applie
         }
       }}
-      // columnVisibilityModel={{
-      //   sl_no: false
-      // }}
+      columnVisibilityModel={columnVisibilityModel ? columnVisibilityModel : {}}
       hideFooterSelectedRowCount
       disableColumnSelector={true}
       autoHeight
-      pagination
+      // pagination
+      pagination={!disablePagination}
       rows={indexedRows === undefined ? [] : indexedRows}
-      rowCount={total}
+      // rowCount={total}
+      rowCount={disablePagination ? undefined : total}
       columns={columns}
       sortingMode='server'
-      paginationMode='server'
-      pageSizeOptions={[7, 10, 25, 50]}
-      paginationModel={paginationModel}
+      // paginationMode='server'
+      // pageSizeOptions={[7, 10, 25, 50]}
+      paginationMode={disablePagination ? undefined : 'server'}
+      pageSizeOptions={disablePagination ? [total] : [7, 10, 25, 50, 100]}
+      onCellClick={onCellClick ? onCellClick : null}
+      // paginationModel={paginationModel}
+      paginationModel={disablePagination ? undefined : paginationModel}
       onSortModelChange={handleSortModel}
-      onPaginationModelChange={setPaginationModel}
-      loading={loading}
+      // onPaginationModelChange={setPaginationModel}
+      onPaginationModelChange={disablePagination ? undefined : setPaginationModel}
+      loading={loading ? loading : null}
       disableColumnMenu
       slotProps={{
         baseButton: {
@@ -80,7 +92,10 @@ const CommonTable = ({
           onChange: event => handleSearch(event.target.value)
         }
       }}
-      onRowClick={onRowClick}
+      onRowClick={onRowClick ? onRowClick : null}
+      checkboxSelection={checkBoxOption ? true : false}
+      onRowSelectionModelChange={onRowSelectionModelChange ? onRowSelectionModelChange : null}
+      rowSelectionModel={selectedRows ? selectedRows : []}
     />
   )
 }

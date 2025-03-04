@@ -21,7 +21,7 @@ const Transition = forwardRef(function Transition(props, ref) {
   return <Fade ref={ref} {...props} />
 })
 
-const CommonDialogBox = ({ title, dialogBoxStatus, formComponent, close, noWidth }) => {
+const CommonDialogBox = ({ title, dialogBoxStatus, formComponent, close, noWidth, style }) => {
   return (
     <Dialog
       fullWidth={noWidth ? false : true}
@@ -29,10 +29,16 @@ const CommonDialogBox = ({ title, dialogBoxStatus, formComponent, close, noWidth
       maxWidth='md'
       height='auto'
       scroll='body'
-      onClose={() => close()}
+      // eslint-disable-next-line lines-around-comment
+      // onClose={() => close()}
       TransitionComponent={Transition}
+      onClose={(event, reason) => {
+        if (reason !== 'backdropClick') {
+          close()
+        }
+      }}
     >
-      <Card>
+      <Card sx={{ bgcolor: style }}>
         {/* <Grid
           container
           sx={{

@@ -10,6 +10,7 @@ import CardContent from '@mui/material/CardContent'
 import InputAdornment from '@mui/material/InputAdornment'
 import { getRequestListChart } from 'src/lib/api/pharmacy/getAllReports'
 import { Select, MenuItem, FormControl, InputLabel } from '@mui/material'
+
 // ** Third Party Imports
 import format from 'date-fns/format'
 import subDays from 'date-fns/subDays'
@@ -85,6 +86,7 @@ const RequestChart = () => {
         style: { colors: '#8e8da4' }
       }
     },
+
     // legend: {
     //   show: true,
     //   position: 'top', // Moves the legend above the chart
@@ -99,7 +101,7 @@ const RequestChart = () => {
       intersect: false,
       y: {
         formatter: function (val) {
-          return val + ' requests'
+          return val > 1 ? val + ' requests' : val + ' request'
         }
       }
     },
@@ -125,6 +127,7 @@ const RequestChart = () => {
     },
     legend: {
       show: true,
+
       // position: 'top',
       //horizontalAlign: 'left',
       markers: {

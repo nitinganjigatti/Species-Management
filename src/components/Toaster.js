@@ -13,29 +13,30 @@ const Toaster = ({ type = 'success', message }) => {
   return toast(
     t => (
       <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          <Icon
-            icon={
-              type === 'success'
-                ? 'ooui:success'
-                : type === 'warning'
-                ? 'ph:warning-fill'
-                : type === 'error'
-                ? 'material-symbols:error'
-                : ''
-            }
-            style={{
-              marginRight: '20px',
-              fontSize: 50,
-              color: type === 'success' ? '#37BD69' : type === 'warning' ? 'orange' : type === 'error' ? 'red' : ''
-            }}
-          />
-          <div>
-            <Typography sx={{ fontWeight: 500 }} variant='h5'>
+        <Box sx={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+          <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+            <Typography sx={{ fontWeight: 500, fontSize: '20px', color: '#000' }}>
+              <Icon
+                icon={
+                  type === 'success'
+                    ? 'ooui:success'
+                    : type === 'warning'
+                    ? 'ph:warning-fill'
+                    : type === 'error'
+                    ? 'material-symbols:error'
+                    : ''
+                }
+                style={{
+                  marginRight: '11px',
+                  fontSize: 28,
+                  color: type === 'success' ? '#37BD69' : type === 'warning' ? 'orange' : type === 'error' ? 'red' : '',
+                  verticalAlign: 'middle'
+                }}
+              />
               {type === 'success' ? 'Success' : type === 'warning' ? 'Warning' : type === 'error' ? 'Error' : ''}
             </Typography>
-            <Divider sx={{ my: 2 }} />
-            <Typography sx={{ fontWeight: 500 }} variant='body2'>
+            <Divider sx={{ my: 2, width: '360px' }} />
+            <Typography sx={{ fontWeight: 400, color: '#44544A', fontSize: '14px' }}>
               {toSentenceCase(message)}
             </Typography>
           </div>
@@ -49,9 +50,10 @@ const Toaster = ({ type = 'success', message }) => {
       </Box>
     ),
     {
+      duration: 2000,
       style: {
-        minWidth: '450px',
-        minHeight: '130px'
+        minWidth: '400px',
+        minHeight: '100px'
       }
     }
   )

@@ -9,7 +9,8 @@ import {
   Card,
   CardContent,
   CircularProgress,
-  Divider
+  Divider,
+  useMediaQuery
 } from '@mui/material'
 import Router, { useRouter } from 'next/router'
 import Icon from 'src/@core/components/icon'
@@ -27,6 +28,7 @@ const DietDetailCard = ({ dietDetails, dietModulePermission, dietModuleAccess })
   const router = useRouter()
   const { source, recipeId, ingId } = router.query
   const theme = useTheme()
+  const isSmallDevice = useMediaQuery(theme.breakpoints.down('md'))
   const [expanded, setExpanded] = useState(false)
   const [loading, setLoading] = useState(false)
   const [activitySidebarOpen, setActivitySidebarOpen] = useState(false)
@@ -106,11 +108,6 @@ const DietDetailCard = ({ dietDetails, dietModulePermission, dietModuleAccess })
     }
   }
 
-  // const handleSearch = value => {
-  //   setSearchValue(value)
-  //   searchTableData(value, sortColumning)
-  // }
-
   const confirmStatusAction = async () => {
     try {
       setConfirmDialogBox(false)
@@ -164,8 +161,17 @@ const DietDetailCard = ({ dietDetails, dietModulePermission, dietModuleAccess })
             Diet Details
           </Typography>
         </Box>
-        <Grid sx={{ justifyContent: 'center', gap: '24px', boxSizing: 'border-box' }} container>
-          <Grid md={3.8} item>
+        <Grid
+          sx={{
+            justifyContent: 'space-between',
+            gap: isSmallDevice ? '25px' : '24px',
+            boxSizing: 'border-box',
+            flexWrap: 'nowrap',
+            alignItems: 'flex-start'
+          }}
+          container
+        >
+          <Grid md={3.8} xs={12} item>
             <Box item sx={{ borderTopLeftRadius: 36, borderTopRightRadius: 36 }}>
               <Avatar
                 variant='square'
@@ -173,79 +179,44 @@ const DietDetailCard = ({ dietDetails, dietModulePermission, dietModuleAccess })
                 sx={{
                   width: '100%',
                   height: dietDetails?.image ? '300px' : '250px',
-                  borderRadius: '8px'
+                  borderRadius: '8px',
+                  '& img': {
+                    objectFit: isSmallDevice ? '' : 'cover',
+                    objectPosition: isSmallDevice ? 'left' : 'center'
+                  }
                 }}
                 src={dietDetails?.image ? dietDetails?.image : '/icons/icon_diet_fill.png'}
               ></Avatar>
-              {/* <Box
-                sx={{
-                  width: '100%',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'space-between',
-                  gap: '12px',
-                  p: '16px'
-                }}
-              >
-                <Box
-                  sx={{
-                    width: '100%',
-                    display: 'flex',
-                    justifyContent: 'space-between'
-                  }}
-                >
-                  <Typography variant='body2' sx={{ fontSize: '14px', fontWeight: 400, color: 'text.primary' }}>
-                    Ingredients used
-                  </Typography>
-                  <Typography variant='body2' sx={{ fontSize: '14px', fontWeight: 500, color: '#44544A' }}>
-                    112
-                  </Typography>
-                </Box>
-                <Box
-                  sx={{
-                    width: '100%',
-                    display: 'flex',
-                    justifyContent: 'space-between'
-                  }}
-                >
-                  <Typography variant='body2' sx={{ fontSize: '14px', fontWeight: 400, color: 'text.primary' }}>
-                    Recipes used
-                  </Typography>
-                  <Typography variant='body2' sx={{ fontSize: '14px', fontWeight: 500, color: '#44544A' }}>
-                    45
-                  </Typography>
-                </Box>
-                <Box
-                  sx={{
-                    width: '100%',
-                    display: 'flex',
-                    justifyContent: 'space-between'
-                  }}
-                >
-                  <Typography variant='body2' sx={{ fontSize: '14px', fontWeight: 400, color: 'text.primary' }}>
-                    Species
-                  </Typography>
-                  <Typography variant='body2' sx={{ fontSize: '14px', fontWeight: 500, color: '#44544A' }}>
-                    12
-                  </Typography>
-                </Box>
-              </Box> */}
             </Box>
           </Grid>
-          <Grid item md={7.8}>
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <Box>
+          <Grid item md={7.8} xs={12}>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <Box
+                sx={{
+                  display: 'flex',
+                  flexDirection: isSmallDevice ? 'column' : 'row',
+                  justifyContent: isSmallDevice ? 'flex-start' : 'space-between',
+                  alignItems: isSmallDevice ? 'flex-start' : 'center',
+                  gap: isSmallDevice ? '16px' : '0'
+                }}
+              >
+                <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
                   <Typography sx={{ fontWeight: 500, fontSize: '22px', color: '#44544A' }}>
-                    {dietDetails?.diet_name}
-                  </Typography>
-                  <Typography
-                    sx={{ fontWeight: 400, fontSize: '16px', color: '#44544A', lineHeight: '19.36px', pt: 2 }}
-                  >
                     {dietDetails?.diet_no}
                   </Typography>
+                  <Typography sx={{ fontWeight: 500, fontSize: '16px', color: '#44544A', fontStyle: 'italic' }}>
+                    {dietDetails?.diet_name}
+                  </Typography>
                 </Box>
-                <Box sx={{ display: 'flex', gap: '24px', alignItems: 'center' }}>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    gap: isSmallDevice ? '16px' : '24px',
+                    alignItems: 'center',
+                    flexDirection: isSmallDevice ? 'row' : 'row',
+                    flexWrap: isSmallDevice ? 'row' : 'nowrap'
+                  }}
+                >
                   <Box>
                     <FormControlLabel
                       control={
@@ -253,6 +224,7 @@ const DietDetailCard = ({ dietDetails, dietModulePermission, dietModuleAccess })
                       }
                       labelPlacement='start'
                       label={isActive === '1' ? 'Active' : 'InActive'}
+                      sx={{ marginLeft: isSmallDevice ? '0px' : '16px' }}
                     />
                   </Box>
                   {(dietModuleAccess === 'ADD' || dietModuleAccess === 'EDIT' || dietModuleAccess === 'DELETE') && (
@@ -294,6 +266,9 @@ const DietDetailCard = ({ dietDetails, dietModulePermission, dietModuleAccess })
                   )}
                 </Box>
               </Box>
+              {/* <Typography sx={{ fontWeight: 400, fontSize: '16px', color: '#44544A' }}>
+                {dietDetails?.diet_name}
+              </Typography> */}
               <Box>
                 {dietDetails?.desc ? (
                   <div>
@@ -336,7 +311,15 @@ const DietDetailCard = ({ dietDetails, dietModulePermission, dietModuleAccess })
                   ''
                 )}
               </Box>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+              <Box
+                sx={{
+                  display: 'flex',
+                  flexDirection: isSmallDevice ? 'column' : 'row',
+                  justifyContent: isSmallDevice ? 'flex-start' : 'space-between',
+                  alignItems: isSmallDevice ? 'flex-start' : 'center',
+                  gap: isSmallDevice ? '16px' : '0'
+                }}
+              >
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                   <Avatar
                     src={dietDetails?.created_by_user?.profile_pic || '/icons/recipedummy.svg'}
@@ -370,7 +353,7 @@ const DietDetailCard = ({ dietDetails, dietModulePermission, dietModuleAccess })
                 {(dietModuleAccess === 'EDIT' || dietModuleAccess === 'DELETE') && (
                   <Box
                     onClick={() => setActivitySidebarOpen(true)}
-                    sx={{ display: 'flex', marginLeft: 'auto', cursor: 'pointer' }}
+                    sx={{ display: 'flex', marginLeft: isSmallDevice ? '0' : 'auto', cursor: 'pointer' }}
                   >
                     <Typography sx={{ color: '#000000', my: 3, fontSize: 14 }}>Activity Log</Typography>
                     <Icon icon='ph:clock' style={{ marginLeft: '4px', marginTop: '13px', fontSize: 20 }} />

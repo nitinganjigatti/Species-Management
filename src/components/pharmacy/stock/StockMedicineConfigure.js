@@ -106,7 +106,7 @@ const StockMedicineConfigure = ({ configureMedId, storeId, close }) => {
   const getRacksLists = async () => {
     try {
       const response = await getRackList()
-      // console.log('racks', response)
+
       if (response?.length > 0) {
         setRacks(response)
       }

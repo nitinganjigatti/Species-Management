@@ -14,17 +14,19 @@ export const ProductDetail = ({
   detailsData,
   prescriptionImages,
   productDetails,
+  filterByPharmacyId,
   submitLoader,
   handleRequestStatus,
   statusCall,
   savedText,
   setReasonText,
-  reasonText
+  reasonText,
+  selectedPharmacyId
 }) => {
-  console.log('product data????', productDetails, reasonText)
-
   const { selectedPharmacy } = usePharmacyContext()
   const [visibleArea, setVisibleArea] = useState(false)
+
+  console.log('Selected Pharmacy: ', selectedPharmacy)
 
   const router = useRouter()
 
@@ -158,53 +160,59 @@ export const ProductDetail = ({
                   left: '33px'
                 }}
               >
-                {selectedPharmacy.type === 'local'
-                  ? (selectedPharmacy.permission.key === 'allow_full_access' ||
-                      selectedPharmacy.permission.key === 'ADD') && (
-                      <Grid sx={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'flex-end', mb: '20px' }}>
-                        {productDetails?.status === 'Pending' && (
-                          <Button
-                            variant='outlined'
-                            sx={{ color: 'error' }}
-                            color='error'
-                            onClick={() => {
-                              handleRequestStatus('Cancelled', productDetails.id, productDetails)
-                            }}
-                          >
-                            Cancel Request
-                          </Button>
-                        )}
-                      </Grid>
-                    )
-                  : !visibleArea && (
-                      <Grid sx={{ display: 'flex', justifyContent: 'flex-end', mb: '20px' }}>
-                        {productDetails?.status === 'Pending' && (
-                          <LoadingButton
-                            loading={submitLoader}
-                            sx={{ margin: '2px' }}
-                            variant='outlined'
-                            onClick={() => {
-                              handleRequestStatus('Approved', productDetails.id, productDetails)
-                            }}
-                          >
-                            Approve Request
-                          </LoadingButton>
-                        )}
-                        {productDetails?.status === 'Pending' && (
-                          <LoadingButton
-                            sx={{ margin: '2px', color: 'error' }}
-                            variant='outlined'
-                            color='error'
-                            onClick={() => {
-                              setVisibleArea(true)
-                            }}
-                          >
-                            Reject Request
-                          </LoadingButton>
-                        )}
-                      </Grid>
-                    )}
+                {selectedPharmacy.type === 'local' &&
+                  selectedPharmacyId == selectedPharmacy?.id &&
+                  (selectedPharmacy.permission.key === 'allow_full_access' ||
+                    selectedPharmacy.permission.key === 'ADD') && (
+                    <Grid
+                      sx={{
+                        display: 'flex',
+                        alignItems: 'flex-end',
+                        justifyContent: 'flex-end',
+                        mb: '20px'
+                      }}
+                    >
+                      {productDetails?.status === 'Pending' && (
+                        <Button
+                          variant='outlined'
+                          sx={{ color: 'error' }}
+                          color='error'
+                          onClick={() => handleRequestStatus('Cancelled', productDetails.id, productDetails)}
+                        >
+                          Cancel Request
+                        </Button>
+                      )}
+                    </Grid>
+                  )}
+                {!visibleArea &&
+                  selectedPharmacy.type === 'central' &&
+                  (selectedPharmacy?.permission?.key === 'allow_full_access' ||
+                    selectedPharmacy?.permission?.key === 'ADD') && (
+                    <Grid sx={{ display: 'flex', justifyContent: 'flex-end', mb: '20px' }}>
+                      {productDetails?.status === 'Pending' && (
+                        <LoadingButton
+                          loading={submitLoader}
+                          sx={{ margin: '2px' }}
+                          variant='outlined'
+                          onClick={() => handleRequestStatus('Approved', productDetails.id, productDetails)}
+                        >
+                          Order Placed
+                        </LoadingButton>
+                      )}
+                      {productDetails?.status === 'Pending' && (
+                        <LoadingButton
+                          sx={{ margin: '2px' }}
+                          variant='outlined'
+                          color='error'
+                          onClick={() => setVisibleArea(true)}
+                        >
+                          Reject Request
+                        </LoadingButton>
+                      )}
+                    </Grid>
+                  )}
               </Grid>
+
               {visibleArea && (
                 <Card sx={{ width: '100%', ml: '30px' }}>
                   <CardContent>

@@ -8,7 +8,8 @@ import {
   REQUEST_ITEMS_NOT_AVAILABLE_REVERT,
   AlTERNATIVE_MEDICINE,
   REJECT_MEDICINE,
-  NOT_AVAILABLE_PRODUCT
+  NOT_AVAILABLE_PRODUCT,
+  REQUEST_PENDING_PRODUCTS
 } from '../../../constants/ApiConstant'
 import { axiosGet, axiosPost, axiosFormPost } from '../utility'
 
@@ -41,7 +42,7 @@ export async function getAvailableMedicineByMedicineId(id, data, store, productT
 
 export async function addDispatch(payload) {
   try {
-    const url = `${DISPATCH}`
+    const url = `v2/${DISPATCH}`
     var data = payload
     const response = await axiosPost({ url, body: data, pharmacy })
 
@@ -124,7 +125,7 @@ export async function cancelRequestItems(id) {
 
 export async function shipRequestedItems(payload) {
   try {
-    const url = `${SHIPMENT}`
+    const url = `v2/${SHIPMENT}`
     var data = payload
     const response = await axiosPost({ url, body: data, pharmacy })
 
@@ -149,7 +150,7 @@ export async function getShippedItemsByRequestId(id) {
 
 export async function updateShipmentRequest(id, payload) {
   try {
-    const url = `${SHIPMENT}/${id}/update`
+    const url = `v2/${SHIPMENT}/${id}/update`
     var data = payload
     data.id = id
     const response = await axiosPost({ url, body: data, pharmacy })
@@ -350,4 +351,10 @@ export async function makeProductNotAvailable(payload, parentId) {
 
     return error
   }
+}
+
+export async function getRequestPendingProductsList(id) {
+  const response = await axiosGet({ url: `${REQUEST_PENDING_PRODUCTS}/${id}`, pharmacy })
+
+  return response.data
 }

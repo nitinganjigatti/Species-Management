@@ -7,18 +7,14 @@ import CustomAvatar from 'src/@core/components/mui/avatar'
 
 // ** MUI Imports
 import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
-import { Card, CardHeader, Typography, Grid, Tooltip } from '@mui/material'
+import { Card, CardHeader, Typography, Grid, Tooltip, TextField } from '@mui/material'
 
 // ** Icon Imports
 import { Box } from '@mui/material'
 
-import Router from 'next/router'
+import { useRouter } from 'next/router'
 import Error404 from 'src/pages/404'
 import { stocksAdjustedList } from 'src/lib/api/pharmacy/stockAdjustment'
-import ConfirmDialogBox from 'src/components/ConfirmDialogBox'
-import DialogActions from '@mui/material/DialogActions'
-import DialogContent from '@mui/material/DialogContent'
-import DialogContentText from '@mui/material/DialogContentText'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import { AddButton, ExcelExportButton } from 'src/components/Buttons'
 import Utility from 'src/utility'
@@ -28,37 +24,50 @@ import TabContext from '@mui/lab/TabContext'
 import { styled } from '@mui/material/styles'
 import MuiTabList from '@mui/lab/TabList'
 import TabList from '@mui/lab/TabList'
+import Icon from 'src/@core/components/icon'
+import { useTheme } from '@emotion/react'
+
 import Chip from '@mui/material/Chip'
+import CommonTable from 'src/views/table/data-grid/CommonTable'
+import { AddButtonContained } from 'src/components/ButtonContained'
+import RenderUtility from 'src/utility/render'
+import TextEllipsisWithModal from 'src/components/TextEllipsisWithModal'
 
 const ListOfStockAdjusted = () => {
+  const theme = useTheme()
+  const router = useRouter()
+
   /***** Server side pagination */
+  const updateUrlParams = params => {
+    const query = { ...router.query, ...params }
+    router.push({ pathname: router.pathname, query }, undefined, { shallow: true })
+  }
+
+  console.log(router.query)
 
   const [loader, setLoader] = useState(false)
 
   const [total, setTotal] = useState(0)
-  const [sort, setSort] = useState('desc')
+  const [sort, setSort] = useState(router.query.sort || 'desc')
   const [rows, setRows] = useState([])
-  const [searchValue, setSearchValue] = useState('')
-  const [sortColumn, setSortColumn] = useState('label')
-  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
-  const [loading, setLoading] = useState(false)
-  const [status, setStatus] = useState('Missing stock')
-  const [expandedText, setExpandedText] = useState('')
-  const [notesDialog, setNotesDialog] = useState(false)
+  const [searchValue, setSearchValue] = useState(router.query.q || '')
+  const [sortColumn, setSortColumn] = useState(router.query.column || 'label')
 
-  const closeNotesDialog = () => {
-    setNotesDialog(false)
-    setExpandedText('')
-  }
-  const openNotesDialog = () => {
-    setNotesDialog(true)
-  }
+  const [paginationModel, setPaginationModel] = useState({
+    page: parseInt(router.query.page) || 0,
+    pageSize: parseInt(router.query.limit) || 10
+  })
+  const [loading, setLoading] = useState(false)
+  const [status, setStatus] = useState(router.query.reason || 'Missing stock')
+
   const handleChange = (event, newValue) => {
     setTotal(0)
     setSearchValue('')
 
+    // Update status state and URL query
     setStatus(newValue)
   }
+
   function loadServerRows(currentPage, data) {
     return data
   }
@@ -101,8 +110,22 @@ const ListOfStockAdjusted = () => {
   )
   useEffect(() => {
     fetchTableData(sort, searchValue, sortColumn, status)
+    updateUrlParams({
+      sort,
+      q: searchValue,
+      column: sortColumn,
+      page: paginationModel.page,
+      limit: paginationModel.pageSize,
+      reason: status
+    })
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [fetchTableData, selectedPharmacy.id, status])
+  }, [selectedPharmacy.id, status, paginationModel.page, paginationModel.pageSize])
+
+  // useEffect(() => {
+  //   if (router.query.status) {
+  //     setStatus(router.query.status)
+  //   }
+  // }, [router.query.status])
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
@@ -115,7 +138,15 @@ const ListOfStockAdjusted = () => {
     if (newModel.length) {
       setSort(newModel[0].sort)
       setSortColumn(newModel[0].field)
-      fetchTableData(newModel[0].sort, searchValue, newModel[0].field)
+      fetchTableData(newModel[0].sort, searchValue, newModel[0].field, status)
+      updateUrlParams({
+        sort: newModel[0].sort,
+        q: searchValue,
+        column: newModel[0].field,
+        page: paginationModel.page,
+        limit: paginationModel.pageSize,
+        reason: status
+      })
     } else {
     }
   }
@@ -123,8 +154,18 @@ const ListOfStockAdjusted = () => {
   const searchTableData = useCallback(
     debounce(async (sort, q, column, status) => {
       setSearchValue(q)
+      setPaginationModel({ page: 0, pageSize: 10 })
+
       try {
         await fetchTableData(sort, q, column, status)
+        updateUrlParams({
+          sort,
+          q: q,
+          column: sortColumn,
+          page: paginationModel.page,
+          limit: paginationModel.pageSize,
+          reason: status
+        })
       } catch (error) {
         console.error(error)
       }
@@ -154,48 +195,72 @@ const ListOfStockAdjusted = () => {
 
   const columns = [
     {
-      flex: 0.05,
-      Width: 40,
+      flex: 0.2,
+      minWidth: 40,
       field: 'sl',
-      headerName: 'SL ',
+      headerName: 'S.NO ',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.sl}
+          {params.row.sl + '.'}
         </Typography>
       )
     },
 
     {
-      flex: 0.2,
+      flex: 0.25,
       minWidth: 40,
       field: 'stock_name',
       headerName: 'Product Name',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
           {params.row.stock_name}
         </Typography>
       )
     },
     {
-      flex: 0.2,
-      Width: 40,
+      flex: 0.25,
+      minWidth: 40,
       field: 'batch_no',
       headerName: 'Batch number ',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
           {params.row.batch_no}
         </Typography>
       )
     },
 
     {
-      flex: 0.2,
+      flex: 0.35,
       minWidth: 20,
-      align: 'right',
+      align: 'left',
       field: 'adjustment_quantity',
       headerName: 'Adjustment quantity',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
           {params.row.adjustment_quantity}
         </Typography>
       )
@@ -206,7 +271,15 @@ const ListOfStockAdjusted = () => {
       field: 'reason_name',
       headerName: 'Reason',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
           {params.row.reason_name}
         </Typography>
       )
@@ -217,37 +290,47 @@ const ListOfStockAdjusted = () => {
       field: 'comments',
       headerName: 'Comments',
       renderCell: params => (
-        <Tooltip sx={{ cursor: 'pointer' }} title={params.row?.comments}>
-          <Typography
-            sx={{
-              minWidth: 30,
-              maxWidth: 80,
-              cursor: 'pointer',
-              WebkitBoxOrient: 'vertical',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-              WebkitLineClamp: 6,
-              whiteSpace: 'nowrap'
-            }}
-            onClick={() => {
-              if (params.row?.comments) {
-                setExpandedText(params.row.comments)
-                openNotesDialog()
-              }
-            }}
-          >
-            {params.row?.comments || 'NA'}
-          </Typography>
-        </Tooltip>
+        <>
+          {params.row?.comments ? (
+            <TextEllipsisWithModal
+              text={params?.row?.comments}
+              style={{
+                color: theme.palette.customColors.customHeadingTextColor,
+                fontSize: '14px',
+                fontWeight: 500,
+                fontFamily: 'Inter'
+              }}
+            />
+          ) : (
+            <Typography
+              sx={{
+                color: theme.palette.customColors.customHeadingTextColor,
+                fontSize: '14px',
+                fontWeight: 500,
+                fontFamily: 'Inter'
+              }}
+            >
+              NA
+            </Typography>
+          )}
+        </>
       )
     },
     {
-      flex: 0.2,
+      flex: 0.25,
       minWidth: 20,
       field: 'expiry_date',
       headerName: 'Expiry  Date',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
           {params.row.expiry_date ? Utility.formatDisplayDate(params.row.expiry_date) : 'NA'}
         </Typography>
       )
@@ -259,17 +342,24 @@ const ListOfStockAdjusted = () => {
       field: 'created_by_user_name',
       headerName: 'Requested by ',
       renderCell: params => (
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          {Utility.renderUserAvatar(params.row.user_profile_pic)}
-          <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-            <Typography variant='subtitle2' sx={{ color: 'text.primary' }}>
-              {params?.row?.created_by_user_name ? params?.row?.created_by_user_name : 'NA'}
-            </Typography>
-            <Typography variant='caption' sx={{ lineHeight: 1.6667 }}>
-              {params.row.adjusted_at ? Utility.formatDisplayDate(params.row.adjusted_at) : 'NA'}
-            </Typography>
-          </Box>
-        </Box>
+        <>
+          {RenderUtility?.renderUserAvatarDetails(
+            params?.row?.user_profile_pic,
+            params?.row?.created_by_user_name,
+            params?.row?.adjusted_at
+          )}
+        </>
+        // <Box sx={{ display: 'flex', alignItems: 'center' }}>
+        //   {Utility.renderUserAvatar(params.row.user_profile_pic)}
+        //   <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+        //     <Typography variant='subtitle2' sx={{ color: 'text.primary' }}>
+        //       {params?.row?.created_by_user_name ? params?.row?.created_by_user_name : 'NA'}
+        //     </Typography>
+        //     <Typography variant='caption' sx={{ lineHeight: 1.6667 }}>
+        //       {params.row.adjusted_at ? Utility.formatDisplayDate(params.row.adjusted_at) : 'NA'}
+        //     </Typography>
+        //   </Box>
+        // </Box>
       )
     }
 
@@ -299,12 +389,11 @@ const ListOfStockAdjusted = () => {
   ]
 
   const headerAction = (
-    <Grid sx={{ display: 'flex', gap: 2 }}>
-      <AddButton
-        title='Add Stock Adjustment'
-        action={() => Router.push({ pathname: '/pharmacy/stocks-adjustments/add-stock-adjustment/' })}
-      />
-    </Grid>
+    <AddButtonContained
+      title='Add Stock Adjustment'
+      action={() => router.push({ pathname: '/pharmacy/stocks-adjustments/add-stock-adjustment/' })}
+      fullWidth='fullWidth'
+    />
   )
 
   const TabBadge = ({ label, totalCount }) => (
@@ -319,8 +408,94 @@ const ListOfStockAdjusted = () => {
   const tableData = () => {
     return (
       <Card>
-        <CardHeader title='Stock Adjustment List' action={headerAction} />
-        <DataGrid
+        <CardHeader
+          sx={{
+            display: 'flex',
+            flexDirection: { xs: 'column', sm: 'row' },
+            justifyContent: 'flex-start', // Align content to the left
+            alignItems: 'flex-start', // Align items to the top left
+            gap: { xs: 3, sm: 0 },
+            '& .MuiCardHeader-action': {
+              width: { xs: '100% ', sm: 'auto' }
+            },
+            mx: { xs: -1, sm: 1 },
+            mb: { xs: 2 },
+            mt: 1
+          }}
+          title={RenderUtility.pageTitle('Stock Adjustment List')}
+          action={headerAction}
+        />
+
+        {/* <Grid
+          container
+
+        >
+          <Grid item xs={12} sm='auto'>
+            {title}
+          </Grid>
+          <Grid item xs={12} sm='auto'>
+            {headerAction}
+          </Grid>
+        </Grid> */}
+        <Box
+          sx={{
+            display: 'flex',
+            flexDirection: { xs: 'column', sm: 'row' }, // Column for small screens, row for larger screens
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            mx: { xs: 3, md: 5 }
+          }}
+        >
+          {/* Search Box */}
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+              borderRadius: '8px',
+              padding: '0 8px',
+              width: { xs: '100%', sm: '250px' }, // Full width on small screens
+              height: '40px'
+            }}
+          >
+            <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.OnSurfaceVariant} />
+            <TextField
+              variant='outlined'
+              placeholder='Search...'
+              value={searchValue}
+              onChange={e => handleSearch(e.target.value)}
+              fullWidth
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  border: 'none',
+                  padding: '0',
+                  '& fieldset': {
+                    border: 'none'
+                  }
+                }
+              }}
+            />
+          </Box>
+        </Box>
+
+        <Grid
+          sx={{
+            mx: { xs: 3, md: 5 }
+          }}
+        >
+          <CommonTable
+            onRowClick={''}
+            indexedRows={indexedRows}
+            total={total}
+            columns={columns}
+            paginationModel={paginationModel}
+            handleSortModel={handleSortModel}
+            setPaginationModel={setPaginationModel}
+            loading={loading}
+            searchValue={searchValue}
+          />
+        </Grid>
+        {/* <DataGrid
           sx={{
             '.MuiDataGrid-cell:focus': {
               outline: 'none'
@@ -360,7 +535,7 @@ const ListOfStockAdjusted = () => {
               onChange: event => handleSearch(event.target.value)
             }
           }}
-        />
+        /> */}
       </Card>
     )
   }
@@ -377,6 +552,7 @@ const ListOfStockAdjusted = () => {
             <TabContext value={status}>
               <TabList onChange={handleChange}>
                 <Tab
+                  sx={{ ml: 3 }}
                   value='Missing stock'
                   label={<TabBadge label='Missing' totalCount={status === 'Missing stock' ? total : null} />}
                 />
@@ -396,24 +572,6 @@ const ListOfStockAdjusted = () => {
 
               <TabPanel value='Broken at pharmacy'>{tableData()}</TabPanel>
             </TabContext>
-            <ConfirmDialogBox
-              open={notesDialog}
-              closeDialog={() => {
-                closeNotesDialog()
-              }}
-              action={() => {
-                closeNotesDialog()
-              }}
-              content={
-                <Box>
-                  <>
-                    <DialogContent>
-                      <DialogContentText sx={{ mb: 1 }}>{expandedText ? expandedText : null}</DialogContentText>
-                    </DialogContent>
-                  </>
-                </Box>
-              }
-            />
           </>
         )
       ) : (

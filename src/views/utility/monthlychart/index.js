@@ -44,26 +44,29 @@ const MonthlyChart = ({ title, data, barColor, lineColor, barName, lineName, vie
   }
 
   const monthsFromApi = data[barName.toLowerCase().replace(' ', '_')]?.[0]
-    ? Object.keys(data[barName.toLowerCase().replace(' ', '_')][0]).sort((a, b) => {
-        const parseMonthYear = monthYear => {
-          const [month, year] = monthYear.split(" '")
-          const monthIndex = monthToIndex[month]
-          const fullYear = parseInt(year, 10) + 2000
-          return new Date(fullYear, monthIndex)
-        }
+    ? Object.keys(data[barName.toLowerCase().replace(' ', '_')][0])
+    : // .sort((a, b) => {
+      //     const parseMonthYear = monthYear => {
+      //       const [month, year] = monthYear.split(" '")
+      //       const monthIndex = monthToIndex[month]
+      //       const fullYear = parseInt(year, 10) + 2000
 
-        return parseMonthYear(a) - parseMonthYear(b)
-      })
-    : []
+      //       return new Date(fullYear, monthIndex)
+      //     }
 
-  const barData = monthsFromApi.map(
-    month => parseFloat(data[barName.toLowerCase().replace(' ', '_')][0][month]) / 100000 || 0
+      //     return parseMonthYear(a) - parseMonthYear(b)
+      //   })
+      []
+
+  const barData = monthsFromApi?.map(
+    month => parseFloat(data[barName?.toLowerCase()?.replace(' ', '_')][0][month]) / 100000 || 0
   )
-  const lineData = monthsFromApi.map(month => parseInt(data[lineName.toLowerCase().replace(' ', '_')][0][month]) || 0)
+  const lineData = monthsFromApi?.map(month => parseInt(data[lineName?.toLowerCase().replace(' ', '_')][0][month]) || 0)
 
-  const shortMonths = monthsFromApi.map(month => {
-    const [monthName, year] = month.split(' ')
-    return `${monthMapping[monthName] || monthName} ${year.slice(-2)}`
+  const shortMonths = monthsFromApi?.map(month => {
+    const [monthName, year] = month?.split(' ')
+
+    return `${monthMapping[monthName] || monthName} ${year?.slice(-2)}`
   })
 
   const series = []
@@ -91,7 +94,7 @@ const MonthlyChart = ({ title, data, barColor, lineColor, barName, lineName, vie
       toolbar: { show: false }
     },
     stroke: {
-      width: [0, 3],
+      width: series.map(s => (s.type === 'line' ? 3 : 0)),
       curve: 'smooth',
       colors: [barColor, lineColor]
     },
@@ -127,9 +130,13 @@ const MonthlyChart = ({ title, data, barColor, lineColor, barName, lineName, vie
           if (series[seriesIndex]?.name === lineName) {
             return value.toFixed(0)
           }
+
           return `₹${value.toFixed(2)} lac`
         }
       }
+    },
+    dataLabels: {
+      enabled: false
     },
     xaxis: { categories: shortMonths, labels: { rotate: -45, show: true } },
     yaxis: [
@@ -189,7 +196,12 @@ const MonthlyChart = ({ title, data, barColor, lineColor, barName, lineName, vie
           />
         </Box>
         {showBar || showLine ? (
-          <ReactApexcharts type='line' height={300} options={options} series={series} />
+          <ReactApexcharts
+            type={showLine ? 'line' : showBar ? 'bar' : 'bar'}
+            height={300}
+            options={options}
+            series={series}
+          />
         ) : (
           <Box
             sx={{

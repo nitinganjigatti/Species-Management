@@ -13,8 +13,7 @@ import {
   CircularProgress,
   Avatar,
   InputAdornment,
-  Tooltip,
-  collapseClasses
+  Tooltip
 } from '@mui/material'
 import Icon from 'src/@core/components/icon'
 import InputLabel from '@mui/material/InputLabel'
@@ -26,7 +25,7 @@ import ClearIcon from '@mui/icons-material/Clear'
 import toast from 'react-hot-toast'
 import { getIngredientList } from 'src/lib/api/diet/getIngredients'
 import { getUnitsForRecipe } from 'src/lib/api/diet/recipe'
-import { getPreparationTypeList } from 'src/lib/api/diet/settings/preparationTypes'
+import { getCutsizeList } from 'src/lib/api/diet/settings/cutSizes'
 import { getFeedTypeList } from 'src/lib/api/diet/feedType'
 
 const AddIngredients = props => {
@@ -39,12 +38,12 @@ const AddIngredients = props => {
     allSelectedValues,
     formData,
     setSelectedIngredient,
-    setUomprev
+    setUomprevnew,
+    uom,
+    feedType
   } = props
   const [feed, setFeed] = React.useState('')
   const [selectFeed, setSelectFeed] = useState({})
-  console.log('selectFeed :>> ', selectFeed)
-
   const [searchValue, setSearchValue] = useState('')
 
   const [remarks, setRemarks] = useState('')
@@ -61,8 +60,9 @@ const AddIngredients = props => {
   let [ingredientPage, setIngredientPage] = useState(1)
   const [reachedEnd, setReachedEnd] = useState(false)
   const [sort, setSort] = useState('desc')
-  const [uom, setUom] = useState([])
-  const [feedType, setFeedType] = useState([])
+  // const [uom, setUom] = useState([])
+  const [uomnew, setUomnew] = useState([])
+  // const [feedType, setFeedType] = useState([])
   const [selectedDays, setSelectedDays] = useState([])
 
   const handelShowBottom = (event, item, index) => {
@@ -195,22 +195,17 @@ const AddIngredients = props => {
   const handleChangeSize = (event, item) => {
     event.stopPropagation()
     const { value } = event.target
-    console.log('event :>> ', event)
 
     // const newUom = event.target.value
-    console.log('Selected value:', value)
-    console.log('UOM array:', uom)
-    console.log('item :>> ', item)
-
     // Find the selected UOM object based on the value
-    const newUom = uom.find(type => Number(type._id) === Number(value))
+    const newUom = uom.find(type => Number(type.id) === Number(value))
     console.log('uomValue :>> ', newUom)
 
     setSize(prevState => ({
       ...prevState,
       [item.id]: {
         id: event.target.value,
-        name: newUom?.name
+        name: newUom?.cut_size
       }
     }))
 
@@ -290,9 +285,7 @@ const AddIngredients = props => {
   }, [checkid])
 
   const handelCardSelection = (event, item, selectedFeedType, newCutSize, newUom, selectedDays, newRemarks) => {
-    console.log('newUom  handelcard:>> ', newUom)
     event.stopPropagation()
-    console.log('call ')
 
     const feed_type_id = selectedFeedType ? selectedFeedType.id : selectFeed[item.id]?.id || ''
     const feed_type = selectedFeedType ? selectedFeedType.label : selectFeed[item.id]?.name || ''
@@ -308,20 +301,17 @@ const AddIngredients = props => {
       return
     }
 
-    if (feed_type === 'Chopped') {
-      console.log('newUom  inside if:>> ', newUom)
+    if (feed_type !== '') {
       const cutSizeValue = newCutSize ? newCutSize : cutSize[item.id]?.id || ''
-      const sizeValue = newUom ? newUom?._id : size[item.id]?.id || ''
-      console.log('sizeValue :>> ', sizeValue)
-      console.log('cutSizeValue :>> ', cutSizeValue)
-      if (!cutSizeValue || !sizeValue) {
+      const sizeValue = newUom ? newUom?.id : size[item.id]?.id || ''
+
+      if (!sizeValue) {
         // toast.error('Cut size and size are required for chopped feed.')
         console.log('Return ')
 
         return
       }
     }
-    console.log(item, 'item')
 
     const boxValues = {
       ingredient_id: item.id,
@@ -332,9 +322,9 @@ const AddIngredients = props => {
       remarks: newRemarks ? newRemarks : remarksData,
       mealid: checkid,
       ingredient_image: item.image,
-      feed_cut_size: feed_type === 'Chopped' ? (newCutSize ? newCutSize : cutSize[item.id]?.id || '') : '',
-      feed_uom_id: feed_type === 'Chopped' ? (newUom ? newUom.id : size[item.id]?.id || '') : '',
-      feed_uom_name: feed_type === 'Chopped' ? (newUom ? newUom.name : size[item.id]?.name || '') : ''
+      //feed_cut_size: feed_type === 'Chopped' ? (newCutSize ? newCutSize : cutSize[item.id]?.id || '') : '',
+      master_cut_size_id: feed_type !== '' ? (newUom ? newUom.id : size[item.id]?.id || '') : '',
+      master_cut_size: feed_type !== '' ? (newUom ? newUom.cut_size : size[item.id]?.name || '') : ''
     }
     console.log('boxValues :>> ', boxValues)
 
@@ -349,22 +339,31 @@ const AddIngredients = props => {
   }
 
   const handleAllSelect = event => {
-    setSelectedCard(selectedCard)
-    onChange(selectedCard)
     event?.stopPropagation()
-    setSelectedIngredient(selectedCard)
 
-    if (selectedCard?.length > 0) {
+    if (Object.keys(selectFeed).length === 0) {
+      toast.error('Ingredients are required', {
+        duration: 1000
+      })
+    } else if (
+      (Object.keys(selectFeed).length > 0 && Object.keys(size).length === 0) ||
+      Object.keys(selectFeed).length !== Object.keys(size).length
+    ) {
+      toast.error('Please select a Cutsize', {
+        duration: 1000
+      })
+    } else if (selectedCard?.length > 0) {
       handleSidebarClose()
-
+      setSelectedCard(selectedCard)
+      onChange(selectedCard)
+      setSelectedIngredient(selectedCard)
       return toast.success('Ingredient selected')
-    } else {
-      return toast.error('Ingredients are required')
     }
   }
 
   useEffect(() => {
-    getUnitsList()
+    //getUnitsList()
+    getUnitsListnew()
     setReachedEnd(true)
 
     try {
@@ -384,22 +383,38 @@ const AddIngredients = props => {
   }, [])
 
   // Top Feed Type
-  const fetchData = async () => {
-    const params = { page: 1, limit: 50, status: 1 }
-    try {
-      const response = await getFeedTypeList(params)
+  // const fetchData = async () => {
+  //   const params = { page: 1, limit: 50, status: 1 }
+  //   try {
+  //     const response = await getFeedTypeList(params)
 
-      setFeedType(response?.data?.result)
-    } catch (error) {
-      console.log('error', error)
-    }
-  }
+  //     setFeedType(response?.data?.result)
+  //   } catch (error) {
+  //     console.log('error', error)
+  //   }
+  // }
 
-  useEffect(() => {
-    fetchData()
-  }, [])
+  // useEffect(() => {
+  //   fetchData()
+  // }, [])
 
-  const getUnitsList = async () => {
+  // const getUnitsList = async () => {
+  //   try {
+  //     const params = {
+  //       //type: ['length', 'weight'],
+  //       page: 1,
+  //       limit: 50
+  //     }
+  //     await getCutsizeList(params).then(res => {
+  //       setUom(res?.data?.result)
+  //       setUomprev(res?.data?.result)
+  //     })
+  //   } catch (e) {
+  //     console.log(e)
+  //   }
+  // }
+
+  const getUnitsListnew = async () => {
     try {
       const params = {
         type: ['length', 'weight'],
@@ -407,8 +422,8 @@ const AddIngredients = props => {
         limit: 50
       }
       await getUnitsForRecipe({ params: params }).then(res => {
-        setUom(res?.data?.result)
-        setUomprev(res?.data?.result)
+        setUomnew(res?.data?.result)
+        setUomprevnew(res?.data?.result)
       })
     } catch (e) {
       console.log(e)
@@ -421,8 +436,6 @@ const AddIngredients = props => {
     // Check if the user has reached the bottom
 
     if (totalCount > ingredientList.length) {
-      console.log('api :>> ')
-
       if (container.scrollHeight - Math.round(container.scrollTop) === container.clientHeight) {
         // User has reached the bottom, perform your action here
 
@@ -504,7 +517,8 @@ const AddIngredients = props => {
           remarks: item.remarks
         }
         newUom[item.ingredient_id] = {
-          id: item.feed_uom_id
+          id: item.master_cut_size_id,
+          name: item.master_cut_size
         }
         newCutSize[item.ingredient_id] = {
           id: item.feed_cut_size
@@ -522,12 +536,10 @@ const AddIngredients = props => {
   const searchData = useCallback(
     debounce(async search => {
       if (searchValue != ' ') {
-        console.log('search ing :>> ', search)
         try {
           // const currentAnimalFilterValue = animalFilterValueRef.current
           const params = { page: 1, q: search, sort, status: 1 }
           await getIngredientList({ params }).then(res => {
-            console.log(res, 'res')
             if (res?.data?.result.length > 0) {
               setIngredientList(res?.data?.result)
               setIngredientPage(1)
@@ -544,25 +556,25 @@ const AddIngredients = props => {
     [searchValue]
   )
 
-  const handelInputCutSize = (event, item) => {
-    event.stopPropagation()
-    const newCutSize = event.target.value
+  // const handelInputCutSize = (event, item) => {
+  //   event.stopPropagation()
+  //   const newCutSize = event.target.value
 
-    // Set cutSize state
-    setCutSize(prevState => ({
-      ...prevState,
-      [item.id]: {
-        id: event.target.value
-        // name: selectedFeedType.label
-      }
-    }))
+  //   // Set cutSize state
+  //   setCutSize(prevState => ({
+  //     ...prevState,
+  //     [item.id]: {
+  //       id: event.target.value
+  //       // name: selectedFeedType.label
+  //     }
+  //   }))
 
-    if (newCutSize) {
-      handelCardSelection(event, item, null, newCutSize, null, selectedDays)
-    } else {
-      removeSelectedCard(event, item.id)
-    }
-  }
+  //   if (newCutSize) {
+  //     handelCardSelection(event, item, null, newCutSize, null, selectedDays)
+  //   } else {
+  //     removeSelectedCard(event, item.id)
+  //   }
+  // }
 
   const removeSelectedCard = (event, itemId) => {
     event.stopPropagation()
@@ -578,7 +590,6 @@ const AddIngredients = props => {
   }
 
   const sortedIngredientList = [...ingredientList]?.sort((a, b) => a.ingredient_name.localeCompare(b.ingredient_name))
-  console.log(selectedCard, 'selectedCard')
 
   return (
     <>
@@ -591,11 +602,11 @@ const AddIngredients = props => {
           position: 'relative',
           display: 'flex',
           flexDirection: 'column',
-          bgcolor: '#dbe0de',
+          bgcolor: '#EFF5F2',
           gap: '24px'
         }}
       >
-        <Box sx={{ position: 'fixed', top: 0, bgcolor: '#dbe0de', zIndex: 10, width: '562px' }}>
+        <Box sx={{ position: 'fixed', top: 0, bgcolor: '#EFF5F2', zIndex: 10, width: '562px' }}>
           <Box
             className='sidebar-header'
             sx={{
@@ -606,16 +617,14 @@ const AddIngredients = props => {
             }}
           >
             <Box sx={{ gap: 2, display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
-              <Icon
-                style={{ marginLeft: -8 }}
-                icon='material-symbols-light:add-notes-outline-rounded'
-                fontSize={'32px'}
-              />
-              <Typography variant='h6'>Add Ingredients</Typography>
+              <img src='/icons/Activity.svg' alt='Grocery Icon' width='35px' />
+              <Typography variant='h6' sx={{ color: '#44544A' }}>
+                Add Ingredients
+              </Typography>
             </Box>
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
-              <IconButton size='small' onClick={handleSidebarClose} sx={{ color: 'text.primary' }}>
-                <Icon icon='mdi:close' fontSize={20} />
+              <IconButton size='small' onClick={handleSidebarClose} sx={{ color: '#1F515B' }}>
+                <Icon icon='mdi:close' fontSize={25} />
               </IconButton>
             </Box>
           </Box>
@@ -627,12 +636,20 @@ const AddIngredients = props => {
                 value={searchValue}
                 fullWidth
                 InputProps={{
-                  startAdornment: <Icon style={{ marginRight: 10 }} icon={'ion:search-outline'} />
+                  startAdornment: <Icon style={{ marginRight: 10, color: '#44544A' }} icon={'ion:search-outline'} />
                 }}
-                placeholder='Search'
+                placeholder='Search ingredient'
                 onKeyUp={e => searchData(e.target.value)}
                 onChange={e => {
                   setSearchValue(e.target.value)
+                }}
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    borderColor: '#839D8D',
+                    '& fieldset': {
+                      borderColor: '#839D8D'
+                    }
+                  }
                 }}
               />
             </Box>
@@ -645,6 +662,17 @@ const AddIngredients = props => {
                   value={feed}
                   label='Feed'
                   onChange={handleChangeTopFeed}
+                  sx={{
+                    '& .MuiOutlinedInput-notchedOutline': {
+                      borderColor: '#839D8D'
+                    },
+                    '&:hover .MuiOutlinedInput-notchedOutline': {
+                      borderColor: '#839D8D'
+                    },
+                    '& .MuiOutlinedInput-root': {
+                      borderRadius: '0px'
+                    }
+                  }}
                   MenuProps={{
                     PaperProps: {
                       style: {
@@ -679,17 +707,18 @@ const AddIngredients = props => {
 
         <Box
           key={feed}
-          sx={{ marginTop: 35, height: '65%', overflowY: 'auto', bgcolor: '#dbe0de' }}
+          sx={{ marginTop: 35, height: '65%', overflowY: 'auto', bgcolor: '#EFF5F2' }}
           onScroll={handleScroll}
         >
           {sortedIngredientList?.map((item, index) => (
             <Box
               key={item?.id}
               sx={{
-                bgcolor: 'white',
+                bgcolor: '#fff',
                 mx: '24px',
                 borderRadius: '8px',
                 my: 4,
+                width: '92%',
                 ...(selectedCard.some(card => card.ingredient_id === item.id) && {
                   border: '2px solid #37bd69' // Change border color when isVisible is true
                 })
@@ -781,11 +810,21 @@ const AddIngredients = props => {
                           value={selectFeed[item.id]?.id || ''}
                           onChange={e => handleChangeFeed(e, item)}
                           displayEmpty
-                          // color=
                           error={
                             visibility?.find(visItem => visItem && visItem.id === item.id)?.isVisible &&
                             !selectFeed[item.id]?.id
                           }
+                          sx={{
+                            '& .MuiOutlinedInput-notchedOutline': {
+                              borderColor: '#839D8D'
+                            },
+                            '&:hover .MuiOutlinedInput-notchedOutline': {
+                              borderColor: '#839D8D'
+                            },
+                            '& .MuiOutlinedInput-root': {
+                              borderRadius: '0px'
+                            }
+                          }}
                         >
                           <MenuItem value='' disabled>
                             Select
@@ -815,15 +854,12 @@ const AddIngredients = props => {
                     transitionDuration: '13s'
                   }}
                 >
-                  {selectFeed[item.id]?.name === 'Chopped' ? (
+                  {selectFeed[item.id]?.name !== '' ? (
                     <>
                       <Divider mt={-2} />
-                      <Stack
-                        direction='row'
-                        sx={{ py: 4, px: 2, alignItems: 'center', justifyContent: 'space-between' }}
-                      >
+                      <Stack direction='row' sx={{ py: 4, px: 2, alignItems: 'center' }}>
                         <Typography>Enter cut size</Typography>
-                        <Box sx={{ width: '160.5px' }}>
+                        {/* <Box sx={{ width: '160.5px' }}>
                           <FormControl fullWidth>
                             <TextField
                               size='small'
@@ -837,8 +873,8 @@ const AddIngredients = props => {
                               }
                             />
                           </FormControl>
-                        </Box>
-                        <Box sx={{ width: '160.5px' }}>
+                        </Box> */}
+                        <Box sx={{ pl: 5 }}>
                           <FormControl fullWidth>
                             <Select
                               size='small'
@@ -849,6 +885,17 @@ const AddIngredients = props => {
                                 visibility?.find(visItem => visItem && visItem.id === item.id)?.isVisible &&
                                 !size[item.id]?.id
                               }
+                              sx={{
+                                '& .MuiOutlinedInput-notchedOutline': {
+                                  borderColor: '#839D8D'
+                                },
+                                '&:hover .MuiOutlinedInput-notchedOutline': {
+                                  borderColor: '#839D8D'
+                                },
+                                '& .MuiOutlinedInput-root': {
+                                  borderRadius: '0px'
+                                }
+                              }}
                               MenuProps={{
                                 PaperProps: {
                                   style: {
@@ -861,8 +908,8 @@ const AddIngredients = props => {
                                 Select
                               </MenuItem>
                               {uom?.map(unit => (
-                                <MenuItem key={unit.id} value={unit._id}>
-                                  {unit.name}
+                                <MenuItem key={unit.id} value={unit.id}>
+                                  {unit.cut_size}
                                 </MenuItem>
                               ))}
                             </Select>
@@ -958,7 +1005,7 @@ const AddIngredients = props => {
 
         <Box
           sx={{
-            height: '122px',
+            height: '100px',
             width: '100%',
             maxWidth: '562px',
             position: 'fixed',

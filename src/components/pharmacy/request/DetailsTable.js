@@ -121,7 +121,7 @@ export default function DetailsTable({ ...props }) {
     >
       <TableContainer
         sx={{
-          border: '0.5px solid #C3CEC7 !important',
+          border: `0.5px solid ${theme.palette.customColors.OutlineVariant} !important`,
 
           // border: `0.5px solid ${theme.palette.customColors.OnSurfaceVariant}`,
           borderRadius: '10px !important'
@@ -185,7 +185,8 @@ export default function DetailsTable({ ...props }) {
                             alignItems: 'center'
                           }}
                         >
-                          {el.sl_no}.
+                          {/* {el.sl_no}. */}
+                          {index + 1}.
                         </Typography>
                       </TableCell>
                       <TableCell
@@ -195,7 +196,7 @@ export default function DetailsTable({ ...props }) {
                         }}
                       >
                         {/* {console.log('items', paginatedItems)} */}
-                        {el.priority == 'high' ? (
+                        {el.priority == 'high' || el.priority == 'emergency' ? (
                           <Box
                             sx={{
                               color: 'error.main',
@@ -209,17 +210,18 @@ export default function DetailsTable({ ...props }) {
                               alignItems: 'center'
                             }}
                           >
-                            <Icon
+                            {/* <Icon
                               icon='material-symbols-light:circle'
                               style={{
                                 color: 'primary.error',
                                 minHeight: '8px',
                                 maxHeight: '8px'
                               }}
-                            ></Icon>
+                            ></Icon> */}
+                            {RenderUtility.getPriorityIcons(el?.priority)}
                           </Box>
                         ) : null}
-                        {el?.priority !== 'high' && el?.alt_parent?.length > 0 && (
+                        {el?.priority !== 'high' && el?.priority !== 'emergency' && el?.alt_parent?.length > 0 && (
                           <Grid
                             key={index}
                             sx={{
@@ -460,14 +462,24 @@ export default function DetailsTable({ ...props }) {
                                   width: 100,
                                   ...props?.strikeOutTextStyle(el.request_status)
                                 }}
+                                // disabled={
+                                //   parseInt(el.requested_qty) - parseInt(el.dispatch_qty) >= 1 &&
+                                //   props?.requestItems.status !== 'Cancelled' &&
+                                //   el.request_status !== 'Alternate' &&
+                                //   el.request_status !== 'Not Available' &&
+                                //   el.request_status !== 'Rejected'
+                                //     ? false
+                                //     : true
+                                // }
                                 disabled={
-                                  parseInt(el.requested_qty) - parseInt(el.dispatch_qty) >= 1 &&
+                                  props?.selectedPharmacy?.permission?.key === 'VIEW' ||
+                                  (parseInt(el.requested_qty) - parseInt(el.dispatch_qty) >= 1 &&
                                   props?.requestItems.status !== 'Cancelled' &&
                                   el.request_status !== 'Alternate' &&
                                   el.request_status !== 'Not Available' &&
                                   el.request_status !== 'Rejected'
                                     ? false
-                                    : true
+                                    : true)
                                 }
                                 variant='contained'
                                 onClick={() => {
@@ -513,7 +525,9 @@ export default function DetailsTable({ ...props }) {
                                       width: 100
                                     }}
                                     disabled={
-                                      el.request_status === 'Not Available' || el.request_status === 'Rejected'
+                                      props?.selectedPharmacy?.permission?.key === 'VIEW' ||
+                                      el.request_status === 'Not Available' ||
+                                      el.request_status === 'Rejected'
                                         ? true
                                         : false
                                     }
@@ -582,6 +596,7 @@ export default function DetailsTable({ ...props }) {
                                             mx: 'auto',
                                             ...props?.strikeOutTextStyle(nestElm.request_status)
                                           }}
+                                          disabled={props?.selectedPharmacy?.permission?.key === 'VIEW'}
                                           variant='contained'
                                           onClick={() => {
                                             props?.setFulfillMedicine({
@@ -614,6 +629,7 @@ export default function DetailsTable({ ...props }) {
                                                   width: 100
                                                 }}
                                                 disabled={
+                                                  props?.selectedPharmacy?.permission?.key === 'VIEW' ||
                                                   nestElm.request_status === 'Not Available' ||
                                                   nestElm.request_status === 'Rejected'
                                                     ? true
@@ -752,7 +768,10 @@ export default function DetailsTable({ ...props }) {
                                       alignItems: 'start'
                                     }}
                                   >
-                                    <MenuWithDots options={props?.generateOptions(el, props?.requestItems?.id)} />
+                                    <MenuWithDots
+                                      options={props?.generateOptions(el, props?.requestItems?.id)}
+                                      disabled={props?.selectedPharmacy?.permission?.key === 'VIEW'}
+                                    />
                                   </Grid>
                                 )}
                             </>
@@ -786,7 +805,10 @@ export default function DetailsTable({ ...props }) {
                                             nesEl?.request_status !== 'Alternate' &&
                                             nesEl?.request_status !== 'Not Available' &&
                                             nesEl?.request_status !== 'Rejected' && (
-                                              <MenuWithDots options={props?.generateOptions(nesEl, nesEl?.id)} />
+                                              <MenuWithDots
+                                                options={props?.generateOptions(nesEl, nesEl?.id)}
+                                                disabled={props?.selectedPharmacy?.permission?.key === 'VIEW'}
+                                              />
                                             )}
                                         </Box>
                                       )}

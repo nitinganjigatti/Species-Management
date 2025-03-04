@@ -8,7 +8,8 @@ import {
   InputLabel,
   Select,
   MenuItem,
-  Checkbox
+  Checkbox,
+  CircularProgress
 } from '@mui/material'
 import { useCallback, useContext, useEffect, useRef, useState } from 'react'
 import { DataGrid } from '@mui/x-data-grid'
@@ -27,6 +28,7 @@ const SpeciesReport = () => {
   const theme = useTheme()
   const authData = useContext(AuthContext)
   const reports_module = authData?.userData?.roles?.settings?.enable_reports_module
+  const enable_specie_report = authData?.userData?.permission?.user_settings?.enable_specie_report
 
   const [status, setStatus] = useState('statistics')
   const [selectedSites, setSelectedSites] = useState([])
@@ -34,12 +36,14 @@ const SpeciesReport = () => {
   const [anchorEl, setAnchorEl] = useState(null)
   const [openSiteDrawer, setOpenSiteDrawer] = useState(false)
   const [openFilterDrawer, setOpenFilterDrawer] = useState(false)
+
   const [sites, setSites] = useState(
     authData?.userData?.user?.zoos[0]?.sites?.slice().sort((a, b) => a.site_name.localeCompare(b.site_name)) || [] || []
   )
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [total, setTotal] = useState(0)
   const [selectedOptions, setSelectedOptions] = useState([])
+  const [isDownloading, setIsDownloading] = useState(false)
 
   const [popoverData, setPopoverData] = useState({
     Taxonomy: [
@@ -58,6 +62,7 @@ const SpeciesReport = () => {
   })
 
   const categories = ['Site']
+
   const options = {
     // Gender: ['Male', 'Female'],
     // Weight: ['Light', 'Medium', 'Heavy'],
@@ -66,6 +71,7 @@ const SpeciesReport = () => {
       authData?.userData?.user?.zoos[0]?.sites?.slice().sort((a, b) => a.site_name.localeCompare(b.site_name)) ||
       [] ||
       []
+
     // Section: ['North', 'South', 'East', 'West'],
     // Enclosure: ['Enclosure 1', 'Enclosure 2'],
     // Morphs: ['White Lions', 'Maneless Lions', 'Barbary Lion', 'Pale or Blonde Lions', 'Dark-Maned Lions'],
@@ -98,6 +104,8 @@ const SpeciesReport = () => {
   const id = open ? 'filter-popover' : undefined
 
   const getStatisticsDataToExport = async () => {
+    await fetchDownList({ ...apiFilterParams, response_type: 'csv' }, { responseType: 'csv' })
+
     // const params = {
     //   response_type: 'csv',
     //   ...Object.keys(apiFilterParams).reduce((acc, key) => {
@@ -110,11 +118,7 @@ const SpeciesReport = () => {
     // }
 
     // debugger
-
-    await fetchAndSetDataList({ ...apiFilterParams, response_type: 'csv' }, { responseType: 'csv' })
   }
-
-  console.log('Selected Sites >>', selectedSites)
 
   const title = (
     <>
@@ -147,6 +151,7 @@ const SpeciesReport = () => {
         URL.revokeObjectURL(csvUrl)
       } else if (response.success) {
         const { header, datalist, total_count } = response.data || {}
+
         // setDataList(datalist || [])
         // if (setHeaders) setHeaderList(header)
         setTotal(total_count)
@@ -155,6 +160,7 @@ const SpeciesReport = () => {
 
         setHeaderList(header)
         setAnchorEl(null)
+
         // setDataList(datalist)
 
         setDataList(loadServerRows(paginationModel.page, datalist))
@@ -168,80 +174,34 @@ const SpeciesReport = () => {
     }
   }
 
-  // const handleOptions = async (category, item, itemIndex) => {
-  //   debugger
-  //   // let updatedApiParams
+  const fetchDownList = async (params, options = {}) => {
+    const { responseType = 'json' } = options
+    try {
+      setIsDownloading(true)
+      const response = await getReportFilterList(params)
+      if (responseType === 'csv' && response && response.data) {
+        handleCsvResponse(response.data)
+      } else if (response.success) {
+        const { header, animal_list, total_animal } = response.data || {}
 
-  //   setPopoverData(prevData => {
-  //     const updatedData = {
-  //       ...prevData,
-  //       [category]: prevData[category].map((el, index) => (index === itemIndex ? { ...el, checked: !el.checked } : el))
-  //     }
+        setTotal(total_animal)
+        setIsDownloading(false)
+      }
+    } catch (error) {
+      toast.error('Error connecting to the server')
+    } finally {
+      setIsDownloading(false)
+    }
+  }
 
-  //     updatedApiParams = { ...apiFilterParams }
-  //     Object.keys(updatedData).forEach(cat => {
-  //       updatedData[cat].forEach(el => {
-  //         updatedApiParams[el.key] = el.checked ? 1 : 0
-  //       })
-  //     })
-
-  //     setApiFilterParams(updatedApiParams)
-
-  //     return updatedData
-  //   })
-  //   setPaginationModel({ ...paginationModel, page: 0 })
-  //   // await fetchData({ ...updatedApiParams }, { ...paginationModel, page: 0 })
-  // }
-
-  // const handleSelectedSite = async e => {
-  //   const value = e.target.value
-  //   let params = {}
-
-  //   if (value.includes('All Sites') && !selectedSite.includes('All Sites')) {
-  //     params = {
-  //       ...Object.keys(apiFilterParams).reduce((acc, key) => {
-  //         if (apiFilterParams[key] === 1) acc[key] = 1
-
-  //         return acc
-  //       }, {})
-  //     }
-  //     setSelectedSite(['All Sites'])
-  //   } else if (value.includes('All Sites')) {
-  //     const filteredSiteIDs = value.filter(id => id !== 'All Sites')
-  //     params = {
-  //       site_ids: filteredSiteIDs.toString(),
-  //       ...Object.keys(apiFilterParams).reduce((acc, key) => {
-  //         if (apiFilterParams[key] === 1) acc[key] = 1
-
-  //         return acc
-  //       }, {})
-  //     }
-  //     setSelectedSite(filteredSiteIDs)
-  //   } else if (value.length === 0) {
-  //     params = {
-  //       ...Object.keys(apiFilterParams).reduce((acc, key) => {
-  //         if (apiFilterParams[key] === 1) acc[key] = 1
-
-  //         return acc
-  //       }, {})
-  //     }
-  //     setSelectedSite(['All Sites'])
-  //   } else {
-  //     params = {
-  //       site_ids: value.toString(),
-  //       ...Object.keys(apiFilterParams).reduce((acc, key) => {
-  //         if (apiFilterParams[key] === 1) acc[key] = 1
-
-  //         return acc
-  //       }, {})
-  //     }
-  //     setSelectedSite(value)
-  //   }
-
-  //   setPaginationModel({ ...paginationModel, page: 0 })
-  //   setApiFilterParams(params)
-  //   // await fetchData({ ...params }, { ...paginationModel, page: 0 })
-  // }
+  const handleCsvResponse = csvUrl => {
+    const link = document.createElement('a')
+    link.href = csvUrl
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    URL.revokeObjectURL(csvUrl)
+  }
 
   const handleOptionChange = (category, itemIndex) => {
     setPopoverData(prevData => {
@@ -249,6 +209,7 @@ const SpeciesReport = () => {
         ...prevData,
         [category]: prevData[category].map((el, index) => (index === itemIndex ? { ...el, checked: !el.checked } : el))
       }
+
       return updatedData
     })
   }
@@ -261,6 +222,7 @@ const SpeciesReport = () => {
       params = {
         ...Object.keys(apiFilterParams).reduce((acc, key) => {
           if (apiFilterParams[key] === 1) acc[key] = 1
+
           return acc
         }, {})
       }
@@ -272,6 +234,7 @@ const SpeciesReport = () => {
         site_ids: filteredSiteIDs.toString(),
         ...Object.keys(apiFilterParams).reduce((acc, key) => {
           if (apiFilterParams[key] === 1) acc[key] = 1
+
           return acc
         }, {})
       }
@@ -281,6 +244,7 @@ const SpeciesReport = () => {
       params = {
         ...Object.keys(apiFilterParams).reduce((acc, key) => {
           if (apiFilterParams[key] === 1) acc[key] = 1
+
           return acc
         }, {})
       }
@@ -291,6 +255,7 @@ const SpeciesReport = () => {
         site_ids: selectedSiteIDs.toString(),
         ...Object.keys(apiFilterParams).reduce((acc, key) => {
           if (apiFilterParams[key] === 1) acc[key] = 1
+
           return acc
         }, {})
       }
@@ -356,7 +321,9 @@ const SpeciesReport = () => {
   )
 
   useEffect(() => {
-    fetchData(apiFilterParams, paginationModel)
+    if (reports_module && enable_specie_report) {
+      fetchData(apiFilterParams, paginationModel)
+    }
   }, [fetchData])
 
   const columns = headerList.map(header => {
@@ -473,8 +440,6 @@ const SpeciesReport = () => {
     sl_no: getSlNo(index)
   }))
 
-  console.log('selectedSites>', selectedSites)
-
   const handleConfirm = async () => {
     let updatedApiParams = { ...apiFilterParams }
 
@@ -492,7 +457,7 @@ const SpeciesReport = () => {
 
   return (
     <>
-      {reports_module ? (
+      {reports_module && enable_specie_report ? (
         <>
           <Card>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', px: 2, pt: 2 }}>
@@ -512,8 +477,14 @@ const SpeciesReport = () => {
                   mt: 2
                 }}
               >
-                Download Report
-                <img src='/images/download.png' alt='download icon' style={{ marginLeft: 8 }} />
+                {isDownloading ? (
+                  <CircularProgress size={20} sx={{ color: 'white' }} />
+                ) : (
+                  <>
+                    Download Report
+                    <img src='/images/download.png' alt='download icon' style={{ marginLeft: 8 }} />
+                  </>
+                )}
               </Button>
             </Box>
 
@@ -681,26 +652,34 @@ const SpeciesReport = () => {
                       onClick={handleClick}
                       variant='outlined'
                       sx={{
-                        width: '180px',
+                        width: '150px',
                         height: '40px',
                         mt: 2,
                         display: 'flex',
+                        borderRadius: '4px',
                         color: '#44544A',
                         fontWeight: 400,
                         fontSize: '16px',
                         fontFamily: 'Inter',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        gap: 2,
+
+                        // mr: 2,
+                        gap: 1,
                         minWidth: '100px'
                       }}
                     >
                       <img
-                        src='/images/ShowPop.png'
-                        style={{ width: '24px', height: '24px', marginBottom: '2px' }}
+                        src='/images/show_popup.png'
+                        style={{
+                          width: '24px',
+                          height: '24px',
+                          marginBottom: '2px',
+                          marginRight: '3px',
+                          marginTop: '2px'
+                        }}
                         alt='Filter Icon'
                       />
-
                       <Typography sx={{ color: '#1F515B', textTransform: 'capitalize' }}>Show/Hide</Typography>
                     </Button>
                     <Popover

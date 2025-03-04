@@ -29,7 +29,7 @@ import { forwardRef, useState, useEffect, useCallback } from 'react'
 import CommonDialogBox from 'src/components/CommonDialogBox'
 import { debounce } from 'lodash'
 
-import { getMedicineList } from 'src/lib/api/pharmacy/getMedicineList'
+import { getAvailableProductsInPharmacy } from 'src/lib/api/pharmacy/getMedicineList'
 import { getAvailableMedicineByMedicineIdToReturn } from 'src/lib/api/pharmacy/getRequestItemsList'
 
 import { getReasonsList, addStocksAdjust } from 'src/lib/api/pharmacy/stockAdjustment'
@@ -68,7 +68,9 @@ const AddStockAdjustment = () => {
     reason: '',
     comments: '',
     availableQty: '',
-    expiry_date: ''
+    expiry_date: '',
+    variant_id: '',
+    multiplier: ''
   }
 
   const schema = yup.object().shape({
@@ -79,6 +81,7 @@ const AddStockAdjustment = () => {
       .typeError('Quantity must be a number')
       .positive('Quantity must be a positive number')
       .moreThan(0, 'Quantity must be greater than zero')
+      .integer('Quantity must be an integer')
       .test('is-less-than-available', 'Quantity must be less than available quantity', function (value) {
         return value <= this.parent.availableQty
       }),
@@ -97,6 +100,7 @@ const AddStockAdjustment = () => {
   const [selectedStockId, setSelectedStockId] = useState('')
   const [ConfirmDialog, setConfirmDialog] = useState(false)
   const [tempItems, setTempItems] = useState(null)
+  const [errorState, setErrorState] = useState(false)
   const router = useRouter()
   const { selectedPharmacy } = usePharmacyContext()
   const { id, action } = router.query
@@ -140,9 +144,12 @@ const AddStockAdjustment = () => {
   const fetchBatchData = async (id, productType) => {
     if (id !== '') {
       try {
+        setLoader(true)
+        setErrorState(false)
         const data = { stock_item_id: id }
         const searchResults = await getAvailableMedicineByMedicineIdToReturn(id, data, 'local', productType, 1)
-        setLoader(true)
+        setErrorState(false)
+
         if (searchResults?.success) {
           if (searchResults?.data?.items.length > 0) {
             const data = searchResults?.data?.items?.map(item => ({
@@ -152,21 +159,24 @@ const AddStockAdjustment = () => {
               expiryDate: item?.expiry_date,
               availableQty: item?.qty,
               packageDetails: `${item?.package} of ${item?.package_qty} ${item?.package_uom_label} ${item?.product_form_label}`,
-              manufacture: item?.manufacturer_name
+              manufacture: item?.manufacturer_name,
+              variant_id: item?.variant_id,
+              multiplier: item?.multiplier
             }))
-            const filtered = data.filter(el => Number(el.availableQty) > 0)
+            const filtered = data?.filter(el => Number(el?.availableQty) > 0)
             setOptionsBatchList(filtered)
             setLoader(false)
           }
         } else {
           setOptionsBatchList([])
-
-          toast.error(searchResults?.data)
+          setErrorState(true)
+          // toast.error(searchResults?.data)
           setLoader(false)
         }
       } catch (e) {
         console.log('error', e)
         setOptionsBatchList([])
+        setErrorState(true)
         setLoader(false)
       }
     }
@@ -195,7 +205,7 @@ const AddStockAdjustment = () => {
         limit: 20
       }
 
-      const searchResults = await getMedicineList({ params: params })
+      const searchResults = await getAvailableProductsInPharmacy({ params: params })
       if (searchResults?.data?.list_items.length > 0) {
         setOptionsMedicineList(
           searchResults?.data?.list_items?.map(item => ({
@@ -241,7 +251,7 @@ const AddStockAdjustment = () => {
 
   //  ****** debounce
   const onSubmit = async params => {
-    const { batch_no, stock_id, adjustment_quantity, reason, comments, expiry_date } = {
+    const { batch_no, stock_id, adjustment_quantity, reason, comments, expiry_date, variant_id, multiplier } = {
       ...params
     }
     setTempItems(params)
@@ -291,9 +301,12 @@ const AddStockAdjustment = () => {
   // data posting section
   const createForm = () => {
     return (
-      <form onSubmit={handleSubmit(onSubmit)} style={{ width: '100%' }}>
-        <Grid container spacing={5} xs={12}>
-          <Grid item xs={12} sm={6}>
+      <form
+        onSubmit={handleSubmit(onSubmit)}
+        style={{ width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center' }}
+      >
+        <Grid container rowSpacing={4} columnSpacing={2} xs={12}>
+          <Grid item xs={12} sm={4}>
             <FormControl fullWidth>
               <Controller
                 name='batch_no'
@@ -317,7 +330,31 @@ const AddStockAdjustment = () => {
               </Controller>
             </FormControl>
           </Grid>
-          <Grid item xs={12} sm={6}>
+          <Grid item xs={12} sm={4}>
+            <FormControl fullWidth>
+              <Controller
+                name='multiplier'
+                control={control}
+                rules={{ required: true }}
+                render={({ field: { value, onChange } }) => (
+                  <TextField
+                    disabled
+                    type='text'
+                    value={value}
+                    label='Product Variant'
+                    name='multiplier'
+                    error={Boolean(errors.multiplier)}
+                    onChange={onChange}
+                  />
+                )}
+              >
+                {errors.multiplier && (
+                  <FormHelperText sx={{ color: 'error.main' }}>{errors?.multiplier?.message}</FormHelperText>
+                )}
+              </Controller>
+            </FormControl>
+          </Grid>
+          <Grid item xs={12} sm={4}>
             <FormControl fullWidth>
               <Controller
                 name='availableQty'
@@ -357,11 +394,10 @@ const AddStockAdjustment = () => {
                     onChange={onChange}
                   />
                 )}
-              >
-                {errors.adjustment_quantity && (
-                  <FormHelperText sx={{ color: 'error.main' }}>{errors?.adjustment_quantity?.message}</FormHelperText>
-                )}
-              </Controller>
+              ></Controller>
+              {errors.adjustment_quantity && (
+                <FormHelperText sx={{ color: 'error.main' }}>{errors?.adjustment_quantity?.message}</FormHelperText>
+              )}
             </FormControl>
           </Grid>
 
@@ -415,11 +451,10 @@ const AddStockAdjustment = () => {
                     onChange={onChange}
                   />
                 )}
-              >
-                {errors.comments && (
-                  <FormHelperText sx={{ color: 'error.main' }}>{errors?.comments?.message}</FormHelperText>
-                )}
-              </Controller>
+              ></Controller>
+              {errors.comments && (
+                <FormHelperText sx={{ color: 'error.main' }}>{errors?.comments?.message}</FormHelperText>
+              )}
             </FormControl>
           </Grid>
           <Grid item xs={12}>
@@ -438,13 +473,14 @@ const AddStockAdjustment = () => {
           action={() => {
             closeConfirmDialog()
           }}
+          title={'Confirmation'}
           content={
             <Box sx={{ m: 0 }}>
               <>
-                <DialogContent>
-                  <DialogContentText sx={{ mb: 3 }}>Are you sure..?</DialogContentText>
-                </DialogContent>
-                <DialogActions className='dialog-actions-dense'>
+                {/* <DialogContent> */}
+                <DialogContentText sx={{ mb: 3 }}>Are you sure about adjusting the quantity?</DialogContentText>
+                {/* </DialogContent> */}
+                {/* <DialogActions className='dialog-actions-dense'>
                   <LoadingButton
                     variant='contained'
                     color='error'
@@ -467,9 +503,35 @@ const AddStockAdjustment = () => {
                   >
                     Save
                   </LoadingButton>
-                </DialogActions>
+                </DialogActions> */}
               </>
             </Box>
+          }
+          dialogActions={
+            <>
+              <LoadingButton
+                variant='contained'
+                color='error'
+                size='small'
+                onClick={() => {
+                  closeConfirmDialog()
+                }}
+              >
+                Cancel
+              </LoadingButton>
+
+              <LoadingButton
+                onClick={() => {
+                  confirmSubmit()
+                }}
+                loading={submitLoader}
+                sx={{ mr: 2 }}
+                size='small'
+                variant='contained'
+              >
+                Save
+              </LoadingButton>
+            </>
           }
         />
       </form>
@@ -512,7 +574,7 @@ const AddStockAdjustment = () => {
                     Search product :
                   </Typography>
                 </Grid>
-                <FormControl fullWidth>
+                <FormControl style={{ width: 'calc(100% - 40px)' }}>
                   <Autocomplete
                     id='autocomplete-controlled'
                     options={optionsMedicineList}
@@ -553,68 +615,88 @@ const AddStockAdjustment = () => {
                       />
                     )}
                   />
+                  {errorState && (
+                    <FormHelperText sx={{ color: 'error.main' }}>
+                      Stock unavailable for the selected product.
+                    </FormHelperText>
+                  )}
                 </FormControl>
+                {loader && (
+                  <span style={{ display: 'inline-block', marginLeft: '10px', marginTop: '12px' }}>
+                    <CircularProgress size={30} />
+                  </span>
+                )}
               </Grid>
             </Grid>
-            {loader ? <CircularProgress size={60} /> : null}
           </Grid>
         </form>
       </CardContent>
       {optionsBatchList?.length > 0 ? (
-        <TableContainer>
-          <Table>
-            <TableHead sx={{ backgroundColor: '#F5F5F7' }}>
-              <TableRow>
-                <TableCell>Sl.NO</TableCell>
-                <TableCell>Product Name</TableCell>
-                <TableCell>Batch Number</TableCell>
-                <TableCell>Expiry Date</TableCell>
-                <TableCell>Quantity</TableCell>
-                <TableCell>Adjust</TableCell>
-              </TableRow>
-            </TableHead>
-            <TableBody>
-              {optionsBatchList
-                ? optionsBatchList?.map((el, index) => {
-                    return (
-                      <TableRow key={index}>
-                        <TableCell>{index + 1}</TableCell>
+        <Card sx={{ m: 5, boxShadow: 'none', border: '1px solid', borderColor: 'customColors.customTableBorderBg' }}>
+          <TableContainer>
+            <Table>
+              <TableHead sx={{ backgroundColor: 'customColors.customTableHeaderBg' }}>
+                <TableRow>
+                  <TableCell>Sl.NO</TableCell>
+                  <TableCell>Product Name</TableCell>
+                  <TableCell>Batch Number</TableCell>
+                  <TableCell>Expiry Date</TableCell>
+                  <TableCell>Quantity</TableCell>
+                  <TableCell>Adjust</TableCell>
+                </TableRow>
+              </TableHead>
+              <TableBody>
+                {optionsBatchList
+                  ? optionsBatchList?.map((el, index) => {
+                      return (
+                        <TableRow
+                          key={index}
+                          sx={{
+                            '&:last-child td, &:last-child th': {
+                              border: 0
+                            }
+                          }}
+                        >
+                          <TableCell>{index + 1}</TableCell>
 
-                        <TableCell>
-                          <Typography variant='body2' sx={{ color: 'text.primary' }}>
-                            {el.productName}
-                          </Typography>
-                          <Typography variant='body2'>{el.packageDetails}</Typography>
-                        </TableCell>
+                          <TableCell>
+                            <Typography variant='body2' sx={{ color: 'text.primary' }}>
+                              {el.productName}
+                            </Typography>
+                            <Typography variant='body2'>{el.packageDetails}</Typography>
+                          </TableCell>
 
-                        <TableCell>{el.batchNumber}</TableCell>
+                          <TableCell>{el.batchNumber}</TableCell>
 
-                        <TableCell>{Utility.formatDisplayDate(el.expiryDate)} </TableCell>
-                        <TableCell>{el.availableQty}</TableCell>
-                        <TableCell>
-                          <Button
-                            variant='contained'
-                            onClick={() => {
-                              reset({
-                                batch_no: el?.batchNumber,
-                                stock_id: el?.stockItemId,
-                                availableQty: el?.availableQty,
-                                expiry_date: el?.expiryDate,
-                                adjustment_quantity: el?.availableQty
-                              })
-                              openStockDialog()
-                            }}
-                          >
-                            Adjust
-                          </Button>
-                        </TableCell>
-                      </TableRow>
-                    )
-                  })
-                : null}
-            </TableBody>
-          </Table>
-        </TableContainer>
+                          <TableCell>{Utility.formatDisplayDate(el.expiryDate)} </TableCell>
+                          <TableCell>{el.availableQty}</TableCell>
+                          <TableCell>
+                            <Button
+                              variant='contained'
+                              onClick={() => {
+                                reset({
+                                  batch_no: el?.batchNumber,
+                                  stock_id: el?.stockItemId,
+                                  availableQty: el?.availableQty,
+                                  expiry_date: el?.expiryDate,
+                                  adjustment_quantity: el?.availableQty,
+                                  variant_id: el?.variant_id,
+                                  multiplier: el?.multiplier
+                                })
+                                openStockDialog()
+                              }}
+                            >
+                              Adjust
+                            </Button>
+                          </TableCell>
+                        </TableRow>
+                      )
+                    })
+                  : null}
+              </TableBody>
+            </Table>
+          </TableContainer>
+        </Card>
       ) : null}
 
       <Grid container>

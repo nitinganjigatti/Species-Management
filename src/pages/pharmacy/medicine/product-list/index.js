@@ -1,26 +1,20 @@
 import React, { useState, useEffect, useCallback } from 'react'
-
 import { getMedicineList } from 'src/lib/api/pharmacy/getMedicineList'
-import { IMAGE_BASE_URL } from 'src/constants/ApiConstant'
-
-// import { getMedicineConfig } from 'src/lib/api/getMedicineConfig'
-import Button from '@mui/material/Button'
 import FallbackSpinner from 'src/@core/components/spinner/index'
+import { useTheme } from '@emotion/react'
+import { useRouter } from 'next/router'
 
 // ** MUI Imports
 
 import Typography from '@mui/material/Typography'
 import CardHeader from '@mui/material/CardHeader'
-import { DataGrid } from '@mui/x-data-grid'
 import Card from '@mui/material/Card'
-import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
 import { debounce } from 'lodash'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
-import { Box, Avatar, Badge } from '@mui/material'
+import { Box, Avatar, Badge, TextField, Tab, Tooltip } from '@mui/material'
 import IconButton from '@mui/material/IconButton'
-import Router from 'next/router'
 import CommonDialogBox from 'src/components/CommonDialogBox'
 import MedicineConfigure from 'src/components/pharmacy/medicine/MedicineConfigure'
 import Utility from 'src/utility'
@@ -30,8 +24,22 @@ import { Grid, FormControl, InputLabel, Select, MenuItem } from '@mui/material'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 
 import Error404 from 'src/pages/404'
+import CommonTable from 'src/views/table/data-grid/CommonTable'
+import { AddButtonContained } from 'src/components/ButtonContained'
+import RenderUtility from 'src/utility/render'
+import { fontSize, height, width } from '@mui/system'
+import StyleWithIconCardComponent from 'src/views/utility/style-with-icon-card'
+import { right } from '@popperjs/core'
+import { TabContext, TabList, TabPanel } from '@mui/lab'
 
 const ListOfMedicine = () => {
+  const theme = useTheme()
+  const router = useRouter()
+
+  const updateUrlParams = params => {
+    const query = { ...router.query, ...params }
+    router.push({ pathname: router.pathname, query }, undefined, { shallow: true })
+  }
   const [medicineList, setMedicineList] = useState([])
   const [loader, setLoader] = useState(false)
   const [show, setShow] = useState(false)
@@ -48,38 +56,79 @@ const ListOfMedicine = () => {
   }
 
   const handleEdit = async row => {
+    const id = row?.id
+
+    // console.log('id', id)
+
     if (
       selectedPharmacy.type === 'central' &&
       (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD')
     ) {
-      Router.push({
+      router.push({
         pathname: '/pharmacy/medicine/add-product',
-        query: { id: row?.row?.id, action: 'edit' }
+        query: { id: id, action: 'edit' }
       })
     }
   }
 
+  const handleRowClick = params => {
+    router.push({
+      pathname: `/pharmacy/medicine/${params.row?.id}`
+    })
+  }
+
   const columns = [
     {
-      flex: 0.05,
-      Width: 40,
+      minWidth: 20,
+
+      // flex: 0.15,
+      width: 80,
       field: 'id',
-      headerName: 'SL ',
+      headerName: 'S.NO',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {parseInt(params.row.sl_no)}
-        </Typography>
+        <Box sx={{ minWidth: 40 }}>
+          <Typography sx={{ color: 'text.primary', fontSize: '14px', fontWeight: '400px' }}>
+            {parseInt(params.row.sl_no) + '.'}
+          </Typography>
+        </Box>
       )
     },
     {
-      flex: 0.3,
+      // flex: 0.3,
+      width: 300,
       minWidth: 20,
       field: 'name',
+      align: 'left',
       headerName: 'PRODUCT NAME',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.name}
-        </Typography>
+        <Box>
+          {/* <Typography
+            variant='body2'
+            sx={{
+              color: theme.palette.customColors.customHeadingTextColor,
+              fontSize: '14px',
+              fontWeight: 500,
+              fontFamily: 'Inter'
+            }}
+          >
+            {params.row.name}
+          </Typography> */}
+          <StyleWithIconCardComponent
+            value={params.row.name}
+            description={params.row.generic_name}
+            icon={params.row.image ? `${params.row.image}` : '/images/Medicine_Icon.png'}
+            showIcon={false}
+            customCss={{
+              p: '0px',
+              width: '100%',
+              height: '100%',
+              fontSize: '14px',
+              avtBorderRadius: '10px',
+              iconWidth: '44px',
+              iconHeight: '44px'
+            }}
+          />
+        </Box>
       )
     },
 
@@ -95,127 +144,257 @@ const ListOfMedicine = () => {
     //   )
     // },
     {
-      flex: 0.4,
+      // flex: 0.4,
       minWidth: 20,
+      width: 250,
       field: 'package',
       headerName: 'PACKAGE',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {`${params.row.package} of ${Utility.formatNumber(params.row.package_qty)}
+        <Tooltip
+          title={`${params.row.package} of ${Utility.formatNumber(params.row.package_qty)}
         ${params.row.package_uom_label} ${params.row.product_form_label}`}
-        </Typography>
+        >
+          <Typography
+            variant='body2'
+            sx={{
+              color: theme.palette.customColors.customHeadingTextColor,
+              fontSize: '14px',
+              fontWeight: 400,
+              fontFamily: 'Inter',
+              overflow: 'hidden',
+              whiteSpace: 'nowrap',
+              textOverflow: 'ellipsis',
+              maxWidth: 240
+            }}
+          >
+            {`${params.row.package} of ${Utility.formatNumber(params.row.package_qty)}
+        ${params.row.package_uom_label} ${params.row.product_form_label}`}
+          </Typography>
+        </Tooltip>
       )
     },
     {
-      flex: 0.4,
+      // flex: 0.4,
       minWidth: 20,
+      width: 200,
       field: 'manufacturer_name',
-      headerName: 'Manufacturer Name',
+      headerName: 'Manufacturer',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          <span alt={params.row.manufacturer_name}>{params.row.manufacturer_name}</span>
-        </Typography>
+        <Tooltip title={params.row.manufacturer_name}>
+          <Typography
+            variant='body2'
+            sx={{
+              color: theme.palette.customColors.customHeadingTextColor,
+              fontSize: '14px',
+              fontWeight: 400,
+              fontFamily: 'Inter',
+              overflow: 'hidden',
+              whiteSpace: 'nowrap',
+              textOverflow: 'ellipsis',
+              maxWidth: 200
+            }}
+          >
+            <span alt={params.row.manufacturer_name}> {params.row.manufacturer_name}</span>
+          </Typography>
+        </Tooltip>
       )
     },
 
     {
-      flex: 0.3,
+      // flex: 0.3,
+      width: 200,
       minWidth: 20,
-      field: 'created_at',
+      field: 'stock_type',
       headerName: 'Product Type',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.stock_type}
-        </Typography>
+        <Tooltip title={params.row.stock_type}>
+          <Typography
+            variant='body2'
+            sx={{
+              color: theme.palette.customColors.customHeadingTextColor,
+              fontSize: '14px',
+              fontWeight: 400,
+              fontFamily: 'Inter',
+              overflow: 'hidden',
+              whiteSpace: 'nowrap',
+              textOverflow: 'ellipsis',
+              maxWidth: 200,
+              textTransform: 'capitalize'
+            }}
+          >
+            {Utility.formatText(params.row.stock_type)}
+          </Typography>
+        </Tooltip>
       )
     },
-    {
-      flex: 0.2,
-      minWidth: 20,
-      field: 'image',
-      headerName: 'IMAGE',
-      renderCell: params => (
-        <Badge
-          sx={{ ml: 2, cursor: 'pointer' }}
-          anchorOrigin={{
-            vertical: 'bottom',
-            horizontal: 'right'
-          }}
-        >
-          <Avatar
-            variant='square'
-            alt='Medicine Image'
-            sx={{ width: 40, height: 40 }}
-            src={params.row.image ? `${params.row.image}` : '/images/tablet.png'}
-          />
-        </Badge>
-      )
-    },
-
-    {
-      flex: 0.2,
-      minWidth: 20,
-      field: 'active',
-      headerName: 'STATUS',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {parseInt(params.row.active) === 0 ? 'Inactive' : 'Active'}
-        </Typography>
-      )
-    }
 
     // {
     //   flex: 0.2,
     //   minWidth: 20,
-    //   field: 'Action',
-    //   headerName: 'Action',
-
+    //   field: 'image',
+    //   headerName: 'IMAGE',
     //   renderCell: params => (
-    //     <>
-    //       {selectedPharmacy.type === 'central' &&
-    //         (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') && (
-    //           <Box>
-    //             <IconButton size='small' onClick={() => handleEdit(params.row.id)} aria-label='Edit'>
-    //               <Icon icon='mdi:pencil-outline' />
-    //             </IconButton>
-    //           </Box>
-    //         )}
-    //     </>
-
-    //     // {selectedPharmacy.type === 'central' && (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') &&(<Box>
-    //     //   <IconButton size='small' onClick={() => handleEdit(params.row.id)} aria-label='Edit'>
-    //     //     <Icon icon='mdi:pencil-outline' />
-    //     //   </IconButton>
-    //     //   {/* <IconButton
-    //     //     size='small'
-    //     //     onClick={() => {
-    //     //       setConfigureMedId(params.row.id)
-    //     //       showDialog()
-    //     //     }}
-    //     //   >
-    //     //     <Icon icon='grommet-icons:configure' />
-    //     //   </IconButton> */}
-    //     //   {/* <IconButton size='small'>
-    //     //     <Icon icon='mdi:eye-outline' />
-    //     //   </IconButton>
-
-    //     //   <IconButton size='small'>
-    //     //     <Icon icon='mdi:file' />
-    //     //   </IconButton> */}
-    //     // </Box>)}
+    //     <Badge
+    //       sx={{ ml: 2, cursor: 'pointer' }}
+    //       anchorOrigin={{
+    //         vertical: 'bottom',
+    //         horizontal: 'right'
+    //       }}
+    //     >
+    //       <Avatar
+    //         variant='square'
+    //         alt='Medicine Image'
+    //         sx={{ width: 40, height: 40 }}
+    //         src={params.row.image ? `${params.row.image}` : '/images/tablet.png'}
+    //       />
+    //     </Badge>
     //   )
-    // }
+    // },
+
+    {
+      // flex: 0.2,
+      width: 150,
+      minWidth: 20,
+      field: 'active',
+      headerName: 'STATUS',
+      renderCell: params => (
+        <Box
+          sx={{
+            width: '78px',
+            height: '25px',
+            px: '8px',
+            py: '4px',
+
+            // bgcolor: '#37BD6933',
+            // border: '1px solid #37BD6933',
+
+            bgcolor: parseInt(params.row.active) === 0 ? '#FFEBEF' : '#37BD6933',
+            border: '1px solid',
+            borderColor: parseInt(params.row.active) === 0 ? '#FFD3D3' : '#37BD6933',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            borderRadius: '6px'
+          }}
+        >
+          <Typography
+            variant='body2'
+            sx={{
+              // color: theme.palette.customColors.customHeadingTextColor,
+
+              color:
+                parseInt(params.row.active) === 0
+                  ? theme.palette.customColors.Error
+                  : theme.palette.customColors.customHeadingTextColor,
+              fontSize: '14px',
+              fontWeight: 400,
+              fontFamily: 'Inter'
+            }}
+          >
+            {parseInt(params.row.active) === 0 ? 'In-Active' : 'Active'}
+          </Typography>
+        </Box>
+      )
+    },
+
+    {
+      minWidth: 200,
+      field: 'created_by',
+      headerName: 'Created by ',
+      renderCell: params => (
+        <>
+          {RenderUtility?.renderUserAvatarDetails(
+            params?.row?.user_created_profile_pic,
+            params?.row?.created_by_user_name,
+            params?.row?.created_at
+          )}
+        </>
+      )
+    },
+
+    {
+      minWidth: 200,
+      field: 'updated_by',
+      headerName: 'Updated by',
+      renderCell: params => (
+        <>
+          {RenderUtility?.renderUserAvatarDetails(
+            params?.row?.user_updated_profile_pic,
+            params?.row?.updated_by_user_name,
+            params?.row?.updated_at
+          )}
+        </>
+      )
+    },
+
+    {
+      // flex: 0.2,
+      minWidth: 20,
+      width: 100,
+      field: 'Action',
+      headerName: 'Action',
+
+      renderCell: params => (
+        <>
+          {selectedPharmacy.type === 'central' &&
+            (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') && (
+              <Box>
+                <IconButton
+                  size='small'
+                  onClick={e => {
+                    e.stopPropagation(), handleEdit(params.row)
+                  }}
+                  aria-label='Edit'
+                >
+                  <Icon icon='mdi:pencil-outline' />
+                </IconButton>
+              </Box>
+            )}
+        </>
+
+        //     // {selectedPharmacy.type === 'central' && (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') &&(<Box>
+        //     //   <IconButton size='small' onClick={() => handleEdit(params.row.id)} aria-label='Edit'>
+        //     //     <Icon icon='mdi:pencil-outline' />
+        //     //   </IconButton>
+        //     //   {/* <IconButton
+        //     //     size='small'
+        //     //     onClick={() => {
+        //     //       setConfigureMedId(params.row.id)
+        //     //       showDialog()
+        //     //     }}
+        //     //   >
+        //     //     <Icon icon='grommet-icons:configure' />
+        //     //   </IconButton> */}
+        //     //   {/* <IconButton size='small'>
+        //     //     <Icon icon='mdi:eye-outline' />
+        //     //   </IconButton>
+
+        //     //   <IconButton size='small'>
+        //     //     <Icon icon='mdi:file' />
+        //     //   </IconButton> */}
+        //     // </Box>)}
+      )
+    }
   ]
 
-  /***** Serverside pagination */
+  // /***** Serverside pagination */
+
   const [total, setTotal] = useState(0)
-  const [sort, setSort] = useState('desc')
+
+  const [sort, setSort] = useState(router.query.sort || 'asc')
   const [rows, setRows] = useState([])
-  const [searchValue, setSearchValue] = useState('')
-  const [sortColumn, setSortColumn] = useState('name')
-  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
+  const [searchValue, setSearchValue] = useState(router.query.q || '')
+  const [sortColumn, setSortColumn] = useState(router.query.column || 'name')
+
+  const [paginationModel, setPaginationModel] = useState({
+    page: parseInt(router.query.page) || 0,
+    pageSize: parseInt(router.query.limit) || 10
+  })
+
+  // const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [loading, setLoading] = useState(false)
-  const [statusFilter, setStatusFilter] = useState(true)
+
+  const [statusFilter, setStatusFilter] = useState(router.query.status || true)
   function loadServerRows(currentPage, data) {
     return data
   }
@@ -231,16 +410,16 @@ const ListOfMedicine = () => {
             sort,
             q,
             column,
-            page: paginationModel.page + 1,
-            limit: paginationModel.pageSize
+            page: paginationModel?.page + 1,
+            limit: paginationModel?.pageSize
           }
         } else {
           params = {
             sort,
             q,
             column,
-            page: paginationModel.page + 1,
-            limit: paginationModel.pageSize,
+            page: paginationModel?.page + 1,
+            limit: paginationModel?.pageSize,
             active: activeStatus
           }
         }
@@ -248,7 +427,16 @@ const ListOfMedicine = () => {
         await getMedicineList({ params: params }).then(res => {
           if (res?.success === true && res?.data?.list_items?.length > 0) {
             setTotal(parseInt(res?.data?.total_count))
-            setRows(loadServerRows(paginationModel.page, res?.data?.list_items))
+            setRows(loadServerRows(paginationModel?.page, res?.data?.list_items))
+
+            // updateUrlParams({
+            //   sort,
+            //   q: searchValue,
+            //   column: column,
+            //   status: status,
+            //   page: paginationModel?.page,
+            //   limit: paginationModel?.pageSize
+            // })
           } else {
             setTotal(parseInt(res?.data?.total_count))
             setRows([])
@@ -260,7 +448,7 @@ const ListOfMedicine = () => {
         setLoading(false)
       }
     },
-    [paginationModel]
+    [paginationModel, statusFilter]
   )
 
   const searchTableData = useCallback(
@@ -272,17 +460,34 @@ const ListOfMedicine = () => {
         console.error(error)
       }
     }, 1000),
-    []
+    [fetchTableData, statusFilter]
   )
 
   useEffect(() => {
     fetchTableData({ sort, q: searchValue, column: sortColumn, status: statusFilter })
-  }, [fetchTableData])
+    updateUrlParams({
+      sort,
+      q: searchValue,
+      column: sortColumn,
+      status: statusFilter,
+      page: paginationModel?.page,
+      limit: paginationModel?.pageSize
+    })
+  }, [fetchTableData, statusFilter])
 
   const handleSortModel = async newModel => {
     if (newModel.length > 0) {
       setSort(newModel[0].sort)
+      setSortColumn(newModel[0].field)
       await searchTableData({ sort: newModel[0].sort, q: searchValue, column: newModel[0].field })
+      updateUrlParams({
+        sort: newModel[0].sort,
+        q: searchValue,
+        column: newModel[0].field,
+        status: statusFilter,
+        page: paginationModel?.page,
+        limit: paginationModel?.pageSize
+      })
     } else {
     }
   }
@@ -293,43 +498,73 @@ const ListOfMedicine = () => {
   }
 
   const handleStatusFilterChange = newFilter => {
+    setSearchValue('')
     setStatusFilter(newFilter)
-    fetchTableData({ sort, q: searchValue, column: sortColumn, status: newFilter })
+
+    // updateUrlParams({
+    //   sort,
+    //   q: '',
+    //   column: sortColumn,
+    //   status: newFilter,
+    //   page: paginationModel?.page,
+    //   limit: paginationModel?.pageSize
+    // })
+    fetchTableData({ sort, q: '', column: sortColumn, status: newFilter })
   }
 
   const headerAction = (
     <div>
-      {selectedPharmacy.type === 'central' &&
-        (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') && (
-          <AddButton
+      {selectedPharmacy?.type === 'central' &&
+        (selectedPharmacy?.permission?.key === 'allow_full_access' || selectedPharmacy?.permission.key === 'ADD') && (
+          <AddButtonContained
             title='Add Product'
             action={() => {
-              Router.push('/pharmacy/medicine/add-product')
+              router.push('/pharmacy/medicine/add-product')
             }}
+            fullWidth={'fullWidth'}
           />
         )}
-      {/* <Button
-        size='big'
-        variant='contained'
-        onClick={() => {
-          Router.push('/pharmacy/medicine/add-product')
-        }}
-      >
-        Add Product
-      </Button> */}
     </div>
   )
 
-  const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
+  const getSlNo = index => (paginationModel?.page + 1 - 1) * paginationModel?.pageSize + index + 1
 
   const indexedRows = rows?.map((row, index) => ({
     ...row,
     sl_no: getSlNo(index)
   }))
+  const [tabValue, setTabValue] = useState('all')
+
+  const handleTabChange = (event, newValue) => {
+    setTabValue(newValue)
+    setSearchValue('')
+    setStatusFilter(newValue)
+  }
+
+  const RenderTable = () => {
+    return (
+      <>
+        {/* Table Section */}
+        <Grid sx={{ mx: { xs: 3, md: 5 } }}>
+          <CommonTable
+            onRowClick={handleRowClick}
+            indexedRows={indexedRows}
+            total={total}
+            columns={columns}
+            paginationModel={paginationModel}
+            handleSortModel={handleSortModel}
+            setPaginationModel={setPaginationModel}
+            loading={loading}
+            searchValue={searchValue}
+          />
+        </Grid>
+      </>
+    )
+  }
 
   return (
     <>
-      {selectedPharmacy.type === 'central' ? (
+      {selectedPharmacy?.type === 'central' ? (
         <>
           {loader ? (
             <FallbackSpinner />
@@ -343,73 +578,152 @@ const ListOfMedicine = () => {
                 show={showDialog}
               />
               <Card>
-                <CardHeader title='Product List' action={headerAction} />
-                <Grid container sx={{ display: 'flex' }}>
-                  <Grid item xs={12} sm={2} md={2} sx={{ ml: 4 }}>
+                <CardHeader
+                  title={RenderUtility.pageTitle('Product List')}
+                  action={headerAction}
+                  sx={{
+                    display: 'flex',
+                    flexDirection: { xs: 'column', sm: 'row' },
+                    justifyContent: 'flex-start',
+                    alignItems: 'flex-start',
+                    gap: { xs: 3, sm: 0 },
+                    '& .MuiCardHeader-action': {
+                      width: { xs: '100% ', sm: 'auto' }
+                    },
+                    mx: { xs: -1, sm: 1 },
+                    mt: 1
+                  }}
+                />
+                {/* <Box
+                  display='flex'
+                  // justifyContent='space-between'
+                  flexDirection={{ xs: 'column', sm: 'row' }} // Adjust direction based on screen size
+                  gap={6} // Gap between items on smaller screens
+                  sx={{ mx: { xs: 3, md: 5 } }}
+                  mt={3}
+                > */}
+                {/* Left Box (Search Field) */}
+                {/* <Grid item xs={12} sm={8} md={7}> */}
+                {/* <Box sx={{ ml: 'auto' }}>
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+                        borderRadius: '8px',
+                        padding: '0 8px',
+                        height: '40px'
+                      }}
+                    >
+                      <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
+                      <TextField
+                        variant='outlined'
+                        value={searchValue}
+                        placeholder='Search...'
+                        onChange={e => handleSearch(e.target.value)}
+                        fullWidth
+                        sx={{
+                          '& .MuiOutlinedInput-root': {
+                            border: 'none',
+                            padding: '0',
+                            '& fieldset': {
+                              border: 'none'
+                            }
+                          }
+                        }}
+                      />
+                    </Box>
+                  </Box> */}
+
+                {/* </Grid> */}
+
+                {/* Right Box (Filter by Status) */}
+                {/* <Grid
+                    item
+                    xs={12}
+                    sm={4}
+                    md={4}
+                    sx={{
+                      display: 'flex',
+                      justifyContent: 'flex-end',
+                      alignItems: 'center'
+                    }}
+                  >
                     <FormControl fullWidth size='small'>
-                      <InputLabel id='demo-simple-select-label'>Filter by Status</InputLabel>
+                      <InputLabel id='status-filter-label'>Filter by Status</InputLabel>
                       <Select
                         size='small'
                         value={statusFilter}
                         label='Filter by Status'
-                        onChange={e => {
-                          handleStatusFilterChange(e.target.value)
-                        }}
+                        onChange={e => handleStatusFilterChange(e.target.value)}
                       >
                         <MenuItem value='all'>All</MenuItem>
                         <MenuItem value={true}>Active</MenuItem>
-                        <MenuItem value={false}>In-Active </MenuItem>
+                        <MenuItem value={false}>In-Active</MenuItem>
                       </Select>
                     </FormControl>
+                  </Grid> */}
+                {/* </Box> */}
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2, mx: 6 }}>
+                  <TabContext value={tabValue}>
+                    <TabList onChange={handleTabChange} aria-label='lab API tabs example'>
+                      <Tab label='All' value='all' />
+                      <Tab label='Active' value='true' />
+                      <Tab label='In-Active' value='false' />
+                    </TabList>
+                  </TabContext>
+                  {/* Search Field */}
+                  <Grid item xs={12} sm={8} md={7}>
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+                        borderRadius: '8px',
+                        padding: '0 8px',
+                        height: '40px'
+                      }}
+                    >
+                      <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
+                      <TextField
+                        variant='outlined'
+                        value={searchValue}
+                        placeholder='Search...'
+                        onChange={e => handleSearch(e.target.value)}
+                        fullWidth
+                        sx={{
+                          '& .MuiOutlinedInput-root': {
+                            border: 'none',
+                            padding: '0',
+                            '& fieldset': {
+                              border: 'none'
+                            }
+                          }
+                        }}
+                      />
+                    </Box>
                   </Grid>
-                </Grid>
-                <DataGrid
-                  sx={{ cursor: 'pointer' }}
-                  columnVisibilityModel={{
-                    id: false
-                  }}
-                  autoHeight
-                  pagination
-                  hideFooterSelectedRowCount
-                  disableColumnSelector={true}
-                  rows={indexedRows === undefined ? [] : indexedRows}
-                  rowCount={total}
-                  columns={columns}
-                  sortingMode='server'
-                  paginationMode='server'
-                  pageSizeOptions={[7, 10, 25, 50]}
-                  paginationModel={paginationModel}
-                  onSortModelChange={handleSortModel}
-                  slots={{ toolbar: ServerSideToolbar }}
-                  onPaginationModelChange={setPaginationModel}
-                  loading={loading}
-                  disableColumnMenu
-                  slotProps={{
-                    baseButton: {
-                      variant: 'outlined'
-                    },
-                    toolbar: {
-                      value: searchValue,
-                      clearSearch: () => handleSearch(''),
 
-                      onChange: event => {
-                        setSearchValue(event.target.value)
+                  {/* Tabs */}
+                </Box>
 
-                        return handleSearch(event.target.value)
-                      }
-                    }
-                  }}
-                  onRowClick={handleEdit}
-                />
+                <TabContext value={tabValue}>
+                  {/* Tab Panels */}
+                  <TabPanel value='all' sx={{ p: 0 }}>
+                    {RenderTable()}
+                  </TabPanel>
+                  <TabPanel value='true' sx={{ p: 0 }}>
+                    {RenderTable()}
+                  </TabPanel>
+                  <TabPanel value='false' sx={{ p: 0 }}>
+                    {RenderTable()}
+                  </TabPanel>
+                </TabContext>
               </Card>
             </>
           )}
         </>
-      ) : (
-        <>
-          <Error404></Error404>
-        </>
-      )}
+      ) : null}
     </>
   )
 }

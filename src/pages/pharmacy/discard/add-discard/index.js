@@ -13,7 +13,7 @@ import CardContent from '@mui/material/CardContent'
 import { styled, useTheme } from '@mui/material/styles'
 import TableContainer from '@mui/material/TableContainer'
 import TableCell from '@mui/material/TableCell'
-import { Button, CardHeader } from '@mui/material'
+import { Button, CardHeader, Drawer } from '@mui/material'
 import IconButton from '@mui/material/IconButton'
 import FormHelperText from '@mui/material/FormHelperText'
 import TextField from '@mui/material/TextField'
@@ -61,6 +61,9 @@ const CalcWrapper = styled(Box)(({ theme }) => ({
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
 import { AddButton, RequestCancelButton } from 'src/components/Buttons'
+import RenderUtility from 'src/utility/render'
+import { alpha, Stack } from '@mui/system'
+import { AddButtonContained } from 'src/components/ButtonContained'
 import TextEllipsisWithModal from 'src/components/TextEllipsisWithModal'
 
 const editParamsInitialState = {
@@ -78,7 +81,9 @@ const initialNestedRowMedicine = {
   medicine_name: '',
   uuid: '',
   stock_type: '',
-  reason: ''
+  reason: '',
+  variant_id: '',
+  multiplier: ''
 }
 
 const CustomInput = forwardRef(({ ...props }, ref) => {
@@ -314,6 +319,7 @@ const AddDiscardProducts = () => {
     const year = parts[0]
     const month = Number(parts[1]) - 1
     const day = parts[2]
+    console.log('new Date :-', new Date(year, month, day))
 
     return new Date(year, month, day)
   }
@@ -340,7 +346,9 @@ const AddDiscardProducts = () => {
                 expiry_date: item?.expiry_date,
                 available_item_qty: item?.qty,
                 packageDetails: `${item?.package} of ${item?.package_qty} ${item?.package_uom_label} ${item?.product_form_label}`,
-                manufacture: item?.manufacturer_name
+                manufacture: item?.manufacturer_name,
+                variant_id: item?.variant_id,
+                multiplier: item?.multiplier
               }))
             )
             setTotalBatchQuantity(searchResults?.data?.total_quantity)
@@ -515,6 +523,23 @@ const AddDiscardProducts = () => {
     // }
   }
 
+  const [commentDrawerOpen, setCommentDrawerOpen] = useState(false)
+  const [selectedComment, setSelectedComment] = useState({})
+
+  // ... existing code
+
+  const handleOpenCommentDrawer = comment => {
+    setSelectedComment(comment)
+    setCommentDrawerOpen(true)
+  }
+
+  const handleCloseCommentDrawer = () => {
+    setCommentDrawerOpen(false)
+    setSelectedComment('')
+  }
+
+  console.log(selectedComment)
+
   return (
     <>
       {selectedPharmacy.type === 'central' &&
@@ -535,7 +560,8 @@ const AddDiscardProducts = () => {
                 <Icon
                   style={{ cursor: 'pointer' }}
                   onClick={() => {
-                    Router.push('/pharmacy/discard/discard-list')
+                    // Router.push('/pharmacy/discard/discard-list')
+                    Router.back()
                   }}
                   icon='ep:back'
                 />
@@ -543,36 +569,45 @@ const AddDiscardProducts = () => {
               title='Return To Supplier'
             />
           </Grid>
-          <CardContent>
-            <Grid container>
-              <CommonDialogBox
-                title={'Add Return Items'}
-                dialogBoxStatus={show}
-                formComponent={
-                  <AddItemsForm
-                    searchBatchData={searchBatchData}
-                    searchMedicineData={searchMedicineData}
-                    productList={optionsMedicineList}
-                    productLoading={productLoading}
-                    visibleExpiryField={visibleExpiryField}
-                    batchLoading={batchLoading}
-                    onSubmitData={submitItems}
-                    batchList={optionsBatchList}
-                    nestedMedicine={nestedRowMedicine}
-                    error={duplicateMedError}
-                    totalQuantity={totalBatchQuantity}
-                    editParams={editParams}
-                    reasonsOptions={reasonsOptions}
-                  />
-                }
-                close={closeDialog}
-                show={showDialog}
-              />
-            </Grid>
-          </CardContent>
+
+          <Grid container>
+            <CommonDialogBox
+              title={'Add Return Items'}
+              dialogBoxStatus={show}
+              formComponent={
+                <AddItemsForm
+                  searchBatchData={searchBatchData}
+                  searchMedicineData={searchMedicineData}
+                  productList={optionsMedicineList}
+                  productLoading={productLoading}
+                  visibleExpiryField={visibleExpiryField}
+                  batchLoading={batchLoading}
+                  onSubmitData={submitItems}
+                  batchList={optionsBatchList}
+                  nestedMedicine={nestedRowMedicine}
+                  error={duplicateMedError}
+                  totalQuantity={totalBatchQuantity}
+                  editParams={editParams}
+                  reasonsOptions={reasonsOptions}
+                  closeDialog={closeDialog}
+                />
+              }
+              close={closeDialog}
+              show={showDialog}
+            />
+          </Grid>
+
           <CardContent>
             <form>
               <Grid container spacing={5}>
+                <Grid item xs={12} sm={12}>
+                  <Typography
+                    variant='subtitle1'
+                    sx={{ color: 'customColors.customTextColorGray2', fontSize: '16px', fontWeight: 500 }}
+                  >
+                    Supplier Name:
+                  </Typography>
+                </Grid>
                 <Grid item xs={12} sm={12} sx={{ display: 'flex', gap: 2 }}>
                   <Grid xs={12} sm={6} sx={{ mb: 5 }}>
                     <FormControl fullWidth>
@@ -636,7 +671,7 @@ const AddDiscardProducts = () => {
               </Grid>
             </form>
           </CardContent>
-          <Grid
+          {/* <Grid
             container
             spacing={6}
             sm={12}
@@ -654,90 +689,261 @@ const AddDiscardProducts = () => {
                 handleSubmit()
               }}
             />
-          </Grid>
+          </Grid> */}
 
-          <TableContainer>
-            <Table>
-              <TableHead sx={{ backgroundColor: '#F5F5F7' }}>
-                <TableRow>
-                  <TableCell>Product Name</TableCell>
-                  <TableCell>Batch No</TableCell>
-                  <TableCell>Expiry Date</TableCell>
-                  <TableCell>Comment</TableCell>
-                  <TableCell>Reason</TableCell>
+          <Box sx={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', px: 6 }}>
+            <Box>
+              <Typography sx={{ color: 'customColors.customTextColorGray2', fontSize: '16px', fontWeight: 500 }}>
+                Return Products List
+              </Typography>
 
-                  <TableCell>Quantity</TableCell>
-                  {id ? null : <TableCell>Action</TableCell>}
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {editParams?.items
-                  ? editParams?.items?.map((el, index) => {
-                      return (
-                        <TableRow key={index}>
-                          <TableCell>
-                            <Typography variant='body2' sx={{ color: 'text.primary' }}>
-                              {el.medicine_name}
-                            </Typography>
+              <Stack
+                direction='row'
+                spacing={6}
+                divider={<Divider orientation='vertical' flexItem />}
+                sx={{ textAlign: 'center' }}
+              >
+                <Typography
+                  variant='body2'
+                  sx={{ color: 'customColors.neutralSecondary', fontSize: '14px', fontWeight: 400 }}
+                >
+                  Total Discard Quantity:{' '}
+                  <Typography component='span' variant='body2' sx={{ color: 'primary.light' }}>
+                    {totalQty ? totalQty : '0'}
+                  </Typography>
+                </Typography>
+                <Typography
+                  variant='body2'
+                  sx={{ color: 'customColors.neutralSecondary', fontSize: '14px', fontWeight: 400 }}
+                >
+                  Total Discard Value:{' '}
+                  <Typography component='span' variant='body2' sx={{ color: 'primary.light' }}>
+                    ₹0
+                  </Typography>
+                </Typography>
+              </Stack>
+            </Box>
 
-                            {el.control_substance ? (
-                              <CustomChip label='CS' skin='light' color='success' size='small' />
-                            ) : null}
-                            <Typography variant='body2'>{el.packageDetails}</Typography>
-                            <Typography variant='body2'>{el.manufacture}</Typography>
-                          </TableCell>
-                          <TableCell>
-                            <Typography variant='body2' sx={{ color: 'text.primary' }}>
-                              {el.batch_no}
-                            </Typography>
-                          </TableCell>
+            {id ? null : (
+              <AddButtonContained
+                title='Add Return Items'
+                action={() => {
+                  handleSubmit()
+                }}
+              />
+            )}
+          </Box>
 
-                          <TableCell>
-                            <Typography variant='body2' sx={{ color: 'text.primary' }}>
-                              {Utility.formatDisplayDate(el.expiry_date) === 'Invalid date'
-                                ? 'NA'
-                                : Utility.formatDisplayDate(el.expiry_date)}
-                            </Typography>
-                          </TableCell>
-                          <TableCell>{el.comments ? <TextEllipsisWithModal text={el.comments} /> : 'NA'}</TableCell>
-                          <TableCell>{el.reason ? el.reason : 'NA'}</TableCell>
+          <Card
+            sx={{
+              m: 6,
+              border: '1px solid',
+              borderColor: 'customColors.customTableBorderBg',
+              boxShadow: 'none'
+            }}
+          >
+            <TableContainer>
+              <Table>
+                <TableHead sx={{ borderColor: 'customColors.customTableBorderBg' }}>
+                  <TableRow sx={{ backgroundColor: 'customColors.customTableHeaderBg' }}>
+                    <TableCell>Product Name</TableCell>
+                    <TableCell>Batch No</TableCell>
+                    <TableCell>Expiry Date</TableCell>
+                    {/* <TableCell>Comment</TableCell> */}
+                    <TableCell>Quantity</TableCell>
+                    <TableCell>Reason</TableCell>
 
-                          <TableCell>{el.quantity}</TableCell>
-                          {id ? null : (
+                    {id ? null : <TableCell>Action</TableCell>}
+                  </TableRow>
+                </TableHead>
+                <TableBody sx={{ borderColor: 'customColors.customTableBorderBg' }}>
+                  {editParams?.items
+                    ? editParams?.items?.map((el, index) => {
+                        console.log(el, ';;;')
+
+                        return (
+                          <TableRow
+                            key={index}
+                            sx={{
+                              '&:last-child td, &:last-child th': {
+                                border: 0 // Removes borders for the last row
+                              }
+                            }}
+                          >
                             <TableCell>
-                              <IconButton
-                                size='small'
-                                sx={{ mr: 0.5 }}
-                                aria-label='Edit'
-                                onClick={() => {
-                                  setMedicineItemId(el.stock_id)
-
-                                  editTableData(el.uuid)
-                                  showDialog()
-                                }}
+                              <Typography
+                                variant='body2'
+                                sx={{ color: 'primary.light', fontSize: '16px', fontWeight: 600 }}
                               >
-                                <Icon icon='mdi:pencil-outline' />
-                              </IconButton>
-
-                              <IconButton
-                                onClick={() => {
-                                  removeItemsFromTable(el.uuid)
-                                }}
-                                size='small'
-                                sx={{ mr: 0.5 }}
+                                {RenderUtility?.renderControlLabel(el.control_substance === true, 'CS')}
+                                {RenderUtility?.renderControlLabel(el.prescription_required === true, 'PR')}
+                                {el.medicine_name}
+                              </Typography>
+                              {/* {el.control_substance ? (
+                              <CustomChip label='CS' skin='light' color='success' size='small' />
+                            ) : null} */}
+                              <Typography
+                                variant='body2'
+                                sx={{ color: 'customColors.customHeadingTextColor', fontSize: '14px', fontWeight: 400 }}
                               >
-                                <Icon icon='mdi:delete-outline' />
-                              </IconButton>
+                                {el.packageDetails}
+                              </Typography>
+                              <Typography
+                                variant='body2'
+                                sx={{ color: 'customColors.customHeadingTextColor', fontSize: '14px', fontWeight: 400 }}
+                              >
+                                {el.manufacture}
+                              </Typography>
                             </TableCell>
-                          )}
-                        </TableRow>
-                      )
-                    })
-                  : null}
-              </TableBody>
-            </Table>
-          </TableContainer>
-          <CardContent sx={{ pt: 8 }}>
+                            <TableCell>
+                              <Typography variant='body2' sx={{ color: 'text.primary' }}>
+                                {el.batch_no}
+                              </Typography>
+                            </TableCell>
+
+                            <TableCell>
+                              <Typography variant='body2' sx={{ color: 'text.primary' }}>
+                                {Utility.formatDisplayDate(el.expiry_date) === 'Invalid date' ? 'NA' : el.expiry_date}
+                              </Typography>
+                            </TableCell>
+                            <TableCell>{el.quantity}</TableCell>
+                            {/* <TableCell>{el.comments ? el.comments : 'NA'}</TableCell> */}
+                            {/* <TableCell
+                              sx={{ cursor: 'pointer' }}
+                              onClick={() => el.comments && handleOpenCommentDrawer(el)}
+                            >
+                              <Typography variant='body2' sx={{ color: 'customColors.moderateRed' }}>
+                                {el.reason ? el.reason : 'NA'}
+                              </Typography>
+
+                              <Typography variant='body2'>{el.comments ? el.comments : ''}</Typography>
+                            </TableCell> */}
+
+                            {/* <TableCell
+                              sx={{ cursor: el.comments ? 'pointer' : 'default' }}
+                              onClick={() => el.comments && handleOpenCommentDrawer(el)}
+                            >
+                              <Typography
+                                variant='body2'
+                                sx={{
+                                  color: () => {
+                                    if (el.reason === 'Expired') {
+                                      return 'customColors.moderateRed'
+                                    } else if (el.reason === 'About to expire') {
+                                      return '#FA6140'
+                                    } else {
+                                      return '#E4B819'
+                                    }
+                                  }
+                                }}
+                              >
+                                {el.reason}
+                              </Typography>
+                              <Typography variant='body2' mt={0.5}>
+                                <Box
+                                  display='flex'
+                                  alignItems='center'
+                                  gap={1}
+                                  sx={{
+                                    minWidth: 30,
+                                    maxWidth: 80,
+                                    cursor: 'pointer',
+                                    overflow: 'hidden',
+                                    textOverflow: 'ellipsis',
+                                    WebkitLineClamp: 3,
+                                    WebkitBoxOrient: 'vertical'
+                                  }}
+                                >
+                                  <Icon icon='pepicons-pop:file' width='0.6em' height='0.6em' />
+                                  {el.comments ? el.comments : ''}
+                                </Box>
+                              </Typography>
+                            </TableCell> */}
+
+                            <TableCell
+                              sx={{ cursor: el.comments ? 'pointer' : 'default' }}
+                              onClick={() => el.comments && handleOpenCommentDrawer(el)}
+                            >
+                              <Typography
+                                variant='body2'
+                                sx={{
+                                  color: () => {
+                                    if (el.reason === 'Expired') {
+                                      return 'customColors.moderateTableRed'
+                                    } else if (el.reason === 'About to expire') {
+                                      return 'customColors.Tertiary'
+                                    } else {
+                                      return 'customColors.moderateSecondary'
+                                    }
+                                  }
+                                }}
+                              >
+                                {el.reason}
+                              </Typography>
+                              <Typography
+                                variant='body2'
+                                mt={0.5}
+                                sx={{
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  gap: 1,
+                                  overflow: 'hidden'
+                                }}
+                              >
+                                {el.comments && <Icon icon='pepicons-pop:file' width='0.7em' height='0.7em' />}
+                                <span
+                                  style={{
+                                    overflow: 'hidden',
+                                    textOverflow: 'ellipsis',
+                                    whiteSpace: 'nowrap',
+                                    maxWidth: 'calc(100% - 1em)' // Adjust based on icon width
+                                  }}
+                                >
+                                  {el.comments
+                                    ? el.comments.length > 20
+                                      ? `${el.comments.substring(0, 20)}...`
+                                      : el.comments
+                                    : ''}
+                                </span>
+                              </Typography>
+                            </TableCell>
+
+                            {id ? null : (
+                              <TableCell>
+                                <IconButton
+                                  size='small'
+                                  sx={{ mr: 0.5 }}
+                                  aria-label='Edit'
+                                  onClick={() => {
+                                    setMedicineItemId(el.stock_id)
+
+                                    editTableData(el.uuid)
+                                    showDialog()
+                                  }}
+                                >
+                                  <Icon icon='mdi:pencil-outline' />
+                                </IconButton>
+
+                                <IconButton
+                                  onClick={() => {
+                                    removeItemsFromTable(el.uuid)
+                                  }}
+                                  size='small'
+                                  sx={{ mr: 0.5 }}
+                                >
+                                  <Icon icon='mdi:delete-outline' />
+                                </IconButton>
+                              </TableCell>
+                            )}
+                          </TableRow>
+                        )
+                      })
+                    : null}
+                </TableBody>
+              </Table>
+            </TableContainer>
+          </Card>
+          {/* <CardContent sx={{ pt: 8 }}>
             {totalQty ? (
               <Grid container>
                 <Grid
@@ -768,7 +974,7 @@ const AddDiscardProducts = () => {
                 </Grid>
               </Grid>
             ) : null}
-          </CardContent>
+          </CardContent> */}
           <Grid item xs={12}>
             <Box sx={{ float: 'right', my: 4, mx: 6 }}>
               {id ? null : (
@@ -804,6 +1010,86 @@ const AddDiscardProducts = () => {
           <Error404></Error404>
         </>
       )}
+
+      <Drawer anchor='right' open={commentDrawerOpen} onClose={handleCloseCommentDrawer}>
+        <Box
+          sx={{
+            width: 400,
+            height: '100%',
+            display: 'flex',
+            flexDirection: 'column',
+            // backgroundColor: '#EFF5F2'
+            backgroundColor: 'customColors.Background'
+          }}
+        >
+          <Box
+            sx={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              p: 5
+            }}
+          >
+            <Typography
+              variant='body1'
+              sx={{ fontSize: '20px', fontWeight: 500, color: 'customColors.customHeadingTextColor' }}
+            >
+              Reason
+            </Typography>
+            <IconButton onClick={handleCloseCommentDrawer}>
+              <Icon icon='mdi:close' />
+            </IconButton>
+          </Box>
+          <Divider />
+
+          <Box sx={{ p: 5, pb: 0 }}>
+            <Box>
+              <Typography
+                variant='body2'
+                sx={{ fontSize: '16px', fontWeight: 400, color: 'customColors.neutralSecondary' }}
+              >
+                Reason for Discard:
+              </Typography>
+            </Box>
+            <Typography
+              variant='body1'
+              sx={{
+                fontSize: '16px',
+                fontWeight: 600,
+                color: () => {
+                  if (selectedComment?.reason === 'Expired') {
+                    return 'customColors.Error'
+                  } else if (selectedComment?.reason === 'About to expire') {
+                    return 'customColors.Tertiary'
+                  } else {
+                    return 'customColors.moderateSecondary'
+                  }
+                }
+              }}
+            >
+              {selectedComment?.reason}
+            </Typography>
+          </Box>
+          <Box
+            sx={{
+              backgroundColor: theme => alpha(theme.palette.customColors.Notes, 0.6),
+              p: 4,
+              m: 5,
+              borderRadius: '8px'
+            }}
+          >
+            <Typography
+              variant='body1'
+              sx={{ fontSize: '16px', fontWeight: 400, color: 'customColors.neutralSecondary' }}
+            >
+              Comments:
+            </Typography>
+            <Typography sx={{ fontSize: '16px', fontWeight: 400, color: 'customColors.OnSurfaceVariant' }}>
+              {selectedComment?.comments}
+            </Typography>
+          </Box>
+        </Box>
+      </Drawer>
     </>
   )
 }

@@ -1,9 +1,26 @@
 // import { AuthContext } from 'src/context/AuthContext'
 // import { useContext } from 'react'
 
-const ComposeReportNavigation = reports_module => {
+const ComposeReportNavigation = ({
+  reports_module,
+  enable_animal_report,
+  enable_daily_report,
+  enable_specie_report
+}) => {
   const reportTitle = {
     sectionTitle: 'Report'
+  }
+
+  const animalList = {
+    title: 'Animal List Report',
+    path: '/report/animalList',
+    icon: 'mdi:paw-outline'
+  }
+
+  const animal = {
+    title: 'Daily Report',
+    path: '/report/daily',
+    icon: 'mdi:paw-outline'
   }
 
   const report = {
@@ -15,11 +32,26 @@ const ComposeReportNavigation = reports_module => {
   const reportNavigationArray = []
 
   reportNavigationArray.push(reportTitle)
-  reportNavigationArray.push(report)
+  if (enable_specie_report) {
+    reportNavigationArray.push(report)
+  }
+  if (enable_daily_report) {
+    reportNavigationArray.push(animal)
+  }
+
+  if (enable_animal_report) {
+    reportNavigationArray.push(animalList)
+  }
 
   return reportNavigationArray
 }
 
-const reportNavigation = () => ComposeReportNavigation()
+const reportNavigation = ({ reports_module, enable_animal_report, enable_daily_report, enable_specie_report }) =>
+  ComposeReportNavigation({
+    reports_module,
+    enable_animal_report,
+    enable_daily_report,
+    enable_specie_report
+  })
 
 export default reportNavigation

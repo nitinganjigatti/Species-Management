@@ -115,6 +115,13 @@ function convertUTCToLocal(date) {
   return local
 }
 
+function convertUTCToLocalDate(date) {
+  var stillUtc = moment.utc(date).toDate()
+  var local = moment(stillUtc).local(true).format('YYYY-MM-DD')
+
+  return local
+}
+
 function convertUTCToLocaltime(date) {
   var stillUtc = moment.utc(date).toDate()
   var local = moment(stillUtc).local(true).format('h:mm A')
@@ -127,6 +134,75 @@ function extractHoursAndMinutes(date) {
   return moment(date).format('hh:mm A')
 }
 
+function formatNumberToDisplay(number) {
+  if (number !== null && !isNaN(number)) {
+    return Number.isInteger(number) ? number.toString() : number.toFixed(2)
+  } else {
+    return '0'
+  }
+}
+
+function formatAmountToReadableDigit(value) {
+  debugger
+
+  const num = parseFloat(value)
+  if (isNaN(num)) return 'Invalid number'
+
+  const roundedNum = num.toFixed(2) // Round to 2 decimal places
+
+  if (num > 999) {
+    return Number(roundedNum).toLocaleString('en-IN', {
+      style: 'currency',
+      currency: 'INR',
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    })
+  }
+  return `₹${Number(roundedNum)}`
+
+  // if (value) {
+  //   if (value > 10000) {
+  //     return `₹ ${value.toString().replace(/\B(?=(\d{2})+(?!\d))/g, ',')}.00`
+  //   }
+
+  //   return `₹ ${value}.00`
+
+  //   // return value.toLocaleString('de-DE')
+  // }
+
+  // return '0'
+}
+
+const downloadFileFromURL = async (fileUrl, title = 'report') => {
+  if (!fileUrl) {
+    console.error('No file URL provided')
+    return
+  }
+  try {
+    const fileExtension = fileUrl.split('.').pop()
+    const fetchResponse = await fetch(fileUrl)
+    if (!fetchResponse.ok) {
+      throw new Error(`Failed to fetch file: ${fetchResponse.statusText}`)
+    }
+    const blob = await fetchResponse.blob()
+    const url = window.URL.createObjectURL(blob)
+    const fileName = `${title.toLowerCase().replace(/\s+/g, '-')}-report.${fileExtension}`
+    const link = document.createElement('a')
+    link.href = url
+    link.download = fileName
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    window.URL.revokeObjectURL(url)
+  } catch (error) {
+    console.error('Download failed:', error)
+  }
+}
+
+const formatText = text => {
+  return text.replace(/_/g, ' ').replace(/\b\w/g, char => char.toUpperCase())
+}
+
 function toPascalSentenceCase(str) {
   return str
     .replace(/[-_]+/g, ' ')
@@ -135,6 +211,24 @@ function toPascalSentenceCase(str) {
     .split(' ')
     .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()) // Capitalize the first letter of each word
     .join(' ')
+}
+
+function formatAmountCompactDisplay(value) {
+  // debugger
+
+  const num = parseFloat(value)
+  if (isNaN(num)) return 'Invalid number'
+
+  const roundedNum = num.toFixed(2) // Round to 2 decimal places
+
+  if (num > 999) {
+    return Number(roundedNum).toLocaleString('en-US', {
+      maximumFractionDigits: 2,
+      notation: 'compact',
+      compactDisplay: 'short'
+    })
+  }
+  return `${Number(roundedNum)}`
 }
 
 const Utility = {
@@ -148,10 +242,16 @@ const Utility = {
   getPreviousDaysDate,
   daysFromToday,
   convertUTCToLocal,
+  convertUTCToLocalDate,
   convertUTCToLocaltime,
   extractHoursAndMinutes,
+  formatNumberToDisplay,
+  formatAmountToReadableDigit,
+  downloadFileFromURL,
+  formatText,
   toPascalSentenceCase,
-  renderUserAvatar
+  renderUserAvatar,
+  formatAmountCompactDisplay
 }
 
 export default Utility

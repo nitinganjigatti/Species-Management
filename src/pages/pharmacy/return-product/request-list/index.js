@@ -16,7 +16,18 @@ import Card from '@mui/material/Card'
 import Typography from '@mui/material/Typography'
 import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
 import Router from 'next/router'
-import { Switch, FormControlLabel } from '@mui/material'
+import {
+  Switch,
+  FormControlLabel,
+  TextField,
+  FormControl,
+  InputLabel,
+  Select,
+  MenuItem,
+  InputAdornment
+} from '@mui/material'
+import { useTheme } from '@emotion/react'
+import useMediaQuery from '@mui/material/useMediaQuery'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
@@ -26,8 +37,15 @@ import { usePharmacyContext } from 'src/context/PharmacyContext'
 import { AddButton } from 'src/components/Buttons'
 import Utility from 'src/utility'
 import { useRouter } from 'next/router'
+import { getStoreList } from 'src/lib/api/pharmacy/getStoreList'
+import CommonTable from 'src/views/table/data-grid/CommonTable'
+import { AddButtonContained } from 'src/components/ButtonContained'
+import RenderUtility from 'src/utility/render'
 
 const ReturnRequestList = () => {
+  const theme = useTheme()
+  const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm')) // Detect small screens
+
   const { selectedPharmacy } = usePharmacyContext()
 
   const [loader, setLoader] = useState(false)
@@ -47,7 +65,7 @@ const ReturnRequestList = () => {
 
   const updateUrlParams = params => {
     const query = { ...router.query, ...params }
-    router.push({ pathname: router.pathname, query }, undefined, { shallow: true })
+    router.replace({ pathname: router.pathname, query }, undefined, { shallow: true })
   }
   const [total, setTotal] = useState(0)
   const [sort, setSort] = useState(router.query.sort || 'desc')
@@ -63,11 +81,40 @@ const ReturnRequestList = () => {
   const [stores, setStores] = useState([])
 
   const [status, setStatus] = useState(selectedPharmacy.type === 'local' ? 'pending' : 'shipped')
+  const [filterByStoreId, setFilterByStoreId] = useState(router.query.store || 'all')
 
   const [filterSwitch, setFilterSwitch] = useState(router.query.filterSwitch === 'true' ? true : false)
+  const [selectDays, setSelectDays] = useState(router.query.days || 'all')
+
+  const [filterDates, setFilterDates] = useState({
+    startDate: router.query.startDate || '',
+    endDate: router.query.endDate || ''
+  })
 
   function loadServerRows(currentPage, data) {
     return data
+  }
+
+  useEffect(() => {
+    getStoresLists()
+  }, [])
+
+  const getStoresLists = async () => {
+    try {
+      setLoader(true)
+      const response = await getStoreList({ params: { type: 'local', sort: 'asc' } })
+      if (response?.data?.list_items?.length > 0) {
+        response?.data?.list_items?.sort((a, b) => a.id - b.id)
+        setStores(response?.data?.list_items)
+
+        setLoader(false)
+      } else {
+        setLoader(false)
+      }
+    } catch (error) {
+      setLoader(false)
+      console.log('error', error)
+    }
   }
 
   useEffect(() => {
@@ -89,26 +136,80 @@ const ReturnRequestList = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedPharmacy.type])
 
+  useEffect(() => {
+    if (router.query.status !== status) {
+      // debugger
+      setPaginationModel({ page: 0, pageSize: 10 })
+      updateUrlParams({
+        status: status,
+        page: 0,
+        limit: 10,
+        q: '',
+        sort: sort,
+        column: sortColumn,
+        startDate: '',
+        endDate: '',
+        store: filterByStoreId,
+        filterSwitch: false
+      })
+    }
+  }, [router.query.status])
+
   const handleChange = (event, newValue) => {
     setTotal(0)
     setFilterSwitch(false)
     setPaginationModel({ page: 0, pageSize: 10 })
     setSearchValue('')
+    setFilterDates({ startDate: '', endDate: '' })
+    setSelectDays('all')
     setStatus(newValue)
+    updateUrlParams({
+      status: newValue,
+      page: 0,
+      limit: 10,
+      q: '',
+      sort: sort,
+      column: sortColumn,
+      startDate: '',
+      endDate: '',
+      store: filterByStoreId,
+      filterSwitch: false
+    })
   }
 
   const fetchTableData = useCallback(
-    async (sort, q, column, status, page, limit) => {
+    async (sort, q, column, status, startDate, endDate, filterByStoreId, page, limit) => {
       try {
         setLoading(true)
 
-        const params = {
-          sort,
-          q,
-          column,
-          page: page ? page : paginationModel.page + 1,
-          limit: limit ? limit : paginationModel.pageSize,
-          status: filterSwitch === true && status === 'all' ? 'completed' : status
+        // Declare params object
+        let params = {}
+
+        if (
+          startDate ||
+          endDate // Checks if startDate and endDate are truthy (not empty or undefined)
+        ) {
+          params = {
+            sort,
+            q,
+            column,
+            page: page ? page : paginationModel.page + 1,
+            limit: limit ? limit : paginationModel.pageSize,
+            status: filterSwitch === true ? 'completed' : status,
+            pending_days_start: startDate ? startDate : filterDates?.startDate,
+            pending_days_end: endDate ? endDate : filterDates?.endDate,
+            search_store: filterByStoreId === 'all' ? '' : filterByStoreId
+          }
+        } else {
+          params = {
+            sort,
+            q,
+            column,
+            page: page ? page : paginationModel.page + 1,
+            limit: limit ? limit : paginationModel.pageSize,
+            status: filterSwitch === true && status === 'all' ? 'completed' : status,
+            search_store: filterByStoreId === 'all' ? '' : filterByStoreId
+          }
         }
 
         await getRequestReturnList({ params: params }).then(res => {
@@ -120,6 +221,7 @@ const ReturnRequestList = () => {
             setRows([])
           }
         })
+
         setLoading(false)
       } catch (e) {
         console.log(e)
@@ -143,19 +245,56 @@ const ReturnRequestList = () => {
       const currentStatus = filterSwitch === true ? 'completed' : status
       setSort(newModel[0].sort)
       setSortColumn(newModel[0].field)
-      fetchTableData(newModel[0].sort, searchValue, newModel[0].field, currentStatus)
-    } else {
+      setSearchValue('')
+
+      fetchTableData(
+        newModel[0].sort,
+        searchValue,
+        newModel[0].field,
+        currentStatus,
+        filterDates.startDate,
+        filterDates.endDate,
+        filterByStoreId
+      )
+      updateUrlParams({
+        sort: newModel[0].sort,
+        q: searchValue,
+        column: newModel[0].field,
+        status: status,
+        startDate: filterDates.startDate,
+        endDate: filterDates.endDate,
+        store: filterByStoreId,
+        page: paginationModel.page,
+        limit: paginationModel.pageSize
+      })
     }
   }
 
   const searchTableData = useCallback(
-    debounce(async (sort, q, column, status) => {
+    debounce(async (sort, q, column, status, filterDates, filterByStoreId) => {
       setTotal(0)
       setPaginationModel({ page: 0, pageSize: 10 })
       setSearchValue(q)
       const currentStatus = filterSwitch === true ? 'completed' : status
       try {
-        await fetchTableData(sort, q, column, currentStatus)
+        await fetchTableData(
+          sort,
+          q,
+          column,
+          currentStatus,
+          filterDates.startDate,
+          filterDates.endDate,
+          filterByStoreId
+        )
+        updateUrlParams({
+          sort,
+          q: q,
+          column: sortColumn,
+          status: status,
+          startDate: filterDates.startDate,
+          endDate: filterDates.endDate,
+          store: filterByStoreId
+        })
       } catch (error) {
         console.error(error)
       }
@@ -170,11 +309,15 @@ const ReturnRequestList = () => {
     if (event.target.checked === false) {
       setStatus(prev => 'all')
     }
+    setSearchValue('')
     updateUrlParams({
       sort,
       q: searchValue,
       column: sortColumn,
       status: status,
+      startDate: filterDates.startDate,
+      endDate: filterDates.endDate,
+      store: filterByStoreId,
       page: 0,
       limit: 10
     })
@@ -186,23 +329,44 @@ const ReturnRequestList = () => {
   // }, [selectedPharmacy.id])
 
   useEffect(() => {
-    const currentStatus = filterSwitch === true ? 'completed' : status
-
-    const tabStatus = status === 'all' ? currentStatus : status
-    fetchTableData(sort, searchValue, sortColumn, tabStatus)
-    updateUrlParams({
-      sort,
-      q: searchValue,
-      column: sortColumn,
-      status: tabStatus,
-      page: paginationModel.page,
-      limit: paginationModel.pageSize,
-      filterSwitch
-    })
+    if (router.query.status === status) {
+      const currentStatus = filterSwitch === true ? 'completed' : status
+      const tabStatus = status === 'all' ? currentStatus : status
+      fetchTableData(
+        sort,
+        searchValue,
+        sortColumn,
+        tabStatus,
+        filterDates.startDate,
+        filterDates.endDate,
+        filterByStoreId
+      )
+      updateUrlParams({
+        sort,
+        q: searchValue,
+        column: sortColumn,
+        status: tabStatus,
+        page: paginationModel.page,
+        startDate: filterDates.startDate,
+        endDate: filterDates.endDate,
+        limit: paginationModel.pageSize,
+        filterSwitch,
+        store: filterByStoreId
+      })
+    }
 
     // }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [status, fetchTableData, filterSwitch])
+  }, [
+    status,
+    filterSwitch,
+    filterByStoreId,
+    filterDates,
+    selectedPharmacy.id,
+    paginationModel.page,
+    paginationModel.pageSize,
+    router.query.status
+  ])
 
   const onRowClick = params => {
     Router.push({
@@ -214,7 +378,7 @@ const ReturnRequestList = () => {
     <div>
       {selectedPharmacy?.type === 'local' &&
         (selectedPharmacy.permission.key === 'ADD' || selectedPharmacy.permission.key === 'allow_full_access') && (
-          <AddButton
+          <AddButtonContained
             title='Add Return Request'
             action={() =>
               Router.push({
@@ -228,7 +392,7 @@ const ReturnRequestList = () => {
 
   const handleSearch = value => {
     setSearchValue(value)
-    searchTableData(sort, value, 'request_number', status)
+    searchTableData(sort, value, 'request_number', status, filterDates, filterByStoreId)
   }
 
   const getRequestedText = () => {
@@ -237,91 +401,135 @@ const ReturnRequestList = () => {
 
   const columns = [
     {
-      flex: 0.05,
-      Width: 40,
-      field: 'id',
-      headerName: 'SL No',
+      width: 80,
+      field: 'sl_no',
+      headerName: 'S.NO',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {parseInt(params.row.sl_no)}
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
+          {parseInt(params.row.sl_no) + '.'}
         </Typography>
       )
     },
 
     {
-      flex: 0.2,
-      minWidth: 20,
+      width: 160,
       field: 'request_number',
       headerName: 'Request Number',
+      headerClassName: 'custom-header',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
           {params.row.request_number}
         </Typography>
       )
     },
     {
-      flex: 0.2,
-      minWidth: 20,
+      minWidth: 200,
       field: 'from_store',
       headerName: getRequestedText(),
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
           {selectedPharmacy?.type === 'central' ? params.row.from_store : params?.row?.to_store}
         </Typography>
       )
     },
 
+    // {
+    //   flex: 0.2,
+    //   minWidth: 20,
+    //   field: 'request_date',
+    //   headerName: 'Returned On',
+    //   renderCell: params => (
+    //     <Typography
+    //       variant='body2'
+    //       sx={{
+    //         color: theme.palette.customColors.customHeadingTextColor,
+    //         fontSize: '14px',
+    //         fontWeight: 500,
+    //         fontFamily: 'Inter'
+    //       }}
+    //     >
+    //       {Utility.formatDisplayDate(params.row.request_date)}
+    //     </Typography>
+    //   )
+    // },
     {
-      flex: 0.2,
-      minWidth: 20,
-      field: 'request_date',
-      headerName: 'Returned On',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {Utility.formatDisplayDate(params.row.request_date)}
-        </Typography>
-      )
-    },
-    {
-      flex: 0.2,
-      minWidth: 20,
+      minWidth: 160,
       field: 'last_shipping_date',
       headerName: 'Recent shipping',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
           {params.row.last_shipping_date ? Utility.formatDisplayDate(params.row.last_shipping_date) : 'NA'}
         </Typography>
       )
     },
     ,
     {
-      flex: 0.2,
-      minWidth: 20,
+      minWidth: 140,
       field: 'total_qty',
-      headerName: 'Total Qty',
+      headerName: 'Total Quantity',
       type: 'number',
-      align: 'right',
+      headerAlign: 'left',
+      align: 'left',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
           {params.row.total_qty}
         </Typography>
       )
     },
     ,
     {
-      flex: 0.2,
-      minWidth: 20,
+      minWidth: 160,
       field: 'shipping_status',
       headerName: 'Status',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           <div style={{ display: 'flex', alignItems: 'center' }}>
-            {params.row.shipping_status === 'Fully Shipped' && (
+            {params?.row?.shipping_status === 'Fully Shipped' && (
               <Box sx={{ color: 'success.main', mr: 2 }}>
                 <Icon icon={'material-symbols:local-shipping'} style={{ color: 'secondary.main' }}></Icon>
               </Box>
             )}
-            {params.row.shipping_status === 'Partially Shipped' && (
+            {params?.row?.shipping_status === 'Partially Shipped' && (
               <>
                 <Box sx={{ color: 'warning.main', mr: 2 }}>
                   <Icon icon={'material-symbols:local-shipping'} style={{ color: 'primary.warning' }}></Icon>
@@ -332,43 +540,39 @@ const ReturnRequestList = () => {
                 </Box>
               </>
             )}
-            {params.row.dispute_status === 'Dispute Pending' && (
+            {params?.row?.dispute_status === 'Dispute Pending' && (
               <Box sx={{ color: 'error.main', mr: 2 }}>
                 <Icon icon='fluent:warning-20-filled' style={{ color: 'primary.error' }} />
               </Box>
             )}
-            {params.row.dispute_status === 'Dispute Resolved' && (
+            {params?.row?.dispute_status === 'Dispute Resolved' && (
               <Box sx={{ color: 'success.main', mr: 2 }}>
                 <Icon icon='fluent:warning-20-filled' style={{ color: 'primary.error' }} />
               </Box>
             )}
-            {params.row.delivery_status === 'Delivered' && (
+            {params?.row?.delivery_status === 'Delivered' && (
               <Box sx={{ color: 'success.main', mr: 2 }}>
                 <Icon icon='ion:checkmark-circle' style={{ color: 'primary.success' }} />
               </Box>
             )}
           </div>
-          {params.row.status === 'Cancelled' ? params.row.status : null}
+          {params?.row?.status === 'Cancelled' ? params?.row?.status : null}
         </Typography>
       )
     },
     {
-      flex: 0.3,
-      Width: 40,
+      minWidth: 220,
       field: 'created_by_user_name',
       headerName: 'Returned by ',
+      headerAlign: 'left',
       renderCell: params => (
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          {Utility.renderUserAvatar(params.row.user_created_profile_pic)}
-          <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-            <Typography variant='subtitle2' sx={{ color: 'text.primary' }}>
-              {params?.row?.created_by_user_name ? params?.row?.created_by_user_name : 'NA'}
-            </Typography>
-            <Typography variant='caption' sx={{ lineHeight: 1.6667 }}>
-              {Utility.formatDisplayDate(params.row.request_date)}
-            </Typography>
-          </Box>
-        </Box>
+        <>
+          {RenderUtility?.renderUserAvatarDetails(
+            params?.row?.user_created_profile_pic,
+            params?.row?.created_by_user_name,
+            params?.row?.created_at
+          )}
+        </>
       )
     }
   ]
@@ -386,110 +590,262 @@ const ReturnRequestList = () => {
     </div>
   )
 
+  const filterByDays = days => {
+    setSearchValue('')
+
+    if (days !== 'all') {
+      setTotal(0)
+      setPaginationModel({ page: 0, pageSize: 10 })
+      const currentDate = new Date()
+      const selectedDays = parseInt(days)
+      let startDate
+      let endDate
+
+      switch (selectedDays) {
+        case 3:
+          startDate = Utility.getPreviousDaysDate(currentDate, 3)
+          endDate = Utility.formattedPresentDate()
+          setFilterDates({ startDate, endDate })
+          break
+        case 7:
+          startDate = Utility.getPreviousDaysDate(currentDate, 7)
+          endDate = Utility.getPreviousDaysDate(currentDate, 3)
+          setFilterDates({ startDate, endDate })
+
+          break
+        case 15:
+          startDate = Utility.getPreviousDaysDate(currentDate, 15)
+          endDate = Utility.getPreviousDaysDate(currentDate, 7)
+          setFilterDates({ startDate, endDate })
+          break
+        case 16:
+          startDate = ''
+          endDate = Utility.getPreviousDaysDate(currentDate, 15)
+          setFilterDates({ startDate, endDate })
+          break
+        default:
+          startDate = Utility.getPreviousDaysDate(currentDate, selectedDays)
+          endDate = Utility.formattedPresentDate()
+          setFilterDates({ startDate, endDate })
+          break
+      }
+    } else {
+      // setFilterDates({ sta })
+      setFilterDates({ startDate: '', endDate: '' })
+      fetchTableData(sort, searchValue, sortColumn, status)
+    }
+  }
+
   const tableData = () => {
     return (
       <>
         {loader ? (
           <FallbackSpinner />
         ) : (
-          <>
-            <Card>
-              <CardHeader title='Return Request List' action={headerAction} />
-              {status === 'all' || status === 'completed' ? (
-                <Box sx={{ mr: 4, display: 'flex', justifyContent: 'flex-end' }}>
-                  <FormControlLabel
-                    control={<Switch defaultChecked={filterSwitch} onChange={handleSwitchChange} />}
-                    label='Completed'
-                    labelPlacement='end'
-                  />
-                </Box>
-              ) : null}
-              <DataGrid
-                sx={{
-                  '.MuiDataGrid-cell:focus': {
-                    outline: 'none'
-                  },
+          <Card>
+            <CardHeader
+              sx={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: { xs: 'start', sm: 'center', md: 'center' },
+                flexDirection: { xs: 'column', sm: 'row', md: 'row' },
+                mx: { xs: 2, sm: 0, md: 0 },
+                gap: { xs: 2, sm: 0, md: 0 }
+              }}
+              title={RenderUtility.pageTitle('Product Return Requests')}
+              action={headerAction}
+            />
+            <Box
+              sx={{
+                display: 'flex',
+                flexDirection: { xs: 'column', md: 'row' },
+                justifyContent: { xs: 'center', md: 'space-between' },
+                alignItems: 'center',
 
-                  '& .MuiDataGrid-row:hover': {
-                    cursor: 'pointer'
-                  }
+                margin:
+                  selectedPharmacy?.type === 'local' ? '1rem 1.375rem 0px 1.375rem' : '0rem 1.375rem 0px 1.375rem',
+                gap: { xs: 2, md: 3 }
+              }}
+            >
+              {/* <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} /> */}
+              <TextField
+                variant='outlined'
+                size='small'
+                placeholder='Search...'
+                value={searchValue}
+                onChange={e => handleSearch(e.target.value)}
+                fullWidth
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position='start'>
+                      <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
+                    </InputAdornment>
+                  )
                 }}
-                columnVisibilityModel={{
-                  id: false
+                sx={{
+                  borderRadius: '8px',
+                  width: { xs: '100%', md: '290px' }
                 }}
-                autoHeight
-                pagination
-                hideFooterSelectedRowCount
-                disableColumnSelector={true}
-                rows={indexedRows === undefined ? [] : indexedRows}
-                rowCount={total}
-                total
-                columns={columns}
-                sortingMode='server'
-                paginationMode='server'
-                pageSizeOptions={[7, 10, 25, 50]}
-                paginationModel={paginationModel}
-                onSortModelChange={handleSortModel}
-                slots={{ toolbar: ServerSideToolbar }}
-                onPaginationModelChange={setPaginationModel}
-                loading={loading}
-                disableColumnMenu
-                slotProps={{
-                  baseButton: {
-                    variant: 'outlined'
-                  },
-                  toolbar: {
-                    value: searchValue,
-                    clearSearch: () => handleSearch(''),
-                    onChange: event => handleSearch(event.target.value)
-                  }
-                }}
-                onRowClick={onRowClick}
               />
-            </Card>
-          </>
+
+              {/* Filters */}
+              <Grid
+                container
+                spacing={2}
+                sx={{
+                  display: 'flex',
+                  flexWrap: { xs: 'wrap', md: 'nowrap' },
+                  justifyContent: { xs: 'center', md: 'flex-end' },
+                  alignItems: 'center'
+                }}
+              >
+                {/* Filter by Stores */}
+                {selectedPharmacy.type === 'central' && (
+                  <Grid
+                    item
+                    xs={12}
+                    sx={{
+                      maxWidth: { xs: '100%', md: '250px' },
+                      width: '100%',
+                      height: '48px',
+                      mt: { xs: 2, md: 0 }
+                    }}
+                  >
+                    <FormControl fullWidth size='small'>
+                      <InputLabel>Filter by Stores</InputLabel>
+                      <Select
+                        value={filterByStoreId}
+                        label='Filter by Stores'
+                        onChange={e => {
+                          setTotal(0)
+                          setPaginationModel({ page: 0, pageSize: 10 })
+                          setFilterByStoreId(e.target.value)
+                          setSearchValue('')
+                        }}
+                      >
+                        <MenuItem value='all'>All</MenuItem>
+                        {stores.map(store => (
+                          <MenuItem key={store?.id} value={store?.id}>
+                            {store?.name}
+                          </MenuItem>
+                        ))}
+                      </Select>
+                    </FormControl>
+                  </Grid>
+                )}
+
+                {/* Filter by Days */}
+                <Grid
+                  item
+                  xs={12}
+                  md='auto'
+                  sx={{
+                    maxWidth: { xs: '100%', md: '250px' },
+                    mt: { xs: 2, md: 0 },
+                    height: '48px',
+                    width: '100%'
+                  }}
+                >
+                  <FormControl fullWidth size='small'>
+                    <InputLabel>Filter by days</InputLabel>
+                    <Select
+                      value={selectDays}
+                      label='Filter by days'
+                      onChange={e => {
+                        filterByDays(e.target.value)
+                        setSelectDays(e.target.value)
+                      }}
+                    >
+                      <MenuItem value='all'>All</MenuItem>
+                      <MenuItem value='3'>3 Days</MenuItem>
+                      <MenuItem value='7'>3 to 7 Days</MenuItem>
+                      <MenuItem value='15'>7 to 15 Days</MenuItem>
+                      <MenuItem value='16'>15 Days</MenuItem>
+                    </Select>
+                  </FormControl>
+                </Grid>
+
+                {/* Completed Switch */}
+                {(status === 'all' || status === 'completed') && (
+                  <Grid
+                    item
+                    xs={12}
+                    md='auto'
+                    sx={{
+                      height: '48px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: { xs: 'flex-start', md: 'flex-end' },
+                      width: { xs: '100%', md: 'auto' },
+                      ml: { xs: 2, sm: 3 }
+                    }}
+                  >
+                    <FormControlLabel
+                      control={<Switch defaultChecked={filterSwitch} onChange={handleSwitchChange} />}
+                      label='Completed'
+                      labelPlacement='end'
+                      sx={{ mr: '0px' }}
+                    />
+                  </Grid>
+                )}
+              </Grid>
+            </Box>
+
+            <Grid
+              sx={{
+                margin: '0px 1.375rem 0px 1.375rem'
+              }}
+            >
+              <CommonTable
+                onRowClick={onRowClick}
+                indexedRows={indexedRows}
+                total={total}
+                columns={columns}
+                paginationModel={paginationModel}
+                handleSortModel={handleSortModel}
+                setPaginationModel={setPaginationModel}
+                loading={loading}
+                searchValue={searchValue}
+              />
+            </Grid>
+          </Card>
         )}
       </>
     )
   }
 
   return (
-    <>
-      <Grid>
-        <TabContext value={status}>
-          <TabList onChange={handleChange} aria-label='simple tabs example'>
-            {selectedPharmacy?.type === 'local' ? (
-              <Tab
-                value='pending'
-                label={<TabBadge label='Pending' totalCount={status === 'pending' ? total : null} />}
-              />
-            ) : null}
+    <Grid>
+      <TabContext value={status}>
+        <TabList onChange={handleChange}>
+          {selectedPharmacy.type === 'local' && (
             <Tab
-              value='shipped'
-              label={<TabBadge label='Shipped' totalCount={status === 'shipped' ? total : null} />}
+              value='pending'
+              label={<TabBadge label='Pending' totalCount={status === 'pending' ? total : null} />}
             />
-            <Tab
-              value='disputed'
-              label={<TabBadge label='Disputes' totalCount={status === 'disputed' ? total : null} />}
-            />
-            <Tab
-              value='cancel'
-              label={<TabBadge label='Cancelled' totalCount={status === 'cancel' ? total : null} />}
-            />
-            <Tab
-              value={'all' ? 'all' : 'completed'}
-              label={<TabBadge label='All' totalCount={['all', 'completed'].includes(status) ? total : null} />}
-            />
-          </TabList>
-          <TabPanel value='pending'>{tableData()}</TabPanel>
-          <TabPanel value='shipped'>{tableData()}</TabPanel>
-          <TabPanel value='disputed'>{tableData()}</TabPanel>
-          <TabPanel value='cancel'>{tableData()}</TabPanel>
-          {status === 'all' ? <TabPanel value='all'>{tableData()}</TabPanel> : null}
-          {status === 'completed' ? <TabPanel value='completed'>{tableData()}</TabPanel> : null}
-        </TabContext>
-      </Grid>
-    </>
+          )}
+          <Tab value='shipped' label={<TabBadge label='Shipped' totalCount={status === 'shipped' ? total : null} />} />
+          <Tab
+            value='disputed'
+            label={<TabBadge label='Disputes' totalCount={status === 'disputed' ? total : null} />}
+          />
+          <Tab value='cancel' label={<TabBadge label='Cancelled' totalCount={status === 'cancel' ? total : null} />} />
+          <Tab
+            value={'all' ? 'all' : 'completed'}
+            label={<TabBadge label='All' totalCount={['all', 'completed'].includes(status) ? total : null} />}
+          />
+        </TabList>
+        {selectedPharmacy.type === 'local' && <TabPanel value='pending'>{tableData()}</TabPanel>}
+        <TabPanel value='shipped'>{tableData()}</TabPanel>
+        <TabPanel value='disputed'>{tableData()}</TabPanel>
+        <TabPanel value='cancel'>{tableData()}</TabPanel>
+        {status === 'all' ? (
+          <TabPanel value='all'>{tableData()}</TabPanel>
+        ) : (
+          <TabPanel value='completed'>{tableData()}</TabPanel>
+        )}
+      </TabContext>
+    </Grid>
   )
 }
 

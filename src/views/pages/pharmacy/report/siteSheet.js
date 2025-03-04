@@ -5,7 +5,8 @@ import { useTheme } from '@emotion/react'
 import { useState } from 'react'
 import { LoadingButton } from '@mui/lab'
 
-const SiteSheet = ({
+const 
+SiteSheet = ({
   openSiteDrawer,
   setOpenSiteDrawer,
   sites,
@@ -35,46 +36,7 @@ const SiteSheet = ({
 
   const filteredSites = sites.filter(site => site.site_name.toLowerCase().includes(searchValue.toLowerCase()))
 
-  // const handleConfirmSelection = () => {
-  //   console.log('Selected Sites >', tempSelectedSites)
-
-  //   // setSelectedSites(tempSelectedSites) // Update the main state
-  //   // handleSelectedSite(tempSelectedSites) // Apply filtering
-  //   // setOpenSiteDrawer(false) // Close the drawer
-  // }
-
-  // const handleConfirmSelection = () => {
-  //   // const totalSites = [...selectedSites]
-  //   const SelectedArr = [...tempSelectedSites]
-
-  //   const sortSelectedSelection = SelectedArr.sort((a, b) => a - b)
-  //   setSelectedSites(totalSlected)
-  //   console.log('SortSelected >>', totalSlected)
-  //   // setSelectedSites(tempSelectedSites) // Update parent state
-  //   // handleSelectedSite(tempSelectedSites) // Trigger data filtering
-  //   // setOpenSiteDrawer(false) // Close the drawer
-  // }
-
-  // const handleConfirmSelection = () => {
-  //   debugger
-  //   const totalSites = [...sites] // Assuming sites is an array of objects
-  //   const selectedArr = [...tempSelectedSites] // Array of selected site IDs
-
-  //   const sortedSelectedSites = selectedArr.sort((a, b) => a - b)
-
-  //   const sortedUnSelectedSites = totalSites
-  //     .filter(site => !sortedSelectedSites.includes(site.site_id))
-  //     .sort((a, b) => a.site_name.localeCompare(b.site_name))
-
-  //   setSelectedSites([...sortedUnSelectedSites.map(site => site.site_id), ...sortedSelectedSites])
-
-  //   console.log('Sorted Sites:', [...sortedUnSelectedSites.map(site => site.site_id), ...sortedSelectedSites])
-
-  //   handleSelectedSite(sortedSelectedSites)
-
-  //   setOpenSiteDrawer(false)
-  // }
-
+  
   const handleConfirmSelection = () => {
     debugger
     const totalSites = [...sites] // Assuming sites is an array of objects
@@ -108,88 +70,7 @@ const SiteSheet = ({
   const theme = useTheme()
 
   return (
-    // <Drawer
-    //   anchor='right'
-    //   open={openSiteDrawer}
-    //   ModalProps={{ keepMounted: true }}
-    //   sx={{
-    //     '& .MuiDrawer-paper': { width: ['100%', '562px'] },
-    //     position: 'relative',
-    //     display: 'flex',
-    //     flexDirection: 'column',
-    //     gap: '24px'
-    //   }}
-    // >
-    //   <Box
-    //     sx={{
-    //       bgcolor: theme => theme.palette.customColors.lightBg,
-    //       width: '100%',
-    //       height: '100%',
-    //       p: 3
-    //     }}
-    //   >
-    //     {/* Header */}
-    //     <Box
-    //       className='sidebar-header'
-    //       sx={{
-    //         display: 'flex',
-    //         justifyContent: 'space-between',
-    //         alignItems: 'center',
-    //         mb: 2
-    //       }}
-    //     >
-    //       <Typography variant='h6'>
-    //         Sites - {selectedSites.length}/{sites.length}
-    //       </Typography>
-    //       <IconButton size='small' onClick={() => setOpenDrawer(false)}>
-    //         <Icon icon='mdi:close' fontSize={20} />
-    //       </IconButton>
-    //     </Box>
-
-    //     {/* Search Field */}
-    //     <TextField
-    //       fullWidth
-    //       placeholder='Search'
-    //       value={searchValue}
-    //       onChange={e => setSearchValue(e.target.value)}
-    //       sx={{ mb: 2 }}
-    //     />
-
-    //     {/* Select All */}
-    //     <FormControlLabel
-    //       control={
-    //         <Checkbox
-    //           checked={selectedSites.length === sites.length}
-    //           onChange={handleSelectAll}
-    //           indeterminate={selectedSites.length > 0 && selectedSites.length < sites.length}
-    //         />
-    //       }
-    //       label='Select All'
-    //       sx={{ mb: 2 }}
-    //     />
-
-    //     {/* Site List */}
-    //     <Box sx={{ maxHeight: '60vh', overflowY: 'auto' }}>
-    //       {filteredSites.map(site => (
-    //         <FormControlLabel
-    //           key={site.site_id}
-    //           control={
-    //             <Checkbox
-    //               checked={selectedSites.includes(site.site_id)}
-    //               onChange={() => handleSiteToggle(site.site_id)}
-    //             />
-    //           }
-    //           label={site.site_name}
-    //         />
-    //       ))}
-    //     </Box>
-
-    //     {/* Confirm Button */}
-    //     <Button fullWidth variant='contained' color='primary' onClick={handleConfirm} sx={{ mt: 3 }}>
-    //       Confirm
-    //     </Button>
-    //   </Box>
-    // </Drawer>
+  
     <Drawer
       anchor='right'
       open={openSiteDrawer}

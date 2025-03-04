@@ -70,6 +70,7 @@ import { AddButton, SwitchButton } from 'src/components/Buttons'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import GenericNamesList from '../../masters/generic'
 import AddGenericName from 'src/views/pages/pharmacy/medicine/generic/addGenericName'
+import { AuthContext } from 'src/context/AuthContext'
 
 const defaultValues = {
   medicine_type: 'allopathy',
@@ -135,12 +136,19 @@ const schema = yup.object().shape({
   //   is: value => Boolean(value),
   //   then: yup.boolean().oneOf([true], 'Prescription is required if controlled substance is provided')
   // }),
-  prescription_required: yup.boolean().when('controlled_substance', (controlled_substance, schema) => {
-    return controlled_substance == '1'
-      ? schema.oneOf([true], 'Prescription is required if product is controlled substance')
-      : schema
-  }),
-
+  // prescription_required: yup.boolean().when('controlled_substance', (controlled_substance, schema) => {
+  //   return controlled_substance[0] == '1'
+  //     ? schema.oneOf([true], 'Prescription is required if product is controlled substance')
+  //     : schema
+  // }),
+  prescription_required: yup
+    .string()
+    .transform(value => (value === true || value === '1' || value === 1 ? '1' : '0'))
+    .when('controlled_substance', (controlled_substance, schema) => {
+      return controlled_substance[0] === '1'
+        ? schema.oneOf(['1'], 'Prescription is required if product is a controlled substance')
+        : schema
+    }),
   part_out_of_stock: yup.string().required('part of out of stock is required'),
 
   side_effects: yup.string().nullable(),
@@ -172,6 +180,9 @@ const AddMedicine = () => {
   })
 
   const { selectedPharmacy } = usePharmacyContext()
+  const authData = useContext(AuthContext)
+
+  const pharmacyRole = authData?.userData?.roles?.settings?.add_pharmacy
 
   const router = useRouter()
   const { id, action } = router.query
@@ -263,6 +274,7 @@ const AddMedicine = () => {
   }
 
   const getPackagesList = async ({ key, page, limit }) => {
+    console.log("key >>>" ,key )
     try {
       const params = {
         q: key,
@@ -277,6 +289,8 @@ const AddMedicine = () => {
       console.log(e)
     }
   }
+
+  console.log("Packeages ??",packages);
 
   const getProductForm = async ({ key, page, limit }) => {
     try {
@@ -449,7 +463,7 @@ const AddMedicine = () => {
           ...response.data,
           medicine_type: response.data.stock_type,
           medicine_name: response.data.name,
-          prescription_required: response?.data?.controlled_substance === '1' ? '1' : '0',
+          prescription_required: response?.data?.prescription_required,
           generic_name_id: response?.data?.generic_id,
           salts:
             salts !== null && salts.length > 0
@@ -719,21 +733,28 @@ const AddMedicine = () => {
     try {
       const response = await updateMedicineById(payload, id)
       if (response?.success) {
-        setAlertDefaults({ status: true, message: response?.message, severity: 'success' })
+        // setAlertDefaults({ status: true, message: response?.message, severity: 'success' })
+        toast.success(response?.message)
 
         //setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message, severity: 'success' })
         setSubmitLoader(true)
         reset(defaultValues)
-        Router.push('/pharmacy/medicine/product-list')
+
+        Router.replace(`/pharmacy/medicine/${id}`)
+
+        // Router.back()
       } else {
         setSubmitLoader(false)
 
         // setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message, severity: 'error' })
-        setAlertDefaults({ status: true, message: response?.message, severity: 'error' })
+        // setAlertDefaults({ status: true, message: response?.message, severity: 'error' })
+        toast.error(response?.message)
       }
     } catch (e) {
       setSubmitLoader(false)
-      setAlertDefaults({ status: true, message: 'Error', severity: 'error' })
+      toast.error('error')
+
+      // setAlertDefaults({ status: true, message: 'Error', severity: 'error' })
 
       // setOpenSnackbar({ ...openSnackbar, open: true, message: 'Error', severity: 'error' })
     }
@@ -744,7 +765,8 @@ const AddMedicine = () => {
       const response = await addMedicine(payload)
 
       if (response?.success) {
-        setAlertDefaults({ status: true, message: response?.message, severity: 'success' })
+        // setAlertDefaults({ status: true, message: response?.message, severity: 'success' })
+        toast.success(response?.message)
 
         // setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message, severity: 'success' })
         setSubmitLoader(true)
@@ -762,7 +784,10 @@ const AddMedicine = () => {
           setDefaultSalts([])
           setShouldClearFields(false)
         } else {
-          Router.push('/pharmacy/medicine/product-list')
+          debugger
+
+          // Router.push('/pharmacy/medicine/product-list')
+          Router.replace(`/pharmacy/medicine/${response?.data?.stock_item_id}`)
         }
         setSubmitLoader(false)
       } else {
@@ -770,13 +795,17 @@ const AddMedicine = () => {
 
         // setOpenSnackbar({ ...openSnackbar, open: false, message: response?.message, severity: 'error' })
         shouldClearFieldsRef.current = false
-        setAlertDefaults({ status: true, message: response?.message, severity: 'error' })
+
+        // setAlertDefaults({ status: true, message: response?.message, severity: 'error' })
+        toast.error(response?.message)
       }
     } catch (e) {
       setSubmitLoader(false)
 
       // setOpenSnackbar({ ...openSnackbar, open: true, message: 'Error', severity: 'error' })
-      setAlertDefaults({ status: true, message: 'Error', severity: 'error' })
+      // setAlertDefaults({ status: true, message: 'Error', severity: 'error' })
+      toast.error('error')
+
       shouldClearFieldsRef.current = false
     }
   }
@@ -995,7 +1024,8 @@ const AddMedicine = () => {
                         <Icon
                           style={{ cursor: 'pointer' }}
                           onClick={() => {
-                            Router.push('/pharmacy/medicine/product-list')
+                            //
+                            Router.back()
                           }}
                           icon='ep:back'
                         />
@@ -1056,6 +1086,7 @@ const AddMedicine = () => {
                                     <MenuItem value='allopathy'>Allopathy</MenuItem>
                                     <MenuItem value='ayurveda'>Ayurveda</MenuItem>
                                     <MenuItem value='unani'>Unani</MenuItem>
+                                    <MenuItem value='homeopathy'>Homeopathy</MenuItem>
                                     <MenuItem value='non_medical'>Non Medical</MenuItem>
                                   </Select>
                                 )}
@@ -1095,143 +1126,135 @@ const AddMedicine = () => {
                           </Grid>
 
                           {medicineType !== 'non_medical' && (
-                            <>
-                              <Grid item xs={12} sm={6}>
-                                <FormControl fullWidth>
-                                  <Controller
-                                    name='generic_name_id'
-                                    control={control}
-                                    rules={{ required: true }}
-                                    render={({ field: { value, onChange } }) => (
-                                      <Autocomplete
-                                        disablePortal
-                                        id='generic_name_id'
-                                        value={defaultGenericName}
-                                        options={genericNameList}
-                                        getOptionLabel={option => option.name}
-                                        isOptionEqualToValue={(option, value) => option?.id === value?.id}
-                                        onChange={(e, val) => {
-                                          // setDefaultManufacturer(val)
-                                          if (val === null) {
-                                            setDefaultGenericName(val)
+                            <Grid item xs={12} sm={6}>
+                              <FormControl fullWidth>
+                                <Controller
+                                  name='generic_name_id'
+                                  control={control}
+                                  rules={{ required: true }}
+                                  render={({ field: { value, onChange } }) => (
+                                    <Autocomplete
+                                      disablePortal
+                                      id='generic_name_id'
+                                      value={defaultGenericName}
+                                      options={genericNameList}
+                                      getOptionLabel={option => option.name}
+                                      isOptionEqualToValue={(option, value) => option?.id === value?.id}
+                                      onChange={(e, val) => {
+                                        // setDefaultManufacturer(val)
+                                        if (val === null) {
+                                          setDefaultGenericName(val)
 
-                                            return onChange('')
-                                          } else {
-                                            setDefaultGenericName(val)
+                                          return onChange('')
+                                        } else {
+                                          setDefaultGenericName(val)
 
-                                            return onChange(val.id)
-                                          }
-                                        }}
-                                        onKeyUp={e => {
-                                          genericSearch(e.target.value)
+                                          return onChange(val.id)
+                                        }
+                                      }}
+                                      onKeyUp={e => {
+                                        genericSearch(e.target.value)
 
-                                          // getManufacturersList({ key: e.target.value })
-                                        }}
-                                        renderInput={params => (
-                                          <TextField
-                                            {...params}
-                                            label='Generic Name*'
-                                            placeholder='Search & Select'
-                                            error={Boolean(errors.generic_name_id)}
-                                          />
-                                        )}
-                                      />
-                                    )}
-                                  />
-                                  {errors?.generic_name_id && (
-                                    <FormHelperText sx={{ color: 'error.main' }}>
-                                      {errors?.generic_name_id?.message}
-                                    </FormHelperText>
+                                        // getManufacturersList({ key: e.target.value })
+                                      }}
+                                      renderInput={params => (
+                                        <TextField
+                                          {...params}
+                                          label='Generic Name*'
+                                          placeholder='Search & Select'
+                                          error={Boolean(errors.generic_name_id)}
+                                        />
+                                      )}
+                                    />
                                   )}
-                                </FormControl>
-                              </Grid>
-                              <Grid item xs={12} sm={6} justifyContent='flex-end' alignSelf='center'>
-                                <Box sx={{ display: 'flex', alignItems: 'right', textAlign: 'right' }}>
-                                  <AddButton
-                                    title='Add Generic Name'
-                                    action={() => {
-                                      addNewGenericNameSidebarOpen()
-                                    }}
-                                  />
-                                </Box>
-                              </Grid>
-                            </>
+                                />
+                                {errors?.generic_name_id && (
+                                  <FormHelperText sx={{ color: 'error.main' }}>
+                                    {errors?.generic_name_id?.message}
+                                  </FormHelperText>
+                                )}
+                              </FormControl>
+                            </Grid>
+                          )}
+                          {pharmacyRole && medicineType !== 'non_medical' && (
+                            <Grid item xs={12} sm={6} justifyContent='flex-end' alignSelf='center'>
+                              <Box sx={{ display: 'flex', alignItems: 'right', textAlign: 'right' }}>
+                                <AddButton
+                                  title='Add Generic Name'
+                                  action={() => {
+                                    addNewGenericNameSidebarOpen()
+                                  }}
+                                />
+                              </Box>
+                            </Grid>
                           )}
 
-                          <Grid item xs={12} sm={12}>
-                            <Grid container spacing={5}>
-                              <Grid item xs={12} sm={6}>
-                                <FormControl fullWidth>
-                                  <Controller
-                                    name='manufacturer'
-                                    control={control}
-                                    rules={{ required: true }}
-                                    render={({ field: { value, onChange } }) => (
-                                      <Autocomplete
-                                        disablePortal
-                                        id='manufacturer'
-                                        value={defaultManufacturer}
-                                        options={manufacturer}
-                                        getOptionLabel={option => option.label}
-                                        isOptionEqualToValue={(option, value) => option?.id === value?.id}
-                                        onChange={(e, val) => {
-                                          // setDefaultManufacturer(val)
+                          {/* <Grid item xs={12} sm={12}> */}
+                          {/* <Grid container spacing={5}> */}
+                          <Grid item xs={12} sm={6}>
+                            <FormControl fullWidth>
+                              <Controller
+                                name='manufacturer'
+                                control={control}
+                                rules={{ required: true }}
+                                render={({ field: { value, onChange } }) => (
+                                  <Autocomplete
+                                    disablePortal
+                                    id='manufacturer'
+                                    value={defaultManufacturer}
+                                    options={manufacturer}
+                                    getOptionLabel={option => option.label}
+                                    isOptionEqualToValue={(option, value) => option?.id === value?.id}
+                                    onChange={(e, val) => {
+                                      // setDefaultManufacturer(val)
 
-                                          if (val === null) {
-                                            setDefaultManufacturer(val)
+                                      if (val === null) {
+                                        setDefaultManufacturer(val)
 
-                                            return onChange('')
-                                          } else {
-                                            setDefaultManufacturer(val)
+                                        return onChange('')
+                                      } else {
+                                        setDefaultManufacturer(val)
 
-                                            return onChange(val.id)
-                                          }
-                                        }}
-                                        onKeyUp={e => {
-                                          manufacturerSearch(e.target.value)
+                                        return onChange(val.id)
+                                      }
+                                    }}
+                                    onKeyUp={e => {
+                                      manufacturerSearch(e.target.value)
 
-                                          // getManufacturersList({ key: e.target.value })
-                                        }}
-                                        renderInput={params => (
-                                          <TextField
-                                            {...params}
-                                            label='Manufacturer*'
-                                            placeholder='Search & Select'
-                                            error={Boolean(errors.manufacturer)}
-                                          />
-                                        )}
+                                      // getManufacturersList({ key: e.target.value })
+                                    }}
+                                    renderInput={params => (
+                                      <TextField
+                                        {...params}
+                                        label='Manufacturer*'
+                                        placeholder='Search & Select'
+                                        error={Boolean(errors.manufacturer)}
                                       />
                                     )}
                                   />
-                                  {errors?.manufacturer && (
-                                    <FormHelperText sx={{ color: 'error.main' }}>
-                                      {errors?.manufacturer?.message}
-                                    </FormHelperText>
-                                  )}
-                                </FormControl>
-                              </Grid>
-                              <Grid item xs={12} sm={6} justifyContent='flex-end' alignSelf='center'>
-                                <Box sx={{ display: 'flex', alignItems: 'right', textAlign: 'right' }}>
-                                  <AddButton
-                                    title='Add Manufacturer'
-                                    action={() => {
-                                      addNewManufacturer()
-                                    }}
-                                  />
-                                  {/* <IconButton
-                                aria-label='capture screenshot'
-                                color='primary'
-                                onClick={() => addNewManufacturer()}
-                              >
-                                <Icon icon='mdi:plus' />
-                              </IconButton> */}
-                                </Box>
-                                {/* <Button variant='outlined' onClick={() => addNewManufacturer()}>
-                              +
-                            </Button> */}
-                              </Grid>
-                            </Grid>
+                                )}
+                              />
+                              {errors?.manufacturer && (
+                                <FormHelperText sx={{ color: 'error.main' }}>
+                                  {errors?.manufacturer?.message}
+                                </FormHelperText>
+                              )}
+                            </FormControl>
                           </Grid>
+                          {pharmacyRole && (
+                            <Grid item xs={12} sm={6} justifyContent='flex-end' alignSelf='center'>
+                              <Box sx={{ display: 'flex', alignItems: 'right', textAlign: 'right' }}>
+                                <AddButton
+                                  title='Add Manufacturer'
+                                  action={() => {
+                                    addNewManufacturer()
+                                  }}
+                                />
+                              </Box>
+                            </Grid>
+                          )}
+                          {/* </Grid> */}
+                          {/* </Grid> */}
 
                           {/* Packages */}
 
@@ -1412,15 +1435,17 @@ const AddMedicine = () => {
                                 <Grid container item xs={12} sm={12} alignItems='center' spacing={2}>
                                   <Grid item xs={6}>
                                     <span style={{ marginRight: '10px' }}>Salt Composition</span>
-                                    <span>
-                                      <IconButton
-                                        aria-label='capture screenshot'
-                                        color='primary'
-                                        onClick={() => addNewSalt()}
-                                      >
-                                        <Icon icon='mdi:plus' />
-                                      </IconButton>
-                                    </span>
+                                    {pharmacyRole && (
+                                      <span>
+                                        <IconButton
+                                          aria-label='capture screenshot'
+                                          color='primary'
+                                          onClick={() => addNewSalt()}
+                                        >
+                                          <Icon icon='mdi:plus' />
+                                        </IconButton>
+                                      </span>
+                                    )}
                                   </Grid>
                                 </Grid>
                                 {fields.map((field, index) => (

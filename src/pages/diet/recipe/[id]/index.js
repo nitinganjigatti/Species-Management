@@ -100,7 +100,7 @@ const RecipeDetail = () => {
   const getRecipeDetailval = async id => {
     try {
       const response = await getRecipeDetail(id)
-      console.log(response, 'response')
+
       if (response.data.success === true && response.data.data !== null) {
         setIngredientsDetailsval(response.data.data)
         setLoader(false)
@@ -132,12 +132,17 @@ const RecipeDetail = () => {
     try {
       const activePayload = isActive == 0 ? 1 : 0
       setDeleteDialogBox(false)
-      const response = await updateRecipeStatus(IngredientsDetailsval?.id, { status: activePayload })
-      console.log(response, 'response')
+
+      const response = await updateRecipeStatus(IngredientsDetailsval?.id, {
+        status: activePayload,
+        meal_type: 'recipe'
+      })
+
       if (response.success === true) {
         //Router.push(`/diet/ingredient`)
         getRecipeDetailval(id)
         setstatusDialog(false)
+
         return Toaster({ type: 'success', message: response?.message })
       } else {
         return Toaster({ type: 'error', message: response?.message })
@@ -150,15 +155,13 @@ const RecipeDetail = () => {
   const confirmDeleteAction = async () => {
     try {
       setDeleteDialogBox(false)
-      const response = await deleteRecipe(id)
+      const response = await deleteRecipe(id, { meal_type: 'recipe' })
 
-      // console.log(response, 'response')
       if (response.success === true) {
         Router.push(`/diet/recipe`)
-        //Toaster({ type: 'success', message: `Recipe ${'REP' + id} has been successfully deleted` })
-        Toaster({ type: 'success', message: `Recipe Deleted Successfully` })
+        Toaster({ type: 'success', message: response.message })
       } else {
-        Toaster({ type: 'error', message: 'something went wrong' })
+        Toaster({ type: 'error', message: response.message })
       }
     } catch (error) {}
   }
@@ -183,7 +186,7 @@ const RecipeDetail = () => {
               {/* <Link underline='hover' color='inherit' href='/diet/recipe/'>
                 Recipe 
               </Link> */}
-              <Typography color='inherit' sx={{ cursor: 'pointer' }} onClick={() => Router.push('/diet/recipe/')}>
+              <Typography color='inherit' sx={{ cursor: 'pointer' }} onClick={() => router.back()}>
                 Recipe
               </Typography>
               <Typography color='text.primary'>Recipe Details</Typography>
@@ -271,7 +274,7 @@ const RecipeDetail = () => {
                             <Tab
                               style={{ borderTopLeftRadius: 0, borderBottomLeftRadius: 0 }}
                               value='2'
-                              label={'USED IN DIET' + ' -' + ' ' + dietListTotal}
+                              label={`USED IN DIET${dietListTotal > 0 ? ` - ${dietListTotal}` : ''}`}
                             />
                           </TabList>
                           <TabPanel value='1'>
@@ -281,6 +284,7 @@ const RecipeDetail = () => {
                             <DietListTabview
                               IngredientName={IngredientsDetailsval.ingredient_name}
                               onTotalChange={setDietListTotal}
+                              type='recipe'
                             />
                           </TabPanel>
                         </TabContext>
@@ -322,6 +326,7 @@ const RecipeDetail = () => {
             setIsOpen={setIsOpen}
             recipename={IngredientsDetailsval.recipe_name}
             recipeid={id}
+            type='recipe'
           />
           <ConfirmationDialog
             icon={'mdi:delete'}

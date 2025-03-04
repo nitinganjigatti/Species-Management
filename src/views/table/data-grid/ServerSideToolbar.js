@@ -20,7 +20,7 @@ const ServerSideToolbar = props => {
     <Box
       sx={
         props.tableValue === 'recipe-List'
-          ? { position: 'relative', right: '0px', bottom: '30px', width: '32%' }
+          ? { position: 'relative', right: '0px', bottom: '30px', width: '40%' }
           : {
               gap: 2,
               display: 'flex',
@@ -40,7 +40,7 @@ const ServerSideToolbar = props => {
         inputRef={inputRef1}
         onFocus={handleFocus}
         onChange={props.onChange}
-        placeholder='Search…'
+        placeholder='Search...'
         InputProps={{
           startAdornment: (
             <Box sx={{ mr: 2, display: 'flex' }}>

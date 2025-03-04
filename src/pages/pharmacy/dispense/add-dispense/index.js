@@ -203,7 +203,7 @@ function AddDispense() {
           setSubmitLoading(false)
           setProductArray([])
           setProductArrayUi([])
-          Router.push({
+          Router.replace({
             pathname: `/pharmacy/dispense/${res?.data}`
 
             // query: { id: res?.data }
@@ -287,7 +287,8 @@ function AddDispense() {
                   <Icon
                     style={{ cursor: 'pointer' }}
                     onClick={() => {
-                      Router.push('/pharmacy/dispense')
+                      // Router.push('/pharmacy/dispense')
+                      Router.back()
                     }}
                     icon='ep:back'
                   />

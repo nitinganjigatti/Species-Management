@@ -4,12 +4,9 @@ import TextField from '@mui/material/TextField'
 import IconButton from '@mui/material/IconButton'
 import Typography from '@mui/material/Typography'
 import Icon from 'src/@core/components/icon'
-import Divider from '@mui/material/Divider'
-import Avatar from 'src/@core/components/mui/avatar'
-import Button from '@mui/material/Button'
 import { margin, padding } from '@mui/system'
 import { useState, useEffect, useCallback } from 'react'
-import RecipeCard from 'src/views/pages/diet/test/recipeCard'
+import RecipeCard from 'src/views/pages/diet/add_recipe_combo-List/recipeCard'
 import { getRecipeList } from 'src/lib/api/diet/recipe'
 import { CircularProgress, debounce } from '@mui/material'
 
@@ -24,7 +21,9 @@ const RecipeList = props => {
     onChange,
     allRecipeSelectedValues,
     setAllRecipeSelectedValues,
-    formData
+    formData,
+    fromrow,
+    recipeid
   } = props
 
   const [rows, setRows] = useState([])
@@ -39,7 +38,7 @@ const RecipeList = props => {
   useEffect(() => {
     const getRecipeListData = async () => {
       setReachedEnd(true)
-      const params = { page: ingredientPage, q: searchValue, sort, status: 1 }
+      const params = { page: ingredientPage, q: searchValue, sort, status: 1, meal_type: 'recipe' }
       const res = await getRecipeList({ params })
 
       if (res?.data?.result?.length > 0) {
@@ -62,20 +61,19 @@ const RecipeList = props => {
     getRecipeListData()
   }, [ingredientPage, searchValue, sort])
 
-  function loadServerRows(currentPage, data) {
-    return data
-  }
-
   const handleScroll = async e => {
     const container = e.target
-
+    const threshold = 20
     // Check if user has reached the bottom and more data is available
     if (totalCount > ingredientList?.length && !reachedEnd) {
-      if (container.scrollHeight - Math.round(container.scrollTop) === container.clientHeight) {
+      const isNearBottom =
+        container.scrollHeight - Math.round(container.scrollTop) <= container.clientHeight + threshold
+
+      if (isNearBottom) {
         setReachedEnd(true) // Prevent multiple API calls
 
         try {
-          const params = { page: ingredientPage + 1, q: searchValue, sort, status: 1 }
+          const params = { page: ingredientPage + 1, q: searchValue, sort, status: 1, meal_type: 'recipe' }
           const res = await getRecipeList({ params })
 
           if (res?.data?.result?.length > 0) {
@@ -105,7 +103,7 @@ const RecipeList = props => {
     debounce(async search => {
       if (search.trim()) {
         try {
-          const params = { page: 1, q: search, sort, status: 1 }
+          const params = { page: 1, q: search, sort, status: 1, meal_type: 'recipe' }
           const res = await getRecipeList({ params })
           if (res?.data?.result.length > 0) {
             // Append new results while ensuring unique IDs
@@ -138,27 +136,25 @@ const RecipeList = props => {
         position: 'relative',
         display: 'flex',
         flexDirection: 'column',
-        bgcolor: '#dbe0de',
+        bgcolor: '#EFF5F2',
         gap: '24px'
       }}
     >
-      <Box sx={{ position: 'fixed', top: 0, bgcolor: '#dbe0de', zIndex: 10, width: '562px' }}>
+      <Box sx={{ position: 'fixed', top: 0, bgcolor: '#EFF5F2', zIndex: 10, width: '562px' }}>
         <Box
           className='sidebar-header'
           sx={{
             display: 'flex',
             justifyContent: 'space-between',
             p: theme => theme.spacing(3, 3.255, 3, 5.255),
-            px: '24px'
+            px: '16px'
           }}
         >
           <Box sx={{ gap: 2, display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
-            <Icon
-              style={{ marginLeft: -8 }}
-              icon='material-symbols-light:add-notes-outline-rounded'
-              fontSize={'32px'}
-            />
-            <Typography variant='h6'>Add Recipes</Typography>
+            <img src='/icons/Activity.svg' alt='Grocery Icon' width='35px' />
+            <Typography variant='h6' sx={{ color: '#44544A' }}>
+              Add Recipes
+            </Typography>
           </Box>
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
             <IconButton
@@ -167,9 +163,9 @@ const RecipeList = props => {
                 handleSidebarClose()
                 setSearchValue('')
               }}
-              sx={{ color: 'text.primary' }}
+              sx={{ color: '#1F515B' }}
             >
-              <Icon icon='mdi:close' fontSize={20} />
+              <Icon icon='mdi:close' fontSize={25} />
             </IconButton>
           </Box>
         </Box>
@@ -178,9 +174,7 @@ const RecipeList = props => {
             alignItems: 'center',
 
             p: 2,
-            px: '24px'
-
-            // width: '100%'
+            px: '16px'
           }}
         >
           <Box>
@@ -188,12 +182,20 @@ const RecipeList = props => {
               value={searchValue}
               fullWidth
               InputProps={{
-                startAdornment: <Icon style={{ marginRight: 10 }} icon={'ion:search-outline'} />
+                startAdornment: <Icon style={{ marginRight: 10, color: '#44544A' }} icon={'ion:search-outline'} />
               }}
-              placeholder='Search'
+              placeholder='Search recipe'
               onKeyUp={e => searchData(e.target.value)}
               onChange={e => {
                 setSearchValue(e.target.value)
+              }}
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  borderColor: '#839D8D',
+                  '& fieldset': {
+                    borderColor: '#839D8D'
+                  }
+                }
               }}
             />
           </Box>
@@ -201,7 +203,11 @@ const RecipeList = props => {
       </Box>
 
       {/* on scroll */}
-      <Box sx={{ marginTop: 30, height: '70%', overflowY: 'auto', bgcolor: '#dbe0de', p: 4 }} onScroll={handleScroll}>
+      <Box
+        className=''
+        sx={{ marginTop: 30, height: '70%', overflowY: 'auto', bgcolor: '#EFF5F2', p: 4 }}
+        onScroll={handleScroll}
+      >
         <RecipeCard
           rows={ingredientList}
           setSelectedCardRecipe={setSelectedCardRecipe}
@@ -215,6 +221,8 @@ const RecipeList = props => {
           addEventSidebarOpen={addEventSidebarOpen}
           searchValue={searchValue}
           setSearchValue={setSearchValue}
+          fromrow={fromrow}
+          recipeid={recipeid}
         />
 
         {/* End Card Section */}
