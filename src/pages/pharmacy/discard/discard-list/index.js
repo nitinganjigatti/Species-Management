@@ -313,11 +313,16 @@ const ListOfDiscardProducts = () => {
         }}
         title='Import Inventory'
       /> */}
-      <AddButtonContained
-        title='Return to Supplier'
-        action={() => Router.push({ pathname: '/pharmacy/discard/add-discard' })}
-        fullWidth='fullWidth'
-      />
+      {selectedPharmacy.type === 'central' &&
+      (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') ? (
+        <AddButtonContained
+          title='Return to Supplier'
+          action={() => Router.push({ pathname: '/pharmacy/discard/add-discard' })}
+          fullWidth='fullWidth'
+        />
+      ) : (
+        <></>
+      )}
     </Grid>
   )
 

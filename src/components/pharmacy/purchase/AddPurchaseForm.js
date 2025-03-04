@@ -619,7 +619,8 @@ const AddPurchaseForm = () => {
     //   parseFloat(roundup_select == '-' ? roundup_select + roundUpValue : roundUpValue)
     postData.net_amount = grandTotalAmount
     // added grand total amount
-
+    console.log('postData', postData)
+    debugger
     try {
       if (id) {
         postData.antz_pharmacy_purchase_id = id
