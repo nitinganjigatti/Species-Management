@@ -1246,7 +1246,7 @@ const RequestDetails = () => {
               <Divider />
             </Box>
             <Box sx={{ mb: '20px', px: 4 }}>
-              {permissions?.perform_tests || permissions?.allow_full_access || permissions?.transfer_tests ? (
+              {permissions?.perform_tests || permissions?.allow_full_access ? (
                 <UploadReports
                   animalID={animanlId}
                   labTestId={LabRequestId}
