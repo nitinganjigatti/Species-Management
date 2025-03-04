@@ -461,8 +461,8 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
                                 searchSpecies(e.target.value)
                               }}
                               {...params}
-                              label='Select Species *'
-                              placeholder='Search & Select'
+                              label='Species / Taxonomy *'
+                              placeholder='Select Species / Taxonomy'
                               error={Boolean(errors.species)}
                               sx={{
                                 '& .MuiInputLabel-root': {
