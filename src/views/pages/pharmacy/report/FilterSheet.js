@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react'
-import { Box, Drawer, Checkbox, Typography, TextField, IconButton, Grid, Divider } from '@mui/material'
+import { Box, Drawer, Checkbox, Typography, TextField, IconButton, Grid, Divider, CircularProgress } from '@mui/material'
 import Icon from 'src/@core/components/icon'
 import { useTheme } from '@emotion/react'
 import { LoadingButton } from '@mui/lab'
@@ -15,6 +15,7 @@ const FilterSheet = ({
   selectedSites,
   handleSelection,
   activeTab,
+  isLoader,
   getTotalSelectedFilters
 }) => {
   const theme = useTheme()
@@ -252,24 +253,35 @@ const FilterSheet = ({
           <Divider sx={{ m: 3 }} />
           <Box sx={{ ml: 2, height: '750px', overflowY: 'auto' }}>
             <Box sx={{ ml: 2, overflowX: 'hidden' }}>
-              {filteredOptions.map((option, index) => (
-                <Box key={index} sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                  <Checkbox
-                    checked={(selectedOptions[activeCategory] || []).includes(
-                      activeCategory === 'Site' ? option.site_id : option.taxonomy_id
-                    )}
-                    onChange={() =>
-                      handleToggleOption(
-                        activeCategory === 'Site' ? option.site_id : option.taxonomy_id,
-                        activeCategory
-                      )
-                    }
-                  />
-                  <Typography sx={{ fontSize: '14px', color: theme.palette.customColors.OnSurfaceVariant }}>
-                    {activeCategory === 'Site' ? option.site_name : option.default_common_name}
-                  </Typography>
+              {activeCategory === 'Site' ? (
+                filteredOptions.map((option, index) => (
+                  <Box key={index} sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                    <Checkbox
+                      checked={(selectedOptions[activeCategory] || []).includes(option.site_id)}
+                      onChange={() => handleToggleOption(option.site_id, activeCategory)}
+                    />
+                    <Typography sx={{ fontSize: '14px', color: theme.palette.customColors.OnSurfaceVariant }}>
+                      {option.site_name}
+                    </Typography>
+                  </Box>
+                ))
+              ) : isLoader ? (
+                <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100px' }}>
+                  <CircularProgress />
                 </Box>
-              ))}
+              ) : (
+                filteredOptions.map((option, index) => (
+                  <Box key={index} sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                    <Checkbox
+                      checked={(selectedOptions[activeCategory] || []).includes(option.taxonomy_id)}
+                      onChange={() => handleToggleOption(option.taxonomy_id, activeCategory)}
+                    />
+                    <Typography sx={{ fontSize: '14px', color: theme.palette.customColors.OnSurfaceVariant }}>
+                      {option.default_common_name}
+                    </Typography>
+                  </Box>
+                ))
+              )}
             </Box>
           </Box>
         </Box>

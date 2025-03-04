@@ -223,7 +223,9 @@ const Animal = () => {
       flex: 0.7,
       headerAlign: 'left',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary', ml: 3 }}>
+        <Typography
+          sx={{ color: theme.palette.customColors.customHeadingTextColor, fontWeight: 500, fontSize: '14px', ml: 3 }}
+        >
           {params.row.title}
         </Typography>
       )

@@ -50,6 +50,7 @@ const SpeciesReport = () => {
   const [openSiteDrawer, setOpenSiteDrawer] = useState(false)
   const [openFilterDrawer, setOpenFilterDrawer] = useState(false)
   const [speciesList, setSpeciesList] = useState([])
+  const [isLoader, setIsLoader] = useState(false)
   const [searchValue, setSearchValue] = useState('')
 
   const [sites, setSites] = useState(
@@ -123,9 +124,11 @@ const SpeciesReport = () => {
 
   useEffect(() => {
     const fetchSpeciesList = async () => {
+      setIsLoader(true)
       const response = await getSpeciesListing()
       if (response.success) {
         console.log('Response >', response.data)
+        setIsLoader(false)
         setSpeciesList(response.data.result)
       } else {
         console.log('Error something went wrong')
@@ -893,6 +896,7 @@ const SpeciesReport = () => {
                         categories={categories}
                         sites={sites}
                         setSites={setSites}
+                        isLoader={isLoader}
                         selectedSites={selectedSites}
                         setSelectedSites={setSelectedSites}
                         options={options}

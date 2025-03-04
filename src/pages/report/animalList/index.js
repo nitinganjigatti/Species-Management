@@ -20,7 +20,7 @@ import { useAnimalContext } from 'src/context/AnimalContext'
 import { usePariveshContext } from 'src/context/PariveshContext'
 import { useCallback, useContext, useEffect, useRef, useState } from 'react'
 import SiteSheet from 'src/views/pages/pharmacy/report/siteSheet'
-import { getAllAnimalReport, getAnimalReportById, getReportFilterList } from 'src/lib/api/report'
+import { getAllAnimalReport, getAnimalReportById, getReportFilterList, getSpeciesListing } from 'src/lib/api/report'
 import toast from 'react-hot-toast'
 import FilterSheet from 'src/views/pages/pharmacy/report/FilterSheet'
 import Organization from 'src/pages/parivesh/home/overview/organization'
@@ -35,24 +35,12 @@ const AnimalList = () => {
   const { organizationList } = usePariveshContext()
   const authData = useContext(AuthContext)
   const reports_module = authData?.userData?.roles?.settings?.enable_reports_module
-  const categories = ['Site']
+
+  const categories = ['Site', 'Species']
 
   const { animalId } = router.query
 
   console.log('Animal Id >>', animalId)
-
-  const options = {
-    Site:
-      authData?.userData?.user?.zoos[0]?.sites?.slice().sort((a, b) => a.site_name.localeCompare(b.site_name)) ||
-      [] ||
-      [],
-    Organization: organizationList?.sort((a, b) => a.organization_name.localeCompare(b.organization_name)) || []
-
-    // Section: ['North', 'South', 'East', 'West'],
-    // Enclosure: ['Enclosure 1', 'Enclosure 2'],
-    // Morphs: ['White Lions', 'Maneless Lions', 'Barbary Lion', 'Pale or Blonde Lions', 'Dark-Maned Lions'],
-    // Breed: ['Breed A', 'Breed B']
-  }
 
   const [status, setStatus] = useState('statistics')
   // const [selectedSites, setSelectedSites] = useState([])
@@ -81,7 +69,8 @@ const AnimalList = () => {
   const [headerList, setHeaderList] = useState([])
   const [isLoading, setIsLoading] = useState(false)
   const [isDownloading, setIsDownloading] = useState(false)
-
+  const [speciesList, setSpeciesList] = useState([])
+  const [isLoader, setIsLoader] = useState(false)
   const [popoverData, setPopoverData] = useState({
     Taxonomy: [
       { label: 'Class', key: 'include_class', checked: false },
@@ -111,6 +100,20 @@ const AnimalList = () => {
     include_site: 0,
     include_genus: 0
   })
+
+  const options = {
+    Site:
+      authData?.userData?.user?.zoos[0]?.sites?.slice().sort((a, b) => a.site_name.localeCompare(b.site_name)) ||
+      [] ||
+      [],
+    Species: speciesList
+    // Organization: organizationList?.sort((a, b) => a.organization_name.localeCompare(b.organization_name)) || []
+
+    // Section: ['North', 'South', 'East', 'West'],
+    // Enclosure: ['Enclosure 1', 'Enclosure 2'],
+    // Morphs: ['White Lions', 'Maneless Lions', 'Barbary Lion', 'Pale or Blonde Lions', 'Dark-Maned Lions'],
+    // Breed: ['Breed A', 'Breed B']
+  }
 
   // const [apiFilterParams, setApiFilterParams] = useState({
   //   include_housing: 0,
@@ -169,6 +172,27 @@ const AnimalList = () => {
       })
     }
   }, [router.pathname])
+
+  useEffect(() => {
+    const fetchSpeciesList = async () => {
+      setIsLoader(true) // Start loader before fetching data
+      try {
+        const response = await getSpeciesListing()
+        if (response.success) {
+          setIsLoader(false)
+          console.log('Response >', response.data)
+          setSpeciesList(response.data.result)
+        } else {
+          console.log('Error: Something went wrong')
+        }
+      } catch (error) {
+        console.error('Error fetching species:', error)
+      } finally {
+        setIsLoader(false) // Stop loader after fetching
+      }
+    }
+    fetchSpeciesList()
+  }, [])
 
   // const handleSelection = async (selectedIDs, category) => {
   //   let params = {}
@@ -486,7 +510,14 @@ const AnimalList = () => {
             }
             title={
               params.row.primary_identifier_value ? (
-                <Typography sx={{ fontSize: '16px', fontWeight: 500, fontFamily: 'Inter', color: '#006D35' }}>
+                <Typography
+                  sx={{
+                    fontSize: '14px',
+                    fontWeight: 500,
+                    fontFamily: 'Inter',
+                    color: theme.palette.primary.OnSurface
+                  }}
+                >
                   {params.row.primary_identifier_type}: {params.row.primary_identifier_value}
                 </Typography>
               ) : null
@@ -500,9 +531,9 @@ const AnimalList = () => {
                   <Typography
                     sx={{
                       fontSize: '14px',
-                      fontWeight: 400,
+                      fontWeight: 500,
                       fontFamily: 'Inter',
-                      color: '#7A8684',
+                      color: theme.palette.customColors.customHeadingTextColor,
                       whiteSpace: 'nowrap',
                       overflow: 'hidden',
                       textOverflow: 'ellipsis',
@@ -517,9 +548,9 @@ const AnimalList = () => {
                   <Typography
                     sx={{
                       fontSize: '14px',
-                      fontWeight: 400,
+                      fontWeight: 500,
                       fontFamily: 'Inter',
-                      color: '#7A8684',
+                      color: theme.palette.customColors.customHeadingTextColor,
                       whiteSpace: 'nowrap',
                       overflow: 'hidden',
                       textOverflow: 'ellipsis',
@@ -554,9 +585,9 @@ const AnimalList = () => {
             <Typography
               sx={{
                 fontSize: '14px',
-                fontWeight: 400,
+                fontWeight: 500,
                 fontFamily: 'Inter',
-                color: '#7A8684',
+                color: theme.palette.customColors.customHeadingTextColor,
                 whiteSpace: 'nowrap',
                 overflow: 'hidden',
                 textOverflow: 'ellipsis'
@@ -674,7 +705,7 @@ const AnimalList = () => {
                   fontSize: '20px',
                   fontWeight: '400',
                   fontFamily: 'Inter',
-                  color: '#006D35',
+                  color: theme.palette.primary.OnSurface,
                   display: 'flex',
                   alignItems: 'center',
                   cursor: 'pointer',
@@ -795,7 +826,7 @@ const AnimalList = () => {
                         mt: 2,
                         mr: 2,
                         display: 'flex',
-                        color: '#44544A',
+                        color: theme.palette.customColors.OnSurfaceVariant,
                         borderRadius: '4px',
                         fontWeight: 400,
                         fontSize: '16px',
@@ -853,6 +884,7 @@ const AnimalList = () => {
                         animalId={animalId}
                         options={options}
                         selectedOptions={selectedOptions}
+                        isLoader={isLoader}
                         setSelectedOptions={setSelectedOptions}
                         handleSelection={handleSelection}
                         getTotalSelectedFilters={animalId ? getSpecificTotalSelectedFilters : getTotalSelectedFilters}
@@ -980,7 +1012,7 @@ const AnimalList = () => {
                         fontWeight: 600,
                         fontSize: '12px',
                         fontFamily: 'Inter',
-                        textTransform: 'capitalize',
+                        // textTransform: 'capitalize',
                         borderBottom: '2px solid #C3CEC7'
                       },
                       '.MuiDataGrid-main': {
@@ -1001,7 +1033,7 @@ const AnimalList = () => {
                         fontWeight: 400,
                         lineHeight: '16.94px',
                         textAlign: 'left',
-                        color: '#44544A'
+                        color: theme.palette.customColors.OnSurfaceVariant
                       }
                     }}
                     rows={reportRows}
