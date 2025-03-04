@@ -107,7 +107,7 @@ const FilterSheet = ({
     setSearchValue('')
   }
 
-  console.log('Filter oPTIONS >', filteredOptions)
+  // console.log('Filter oPTIONS >', filteredOptions)
 
   return (
     <Drawer
@@ -145,6 +145,7 @@ const FilterSheet = ({
             sx={{ color: 'text.primary' }}
             onClick={() => {
               setOpenFilterDrawer(false)
+              handleClearFilter()
             }}
           >
             <Icon icon='mdi:close' fontSize={24} />
@@ -154,7 +155,7 @@ const FilterSheet = ({
 
       {/* Drawer Content */}
 
-      <Box sx={{ width: '562px', height: '753px', display: 'flex', backgroundColor: 'background.default' }}>
+      <Box sx={{ height: '753px', display: 'flex', backgroundColor: 'background.default' }}>
         <Box sx={{ width: '180px', height: '900px', backgroundColor: 'background.default' }}>
           <Grid container>
             <Grid item md={4} sm={4} xs={4}>

@@ -886,26 +886,28 @@ const SpeciesReport = () => {
                         Filter
                       </Typography>
 
-                      <Box
-                        sx={{
-                          position: 'absolute',
-                          top: '5px',
-                          right: '6px',
-                          width: '29px',
-                          height: '27px',
-                          borderRadius: '69%',
-                          backgroundColor: '#1F515B',
-                          color: '#FFFFFF',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          fontSize: '12px',
-                          fontWeight: 500
-                        }}
-                      >
-                        {getTotalSelectedFilters(selectedOptions)}
-                        {/* Replace this with the actual count from your state */}
-                      </Box>
+                      {getTotalSelectedFilters(selectedOptions) > 0 && (
+                        <Box
+                          sx={{
+                            position: 'absolute',
+                            top: '5px',
+                            right: '6px',
+                            width: '29px',
+                            height: '27px',
+                            borderRadius: '69%',
+                            backgroundColor: '#1F515B',
+                            color: '#FFFFFF',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontSize: '12px',
+                            fontWeight: 500
+                          }}
+                        >
+                          {getTotalSelectedFilters(selectedOptions)}
+                          {/* Replace this with the actual count from your state */}
+                        </Box>
+                      )}
                     </Button>
                     {
                       <FilterSheet
