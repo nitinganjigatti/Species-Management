@@ -3413,7 +3413,7 @@ const StepPreviewDiet = ({
               <Button
                 onClick={finalhandleSubmit}
                 variant='contained'
-                endIcon={!loader && <Icon icon='mdi:arrow-right' fontSize={20} />}
+                endIcon={<Icon icon='mdi:arrow-right' fontSize={20} />}
                 disabled={loader}
                 sx={{
                   display: 'flex',
@@ -3423,14 +3423,10 @@ const StepPreviewDiet = ({
                   minWidth: 120
                 }}
               >
-                {loader ? (
-                  <>
-                    <CircularProgress size={20} sx={{ color: '#fff' }} />
-                    <span>Submit</span>
-                  </>
-                ) : (
-                  'Submit'
-                )}
+                <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  Submit
+                  {loader && <CircularProgress size={16} sx={{ color: '#ccc' }} />}
+                </span>
               </Button>
             </Box>
           </Grid>

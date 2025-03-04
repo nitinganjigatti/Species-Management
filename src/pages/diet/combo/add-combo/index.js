@@ -307,6 +307,7 @@ const AddCombo = () => {
 
   const handleStepBillingSubmit = async () => {
     if (!id) {
+      setLoader(true)
       const numericFormData = {
         ...formData,
         by_percentage: JSON.stringify(
@@ -351,15 +352,17 @@ const AddCombo = () => {
 
       if (apival.success === true) {
         Router.push(`/diet/combo`)
-
+        setLoader(false)
         Toaster({ type: 'success', message: 'Combo' + ' ' + apival?.message })
       } else {
         Toaster({
           type: 'error',
           message: apival?.message?.recipe_image ? 'Image type only PNG and JPG is allowed' : apival?.message
         })
+        setLoader(false)
       }
     } else if (id && urlType === 'copy') {
+      setLoader(true)
       const numericFormData = {
         ...formData,
         by_percentage: JSON.stringify(
@@ -412,15 +415,17 @@ const AddCombo = () => {
 
       if (apival.success === true) {
         Router.push(`/diet/combo`)
-
+        setLoader(false)
         Toaster({ type: 'success', message: 'Combo' + ' ' + apival?.message })
       } else {
         Toaster({
           type: 'error',
           message: apival?.message?.recipe_image ? 'Image type only PNG and JPG is allowed' : apival?.message
         })
+        setLoader(false)
       }
     } else {
+      setLoader(true)
       const numericFormData = {
         ...formData,
         by_percentage: JSON.stringify(
@@ -473,13 +478,14 @@ const AddCombo = () => {
 
       if (apival.success === true) {
         Router.push(`/diet/combo`)
-
+        setLoader(false)
         Toaster({ type: 'success', message: 'Combo' + ' ' + apival?.message })
       } else {
         Toaster({
           type: 'error',
           message: apival?.message?.recipe_image ? 'Image type only PNG and JPG is allowed' : apival?.message
         })
+        setLoader(false)
       }
     }
   }
@@ -513,7 +519,14 @@ const AddCombo = () => {
           </>
         )
       case 1:
-        return <StepBillingDetails handlePrev={handlePrev} handleSubmit={handleStepBillingSubmit} formData={formData} />
+        return (
+          <StepBillingDetails
+            handlePrev={handlePrev}
+            handleSubmit={handleStepBillingSubmit}
+            formData={formData}
+            loader={loader}
+          />
+        )
 
       default:
         return null
