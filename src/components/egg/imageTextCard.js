@@ -59,7 +59,7 @@ const SpeciesImageCard = ({ imgURl, eggCondition, egg_status, eggCode, defaultNa
                 width: '100%',
                 height: '100%',
                 borderRadius: '50%',
-                objectFit: imgURl.contains('class_images/default_animal.svg') ? 'contain' : 'cover'
+                objectFit: imgURl.includes('class_images/default_animal.svg') ? 'contain' : 'cover'
               }}
             />
           ) : (
