@@ -131,6 +131,7 @@ const TransferEgg = ({ transferEggSideBar, setTransferEggSideBar, eggDetails, ge
       RoomList(eggDetails?.nursery_id)
     }
   }, [eggDetails?.nursery_id])
+
   // useEffect(() => {
   //   if (eggDetails?.room_id) {
   //     fetchIncubatorData(eggDetails?.room_id)
@@ -182,6 +183,7 @@ const TransferEgg = ({ transferEggSideBar, setTransferEggSideBar, eggDetails, ge
 
     try {
       setLoader(true)
+
       let params = {
         incubator_id: values.incubator,
         egg_ids: [egg_id]
@@ -323,7 +325,7 @@ const TransferEgg = ({ transferEggSideBar, setTransferEggSideBar, eggDetails, ge
                     >
                       Incubator ID
                     </Typography>
-                    <Tooltip title={eggDetails?.incubator_id ? eggDetails?.incubator_id : 'Incubator Name'}>
+                    <Tooltip title={eggDetails?.incubator_code ? eggDetails?.incubator_code : 'Incubator Name'}>
                       <Typography
                         sx={{
                           color: theme.palette.customColors.OnSurfaceVariant,
@@ -333,10 +335,10 @@ const TransferEgg = ({ transferEggSideBar, setTransferEggSideBar, eggDetails, ge
                           height: '19px'
                         }}
                       >
-                        {eggDetails?.incubator_id
-                          ? eggDetails?.incubator_id.length > 16
-                            ? eggDetails?.incubator_id.slice(0, 16) + '...'
-                            : eggDetails?.incubator_id
+                        {eggDetails?.incubator_code
+                          ? eggDetails?.incubator_code.length > 16
+                            ? eggDetails?.incubator_code.slice(0, 16) + '...'
+                            : eggDetails?.incubator_code
                           : ''}
                       </Typography>
                     </Tooltip>
@@ -544,6 +546,7 @@ const TransferEgg = ({ transferEggSideBar, setTransferEggSideBar, eggDetails, ge
                           } else {
                             setDefaultIncubator(val)
                             setValue('incubator', '')
+
                             return onChange(val.incubator_id)
                           }
                         }}
