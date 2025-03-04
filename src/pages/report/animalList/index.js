@@ -36,9 +36,9 @@ const AnimalList = () => {
   const { organizationList } = usePariveshContext()
   const authData = useContext(AuthContext)
   const reports_module = authData?.userData?.roles?.settings?.enable_reports_module
-
+  
   const categories = ['Site', 'Species']
-
+  const enable_animal_report = authData?.userData?.permission?.user_settings?.enable_animal_report
   const { animalId } = router.query
 
   console.log('Animal Id >>', animalId)
