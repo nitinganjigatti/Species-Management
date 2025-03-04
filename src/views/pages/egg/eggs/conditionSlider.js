@@ -1124,7 +1124,7 @@ const ConditionSlider = ({
                                   }}
                                   {...params}
                                   label='Species / Taxonomy *'
-                                  placeholder='Species / Taxonomy *'
+                                  placeholder='Select Species / Taxonomy'
                                   error={Boolean(errors.species)}
                                   sx={{
                                     '& .MuiInputLabel-root': {
