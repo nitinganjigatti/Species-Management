@@ -770,7 +770,7 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
         </Box>
 
         {/* Tabs */}
-        <Box sx={{ backgroundColor: '#FFFF' }}>
+        <Box sx={{ backgroundColor: '#FFFF', height: '100vh' }}>
           <TabContext value={tabStatus}>
             <TabList onChange={handleTabChange}>
               <Tab
@@ -796,7 +796,7 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
                   bgcolor: '#eff5f2',
                   py: 2,
                   pb: 20,
-                  height: '535px',
+                  height: '100vh',
                   overflowY: 'auto',
                   scrollbarWidth: 'none'
                 }}
@@ -845,7 +845,7 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
                   bgcolor: '#eff5f2',
                   py: 2,
                   pb: 20,
-                  height: '535px',
+                  height: '100vh',
                   overflowY: 'auto',
                   scrollbarWidth: 'none'
                 }}
