@@ -105,7 +105,7 @@ const EggSecondSecion = ({
       'Collected on': Utility.formatDisplayDate(Utility.convertUTCToLocal(eggDetails?.collection_date)),
       'Lay Date': eggDetails?.lay_date
         ? Utility.formatDisplayDate(Utility.convertUTCToLocal(eggDetails?.lay_date))
-        : 'NA (Not Applicable)'
+        : 'NA'
 
       // 'Collected By': 'Jordan Steveson'
     }
@@ -502,7 +502,7 @@ const EggSecondSecion = ({
                           textOverflow: 'ellipsis'
                         }}
                       >
-                        {eggDetails?.incubator_name ? eggDetails?.incubator_name : 'Incubator Code'}
+                        {eggDetails?.incubator_id ? eggDetails?.incubator_id : 'Incubator Code'}
                       </Typography>
                     </Tooltip>
                   </Box>

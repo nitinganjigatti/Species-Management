@@ -132,7 +132,7 @@ const VerticalNavLink = ({
                 <Avatar
                   src={isNavLinkActive() ? item.activeIcon?.props?.src : item.icon?.props?.src}
                   alt={item.title}
-                  style={{ width: '24px', height: '24px' }}
+                  style={{ width: '24px', height: '24px', borderRadius: 0 }}
                 />
               ) : (
                 <UserIcon icon={icon} />

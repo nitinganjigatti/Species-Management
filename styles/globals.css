@@ -15,10 +15,25 @@ code {
   color: #d400ff;
   border-radius: 0.1335rem;
 }
+
 code:not([class*='language-']):before,
 code:not([class*='language-']):after {
   content: '`';
 }
+
 code[class*='language-'] {
   padding: 0;
+}
+
+.MuiBox-root>div.react-hot-toast-container {
+  z-index: 9999 !important;
+  /* High zIndex for visibility */
+}
+
+/* Adjust for tablet screens */
+@media (max-width: 768px) {
+  .MuiBox-root>div.react-hot-toast-container {
+    z-index: 1500 !important;
+    /* Adjusted for tablet screens */
+  }
 }

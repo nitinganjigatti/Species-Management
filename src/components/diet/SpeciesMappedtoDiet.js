@@ -1,4 +1,4 @@
-import React, { useRef } from 'react'
+import React, { useRef, useState } from 'react'
 import { useTheme } from '@mui/material/styles'
 import {
   Box,
@@ -21,6 +21,7 @@ import { LoadingButton } from '@mui/lab'
 import Toaster from 'src/components/Toaster'
 import Icon from 'src/@core/components/icon'
 import { addSpeciestoDiet } from 'src/lib/api/diet/dietList'
+import { useMediaQuery } from '@mui/material'
 
 const SpeciesMappedtoDiet = ({
   isOpen,
@@ -48,9 +49,9 @@ const SpeciesMappedtoDiet = ({
   setTempSelectedSpecies
 }) => {
   const listInnerRef = useRef(null)
-
   const theme = useTheme()
-
+  const [loader, setLoader] = useState(false)
+  const isSmallDevice = useMediaQuery(theme.breakpoints.down('md'))
   const handleSearch = event => {
     setSearchQuery(event.target.value)
   }
@@ -79,6 +80,7 @@ const SpeciesMappedtoDiet = ({
   const handleAdd = async () => {
     const updatedSpeciesIds = tempSelectedSpecies
     const speciesIdsNumbers = updatedSpeciesIds.map(id => Number(id))
+    setLoader(true)
     const payload = {
       diet_id: dietId,
       species_ids: JSON.stringify(speciesIdsNumbers)
@@ -101,11 +103,13 @@ const SpeciesMappedtoDiet = ({
         setTempSelectedSpecies([])
         setPageNo(1)
         setSearchQuery('')
+        setLoader(false)
       } else {
         Toaster({
           type: 'error',
           message: response?.message
         })
+        setLoader(false)
       }
     } catch (error) {
       console.error('Error adding species to diet:', error)
@@ -482,8 +486,8 @@ const SpeciesMappedtoDiet = ({
           height: '122px',
           width: '100%',
           maxWidth: '562px',
-          position: 'fixed',
-          bottom: 0,
+          position: isSmallDevice ? 'absolute' : 'fixed',
+          bottom: isSmallDevice ? 75 : 0,
           px: 4,
           bgcolor: 'white',
           alignItems: 'center',
@@ -497,16 +501,22 @@ const SpeciesMappedtoDiet = ({
       >
         {tempSelectedSpecies?.length > 0 ? (
           <Box
-            sx={{ display: 'flex', alignItems: 'center', width: '35%', color: theme.palette.primary.main }}
-            onClick={() => handleSelectedclick('select')}
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              width: '35%',
+              color: theme.palette.primary.main
+            }}
           >
             <Typography
               sx={{
                 color: theme.palette.primary.main,
                 fontWeight: 600,
                 fontSize: '14px',
-                mr: 1
+                mr: 1,
+                cursor: 'pointer'
               }}
+              onClick={() => handleSelectedclick('select')}
             >
               {/* {speciesData.filter(species => species.mapped_to_diet)?.length} Selected */}
               {tempSelectedSpecies?.length} Selected
@@ -523,8 +533,16 @@ const SpeciesMappedtoDiet = ({
           size='large'
           disabled={tempSelectedSpecies?.length === 0}
           onClick={handleAdd}
+          loading={loader}
+          sx={{ height: '42px' }}
+          loadingIndicator={
+            <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              ASSIGN
+              <CircularProgress size={20} sx={{ color: '#ccc' }} />
+            </span>
+          }
         >
-          ASSIGN
+          {!loader && 'ASSIGN'}
         </LoadingButton>
       </Box>
     </Drawer>

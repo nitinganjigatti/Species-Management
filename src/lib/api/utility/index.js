@@ -9,6 +9,8 @@ export const GetAPIHeader = async ({ pharmacy } = { pharmacy: false }) => {
   const selectedPharmacy = await readAsync('selectedStore')
   const currentTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone
 
+  // const header = { 'Content-Type': 'multipart/form-data' }
+
   const header = {}
 
   if (userDetails?.user?.zoos.length > 0) {
@@ -21,6 +23,7 @@ export const GetAPIHeader = async ({ pharmacy } = { pharmacy: false }) => {
   if (pharmacy) {
     header['Selectedstore'] = selectedPharmacy?.id
   }
+
   header['CurrentTimeZone'] = currentTimeZone
 
   return header
