@@ -405,7 +405,7 @@ const AnimalList = () => {
         <>
           <Card>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', px: 2, pt: 2 }}>
-              <CardHeader title='Species Animal List' />
+              <CardHeader title='Animal List Report' />
 
               <Button
                 variant='contained'
