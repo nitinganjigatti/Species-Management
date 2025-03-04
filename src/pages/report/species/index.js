@@ -33,6 +33,8 @@ const SpeciesReport = () => {
   const theme = useTheme()
   const authData = useContext(AuthContext)
   const reports_module = authData?.userData?.roles?.settings?.enable_reports_module
+  const enable_specie_report = authData?.userData?.permission?.user_settings?.enable_specie_report
+
   const {
     selectedAnimal,
     setSelectedAnimal,
@@ -44,6 +46,7 @@ const SpeciesReport = () => {
     setSelectedOptions
   } = useAnimalContext()
   const [status, setStatus] = useState('statistics')
+
   // const [selectedSites, setSelectedSites] = useState([])
   const [dataList, setDataList] = useState([])
   const [anchorEl, setAnchorEl] = useState(null)
@@ -58,8 +61,10 @@ const SpeciesReport = () => {
   )
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [total, setTotal] = useState(0)
+
   // const [selectedOptions, setSelectedOptions] = useState([])
   const [isDownloading, setIsDownloading] = useState(false)
+
   const [popoverData, setPopoverData] = useState({
     Taxonomy: [
       { label: 'Class', key: 'include_class', checked: false },
@@ -279,7 +284,7 @@ const SpeciesReport = () => {
   }, [router.pathname])
 
   useEffect(() => {
-    if (reports_module) {
+    if (reports_module && enable_specie_report) {
       fetchData(apiFilterParams, searchValue, paginationModel)
     }
   }, [fetchData, apiFilterParams])
@@ -342,38 +347,46 @@ const SpeciesReport = () => {
         >
           <Box
             sx={{
-              width: ['Male', 'Female', 'Indeterminate', 'Undetermined'].includes(header.label) ? '50px' : '90px',
+              // width: ['Male', 'Female', 'Indeterminate', 'Undetermined'].includes(header.label) ? '50px' : '140px',
+              width: '140px',
               height: '25px',
-              backgroundColor: getCellBackgroundColor(header.label),
-              color: getCellTextColor(header.label),
-              fontWeight: 400,
-              borderRadius: '4px',
               display: 'flex',
               alignItems: 'center',
-              justifyContent: ['Male', 'Female', 'Indeterminate', 'Undetermined'].includes(header.label)
-                ? 'center'
-                : header.label === 'total'
-                ? 'flex-end'
-                : 'flex-start',
-              textAlign: ['Male', 'Female', 'Indeterminate', 'Undetermined'].includes(header.label)
-                ? 'center'
-                : header.label === 'total'
-                ? 'right'
-                : 'left',
-              overflow: 'hidden',
-              whiteSpace: 'nowrap',
-              textOverflow: 'ellipsis',
+              // justifyContent: ['Male', 'Female', 'Indeterminate', 'Undetermined'].includes(header.label)
+              // ? 'center'
+              // : header.label === 'total'
+              // ? 'flex-end'
+              // : 'flex-start',
+
               position: 'relative',
-              cursor: 'pointer',
-              padding: '0 5px' // Thoda padding de diya better UX ke liye
+              cursor: 'pointer'
             }}
           >
-            {params?.row
-              ? params?.row[header.key]
-              : ['Male', 'Female', 'Indeterminate', 'Undetermined', 'Total'].includes(header.label) &&
-                params?.row[header.key] === undefined
-              ? 0
-              : '-'}
+            <Typography
+              sx={{
+                color: getCellTextColor(header.label),
+                backgroundColor: getCellBackgroundColor(header.label),
+                borderRadius: '4px',
+                padding: '4px 16px', // Thoda padding de diya better UX ke liye
+                fontWeight: 400,
+                // textAlign: ['Male', 'Female', 'Indeterminate', 'Undetermined'].includes(header.label)
+                //   ? 'center'
+                //   : header.label === 'total'
+                //   ? 'right'
+                //   : 'left',
+                textAlign: 'left',
+                overflow: 'hidden',
+                whiteSpace: 'nowrap',
+                textOverflow: 'ellipsis'
+              }}
+            >
+              {params?.row
+                ? params?.row[header.key]
+                : ['Male', 'Female', 'Indeterminate', 'Undetermined', 'Total'].includes(header.label) &&
+                  params?.row[header.key] === undefined
+                ? 0
+                : '-'}
+            </Typography>
           </Box>
         </Tooltip>
       )
@@ -615,7 +628,7 @@ const SpeciesReport = () => {
 
   return (
     <>
-      {reports_module ? (
+      {reports_module && enable_specie_report ? (
         <>
           <Card>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', px: 2, pt: 2 }}>
@@ -634,7 +647,7 @@ const SpeciesReport = () => {
                 }}
               >
                 Download report
-                <img src='/images/download1.png' alt='download icon' style={{ marginLeft: 8, width: 30, height: 30 }} />
+                <img src='/images/download1.svg' alt='download icon' style={{ marginLeft: 8, width: 30, height: 30 }} />
               </Typography>
 
               {/* <Button
@@ -857,37 +870,47 @@ const SpeciesReport = () => {
                       }}
                     >
                       <img
-                        src='/images/filterIcon.png'
+                        src={`/images/${
+                          getTotalSelectedFilters(selectedOptions) > 0 ? 'filterIconActive' : 'filterIcon'
+                        }.svg`}
                         style={{ width: '30px', height: '30px', marginBottom: '3px', marginTop: '7px' }}
                         alt='Filter Icon'
                       />
 
                       <Typography
-                        sx={{ color: '#1F515B', textTransform: 'capitalize', mr: 8, fontSize: '16px', fontWeight: 400 }}
+                        sx={{
+                          color: getTotalSelectedFilters(selectedOptions) > 0 ? '#1F515B' : '#44544A',
+                          textTransform: 'capitalize',
+                          mr: 8,
+                          fontSize: '16px',
+                          fontWeight: 400
+                        }}
                       >
                         Filter
                       </Typography>
 
-                      <Box
-                        sx={{
-                          position: 'absolute',
-                          top: '5px',
-                          right: '6px',
-                          width: '29px',
-                          height: '27px',
-                          borderRadius: '69%',
-                          backgroundColor: '#1F515B',
-                          color: '#FFFFFF',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          fontSize: '12px',
-                          fontWeight: 500
-                        }}
-                      >
-                        {getTotalSelectedFilters(selectedOptions)}
-                        {/* Replace this with the actual count from your state */}
-                      </Box>
+                      {getTotalSelectedFilters(selectedOptions) > 0 && (
+                        <Box
+                          sx={{
+                            position: 'absolute',
+                            top: '5px',
+                            right: '6px',
+                            width: '29px',
+                            height: '27px',
+                            borderRadius: '69%',
+                            backgroundColor: '#1F515B',
+                            color: '#FFFFFF',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontSize: '12px',
+                            fontWeight: 500
+                          }}
+                        >
+                          {getTotalSelectedFilters(selectedOptions)}
+                          {/* Replace this with the actual count from your state */}
+                        </Box>
+                      )}
                     </Button>
                     {
                       <FilterSheet
@@ -922,6 +945,7 @@ const SpeciesReport = () => {
                         fontFamily: 'Inter',
                         alignItems: 'center',
                         justifyContent: 'center',
+
                         // mr: 2,
                         gap: 1,
                         minWidth: '100px'
@@ -1085,6 +1109,7 @@ const SpeciesReport = () => {
                       // modifyColumnPinning
                       headerName='Species'
                       searchMode='server'
+
                       // onSearch={onSearch}
                     />
                   )}
