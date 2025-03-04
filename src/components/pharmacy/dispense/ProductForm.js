@@ -109,46 +109,24 @@ function ProductForm({
           Yup.object().shape({
             batch_no: Yup.object({
               value: Yup.string()
+                .required('Batch number is required')
                 .test('uniqueBatchNo', 'Batch number already exists for this product', function (value) {
                   const duplicate = productArray.some(
                     item => item.batch_no === value && item?.stock_id === watch('stock_id')?.value
                   )
-
                   return !duplicate
                 })
                 .test('unique-batch-no', 'Batch number is already selected', function (value) {
                   const { product_batches } = this.options.from[2].value
-
                   const allBatchNumbers = product_batches?.map(batch => batch.batch_no)
-
                   const selectedBatchCount = allBatchNumbers?.filter(batchNo => batchNo?.value === value).length
-
                   return (selectedBatchCount === undefined ? 0 : selectedBatchCount) === 1
                 })
             }),
             qty: Yup.number()
-
-              // .test('max-quantity', `Quantity can not be more than total available quantity`, function (value) {
-              //   const { stock_id } = this?.options?.from[1]?.value // Accessing form values
-              //   const allValues = getValues()
-
-              //   const sum = allValues.product_batches.reduce((accumulator, batch) => {
-              //     return accumulator + (parseFloat(batch.qty) || 0)
-              //   }, 0)
-
-              //   // Find all rows in productArray with matching batch_no
-              //   const matchingRows = productArrayUi.filter(item => item.stock_id?.value === stock_id?.value)
-
-              //   // Calculate the sum of quantities in matching rows
-              //   const sumOfQuantities = matchingRows.reduce((sum, row) => sum + row.qty, 0)
-              //   const remainingQuantity = totalProductQty - sumOfQuantities
-
-              //   // Check if the current value exceeds the remaining quantity
-              //   setTotalQty(remainingQuantity)
-
-              //   // return value <= remainingQuantity || sum <= remainingQuantity
-              //   return sum <= remainingQuantity
-              // })
+              .test('batch-required', 'Batch number is required', function (value) {
+                return this.parent.batch_no?.value // Ensure batch_no is selected
+              })
               .test('max-quantity', `Quantity can not be more than total available quantity`, function (value) {
                 const { product_batches } = this?.options?.from[1]?.value // Accessing form values
                 clearErrors('product_batches')
@@ -156,10 +134,11 @@ function ProductForm({
                 const isValid = product_batches?.every(item => {
                   const batchQty = parseFloat(item?.batch_no?.qty)
                   const inputQty = parseFloat(item?.qty)
-
                   return inputQty <= batchQty
                 })
-
+                if (!isValid) {
+                  return this.createError({ message: 'Quantity cannot be more than total available quantity' })
+                }
                 return isValid
               })
               .required('Quantity is required')
