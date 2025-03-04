@@ -164,6 +164,7 @@ const RequestDetails = () => {
 
   const [selectedRowData, setSelectedRowData] = useState([])
   const [hasCompletedStatus, setHasCompletedStatus] = useState(true)
+  const [allCompleted, setAllCompleted] = useState(false)
 
   useEffect(() => {
     const labObject = localLabData?.find(item => item?.lab_id === lab_id)
@@ -232,6 +233,37 @@ const RequestDetails = () => {
     setOpen(false)
   }
 
+  // const fetchRequestDetails = useCallback(async (sort, q) => {
+  //   try {
+  //     setLoading(true)
+
+  //     const params = {
+  //       lab_id: Selectedlab_id,
+  //       q,
+  //       sort
+  //     }
+
+  //     const response = await GetRequestDetails(id, { params })
+
+  //     setLab_id(response?.data.result[0]?.lab_id)
+  //     setAnimalId(response?.data?.result[0]?.animal_details?.animal_id)
+  //     setLabRequestId(response?.data?.result[0]?.request_id)
+  //     setMedicineId(response?.data?.result[0]?.medical_record_id)
+  //     setRequest(response?.data?.result)
+  //     setRequestId(response?.data?.result[0]?.id)
+  //     setRows(loadServerRows(paginationModel.page, response?.data?.result[0].test_reports))
+  //     setTotal(parseInt(response?.data?.total_count))
+  //     setImage(response?.data?.result[0]?.files?.images)
+  //     setDocument(response?.data?.result[0]?.files?.files)
+  //     setMedicalDocument(response?.data?.result[0]?.medical_attachements?.files)
+  //     setMedicalImage(response?.data?.result[0]?.medical_attachements?.images)
+  //   } catch (error) {
+  //     console.error('Error fetching data:', error)
+  //   } finally {
+  //     setLoading(false)
+  //   }
+  // }, [])
+
   const fetchRequestDetails = useCallback(async (sort, q) => {
     try {
       setLoading(true)
@@ -244,18 +276,24 @@ const RequestDetails = () => {
 
       const response = await GetRequestDetails(id, { params })
 
-      setLab_id(response?.data.result[0]?.lab_id)
-      setAnimalId(response?.data?.result[0]?.animal_details?.animal_id)
-      setLabRequestId(response?.data?.result[0]?.request_id)
-      setMedicineId(response?.data?.result[0]?.medical_record_id)
-      setRequest(response?.data?.result)
-      setRequestId(response?.data?.result[0]?.id)
-      setRows(loadServerRows(paginationModel.page, response?.data?.result[0].test_reports))
+      const requestData = response?.data?.result || []
+      const testReports = requestData[0]?.test_reports || []
+
+      setLab_id(requestData[0]?.lab_id)
+      setAnimalId(requestData[0]?.animal_details?.animal_id)
+      setLabRequestId(requestData[0]?.request_id)
+      setMedicineId(requestData[0]?.medical_record_id)
+      setRequest(requestData)
+      setRequestId(requestData[0]?.id)
+      setRows(loadServerRows(paginationModel.page, testReports))
       setTotal(parseInt(response?.data?.total_count))
-      setImage(response?.data?.result[0]?.files?.images)
-      setDocument(response?.data?.result[0]?.files?.files)
-      setMedicalDocument(response?.data?.result[0]?.medical_attachements?.files)
-      setMedicalImage(response?.data?.result[0]?.medical_attachements?.images)
+      setImage(requestData[0]?.files?.images)
+      setDocument(requestData[0]?.files?.files)
+      setMedicalDocument(requestData[0]?.medical_attachements?.files)
+      setMedicalImage(requestData[0]?.medical_attachements?.images)
+
+      // ✅ API call ke baad `allCompleted` ko update karein
+      setAllCompleted(testReports.every(row => row.status.startsWith('completed')))
     } catch (error) {
       console.error('Error fetching data:', error)
     } finally {
@@ -1229,7 +1267,7 @@ const RequestDetails = () => {
                 <Box sx={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', gap: 4 }}>
                   {image && (
                     <CommonMediaView
-                      rows={rows}
+                      allCompleted={allCompleted}
                       image={image}
                       handleDeleteImg={handleDeleteImg}
                       fileViews={fileViews}
@@ -1238,7 +1276,7 @@ const RequestDetails = () => {
                   )}
                   {document && (
                     <CommonMediaView
-                      rows={rows}
+                      allCompleted={allCompleted}
                       document={document}
                       handleDeleteImg={handleDeleteImg}
                       fileViews={fileViews}
@@ -1266,7 +1304,7 @@ const RequestDetails = () => {
                   <Box sx={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', gap: 4, mt: '16px' }}>
                     {medicalImage && (
                       <CommonMediaView
-                        rows={rows}
+                        allCompleted={allCompleted}
                         image={medicalImage}
                         handleDeleteImg={handleDeleteImg}
                         fileViews={fileViews}
@@ -1276,7 +1314,7 @@ const RequestDetails = () => {
                     )}
                     {medicalDocument && (
                       <CommonMediaView
-                        rows={rows}
+                        allCompleted={allCompleted}
                         document={medicalDocument}
                         handleDeleteImg={handleDeleteImg}
                         fileViews={fileViews}
@@ -1765,8 +1803,7 @@ const RequestDetails = () => {
                         }}
                       >
                         <CommonMediaView
-                          individual={true}
-                          rows={rows}
+                          allCompleted={allCompleted}
                           image={testImage}
                           handleDeleteImg={handleDeleteImg}
                           fileViews={fileViews}
@@ -1781,8 +1818,7 @@ const RequestDetails = () => {
                       <Typography sx={{ fontSize: '18px', mb: 3, mt: 3 }}>Document</Typography>
                       <Box sx={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', gap: 4 }}>
                         <CommonMediaView
-                          individual={true}
-                          rows={rows}
+                          allCompleted={allCompleted}
                           document={testDoc}
                           handleDeleteImg={handleDeleteImg}
                           fileViews={fileViews}
