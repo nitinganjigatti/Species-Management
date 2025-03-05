@@ -82,6 +82,26 @@ const AnimalDetails = ({ eggDetails }) => {
                   >
                     {eggDetails?.animal_data?.scientific_name || '-'}
                   </Typography>
+                  <Typography
+                    sx={{
+                      color: theme.palette.primary.light,
+                      fontSize: '14px',
+                      fontWeight: '400',
+                      lineHeight: '16.94px',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
+                      whiteSpace: 'normal', // Change this to allow wrapping
+                      wordWrap: 'break-word',
+                      wordBreak: 'break-word', // Change this to 'break-word'
+                      width: '100%'
+                    }}
+                  >
+                    {(eggDetails?.animal_data?.local_identifier_name &&
+                      eggDetails?.animal_data?.local_identifier_value &&
+                      `${eggDetails?.animal_data?.local_identifier_name}:${eggDetails?.animal_data?.local_identifier_value}`) ||
+                      '-'}
+                  </Typography>
                 </Box>
               </Box>
             </Grid>

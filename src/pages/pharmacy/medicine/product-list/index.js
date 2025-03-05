@@ -396,6 +396,7 @@ const ListOfMedicine = () => {
 
   // const [statusFilter, setStatusFilter] = useState(router.query.status || true)
   const [statusFilter, setStatusFilter] = useState(router.query.status || 'all')
+
   function loadServerRows(currentPage, data) {
     return data
   }
@@ -498,20 +499,20 @@ const ListOfMedicine = () => {
     await searchTableData({ sort, q: value, column: sortColumn, status: statusFilter })
   }
 
-  const handleStatusFilterChange = newFilter => {
-    setSearchValue('')
-    setStatusFilter(newFilter)
+  // const handleStatusFilterChange = newFilter => {
+  //   setSearchValue('')
+  //   setStatusFilter(newFilter)
 
-    // updateUrlParams({
-    //   sort,
-    //   q: '',
-    //   column: sortColumn,
-    //   status: newFilter,
-    //   page: paginationModel?.page,
-    //   limit: paginationModel?.pageSize
-    // })
-    fetchTableData({ sort, q: '', column: sortColumn, status: newFilter })
-  }
+  //   // updateUrlParams({
+  //   //   sort,
+  //   //   q: '',
+  //   //   column: sortColumn,
+  //   //   status: newFilter,
+  //   //   page: paginationModel?.page,
+  //   //   limit: paginationModel?.pageSize
+  //   // })
+  //   fetchTableData({ sort, q: '', column: sortColumn, status: newFilter })
+  // }
 
   const headerAction = (
     <div>
@@ -534,10 +535,11 @@ const ListOfMedicine = () => {
     ...row,
     sl_no: getSlNo(index)
   }))
-  const [tabValue, setTabValue] = useState('all')
+
+  // const [tabValue, setTabValue] = useState(router.query.status || 'all')
 
   const handleTabChange = (event, newValue) => {
-    setTabValue(newValue)
+    // setTabValue(newValue)
     setSearchValue('')
     setStatusFilter(newValue)
   }
@@ -666,7 +668,7 @@ const ListOfMedicine = () => {
                   </Grid> */}
                 {/* </Box> */}
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2, mx: 6 }}>
-                  <TabContext value={tabValue}>
+                  <TabContext value={statusFilter}>
                     <TabList onChange={handleTabChange} aria-label='lab API tabs example'>
                       <Tab label='All' value='all' />
                       <Tab label='Active' value='true' />
@@ -708,7 +710,7 @@ const ListOfMedicine = () => {
                   {/* Tabs */}
                 </Box>
 
-                <TabContext value={tabValue}>
+                <TabContext value={statusFilter}>
                   {/* Tab Panels */}
                   <TabPanel value='all' sx={{ p: 0 }}>
                     {RenderTable()}

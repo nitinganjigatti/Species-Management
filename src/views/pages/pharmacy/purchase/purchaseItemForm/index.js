@@ -221,9 +221,8 @@ const PurchaseItemForm = props => {
       .number()
       .typeError('Net amount must be a number')
 
-      .required('Net amount is required')
-
-    // purchase_variant_id: yup.string().required('Product variant is required')
+      .required('Net amount is required'),
+    purchase_variant_id: yup.string().required('Product variant is required')
   })
 
   const {
@@ -925,6 +924,7 @@ const PurchaseItemForm = props => {
                 <TextField
                   {...field}
                   label='Purchase Quantity*'
+                  disabled={nestedRowMedicine?.id ? true : false}
                   onKeyUp={e => {
                     calculateStuff()
                   }}

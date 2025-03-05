@@ -23,12 +23,12 @@ import RecipeDetailCardview from 'src/views/pages/combo/combo-detail/cardview'
 import Router from 'next/router'
 import { useRouter } from 'next/router'
 import { getRecipeDetail, updateRecipeStatus } from 'src/lib/api/diet/recipe'
-import RecipeOverviewTabView from 'src/views/pages/recipe/recipe-detail/overview-tabview'
+import RecipeOverviewTabView from 'src/views/pages/combo/combo-detail/overview-tabview'
 import Icon from 'src/@core/components/icon'
 import ModuleDeleteDialogConfirmation from 'src/components/utility/ModuleDeleteDialogConfirmation'
 import { deleteRecipe } from 'src/lib/api/diet/recipe'
 import toast from 'react-hot-toast'
-import DietListTabview from 'src/views/pages/recipe/recipe-detail/dietList-tabview'
+import DietListTabview from 'src/views/pages/combo/combo-detail/dietList-tabview'
 import IngredientsListforRecipeDetail from '../ingredient-list'
 import Toaster from 'src/components/Toaster'
 import Tooltip from '@mui/material/Tooltip'
@@ -186,7 +186,7 @@ const RecipeDetail = () => {
             <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
               <Typography color='inherit'>Diet</Typography>
               {/* <Link underline='hover' color='inherit' href='/diet/recipe/'>
-                Recipe 
+                Recipe
               </Link> */}
               <Typography color='inherit' sx={{ cursor: 'pointer' }} onClick={() => Router.push('/diet/combo/')}>
                 Combo
