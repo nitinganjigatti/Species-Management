@@ -304,11 +304,9 @@ const ProductDetailsList = () => {
                     <Icon
                       icon='ep:back'
                       style={{ cursor: 'pointer' }}
-                      onClick={() =>
-                        Router.push({
-                          pathname: '/pharmacy/medicine/product-list'
-                        })
-                      }
+                      onClick={() => {
+                        router.back()
+                      }}
                     />
                   }
                   action={
