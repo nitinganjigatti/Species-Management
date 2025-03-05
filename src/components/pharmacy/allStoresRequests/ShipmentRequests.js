@@ -431,6 +431,8 @@ export default function ShipmentRequests({ updateUrlParams }) {
     <TabContext value={shipmentTab}>
       <TabLists
         container
+        variant='scrollable'
+        allowScrollButtonsMobile
         onChange={(event, newValue) => {
           setShipmentTab(newValue)
           updateUrlParams({

@@ -881,11 +881,7 @@ const RequestList = () => {
     <>
       <Grid>
         <TabContext value={status}>
-          <TabList
-            onChange={handleChange}
-
-            // variant='scrollable' allowScrollButtonsMobile
-          >
+          <TabList onChange={handleChange} variant='scrollable' allowScrollButtonsMobile>
             <Tab
               sx={{ ml: 3 }}
               value='pending'

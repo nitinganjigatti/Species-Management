@@ -565,7 +565,7 @@ const DirectDispatchList = () => {
   return (
     <Grid>
       <TabContext value={status}>
-        <TabList onChange={handleChange} aria-label='simple tabs example'>
+        <TabList onChange={handleChange} variant='scrollable' allowScrollButtonsMobile aria-label='simple tabs example'>
           {selectedPharmacy?.type === 'central' && (
             <Tab
               sx={{ ml: 3 }}

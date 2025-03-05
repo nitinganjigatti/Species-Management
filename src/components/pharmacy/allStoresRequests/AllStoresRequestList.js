@@ -671,8 +671,10 @@ const AllStoresRequestList = () => {
               {/* Wrap TabContext here */}
               <TabContext value={activeTab}>
                 <TabList
+                  variant='scrollable'
+                  allowScrollButtonsMobile
                   onChange={handleChange}
-                  aria-label='simple tabs example'
+                  // aria-label='simple tabs example'
                   sx={{
                     backgroundColor: 'customColors.OnPrimary',
                     color: 'customColors.neutralSecondary',

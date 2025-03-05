@@ -77,6 +77,7 @@ export default function RequestedItems({ selectedStoreDetails, setSelectedStoreD
   const [sort, setSort] = useState(router.query.sort || 'asc')
   const [rows, setRows] = useState([])
   const [searchValue, setSearchValue] = useState(router.query.q || '')
+
   const [sortColumn, setSortColumn] = useState(
     selectedPharmacy.type === 'local' ? 'priority' : router.query.column || 'priority'
   )
@@ -815,8 +816,10 @@ export default function RequestedItems({ selectedStoreDetails, setSelectedStoreD
   }, [selectedPharmacy.type === 'local'])
 
   return (
-    <TabContext value={requestedItemsSubTab}>
+    <TabContext sx={{ border: '1px solid red' }} value={requestedItemsSubTab}>
       <TabLists
+        variant='scrollable'
+        allowScrollButtonsMobile
         container
         onChange={(event, newValue) => {
           setRequestedItemsSubTab(newValue)
@@ -826,16 +829,17 @@ export default function RequestedItems({ selectedStoreDetails, setSelectedStoreD
         }}
         sx={{
           height: 'auto',
-          display: 'flex',
-          flexDirection: { xs: 'column', md: 'row' },
-          alignItems: 'center',
-          justifyContent: 'space-between',
+
+          // display: 'flex',
+          // flexDirection: { xs: 'column', md: 'row' },
+          // alignItems: 'center',
+          // justifyContent: 'space-between',
           mt: 5
         }}
       >
         <Tab value='all' label={'All'} />
-        {selectedPharmacy.type === 'central' && <Tab value='Available' label={'Available'} />}
-        {selectedPharmacy.type === 'central' && <Tab value='NotAvailable' label={'NotAvailable'} />}
+        {selectedPharmacy?.type === 'central' && <Tab value='Available' label={'Available'} />}
+        {selectedPharmacy?.type === 'central' && <Tab value='NotAvailable' label={'NotAvailable'} />}
       </TabLists>
 
       <TabPanel

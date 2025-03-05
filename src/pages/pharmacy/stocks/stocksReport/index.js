@@ -1090,7 +1090,12 @@ const ListOfStocks = () => {
             {/* <Box sx={{ m: 1 }}>
 
             </Box> */}
-            <TabList onChange={handleChange} aria-label='simple tabs example'>
+            <TabList
+              variant='scrollable'
+              allowScrollButtonsMobile
+              onChange={handleChange}
+              aria-label='simple tabs example'
+            >
               <Tab sx={{ ml: 3 }} value='1' label='Stock Report' />
               {/* <Tab value='2' label='Stock Report Batch Wise' /> */}
               <Tab value='3' label='Low stock' />
@@ -1120,7 +1125,7 @@ const ListOfStocks = () => {
                   rowCount={total}
                   setPaginationModel
                   rows={stockReport}
-                  headerActions={headerAction} 
+                  headerActions={headerAction}
                 /> */}
                 <Card>
                   <CardHeader

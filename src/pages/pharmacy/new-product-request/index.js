@@ -802,7 +802,7 @@ export default function NewProductList() {
         <FallbackSpinner />
       ) : (
         <TabContext value={status}>
-          <TabList onChange={handleChange}>
+          <TabList variant='scrollable' allowScrollButtonsMobile onChange={handleChange}>
             <Tab
               sx={{ ml: { xs: 1, sm: 3 } }} // Adjust margin for tabs
               value='Approved'

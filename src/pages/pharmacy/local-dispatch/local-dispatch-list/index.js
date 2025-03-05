@@ -557,12 +557,7 @@ const DirectDispatchList = () => {
   return (
     <Grid>
       <TabContext value={status}>
-        <TabList
-          onChange={handleChange}
-          aria-label='simple tabs example'
-          variant='scrollable' // Makes tabs scrollable for small screens
-          scrollButtons='auto'
-        >
+        <TabList variant='scrollable' allowScrollButtonsMobile onChange={handleChange} aria-label='simple tabs example'>
           <Tab value='pending' label={<TabBadge label='Pending' totalCount={status === 'pending' ? total : null} />} />
           <Tab value='shipped' label={<TabBadge label='Shipped' totalCount={status === 'shipped' ? total : null} />} />
           <Tab
