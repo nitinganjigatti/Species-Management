@@ -463,6 +463,7 @@ const EggSecondSecion = ({
                   display: 'flex',
                   minHeight: '68px',
                   gap: '16px',
+                  flexDirection: 'row',
                   borderRadius: '8px',
                   justifyContent: 'space-between',
                   alignItems: 'center',
@@ -483,18 +484,23 @@ const EggSecondSecion = ({
                       variant='square'
                     ></Avatar>
                   </Box>
-                  <Box>
-                    <Typography
-                      sx={{
-                        fontWeight: 400,
-                        fontSize: '14px',
-                        lineHeight: '16.94px',
-                        mb: '4px',
-                        color: theme.palette.customColors.neutralSecondary
-                      }}
-                    >
-                      {eggDetails?.room_name ? eggDetails?.room_name : 'Room Name'}
-                    </Typography>
+                  <Box sx={{ width: '140px' }}>
+                    <Tooltip title={eggDetails?.room_name ? eggDetails?.room_name : 'Room Name'}>
+                      <Typography
+                        sx={{
+                          fontWeight: 400,
+                          fontSize: '14px',
+                          lineHeight: '16.94px',
+                          mb: '4px',
+                          color: theme.palette.customColors.neutralSecondary,
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis'
+                        }}
+                      >
+                        {eggDetails?.room_name ? eggDetails?.room_name : 'Room Name'}
+                      </Typography>
+                    </Tooltip>
                     <Tooltip title={eggDetails?.incubator_name ? eggDetails?.incubator_name : 'Incubator Code'}>
                       <Typography
                         sx={{
