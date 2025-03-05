@@ -394,7 +394,8 @@ const ListOfMedicine = () => {
   // const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [loading, setLoading] = useState(false)
 
-  const [statusFilter, setStatusFilter] = useState(router.query.status || true)
+  // const [statusFilter, setStatusFilter] = useState(router.query.status || true)
+  const [statusFilter, setStatusFilter] = useState(router.query.status || 'all')
   function loadServerRows(currentPage, data) {
     return data
   }
