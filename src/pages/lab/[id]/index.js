@@ -72,6 +72,7 @@ import Toaster from 'src/components/Toaster'
 import AnimalCard from 'src/views/pages/lab/AnimalCard'
 import { borderColor, width } from '@mui/system'
 import AnimalParentCard from 'src/views/utility/animalParentCard'
+import AnimalSideSheet from 'src/views/pages/lab/AnimalSideSheet'
 
 const statusData = [
   { id: 'awaiting_sample', name: 'Awaiting Sample' },
@@ -165,6 +166,7 @@ const RequestDetails = () => {
   const [selectedRowData, setSelectedRowData] = useState([])
   const [hasCompletedStatus, setHasCompletedStatus] = useState(true)
   const [allCompleted, setAllCompleted] = useState(false)
+  const [openAnimalSheet, setOpenAnimalSheet] = useState(false)
 
   useEffect(() => {
     const labObject = localLabData?.find(item => item?.lab_id === lab_id)
@@ -1003,12 +1005,15 @@ const RequestDetails = () => {
           </Breadcrumbs>
 
           <Card sx={{ p: 5 }}>
-            {request?.map((item, index) => (
-              <>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap' }}>
-                  <Box>
-                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                      {/* {' '}
+            {request?.map(
+              (item, index) => (
+                console.log('animal_details', item?.animal_details),
+                (
+                  <>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap' }}>
+                      <Box>
+                        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                          {/* {' '}
                       <IconButton
                         sx={{ mr: 1 }}
                         onClick={() =>
@@ -1019,49 +1024,91 @@ const RequestDetails = () => {
                       >
                         <Icon icon='ep:back' fontSize={25} />
                       </IconButton> */}
-                      <Typography variant='h6'>
-                        Request ID -{' '}
-                        <span
-                          onClick={() => handleClickOpen(item)}
-                          style={{ fontSize: '20px', fontWeight: 'bold', cursor: 'pointer', color: '#37BD69' }}
-                        >
-                          {item?.request_id}
-                        </span>
-                      </Typography>
-                    </Box>
-                    <Box sx={{ display: 'flex', flexDirection: 'column', flexWrap: 'wrap' }}>
-                      <Typography>
-                        Medical Record :{' '}
-                        <span style={{ fontSize: '15px', fontWeight: 'bold', color: '#7A8684' }}>
-                          {item?.medical_record_code}
-                        </span>
-                      </Typography>
-                    </Box>
-                    <Box sx={{ display: 'flex', flexDirection: 'column', flexWrap: 'wrap' }}>
-                      <Typography>
-                        Requested By{' '}
-                        <span style={{ fontSize: '15px', fontWeight: 'bold', color: '#7A8684' }}>
-                          {item?.user_first_name}
-                        </span>
-                      </Typography>
-                    </Box>
-                    <Typography> {moment(item?.created_at).format('DD MMM YYYY')}</Typography>
-                    <Typography>
-                      Site :{' '}
-                      <span style={{ fontSize: '15px', fontWeight: 'bold', color: '#7A8684' }}>{item?.site_name}</span>
-                    </Typography>
-                    <Typography>
-                      No. of Tests : <span style={{ fontSize: '15px', fontWeight: 'bold' }}>{item?.total_no_test}</span>
-                    </Typography>
-                  </Box>
+                          <Typography variant='h6'>
+                            Request ID -{' '}
+                            <span
+                              onClick={() => handleClickOpen(item)}
+                              style={{ fontSize: '20px', fontWeight: 'bold', cursor: 'pointer', color: '#37BD69' }}
+                            >
+                              {item?.request_id}
+                            </span>
+                          </Typography>
+                        </Box>
+                        <Box sx={{ display: 'flex', flexDirection: 'column', flexWrap: 'wrap' }}>
+                          <Typography>
+                            Medical Record :{' '}
+                            <span style={{ fontSize: '15px', fontWeight: 'bold', color: '#7A8684' }}>
+                              {item?.medical_record_code}
+                            </span>
+                          </Typography>
+                        </Box>
+                        <Box sx={{ display: 'flex', flexDirection: 'column', flexWrap: 'wrap' }}>
+                          <Typography>
+                            Requested By{' '}
+                            <span style={{ fontSize: '15px', fontWeight: 'bold', color: '#7A8684' }}>
+                              {item?.user_first_name}
+                            </span>
+                          </Typography>
+                        </Box>
+                        <Typography> {moment(item?.created_at).format('DD MMM YYYY')}</Typography>
+                        <Typography>
+                          Site :{' '}
+                          <span style={{ fontSize: '15px', fontWeight: 'bold', color: '#7A8684' }}>
+                            {item?.site_name}
+                          </span>
+                        </Typography>
+                        <Typography>
+                          No. of Tests :{' '}
+                          <span style={{ fontSize: '15px', fontWeight: 'bold' }}>{item?.total_no_test}</span>
+                        </Typography>
+                      </Box>
 
-                  <Box sx={{ minWidth: '345px' }}>
-                    <AnimalParentCard data={item?.animal_details} backgroundColor={'#f2f2f2'} />
-                    {/* <AnimalCard animalDetails={item?.animal_details} /> */}
-                  </Box>
-                </Box>
-              </>
-            ))}
+                      <Box
+                        sx={{
+                          minWidth: '400px',
+                          display: 'flex',
+                          flexDirection: 'row',
+                          justifyContent: 'center',
+                          backgroundColor: '#f2f2f2',
+                          borderRadius: '8px',
+
+                          alignItems: 'center'
+                        }}
+                      >
+                        <AnimalParentCard data={item?.animal_details[0]} backgroundColor={'#f2f2f2'} />
+                        {item?.animal_details?.length > 1 && (
+                          <Box
+                            onClick={() => setOpenAnimalSheet(true)}
+                            sx={{
+                              display: 'flex',
+                              gap: 2,
+
+                              // mt: 2,
+
+                              bgcolor: 'rgba(0, 128, 0, 0.1)',
+                              cursor: 'pointer',
+                              borderRadius: '50%',
+                              fontSize: '20px',
+                              fontWeight: 500,
+                              display: 'flex',
+                              justifyContent: 'center',
+                              alignItems: 'center',
+                              color: '#37BD69',
+                              m: 3,
+                              p: 3,
+                              width: '50px',
+                              height: '50px'
+                            }}
+                          >
+                            +{item?.animal_details?.length - 1}
+                          </Box>
+                        )}
+                      </Box>
+                    </Box>
+                  </>
+                )
+              )
+            )}
           </Card>
 
           <Card sx={{ mt: 5 }}>
@@ -1832,6 +1879,15 @@ const RequestDetails = () => {
             ) : null}
           </Box>
         </Dialog>
+      </>
+      <>
+        {openAnimalSheet && (
+          <AnimalSideSheet
+            openAnimalSheet={openAnimalSheet}
+            setOpenAnimalSheet={setOpenAnimalSheet}
+            request={request}
+          />
+        )}
       </>
     </>
   )

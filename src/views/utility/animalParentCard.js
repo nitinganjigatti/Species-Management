@@ -33,7 +33,7 @@ const AnimalParentCard = ({ data, backgroundColor }) => {
             <Avatar
               sx={{
                 '& > img': {
-                  objectFit: data?.default_icon.endsWith('.svg') ? 'contain' : 'cover'
+                  objectFit: data?.default_icon?.endsWith('.svg') ? 'contain' : 'cover'
                 },
                 width: 44,
                 height: 44,
