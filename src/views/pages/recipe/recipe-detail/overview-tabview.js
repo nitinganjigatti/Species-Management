@@ -4,7 +4,7 @@ import Icon from 'src/@core/components/icon'
 import ActivityLogs from 'src/components/diet/activityLogs'
 import moment from 'moment'
 
-const RecipeOverviewTabView = ({ IngredientsDetailsval, type }) => {
+const RecipeOverviewTabView = ({ IngredientsDetailsval }) => {
   const [expanded, setExpanded] = useState(false)
   const [searchValue, setSearchValue] = useState('')
   const [activitySidebarOpen, setActivitySidebarOpen] = useState(false)
@@ -95,7 +95,7 @@ const RecipeOverviewTabView = ({ IngredientsDetailsval, type }) => {
         </Box>
         <ActivityLogs
           activitySidebarOpen={activitySidebarOpen}
-          activity_type={type}
+          activity_type='recipe'
           detailsValue={IngredientsDetailsval}
           searchValue={searchValue}
           setSearchValue={setSearchValue}
