@@ -186,7 +186,7 @@ const RecipeDetail = () => {
             <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
               <Typography color='inherit'>Diet</Typography>
               {/* <Link underline='hover' color='inherit' href='/diet/recipe/'>
-                Recipe 
+                Recipe
               </Link> */}
               <Typography color='inherit' sx={{ cursor: 'pointer' }} onClick={() => Router.push('/diet/combo/')}>
                 Combo
@@ -281,7 +281,7 @@ const RecipeDetail = () => {
                             />
                           </TabList>
                           <TabPanel value='1'>
-                            <RecipeOverviewTabView IngredientsDetailsval={IngredientsDetailsval} />
+                            <RecipeOverviewTabView IngredientsDetailsval={IngredientsDetailsval} type='combo' />
                           </TabPanel>
                           <TabPanel value='2'>
                             <DietListTabview

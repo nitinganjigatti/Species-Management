@@ -184,7 +184,7 @@ const RecipeDetail = () => {
             <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
               <Typography color='inherit'>Diet</Typography>
               {/* <Link underline='hover' color='inherit' href='/diet/recipe/'>
-                Recipe 
+                Recipe
               </Link> */}
               <Typography color='inherit' sx={{ cursor: 'pointer' }} onClick={() => router.back()}>
                 Recipe
@@ -278,7 +278,7 @@ const RecipeDetail = () => {
                             />
                           </TabList>
                           <TabPanel value='1'>
-                            <RecipeOverviewTabView IngredientsDetailsval={IngredientsDetailsval} />
+                            <RecipeOverviewTabView IngredientsDetailsval={IngredientsDetailsval} type='recipe' />
                           </TabPanel>
                           <TabPanel value='2'>
                             <DietListTabview
