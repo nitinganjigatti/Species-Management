@@ -881,7 +881,7 @@ const PurchaseItemForm = props => {
         </Grid>
         <Grid item xs={12} sm={4}>
           <FormControl fullWidth>
-            <InputLabel error={Boolean(errors.supplier_id)}>Product Variant</InputLabel>
+            <InputLabel error={Boolean(errors.supplier_id)}>Product Variant*</InputLabel>
             <Controller
               name='purchase_variant_id'
               control={control}
