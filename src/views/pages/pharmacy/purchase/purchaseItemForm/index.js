@@ -774,8 +774,6 @@ const PurchaseItemForm = props => {
                 <TextField
                   {...field}
                   onKeyUp={e => {
-                    setValue('purchase_unit_qty', '')
-                    setValue('purchase_qty', '')
                     calculateStuff()
 
                     const productData = {
