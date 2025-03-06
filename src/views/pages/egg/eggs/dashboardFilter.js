@@ -431,6 +431,7 @@ const DashboardFilter = ({
 
                 <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
                   <Checkbox
+                    disabled={getOptionsForMenu(selectedMenu).length === 0}
                     checked={selectAll}
                     onChange={handleSelectAllChange}
                     inputProps={{ 'aria-label': 'controlled' }}
