@@ -659,7 +659,7 @@ const SpeciesDietList = () => {
   return (
     <>
       <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
-        <Typography color='inherit'>Egg</Typography>
+        <Typography color='inherit'>Diet</Typography>
 
         <Typography sx={{ cursor: 'pointer' }} color='text.primary'>
           Species Diet List
