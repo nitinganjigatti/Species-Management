@@ -86,7 +86,6 @@ const FilterDrawer = ({
         sx={{
           display: 'flex',
           justifyContent: 'space-between',
-          marginTop: 'auto',
           bgcolor: '#FFFFFF',
           p: 4,
           boxShadow: 3,

@@ -214,8 +214,8 @@ function Dispatch({ tabValue, updateUrlParams }) {
               mr: 4
             }}
             variant='circular'
-            alt={params?.row?.profile_pic}
-            src={params?.row?.profile_pic}
+            alt={params?.row?.created_by_profile_pic}
+            src={params?.row?.created_by_profile_pic}
           />
           <Typography
             variant='body2'
