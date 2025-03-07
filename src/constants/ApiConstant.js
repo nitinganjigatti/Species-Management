@@ -243,3 +243,9 @@ export const PRODUCT_DISPATCH = 'v1/pharma/stock/dispatch-details'
 export const PRODUCT_PURCHASE = 'v1/pharma/stock/purchase-details'
 
 export const PRODUCT_PURCHASE_BATCH_LIST = 'purchase'
+
+export const PURCHASE_REPORT = 'purchase-report'
+
+export const RETURN_REPORT = 'return-report'
+
+export const SHIPMENT_REPORT = 'shipment-report'
