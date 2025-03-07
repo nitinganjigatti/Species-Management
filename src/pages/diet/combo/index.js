@@ -52,7 +52,7 @@ const RecipeList = () => {
     pageSize: parseInt(query.pageSize || 10, 10)
   })
   const [loading, setLoading] = useState(false)
-  const [status, setStatus] = useState('')
+  const [status, setStatus] = useState(query.status || '')
 
   const authData = useContext(AuthContext)
   const dietModule = authData?.userData?.roles?.settings?.diet_module
@@ -83,13 +83,17 @@ const RecipeList = () => {
   useEffect(() => {
     const page = parseInt(query.page || 0, 10)
     const pageSize = parseInt(query.pageSize || 10, 10)
+    const status = query.status || ''
 
     setPaginationModel({ page: page, pageSize: pageSize })
-  }, [query.page, query.pageSize])
+    setStatus(status)
+  }, [query.page, query.pageSize, query.status])
 
   const handleChange = (event, newValue) => {
-    setTotal(0)
     setStatus(newValue)
+    setTotal(0)
+    setPaginationModel({ page: 0, pageSize: 10 })
+    updateQueryParams({ page: 0, status: newValue, pageSize: 10 })
   }
 
   const fetchTableData = useCallback(
@@ -132,7 +136,7 @@ const RecipeList = () => {
   )
   useEffect(() => {
     fetchTableData(sortBy, searchValue, sortColumn, searchColumns, status)
-  }, [fetchTableData, status])
+  }, [status, paginationModel.page, paginationModel.pageSize, sortBy, sortColumn])
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
@@ -224,7 +228,8 @@ const RecipeList = () => {
   }
 
   const handleSearch = value => {
-    updateQueryParams({ q: value, page: 0 })
+    setPaginationModel({ page: 0, pageSize: 10 })
+    updateQueryParams({ q: value, page: 0, pageSize: paginationModel.pageSize })
     setSearchValue(value)
     searchTableData(sortBy, value, sortColumn, searchColumns, status)
   }
@@ -404,9 +409,7 @@ const RecipeList = () => {
     if (clickedColumn) {
       const data = params.row
 
-      router.push({
-        pathname: `/diet/combo/${data?.id}`
-      })
+      router.push({ pathname: `/diet/combo/${data?.id}` })
     } else {
       return
     }

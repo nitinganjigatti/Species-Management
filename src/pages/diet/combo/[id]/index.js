@@ -188,7 +188,7 @@ const RecipeDetail = () => {
               {/* <Link underline='hover' color='inherit' href='/diet/recipe/'>
                 Recipe
               </Link> */}
-              <Typography color='inherit' sx={{ cursor: 'pointer' }} onClick={() => Router.push('/diet/combo/')}>
+              <Typography color='inherit' sx={{ cursor: 'pointer' }} onClick={() => router.back()}>
                 Combo
               </Typography>
               <Typography color='text.primary'>Combo Details</Typography>
