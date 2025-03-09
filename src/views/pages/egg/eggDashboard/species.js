@@ -774,8 +774,10 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
             }
           }}
         >
+          {console.log('params.row.send_to_nursery', params.row.send_to_nursery)}
+          {console.log('With in transfer request:', params.row.within_transfer_request)}
           <CustomTooltip
-            disableHoverListener={!params?.row?.nursery_wise_breakdown?.length}
+            disableHoverListener={params?.row?.send_to_nursery + params.row.within_transfer_request <= 0}
             title={[
               { label: 'Send to nursery :', value: params.row.send_to_nursery },
               { label: 'With in transfer request:', value: params.row.within_transfer_request }
