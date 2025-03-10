@@ -7,6 +7,7 @@ const base_url = `${process.env.NEXT_PUBLIC_API_BASE_URL}`
 export const GetAPIHeader = async ({ pharmacy } = { pharmacy: false }) => {
   const userDetails = await readAsync('userDetails')
   const selectedPharmacy = await readAsync('selectedStore')
+  const currentTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone
 
   // const header = { 'Content-Type': 'multipart/form-data' }
 
@@ -14,8 +15,6 @@ export const GetAPIHeader = async ({ pharmacy } = { pharmacy: false }) => {
 
   if (userDetails?.user?.zoos.length > 0) {
     header['ZooId'] = userDetails?.user?.zoos[0].zoo_id
-
-    //header['ZooId'] = '4'
   }
   if (userDetails?.token !== '') {
     header['Authorization'] = `Bearer ${userDetails?.token}`
@@ -24,6 +23,8 @@ export const GetAPIHeader = async ({ pharmacy } = { pharmacy: false }) => {
   if (pharmacy) {
     header['Selectedstore'] = selectedPharmacy?.id
   }
+
+  header['CurrentTimeZone'] = currentTimeZone
 
   return header
 }
@@ -50,6 +51,14 @@ export const axiosFormPost = async ({ url, body, pharmacy }) => {
   headers['Content-Type'] = 'multipart/form-data'
 
   return axios.post(completeUrl, body, { headers })
+}
+
+export const axiosGetExternal = async ({ url, params, pharmacy }) => {
+  const headers = await GetAPIHeader({ pharmacy })
+  const completeUrl = `https://mocki.io/v1/${url}`
+  headers['Content-Type'] = 'application/json'
+
+  return axios.get(completeUrl, { headers: headers, params: params })
 }
 
 export const fetchFormPost = async ({ url, body, pharmacy }) => {

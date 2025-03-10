@@ -71,6 +71,7 @@ const EggSecondSecion = ({
   getDetails
 }) => {
   const currentDate = moment().format('YYYY-MM-DD')
+
   const historyData = {
     history1: {
       Site: eggDetails?.site_name,
@@ -105,7 +106,7 @@ const EggSecondSecion = ({
       'Collected on': Utility.formatDisplayDate(Utility.convertUTCToLocal(eggDetails?.collection_date)),
       'Lay Date': eggDetails?.lay_date
         ? Utility.formatDisplayDate(Utility.convertUTCToLocal(eggDetails?.lay_date))
-        : 'NA (Not Applicable)'
+        : 'NA'
 
       // 'Collected By': 'Jordan Steveson'
     }
@@ -189,6 +190,7 @@ const EggSecondSecion = ({
       measurement_unit_id: defaultEggAssesment?.unit_id,
       assessment_value: val?.assessment_value
     }
+
     const paramsEdit = {
       ref_id: val?.assessment_id,
       measurement_unit_id: defaultEggAssesment?.unit_id,
@@ -367,6 +369,7 @@ const EggSecondSecion = ({
           let listWithId = res.data?.result.map((el, i) => {
             return { ...el, uid: i + 1 }
           })
+
           let rowWeights = res.data?.result.map((el, i) => {
             return el?.assessment_value
           })
@@ -401,6 +404,7 @@ const EggSecondSecion = ({
         show: false
       }
     },
+
     // title: {
     //   text: 'Egg Weight',
     //   align: 'left',
@@ -437,6 +441,7 @@ const EggSecondSecion = ({
       title: {
         text: 'Weight (g)'
       }
+
       // min: 100
       // max: 300
     },
@@ -458,6 +463,7 @@ const EggSecondSecion = ({
                   display: 'flex',
                   minHeight: '68px',
                   gap: '16px',
+                  flexDirection: 'row',
                   borderRadius: '8px',
                   justifyContent: 'space-between',
                   alignItems: 'center',
@@ -478,18 +484,23 @@ const EggSecondSecion = ({
                       variant='square'
                     ></Avatar>
                   </Box>
-                  <Box>
-                    <Typography
-                      sx={{
-                        fontWeight: 400,
-                        fontSize: '14px',
-                        lineHeight: '16.94px',
-                        mb: '4px',
-                        color: theme.palette.customColors.neutralSecondary
-                      }}
-                    >
-                      {eggDetails?.room_name ? eggDetails?.room_name : 'Room Name'}
-                    </Typography>
+                  <Box sx={{ width: '140px' }}>
+                    <Tooltip title={eggDetails?.room_name ? eggDetails?.room_name : 'Room Name'}>
+                      <Typography
+                        sx={{
+                          fontWeight: 400,
+                          fontSize: '14px',
+                          lineHeight: '16.94px',
+                          mb: '4px',
+                          color: theme.palette.customColors.neutralSecondary,
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis'
+                        }}
+                      >
+                        {eggDetails?.room_name ? eggDetails?.room_name : 'Room Name'}
+                      </Typography>
+                    </Tooltip>
                     <Tooltip title={eggDetails?.incubator_name ? eggDetails?.incubator_name : 'Incubator Code'}>
                       <Typography
                         sx={{
@@ -502,7 +513,7 @@ const EggSecondSecion = ({
                           textOverflow: 'ellipsis'
                         }}
                       >
-                        {eggDetails?.incubator_name ? eggDetails?.incubator_name : 'Incubator Code'}
+                        {eggDetails?.incubator_code ? eggDetails?.incubator_code : 'Incubator Code'}
                       </Typography>
                     </Tooltip>
                   </Box>
@@ -727,6 +738,7 @@ const EggSecondSecion = ({
                               whiteSpace: 'nowrap',
                               overflow: 'hidden',
                               textOverflow: 'ellipsis',
+
                               // cursor: value.startsWith('Probable') && 'pointer',
                               cursor: 'pointer',
                               textDecoration: key === 'Mother id' || key === 'Father id' ? 'underline' : 'none',
@@ -1014,6 +1026,7 @@ const EggSecondSecion = ({
                             padding: '11px 12px 11px 12px',
                             fontSize: '12px',
                             fontWeight: '400',
+
                             // display: 'flex',
                             // alignItems: 'center',
                             // justifyContent: 'center',
@@ -1188,6 +1201,7 @@ const EggSecondSecion = ({
                               inputProps={{ min: 1 }}
                               onChange={event => {
                                 const newValue = event.target.value
+
                                 // Validate the input to ensure it contains only numbers
                                 if (/^[1-9]\d*$/.test(newValue) || newValue === '') {
                                   onChange(event)

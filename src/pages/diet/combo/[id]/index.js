@@ -23,12 +23,12 @@ import RecipeDetailCardview from 'src/views/pages/combo/combo-detail/cardview'
 import Router from 'next/router'
 import { useRouter } from 'next/router'
 import { getRecipeDetail, updateRecipeStatus } from 'src/lib/api/diet/recipe'
-import RecipeOverviewTabView from 'src/views/pages/recipe/recipe-detail/overview-tabview'
+import RecipeOverviewTabView from 'src/views/pages/combo/combo-detail/overview-tabview'
 import Icon from 'src/@core/components/icon'
 import ModuleDeleteDialogConfirmation from 'src/components/utility/ModuleDeleteDialogConfirmation'
 import { deleteRecipe } from 'src/lib/api/diet/recipe'
 import toast from 'react-hot-toast'
-import DietListTabview from 'src/views/pages/recipe/recipe-detail/dietList-tabview'
+import DietListTabview from 'src/views/pages/combo/combo-detail/dietList-tabview'
 import IngredientsListforRecipeDetail from '../ingredient-list'
 import Toaster from 'src/components/Toaster'
 import Tooltip from '@mui/material/Tooltip'
@@ -131,6 +131,7 @@ const RecipeDetail = () => {
     try {
       const activePayload = isActive == 0 ? 1 : 0
       setDeleteDialogBox(false)
+
       const response = await updateRecipeStatus(IngredientsDetailsval?.id, {
         status: activePayload,
         meal_type: 'combo'
@@ -140,6 +141,7 @@ const RecipeDetail = () => {
         //Router.push(`/diet/ingredient`)
         getRecipeDetailval(id)
         setstatusDialog(false)
+
         return Toaster({ type: 'success', message: response?.message })
       } else {
         return Toaster({ type: 'error', message: response?.message })
@@ -157,6 +159,7 @@ const RecipeDetail = () => {
       // console.log(response, 'response')
       if (response.success === true) {
         Router.push(`/diet/combo`)
+
         //Toaster({ type: 'success', message: `Recipe ${'REP' + id} has been successfully deleted` })
         Toaster({ type: 'success', message: response?.message })
       } else {
@@ -183,9 +186,9 @@ const RecipeDetail = () => {
             <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
               <Typography color='inherit'>Diet</Typography>
               {/* <Link underline='hover' color='inherit' href='/diet/recipe/'>
-                Recipe 
+                Recipe
               </Link> */}
-              <Typography color='inherit' sx={{ cursor: 'pointer' }} onClick={() => Router.push('/diet/recipe/')}>
+              <Typography color='inherit' sx={{ cursor: 'pointer' }} onClick={() => Router.push('/diet/combo/')}>
                 Combo
               </Typography>
               <Typography color='text.primary'>Combo Details</Typography>
@@ -284,6 +287,7 @@ const RecipeDetail = () => {
                             <DietListTabview
                               IngredientName={IngredientsDetailsval.ingredient_name}
                               onTotalChange={setDietListTotal}
+                              type='combo'
                             />
                           </TabPanel>
                         </TabContext>

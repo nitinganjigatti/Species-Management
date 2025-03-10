@@ -561,7 +561,7 @@ const ListOfRequest = () => {
               disableColumnMenu
               sortingMode='server'
               paginationMode='server'
-              // pageSizeOptions={[10, 25, 50]}
+              pageSizeOptions={[10, 25, 50, 100]}
               paginationModel={paginationModel}
               onSortModelChange={handleSortModel}
               slots={{ toolbar: ServerSideToolbar }}

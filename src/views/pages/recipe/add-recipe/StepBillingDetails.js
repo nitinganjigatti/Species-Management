@@ -3,12 +3,12 @@ import { DataGrid } from '@mui/x-data-grid'
 import Box from '@mui/material/Box'
 import Grid from '@mui/material/Grid'
 import Button from '@mui/material/Button'
-import { Card, CardContent, Avatar } from '@mui/material'
+import { Card, CardContent, Avatar, Tooltip, CircularProgress } from '@mui/material'
 import Icon from 'src/@core/components/icon'
 import Typography from '@mui/material/Typography'
 import 'react-credit-cards/es/styles-compiled.css'
 
-const StepBillingDetails = ({ handlePrev, formData, handleSubmit }) => {
+const StepBillingDetails = ({ handlePrev, formData, handleSubmit, loader }) => {
   const columns = [
     {
       flex: 0.5,
@@ -16,9 +16,11 @@ const StepBillingDetails = ({ handlePrev, formData, handleSubmit }) => {
       field: 'ingredient_name',
       headerName: 'Ingredient Name',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary', pl: 2 }}>
-          {params.row.ingredient_name}
-        </Typography>
+        <Tooltip title={params.row.ingredient_name}>
+          <Typography variant='body2' sx={{ color: 'text.primary', pl: 2 }} className='text_overflow_moduled'>
+            {params.row.ingredient_name}
+          </Typography>
+        </Tooltip>
       )
     },
     {
@@ -49,10 +51,18 @@ const StepBillingDetails = ({ handlePrev, formData, handleSubmit }) => {
       field: 'quantity',
       headerName: 'Quantity',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary', pl: 3 }}>
-          {parseFloat(params.row.quantity).toFixed(2)}
-          {params.row.uom_text ? ` ${params.row.uom_text}` : ''}
-        </Typography>
+        <>
+          <Tooltip
+            title={`${parseFloat(params.row.quantity).toFixed(2)}${
+              params.row.uom_text ? ` ${params.row.uom_text}` : ''
+            }`}
+          >
+            <Typography variant='body2' className='text_overflow_moduled' sx={{ color: 'text.primary', pl: 3 }}>
+              {parseFloat(params.row.quantity).toFixed(2)}
+              {params.row.uom_text ? ` ${params.row.uom_text}` : ''}
+            </Typography>
+          </Tooltip>
+        </>
       )
     },
     {
@@ -377,8 +387,19 @@ const StepBillingDetails = ({ handlePrev, formData, handleSubmit }) => {
                 onClick={handleSubmit}
                 variant='contained'
                 endIcon={<Icon icon='mdi:arrow-right' fontSize={20} />}
+                disabled={loader}
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 1,
+                  minWidth: 120
+                }}
               >
-                Submit
+                <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  Submit
+                  {loader && <CircularProgress size={16} sx={{ color: '#ccc' }} />}
+                </span>
               </Button>
             </Box>
           </Grid>

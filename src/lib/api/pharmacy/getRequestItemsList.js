@@ -42,7 +42,7 @@ export async function getAvailableMedicineByMedicineId(id, data, store, productT
 
 export async function addDispatch(payload) {
   try {
-    const url = `${DISPATCH}`
+    const url = `v2/${DISPATCH}`
     var data = payload
     const response = await axiosPost({ url, body: data, pharmacy })
 
@@ -128,7 +128,7 @@ export async function cancelRequestItems(id) {
 
 export async function shipRequestedItems(payload) {
   try {
-    const url = `${SHIPMENT}`
+    const url = `v2/${SHIPMENT}`
     var data = payload
     const response = await axiosPost({ url, body: data, pharmacy })
 
@@ -153,7 +153,7 @@ export async function getShippedItemsByRequestId(id) {
 
 export async function updateShipmentRequest(id, payload) {
   try {
-    const url = `${SHIPMENT}/${id}/update`
+    const url = `v2/${SHIPMENT}/${id}/update`
     var data = payload
     data.id = id
     const response = await axiosPost({ url, body: data, pharmacy })

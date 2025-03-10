@@ -25,7 +25,7 @@ import Grid from '@mui/material/Grid'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
-import Router from 'next/router'
+import Router, { useRouter } from 'next/router'
 import ServerSideToolbarWithFilter from 'src/views/table/data-grid/ServerSideToolbarWithFilter'
 import { updateIngredientStatus } from 'src/lib/api/diet/getIngredients'
 import ConfirmationDialog from 'src/components/confirmation-dialog'
@@ -44,13 +44,19 @@ const roleColors = {
 
 const IngredientsList = () => {
   const theme = useTheme()
+  const router = useRouter()
+  const { query } = router
   const [loader, setLoader] = useState(false)
   const [total, setTotal] = useState(0)
   const [sort, setSort] = useState('desc')
   const [rows, setRows] = useState([])
-  const [searchValue, setSearchValue] = useState('')
+  const [searchValue, setSearchValue] = useState(query.q || '')
   const [sortColumning, setsortColumning] = useState('ingredient_name')
-  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
+
+  const [paginationModel, setPaginationModel] = useState({
+    page: parseInt(query.page || 0, 10),
+    pageSize: parseInt(query.pageSize || 10, 10)
+  })
   const [loading, setLoading] = useState(false)
   const [status, setStatus] = useState('')
   const [statusCheckval, setstatusCheckval] = useState(false)
@@ -67,6 +73,31 @@ const IngredientsList = () => {
   function loadServerRows(currentPage, data) {
     return data
   }
+
+  // Common function to update URL query parameters
+  const updateQueryParams = useCallback(
+    newParams => {
+      router.replace(
+        {
+          pathname: router.pathname,
+          query: {
+            ...router.query,
+            ...newParams
+          }
+        },
+        undefined,
+        { shallow: true }
+      )
+    },
+    [router]
+  )
+
+  useEffect(() => {
+    const page = parseInt(query.page || 0, 10)
+    const pageSize = parseInt(query.pageSize || 10, 10)
+
+    setPaginationModel({ page: page, pageSize: pageSize })
+  }, [query.page, query.pageSize])
 
   const handleChange = (event, newValue) => {
     setTotal(0)
@@ -96,6 +127,7 @@ const IngredientsList = () => {
 
           // Generate uid field based on the index
           const startingIndex = paginationModel.page * paginationModel.pageSize
+
           let listWithId = res.data.result.map((el, i) => {
             return { ...el, uid: startingIndex + i + 1 }
           })
@@ -200,16 +232,17 @@ const IngredientsList = () => {
   }
 
   const handleSearch = value => {
+    updateQueryParams({ q: value, page: 0 })
     setSearchValue(value)
     searchTableData(sort, value, sortColumning, status)
   }
 
   const columns = [
     {
-      flex: 0.05,
+      flex: 0.27,
       Width: 40,
       field: 'uid',
-      headerName: 'SL ',
+      headerName: 'SL',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary', pl: 3 }}>
           {params.row.uid}
@@ -410,7 +443,7 @@ const IngredientsList = () => {
     if (clickedColumn) {
       const data = params.row
 
-      Router.push({
+      router.push({
         pathname: `/diet/ingredient/${data?.id}`
       })
     } else {
@@ -484,7 +517,13 @@ const IngredientsList = () => {
               paginationModel={paginationModel}
               onSortModelChange={handleSortModel}
               slots={{ toolbar: ServerSideToolbarWithFilter }}
-              onPaginationModelChange={setPaginationModel}
+              onPaginationModelChange={newPaginationModel => {
+                updateQueryParams({
+                  page: newPaginationModel.page,
+                  pageSize: newPaginationModel.pageSize
+                })
+                setPaginationModel(newPaginationModel)
+              }}
               loading={loading}
               slotProps={{
                 baseButton: {

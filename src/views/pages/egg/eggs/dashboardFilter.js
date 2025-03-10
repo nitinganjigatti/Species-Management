@@ -83,7 +83,9 @@ const DashboardFilter = ({
     setSearchQuery('')
     searchData('')
 
-    setSelectAll(false)
+    const allOptions = getOptionsForMenu(menu)
+    // Always update selectAll based on the new selection state
+    setSelectAll(() => selectedOptions[menu?.name]?.length === allOptions.length)
   }
 
   const NurseryList = async q => {
@@ -429,6 +431,7 @@ const DashboardFilter = ({
 
                 <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
                   <Checkbox
+                    disabled={getOptionsForMenu(selectedMenu).length === 0}
                     checked={selectAll}
                     onChange={handleSelectAllChange}
                     inputProps={{ 'aria-label': 'controlled' }}

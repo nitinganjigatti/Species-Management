@@ -1,5 +1,5 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import React, { forwardRef, useState, useEffect } from 'react'
+import React, { forwardRef, useState, useEffect, useCallback } from 'react'
 
 import {
   getRequestItemsListById,
@@ -85,6 +85,8 @@ const IndividualRequest = () => {
       paddingBottom: theme.spacing(2)
     }
   }))
+  const router = useRouter()
+
   const [requestItems, setRequestItems] = useState([])
   const [loader, setLoader] = useState(false)
   const [show, setShow] = useState(false)
@@ -111,7 +113,6 @@ const IndividualRequest = () => {
   const [productNotAvailableLoading, setProductNotAvailableLoading] = useState(false)
   const [permissionView, setPermissionView] = useState(false)
 
-  const router = useRouter()
   const { selectedPharmacy } = usePharmacyContext()
 
   const { id, request_number } = router.query
@@ -129,8 +130,8 @@ const IndividualRequest = () => {
     product: ''
   })
   const [status, setStatus] = useState('Pending')
-  const [detailsTab, setDetailsTab] = useState('Pending')
-  const [shipmentTab, setShipmentTab] = useState('Ready To Ship')
+  const [detailsTab, setDetailsTab] = useState(router?.query?.detailsTab || 'Pending')
+  const [shipmentTab, setShipmentTab] = useState(router?.query?.shipmentTab || 'Ready To Ship')
   const theme = useTheme()
 
   const TabBadge = ({ label, totalCount }) => (
@@ -166,6 +167,14 @@ const IndividualRequest = () => {
   const openAlternativeMedicineDialog = () => {
     setShowAlternativeMedicineDialog(true)
   }
+
+  const updateUrlParams = useCallback(
+    params => {
+      const newQuery = { ...router.query, ...params }
+      router.replace({ pathname: router.pathname, query: newQuery }, undefined)
+    },
+    [router, detailsTab, shipmentTab]
+  )
 
   const closeRejectMedicineDialog = () => {
     setRejectRequestMedicineDialog(false)
@@ -1046,15 +1055,34 @@ const IndividualRequest = () => {
       headerName: 'Action',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary', display: 'flex', alignItems: 'center' }}>
-          <Box sx={{ mr: 2 }}>
+          {/* <Box sx={{ mr: 2 }}> */}
+          <Button
+            sx={{
+              mr: 2,
+              padding: 2,
+              minWidth: 'auto',
+              borderRadius: '50%',
+              backgroundColor: 'transparent',
+              color: 'customColors.neutralSecondary',
+              '&:hover': {
+                backgroundColor: 'transparent'
+              }
+            }}
+            onClick={() => {
+              setDeleteDialog(true)
+              setDeleteFullFillId(params.row.dispatch_item_id)
+            }}
+            disabled={selectedPharmacy?.permission.key === 'VIEW'}
+          >
             <Icon
-              onClick={() => {
-                setDeleteDialog(true)
-                setDeleteFullFillId(params.row.dispatch_item_id)
-              }}
+              // onClick={() => {
+              //   setDeleteDialog(true)
+              //   setDeleteFullFillId(params.row.dispatch_item_id)
+              // }}
               icon='mdi:delete-outline'
             />
-          </Box>
+          </Button>
+          {/* </Box> */}
         </Typography>
       )
     }
@@ -1407,6 +1435,29 @@ const IndividualRequest = () => {
 
   console.log(shippedItems, 'shippedItems')
 
+  const hasNotFulfilledItems = requestItems?.request_item_details?.some(
+    el =>
+      el?.dispatch_status === 'Not Fulfilled' &&
+      el?.request_status !== 'Rejected' &&
+      el?.request_status !== 'Not Available'
+  )
+
+  useEffect(() => {
+    if (hasNotFulfilledItems) {
+      setStatus('Pending')
+    } else if (requestItems?.request_item_details?.length > 0) {
+      setStatus('All')
+    }
+  }, [hasNotFulfilledItems, requestItems?.request_item_details?.length > 0])
+
+  useEffect(() => {
+    if (dispatchedItems?.length > 0) {
+      setShipmentTab('Ready To Ship')
+    } else if (shippedItems?.length > 0) {
+      setShipmentTab('Shipped')
+    }
+  }, [dispatchedItems?.length > 0, shippedItems?.length > 0])
+
   return (
     <>
       {loader ? (
@@ -1531,10 +1582,11 @@ const IndividualRequest = () => {
                               fontSize: '16px',
                               color: 'customColors.OnSurfaceVariant',
                               lineHeight: '19.36px',
-                              mx: 2
+                              mx: 2,
+                              ...RenderUtility?.getEllipsisStyleForText('100')
                             }}
                           >
-                            {requestItems?.to_store}
+                            {RenderUtility?.getToolTipForText(requestItems?.to_store)}
                           </Box>
                         </Typography>
                         <Typography
@@ -1553,10 +1605,11 @@ const IndividualRequest = () => {
                               fontSize: '16px',
                               color: 'customColors.OnSurfaceVariant',
                               lineHeight: '19.36px',
-                              mx: 2
+                              mx: 2,
+                              ...RenderUtility?.getEllipsisStyleForText('100')
                             }}
                           >
-                            {requestItems?.request_number}
+                            {RenderUtility?.getToolTipForText(requestItems?.request_number)}
                           </Box>
                         </Typography>
                       </Grid>
@@ -1629,10 +1682,15 @@ const IndividualRequest = () => {
                               fontSize: '16px',
                               color: 'primary.light',
                               lineHeight: '19.36px',
-                              mx: 2
+                              mx: 2,
+                              ...RenderUtility?.getEllipsisStyleForText('100')
                             }}
                           >
-                            ₹{Utility.formatNumberToDisplay(requestItems?.requested_amount)}
+                            {Utility.formatAmountToReadableDigit(requestItems?.requested_amount)}
+                            {/* ₹
+                            {RenderUtility?.getToolTipForText(
+                              Utility.formatNumberToDisplay(requestItems?.requested_amount)
+                            )} */}
                           </Box>
                         </Typography>
 
@@ -1810,6 +1868,9 @@ const IndividualRequest = () => {
                       sx={{ borderBottom: `1px solid ${theme.palette.customColors.neutral05} !important` }}
                       onChange={(event, newValue) => {
                         setDetailsTab(newValue)
+                        updateUrlParams({
+                          detailsTab: newValue
+                        })
                       }}
                     >
                       <Tab
@@ -1868,7 +1929,7 @@ const IndividualRequest = () => {
                                       setOrderId(e.id)
                                       Router.push({
                                         pathname: `/pharmacy/request/${id}/shipment-details`,
-                                        query: { orderId: e.id }
+                                        query: { orderId: e.id, requestId: id }
                                       })
                                     }}
                                   ></TableBasic>
@@ -1979,6 +2040,9 @@ const IndividualRequest = () => {
                               <TabLists
                                 onChange={(event, newValue) => {
                                   setShipmentTab(newValue)
+                                  updateUrlParams({
+                                    shipmentTab: newValue
+                                  })
                                 }}
                                 sx={{ width: '100%', height: '56px', py: '8px', gap: '6px' }}
                               >
@@ -2054,7 +2118,7 @@ const IndividualRequest = () => {
                                           setOrderId(e.id)
                                           Router.push({
                                             pathname: `/pharmacy/request/${id}/shipment-details`,
-                                            query: { orderId: e.id }
+                                            query: { orderId: e.id, requestId: id }
                                           })
                                         }}
                                       ></TableBasic>

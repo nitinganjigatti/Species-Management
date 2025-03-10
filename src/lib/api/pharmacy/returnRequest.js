@@ -35,7 +35,7 @@ export async function cancelReturnItemsRequest(id) {
 
 export async function addReturnItems(payload) {
   try {
-    const url = `${RETURN_REQUEST}`
+    const url = `v2/${RETURN_REQUEST}`
     const response = await axiosFormPost({ url, body: payload, pharmacy })
 
     return response?.data
@@ -53,7 +53,7 @@ export async function addReturnItems(payload) {
 
 export async function updateReturnItems(id, payload) {
   try {
-    const url = `${RETURN_REQUEST}/${id}/update`
+    const url = `v2/${RETURN_REQUEST}/${id}/update`
     var data = payload
     data.id = id
 

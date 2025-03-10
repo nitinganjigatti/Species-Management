@@ -46,12 +46,6 @@ const AddGenericName = props => {
   // ** States
   const [values, setValues] = useState(defaultValues)
 
-  // const router = useRouter()
-  // const { id, action } = router.query
-
-  // const handleSidebarClose = () => {
-  //   setOpenSidebar(false)
-  // }
 
   const {
     reset,
@@ -106,7 +100,7 @@ const AddGenericName = props => {
   const RenderSidebarFooter = () => {
     return (
       <Fragment>
-        <LoadingButton size='large' type='submit' variant='contained' loading={submitLoader}>
+        <LoadingButton size='large' type='submit' variant='contained' >
           Submit
         </LoadingButton>
       </Fragment>

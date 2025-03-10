@@ -8,7 +8,8 @@ import {
   InputLabel,
   Select,
   MenuItem,
-  Checkbox
+  Checkbox,
+  CircularProgress
 } from '@mui/material'
 import { useCallback, useContext, useEffect, useRef, useState } from 'react'
 import { DataGrid } from '@mui/x-data-grid'
@@ -27,6 +28,7 @@ const SpeciesReport = () => {
   const theme = useTheme()
   const authData = useContext(AuthContext)
   const reports_module = authData?.userData?.roles?.settings?.enable_reports_module
+  const enable_specie_report = authData?.userData?.permission?.user_settings?.enable_specie_report
 
   const [status, setStatus] = useState('statistics')
   const [selectedSites, setSelectedSites] = useState([])
@@ -41,6 +43,7 @@ const SpeciesReport = () => {
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [total, setTotal] = useState(0)
   const [selectedOptions, setSelectedOptions] = useState([])
+  const [isDownloading, setIsDownloading] = useState(false)
 
   const [popoverData, setPopoverData] = useState({
     Taxonomy: [
@@ -101,6 +104,8 @@ const SpeciesReport = () => {
   const id = open ? 'filter-popover' : undefined
 
   const getStatisticsDataToExport = async () => {
+    await fetchDownList({ ...apiFilterParams, response_type: 'csv' }, { responseType: 'csv' })
+
     // const params = {
     //   response_type: 'csv',
     //   ...Object.keys(apiFilterParams).reduce((acc, key) => {
@@ -113,11 +118,7 @@ const SpeciesReport = () => {
     // }
 
     // debugger
-
-    await fetchAndSetDataList({ ...apiFilterParams, response_type: 'csv' }, { responseType: 'csv' })
   }
-
-  console.log('Selected Sites >>', selectedSites)
 
   const title = (
     <>
@@ -171,6 +172,35 @@ const SpeciesReport = () => {
     } finally {
       setIsLoading(false)
     }
+  }
+
+  const fetchDownList = async (params, options = {}) => {
+    const { responseType = 'json' } = options
+    try {
+      setIsDownloading(true)
+      const response = await getReportFilterList(params)
+      if (responseType === 'csv' && response && response.data) {
+        handleCsvResponse(response.data)
+      } else if (response.success) {
+        const { header, animal_list, total_animal } = response.data || {}
+
+        setTotal(total_animal)
+        setIsDownloading(false)
+      }
+    } catch (error) {
+      toast.error('Error connecting to the server')
+    } finally {
+      setIsDownloading(false)
+    }
+  }
+
+  const handleCsvResponse = csvUrl => {
+    const link = document.createElement('a')
+    link.href = csvUrl
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    URL.revokeObjectURL(csvUrl)
   }
 
   const handleOptionChange = (category, itemIndex) => {
@@ -291,7 +321,7 @@ const SpeciesReport = () => {
   )
 
   useEffect(() => {
-    if (reports_module) {
+    if (reports_module && enable_specie_report) {
       fetchData(apiFilterParams, paginationModel)
     }
   }, [fetchData])
@@ -427,7 +457,7 @@ const SpeciesReport = () => {
 
   return (
     <>
-      {reports_module ? (
+      {reports_module && enable_specie_report ? (
         <>
           <Card>
             <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', px: 2, pt: 2 }}>
@@ -447,8 +477,14 @@ const SpeciesReport = () => {
                   mt: 2
                 }}
               >
-                Download Report
-                <img src='/images/download.png' alt='download icon' style={{ marginLeft: 8 }} />
+                {isDownloading ? (
+                  <CircularProgress size={20} sx={{ color: 'white' }} />
+                ) : (
+                  <>
+                    Download Report
+                    <img src='/images/download.png' alt='download icon' style={{ marginLeft: 8 }} />
+                  </>
+                )}
               </Button>
             </Box>
 
@@ -616,26 +652,34 @@ const SpeciesReport = () => {
                       onClick={handleClick}
                       variant='outlined'
                       sx={{
-                        width: '180px',
+                        width: '150px',
                         height: '40px',
                         mt: 2,
                         display: 'flex',
+                        borderRadius: '4px',
                         color: '#44544A',
                         fontWeight: 400,
                         fontSize: '16px',
                         fontFamily: 'Inter',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        gap: 2,
+
+                        // mr: 2,
+                        gap: 1,
                         minWidth: '100px'
                       }}
                     >
                       <img
                         src='/images/show_popup.png'
-                        style={{ width: '24px', height: '24px', marginBottom: '2px' }}
+                        style={{
+                          width: '24px',
+                          height: '24px',
+                          marginBottom: '2px',
+                          marginRight: '3px',
+                          marginTop: '2px'
+                        }}
                         alt='Filter Icon'
                       />
-
                       <Typography sx={{ color: '#1F515B', textTransform: 'capitalize' }}>Show/Hide</Typography>
                     </Button>
                     <Popover

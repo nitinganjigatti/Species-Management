@@ -94,6 +94,11 @@ function Dispense() {
       headerName: 'User Name',
       renderCell: params => (
         <>
+         {/* {RenderUtility?.renderUserAvatarDetails(
+            params?.row?.profile_pic, 
+            params?.row?.user_name,
+           
+          )} */}
           <Avatar
             sx={{
               '& > img': {

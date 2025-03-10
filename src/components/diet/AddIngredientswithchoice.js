@@ -42,7 +42,9 @@ const AddIngredientswithChoice = props => {
     formData,
     ingType,
     setingType,
-    ingredientChoiceIndex
+    ingredientChoiceIndex,
+    uom,
+    feedType
   } = props
 
   const [feed, setFeed] = React.useState('')
@@ -62,8 +64,8 @@ const AddIngredientswithChoice = props => {
   let [ingredientPage, setIngredientPage] = useState(1)
   const [reachedEnd, setReachedEnd] = useState(false)
   const [sort, setSort] = useState('desc')
-  const [uom, setUom] = useState([])
-  const [feedType, setFeedType] = useState([])
+  // const [uom, setUom] = useState([])
+  // const [feedType, setFeedType] = useState([])
   const [selectedDays, setSelectedDays] = useState([])
 
   const [count, setCount] = useState(1)
@@ -148,7 +150,7 @@ const AddIngredientswithChoice = props => {
 
   const handleChangeSize = (event, item) => {
     event.stopPropagation()
-    // const newUom = event.target.value
+
     const { value } = event.target
     const newUom = uom.find(type => Number(type.id) === Number(value))
 
@@ -216,7 +218,6 @@ const AddIngredientswithChoice = props => {
       const sizeValue = newUom ? newUom?.id : size[item.id]?.id || ''
       const sizeName = newUom ? newUom?.cut_size : size[item.id]?.name || ''
 
-      // Update boxValues with cut size and size
       // boxValues.feed_cut_size = cutSizeValue
       boxValues.master_cut_size_id = sizeValue
       boxValues.master_cut_size = sizeName
@@ -235,12 +236,18 @@ const AddIngredientswithChoice = props => {
   }
 
   const handleContinueClick = event => {
-    if (Object.keys(size).length === 0) {
-      toast.error('Please select a Cutsize')
-    } else if (selectedCardIngchoice.length === 0) {
-      toast.error('Please select an Ingredient')
-    }
-    if (selectedCardIngchoice.length >= 1) {
+    if (Object.keys(selectFeed).length === 0) {
+      toast.error('Ingredients are required', {
+        duration: 1000
+      })
+    } else if (
+      (Object.keys(selectFeed).length > 0 && Object.keys(size).length === 0) ||
+      Object.keys(selectFeed).length !== Object.keys(size).length
+    ) {
+      toast.error('Please select a Cutsize', {
+        duration: 1000
+      })
+    } else if (selectedCardIngchoice.length >= 1) {
       setShowDays(true)
 
       const allDayIds = Day.map(day => day.id)
@@ -249,7 +256,7 @@ const AddIngredientswithChoice = props => {
   }
 
   useEffect(() => {
-    getUnitsList()
+    // getUnitsList()
     setReachedEnd(true)
 
     try {
@@ -269,37 +276,37 @@ const AddIngredientswithChoice = props => {
   }, [])
 
   // Top Feed Type
-  const fetchData = async () => {
-    const params = { page: 1, limit: 50, status: 1 }
-    try {
-      const response = await getFeedTypeList(params)
+  // const fetchData = async () => {
+  //   const params = { page: 1, limit: 50, status: 1 }
+  //   try {
+  //     const response = await getFeedTypeList(params)
 
-      setFeedType(response?.data?.result)
-    } catch (error) {
-      console.log('error', error)
-    }
-  }
+  //     setFeedType(response?.data?.result)
+  //   } catch (error) {
+  //     console.log('error', error)
+  //   }
+  // }
 
-  useEffect(() => {
-    fetchData()
-  }, [])
+  // useEffect(() => {
+  //   fetchData()
+  // }, [])
 
   // uom
 
-  const getUnitsList = async () => {
-    try {
-      const params = {
-        //type: ['length', 'weight'],
-        page: 1,
-        limit: 50
-      }
-      await getCutsizeList(params).then(res => {
-        setUom(res?.data?.result)
-      })
-    } catch (e) {
-      console.log(e)
-    }
-  }
+  // const getUnitsList = async () => {
+  //   try {
+  //     const params = {
+  //       //type: ['length', 'weight'],
+  //       page: 1,
+  //       limit: 50
+  //     }
+  //     await getCutsizeList(params).then(res => {
+  //       setUom(res?.data?.result)
+  //     })
+  //   } catch (e) {
+  //     console.log(e)
+  //   }
+  // }
 
   const handleScroll = async e => {
     const container = e.target
@@ -335,18 +342,17 @@ const AddIngredientswithChoice = props => {
       })
 
       if (selectedValuesWithCheckId?.length > 0) {
-        // Extract ingredientList from selectedValuesWithCheckId
         const ingredientLists = selectedValuesWithCheckId.flatMap(item => item.ingredientList)
         const daysOfWeek = selectedValuesWithCheckId.flatMap(item => item.days_of_week)
         const minChoices = selectedValuesWithCheckId.flatMap(item => item.no_of_component_required)
-        // Update selectedCardIngredientchoice state with ingredientList values
+
         setSelectedCardIngredientchoice(ingredientLists)
-        // Update selectedDays state with the extracted days
+
         setSelectedDays(daysOfWeek)
         setShowDays(true)
         setCount(Math.max(...minChoices))
         //setListOfIngredient(selectedValuesWithCheckId)
-        // Create selectFeed object
+
         const selectFeedObj = {}
         const newUom = {}
         const newCutSize = {}
@@ -403,7 +409,6 @@ const AddIngredientswithChoice = props => {
     debounce(async search => {
       if (searchValue != ' ') {
         try {
-          // const currentAnimalFilterValue = animalFilterValueRef.current
           const params = { page: 1, q: search, sort, status: 1 }
           await getIngredientList({ params }).then(res => {
             if (res?.data?.result.length > 0) {
@@ -422,26 +427,26 @@ const AddIngredientswithChoice = props => {
     [searchValue]
   )
 
-  const handelInputCutSize = (event, item) => {
-    event.stopPropagation()
-    const newCutSize = event.target.value
+  // const handelInputCutSize = (event, item) => {
+  //   event.stopPropagation()
+  //   const newCutSize = event.target.value
 
-    // Set cutSize state
-    setCutSize(prevState => ({
-      ...prevState,
-      [item.id]: {
-        id: event.target.value
-        // name: selectedFeedType.label
-      }
-    }))
+  //   // Set cutSize state
+  //   setCutSize(prevState => ({
+  //     ...prevState,
+  //     [item.id]: {
+  //       id: event.target.value
+  //       // name: selectedFeedType.label
+  //     }
+  //   }))
 
-    // Call handelCardSelection with the updated cutSize value
-    if (newCutSize) {
-      handelCardSelection(event, item, null, newCutSize, null, selectedDays)
-    } else {
-      removeSelectedCard(event, item.id)
-    }
-  }
+  //   // Call handelCardSelection with the updated cutSize value
+  //   if (newCutSize) {
+  //     handelCardSelection(event, item, null, newCutSize, null, selectedDays)
+  //   } else {
+  //     removeSelectedCard(event, item.id)
+  //   }
+  // }
 
   const removeSelectedCard = (event, itemId) => {
     // Check if the card with itemId is present in the selectedCard state
@@ -467,20 +472,15 @@ const AddIngredientswithChoice = props => {
 
   const handleDayClick = day => {
     if (day.id === 0) {
-      // If "All" is clicked, select all days from Monday to Sunday
       const allDayIds = Day.map(day => day.id)
       setSelectedDays(allDayIds)
     } else if (selectedDays.length === 7 && selectedDays.includes(0)) {
-      // If all days are already selected and an individual day is clicked, remove both the clicked day and "All" from the selection
       setSelectedDays(selectedDays.filter(selectedDayId => selectedDayId !== day.id))
     } else if (selectedDays.length === 1 && selectedDays.includes(day.id)) {
-      // If only one day is selected and the user tries to deselect it, keep it selected
       return
     } else if (day.id !== 0 && selectedDays.includes(0)) {
-      // If an individual day is clicked and "All" is already selected, remove both the clicked day and "All" from the selection
       setSelectedDays(selectedDays.filter(selectedDayId => selectedDayId !== day.id && selectedDayId !== 0))
     } else {
-      // Toggle selection for the clicked day
       const updatedSelection = selectedDays.includes(day.id)
         ? selectedDays.filter(selectedDayId => selectedDayId !== day.id)
         : [...selectedDays, day.id]
@@ -529,8 +529,8 @@ const AddIngredientswithChoice = props => {
         // Check if the same ingredient_id is present in any other index of listOfIngredient with the same preparation_type
         const duplicateIngredientIndex = allIngredientchoiceSelectedValues.findIndex((item, index) => {
           return (
-            index !== existingIngredientIndex && // Exclude the current index
-            item.mealid === checkid && // Check if the mealid matches
+            index !== existingIngredientIndex &&
+            item.mealid === checkid &&
             item.ingredientList.some(ingredient => {
               return selectedCardIngchoice.some(
                 selectedIngredient =>
@@ -623,11 +623,11 @@ const AddIngredientswithChoice = props => {
           position: 'relative',
           display: 'flex',
           flexDirection: 'column',
-          bgcolor: '#dbe0de',
+          bgcolor: '#EFF5F2',
           gap: '24px'
         }}
       >
-        <Box sx={{ position: 'fixed', top: 0, bgcolor: '#dbe0de', zIndex: 10, width: '562px' }}>
+        <Box sx={{ position: 'fixed', top: 0, bgcolor: '#EFF5F2', zIndex: 10, width: '562px' }}>
           <Box
             className='sidebar-header'
             sx={{
@@ -638,16 +638,14 @@ const AddIngredientswithChoice = props => {
             }}
           >
             <Box sx={{ gap: 2, display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
-              <Icon
-                style={{ marginLeft: -8 }}
-                icon='material-symbols-light:add-notes-outline-rounded'
-                fontSize={'32px'}
-              />
-              <Typography variant='h6'>Select Multiple Items</Typography>
+              <img src='/icons/Activity.svg' alt='Grocery Icon' width='35px' />
+              <Typography variant='h6' sx={{ color: '#44544A' }}>
+                Select Multiple Items
+              </Typography>
             </Box>
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
-              <IconButton size='small' onClick={handleSidebarClose} sx={{ color: 'text.primary' }}>
-                <Icon icon='mdi:close' fontSize={20} />
+              <IconButton size='small' onClick={handleSidebarClose} sx={{ color: '#1F515B' }}>
+                <Icon icon='mdi:close' fontSize={25} />
               </IconButton>
             </Box>
           </Box>
@@ -659,12 +657,20 @@ const AddIngredientswithChoice = props => {
                 value={searchValue}
                 fullWidth
                 InputProps={{
-                  startAdornment: <Icon style={{ marginRight: 10 }} icon={'ion:search-outline'} />
+                  startAdornment: <Icon style={{ marginRight: 10, color: '#44544A' }} icon={'ion:search-outline'} />
                 }}
-                placeholder='Search'
+                placeholder='Search ingredient'
                 onKeyUp={e => searchData(e.target.value)}
                 onChange={e => {
                   setSearchValue(e.target.value)
+                }}
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    borderColor: '#839D8D',
+                    '& fieldset': {
+                      borderColor: '#839D8D'
+                    }
+                  }
                 }}
               />
             </Box>
@@ -677,6 +683,17 @@ const AddIngredientswithChoice = props => {
                   value={feed}
                   label='Feed'
                   onChange={handleChangeTopFeed}
+                  sx={{
+                    '& .MuiOutlinedInput-notchedOutline': {
+                      borderColor: '#839D8D'
+                    },
+                    '&:hover .MuiOutlinedInput-notchedOutline': {
+                      borderColor: '#839D8D'
+                    },
+                    '& .MuiOutlinedInput-root': {
+                      borderRadius: '0px'
+                    }
+                  }}
                   MenuProps={{
                     PaperProps: {
                       style: {
@@ -711,7 +728,7 @@ const AddIngredientswithChoice = props => {
 
         <Box
           key={feed}
-          sx={{ marginTop: 35, height: '65%', overflowY: 'auto', bgcolor: '#dbe0de' }}
+          sx={{ marginTop: 35, height: '65%', overflowY: 'auto', bgcolor: '#EFF5F2' }}
           onScroll={handleScroll}
         >
           {sortedIngredientList?.map((item, index) => (
@@ -737,7 +754,6 @@ const AddIngredientswithChoice = props => {
                 }}
               >
                 {selectedCardIngchoice.some(card => card.ingredient_id === item.id) ? (
-                  // Render checkbox icon if card is selected
                   <Box
                     onClick={event => removeSelectedCard(event, item.id)}
                     sx={{
@@ -757,7 +773,6 @@ const AddIngredientswithChoice = props => {
                     <Checkbox checked sx={{ '& .MuiSvgIcon-root': { fontSize: 80 } }} />
                   </Box>
                 ) : (
-                  // Render image if card is not selected
                   <Box
                     sx={{
                       width: '68px',
@@ -816,6 +831,17 @@ const AddIngredientswithChoice = props => {
                             visibility?.find(visItem => visItem && visItem.id === item.id)?.isVisible &&
                             !selectFeed[item.id]?.id
                           }
+                          sx={{
+                            '& .MuiOutlinedInput-notchedOutline': {
+                              borderColor: '#839D8D'
+                            },
+                            '&:hover .MuiOutlinedInput-notchedOutline': {
+                              borderColor: '#839D8D'
+                            },
+                            '& .MuiOutlinedInput-root': {
+                              borderRadius: '0px'
+                            }
+                          }}
                         >
                           <MenuItem value='' disabled>
                             Select
@@ -878,6 +904,17 @@ const AddIngredientswithChoice = props => {
                                 visibility?.find(visItem => visItem && visItem.id === item.id)?.isVisible &&
                                 !size[item.id]?.id
                               }
+                              sx={{
+                                '& .MuiOutlinedInput-notchedOutline': {
+                                  borderColor: '#839D8D'
+                                },
+                                '&:hover .MuiOutlinedInput-notchedOutline': {
+                                  borderColor: '#839D8D'
+                                },
+                                '& .MuiOutlinedInput-root': {
+                                  borderRadius: '0px'
+                                }
+                              }}
                               MenuProps={{
                                 PaperProps: {
                                   style: {
@@ -902,7 +939,6 @@ const AddIngredientswithChoice = props => {
                   ) : null}
                 </Box>
               </>
-              {/* ) : null} */}
             </Box>
           ))}
           {reachedEnd ? (
@@ -914,7 +950,7 @@ const AddIngredientswithChoice = props => {
 
         <Box
           sx={{
-            height: showDays ? '370px' : '122px',
+            height: showDays ? '370px' : '100px',
             width: '100%',
             maxWidth: '562px',
             position: 'fixed',
@@ -1017,7 +1053,7 @@ const AddIngredientswithChoice = props => {
           {/* -------------------------------------------- */}
 
           {!showDays && (
-            <Button fullWidth variant='contained' size='large' sx={{ mb: 4 }} onClick={() => handleContinueClick()}>
+            <Button fullWidth variant='contained' size='large' sx={{ mb: 2 }} onClick={() => handleContinueClick()}>
               {selectedCardIngchoice?.length} SELECTED - CONTINUE
             </Button>
           )}

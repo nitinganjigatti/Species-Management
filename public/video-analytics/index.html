@@ -1,0 +1,569 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Video Wall</title>
+    <style>
+      /* Reset and base styles */
+      * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        height: 100%;
+        width: 100%;
+        overflow: hidden;
+        background-color: black;
+      }
+
+      /* Video wall layout */
+      .video-wall {
+        display: grid;
+        gap: 8px;
+        height: 100vh;
+        padding: 8px;
+        transition: all 0.3s ease;
+      }
+
+      /* Grid layouts */
+      .grid-1 {
+        grid-template-columns: 1fr;
+        grid-template-rows: 1fr;
+      }
+
+      .grid-4 {
+        grid-template-columns: repeat(2, 1fr);
+        grid-template-rows: repeat(2, 1fr);
+      }
+
+      .grid-6 {
+        grid-template-columns: repeat(3, 1fr);
+        grid-template-rows: repeat(2, 1fr);
+      }
+
+      .grid-9 {
+        grid-template-columns: repeat(3, 1fr);
+        grid-template-rows: repeat(3, 1fr);
+      }
+
+      .video-container {
+        position: relative;
+        overflow: hidden;
+        border-radius: 2px;
+        width: 100%;
+        height: 100%;
+        background-color: black;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+
+      video {
+        width: 100%;
+        height: 100%;
+        object-fit: contain; /* For letterboxing */
+        background-color: black;
+      }
+
+      /* Control visibility */
+      video::-webkit-media-controls {
+        opacity: 0;
+        transition: opacity 0.3s;
+      }
+
+      video:hover::-webkit-media-controls {
+        opacity: 1;
+      }
+
+      /* Control panel */
+      .control-panel {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        background-color: rgba(0, 0, 0, 0.7);
+        color: white;
+        border: 2px solid white;
+        border-radius: 10px;
+        padding: 15px;
+        z-index: 100;
+        display: none;
+        flex-direction: column;
+        gap: 10px;
+        max-width: 300px;
+        transition: all 0.3s ease;
+      }
+
+      .control-panel.visible {
+        display: flex;
+      }
+
+      .layout-options {
+        display: flex;
+        gap: 10px;
+        margin-bottom: 10px;
+      }
+
+      .layout-button {
+        background-color: rgba(255, 255, 255, 0.2);
+        border: 1px solid white;
+        color: white;
+        padding: 5px 10px;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+      }
+
+      .layout-button:hover {
+        background-color: rgba(255, 255, 255, 0.4);
+      }
+
+      .layout-button.active {
+        background-color: rgba(255, 255, 255, 0.6);
+        color: black;
+      }
+
+      .camera-list {
+        display: flex;
+        flex-direction: column;
+        gap: 5px;
+        max-height: 300px;
+        overflow-y: auto;
+      }
+
+      .camera-item {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        padding: 5px;
+        border-radius: 5px;
+        transition: background-color 0.2s ease;
+      }
+
+      .camera-item:hover {
+        background-color: rgba(255, 255, 255, 0.1);
+      }
+
+      .camera-checkbox {
+        width: 18px;
+        height: 18px;
+        cursor: pointer;
+      }
+
+      .camera-label {
+        flex-grow: 1;
+        cursor: pointer;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+      }
+
+      /* Button styles */
+      .control-button {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        background-color: rgba(0, 0, 0, 0.7);
+        color: black;
+        border: 2px solid white;
+        border-radius: 50%;
+        width: 45px;
+        height: 45px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        cursor: pointer;
+        z-index: 100;
+        transition: all 0.3s ease;
+      }
+
+      .control-button:hover {
+        background-color: rgba(255, 255, 255, 0.2);
+        transform: scale(1.1);
+      }
+
+      .control-button svg {
+        width: 22px;
+        height: 22px;
+        fill: black;
+        stroke: white;
+      }
+
+      /* Settings button */
+      .settings-button {
+        right: 20px;
+      }
+
+      .settings-button svg {
+        pointer-events: none;
+      }
+
+      /* Restart in settings */
+      .restart-in-settings {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        background-color: rgba(255, 255, 255, 0.2);
+        border: 1px solid white;
+        color: white;
+        padding: 8px 12px;
+        border-radius: 5px;
+        cursor: pointer;
+        transition: all 0.2s ease;
+        margin-top: 10px;
+      }
+
+      .restart-in-settings:hover {
+        background-color: rgba(255, 255, 255, 0.4);
+      }
+
+      .restart-in-settings svg {
+        width: 18px;
+        height: 18px;
+      }
+
+      /* Scrollbar styling */
+      .camera-list::-webkit-scrollbar {
+        width: 8px;
+      }
+
+      .camera-list::-webkit-scrollbar-track {
+        background: rgba(0, 0, 0, 0.3);
+        border-radius: 4px;
+      }
+
+      .camera-list::-webkit-scrollbar-thumb {
+        background: rgba(255, 255, 255, 0.3);
+        border-radius: 4px;
+      }
+
+      .camera-list::-webkit-scrollbar-thumb:hover {
+        background: rgba(255, 255, 255, 0.5);
+      }
+    </style>
+  </head>
+  <body>
+    <div class="video-wall grid-9" id="videoWall"></div>
+
+    <!-- Control Panel -->
+    <div class="control-panel" id="controlPanel">
+      <h3>Camera Layout</h3>
+      <div class="layout-options">
+        <button class="layout-button" data-layout="1">1</button>
+        <button class="layout-button" data-layout="4">4</button>
+        <button class="layout-button" data-layout="6">6</button>
+        <button class="layout-button active" data-layout="9">9</button>
+      </div>
+      <h3>Camera Selection</h3>
+      <div class="camera-list" id="cameraList">
+        <!-- Camera checkboxes will be added here dynamically -->
+      </div>
+      <button class="restart-in-settings" id="restartInSettings">
+        <svg
+          xmlns="http://www.w3.org/2000/svg"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          stroke-width="2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        >
+          <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"></path>
+          <path d="M3 3v5h5"></path>
+        </svg>
+        Restart All Videos
+      </button>
+    </div>
+
+    <!-- Settings button -->
+    <div class="control-button settings-button" id="settingsButton">
+      <svg
+        xmlns="http://www.w3.org/2000/svg"
+        width="24"
+        height="24"
+        viewBox="0 0 24 24"
+        fill="none"
+        stroke="currentColor"
+        stroke-width="2"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      >
+        <circle cx="12" cy="12" r="3"></circle>
+        <path
+          d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"
+        ></path>
+      </svg>
+    </div>
+
+    <script>
+      // Video URLs with names
+      const videoData = [
+        {
+          url: 'https://uatapi.antz.ril.com/api/image/download/uploaded/file?path=uploads/extra/ml/2025-02-28/time_and_count_angel_low_bitrate_1740738461.mp4',
+          name: 'Bear Angel Health'
+        },
+        {
+          url: 'https://uatapi.antz.ril.com/api/image/download/uploaded/file?path=uploads/extra/ml/2025-02-28/Bear_Angel_TrailPath_1740733859.mp4',
+          name: 'Bear Angel Trail'
+        },
+        {
+          url: 'https://uatapi.antz.ril.com/api/image/download/uploaded/file?path=uploads/extra/ml/2025-02-28/Bear_Angel_Heatmap_1740732959.mp4',
+          name: 'Bear Angel Heatmap'
+        },
+        {
+          url: 'https://uatapi.antz.ril.com/api/image/download/uploaded/file?path=uploads/extra/ml/2025-02-28/time_and_count_lola_low_bitrate_1740739439.mp4',
+          name: 'Bear Lola Health'
+        },
+        {
+          url: 'https://uatapi.antz.ril.com/api/image/download/uploaded/file?path=uploads/extra/ml/2025-02-28/Bear_Lola_TrailPath_1740733192.mp4',
+          name: 'Bear Lola Trail'
+        },
+        {
+          url: 'https://uatapi.antz.ril.com/api/image/download/uploaded/file?path=uploads/extra/ml/2025-02-28/Bear_Lola_Heatmap_1740733440.mp4',
+          name: 'Bear Lola Heatmap'
+        },
+        {
+          url: 'https://uatapi.antz.ril.com/api/image/download/uploaded/file?path=uploads/extra/ml/2025-02-28/Leopard_HealthActivityStatus_NoRegions_1740732764.mp4',
+          name: 'Leopard Health'
+        },
+        {
+          url: 'https://uatapi.antz.ril.com/api/image/download/uploaded/file?path=uploads/extra/ml/2025-02-28/Leopard_Heatmap_1740734744.mp4',
+          name: 'Leopard Heatmap'
+        },
+        {
+          url: 'https://uatapi.antz.ril.com/api/image/download/uploaded/file?path=uploads/extra/ml/2025-02-28/Leopard_TrailPath_1740735632.mp4',
+          name: 'Leopard Trail'
+        }
+      ]
+
+      // DOM elements
+      const videoWall = document.getElementById('videoWall')
+      const cameraList = document.getElementById('cameraList')
+      const layoutButtons = document.querySelectorAll('.layout-button')
+      const settingsButton = document.getElementById('settingsButton')
+      const controlPanel = document.getElementById('controlPanel')
+      const restartInSettings = document.getElementById('restartInSettings')
+
+      // State variables
+      let currentLayout = 9
+      let selectedCameras = videoData.map((_, index) => index) // Initially all cameras are selected
+      let videoContainers = []
+      let videoElements = []
+      let checkboxElements = []
+
+      // Initialize the camera list
+      function initializeCameraList() {
+        videoData.forEach((video, index) => {
+          const item = document.createElement('div')
+          item.className = 'camera-item'
+
+          const checkbox = document.createElement('input')
+          checkbox.type = 'checkbox'
+          checkbox.className = 'camera-checkbox'
+          checkbox.checked = true
+          checkbox.dataset.index = index
+
+          // Store checkbox reference
+          checkboxElements.push(checkbox)
+
+          const label = document.createElement('label')
+          label.className = 'camera-label'
+          label.textContent = video.name
+
+          item.appendChild(checkbox)
+          item.appendChild(label)
+          cameraList.appendChild(item)
+
+          // Add event listener to checkbox
+          checkbox.addEventListener('change', () => {
+            if (checkbox.checked) {
+              selectedCameras.push(parseInt(checkbox.dataset.index))
+            } else {
+              selectedCameras = selectedCameras.filter(i => i !== parseInt(checkbox.dataset.index))
+            }
+
+            // Sort selected cameras to maintain original order
+            selectedCameras.sort((a, b) => a - b)
+
+            // Update the video wall
+            updateVideoWall()
+          })
+
+          // Make label clickable too
+          label.addEventListener('click', () => {
+            checkbox.checked = !checkbox.checked
+            checkbox.dispatchEvent(new Event('change'))
+          })
+        })
+      }
+
+      // Create video elements
+      function createVideoElements() {
+        videoData.forEach((data, index) => {
+          // Create container
+          const container = document.createElement('div')
+          container.className = 'video-container'
+          container.dataset.index = index
+
+          // Create video element
+          const video = document.createElement('video')
+          video.src = data.url
+          video.autoplay = true
+          video.loop = true
+          video.muted = true
+          video.playsInline = true
+
+          // Add to arrays
+          videoContainers.push(container)
+          videoElements.push(video)
+
+          // Add to DOM
+          container.appendChild(video)
+
+          // Control visibility logic
+          let timeout
+
+          const showControls = () => {
+            video.controls = true
+            clearTimeout(timeout)
+            timeout = setTimeout(() => {
+              video.controls = false
+            }, 2000)
+          }
+
+          video.addEventListener('mousemove', showControls)
+          video.addEventListener('touchstart', showControls)
+
+          // Initial state
+          showControls()
+        })
+      }
+
+      // Update the video wall based on selected cameras and layout
+      function updateVideoWall() {
+        // Clear the video wall
+        videoWall.innerHTML = ''
+
+        // Update grid class based on layout
+        videoWall.className = `video-wall grid-${currentLayout}`
+
+        // Determine which cameras to show based on layout and selection
+        let camerasToShow = [...selectedCameras]
+
+        // If more cameras are selected than the layout allows, trim the selection
+        if (camerasToShow.length > currentLayout) {
+          camerasToShow = camerasToShow.slice(0, currentLayout)
+        }
+
+        // Add the selected video containers to the wall
+        camerasToShow.forEach(index => {
+          videoWall.appendChild(videoContainers[index])
+        })
+      }
+
+      // Update camera selection based on layout
+      function updateCameraSelection(layoutSize) {
+        // Uncheck all checkboxes first
+        checkboxElements.forEach((checkbox, index) => {
+          // Only check the first N checkboxes based on layout
+          const shouldBeChecked = index < layoutSize
+          checkbox.checked = shouldBeChecked
+
+          // Update the selectedCameras array
+          if (shouldBeChecked && !selectedCameras.includes(index)) {
+            selectedCameras.push(index)
+          } else if (!shouldBeChecked && selectedCameras.includes(index)) {
+            selectedCameras = selectedCameras.filter(i => i !== index)
+          }
+        })
+
+        // Sort selected cameras to maintain original order
+        selectedCameras.sort((a, b) => a - b)
+      }
+
+      // Initialize layout buttons
+      function initializeLayoutButtons() {
+        layoutButtons.forEach(button => {
+          button.addEventListener('click', () => {
+            // Update active button
+            layoutButtons.forEach(btn => btn.classList.remove('active'))
+            button.classList.add('active')
+
+            // Update layout
+            currentLayout = parseInt(button.dataset.layout)
+
+            // Update camera selection based on new layout
+            updateCameraSelection(currentLayout)
+
+            // Update video wall
+            updateVideoWall()
+          })
+        })
+      }
+
+      // Initialize settings button
+      function initializeSettingsButton() {
+        settingsButton.addEventListener('click', () => {
+          controlPanel.classList.toggle('visible')
+
+          // Visual feedback for button click
+          settingsButton.style.backgroundColor = 'rgba(255, 255, 255, 0.5)'
+          setTimeout(() => {
+            settingsButton.style.backgroundColor = 'rgba(0, 0, 0, 0.7)'
+          }, 300)
+        })
+
+        // Close panel when clicking outside
+        document.addEventListener('click', event => {
+          if (!controlPanel.contains(event.target) && event.target !== settingsButton) {
+            controlPanel.classList.remove('visible')
+          }
+        })
+      }
+
+      // Restart button functionality
+      function initializeRestartButton() {
+        restartInSettings.addEventListener('click', () => {
+          // Restart all videos
+          videoElements.forEach(video => {
+            // Save the current muted state
+            const wasMuted = video.muted
+
+            // Reset the time to 0 (beginning of video)
+            video.currentTime = 0
+
+            // Ensure the video plays
+            video.play().catch(error => {
+              console.error('Error playing video:', error)
+            })
+
+            // Restore muted state (in case play() changed it due to autoplay policies)
+            video.muted = wasMuted
+          })
+
+          // Visual feedback for button click
+          restartInSettings.style.backgroundColor = 'rgba(255, 255, 255, 0.5)'
+          setTimeout(() => {
+            restartInSettings.style.backgroundColor = 'rgba(255, 255, 255, 0.2)'
+          }, 300)
+        })
+      }
+
+      // Initialize the application
+      function initialize() {
+        createVideoElements()
+        initializeCameraList()
+        initializeLayoutButtons()
+        initializeSettingsButton()
+        initializeRestartButton()
+        updateVideoWall()
+      }
+
+      // Start the application
+      initialize()
+    </script>
+  </body>
+</html>

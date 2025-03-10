@@ -136,6 +136,25 @@ const ReturnRequestList = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedPharmacy.type])
 
+  useEffect(() => {
+    if (router.query.status !== status) {
+      // debugger
+      setPaginationModel({ page: 0, pageSize: 10 })
+      updateUrlParams({
+        status: status,
+        page: 0,
+        limit: 10,
+        q: '',
+        sort: sort,
+        column: sortColumn,
+        startDate: '',
+        endDate: '',
+        store: filterByStoreId,
+        filterSwitch: false
+      })
+    }
+  }, [router.query.status])
+
   const handleChange = (event, newValue) => {
     setTotal(0)
     setFilterSwitch(false)
@@ -144,6 +163,18 @@ const ReturnRequestList = () => {
     setFilterDates({ startDate: '', endDate: '' })
     setSelectDays('all')
     setStatus(newValue)
+    updateUrlParams({
+      status: newValue,
+      page: 0,
+      limit: 10,
+      q: '',
+      sort: sort,
+      column: sortColumn,
+      startDate: '',
+      endDate: '',
+      store: filterByStoreId,
+      filterSwitch: false
+    })
   }
 
   const fetchTableData = useCallback(
@@ -155,9 +186,8 @@ const ReturnRequestList = () => {
         let params = {}
 
         if (
-          startDate &&
-          endDate && // Checks if startDate and endDate are truthy (not empty or undefined)
-          (filterDates?.startDate || filterDates?.endDate) // Checks if filterDates' startDate and endDate are truthy (not empty or undefined)
+          startDate ||
+          endDate // Checks if startDate and endDate are truthy (not empty or undefined)
         ) {
           params = {
             sort,
@@ -299,30 +329,31 @@ const ReturnRequestList = () => {
   // }, [selectedPharmacy.id])
 
   useEffect(() => {
-    const currentStatus = filterSwitch === true ? 'completed' : status
-
-    const tabStatus = status === 'all' ? currentStatus : status
-    fetchTableData(
-      sort,
-      searchValue,
-      sortColumn,
-      tabStatus,
-      filterDates.startDate,
-      filterDates.endDate,
-      filterByStoreId
-    )
-    updateUrlParams({
-      sort,
-      q: searchValue,
-      column: sortColumn,
-      status: tabStatus,
-      page: paginationModel.page,
-      startDate: filterDates.startDate,
-      endDate: filterDates.endDate,
-      limit: paginationModel.pageSize,
-      filterSwitch,
-      store: filterByStoreId
-    })
+    if (router.query.status === status) {
+      const currentStatus = filterSwitch === true ? 'completed' : status
+      const tabStatus = status === 'all' ? currentStatus : status
+      fetchTableData(
+        sort,
+        searchValue,
+        sortColumn,
+        tabStatus,
+        filterDates.startDate,
+        filterDates.endDate,
+        filterByStoreId
+      )
+      updateUrlParams({
+        sort,
+        q: searchValue,
+        column: sortColumn,
+        status: tabStatus,
+        page: paginationModel.page,
+        startDate: filterDates.startDate,
+        endDate: filterDates.endDate,
+        limit: paginationModel.pageSize,
+        filterSwitch,
+        store: filterByStoreId
+      })
+    }
 
     // }
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -333,7 +364,8 @@ const ReturnRequestList = () => {
     filterDates,
     selectedPharmacy.id,
     paginationModel.page,
-    paginationModel.pageSize
+    paginationModel.pageSize,
+    router.query.status
   ])
 
   const onRowClick = params => {
@@ -534,17 +566,13 @@ const ReturnRequestList = () => {
       headerName: 'Returned by ',
       headerAlign: 'left',
       renderCell: params => (
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          {Utility.renderUserAvatar(params.row.user_created_profile_pic)}
-          <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-            <Typography variant='subtitle2' sx={{ color: 'text.primary' }}>
-              {params?.row?.created_by_user_name ? params?.row?.created_by_user_name : 'NA'}
-            </Typography>
-            <Typography variant='caption' sx={{ lineHeight: 1.6667 }}>
-              {Utility.formatDisplayDate(params.row.request_date)}
-            </Typography>
-          </Box>
-        </Box>
+        <>
+          {RenderUtility?.renderUserAvatarDetails(
+            params?.row?.user_created_profile_pic,
+            params?.row?.created_by_user_name,
+            params?.row?.created_at
+          )}
+        </>
       )
     }
   ]

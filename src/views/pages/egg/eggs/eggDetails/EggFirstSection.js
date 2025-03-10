@@ -268,7 +268,8 @@ const EggFirstSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGalle
                         borderBottomRightRadius: '8px',
                         borderBottomLeftRadius: '8px',
                         position: 'relative',
-                        top: eggDetails?.default_common_name && eggDetails?.complete_name ? '-57px' : '-20px',
+                        // top: eggDetails?.default_common_name && eggDetails?.complete_name ? '-57px' : '-20px',
+                        top: '-57px',
                         backgroundColor: '#00000033',
                         py: '8px',
                         px: '12px',
@@ -278,10 +279,10 @@ const EggFirstSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGalle
                       }}
                     >
                       <Typography sx={{ fontSize: '16px', fontWeight: 500, lineHeight: '19.36px', color: '#fff' }}>
-                        {eggDetails?.default_common_name}
+                        {eggDetails?.default_common_name ? eggDetails?.default_common_name : 'Unknown'}
                       </Typography>
                       <Typography sx={{ fontSize: '14px', fontWeight: 400, lineHeight: '16.94px', color: '#fff' }}>
-                        {eggDetails?.complete_name}
+                        {eggDetails?.complete_name ? eggDetails?.complete_name : 'Unknown'}
                       </Typography>
                     </Box>
                   </ImageListItem>

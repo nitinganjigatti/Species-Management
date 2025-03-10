@@ -25,13 +25,13 @@ import { getCutsizeList } from 'src/lib/api/diet/settings/cutSizes'
 
 const steps = [
   {
-    title: 'Basic Information',
+    title: 'Basic Information with Ingredients',
     subtitle: 'Enter details'
   },
-  {
-    title: 'Add Ingredients',
-    subtitle: 'Enter details'
-  },
+  // {
+  //   title: 'Add Ingredients',
+  //   subtitle: 'Enter details'
+  // },
   {
     title: 'Preview',
     subtitle: 'Preview & Submit'
@@ -307,6 +307,7 @@ const AddCombo = () => {
 
   const handleStepBillingSubmit = async () => {
     if (!id) {
+      setLoader(true)
       const numericFormData = {
         ...formData,
         by_percentage: JSON.stringify(
@@ -351,15 +352,17 @@ const AddCombo = () => {
 
       if (apival.success === true) {
         Router.push(`/diet/combo`)
-
+        setLoader(false)
         Toaster({ type: 'success', message: 'Combo' + ' ' + apival?.message })
       } else {
         Toaster({
           type: 'error',
           message: apival?.message?.recipe_image ? 'Image type only PNG and JPG is allowed' : apival?.message
         })
+        setLoader(false)
       }
     } else if (id && urlType === 'copy') {
+      setLoader(true)
       const numericFormData = {
         ...formData,
         by_percentage: JSON.stringify(
@@ -412,15 +415,17 @@ const AddCombo = () => {
 
       if (apival.success === true) {
         Router.push(`/diet/combo`)
-
+        setLoader(false)
         Toaster({ type: 'success', message: 'Combo' + ' ' + apival?.message })
       } else {
         Toaster({
           type: 'error',
           message: apival?.message?.recipe_image ? 'Image type only PNG and JPG is allowed' : apival?.message
         })
+        setLoader(false)
       }
     } else {
+      setLoader(true)
       const numericFormData = {
         ...formData,
         by_percentage: JSON.stringify(
@@ -473,13 +478,14 @@ const AddCombo = () => {
 
       if (apival.success === true) {
         Router.push(`/diet/combo`)
-
+        setLoader(false)
         Toaster({ type: 'success', message: 'Combo' + ' ' + apival?.message })
       } else {
         Toaster({
           type: 'error',
           message: apival?.message?.recipe_image ? 'Image type only PNG and JPG is allowed' : apival?.message
         })
+        setLoader(false)
       }
     }
   }
@@ -513,7 +519,14 @@ const AddCombo = () => {
           </>
         )
       case 1:
-        return <StepBillingDetails handlePrev={handlePrev} handleSubmit={handleStepBillingSubmit} formData={formData} />
+        return (
+          <StepBillingDetails
+            handlePrev={handlePrev}
+            handleSubmit={handleStepBillingSubmit}
+            formData={formData}
+            loader={loader}
+          />
+        )
 
       default:
         return null
@@ -551,7 +564,7 @@ const AddCombo = () => {
 
         <Divider sx={{ mx: '20px !important', pb: 1 }} />
 
-        <StepperWrapper sx={{ mb: 5, mt: 5, pt: 5, display: 'flex', justifyContent: 'center' }}>
+        <StepperWrapper sx={{ mb: 5, mt: 5, pt: 5, display: 'flex', justifyContent: 'center' }} className='combo_steps'>
           <Stepper activeStep={activeStep} sx={{ width: '75%', px: 15 }}>
             {steps.map((step, index) => {
               return (

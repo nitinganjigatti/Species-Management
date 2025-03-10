@@ -17,7 +17,7 @@ import Grid from '@mui/material/Grid'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
-import Router from 'next/router'
+import Router, { useRouter } from 'next/router'
 import ServerSideToolbarWithFilter from 'src/views/table/data-grid/ServerSideToolbarWithFilter'
 import { getDietList } from 'src/lib/api/diet/dietList'
 import CustomChip from 'src/@core/components/mui/chip'
@@ -32,13 +32,18 @@ const roleColors = {
 }
 
 const Diet = () => {
+  const router = useRouter()
+  const { query } = router
   const [total, setTotal] = useState(0)
   const [sort, setSort] = useState('desc')
   const [rows, setRows] = useState([])
-  const [searchValue, setSearchValue] = useState('')
+  const [searchValue, setSearchValue] = useState(query.q || '')
   const [sortColumn, setSortColumn] = useState('created_at')
 
-  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
+  const [paginationModel, setPaginationModel] = useState({
+    page: parseInt(query.page || 0, 10),
+    pageSize: parseInt(query.pageSize || 10, 10)
+  })
   const [loading, setLoading] = useState(false)
   const [status, setStatus] = useState('')
   const [selectedValue, setSelectedValue] = useState('10')
@@ -51,6 +56,31 @@ const Diet = () => {
   function loadServerRows(currentPage, data) {
     return data
   }
+
+  // Common function to update URL query parameters
+  const updateQueryParams = useCallback(
+    newParams => {
+      router.replace(
+        {
+          pathname: router.pathname,
+          query: {
+            ...router.query,
+            ...newParams
+          }
+        },
+        undefined,
+        { shallow: true }
+      )
+    },
+    [router]
+  )
+
+  useEffect(() => {
+    const page = parseInt(query.page || 0, 10)
+    const pageSize = parseInt(query.pageSize || 10, 10)
+
+    setPaginationModel({ page: page, pageSize: pageSize })
+  }, [query.page, query.pageSize])
 
   const handleChange = (event, newValue) => {
     // debugger
@@ -153,13 +183,14 @@ const Diet = () => {
   )
 
   const handleSearch = value => {
+    updateQueryParams({ q: value, page: 0 })
     setSearchValue(value)
     searchTableData(sort, value, sortColumn, status)
   }
 
   const columns = [
     {
-      flex: 0.05,
+      flex: 0.19,
       Width: 40,
       field: 'uid',
       headerName: 'SL',
@@ -185,6 +216,13 @@ const Diet = () => {
           <Box sx={{ display: 'flex', flexDirection: 'column' }}>
             <Typography noWrap variant='body2' sx={{ color: 'text.primary', fontSize: '14px', fontWeight: '500' }}>
               {params.row.diet_no ? params.row.diet_no : '-'}
+            </Typography>
+            <Typography
+              noWrap
+              variant='body2'
+              sx={{ color: 'text.primary', fontSize: '12px', fontWeight: '500', fontStyle: 'italic' }}
+            >
+              {params.row.diet_name}
             </Typography>
           </Box>
         </Box>
@@ -284,7 +322,7 @@ const Diet = () => {
     if (clickedColumn) {
       const data = params.row
 
-      Router.push({
+      router.push({
         pathname: `/diet/diet/${data?.id}`
       })
     } else {
@@ -374,7 +412,13 @@ const Diet = () => {
                 paginationModel={paginationModel}
                 onSortModelChange={handleSortModel}
                 slots={{ toolbar: ServerSideToolbarWithFilter }}
-                onPaginationModelChange={setPaginationModel}
+                onPaginationModelChange={newPaginationModel => {
+                  updateQueryParams({
+                    page: newPaginationModel.page,
+                    pageSize: newPaginationModel.pageSize
+                  })
+                  setPaginationModel(newPaginationModel)
+                }}
                 loading={loading}
                 slotProps={{
                   baseButton: {

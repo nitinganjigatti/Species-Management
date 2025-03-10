@@ -88,22 +88,43 @@ const IngredientsListforRecipeDetail = ({ IngredientsDetailsval }) => {
       field: 'ingredient_name',
       headerName: 'INGREDIENT NAME',
       renderCell: params => (
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          {/* {renderClient(params)} */}
-          {console.log(params, 'params')}
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            width: '100%',
+            overflow: 'hidden'
+          }}
+        >
           <Avatar
             variant='square'
             alt='Medicine Image'
-            sx={{ width: 40, height: 40, mr: 4, background: '#E8F4F2', padding: '8px', borderRadius: '4px' }}
+            sx={{
+              width: 40,
+              height: 40,
+              mr: 2,
+              background: '#E8F4F2',
+              padding: '8px',
+              borderRadius: '4px'
+            }}
             src={params.row.ingredient_image ? params.row.ingredient_image : '/icons/icon_recipe_fill.png'}
           >
             {params.row.ingredient_image ? null : <Icon icon='healthicons:fruits-outline' />}
           </Avatar>
-          <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-            <Typography noWrap variant='body2' sx={{ color: 'text.primary' }}>
+
+          <Tooltip title={params.row.ingredient_name ? params.row.ingredient_name : '-'}>
+            <Typography
+              noWrap
+              variant='body2'
+              sx={{
+                color: 'text.primary',
+                maxWidth: 'calc(100% - 50px)'
+              }}
+              className='text_overflow_moduled'
+            >
               {params.row.ingredient_name ? params.row.ingredient_name : '-'}
             </Typography>
-          </Box>
+          </Tooltip>
         </Box>
       )
     },
@@ -135,10 +156,18 @@ const IngredientsListforRecipeDetail = ({ IngredientsDetailsval }) => {
       field: 'quantity',
       headerName: 'QUANTITY',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary', pl: 2 }}>
-          {params.row.quantity ? parseFloat(params.row.quantity).toFixed(2) : '-'}
-          {params.row.uom_text ? ` ${params.row.uom_text}` : ''}
-        </Typography>
+        <>
+          <Tooltip
+            title={`${params.row.quantity ? parseFloat(params.row.quantity).toFixed(2) : '-'}${
+              params.row.uom_text ? ` ${params.row.uom_text}` : ''
+            }`}
+          >
+            <Typography variant='body2' sx={{ color: 'text.primary', pl: 2 }} className='text_overflow_moduled'>
+              {params.row.quantity ? parseFloat(params.row.quantity).toFixed(2) : '-'}
+              {params.row.uom_text ? ` ${params.row.uom_text}` : ''}
+            </Typography>
+          </Tooltip>
+        </>
       )
     },
     {

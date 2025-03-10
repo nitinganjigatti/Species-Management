@@ -7,7 +7,10 @@ import {
   getNoOfLab,
   UpdateStatus,
   DeleteLAbRequestAttachment,
-  GetLabListByTestId
+  GetLabListByTestId,
+  postBulkStatus,
+  postBulkTransfer,
+  getLabListByMultipleIds
 } from 'src/lib/api/lab/getLabRequest'
 
 import FallbackSpinner from 'src/@core/components/spinner/index'
@@ -50,7 +53,8 @@ import {
   Breadcrumbs,
   Divider,
   Tooltip,
-  DialogContent
+  DialogContent,
+  Toolbar
 } from '@mui/material'
 import IconButton from '@mui/material/IconButton'
 import Router from 'next/router'
@@ -59,7 +63,8 @@ import FileUploaderSingle from 'src/views/forms/form-elements/file-uploader/File
 import UploadReports from 'src/components/lab/request/UploadReports'
 import { useRouter } from 'next/navigation'
 import { useSearchParams } from 'next/navigation'
-import UserSnackbar from 'src/components/utility/snackbar'
+
+// import UserSnackbar from 'src/components/utility/snackbar'
 import moment from 'moment'
 import CommonMediaView from 'src/components/lab/CommonMediaView'
 import { AuthContext } from 'src/context/AuthContext'
@@ -67,12 +72,15 @@ import Toaster from 'src/components/Toaster'
 import AnimalCard from 'src/views/pages/lab/AnimalCard'
 import { borderColor, width } from '@mui/system'
 import AnimalParentCard from 'src/views/utility/animalParentCard'
+import AnimalSideSheet from 'src/views/pages/lab/AnimalSideSheet'
 
 const statusData = [
   { id: 'awaiting_sample', name: 'Awaiting Sample' },
   { id: 'sample_received', name: 'Sample Received' },
   { id: 'sample_rejected', name: 'Sample Rejected' },
   { id: 'inprogress', name: 'In Progress' },
+  { id: 'completed', name: 'Completed' },
+  { id: 'completed_insufficient_samples', name: 'Completed - Insufficient Samples' },
   { id: 'completed_positive', name: 'Completed - Positive' },
   { id: 'completed_negative', name: 'Completed - Negative' },
   { id: 'completed_detected', name: 'Completed - Detected' },
@@ -120,7 +128,7 @@ const RequestDetails = () => {
 
   // const storedData = JSON.parse(localStorage.getItem('userDetails'))
 
-  const [status, setStatus] = React.useState()
+  const [status, setStatus] = React.useState('awaiting_sample')
 
   const localLabData = authData?.userData?.modules?.lab_data?.lab
 
@@ -138,29 +146,27 @@ const RequestDetails = () => {
   const [sortColumn, setSortColumn] = useState('name')
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [loading, setLoading] = useState(false)
-  const [testId, setTestId] = useState()
+  const [testId, setTestId] = useState([])
   const [requestId, setRequestId] = useState()
   const [labId, setLab_id] = useState('')
 
   const [fileId, setFileId] = useState()
+  const [file, setFile] = useState([])
   const [testName, setTestName] = useState()
+  console.log('testName', testName)
   const [testSampleName, setTestSampleName] = useState('')
+  console.log('testSampleName', testSampleName)
 
-  // ........... snackbar
-  const [openSnackbar, setOpenSnackbar] = useState(false)
-  const [snackbarMessage, setSnackbarMessage] = useState('')
-  const [severity, setSeverity] = useState('success')
-  const [statusId, setStatusId] = useState()
   const [showTestFile, setShowTestFile] = useState(false)
   const [transferTestId, setTransferTestId] = useState('')
+  const [headerStatus, setHeaderStatus] = useState('awaiting_sample')
 
-  const setAlertDefaults = ({ message, severity, status }) => {
-    setOpenSnackbar(status)
-    setSnackbarMessage(message)
-    setSeverity(severity)
-  }
+  const [selectedRow, setSelectedRow] = useState([])
 
-  //...........
+  const [selectedRowData, setSelectedRowData] = useState([])
+  const [hasCompletedStatus, setHasCompletedStatus] = useState(true)
+  const [allCompleted, setAllCompleted] = useState(false)
+  const [openAnimalSheet, setOpenAnimalSheet] = useState(false)
 
   useEffect(() => {
     const labObject = localLabData?.find(item => item?.lab_id === lab_id)
@@ -171,24 +177,45 @@ const RequestDetails = () => {
   }, [])
 
   const handleChangeStatus = async (event, params) => {
-    setStatus(event.target.value)
+    const value = event.target.value
 
-    const id = params
-
-    const payload = {
-      status: event.target.value
-    }
-
-    const response = await UpdateStatus(id, payload)
-    if (response?.success) {
-      Toaster({ type: 'success', message: response.message })
-
+    if (
+      (value === 'completed_positive' ||
+        value === 'completed_negative' ||
+        value === 'completed_detected' ||
+        value === 'completed_not_detected' ||
+        value === 'completed_inconclusive' ||
+        value === 'completed' ||
+        value === 'completed_insufficient_samples') &&
+      !(image || document) // Ensuring at least one attachment is present
+    ) {
+      Toaster({ type: 'error', message: 'Attach the report before completing the test' })
       fetchRequestDetails()
-    } else {
-      fetchRequestDetails()
-      setStatus(params?.row?.status)
-      Toaster({ type: 'error', message: response.message })
+
+      return
     }
+    setStatus(value)
+
+    let testIds = [params?.id] // Single ID ko array me store karna
+
+    postMultipleStatus(testIds, value)
+
+    // const id = params
+
+    // const payload = {
+    //   status: event.target.value
+    // }
+
+    // const response = await UpdateStatus(id, payload)
+    // if (response?.success) {
+    //   Toaster({ type: 'success', message: response.message })
+
+    //   fetchRequestDetails()
+    // } else {
+    //   fetchRequestDetails()
+    //   setStatus(params?.row?.status)
+    //   Toaster({ type: 'error', message: response.message })
+    // }
   }
 
   const handleClickOpen = async item => {
@@ -208,9 +235,39 @@ const RequestDetails = () => {
     setOpen(false)
   }
 
-  const fetchRequestDetails = async (sort, q) => {
+  // const fetchRequestDetails = useCallback(async (sort, q) => {
+  //   try {
+  //     setLoading(true)
+
+  //     const params = {
+  //       lab_id: Selectedlab_id,
+  //       q,
+  //       sort
+  //     }
+
+  //     const response = await GetRequestDetails(id, { params })
+
+  //     setLab_id(response?.data.result[0]?.lab_id)
+  //     setAnimalId(response?.data?.result[0]?.animal_details?.animal_id)
+  //     setLabRequestId(response?.data?.result[0]?.request_id)
+  //     setMedicineId(response?.data?.result[0]?.medical_record_id)
+  //     setRequest(response?.data?.result)
+  //     setRequestId(response?.data?.result[0]?.id)
+  //     setRows(loadServerRows(paginationModel.page, response?.data?.result[0].test_reports))
+  //     setTotal(parseInt(response?.data?.total_count))
+  //     setImage(response?.data?.result[0]?.files?.images)
+  //     setDocument(response?.data?.result[0]?.files?.files)
+  //     setMedicalDocument(response?.data?.result[0]?.medical_attachements?.files)
+  //     setMedicalImage(response?.data?.result[0]?.medical_attachements?.images)
+  //   } catch (error) {
+  //     console.error('Error fetching data:', error)
+  //   } finally {
+  //     setLoading(false)
+  //   }
+  // }, [])
+
+  const fetchRequestDetails = useCallback(async (sort, q) => {
     try {
-      // Make your API call here
       setLoading(true)
 
       const params = {
@@ -219,51 +276,93 @@ const RequestDetails = () => {
         sort
       }
 
-      const response = await GetRequestDetails(id, { params }).then(res => {
-        setLab_id(res?.data.result[0]?.lab_id)
-        setAnimalId(res?.data?.result[0]?.animal_details?.animal_id)
-        setLabRequestId(res?.data?.result[0]?.request_id)
-        setMedicineId(res?.data?.result[0]?.medical_record_id)
-        setRequest(res?.data?.result)
-        setRequestId(res?.data?.result[0]?.id)
-        setRows(loadServerRows(paginationModel.page, res?.data?.result[0].test_reports))
-        setTotal(parseInt(res?.data?.total_count))
-        setImage(res?.data?.result[0]?.files?.images)
-        setDocument(res?.data?.result[0]?.files?.files)
-        setMedicalDocument(res?.data?.result[0]?.medical_attachements?.files)
-        setMedicalImage(res?.data?.result[0]?.medical_attachements?.images)
-        setLoading(false)
-      })
+      const response = await GetRequestDetails(id, { params })
+
+      const requestData = response?.data?.result || []
+      const testReports = requestData[0]?.test_reports || []
+
+      setLab_id(requestData[0]?.lab_id)
+      setAnimalId(requestData[0]?.animal_details?.animal_id)
+      setLabRequestId(requestData[0]?.request_id)
+      setMedicineId(requestData[0]?.medical_record_id)
+      setRequest(requestData)
+      setRequestId(requestData[0]?.id)
+      setRows(loadServerRows(paginationModel.page, testReports))
+      setTotal(parseInt(response?.data?.total_count))
+      setImage(requestData[0]?.files?.images)
+      setDocument(requestData[0]?.files?.files)
+      setMedicalDocument(requestData[0]?.medical_attachements?.files)
+      setMedicalImage(requestData[0]?.medical_attachements?.images)
+
+      // ✅ API call ke baad `allCompleted` ko update karein
+      setAllCompleted(testReports.every(row => row.status.startsWith('completed')))
     } catch (error) {
       console.error('Error fetching data:', error)
+    } finally {
       setLoading(false)
     }
+  }, [])
+
+  const getLabList = async params => {
+    await GetLabListByTestId({ params }).then(res => {
+      setLab(res?.data?.result)
+
+      // setRows(loadServerRows(paginationModel.page, res?.data?.result))
+    })
+  }
+
+  const getAccessLabs = async (id, labId) => {
+    const params = {
+      test_ids: labId
+    }
+    await getLabListByMultipleIds(id, params).then(res => {
+      // console.log('res', res?.data)
+      setLab(res?.data)
+    })
   }
 
   const handleOpenTransfer = async params => {
-    setTestId(params?.row?.id)
-    setTransferTestId(params?.row?.test_id)
-    const transferId = params?.row?.test_id
-    setTransferStatus(params?.row?.status)
-    setTestName(params?.row?.test_name)
-    setTestSampleName(params?.row?.sample_name)
-
-    if (permissions?.transfer_tests === true || permissions?.allow_full_access === true) {
-      setOpenTransfer(true)
-
-      // setSelectedLab(params.row)
-
-      const params = {
-        test_id: transferTestId || transferId,
-        lab_id: labId,
-        show_external_labs: 1
-      }
-      await GetLabListByTestId({ params: params }).then(res => {
-        setLab(res?.data?.result)
-
-        // setRows(loadServerRows(paginationModel.page, res?.data?.result))
-      })
+    const hasCompleted = selectedRowData.some(item => item.status.startsWith('completed'))
+    if (hasCompleted) {
+      setHasCompletedStatus(true)
+    } else {
+      setHasCompletedStatus(false)
     }
+
+    setOpenTransfer(true)
+    setTestId([params?.row?.id])
+
+    setTransferTestId(params?.row?.test_id)
+    const labTestId = [params?.row?.id]
+    setTransferStatus(params?.row?.status)
+    if (selectedRow?.length === 1) {
+      setTestName(selectedRowData[0]?.test_name)
+      setTestSampleName(selectedRowData[0]?.sample_name)
+    } else {
+      setTestName(params?.row?.test_name)
+      setTestSampleName(params?.row?.sample_name)
+    }
+
+    if (selectedRow.length >= 1) {
+      await getAccessLabs(LabRequestId, selectedRow)
+    } else {
+      await getAccessLabs(LabRequestId, labTestId)
+    }
+
+    // if()
+
+    // if (permissions?.transfer_tests === true || permissions?.allow_full_access === true) {
+    //   setOpenTransfer(true)
+
+    //   // setSelectedLab(params.row)
+
+    //   const params = {
+    //     test_id: transferTestId || transferId,
+    //     lab_id: labId,
+    //     show_external_labs: 1
+    //   }
+    //   await getLabList(params)
+    // }
   }
 
   useEffect(() => {
@@ -367,9 +466,9 @@ const RequestDetails = () => {
                   size='small'
                   labelId='demo-simple-select-label'
                   id='demo-simple-select'
-                  defaultValue={params.row.status === 'transferred' ? 'awaiting_sample' : params.row.status}
+                  defaultValue={status === 'transferred' ? 'awaiting_sample' : params.row.status}
                   value={params.row.status}
-                  onChange={event => handleChangeStatus(event, params?.row?.id)}
+                  onChange={event => handleChangeStatus(event, params?.row)}
                   sx={{
                     width: 237,
                     fontSize: '14px',
@@ -377,26 +476,28 @@ const RequestDetails = () => {
                       params.row.status === 'pending' ||
                       params.row.status === 'transferred' ||
                       params.row.status === 'awaiting_sample' ||
-                      params.row.status === 'sample_rejected' ||
-                      params.row.status === 'sample_received'
+                      params.row.status === 'sample_rejected'
                         ? 'rgba(255, 0, 0, 0.1)' // light red background for pending
                         : params.row.status === 'completed'
-                        ? '#37BD69' // light green background for completed
+                        ? 'rgba(0, 128, 0, 0.1)' // light green background for completed
                         : params.row.status === 'inprogress'
                         ? 'rgba(228, 184, 25, 0.1)' // light yellow background for in progress
+                        : params.row.status === 'sample_received'
+                        ? 'rgba(0, 128, 0, 0.1)'
                         : 'rgba(0, 128, 0, 0.1)',
 
                     color:
                       params.row.status === 'pending' ||
                       params.row.status === 'transferred' ||
                       params.row.status === 'awaiting_sample' ||
-                      params.row.status === 'sample_rejected' ||
-                      params.row.status === 'sample_received'
+                      params.row.status === 'sample_rejected'
                         ? '#FA6140'
                         : params.row.status === 'completed'
                         ? '#37BD69'
                         : params.row.status === 'inprogress'
                         ? '#E4B819 '
+                        : params.row.status === 'sample_received'
+                        ? '#37BD69'
                         : '#37BD69',
 
                     borderRadius: '8px',
@@ -405,13 +506,14 @@ const RequestDetails = () => {
                         params.row.status === 'pending' ||
                         params.row.status === 'transferred' ||
                         params.row.status === 'awaiting_sample' ||
-                        params.row.status === 'sample_rejected' ||
-                        params.row.status === 'sample_received'
+                        params.row.status === 'sample_rejected'
                           ? '#FA6140'
                           : params.row.status === 'completed'
                           ? '#37BD69'
                           : params.row.status === 'inprogress'
                           ? '#E4B819'
+                          : params.row.status === 'sample_received'
+                          ? '#37BD69'
                           : '#37BD69'
                     },
 
@@ -529,38 +631,6 @@ const RequestDetails = () => {
                       </Typography>
                     </Box>
                   ) : null}
-                  {/* <IconButton size='small' onClick={e => handleOpenPopOver(e, params)}>
-                    <Icon icon='charm:menu-kebab' />
-                  </IconButton> */}
-                  {/* <Popover
-                    sx={{
-                      '& .MuiPaper-root': {
-                        minWidth: 140,
-                        borderRadius: '5px'
-                      },
-                      '& .MuiBackdrop-root': {
-                        bgcolor: 'transparent'
-                      }
-                    }}
-                    open={openPopover}
-                    anchorEl={anchorEl}
-                    onClose={handleClosePopover}
-                    anchorOrigin={{
-                      vertical: 'bottom',
-                      horizontal: 'right'
-                    }}
-                    transformOrigin={{
-                      vertical: 'top',
-                      horizontal: 'right'
-                    }}
-                  >
-                    {(permissions?.allow_full_access || permissions?.transfer_tests) && (
-                      <MenuItem onClick={() => handleOpenTransfer(params)}>Transfer</MenuItem>
-                    )}
-                    {(permissions?.allow_full_access || permissions?.perform_tests) && (
-                      <MenuItem onClick={handleOpenUploader}>Upload</MenuItem>
-                    )}
-                  </Popover> */}
 
                   <Stack
                     direction='row'
@@ -596,7 +666,9 @@ const RequestDetails = () => {
                                 backgroundColor: 'rgba(68, 84, 74, 0.1)' // Change background color on hover
                               }
                             }}
-                            onClick={e => handleOpenUploader(e, params)}
+                            onClick={e => {
+                              e.stopPropagation(), handleOpenUploader(e, params)
+                            }}
                           >
                             <Icon icon='tabler:upload' width='24' height='24' color={'rgba(68, 84, 74, 1)'} />
                           </IconButton>
@@ -615,7 +687,9 @@ const RequestDetails = () => {
                                 backgroundColor: 'rgba(68, 84, 74, 0.1)' // Change background color on hover
                               }
                             }}
-                            onClick={() => handleOpenTransfer(params)}
+                            onClick={e => {
+                              e.stopPropagation(), handleOpenTransfer(params)
+                            }}
                           >
                             <Icon
                               icon='mingcute:transfer-3-line'
@@ -686,6 +760,7 @@ const RequestDetails = () => {
   }
 
   const handleCloseTransfer = () => {
+    reset()
     setOpenTransfer(false)
     handleClosePopover()
   }
@@ -743,37 +818,75 @@ const RequestDetails = () => {
   }
 
   const onSubmit = async params => {
-    // setSubmitLoader(true)
     const { lab_name, replaced_lab_id, transfer_reason } = {
       ...params
     }
-    const id = testId
 
-    const payload = {
-      replaced_lab_id,
-      transfer_reason
-    }
+    // setSubmitLoader(true)
 
-    if (transferStatus !== 'completed') {
+    // if (transferStatus !== 'completed') {
+
+    if (selectedRow?.length > 1) {
+      const params = {
+        test_ids: selectedRow,
+        replaced_lab_id,
+        transfer_reason
+      }
+      const res = await postBulkTransfer({ params })
+      if (res?.success) {
+        handleCloseTransfer()
+        Toaster({ type: 'success', message: res.message })
+        reset({
+          replaced_lab_id: '',
+          transfer_reason: ''
+        })
+        fetchRequestDetails()
+      } else {
+        handleCloseTransfer()
+        reset({
+          replaced_lab_id: '',
+          transfer_reason: ''
+        })
+        Toaster({ type: 'error', message: res.message })
+      }
+    } else {
+      const { lab_name, replaced_lab_id, transfer_reason } = {
+        ...params
+      }
+      const id = testId
+
+      const payload = {
+        replaced_lab_id,
+        transfer_reason
+      }
       const response = await transferLab(id, payload)
       if (response?.success) {
         handleCloseTransfer()
 
         Toaster({ type: 'success', message: response.message })
 
-        reset()
+        reset({
+          replaced_lab_id: '',
+          transfer_reason: ''
+        })
 
         fetchRequestDetails()
       } else {
         handleCloseTransfer()
-        reset()
+        reset({
+          replaced_lab_id: '',
+          transfer_reason: ''
+        })
         Toaster({ type: 'error', message: response.message })
       }
-    } else {
-      handleCloseTransfer()
-      reset()
-      Toaster({ type: 'error', message: 'Completed test can not be transferred' })
     }
+
+    // }
+    //  else {
+    //   handleCloseTransfer()
+    //   reset()
+    //   Toaster({ type: 'error', message: 'Completed test can not be transferred' })
+    // }
 
     // // setSubmitLoader(false)
   }
@@ -785,6 +898,7 @@ const RequestDetails = () => {
     const testId = item?.id
 
     setFileId(item?.id)
+    console.log('item', item)
     try {
       const params = { lab_test_id: id }
       const response = await DeleteLAbRequestAttachment(testId, params)
@@ -792,15 +906,11 @@ const RequestDetails = () => {
       if (response?.success) {
         Toaster({ type: 'success', message: response.message })
 
-        // setAlertDefaults({ status: true, message: response?.message, severity: 'success' })
-
         fetchRequestDetails()
         setShowTestFile(false)
       } else {
         setShowTestFile(false)
         Toaster({ type: 'error', message: response.message })
-
-        // setAlertDefaults({ status: true, message: response?.message, severity: 'error' })
       }
     } catch (error) {}
   }
@@ -809,11 +919,63 @@ const RequestDetails = () => {
     window.open(imageUrl, '_blank')
   }
 
-  const handleCloseSnackBar = (event, reason) => {
-    if (reason === 'clickaway') {
-      return
+  // const handleCloseSnackBar = (event, reason) => {
+  //   if (reason === 'clickaway') {
+  //     return
+  //   }
+  //   setOpenSnackbar(false)
+  // }
+
+  const handleRowSelection = (rowSelectionModel, details) => {
+    setSelectedRow(rowSelectionModel)
+
+    // Retrieve the complete row data based on selected row IDs
+    const selectedRowData = rows.filter(row => rowSelectionModel.includes(row.id))
+    setSelectedRowData(selectedRowData)
+  }
+
+  const postMultipleStatus = async (testIds, status) => {
+    try {
+      // Make your API call here
+
+      const params = {
+        status: status || headerStatus,
+        lab_request: id,
+        test_ids: testIds || selectedRow
+      }
+
+      const res = await postBulkStatus({ params })
+      if (res?.success) {
+        // console.log('res', res)
+        Toaster({ type: 'success', message: res.message })
+        fetchRequestDetails()
+      }
+    } catch (error) {
+      console.error('Error fetching data:', error)
+      Toaster({ type: 'error', message: res.message })
     }
-    setOpenSnackbar(false)
+  }
+
+  const handleHeaderDropdown = e => {
+    const value = e.target.value
+
+    if (
+      (value === 'completed_positive' ||
+        value === 'completed_negative' ||
+        value === 'completed_detected' ||
+        value === 'completed_not_detected' ||
+        value === 'completed_inconclusive' ||
+        value === 'completed' ||
+        value === 'completed_insufficient_samples') &&
+      !(image || document)
+    ) {
+      setHeaderStatus('awaiting_sample')
+      Toaster({ type: 'error', message: 'Attach the report before completing the test' })
+      fetchRequestDetails()
+    } else {
+      setHeaderStatus(value)
+      postMultipleStatus(selectedRow, value)
+    }
   }
 
   return (
@@ -843,12 +1005,15 @@ const RequestDetails = () => {
           </Breadcrumbs>
 
           <Card sx={{ p: 5 }}>
-            {request?.map((item, index) => (
-              <>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap' }}>
-                  <Box>
-                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                      {/* {' '}
+            {request?.map(
+              (item, index) => (
+                console.log('animal_details', item?.animal_details),
+                (
+                  <>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap' }}>
+                      <Box>
+                        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                          {/* {' '}
                       <IconButton
                         sx={{ mr: 1 }}
                         onClick={() =>
@@ -859,62 +1024,231 @@ const RequestDetails = () => {
                       >
                         <Icon icon='ep:back' fontSize={25} />
                       </IconButton> */}
-                      <Typography variant='h6'>
-                        Request ID -{' '}
-                        <span
-                          onClick={() => handleClickOpen(item)}
-                          style={{ fontSize: '20px', fontWeight: 'bold', cursor: 'pointer', color: '#37BD69' }}
-                        >
-                          {item?.request_id}
-                        </span>
-                      </Typography>
-                    </Box>
-                    <Box sx={{ display: 'flex', flexDirection: 'column', flexWrap: 'wrap' }}>
-                      <Typography>
-                        Medical Record{' '}
-                        <span style={{ fontSize: '15px', fontWeight: 'bold', color: '#7A8684' }}>
-                          {item?.medical_record_id}
-                        </span>
-                      </Typography>
-                    </Box>
-                    <Box sx={{ display: 'flex', flexDirection: 'column', flexWrap: 'wrap' }}>
-                      <Typography>
-                        Requested By{' '}
-                        <span style={{ fontSize: '15px', fontWeight: 'bold', color: '#7A8684' }}>
-                          {item?.user_first_name}
-                        </span>
-                      </Typography>
-                    </Box>
-                    <Typography> {moment(item?.created_at).format('DD MMM YYYY')}</Typography>
-                    <Typography>
-                      Site :{' '}
-                      <span style={{ fontSize: '15px', fontWeight: 'bold', color: '#7A8684' }}>{item?.site_name}</span>
-                    </Typography>
-                    <Typography>
-                      No. of Tests : <span style={{ fontSize: '15px', fontWeight: 'bold' }}>{item?.total_no_test}</span>
-                    </Typography>
-                  </Box>
+                          <Typography variant='h6'>
+                            Request ID -{' '}
+                            <span
+                              onClick={() => handleClickOpen(item)}
+                              style={{ fontSize: '20px', fontWeight: 'bold', cursor: 'pointer', color: '#37BD69' }}
+                            >
+                              {item?.request_id}
+                            </span>
+                          </Typography>
+                        </Box>
+                        <Box sx={{ display: 'flex', flexDirection: 'column', flexWrap: 'wrap' }}>
+                          <Typography>
+                            Medical Record :{' '}
+                            <span style={{ fontSize: '15px', fontWeight: 'bold', color: '#7A8684' }}>
+                              {item?.medical_record_code}
+                            </span>
+                          </Typography>
+                        </Box>
+                        <Box sx={{ display: 'flex', flexDirection: 'column', flexWrap: 'wrap' }}>
+                          <Typography>
+                            Requested By{' '}
+                            <span style={{ fontSize: '15px', fontWeight: 'bold', color: '#7A8684' }}>
+                              {item?.user_first_name}
+                            </span>
+                          </Typography>
+                        </Box>
+                        <Typography> {moment(item?.created_at).format('DD MMM YYYY')}</Typography>
+                        <Typography>
+                          Site :{' '}
+                          <span style={{ fontSize: '15px', fontWeight: 'bold', color: '#7A8684' }}>
+                            {item?.site_name}
+                          </span>
+                        </Typography>
+                        <Typography>
+                          No. of Tests :{' '}
+                          <span style={{ fontSize: '15px', fontWeight: 'bold' }}>{item?.total_no_test}</span>
+                        </Typography>
+                      </Box>
 
-                  <Box sx={{ minWidth: '345px' }}>
-                    <AnimalParentCard data={item?.animal_details} backgroundColor={'#f2f2f2'} />
-                    {/* <AnimalCard animalDetails={item?.animal_details} /> */}
-                  </Box>
-                </Box>
-              </>
-            ))}
+                      <Box
+                        sx={{
+                          minWidth: '400px',
+                          display: 'flex',
+                          flexDirection: 'row',
+                          justifyContent: 'center',
+                          backgroundColor: '#f2f2f2',
+                          borderRadius: '8px',
+
+                          alignItems: 'center'
+                        }}
+                      >
+                        <AnimalParentCard data={item?.animal_details[0]} backgroundColor={'#f2f2f2'} />
+                        {item?.animal_details?.length > 1 && (
+                          <Box
+                            onClick={() => setOpenAnimalSheet(true)}
+                            sx={{
+                              display: 'flex',
+                              gap: 2,
+
+                              // mt: 2,
+
+                              bgcolor: 'rgba(0, 128, 0, 0.1)',
+                              cursor: 'pointer',
+                              borderRadius: '50%',
+                              fontSize: '20px',
+                              fontWeight: 500,
+                              display: 'flex',
+                              justifyContent: 'center',
+                              alignItems: 'center',
+                              color: '#37BD69',
+                              m: 3,
+                              p: 3,
+                              width: '50px',
+                              height: '50px'
+                            }}
+                          >
+                            +{item?.animal_details?.length - 1}
+                          </Box>
+                        )}
+                      </Box>
+                    </Box>
+                  </>
+                )
+              )
+            )}
           </Card>
-          <UserSnackbar
-            status={openSnackbar}
-            message={snackbarMessage}
-            severity={severity}
-            handleClose={handleCloseSnackBar}
-            indexedRows
-          />
 
           <Card sx={{ mt: 5 }}>
-            <CardHeader title='Lab Tests' />
+            {/* <CardHeader title='Lab Tests' /> */}
+            <Box
+              sx={{
+                px: 5,
+                py: 3,
+                display: 'flex',
+                width: '100%',
+                justifyContent: 'space-between',
+                alignItems: 'center'
+              }}
+            >
+              <Typography sx={{ fontSize: '20px', fontWeight: 500 }}>Lab Tests </Typography>
+              {selectedRow?.length > 0 && (
+                <Box sx={{ display: 'flex', gap: 4, alignItems: 'center' }}>
+                  <Box
+                    sx={{
+                      p: 2,
+                      bgcolor: '#0000000D',
+                      width: '35px',
+                      height: '35px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      borderRadius: '8px'
+                    }}
+                  >
+                    <Typography sx={{ fontSize: '15px', fontWeight: 400 }}>{selectedRow?.length}</Typography>
+                  </Box>
+
+                  {(permissions?.transfer_tests === true || permissions?.allow_full_access === true) && (
+                    <Button variant='contained' sx={{ display: 'flex', gap: 2 }} onClick={() => handleOpenTransfer()}>
+                      <Icon icon='mingcute:transfer-3-line' width='24px' height='24px' /> Transfer
+                    </Button>
+                  )}
+
+                  <Box>
+                    {(permissions?.allow_full_access || permissions?.perform_tests) && (
+                      <FormControl fullWidth variant='outlined'>
+                        <Select
+                          size='small'
+                          labelId='demo-simple-select-label'
+                          id='demo-simple-select'
+                          // defaultValue={'awaiting_sample'}
+                          value={headerStatus}
+                          onChange={e => handleHeaderDropdown(e)}
+                          sx={{
+                            width: 237,
+                            fontSize: '14px',
+
+                            // border: '1px solid red',
+
+                            backgroundColor:
+                              headerStatus === 'pending' ||
+                              headerStatus === 'transferred' ||
+                              headerStatus === 'awaiting_sample' ||
+                              headerStatus === 'sample_rejected'
+                                ? 'rgba(255, 0, 0, 0.1)' // light red background for pending
+                                : headerStatus === 'completed'
+                                ? 'rgba(0, 128, 0, 0.1)' // light green background for completed
+                                : headerStatus === 'inprogress'
+                                ? 'rgba(228, 184, 25, 0.1)'
+                                : headerStatus === 'sample_received'
+                                ? 'rgba(0, 128, 0, 0.1)'
+                                : 'rgba(0, 128, 0, 0.1)',
+
+                            color:
+                              headerStatus === 'pending' ||
+                              headerStatus === 'transferred' ||
+                              headerStatus === 'awaiting_sample' ||
+                              headerStatus === 'sample_rejected'
+                                ? '#FA6140'
+                                : headerStatus === 'completed'
+                                ? '#37BD69'
+                                : headerStatus === 'inprogress'
+                                ? '#E4B819 '
+                                : headerStatus === 'sample_received'
+                                ? '#37BD69'
+                                : '#37BD69',
+
+                            borderRadius: '8px',
+
+                            '& .MuiSelect-icon': {
+                              color:
+                                headerStatus === 'pending' ||
+                                headerStatus === 'transferred' ||
+                                headerStatus === 'awaiting_sample' ||
+                                headerStatus === 'sample_rejected'
+                                  ? '#FA6140'
+                                  : headerStatus === 'completed'
+                                  ? '#37BD69'
+                                  : headerStatus === 'inprogress'
+                                  ? '#E4B819'
+                                  : headerStatus === 'sample_received'
+                                  ? '#37BD69'
+                                  : '#37BD69'
+                            },
+
+                            '&:hover .MuiOutlinedInput-notchedOutline': {
+                              border: '0',
+
+                              borderColor:
+                                headerStatus === 'pending' ||
+                                headerStatus === 'transferred' ||
+                                headerStatus === 'awaiting_sample' ||
+                                headerStatus === 'sample_rejected' ||
+                                headerStatus === 'sample_received'
+                                  ? '#FA6140' // Custom red border for these statuses
+                                  : headerStatus === 'completed'
+                                  ? '#37BD69' // Custom green border for completed
+                                  : headerStatus === 'inprogress'
+                                  ? '#E4B819' // Custom yellow border for in progress
+                                  : '#37BD69' // Default green border
+                            },
+
+                            '& .MuiOutlinedInput-notchedOutline': {
+                              border: '0'
+                            }
+                          }}
+                        >
+                          {statusData?.map((item, index) => (
+                            <MenuItem key={index} value={item?.id}>
+                              {item?.name}
+                            </MenuItem>
+                          ))}
+                        </Select>
+                      </FormControl>
+                    )}
+                  </Box>
+                </Box>
+              )}
+            </Box>
 
             <DataGrid
+              checkboxSelection={
+                permissions?.perform_tests || permissions?.allow_full_access || permissions?.transfer_tests
+              }
+              onRowSelectionModelChange={handleRowSelection}
               sx={{
                 '& .MuiDataGrid-row:hover .customButton': {
                   display: 'block'
@@ -929,9 +1263,7 @@ const RequestDetails = () => {
               rows={indexedRows === undefined ? [] : indexedRows}
               rowCount={total}
               columns={columns}
-              // getRowId={row => row?.test_id}
               onSortModelChange={handleSortModel}
-              // slots={{ toolbar: ServerSideToolbar }}
               loading={loading}
               slotProps={{
                 baseButton: {
@@ -961,7 +1293,7 @@ const RequestDetails = () => {
               <Divider />
             </Box>
             <Box sx={{ mb: '20px', px: 4 }}>
-              {permissions?.perform_tests || permissions?.allow_full_access || permissions?.transfer_tests ? (
+              {permissions?.perform_tests || permissions?.allow_full_access ? (
                 <UploadReports
                   animalID={animanlId}
                   labTestId={LabRequestId}
@@ -969,7 +1301,6 @@ const RequestDetails = () => {
                   type='lab_test_request'
                   id={requestId === null ? '0' : requestId}
                   handleCloseUploader={setOpenUploader}
-                  setAlertDefaults={setAlertDefaults}
                   handleClosePopover={handleClosePopover}
                   fetchRequestDetails={fetchRequestDetails}
                   buttonText='Submit Reports'
@@ -983,6 +1314,7 @@ const RequestDetails = () => {
                 <Box sx={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', gap: 4 }}>
                   {image && (
                     <CommonMediaView
+                      allCompleted={allCompleted}
                       image={image}
                       handleDeleteImg={handleDeleteImg}
                       fileViews={fileViews}
@@ -991,6 +1323,7 @@ const RequestDetails = () => {
                   )}
                   {document && (
                     <CommonMediaView
+                      allCompleted={allCompleted}
                       document={document}
                       handleDeleteImg={handleDeleteImg}
                       fileViews={fileViews}
@@ -1018,6 +1351,7 @@ const RequestDetails = () => {
                   <Box sx={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', gap: 4, mt: '16px' }}>
                     {medicalImage && (
                       <CommonMediaView
+                        allCompleted={allCompleted}
                         image={medicalImage}
                         handleDeleteImg={handleDeleteImg}
                         fileViews={fileViews}
@@ -1027,6 +1361,7 @@ const RequestDetails = () => {
                     )}
                     {medicalDocument && (
                       <CommonMediaView
+                        allCompleted={allCompleted}
                         document={medicalDocument}
                         handleDeleteImg={handleDeleteImg}
                         fileViews={fileViews}
@@ -1196,15 +1531,105 @@ const RequestDetails = () => {
                 <Typography sx={{ fontSize: '14px' }}>Request ID : </Typography>
                 <Typography sx={{ fontSize: '14px', fontWeight: 600 }}>{request[0]?.request_id || '-'} </Typography>
               </Box>
-              <Box sx={{ display: 'flex', gap: 1, flexDirection: 'column' }}>
-                <Typography sx={{ fontSize: '14px' }}>Test Name : </Typography>
-                <Typography sx={{ fontSize: '14px', fontWeight: 600 }}>{testName ? testName : '-'}</Typography>
+              <Box
+                sx={{
+                  display: 'flex',
+                  gap: 1,
+                  flexDirection: 'column',
+                  flexDirection: 'column',
+                  alignItems: selectedRowData?.length > 1 && 'center'
+                }}
+              >
+                {selectedRowData?.length > 1 ? (
+                  <>
+                    <Typography sx={{ fontSize: '14px' }}>No of Tests : </Typography>
+
+                    <Tooltip
+                      title={
+                        <Box>
+                          {selectedRowData.map(name => (
+                            <Typography key={name?.id} sx={{ fontSize: '15px', color: '#fff' }}>
+                              {name?.test_name}
+                            </Typography>
+                          ))}
+                        </Box>
+                      }
+                    >
+                      <Box
+                        sx={{
+                          display: 'flex',
+                          justifyContent: 'center',
+                          alignItems: 'center',
+                          width: '30px',
+                          height: '30px',
+                          border: '1px solid #C3CEC7',
+                          borderRadius: '8px',
+                          fontSize: '15px'
+                        }}
+                      >
+                        {selectedRowData?.length}
+                      </Box>
+                    </Tooltip>
+                  </>
+                ) : (
+                  <>
+                    <Typography sx={{ fontSize: '14px' }}>Test Name : </Typography>
+
+                    <Typography sx={{ fontSize: '14px', fontWeight: 600, textTransform: 'capitalize' }}>
+                      {testName || '-'}
+                    </Typography>
+                  </>
+                )}
               </Box>
-              <Box sx={{ display: 'flex', gap: 1, flexDirection: 'column' }}>
-                <Typography sx={{ fontSize: '14px' }}>Sample Name : </Typography>
-                <Typography sx={{ fontSize: '14px', fontWeight: 600 }}>
-                  {testSampleName ? testSampleName : '-'}
-                </Typography>
+              <Box
+                sx={{
+                  display: 'flex',
+                  gap: 1,
+                  flexDirection: 'column',
+                  alignItems: selectedRowData?.length > 1 && 'center'
+                }}
+              >
+                {selectedRowData?.length > 1 ? (
+                  <>
+                    <Typography sx={{ fontSize: '14px' }}>No of Samples : </Typography>
+
+                    <Tooltip
+                      title={
+                        <Box>
+                          {selectedRowData.map(name => (
+                            <Typography key={name?.id} sx={{ fontSize: '15px', color: '#fff' }}>
+                              {name?.sample_name}
+                            </Typography>
+                          ))}
+                        </Box>
+                      }
+                    >
+                      <Box
+                        sx={{
+                          display: 'flex',
+                          justifyContent: 'center',
+                          alignItems: 'center',
+                          width: '30px',
+                          height: '30px',
+
+                          border: '1px solid #C3CEC7',
+                          borderRadius: '8px',
+                          fontSize: '15px'
+                        }}
+                      >
+                        {selectedRowData?.length}
+                      </Box>
+                    </Tooltip>
+                  </>
+                ) : (
+                  <>
+                    <Typography sx={{ fontSize: '14px' }}>Sample Name : </Typography>
+
+                    <Typography sx={{ fontSize: '14px', fontWeight: 600, textTransform: 'capitalize' }}>
+                      {testSampleName ? testSampleName : '-'}
+                    </Typography>
+                  </>
+                )}
               </Box>{' '}
               <Box sx={{ display: 'flex', gap: 1, flexDirection: 'column' }}>
                 <Typography sx={{ fontSize: '14px' }}>Site : </Typography>
@@ -1307,6 +1732,12 @@ const RequestDetails = () => {
                     </FormControl>
                   </Grid>
                 </Grid>
+                {hasCompletedStatus && (
+                  <Typography color='error' sx={{}}>
+                    This transfer cannot be processed because one or more selected tests have been marked as completed.
+                  </Typography>
+                )}
+
                 <Box
                   sx={{
                     display: 'flex',
@@ -1330,7 +1761,11 @@ const RequestDetails = () => {
                     type='submit'
                     variant='contained'
                     size='large'
-                    disabled={permissions?.allow_full_access !== true || permissions?.transfer_tests !== true}
+                    disabled={
+                      permissions?.allow_full_access !== true ||
+                      permissions?.transfer_tests !== true ||
+                      hasCompletedStatus
+                    }
                   >
                     CONFIRM
                   </LoadingButton>
@@ -1371,7 +1806,6 @@ const RequestDetails = () => {
               type='lab_test'
               id={testId}
               handleCloseUploader={() => setOpenUploader(false)}
-              setAlertDefaults={setAlertDefaults}
               handleClosePopover={handleClosePopover}
               fetchRequestDetails={fetchRequestDetails}
               buttonText='Upload'
@@ -1416,6 +1850,7 @@ const RequestDetails = () => {
                         }}
                       >
                         <CommonMediaView
+                          allCompleted={allCompleted}
                           image={testImage}
                           handleDeleteImg={handleDeleteImg}
                           fileViews={fileViews}
@@ -1430,6 +1865,7 @@ const RequestDetails = () => {
                       <Typography sx={{ fontSize: '18px', mb: 3, mt: 3 }}>Document</Typography>
                       <Box sx={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', gap: 4 }}>
                         <CommonMediaView
+                          allCompleted={allCompleted}
                           document={testDoc}
                           handleDeleteImg={handleDeleteImg}
                           fileViews={fileViews}
@@ -1443,6 +1879,15 @@ const RequestDetails = () => {
             ) : null}
           </Box>
         </Dialog>
+      </>
+      <>
+        {openAnimalSheet && (
+          <AnimalSideSheet
+            openAnimalSheet={openAnimalSheet}
+            setOpenAnimalSheet={setOpenAnimalSheet}
+            request={request}
+          />
+        )}
       </>
     </>
   )

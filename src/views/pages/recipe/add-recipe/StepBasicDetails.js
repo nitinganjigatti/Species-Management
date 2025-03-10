@@ -36,6 +36,7 @@ const schema = yup.object().shape({
   recipe_name: yup.string().required('Recipe name is required'),
   portion_size: yup.string().required('Portion size is required'),
   portion_uom_id: yup.string().required('Unit of measurement is required')
+
   // nutrional_value: yup.string().required('Nutritional values are required'),
   // nutrional_uom_id: yup.string().required('Unit of measurement is required'),
   // kcal: yup.string().required('Total calories are required')

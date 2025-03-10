@@ -44,7 +44,8 @@ import {
   getShipmentOrderDetails,
   getShipmentStatusList,
   resolveDisputeItems,
-  getCommentsList
+  getCommentsList,
+  getShipmentOrderDetailsOfRequests
 } from 'src/lib/api/pharmacy/getShipmentList'
 
 import { updateShipmentRequest } from 'src/lib/api/pharmacy/getRequestItemsList'
@@ -342,10 +343,12 @@ function OrderReceiveForm({ orderId, requestId }) {
     }
   }
 
-  const getOrderDetails = async orderId => {
+  const getOrderDetails = async (orderId, requestId) => {
     try {
       setShowSpinner(true)
-      const response = await getShipmentOrderDetails(orderId)
+      // const response = await getShipmentOrderDetails(orderId)
+      // api updated for normal request api
+      const response = await getShipmentOrderDetailsOfRequests(orderId, requestId)
 
       if (response?.success === true && response?.data !== '') {
         const disputeLineItems = response?.data?.shipment_item_details?.map((el, index) => {
@@ -437,8 +440,8 @@ function OrderReceiveForm({ orderId, requestId }) {
     }
   }
   useEffect(() => {
-    if (orderId) {
-      getOrderDetails(orderId)
+    if (requestId && orderId) {
+      getOrderDetails(orderId, requestId)
     }
     getStatusList()
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -1582,8 +1585,7 @@ function OrderReceiveForm({ orderId, requestId }) {
               margin-top: 16px;
 
             }
-
-            .MuiDataGrid-footerContainer{
+              .MuiDataGrid-footerContainer{
               display:none!important;
               opacity: 0;
             }

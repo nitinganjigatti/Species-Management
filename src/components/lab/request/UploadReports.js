@@ -21,7 +21,7 @@ const UploadReports = ({
   type,
   id,
   handleCloseUploader,
-  setAlertDefaults,
+
   handleClosePopover,
   fetchRequestDetails,
   buttonText
@@ -84,19 +84,20 @@ const UploadReports = ({
       '*/*': []
     },
     onDrop: acceptedFiles => {
-      const reader = new FileReader()
-      const files = acceptedFiles
-      if (files && files.length !== 0) {
-        reader.onload = () => {
-          setImgSrc(pre => [...pre, reader?.result])
-        }
-        setDisplayFile(files[0]?.name)
-        reader?.readAsDataURL(files[0])
-        setImgArr(pre => [...pre, files[0]])
-        setValue('image', files)
+      const newImgArr = []
 
-        clearErrors('image')
-      }
+      acceptedFiles.forEach(file => {
+        const reader = new FileReader()
+        reader.onload = () => {
+          setImgSrc(prev => [...prev, reader.result])
+        }
+        reader.readAsDataURL(file)
+        newImgArr.push(file)
+      })
+
+      setImgArr(prev => [...prev, ...newImgArr])
+      setValue('image', newImgArr)
+      clearErrors('image')
     }
   })
 
@@ -104,20 +105,24 @@ const UploadReports = ({
     fileInputRef?.current?.click()
   }
 
-  const handleInputImageChange = file => {
-    const reader = new FileReader()
-    const { files } = file.target
-    // console.log('files :>> ', files)
-    if (files && files.length !== 0) {
+  const handleInputImageChange = event => {
+    const { files } = event.target
+    if (!files) return
+
+    const newImgArr = []
+
+    Array.from(files).forEach(file => {
+      const reader = new FileReader()
       reader.onload = () => {
-        setImgSrc(pre => [...pre, reader?.result])
+        setImgSrc(prev => [...prev, reader.result])
       }
-      setDisplayFile(files[0]?.name)
-      reader?.readAsDataURL(files[0])
-      setImgArr(pre => [...pre, files[0]])
-      setValue('image', files)
-      clearErrors('image')
-    }
+      reader.readAsDataURL(file)
+      newImgArr.push(file)
+    })
+
+    setImgArr(prev => [...prev, ...newImgArr])
+    setValue('image', newImgArr)
+    clearErrors('image')
   }
 
   // const removeSelectedImage = index => {
@@ -159,7 +164,6 @@ const UploadReports = ({
     if (!imgArr?.length) {
       Toaster({ type: 'error', message: 'File is Required' })
 
-      // setAlertDefaults({ status: true, message: 'Upload File is Required', severity: 'error' })
       setSubmitting(false)
     } else {
       const payload = {
@@ -183,14 +187,13 @@ const UploadReports = ({
           reset()
           setImgArr([])
 
-          // setAlertDefaults({ status: true, message: response?.message, severity: 'success' })
           Toaster({ type: 'success', message: response.message })
 
           fetchRequestDetails()
           setKey(key + 1)
         } else {
           reset(defaultValues)
-          // setAlertDefaults({ status: true, message: response?.message, severity: 'error' })
+
           Toaster({ type: 'error', message: response.message })
         }
         // Reset the form after successful submission
@@ -225,6 +228,7 @@ const UploadReports = ({
               <Grid item md={12} sm={12} xs={12}>
                 <Box sx={{ display: 'flex', alignItems: 'center', width: 'auto', flexWrap: 'wrap' }}>
                   <input
+                    multiple
                     type='file'
                     accept='*/*'
                     onChange={e => handleInputImageChange(e)}

@@ -39,8 +39,24 @@ const AddTest = props => {
   const theme = useTheme()
   const { addEventSidebarOpen, setOpenDrawer, handleSubmitData, resetForm, submitLoader, editParams } = props
   const [subTests, setSubTests] = useState([])
+
+  console.log('subTests', subTests)
   const [sampleTypes, setSampleTypes] = useState([])
   const [searchValue, setSearchValue] = useState('')
+
+  const [existingSubTests, setExistingSubTests] = useState([])
+  console.log('existingSubTests', existingSubTests)
+
+  console.log('existingSubTests', existingSubTests)
+  const [newSubTests, setNewSubTests] = useState([])
+
+  console.log('newSubTests', newSubTests)
+  const [deletedSubTests, setDeletedSubTests] = useState([])
+  console.log('deletedSubTests', deletedSubTests)
+  const [deletedIds, setDeletedIds] = useState([])
+  console.log('deletedIds', deletedIds)
+
+  console.log('deletedSubTests', deletedSubTests)
 
   // console.log('editParams', editParams)
 
@@ -68,17 +84,29 @@ const AddTest = props => {
         id
       }
       const response = await getLabTestDetailsById(params)
-      console.log('add state comp', response)
+
       if (response?.success) {
         const sampleIdsName = response?.data?.sample_types.map(sample => sample.name)
-        const testIdsName = response?.data?.child_tests.map(test => test.name)
+
+        // console.log('response?.data?.child_tests', response?.data?.child_tests)
+
+        // const testIdsName = response?.data?.child_tests.map(test => test.name)
+
+        const testData = response?.data?.child_tests.map(test => ({
+          [test.id]: test.name // Dynamic key-value pair
+        }))
+
+        setSubTests(testData.map(test => Object.values(test)[0])) // Store only names for display
+        setExistingSubTests(testData) // Store full object (id & name)
+        setDeletedSubTests([]) // Reset deleted tests
+        setNewSubTests([])
 
         const data = {
           ...response.data,
           test_name: response?.data?.label,
           sample_ids: response?.data?.sample_types || [] // Ensure it's an array
         }
-        setSubTests(testIdsName)
+
         reset(data)
       } else {
       }
@@ -100,27 +128,103 @@ const AddTest = props => {
     console.log(params, 'log')
     const sampleIdsOnly = params.sample_ids.map(sample => sample.id)
 
-    const payload = {
-      label: params?.test_name,
-      sample_ids: sampleIdsOnly,
-      sub_tests: subTests
-    }
-    console.log(payload, 'Submission Data')
+    if (editParams?.id !== null) {
+      const sampleIdsOnly = params.sample_ids.map(sample => sample.id)
 
-    await handleSubmitData(payload)
+      const formData = new FormData()
+      formData.append('label', params.test_name)
+
+      sampleIdsOnly.forEach(id => formData.append('sample_ids[]', id))
+
+      // new sub-tests
+      newSubTests.forEach(test => formData.append('sub_tests[]', test))
+
+      // existing sub-tests
+      Object.entries(existingSubTests).forEach(([_, obj]) => {
+        Object.entries(obj).forEach(([testId, name]) => {
+          formData.append(`existing_sub_tests[${testId}]`, name)
+        })
+      })
+
+      deletedIds.forEach(id => formData.append('delete_sub_task[]', id))
+
+      // for (const pair of formData.entries()) {
+      //   console.log('Form', pair[0], pair[1])
+      // }
+
+      await handleSubmitData(formData)
+    } else {
+      const payload = {
+        label: params?.test_name,
+        sample_ids: sampleIdsOnly,
+        sub_tests: newSubTests
+      }
+      console.log(payload, 'Submission Data')
+
+      await handleSubmitData(payload)
+    }
   }
 
+  // Add a new sub-test
   const addSubTest = value => {
     if (value && value.trim() !== '') {
-      // Add new sub-test to array
-      setSubTests(prevSubTests => [...prevSubTests, value.trim()])
-      setValue('sub_tests', '')
+      const trimmedValue = value.trim()
+
+      if (!subTests.includes(trimmedValue)) {
+        setSubTests(prev => [...prev, trimmedValue]) // Update displayed tests
+        setNewSubTests(prev => [...prev, trimmedValue]) // Track new additions
+        setValue('sub_tests', '')
+      }
     }
   }
 
-  const handleRemoveSubTest = index => {
-    setSubTests(subTests.filter((_, i) => i !== index))
+  // Remove a sub-test
+  const handleRemoveSubTest = testName => {
+    const existingTest = existingSubTests.find(t => Object.values(t)[0] === testName)
+    const isNewTest = newSubTests.includes(testName)
+    const isDeletedTest = deletedSubTests.find(t => Object.values(t)[0] === testName)
+
+    if (existingTest) {
+      // Move to deletedSubTests with ID
+      setExistingSubTests(prev => prev.filter(t => Object.values(t)[0] !== testName))
+      setDeletedSubTests(prev => [...prev, existingTest])
+    } else if (isNewTest) {
+      // Remove directly from newSubTests
+      setNewSubTests(prev => prev.filter(t => t !== testName))
+    } else if (isDeletedTest) {
+      restoreDeletedTest(testName)
+    }
+
+    // Remove from displayed subTests list
+    setSubTests(prev => prev.filter(t => t !== testName))
   }
+
+  // Restore a deleted test back to existingSubTests
+  useEffect(() => {
+    setDeletedIds(deletedSubTests.map(test => Object.keys(test)[0])) // Extracting test ID
+  }, [deletedSubTests])
+
+  const restoreDeletedTest = testName => {
+    setDeletedSubTests(prevDeletedTests => {
+      const testToRestore = prevDeletedTests.find(t => Object.values(t)[0] === testName)
+
+      if (testToRestore) {
+        setExistingSubTests(prev => [...prev, testToRestore]) // Restore test
+        setSubTests(prev => [...prev, testName]) // Re-add to displayed list
+
+        return prevDeletedTests.filter(t => Object.values(t)[0] !== testName) // Update state
+      }
+
+      return prevDeletedTests
+    })
+  }
+
+  // const handleRemoveSubTest = params => {
+  //   console.log('type', type)
+  //   console.log('params', params)
+
+  //   // setSubTests(subTests.filter((_, i) => i !== index))
+  // }
 
   const handleRemoveSampleType = sampleToRemove => {
     setValue(
@@ -150,7 +254,7 @@ const AddTest = props => {
     try {
       const params = { q }
       await getLabSampleList({ params: params }).then(res => {
-        console.log('response123', res?.data?.result)
+        // console.log('response123', res?.data?.result)
         setSampleTypes(res?.data?.result)
       })
     } catch (e) {
@@ -333,32 +437,18 @@ const AddTest = props => {
                 <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mt: 2 }}>
                   {subTests.map((test, index) => (
                     <>
-                      {editParams?.id ? (
-                        <Chip
-                          key={index}
-                          label={test}
-                          sx={{
-                            backgroundColor: '#e8f5e9',
-                            '& .MuiChip-deleteIcon': {
-                              color: '#4caf50'
-                            },
-                            borderRadius: '6px'
-                          }}
-                        />
-                      ) : (
-                        <Chip
-                          key={index}
-                          label={test}
-                          onDelete={() => handleRemoveSubTest(index)}
-                          sx={{
-                            backgroundColor: '#e8f5e9',
-                            '& .MuiChip-deleteIcon': {
-                              color: '#4caf50'
-                            },
-                            borderRadius: '6px'
-                          }}
-                        />
-                      )}
+                      <Chip
+                        key={index}
+                        label={test}
+                        onDelete={() => handleRemoveSubTest(test)}
+                        sx={{
+                          backgroundColor: '#e8f5e9',
+                          '& .MuiChip-deleteIcon': {
+                            color: '#FA6140'
+                          },
+                          borderRadius: '6px'
+                        }}
+                      />
                     </>
                   ))}
                 </Box>
@@ -418,6 +508,33 @@ const AddTest = props => {
                   )}
                 />
               </FormControl>
+
+              {/* Deleted sub-tests list */}
+              {deletedSubTests.length > 0 && (
+                <Box>
+                  <label>Deleted Tests</label>
+                  <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2, mt: 2 }}>
+                    {deletedSubTests.map((test, index) => {
+                      const testId = Object.keys(test)[0] // Extract the test ID
+                      const testName = test[testId] // Extract the test name
+
+                      return (
+                        <Chip
+                          key={index}
+                          label={`${testName} (ID: ${testId})`} // Show name and ID
+                          onDelete={() => restoreDeletedTest(testName)} // Restore using name
+                          sx={{
+                            backgroundColor: '#ffebe5',
+                            color: '#FA6140',
+                            '& .MuiChip-deleteIcon': { color: '#FA6140' },
+                            borderRadius: '6px'
+                          }}
+                        />
+                      )
+                    })}
+                  </Box>
+                </Box>
+              )}
 
               <Box sx={{ display: 'flex', alignItems: 'center' }}>
                 {editParams?.zoo_id != '0' && (

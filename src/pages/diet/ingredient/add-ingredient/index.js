@@ -408,7 +408,7 @@ const AddIngredient = () => {
         setPreparationTypeSubmitLoader(false)
         handleSidebarClose()
 
-        Toaster({ type: 'error', message: JSON?.stringify(response?.message) })
+        Toaster({ type: 'error', message: response?.message })
       }
     } catch (e) {
       setPreparationTypeSubmitLoader(false)

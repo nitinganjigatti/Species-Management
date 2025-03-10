@@ -22,7 +22,6 @@ import {
 } from 'src/lib/api/diet/speciesDiet'
 import Toaster from 'src/components/Toaster'
 import Utility from 'src/utility'
-import moment from 'moment'
 
 function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, speciesId, setspeciesId, fetchTableData }) {
   const theme = useTheme()
@@ -36,13 +35,6 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
   const [dietAttachmentActiveConfirm, setDietAttachmentActiveConfirm] = useState(false)
   const [dietAttachmentUploadConfirm, setDietAttachmentUploadConfirm] = useState(false)
   const [dietAttachmentId, setDietAttachmentId] = useState(null)
-
-  function convertUTCToLocalDate(date) {
-    var stillUtc = moment.utc(date).toDate()
-    var local = moment(stillUtc).local(true).format('YYYY-MM-DD')
-
-    return local
-  }
 
   const getSpecieDetail = async () => {
     setDetailsLoader(true)
@@ -62,11 +54,16 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
     }
   }, [speciesDetailsDrawer])
 
-  const removeAttachment = async attachment_id => {
+  const removeAttachment = async (speciesId, attachment_id) => {
     if (attachment_id) {
       setDetailsLoader(true)
       try {
-        const res = await speciesAttachmentRemoveById(attachment_id)
+        // const res = await speciesAttachmentRemoveById(attachment_id)
+        const res = await speciesAttachmentActive({
+          status: '0',
+          species_id: `${speciesId}`,
+          attachment_id: `${attachment_id}`
+        })
         Toaster({ type: 'success', message: res.message || 'Attachment removed successfully' })
         await fetchTableData()
         await getSpecieDetail()
@@ -82,7 +79,11 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
     if (speciesId && attachmentId) {
       setDetailsLoader(true)
       try {
-        const res = await speciesAttachmentActive({ species_id: speciesId, attachment_id: attachmentId })
+        const res = await speciesAttachmentActive({
+          status: '1',
+          species_id: `${speciesId}`,
+          attachment_id: `${attachmentId}`
+        })
         Toaster({ type: 'success', message: res.message || 'Attachment activated successfully' })
         await fetchTableData()
         await getSpecieDetail()
@@ -98,8 +99,19 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
   const handleFileUpload = async (event, speciesId) => {
     const file = event?.target?.files[0]
 
-    if (!file || file.type !== 'application/pdf') {
-      Toaster({ type: 'error', message: 'Please select a valid PDF file.' })
+    const allowedTypes = [
+      'application/pdf',
+      'image/jpeg',
+      'image/png',
+      'image/gif',
+      'application/msword',
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      'application/vnd.ms-excel',
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      'text/csv'
+    ]
+    if (!file || !allowedTypes.includes(file.type)) {
+      Toaster({ type: 'error', message: 'Please select a valid file.' })
       return
     }
     setUploadingFileName(file.name)
@@ -195,7 +207,7 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
             </Box>
           </Box>
         </Box>
-        <Box
+        {/* <Box
           sx={{
             backgroundColor: theme.palette.customColors.tableHeaderBg,
             borderRadius: '4px',
@@ -218,7 +230,7 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
           >
             Deits
           </Typography>
-        </Box>
+        </Box> */}
       </Box>
     </Box>
   )
@@ -319,7 +331,7 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
                   overflow: 'hidden'
                 }}
               >
-                <img style={{ width: '100%', height: '100%' }} src={'/icons/pdf_Icon_attachment.svg'} alt='Profile' />
+                <img style={{ width: '100%', height: '100%' }} src={'/icons/documents_icon.svg'} alt='Profile' />
               </Avatar>
 
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
@@ -400,7 +412,9 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
                         width: 240
                       }}
                     >
-                      {convertUTCToLocalDate(item.created_at) + ' | ' + Utility.convertUTCToLocaltime(item.created_at)}{' '}
+                      {Utility.convertUTCToLocalDate(item.created_at) +
+                        ' | ' +
+                        Utility.convertUTCToLocaltime(item.created_at)}{' '}
                       {/* which time wll be use here modified or created? */}
                     </Typography>
                   </Box>
@@ -421,7 +435,7 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
               <Switch
                 onClick={e => {
                   e.stopPropagation()
-                  removeAttachment(item?.attachment_id)
+                  removeAttachment(speciesId, item?.attachment_id)
                 }}
                 defaultChecked
               />
@@ -460,7 +474,7 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
             overflow: 'hidden'
           }}
         >
-          <img style={{ width: '100%', height: '100%' }} src={'/icons/pdf_Icon_attachment.svg'} alt='Profile' />
+          <img style={{ width: '100%', height: '100%' }} src={'/icons/documents_icon.svg'} alt='Profile' />
         </Avatar>
 
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
@@ -491,7 +505,7 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
             </Box>
           </Box>
           <Box sx={{ display: 'flex', gap: '8px', alignItems: 'end' }}>
-            <Typography
+            {/* <Typography
               sx={{
                 color: '#E93353',
                 fontSize: '12px',
@@ -501,7 +515,7 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
               }}
             >
               Detached by
-            </Typography>
+            </Typography> */}
             <Typography
               sx={{
                 color: theme.palette.customColors.OnSurfaceVariant,
@@ -521,7 +535,9 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
                 lineHeight: '14.52px'
               }}
             >
-              {convertUTCToLocalDate(item.modified_at) + ' | ' + Utility.convertUTCToLocaltime(item.modified_at)}{' '}
+              {Utility.convertUTCToLocalDate(item.modified_at) +
+                ' | ' +
+                Utility.convertUTCToLocaltime(item.modified_at)}{' '}
             </Typography>
           </Box>
         </Box>
@@ -541,11 +557,12 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
         onClick={e => {
           e.stopPropagation()
           setDietAttachmentId(item.attachment_id)
-          if (Number(specieDetails.active_attachments_count) === 0) {
-            speciesAttachmentActiveFunc(speciesId, dietAttachmentId)
-          } else {
-            setDietAttachmentActiveConfirm(true)
-          }
+          // if (Number(specieDetails.active_attachments_count) === 0) {
+          //   speciesAttachmentActiveFunc(speciesId, dietAttachmentId)
+          // } else {
+          //   setDietAttachmentActiveConfirm(true)
+          // }
+          speciesAttachmentActiveFunc(speciesId, dietAttachmentId)
         }}
       />
     </Box>
@@ -638,7 +655,8 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
                     lineHeight: '24.2px'
                   }}
                 >
-                  Active diet ({specieDetails.active_attachments_count})
+                  Primary diet{specieDetails.active_attachments_count > 1 && `s`}{' '}
+                  {specieDetails.active_attachments_count > 1 && `(${specieDetails.active_attachments_count})`}
                 </Typography>
               )}
               {uploadingAttachment && specieDetails?.active_attachments_count > 0 && <SpeciesDietUploadingCard />}
@@ -655,7 +673,7 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
             >
               {specieDetails?.deactive_attachments_count > 0 && (
                 <Typography sx={{ fontSize: 20, fontWeight: 500, color: '#E93353', lineHeight: '24.2px' }}>
-                  Inactive diet ({specieDetails.deactive_attachments_count})
+                  Additional diet ({specieDetails.deactive_attachments_count})
                 </Typography>
               )}
               {specieDetails?.deactive_attachments?.map((item, index) => (
@@ -687,7 +705,8 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
           size='large'
           sx={{ height: '58px', width: '514px' }}
           onClick={() => {
-            setDietAttachmentUploadConfirm(true)
+            fileInputRef.current.click()
+            // setDietAttachmentUploadConfirm(true)
           }}
           // loading={loader}
         >
@@ -696,7 +715,7 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
         <input
           type='file'
           multiple
-          accept='application/pdf'
+          accept='application/pdf, image/*, application/msword, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/vnd.ms-excel, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, text/csv'
           ref={fileInputRef}
           style={{ display: 'none' }}
           onChange={e => {
@@ -706,7 +725,7 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
       </Box>
 
       {/* ///////////////////////////dietAttachmentActiveConfirm////////////////////////////////// */}
-      <Drawer
+      {/* <Drawer
         anchor='bottom'
         open={dietAttachmentActiveConfirm}
         sx={{
@@ -777,9 +796,9 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
             CONFIRM
           </LoadingButton>
         </Box>
-      </Drawer>
+      </Drawer> */}
       {/* ////////////////////////dietAttachmentUploadConfirm///////////////////////////////////// */}
-      <Drawer
+      {/* <Drawer
         anchor='bottom'
         open={dietAttachmentUploadConfirm}
         sx={{
@@ -850,7 +869,7 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
             CONTINUE
           </LoadingButton>
         </Box>
-      </Drawer>
+      </Drawer> */}
     </Drawer>
   )
 }

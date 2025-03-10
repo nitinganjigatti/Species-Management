@@ -107,7 +107,9 @@ const initialNestedRowMedicine = {
   control_substance: false,
   control_substance_file: '',
   uuid: '',
-  stock_type: ''
+  stock_type: '',
+  variant_id: '',
+  multiplier: ''
 
   // to_store_id: '14'
 }
@@ -426,7 +428,9 @@ const AddLocalDispatch = () => {
                 expiry_date: item?.expiry_date,
                 available_item_qty: item?.qty,
                 packageDetails: `${item?.package} of ${item?.package_qty} ${item?.package_uom_label} ${item?.product_form_label}`,
-                manufacture: item?.manufacturer_name
+                manufacture: item?.manufacturer_name,
+                variant_id: item?.variant_id,
+                multiplier: item?.multiplier
               }))
             )
             setTotalBatchQuantity(searchResults?.data?.total_quantity)
@@ -540,7 +544,9 @@ const AddLocalDispatch = () => {
             dispatch_item_id: el?.dispatch_item_id,
             stock_type: el?.stock_type,
             packageDetails: `${el?.package} of ${el?.package_qty} ${el?.package_uom_label} ${el?.product_form_label}`,
-            manufacture: el?.manufacturer
+            manufacture: el?.manufacturer,
+            variant_id: el?.stock_variant_id,
+            multiplier: el?.stock_multiplier
           }
         })
 
@@ -585,7 +591,9 @@ const AddLocalDispatch = () => {
       available_item_qty: getItems[0]?.available_item_qty,
       stock_type: getItems[0]?.stock_type,
       packageDetails: getItems[0]?.packageDetails,
-      manufacture: getItems[0]?.manufacture
+      manufacture: getItems[0]?.manufacture,
+      variant_id: getItems[0]?.variant_id,
+      multiplier: getItems[0]?.multiplier
     })
     // }
   }

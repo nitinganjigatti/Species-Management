@@ -137,6 +137,7 @@ const IngredientDetail = () => {
         //Router.push(`/diet/ingredient`)
         getIngredientsDetailval(id)
         setstatusDialog(false)
+
         return Toaster({ type: 'success', message: response?.data })
       } else {
         return Toaster({ type: 'error', message: response?.data })
@@ -152,6 +153,7 @@ const IngredientDetail = () => {
       // console.log(response, 'response')
       if (response.success === true) {
         Router.push(`/diet/ingredient`)
+
         //Toaster({ type: 'success', message: `Ingredient ${'ING' + id} has been successfully deleted` })
         Toaster({ type: 'success', message: `Ingredient Deleted Successfully` })
       } else {
@@ -175,9 +177,18 @@ const IngredientDetail = () => {
               <Grid item xs={12}>
                 <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
                   <Typography color='inherit'>Diet</Typography>
-                  <Link underline='hover' color='inherit' href='/diet/ingredient/'>
+                  <Typography
+                    sx={{
+                      cursor: 'pointer',
+                      '&:hover': {
+                        textDecoration: 'underline'
+                      }
+                    }}
+                    color='inherit'
+                    onClick={() => router.back()}
+                  >
                     Ingredients
-                  </Link>
+                  </Typography>
                   <Typography color='text.primary'>Ingredient Details</Typography>
                 </Breadcrumbs>
                 {Object.keys(IngredientsDetailsval).length !== 0 ? (
@@ -244,7 +255,8 @@ const IngredientDetail = () => {
                               <Tab
                                 style={{ borderRadius: 0 }}
                                 value='2'
-                                label={'USED IN RECIPE' + ' -' + ' ' + recipeListTotal}
+                                // label={'USED IN RECIPE' + ' -' + ' ' + recipeListTotal}
+                                label={`USED IN RECIPE${recipeListTotal > 0 ? ` - ${recipeListTotal}` : ''}`}
                               />
                               <Tab
                                 style={{ borderTopLeftRadius: 0, borderBottomLeftRadius: 0 }}

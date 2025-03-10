@@ -204,11 +204,9 @@ const AddIncubatorRoom = ({ isOpen, setIsOpen, editParams, callApi, isPreFilled,
         ModalProps={{ keepMounted: true }}
         sx={{
           '& .MuiDrawer-paper': { width: ['100%', '562px'] },
-
           position: 'relative',
           display: 'flex',
           flexDirection: 'column',
-
           gap: '24px'
         }}
       >
@@ -245,7 +243,6 @@ const AddIncubatorRoom = ({ isOpen, setIsOpen, editParams, callApi, isPreFilled,
                 m: 5,
                 px: '16px',
                 py: '20px',
-
                 display: 'flex',
                 flexDirection: 'column',
                 gap: '24px',

@@ -344,17 +344,24 @@ const ListOfStockAdjusted = () => {
       field: 'created_by_user_name',
       headerName: 'Requested by ',
       renderCell: params => (
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          {Utility.renderUserAvatar(params.row.user_profile_pic)}
-          <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-            <Typography variant='subtitle2' sx={{ color: 'text.primary' }}>
-              {params?.row?.created_by_user_name ? params?.row?.created_by_user_name : 'NA'}
-            </Typography>
-            <Typography variant='caption' sx={{ lineHeight: 1.6667 }}>
-              {params.row.adjusted_at ? Utility.formatDisplayDate(params.row.adjusted_at) : 'NA'}
-            </Typography>
-          </Box>
-        </Box>
+        <>
+          {RenderUtility?.renderUserAvatarDetails(
+            params?.row?.user_profile_pic,
+            params?.row?.created_by_user_name,
+            params?.row?.adjusted_at
+          )}
+        </>
+        // <Box sx={{ display: 'flex', alignItems: 'center' }}>
+        //   {Utility.renderUserAvatar(params.row.user_profile_pic)}
+        //   <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+        //     <Typography variant='subtitle2' sx={{ color: 'text.primary' }}>
+        //       {params?.row?.created_by_user_name ? params?.row?.created_by_user_name : 'NA'}
+        //     </Typography>
+        //     <Typography variant='caption' sx={{ lineHeight: 1.6667 }}>
+        //       {params.row.adjusted_at ? Utility.formatDisplayDate(params.row.adjusted_at) : 'NA'}
+        //     </Typography>
+        //   </Box>
+        // </Box>
       )
     }
 

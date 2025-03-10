@@ -282,41 +282,57 @@ const ListOfPurchase = () => {
       )
     },
     {
-      minWidth: 160,
+      minWidth: 200,
       field: 'created_by',
       headerName: 'Created by ',
       renderCell: params => (
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          {Utility.renderUserAvatar(params.row.user_created_profile_pic)}
-          <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-            <Typography variant='subtitle2' sx={{ color: 'text.primary' }}>
-              {params?.row?.created_by_user_name ? params?.row?.created_by_user_name : 'NA'}
-            </Typography>
-            <Typography variant='caption' sx={{ lineHeight: 1.6667 }}>
-              {/* {Utility.formatDisplayDate(params.row.adjusted_at)} */}
-              {Utility.formatDisplayDate(params.row.created_at)}
-            </Typography>
-          </Box>
-        </Box>
+        <>
+          {RenderUtility?.renderUserAvatarDetails(
+            params?.row?.user_created_profile_pic,
+            params?.row?.created_by_user_name,
+            params?.row?.created_at
+          )}
+        </>
+
+        // <Box sx={{ display: 'flex', alignItems: 'center' }}>
+        //   {Utility.renderUserAvatar(params.row.user_created_profile_pic)}
+        //   <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+        //     <Typography variant='subtitle2' sx={{ color: 'text.primary' }}>
+        //       {params?.row?.created_by_user_name ? params?.row?.created_by_user_name : 'NA'}
+        //     </Typography>
+        //     <Typography variant='caption' sx={{ lineHeight: 1.6667 }}>
+        //       {/* {Utility.formatDisplayDate(params.row.adjusted_at)} */}
+        //       {Utility.formatDisplayDate(params.row.created_at)}
+        //     </Typography>
+        //   </Box>
+        // </Box>
       )
     },
     {
       minWidth: 250,
       field: 'updated_by',
-      headerName: 'Updated by ',
+      headerName: 'Updated by',
       renderCell: params => (
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          {Utility.renderUserAvatar(params.row.user_updated_profile_pic)}
-          <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-            <Typography variant='subtitle2' sx={{ color: 'text.primary' }}>
-              {params?.row?.updated_by_user_name ? params?.row?.updated_by_user_name : 'NA'}
-            </Typography>
-            <Typography variant='caption' sx={{ lineHeight: 1.6667 }}>
-              {/* {Utility.formatDisplayDate(params.row.adjusted_at)} */}
-              {params?.row?.updated_at ? Utility.formatDisplayDate(params.row.updated_at) : 'NA'}
-            </Typography>
-          </Box>
-        </Box>
+        <>
+          {RenderUtility?.renderUserAvatarDetails(
+            params?.row?.user_updated_profile_pic,
+            params?.row?.updated_by_user_name,
+            params?.row?.updated_at
+          )}
+        </>
+
+        // <Box sx={{ display: 'flex', alignItems: 'center' }}>
+        //   {Utility.renderUserAvatar(params.row.user_updated_profile_pic)}
+        //   <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+        //     <Typography variant='subtitle2' sx={{ color: 'text.primary' }}>
+        //       {params?.row?.updated_by_user_name ? params?.row?.updated_by_user_name : 'NA'}
+        //     </Typography>
+        //     <Typography variant='caption' sx={{ lineHeight: 1.6667 }}>
+        //       {/* {Utility.formatDisplayDate(params.row.adjusted_at)} */}
+        //       {params?.row?.updated_at ? Utility.formatDisplayDate(params.row.updated_at) : 'NA'}
+        //     </Typography>
+        //   </Box>
+        // </Box>
       )
     }
   ]
@@ -326,30 +342,34 @@ const ListOfPurchase = () => {
   }
 
   const headerAction = (
-    <Box
-      sx={{
-        display: 'flex',
-        gap: 2,
-        justifyContent: 'flex-start',
-        whiteSpace: 'nowrap'
-      }}
-    >
-      <ExcelExportButton
-        disabled={total === 0}
-        action={() => {
-          Router.push({
-            pathname: '/pharmacy/purchase/import-purchases/'
-          })
-        }}
-        title='Import Inventory'
-        fullWidth='fullWidth'
-      />
-      <AddButtonContained
-        title='Add Inventory'
-        action={() => Router.push({ pathname: '/pharmacy/purchase/add-purchase/' })}
-        fullWidth='fullWidth'
-      />
-    </Box>
+    <>
+      {(selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') && (
+        <Box
+          sx={{
+            display: 'flex',
+            gap: 2,
+            justifyContent: 'flex-start',
+            whiteSpace: 'nowrap'
+          }}
+        >
+          <ExcelExportButton
+            disabled={total === 0}
+            action={() => {
+              Router.push({
+                pathname: '/pharmacy/purchase/import-purchases/'
+              })
+            }}
+            title='Import Inventory'
+            fullWidth='fullWidth'
+          />
+          <AddButtonContained
+            title='Add Inventory'
+            action={() => Router.push({ pathname: '/pharmacy/purchase/add-purchase/' })}
+            fullWidth='fullWidth'
+          />
+        </Box>
+      )}
+    </>
   )
 
   const onRowClick = params => {

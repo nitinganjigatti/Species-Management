@@ -5,6 +5,7 @@ import pharmacyNavigation from 'src/components/navigation/pharmacy'
 import labNavigation from 'src/components/navigation/lab'
 import dashboardNavigation from 'src/components/navigation/dashboard'
 import dietNavigation from 'src/components/navigation/diet'
+import mastersNavigation from 'src/components/navigation/masters'
 import eggNavigation from 'src/components/navigation/egg'
 import pariveshNavigation from 'src/components/navigation/parivesh/index'
 import reportNavigation from 'src/components/navigation/report'
@@ -25,6 +26,9 @@ const ComposeNavigation = () => {
   const egg_collection = authData?.userData?.roles?.settings?.enable_egg_collection_module
 
   const reports_module = authData?.userData?.roles?.settings?.enable_reports_module
+  const enable_animal_report = authData?.userData?.permission?.user_settings?.enable_animal_report
+  const enable_daily_report = authData?.userData?.permission?.user_settings?.enable_daily_report
+  const enable_specie_report = authData?.userData?.permission?.user_settings?.enable_specie_report
 
   const pariveshAccess = authData?.userData?.roles?.settings?.enable_parivesh
 
@@ -36,7 +40,12 @@ const ComposeNavigation = () => {
   navigationArray.push(...dashboardNav)
 
   if (reports_module) {
-    const reportNav = reportNavigation({ reports_module })
+    const reportNav = reportNavigation({
+      reports_module,
+      enable_specie_report,
+      enable_daily_report,
+      enable_animal_report
+    })
     navigationArray.push(...reportNav)
   }
 
@@ -53,6 +62,9 @@ const ComposeNavigation = () => {
   if (dietModule) {
     const dietNav = dietNavigation()
     navigationArray.push(...dietNav)
+
+    // const masterNav = mastersNavigation()
+    // navigationArray.push(...masterNav)
   }
   if (egg_nursery || egg_collection) {
     const eggNav = eggNavigation({ egg_nursery, egg_collection })

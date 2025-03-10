@@ -123,3 +123,21 @@ export async function GetLabListByTestId({ params }) {
 
   return response.data
 }
+
+export async function getLabListByMultipleIds(id, params) {
+  const response = await axiosPost({ url: `antz/labs/bulk-assign-labs-list/${id}`, body: params })
+
+  return response.data
+}
+
+export async function postBulkStatus({ params }) {
+  const response = await axiosPost({ url: `antz/bulk/update/tests/status`, body: params })
+
+  return response.data
+}
+
+export async function postBulkTransfer({ params }) {
+  const response = await axiosPost({ url: `antz/labs/bulk-assign-labs-transfer`, body: params })
+
+  return response.data
+}
