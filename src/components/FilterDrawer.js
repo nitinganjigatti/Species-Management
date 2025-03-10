@@ -22,13 +22,21 @@ const FilterDrawer = ({
         sx: {
           width: { xs: '100%', sm: 560 },
           backgroundColor: 'customColors.Background',
-          height: '100%',
           display: 'flex',
           flexDirection: 'column'
         }
       }}
     >
-      <Box display='flex' justifyContent='space-between' alignItems='center' p={2}>
+      {/* Header Section (Fixed Height) */}
+      <Box
+        sx={{
+          display: 'flex',
+          justifyContent: 'space-between',
+          alignItems: 'center',
+          p: 2,
+          flexShrink: 0
+        }}
+      >
         <Typography variant='h6' fontWeight='bold' ml={3}>
           Filter
         </Typography>
@@ -36,9 +44,25 @@ const FilterDrawer = ({
           <Icon icon='mdi:close' />
         </IconButton>
       </Box>
-
-      <Box sx={{ display: 'flex', flexDirection: { xs: 'column', sm: 'row' }, flexGrow: 1 }}>
-        <Box sx={{ flex: 24, display: 'flex', flexDirection: 'column', width: { xs: '100%', sm: 'auto' } }}>
+      {/* Content Section (Scrollable) */}
+      <Box
+        sx={{
+          display: 'flex',
+          flexDirection: { xs: 'column', sm: 'row' },
+          flex: 1,
+          overflow: 'hidden' // Prevent overflow,
+        }}
+      >
+        {/* Filter List Section */}
+        <Box
+          sx={{
+            flex: { xs: 1, sm: 24 }, // Adjust flex for smaller screens
+            display: 'flex',
+            flexDirection: 'column',
+            width: { xs: '100%', sm: 'auto' },
+            overflowY: 'auto'
+          }}
+        >
           <List sx={{ p: 0, ml: 5 }}>
             {filterLists.map(item => (
               <ListItem
@@ -70,12 +94,13 @@ const FilterDrawer = ({
           </List>
         </Box>
 
+        {/* Main Content Section */}
+
         <Box
           sx={{
             width: { xs: '100%', sm: 360 },
             backgroundColor: '#FFFFFF',
-            flexGrow: 1,
-            pt: 3
+            overflowY: 'auto'
           }}
         >
           {children}
@@ -86,12 +111,12 @@ const FilterDrawer = ({
         sx={{
           display: 'flex',
           justifyContent: 'space-between',
-          marginTop: 'auto',
           bgcolor: '#FFFFFF',
           p: 4,
           boxShadow: 3,
           flexDirection: { xs: 'column', sm: 'row' },
-          gap: 2
+          gap: 2,
+          flexShrink: 0
         }}
       >
         <Button size='large' variant='outlined' sx={{ width: '100%' }} onClick={handleClearFilter}>

@@ -620,7 +620,6 @@ const AddPurchaseForm = () => {
     postData.net_amount = grandTotalAmount
     // added grand total amount
     console.log('postData', postData)
-    debugger
     try {
       if (id) {
         postData.antz_pharmacy_purchase_id = id
@@ -1384,11 +1383,12 @@ const AddPurchaseForm = () => {
     getSuppliersLists()
   }, [])
 
-  useEffect(() => {
-    if (grandTotalAmount && id) {
-      setInputValue(Number(grandTotalAmount).toFixed(2))
-    }
-  }, [grandTotalAmount])
+  // removed initially updating the total input value
+  // useEffect(() => {
+  //   if (grandTotalAmount && id) {
+  //     setInputValue(Number(grandTotalAmount).toFixed(2))
+  //   }
+  // }, [grandTotalAmount])
 
   const validateErrorForItemId = (index, el) => {
     setItemIdErrors(prevErrors => {
@@ -1419,14 +1419,23 @@ const AddPurchaseForm = () => {
           sm={12}
           xs={12}
           sx={{
+            // display: 'flex',
+            // flexDirection: { lg: 'row', md: 'row', xl: 'row', sm: 'column', xs: 'column' },
+            // justifyContent: 'space-between',
+            // alignItems: { lg: 'center', md: 'center', xl: 'center', sm: 'start', xs: 'start' },
+            // mr: 5
             display: 'flex',
-            flexDirection: { lg: 'row', md: 'row', xl: 'row', sm: 'column', xs: 'column' },
             justifyContent: 'space-between',
-            alignItems: { lg: 'center', md: 'center', xl: 'center', sm: 'start', xs: 'start' },
-            mr: 5
+            alignItems: 'center'
           }}
         >
           <CardHeader
+            sx={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              width: '100%'
+            }}
             avatar={
               <Icon
                 style={{ cursor: 'pointer' }}
@@ -1441,19 +1450,21 @@ const AddPurchaseForm = () => {
               />
             }
             title={id ? 'Edit Inventory List' : 'Add Inventory'}
-          />
-          <Box
-            sx={{
-              display: 'flex',
-              flexDirection: { lg: 'row', md: 'row', xl: 'row', sm: 'row', xs: 'column' },
-              justifyContent: 'space-between',
-              alignItems: { lg: 'center', md: 'center', xl: 'center', sm: 'center', xs: 'center' }
-              // mr: 5,
-              // mx: 6,
-              // gap: 2
-            }}
-          >
-            {/* {authData?.userData?.roles?.settings?.add_pharmacy && (
+            action={
+              <Box
+                sx={
+                  {
+                    // display: 'flex',
+                    // flexDirection: { lg: 'row', md: 'row', xl: 'row', sm: 'row', xs: 'column' },
+                    // justifyContent: 'space-between',
+                    // alignItems: { lg: 'center', md: 'center', xl: 'center', sm: 'center', xs: 'center' },
+                    // mr: 5,
+                    // mx: 6,
+                    // gap: 2
+                  }
+                }
+              >
+                {/* {authData?.userData?.roles?.settings?.add_pharmacy && (
               <AddButton
                 // sx={{ mx: 24 }}
                 title='Upload Invoice '
@@ -1462,16 +1473,17 @@ const AddPurchaseForm = () => {
                 }}
               />
             )} */}
-            {authData?.userData?.roles?.settings?.add_pharmacy && (
-              <AddButton
-                // sx={{ mx: 24 }}
-                title='Add Supplier'
-                action={() => {
-                  setSupplierDialog(true)
-                }}
-              />
-            )}
-          </Box>
+                {authData?.userData?.roles?.settings?.add_pharmacy && (
+                  <AddButton
+                    title='Add Supplier'
+                    action={() => {
+                      setSupplierDialog(true)
+                    }}
+                  />
+                )}
+              </Box>
+            }
+          />
         </Grid>
       </Grid>
 

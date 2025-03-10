@@ -8,13 +8,15 @@ import {
   FormControlLabel,
   Button,
   Checkbox,
-  CircularProgress
+  CircularProgress,
+  InputAdornment,
+  IconButton
 } from '@mui/material'
 import { useRouter } from 'next/router'
 import React, { useCallback, useEffect, useState } from 'react'
 
 // ** Icon Imports
-import { getBatchList } from 'src/lib/api/pharmacy/dispenseProduct'
+import { getBatchList, getUserList } from 'src/lib/api/pharmacy/dispenseProduct'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import Error404 from 'src/pages/404'
 import Utility from 'src/utility'
@@ -27,8 +29,10 @@ import toast from 'react-hot-toast'
 import ClearIcon from '@mui/icons-material/Clear'
 import FilterDrawer from 'src/components/FilterDrawer'
 import { getPharmacyTransactionConstants } from 'src/constants/PharmacyConstants'
+import { getStoreList } from 'src/lib/api/pharmacy/getStoreList'
+import { readAsync } from 'src/lib/windows/utils'
 
-const DoctorCard = ({ id, name, title, site, isSelected, onSelectDoctor }) => {
+const DoctorCard = ({ id, name, title, site, isSelected, onSelectDoctor, user_profile_pic }) => {
   return (
     <Box
       p={2}
@@ -52,20 +56,20 @@ const DoctorCard = ({ id, name, title, site, isSelected, onSelectDoctor }) => {
             }}
             variant='circular'
             alt={name}
-            src={''} // You can provide an image source here
+            src={user_profile_pic} // You can provide an image source here
           />
         </Box>
         <Box>
           <Typography component='span' sx={{ color: 'primary.light', fontSize: '16px', fontWeight: 500 }}>
             {name || 'NA'}
           </Typography>
-          <Typography
+          {/* <Typography
             component='div'
             variant='body2'
             sx={{ color: 'customColors.customHeadingTextColor', fontSize: '12px', fontWeight: 400 }}
           >
             {title || 'NA'} | {site || 'NA'}
-          </Typography>
+          </Typography> */}
         </Box>
       </Box>
       <Checkbox checked={isSelected} onChange={() => onSelectDoctor(id)} color='primary' />
@@ -114,6 +118,8 @@ function Ledger({ tabValue, updateUrlParams }) {
   const [batchDetailsList, setBatchDetailsList] = useState([])
   const [open, setOpen] = useState(false)
   const [selectedItem, setSelectedItem] = useState('Batch Details')
+  const [batchSearchTerm, setBatchSearchTerm] = useState('')
+  const [batchSearchLoading, setBatchSearchLoading] = useState(false)
 
   const [transactionTypes, setTransactionTypes] = useState({
     request: false,
@@ -515,32 +521,32 @@ function Ledger({ tabValue, updateUrlParams }) {
               ).values()
             )
 
-            const uniqueDispatchedTo = Array.from(
-              new Map(
-                res?.data?.ledger_data
-                  ?.filter(item => item.receiving_pharmacy_id && item.receiving_pharmacy)
-                  .map(item => [
-                    item.receiving_pharmacy_id,
-                    { id: item.receiving_pharmacy_id, name: item.receiving_pharmacy }
-                  ])
-              ).values()
-            )
+            // const uniqueDispatchedTo = Array.from(
+            //   new Map(
+            //     res?.data?.ledger_data
+            //       ?.filter(item => item.receiving_pharmacy_id && item.receiving_pharmacy)
+            //       .map(item => [
+            //         item.receiving_pharmacy_id,
+            //         { id: item.receiving_pharmacy_id, name: item.receiving_pharmacy }
+            //       ])
+            //   ).values()
+            // )
 
-            const uniqueCreateBy = Array.from(
-              new Map(
-                res?.data?.ledger_data
-                  ?.filter(item => item.created_by && item.transaction_created_by)
-                  .map(item => [item.created_by, { id: item.created_by, name: item.transaction_created_by }])
-              ).values()
-            )
+            // const uniqueCreateBy = Array.from(
+            //   new Map(
+            //     res?.data?.ledger_data
+            //       ?.filter(item => item.created_by && item.transaction_created_by)
+            //       .map(item => [item.created_by, { id: item.created_by, name: item.transaction_created_by }])
+            //   ).values()
+            // )
 
             // Merge and update options, ensuring all unique options are preserved
             //  setDispatchedByOptions(prevOptions =>
             //   mergeOptions(prevOptions, uniqueDispatchedBy)
             // )
 
-            setDispatchedToOptions(prevOptions => mergeOptions(prevOptions, uniqueDispatchedTo))
-            setCreateByOptions(prevOptions => mergeOptions(prevOptions, uniqueCreateBy))
+            // setDispatchedToOptions(prevOptions => mergeOptions(prevOptions, uniqueDispatchedTo))
+            // setCreateByOptions(prevOptions => mergeOptions(prevOptions, uniqueCreateBy))
 
             setLoading(false)
             updateUrlParams({
@@ -704,22 +710,53 @@ function Ledger({ tabValue, updateUrlParams }) {
     )
   }
 
-  const getBatchListDetails = useCallback(async id => {
+  const getBatchListDetails = useCallback(async ({ id, q }) => {
+    console.log(q, 'qqqqq')
+
+    const payload = {
+      ProductId: id,
+      q: q
+    }
+
     try {
-      await getBatchList({ ProductId: id }).then(res => {
+      setBatchSearchLoading(true)
+      await getBatchList(payload).then(res => {
         setBatchDetailsList(res.data.items)
         console.log(res.data.items, 'batch')
+        setBatchSearchLoading(false)
       })
     } catch (e) {
       console.error(e)
+      setBatchSearchLoading(false)
     }
   }, [])
 
   useEffect(() => {
     if (id) {
-      getBatchListDetails(id)
+      getBatchListDetails({ id: id, q: batchSearchTerm })
     }
   }, [])
+
+  const handleBatchSearchData = useCallback(
+    debounce(async ({ q }) => {
+      try {
+        setBatchSearchLoading(true)
+        await getBatchListDetails({ id, q })
+        setBatchSearchLoading(false)
+      } catch (error) {
+        console.error(error)
+        setBatchSearchLoading(false)
+      }
+    }, 1000),
+    []
+  )
+
+  const handleBatchSearch = async value => {
+    setBatchSearchTerm(value)
+    if (id) {
+      await handleBatchSearchData({ q: value })
+    }
+  }
 
   const handleApplyFilter = async () => {
     try {
@@ -816,9 +853,60 @@ function Ledger({ tabValue, updateUrlParams }) {
         break
     }
 
-    setSelectedDate(dateRange)
-    setFilterDates({ startDate, endDate })
+    // setSelectedDate(dateRange)
+    // setFilterDates({ startDate, endDate })
+    setSelectedDate(prev => (prev === dateRange ? null : dateRange))
+    setFilterDates(prev => (prev === dateRange ? { startDate: '', endDate: '' } : { startDate, endDate }))
   }
+
+  const fetchPharmacyList = useCallback(async (sort, q, column) => {
+    try {
+      const params = {
+        sort: 'asc',
+        column: 'name',
+        // page: 1,
+        // limit: paginationModel.pageSize,
+        is_access: 1
+      }
+      await getStoreList({ params: params }).then(res => {
+        setDispatchedToOptions(res?.data?.list_items)
+        console.log(res, 'list')
+      })
+    } catch (e) {
+      console.error(e)
+    }
+  }, [])
+  useEffect(() => {
+    fetchPharmacyList()
+  }, [fetchPharmacyList])
+
+  const getUserLists = async () => {
+    try {
+      const userDetails = await readAsync('userDetails')
+      if (userDetails?.user?.zoos.length > 0) {
+        let zoo_id = userDetails?.user?.zoos[0].zoo_id
+        await getUserList({ zoo_id }).then(res => {
+          // console.log(res, 'ressss')
+
+          if (res?.data?.length > 0) {
+            setCreateByOptions(
+              res?.data?.map(item => ({
+                name: item?.user_name,
+                id: item?.user_id,
+                user_profile_pic: item?.user_profile_pic
+              }))
+            )
+          }
+        })
+      }
+    } catch (error) {
+      console.log('user error', error)
+    }
+  }
+
+  useEffect(() => {
+    getUserLists()
+  }, [])
 
   return (
     <>
@@ -1089,19 +1177,158 @@ function Ledger({ tabValue, updateUrlParams }) {
         handleApplyFilter={handleApplyFilter}
         handleClearFilter={handleClearFilter}
       >
-        {selectedItem === 'Batch Details' && (
-          <Box sx={{ overflowY: 'scroll', height: '82.5vh', px: 5 }}>
-            {/* <Box sx={{ position: 'sticky', top: 0, backgroundColor: 'white', zIndex: 1, mb: 2 }}>
+        <Box sx={{ px: 5 }}>
+          {/* Batch Details */}
+          {selectedItem === 'Batch Details' && (
+            <>
+              <Box
+                sx={{
+                  position: 'sticky',
+                  top: 0,
+                  backgroundColor: 'white',
+                  zIndex: 1,
+                  paddingTop: 3,
+                  paddingBottom: 2
+                }}
+              >
+                <TextField
+                  label='Search'
+                  variant='outlined'
+                  fullWidth
+                  size='small'
+                  value={batchSearchTerm}
+                  onChange={e => handleBatchSearch(e.target.value)}
+                  InputProps={{
+                    endAdornment: (
+                      <InputAdornment position='end'>
+                        {batchSearchTerm && (
+                          <IconButton
+                            size='small'
+                            aria-label='clear search'
+                            onClick={() => {
+                              handleBatchSearch('')
+                            }}
+                            edge='end'
+                          >
+                            <ClearIcon />
+                          </IconButton>
+                        )}
+                      </InputAdornment>
+                    )
+                  }}
+                />
+              </Box>
+
+              {batchSearchLoading ? (
+                <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', padding: 4 }}>
+                  <CircularProgress size={30} />
+                </Box>
+              ) : batchDetailsList?.length > 0 ? (
+                batchDetailsList?.map(location => (
+                  <Box key={location.batch_no}>
+                    <FormControlLabel
+                      control={
+                        <Checkbox
+                          name='batchDetails'
+                          value={location.batch_no}
+                          checked={selectedBatches.includes(location.batch_no)}
+                          onChange={e =>
+                            setSelectedBatches(
+                              e.target.checked
+                                ? [...selectedBatches, location.batch_no]
+                                : selectedBatches.filter(batch => batch !== location.batch_no)
+                            )
+                          }
+                        />
+                      }
+                      label={location.batch_no}
+                    />
+                  </Box>
+                ))
+              ) : (
+                <Box sx={{ textAlign: 'center', padding: 2 }}>
+                  <Typography variant='body2' color='text.secondary'>
+                    No batch details found
+                  </Typography>
+                </Box>
+              )}
+            </>
+          )}
+
+          {/* Dispatch To */}
+          {selectedItem === 'Dispatch To' && (
+            <Box sx={{ pt: 3 }}>
+              {dispatchedToOptions.map(option => (
+                <Box key={option.id}>
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        name='dispatchTo'
+                        value={option.id}
+                        checked={selectedDispatchedTo.includes(option.id)}
+                        onChange={handleDispatchToCheckboxChange}
+                      />
+                    }
+                    label={option.name}
+                  />
+                </Box>
+              ))}
+            </Box>
+          )}
+
+          {/* Created By */}
+          {selectedItem === 'Created By' && (
+            <Box display='grid' gap={2} pt={2} sx={{ pt: 3 }}>
+              {createByOptions.map(doctor => (
+                <DoctorCard
+                  key={doctor.id}
+                  id={doctor.id}
+                  name={doctor.name}
+                  title={doctor.title}
+                  site={doctor.site}
+                  user_profile_pic={doctor?.user_profile_pic}
+                  isVerified={doctor.isVerified}
+                  isSelected={selectedCreateBy.includes(doctor.id)}
+                  onSelectDoctor={handleCreateBySelect}
+                />
+              ))}
+            </Box>
+          )}
+
+          {/* Date */}
+          {selectedItem === 'Date' && (
+            <>
+              {dates.map(location => (
+                <Box key={location} sx={{ pt: 3 }}>
+                  <FormControlLabel
+                    control={
+                      <Checkbox
+                        name='date'
+                        value={location}
+                        checked={selectedDate === location}
+                        onChange={() => handleDateSelect(location)}
+                      />
+                    }
+                    label={location}
+                  />
+                </Box>
+              ))}
+            </>
+          )}
+        </Box>
+
+        {/* {selectedItem === 'Batch Details' && (
+          <Box sx={{ overflowY: 'auto', height: '82vh', px: 5 }}>
+            <Box sx={{ position: 'sticky', top: 0, backgroundColor: 'white', zIndex: 1, mb: 0.5 }}>
               <TextField
                 label='Search'
                 variant='outlined'
                 fullWidth
-                value={searchValue}
-                onChange={e => setSearchValue(e.target.value)}
+                // value={searchValue}
+                // onChange={e => setSearchValue(e.target.value)}
                 size='small'
-                sx={{ mt: 2 }}
               />
-            </Box> */}
+            </Box>
             {batchDetailsList?.map(location => (
               <Box key={location.batch_no}>
                 <FormControlLabel
@@ -1132,7 +1359,7 @@ function Ledger({ tabValue, updateUrlParams }) {
               <Box
                 key={type}
                 sx={{
-                  overflowY: 'scroll',
+                  overflowY: 'auto',
                   px: 5
                 }}
               >
@@ -1149,8 +1376,8 @@ function Ledger({ tabValue, updateUrlParams }) {
           <>
             <Box
               sx={{
-                overflowY: 'scroll',
-                height: '82.5vh',
+                overflowY: 'auto',
+                height: '82vh',
                 px: 5
               }}
             >
@@ -1177,8 +1404,8 @@ function Ledger({ tabValue, updateUrlParams }) {
           <>
             <Box
               sx={{
-                overflowY: 'scroll',
-                height: '82.5vh',
+                overflowY: 'auto',
+                height: '82vh',
                 px: 5
               }}
             >
@@ -1205,8 +1432,8 @@ function Ledger({ tabValue, updateUrlParams }) {
           <>
             <Box
               sx={{
-                overflowY: 'scroll',
-                height: '82.5vh',
+                overflowY: 'auto',
+                height: '82vh',
                 px: 5
 
                 // mt: 2
@@ -1234,7 +1461,7 @@ function Ledger({ tabValue, updateUrlParams }) {
             <Box
               sx={{
                 overflowY: 'scroll',
-                height: '82.5vh',
+                height: '82vh',
                 px: 5
 
                 // mt: 2
@@ -1257,7 +1484,7 @@ function Ledger({ tabValue, updateUrlParams }) {
               ))}
             </Box>
           </>
-        )}
+        )} */}
       </FilterDrawer>
 
       <>{/* <Error404></Error404> */}</>

@@ -42,7 +42,7 @@ const ShowLabCard = ({ data }) => {
                 height: '100%'
               }}
               variant='square'
-              src={data?.image === process.env.NEXT_PUBLIC_BASE_URL + 'uploads/' ? '/images/med-lab.png' : data?.image}
+              src={data?.image === null ? '/images/Lab1.png' : data?.image}
             />
           </Box>
         </Box>

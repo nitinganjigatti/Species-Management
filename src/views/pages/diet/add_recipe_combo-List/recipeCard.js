@@ -385,93 +385,94 @@ const RecipeCard = ({
 
   return (
     <Box>
-      {sortedRecipeList?.map((item, index) => {
-        return (
-          <>
-            <Box
-              sx={{
-                bgcolor: 'background.paper',
-                border: selectedCardRecipe?.some(card => card.id === item.id) ? '2px solid #37BD69' : '#fff',
-                boxShadow: 0,
-                mt: 4,
-                borderRadius: '10px',
-                cursor: 'pointer'
-              }}
-            >
+      {sortedRecipeList?.length > 0 ? (
+        sortedRecipeList?.map((item, index) => {
+          return (
+            <>
               <Box
-                sx={{ display: 'flex', m: 1, cursor: 'pointer', padding: '16px', pb: '10px', pt: '10px' }}
-                onClick={() => {
-                  handleCardClick(item, index)
+                sx={{
+                  bgcolor: 'background.paper',
+                  border: selectedCardRecipe?.some(card => card.id === item.id) ? '2px solid #37BD69' : '#fff',
+                  boxShadow: 0,
+                  mt: 4,
+                  borderRadius: '10px',
+                  cursor: 'pointer'
                 }}
               >
                 <Box
-                  sx={{
-                    width: '68px',
-                    height: '68px',
-                    color: '#fff',
-                    position: 'relative',
-                    top: '2px',
-
-                    bgcolor: selectedCardRecipe?.some(card => card.id === item.id) ? '#37BD69' : '#E8F4F2',
-                    borderRadius: '10.88px'
+                  sx={{ display: 'flex', m: 1, cursor: 'pointer', padding: '16px', pb: '10px', pt: '10px' }}
+                  onClick={() => {
+                    handleCardClick(item, index)
                   }}
                 >
-                  {selectedCardRecipe?.some(card => card.id === item.id) ? (
-                    <>
-                      <Box sx={{ width: '48px', height: '48px', position: 'relative', top: '10px', left: '10px' }}>
-                        <DoneIcon
-                          sx={{
-                            width: '38.71px',
-                            height: '39.69px',
-                            position: 'relative',
-                            top: '5.6px',
-                            left: '5.13px'
-                          }}
-                        />
-                      </Box>
-                    </>
-                  ) : (
-                    <Avatar
-                      variant='round'
-                      alt='Ingredient Image'
-                      sx={{
-                        width: '54.4px',
-                        height: '54.4px',
-                        position: 'relative',
-                        top: '6.8px',
-                        left: '6.8px'
-                      }}
-                      src={item?.recipe_image ? item?.recipe_image : '/icons/icon_diet_fill.png'}
-                    ></Avatar>
-                  )}
-                </Box>
-                <Box sx={{ width: '333px' }}>
-                  <Box sx={{ width: '333px', height: '45px', gap: 4 }}>
-                    <Tooltip title={item?.recipe_name?.length > 50 ? item?.recipe_name : ''}>
-                      <Typography
-                        sx={{
-                          ml: 4,
-                          fontSize: '20px',
-                          color: '#44544A',
-                          width: '400px',
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                          whiteSpace: 'nowrap'
-                        }}
-                      >
-                        {item?.recipe_name}
-                      </Typography>
-                    </Tooltip>
-                    <Typography
-                      variant='body'
-                      sx={{ ml: 4, fontSize: '14px', width: '79px', mt: 0, mb: 0, float: 'left' }}
-                    >
-                      {item?.recipe_no ? item?.recipe_no : 'RCP- 000'}
-                    </Typography>
-                  </Box>
+                  <Box
+                    sx={{
+                      width: '68px',
+                      height: '68px',
+                      color: '#fff',
+                      position: 'relative',
+                      top: '2px',
 
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '333px', height: '45px' }}>
-                    {/* <Divider sx={{ borderLeft: '1px solid #D9D9D9', height: 30, ml: 4, mt: 3 }}></Divider>
+                      bgcolor: selectedCardRecipe?.some(card => card.id === item.id) ? '#37BD69' : '#E8F4F2',
+                      borderRadius: '10.88px'
+                    }}
+                  >
+                    {selectedCardRecipe?.some(card => card.id === item.id) ? (
+                      <>
+                        <Box sx={{ width: '48px', height: '48px', position: 'relative', top: '10px', left: '10px' }}>
+                          <DoneIcon
+                            sx={{
+                              width: '38.71px',
+                              height: '39.69px',
+                              position: 'relative',
+                              top: '5.6px',
+                              left: '5.13px'
+                            }}
+                          />
+                        </Box>
+                      </>
+                    ) : (
+                      <Avatar
+                        variant='round'
+                        alt='Ingredient Image'
+                        sx={{
+                          width: '54.4px',
+                          height: '54.4px',
+                          position: 'relative',
+                          top: '6.8px',
+                          left: '6.8px'
+                        }}
+                        src={item?.recipe_image ? item?.recipe_image : '/icons/icon_diet_fill.png'}
+                      ></Avatar>
+                    )}
+                  </Box>
+                  <Box sx={{ width: '333px' }}>
+                    <Box sx={{ width: '333px', height: '45px', gap: 4 }}>
+                      <Tooltip title={item?.recipe_name?.length > 50 ? item?.recipe_name : ''}>
+                        <Typography
+                          sx={{
+                            ml: 4,
+                            fontSize: '20px',
+                            color: '#44544A',
+                            width: '400px',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            whiteSpace: 'nowrap'
+                          }}
+                        >
+                          {item?.recipe_name}
+                        </Typography>
+                      </Tooltip>
+                      <Typography
+                        variant='body'
+                        sx={{ ml: 4, fontSize: '14px', width: '79px', mt: 0, mb: 0, float: 'left' }}
+                      >
+                        {item?.recipe_no ? item?.recipe_no : 'RCP- 000'}
+                      </Typography>
+                    </Box>
+
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '333px', height: '45px' }}>
+                      {/* <Divider sx={{ borderLeft: '1px solid #D9D9D9', height: 30, ml: 4, mt: 3 }}></Divider>
                     <Box sx={{ ml: '10px' }}>
                       <Typography sx={{ mt: 2, fontSize: '12px', fontWeight: 'bold', color: '#000' }}>
                         {item?.ingredients_count}&nbsp;
@@ -480,14 +481,14 @@ const RecipeCard = ({
                       <Typography sx={{ fontSize: '10px', width: '100px' }}>Ingredients by %</Typography>
                     </Box>
                     <Divider sx={{ borderLeft: '1px solid #D9D9D9', height: 30, mr: 2, mt: 3 }}></Divider> */}
-                    <Box sx={{ ml: 4 }}>
-                      <Typography sx={{ mt: 2, fontSize: '12px', color: '#000', fontWeight: 'bold' }}>
-                        {' '}
-                        {item?.by_quantity?.length} nos
-                      </Typography>
-                      <Typography sx={{ fontSize: '10px', width: '100px' }}>Ingredients by qty</Typography>
-                    </Box>
-                    {/* <Divider sx={{ borderLeft: '1px solid #D9D9D9', height: 30, mr: 2, mt: 3 }}></Divider>
+                      <Box sx={{ ml: 4 }}>
+                        <Typography sx={{ mt: 2, fontSize: '12px', color: '#000', fontWeight: 'bold' }}>
+                          {' '}
+                          {item?.by_quantity?.length} nos
+                        </Typography>
+                        <Typography sx={{ fontSize: '10px', width: '100px' }}>Ingredients by qty</Typography>
+                      </Box>
+                      {/* <Divider sx={{ borderLeft: '1px solid #D9D9D9', height: 30, mr: 2, mt: 3 }}></Divider>
                     <Box>
                       <Typography sx={{ mt: 2, fontSize: '12px', color: '#000', fontWeight: 'bold' }}>
                         {' '}
@@ -495,78 +496,92 @@ const RecipeCard = ({
                       </Typography>
                       <Typography sx={{ fontSize: '10px', width: '100px' }}>Calories by 100g</Typography>
                     </Box> */}
+                    </Box>
                   </Box>
                 </Box>
-              </Box>
-              {selectedCardRecipe?.some(card => card.id === item.id) ? (
-                <>
-                  <Divider />
-                  <Typography sx={{ py: 3, px: 2, ml: 3 }}>Feeding Days</Typography>
-                  <Stack direction='row' gap={3} mb={2} sx={{ px: 2, ml: 4 }}>
-                    {Day?.map(day => (
-                      <Box
-                        key={day.id}
-                        onClick={() => handleSelectedDays(day.id, day.name, item.id)}
-                        sx={{
-                          fontSize: 11,
-                          fontWeight: 'bold',
-                          bgcolor: selectedDays.find(
-                            selectedDay =>
-                              selectedDay.cardId === item.id &&
-                              selectedDay.days.find(d => d.id === day.id && d.isActive)
-                          )
-                            ? '#203e56'
-                            : '#dedede',
-                          borderRadius: 5,
-                          p: 2,
-                          justifyContent: 'center',
-                          alignItems: 'center',
-                          cursor: 'pointer',
-
-                          color: selectedDays.find(
-                            selectedDay =>
-                              selectedDay.cardId === item.id &&
-                              selectedDay.days.find(d => d.id === day.id && d.isActive)
-                          )
-                            ? 'white'
-                            : 'black'
-                        }}
-                      >
-                        {day.name}
-                      </Box>
-                    ))}
-                  </Stack>
-
-                  <Box sx={{ mt: 5 }}>
+                {selectedCardRecipe?.some(card => card.id === item.id) ? (
+                  <>
                     <Divider />
-                    <TextField
-                      multiline
-                      rows={expandedIndex.includes(index) ? 3 : 1}
-                      onChange={e => handleAddRemarks(e, item.id)}
-                      placeholder={expandedIndex.includes(index) ? 'Remarks' : 'Add remarks (optional)'}
-                      value={remarks[item.id] || ''}
-                      variant='outlined'
-                      fullWidth
-                      sx={{
-                        '& .MuiOutlinedInput-root': {
-                          '& fieldset': {
-                            border: 'none'
-                          }
-                        },
-                        transition: 'max-height 0.5s ease-in-out',
-                        overflow: 'hidden',
-                        maxHeight: expandedIndex.includes(index) ? '100px' : '56px'
-                      }}
-                    />
-                  </Box>
-                </>
-              ) : (
-                ''
-              )}
-            </Box>
-          </>
-        )
-      })}
+                    <Typography sx={{ py: 3, px: 2, ml: 3 }}>Feeding Days</Typography>
+                    <Stack direction='row' gap={3} mb={2} sx={{ px: 2, ml: 4 }}>
+                      {Day?.map(day => (
+                        <Box
+                          key={day.id}
+                          onClick={() => handleSelectedDays(day.id, day.name, item.id)}
+                          sx={{
+                            fontSize: 11,
+                            fontWeight: 'bold',
+                            bgcolor: selectedDays.find(
+                              selectedDay =>
+                                selectedDay.cardId === item.id &&
+                                selectedDay.days.find(d => d.id === day.id && d.isActive)
+                            )
+                              ? '#203e56'
+                              : '#dedede',
+                            borderRadius: 5,
+                            p: 2,
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                            cursor: 'pointer',
+
+                            color: selectedDays.find(
+                              selectedDay =>
+                                selectedDay.cardId === item.id &&
+                                selectedDay.days.find(d => d.id === day.id && d.isActive)
+                            )
+                              ? 'white'
+                              : 'black'
+                          }}
+                        >
+                          {day.name}
+                        </Box>
+                      ))}
+                    </Stack>
+
+                    <Box sx={{ mt: 5 }}>
+                      <Divider />
+                      <TextField
+                        multiline
+                        rows={expandedIndex.includes(index) ? 3 : 1}
+                        onChange={e => handleAddRemarks(e, item.id)}
+                        placeholder={expandedIndex.includes(index) ? 'Remarks' : 'Add remarks (optional)'}
+                        value={remarks[item.id] || ''}
+                        variant='outlined'
+                        fullWidth
+                        sx={{
+                          '& .MuiOutlinedInput-root': {
+                            '& fieldset': {
+                              border: 'none'
+                            }
+                          },
+                          transition: 'max-height 0.5s ease-in-out',
+                          overflow: 'hidden',
+                          maxHeight: expandedIndex.includes(index) ? '100px' : '56px'
+                        }}
+                      />
+                    </Box>
+                  </>
+                ) : (
+                  ''
+                )}
+              </Box>
+            </>
+          )
+        })
+      ) : (
+        <Box
+          sx={{
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            marginTop: '14%',
+            color: '#7A7A7A',
+            fontSize: '16px'
+          }}
+        >
+          No records to show
+        </Box>
+      )}
       {/* {selectedCardRecipe?.length > 0 && ( */}
       <Box
         sx={{

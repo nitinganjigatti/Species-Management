@@ -118,9 +118,7 @@ const CommonMediaView = ({ type, image, document, handleDeleteImg, fileViews, pe
                   </Tooltip>
                   {type !== 'medical' && (
                     <>
-                      {(permissions?.allow_full_access ||
-                        permissions?.transfer_tests ||
-                        permissions?.perform_tests) && (
+                      {(permissions?.allow_full_access || permissions?.allow_upload_reports) && (
                         <IconButton onClick={e => handleConfirmDialog(e, item)}>
                           <Icon icon='material-symbols:close' fontSize={20} color={'#37BD69'} />
                         </IconButton>
@@ -217,9 +215,7 @@ const CommonMediaView = ({ type, image, document, handleDeleteImg, fileViews, pe
                   </Tooltip>
                   {type !== 'medical' && (
                     <>
-                      {(permissions?.allow_full_access ||
-                        permissions?.transfer_tests ||
-                        permissions?.perform_tests) && (
+                      {(permissions?.allow_full_access || permissions?.allow_upload_reports) && (
                         <IconButton onClick={e => handleConfirmDialog(e, item)}>
                           <Icon icon='material-symbols:close' fontSize={20} color={'#37BD69'} />
                         </IconButton>
