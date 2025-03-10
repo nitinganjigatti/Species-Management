@@ -171,7 +171,7 @@ const AddLab = () => {
       const res = await getLabDeatilsById(id)
       if (res) {
         // setUploadedImage(res?.data?.image ? res?.data?.image : '/images/tablet.png')
-        setUploadedImage(res?.data[0]?.image || '/images/tablet.png')
+        setUploadedImage(res?.data[0]?.image || '/images/Lab1.png')
         setValue('lab_name', res?.data[0]?.lab_name)
 
         setValue('type', res?.data[0]?.type)

@@ -1052,9 +1052,9 @@ const RequestDetails = () => {
                     </Box>
                     <Box sx={{ display: 'flex', flexDirection: 'column', flexWrap: 'wrap' }}>
                       <Typography>
-                        Requested By{' '}
+                        Requested By :{' '}
                         <span style={{ fontSize: '15px', fontWeight: 'bold', color: '#7A8684' }}>
-                          {item?.user_first_name}
+                          {item?.created_by}
                         </span>
                       </Typography>
                     </Box>
