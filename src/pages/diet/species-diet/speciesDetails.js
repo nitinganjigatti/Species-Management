@@ -84,11 +84,11 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
           species_id: `${speciesId}`,
           attachment_id: `${attachmentId}`
         })
-        Toaster({ type: 'success', message: res.message || 'Attachment activated successfully' })
+        Toaster({ type: 'success', message: res.message || 'Diet has been set as the primary diet successfully' })
         await fetchTableData()
         await getSpecieDetail()
       } catch (error) {
-        Toaster({ type: 'error', message: error.message || 'Failed to activate attachment' })
+        Toaster({ type: 'error', message: error.message || 'Failed to set as the primary diet' })
       } finally {
         setDetailsLoader(false)
         setDietAttachmentActiveConfirm(false)
