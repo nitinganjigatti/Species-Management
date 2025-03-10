@@ -84,11 +84,13 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
           species_id: `${speciesId}`,
           attachment_id: `${attachmentId}`
         })
-        Toaster({ type: 'success', message: res.message || 'Diet has been set as the primary diet successfully' })
+        Toaster({ type: 'success', message: 'Diet has been set as the primary diet successfully' })
+        // Toaster({ type: 'success', message: res.message || 'Diet has been set as the primary diet successfully' })
         await fetchTableData()
         await getSpecieDetail()
       } catch (error) {
-        Toaster({ type: 'error', message: error.message || 'Failed to set as the primary diet' })
+        Toaster({ type: 'error', message: 'Failed to set as the primary diet' })
+        // Toaster({ type: 'error', message: error.message || 'Failed to set as the primary diet' })
       } finally {
         setDetailsLoader(false)
         setDietAttachmentActiveConfirm(false)
@@ -412,9 +414,12 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
                         width: 240
                       }}
                     >
-                      {Utility.convertUTCToLocalDate(item.created_at) +
+                      {Utility.convertUTCToLocalDate(item.modified_at) +
                         ' | ' +
-                        Utility.convertUTCToLocaltime(item.created_at)}{' '}
+                        Utility.convertUTCToLocaltime(item.modified_at)}{' '}
+                      {/* {Utility.convertUTCToLocalDate(item.created_at) +
+                        ' | ' +
+                        Utility.convertUTCToLocaltime(item.created_at)}{' '} */}
                       {/* which time wll be use here modified or created? */}
                     </Typography>
                   </Box>
