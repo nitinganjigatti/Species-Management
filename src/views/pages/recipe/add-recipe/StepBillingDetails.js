@@ -58,7 +58,7 @@ const StepBillingDetails = ({ handlePrev, formData, handleSubmit, loader }) => {
             }`}
           >
             <Typography variant='body2' className='text_overflow_moduled' sx={{ color: 'text.primary', pl: 3 }}>
-              {parseFloat(params.row.quantity).toFixed(2)}
+              {parseFloat(params.row.quantity).toFixed(1)}
               {params.row.uom_text ? ` ${params.row.uom_text}` : ''}
             </Typography>
           </Tooltip>

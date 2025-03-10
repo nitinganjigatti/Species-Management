@@ -17,7 +17,8 @@ import {
   CardHeader,
   Avatar,
   Tooltip,
-  CircularProgress
+  CircularProgress,
+  useMediaQuery
 } from '@mui/material'
 import { useRouter } from 'next/router'
 import Router from 'next/router'
@@ -30,6 +31,7 @@ import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
 import { TimePicker } from '@mui/x-date-pickers/TimePicker'
 import toast from 'react-hot-toast'
+import { useTheme } from '@mui/material/styles'
 
 // ** Custom Component Imports
 import CustomFileUploaderSingle from 'src/views/forms/form-elements/file-uploader/CustomFileUploaderSingle'
@@ -101,6 +103,8 @@ const StepBasicDetails = ({
   loader
 }) => {
   // ** States
+  const theme = useTheme()
+  const isSmallDevice = useMediaQuery(theme.breakpoints.down('md'))
   const [uploadedImage, setUploadedImage] = useState(null)
   const [openIngredient, setOpenIngredient] = useState(false)
   const [toValue, setToValue] = useState(null)
@@ -1141,12 +1145,13 @@ const StepBasicDetails = ({
                                     variant='square'
                                     alt='Diet Image'
                                     sx={{
-                                      width: 40,
-                                      height: 40,
+                                      width: isSmallDevice ? 30 : 40,
+                                      height: isSmallDevice ? 30 : 40,
                                       mr: 4,
-                                      background: '#E8F4F2',
-                                      padding: '8px',
-                                      borderRadius: '50%'
+                                      background: isSmallDevice ? '' : '#E8F4F2',
+                                      padding: isSmallDevice ? '0px' : '8px',
+                                      borderRadius: '50%',
+                                      marginTop: isSmallDevice ? '5px' : '0px'
                                     }}
                                     src={all.recipe_image ? all.recipe_image : '/icons/icon_diet_fill.png'}
                                   ></Avatar>
@@ -1300,12 +1305,13 @@ const StepBasicDetails = ({
                                     variant='square'
                                     alt='Diet Image'
                                     sx={{
-                                      width: 40,
-                                      height: 40,
+                                      width: isSmallDevice ? 30 : 40,
+                                      height: isSmallDevice ? 30 : 40,
                                       mr: 4,
-                                      background: '#E8F4F2',
-                                      padding: '8px',
-                                      borderRadius: '50%'
+                                      background: isSmallDevice ? '' : '#E8F4F2',
+                                      padding: isSmallDevice ? '0px' : '8px',
+                                      borderRadius: '50%',
+                                      marginTop: isSmallDevice ? '5px' : '0px'
                                     }}
                                     src={all.recipe_image ? all.recipe_image : '/icons/icon_diet_fill.png'}
                                   ></Avatar>
@@ -1451,12 +1457,13 @@ const StepBasicDetails = ({
                                     variant='square'
                                     alt='Diet Image'
                                     sx={{
-                                      width: 40,
-                                      height: 40,
+                                      width: isSmallDevice ? 30 : 40,
+                                      height: isSmallDevice ? 30 : 40,
                                       mr: 4,
-                                      background: '#E8F4F2',
-                                      padding: '8px',
-                                      borderRadius: '50%'
+                                      background: isSmallDevice ? '' : '#E8F4F2',
+                                      padding: isSmallDevice ? '0px' : '8px',
+                                      borderRadius: '50%',
+                                      marginTop: isSmallDevice ? '5px' : '0px'
                                     }}
                                     src={all.ingredient_image ? all.ingredient_image : '/icons/icon_diet_fill.png'}
                                   ></Avatar>
@@ -1661,11 +1668,11 @@ const StepBasicDetails = ({
                                               variant='square'
                                               alt='Diet Image'
                                               sx={{
-                                                width: 40,
-                                                height: 40,
+                                                width: isSmallDevice ? 35 : 40,
+                                                height: isSmallDevice ? 35 : 40,
                                                 mr: 4,
-                                                background: '#E8F4F2',
-                                                padding: '8px',
+                                                background: isSmallDevice ? '' : '#E8F4F2',
+                                                padding: isSmallDevice ? '0px' : '8px',
                                                 borderRadius: '50%'
                                               }}
                                               src={

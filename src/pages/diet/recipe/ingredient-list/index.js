@@ -163,7 +163,7 @@ const IngredientsListforRecipeDetail = ({ IngredientsDetailsval }) => {
             }`}
           >
             <Typography variant='body2' sx={{ color: 'text.primary', pl: 2 }} className='text_overflow_moduled'>
-              {params.row.quantity ? parseFloat(params.row.quantity).toFixed(2) : '-'}
+              {params.row.quantity ? parseFloat(params.row.quantity).toFixed(1) : '-'}
               {params.row.uom_text ? ` ${params.row.uom_text}` : ''}
             </Typography>
           </Tooltip>

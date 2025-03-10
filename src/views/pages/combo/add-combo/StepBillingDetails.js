@@ -120,7 +120,7 @@ const StepBillingDetails = ({ handlePrev, formData, handleSubmit, loader }) => {
       headerName: `Quantity (100%)`,
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary', pl: 3 }}>
-          {parseFloat(params.row.quantity).toFixed(2)}
+          {parseFloat(params.row.quantity).toFixed(1)}
           {params.row.uom_text ? ` ${params.row.uom_text}` : '%'}
         </Typography>
       )
