@@ -129,7 +129,7 @@ function formatNumberToDisplay(number) {
 }
 
 function formatAmountToReadableDigit(value) {
-  debugger
+  // debugger
 
   const num = parseFloat(value)
   if (isNaN(num)) return 'Invalid number'
