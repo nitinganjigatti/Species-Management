@@ -1177,11 +1177,20 @@ function Ledger({ tabValue, updateUrlParams }) {
         handleApplyFilter={handleApplyFilter}
         handleClearFilter={handleClearFilter}
       >
-        <Box sx={{ flexGrow: 1, overflowY: 'auto', maxHeight: 'calc(100vh - 142px)', px: 5 }}>
+        <Box sx={{ px: 5 }}>
           {/* Batch Details */}
           {selectedItem === 'Batch Details' && (
-            <Box>
-              <Box sx={{ position: 'sticky', top: 0, backgroundColor: 'white', zIndex: 1 }}>
+            <>
+              <Box
+                sx={{
+                  position: 'sticky',
+                  top: 0,
+                  backgroundColor: 'white',
+                  zIndex: 1,
+                  paddingTop: 3,
+                  paddingBottom: 2
+                }}
+              >
                 <TextField
                   label='Search'
                   variant='outlined'
@@ -1207,7 +1216,6 @@ function Ledger({ tabValue, updateUrlParams }) {
                       </InputAdornment>
                     )
                   }}
-                  sx={{ mt: 1.4 }}
                 />
               </Box>
 
@@ -1244,12 +1252,12 @@ function Ledger({ tabValue, updateUrlParams }) {
                   </Typography>
                 </Box>
               )}
-            </Box>
+            </>
           )}
 
           {/* Dispatch To */}
           {selectedItem === 'Dispatch To' && (
-            <Box>
+            <Box sx={{ pt: 3 }}>
               {dispatchedToOptions.map(option => (
                 <Box key={option.id}>
                   <FormControlLabel
@@ -1270,7 +1278,7 @@ function Ledger({ tabValue, updateUrlParams }) {
 
           {/* Created By */}
           {selectedItem === 'Created By' && (
-            <Box display='grid' gap={2} pt={2}>
+            <Box display='grid' gap={2} pt={2} sx={{ pt: 3 }}>
               {createByOptions.map(doctor => (
                 <DoctorCard
                   key={doctor.id}
@@ -1291,7 +1299,7 @@ function Ledger({ tabValue, updateUrlParams }) {
           {selectedItem === 'Date' && (
             <>
               {dates.map(location => (
-                <Box key={location}>
+                <Box key={location} sx={{ pt: 3 }}>
                   <FormControlLabel
                     control={
                       <Checkbox
