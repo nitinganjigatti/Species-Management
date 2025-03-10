@@ -412,11 +412,12 @@ const RequestDetails = () => {
     setTestDoc(params?.row?.attachments?.docs)
   }
 
-  const filteredStatusData = permissions?.allow_full_access
-    ? statusData
-    : statusData.filter(item =>
-        ['awaiting_sample', 'sample_received', 'sample_rejected', 'inprogress'].includes(item.id)
-      )
+  const filteredStatusData =
+    permissions?.allow_full_access || permissions?.allow_upload_reports
+      ? statusData
+      : statusData.filter(item =>
+          ['awaiting_sample', 'sample_received', 'sample_rejected', 'inprogress'].includes(item.id)
+        )
 
   const columns = [
     // {
