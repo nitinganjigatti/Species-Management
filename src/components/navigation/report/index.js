@@ -30,8 +30,10 @@ const ComposeReportNavigation = ({
   }
 
   const reportNavigationArray = []
+  if (enable_specie_report || enable_daily_report || enable_animal_report) {
+    reportNavigationArray.push(reportTitle)
+  }
 
-  reportNavigationArray.push(reportTitle)
   if (enable_specie_report) {
     reportNavigationArray.push(report)
   }
