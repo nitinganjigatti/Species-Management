@@ -32,7 +32,7 @@ import { getPharmacyTransactionConstants } from 'src/constants/PharmacyConstants
 import { getStoreList } from 'src/lib/api/pharmacy/getStoreList'
 import { readAsync } from 'src/lib/windows/utils'
 
-const DoctorCard = ({ id, name, title, site, isSelected, onSelectDoctor }) => {
+const DoctorCard = ({ id, name, title, site, isSelected, onSelectDoctor, user_profile_pic }) => {
   return (
     <Box
       p={2}
@@ -56,7 +56,7 @@ const DoctorCard = ({ id, name, title, site, isSelected, onSelectDoctor }) => {
             }}
             variant='circular'
             alt={name}
-            src={''} // You can provide an image source here
+            src={user_profile_pic} // You can provide an image source here
           />
         </Box>
         <Box>
@@ -886,13 +886,14 @@ function Ledger({ tabValue, updateUrlParams }) {
       if (userDetails?.user?.zoos.length > 0) {
         let zoo_id = userDetails?.user?.zoos[0].zoo_id
         await getUserList({ zoo_id }).then(res => {
-          console.log(res, 'ressss')
+          // console.log(res, 'ressss')
 
           if (res?.data?.length > 0) {
             setCreateByOptions(
               res?.data?.map(item => ({
                 name: item?.user_name,
-                id: item?.user_id
+                id: item?.user_id,
+                user_profile_pic: item?.user_profile_pic
               }))
             )
           }
@@ -1276,6 +1277,7 @@ function Ledger({ tabValue, updateUrlParams }) {
                   name={doctor.name}
                   title={doctor.title}
                   site={doctor.site}
+                  user_profile_pic={doctor?.user_profile_pic}
                   isVerified={doctor.isVerified}
                   isSelected={selectedCreateBy.includes(doctor.id)}
                   onSelectDoctor={handleCreateBySelect}
