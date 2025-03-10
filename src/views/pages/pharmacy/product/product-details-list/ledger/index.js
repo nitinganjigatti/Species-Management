@@ -1207,6 +1207,7 @@ function Ledger({ tabValue, updateUrlParams }) {
                       </InputAdornment>
                     )
                   }}
+                  sx={{ mt: 1.4 }}
                 />
               </Box>
 
