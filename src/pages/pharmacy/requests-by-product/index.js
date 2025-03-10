@@ -21,6 +21,7 @@ const RequestByProduct = () => {
       })
     }
   }, [selectedPharmacy.type])
+
   return (
     <>
       {selectedPharmacy?.type === 'local' ? (
