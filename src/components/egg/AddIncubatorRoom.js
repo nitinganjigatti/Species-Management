@@ -386,6 +386,7 @@ const AddIncubatorRoom = ({ isOpen, setIsOpen, editParams, callApi, isPreFilled,
                       placeholder='Room Name'
                       error={Boolean(errors.room_name)}
                       name='room_name'
+                      inputProps={{ autoComplete: 'off' }}
                     />
                   )}
                 />
