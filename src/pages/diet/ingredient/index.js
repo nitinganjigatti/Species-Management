@@ -236,7 +236,7 @@ const IngredientsList = () => {
   }
 
   const handleSearch = value => {
-    setPaginationModel({ page: 0, pageSize: 10 })
+    setPaginationModel({ page: 0, pageSize: paginationModel.pageSize })
     setSearchValue(value)
     updateQueryParams({ q: value, page: 0, pageSize: paginationModel.pageSize })
     searchTableData(sort, value, sortColumning, status)

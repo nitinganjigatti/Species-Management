@@ -225,7 +225,7 @@ const RecipeList = () => {
   }
 
   const handleSearch = value => {
-    setPaginationModel({ page: 0, pageSize: 10 })
+    setPaginationModel({ page: 0, pageSize: paginationModel.pageSize })
     updateQueryParams({ q: value, page: 0, pageSize: paginationModel.pageSize })
     setSearchValue(value)
     searchTableData(sortBy, value, sortColumn, searchColumns, status)
