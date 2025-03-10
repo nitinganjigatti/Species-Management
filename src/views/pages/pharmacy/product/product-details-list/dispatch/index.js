@@ -179,23 +179,46 @@ function Dispatch({ tabValue, updateUrlParams }) {
         </Typography>
       )
     },
+    // {
+    //   minWidth: 190,
+    //   field: 'price',
+    //   headerName: 'TOTAL VALUE (₹)',
+    //   renderCell: params => (
+    //     <Typography
+    //       variant='body2'
+    //       sx={{
+    //         color: theme.palette.customColors.customHeadingTextColor,
+    //         fontSize: '14px',
+    //         fontWeight: 500,
+    //         fontFamily: 'Inter'
+    //       }}
+    //     >
+    //       {Utility.formatAmountToReadableDigit(params.row.price)}
+    //     </Typography>
+    //   )
+    // },
+
     {
       minWidth: 190,
       field: 'price',
       headerName: 'TOTAL VALUE (₹)',
-      renderCell: params => (
-        <Typography
-          variant='body2'
-          sx={{
-            color: theme.palette.customColors.customHeadingTextColor,
-            fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
-          }}
-        >
-          {Utility.formatAmountToReadableDigit(params.row.price)}
-        </Typography>
-      )
+      renderCell: params => {
+        const totalValue = params.row.price * params.row.quantity
+
+        return (
+          <Typography
+            variant='body2'
+            sx={{
+              color: theme.palette.customColors.customHeadingTextColor,
+              fontSize: '14px',
+              fontWeight: 500,
+              fontFamily: 'Inter'
+            }}
+          >
+            {Utility.formatAmountToReadableDigit(totalValue)}
+          </Typography>
+        )
+      }
     },
 
     {
