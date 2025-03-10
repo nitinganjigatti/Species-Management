@@ -16,7 +16,7 @@ import { useRouter } from 'next/router'
 import React, { useCallback, useEffect, useState } from 'react'
 
 // ** Icon Imports
-import { getBatchList } from 'src/lib/api/pharmacy/dispenseProduct'
+import { getBatchList, getUserList } from 'src/lib/api/pharmacy/dispenseProduct'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import Error404 from 'src/pages/404'
 import Utility from 'src/utility'
@@ -30,6 +30,7 @@ import ClearIcon from '@mui/icons-material/Clear'
 import FilterDrawer from 'src/components/FilterDrawer'
 import { getPharmacyTransactionConstants } from 'src/constants/PharmacyConstants'
 import { getStoreList } from 'src/lib/api/pharmacy/getStoreList'
+import { readAsync } from 'src/lib/windows/utils'
 
 const DoctorCard = ({ id, name, title, site, isSelected, onSelectDoctor }) => {
   return (
@@ -531,13 +532,13 @@ function Ledger({ tabValue, updateUrlParams }) {
             //   ).values()
             // )
 
-            const uniqueCreateBy = Array.from(
-              new Map(
-                res?.data?.ledger_data
-                  ?.filter(item => item.created_by && item.transaction_created_by)
-                  .map(item => [item.created_by, { id: item.created_by, name: item.transaction_created_by }])
-              ).values()
-            )
+            // const uniqueCreateBy = Array.from(
+            //   new Map(
+            //     res?.data?.ledger_data
+            //       ?.filter(item => item.created_by && item.transaction_created_by)
+            //       .map(item => [item.created_by, { id: item.created_by, name: item.transaction_created_by }])
+            //   ).values()
+            // )
 
             // Merge and update options, ensuring all unique options are preserved
             //  setDispatchedByOptions(prevOptions =>
@@ -545,7 +546,7 @@ function Ledger({ tabValue, updateUrlParams }) {
             // )
 
             // setDispatchedToOptions(prevOptions => mergeOptions(prevOptions, uniqueDispatchedTo))
-            setCreateByOptions(prevOptions => mergeOptions(prevOptions, uniqueCreateBy))
+            // setCreateByOptions(prevOptions => mergeOptions(prevOptions, uniqueCreateBy))
 
             setLoading(false)
             updateUrlParams({
@@ -852,8 +853,10 @@ function Ledger({ tabValue, updateUrlParams }) {
         break
     }
 
-    setSelectedDate(dateRange)
-    setFilterDates({ startDate, endDate })
+    // setSelectedDate(dateRange)
+    // setFilterDates({ startDate, endDate })
+    setSelectedDate(prev => (prev === dateRange ? null : dateRange))
+    setFilterDates(prev => (prev === dateRange ? { startDate: '', endDate: '' } : { startDate, endDate }))
   }
 
   const fetchPharmacyList = useCallback(async (sort, q, column) => {
@@ -876,6 +879,33 @@ function Ledger({ tabValue, updateUrlParams }) {
   useEffect(() => {
     fetchPharmacyList()
   }, [fetchPharmacyList])
+
+  const getUserLists = async () => {
+    try {
+      const userDetails = await readAsync('userDetails')
+      if (userDetails?.user?.zoos.length > 0) {
+        let zoo_id = userDetails?.user?.zoos[0].zoo_id
+        await getUserList({ zoo_id }).then(res => {
+          console.log(res, 'ressss')
+
+          if (res?.data?.length > 0) {
+            setCreateByOptions(
+              res?.data?.map(item => ({
+                name: item?.user_name,
+                id: item?.user_id
+              }))
+            )
+          }
+        })
+      }
+    } catch (error) {
+      console.log('user error', error)
+    }
+  }
+
+  useEffect(() => {
+    getUserLists()
+  }, [])
 
   return (
     <>
