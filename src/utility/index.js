@@ -158,6 +158,7 @@ function formatAmountToReadableDigit(value) {
       maximumFractionDigits: 2
     })
   }
+
   return `₹${Number(roundedNum)}`
 
   // if (value) {
@@ -176,17 +177,18 @@ function formatAmountToReadableDigit(value) {
 const downloadFileFromURL = async (fileUrl, title = 'report') => {
   if (!fileUrl) {
     console.error('No file URL provided')
+
     return
   }
   try {
-    const fileExtension = fileUrl.split('.').pop()
+    const fileExtension = fileUrl.split('/')
     const fetchResponse = await fetch(fileUrl)
     if (!fetchResponse.ok) {
       throw new Error(`Failed to fetch file: ${fetchResponse.statusText}`)
     }
     const blob = await fetchResponse.blob()
     const url = window.URL.createObjectURL(blob)
-    const fileName = `${title.toLowerCase().replace(/\s+/g, '-')}-report.${fileExtension}`
+    const fileName = `${fileExtension[fileExtension.length - 1]}`
     const link = document.createElement('a')
     link.href = url
     link.download = fileName
