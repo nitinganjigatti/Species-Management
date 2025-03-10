@@ -457,101 +457,102 @@ const ComboCard = ({
 
   return (
     <Box>
-      {sortedRecipeList?.map((item, index) => {
-        return (
-          <>
-            <Box
-              sx={{
-                bgcolor: 'background.paper',
-                border: selectedCardCombo?.some(card => card?.id === item?.id) ? '2px solid #37BD69' : '#fff',
-                boxShadow: 0,
-                mt: 4,
-                borderRadius: '10px',
-                cursor: 'pointer'
-              }}
-            >
+      {sortedRecipeList?.length > 0 ? (
+        sortedRecipeList?.map((item, index) => {
+          return (
+            <>
               <Box
-                sx={{ display: 'flex', m: 1, cursor: 'pointer', padding: '16px', pb: '4px', pt: '10px' }}
-                onClick={() => {
-                  handleCardClick(item, index)
+                sx={{
+                  bgcolor: 'background.paper',
+                  border: selectedCardCombo?.some(card => card?.id === item?.id) ? '2px solid #37BD69' : '#fff',
+                  boxShadow: 0,
+                  mt: 4,
+                  borderRadius: '10px',
+                  cursor: 'pointer'
                 }}
               >
                 <Box
-                  sx={{
-                    width: '68px',
-                    height: '68px',
-                    color: '#fff',
-                    position: 'relative',
-                    top: '2px',
-
-                    bgcolor: selectedCardCombo?.some(card => card?.id === item?.id) ? '#37BD69' : '#E8F4F2',
-                    borderRadius: '10.88px'
+                  sx={{ display: 'flex', m: 1, cursor: 'pointer', padding: '16px', pb: '4px', pt: '10px' }}
+                  onClick={() => {
+                    handleCardClick(item, index)
                   }}
                 >
-                  {selectedCardCombo?.some(card => card?.id === item?.id) ? (
-                    <>
-                      <Box sx={{ width: '48px', height: '48px', position: 'relative', top: '10px', left: '10px' }}>
-                        <DoneIcon
-                          sx={{
-                            width: '38.71px',
-                            height: '39.69px',
-                            position: 'relative',
-                            top: '5.6px',
-                            left: '5.13px'
-                          }}
-                        />
-                      </Box>
-                    </>
-                  ) : (
-                    <Avatar
-                      variant='round'
-                      alt='Ingredient Image'
-                      sx={{
-                        width: '54.4px',
-                        height: '54.4px',
-                        position: 'relative',
-                        top: '6.8px',
-                        left: '6.8px'
-                      }}
-                      src={item?.recipe_image ? item?.recipe_image : '/icons/icon_diet_fill.png'}
-                    ></Avatar>
-                  )}
-                </Box>
-                <Box sx={{ width: '333px' }}>
-                  <Box sx={{ width: '333px', height: '45px', gap: 4 }}>
-                    <Tooltip title={item?.recipe_name?.length > 50 ? item?.recipe_name : ''}>
-                      <Typography
-                        sx={{
-                          ml: 4,
-                          fontSize: '20px',
-                          color: '#44544A',
-                          width: '400px',
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                          whiteSpace: 'nowrap'
-                        }}
-                      >
-                        {item?.recipe_name}
-                      </Typography>
-                    </Tooltip>
-                    <Typography
-                      variant='body'
-                      sx={{ ml: 4, fontSize: '14px', width: '79px', mt: 0, mb: 0, float: 'left' }}
-                    >
-                      {item?.recipe_no ? item?.recipe_no : 'CMB- 000'}
-                    </Typography>
-                  </Box>
+                  <Box
+                    sx={{
+                      width: '68px',
+                      height: '68px',
+                      color: '#fff',
+                      position: 'relative',
+                      top: '2px',
 
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '333px', height: '45px' }}>
-                    {/* <Divider sx={{ borderLeft: '1px solid #D9D9D9', height: 30, ml: 4, mt: 3 }}></Divider> */}
-                    <Box sx={{ ml: '10px', ml: 4 }}>
-                      <Typography sx={{ mt: 2, fontSize: '12px', fontWeight: 'bold', color: '#000' }}>
-                        {item?.ingredients_count}&nbsp;
-                        <span style={{ color: '#e55b3e' }}> ({calculateTotalQuantity(item?.by_percentage)}%)</span>
+                      bgcolor: selectedCardCombo?.some(card => card?.id === item?.id) ? '#37BD69' : '#E8F4F2',
+                      borderRadius: '10.88px'
+                    }}
+                  >
+                    {selectedCardCombo?.some(card => card?.id === item?.id) ? (
+                      <>
+                        <Box sx={{ width: '48px', height: '48px', position: 'relative', top: '10px', left: '10px' }}>
+                          <DoneIcon
+                            sx={{
+                              width: '38.71px',
+                              height: '39.69px',
+                              position: 'relative',
+                              top: '5.6px',
+                              left: '5.13px'
+                            }}
+                          />
+                        </Box>
+                      </>
+                    ) : (
+                      <Avatar
+                        variant='round'
+                        alt='Ingredient Image'
+                        sx={{
+                          width: '54.4px',
+                          height: '54.4px',
+                          position: 'relative',
+                          top: '6.8px',
+                          left: '6.8px'
+                        }}
+                        src={item?.recipe_image ? item?.recipe_image : '/icons/icon_diet_fill.png'}
+                      ></Avatar>
+                    )}
+                  </Box>
+                  <Box sx={{ width: '333px' }}>
+                    <Box sx={{ width: '333px', height: '45px', gap: 4 }}>
+                      <Tooltip title={item?.recipe_name?.length > 50 ? item?.recipe_name : ''}>
+                        <Typography
+                          sx={{
+                            ml: 4,
+                            fontSize: '20px',
+                            color: '#44544A',
+                            width: '400px',
+                            overflow: 'hidden',
+                            textOverflow: 'ellipsis',
+                            whiteSpace: 'nowrap'
+                          }}
+                        >
+                          {item?.recipe_name}
+                        </Typography>
+                      </Tooltip>
+                      <Typography
+                        variant='body'
+                        sx={{ ml: 4, fontSize: '14px', width: '79px', mt: 0, mb: 0, float: 'left' }}
+                      >
+                        {item?.recipe_no ? item?.recipe_no : 'CMB- 000'}
                       </Typography>
-                      <Typography sx={{ fontSize: '10px', width: '100px' }}>Ingredients by %</Typography>
                     </Box>
-                    {/* <Divider sx={{ borderLeft: '1px solid #D9D9D9', height: 30, mr: 2, mt: 3 }}></Divider>
+
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '333px', height: '45px' }}>
+                      {/* <Divider sx={{ borderLeft: '1px solid #D9D9D9', height: 30, ml: 4, mt: 3 }}></Divider> */}
+                      <Box sx={{ ml: '10px', ml: 4 }}>
+                        <Typography sx={{ mt: 2, fontSize: '12px', fontWeight: 'bold', color: '#000' }}>
+                          {item?.ingredients_count}&nbsp;
+                          <span style={{ color: '#e55b3e' }}> ({calculateTotalQuantity(item?.by_percentage)}%)</span>
+                        </Typography>
+                        <Typography sx={{ fontSize: '10px', width: '100px' }}>Ingredients by %</Typography>
+                      </Box>
+                      {/* <Divider sx={{ borderLeft: '1px solid #D9D9D9', height: 30, mr: 2, mt: 3 }}></Divider>
                     <Box>
                       <Typography sx={{ mt: 2, fontSize: '12px', color: '#000', fontWeight: 'bold' }}>
                         {' '}
@@ -567,100 +568,100 @@ const ComboCard = ({
                       </Typography>
                       <Typography sx={{ fontSize: '10px', width: '100px' }}>Calories by 100g</Typography>
                     </Box> */}
+                    </Box>
                   </Box>
                 </Box>
-              </Box>
-              <Divider />
+                <Divider />
 
-              {selectedCardCombo?.some(card => card?.id === item?.id) ? (
-                <Box sx={{ pl: 5, pr: 5, mt: 3, mb: 3 }}>
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0 }}>
-                    <Typography sx={{ fontWeight: '500', color: '#00000066', fontSize: '16px' }}>
-                      Ingredients
-                    </Typography>
-                    <Typography sx={{ fontWeight: '500', color: '#00000066', fontSize: '16px', mr: 20 }}>
-                      Cut size
-                    </Typography>
-                  </Box>
-                  {item.ingredients.map((ingredient, index) => (
-                    <Box
-                      key={index}
-                      sx={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        pb: 2,
-                        pt: 1
-                      }}
-                    >
-                      {/* Ingredient Image */}
-
-                      <Avatar
-                        variant='square'
-                        alt={ingredient.ingredient_name}
+                {selectedCardCombo?.some(card => card?.id === item?.id) ? (
+                  <Box sx={{ pl: 5, pr: 5, mt: 3, mb: 3 }}>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0 }}>
+                      <Typography sx={{ fontWeight: '500', color: '#00000066', fontSize: '16px' }}>
+                        Ingredients
+                      </Typography>
+                      <Typography sx={{ fontWeight: '500', color: '#00000066', fontSize: '16px', mr: 20 }}>
+                        Cut size
+                      </Typography>
+                    </Box>
+                    {item.ingredients.map((ingredient, index) => (
+                      <Box
+                        key={index}
                         sx={{
-                          width: 45,
-                          height: 50,
-                          mr: 4,
-                          background: '#E8F4F2',
-                          padding: '8px',
-                          borderRadius: '4px'
+                          display: 'flex',
+                          alignItems: 'center',
+                          pb: 2,
+                          pt: 1
                         }}
-                        src={ingredient.image ? ingredient.image : '/icons/icon_ingredient.svg'}
-                      ></Avatar>
+                      >
+                        {/* Ingredient Image */}
 
-                      {/* Ingredient Details */}
+                        <Avatar
+                          variant='square'
+                          alt={ingredient.ingredient_name}
+                          sx={{
+                            width: 45,
+                            height: 50,
+                            mr: 4,
+                            background: '#E8F4F2',
+                            padding: '8px',
+                            borderRadius: '4px'
+                          }}
+                          src={ingredient.image ? ingredient.image : '/icons/icon_ingredient.svg'}
+                        ></Avatar>
 
-                      <Box sx={{ flex: 1 }}>
-                        <Tooltip
-                          title={`${ingredient.ingredient_name} ${ingredient.quantity} ${
-                            ingredient.quantity_type === 'percentage' ? '%' : ''
-                          }`}
-                        >
-                          <Box
-                            sx={{
-                              display: 'flex',
-                              alignItems: 'center',
-                              width: '250px',
-                              overflow: 'hidden'
-                            }}
+                        {/* Ingredient Details */}
+
+                        <Box sx={{ flex: 1 }}>
+                          <Tooltip
+                            title={`${ingredient.ingredient_name} ${ingredient.quantity} ${
+                              ingredient.quantity_type === 'percentage' ? '%' : ''
+                            }`}
                           >
-                            <Typography
-                              variant='body1'
+                            <Box
                               sx={{
-                                fontWeight: '600',
-                                color: '#44544A',
-                                textOverflow: 'ellipsis',
-                                overflow: 'hidden',
-                                whiteSpace: 'nowrap',
-                                flexShrink: 1
+                                display: 'flex',
+                                alignItems: 'center',
+                                width: '250px',
+                                overflow: 'hidden'
                               }}
                             >
-                              {ingredient.ingredient_name}
-                            </Typography>
-                            <Typography
-                              variant='body1'
-                              sx={{
-                                fontWeight: '600',
-                                color: '#44544A',
-                                marginLeft: 1,
-                                flexShrink: 0
-                              }}
-                            >
-                              {ingredient.quantity} {ingredient.quantity_type === 'percentage' ? '%' : ''}
-                            </Typography>
-                          </Box>
-                        </Tooltip>
+                              <Typography
+                                variant='body1'
+                                sx={{
+                                  fontWeight: '600',
+                                  color: '#44544A',
+                                  textOverflow: 'ellipsis',
+                                  overflow: 'hidden',
+                                  whiteSpace: 'nowrap',
+                                  flexShrink: 1
+                                }}
+                              >
+                                {ingredient.ingredient_name}
+                              </Typography>
+                              <Typography
+                                variant='body1'
+                                sx={{
+                                  fontWeight: '600',
+                                  color: '#44544A',
+                                  marginLeft: 1,
+                                  flexShrink: 0
+                                }}
+                              >
+                                {ingredient.quantity} {ingredient.quantity_type === 'percentage' ? '%' : ''}
+                              </Typography>
+                            </Box>
+                          </Tooltip>
 
-                        <Typography variant='body2' color='#44544A'>
-                          Id - {'ING' + ingredient.id}
-                        </Typography>
+                          <Typography variant='body2' color='#44544A'>
+                            Id - {'ING' + ingredient.id}
+                          </Typography>
 
-                        <Typography variant='body2' color='#7A8684'>
-                          {ingredient.preparation_type}
-                        </Typography>
-                      </Box>
+                          <Typography variant='body2' color='#7A8684'>
+                            {ingredient.preparation_type}
+                          </Typography>
+                        </Box>
 
-                      {/* <Box sx={{ pl: 5 }}>
+                        {/* <Box sx={{ pl: 5 }}>
                         <FormControl fullWidth>
                           <Select
                             size='small'
@@ -688,89 +689,103 @@ const ComboCard = ({
                           </Select>
                         </FormControl>
                       </Box> */}
-                      <SizeSelector
-                        size={size}
-                        cutsizelist={cutsizelist}
-                        item={item}
-                        ingredient={ingredient}
-                        handleChangeSize={handleChangeSize}
-                        showErrors={showErrors}
-                      />
-                    </Box>
-                  ))}
-                </Box>
-              ) : (
-                ''
-              )}
-              {selectedCardCombo?.some(card => card?.id === item?.id) ? (
-                <>
-                  <Divider />
-                  <Typography sx={{ py: 3, px: 2, ml: 3 }}>Feeding Days</Typography>
-                  <Stack direction='row' gap={3} mb={2} sx={{ px: 2, ml: 4 }}>
-                    {Day?.map(day => (
-                      <Box
-                        key={day.id}
-                        onClick={() => handleSelectedDays(day.id, day.name, item.id)}
-                        sx={{
-                          fontSize: 11,
-                          fontWeight: 'bold',
-                          bgcolor: selectedDays.find(
-                            selectedDay =>
-                              selectedDay.cardId === item.id &&
-                              selectedDay.days.find(d => d.id === day.id && d.isActive)
-                          )
-                            ? '#203e56'
-                            : '#dedede',
-                          borderRadius: 5,
-                          p: 2,
-                          justifyContent: 'center',
-                          alignItems: 'center',
-                          cursor: 'pointer',
-
-                          color: selectedDays.find(
-                            selectedDay =>
-                              selectedDay.cardId === item.id &&
-                              selectedDay.days.find(d => d.id === day.id && d.isActive)
-                          )
-                            ? 'white'
-                            : 'black'
-                        }}
-                      >
-                        {day.name}
+                        <SizeSelector
+                          size={size}
+                          cutsizelist={cutsizelist}
+                          item={item}
+                          ingredient={ingredient}
+                          handleChangeSize={handleChangeSize}
+                          showErrors={showErrors}
+                        />
                       </Box>
                     ))}
-                  </Stack>
-
-                  <Box sx={{ mt: 5 }}>
-                    <Divider />
-                    <TextField
-                      multiline
-                      rows={expandedIndex.includes(index) ? 3 : 1}
-                      onChange={e => handleAddRemarks(e, item.id)}
-                      placeholder={expandedIndex.includes(index) ? 'Remarks' : 'Add remarks (optional)'}
-                      value={remarks[item.id] || ''}
-                      variant='outlined'
-                      fullWidth
-                      sx={{
-                        '& .MuiOutlinedInput-root': {
-                          '& fieldset': {
-                            border: 'none'
-                          }
-                        },
-                        transition: 'max-height 0.5s ease-in-out',
-                        overflow: 'hidden',
-                        maxHeight: expandedIndex.includes(index) ? '100px' : '56px'
-                      }}
-                    />
                   </Box>
-                </>
-              ) : (
-                ''
-              )}
-            </Box>
-          </>
-        )
-      })}
+                ) : (
+                  ''
+                )}
+                {selectedCardCombo?.some(card => card?.id === item?.id) ? (
+                  <>
+                    <Divider />
+                    <Typography sx={{ py: 3, px: 2, ml: 3 }}>Feeding Days</Typography>
+                    <Stack direction='row' gap={3} mb={2} sx={{ px: 2, ml: 4 }}>
+                      {Day?.map(day => (
+                        <Box
+                          key={day.id}
+                          onClick={() => handleSelectedDays(day.id, day.name, item.id)}
+                          sx={{
+                            fontSize: 11,
+                            fontWeight: 'bold',
+                            bgcolor: selectedDays.find(
+                              selectedDay =>
+                                selectedDay.cardId === item.id &&
+                                selectedDay.days.find(d => d.id === day.id && d.isActive)
+                            )
+                              ? '#203e56'
+                              : '#dedede',
+                            borderRadius: 5,
+                            p: 2,
+                            justifyContent: 'center',
+                            alignItems: 'center',
+                            cursor: 'pointer',
+
+                            color: selectedDays.find(
+                              selectedDay =>
+                                selectedDay.cardId === item.id &&
+                                selectedDay.days.find(d => d.id === day.id && d.isActive)
+                            )
+                              ? 'white'
+                              : 'black'
+                          }}
+                        >
+                          {day.name}
+                        </Box>
+                      ))}
+                    </Stack>
+
+                    <Box sx={{ mt: 5 }}>
+                      <Divider />
+                      <TextField
+                        multiline
+                        rows={expandedIndex.includes(index) ? 3 : 1}
+                        onChange={e => handleAddRemarks(e, item.id)}
+                        placeholder={expandedIndex.includes(index) ? 'Remarks' : 'Add remarks (optional)'}
+                        value={remarks[item.id] || ''}
+                        variant='outlined'
+                        fullWidth
+                        sx={{
+                          '& .MuiOutlinedInput-root': {
+                            '& fieldset': {
+                              border: 'none'
+                            }
+                          },
+                          transition: 'max-height 0.5s ease-in-out',
+                          overflow: 'hidden',
+                          maxHeight: expandedIndex.includes(index) ? '100px' : '56px'
+                        }}
+                      />
+                    </Box>
+                  </>
+                ) : (
+                  ''
+                )}
+              </Box>
+            </>
+          )
+        })
+      ) : (
+        <Box
+          sx={{
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            marginTop: '14%',
+            color: '#7A7A7A',
+            fontSize: '16px'
+          }}
+        >
+          No records to show
+        </Box>
+      )}
       {/* {selectedCardCombo?.length > 0 && ( */}
       <Box
         sx={{

@@ -41,7 +41,7 @@ const FeedTypes = () => {
     pageSize: parseInt(query.pageSize || 10, 10)
   })
   const [loading, setLoading] = useState(false)
-  const [status, setStatus] = useState('')
+  const [status, setStatus] = useState(query.status || '')
   const [searchValue, setSearchValue] = useState(query.q || '')
 
   const authData = useContext(AuthContext)
@@ -74,14 +74,17 @@ const FeedTypes = () => {
   useEffect(() => {
     const page = parseInt(query.page || 0, 10)
     const pageSize = parseInt(query.pageSize || 10, 10)
+    const status = query.status || ''
 
     setPaginationModel({ page: page, pageSize: pageSize })
-  }, [query.page, query.pageSize])
+    setStatus(status)
+  }, [query.page, query.pageSize, query.status])
 
   const handleChange = (event, newValue) => {
+    setStatus(newValue)
     setTotal(0)
     setPaginationModel({ page: 0, pageSize: 10 })
-    setStatus(newValue)
+    updateQueryParams({ page: 0, status: newValue, pageSize: 10 })
   }
 
   const fetchTableData = useCallback(
@@ -118,11 +121,12 @@ const FeedTypes = () => {
     },
     [paginationModel]
   )
+
   useEffect(() => {
     if (dietModule) {
       fetchTableData(sort, searchValue, sortColumning, status)
     }
-  }, [fetchTableData, status])
+  }, [status, paginationModel.page, paginationModel.pageSize, sort, sortColumning])
 
   const columns = [
     {
@@ -227,8 +231,10 @@ const FeedTypes = () => {
   )
 
   const handleSearch = value => {
-    updateQueryParams({ q: value, page: 0 })
+    setPaginationModel({ page: 0, pageSize: paginationModel.pageSize })
+
     setSearchValue(value)
+    updateQueryParams({ q: value, page: 0, pageSize: paginationModel.pageSize })
     searchTableData(sort, value, sortColumning, status)
   }
 

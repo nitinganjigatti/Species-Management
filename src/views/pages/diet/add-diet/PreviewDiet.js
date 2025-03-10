@@ -22,11 +22,12 @@ import {
   TableCell,
   TableHead,
   TableRow,
-  CircularProgress
+  CircularProgress,
+  useMediaQuery
 } from '@mui/material'
 import { Divider, Card } from '@mui/material'
 import AddDietType from './AddDietType'
-import dayjs from 'dayjs'
+import { useTheme } from '@mui/material/styles'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
@@ -56,6 +57,8 @@ const StepPreviewDiet = ({
   onRemarksChange,
   loader
 }) => {
+  const theme = useTheme()
+  const isSmallDevice = useMediaQuery(theme.breakpoints.down('md'))
   const [open, setOpen] = useState(false)
   const [mealData, setmealType] = useState([])
   const [LocalformData, setlocalformData] = useState([])
@@ -1043,7 +1046,7 @@ const StepPreviewDiet = ({
                             pl: '0 !important',
                             py: 0,
                             width: '180px',
-                            position: 'sticky',
+                            position: isSmallDevice ? '' : 'sticky ',
                             left: 0,
                             paddingRight: '0px'
                           }}
@@ -1074,7 +1077,7 @@ const StepPreviewDiet = ({
                             border: 'none',
                             height: '40px',
                             backgroundColor: '#fff',
-                            position: 'sticky',
+                            position: isSmallDevice ? '' : 'sticky ',
                             left: '180px',
                             p: 0,
                             width: '500px'
@@ -1321,7 +1324,7 @@ const StepPreviewDiet = ({
                             <TableRow key={index} className=''>
                               <TableCell
                                 sx={{
-                                  position: 'sticky',
+                                  position: isSmallDevice ? 'relative' : 'sticky ',
                                   left: 0,
                                   width: '180px',
                                   border: 'none',
@@ -1414,7 +1417,7 @@ const StepPreviewDiet = ({
                                     <TableRow key={index} className='tablerowi'>
                                       <TableCell
                                         sx={{
-                                          position: 'sticky',
+                                          position: isSmallDevice ? '' : 'sticky ',
                                           left: '180px',
                                           border: 'none',
                                           backgroundColor: '#fff'
@@ -1640,31 +1643,33 @@ const StepPreviewDiet = ({
                                             <>
                                               <Divider />
                                               <Box sx={{ display: 'flex', gap: '12px' }}>
-                                                {item?.days_of_week?.map((item, index) => (
-                                                  <Box
-                                                    key={index}
-                                                    sx={{
-                                                      width: '48px',
-                                                      height: '32px',
-                                                      borderRadius: '16px',
-                                                      backgroundColor: '#0000000d',
-                                                      display: 'center',
-                                                      justifyContent: 'center',
-                                                      alignItems: 'center'
-                                                    }}
-                                                  >
-                                                    <Typography
+                                                {item?.days_of_week
+                                                  ?.sort((a, b) => a - b)
+                                                  .map((dayId, index) => (
+                                                    <Box
+                                                      key={index}
                                                       sx={{
-                                                        fontWeight: 400,
-                                                        fontSize: '13px',
-                                                        lineHeight: '18px',
-                                                        color: '#44544A'
+                                                        width: '48px',
+                                                        height: '32px',
+                                                        borderRadius: '16px',
+                                                        backgroundColor: '#0000000d',
+                                                        display: 'center',
+                                                        justifyContent: 'center',
+                                                        alignItems: 'center'
                                                       }}
                                                     >
-                                                      {getDayName(item)}
-                                                    </Typography>
-                                                  </Box>
-                                                ))}
+                                                      <Typography
+                                                        sx={{
+                                                          fontWeight: 400,
+                                                          fontSize: '13px',
+                                                          lineHeight: '18px',
+                                                          color: '#44544A'
+                                                        }}
+                                                      >
+                                                        {getDayName(dayId)}
+                                                      </Typography>
+                                                    </Box>
+                                                  ))}
                                               </Box>
                                             </>
                                           )}
@@ -1712,7 +1717,8 @@ const StepPreviewDiet = ({
                                                 color: '#000',
                                                 lineHeight: '16.94px',
                                                 fontWeight: 400,
-                                                fontSize: '14px'
+                                                fontSize: '14px',
+                                                textAlign: 'center'
                                               }}
                                             >
                                               {/* {item.meal_type
@@ -1740,6 +1746,17 @@ const StepPreviewDiet = ({
                                                         : null
                                                     })
                                                 : 'Add'}
+                                              {item.meal_type
+                                                ? item.meal_type.map((meal, i) =>
+                                                    meal.meal_value_header === 'Generic' &&
+                                                    meal.notes &&
+                                                    meal.notes.trim() !== '' ? (
+                                                      <Typography key={i} sx={{ textAlign: 'center' }}>
+                                                        <img src='/icons/Notes.svg' alt='Grocery Icon' width='35px' />
+                                                      </Typography>
+                                                    ) : null
+                                                  )
+                                                : null}
                                             </Typography>
                                           </Box>
                                         </Box>
@@ -1790,7 +1807,8 @@ const StepPreviewDiet = ({
                                                       color: '#000',
                                                       lineHeight: '16.94px',
                                                       fontWeight: 400,
-                                                      fontSize: '14px'
+                                                      fontSize: '14px',
+                                                      textAlign: 'center'
                                                     }}
                                                   >
                                                     {/* {formData.diet_type_name === 'By Weight' && item.meal_type
@@ -1821,7 +1839,7 @@ const StepPreviewDiet = ({
                                                                 (meal.feed_uom_name ? ' ' + meal.feed_uom_name : '')
                                                               )
                                                             }
-                                                            // Return null for elements that do not match the condition
+
                                                             return null
                                                           })
                                                           .filter(Boolean).length === 0
@@ -1833,7 +1851,7 @@ const StepPreviewDiet = ({
                                                                 (meal.feed_uom_name ? ' ' + meal.feed_uom_name : '')
                                                               )
                                                             }
-                                                            // Return null for elements that do not match the condition
+
                                                             return null
                                                           })
                                                       : item.meal_type
@@ -1853,6 +1871,91 @@ const StepPreviewDiet = ({
                                                               : null
                                                           })
                                                       : 'Add'}
+                                                    {formData.diet_type_name === 'By Weight' && item.meal_type
+                                                      ? item.meal_type
+                                                          .map((meal, i) => {
+                                                            if (
+                                                              all.includes(meal.meal_value_header) &&
+                                                              meal.notes &&
+                                                              meal.notes.trim() !== ''
+                                                            ) {
+                                                              return (
+                                                                <Typography key={i} sx={{ textAlign: 'center' }}>
+                                                                  <img
+                                                                    src='/icons/Notes.svg'
+                                                                    alt='Grocery Icon'
+                                                                    width='35px'
+                                                                  />
+                                                                </Typography>
+                                                              )
+                                                            }
+
+                                                            return null
+                                                          })
+                                                          .filter(Boolean).length === 0
+                                                        ? ''
+                                                        : item.meal_type.map((meal, i) => {
+                                                            if (
+                                                              all.includes(meal.meal_value_header) &&
+                                                              meal.notes &&
+                                                              meal.notes.trim() !== ''
+                                                            ) {
+                                                              return (
+                                                                <Typography key={i} sx={{ textAlign: 'center' }}>
+                                                                  <img
+                                                                    src='/icons/Notes.svg'
+                                                                    alt='Grocery Icon'
+                                                                    width='35px'
+                                                                  />
+                                                                </Typography>
+                                                              )
+                                                            }
+
+                                                            return null
+                                                          })
+                                                      : item.meal_type
+                                                      ? item.meal_type
+                                                          .map((meal, i) => {
+                                                            if (
+                                                              meal.meal_value_header === all &&
+                                                              meal.notes &&
+                                                              meal.notes.trim() !== ''
+                                                            ) {
+                                                              return (
+                                                                <Typography key={i} sx={{ textAlign: 'center' }}>
+                                                                  <img
+                                                                    src='/icons/Notes.svg'
+                                                                    alt='Grocery Icon'
+                                                                    width='35px'
+                                                                  />
+                                                                </Typography>
+                                                              )
+                                                            }
+
+                                                            return null
+                                                          })
+                                                          .filter(Boolean).length === 0
+                                                        ? ''
+                                                        : item.meal_type.map((meal, i) => {
+                                                            if (
+                                                              meal.meal_value_header === all &&
+                                                              meal.notes &&
+                                                              meal.notes.trim() !== ''
+                                                            ) {
+                                                              return (
+                                                                <Typography key={i} sx={{ textAlign: 'center' }}>
+                                                                  <img
+                                                                    src='/icons/Notes.svg'
+                                                                    alt='Grocery Icon'
+                                                                    width='35px'
+                                                                  />
+                                                                </Typography>
+                                                              )
+                                                            }
+
+                                                            return null
+                                                          })
+                                                      : ''}
                                                   </Typography>
                                                 </Box>
                                               </Box>
@@ -1873,7 +1976,7 @@ const StepPreviewDiet = ({
                                     <TableRow key={index} className='tablerowi'>
                                       <TableCell
                                         sx={{
-                                          position: 'sticky',
+                                          position: isSmallDevice ? '' : 'sticky ',
                                           left: '180px',
                                           border: 'none',
                                           backgroundColor: '#fff'
@@ -2144,35 +2247,38 @@ const StepPreviewDiet = ({
                                               )}
                                             </Box>
                                           </Box>
+
                                           {item?.days_of_week?.length > 0 && (
                                             <>
                                               <Divider />
                                               <Box sx={{ display: 'flex', gap: '12px' }}>
-                                                {item?.days_of_week?.map((item, index) => (
-                                                  <Box
-                                                    key={index}
-                                                    sx={{
-                                                      width: '48px',
-                                                      height: '32px',
-                                                      borderRadius: '16px',
-                                                      backgroundColor: '#0000000d',
-                                                      display: 'center',
-                                                      justifyContent: 'center',
-                                                      alignItems: 'center'
-                                                    }}
-                                                  >
-                                                    <Typography
+                                                {item?.days_of_week
+                                                  ?.sort((a, b) => a - b)
+                                                  .map((dayId, index) => (
+                                                    <Box
+                                                      key={index}
                                                       sx={{
-                                                        fontWeight: 400,
-                                                        fontSize: '13px',
-                                                        lineHeight: '18px',
-                                                        color: '#44544A'
+                                                        width: '48px',
+                                                        height: '32px',
+                                                        borderRadius: '16px',
+                                                        backgroundColor: '#0000000d',
+                                                        display: 'center',
+                                                        justifyContent: 'center',
+                                                        alignItems: 'center'
                                                       }}
                                                     >
-                                                      {getDayName(item)}
-                                                    </Typography>
-                                                  </Box>
-                                                ))}
+                                                      <Typography
+                                                        sx={{
+                                                          fontWeight: 400,
+                                                          fontSize: '13px',
+                                                          lineHeight: '18px',
+                                                          color: '#44544A'
+                                                        }}
+                                                      >
+                                                        {getDayName(dayId)}
+                                                      </Typography>
+                                                    </Box>
+                                                  ))}
                                               </Box>
                                             </>
                                           )}
@@ -2220,7 +2326,8 @@ const StepPreviewDiet = ({
                                                 color: '#000',
                                                 lineHeight: '16.94px',
                                                 fontWeight: 400,
-                                                fontSize: '14px'
+                                                fontSize: '14px',
+                                                textAlign: 'center'
                                               }}
                                             >
                                               {/* {item.meal_type
@@ -2248,6 +2355,17 @@ const StepPreviewDiet = ({
                                                         : null
                                                     })
                                                 : 'Add'}
+                                              {item.meal_type
+                                                ? item.meal_type.map((meal, i) =>
+                                                    meal.meal_value_header === 'Generic' &&
+                                                    meal.notes &&
+                                                    meal.notes.trim() !== '' ? (
+                                                      <Typography key={i} sx={{ textAlign: 'center' }}>
+                                                        <img src='/icons/Notes.svg' alt='Grocery Icon' width='35px' />
+                                                      </Typography>
+                                                    ) : null
+                                                  )
+                                                : null}
                                             </Typography>
                                           </Box>
                                         </Box>
@@ -2298,7 +2416,8 @@ const StepPreviewDiet = ({
                                                       color: '#000',
                                                       lineHeight: '16.94px',
                                                       fontWeight: 400,
-                                                      fontSize: '14px'
+                                                      fontSize: '14px',
+                                                      textAlign: 'center'
                                                     }}
                                                   >
                                                     {/* {formData.diet_type_name === 'By Weight' && item.meal_type
@@ -2329,7 +2448,7 @@ const StepPreviewDiet = ({
                                                                 (meal.feed_uom_name ? ' ' + meal.feed_uom_name : '')
                                                               )
                                                             }
-                                                            // Return null for elements that do not match the condition
+
                                                             return null
                                                           })
                                                           .filter(Boolean).length === 0
@@ -2341,7 +2460,7 @@ const StepPreviewDiet = ({
                                                                 (meal.feed_uom_name ? ' ' + meal.feed_uom_name : '')
                                                               )
                                                             }
-                                                            // Return null for elements that do not match the condition
+
                                                             return null
                                                           })
                                                       : item.meal_type
@@ -2361,6 +2480,91 @@ const StepPreviewDiet = ({
                                                               : null
                                                           })
                                                       : 'Add'}
+                                                    {formData.diet_type_name === 'By Weight' && item.meal_type
+                                                      ? item.meal_type
+                                                          .map((meal, i) => {
+                                                            if (
+                                                              all.includes(meal.meal_value_header) &&
+                                                              meal.notes &&
+                                                              meal.notes.trim() !== ''
+                                                            ) {
+                                                              return (
+                                                                <Typography key={i} sx={{ textAlign: 'center' }}>
+                                                                  <img
+                                                                    src='/icons/Notes.svg'
+                                                                    alt='Grocery Icon'
+                                                                    width='35px'
+                                                                  />
+                                                                </Typography>
+                                                              )
+                                                            }
+
+                                                            return null
+                                                          })
+                                                          .filter(Boolean).length === 0
+                                                        ? ''
+                                                        : item.meal_type.map((meal, i) => {
+                                                            if (
+                                                              all.includes(meal.meal_value_header) &&
+                                                              meal.notes &&
+                                                              meal.notes.trim() !== ''
+                                                            ) {
+                                                              return (
+                                                                <Typography key={i} sx={{ textAlign: 'center' }}>
+                                                                  <img
+                                                                    src='/icons/Notes.svg'
+                                                                    alt='Grocery Icon'
+                                                                    width='35px'
+                                                                  />
+                                                                </Typography>
+                                                              )
+                                                            }
+
+                                                            return null
+                                                          })
+                                                      : item.meal_type
+                                                      ? item.meal_type
+                                                          .map((meal, i) => {
+                                                            if (
+                                                              meal.meal_value_header === all &&
+                                                              meal.notes &&
+                                                              meal.notes.trim() !== ''
+                                                            ) {
+                                                              return (
+                                                                <Typography key={i} sx={{ textAlign: 'center' }}>
+                                                                  <img
+                                                                    src='/icons/Notes.svg'
+                                                                    alt='Grocery Icon'
+                                                                    width='35px'
+                                                                  />
+                                                                </Typography>
+                                                              )
+                                                            }
+
+                                                            return null
+                                                          })
+                                                          .filter(Boolean).length === 0
+                                                        ? ''
+                                                        : item.meal_type.map((meal, i) => {
+                                                            if (
+                                                              meal.meal_value_header === all &&
+                                                              meal.notes &&
+                                                              meal.notes.trim() !== ''
+                                                            ) {
+                                                              return (
+                                                                <Typography key={i} sx={{ textAlign: 'center' }}>
+                                                                  <img
+                                                                    src='/icons/Notes.svg'
+                                                                    alt='Grocery Icon'
+                                                                    width='35px'
+                                                                  />
+                                                                </Typography>
+                                                              )
+                                                            }
+
+                                                            return null
+                                                          })
+                                                      : ''}
                                                   </Typography>
                                                 </Box>
                                               </Box>
@@ -2376,14 +2580,14 @@ const StepPreviewDiet = ({
                               {/* Recipe module end */}
 
                               {/* Combo module start  */}
-                              {console.log(itemd, 'itemd')}
+
                               <>
                                 {itemd?.combo?.map((item, index) => {
                                   return (
                                     <TableRow key={index} className='tablerowi'>
                                       <TableCell
                                         sx={{
-                                          position: 'sticky',
+                                          position: isSmallDevice ? '' : 'sticky ',
                                           left: '180px',
                                           border: 'none',
                                           backgroundColor: '#fff'
@@ -2479,7 +2683,7 @@ const StepPreviewDiet = ({
                                                     {item?.recipe_name}
                                                   </Typography>
                                                 )}
-                                                {/* {console.log(item, 'klkl')}
+                                                {/* 
                                                 {item?.ingredients.map(all =>
                                                   all ? (
                                                     <Typography
@@ -2686,31 +2890,33 @@ const StepPreviewDiet = ({
                                             <>
                                               <Divider />
                                               <Box sx={{ display: 'flex', gap: '12px' }}>
-                                                {item?.days_of_week?.map((item, index) => (
-                                                  <Box
-                                                    key={index}
-                                                    sx={{
-                                                      width: '48px',
-                                                      height: '32px',
-                                                      borderRadius: '16px',
-                                                      backgroundColor: '#0000000D',
-                                                      display: 'center',
-                                                      justifyContent: 'center',
-                                                      alignItems: 'center'
-                                                    }}
-                                                  >
-                                                    <Typography
+                                                {item?.days_of_week
+                                                  ?.sort((a, b) => a - b)
+                                                  .map((dayId, index) => (
+                                                    <Box
+                                                      key={index}
                                                       sx={{
-                                                        fontWeight: 400,
-                                                        fontSize: '13px',
-                                                        lineHeight: '18px',
-                                                        color: '#44544A'
+                                                        width: '48px',
+                                                        height: '32px',
+                                                        borderRadius: '16px',
+                                                        backgroundColor: '#0000000D',
+                                                        display: 'center',
+                                                        justifyContent: 'center',
+                                                        alignItems: 'center'
                                                       }}
                                                     >
-                                                      {getDayName(item)}
-                                                    </Typography>
-                                                  </Box>
-                                                ))}
+                                                      <Typography
+                                                        sx={{
+                                                          fontWeight: 400,
+                                                          fontSize: '13px',
+                                                          lineHeight: '18px',
+                                                          color: '#44544A'
+                                                        }}
+                                                      >
+                                                        {getDayName(dayId)}
+                                                      </Typography>
+                                                    </Box>
+                                                  ))}
                                               </Box>
                                             </>
                                           )}
@@ -2758,7 +2964,8 @@ const StepPreviewDiet = ({
                                                 color: '#000',
                                                 lineHeight: '16.94px',
                                                 fontWeight: 400,
-                                                fontSize: '14px'
+                                                fontSize: '14px',
+                                                textAlign: 'center'
                                               }}
                                             >
                                               {/* {item.meal_type
@@ -2786,6 +2993,17 @@ const StepPreviewDiet = ({
                                                         : null
                                                     })
                                                 : 'Add'}
+                                              {item.meal_type
+                                                ? item.meal_type.map((meal, i) =>
+                                                    meal.meal_value_header === 'Generic' &&
+                                                    meal.notes &&
+                                                    meal.notes.trim() !== '' ? (
+                                                      <Typography key={i} sx={{ textAlign: 'center' }}>
+                                                        <img src='/icons/Notes.svg' alt='Grocery Icon' width='35px' />
+                                                      </Typography>
+                                                    ) : null
+                                                  )
+                                                : null}
                                             </Typography>
                                           </Box>
                                         </Box>
@@ -2836,7 +3054,8 @@ const StepPreviewDiet = ({
                                                       color: '#000',
                                                       lineHeight: '16.94px',
                                                       fontWeight: 400,
-                                                      fontSize: '14px'
+                                                      fontSize: '14px',
+                                                      textAlign: 'center'
                                                     }}
                                                   >
                                                     {/* {formData.diet_type_name === 'By Weight' && item.meal_type
@@ -2867,7 +3086,7 @@ const StepPreviewDiet = ({
                                                                 (meal.feed_uom_name ? ' ' + meal.feed_uom_name : '')
                                                               )
                                                             }
-                                                            // Return null for elements that do not match the condition
+
                                                             return null
                                                           })
                                                           .filter(Boolean).length === 0
@@ -2879,7 +3098,7 @@ const StepPreviewDiet = ({
                                                                 (meal.feed_uom_name ? ' ' + meal.feed_uom_name : '')
                                                               )
                                                             }
-                                                            // Return null for elements that do not match the condition
+
                                                             return null
                                                           })
                                                       : item.meal_type
@@ -2899,6 +3118,91 @@ const StepPreviewDiet = ({
                                                               : null
                                                           })
                                                       : 'Add'}
+                                                    {formData.diet_type_name === 'By Weight' && item.meal_type
+                                                      ? item.meal_type
+                                                          .map((meal, i) => {
+                                                            if (
+                                                              all.includes(meal.meal_value_header) &&
+                                                              meal.notes &&
+                                                              meal.notes.trim() !== ''
+                                                            ) {
+                                                              return (
+                                                                <Typography key={i} sx={{ textAlign: 'center' }}>
+                                                                  <img
+                                                                    src='/icons/Notes.svg'
+                                                                    alt='Grocery Icon'
+                                                                    width='35px'
+                                                                  />
+                                                                </Typography>
+                                                              )
+                                                            }
+
+                                                            return null
+                                                          })
+                                                          .filter(Boolean).length === 0
+                                                        ? ''
+                                                        : item.meal_type.map((meal, i) => {
+                                                            if (
+                                                              all.includes(meal.meal_value_header) &&
+                                                              meal.notes &&
+                                                              meal.notes.trim() !== ''
+                                                            ) {
+                                                              return (
+                                                                <Typography key={i} sx={{ textAlign: 'center' }}>
+                                                                  <img
+                                                                    src='/icons/Notes.svg'
+                                                                    alt='Grocery Icon'
+                                                                    width='35px'
+                                                                  />
+                                                                </Typography>
+                                                              )
+                                                            }
+
+                                                            return null
+                                                          })
+                                                      : item.meal_type
+                                                      ? item.meal_type
+                                                          .map((meal, i) => {
+                                                            if (
+                                                              meal.meal_value_header === all &&
+                                                              meal.notes &&
+                                                              meal.notes.trim() !== ''
+                                                            ) {
+                                                              return (
+                                                                <Typography key={i} sx={{ textAlign: 'center' }}>
+                                                                  <img
+                                                                    src='/icons/Notes.svg'
+                                                                    alt='Grocery Icon'
+                                                                    width='35px'
+                                                                  />
+                                                                </Typography>
+                                                              )
+                                                            }
+
+                                                            return null
+                                                          })
+                                                          .filter(Boolean).length === 0
+                                                        ? ''
+                                                        : item.meal_type.map((meal, i) => {
+                                                            if (
+                                                              meal.meal_value_header === all &&
+                                                              meal.notes &&
+                                                              meal.notes.trim() !== ''
+                                                            ) {
+                                                              return (
+                                                                <Typography key={i} sx={{ textAlign: 'center' }}>
+                                                                  <img
+                                                                    src='/icons/Notes.svg'
+                                                                    alt='Grocery Icon'
+                                                                    width='35px'
+                                                                  />
+                                                                </Typography>
+                                                              )
+                                                            }
+
+                                                            return null
+                                                          })
+                                                      : ''}
                                                   </Typography>
                                                 </Box>
                                               </Box>
@@ -2918,7 +3222,7 @@ const StepPreviewDiet = ({
                                     <TableRow key={index} className='tablerowi'>
                                       <TableCell
                                         sx={{
-                                          position: 'sticky',
+                                          position: isSmallDevice ? '' : 'sticky ',
                                           left: '180px',
                                           border: 'none',
                                           backgroundColor: '#fff'
@@ -3112,31 +3416,33 @@ const StepPreviewDiet = ({
                                             <>
                                               <Divider />
                                               <Box sx={{ display: 'flex', gap: '12px' }}>
-                                                {item?.days_of_week?.map((item, index) => (
-                                                  <Box
-                                                    key={index}
-                                                    sx={{
-                                                      width: '48px',
-                                                      height: '32px',
-                                                      borderRadius: '16px',
-                                                      backgroundColor: '#0000000d',
-                                                      display: 'center',
-                                                      justifyContent: 'center',
-                                                      alignItems: 'center'
-                                                    }}
-                                                  >
-                                                    <Typography
+                                                {item?.days_of_week
+                                                  ?.sort((a, b) => a - b)
+                                                  .map((dayId, index) => (
+                                                    <Box
+                                                      key={index}
                                                       sx={{
-                                                        fontWeight: 400,
-                                                        fontSize: '13px',
-                                                        lineHeight: '18px',
-                                                        color: '#44544A'
+                                                        width: '48px',
+                                                        height: '32px',
+                                                        borderRadius: '16px',
+                                                        backgroundColor: '#0000000d',
+                                                        display: 'center',
+                                                        justifyContent: 'center',
+                                                        alignItems: 'center'
                                                       }}
                                                     >
-                                                      {getDayName(item)}
-                                                    </Typography>
-                                                  </Box>
-                                                ))}
+                                                      <Typography
+                                                        sx={{
+                                                          fontWeight: 400,
+                                                          fontSize: '13px',
+                                                          lineHeight: '18px',
+                                                          color: '#44544A'
+                                                        }}
+                                                      >
+                                                        {getDayName(dayId)}
+                                                      </Typography>
+                                                    </Box>
+                                                  ))}
                                               </Box>
                                             </>
                                           )}
@@ -3185,7 +3491,8 @@ const StepPreviewDiet = ({
                                                 color: '#000',
                                                 lineHeight: '16.94px',
                                                 fontWeight: 400,
-                                                fontSize: '14px'
+                                                fontSize: '14px',
+                                                textAlign: 'center'
                                               }}
                                             >
                                               {/* {item.meal_type
@@ -3213,6 +3520,17 @@ const StepPreviewDiet = ({
                                                         : null
                                                     })
                                                 : 'Add'}
+                                              {item.meal_type
+                                                ? item.meal_type.map((meal, i) =>
+                                                    meal.meal_value_header === 'Generic' &&
+                                                    meal.notes &&
+                                                    meal.notes.trim() !== '' ? (
+                                                      <Typography key={i} sx={{ textAlign: 'center' }}>
+                                                        <img src='/icons/Notes.svg' alt='Grocery Icon' width='35px' />
+                                                      </Typography>
+                                                    ) : null
+                                                  )
+                                                : null}
                                             </Typography>
                                           </Box>
                                         </Box>
@@ -3264,7 +3582,8 @@ const StepPreviewDiet = ({
                                                       color: '#000',
                                                       lineHeight: '16.94px',
                                                       fontWeight: 400,
-                                                      fontSize: '14px'
+                                                      fontSize: '14px',
+                                                      textAlign: 'center'
                                                     }}
                                                   >
                                                     {/* {formData.diet_type_name === 'By Weight' && item.meal_type
@@ -3295,7 +3614,7 @@ const StepPreviewDiet = ({
                                                                 (meal.feed_uom_name ? ' ' + meal.feed_uom_name : '')
                                                               )
                                                             }
-                                                            // Return null for elements that do not match the condition
+
                                                             return null
                                                           })
                                                           .filter(Boolean).length === 0
@@ -3307,7 +3626,7 @@ const StepPreviewDiet = ({
                                                                 (meal.feed_uom_name ? ' ' + meal.feed_uom_name : '')
                                                               )
                                                             }
-                                                            // Return null for elements that do not match the condition
+
                                                             return null
                                                           })
                                                       : item.meal_type
@@ -3327,6 +3646,91 @@ const StepPreviewDiet = ({
                                                               : null
                                                           })
                                                       : 'Add'}
+                                                    {formData.diet_type_name === 'By Weight' && item.meal_type
+                                                      ? item.meal_type
+                                                          .map((meal, i) => {
+                                                            if (
+                                                              all.includes(meal.meal_value_header) &&
+                                                              meal.notes &&
+                                                              meal.notes.trim() !== ''
+                                                            ) {
+                                                              return (
+                                                                <Typography key={i} sx={{ textAlign: 'center' }}>
+                                                                  <img
+                                                                    src='/icons/Notes.svg'
+                                                                    alt='Grocery Icon'
+                                                                    width='35px'
+                                                                  />
+                                                                </Typography>
+                                                              )
+                                                            }
+
+                                                            return null
+                                                          })
+                                                          .filter(Boolean).length === 0
+                                                        ? ''
+                                                        : item.meal_type.map((meal, i) => {
+                                                            if (
+                                                              all.includes(meal.meal_value_header) &&
+                                                              meal.notes &&
+                                                              meal.notes.trim() !== ''
+                                                            ) {
+                                                              return (
+                                                                <Typography key={i} sx={{ textAlign: 'center' }}>
+                                                                  <img
+                                                                    src='/icons/Notes.svg'
+                                                                    alt='Grocery Icon'
+                                                                    width='35px'
+                                                                  />
+                                                                </Typography>
+                                                              )
+                                                            }
+
+                                                            return null
+                                                          })
+                                                      : item.meal_type
+                                                      ? item.meal_type
+                                                          .map((meal, i) => {
+                                                            if (
+                                                              meal.meal_value_header === all &&
+                                                              meal.notes &&
+                                                              meal.notes.trim() !== ''
+                                                            ) {
+                                                              return (
+                                                                <Typography key={i} sx={{ textAlign: 'center' }}>
+                                                                  <img
+                                                                    src='/icons/Notes.svg'
+                                                                    alt='Grocery Icon'
+                                                                    width='35px'
+                                                                  />
+                                                                </Typography>
+                                                              )
+                                                            }
+
+                                                            return null
+                                                          })
+                                                          .filter(Boolean).length === 0
+                                                        ? ''
+                                                        : item.meal_type.map((meal, i) => {
+                                                            if (
+                                                              meal.meal_value_header === all &&
+                                                              meal.notes &&
+                                                              meal.notes.trim() !== ''
+                                                            ) {
+                                                              return (
+                                                                <Typography key={i} sx={{ textAlign: 'center' }}>
+                                                                  <img
+                                                                    src='/icons/Notes.svg'
+                                                                    alt='Grocery Icon'
+                                                                    width='35px'
+                                                                  />
+                                                                </Typography>
+                                                              )
+                                                            }
+
+                                                            return null
+                                                          })
+                                                      : ''}
                                                   </Typography>
                                                 </Box>
                                               </Box>

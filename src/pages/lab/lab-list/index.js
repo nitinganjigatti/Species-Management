@@ -27,6 +27,7 @@ import Utility from 'src/utility'
 
 import { AuthContext } from 'src/context/AuthContext'
 import ErrorScreen from 'src/pages/Error'
+import { left } from '@popperjs/core'
 
 const ListOfLab = () => {
   const theme = useTheme()
@@ -76,16 +77,26 @@ const ListOfLab = () => {
       field: 'lab_name',
       headerName: 'LAB NAME',
       renderCell: params => (
-        <Typography
-          variant='body2'
-          sx={{ color: 'text.primary', textTransform: 'capitalize', cursor: 'pointer' }}
+        <Box>
+          <Typography>
+            <Box>
+              {params.row.is_default === '1' ? (
+                <Badge color='success' badgeContent='Default' style={{ left: '28px', position: 'relative' }}></Badge>
+              ) : null}
+            </Box>
+          </Typography>
 
-          // onClick={() =>
+          <Typography
+            variant='body2'
+            sx={{ color: 'text.primary', textTransform: 'capitalize', cursor: 'pointer' }}
 
-          // }
-        >
-          {params.row.lab_name}
-        </Typography>
+            // onClick={() =>
+
+            // }
+          >
+            {params.row.lab_name}{' '}
+          </Typography>
+        </Box>
       )
     },
 

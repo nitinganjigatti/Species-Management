@@ -35,7 +35,7 @@ const AddIngredientswithChoice = props => {
   const {
     open,
     setOpenIngredientchoice,
-    handleSidebarClose,
+    handleSidebarClose: parentHandleSidebarClose,
     onChange,
     allIngredientchoiceSelectedValues,
     checkid,
@@ -88,6 +88,13 @@ const AddIngredientswithChoice = props => {
 
       return newVisibility
     })
+  }
+
+  // Wrapper to extend the parent close function
+  const handleSidebarClose = () => {
+    setSearchValue('')
+    parentHandleSidebarClose()
+    setFeed('')
   }
 
   const handleChangeTopFeed = async event => {
@@ -249,7 +256,6 @@ const AddIngredientswithChoice = props => {
       })
     } else if (selectedCardIngchoice.length >= 1) {
       setShowDays(true)
-
       const allDayIds = Day.map(day => day.id)
       setSelectedDays(allDayIds)
     }
@@ -263,7 +269,15 @@ const AddIngredientswithChoice = props => {
       const params = { page: ingredientPage, q: searchValue, sort, limit: 20, status: 1 }
       getIngredientList({ params }).then(res => {
         if (res?.data?.result?.length > 0) {
-          setIngredientList(prevArray => [...prevArray, ...res?.data?.result])
+          const newResults = res.data.result.filter(
+            item => !ingredientList.some(existingItem => existingItem.id === item.id)
+          )
+
+          // Combine previous and new results, ensuring unique IDs
+          const combinedList = [...ingredientList, ...newResults]
+          const uniqueList = Array.from(new Map(combinedList.map(item => [item.id, item])).values())
+
+          setIngredientList(uniqueList)
           setTotalCount(res?.data?.total_count)
           setReachedEnd(false)
         } else {
@@ -273,7 +287,7 @@ const AddIngredientswithChoice = props => {
     } catch (error) {
       console.error(error)
     }
-  }, [])
+  }, [searchValue])
 
   // Top Feed Type
   // const fetchData = async () => {
@@ -409,7 +423,7 @@ const AddIngredientswithChoice = props => {
     debounce(async search => {
       if (searchValue != ' ') {
         try {
-          const params = { page: 1, q: search, sort, status: 1 }
+          const params = { page: 1, q: search, sort, status: 1, feed_type: feed }
           await getIngredientList({ params }).then(res => {
             if (res?.data?.result.length > 0) {
               setIngredientList(res?.data?.result)
@@ -602,7 +616,7 @@ const AddIngredientswithChoice = props => {
 
         return updatedList
       })
-
+      setSearchValue('')
       setSelectedCardIngredientchoice([])
       setVisibility([])
       setSelectFeed({})
@@ -731,152 +745,153 @@ const AddIngredientswithChoice = props => {
           sx={{ marginTop: 35, height: '65%', overflowY: 'auto', bgcolor: '#EFF5F2' }}
           onScroll={handleScroll}
         >
-          {sortedIngredientList?.map((item, index) => (
-            <Box
-              key={item?.id}
-              sx={{
-                bgcolor: 'white',
-                mx: '24px',
-                borderRadius: '8px',
-                my: 4,
-                ...(selectedCardIngchoice.some(card => card.ingredient_id === item.id) && {
-                  border: '2px solid #37bd69'
-                })
-              }}
-              onClick={event => handelShowBottom(event, item, index)}
-            >
+          {sortedIngredientList?.length > 0 ? (
+            sortedIngredientList?.map((item, index) => (
               <Box
+                key={item?.id}
                 sx={{
-                  display: 'flex',
-                  flexDirection: 'row',
-                  alignItems: 'flex-start',
-                  ml: 2
+                  bgcolor: 'white',
+                  mx: '24px',
+                  borderRadius: '8px',
+                  my: 4,
+                  ...(selectedCardIngchoice.some(card => card.ingredient_id === item.id) && {
+                    border: '2px solid #37bd69'
+                  })
                 }}
+                onClick={event => handelShowBottom(event, item, index)}
               >
-                {selectedCardIngchoice.some(card => card.ingredient_id === item.id) ? (
-                  <Box
-                    onClick={event => removeSelectedCard(event, item.id)}
-                    sx={{
-                      width: '68px',
-                      height: '68px',
-                      borderRadius: 1,
-                      bgcolor: '#E8F4F2',
-                      display: 'flex',
-                      justifyContent: 'center',
-                      alignItems: 'center',
-                      mt: 4,
-                      ml: 3,
-                      mr: 4,
-                      p: 3
-                    }}
-                  >
-                    <Checkbox checked sx={{ '& .MuiSvgIcon-root': { fontSize: 80 } }} />
-                  </Box>
-                ) : (
-                  <Box
-                    sx={{
-                      width: '68px',
-                      height: '68px',
-                      borderRadius: 1,
-                      bgcolor: '#E8F4F2',
-                      display: 'flex',
-                      justifyContent: 'center',
-                      alignItems: 'center',
-                      mt: 4,
-                      ml: 3,
-                      mr: 4,
-                      p: 3
-                    }}
-                    onClick={event => handelCardSelection(event, item)}
-                  >
-                    <Avatar
-                      variant='square'
-                      alt='Medicine Image'
-                      sx={{ width: 40, height: 40, background: '#E8F4F2', borderRadius: 20 }}
-                      src={item?.image ? item?.image : '/icons/icon_diet_fill.png'}
-                    ></Avatar>
-                  </Box>
-                )}
-                <Box sx={{ pt: 3, paddingRight: 4, paddingBottom: 4, width: '100%' }}>
-                  <Tooltip title={item?.ingredient_name?.length > 50 ? item?.ingredient_name : ''}>
-                    <Typography
-                      variant='h6'
-                      sx={{ width: '400px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
-                    >
-                      {item?.ingredient_name}
-                    </Typography>
-                  </Tooltip>
-                  <Stack
-                    direction='row'
-                    sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 2, mt: 1 }}
-                  >
-                    <Typography>Id - {item?.id}</Typography>
-                    <Typography>Feed Type - {item?.feed_type_label}</Typography>
-                  </Stack>
-                  <Stack
-                    direction='row'
-                    sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 2, mt: 1 }}
-                  >
-                    <Typography>Preparation Type</Typography>
-
-                    <Box sx={{ width: 200 }}>
-                      <FormControl fullWidth>
-                        {/* <InputLabel id='demo-simple-select-label'>Select</InputLabel> */}
-                        <Select
-                          size='small'
-                          value={selectFeed[item.id]?.id || ''}
-                          onChange={e => handleChangeFeed(e, item)}
-                          displayEmpty
-                          error={
-                            visibility?.find(visItem => visItem && visItem.id === item.id)?.isVisible &&
-                            !selectFeed[item.id]?.id
-                          }
-                          sx={{
-                            '& .MuiOutlinedInput-notchedOutline': {
-                              borderColor: '#839D8D'
-                            },
-                            '&:hover .MuiOutlinedInput-notchedOutline': {
-                              borderColor: '#839D8D'
-                            },
-                            '& .MuiOutlinedInput-root': {
-                              borderRadius: '0px'
-                            }
-                          }}
-                        >
-                          <MenuItem value='' disabled>
-                            Select
-                          </MenuItem>
-                          {item.preparation_types.map(preparationType => (
-                            <MenuItem key={preparationType.key} value={preparationType.id}>
-                              {preparationType.label}
-                            </MenuItem>
-                          ))}
-                        </Select>
-                      </FormControl>
-                    </Box>
-                  </Stack>
-                </Box>
-              </Box>
-
-              {/* bottom part */}
-
-              <>
                 <Box
                   sx={{
-                    p: 3,
-                    display: visibility.find(visItem => visItem && visItem.id === item.id)?.isVisible
-                      ? 'block'
-                      : ' none',
-                    transitionProperty: 'display',
-                    transitionDuration: '13s'
+                    display: 'flex',
+                    flexDirection: 'row',
+                    alignItems: 'flex-start',
+                    ml: 2
                   }}
                 >
-                  {selectFeed[item.id]?.name !== '' ? (
-                    <>
-                      <Divider mt={-2} />
-                      <Stack direction='row' sx={{ py: 4, px: 2, alignItems: 'center' }}>
-                        <Typography>Enter cut size</Typography>
-                        {/* <Box sx={{ width: '160.5px' }}>
+                  {selectedCardIngchoice.some(card => card.ingredient_id === item.id) ? (
+                    <Box
+                      onClick={event => removeSelectedCard(event, item.id)}
+                      sx={{
+                        width: '68px',
+                        height: '68px',
+                        borderRadius: 1,
+                        bgcolor: '#E8F4F2',
+                        display: 'flex',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        mt: 4,
+                        ml: 3,
+                        mr: 4,
+                        p: 3
+                      }}
+                    >
+                      <Checkbox checked sx={{ '& .MuiSvgIcon-root': { fontSize: 80 } }} />
+                    </Box>
+                  ) : (
+                    <Box
+                      sx={{
+                        width: '68px',
+                        height: '68px',
+                        borderRadius: 1,
+                        bgcolor: '#E8F4F2',
+                        display: 'flex',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        mt: 4,
+                        ml: 3,
+                        mr: 4,
+                        p: 3
+                      }}
+                      onClick={event => handelCardSelection(event, item)}
+                    >
+                      <Avatar
+                        variant='square'
+                        alt='Medicine Image'
+                        sx={{ width: 40, height: 40, background: '#E8F4F2', borderRadius: 20 }}
+                        src={item?.image ? item?.image : '/icons/icon_diet_fill.png'}
+                      ></Avatar>
+                    </Box>
+                  )}
+                  <Box sx={{ pt: 3, paddingRight: 4, paddingBottom: 4, width: '100%' }}>
+                    <Tooltip title={item?.ingredient_name?.length > 50 ? item?.ingredient_name : ''}>
+                      <Typography
+                        variant='h6'
+                        sx={{ width: '400px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+                      >
+                        {item?.ingredient_name}
+                      </Typography>
+                    </Tooltip>
+                    <Stack
+                      direction='row'
+                      sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 2, mt: 1 }}
+                    >
+                      <Typography>Id - {item?.id}</Typography>
+                      <Typography>Feed Type - {item?.feed_type_label}</Typography>
+                    </Stack>
+                    <Stack
+                      direction='row'
+                      sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 2, mt: 1 }}
+                    >
+                      <Typography>Preparation Type</Typography>
+
+                      <Box sx={{ width: 200 }}>
+                        <FormControl fullWidth>
+                          {/* <InputLabel id='demo-simple-select-label'>Select</InputLabel> */}
+                          <Select
+                            size='small'
+                            value={selectFeed[item.id]?.id || ''}
+                            onChange={e => handleChangeFeed(e, item)}
+                            displayEmpty
+                            error={
+                              visibility?.find(visItem => visItem && visItem.id === item.id)?.isVisible &&
+                              !selectFeed[item.id]?.id
+                            }
+                            sx={{
+                              '& .MuiOutlinedInput-notchedOutline': {
+                                borderColor: '#839D8D'
+                              },
+                              '&:hover .MuiOutlinedInput-notchedOutline': {
+                                borderColor: '#839D8D'
+                              },
+                              '& .MuiOutlinedInput-root': {
+                                borderRadius: '0px'
+                              }
+                            }}
+                          >
+                            <MenuItem value='' disabled>
+                              Select
+                            </MenuItem>
+                            {item.preparation_types.map(preparationType => (
+                              <MenuItem key={preparationType.key} value={preparationType.id}>
+                                {preparationType.label}
+                              </MenuItem>
+                            ))}
+                          </Select>
+                        </FormControl>
+                      </Box>
+                    </Stack>
+                  </Box>
+                </Box>
+
+                {/* bottom part */}
+
+                <>
+                  <Box
+                    sx={{
+                      p: 3,
+                      display: visibility.find(visItem => visItem && visItem.id === item.id)?.isVisible
+                        ? 'block'
+                        : ' none',
+                      transitionProperty: 'display',
+                      transitionDuration: '13s'
+                    }}
+                  >
+                    {selectFeed[item.id]?.name !== '' ? (
+                      <>
+                        <Divider mt={-2} />
+                        <Stack direction='row' sx={{ py: 4, px: 2, alignItems: 'center' }}>
+                          <Typography>Enter cut size</Typography>
+                          {/* <Box sx={{ width: '160.5px' }}>
                           <FormControl fullWidth>
                             <TextField
                               size='small'
@@ -893,54 +908,68 @@ const AddIngredientswithChoice = props => {
                             />
                           </FormControl>
                         </Box> */}
-                        <Box sx={{ pl: 5 }}>
-                          <FormControl fullWidth>
-                            <Select
-                              size='small'
-                              value={size[item.id]?.id || ''}
-                              onChange={event => handleChangeSize(event, item)}
-                              displayEmpty
-                              error={
-                                visibility?.find(visItem => visItem && visItem.id === item.id)?.isVisible &&
-                                !size[item.id]?.id
-                              }
-                              sx={{
-                                '& .MuiOutlinedInput-notchedOutline': {
-                                  borderColor: '#839D8D'
-                                },
-                                '&:hover .MuiOutlinedInput-notchedOutline': {
-                                  borderColor: '#839D8D'
-                                },
-                                '& .MuiOutlinedInput-root': {
-                                  borderRadius: '0px'
+                          <Box sx={{ pl: 5 }}>
+                            <FormControl fullWidth>
+                              <Select
+                                size='small'
+                                value={size[item.id]?.id || ''}
+                                onChange={event => handleChangeSize(event, item)}
+                                displayEmpty
+                                error={
+                                  visibility?.find(visItem => visItem && visItem.id === item.id)?.isVisible &&
+                                  !size[item.id]?.id
                                 }
-                              }}
-                              MenuProps={{
-                                PaperProps: {
-                                  style: {
-                                    maxHeight: 300
+                                sx={{
+                                  '& .MuiOutlinedInput-notchedOutline': {
+                                    borderColor: '#839D8D'
+                                  },
+                                  '&:hover .MuiOutlinedInput-notchedOutline': {
+                                    borderColor: '#839D8D'
+                                  },
+                                  '& .MuiOutlinedInput-root': {
+                                    borderRadius: '0px'
                                   }
-                                }
-                              }}
-                            >
-                              <MenuItem value='' disabled>
-                                Select
-                              </MenuItem>
-                              {uom?.map(unit => (
-                                <MenuItem key={unit.id} value={unit.id}>
-                                  {unit.cut_size}
+                                }}
+                                MenuProps={{
+                                  PaperProps: {
+                                    style: {
+                                      maxHeight: 300
+                                    }
+                                  }
+                                }}
+                              >
+                                <MenuItem value='' disabled>
+                                  Select
                                 </MenuItem>
-                              ))}
-                            </Select>
-                          </FormControl>
-                        </Box>
-                      </Stack>
-                    </>
-                  ) : null}
-                </Box>
-              </>
+                                {uom?.map(unit => (
+                                  <MenuItem key={unit.id} value={unit.id}>
+                                    {unit.cut_size}
+                                  </MenuItem>
+                                ))}
+                              </Select>
+                            </FormControl>
+                          </Box>
+                        </Stack>
+                      </>
+                    ) : null}
+                  </Box>
+                </>
+              </Box>
+            ))
+          ) : (
+            <Box
+              sx={{
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                height: '40%',
+                color: '#7A7A7A',
+                fontSize: '16px'
+              }}
+            >
+              No records to show
             </Box>
-          ))}
+          )}
           {reachedEnd ? (
             <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%' }}>
               <CircularProgress sx={{ mb: 10 }} />

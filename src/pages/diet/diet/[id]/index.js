@@ -32,11 +32,13 @@ import SpeciesMappedtoDiet from 'src/components/diet/SpeciesMappedtoDiet'
 import ListOfSpeciesMapped from 'src/components/diet/ListofSpeciesMapped'
 import SpeciesMappedtoDietFilter from './speciesMappedFilter'
 import { GetNurseryList } from 'src/lib/api/egg/nursery'
+import { useMediaQuery } from '@mui/material'
 
 const DietDetail = () => {
   const router = useRouter()
   const theme = useTheme()
   const { id } = router.query
+  const isSmallDevice = useMediaQuery(theme.breakpoints.down('md'))
   const [loader, setLoader] = useState(true)
   const [loaderTwo, setLoaderTwo] = useState(false)
   const [dietDetails, setDietDetails] = useState({})
@@ -426,7 +428,7 @@ const DietDetail = () => {
                                               height: '40px',
                                               backgroundColor: '#fff',
                                               width: '160px',
-                                              position: 'sticky',
+                                              position: isSmallDevice ? '' : 'sticky ',
                                               left: 0
                                             }}
                                             className={classes.sticky}
@@ -456,7 +458,7 @@ const DietDetail = () => {
                                               border: 'none',
                                               height: '40px',
                                               backgroundColor: '#fff',
-                                              position: 'sticky',
+                                              position: isSmallDevice ? '' : 'sticky ',
                                               left: '160px',
                                               p: 0
                                               // width: '580px'
@@ -1342,7 +1344,7 @@ const DietDetail = () => {
                                                 <TableRow key={index}>
                                                   <TableCell
                                                     sx={{
-                                                      position: 'sticky',
+                                                      position: isSmallDevice ? 'relative' : 'sticky ',
                                                       left: 0,
                                                       width: '180px',
                                                       border: 'none',
@@ -1445,7 +1447,7 @@ const DietDetail = () => {
                                                             <TableCell
                                                               style={{ paddingLeft: '0px' }}
                                                               sx={{
-                                                                position: 'sticky',
+                                                                position: isSmallDevice ? '' : 'sticky ',
                                                                 left: '160px',
                                                                 border: 'none',
                                                                 backgroundColor: '#fff'
@@ -1858,7 +1860,7 @@ const DietDetail = () => {
                                                             <TableCell
                                                               style={{ paddingLeft: '0px' }}
                                                               sx={{
-                                                                position: 'sticky',
+                                                                position: isSmallDevice ? '' : 'sticky ',
                                                                 left: '160px',
                                                                 border: 'none',
 
@@ -2327,7 +2329,7 @@ const DietDetail = () => {
                                                             <TableCell
                                                               style={{ paddingLeft: '0px' }}
                                                               sx={{
-                                                                position: 'sticky',
+                                                                position: isSmallDevice ? '' : 'sticky ',
                                                                 left: '160px',
                                                                 border: 'none',
 
@@ -2811,7 +2813,7 @@ const DietDetail = () => {
                                                           <TableCell
                                                             style={{ paddingLeft: '0px' }}
                                                             sx={{
-                                                              position: 'sticky',
+                                                              position: isSmallDevice ? '' : 'sticky ',
                                                               left: '160px',
                                                               border: 'none',
                                                               backgroundColor: '#fff'

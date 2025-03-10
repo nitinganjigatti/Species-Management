@@ -31,7 +31,7 @@ import { getFeedTypeList } from 'src/lib/api/diet/feedType'
 const AddIngredients = props => {
   const {
     open,
-    handleSidebarClose,
+    handleSidebarClose: parentHandleSidebarClose,
     onChange,
     childStateValue,
     checkid,
@@ -108,6 +108,13 @@ const AddIngredients = props => {
 
     //   return currentSelectedDays
     // })
+  }
+
+  // Wrapper to extend the parent close function
+  const handleSidebarClose = () => {
+    setSearchValue('')
+    parentHandleSidebarClose()
+    setFeed('')
   }
 
   const handleChangeTopFeed = async event => {
@@ -355,6 +362,7 @@ const AddIngredients = props => {
     } else if (selectedCard?.length > 0) {
       handleSidebarClose()
       setSelectedCard(selectedCard)
+      setSearchValue('')
       onChange(selectedCard)
       setSelectedIngredient(selectedCard)
 
@@ -371,7 +379,15 @@ const AddIngredients = props => {
       const params = { page: ingredientPage, q: searchValue, sort, limit: 20, status: 1 }
       getIngredientList({ params }).then(res => {
         if (res?.data?.result?.length > 0) {
-          setIngredientList(prevArray => [...prevArray, ...res?.data?.result])
+          const newResults = res.data.result.filter(
+            item => !ingredientList.some(existingItem => existingItem.id === item.id)
+          )
+
+          // Combine previous and new results, ensuring unique IDs
+          const combinedList = [...ingredientList, ...newResults]
+          const uniqueList = Array.from(new Map(combinedList.map(item => [item.id, item])).values())
+
+          setIngredientList(uniqueList)
           setTotalCount(res?.data?.total_count)
           setReachedEnd(false)
         } else {
@@ -381,7 +397,7 @@ const AddIngredients = props => {
     } catch (error) {
       console.error(error)
     }
-  }, [])
+  }, [searchValue])
 
   // Top Feed Type
   // const fetchData = async () => {
@@ -555,7 +571,7 @@ const AddIngredients = props => {
       if (searchValue != ' ') {
         try {
           // const currentAnimalFilterValue = animalFilterValueRef.current
-          const params = { page: 1, q: search, sort, status: 1 }
+          const params = { page: 1, q: search, sort, status: 1, feed_type: feed }
           await getIngredientList({ params }).then(res => {
             if (res?.data?.result.length > 0) {
               setIngredientList(res?.data?.result)
@@ -727,156 +743,157 @@ const AddIngredients = props => {
           sx={{ marginTop: 35, height: '65%', overflowY: 'auto', bgcolor: '#EFF5F2' }}
           onScroll={handleScroll}
         >
-          {sortedIngredientList?.map((item, index) => (
-            <Box
-              key={item?.id}
-              sx={{
-                bgcolor: '#fff',
-                mx: '24px',
-                borderRadius: '8px',
-                my: 4,
-                width: '92%',
-                ...(selectedCard.some(card => card.ingredient_id === item.id) && {
-                  border: '2px solid #37bd69' // Change border color when isVisible is true
-                })
-              }}
-              onClick={event => handelShowBottom(event, item, index)}
-            >
+          {sortedIngredientList?.length > 0 ? (
+            sortedIngredientList?.map((item, index) => (
               <Box
+                key={item?.id}
                 sx={{
-                  display: 'flex',
-                  flexDirection: 'row',
-                  alignItems: 'flex-start',
-                  ml: 2
+                  bgcolor: '#fff',
+                  mx: '24px',
+                  borderRadius: '8px',
+                  my: 4,
+                  width: '92%',
+                  ...(selectedCard.some(card => card.ingredient_id === item.id) && {
+                    border: '2px solid #37bd69' // Change border color when isVisible is true
+                  })
                 }}
+                onClick={event => handelShowBottom(event, item, index)}
               >
-                {selectedCard.some(card => card.ingredient_id === item.id) ? (
-                  // Render checkbox icon if card is selected
-                  <Box
-                    onClick={event => removeSelectedCard(event, item.id)}
-                    sx={{
-                      width: '68px',
-                      height: '68px',
-                      borderRadius: 1,
-                      bgcolor: '#E8F4F2',
-                      display: 'flex',
-                      justifyContent: 'center',
-                      alignItems: 'center',
-                      mt: 4,
-                      ml: 3,
-                      mr: 4,
-                      p: 3
-                    }}
-                  >
-                    <Checkbox checked sx={{ '& .MuiSvgIcon-root': { fontSize: 80 } }} />
-                  </Box>
-                ) : (
-                  // Render image if card is not selected
-                  <Box
-                    sx={{
-                      width: '68px',
-                      height: '68px',
-                      borderRadius: 1,
-                      bgcolor: '#E8F4F2',
-                      display: 'flex',
-                      justifyContent: 'center',
-                      alignItems: 'center',
-                      mt: 4,
-                      ml: 3,
-                      mr: 4,
-                      p: 3
-                    }}
-                    onClick={event => handelCardSelection(event, item)}
-                  >
-                    <Avatar
-                      variant='square'
-                      alt='Medicine Image'
-                      sx={{ width: 40, height: 40, background: '#E8F4F2', borderRadius: 20 }}
-                      src={item?.image ? item?.image : '/icons/icon_diet_fill.png'}
-                    >
-                      {item?.image ? null : <Icon icon='healthicons:fruits-outline' />}
-                    </Avatar>
-                  </Box>
-                )}
-                <Box sx={{ pt: 3, paddingRight: 4, paddingBottom: 4, width: '100%' }}>
-                  <Tooltip title={item?.ingredient_name?.length > 50 ? item?.ingredient_name : ''}>
-                    <Typography
-                      variant='h6'
-                      sx={{ width: '400px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
-                    >
-                      {item?.ingredient_name}
-                    </Typography>
-                  </Tooltip>
-                  <Stack
-                    direction='row'
-                    sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 2, mt: 1 }}
-                  >
-                    <Typography>Id - {item?.id}</Typography>
-                    <Typography>Feed Type - {item?.feed_type_label}</Typography>
-                  </Stack>
-                  <Stack
-                    direction='row'
-                    sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 2, mt: 1 }}
-                  >
-                    <Typography>Preparation Type</Typography>
-
-                    <Box sx={{ width: 200 }}>
-                      <FormControl fullWidth>
-                        <Select
-                          size='small'
-                          value={selectFeed[item.id]?.id || ''}
-                          onChange={e => handleChangeFeed(e, item)}
-                          displayEmpty
-                          error={
-                            visibility?.find(visItem => visItem && visItem.id === item.id)?.isVisible &&
-                            !selectFeed[item.id]?.id
-                          }
-                          sx={{
-                            '& .MuiOutlinedInput-notchedOutline': {
-                              borderColor: '#839D8D'
-                            },
-                            '&:hover .MuiOutlinedInput-notchedOutline': {
-                              borderColor: '#839D8D'
-                            },
-                            '& .MuiOutlinedInput-root': {
-                              borderRadius: '0px'
-                            }
-                          }}
-                        >
-                          <MenuItem value='' disabled>
-                            Select
-                          </MenuItem>
-                          {item.preparation_types.map(preparationType => (
-                            <MenuItem key={preparationType.key} value={preparationType.id}>
-                              {preparationType.label}
-                            </MenuItem>
-                          ))}
-                        </Select>
-                      </FormControl>
-                    </Box>
-                  </Stack>
-                </Box>
-              </Box>
-
-              {/* bottom part */}
-
-              <>
                 <Box
                   sx={{
-                    p: 3,
-                    display: visibility?.find(visItem => visItem && visItem.id === item.id)?.isVisible
-                      ? 'block'
-                      : ' none',
-                    transitionProperty: 'display',
-                    transitionDuration: '13s'
+                    display: 'flex',
+                    flexDirection: 'row',
+                    alignItems: 'flex-start',
+                    ml: 2
                   }}
                 >
-                  {selectFeed[item.id]?.name !== '' ? (
-                    <>
-                      <Divider mt={-2} />
-                      <Stack direction='row' sx={{ py: 4, px: 2, alignItems: 'center' }}>
-                        <Typography>Enter cut size</Typography>
-                        {/* <Box sx={{ width: '160.5px' }}>
+                  {selectedCard.some(card => card.ingredient_id === item.id) ? (
+                    // Render checkbox icon if card is selected
+                    <Box
+                      onClick={event => removeSelectedCard(event, item.id)}
+                      sx={{
+                        width: '68px',
+                        height: '68px',
+                        borderRadius: 1,
+                        bgcolor: '#E8F4F2',
+                        display: 'flex',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        mt: 4,
+                        ml: 3,
+                        mr: 4,
+                        p: 3
+                      }}
+                    >
+                      <Checkbox checked sx={{ '& .MuiSvgIcon-root': { fontSize: 80 } }} />
+                    </Box>
+                  ) : (
+                    // Render image if card is not selected
+                    <Box
+                      sx={{
+                        width: '68px',
+                        height: '68px',
+                        borderRadius: 1,
+                        bgcolor: '#E8F4F2',
+                        display: 'flex',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        mt: 4,
+                        ml: 3,
+                        mr: 4,
+                        p: 3
+                      }}
+                      onClick={event => handelCardSelection(event, item)}
+                    >
+                      <Avatar
+                        variant='square'
+                        alt='Medicine Image'
+                        sx={{ width: 40, height: 40, background: '#E8F4F2', borderRadius: 20 }}
+                        src={item?.image ? item?.image : '/icons/icon_diet_fill.png'}
+                      >
+                        {item?.image ? null : <Icon icon='healthicons:fruits-outline' />}
+                      </Avatar>
+                    </Box>
+                  )}
+                  <Box sx={{ pt: 3, paddingRight: 4, paddingBottom: 4, width: '100%' }}>
+                    <Tooltip title={item?.ingredient_name?.length > 50 ? item?.ingredient_name : ''}>
+                      <Typography
+                        variant='h6'
+                        sx={{ width: '400px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+                      >
+                        {item?.ingredient_name}
+                      </Typography>
+                    </Tooltip>
+                    <Stack
+                      direction='row'
+                      sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 2, mt: 1 }}
+                    >
+                      <Typography>Id - {item?.id}</Typography>
+                      <Typography>Feed Type - {item?.feed_type_label}</Typography>
+                    </Stack>
+                    <Stack
+                      direction='row'
+                      sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 2, mt: 1 }}
+                    >
+                      <Typography>Preparation Type</Typography>
+
+                      <Box sx={{ width: 200 }}>
+                        <FormControl fullWidth>
+                          <Select
+                            size='small'
+                            value={selectFeed[item.id]?.id || ''}
+                            onChange={e => handleChangeFeed(e, item)}
+                            displayEmpty
+                            error={
+                              visibility?.find(visItem => visItem && visItem.id === item.id)?.isVisible &&
+                              !selectFeed[item.id]?.id
+                            }
+                            sx={{
+                              '& .MuiOutlinedInput-notchedOutline': {
+                                borderColor: '#839D8D'
+                              },
+                              '&:hover .MuiOutlinedInput-notchedOutline': {
+                                borderColor: '#839D8D'
+                              },
+                              '& .MuiOutlinedInput-root': {
+                                borderRadius: '0px'
+                              }
+                            }}
+                          >
+                            <MenuItem value='' disabled>
+                              Select
+                            </MenuItem>
+                            {item.preparation_types.map(preparationType => (
+                              <MenuItem key={preparationType.key} value={preparationType.id}>
+                                {preparationType.label}
+                              </MenuItem>
+                            ))}
+                          </Select>
+                        </FormControl>
+                      </Box>
+                    </Stack>
+                  </Box>
+                </Box>
+
+                {/* bottom part */}
+
+                <>
+                  <Box
+                    sx={{
+                      p: 3,
+                      display: visibility?.find(visItem => visItem && visItem.id === item.id)?.isVisible
+                        ? 'block'
+                        : ' none',
+                      transitionProperty: 'display',
+                      transitionDuration: '13s'
+                    }}
+                  >
+                    {selectFeed[item.id]?.name !== '' ? (
+                      <>
+                        <Divider mt={-2} />
+                        <Stack direction='row' sx={{ py: 4, px: 2, alignItems: 'center' }}>
+                          <Typography>Enter cut size</Typography>
+                          {/* <Box sx={{ width: '160.5px' }}>
                           <FormControl fullWidth>
                             <TextField
                               size='small'
@@ -891,84 +908,92 @@ const AddIngredients = props => {
                             />
                           </FormControl>
                         </Box> */}
-                        <Box sx={{ pl: 5 }}>
-                          <FormControl fullWidth>
-                            <Select
-                              size='small'
-                              value={size[item.id]?.id || ''}
-                              onChange={event => handleChangeSize(event, item)}
-                              displayEmpty
-                              error={
-                                visibility?.find(visItem => visItem && visItem.id === item.id)?.isVisible &&
-                                !size[item.id]?.id
-                              }
-                              sx={{
-                                '& .MuiOutlinedInput-notchedOutline': {
-                                  borderColor: '#839D8D'
-                                },
-                                '&:hover .MuiOutlinedInput-notchedOutline': {
-                                  borderColor: '#839D8D'
-                                },
-                                '& .MuiOutlinedInput-root': {
-                                  borderRadius: '0px'
+                          <Box sx={{ pl: 5 }}>
+                            <FormControl fullWidth>
+                              <Select
+                                size='small'
+                                value={size[item.id]?.id || ''}
+                                onChange={event => handleChangeSize(event, item)}
+                                displayEmpty
+                                error={
+                                  visibility?.find(visItem => visItem && visItem.id === item.id)?.isVisible &&
+                                  !size[item.id]?.id
                                 }
-                              }}
-                              MenuProps={{
-                                PaperProps: {
-                                  style: {
-                                    maxHeight: 300
+                                sx={{
+                                  '& .MuiOutlinedInput-notchedOutline': {
+                                    borderColor: '#839D8D'
+                                  },
+                                  '&:hover .MuiOutlinedInput-notchedOutline': {
+                                    borderColor: '#839D8D'
+                                  },
+                                  '& .MuiOutlinedInput-root': {
+                                    borderRadius: '0px'
                                   }
-                                }
-                              }}
-                            >
-                              <MenuItem value='' disabled>
-                                Select
-                              </MenuItem>
-                              {uom?.map(unit => (
-                                <MenuItem key={unit.id} value={unit.id}>
-                                  {unit.cut_size}
+                                }}
+                                MenuProps={{
+                                  PaperProps: {
+                                    style: {
+                                      maxHeight: 300
+                                    }
+                                  }
+                                }}
+                              >
+                                <MenuItem value='' disabled>
+                                  Select
                                 </MenuItem>
-                              ))}
-                            </Select>
-                          </FormControl>
-                        </Box>
-                      </Stack>
-                    </>
-                  ) : null}
+                                {uom?.map(unit => (
+                                  <MenuItem key={unit.id} value={unit.id}>
+                                    {unit.cut_size}
+                                  </MenuItem>
+                                ))}
+                              </Select>
+                            </FormControl>
+                          </Box>
+                        </Stack>
+                      </>
+                    ) : null}
 
-                  <Divider />
-                  <Box>
-                    <Typography sx={{ py: 3, px: 2 }}>Feeding Days</Typography>
+                    <Divider />
+                    <Box>
+                      <Typography sx={{ py: 3, px: 2 }}>Feeding Days</Typography>
 
-                    <Stack direction='row' gap={3} mb={2} sx={{ px: 2 }}>
-                      {Day?.map(day => (
-                        <Box
-                          key={day.id}
-                          onClick={event => handleDayClick(event, day.id, day.name, item.id, item)}
-                          sx={{
-                            fontSize: 11,
-                            fontWeight: 'bold',
+                      <Stack direction='row' gap={3} mb={2} sx={{ px: 2 }}>
+                        {Day?.map(day => (
+                          <Box
+                            key={day.id}
+                            onClick={event => handleDayClick(event, day.id, day.name, item.id, item)}
+                            sx={{
+                              fontSize: 11,
+                              fontWeight: 'bold',
 
-                            bgcolor: selectedDays.some(
-                              selectedDay =>
-                                selectedDay.cardId === item.id &&
-                                selectedDay.days?.some(selectedDay => selectedDay.dayId === day.id)
-                            )
-                              ? '#203e56'
-                              : '#dedede66',
-                            borderRadius: 5,
-                            p: 2,
-                            justifyContent: 'center',
-                            alignItems: 'center',
-                            cursor: 'pointer',
-                            '&:hover': {
-                              backgroundColor: selectedDays.some(
+                              bgcolor: selectedDays.some(
                                 selectedDay =>
                                   selectedDay.cardId === item.id &&
                                   selectedDay.days?.some(selectedDay => selectedDay.dayId === day.id)
                               )
                                 ? '#203e56'
-                                : '#dedede',
+                                : '#dedede66',
+                              borderRadius: 5,
+                              p: 2,
+                              justifyContent: 'center',
+                              alignItems: 'center',
+                              cursor: 'pointer',
+                              '&:hover': {
+                                backgroundColor: selectedDays.some(
+                                  selectedDay =>
+                                    selectedDay.cardId === item.id &&
+                                    selectedDay.days?.some(selectedDay => selectedDay.dayId === day.id)
+                                )
+                                  ? '#203e56'
+                                  : '#dedede',
+                                color: selectedDays.some(
+                                  selectedDay =>
+                                    selectedDay.cardId === item.id &&
+                                    selectedDay.days?.some(selectedDay => selectedDay.dayId === day.id)
+                                )
+                                  ? 'white'
+                                  : 'black'
+                              },
                               color: selectedDays.some(
                                 selectedDay =>
                                   selectedDay.cardId === item.id &&
@@ -976,43 +1001,49 @@ const AddIngredients = props => {
                               )
                                 ? 'white'
                                 : 'black'
-                            },
-                            color: selectedDays.some(
-                              selectedDay =>
-                                selectedDay.cardId === item.id &&
-                                selectedDay.days?.some(selectedDay => selectedDay.dayId === day.id)
-                            )
-                              ? 'white'
-                              : 'black'
-                          }}
-                        >
-                          {day?.name}
-                        </Box>
-                      ))}
-                    </Stack>
+                            }}
+                          >
+                            {day?.name}
+                          </Box>
+                        ))}
+                      </Stack>
 
-                    <Divider />
+                      <Divider />
 
-                    <Box sx={{ pt: 3 }}>
-                      {' '}
-                      <FormControl fullWidth>
-                        <TextField
-                          sx={{ pt: 1 }}
-                          id='demo-simple-select-label'
-                          placeholder='Add Remarks (optional)'
-                          variant='standard'
-                          InputProps={{ disableUnderline: true }}
-                          value={remarks[item.id]?.remarks || ''}
-                          onChange={event => handleAddRemarks(event, item)}
-                        />
-                      </FormControl>
+                      <Box sx={{ pt: 3 }}>
+                        {' '}
+                        <FormControl fullWidth>
+                          <TextField
+                            sx={{ pt: 1 }}
+                            id='demo-simple-select-label'
+                            placeholder='Add Remarks (optional)'
+                            variant='standard'
+                            InputProps={{ disableUnderline: true }}
+                            value={remarks[item.id]?.remarks || ''}
+                            onChange={event => handleAddRemarks(event, item)}
+                          />
+                        </FormControl>
+                      </Box>
                     </Box>
                   </Box>
-                </Box>
-              </>
-              {/* ) : null} */}
+                </>
+                {/* ) : null} */}
+              </Box>
+            ))
+          ) : (
+            <Box
+              sx={{
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center',
+                height: '40%',
+                color: '#7A7A7A',
+                fontSize: '16px'
+              }}
+            >
+              No records to show
             </Box>
-          ))}
+          )}
           {reachedEnd ? (
             <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%' }}>
               <CircularProgress sx={{ mb: 10 }} />
