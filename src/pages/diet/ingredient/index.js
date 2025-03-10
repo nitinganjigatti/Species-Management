@@ -58,7 +58,7 @@ const IngredientsList = () => {
     pageSize: parseInt(query.pageSize || 10, 10)
   })
   const [loading, setLoading] = useState(false)
-  const [status, setStatus] = useState('')
+  const [status, setStatus] = useState(query.status || '')
   const [statusCheckval, setstatusCheckval] = useState(false)
   const [dialog, setDialog] = useState(false)
   const [check, setCheck] = useState(false)
@@ -95,13 +95,17 @@ const IngredientsList = () => {
   useEffect(() => {
     const page = parseInt(query.page || 0, 10)
     const pageSize = parseInt(query.pageSize || 10, 10)
+    const status = query.status || ''
 
     setPaginationModel({ page: page, pageSize: pageSize })
-  }, [query.page, query.pageSize])
+    setStatus(status)
+  }, [query.page, query.pageSize, query.status])
 
   const handleChange = (event, newValue) => {
-    setTotal(0)
     setStatus(newValue)
+    setTotal(0)
+    setPaginationModel({ page: 0, pageSize: 10 })
+    updateQueryParams({ page: 0, status: newValue, pageSize: 10 })
   }
 
   const onClose = () => {
@@ -149,7 +153,7 @@ const IngredientsList = () => {
     if (dietModule) {
       fetchTableData(sort, searchValue, sortColumning, status)
     }
-  }, [fetchTableData, status])
+  }, [status, paginationModel.page, paginationModel.pageSize, sort, sortColumning])
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
@@ -232,8 +236,9 @@ const IngredientsList = () => {
   }
 
   const handleSearch = value => {
-    updateQueryParams({ q: value, page: 0 })
+    setPaginationModel({ page: 0, pageSize: paginationModel.pageSize })
     setSearchValue(value)
+    updateQueryParams({ q: value, page: 0, pageSize: paginationModel.pageSize })
     searchTableData(sort, value, sortColumning, status)
   }
 
@@ -430,9 +435,7 @@ const IngredientsList = () => {
     if (clickedColumn) {
       const data = params.row
 
-      router.push({
-        pathname: `/diet/ingredient/${data?.id}`
-      })
+      router.push({ pathname: `/diet/ingredient/${data?.id}` })
     } else {
       return
     }
