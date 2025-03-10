@@ -153,9 +153,8 @@ const RequestDetails = () => {
   const [fileId, setFileId] = useState()
   const [file, setFile] = useState([])
   const [testName, setTestName] = useState()
-  console.log('testName', testName)
+
   const [testSampleName, setTestSampleName] = useState('')
-  console.log('testSampleName', testSampleName)
 
   const [showTestFile, setShowTestFile] = useState(false)
   const [transferTestId, setTransferTestId] = useState('')
@@ -413,6 +412,12 @@ const RequestDetails = () => {
     setTestDoc(params?.row?.attachments?.docs)
   }
 
+  const filteredStatusData = permissions?.allow_full_access
+    ? statusData
+    : statusData.filter(item =>
+        ['awaiting_sample', 'sample_received', 'sample_rejected', 'inprogress'].includes(item.id)
+      )
+
   const columns = [
     // {
     //   flex: 0.05,
@@ -460,7 +465,7 @@ const RequestDetails = () => {
       renderCell: params => (
         <>
           <Box sx={{ minWidth: 260 }}>
-            {permissions?.allow_full_access || permissions?.transfer_tests || permissions?.perform_tests ? (
+            {permissions?.allow_full_access || permissions?.perform_tests ? (
               <FormControl fullWidth variant='outlined'>
                 <Select
                   size='small'
@@ -539,7 +544,7 @@ const RequestDetails = () => {
                     }
                   }}
                 >
-                  {statusData?.map((item, index) => (
+                  {filteredStatusData?.map((item, index) => (
                     <MenuItem key={index} value={item?.id}>
                       {item?.name}
                     </MenuItem>
@@ -555,13 +560,14 @@ const RequestDetails = () => {
                       params.row.status === 'pending' ||
                       params.row.status === 'transferred' ||
                       params.row.status === 'awaiting_sample' ||
-                      params.row.status === 'sample_rejected' ||
-                      params.row.status === 'sample_received'
+                      params.row.status === 'sample_rejected'
                         ? '#FA6140'
                         : params.row.status === 'completed'
                         ? '#37BD69'
                         : params.row.status === 'inprogress'
-                        ? '#00AFD6'
+                        ? '#E4B819 '
+                        : params.row.status === 'sample_received'
+                        ? '#37BD69'
                         : '#37BD69'
                   }}
                 >
@@ -581,7 +587,11 @@ const RequestDetails = () => {
                     ? 'completed not detected'
                     : params.row.status === 'completed_inconclusive'
                     ? 'completed inconclusive'
-                    : 'inprogress'}
+                    : params.row.status === 'completed'
+                    ? 'Completed'
+                    : params.row.status === 'completed_insufficient_samples'
+                    ? 'Completed - Insufficient Samples'
+                    : 'In Progress'}
                 </span>
               </Typography>
             )}
@@ -644,7 +654,7 @@ const RequestDetails = () => {
                     }}
                   >
                     <>
-                      {(permissions?.allow_full_access || permissions?.perform_tests) && (
+                      {(permissions?.allow_full_access || permissions?.allow_upload_reports) && (
                         <Tooltip
                           title='Upload'
                           arrow
@@ -898,7 +908,7 @@ const RequestDetails = () => {
     const testId = item?.id
 
     setFileId(item?.id)
-    console.log('item', item)
+
     try {
       const params = { lab_test_id: id }
       const response = await DeleteLAbRequestAttachment(testId, params)
@@ -1005,15 +1015,12 @@ const RequestDetails = () => {
           </Breadcrumbs>
 
           <Card sx={{ p: 5 }}>
-            {request?.map(
-              (item, index) => (
-                console.log('animal_details', item?.animal_details),
-                (
-                  <>
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap' }}>
-                      <Box>
-                        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                          {/* {' '}
+            {request?.map((item, index) => (
+              <>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap' }}>
+                  <Box>
+                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                      {/* {' '}
                       <IconButton
                         sx={{ mr: 1 }}
                         onClick={() =>
@@ -1024,91 +1031,86 @@ const RequestDetails = () => {
                       >
                         <Icon icon='ep:back' fontSize={25} />
                       </IconButton> */}
-                          <Typography variant='h6'>
-                            Request ID -{' '}
-                            <span
-                              onClick={() => handleClickOpen(item)}
-                              style={{ fontSize: '20px', fontWeight: 'bold', cursor: 'pointer', color: '#37BD69' }}
-                            >
-                              {item?.request_id}
-                            </span>
-                          </Typography>
-                        </Box>
-                        <Box sx={{ display: 'flex', flexDirection: 'column', flexWrap: 'wrap' }}>
-                          <Typography>
-                            Medical Record :{' '}
-                            <span style={{ fontSize: '15px', fontWeight: 'bold', color: '#7A8684' }}>
-                              {item?.medical_record_code}
-                            </span>
-                          </Typography>
-                        </Box>
-                        <Box sx={{ display: 'flex', flexDirection: 'column', flexWrap: 'wrap' }}>
-                          <Typography>
-                            Requested By{' '}
-                            <span style={{ fontSize: '15px', fontWeight: 'bold', color: '#7A8684' }}>
-                              {item?.user_first_name}
-                            </span>
-                          </Typography>
-                        </Box>
-                        <Typography> {moment(item?.created_at).format('DD MMM YYYY')}</Typography>
-                        <Typography>
-                          Site :{' '}
-                          <span style={{ fontSize: '15px', fontWeight: 'bold', color: '#7A8684' }}>
-                            {item?.site_name}
-                          </span>
-                        </Typography>
-                        <Typography>
-                          No. of Tests :{' '}
-                          <span style={{ fontSize: '15px', fontWeight: 'bold' }}>{item?.total_no_test}</span>
-                        </Typography>
-                      </Box>
+                      <Typography variant='h6'>
+                        Request ID -{' '}
+                        <span
+                          onClick={() => handleClickOpen(item)}
+                          style={{ fontSize: '20px', fontWeight: 'bold', cursor: 'pointer', color: '#37BD69' }}
+                        >
+                          {item?.request_id}
+                        </span>
+                      </Typography>
+                    </Box>
+                    <Box sx={{ display: 'flex', flexDirection: 'column', flexWrap: 'wrap' }}>
+                      <Typography>
+                        Medical Record :{' '}
+                        <span style={{ fontSize: '15px', fontWeight: 'bold', color: '#7A8684' }}>
+                          {item?.medical_record_code}
+                        </span>
+                      </Typography>
+                    </Box>
+                    <Box sx={{ display: 'flex', flexDirection: 'column', flexWrap: 'wrap' }}>
+                      <Typography>
+                        Requested By{' '}
+                        <span style={{ fontSize: '15px', fontWeight: 'bold', color: '#7A8684' }}>
+                          {item?.user_first_name}
+                        </span>
+                      </Typography>
+                    </Box>
+                    <Typography> {moment(item?.created_at).format('DD MMM YYYY')}</Typography>
+                    <Typography>
+                      Site :{' '}
+                      <span style={{ fontSize: '15px', fontWeight: 'bold', color: '#7A8684' }}>{item?.site_name}</span>
+                    </Typography>
+                    <Typography>
+                      No. of Tests : <span style={{ fontSize: '15px', fontWeight: 'bold' }}>{item?.total_no_test}</span>
+                    </Typography>
+                  </Box>
 
+                  <Box
+                    sx={{
+                      minWidth: '400px',
+                      display: 'flex',
+                      flexDirection: 'row',
+                      justifyContent: 'center',
+                      backgroundColor: '#f2f2f2',
+                      borderRadius: '8px',
+
+                      alignItems: 'center'
+                    }}
+                  >
+                    <AnimalParentCard data={item?.animal_details[0]} backgroundColor={'#f2f2f2'} />
+                    {item?.animal_details?.length > 1 && (
                       <Box
+                        onClick={() => setOpenAnimalSheet(true)}
                         sx={{
-                          minWidth: '400px',
                           display: 'flex',
-                          flexDirection: 'row',
-                          justifyContent: 'center',
-                          backgroundColor: '#f2f2f2',
-                          borderRadius: '8px',
+                          gap: 2,
 
-                          alignItems: 'center'
+                          // mt: 2,
+
+                          bgcolor: 'rgba(0, 128, 0, 0.1)',
+                          cursor: 'pointer',
+                          borderRadius: '50%',
+                          fontSize: '20px',
+                          fontWeight: 500,
+                          display: 'flex',
+                          justifyContent: 'center',
+                          alignItems: 'center',
+                          color: '#37BD69',
+                          m: 3,
+                          p: 3,
+                          width: '50px',
+                          height: '50px'
                         }}
                       >
-                        <AnimalParentCard data={item?.animal_details[0]} backgroundColor={'#f2f2f2'} />
-                        {item?.animal_details?.length > 1 && (
-                          <Box
-                            onClick={() => setOpenAnimalSheet(true)}
-                            sx={{
-                              display: 'flex',
-                              gap: 2,
-
-                              // mt: 2,
-
-                              bgcolor: 'rgba(0, 128, 0, 0.1)',
-                              cursor: 'pointer',
-                              borderRadius: '50%',
-                              fontSize: '20px',
-                              fontWeight: 500,
-                              display: 'flex',
-                              justifyContent: 'center',
-                              alignItems: 'center',
-                              color: '#37BD69',
-                              m: 3,
-                              p: 3,
-                              width: '50px',
-                              height: '50px'
-                            }}
-                          >
-                            +{item?.animal_details?.length - 1}
-                          </Box>
-                        )}
+                        +{item?.animal_details?.length - 1}
                       </Box>
-                    </Box>
-                  </>
-                )
-              )
-            )}
+                    )}
+                  </Box>
+                </Box>
+              </>
+            ))}
           </Card>
 
           <Card sx={{ mt: 5 }}>
@@ -1231,7 +1233,7 @@ const RequestDetails = () => {
                             }
                           }}
                         >
-                          {statusData?.map((item, index) => (
+                          {filteredStatusData?.map((item, index) => (
                             <MenuItem key={index} value={item?.id}>
                               {item?.name}
                             </MenuItem>
@@ -1283,59 +1285,64 @@ const RequestDetails = () => {
             />
           </Card>
 
-          <Card sx={{ mt: 5 }}>
-            <Box sx={{ py: 5, px: 8 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: '4px', mb: 3 }}>
-                <img src='/images/attach_file_icon.png' alt='default icon' style={{ width: 12 }} />
-                <Typography sx={{ fontSize: 20, fontWeight: 500 }}>Lab Attachments</Typography>
-              </Box>
-
-              <Divider />
-            </Box>
-            <Box sx={{ mb: '20px', px: 4 }}>
-              {permissions?.perform_tests || permissions?.allow_full_access ? (
-                <UploadReports
-                  animalID={animanlId}
-                  labTestId={LabRequestId}
-                  medicalRecordId={medicineId}
-                  type='lab_test_request'
-                  id={requestId === null ? '0' : requestId}
-                  handleCloseUploader={setOpenUploader}
-                  handleClosePopover={handleClosePopover}
-                  fetchRequestDetails={fetchRequestDetails}
-                  buttonText='Submit Reports'
-                />
-              ) : null}
-            </Box>
-
-            {/* image or Doc View */}
-            {image || document ? (
-              <Box sx={{ px: 8, mb: 8 }}>
-                <Box sx={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', gap: 4 }}>
-                  {image && (
-                    <CommonMediaView
-                      allCompleted={allCompleted}
-                      image={image}
-                      handleDeleteImg={handleDeleteImg}
-                      fileViews={fileViews}
-                      permissions={permissions}
-                    />
-                  )}
-                  {document && (
-                    <CommonMediaView
-                      allCompleted={allCompleted}
-                      document={document}
-                      handleDeleteImg={handleDeleteImg}
-                      fileViews={fileViews}
-                      permissions={permissions}
-                    />
-                  )}
+          {permissions?.allow_upload_reports ||
+          permissions?.allow_full_access ||
+          image?.length > 0 ||
+          document?.length > 0 ? (
+            <Card sx={{ mt: 5 }}>
+              <Box sx={{ py: 5, px: 8 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: '4px', mb: 3 }}>
+                  <img src='/images/attach_file_icon.png' alt='default icon' style={{ width: 12 }} />
+                  <Typography sx={{ fontSize: 20, fontWeight: 500 }}>Lab Attachments</Typography>
                 </Box>
-              </Box>
-            ) : null}
 
-            {/* allow user Only if user hand upload permissions */}
-          </Card>
+                <Divider />
+              </Box>
+              <Box sx={{ mb: '20px', px: 4 }}>
+                {permissions?.allow_upload_reports || permissions?.allow_full_access ? (
+                  <UploadReports
+                    animalID={animanlId}
+                    labTestId={LabRequestId}
+                    medicalRecordId={medicineId}
+                    type='lab_test_request'
+                    id={requestId === null ? '0' : requestId}
+                    handleCloseUploader={setOpenUploader}
+                    handleClosePopover={handleClosePopover}
+                    fetchRequestDetails={fetchRequestDetails}
+                    buttonText='Submit Reports'
+                  />
+                ) : null}
+              </Box>
+
+              {/* image or Doc View */}
+              {image?.length > 0 || document?.length > 0 ? (
+                <Box sx={{ px: 8, mb: 8 }}>
+                  <Box sx={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', gap: 4 }}>
+                    {image && (
+                      <CommonMediaView
+                        allCompleted={allCompleted}
+                        image={image}
+                        handleDeleteImg={handleDeleteImg}
+                        fileViews={fileViews}
+                        permissions={permissions}
+                      />
+                    )}
+                    {document && (
+                      <CommonMediaView
+                        allCompleted={allCompleted}
+                        document={document}
+                        handleDeleteImg={handleDeleteImg}
+                        fileViews={fileViews}
+                        permissions={permissions}
+                      />
+                    )}
+                  </Box>
+                </Box>
+              ) : null}
+
+              {/* allow user Only if user hand upload permissions */}
+            </Card>
+          ) : null}
 
           {(medicalDocument || medicalImage) && (
             <Card sx={{ mt: 5 }}>
@@ -1454,13 +1461,14 @@ const RequestDetails = () => {
                                     data?.status === 'pending' ||
                                     data?.status === 'transferred' ||
                                     data?.status === 'awaiting_sample' ||
-                                    data?.status === 'sample_rejected' ||
-                                    data?.status === 'sample_received'
+                                    data?.status === 'sample_rejected'
                                       ? '#FA6140'
                                       : data?.status === 'completed'
                                       ? '#37BD69'
                                       : data?.status === 'inprogress'
-                                      ? '#00AFD6'
+                                      ? '#E4B819 '
+                                      : data?.status === 'sample_received'
+                                      ? '#37BD69'
                                       : '#37BD69'
                                 }}
                               >
@@ -1480,7 +1488,11 @@ const RequestDetails = () => {
                                   ? 'completed not detected'
                                   : data?.status === 'completed_inconclusive'
                                   ? 'completed inconclusive'
-                                  : 'inprogress'}
+                                  : data?.status === 'completed'
+                                  ? 'Completed'
+                                  : data?.status === 'completed_insufficient_samples'
+                                  ? 'Completed - Insufficient Samples'
+                                  : 'In Progress'}
                               </span>
                             </Typography>
                           </TableCell>
