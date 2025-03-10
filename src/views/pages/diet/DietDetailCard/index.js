@@ -52,6 +52,7 @@ const DietDetailCard = ({ dietDetails, dietModulePermission, dietModuleAccess })
       setConfirmDialogBox(true)
     }
   }
+
   const handleClosenew = () => {
     setConfirmDialogBox(false)
   }
@@ -125,6 +126,7 @@ const DietDetailCard = ({ dietDetails, dietModulePermission, dietModuleAccess })
   }
 
   const handlebackClick = () => {
+    debugger
     if (source !== undefined && source === 'recipedetail') {
       Router.push({
         pathname: `/diet/recipe/${recipeId}`,
@@ -136,7 +138,8 @@ const DietDetailCard = ({ dietDetails, dietModulePermission, dietModuleAccess })
         query: { source: 'fromdiet' }
       })
     } else {
-      Router.push('/diet/diet')
+      // Router.push('/diet/diet')
+      Router.back()
     }
   }
 
