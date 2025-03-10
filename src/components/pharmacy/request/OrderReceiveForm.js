@@ -528,7 +528,7 @@ function OrderReceiveForm({ orderId, requestId }) {
       if (resolved?.success) {
         setResolveLoader(false)
         toast.success(resolved?.data)
-        getOrderDetails(orderId)
+        getOrderDetails(orderId, requestId)
       } else {
         setResolveLoader(false)
       }
@@ -609,7 +609,7 @@ function OrderReceiveForm({ orderId, requestId }) {
       if (resolved?.success) {
         setResolveLoader(false)
         toast.success(resolved?.data)
-        getOrderDetails(orderId)
+        getOrderDetails(orderId, requestId)
         closeDisputeDialog()
       } else {
         setResolveLoader(false)
@@ -1532,7 +1532,7 @@ function OrderReceiveForm({ orderId, requestId }) {
       setSubmitLoader(true) // Disable checkbox during submission
       try {
         await bulkStatusUpdate() // Ensure this completes before moving forward
-        await getOrderDetails(orderId) // Refresh the data only after updating status
+        await getOrderDetails(orderId, requestId) // Refresh the data only after updating status
         // location.reload()
       } catch (error) {
         console.error('Error in bulk status update: ', error)
