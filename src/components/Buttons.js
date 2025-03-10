@@ -18,7 +18,7 @@ function AddButton({ action, title, disabled, styles }) {
       variant='outlined'
       startIcon={<Icon icon='material-symbols-light:add' />}
       sx={{ mr: 1 }}
-      // style={{ ...styles }}
+      style={{ ...styles }}
     >
       {title ? title : null}
     </Button>
