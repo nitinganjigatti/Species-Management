@@ -1,7 +1,7 @@
 import { useTheme } from '@emotion/react'
 import { LoadingButton } from '@mui/lab'
-import { Checkbox, Divider, Drawer, Grid, IconButton, TextField, Typography } from '@mui/material'
-import { Box } from '@mui/system'
+import { Badge, Checkbox, Divider, Drawer, Grid, IconButton, styled, TextField, Typography } from '@mui/material'
+import { borderRadius, Box, padding } from '@mui/system'
 import React, { useCallback, useEffect, useState } from 'react'
 import Icon from 'src/@core/components/icon'
 import { getSuppliers } from 'src/lib/api/pharmacy/getSupplierList'
@@ -12,47 +12,29 @@ const leftMenu = [
   { id: 3, name: 'Medicine' }
 ]
 
+const StyledBadge = styled(Badge)(({ theme }) => ({
+  '& .MuiBadge-badge': {
+    borderRadius: '20%'
+  }
+}))
+
 const PurchaseFilterDrawer = ({
   openFilterDrawer,
   setOpenFilterDrawer,
   onApplyFilter,
   selectedOptions,
-  setSelectedOptions
+  setSelectedOptions,
+  supplierData
 }) => {
   const theme = useTheme()
 
   const [selectedMenu, setSelectedMenu] = useState(leftMenu[0])
   const [searchQuery, setSearchQuery] = useState('')
   const [selectAll, setSelectAll] = useState(false)
-  const [supplierData, setSupplierData] = useState([])
-
-  // const [selectedOptions, setSelectedOptions] = useState({
-  //   'Supplier Name': [],
-  //   'Requested By': [],
-  //   Medicine: []
-  // })
 
   const MEDICINE_ALL = 'all'
   const MEDICINE_CONTROLLED = 'controlled'
   const MEDICINE_PRESCRIPTION = 'prescription'
-
-  const supplierList = async () => {
-    try {
-      const response = await getSuppliers()
-      const result = response?.data
-
-      if (result?.success) {
-        const suppliers = result?.data?.list_items.map(({ id, company_name }) => ({ id, company_name })) || []
-        setSupplierData(suppliers)
-      }
-    } catch (error) {
-      console.log(error)
-    }
-  }
-
-  useEffect(() => {
-    supplierList()
-  }, [])
 
   const handleCloseDrawer = () => {
     setOpenFilterDrawer(false)
@@ -144,6 +126,10 @@ const PurchaseFilterDrawer = ({
     setOpenFilterDrawer(false)
   }
 
+  const getMenuBadgeCount = menuName => {
+    return selectedOptions[menuName] ? selectedOptions[menuName].length : 0
+  }
+
   return (
     <Drawer
       anchor='right'
@@ -200,8 +186,18 @@ const PurchaseFilterDrawer = ({
                 }}
                 onClick={() => handleMenuClick(menu)}
               >
-                <Typography sx={{ color: theme.palette.primary.dark, fontSize: '16px', fontWeight: 400 }}>
+                <Typography
+                  sx={{
+                    color: theme.palette.primary.dark,
+                    fontSize: '16px',
+                    fontWeight: 400,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '10px'
+                  }}
+                >
                   {menu.name}
+                  <StyledBadge badgeContent={getMenuBadgeCount(menu.name)} color='primary' sx={{ ml: 2 }} />
                 </Typography>
               </Box>
             ))}
@@ -263,7 +259,7 @@ const PurchaseFilterDrawer = ({
                       onChange={e =>
                         handleSelectAll(
                           supplierData,
-                          suppliers => suppliers.name.toLowerCase().includes(searchQuery.toLowerCase()),
+                          suppliers => suppliers.company_name.toLowerCase().includes(searchQuery.toLowerCase()),
                           'Supplier Name',
                           e
                         )

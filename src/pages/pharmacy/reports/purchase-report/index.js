@@ -1,4 +1,14 @@
-import { Card, CardHeader, CircularProgress, Grid, InputAdornment, TextField, Tooltip, Typography } from '@mui/material'
+import {
+  Badge,
+  Card,
+  CardHeader,
+  CircularProgress,
+  Grid,
+  InputAdornment,
+  TextField,
+  Tooltip,
+  Typography
+} from '@mui/material'
 import { useTheme } from '@emotion/react'
 import { Box } from '@mui/system'
 import { useRouter } from 'next/router'
@@ -12,6 +22,7 @@ import { debounce } from 'lodash'
 import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDateRangePickers'
 import Icon from 'src/@core/components/icon'
 import PurchaseFilterDrawer from 'src/views/pages/pharmacy/purchase-report/PurchaseFilterDrawer'
+import { getSuppliers } from 'src/lib/api/pharmacy/getSupplierList'
 
 const PurchaseReport = () => {
   const router = useRouter()
@@ -31,6 +42,7 @@ const PurchaseReport = () => {
   const [openFilterDrawer, setOpenFilterDrawer] = useState(false)
   const [filteredData, setFilteredData] = useState({})
   const [exportLoading, setExportLoading] = useState(false)
+  const [supplierData, setSupplierData] = useState([])
 
   const [selectedOptions, setSelectedOptions] = useState({
     'Supplier Name': [],
@@ -47,6 +59,24 @@ const PurchaseReport = () => {
     startDate: router.query.startDate || '',
     endDate: router.query.endDate || ''
   })
+
+  useEffect(() => {
+    const supplierList = async () => {
+      try {
+        const response = await getSuppliers()
+        const result = response?.data
+
+        if (result?.success) {
+          const suppliers = result?.data?.list_items.map(({ id, company_name }) => ({ id, company_name })) || []
+          setSupplierData(suppliers)
+        }
+      } catch (error) {
+        console.log(error)
+      }
+    }
+
+    supplierList()
+  }, [])
 
   function loadServerRows(currentPage, data) {
     return data
@@ -499,6 +529,14 @@ const PurchaseReport = () => {
     try {
       setExportLoading(true)
 
+      const now = new Date()
+
+      const timestamp = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(
+        2,
+        '0'
+      )}/${now.getFullYear()}(${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')})`
+      console.log(timestamp)
+
       const params = {
         sort: sort,
         q: searchValue,
@@ -544,7 +582,7 @@ const PurchaseReport = () => {
         })
 
         // Export to CSV
-        Utility.exportToCSV(tableData, 'Purchase Report')
+        Utility.exportToCSV(tableData, `Purchase-Report ${timestamp}`)
       } else {
         console.warn('No data to export.')
       }
@@ -554,6 +592,22 @@ const PurchaseReport = () => {
       setExportLoading(false)
     }
   }
+
+  const calculateAppliedFiltersCount = () => {
+    let count = 0
+
+    if (filteredData['suppliersName'] && filteredData['suppliersName'].length > 0) {
+      count++
+    }
+
+    if (filteredData?.Medicine?.controlled || filteredData?.Medicine?.prescription) {
+      count++
+    }
+
+    return count
+  }
+
+  const appliedFiltersCount = calculateAppliedFiltersCount()
 
   return (
     <>
@@ -652,7 +706,9 @@ const PurchaseReport = () => {
                       }}
                       onClick={() => setOpenFilterDrawer(true)}
                     >
-                      <Icon icon='mage:filter' fontSize={24} />
+                      <Badge badgeContent={appliedFiltersCount} color='primary'>
+                        <Icon icon='mage:filter' fontSize={24} />
+                      </Badge>
                     </Box>
                   </Tooltip>
                 </Grid>
@@ -694,6 +750,7 @@ const PurchaseReport = () => {
           onApplyFilter={filterList => setFilteredData(filterList)}
           selectedOptions={selectedOptions}
           setSelectedOptions={setSelectedOptions}
+          supplierData={supplierData}
         />
       )}
     </>

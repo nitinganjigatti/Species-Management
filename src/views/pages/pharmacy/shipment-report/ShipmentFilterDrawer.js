@@ -1,4 +1,5 @@
 import {
+  Badge,
   Checkbox,
   Divider,
   Drawer,
@@ -13,7 +14,7 @@ import {
 } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import Icon from 'src/@core/components/icon'
-import { Box } from '@mui/system'
+import { Box, styled } from '@mui/system'
 import { useRouter } from 'next/router'
 import React, { useCallback, useContext, useEffect, useState } from 'react'
 import { LoadingButton } from '@mui/lab'
@@ -24,6 +25,12 @@ const leftMenu = [
   { id: 1, name: 'pharmacy' },
   { id: 2, name: 'Medicine' }
 ]
+
+const StyledBadge = styled(Badge)(({ theme }) => ({
+  '& .MuiBadge-badge': {
+    borderRadius: '20%'
+  }
+}))
 
 const ShipmentFilterDrawer = ({
   openFilterDrawer,
@@ -155,6 +162,10 @@ const ShipmentFilterDrawer = ({
     pharmacy.name.toLowerCase().includes(searchQuery.toLowerCase())
   )
 
+  const getMenuBadgeCount = menuName => {
+    return selectedOptions[menuName] ? selectedOptions[menuName].length : 0
+  }
+
   return (
     <Drawer
       anchor='right'
@@ -211,8 +222,18 @@ const ShipmentFilterDrawer = ({
                 }}
                 onClick={() => handleMenuClick(menu)}
               >
-                <Typography sx={{ color: theme.palette.primary.dark, fontSize: '16px', fontWeight: 400 }}>
+                <Typography
+                  sx={{
+                    color: theme.palette.primary.dark,
+                    fontSize: '16px',
+                    fontWeight: 400,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '10px'
+                  }}
+                >
                   {menu.name}
+                  <StyledBadge badgeContent={getMenuBadgeCount(menu.name)} color='primary' sx={{ ml: 2 }} />
                 </Typography>
               </Box>
             ))}

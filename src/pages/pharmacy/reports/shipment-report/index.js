@@ -1,5 +1,15 @@
 import { useTheme } from '@emotion/react'
-import { Card, CardHeader, CircularProgress, Grid, InputAdornment, TextField, Tooltip, Typography } from '@mui/material'
+import {
+  Badge,
+  Card,
+  CardHeader,
+  CircularProgress,
+  Grid,
+  InputAdornment,
+  TextField,
+  Tooltip,
+  Typography
+} from '@mui/material'
 import { Box } from '@mui/system'
 import { useRouter } from 'next/router'
 import React, { useCallback, useEffect, useState } from 'react'
@@ -619,6 +629,22 @@ const ShipmentReport = () => {
     }
   }
 
+  const calculateAppliedFiltersCount = () => {
+    let count = 0
+
+    if (filteredData['pharmacy'] && filteredData['pharmacy'].length > 0) {
+      count++
+    }
+
+    if (filteredData?.Medicine?.controlled || filteredData?.Medicine?.prescription) {
+      count++
+    }
+
+    return count
+  }
+
+  const appliedFiltersCount = calculateAppliedFiltersCount()
+
   return (
     <>
       <Card>
@@ -716,7 +742,9 @@ const ShipmentReport = () => {
                       }}
                       onClick={() => setOpenFilterDrawer(true)}
                     >
-                      <Icon icon='mage:filter' fontSize={24} />
+                      <Badge badgeContent={appliedFiltersCount} color='primary'>
+                        <Icon icon='mage:filter' fontSize={24} />
+                      </Badge>
                     </Box>
                   </Tooltip>
                 </Grid>

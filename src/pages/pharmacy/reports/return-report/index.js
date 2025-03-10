@@ -4,8 +4,10 @@ import {
   CardHeader,
   CircularProgress,
   debounce,
+  FormControlLabel,
   Grid,
   InputAdornment,
+  Switch,
   TextField,
   Tooltip,
   Typography
@@ -40,6 +42,7 @@ const ReturnReport = () => {
   const [openFilterDrawer, setOpenFilterDrawer] = useState(false)
   const [filteredData, setFilteredData] = useState({})
   const [exportLoading, setExportLoading] = useState(false)
+  const [expired, setExpired] = useState(false)
 
   const [selectedOptions, setSelectedOptions] = useState({
     'Batch Number': [],
@@ -62,7 +65,7 @@ const ReturnReport = () => {
   }
 
   const fetchReturnReport = useCallback(
-    async ({ sort, q, column, filteredData }) => {
+    async ({ sort, q, column, filteredData, expired }) => {
       try {
         setLoading(true)
 
@@ -77,7 +80,8 @@ const ReturnReport = () => {
           ...(filteredData?.Medicine && {
             controlled: filteredData.Medicine.controlled,
             prescription: filteredData.Medicine.prescription
-          })
+          }),
+          expired: expired ? 1 : 0
         }
         await getReturnReport({ params }).then(res => {
           if (res?.success === true && res?.data?.list_items?.length > 0) {
@@ -98,7 +102,7 @@ const ReturnReport = () => {
   )
 
   useEffect(() => {
-    fetchReturnReport({ sort: sort, q: searchValue, column: sortColumn, filteredData: filteredData })
+    fetchReturnReport({ sort: sort, q: searchValue, column: sortColumn, filteredData: filteredData, expired: expired })
     updateUrlParams({
       sort,
       q: searchValue,
@@ -106,7 +110,7 @@ const ReturnReport = () => {
       page: paginationModel?.page,
       limit: paginationModel?.pageSize
     })
-  }, [paginationModel.page, paginationModel.pageSize, filterDates, filteredData])
+  }, [paginationModel.page, paginationModel.pageSize, filterDates, filteredData, expired])
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
@@ -442,6 +446,31 @@ const ReturnReport = () => {
     searchTableData(sort, value, sortColumn)
   }
 
+  const handleSwitchChange = event => {
+    setExpired(event.target.checked)
+    fetchReturnReport({
+      sort: sort,
+      q: searchValue,
+      column: sortColumn,
+      filteredData: filteredData,
+      expired: event.target.checked
+    })
+  }
+
+  const headerAction = (
+    <div>
+      <Grid item>
+        <FormControlLabel
+          control={
+            <Switch sx={{ mr: { sm: 5 }, mt: { xs: 1, sm: 1 } }} checked={expired} onChange={handleSwitchChange} />
+          }
+          labelPlacement='start'
+          label='Expired'
+        />
+      </Grid>
+    </div>
+  )
+
   const handleExport = async () => {
     try {
       setExportLoading(true)
@@ -514,6 +543,7 @@ const ReturnReport = () => {
             mx: { xs: -1, sm: 0 }
           }}
           title={RenderUtility.pageTitle('Return Report')}
+          action={headerAction}
         />
         <Box sx={{ marginLeft: 4, marginRight: 4 }}>
           <Grid container spacing={2} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
