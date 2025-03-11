@@ -138,7 +138,7 @@ function Purchase({ tabValue, updateUrlParams }) {
     },
     {
       width: 130,
-      field: 'unit_price',
+      field: 'net_unit_price',
       headerName: 'UNIT PRICE (₹)',
       renderCell: params => (
         <Typography
@@ -150,7 +150,7 @@ function Purchase({ tabValue, updateUrlParams }) {
             fontFamily: 'Inter'
           }}
         >
-          {params.row.unit_price}
+          {params.row.net_unit_price}
         </Typography>
       )
     },
@@ -195,19 +195,22 @@ function Purchase({ tabValue, updateUrlParams }) {
       width: 140,
       field: 'net_amount',
       headerName: 'TOTAL VALUE (₹)',
-      renderCell: params => (
-        <Typography
-          variant='body2'
-          sx={{
-            color: theme.palette.customColors.customHeadingTextColor,
-            fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
-          }}
-        >
-          {params.row.net_amount}
-        </Typography>
-      )
+      renderCell: params => {
+        const totalValue = params.row.qty * params.row.net_unit_price
+        return (
+          <Typography
+            variant='body2'
+            sx={{
+              color: theme.palette.customColors.customHeadingTextColor,
+              fontSize: '14px',
+              fontWeight: 500,
+              fontFamily: 'Inter'
+            }}
+          >
+            {Utility.formatAmountToReadableDigit(totalValue)}
+          </Typography>
+        )
+      }
     },
     {
       width: 140,

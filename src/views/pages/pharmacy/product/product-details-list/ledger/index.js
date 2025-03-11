@@ -711,11 +711,11 @@ function Ledger({ tabValue, updateUrlParams }) {
   }
 
   const getBatchListDetails = useCallback(async ({ id, q }) => {
-    console.log(q, 'qqqqq')
+    const params = { q }
 
     const payload = {
       ProductId: id,
-      q: q
+      params
     }
 
     try {
@@ -864,6 +864,7 @@ function Ledger({ tabValue, updateUrlParams }) {
       const params = {
         sort: 'asc',
         column: 'name',
+
         // page: 1,
         // limit: paginationModel.pageSize,
         is_access: 1
