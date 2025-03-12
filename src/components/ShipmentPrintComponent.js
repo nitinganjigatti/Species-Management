@@ -23,6 +23,9 @@ const ShipmentPrintComponent = forwardRef(({ data }, ref) => {
     })
     setPrintedDate(formattedDate)
 
+    // Create a custom filename with shipment ID
+    const shipmentTitle = `Shipment_Details_${data?.shipment_id || ''}`
+
     // Create an iframe for printing
     const iframe = document.createElement('iframe')
     iframe.style.position = 'absolute'
@@ -32,7 +35,6 @@ const ShipmentPrintComponent = forwardRef(({ data }, ref) => {
     document.body.appendChild(iframe)
 
     const printContents = printRef.current.innerHTML
-    const shipmentTitle = `Shipment_Details_${data?.shipment_id || ''}` // Use shipment ID for filename
 
     // Get all stylesheets
     const styles = Array.from(document.styleSheets)
@@ -134,6 +136,136 @@ const ShipmentPrintComponent = forwardRef(({ data }, ref) => {
       }, 300)
     }
   }
+
+  // const handlePrint = () => {
+  //   // Update the printed date and time before printing
+  //   const currentDate = new Date()
+  //   const formattedDate = currentDate.toLocaleString('en-GB', {
+  //     day: '2-digit',
+  //     month: '2-digit',
+  //     year: 'numeric',
+  //     hour: '2-digit',
+  //     minute: '2-digit',
+  //     hour12: true
+  //   })
+  //   setPrintedDate(formattedDate)
+
+  //   // Create a custom filename with shipment ID
+  //   const shipmentTitle = `Shipment_Details_${data?.shipment_id || ''}`
+
+  //   // Instead of iframe, we'll use a different approach for better filename control
+  //   const printWindow = window.open('', '_blank')
+  //   printWindow.document.title = shipmentTitle
+
+  //   if (!printWindow) {
+  //     alert('Please allow popups for this website to print shipment details.')
+  //     return
+  //   }
+
+  //   const printContents = printRef.current.innerHTML
+
+  //   // Get all stylesheets
+  //   const styles = Array.from(document.styleSheets)
+  //     .map(sheet => {
+  //       try {
+  //         return Array.from(sheet.cssRules)
+  //           .map(rule => rule.cssText)
+  //           .join('\n')
+  //       } catch (e) {
+  //         console.warn('Error accessing stylesheet:', e)
+  //         return ''
+  //       }
+  //     })
+  //     .join('\n')
+
+  //   printWindow.document.write(`
+  //       <html>
+  //           <head>
+  //               <title>${shipmentTitle}</title>
+  //               <style>
+  //                   /* Include global styles */
+  //                   ${styles}
+  //                   /* Additional print-specific styles */
+  //                   @media print {
+  //                       body {
+  //                           margin: 0;
+  //                           padding: 0;
+  //                           -webkit-print-color-adjust: exact !important;
+  //                           print-color-adjust: exact !important;
+  //                           color-adjust: exact !important;
+  //                       }
+  //                       .printable-container {
+  //                           background-color: #f5f5f5 !important;
+  //                           padding: 16px !important;
+  //                           border-radius: 8px !important;
+  //                           border: 1px solid #e0e0e0 !important;
+  //                           margin-top: 16px !important;
+  //                           -webkit-print-color-adjust: exact !important;
+  //                           print-color-adjust: exact !important;
+  //                       }
+  //                       table th, table td {
+  //                           -webkit-print-color-adjust: exact !important;
+  //                           print-color-adjust: exact !important;
+  //                           color-adjust: exact !important;
+  //                       }
+  //                       svg, path, circle {
+  //                           color-adjust: exact !important;
+  //                           -webkit-print-color-adjust: exact !important;
+  //                           print-color-adjust: exact !important;
+  //                       }
+  //                       .footer {
+  //                           position: fixed;
+  //                           bottom: 16px;
+  //                           width: 100%;
+  //                           display: flex;
+  //                           justify-content: center;
+  //                           align-items: center;
+  //                           font-size: 14px;
+  //                           color: #666;
+  //                       }
+  //                       .footer-logo {
+  //                           width: 30px;
+  //                           height: 30px;
+  //                           display: flex;
+  //                           justify-content: center;
+  //                           align-items: center;
+  //                           margin-right: 10px;
+  //                       }
+  //                   }
+  //               </style>
+  //           </head>
+  //           <body>
+  //               <div>
+  //                   ${printContents}
+  //               </div>
+  //               <div class="footer">
+  //                   <div class="footer-logo">
+  //                       <img src="/images/branding/Antz_logomark_h_color.svg" alt="Antz Logo" width="30" height="30" />
+  //                   </div>
+  //                   <span>Generated by Antz Systems</span>
+  //               </div>
+  //               <script>
+  //                   // This script will run in the new window
+  //                   window.onload = function() {
+  //                       // Set the document title again (for the filename)
+  //                       document.title = "${shipmentTitle}";
+
+  //                       // Add a small delay to ensure content is loaded
+  //                       setTimeout(function() {
+  //                           window.print();
+  //                           // Close the window after printing (can be removed if you want it to stay open)
+  //                           window.addEventListener('afterprint', function() {
+  //                               window.close();
+  //                           });
+  //                       }, 500);
+  //                   }
+  //               </script>
+  //           </body>
+  //       </html>
+  //   `)
+
+  //   printWindow.document.close()
+  // }
 
   return (
     <div>

@@ -54,6 +54,7 @@ import ConfirmDialogBox from 'src/components/ConfirmDialogBox'
 import select from 'src/@core/theme/overrides/select'
 import { useRouter } from 'next/router'
 import { useTheme } from '@emotion/react'
+import ShipmentPrintComponent from 'src/components/ShipmentPrintComponent'
 
 const Transition = forwardRef(function Transition(props, ref) {
   return <Fade ref={ref} {...props} />
@@ -1308,97 +1309,97 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
 
   const printRef = React.useRef()
 
-  const handlePrint = () => {
-    const printWindow = window.open('', '_blank')
-    const printContents = printRef.current.innerHTML
+  // const handlePrint = () => {
+  //   const printWindow = window.open('', '_blank')
+  //   const printContents = printRef.current.innerHTML
 
-    const styles = Array.from(document.styleSheets)
-      .map(sheet => {
-        try {
-          return Array.from(sheet.cssRules)
-            .map(rule => rule.cssText)
-            .join('\n')
-        } catch (e) {
-          console.warn('Error accessing stylesheet:', e)
+  //   const styles = Array.from(document.styleSheets)
+  //     .map(sheet => {
+  //       try {
+  //         return Array.from(sheet.cssRules)
+  //           .map(rule => rule.cssText)
+  //           .join('\n')
+  //       } catch (e) {
+  //         console.warn('Error accessing stylesheet:', e)
 
-          return ''
-        }
-      })
-      .join('\n')
+  //         return ''
+  //       }
+  //     })
+  //     .join('\n')
 
-    printWindow.document.write(`
-      <html>
-        <head>
-          <title>${`Shipment Details - ${orderData?.shipment_id || ''}`}</title>
-          <style>
-            /* Include global styles */
-            ${styles}
-            /* You can add specific print styles here */
-            @media print {
-              body {
-                margin: 0;
-                padding: 0;
-              }
-                .printable-container {
-              background-color: ${theme.palette.customColors.lightBg};
-              padding: 16px;
-              border-radius: 8px;
-              border: 1px solid ${theme.palette.customColors.neutral05};
-              margin-top: 16px;
+  //   printWindow.document.write(`
+  //     <html>
+  //       <head>
+  //         <title>${`Shipment Details - ${orderData?.shipment_id || ''}`}</title>
+  //         <style>
+  //           /* Include global styles */
+  //           ${styles}
+  //           /* You can add specific print styles here */
+  //           @media print {
+  //             body {
+  //               margin: 0;
+  //               padding: 0;
+  //             }
+  //               .printable-container {
+  //             background-color: ${theme.palette.customColors.lightBg};
+  //             padding: 16px;
+  //             border-radius: 8px;
+  //             border: 1px solid ${theme.palette.customColors.neutral05};
+  //             margin-top: 16px;
 
-            }
-              .MuiDataGrid-footerContainer{
-              display:none!important;
-              opacity: 0;
-            }
-               .print-title {
-              position: absolute;
-              top: 20px;
-              left: 50%;
-              transform: translateX(-50%);
-              font-size: 24px;
-              font-weight: bold;
-              margin-top: 10px;
-            }
-         .footer {
-            text-align: center;
-            font-size: 16px;
-            position: absolute;
-            bottom: 16px;
-            width: calc(100%);
-          }
-              /* Add more print-specific styles if needed */
-            }
-          </style>
-        </head>
-        <body>
-            <div>
-          ${printContents}
-             </div>
-              <div class="footer">Antz Systems</div> <!-- Add footer with "Antz System" -->
-        </body>
-      </html>
-    `)
+  //           }
+  //             .MuiDataGrid-footerContainer{
+  //             display:none!important;
+  //             opacity: 0;
+  //           }
+  //              .print-title {
+  //             position: absolute;
+  //             top: 20px;
+  //             left: 50%;
+  //             transform: translateX(-50%);
+  //             font-size: 24px;
+  //             font-weight: bold;
+  //             margin-top: 10px;
+  //           }
+  //        .footer {
+  //           text-align: center;
+  //           font-size: 16px;
+  //           position: absolute;
+  //           bottom: 16px;
+  //           width: calc(100%);
+  //         }
+  //             /* Add more print-specific styles if needed */
+  //           }
+  //         </style>
+  //       </head>
+  //       <body>
+  //           <div>
+  //         ${printContents}
+  //            </div>
+  //             <div class="footer">Antz Systems</div> <!-- Add footer with "Antz System" -->
+  //       </body>
+  //     </html>
+  //   `)
 
-    printWindow.document.close()
-    printWindow.focus()
+  //   printWindow.document.close()
+  //   printWindow.focus()
 
-    printWindow.onload = () => {
-      printWindow.print()
-      printWindow.onafterprint = () => {
-        printWindow.close()
-      }
-    }
+  //   printWindow.onload = () => {
+  //     printWindow.print()
+  //     printWindow.onafterprint = () => {
+  //       printWindow.close()
+  //     }
+  //   }
 
-    const interval = setInterval(() => {
-      if (printWindow.closed) {
-        clearInterval(interval)
-      } else {
-        printWindow.close()
-        clearInterval(interval)
-      }
-    }, 500)
-  }
+  //   const interval = setInterval(() => {
+  //     if (printWindow.closed) {
+  //       clearInterval(interval)
+  //     } else {
+  //       printWindow.close()
+  //       clearInterval(interval)
+  //     }
+  //   }, 500)
+  // }
 
   console.log(disputeItemDetails?.item_details, 'disputeItemDetails')
 
@@ -1406,6 +1407,15 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
     return disputeItemDetails?.item_details?.some(
       item => item.to_store === selectedPharmacy?.id || item.from_store === selectedPharmacy?.id
     )
+  }
+
+  const shipmentPrintRef = React.useRef(null)
+
+  const handlePrint = () => {
+    // Call the handlePrint method exposed by the ShipmentPrintFormat component
+    if (shipmentPrintRef.current) {
+      shipmentPrintRef.current.handlePrint()
+    }
   }
 
   return (
@@ -1507,6 +1517,16 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
           )}
         </>
       )}
+      {orderData &&
+        ((Array.isArray(orderData) && orderData.length > 0) ||
+          (typeof orderData === 'object' && orderData !== null && Object.keys(orderData).length > 0)) && (
+          <div style={{ display: 'none' }}>
+            <ShipmentPrintComponent
+              ref={shipmentPrintRef}
+              data={orderData} // Pass your shipment data here
+            />
+          </div>
+        )}
     </>
   )
 }
