@@ -40,7 +40,8 @@ import {
   getShipmentOrderDetails,
   getShipmentStatusList,
   resolveDisputeItems,
-  getCommentsList
+  getCommentsList,
+  getShipmentOrderDetailsOfRequests
 } from 'src/lib/api/pharmacy/getShipmentList'
 
 import { updateShipmentRequest } from 'src/lib/api/pharmacy/getRequestItemsList'
@@ -122,7 +123,7 @@ const DisputeItemDetails = React.forwardRef((props, ref) => {
                   }}
                 >
                   <Typography variant='h6'>{`Items Shipped - ${disputeItemDetails?.item_details?.length}`}</Typography>
-                  {disputeItemDetails?.delivery_status !== 'Delivered' && selectedPharmacy.type === 'local' ? (
+                  {disputeItemDetails?.delivery_status !== 'Delivered' && selectedPharmacy.type === 'central' ? (
                     <>
                       {disputeItemDetails?.dispute_status !== 'Dispute Pending' && (
                         <FormGroup row>
@@ -315,9 +316,11 @@ function OrderReceiveForm({ orderId, requestId }) {
     }
   }
 
-  const getOrderDetails = async orderId => {
+  const getOrderDetails = async (orderId, requestId) => {
     try {
-      const response = await getShipmentOrderDetails(orderId)
+      // const response = await getShipmentOrderDetails(orderId)
+      // api updated for normal request api
+      const response = await getShipmentOrderDetailsOfRequests(orderId, requestId)
 
       if (response?.success === true && response?.data !== '') {
         const disputeLineItems = response?.data?.shipment_item_details?.map((el, index) => {
@@ -405,7 +408,7 @@ function OrderReceiveForm({ orderId, requestId }) {
   }
   useEffect(() => {
     if (orderId) {
-      getOrderDetails(orderId)
+      getOrderDetails(orderId, requestId)
     }
     getStatusList()
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -479,7 +482,7 @@ function OrderReceiveForm({ orderId, requestId }) {
       if (resolved?.success) {
         setResolveLoader(false)
         toast.success(resolved?.data)
-        getOrderDetails(orderId)
+        getOrderDetails(orderId, requestId)
       } else {
         setResolveLoader(false)
       }
@@ -560,7 +563,7 @@ function OrderReceiveForm({ orderId, requestId }) {
       if (resolved?.success) {
         setResolveLoader(false)
         toast.success(resolved?.data)
-        getOrderDetails(orderId)
+        getOrderDetails(orderId, requestId)
         closeDisputeDialog()
       } else {
         setResolveLoader(false)
@@ -780,7 +783,7 @@ function OrderReceiveForm({ orderId, requestId }) {
       renderCell: params => {
         return (
           <>
-            {selectedPharmacy.type === 'central' ? (
+            {selectedPharmacy.type === 'local' ? (
               <>
                 <Grid
                   sx={{
@@ -1354,7 +1357,7 @@ function OrderReceiveForm({ orderId, requestId }) {
       setSubmitLoader(true) // Disable checkbox during submission
       try {
         await bulkStatusUpdate() // Ensure this completes before moving forward
-        await getOrderDetails(orderId) // Refresh the data only after updating status
+        await getOrderDetails(orderId, requestId) // Refresh the data only after updating status
       } catch (error) {
         console.error('Error in bulk status update: ', error)
       } finally {
@@ -1496,7 +1499,7 @@ function OrderReceiveForm({ orderId, requestId }) {
                 </Button>
               </Grid>
               <Grid item>
-                {disputeItemDetails?.delivery_status !== 'Delivered' && selectedPharmacy.type === 'local' ? (
+                {disputeItemDetails?.delivery_status !== 'Delivered' && selectedPharmacy.type === 'central' ? (
                   <LoadingButton
                     size='large'
                     disabled={disableButton() || submitLoader}
@@ -1788,7 +1791,7 @@ export default OrderReceiveForm
 //   }
 //   useEffect(() => {
 //     if (orderId) {
-//       getOrderDetails(orderId)
+//       getOrderDetails(orderId, requestId)
 //     }
 //     getStatusList()
 //     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -1871,7 +1874,7 @@ export default OrderReceiveForm
 //       if (resolved?.success) {
 //         setResolveLoader(false)
 //         toast.success(resolved?.data)
-//         getOrderDetails(orderId)
+//         getOrderDetails(orderId, requestId)
 //       } else {
 //         setResolveLoader(false)
 //       }
@@ -1952,7 +1955,7 @@ export default OrderReceiveForm
 //       if (resolved?.success) {
 //         setResolveLoader(false)
 //         toast.success(resolved?.data)
-//         getOrderDetails(orderId)
+//         getOrderDetails(orderId, requestId)
 //         closeDisputeDialog()
 //       } else {
 //         setResolveLoader(false)

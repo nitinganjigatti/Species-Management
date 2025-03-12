@@ -1042,7 +1042,9 @@ const IndividualRequest = () => {
                                       setOrderId(e.id)
                                       Router.push({
                                         pathname: `/pharmacy/local-dispatch/${id}/shipment-details`,
-                                        query: { orderId: e.id }
+
+                                        // query: { orderId: e.id }
+                                        query: { orderId: e.id, requestId: id }
                                       })
                                     }}
                                   ></TableBasic>

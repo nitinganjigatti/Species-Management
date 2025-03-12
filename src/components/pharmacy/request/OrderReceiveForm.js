@@ -811,7 +811,7 @@ function OrderReceiveForm({ orderId, requestId }) {
 
   const columns = [
     {
-      Width: 40,
+      width: 40,
       field: 'uid`',
       headerName: 'S.NO',
       renderCell: params => {
@@ -823,8 +823,7 @@ function OrderReceiveForm({ orderId, requestId }) {
       }
     },
     {
-      flex: 0.5,
-      Width: 100,
+      width: 300,
       field: 'stock_name',
       headerName: 'Product Name',
       renderCell: (params, rowId) => (
@@ -839,8 +838,7 @@ function OrderReceiveForm({ orderId, requestId }) {
       )
     },
     {
-      flex: 0.2,
-      minWidth: 20,
+      width: 200,
       field: 'batch_no',
       headerName: 'Batch',
       renderCell: params => (
@@ -851,8 +849,7 @@ function OrderReceiveForm({ orderId, requestId }) {
     },
 
     {
-      flex: 0.2,
-      minWidth: 20,
+      minWidth: 80,
       field: 'count',
       headerName: 'qty',
       renderCell: params => (
@@ -893,8 +890,7 @@ function OrderReceiveForm({ orderId, requestId }) {
     // },
 
     {
-      flex: 0.4,
-      minWidth: 200,
+      minWidth: 300,
       field: 'status',
       // headerName: 'Status',
       headerName: selectedPharmacy?.type === 'central' ? 'Actions' : 'Status',

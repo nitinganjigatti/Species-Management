@@ -1189,11 +1189,11 @@ const IndividualRequest = () => {
                                     onRowClick={e => {
                                       setOrderId(e.id)
 
-                                      // showOrderFormDialog()
-                                      setOrderId(e.id)
                                       Router.push({
                                         pathname: `/pharmacy/direct-dispatch/${id}/shipment-details`,
-                                        query: { orderId: e.id }
+
+                                        // query: { orderId: e.id }
+                                        query: { orderId: e.id, requestId: id }
                                       })
                                     }}
                                   ></TableBasic>

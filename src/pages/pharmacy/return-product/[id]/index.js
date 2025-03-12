@@ -1097,7 +1097,9 @@ const IndividualReturnRequest = () => {
                                   // showOrderFormDialog()
                                   Router.push({
                                     pathname: `/pharmacy/return-product/${id}/shipment-details`,
-                                    query: { orderId: e.id }
+
+                                    // query: { orderId: e.id }
+                                    query: { orderId: e.id, requestId: id }
                                   })
                                 }}
                               ></TableBasic>
