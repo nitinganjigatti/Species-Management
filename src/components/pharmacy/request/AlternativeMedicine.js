@@ -116,7 +116,8 @@ function AlternativeMedicine({ parentId, updateRequestItems, existingListItems, 
         sort: 'asc',
         q: searchText,
         limit: 20,
-        active: true
+        active: true,
+        is_specific: 1
       }
 
       const searchResults = await getMedicineList({ params: params })
