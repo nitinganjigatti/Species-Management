@@ -67,7 +67,10 @@ const UserThemeOptions = () => {
         secondaryBg: '#7A8684',
         mdAntzNeutral: '#0000000D',
         OnSurfaceVariant: '#44544A',
-        neutralSecondary: '##7A8684'
+        neutralSecondary: '##7A8684',
+        neutralPrimary: '#000000',
+        OutlineVariant: '#C3CEC7',
+        addPrimary: '#00AFD6'
       },
       primary: {
         // light: '#20DE67',
@@ -90,7 +93,8 @@ const UserThemeOptions = () => {
         paper: mode === 'light' ? '#FFFFFF' : '#30334E',
 
         // default: defaultBgColor()
-        default: bgColor
+        default: bgColor,
+        OnBackground: '#E1F9ED'
       }
     },
     components: {
@@ -145,6 +149,13 @@ const UserThemeOptions = () => {
           // }
         }
       },
+      // MuiOutlinedInput: {
+      //   styleOverrides: {
+      //     root: {
+      //       outline: '#839D8D'
+      //     }
+      //   }
+      // },
       MuiBackdrop: {
         styleOverrides: {
           root: {

@@ -345,7 +345,12 @@ const DietDetail = () => {
                     <Box sx={{ display: 'flex', alignItems: 'center' }}>
                       {dietDetails?.species_count > 0 ? (
                         <Typography
-                          sx={{ fontWeight: 500, fontSize: '14px', color: '#7A8684', mr: 6 }}
+                          sx={{
+                            fontWeight: 500,
+                            fontSize: '14px',
+                            color: theme.palette.customColors.secondaryBg,
+                            mr: 6
+                          }}
                           onClick={() => handleSpeciesClicknew('details')}
                         >
                           <span
@@ -378,7 +383,12 @@ const DietDetail = () => {
                   <Box>
                     <TabContext value={value}>
                       <TabList
-                        sx={{ '& button': { borderBottom: '0.5px solid #839D8D', color: '#839D8D' } }}
+                        sx={{
+                          '& button': {
+                            borderBottom: theme.components.MuiDataGrid.styleOverrides.cell.borderBottom,
+                            color: '#839D8D'
+                          }
+                        }}
                         onChange={handleChange}
                         aria-label='simple tabs example'
                         className='tabs_diet_dtl'
@@ -426,7 +436,7 @@ const DietDetail = () => {
                                             sx={{
                                               border: 'none',
                                               height: '40px',
-                                              backgroundColor: '#fff',
+                                              backgroundColor: theme.palette.primary.contrastText,
                                               width: '160px',
                                               position: isSmallDevice ? '' : 'sticky ',
                                               left: 0
@@ -457,7 +467,7 @@ const DietDetail = () => {
                                             sx={{
                                               border: 'none',
                                               height: '40px',
-                                              backgroundColor: '#fff',
+                                              backgroundColor: theme.palette.primary.contrastText,
                                               position: isSmallDevice ? '' : 'sticky ',
                                               left: '160px',
                                               p: 0
@@ -500,7 +510,7 @@ const DietDetail = () => {
                                                   index + 1 ===
                                                   dietDetails?.meal_data[0]?.ingredient[0].meal_type?.length
                                                     ? null
-                                                    : '1px solid #C3CEC7'
+                                                    : `1px solid ${theme.palette.customColors.OutlineVariant}`
                                               }}
                                             >
                                               <Typography>
@@ -521,7 +531,7 @@ const DietDetail = () => {
                                                 borderRight:
                                                   index + 1 === dietDetails?.meal_data[0]?.recipe[0].meal_type?.length
                                                     ? null
-                                                    : '1px solid #C3CEC7'
+                                                    : `1px solid ${theme.palette.customColors.OutlineVariant}`
                                               }}
                                             >
                                               <Typography>
@@ -544,7 +554,7 @@ const DietDetail = () => {
                                                     index + 1 ===
                                                     dietDetails?.meal_data[0]?.ingredientwithchoice[0].meal_type?.length
                                                       ? null
-                                                      : '1px solid #C3CEC7'
+                                                      : `1px solid ${theme.palette.customColors.OutlineVariant}`
                                                 }}
                                               >
                                                 <Typography>
@@ -555,6 +565,7 @@ const DietDetail = () => {
                                           )
                                         : null
                                       : null} */}
+
                                           {dietDetails.diet_type_name === 'By Gender' ? (
                                             <>
                                               <TableCell
@@ -563,7 +574,7 @@ const DietDetail = () => {
                                                   backgroundColor: '#C1D3D099',
                                                   height: '40px',
                                                   width: '133px',
-                                                  borderRight: '1px solid #C3CEC7',
+                                                  borderRight: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                                                   textAlign: 'center'
                                                 }}
                                               >
@@ -575,7 +586,7 @@ const DietDetail = () => {
                                                   backgroundColor: '#C1D3D099',
                                                   height: '40px',
                                                   width: '133px',
-                                                  borderRight: '1px solid #C3CEC7',
+                                                  borderRight: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                                                   textAlign: 'center'
                                                 }}
                                               >
@@ -588,7 +599,7 @@ const DietDetail = () => {
                                                   backgroundColor: '#C1D3D099',
                                                   height: '40px',
                                                   width: '133px',
-                                                  borderRight: '1px solid #C3CEC7',
+                                                  borderRight: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                                                   textAlign: 'center'
                                                 }}
                                               >
@@ -604,7 +615,7 @@ const DietDetail = () => {
                                                   backgroundColor: '#C1D3D099',
                                                   height: '40px',
                                                   width: '137px',
-                                                  borderRight: '1px solid #C3CEC7',
+                                                  borderRight: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                                                   textAlign: 'center'
                                                 }}
                                               >
@@ -616,7 +627,7 @@ const DietDetail = () => {
                                                   backgroundColor: '#C1D3D099',
                                                   height: '40px',
                                                   width: '140px',
-                                                  borderRight: '1px solid #C3CEC7',
+                                                  borderRight: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                                                   textAlign: 'center'
                                                 }}
                                               >
@@ -628,7 +639,7 @@ const DietDetail = () => {
                                                   backgroundColor: '#C1D3D099',
                                                   height: '40px',
                                                   width: '140px',
-                                                  borderRight: '1px solid #C3CEC7',
+                                                  borderRight: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                                                   textAlign: 'center'
                                                 }}
                                               >
@@ -640,7 +651,7 @@ const DietDetail = () => {
                                                   backgroundColor: '#C1D3D099',
                                                   height: '40px',
                                                   width: '140px',
-                                                  borderRight: '1px solid #C3CEC7',
+                                                  borderRight: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                                                   textAlign: 'center'
                                                 }}
                                               >
@@ -652,7 +663,7 @@ const DietDetail = () => {
                                                   backgroundColor: '#C1D3D099',
                                                   height: '40px',
                                                   width: '157px',
-                                                  borderRight: '1px solid #C3CEC7',
+                                                  borderRight: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                                                   textAlign: 'center'
                                                 }}
                                               >
@@ -664,7 +675,7 @@ const DietDetail = () => {
                                                   backgroundColor: '#C1D3D099',
                                                   height: '40px',
                                                   width: '127px',
-                                                  borderRight: '1px solid #C3CEC7',
+                                                  borderRight: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                                                   textAlign: 'center'
                                                 }}
                                               >
@@ -680,7 +691,7 @@ const DietDetail = () => {
                                                   backgroundColor: '#C1D3D099',
                                                   height: '40px',
                                                   width: '137px',
-                                                  borderRight: '1px solid #C3CEC7',
+                                                  borderRight: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                                                   textAlign: 'center'
                                                 }}
                                               >
@@ -696,7 +707,7 @@ const DietDetail = () => {
                                                   backgroundColor: '#C1D3D099',
                                                   height: '40px',
                                                   width: '137px',
-                                                  borderRight: '1px solid #C3CEC7',
+                                                  borderRight: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                                                   textAlign: 'center'
                                                 }}
                                               >
@@ -712,7 +723,7 @@ const DietDetail = () => {
                                                       backgroundColor: '#C1D3D099',
                                                       height: '40px',
                                                       width: '137px',
-                                                      borderRight: '1px solid #C3CEC7',
+                                                      borderRight: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                                                       textAlign: 'center'
                                                     }}
                                                   >
@@ -776,7 +787,6 @@ const DietDetail = () => {
                                                           <Box
                                                             sx={{
                                                               borderRadius: '25px',
-                                                              border: `2px dotted #00AFD6`,
                                                               py: '5px',
                                                               px: '2px'
                                                             }}
@@ -784,7 +794,7 @@ const DietDetail = () => {
                                                             <Typography
                                                               sx={{
                                                                 textAlign: 'center',
-                                                                color: '#00AFD6',
+                                                                color: theme.palette.customColors.addPrimary,
                                                                 fontWeight: 500,
                                                                 fontSize: '16px',
                                                                 lineHeight: '19.36px'
@@ -798,7 +808,6 @@ const DietDetail = () => {
                                                               sx={{
                                                                 width: 0,
                                                                 height: '19px',
-                                                                borderLeft: `2px solid #00AFD6`
                                                               }}
                                                             ></Box>
                                                           </Box>
@@ -806,7 +815,6 @@ const DietDetail = () => {
                                                           <Box
                                                             sx={{
                                                               borderRadius: '25px',
-                                                              border: `2px dotted #00AFD6`,
                                                               py: '5px',
                                                               px: '4px'
                                                             }}
@@ -814,7 +822,7 @@ const DietDetail = () => {
                                                             <Typography
                                                               sx={{
                                                                 textAlign: 'center',
-                                                                color: '#00AFD6',
+                                                                color: theme.palette.customColors.addPrimary,
                                                                 fontWeight: 500,
                                                                 fontSize: '16px',
                                                                 lineHeight: '19.36px'
@@ -829,7 +837,7 @@ const DietDetail = () => {
                                                           sx={{
                                                             borderBottom:
                                                               index === itemd?.items?.length - 1
-                                                                ? '1px solid #C3CEC7'
+                                                                ? `1px solid ${theme.palette.customColors.OutlineVariant}`
                                                                 : 'none'
                                                           }}
                                                         ></TableCell>
@@ -841,7 +849,7 @@ const DietDetail = () => {
                                                           left: '160px',
                                                           pl: 0,
                                                           border: 'none',
-                                                          backgroundColor: '#fff'
+                                                          backgroundColor: theme.palette. primary. contrastText
                                                         }}
                                                       >
                                                         {item?.ingredientwithchoice ? (
@@ -867,7 +875,7 @@ const DietDetail = () => {
                                                               {item?.no_of_component_required && (
                                                                 <Typography
                                                                   sx={{
-                                                                    color: '#000',
+                                                                    color: theme.palette. customColors. neutralPrimary,
                                                                     lineHeight: '16.94px',
                                                                     fontWeight: 600,
                                                                     fontSize: '16px'
@@ -906,7 +914,7 @@ const DietDetail = () => {
                                                                             fontWeight: 600,
                                                                             fontSize: '14px',
                                                                             lineHeight: '16.94px',
-                                                                            color: '#1F415B'
+                                                                            color: theme.palette. secondary. dark
                                                                           }}
                                                                         >
                                                                           {item?.ingredient_name}
@@ -918,7 +926,7 @@ const DietDetail = () => {
                                                                                 fontWeight: 400,
                                                                                 fontSize: '14px',
                                                                                 lineHeight: '18px',
-                                                                                color: '#1F415B'
+                                                                                color: theme.palette. secondary. dark
                                                                               }}
                                                                             >
                                                                               &nbsp;-&nbsp;
@@ -932,7 +940,7 @@ const DietDetail = () => {
                                                                               fontWeight: 400,
                                                                               fontSize: '14px',
                                                                               lineHeight: '18px',
-                                                                              color: '#1F415B'
+                                                                              color: theme.palette. secondary. dark
                                                                             }}
                                                                           >
                                                                             &nbsp;-&nbsp;{item?.feed_uom_name}
@@ -947,7 +955,7 @@ const DietDetail = () => {
                                                               {item?.remarks && (
                                                                 <Box
                                                                   sx={{
-                                                                    backgroundColor: '#0000000d',
+                                                                    backgroundColor: theme.palette. customColors. mdAntzNeutral,
                                                                     display: 'flex',
                                                                     flexDirection: 'column',
                                                                     gap: '4px',
@@ -957,7 +965,7 @@ const DietDetail = () => {
                                                                 >
                                                                   <Typography
                                                                     sx={{
-                                                                      color: '#000',
+                                                                      color: theme.palette. customColors. neutralPrimary,
                                                                       lineHeight: '16.94px',
                                                                       fontWeight: 600,
                                                                       fontSize: '14px'
@@ -967,7 +975,7 @@ const DietDetail = () => {
                                                                   </Typography>
                                                                   <Typography
                                                                     sx={{
-                                                                      color: '#000',
+                                                                      color: theme.palette. customColors. neutralPrimary,
                                                                       lineHeight: '16.94px',
                                                                       fontWeight: 400,
                                                                       fontSize: '14px'
@@ -989,7 +997,7 @@ const DietDetail = () => {
                                                                       width: '48px',
                                                                       height: '32px',
                                                                       borderRadius: '16px',
-                                                                      backgroundColor: '#0000000d',
+                                                                      backgroundColor: theme.palette. customColors. mdAntzNeutral,
                                                                       display: 'center',
                                                                       justifyContent: 'center',
                                                                       alignItems: 'center'
@@ -1000,7 +1008,7 @@ const DietDetail = () => {
                                                                         fontWeight: 400,
                                                                         fontSize: '13px',
                                                                         lineHeight: '18px',
-                                                                        color: '#44544A'
+                                                                        color: theme.palette. customColors. OnSurfaceVariant
                                                                       }}
                                                                     >
                                                                       {value}
@@ -1020,7 +1028,7 @@ const DietDetail = () => {
                                                                 item.ingredient || item.ingredientwithchoice
                                                                   ? '#00D6C933'
                                                                   : item.recipe
-                                                                  ? '#E1F9ED'
+                                                                  ? theme.palette. background.OnBackground
                                                                   : 'white',
                                                               borderRadius: '8px',
                                                               p: '12px',
@@ -1039,7 +1047,7 @@ const DietDetail = () => {
                                                                   {item?.ingredient_name && (
                                                                     <Typography
                                                                       sx={{
-                                                                        color: '#000',
+                                                                        color: theme.palette. customColors. neutralPrimary,
                                                                         lineHeight: '16.94px',
                                                                         fontWeight: 600,
                                                                         fontSize: '16px'
@@ -1052,7 +1060,7 @@ const DietDetail = () => {
                                                                   {item?.recipe_name && (
                                                                     <Typography
                                                                       sx={{
-                                                                        color: '#000',
+                                                                        color: theme.palette. customColors. neutralPrimary,
                                                                         lineHeight: '16.94px',
                                                                         fontWeight: 600,
                                                                         fontSize: '16px'
@@ -1064,7 +1072,7 @@ const DietDetail = () => {
                                                                   {item?.preparation_type_label && (
                                                                     <Typography
                                                                       sx={{
-                                                                        color: '#7A8684',
+                                                                        color: theme.palette.customColors.secondaryBg,
                                                                         lineHeight: '16.94px',
                                                                         fontWeight: 400,
                                                                         fontSize: '14px'
@@ -1088,7 +1096,7 @@ const DietDetail = () => {
                                                                       <Box key={index} sx={{ display: 'flex' }}>
                                                                         <Typography
                                                                           sx={{
-                                                                            color: '#1F515B',
+                                                                            color: theme.palette. primary. light,
                                                                             lineHeight: '16.94px',
                                                                             fontWeight: 400,
                                                                             fontSize: '14px'
@@ -1098,7 +1106,7 @@ const DietDetail = () => {
                                                                         </Typography>
                                                                         <Typography
                                                                           sx={{
-                                                                            color: '#000',
+                                                                            color: theme.palette. customColors. neutralPrimary,
                                                                             lineHeight: '16.94px',
                                                                             fontWeight: 600,
                                                                             fontSize: '14px'
@@ -1120,7 +1128,7 @@ const DietDetail = () => {
                                                                     {item?.preparationType && (
                                                                       <Typography
                                                                         sx={{
-                                                                          color: '#1F515B',
+                                                                          color: theme.palette. primary. light,
                                                                           lineHeight: '16.94px',
                                                                           fontWeight: 400,
                                                                           fontSize: '14px'
@@ -1132,7 +1140,7 @@ const DietDetail = () => {
                                                                     {item?.desc && (
                                                                       <Typography
                                                                         sx={{
-                                                                          color: '#1F515B',
+                                                                          color: theme.palette. primary. light,
                                                                           lineHeight: '16.94px',
                                                                           fontWeight: 400,
                                                                           fontSize: '14px'
@@ -1146,7 +1154,7 @@ const DietDetail = () => {
                                                                 {item?.remarks && (
                                                                   <Box
                                                                     sx={{
-                                                                      backgroundColor: '#0000000d',
+                                                                      backgroundColor: theme.palette. customColors. mdAntzNeutral,
                                                                       display: 'flex',
                                                                       flexDirection: 'column',
                                                                       gap: '4px',
@@ -1156,7 +1164,7 @@ const DietDetail = () => {
                                                                   >
                                                                     <Typography
                                                                       sx={{
-                                                                        color: '#000',
+                                                                        color: theme.palette. customColors. neutralPrimary,
                                                                         lineHeight: '16.94px',
                                                                         fontWeight: 600,
                                                                         fontSize: '14px'
@@ -1166,7 +1174,7 @@ const DietDetail = () => {
                                                                     </Typography>
                                                                     <Typography
                                                                       sx={{
-                                                                        color: '#000',
+                                                                        color: theme.palette. customColors. neutralPrimary,
                                                                         lineHeight: '16.94px',
                                                                         fontWeight: 400,
                                                                         fontSize: '14px'
@@ -1189,7 +1197,7 @@ const DietDetail = () => {
                                                                       width: '48px',
                                                                       height: '32px',
                                                                       borderRadius: '16px',
-                                                                      backgroundColor: '#0000000d',
+                                                                      backgroundColor: theme.palette. customColors. mdAntzNeutral,
                                                                       display: 'center',
                                                                       justifyContent: 'center',
                                                                       alignItems: 'center'
@@ -1200,7 +1208,7 @@ const DietDetail = () => {
                                                                         fontWeight: 400,
                                                                         fontSize: '13px',
                                                                         lineHeight: '18px',
-                                                                        color: '#44544A'
+                                                                        color: theme.palette. customColors. OnSurfaceVariant
                                                                       }}
                                                                     >
                                                                       {value}
@@ -1233,7 +1241,7 @@ const DietDetail = () => {
                                                               <CustomTooltip title={item?.notes} placement='left'>
                                                                 <Box
                                                                   sx={{
-                                                                    backgroundColor: '#0000000d',
+                                                                    backgroundColor: theme.palette. customColors. mdAntzNeutral,
                                                                     p: '10px',
                                                                     width: '100%',
                                                                     display: 'flex',
@@ -1245,7 +1253,7 @@ const DietDetail = () => {
                                                                 >
                                                                   <Typography
                                                                     sx={{
-                                                                      color: '#000',
+                                                                      color: theme.palette. customColors. neutralPrimary,
                                                                       lineHeight: '16.94px',
                                                                       fontWeight: 400,
                                                                       fontSize: '14px'
@@ -1265,9 +1273,9 @@ const DietDetail = () => {
                                                         sx={{
                                                           borderBottom:
                                                             itemData?.items?.length === 0
-                                                              ? '1px solid #C3CEC7'
+                                                              ? `1px solid ${theme.palette.customColors.OutlineVariant}`
                                                               : index === itemData?.length - 1
-                                                              ? '1px solid #C3CEC7'
+                                                              ? `1px solid ${theme.palette.customColors.OutlineVariant}`
                                                               : 'none'
                                                         }}
                                                       >
@@ -1287,7 +1295,7 @@ const DietDetail = () => {
                                                                 lineHeight: '29.05px',
                                                                 fontSize: '20px',
                                                                 fontWeight: 500,
-                                                                color: '#44544A'
+                                                                color: theme.palette. customColors. OnSurfaceVariant
                                                               }}
                                                             >
                                                               Note:- &nbsp;
@@ -1297,7 +1305,7 @@ const DietDetail = () => {
                                                                   lineHeight: '19.36px',
                                                                   fontSize: '16px',
                                                                   fontWeight: 400,
-                                                                  color: '#44544A'
+                                                                  color: theme.palette. customColors. OnSurfaceVariant
                                                                 }}
                                                               >
                                                                 {itemd.notes}
@@ -1350,7 +1358,7 @@ const DietDetail = () => {
                                                       border: 'none',
                                                       pl: 0,
                                                       pr: '36px',
-                                                      background: '#fff',
+                                                      background: theme.palette.primary.contrastText,
                                                       height: '185px',
 
                                                       //display: 'flex',
@@ -1377,7 +1385,7 @@ const DietDetail = () => {
                                                       <Typography
                                                         sx={{
                                                           textAlign: 'center',
-                                                          color: '#00AFD6',
+                                                          color: theme.palette.customColors.addPrimary,
                                                           fontWeight: 500,
                                                           fontSize: '14px',
                                                           mt: '10px',
@@ -1389,7 +1397,7 @@ const DietDetail = () => {
                                                       <Box
                                                         sx={{
                                                           borderRadius: '25px',
-                                                          border: `2px dotted #00AFD6`,
+                                                          border: `2px dotted ${theme.palette.customColors.addPrimary}`,
                                                           py: '5px',
                                                           px: '4px'
                                                         }}
@@ -1397,7 +1405,7 @@ const DietDetail = () => {
                                                         <Typography
                                                           sx={{
                                                             textAlign: 'center',
-                                                            color: '#00AFD6',
+                                                            color: theme.palette.customColors.addPrimary,
                                                             fontWeight: 500,
                                                             fontSize: '16px',
                                                             lineHeight: '19.36px'
@@ -1411,7 +1419,7 @@ const DietDetail = () => {
                                                           sx={{
                                                             width: 0,
                                                             height: '19px',
-                                                            borderLeft: `2px solid #00AFD6`
+                                                            borderLeft: `2px solid ${theme.palette.customColors.addPrimary}`
                                                           }}
                                                         ></Box>
                                                       </Box>
@@ -1419,7 +1427,7 @@ const DietDetail = () => {
                                                       <Box
                                                         sx={{
                                                           borderRadius: '25px',
-                                                          border: `2px dotted #00AFD6`,
+                                                          border: `2px dotted ${theme.palette.customColors.addPrimary}`,
                                                           py: '5px',
                                                           px: '4px'
                                                         }}
@@ -1427,7 +1435,7 @@ const DietDetail = () => {
                                                         <Typography
                                                           sx={{
                                                             textAlign: 'center',
-                                                            color: '#00AFD6',
+                                                            color: theme.palette.customColors.addPrimary,
                                                             fontWeight: 500,
                                                             fontSize: '16px',
                                                             lineHeight: '19.36px'
@@ -1450,7 +1458,7 @@ const DietDetail = () => {
                                                                 position: isSmallDevice ? '' : 'sticky ',
                                                                 left: '160px',
                                                                 border: 'none',
-                                                                backgroundColor: '#fff'
+                                                                backgroundColor: theme.palette.primary.contrastText
 
                                                                 //float: 'left'
                                                               }}
@@ -1517,7 +1525,8 @@ const DietDetail = () => {
                                                                       {item?.ingredient_name && (
                                                                         <Typography
                                                                           sx={{
-                                                                            color: '#000',
+                                                                            color:
+                                                                              theme.palette.customColors.neutralPrimary,
                                                                             lineHeight: '16.94px',
                                                                             fontWeight: 600,
                                                                             fontSize: '16px'
@@ -1529,7 +1538,8 @@ const DietDetail = () => {
                                                                       {item?.master_cut_size ? (
                                                                         <Typography
                                                                           sx={{
-                                                                            color: '#7A8684',
+                                                                            color:
+                                                                              theme.palette.customColors.secondaryBg,
                                                                             lineHeight: '16.94px',
                                                                             fontWeight: 400,
                                                                             fontSize: '14px'
@@ -1545,7 +1555,7 @@ const DietDetail = () => {
                                                                             fontWeight: 400,
                                                                             fontSize: '14px',
                                                                             lineHeight: '18px',
-                                                                            color: '#1F415B'
+                                                                            color: theme.palette.secondary.dark
                                                                           }}
                                                                         >
                                                                           &nbsp;-&nbsp; {item?.preparation_type}
@@ -1564,7 +1574,7 @@ const DietDetail = () => {
                                                                           <Box key={index} sx={{ display: 'flex' }}>
                                                                             <Typography
                                                                               sx={{
-                                                                                color: '#1F515B',
+                                                                                color: theme.palette.primary.light,
                                                                                 lineHeight: '16.94px',
                                                                                 fontWeight: 400,
                                                                                 fontSize: '14px'
@@ -1574,7 +1584,9 @@ const DietDetail = () => {
                                                                             </Typography>
                                                                             <Typography
                                                                               sx={{
-                                                                                color: '#000',
+                                                                                color:
+                                                                                  theme.palette.customColors
+                                                                                    .neutralPrimary,
                                                                                 lineHeight: '16.94px',
                                                                                 fontWeight: 600,
                                                                                 fontSize: '14px'
@@ -1596,7 +1608,7 @@ const DietDetail = () => {
                                                                         {item?.preparationType && (
                                                                           <Typography
                                                                             sx={{
-                                                                              color: '#1F515B',
+                                                                              color: theme.palette.primary.light,
                                                                               lineHeight: '16.94px',
                                                                               fontWeight: 400,
                                                                               fontSize: '14px'
@@ -1608,7 +1620,7 @@ const DietDetail = () => {
                                                                         {item?.desc && (
                                                                           <Typography
                                                                             sx={{
-                                                                              color: '#1F515B',
+                                                                              color: theme.palette.primary.light,
                                                                               lineHeight: '16.94px',
                                                                               fontWeight: 400,
                                                                               fontSize: '14px'
@@ -1622,7 +1634,8 @@ const DietDetail = () => {
                                                                     {item?.remarks && (
                                                                       <Box
                                                                         sx={{
-                                                                          backgroundColor: '#0000000d',
+                                                                          backgroundColor:
+                                                                            theme.palette.customColors.mdAntzNeutral,
                                                                           display: 'flex',
                                                                           flexDirection: 'column',
                                                                           gap: '4px',
@@ -1632,7 +1645,8 @@ const DietDetail = () => {
                                                                       >
                                                                         <Typography
                                                                           sx={{
-                                                                            color: '#000',
+                                                                            color:
+                                                                              theme.palette.customColors.neutralPrimary,
                                                                             lineHeight: '16.94px',
                                                                             fontWeight: 600,
                                                                             fontSize: '14px'
@@ -1642,7 +1656,8 @@ const DietDetail = () => {
                                                                         </Typography>
                                                                         <Typography
                                                                           sx={{
-                                                                            color: '#000',
+                                                                            color:
+                                                                              theme.palette.customColors.neutralPrimary,
                                                                             lineHeight: '16.94px',
                                                                             fontWeight: 400,
                                                                             fontSize: '14px'
@@ -1665,7 +1680,8 @@ const DietDetail = () => {
                                                                             width: '48px',
                                                                             height: '32px',
                                                                             borderRadius: '16px',
-                                                                            backgroundColor: '#0000000d',
+                                                                            backgroundColor:
+                                                                              theme.palette.customColors.mdAntzNeutral,
                                                                             display: 'center',
                                                                             justifyContent: 'center',
                                                                             alignItems: 'center'
@@ -1676,7 +1692,9 @@ const DietDetail = () => {
                                                                               fontWeight: 400,
                                                                               fontSize: '13px',
                                                                               lineHeight: '18px',
-                                                                              color: '#44544A'
+                                                                              color:
+                                                                                theme.palette.customColors
+                                                                                  .OnSurfaceVariant
                                                                             }}
                                                                           >
                                                                             {getDayName(item)}
@@ -1708,7 +1726,8 @@ const DietDetail = () => {
                                                               >
                                                                 <Box
                                                                   sx={{
-                                                                    backgroundColor: '#0000000d',
+                                                                    backgroundColor:
+                                                                      theme.palette.customColors.mdAntzNeutral,
                                                                     p: '10px',
                                                                     boxSizing: 'border-box',
                                                                     display: 'flex',
@@ -1733,7 +1752,7 @@ const DietDetail = () => {
                                                                 >
                                                                   <Typography
                                                                     sx={{
-                                                                      color: '#000',
+                                                                      color: theme.palette.customColors.neutralPrimary,
                                                                       lineHeight: '16.94px',
                                                                       fontWeight: 400,
                                                                       fontSize: '14px'
@@ -1778,7 +1797,8 @@ const DietDetail = () => {
                                                                       >
                                                                         <Box
                                                                           sx={{
-                                                                            backgroundColor: '#0000000d',
+                                                                            backgroundColor:
+                                                                              theme.palette.customColors.mdAntzNeutral,
                                                                             p: '10px',
                                                                             display: 'flex',
                                                                             justifyContent: 'center',
@@ -1806,7 +1826,9 @@ const DietDetail = () => {
                                                                         >
                                                                           <Typography
                                                                             sx={{
-                                                                              color: '#000',
+                                                                              color:
+                                                                                theme.palette.customColors
+                                                                                  .neutralPrimary,
                                                                               lineHeight: '16.94px',
                                                                               fontWeight: 400,
                                                                               fontSize: '14px'
@@ -1864,7 +1886,7 @@ const DietDetail = () => {
                                                                 left: '160px',
                                                                 border: 'none',
 
-                                                                backgroundColor: '#fff'
+                                                                backgroundColor: theme.palette.primary.contrastText
 
                                                                 //float: 'left'
                                                               }}
@@ -1894,7 +1916,8 @@ const DietDetail = () => {
                                                                 sx={{
                                                                   display: 'flex',
                                                                   flexDirection: 'column',
-                                                                  backgroundColor: '#E1F9ED',
+                                                                  backgroundColor:
+                                                                    theme.palette.background.OnBackground,
                                                                   borderRadius: '8px',
                                                                   p: '12px',
                                                                   gap: '16px'
@@ -1931,7 +1954,8 @@ const DietDetail = () => {
                                                                       {item?.recipe_name && (
                                                                         <Typography
                                                                           sx={{
-                                                                            color: '#000',
+                                                                            color:
+                                                                              theme.palette.customColors.neutralPrimary,
                                                                             lineHeight: '16.94px',
                                                                             fontWeight: 600,
                                                                             fontSize: '16px',
@@ -1951,7 +1975,8 @@ const DietDetail = () => {
                                                                         item?.ingredient_name?.length > 0 && (
                                                                           <Typography
                                                                             sx={{
-                                                                              color: '#7A8684',
+                                                                              color:
+                                                                                theme.palette.customColors.secondaryBg,
                                                                               lineHeight: '16.94px',
                                                                               fontWeight: 400,
                                                                               fontSize: '14px',
@@ -2037,7 +2062,7 @@ const DietDetail = () => {
                                                                           <Box key={index} sx={{ display: 'flex' }}>
                                                                             <Typography
                                                                               sx={{
-                                                                                color: '#1F515B',
+                                                                                color: theme.palette.primary.light,
                                                                                 lineHeight: '16.94px',
                                                                                 fontWeight: 400,
                                                                                 fontSize: '14px'
@@ -2047,7 +2072,9 @@ const DietDetail = () => {
                                                                             </Typography>
                                                                             <Typography
                                                                               sx={{
-                                                                                color: '#000',
+                                                                                color:
+                                                                                  theme.palette.customColors
+                                                                                    .neutralPrimary,
                                                                                 lineHeight: '16.94px',
                                                                                 fontWeight: 600,
                                                                                 fontSize: '14px'
@@ -2069,7 +2096,7 @@ const DietDetail = () => {
                                                                         {item?.preparationType && (
                                                                           <Typography
                                                                             sx={{
-                                                                              color: '#1F515B',
+                                                                              color: theme.palette.primary.light,
                                                                               lineHeight: '16.94px',
                                                                               fontWeight: 400,
                                                                               fontSize: '14px'
@@ -2081,7 +2108,7 @@ const DietDetail = () => {
                                                                         {item?.desc && (
                                                                           <Typography
                                                                             sx={{
-                                                                              color: '#1F515B',
+                                                                              color: theme.palette.primary.light,
                                                                               lineHeight: '16.94px',
                                                                               fontWeight: 400,
                                                                               fontSize: '14px'
@@ -2095,7 +2122,8 @@ const DietDetail = () => {
                                                                     {item?.remarks && (
                                                                       <Box
                                                                         sx={{
-                                                                          backgroundColor: '#0000000d',
+                                                                          backgroundColor:
+                                                                            theme.palette.customColors.mdAntzNeutral,
                                                                           display: 'flex',
                                                                           flexDirection: 'column',
                                                                           gap: '4px',
@@ -2105,7 +2133,8 @@ const DietDetail = () => {
                                                                       >
                                                                         <Typography
                                                                           sx={{
-                                                                            color: '#000',
+                                                                            color:
+                                                                              theme.palette.customColors.neutralPrimary,
                                                                             lineHeight: '16.94px',
                                                                             fontWeight: 600,
                                                                             fontSize: '14px'
@@ -2115,7 +2144,8 @@ const DietDetail = () => {
                                                                         </Typography>
                                                                         <Typography
                                                                           sx={{
-                                                                            color: '#000',
+                                                                            color:
+                                                                              theme.palette.customColors.neutralPrimary,
                                                                             lineHeight: '16.94px',
                                                                             fontWeight: 400,
                                                                             fontSize: '14px'
@@ -2138,7 +2168,8 @@ const DietDetail = () => {
                                                                             width: '48px',
                                                                             height: '32px',
                                                                             borderRadius: '16px',
-                                                                            backgroundColor: '#0000000d',
+                                                                            backgroundColor:
+                                                                              theme.palette.customColors.mdAntzNeutral,
                                                                             display: 'center',
                                                                             justifyContent: 'center',
                                                                             alignItems: 'center'
@@ -2149,7 +2180,9 @@ const DietDetail = () => {
                                                                               fontWeight: 400,
                                                                               fontSize: '13px',
                                                                               lineHeight: '18px',
-                                                                              color: '#44544A'
+                                                                              color:
+                                                                                theme.palette.customColors
+                                                                                  .OnSurfaceVariant
                                                                             }}
                                                                           >
                                                                             {getDayName(item)}
@@ -2179,7 +2212,8 @@ const DietDetail = () => {
                                                               >
                                                                 <Box
                                                                   sx={{
-                                                                    backgroundColor: '#0000000d',
+                                                                    backgroundColor:
+                                                                      theme.palette.customColors.mdAntzNeutral,
                                                                     p: '10px',
                                                                     display: 'flex',
                                                                     justifyContent: 'center',
@@ -2203,7 +2237,7 @@ const DietDetail = () => {
                                                                 >
                                                                   <Typography
                                                                     sx={{
-                                                                      color: '#000',
+                                                                      color: theme.palette.customColors.neutralPrimary,
                                                                       lineHeight: '16.94px',
                                                                       fontWeight: 400,
                                                                       fontSize: '14px'
@@ -2246,7 +2280,8 @@ const DietDetail = () => {
                                                                       >
                                                                         <Box
                                                                           sx={{
-                                                                            backgroundColor: '#0000000d',
+                                                                            backgroundColor:
+                                                                              theme.palette.customColors.mdAntzNeutral,
                                                                             p: '10px',
                                                                             display: 'flex',
                                                                             justifyContent: 'center',
@@ -2274,7 +2309,9 @@ const DietDetail = () => {
                                                                         >
                                                                           <Typography
                                                                             sx={{
-                                                                              color: '#000',
+                                                                              color:
+                                                                                theme.palette.customColors
+                                                                                  .neutralPrimary,
                                                                               lineHeight: '16.94px',
                                                                               fontWeight: 400,
                                                                               fontSize: '14px'
@@ -2333,7 +2370,7 @@ const DietDetail = () => {
                                                                 left: '160px',
                                                                 border: 'none',
 
-                                                                backgroundColor: '#fff'
+                                                                backgroundColor: theme.palette.primary.contrastText
 
                                                                 //float: 'left'
                                                               }}
@@ -2400,7 +2437,8 @@ const DietDetail = () => {
                                                                       {item?.recipe_name && (
                                                                         <Typography
                                                                           sx={{
-                                                                            color: '#000',
+                                                                            color:
+                                                                              theme.palette.customColors.neutralPrimary,
                                                                             lineHeight: '16.94px',
                                                                             fontWeight: 600,
                                                                             fontSize: '16px',
@@ -2418,7 +2456,7 @@ const DietDetail = () => {
                                                                         return (
                                                                           <Typography
                                                                             sx={{
-                                                                              color: '#1F515B',
+                                                                              color: theme.palette. primary. light,
                                                                               lineHeight: '16.94px',
                                                                               fontWeight: 400,
                                                                               fontSize: '14px'
@@ -2437,7 +2475,8 @@ const DietDetail = () => {
                                                                         item?.ingredient_name?.length > 0 && (
                                                                           <Typography
                                                                             sx={{
-                                                                              color: '#7A8684',
+                                                                              color:
+                                                                                theme.palette.customColors.secondaryBg,
                                                                               lineHeight: '16.94px',
                                                                               fontWeight: 400,
                                                                               fontSize: '14px',
@@ -2485,7 +2524,9 @@ const DietDetail = () => {
                                                                               display: 'flex',
                                                                               alignItems: 'center',
                                                                               marginRight: '10px',
-                                                                              backgroundColor: '#0000000D',
+                                                                              backgroundColor:
+                                                                                theme.palette.customColors
+                                                                                  .mdAntzNeutral,
                                                                               m: 1,
                                                                               borderRadius: '16px',
                                                                               px: '10px',
@@ -2523,7 +2564,7 @@ const DietDetail = () => {
                                                                           <Box key={index} sx={{ display: 'flex' }}>
                                                                             <Typography
                                                                               sx={{
-                                                                                color: '#1F515B',
+                                                                                color: theme.palette.primary.light,
                                                                                 lineHeight: '16.94px',
                                                                                 fontWeight: 400,
                                                                                 fontSize: '14px'
@@ -2533,7 +2574,9 @@ const DietDetail = () => {
                                                                             </Typography>
                                                                             <Typography
                                                                               sx={{
-                                                                                color: '#000',
+                                                                                color:
+                                                                                  theme.palette.customColors
+                                                                                    .neutralPrimary,
                                                                                 lineHeight: '16.94px',
                                                                                 fontWeight: 600,
                                                                                 fontSize: '14px'
@@ -2555,7 +2598,7 @@ const DietDetail = () => {
                                                                         {item?.preparationType && (
                                                                           <Typography
                                                                             sx={{
-                                                                              color: '#1F515B',
+                                                                              color: theme.palette.primary.light,
                                                                               lineHeight: '16.94px',
                                                                               fontWeight: 400,
                                                                               fontSize: '14px'
@@ -2567,7 +2610,7 @@ const DietDetail = () => {
                                                                         {item?.desc && (
                                                                           <Typography
                                                                             sx={{
-                                                                              color: '#1F515B',
+                                                                              color: theme.palette.primary.light,
                                                                               lineHeight: '16.94px',
                                                                               fontWeight: 400,
                                                                               fontSize: '14px'
@@ -2581,7 +2624,8 @@ const DietDetail = () => {
                                                                     {item?.remarks && (
                                                                       <Box
                                                                         sx={{
-                                                                          backgroundColor: '#0000000D',
+                                                                          backgroundColor:
+                                                                            theme.palette.customColors.mdAntzNeutral,
                                                                           display: 'flex',
                                                                           flexDirection: 'column',
                                                                           gap: '4px',
@@ -2591,7 +2635,8 @@ const DietDetail = () => {
                                                                       >
                                                                         <Typography
                                                                           sx={{
-                                                                            color: '#000',
+                                                                            color:
+                                                                              theme.palette.customColors.neutralPrimary,
                                                                             lineHeight: '16.94px',
                                                                             fontWeight: 600,
                                                                             fontSize: '14px'
@@ -2601,7 +2646,8 @@ const DietDetail = () => {
                                                                         </Typography>
                                                                         <Typography
                                                                           sx={{
-                                                                            color: '#000',
+                                                                            color:
+                                                                              theme.palette.customColors.neutralPrimary,
                                                                             lineHeight: '16.94px',
                                                                             fontWeight: 400,
                                                                             fontSize: '14px'
@@ -2624,7 +2670,8 @@ const DietDetail = () => {
                                                                             width: '48px',
                                                                             height: '32px',
                                                                             borderRadius: '16px',
-                                                                            backgroundColor: '#0000000d',
+                                                                            backgroundColor:
+                                                                              theme.palette.customColors.mdAntzNeutral,
                                                                             display: 'center',
                                                                             justifyContent: 'center',
                                                                             alignItems: 'center'
@@ -2635,7 +2682,9 @@ const DietDetail = () => {
                                                                               fontWeight: 400,
                                                                               fontSize: '13px',
                                                                               lineHeight: '18px',
-                                                                              color: '#44544A'
+                                                                              color:
+                                                                                theme.palette.customColors
+                                                                                  .OnSurfaceVariant
                                                                             }}
                                                                           >
                                                                             {getDayName(item)}
@@ -2665,7 +2714,8 @@ const DietDetail = () => {
                                                               >
                                                                 <Box
                                                                   sx={{
-                                                                    backgroundColor: '#0000000d',
+                                                                    backgroundColor:
+                                                                      theme.palette.customColors.mdAntzNeutral,
                                                                     p: '10px',
                                                                     display: 'flex',
                                                                     justifyContent: 'center',
@@ -2689,7 +2739,7 @@ const DietDetail = () => {
                                                                 >
                                                                   <Typography
                                                                     sx={{
-                                                                      color: '#000',
+                                                                      color: theme.palette.customColors.neutralPrimary,
                                                                       lineHeight: '16.94px',
                                                                       fontWeight: 400,
                                                                       fontSize: '14px'
@@ -2732,7 +2782,8 @@ const DietDetail = () => {
                                                                       >
                                                                         <Box
                                                                           sx={{
-                                                                            backgroundColor: '#0000000d',
+                                                                            backgroundColor:
+                                                                              theme.palette.customColors.mdAntzNeutral,
                                                                             p: '10px',
                                                                             display: 'flex',
                                                                             justifyContent: 'center',
@@ -2760,7 +2811,9 @@ const DietDetail = () => {
                                                                         >
                                                                           <Typography
                                                                             sx={{
-                                                                              color: '#000',
+                                                                              color:
+                                                                                theme.palette.customColors
+                                                                                  .neutralPrimary,
                                                                               lineHeight: '16.94px',
                                                                               fontWeight: 400,
                                                                               fontSize: '14px'
@@ -2816,7 +2869,7 @@ const DietDetail = () => {
                                                               position: isSmallDevice ? '' : 'sticky ',
                                                               left: '160px',
                                                               border: 'none',
-                                                              backgroundColor: '#fff'
+                                                              backgroundColor: theme.palette.primary.contrastText
 
                                                               // float: 'left'
                                                             }}
@@ -2847,7 +2900,7 @@ const DietDetail = () => {
                                                                 display: 'flex',
                                                                 flexDirection: 'column',
 
-                                                                //backgroundColor: '#E1F9ED',
+                                                                //backgroundColor: theme.palette. background.OnBackground,
                                                                 backgroundColor: '#00d6c957',
                                                                 borderRadius: '8px',
                                                                 p: '12px',
@@ -2883,7 +2936,7 @@ const DietDetail = () => {
                                                                 {item?.no_of_component_required && (
                                                                   <Typography
                                                                     sx={{
-                                                                      color: '#000',
+                                                                      color: theme.palette.customColors.neutralPrimary,
                                                                       lineHeight: '16.94px',
                                                                       fontWeight: 600,
                                                                       fontSize: '16px'
@@ -2922,7 +2975,7 @@ const DietDetail = () => {
                                                                               fontWeight: 600,
                                                                               fontSize: '14px',
                                                                               lineHeight: '16.94px',
-                                                                              color: '#1F415B'
+                                                                              color: theme.palette.secondary.dark
                                                                             }}
                                                                           >
                                                                             {item?.ingredient_name}
@@ -2933,7 +2986,7 @@ const DietDetail = () => {
                                                                                 fontWeight: 400,
                                                                                 fontSize: '14px',
                                                                                 lineHeight: '18px',
-                                                                                color: '#1F415B'
+                                                                                color: theme.palette.secondary.dark
                                                                               }}
                                                                             >
                                                                               &nbsp;-&nbsp; {item?.preparation_type}
@@ -2946,7 +2999,7 @@ const DietDetail = () => {
                                                                                 fontWeight: 400,
                                                                                 fontSize: '14px',
                                                                                 lineHeight: '18px',
-                                                                                color: '#1F415B'
+                                                                                color: theme.palette.secondary.dark
                                                                               }}
                                                                             >
                                                                               &nbsp;-&nbsp; {item?.preparation_type}
@@ -2961,7 +3014,8 @@ const DietDetail = () => {
                                                                 {item?.remarks && (
                                                                   <Box
                                                                     sx={{
-                                                                      backgroundColor: '#0000000d',
+                                                                      backgroundColor:
+                                                                        theme.palette.customColors.mdAntzNeutral,
                                                                       display: 'flex',
                                                                       flexDirection: 'column',
                                                                       gap: '4px',
@@ -2971,7 +3025,8 @@ const DietDetail = () => {
                                                                   >
                                                                     <Typography
                                                                       sx={{
-                                                                        color: '#000',
+                                                                        color:
+                                                                          theme.palette.customColors.neutralPrimary,
                                                                         lineHeight: '16.94px',
                                                                         fontWeight: 600,
                                                                         fontSize: '14px'
@@ -2981,7 +3036,8 @@ const DietDetail = () => {
                                                                     </Typography>
                                                                     <Typography
                                                                       sx={{
-                                                                        color: '#000',
+                                                                        color:
+                                                                          theme.palette.customColors.neutralPrimary,
                                                                         lineHeight: '16.94px',
                                                                         fontWeight: 400,
                                                                         fontSize: '14px'
@@ -3003,7 +3059,8 @@ const DietDetail = () => {
                                                                           width: '48px',
                                                                           height: '32px',
                                                                           borderRadius: '16px',
-                                                                          backgroundColor: '#0000000d',
+                                                                          backgroundColor:
+                                                                            theme.palette.customColors.mdAntzNeutral,
                                                                           display: 'center',
                                                                           justifyContent: 'center',
                                                                           alignItems: 'center'
@@ -3014,7 +3071,9 @@ const DietDetail = () => {
                                                                             fontWeight: 400,
                                                                             fontSize: '13px',
                                                                             lineHeight: '18px',
-                                                                            color: '#44544A'
+                                                                            color:
+                                                                              theme.palette.customColors
+                                                                                .OnSurfaceVariant
                                                                           }}
                                                                         >
                                                                           {getDayName(item)}
@@ -3046,7 +3105,8 @@ const DietDetail = () => {
                                                             >
                                                               <Box
                                                                 sx={{
-                                                                  backgroundColor: '#0000000d',
+                                                                  backgroundColor:
+                                                                    theme.palette.customColors.mdAntzNeutral,
                                                                   p: '10px',
                                                                   display: 'flex',
                                                                   justifyContent: 'center',
@@ -3070,7 +3130,7 @@ const DietDetail = () => {
                                                               >
                                                                 <Typography
                                                                   sx={{
-                                                                    color: '#000',
+                                                                    color: theme.palette.customColors.neutralPrimary,
                                                                     lineHeight: '16.94px',
                                                                     fontWeight: 400,
                                                                     fontSize: '14px'
@@ -3115,7 +3175,8 @@ const DietDetail = () => {
                                                                     >
                                                                       <Box
                                                                         sx={{
-                                                                          backgroundColor: '#0000000d',
+                                                                          backgroundColor:
+                                                                            theme.palette.customColors.mdAntzNeutral,
                                                                           p: '10px',
                                                                           display: 'flex',
                                                                           justifyContent: 'center',
@@ -3141,7 +3202,8 @@ const DietDetail = () => {
                                                                       >
                                                                         <Typography
                                                                           sx={{
-                                                                            color: '#000',
+                                                                            color:
+                                                                              theme.palette.customColors.neutralPrimary,
                                                                             lineHeight: '16.94px',
                                                                             fontWeight: 400,
                                                                             fontSize: '14px'
@@ -3188,7 +3250,11 @@ const DietDetail = () => {
                                                 </TableRow>
                                               )}
                                               <TableRow
-                                                sx={{ width: '100%', borderBottom: '1px solid #C3CEC7', pb: 3 }}
+                                                sx={{
+                                                  width: '100%',
+                                                  borderBottom: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+                                                  pb: 3
+                                                }}
                                               >
                                                 <TableCell
                                                   colSpan={12}
@@ -3227,10 +3293,24 @@ const DietDetail = () => {
                   </Box>
                   {dietDetails?.remarks ? (
                     <Box sx={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                      <Typography sx={{ lineHeight: '29.05px', fontSize: '24px', fontWeight: 500, color: '#44544A' }}>
+                      <Typography
+                        sx={{
+                          lineHeight: '29.05px',
+                          fontSize: '24px',
+                          fontWeight: 500,
+                          color: theme.palette.customColors.OnSurfaceVariant
+                        }}
+                      >
                         Remarks
                       </Typography>
-                      <Typography sx={{ lineHeight: '19.36px', fontSize: '16px', fontWeight: 400, color: '#44544A' }}>
+                      <Typography
+                        sx={{
+                          lineHeight: '19.36px',
+                          fontSize: '16px',
+                          fontWeight: 400,
+                          color: theme.palette.customColors.OnSurfaceVariant
+                        }}
+                      >
                         {dietDetails?.remarks ? dietDetails?.remarks : 'No Remarks'}
                       </Typography>
                     </Box>

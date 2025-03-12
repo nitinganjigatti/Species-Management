@@ -8,8 +8,6 @@ import {
   Avatar,
   Card,
   CardContent,
-  CircularProgress,
-  Divider,
   useMediaQuery
 } from '@mui/material'
 import Router, { useRouter } from 'next/router'
@@ -126,7 +124,6 @@ const DietDetailCard = ({ dietDetails, dietModulePermission, dietModuleAccess })
   }
 
   const handlebackClick = () => {
-    debugger
     if (source !== undefined && source === 'recipedetail') {
       Router.push({
         pathname: `/diet/recipe/${recipeId}`,
@@ -181,7 +178,7 @@ const DietDetailCard = ({ dietDetails, dietModulePermission, dietModuleAccess })
                 alt={dietDetails?.image}
                 sx={{
                   width: '100%',
-                  height: dietDetails?.image ? '300px' : '250px',
+                  height: '100%',
                   borderRadius: '8px',
                   '& img': {
                     objectFit: isSmallDevice ? '' : 'cover',
