@@ -48,6 +48,11 @@ import { getOrgCountList } from 'src/lib/api/parivesh/organizationCount'
 import { deleteSpeciesToOrganization } from 'src/lib/api/parivesh/addSpecies'
 import Image from 'next/image'
 import { display } from '@mui/system'
+import ImageLightbox from 'src/components/parivesh/ImageLightbox'
+import Utility from 'src/utility'
+import { Details } from '@mui/icons-material'
+import NewEntryDetailsDialog from './new-entry-details/index'
+import Error404 from 'src/pages/404'
 
 // import { addBatches, getEntryList, getOrgCountList } from 'src/lib/api/parivesh'
 
@@ -73,23 +78,47 @@ const NewEntry = ({}) => {
   const [selectedRows, setSelectedRows] = useState([])
   const [btnLoader, setBtnLoader] = useState(false)
   const [organizationCountList, setOrganizationCountList] = useState([])
-  const [editParams, setEditParams] = useState({})
   const [selectedId, setSelectedId] = useState(null)
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [detailData, setDetailData] = useState()
   const [isEditModal, setIsEditModal] = useState(false)
 
+  const pariveshAccess = authData?.userData?.roles?.settings?.enable_parivesh
+
   function loadServerRows(currentPage, data) {
     return data
   }
 
+  // const handleSelectAll = event => {
+  //   event.stopPropagation()
+  //   setSelectAll(event.target.checked)
+  //   if (event.target.checked) {
+  //     setSelectedRows(rows.map(row => row.id))
+  //   } else {
+  //     setSelectedRows([])
+  //   }
+  // }
+
+  const updateSelectAllState = paginationModel => {
+    const startIndex = paginationModel.page * paginationModel.pageSize
+    const endIndex = startIndex + paginationModel.pageSize
+    const currentPageRows = rows.slice(startIndex, endIndex)
+    const allCurrentPageSelected = currentPageRows.every(row => selectedRows.includes(row.id))
+    setSelectAll(allCurrentPageSelected && currentPageRows.length > 0)
+  }
   const handleSelectAll = event => {
     event.stopPropagation()
-    setSelectAll(event.target.checked)
-    if (event.target.checked) {
-      setSelectedRows(rows.map(row => row.id))
+    const isChecked = event.target.checked
+    setSelectAll(isChecked)
+
+    const startIndex = paginationModel.page * paginationModel.pageSize
+    const endIndex = startIndex + paginationModel.pageSize
+    const currentPageRows = rows.slice(startIndex, endIndex)
+
+    if (isChecked) {
+      setSelectedRows(prevSelected => [...new Set([...prevSelected, ...currentPageRows.map(row => row.id)])])
     } else {
-      setSelectedRows([])
+      setSelectedRows(prevSelected => prevSelected.filter(id => !currentPageRows.some(row => row.id === id)))
     }
   }
 
@@ -127,20 +156,32 @@ const NewEntry = ({}) => {
     }
   }
 
-  const handleRowSelection = id => {
-    const selectedIndex = selectedRows.indexOf(id)
-    let newSelected = []
+  // const handleRowSelection = id => {
+  //   const selectedIndex = selectedRows.indexOf(id)
+  //   let newSelected = []
 
-    if (selectedIndex === -1) {
-      newSelected = [...selectedRows, id]
-    } else {
-      newSelected = selectedRows.filter(rowId => rowId !== id)
-    }
-    // Update selectedRows state
-    setSelectedRows(newSelected)
-    // Update selectAll state
-    setSelectAll(newSelected.length === rows.length)
+  //   if (selectedIndex === -1) {
+  //     newSelected = [...selectedRows, id]
+  //   } else {
+  //     newSelected = selectedRows.filter(rowId => rowId !== id)
+  //   }
+  //   // Update selectedRows state
+  //   setSelectedRows(newSelected)
+  //   // Update selectAll state
+  //   setSelectAll(newSelected.length === rows.length)
+  // }
+
+  const handleRowSelection = id => {
+    setSelectedRows(prevSelected => {
+      const newSelected = prevSelected.includes(id) ? prevSelected.filter(rowId => rowId !== id) : [...prevSelected, id]
+
+      updateSelectAllState(paginationModel)
+      return newSelected
+    })
   }
+  useEffect(() => {
+    updateSelectAllState(paginationModel)
+  }, [rows, selectedRows, paginationModel])
 
   const handleChange = (event, newValue) => {
     setTotal(0)
@@ -222,13 +263,12 @@ const NewEntry = ({}) => {
 
   const handleEdit = async (event, params) => {
     event.stopPropagation()
-    console.log('params >>', params)
-    setEditParams(params)
+    // console.log('params >>', params)
 
     // Ensure params.id exists and is a string or number
     if (params?.id) {
       Router.push({
-        pathname: '/parivesh/home/new-entries/add-newentry',
+        pathname: '/parivesh/home/new-entries/edit-newentry',
         query: { id: params.id } // Pass id in the query object
       })
     }
@@ -271,7 +311,7 @@ const NewEntry = ({}) => {
     },
 
     {
-      flex: 0.2,
+      flex: 0.3,
       minWidth: 30,
       field: 'species_image',
       headerName: 'IMAGE',
@@ -281,13 +321,11 @@ const NewEntry = ({}) => {
           {/* <Box className='relative h-20'>
             <Image src={params.row.species_image} alt={params.row.uid} width={40} height={40} />
           </Box> */}
+          <div onClick={event => event.stopPropagation()}>
+            <ImageLightbox images={params.row.species_image} />
 
-          <Avatar
-            variant='square'
-            src={params.row.species_image}
-            alt={'species_image'}
-            sx={{ height: 'auto', p: 0.5 }}
-          />
+            {/* <Avatar variant='square' src={params.row.species_image} alt={''} sx={{ height: 'auto', p: 0.5 }} /> */}
+          </div>
 
           {/* <Tooltip title={params.row.image_type} placement='right'>
             <Typography
@@ -418,10 +456,14 @@ const NewEntry = ({}) => {
       renderCell: params => (
         <Box sx={{ display: 'flex', flexDirection: 'column' }}>
           <Typography noWrap variant='body2' sx={{ color: 'text.primary' }}>
-            {params.row.transaction_date ? moment.utc(params.row.transaction_date).format('DD MMMM YYYY') : '-'}
+            {params.row.transaction_date
+              ? Utility.formatDisplayDate(Utility.convertUTCToLocal(params.row.transaction_date))
+              : '-'}
           </Typography>
           <Typography noWrap variant='body2' sx={{ color: '#839D8D', fontSize: '12px' }}>
-            {params.row.transaction_date ? moment.utc(params.row.transaction_date).local().format('hh:mm A') : '-'}
+            {params.row.transaction_date
+              ? Utility.extractHoursAndMinutes(Utility.convertUTCToLocal(params.row.transaction_date))
+              : '-'}
           </Typography>
         </Box>
       )
@@ -450,8 +492,16 @@ const NewEntry = ({}) => {
       minWidth: 20,
       field: 'checkbox',
       sortable: false,
+      // headerName: (
+      //   <Checkbox checked={selectAll} onChange={handleSelectAll} inputProps={{ 'aria-label': 'Select All Rows' }} />
+      // ),
       headerName: (
-        <Checkbox checked={selectAll} onChange={handleSelectAll} inputProps={{ 'aria-label': 'Select All Rows' }} />
+        <Checkbox
+          checked={selectAll}
+          indeterminate={selectedRows.length > 0 && !selectAll}
+          onChange={handleSelectAll}
+          inputProps={{ 'aria-label': 'Select All Rows' }}
+        />
       ),
       renderCell: params => (
         <Checkbox
@@ -482,35 +532,29 @@ const NewEntry = ({}) => {
 
   const headerAction = (
     <>
-      <div>
-        <Button
-          size='medium'
-          variant='contained'
-          onClick={() => Router.push('/parivesh/home/new-entries/add-newentry')}
-        >
-          <Icon icon='mdi:add' fontSize={20} />
-          &nbsp; ADD ENTRY
-        </Button>
+      <Button size='medium' variant='contained' onClick={() => Router.push('/parivesh/home/new-entries/add-newentry')}>
+        <Icon icon='mdi:add' fontSize={20} />
+        &nbsp; ADD ENTRY
+      </Button>
 
-        <LoadingButton
-          loading={btnLoader}
-          size='medium'
-          variant='contained'
-          sx={{
-            m: 2,
-            backgroundColor: '#1F415B',
-            color: '#FFFFFF',
-            '&:hover': {
-              // CSS pseudo-class for hover effect
-              backgroundColor: '#0D2B3E' // Darker shade for hover background color
-            }
-          }}
-          onClick={handleCreateBatch}
-          disabled={selectedRows.length > 0 ? false : true}
-        >
-          {'CREATE BATCH'}
-        </LoadingButton>
-      </div>
+      <LoadingButton
+        loading={btnLoader}
+        size='medium'
+        variant='contained'
+        sx={{
+          m: 2,
+          backgroundColor: '#1F415B',
+          color: '#FFFFFF',
+          '&:hover': {
+            // CSS pseudo-class for hover effect
+            backgroundColor: '#0D2B3E' // Darker shade for hover background color
+          }
+        }}
+        onClick={handleCreateBatch}
+        disabled={selectedRows.length > 0 ? false : true}
+      >
+        {'CREATE BATCH'}
+      </LoadingButton>
     </>
   )
 
@@ -574,7 +618,11 @@ const NewEntry = ({}) => {
               paginationModel={paginationModel}
               onSortModelChange={handleSortModel}
               slots={{ toolbar: ServerSideToolbarWithFilter }}
-              onPaginationModelChange={setPaginationModel}
+              // onPaginationModelChange={setPaginationModel}
+              onPaginationModelChange={newModel => {
+                setPaginationModel(newModel)
+                updateSelectAllState(newModel)
+              }}
               loading={loading}
               slotProps={{
                 baseButton: {
@@ -604,10 +652,12 @@ const NewEntry = ({}) => {
 
         await getOrgCountList({ params: params }).then(res => {
           const filteredData = res.data.filter(org => org.org_id === selectedParivesh?.id)
+
           const transformedData = filteredData.map(org => ({
             organization_name: org.organization_name,
             org_id: org.org_id,
             species_image: org?.species_image,
+            cover_image: org?.cover_image,
             approvedAccordionData: {
               title: 'Approved by Parivesh',
               data: [
@@ -876,176 +926,104 @@ const NewEntry = ({}) => {
     fetchOrgCountData(selectedParivesh?.id)
   }, [fetchOrgCountData])
 
-  // console.log(organizationCountList, 'organizationCountList')
+  console.log('Details', detailData)
+  const capitalizeFirstLetter = str => {
+    if (!str) return ''
+    return str.charAt(0).toUpperCase() + str.slice(1)
+  }
 
   return (
     <>
-      {organizationCountList.length > 0 && (
-        <Card>
-          <CardContent sx={{ display: 'flex', flexDirection: 'column' }}>
-            {organizationCountList.map((org, inx) => {
-              return (
-                <CustomAccordion
-                  title='To be submitted'
-                  summaryIcon='mdi:arrow-top-right'
-                  data={org?.yetToSubmitAccordionData?.data}
-                  cards={org?.yetToSubmitAccordionData?.cards}
-                  backgroundImage={org?.species_image !== '' && orgData?.species_image}
-                  isOrganization={selectedParivesh.id !== 'all' ? true : false}
-                  organizationName={selectedParivesh.id !== 'all' ? selectedParivesh.organization_name : null}
-                />
-              )
-            })}
-          </CardContent>
-        </Card>
-      )}
+      {pariveshAccess ? (
+        <>
+          {organizationCountList.length > 0 && (
+            <Card>
+              <CardContent sx={{ display: 'flex', flexDirection: 'column' }}>
+                {organizationCountList.map((org, inx) => {
+                  return (
+                    <CustomAccordion
+                      title='To be submitted'
+                      summaryIcon='mdi:arrow-top-right'
+                      data={org?.yetToSubmitAccordionData?.data}
+                      cards={org?.yetToSubmitAccordionData?.cards}
+                      backgroundImage={org?.cover_image !== '' && org?.cover_image}
+                      isOrganization={selectedParivesh.id !== 'all' ? true : false}
+                      organizationName={selectedParivesh.id !== 'all' ? selectedParivesh.organization_name : null}
+                    />
+                  )
+                })}
+              </CardContent>
+            </Card>
+          )}
 
-      <Grid>{tableData()}</Grid>
+          <Grid>{tableData()}</Grid>
 
-      <Dialog open={isEditModal} onClose={() => setIsEditModal(false)} fullWidth maxWidth='sm'>
-        <DialogTitle>
-          <Grid container direction='column'>
-            {/* Close button */}
-            <IconButton
-              aria-label='close'
-              onClick={() => setIsEditModal(false)}
-              sx={{ top: 10, right: 6, position: 'absolute', color: 'grey.500' }}
-            >
-              <Icon icon='mdi:close' />
-            </IconButton>
+          <NewEntryDetailsDialog isEditModal={isEditModal} setIsEditModal={setIsEditModal} detailData={detailData} />
 
-            {/* Header with Avatar and details */}
-            <Grid item container alignItems='center' mt={6}>
-              <Avatar variant='circular' src={detailData?.created_by_user?.profile_pic} />
-              <Typography sx={{ ml: 2 }}>Created By: {detailData?.created_by_user?.user_name}</Typography>
-            </Grid>
-
-            {/* Media details */}
-            <Box sx={{ display: 'flex', mt: 2, alignItems: 'center', mb: 2 }}>
+          <Dialog open={isModalOpen} onClose={() => setIsModalOpen(false)}>
+            <DialogTitle>
+              <IconButton
+                aria-label='close'
+                onClick={() => setIsModalOpen(false)}
+                sx={{ top: 10, right: 10, position: 'absolute', color: 'grey.500' }}
+              >
+                <Icon icon='mdi:close' />
+              </IconButton>
               <Box
                 sx={{
-                  padding: '16px',
-                  borderRadius: '12px',
-                  backgroundColor: theme.palette.customColors.mdAntzNeutral,
                   display: 'flex',
+                  flexDirection: 'column',
+                  gap: '32px',
+
+                  // padding: '40px',
                   alignItems: 'center'
                 }}
               >
-                <Avatar src={detailData?.species_image} alt={detailData?.id} variant='square' sx={{ height: 'auto' }} />
+                <Box
+                  sx={{
+                    padding: '16px',
+                    borderRadius: '12px',
+                    backgroundColor: theme.palette.customColors.mdAntzNeutral
+                  }}
+                >
+                  <Icon width='70px' height='70px' color={'#ff3838'} icon={'mdi:delete'} />
+                </Box>
+                <Box>
+                  <Typography sx={{ fontWeight: 600, fontSize: 24, textAlign: 'center', mb: '12px' }}>
+                    Are you sure you want to delete this species?
+                  </Typography>
+                </Box>
+                <Box sx={{ display: 'flex', justifyContent: 'space-evenly', width: '100%' }}>
+                  <Button
+                    disabled={btnLoader}
+                    onClick={() => setIsModalOpen(false)}
+                    variant='outlined'
+                    sx={{
+                      color: 'gray',
+                      width: '45%'
+                    }}
+                  >
+                    Cancel
+                  </Button>
+
+                  <LoadingButton
+                    loading={btnLoader}
+                    size='large'
+                    variant='contained'
+                    sx={{ width: '45%' }}
+                    onClick={() => confirmDeleteAction()}
+                  >
+                    Delete
+                  </LoadingButton>
+                </Box>
               </Box>
-              <Box sx={{ ml: 2 }}>
-                <Typography variant='h6' sx={{ color: '#00afd6' }}>
-                  {detailData?.scientific_name}
-                </Typography>
-                <Typography variant='h6'>({detailData?.common_name})</Typography>
-              </Box>
-            </Box>
-
-            {/* Divider */}
-            <Divider />
-
-            {/* Details */}
-            <Grid item container mt={2} alignItems='center'>
-              <Typography variant='h6' color={'#7A8684'}>
-                Gender
-              </Typography>
-              <Typography variant='h6' sx={{ ml: 58 }} color={'#1F515B'}>
-                {detailData?.gender.charAt(0).toUpperCase() + detailData?.gender.slice(1)}
-              </Typography>
-            </Grid>
-
-            <Grid item container mt={2} alignItems='center'>
-              <Typography variant='h6' color={'#7A8684'}>
-                Reason for Entry
-              </Typography>
-              <Typography variant='h6' sx={{ ml: 36 }} color={'#1F515B'}>
-                {detailData?.possession_type.charAt(0).toUpperCase() + detailData?.possession_type.slice(1)}
-              </Typography>
-            </Grid>
-
-            <Grid item container mt={2} alignItems='center'>
-              <Typography variant='h6' color={'#7A8684'}>
-                Total Count
-              </Typography>
-              <Typography variant='h6' sx={{ ml: 50 }} color={'#1F515B'}>
-                {detailData?.animal_count}
-              </Typography>
-            </Grid>
-
-            <Grid item container mt={2} alignItems='center'>
-              <Typography variant='h6' color={'#7A8684'}>
-                Entry Date
-              </Typography>
-              <Typography variant='h6' sx={{ ml: 50 }} color={'#1F515B'}>
-                {detailData?.transaction_date
-                  ? moment.utc(detailData?.transaction_date).local().format('DD MMMM YYYY hh:mm A')
-                  : ''}
-              </Typography>
-            </Grid>
-          </Grid>
-        </DialogTitle>
-      </Dialog>
-
-      <Dialog open={isModalOpen} onClose={() => setIsModalOpen(false)}>
-        <DialogTitle>
-          <IconButton
-            aria-label='close'
-            onClick={() => setIsModalOpen(false)}
-            sx={{ top: 10, right: 10, position: 'absolute', color: 'grey.500' }}
-          >
-            <Icon icon='mdi:close' />
-          </IconButton>
-          <Box
-            sx={{
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '32px',
-
-              // padding: '40px',
-              alignItems: 'center'
-            }}
-          >
-            <Box
-              sx={{
-                padding: '16px',
-                borderRadius: '12px',
-                backgroundColor: theme.palette.customColors.mdAntzNeutral
-              }}
-            >
-              <Icon width='70px' height='70px' color={'#ff3838'} icon={'mdi:delete'} />
-            </Box>
-            <Box>
-              <Typography sx={{ fontWeight: 600, fontSize: 24, textAlign: 'center', mb: '12px' }}>
-                Are you sure you want to delete this species?
-              </Typography>
-            </Box>
-            <Box sx={{ display: 'flex', justifyContent: 'space-evenly', width: '100%' }}>
-              <Button
-                disabled={btnLoader}
-                onClick={() => setIsModalOpen(false)}
-                variant='outlined'
-                sx={{
-                  color: 'gray',
-                  width: '45%'
-                }}
-              >
-                Cancel
-              </Button>
-
-              <LoadingButton
-                loading={btnLoader}
-                size='large'
-                variant='contained'
-                sx={{ width: '45%' }}
-                onClick={() => confirmDeleteAction()}
-              >
-                Delete
-              </LoadingButton>
-            </Box>
-          </Box>
-        </DialogTitle>
-        <DialogContent />
-      </Dialog>
+            </DialogTitle>
+            <DialogContent />
+          </Dialog>
+        </>
+      ) : (
+        <Error404></Error404>
+      )}
     </>
   )
 }

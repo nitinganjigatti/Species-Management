@@ -13,8 +13,10 @@ import Typography from '@mui/material/Typography'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
-import { Box, Drawer } from '@mui/material'
+import { Box, Drawer, Grid, TextField } from '@mui/material'
 import IconButton from '@mui/material/IconButton'
+
+import { useTheme } from '@emotion/react'
 
 import { AddButton } from 'src/components/Buttons'
 
@@ -34,8 +36,13 @@ import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
 import { useContext } from 'react'
 import { AuthContext } from 'src/context/AuthContext'
 import Utility from 'src/utility'
+import CommonTable from 'src/views/table/data-grid/CommonTable'
+import { AddButtonContained } from 'src/components/ButtonContained'
+import RenderUtility from 'src/utility/render'
 
 const ListOfStates = () => {
+  const theme = useTheme()
+
   const [stateList, setStateList] = useState([])
   const [loader, setLoader] = useState(false)
 
@@ -85,7 +92,7 @@ const ListOfStates = () => {
         await fetchTableData(sort, searchValue, sortColumn)
       } else {
         setSubmitLoader(false)
-        debugger
+
         if (typeof response.message === 'object') {
           Utility.errorMessageExtractorFromObject(response.message)
         } else {
@@ -129,66 +136,98 @@ const ListOfStates = () => {
 
   const columns = [
     {
-      flex: 0.05,
-      Width: 40,
+      minWidth: 90,
       field: 'uid',
-      headerName: 'SL ',
+      headerName: 'S.NO',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {parseInt(params.row.sl_no)}
+          {parseInt(params.row.sl_no) + '.'}
         </Typography>
       )
     },
     {
-      flex: 0.2,
-      minWidth: 20,
+      minWidth: 300,
       field: 'name',
       headerName: 'STATE NAME',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary', textTransform: 'capitalize' }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            textTransform: 'capitalize',
+            fontFamily: 'Inter'
+          }}
+        >
           {params.row.name}
         </Typography>
       )
     },
 
     {
-      flex: 0.2,
-      minWidth: 20,
+      minWidth: 180,
       field: 'code',
       headerName: 'STATE CODE',
       type: 'number',
-      align: 'right',
+      align: 'left',
+      headerAlign: 'left',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
           {params.row.code}
         </Typography>
       )
     },
     {
-      flex: 0.2,
-      minWidth: 20,
+      minWidth: 200,
       field: 'short_code',
       headerName: 'SHORT CODE',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary', textTransform: 'uppercase' }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            textTransform: 'uppercase',
+            fontFamily: 'Inter'
+          }}
+        >
           {params.row.short_code}
         </Typography>
       )
     },
     {
-      flex: 0.2,
-      minWidth: 20,
+      minWidth: 180,
+
       field: 'status',
       headerName: 'STATUS',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+
+            fontFamily: 'Inter'
+          }}
+        >
           {params.row.status}
         </Typography>
       )
     },
     {
-      flex: 0.2,
-      minWidth: 20,
+      minWidth: 180,
+
       field: 'Action',
       headerName: 'Action',
       renderCell: params => (
@@ -238,7 +277,6 @@ const ListOfStates = () => {
         }
 
         await getStates({ params: params }).then(res => {
-          debugger
           setTotal(parseInt(res?.data?.total_count))
           setRows(loadServerRows(paginationModel.page, res?.data?.list_items))
         })
@@ -281,9 +319,11 @@ const ListOfStates = () => {
 
   const headerAction = (
     <div>
-      {/* {selectedPharmacy.type === 'central' &&
-        (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') && ( */}
-      {pharmacyRole && <AddButton title='Add State' action={() => addEventSidebarOpen()} />}
+      {pharmacyRole && (
+        <Grid item>
+          <AddButtonContained title='Add State' action={() => addEventSidebarOpen()} fullWidth='fullWidth' />
+        </Grid>
+      )}
     </div>
   )
 
@@ -314,8 +354,76 @@ const ListOfStates = () => {
               /> */}
 
               <Card>
-                <CardHeader title='State List' action={headerAction} />
-                <DataGrid
+                <CardHeader
+                  sx={{
+                    display: 'flex',
+                    flexDirection: { xs: 'column', sm: 'row' },
+                    justifyContent: 'flex-start', // Align content to the left
+                    alignItems: 'flex-start', // Align items to the top left
+                    gap: { xs: 3, sm: 0 },
+                    '& .MuiCardHeader-action': {
+                      width: { xs: '100% ', sm: 'auto' }
+                    }
+                  }}
+                  title={RenderUtility.pageTitle('State List')}
+                  action={headerAction}
+                />
+
+                <Grid
+                  item
+                  sx={{
+                    mx: { xs: 4 },
+                    ml: { md: 4 }
+                  }}
+                >
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+                      borderRadius: '8px',
+                      padding: '0 8px',
+                      height: '40px',
+                      width: {
+                        xs: '100%',
+                        sm: '250px'
+                      }
+                    }}
+                  >
+                    <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
+                    <TextField
+                      variant='outlined'
+                      placeholder='Search...'
+                      onChange={e => handleSearch(e.target.value)}
+                      fullWidth
+                      sx={{
+                        '& .MuiOutlinedInput-root': {
+                          border: 'none',
+                          padding: '0',
+                          '& fieldset': {
+                            border: 'none'
+                          }
+                        }
+                      }}
+                    />
+                  </Box>
+                </Grid>
+
+                <Grid sx={{ mx: 4 }}>
+                  <CommonTable
+                    onRowClick={''}
+                    indexedRows={indexedRows}
+                    total={total}
+                    columns={columns}
+                    paginationModel={paginationModel}
+                    handleSortModel={handleSortModel}
+                    setPaginationModel={setPaginationModel}
+                    loading={loading}
+                    searchValue={searchValue}
+                  />
+                </Grid>
+
+                {/* <DataGrid
                   columnVisibilityModel={{
                     uid: false
                   }}
@@ -345,7 +453,7 @@ const ListOfStates = () => {
                       onChange: event => handleSearch(event.target.value)
                     }
                   }}
-                />
+                /> */}
               </Card>
               <AddStates
                 drawerWidth={400}

@@ -54,6 +54,7 @@ import '../../styles/globals.css'
 import '../../styles/custom.css'
 
 import { PharmacyProvider } from 'src/context/PharmacyContext'
+import { DynamicStatesProvider } from 'src/context/DynamicStatesContext'
 import { EggProvider } from 'src/context/EggContext'
 import { PariveshProvider } from 'src/context/PariveshContext'
 
@@ -105,28 +106,33 @@ const App = props => {
       </Head>
       <PariveshProvider>
         <PharmacyProvider>
-          <EggProvider>
-            <AuthProvider>
-              <SettingsProvider {...(setConfig ? { pageSettings: setConfig() } : {})}>
-                <SettingsConsumer>
-                  {({ settings }) => {
-                    return (
-                      <ThemeComponent settings={settings}>
-                        <Guard authGuard={authGuard} guestGuard={guestGuard}>
-                          <AclGuard aclAbilities={aclAbilities} guestGuard={guestGuard} authGuard={authGuard}>
-                            {getLayout(<Component {...pageProps} />)}
-                          </AclGuard>
-                        </Guard>
-                        <ReactHotToast>
-                          <Toaster position={settings.toastPosition} toastOptions={{ className: 'react-hot-toast' }} />
-                        </ReactHotToast>
-                      </ThemeComponent>
-                    )
-                  }}
-                </SettingsConsumer>
-              </SettingsProvider>
-            </AuthProvider>
-          </EggProvider>
+          <DynamicStatesProvider>
+            <EggProvider>
+              <AuthProvider>
+                <SettingsProvider {...(setConfig ? { pageSettings: setConfig() } : {})}>
+                  <SettingsConsumer>
+                    {({ settings }) => {
+                      return (
+                        <ThemeComponent settings={settings}>
+                          <Guard authGuard={authGuard} guestGuard={guestGuard}>
+                            <AclGuard aclAbilities={aclAbilities} guestGuard={guestGuard} authGuard={authGuard}>
+                              {getLayout(<Component {...pageProps} />)}
+                            </AclGuard>
+                          </Guard>
+                          <ReactHotToast>
+                            <Toaster
+                              position={settings.toastPosition}
+                              toastOptions={{ className: 'react-hot-toast' }}
+                            />
+                          </ReactHotToast>
+                        </ThemeComponent>
+                      )
+                    }}
+                  </SettingsConsumer>
+                </SettingsProvider>
+              </AuthProvider>
+            </EggProvider>
+          </DynamicStatesProvider>
         </PharmacyProvider>
       </PariveshProvider>
     </CacheProvider>

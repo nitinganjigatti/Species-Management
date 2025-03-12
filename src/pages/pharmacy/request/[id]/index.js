@@ -1,12 +1,10 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import React, { forwardRef, useState, useEffect } from 'react'
+import React, { forwardRef, useState, useEffect, useCallback } from 'react'
 
 import {
   getRequestItemsListById,
   getDispatchItemsByBatchId,
   getShippedItemsByRequestId,
-  markItemNotAvailable,
-  markItemAvailable,
   deleteFulfillItem
 } from 'src/lib/api/pharmacy/getRequestItemsList'
 import Button from '@mui/material/Button'
@@ -15,6 +13,7 @@ import TableBasic from 'src/views/table/data-grid/TableBasic'
 import Dialog from '@mui/material/Dialog'
 import CustomChip from 'src/@core/components/mui/chip'
 import { getDisputeItemList, getDispenseItemList } from 'src/lib/api/pharmacy/getShipmentList'
+import CustomAvatar from 'src/@core/components/mui/avatar'
 
 // ** MUI Imports
 import IconButton from '@mui/material/IconButton'
@@ -24,7 +23,6 @@ import Typography from '@mui/material/Typography'
 import Fade from '@mui/material/Fade'
 import Alert from '@mui/material/Alert'
 import AlertTitle from '@mui/material/AlertTitle'
-import DialogTitle from '@mui/material/DialogTitle'
 import DialogActions from '@mui/material/DialogActions'
 import DialogContent from '@mui/material/DialogContent'
 import DialogContentText from '@mui/material/DialogContentText'
@@ -32,7 +30,7 @@ import toast from 'react-hot-toast'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
-import { Box, CardContent, CardHeader, Tooltip } from '@mui/material'
+import { Box, CardContent, CardHeader, Divider, Tooltip, Paper, Drawer, Avatar } from '@mui/material'
 import { useRouter } from 'next/router'
 
 import Router from 'next/router'
@@ -43,19 +41,52 @@ import CommonDialogBox from 'src/components/CommonDialogBox'
 import OrderReceiveForm from 'src/components/pharmacy/request/OrderReceiveForm'
 import DisputeItemView from 'src/components/pharmacy/request/DisputeItemView'
 import DispenseItemView from 'src/components/pharmacy/request/DispenseItemView'
-import { ProductNotAvailable } from 'src/views/pages/pharmacy/request/dialog/productNotAvailable'
-import ConfirmDialogBox from 'src/components/ConfirmDialogBox'
 
+import ProductNotAvailable from 'src/components/pharmacy/request/ProductNotAvailable'
+import ConfirmDialogBox from 'src/components/ConfirmDialogBox'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import Utility from 'src/utility'
 import MenuWithDots from 'src/components/MenuWithDots'
-import { height, minHeight } from '@mui/system'
+import AlternativeMedicine from 'src/components/pharmacy/request/AlternativeMedicine'
+import RejectRequestItem from 'src/components/pharmacy/request/RejectRequestItem'
+import Tab from '@mui/material/Tab'
+import TabPanel from '@mui/lab/TabPanel'
+import TabContext from '@mui/lab/TabContext'
+import TabList from '@mui/lab/TabList'
+import Chip from '@mui/material/Chip'
+import { styled } from '@mui/material/styles'
+import MuiTabList from '@mui/lab/TabList'
+
+import DetailsTable from 'src/components/pharmacy/request/DetailsTable'
+import CloseIcon from '@mui/icons-material/Close'
+import RenderUtility from 'src/utility/render'
+import { useTheme } from '@emotion/react'
+import { width } from '@mui/system'
 
 const Transition = forwardRef(function Transition(props, ref) {
   return <Fade ref={ref} {...props} />
 })
 
 const IndividualRequest = () => {
+  // Styled TabList component
+  const TabLists = styled(MuiTabList)(({ theme }) => ({
+    '& .MuiTabs-indicator': {
+      display: 'none'
+    },
+    '& .Mui-selected': {
+      backgroundColor: theme.palette.customColors.OnSecondaryContainer,
+      color: theme.palette.common.white
+    },
+    '& .MuiTab-root': {
+      minHeight: 38,
+      minWidth: 110,
+      borderRadius: 8,
+      paddingTop: theme.spacing(2),
+      paddingBottom: theme.spacing(2)
+    }
+  }))
+  const router = useRouter()
+
   const [requestItems, setRequestItems] = useState([])
   const [loader, setLoader] = useState(false)
   const [show, setShow] = useState(false)
@@ -82,10 +113,100 @@ const IndividualRequest = () => {
   const [productNotAvailableLoading, setProductNotAvailableLoading] = useState(false)
   const [permissionView, setPermissionView] = useState(false)
 
-  const router = useRouter()
   const { selectedPharmacy } = usePharmacyContext()
 
   const { id, request_number } = router.query
+  const [expandedText, setExpandedText] = useState('')
+  const [notesDialog, setNotesDialog] = useState(false)
+  const [showAlternativeMedicineDialog, setShowAlternativeMedicineDialog] = useState(false)
+  const [rejectRequestMedicineDialog, setRejectRequestMedicineDialog] = useState(false)
+  const [shipmentDetailsDialog, setShipmentDetailsDialog] = useState(false)
+
+  const [medicineParentId, setMedicineParentId] = useState({
+    parentEndPointId: '',
+    parent_id: '',
+    request_item_id: '',
+    qty_requested: '',
+    product: ''
+  })
+  const [status, setStatus] = useState('Pending')
+  const [detailsTab, setDetailsTab] = useState(router?.query?.detailsTab || 'Pending')
+  const [shipmentTab, setShipmentTab] = useState(router?.query?.shipmentTab || 'Ready To Ship')
+  const theme = useTheme()
+
+  const TabBadge = ({ label, totalCount }) => (
+    <div style={{ display: 'flex', alignItems: 'center', justifyItems: 'center', justifyContent: 'space-between' }}>
+      {label}
+      {totalCount ? (
+        <Chip sx={{ ml: '6px', fontSize: '12px' }} size='small' label={totalCount} color='secondary' />
+      ) : null}
+    </div>
+  )
+
+  const closeNotesDialog = () => {
+    setNotesDialog(false)
+    setExpandedText('')
+  }
+
+  const openNotesDialog = () => {
+    setNotesDialog(true)
+  }
+
+  const closeAlternativeMedicineDialog = () => {
+    setShowAlternativeMedicineDialog(false)
+    setMedicineParentId({
+      parentEndPointId: '',
+
+      parent_id: '',
+      request_item_id: '',
+      qty_requested: '',
+      product: ''
+    })
+  }
+
+  const openAlternativeMedicineDialog = () => {
+    setShowAlternativeMedicineDialog(true)
+  }
+
+  const updateUrlParams = useCallback(
+    params => {
+      const newQuery = { ...router.query, ...params }
+      router.replace({ pathname: router.pathname, query: newQuery }, undefined)
+    },
+    [router, detailsTab, shipmentTab]
+  )
+
+  const closeRejectMedicineDialog = () => {
+    setRejectRequestMedicineDialog(false)
+    setMedicineParentId({
+      parentEndPointId: '',
+
+      parent_id: '',
+      request_item_id: '',
+      qty_requested: '',
+      product: ''
+    })
+  }
+
+  const openRejectMedicineDialog = () => {
+    setRejectRequestMedicineDialog(true)
+  }
+
+  const closeProductNotAvailableDialog = () => {
+    setProductNotAvailableDialog(false)
+    setMedicineParentId({
+      parentEndPointId: '',
+
+      parent_id: '',
+      request_item_id: '',
+      qty_requested: '',
+      product: ''
+    })
+  }
+
+  const openProductNotAvailableDialog = () => {
+    setProductNotAvailableDialog(true)
+  }
 
   // const base_url = `${process.env.NEXT_PUBLIC_BASE_URL}`
   // const base_image_url = '/uploads/control_substance/'
@@ -94,7 +215,6 @@ const IndividualRequest = () => {
     setLoader(true)
     const response = await getRequestItemsListById(id)
     if (response.success) {
-      // console.log('Request', response.data)
       const responseData = response.data
 
       const mappedWithUid = response?.data?.request_item_details?.map((item, index) => ({
@@ -103,8 +223,6 @@ const IndividualRequest = () => {
       }))
 
       responseData['request_item_details'] = mappedWithUid
-
-      // debugger
 
       // setRequestItems(response.data)
       setRequestItems(responseData)
@@ -166,14 +284,11 @@ const IndividualRequest = () => {
   }
 
   const getShippedItems = async id => {
-    // debugger
     try {
       setLoader(true)
       const response = await getShippedItemsByRequestId(id)
 
       if (response.success) {
-        // debugger
-
         const mappedWithUid = response?.data?.map((item, index) => ({
           ...item,
           sl_no: index + 1
@@ -333,13 +448,25 @@ const IndividualRequest = () => {
     init(id)
   }
 
+  const getCellBgColor = el => {
+    if (el?.alt_parent.length === 0 && el?.dispatch_qty === el?.requested_qty) {
+      return 'customColors.Surface'
+    } else if (el?.alt_parent.length > 0) {
+      return 'customColors.customTableCellBg'
+    } else if (el?.request_status === 'Not Available' || el?.request_status === 'Rejected') {
+      return 'customColors.neutral05'
+    } else {
+      return 'white'
+    }
+  }
+
   const renderAttachmentIcons = status => {
     const hasControlSubstance = status.control_substance === '1'
     const hasPrescriptionRequired = status.prescription_required === '1'
 
     return (
       <>
-        {hasControlSubstance && (
+        {/* {hasControlSubstance && (
           <IconButton
             size='small'
             onClick={() => {
@@ -347,23 +474,99 @@ const IndividualRequest = () => {
             }}
             aria-label='Control Substance Attachment'
           >
-            <Icon icon='mdi:link' />
+            <Icon icon='material-symbols:attachment' />
           </IconButton>
-        )}
+        )} */}
         {hasPrescriptionRequired && (
-          <IconButton
-            size='small'
+          <Box
             onClick={() => {
               window.open(status.prescription_required_file, '_blank')
             }}
-            aria-label='Prescription Attachment'
+            sx={{ display: 'flex' }}
           >
-            <Icon icon='mdi:link' />
-          </IconButton>
+            <Icon style={{ fontSize: '20px', color: 'customColors.neutral_50' }} icon='material-symbols:attachment' />
+            <Typography
+              variant='body2'
+              sx={{
+                color: 'text.primary',
+                opacity: '0.5'
+              }}
+            >
+              prescription
+            </Typography>
+          </Box>
         )}
         {!(hasControlSubstance || hasPrescriptionRequired) && 'NA'}
       </>
     )
+  }
+
+  const strikeOutTextStyle = request_status => {
+    return request_status === 'Not Available'
+      ? { opacity: 0.5, pointerEvents: 'none', textDecoration: 'line-through' }
+      : {}
+  }
+
+  const generateOptions = (params, parentId) => {
+    let options = []
+
+    if (selectedPharmacy.type === 'central') {
+      options.push({
+        label: 'Add Alternate',
+        action: () => {
+          openAlternativeMedicineDialog()
+          setMedicineParentId(prevState => ({
+            ...prevState,
+            parentEndPointId: params.request_item_id,
+            parent_id: parentId,
+            request_item_id: params?.id,
+            qty_requested: params?.qty,
+            product: params?.stock_name
+          }))
+        }
+      })
+    }
+
+    if (
+      (selectedPharmacy.type === 'central' &&
+        parseInt(params?.requested_qty) - parseInt(params?.dispatch_qty) > 0 &&
+        params?.request_status !== 'Alternate') ||
+      params?.request_status !== 'Not Available' ||
+      params?.request_status !== 'Rejected'
+    ) {
+      options.push(
+        {
+          label: 'Supply Stopped',
+          action: () => {
+            setMedicineParentId(prevState => ({
+              ...prevState,
+              parentEndPointId: params.request_item_id,
+              parent_id: parentId,
+              request_item_id: params?.id,
+              qty_requested: params?.qty,
+              product: params?.stock_name
+            }))
+            openProductNotAvailableDialog()
+          }
+        },
+        {
+          label: 'Decline Request',
+          action: () => {
+            setMedicineParentId(prevState => ({
+              ...prevState,
+              parentEndPointId: params.request_item_id,
+              parent_id: parentId,
+              request_item_id: params?.id,
+              qty_requested: params?.qty,
+              product: params?.stock_name
+            }))
+            openRejectMedicineDialog()
+          }
+        }
+      )
+    }
+
+    return options
   }
 
   const columns = [
@@ -385,12 +588,12 @@ const IndividualRequest = () => {
       )
     },
     {
-      flex: 0.5,
+      flex: 0.6,
       Width: 40,
       field: 'stock_name',
       headerName: 'Product Name',
       renderCell: (params, rowId) => (
-        <Box sx={{ width: '100%' }}>
+        <Box sx={{ width: '100%', ...strikeOutTextStyle(params.row.request_status) }}>
           <Typography
             variant='body2'
             sx={{
@@ -423,6 +626,27 @@ const IndividualRequest = () => {
               {params?.row?.manufacturer}
             </Typography>
           </Tooltip>
+          {params?.row?.request_status === 'Rejected' && (
+            <Typography variant='body2' sx={{ color: 'error.main' }}>
+              This Product was rejected
+            </Typography>
+          )}
+          {params?.row?.request_status === 'Not Available' && (
+            <Typography variant='body2' sx={{ color: 'error.main' }}>
+              This Product is not available
+            </Typography>
+          )}
+          {params?.row?.request_status === 'Alternate' && (
+            <Typography variant='body2' sx={{ color: 'error.main' }}>
+              This product has an alternative product
+            </Typography>
+          )}
+          {params?.row?.alt_parent && params?.row?.alt_parent.stock_item_name && (
+            <Typography variant='body2' sx={{ color: 'success.main' }}>
+              This Alternate product for <br />
+              {params?.row?.alt_parent.stock_item_name}
+            </Typography>
+          )}
         </Box>
       )
     },
@@ -439,7 +663,8 @@ const IndividualRequest = () => {
           variant='body2'
           sx={{
             color: 'text.primary',
-            textDecoration: params.row.request_status === 'Not Available' ? 'line-through' : 'none'
+            textDecoration: params.row.request_status === 'Not Available' ? 'line-through' : 'none',
+            ...strikeOutTextStyle(params.row.request_status)
           }}
         >
           {params.row.requested_qty}
@@ -458,7 +683,8 @@ const IndividualRequest = () => {
           variant='body2'
           sx={{
             color: 'text.primary',
-            textDecoration: params.row.request_status === 'Not Available' ? 'line-through' : 'none'
+            textDecoration: params.row.request_status === 'Not Available' ? 'line-through' : 'none',
+            ...strikeOutTextStyle(params.row.request_status)
           }}
         >
           {params.row.dispatch_qty}
@@ -478,7 +704,8 @@ const IndividualRequest = () => {
           variant='body2'
           sx={{
             color: 'text.primary',
-            textDecoration: params.row.request_status === 'Not Available' ? 'line-through' : 'none'
+            textDecoration: params.row.request_status === 'Not Available' ? 'line-through' : 'none',
+            ...strikeOutTextStyle(params.row.request_status)
           }}
         >
           {selectedPharmacy.type === 'local'
@@ -497,10 +724,13 @@ const IndividualRequest = () => {
           {selectedPharmacy.type === 'central' && (
             <Button
               size='small'
+              sx={{ ...strikeOutTextStyle(params.row.request_status) }}
               disabled={
                 parseInt(params.row.requested_qty) - parseInt(params.row.dispatch_qty) >= 1 &&
+                requestItems.status !== 'Cancelled' &&
+                params.row.request_status !== 'Alternate' &&
                 params.row.request_status !== 'Not Available' &&
-                requestItems.status !== 'Cancelled'
+                params.row.request_status !== 'Rejected'
                   ? false
                   : true
               }
@@ -536,7 +766,9 @@ const IndividualRequest = () => {
       minWidth: 20,
       field: 'attachment',
       headerName: 'Attachment',
-      renderCell: params => <>{renderAttachmentIcons(params.row)}</>
+      renderCell: params => (
+        <Box sx={{ ...strikeOutTextStyle(params.row.request_status) }}>{renderAttachmentIcons(params.row)}</Box>
+      )
 
       // !isNaN(params?.row?.control_substance) && parseInt(params?.row?.control_substance) === 1 ? (
       //   <>
@@ -566,90 +798,176 @@ const IndividualRequest = () => {
       //   'NA'
       // )
     },
+    {
+      flex: 0.2,
+      minWidth: 20,
+      field: 'description',
+      headerName: 'Notes',
+      align: 'left',
+
+      renderCell: params => (
+        <Tooltip sx={{ cursor: 'pointer' }} title={params.row?.description}>
+          <Typography
+            sx={{
+              minWidth: 30,
+              maxWidth: 80,
+              cursor: 'pointer',
+              WebkitBoxOrient: 'vertical',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              WebkitLineClamp: 6,
+              whiteSpace: 'nowrap',
+              ...strikeOutTextStyle(params.row.request_status)
+            }}
+            onClick={() => {
+              if (params.row?.description) {
+                setExpandedText(params.row.description)
+                openNotesDialog()
+              }
+            }}
+          >
+            {params.row?.description || 'NA'}
+          </Typography>
+        </Tooltip>
+      )
+    },
+    {
+      flex: 0.2,
+      minWidth: 20,
+      field: 'comments',
+      headerName: 'Comments',
+      align: 'left',
+
+      renderCell: params => (
+        <Tooltip sx={{ cursor: 'pointer' }} title={params.row?.alternate_comments}>
+          {/* <Icon icon='uil:comments' style={{ color: 'primary.error' }} /> */}
+          <Typography
+            sx={{
+              minWidth: 30,
+              maxWidth: 80,
+              cursor: 'pointer',
+              WebkitBoxOrient: 'vertical',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              WebkitLineClamp: 6,
+              whiteSpace: 'nowrap'
+
+              // ...strikeOutTextStyle(params.row.request_status)
+            }}
+            onClick={() => {
+              if (params.row?.alternate_comments) {
+                setExpandedText(params.row.alternate_comments)
+                openNotesDialog()
+              }
+            }}
+          >
+            {params.row?.alternate_comments || 'NA'}
+          </Typography>
+        </Tooltip>
+      )
+    },
 
     {
       flex: 0.3,
       minWidth: 20,
       field: 'priority',
       headerName: 'Availability',
-      renderCell: params => (
-        <>
-          {params.row.request_status === 'Not Available' && (
-            <Typography
-              variant='body2'
-              sx={{
-                color: 'text.primary'
-              }}
-            >
-              <Box sx={{ color: 'error.main', mr: 2 }}>
-                <Icon icon='fluent-emoji:prohibited' style={{ color: 'primary.error' }} />
-              </Box>
-            </Typography>
-          )}
+      renderCell: params => {
+        let options = []
 
-          {selectedPharmacy.type === 'local' && params.row.request_status === 'Not Available' && (
-            <Typography
-              variant='body2'
-              sx={{
-                color: 'text.primary'
-              }}
-            >
-              Not Available
-            </Typography>
-          )}
-
-          {selectedPharmacy.type === 'central' &&
+        if (selectedPharmacy.type === 'central') {
+          options.push({
+            label: 'ALTERNATIVE PRODUCT',
+            action: () => {
+              openAlternativeMedicineDialog()
+              setMedicineParentId({
+                ...medicineParentId,
+                parent_id: requestItems?.id,
+                request_item_id: params.row.id,
+                qty_requested: params.row.qty,
+                product: params.row.stock_name
+              })
+            }
+          })
+        }
+        if (
+          (selectedPharmacy.type === 'central' &&
             parseInt(params.row.requested_qty) - parseInt(params.row.dispatch_qty) > 0 &&
-            params.row.request_status !== 'Not Available' && (
-              <>
-                {/* <Button
-                  size='small'
-                  variant='contained'
-                  color='error'
-                  onClick={() => {
-                    handleProductNotAvailableAction(params.row.id, false)
-                  }}
-                >
-                  MAKE IT NOT AVAILABLE
-                </Button> */}
-                <MenuWithDots
-                  option='MAKE IT NOT AVAILABLE'
-                  action={() => {
-                    handleProductNotAvailableAction(params.row.id, false)
-                  }}
-                />
-              </>
-            )}
+            params.row.request_status !== 'Alternate') ||
+          params.row.request_status !== 'Not Available' ||
+          params.row.request_status !== 'Rejected'
+        ) {
+          options.push(
+            {
+              label: 'MAKE IT NOT AVAILABLE',
+              action: () => {
+                setNotAvailableItemId({
+                  parent_id: requestItems?.id,
+                  request_item_id: params.row.id,
+                  qty_requested: params.row.qty,
+                  product: params.row.stock_name
+                })
+                openProductNotAvailableDialog()
+              }
+            },
+            {
+              label: 'REJECT PRODUCT',
+              action: () => {
+                setMedicineParentId({
+                  ...medicineParentId,
+                  parent_id: requestItems?.id,
+                  request_item_id: params.row.id,
+                  qty_requested: params.row.qty,
+                  product: params.row.stock_name
+                })
+                openRejectMedicineDialog()
+              }
+            }
+          )
+        }
 
-          {selectedPharmacy.type === 'central' &&
-            parseInt(params.row.requested_qty) - parseInt(params.row.dispatch_qty) > 0 &&
-            params.row.request_status === 'Not Available' && (
-              // eslint-disable-next-line lines-around-comment
-              // <Button
-              //   size='small'
-              //   variant='contained'
-              //   color='secondary'
-              //   onClick={() => {
-              //     handleProductNotAvailableAction(params.row.id, true)
-              //   }}
-              // >
-              //   MAKE IT AVAILABLE
-              // </Button>
-              <MenuWithDots
-                option='MAKE IT AVAILABLE'
-                action={() => {
-                  handleProductNotAvailableAction(params.row.id, true)
+        return (
+          <>
+            {params.row.request_status === 'Not Available' && (
+              <Typography
+                variant='body2'
+                sx={{
+                  color: 'text.primary'
                 }}
-              />
+              >
+                <Box sx={{ color: 'error.main', mr: 2 }}>
+                  <Icon icon='fluent-emoji:prohibited' style={{ color: 'primary.error' }} />
+                </Box>
+              </Typography>
             )}
-        </>
-      )
+
+            {selectedPharmacy.type === 'local' && params.row.request_status === 'Not Available' && (
+              <Typography
+                variant='body2'
+                sx={{
+                  color: 'text.primary'
+                }}
+              >
+                Not Available
+              </Typography>
+            )}
+
+            {selectedPharmacy.type === 'central' && (
+              <Box sx={{ ...strikeOutTextStyle(params.row.request_status) }}>
+                {parseInt(params.row.requested_qty) - parseInt(params.row.dispatch_qty) >= 1 &&
+                  params.row.request_status !== 'Alternate' &&
+                  params.row.request_status !== 'Not Available' &&
+                  params.row.request_status !== 'Rejected' && <MenuWithDots options={options} />}
+              </Box>
+            )}
+          </>
+        )
+      }
     }
   ]
 
   const fulfillColumns = [
     {
-      flex: 0.05,
       Width: 40,
       field: 'sl_no',
       headerName: 'SL',
@@ -661,8 +979,8 @@ const IndividualRequest = () => {
     },
 
     {
-      flex: 0.5,
-      Width: 40,
+      flex: 1,
+      minWidth: 200,
       field: 'medicin_name',
       headerName: 'Product Name',
       renderCell: (params, rowId) => (
@@ -687,8 +1005,7 @@ const IndividualRequest = () => {
     },
 
     {
-      flex: 0.2,
-      minWidth: 20,
+      width: 160,
       field: 'batch_no',
       headerName: 'Batch No',
       renderCell: params => (
@@ -699,8 +1016,7 @@ const IndividualRequest = () => {
     },
 
     {
-      flex: 0.2,
-      minWidth: 20,
+      width: 120,
       field: 'expiry_date',
       headerName: 'Expiry Date',
       renderCell: params => (
@@ -712,8 +1028,7 @@ const IndividualRequest = () => {
       )
     },
     {
-      flex: 0.2,
-      minWidth: 20,
+      width: 120,
       field: 'fulfilledDate',
       headerName: 'Packed Date',
       renderCell: params => (
@@ -724,8 +1039,7 @@ const IndividualRequest = () => {
     },
 
     {
-      flex: 0.2,
-      minWidth: 20,
+      width: 140,
       field: 'dispatch_qty',
       headerName: 'Packed QTY',
       type: 'number',
@@ -737,20 +1051,38 @@ const IndividualRequest = () => {
       )
     },
     {
-      flex: 0.2,
       minWidth: 20,
       headerName: 'Action',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary', display: 'flex', alignItems: 'center' }}>
-          <Box sx={{ mr: 2 }}>
+          {/* <Box sx={{ mr: 2 }}> */}
+          <Button
+            sx={{
+              mr: 2,
+              padding: 2,
+              minWidth: 'auto',
+              borderRadius: '50%',
+              backgroundColor: 'transparent',
+              color: 'customColors.neutralSecondary',
+              '&:hover': {
+                backgroundColor: 'transparent'
+              }
+            }}
+            onClick={() => {
+              setDeleteDialog(true)
+              setDeleteFullFillId(params.row.dispatch_item_id)
+            }}
+            disabled={selectedPharmacy?.permission.key === 'VIEW'}
+          >
             <Icon
-              onClick={() => {
-                setDeleteDialog(true)
-                setDeleteFullFillId(params.row.dispatch_item_id)
-              }}
+              // onClick={() => {
+              //   setDeleteDialog(true)
+              //   setDeleteFullFillId(params.row.dispatch_item_id)
+              // }}
               icon='mdi:delete-outline'
             />
-          </Box>
+          </Button>
+          {/* </Box> */}
         </Typography>
       )
     }
@@ -758,8 +1090,7 @@ const IndividualRequest = () => {
 
   const shippedColumns = [
     {
-      flex: 0.05,
-      Width: 40,
+      width: 40,
       field: 'sl_no',
       headerName: 'Sl',
       renderCell: (params, rowId) => (
@@ -769,8 +1100,7 @@ const IndividualRequest = () => {
       )
     },
     {
-      flex: 0.2,
-      Width: 40,
+      width: 200,
       field: 'shipment_id',
       headerName: 'Shipment Id',
       renderCell: (params, rowId) => (
@@ -783,8 +1113,7 @@ const IndividualRequest = () => {
     },
 
     {
-      flex: 0.2,
-      minWidth: 20,
+      width: 120,
       field: 'shipment_date',
       headerName: 'Date',
       renderCell: params => (
@@ -794,8 +1123,7 @@ const IndividualRequest = () => {
       )
     },
     {
-      flex: 0.2,
-      minWidth: 20,
+      width: 120,
       field: 'vehicle_no',
       headerName: 'Vehicle No',
       renderCell: params => (
@@ -805,8 +1133,7 @@ const IndividualRequest = () => {
       )
     },
     {
-      flex: 0.2,
-      minWidth: 20,
+      width: 140,
       field: 'person_shipping',
       headerName: 'Driver Name',
       renderCell: params => (
@@ -816,8 +1143,7 @@ const IndividualRequest = () => {
       )
     },
     {
-      flex: 0.2,
-      minWidth: 20,
+      width: 160,
       field: 'phone_number',
       headerName: 'Driver Number',
       renderCell: params => (
@@ -827,8 +1153,7 @@ const IndividualRequest = () => {
       )
     },
     {
-      flex: 0.2,
-      minWidth: 20,
+      width: 160,
       field: 'status',
       headerName: 'Status',
       renderCell: params => (
@@ -863,8 +1188,7 @@ const IndividualRequest = () => {
       )
     },
     {
-      flex: 0.3,
-      Width: 40,
+      width: 200,
       field: 'created_by_user_name',
       headerName: 'Shipped by ',
       renderCell: params => (
@@ -1073,41 +1397,66 @@ const IndividualRequest = () => {
     })
   }
 
-  const handleProductNotAvailableAction = (id, available) => {
-    // debugger
-    setNotAvailableItemId({
-      id: id,
-      available: available
-    })
-    setProductNotAvailableDialog(true)
-  }
+  // const handleProductNotAvailableAction = (id, available) => {
+  //
+  //   setNotAvailableItemId({
+  //     id: id,
+  //     available: available
+  //   })
+  //   setProductNotAvailableDialog(true)
+  // }
 
-  const handleProductNotAvailable = async (status, selectedObject) => {
-    if (status) {
-      try {
-        setProductNotAvailableLoading(true)
+  // const handleProductNotAvailable = async (status, selectedObject) => {
+  //   if (status) {
+  //     try {
+  //       setProductNotAvailableLoading(true)
 
-        const payload = {
-          request_item_id: selectedObject.id
-        }
+  //       const payload = {
+  //         request_item_id: selectedObject.id
+  //       }
 
-        const response = selectedObject?.available
-          ? await markItemAvailable(payload)
-          : await markItemNotAvailable(payload)
-        if (response?.success) {
-          setProductNotAvailableLoading(true)
-          setProductNotAvailableDialog(false)
-          Router.reload()
-        } else {
-          setProductNotAvailableLoading(true)
-        }
-      } catch (e) {
-        setProductNotAvailableLoading(true)
-      }
-    } else {
-      setProductNotAvailableDialog(false)
+  //       const response = selectedObject?.available
+  //         ? await markItemAvailable(payload)
+  //         : await markItemNotAvailable(payload)
+  //       if (response?.success) {
+  //         setProductNotAvailableLoading(true)
+  //         setProductNotAvailableDialog(false)
+  //         Router.reload()
+  //       } else {
+  //         setProductNotAvailableLoading(true)
+  //       }
+  //     } catch (e) {
+  //       setProductNotAvailableLoading(true)
+  //     }
+  //   } else {
+  //     setProductNotAvailableDialog(false)
+  //   }
+  // }
+
+  console.log(shippedItems, 'shippedItems')
+
+  const hasNotFulfilledItems = requestItems?.request_item_details?.some(
+    el =>
+      el?.dispatch_status === 'Not Fulfilled' &&
+      el?.request_status !== 'Rejected' &&
+      el?.request_status !== 'Not Available'
+  )
+
+  useEffect(() => {
+    if (hasNotFulfilledItems) {
+      setStatus('Pending')
+    } else if (requestItems?.request_item_details?.length > 0) {
+      setStatus('All')
     }
-  }
+  }, [hasNotFulfilledItems, requestItems?.request_item_details?.length > 0])
+
+  useEffect(() => {
+    if (dispatchedItems?.length > 0) {
+      setShipmentTab('Ready To Ship')
+    } else if (shippedItems?.length > 0) {
+      setShipmentTab('Shipped')
+    }
+  }, [dispatchedItems?.length > 0, shippedItems?.length > 0])
 
   return (
     <>
@@ -1131,28 +1480,30 @@ const IndividualRequest = () => {
                 close={closeOrderFormDialog}
                 show={showOrderFormDialog}
               />
-              <Card sx={{ mb: 6 }}>
-                {console.log('sttt', requestItems.status)}
+              <Card sx={{ mb: 6, boxShadow: 'none !important' }}>
                 <CardHeader
                   avatar={
                     <Icon
                       style={{ cursor: 'pointer' }}
                       onClick={() => {
-                        Router.push({
-                          pathname: '/pharmacy/request/request-list/'
-                        })
+                        if (
+                          selectedPharmacy?.type === 'local' &&
+                          requestItems?.status === 'request' &&
+                          requestItems?.is_modified !== '1'
+                        ) {
+                          Router.push('/pharmacy/request/request-list')
+                        } else {
+                          Router.back()
+                        }
                       }}
                       icon='ep:back'
                     />
                   }
                   title={`Request - ${requestItems?.request_number}`}
                   action={
-                    selectedPharmacy.type === 'local' &&
-                    requestItems.status === 'request' ? (
-                    // ||
-                    //   (requestItems.status !== 'Cancelled' &&
-                    //     requestItems.status !== 'Partial Dispatched' &&
-                    //     requestItems.status !== 'Fully Dispatched')
+                    selectedPharmacy?.type === 'local' &&
+                    requestItems?.status === 'request' &&
+                    requestItems?.is_modified !== '1' ? (
                       <Button
                         size='big'
                         variant='contained'
@@ -1169,50 +1520,683 @@ const IndividualRequest = () => {
                 />
 
                 <CardContent>
-                  {/* Request Basic Info */}
-                  <Grid container spacing={2} sx={{ flexGrow: 1 }}>
-                    <Grid item xs={3} sm={12 / 5} lg={12 / 5} alignItems={'center'}>
-                      <h5 style={{ marginBottom: '0px', marginTop: '0px' }}>Requested By</h5>
-                      <p>{requestItems?.to_store}</p>
-                    </Grid>
-                    <Grid item xs={3} sm={12 / 5} lg={12 / 5} alignItems={'center'}>
-                      <h5 style={{ marginBottom: '0px', marginTop: '0px' }}>Requested To</h5>
-                      <p>{requestItems?.from_store}</p>
-                    </Grid>
-                    <Grid item xs={3} sm={12 / 5} lg={12 / 5} alignItems={'center'}>
-                      <h5 style={{ marginBottom: '0px', marginTop: '0px' }}>Date</h5>
-                      <p>{Utility.formatDisplayDate(requestItems?.request_date)}</p>
-                    </Grid>
-                    <Grid item xs={3} sm={12 / 5} lg={12 / 5}>
-                      <h5 style={{ marginBottom: '0px', marginTop: '0px' }}>Request ID</h5>
-                      <p>{requestItems?.request_number}</p>
-                    </Grid>
-                    <Grid item xs={3} sm={12 / 5} lg={12 / 5}>
-                      <h5 style={{ marginBottom: '0px', marginTop: '0px' }}>Request By</h5>
+                  <Card
+                    sx={{
+                      backgroundColor: 'customColors.lightBg',
+                      boxShadow: 'none !important',
+                      minHeight: '84px',
+                      display: 'flex',
+                      padding: '16px',
+                      borderRadius: '8px',
+                      alignItems: 'center',
 
-                      <Box sx={{ mt: 2, display: 'flex', alignItems: 'center' }}>
-                        {Utility.renderUserAvatar(requestItems?.user_created_profile_pic)}
-                        <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-                          <Typography variant='subtitle2' sx={{ color: 'text.primary' }}>
-                            {requestItems?.created_by_user_name ? requestItems?.created_by_user_name : 'NA'}
+                      justifyContent: 'space-between'
+                    }}
+                  >
+                    <Grid
+                      container
+                      sx={{
+                        width: '100%',
+                        height: '100%',
+
+                        display: 'flex',
+                        alignItems: 'center',
+
+                        justifyContent: 'space-between'
+                      }}
+                    >
+                      <Grid
+                        item
+                        xs={12}
+                        sm={6}
+                        md={6}
+                        lg={3}
+                        sx={{
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: '4px',
+                          height: '46px',
+                          gap: '10px',
+                          mb: {
+                            xs: 5,
+                            sm: 5,
+                            md: 5,
+                            lg: 0
+                          }
+                        }}
+                      >
+                        <Typography
+                          sx={{
+                            fontSize: '14px',
+                            fontWeight: '400',
+                            lineHeight: '16.94px',
+                            gpa: '4px',
+                            color: 'customColors.neutralSecondary'
+                          }}
+                        >
+                          Requested By:
+                          <Box
+                            component='span'
+                            sx={{
+                              fontWeight: '500',
+                              fontSize: '16px',
+                              color: 'customColors.OnSurfaceVariant',
+                              lineHeight: '19.36px',
+                              mx: 2,
+                              ...RenderUtility?.getEllipsisStyleForText('100')
+                            }}
+                          >
+                            {RenderUtility?.getToolTipForText(requestItems?.to_store)}
+                          </Box>
+                        </Typography>
+                        <Typography
+                          sx={{
+                            fontSize: '14px',
+                            fontWeight: '400',
+                            lineHeight: '16.94px',
+                            color: 'customColors.neutralSecondary'
+                          }}
+                        >
+                          Request ID:
+                          <Box
+                            component='span'
+                            sx={{
+                              fontWeight: '500',
+                              fontSize: '16px',
+                              color: 'customColors.OnSurfaceVariant',
+                              lineHeight: '19.36px',
+                              mx: 2,
+                              ...RenderUtility?.getEllipsisStyleForText('100')
+                            }}
+                          >
+                            {RenderUtility?.getToolTipForText(requestItems?.request_number)}
+                          </Box>
+                        </Typography>
+                      </Grid>
+
+                      <Grid
+                        item
+                        xs={12}
+                        sm={6}
+                        md={6}
+                        lg={3}
+                        sx={{
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: '4px',
+                          height: '46px',
+                          gap: '10px',
+
+                          textAlign: {
+                            xs: 'left',
+                            sm: 'right',
+                            md: 'right',
+                            lg: 'left'
+                          },
+                          mb: {
+                            xs: 5,
+                            sm: 5,
+                            md: 5,
+                            lg: 0
+                          }
+                        }}
+                      >
+                        {requestItems?.product_count && (
+                          <Typography
+                            sx={{
+                              fontSize: '14px',
+                              fontWeight: '400',
+                              lineHeight: '16.94px',
+                              color: 'customColors.neutralSecondary'
+                            }}
+                          >
+                            Requested Items:
+                            <Box
+                              component='span'
+                              sx={{
+                                fontWeight: '500',
+                                fontSize: '16px',
+                                color: 'customColors.OnSurfaceVariant',
+                                lineHeight: '19.36px',
+                                mx: 2
+                              }}
+                            >
+                              {requestItems?.product_count}
+                            </Box>
                           </Typography>
-                          <Typography variant='caption' sx={{ lineHeight: 1.6667 }}>
-                            {Utility.formatDisplayDate(requestItems?.created_at)}
-                          </Typography>
+                        )}
+
+                        <Typography
+                          sx={{
+                            fontSize: '14px',
+                            fontWeight: '400',
+                            lineHeight: '16.94px',
+                            color: 'customColors.neutralSecondary'
+                          }}
+                        >
+                          Total Requested Value:
+                          <Box
+                            component='span'
+                            sx={{
+                              fontWeight: '500',
+                              fontSize: '16px',
+                              color: 'primary.light',
+                              lineHeight: '19.36px',
+                              mx: 2,
+                              ...RenderUtility?.getEllipsisStyleForText('100')
+                            }}
+                          >
+                            {Utility.formatAmountToReadableDigit(requestItems?.requested_amount)}
+                            {/* ₹
+                            {RenderUtility?.getToolTipForText(
+                              Utility.formatNumberToDisplay(requestItems?.requested_amount)
+                            )} */}
+                          </Box>
+                        </Typography>
+
+                        {/* <Typography
+                          sx={{
+                            fontSize: '14px',
+                            fontWeight: '400',
+                            lineHeight: '16.94px',
+                            color: 'primary.OnSurface'
+                          }}
+                        >
+                          Shipped Items:
+                          <Box
+                            component='span'
+                            sx={{
+                              fontWeight: '500',
+                              fontSize: '16px',
+                              color: 'primary.OnSurface',
+                              lineHeight: '19.36px',
+                              mx: 2
+                            }}
+                          >
+                            {requestItems?.shipped_qty}
+                          </Box>
+                        </Typography> */}
+                      </Grid>
+
+                      <Grid
+                        item
+                        xs={12}
+                        sm={6}
+                        md={6}
+                        lg={3}
+                        sx={{
+                          display: 'flex',
+                          flexDirection: 'column',
+                          gap: '4px',
+                          height: '46px',
+                          gap: '10px',
+
+                          mb: {
+                            xs: 5,
+                            sm: 0,
+                            md: 0,
+                            lg: 0
+                          }
+                        }}
+                      >
+                        {/* <Typography
+                          sx={{
+                            fontSize: '14px',
+                            fontWeight: '400',
+                            lineHeight: '16.94px',
+                            color: 'customColors.neutralSecondary'
+                          }}
+                        >
+                          Total Requested Value:
+                          <Box
+                            component='span'
+                            sx={{
+                              fontWeight: '500',
+                              fontSize: '16px',
+                              color: 'primary.light',
+                              lineHeight: '19.36px',
+                              mx: 2
+                            }}
+                          >
+                            ₹{requestItems?.requested_amount}
+                          </Box>
+                        </Typography> */}
+
+                        <Typography
+                          onClick={() => setShipmentDetailsDialog(true)}
+                          sx={{
+                            fontSize: '14px',
+                            fontWeight: '400',
+                            lineHeight: '16.94px',
+                            color: 'primary.OnSurface',
+                            cursor: 'pointer'
+                          }}
+                        >
+                          Shipped Value:
+                          <Box
+                            component='span'
+                            sx={{
+                              fontWeight: '500',
+                              fontSize: '16px',
+                              color: 'primary.main',
+                              lineHeight: '19.36px',
+                              mx: 2
+                            }}
+                          >
+                            ₹{Utility.formatNumberToDisplay(requestItems?.shipped_amount)}
+                          </Box>
+                        </Typography>
+                      </Grid>
+
+                      <Grid item xs={12} sm={6} md={6} lg={3}>
+                        <Box
+                          sx={{
+                            display: 'flex',
+                            height: '46px',
+
+                            justifyContent: {
+                              xs: 'start',
+                              sm: 'flex-end',
+                              md: 'flex-end',
+                              lg: 'start'
+                            }
+                          }}
+                        >
+                          <Box sx={{ width: '56px' }}>
+                            <CustomAvatar
+                              src={requestItems?.user_created_profile_pic}
+                              sx={{ radius: '64px', width: '40px', height: '40px' }}
+                            />
+                          </Box>
+                          <Box
+                            sx={{
+                              display: 'flex',
+                              flexDirection: 'column',
+
+                              // height: '36px',
+                              gap: '10px'
+                            }}
+                          >
+                            <Tooltip
+                              title={requestItems?.created_by_user_name ? requestItems?.created_by_user_name : 'NA'}
+                              placement='top'
+                              arrow
+                            >
+                              <Typography
+                                sx={{
+                                  fontSize: '14px',
+                                  fontWeight: '500',
+                                  lineHeight: '16.94px',
+                                  color: 'customColors.OnSurfaceVariant',
+
+                                  ...RenderUtility?.getEllipsisStyleForText(200)
+                                }}
+                              >
+                                {requestItems?.created_by_user_name ? requestItems?.created_by_user_name : 'NA'}
+                              </Typography>
+                            </Tooltip>
+
+                            <Typography
+                              sx={{
+                                fontSize: '12px',
+                                fontWeight: '400',
+                                lineHeight: '14.52px',
+                                color: 'customColors.OnSurfaceVariant'
+                              }}
+                            >
+                              {Utility.formatDisplayDate(requestItems?.created_at)}
+                            </Typography>
+                          </Box>
                         </Box>
-                      </Box>
+                      </Grid>
                     </Grid>
-                  </Grid>
+                  </Card>
                   {/* Medicine Listing */}
                 </CardContent>
-                {requestItems?.request_item_details?.length > 0 ? (
-                  <TableBasic rowHeight={90} columns={columns} rows={requestItems?.request_item_details}></TableBasic>
-                ) : null}
+                <Grid
+                  spacing={2}
+                  sx={{
+                    px: 6,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'center',
+                    mb: 4
+                  }}
+                >
+                  <TabContext value={detailsTab}>
+                    <TabList
+                      sx={{ borderBottom: `1px solid ${theme.palette.customColors.neutral05} !important` }}
+                      onChange={(event, newValue) => {
+                        setDetailsTab(newValue)
+                        updateUrlParams({
+                          detailsTab: newValue
+                        })
+                      }}
+                    >
+                      <Tab
+                        value='Pending'
+                        label={<TabBadge label='Requested Items' totalCount={status === 'Pending' ? 0 : null} />}
+                      />
+                      <Tab
+                        value='Shipped'
+                        label={
+                          <TabBadge
+                            label={selectedPharmacy?.type === 'local' ? 'Shipped' : 'Shipment'}
+                            totalCount={status === 'Shipped' ? 0 : null}
+                          />
+                        }
+                      />
+                    </TabList>
+                    {selectedPharmacy?.type === 'local' ? (
+                      <>
+                        <TabPanel
+                          value='Pending'
+                          sx={{
+                            padding: '0 !important'
+                          }}
+                        >
+                          <Box sx={{ my: 5 }}>
+                            {requestItems?.request_item_details?.length > 0 && (
+                              <DetailsTable
+                                requestItems={requestItems}
+                                items={requestItems?.request_item_details || []}
+                                renderAttachmentIcons={renderAttachmentIcons}
+                                getCellBgColor={getCellBgColor}
+                                strikeOutTextStyle={strikeOutTextStyle}
+                                setFulfillMedicine={setFulfillMedicine}
+                                showDialog={showDialog}
+                                generateOptions={generateOptions}
+                                selectedPharmacy={selectedPharmacy}
+                              />
+                            )}
+                          </Box>
+                        </TabPanel>
+                        <TabPanel
+                          value='Shipped'
+                          sx={{
+                            padding: '0 !important'
+                          }}
+                        >
+                          <Box sx={{ my: 5 }}>
+                            {shippedItems?.length > 0 ? (
+                              <>
+                                <Card sx={{ mb: 6, minWidth: '100%', ml: -2, boxShadow: 'none !important' }}>
+                                  {/* <CardHeader title={`Shipments`}></CardHeader> */}
+                                  <TableBasic
+                                    columns={shippedColumns}
+                                    rows={shippedItems}
+                                    onRowClick={e => {
+                                      setOrderId(e.id)
+                                      Router.push({
+                                        pathname: `/pharmacy/request/${id}/shipment-details`,
+                                        query: { orderId: e.id, requestId: id }
+                                      })
+                                    }}
+                                  ></TableBasic>
+                                </Card>
+                              </>
+                            ) : null}
+                          </Box>
+                        </TabPanel>
+                      </>
+                    ) : (
+                      <>
+                        <TabPanel
+                          value='Pending'
+                          sx={{
+                            padding: '0 !important'
+                          }}
+                        >
+                          <Grid
+                            sx={{
+                              width: '100%',
+                              px: '0 !important'
+                            }}
+                          >
+                            <TabContext value={status}>
+                              <TabLists
+                                onChange={(event, newValue) => {
+                                  setStatus(newValue)
+                                }}
+                                sx={{ width: '100%', height: '56px', py: '8px', gap: '6px' }}
+                              >
+                                <Tab
+                                  value='Pending'
+                                  label={<TabBadge label='Pending' totalCount={status === 'Pending' ? 0 : null} />}
+                                />
+                                <Tab
+                                  value='All'
+                                  label={<TabBadge label='All' totalCount={status === 'All' ? 0 : null} />}
+                                />
+                              </TabLists>
+                              <TabPanel
+                                value='Pending'
+                                sx={{
+                                  padding: '0px !important'
+                                }}
+                              >
+                                {requestItems?.request_item_details?.length > 0
+                                  ? requestItems?.request_item_details?.filter(
+                                      el =>
+                                        el?.dispatch_status === 'Not Fulfilled' &&
+                                        (el?.request_status !== 'Rejected' || el?.request_status !== 'Not Available')
+                                    )?.length > 0 && (
+                                      <DetailsTable
+                                        requestItems={requestItems}
+                                        items={
+                                          requestItems?.request_item_details?.length > 0
+                                            ? requestItems?.request_item_details?.filter(
+                                                el => el?.dispatch_status === 'Not Fulfilled'
+                                              )
+                                            : []
+                                        }
+                                        renderAttachmentIcons={renderAttachmentIcons}
+                                        getCellBgColor={getCellBgColor}
+                                        strikeOutTextStyle={strikeOutTextStyle}
+                                        setFulfillMedicine={setFulfillMedicine}
+                                        showDialog={showDialog}
+                                        generateOptions={generateOptions}
+                                        selectedPharmacy={selectedPharmacy}
+                                      />
+                                    )
+                                  : null}
+                              </TabPanel>
+                              <TabPanel
+                                value='All'
+                                sx={{
+                                  padding: '0px !important'
+                                }}
+                              >
+                                {requestItems?.request_item_details.length > 0 && (
+                                  <DetailsTable
+                                    requestItems={requestItems}
+                                    items={requestItems?.request_item_details || []}
+                                    renderAttachmentIcons={renderAttachmentIcons}
+                                    getCellBgColor={getCellBgColor}
+                                    strikeOutTextStyle={strikeOutTextStyle}
+                                    setFulfillMedicine={setFulfillMedicine}
+                                    showDialog={showDialog}
+                                    generateOptions={generateOptions}
+                                    selectedPharmacy={selectedPharmacy}
+                                  />
+                                )}
+                              </TabPanel>
+                            </TabContext>
+                          </Grid>
+                        </TabPanel>
+                        <TabPanel
+                          value='Shipped'
+                          sx={{
+                            padding: '0 !important'
+                          }}
+                        >
+                          <Grid
+                            sx={{
+                              width: '100%',
+                              px: '0 !important'
+                            }}
+                          >
+                            <TabContext value={shipmentTab}>
+                              <TabLists
+                                onChange={(event, newValue) => {
+                                  setShipmentTab(newValue)
+                                  updateUrlParams({
+                                    shipmentTab: newValue
+                                  })
+                                }}
+                                sx={{ width: '100%', height: '56px', py: '8px', gap: '6px' }}
+                              >
+                                <Tab
+                                  value='Ready To Ship'
+                                  label={
+                                    <TabBadge
+                                      label='Ready To Ship'
+                                      totalCount={shipmentTab === 'Ready To Ship' ? 0 : null}
+                                    />
+                                  }
+                                />
+                                <Tab
+                                  value='Shipped'
+                                  label={<TabBadge label='Shipped' totalCount={shipmentTab === 'Shipped' ? 0 : null} />}
+                                />
+                              </TabLists>
+                              <TabPanel
+                                value='Ready To Ship'
+                                sx={{
+                                  padding: '0px !important'
+                                }}
+                              >
+                                {dispatchedItems?.length > 0 && selectedPharmacy.type === 'central' && (
+                                  <Card sx={{ minWidth: '100%', ml: -2, boxShadow: 'none !important' }}>
+                                    <CardHeader
+                                      title={``}
+                                      action={
+                                        (selectedPharmacy.permission.key === 'ADD' ||
+                                          selectedPharmacy.permission.key === 'allow_full_access') &&
+                                        requestItems.status !== 'Cancelled' ? (
+                                          <Grid item xs={6} style={{ display: 'flex', justifyContent: 'right' }}>
+                                            <Button
+                                              size='big'
+                                              variant='contained'
+                                              onClick={() => {
+                                                // openShipDialog()
+                                                Router.push({
+                                                  pathname: `/pharmacy/request/${id}/ship-all-items`,
+                                                  query: {
+                                                    // orderId: e.id,
+                                                  }
+                                                })
+                                              }}
+                                            >
+                                              Ship All Items
+                                            </Button>
+                                          </Grid>
+                                        ) : null
+                                      }
+                                    ></CardHeader>
+                                    <TableBasic
+                                      rowHeight={90}
+                                      columns={fulfillColumns}
+                                      rows={dispatchedItems}
+                                    ></TableBasic>
+                                  </Card>
+                                )}
+                              </TabPanel>
+                              <TabPanel
+                                value='Shipped'
+                                sx={{
+                                  padding: '0px !important'
+                                }}
+                              >
+                                {shippedItems?.length > 0 ? (
+                                  <>
+                                    <Card sx={{ mb: 6, minWidth: '100%', ml: -2, boxShadow: 'none !important' }}>
+                                      <TableBasic
+                                        columns={shippedColumns}
+                                        rows={shippedItems}
+                                        onRowClick={e => {
+                                          setOrderId(e.id)
+                                          Router.push({
+                                            pathname: `/pharmacy/request/${id}/shipment-details`,
+                                            query: { orderId: e.id, requestId: id }
+                                          })
+                                        }}
+                                      ></TableBasic>
+                                    </Card>
+                                  </>
+                                ) : null}
+                              </TabPanel>
+                            </TabContext>
+                          </Grid>
+                        </TabPanel>
+                      </>
+                    )}
+                  </TabContext>
+                </Grid>
+
+                <Grid container sx>
+                  <CommonDialogBox
+                    noWidth={'noWidth'}
+                    title={'Add Alternative Supply'}
+                    dialogBoxStatus={showAlternativeMedicineDialog}
+                    formComponent={
+                      <AlternativeMedicine
+                        parentId={medicineParentId}
+                        existingListItems={requestItems}
+                        closeAlternativeMedicineDialog={closeAlternativeMedicineDialog}
+                        updateRequestItems={() => {
+                          getRequestItemLists(id)
+                          closeAlternativeMedicineDialog()
+                        }}
+                      />
+                    }
+                    close={closeAlternativeMedicineDialog}
+                    show={openAlternativeMedicineDialog}
+                  />
+                </Grid>
+                <Grid container>
+                  <CommonDialogBox
+                    noWidth={'noWidth'}
+                    title={'Decline Request'}
+                    dialogBoxStatus={rejectRequestMedicineDialog}
+                    formComponent={
+                      <RejectRequestItem
+                        parentId={medicineParentId}
+                        closeRejectMedicineDialog={closeRejectMedicineDialog}
+                        updateRequestItems={() => {
+                          closeRejectMedicineDialog()
+                          getRequestItemLists(id)
+                        }}
+                      />
+                    }
+                    close={closeRejectMedicineDialog}
+                    show={openRejectMedicineDialog}
+                  />
+                </Grid>
+                <Grid container>
+                  <CommonDialogBox
+                    noWidth={'noWidth'}
+                    title={'Supply Stopped'}
+                    dialogBoxStatus={productNotAvailableDialog}
+                    formComponent={
+                      <ProductNotAvailable
+                        payload={medicineParentId}
+                        closeProductNotAvailableDialog={closeProductNotAvailableDialog}
+                        updateRequestItems={() => {
+                          closeProductNotAvailableDialog()
+                          getRequestItemLists(id)
+                        }}
+                      />
+                    }
+                    close={closeProductNotAvailableDialog}
+                    show={openProductNotAvailableDialog}
+                  />
+                </Grid>
               </Card>
               {/* Dispatch list */}
               {dispatchedItems?.length > 0 && selectedPharmacy.type === 'central' && (
                 <>
-                  <Card sx={{ mb: 6 }}>
+                  {/* <Card sx={{ mb: 6 }}>
                     <CardHeader
                       title={`Fulfillment`}
                       action={
@@ -1234,7 +2218,7 @@ const IndividualRequest = () => {
                       }
                     ></CardHeader>
                     <TableBasic rowHeight={90} columns={fulfillColumns} rows={dispatchedItems}></TableBasic>
-                  </Card>
+                  </Card> */}
                   <ConfirmDialogBox
                     open={deleteDialog}
                     closeDialog={() => {
@@ -1283,21 +2267,7 @@ const IndividualRequest = () => {
                 </>
               )}
               {/* Shipped list        */}
-              {shippedItems?.length > 0 ? (
-                <>
-                  <Card sx={{ mb: 6 }}>
-                    <CardHeader title={`Shipments`}></CardHeader>
-                    <TableBasic
-                      columns={shippedColumns}
-                      rows={shippedItems}
-                      onRowClick={e => {
-                        setOrderId(e.id)
-                        showOrderFormDialog()
-                      }}
-                    ></TableBasic>
-                  </Card>
-                </>
-              ) : null}
+
               {/* {disputedItems?.length > 0 ? (
               <>
                 <CardContent>
@@ -1338,12 +2308,356 @@ const IndividualRequest = () => {
                 />
               </>
             ) : null} */}
+
+              <Drawer
+                anchor='right'
+                open={shipmentDetailsDialog}
+                onClose={() => setShipmentDetailsDialog(false)}
+                sx={{
+                  '& .MuiDrawer-paper': {
+                    width: 500,
+                    backgroundColor: 'customColors.bodyBg'
+                  }
+                }}
+              >
+                <Box sx={{ p: 4, height: '100%', overflow: 'auto' }}>
+                  <Box
+                    sx={{
+                      position: 'sticky',
+                      zIndex: 1
+                    }}
+                  >
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+                      <Typography
+                        sx={{ color: 'customColors.customHeadingTextColor', fontSize: '20px', fontWeight: 500 }}
+                      >
+                        Shipped Items
+                      </Typography>
+                      <IconButton onClick={() => setShipmentDetailsDialog(false)}>
+                        <CloseIcon />
+                      </IconButton>
+                    </Box>
+
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        backgroundColor: 'customColors.neutral05',
+                        padding: 2,
+                        borderRadius: '4px',
+                        mb: 3
+                      }}
+                    >
+                      <Typography variant='body1'>
+                        <Box
+                          component='strong'
+                          sx={{
+                            color: 'customColors.customHeadingTextColor',
+                            fontSize: '14px',
+                            fontWeight: 400
+                          }}
+                        >
+                          Shipped Items:
+                        </Box>{' '}
+                        <Box
+                          component='span'
+                          sx={{
+                            color: 'customColors.customHeadingTextColor',
+                            fontSize: '16px',
+                            fontWeight: 500
+                          }}
+                        >
+                          {shippedItems[0]?.shipment_item_details.length || '0'}
+                        </Box>
+                      </Typography>
+
+                      <Typography variant='body1'>
+                        <Box
+                          component='strong'
+                          sx={{
+                            color: 'customColors.neutralSecondary',
+                            fontSize: '14px',
+                            fontWeight: 400
+                          }}
+                        >
+                          Shipped Value:
+                        </Box>{' '}
+                        <Box
+                          component='span'
+                          sx={{
+                            color: 'primary.light',
+                            fontSize: '14px',
+                            fontWeight: 500
+                          }}
+                        >
+                          {/* {shippedItems[0]?.shipment_item_details?.value || '0'}
+                           */}
+                          {requestItems?.shipped_amount}
+                        </Box>
+                      </Typography>
+                    </Box>
+                  </Box>
+
+                  <Divider sx={{ mb: 3 }} />
+
+                  <Box
+                    sx={{
+                      height: 'calc(100% - 120px)', // Adjust this value based on your layout
+                      overflowY: 'auto',
+                      paddingTop: 3
+                    }}
+                  >
+                    {shippedItems[0]?.shipment_item_details?.length ? (
+                      shippedItems[0]?.shipment_item_details?.map((ship, index) => (
+                        <Card
+                          key={index}
+                          sx={{
+                            mb: 2,
+                            borderRadius: '8px',
+                            boxShadow: '0px 2px 6px rgba(0, 0, 0, 0.1)'
+                          }}
+                        >
+                          <CardContent>
+                            <Typography
+                              sx={{ color: 'customColors.customHeadingTextColor', fontSize: '16px', fontWeight: 500 }}
+                              gutterBottom
+                            >
+                              {ship?.stock_name}
+                            </Typography>
+
+                            {/* Shipped Quantity and Value */}
+                            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                              <Typography variant='body1'>
+                                <Box
+                                  component='span'
+                                  sx={{
+                                    color: 'customColors.customHeadingTextColor',
+                                    fontSize: '14px',
+                                    fontWeight: 400
+                                  }}
+                                >
+                                  Shipped Quantity:
+                                </Box>
+                                <Box
+                                  component='span'
+                                  sx={{
+                                    color: 'customColors.customHeadingTextColor',
+                                    fontSize: '16px',
+                                    fontWeight: 500
+                                  }}
+                                >
+                                  {ship?.quantity}
+                                </Box>
+                              </Typography>
+                              {/* <Typography variant='body1'>
+                                <Box
+                                  component='span'
+                                  sx={{
+                                    color: 'customColors.neutralSecondary',
+                                    fontSize: '14px',
+                                    fontWeight: 400
+                                  }}
+                                >
+                                  Shipped Value:
+                                </Box>
+                                <Box
+                                  component='span'
+                                  sx={{
+                                    color: 'primary.light',
+                                    fontSize: '14px',
+                                    fontWeight: 500
+                                  }}
+                                >
+                                  ₹{requestItems?.shipped_amount || '0'}
+                                </Box>
+                              </Typography> */}
+                            </Box>
+
+                            <Paper
+                              elevation={0}
+                              sx={{
+                                backgroundColor: 'customColors.tableHeaderBg',
+                                p: 2,
+                                borderRadius: '8px',
+                                display: 'flex',
+                                justifyContent: 'space-between',
+                                gap: 2
+                              }}
+                            >
+                              <Box>
+                                <Typography
+                                  variant='body2'
+                                  color='customColors.neutralSecondary'
+                                  sx={{ fontSize: '12px', fontWeight: 400 }}
+                                >
+                                  Shipping ID:
+                                </Typography>
+                                <Typography
+                                  variant='body1'
+                                  sx={{
+                                    fontSize: '14px',
+                                    fontWeight: 500,
+                                    color: 'customColors.customHeadingTextColor'
+                                  }}
+                                >
+                                  {ship?.shipment_id}
+                                </Typography>
+                              </Box>
+                              <Box>
+                                <Typography
+                                  variant='body2'
+                                  color='customColors.neutralSecondary'
+                                  sx={{ fontSize: '12px', fontWeight: 400 }}
+                                >
+                                  Batch No:
+                                </Typography>
+                                <Typography
+                                  variant='body1'
+                                  sx={{
+                                    fontSize: '14px',
+                                    fontWeight: 500,
+                                    color: 'customColors.customHeadingTextColor'
+                                  }}
+                                >
+                                  {ship?.batch}
+                                </Typography>
+                              </Box>
+                              <Box>
+                                <Typography
+                                  variant='body2'
+                                  color='customColors.neutralSecondary'
+                                  sx={{ fontSize: '12px', fontWeight: 400 }}
+                                >
+                                  Shipped Quantity:
+                                </Typography>
+                                <Typography
+                                  variant='body1'
+                                  sx={{
+                                    fontSize: '14px',
+                                    fontWeight: 500,
+                                    color: 'customColors.customHeadingTextColor'
+                                  }}
+                                >
+                                  {ship?.quantity}
+                                </Typography>
+                              </Box>
+                            </Paper>
+                          </CardContent>
+                        </Card>
+                      ))
+                    ) : (
+                      <Box
+                        sx={{
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          height: '300px',
+                          textAlign: 'center'
+                        }}
+                      >
+                        <Avatar
+                          variant='square'
+                          alt=''
+                          src={'/images/Empty-Box.png'}
+                          sx={{
+                            width: '120px',
+                            height: '120px',
+                            mb: 2
+                          }}
+                        />
+                        <Typography
+                          variant='body1'
+                          sx={{
+                            fontSize: '14px',
+                            fontWeight: 400,
+                            color: 'primary.light'
+                          }}
+                        >
+                          No Shipped Items
+                        </Typography>
+                      </Box>
+                    )}
+                  </Box>
+                </Box>
+              </Drawer>
+              {/* <CommonDialogBox
+                title={`Shipped Items (${shippedItems[0]?.shipment_item_details.length || '0'})`}
+                dialogBoxStatus={shipmentDetailsDialog}
+                close={setShipmentDetailsDialog}
+                noWidth={'noWidth'}
+                style={'#EFF5F2'}
+                formComponent={
+                  <>
+                    {console.log('shippedItems', shippedItems)}
+
+                    {shippedItems[0]?.shipment_item_details?.map((ship, index) => {
+                      console.log(ship, 'loggss')
+
+                      return (
+                        <Card key={index} sx={{ width: 500, m: 2 }}>
+                          <CardContent>
+                            <Typography variant='h5' component='div' gutterBottom sx={{ color: '#333' }}>
+                              {ship?.stock_name}
+                            </Typography>
+
+                            <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
+                              <Typography variant='body1' color='text.secondary'>
+                                Shipped Quantity: {ship?.quantity}
+                              </Typography>
+                              <Typography variant='body1' color='text.secondary'>
+                                Shipped Value:{''}
+                              </Typography>
+                            </Box>
+
+                            <Paper
+                              elevation={0}
+                              sx={{
+                                backgroundColor: '#E8F4F2',
+                                p: 3,
+                                display: 'flex',
+                                justifyContent: 'space-between'
+                              }}
+                            >
+                              <Box>
+                                <Typography variant='body2' color='text.secondary'>
+                                  Shipping ID:
+                                </Typography>
+                                <Typography variant='body1'>{ship?.shipment_id}</Typography>
+                              </Box>
+
+                              <Box>
+                                <Typography variant='body2' color='text.secondary'>
+                                  Batch No:
+                                </Typography>
+                                <Typography variant='body1'>{ship?.batch}</Typography>
+                              </Box>
+
+                              <Box>
+                                <Typography variant='body2' color='text.secondary'>
+                                  Shipped Quantity:
+                                </Typography>
+                                <Typography variant='body1'>{ship?.quantity}</Typography>
+                              </Box>
+                            </Paper>
+                          </CardContent>
+                        </Card>
+                      )
+                    })}
+                  </>
+                }
+              /> */}
               {/* Fulfill Request Dialog */}
               <Dialog
                 fullWidth
                 open={show}
                 maxWidth='md'
                 scroll='body'
+                sx={{
+                  '& .MuiDialog-paper': {
+                    backgroundColor: 'primary.contrastText'
+                  }
+                }}
                 onClose={() => closeDialog()}
                 TransitionComponent={Transition}
                 onBackdropClick={() => closeDialog()}
@@ -1398,12 +2712,12 @@ const IndividualRequest = () => {
                   close={closeShipmentDialog}
                 />
               </Dialog>
-              <ProductNotAvailable
+              {/* <ProductNotAvailable
                 open={productNotAvailableDialog}
                 onClose={handleProductNotAvailable}
                 selectedValue={notAvailableItemId}
                 loading={productNotAvailableLoading}
-              />{' '}
+              />{' '} */}
             </>
           ) : (
             <Alert severity='warning'>

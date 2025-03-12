@@ -8,6 +8,12 @@ export async function getIncubatorList({ params }) {
   })
 }
 
+export async function getAvailibilityList() {
+  return await axiosGet({
+    url: `incubator-availability-types`
+  })
+}
+
 export async function getIncubatorDetail(id) {
   return await axiosGet({ url: `${EGG}/${NURSERY}/${INCUBATOR}/${id}` })
 }

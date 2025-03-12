@@ -6,6 +6,7 @@ import CircularProgress from '@mui/material/CircularProgress'
 import Image from 'next/image'
 
 import logoAlt from 'public/images/branding/Antz_logomark_h_color.svg'
+import vantaraLogoAlt from 'public/branding/vantara/Weblogo_vantara_V.png'
 
 const FallbackSpinner = ({ sx }) => {
   // ** Hook
@@ -22,7 +23,11 @@ const FallbackSpinner = ({ sx }) => {
         ...sx
       }}
     >
-      <Image src={logoAlt} height={60} alt='Antz Systems' />
+      <Image
+        src={process.env.NEXT_PUBLIC_BRANDING == 'vantara' ? vantaraLogoAlt : logoAlt}
+        height={60}
+        alt='Antz Systems'
+      />
       {/* <svg width={80} fill='none' height={44} viewBox='0 0 268 150' xmlns='http://www.w3.org/2000/svg'>
         <rect
           rx='25.1443'

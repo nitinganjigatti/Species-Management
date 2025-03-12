@@ -18,7 +18,7 @@ import {
   CircularProgress
 } from '@mui/material'
 import { Box } from '@mui/system'
-import React, { useCallback, useEffect, useRef, useState } from 'react'
+import React, { useCallback, useContext, useEffect, useRef, useState } from 'react'
 import { styled } from '@mui/system'
 import ArrowDropDownIcon from '@mui/icons-material/ArrowDropDown'
 import IconButton from '@mui/material/IconButton'
@@ -45,6 +45,11 @@ import xlsIcon from 'public/icons/xls_icon.svg'
 import docIcon from 'public/icons/doc_icon.svg'
 import * as yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
+import ImageLightbox from 'src/components/parivesh/ImageLightbox'
+import Utility from 'src/utility'
+import { downloadCsvForBatchData } from 'src/lib/api/parivesh/downloadBatchDetails'
+import { AuthContext } from 'src/context/AuthContext'
+import Error404 from 'src/pages/404'
 
 const CustomDropdownIcon = styled(ArrowDropDownIcon)({
   color: '#FFFFFF' // Change this to your desired color
@@ -90,10 +95,14 @@ const BatchDetails = ({ params, searchParams }) => {
   const [dropdownOptions, setDropdownOptions] = useState([])
   const [btnLoader, setBtnLoader] = useState(false)
   const [attachmentLoader, setAttachmentLoader] = useState(false)
-  const [regId, setRegId] = useState('')
+  const [regId, setRegId] = useState('NA')
   const { selectedParivesh } = usePariveshContext()
   const [filePreviews, setFilePreviews] = useState([])
   const [selectedId, setSelectedId] = useState(null)
+  const [buttonEnabled, setButtonEnabled] = useState(false)
+  const [csvLoading, setCsvLoading] = useState(false)
+  const authData = useContext(AuthContext)
+  const pariveshAccess = authData?.userData?.roles?.settings?.enable_parivesh
 
   const onClose = () => {
     setDialog(false)
@@ -119,6 +128,12 @@ const BatchDetails = ({ params, searchParams }) => {
             return { ...el, uid: i + 1 }
           })
           setTotal(parseInt(response?.data?.total_count))
+
+          setPaginationModel(prev => ({
+            ...prev,
+            pageSize: response?.data?.total_count
+          }))
+          console.log(response?.data, 'response?.data?.data')
           setRows(loadServerRows(paginationModel.page, listWithId))
         } else {
         }
@@ -130,10 +145,10 @@ const BatchDetails = ({ params, searchParams }) => {
   )
 
   useEffect(() => {
-    if (id !== 'all') {
+    if (id) {
       getBatchListById(id)
     }
-  }, [getBatchListById])
+  }, [id])
 
   const updateStatus = async payload => {
     try {
@@ -160,29 +175,30 @@ const BatchDetails = ({ params, searchParams }) => {
   const handleStatusChange = async event => {
     const value = event.target.value
     setSelectedStatus(value)
-    // if (value === 'submitted' && type === 'reportedBatch') {
-    //   setIsModalOpen(prevState => !prevState)
-    // } else {
-    //   setIsModalOpen(false) // Close modal for other selections
-    //   setRegId('')
-    //   reset()
-    // }
-    // if (type === 'submittedBatch') {
-    //   const payload = {
-    //     batch_id: batchDetails?.batch_id,
-    //     status: value,
-    //     registration_id: batchDetails?.registration_id
-    //   }
-    //   await updateStatus(payload)
-    // }
+    if (batchDetails?.status === 'withdrawn' && value === 'submitted') {
+      setButtonEnabled(false) // Disable if status is 'withdrawn' and dropdown is 'submitted'
+    } else {
+      setButtonEnabled(value === 'submitted' || batchDetails?.status === 'withdrawn')
+    }
   }
 
+  useEffect(() => {
+    // Enable button if status is 'withdrawn' or 'submitted'
+    if (batchDetails?.status === 'withdrawn') {
+      setButtonEnabled(true) // Default to false, will change based on dropdown value
+    } else if (batchDetails?.status === 'submitted') {
+      setButtonEnabled(true) // Button enabled if status is 'submitted'
+    } else {
+      setButtonEnabled(false)
+    }
+  }, [batchDetails?.status])
+
   const onClickStatus = async event => {
-    if (event.target.dataset.value === 'submitted' && type === 'reportedBatch') {
+    if (event.target.dataset.value === 'submitted' && type === 'toBeSubmittedBatch') {
       setIsModalOpen(prevState => !prevState)
     } else {
       setIsModalOpen(false) // Close modal for other selections
-      setRegId('')
+      setRegId('NA')
       reset()
     }
   }
@@ -233,7 +249,7 @@ const BatchDetails = ({ params, searchParams }) => {
   }))
 
   useEffect(() => {
-    if (type === 'reportedBatch') {
+    if (type === 'toBeSubmittedBatch') {
       setDropdownOptions([
         { value: 'yet_to_submitted', label: 'Yet to Submit' },
         { value: 'submitted', label: 'Submitted' }
@@ -270,7 +286,8 @@ const BatchDetails = ({ params, searchParams }) => {
       sortable: false,
       renderCell: params => (
         <>
-          <Avatar variant='square' src={params.row.species_image} alt={'species_image'} sx={{ height: 'auto', p: 2 }} />
+          <ImageLightbox images={params.row.species_image} />
+          {/* <Avatar variant='square' src={params.row.species_image} alt={''} sx={{ height: 'auto' }} /> */}
           {/* <Tooltip title={params.row.image_type} placement='right'> */}
           {/* <Typography
               variant='body2'
@@ -377,7 +394,9 @@ const BatchDetails = ({ params, searchParams }) => {
       sortable: false,
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.transaction_date ? moment.utc(params.row.transaction_date).format('DD MMMM YYYY') : '-'}
+          {params.row.transaction_date
+            ? Utility.formatDisplayDate(Utility.convertUTCToLocal(params.row.transaction_date))
+            : '-'}
         </Typography>
       )
     }
@@ -436,7 +455,7 @@ const BatchDetails = ({ params, searchParams }) => {
               columns={columns}
               sortingMode='server'
               paginationMode='server'
-              pageSizeOptions={[7, 10, 25, 50]}
+              pageSizeOptions={[total]}
               paginationModel={paginationModel}
               // slots={{ toolbar: ServerSideToolbarWithFilter }}
               onPaginationModelChange={setPaginationModel}
@@ -461,54 +480,6 @@ const BatchDetails = ({ params, searchParams }) => {
   const onCellClick = params => {
     // Handle cell click logic here
   }
-
-  // const { getRootProps, getInputProps } = useDropzone({
-  //   multiple: true, // Allow multiple files
-  //   accept: {
-  //     'image/*': ['.png', '.jpg', '.jpeg', '.gif'],
-  //     'application/pdf': ['.pdf'],
-  //     'application/msword': ['.doc'],
-  //     'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx'],
-  //     'application/vnd.ms-excel': ['.xls'],
-  //     'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': ['.xlsx']
-  //   },
-  //   onDrop: async acceptedFiles => {
-  //     console.log(acceptedFiles, 'acceptedFiles')
-
-  //     const totalFiles = acceptedFiles?.length + filePreviews?.length
-  //     if (totalFiles > 3) {
-  //       Toaster({ type: 'error', message: 'You can only upload up to 3 files.' })
-  //       return
-  //     }
-
-  //     try {
-  //       setAttachmentLoader(true) // Show loader
-  //       for (const file of acceptedFiles) {
-  //         const payload = {
-  //           batch_id: batchDetails?.batch_id,
-  //           status: batchDetails?.status,
-  //           batch_attachment: [file]
-  //         }
-
-  //         // Call your upload API function with formData
-  //         const res = await uploadAttachmentForBatch(payload)
-  //         console.log(res, 'uploadFile')
-  //         // Handle API response
-  //         if (res?.success && res?.data?.length > 0) {
-  //           Toaster({ type: 'success', message: res?.message })
-  //           // After successful upload, fetch updated batch details
-  //           await getBatchListById(batchDetails?.batch_id)
-  //         } else {
-  //           Toaster({ type: 'error', message: res?.message })
-  //         }
-  //       }
-  //       setAttachmentLoader(false) // Hide loader after processing files
-  //     } catch (error) {
-  //       console.error('Error uploading files:', error)
-  //       setAttachmentLoader(false) // Hide loader on error
-  //     }
-  //   }
-  // })
 
   const { getRootProps, getInputProps } = useDropzone({
     multiple: true, // Allow multiple files
@@ -550,7 +521,9 @@ const BatchDetails = ({ params, searchParams }) => {
             successCount++ // Increment successful uploads count
             message = res?.message
 
-            await getBatchListById(batchDetails?.batch_id)
+            setFilePreviews(res?.data)
+
+            // await getBatchListById(batchDetails?.batch_id)
           } else {
             Toaster({ type: 'error', message: res?.message })
           }
@@ -581,7 +554,8 @@ const BatchDetails = ({ params, searchParams }) => {
       const res = await deleteAttachmentForBatch(selectedId, payload)
       if (res?.success) {
         Toaster({ type: 'success', message: res?.message })
-        await getBatchListById(batchDetails?.batch_id)
+        setFilePreviews(res?.data)
+        // await getBatchListById(batchDetails?.batch_id)
       } else {
         Toaster({ type: 'error', message: res?.message })
       }
@@ -621,149 +595,150 @@ const BatchDetails = ({ params, searchParams }) => {
     }
   }
 
+  const downloadCsvForBatchDetails = async batchId => {
+    const payload = { batch_id: batchId }
+    setCsvLoading(true) // Start loading
+
+    try {
+      const response = await downloadCsvForBatchData(payload)
+      console.log('API Response:', response)
+
+      if (response.success && response.data) {
+        // Fetch the file content
+        const urlParts = response.data.split('/')
+        const fileName = urlParts[urlParts.length - 1]
+        const fetchResponse = await fetch(response.data)
+        const blob = await fetchResponse.blob()
+
+        // Create a Blob URL
+        const blobUrl = window.URL.createObjectURL(blob)
+
+        // Create a temporary anchor element
+        const link = document.createElement('a')
+        link.href = blobUrl
+        link.setAttribute('download', `batch_data_${batchId}.csv`) // Set the file name
+        link.style.display = 'none'
+        document.body.appendChild(link)
+
+        // Trigger download
+        if (typeof link.click === 'function') {
+          link.click()
+        } else {
+          // For browsers that don't support link.click()
+          link.dispatchEvent(
+            new MouseEvent('click', {
+              view: window,
+              bubbles: true,
+              cancelable: true
+            })
+          )
+        }
+
+        // Clean up
+        document.body.removeChild(link)
+        window.URL.revokeObjectURL(blobUrl)
+
+        // Show success toaster
+        Toaster({ type: 'success', message: response.message })
+      } else {
+        Toaster({ type: 'error', message: 'Failed to generate CSV' })
+        throw new Error('Invalid response format')
+      }
+    } catch (error) {
+      console.error('Error downloading CSV:', error)
+      Toaster({ type: 'error', message: 'Error downloading CSV' })
+    } finally {
+      setCsvLoading(false) // Stop loading
+    }
+  }
+
   return (
     <>
-      <Card>
-        <Box sx={{ p: 6, pb: 0 }}>
-          <Grid container justifyContent='space-between'>
-            <Grid item xs={12} sm='auto'>
-              <CardHeader
-                sx={{ padding: 0 }}
-                avatar={
-                  <Icon
-                    style={{ cursor: 'pointer' }}
-                    onClick={() => {
-                      router.back()
-                    }}
-                    icon='ep:back'
+      {pariveshAccess ? (
+        <>
+          <Card>
+            <Box sx={{ p: 6, pb: 0 }}>
+              <Grid container justifyContent='space-between'>
+                <Grid item xs={12} sm='auto'>
+                  <CardHeader
+                    sx={{ padding: 0 }}
+                    avatar={
+                      <Icon
+                        style={{ cursor: 'pointer' }}
+                        onClick={() => {
+                          router.back()
+                        }}
+                        icon='ep:back'
+                      />
+                    }
+                    title='Batch Details'
                   />
-                }
-                title='Batch Details'
-              />
-            </Grid>
-            <Grid item xs={12} sm='auto'>
-              <Box
-                sx={{
-                  display: 'flex',
-                  justifyContent: { sm: 'space-between' },
-                  alignItems: 'center',
-                  gap: 2,
-                  mt: { xs: 2, sm: 0 }
-                }}
-              >
-                <Typography variant='subtitle1'>Status:</Typography>
-                <Typography variant='subtitle1'>
-                  {batchDetails?.status !== 'accepted' && batchDetails?.status !== 'rejected' ? (
-                    <Select
-                      displayEmpty
-                      sx={{
-                        minWidth: 200,
-                        height: 40,
-                        background: '#00AFD6',
-                        color: '#FFFFFF',
-                        borderColor: '#00AFD6',
-                        '& .MuiOutlinedInput-notchedOutline': {
-                          borderColor: '#00AFD6'
-                        },
-                        '&:hover .MuiOutlinedInput-notchedOutline': {
-                          borderColor: '#00AFD6'
-                        },
-                        '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                          borderColor: '#00AFD6'
-                        },
-                        '& .MuiSelect-icon': {
-                          color: '#FFFFFF'
-                        }
-                      }}
-                      IconComponent={CustomDropdownIcon}
-                      value={selectedStatus}
-                      onChange={handleStatusChange}
-                      onClick={onClickStatus}
-                    >
-                      {dropdownOptions.map(option => (
-                        <MenuItem key={option.value} value={option.value}>
-                          {option.label}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  ) : (
-                    <Typography
-                      sx={{
-                        color: batchDetails.status === 'rejected' ? '#FF0000' : '#37BD69'
-                      }}
-                    >
-                      {batchDetails.status === 'accepted'
-                        ? 'Approved'
-                        : batchDetails.status === 'rejected'
-                        ? 'Rejected'
-                        : null}
+                </Grid>
+                <Grid item xs={12} sm='auto'>
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      justifyContent: { sm: 'space-between' },
+                      alignItems: 'center',
+                      gap: 2,
+                      mt: { xs: 2, sm: 0 }
+                    }}
+                  >
+                    <Typography variant='subtitle1'>Status:</Typography>
+                    <Typography variant='subtitle1'>
+                      {batchDetails?.status !== 'accepted' && batchDetails?.status !== 'rejected' ? (
+                        <Select
+                          displayEmpty
+                          sx={{
+                            minWidth: 200,
+                            height: 40,
+                            background: '#00AFD6',
+                            color: '#FFFFFF',
+                            borderColor: '#00AFD6',
+                            '& .MuiOutlinedInput-notchedOutline': {
+                              borderColor: '#00AFD6'
+                            },
+                            '&:hover .MuiOutlinedInput-notchedOutline': {
+                              borderColor: '#00AFD6'
+                            },
+                            '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                              borderColor: '#00AFD6'
+                            },
+                            '& .MuiSelect-icon': {
+                              color: '#FFFFFF'
+                            }
+                          }}
+                          IconComponent={CustomDropdownIcon}
+                          value={selectedStatus}
+                          onChange={handleStatusChange}
+                          onClick={onClickStatus}
+                        >
+                          {dropdownOptions.map(option => (
+                            <MenuItem key={option.value} value={option.value}>
+                              {option.label}
+                            </MenuItem>
+                          ))}
+                        </Select>
+                      ) : (
+                        <Typography
+                          sx={{
+                            color: batchDetails.status === 'rejected' ? '#FF0000' : '#37BD69'
+                          }}
+                        >
+                          {batchDetails.status === 'accepted'
+                            ? 'Approved'
+                            : batchDetails.status === 'rejected'
+                            ? 'Rejected'
+                            : NA}
+                        </Typography>
+                      )}
                     </Typography>
-                  )}
-                </Typography>
-              </Box>
-            </Grid>
-          </Grid>
-        </Box>
-
-        {/* <Box sx={{ background: 'rgba(195, 206, 199, 0.3)', borderRadius: '10px', m: 6, p: 6 }}>
-          <Grid container spacing={2}>
-            <Grid item xs={12} sm={6} md={4}>
-              <Typography variant='subtitle1' style={{ color: '#44544A' }}>
-                Batch ID: <span style={{ color: '#44544A', fontWeight: 'bold' }}>{batchDetails?.batch_code}</span>
-              </Typography>
-            </Grid>
-            <Grid item xs={12} sm={6} md={4}>
-              <Typography variant='subtitle1' style={{ color: '#44544A' }}>
-                Batch Created:{' '}
-                <span style={{ color: '#44544A', fontWeight: 'bold' }}>
-                  {moment.utc(batchDetails?.created_on).local().format('DD MMMM YYYY hh:mm A')}
-                </span>
-              </Typography>
-            </Grid>
-
-            <Grid item xs={12} sm={6} md={4}>
-              <Typography variant='subtitle1' style={{ color: '#44544A' }}>
-                Submitted Date:{' '}
-                <span style={{ color: '#44544A', fontWeight: 'bold' }}>
-                  {batchDetails?.submitted_on !== null
-                    ? moment.utc(batchDetails?.submitted_on).local().format('DD MMMM YYYY hh:mm A')
-                    : 'NA'}
-                </span>
-              </Typography>
-            </Grid>
-          </Grid>
-
-          <Box sx={{ mt: 6 }}>
-            <Grid container spacing={2} sx={{ alignItems: 'baseline' }}>
-              <Grid item xs={12} sm={6} md={4}>
-                <Typography variant='subtitle1' style={{ color: '#44544A' }}>
-                  Organization:{' '}
-                  <span style={{ color: '#44544A', fontWeight: 'bold' }}>{selectedParivesh?.organization_name}</span>
-                </Typography>
+                  </Box>
+                </Grid>
               </Grid>
-              <Grid item xs={12} sm={6} md={4}>
-                <Typography variant='subtitle1' style={{ color: '#44544A' }}>
-                  {type === 'reportedBatch' ? 'Created By' : 'Submitted By'}:{' '}
-                  <span style={{ color: '#44544A', fontWeight: 'bold' }}>
-                    {type === 'reportedBatch'
-                      ? batchDetails?.created_by_user?.user_name
-                      : batchDetails?.submitted_by_user?.user_name}
-                  </span>
-                </Typography>
-              </Grid>
-              <Grid item xs={12} sm={6} md={4}>
-                <Typography variant='subtitle1' style={{ color: '#44544A' }}>
-                  Registration ID :{' '}
-                  <span style={{ color: '#44544A', fontWeight: 'bold' }}>
-                    {batchDetails?.registration_id !== '' ? batchDetails?.registration_id : regId}
-                  </span>
-                </Typography>
-              </Grid>
-            </Grid>
-          </Box>
-        </Box> */}
+            </Box>
 
-        <Box
+            {/* <Box
           sx={{
             background: 'rgba(195, 206, 199, 0.3)',
             borderRadius: '10px',
@@ -804,14 +779,16 @@ const BatchDetails = ({ params, searchParams }) => {
             <Typography variant='subtitle1' sx={{ color: '#44544A', marginBottom: 4 }}>
               Batch Created:{' '}
               <span style={{ fontWeight: '600' }}>
-                {moment.utc(batchDetails?.created_on).local().format('DD MMMM YYYY  hh:mm A')}
+                {Utility.formatDisplayDate(Utility.convertUTCToLocal(batchDetails?.created_on)) +
+                  ' ' +
+                  Utility.extractHoursAndMinutes(Utility.convertUTCToLocal(batchDetails?.created_on))}
               </span>
             </Typography>
 
             <Typography variant='subtitle1' style={{ color: '#44544A' }}>
-              {type === 'reportedBatch' ? 'Created By' : 'Submitted By'}:{' '}
+              {type === 'toBeSubmittedBatch' ? 'Created By' : 'Submitted By'}:{' '}
               <span style={{ color: '#44544A', fontWeight: '600' }}>
-                {type === 'reportedBatch'
+                {type === 'toBeSubmittedBatch'
                   ? batchDetails?.created_by_user?.user_name
                   : batchDetails?.submitted_by_user?.user_name}
               </span>
@@ -824,14 +801,17 @@ const BatchDetails = ({ params, searchParams }) => {
               flexDirection: 'column',
               justifyContent: 'flex-start',
               alignItems: 'flex-start',
-              marginBottom: { xs: 3, sm: 0 }
+              marginBottom: { xs: 3, sm: 0 },
+              marginRight: 20
             }}
           >
             <Typography variant='subtitle1' sx={{ color: '#44544A', marginBottom: 4 }}>
               Submitted Date:{' '}
               <span style={{ color: '#44544A', fontWeight: '600' }}>
                 {batchDetails?.submitted_on !== null
-                  ? moment.utc(batchDetails?.submitted_on).local().format('DD MMMM YYYY hh:mm A')
+                  ? Utility.formatDisplayDate(Utility.convertUTCToLocal(batchDetails?.submitted_on)) +
+                    ' ' +
+                    Utility.extractHoursAndMinutes(Utility.convertUTCToLocal(batchDetails?.submitted_on))
                   : 'NA'}
               </span>
             </Typography>
@@ -843,260 +823,382 @@ const BatchDetails = ({ params, searchParams }) => {
               </span>
             </Typography>
           </Box>
-        </Box>
+        </Box> */}
 
-        <Box sx={{ pl: 6, pr: 6, pb: 6 }}>
-          <Grid>{tableData()}</Grid>
-        </Box>
-      </Card>
-
-      <Card sx={{ mt: 6 }}>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', p: 6 }}>
-          <Box>
-            <Grid container spacing={2}>
-              <Grid item>
-                <Button size='large' variant='outlined' sx={{ color: '#7A8684', mr: 3 }}>
-                  <Icon icon='mdi:printer-outline' size={1} />
-                  &nbsp; Print
-                </Button>
+            <Grid
+              container
+              spacing={3}
+              sx={{
+                background: 'rgba(195, 206, 199, 0.3)',
+                borderRadius: '10px',
+                m: { xs: 2, sm: 4, md: 6 },
+                p: { xs: 3, sm: 4, md: 6 },
+                width: 'auto'
+              }}
+            >
+              {/* First Column */}
+              <Grid item xs={12} sm={6} md={3}>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'flex-start',
+                    alignItems: 'flex-start'
+                  }}
+                >
+                  <Typography variant='subtitle1' sx={{ color: '#44544A', mb: 2 }}>
+                    Batch ID: <span style={{ fontWeight: '600' }}>{batchDetails?.batch_code}</span>
+                  </Typography>
+                  <Typography variant='subtitle1' sx={{ color: '#44544A', mb: 2 }}>
+                    Organization: <span style={{ fontWeight: '600' }}>{selectedParivesh?.organization_name}</span>
+                  </Typography>
+                </Box>
               </Grid>
-              <Grid item>
-                <Button
+
+              {/* Second Column */}
+              <Grid item xs={12} sm={6} md={5}>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'flex-start',
+                    alignItems: 'flex-start'
+                  }}
+                >
+                  <Typography variant='subtitle1' sx={{ color: '#44544A', mb: 2 }}>
+                    Batch Created:{' '}
+                    <span style={{ fontWeight: '600' }}>
+                      {Utility.formatDisplayDate(Utility.convertUTCToLocal(batchDetails?.created_on)) +
+                        ' ' +
+                        Utility.extractHoursAndMinutes(Utility.convertUTCToLocal(batchDetails?.created_on))}
+                    </span>
+                  </Typography>
+                  <Typography variant='subtitle1' sx={{ color: '#44544A' }}>
+                    {type === 'toBeSubmittedBatch' ? 'Created By' : 'Submitted By'}:{' '}
+                    <span style={{ fontWeight: '600' }}>
+                      {type === 'toBeSubmittedBatch'
+                        ? batchDetails?.created_by_user?.user_name
+                        : batchDetails?.submitted_by_user?.user_name}
+                    </span>
+                  </Typography>
+                </Box>
+              </Grid>
+
+              {/* Third Column */}
+              <Grid item xs={12} sm={6} md={4}>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'flex-start',
+                    alignItems: 'flex-start' // Align items to the start (left)
+                  }}
+                >
+                  <Typography variant='subtitle1' sx={{ color: '#44544A', mb: 2 }}>
+                    Submitted Date:{' '}
+                    <span style={{ fontWeight: '600' }}>
+                      {batchDetails?.submitted_on
+                        ? Utility.formatDisplayDate(Utility.convertUTCToLocal(batchDetails?.submitted_on)) +
+                          ' ' +
+                          Utility.extractHoursAndMinutes(Utility.convertUTCToLocal(batchDetails?.submitted_on))
+                        : 'NA'}
+                    </span>
+                  </Typography>
+                  <Typography variant='subtitle1' sx={{ color: '#44544A' }}>
+                    Registration ID:{' '}
+                    <span style={{ fontWeight: '600' }}>
+                      {batchDetails?.registration_id !== '' ? batchDetails?.registration_id : regId}
+                    </span>
+                  </Typography>
+                </Box>
+              </Grid>
+            </Grid>
+
+            <Box sx={{ pl: 6, pr: 6, pb: 6 }}>
+              <Grid>{tableData()}</Grid>
+            </Box>
+          </Card>
+
+          <Card sx={{ mt: 6 }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', p: 6 }}>
+              <Box>
+                <Grid container spacing={2}>
+                  <Grid item>
+                    {/* <Button
                   size='large'
                   variant='outlined'
                   sx={{ color: '#7A8684', mr: 3 }}
-                  {...getRootProps()}
-                  disabled={attachmentLoader}
+                  onClick={() => downloadCsvForBatchDetails(id)}
                 >
-                  {attachmentLoader ? (
-                    <CircularProgress size={20} sx={{ color: '#7A8684', mr: 1 }} />
-                  ) : (
-                    <Icon icon='mdi:attachment-plus' size={1} />
-                  )}
-                  &nbsp; {`Attachment${filePreviews?.length ? ` (${filePreviews?.length})` : ''}`}
-                  <input {...getInputProps()} />
-                </Button>
-              </Grid>
-
-              {filePreviews?.map((filePreview, index) => (
-                <Grid item key={index}>
-                  <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                    <Box
-                      sx={{
-                        position: 'relative',
-                        backgroundColor: '#f0f0f0', // Adjust background color as needed
-                        borderRadius: '10px',
-                        height: 44,
-                        width: 'auto',
-                        padding: '6px',
-                        boxSizing: 'border-box'
-                      }}
+                  <Icon icon='mdi:printer-outline' size={1} />
+                  &nbsp; Print
+                </Button> */}
+                    <Button
+                      size='large'
+                      variant='outlined'
+                      sx={{ color: '#7A8684', mr: 3 }}
+                      onClick={() => downloadCsvForBatchDetails(id)}
+                      disabled={csvLoading} // Disable the button while loading
                     >
-                      {isImage(filePreview.attachment) ? (
-                        <img
-                          style={{
-                            height: '100%',
-                            borderRadius: '5%',
-                            objectFit: 'cover',
-                            width: '100%'
-                          }}
-                          alt='Attachment'
-                          src={filePreview.attachment}
-                        />
+                      {csvLoading ? (
+                        <CircularProgress size={24} sx={{ color: '#7A8684', mr: 1 }} /> // Loader icon
                       ) : (
-                        <a
-                          href={filePreview.attachment}
-                          target='_blank'
-                          rel='noopener noreferrer'
-                          style={{ textDecoration: 'none', color: 'inherit' }}
-                        >
-                          <Tooltip title={filePreview.attachment_name} arrow>
-                            <Typography variant='body2' sx={{ m: 2 }}>
-                              <div style={{ display: 'flex', alignItems: 'center' }}>
-                                {/* <Image src={pdfIcon} alt='' width={50} height={50} /> */}
-                                <Image
-                                  src={getIconByFileType(filePreview.attachment_name)}
-                                  alt=''
-                                  width={20}
-                                  height={20}
-                                />
-                                <span style={{ marginLeft: '6px' }}>
-                                  {truncateFileName(getFileNameFromUrl(filePreview.attachment_name))}
-                                </span>
-                              </div>
-                            </Typography>
-                          </Tooltip>
-                        </a>
+                        <Icon icon='mdi:printer-outline' size={1} />
                       )}
+                      &nbsp; Print
+                    </Button>
+                  </Grid>
+                  <Grid item>
+                    <Button
+                      size='large'
+                      variant='outlined'
+                      sx={{ color: '#7A8684', mr: 3 }}
+                      {...getRootProps()}
+                      disabled={attachmentLoader}
+                    >
+                      {attachmentLoader ? (
+                        <CircularProgress size={20} sx={{ color: '#7A8684', mr: 1 }} />
+                      ) : (
+                        // <Icon icon='mdi:attachment-plus' size={1} />
 
-                      {/* Button to remove selected file */}
-                      <Box
-                        sx={{
-                          cursor: 'pointer',
-                          position: 'absolute',
-                          top: 0,
-                          right: 0,
-                          zIndex: 10,
-                          height: '16px',
-                          width: '16px',
-                          borderRadius: 0.4,
-                          backgroundColor: theme.palette.customColors.secondaryBg,
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center'
-                        }}
-                        onClick={() => removeFilePreview(filePreview.id)}
-                      >
-                        <Icon icon='material-symbols-light:close' color='#fff' />
+                        <Icon
+                          icon='material-symbols-light:attach-file-add'
+                          color='#7A8684'
+                          fontWeight='bold'
+                          size={8}
+                        />
+                      )}
+                      &nbsp; {`Attachment${filePreviews?.length ? ` (${filePreviews?.length})` : ''}`}
+                      <input {...getInputProps()} />
+                    </Button>
+                  </Grid>
+
+                  {filePreviews?.map((filePreview, index) => (
+                    <Grid item key={index}>
+                      <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                        <Box
+                          sx={{
+                            position: 'relative',
+                            backgroundColor: '#f0f0f0', // Adjust background color as needed
+                            borderRadius: '8px',
+                            height: 42,
+                            width: 'auto',
+                            padding: isImage(filePreview.attachment) ? '8px' : '4px',
+                            boxSizing: 'border-box'
+                          }}
+                        >
+                          {isImage(filePreview.attachment) ? (
+                            // <img
+                            //   style={{
+                            //     height: '100%',
+                            //     borderRadius: '5%',
+                            //     objectFit: 'cover',
+                            //     width: '100%'
+                            //   }}
+                            //   alt='Attachment'
+                            //   src={filePreview.attachment}
+                            // />
+                            <ImageLightbox images={filePreview} />
+                          ) : (
+                            <a
+                              href={filePreview.attachment}
+                              target='_blank'
+                              rel='noopener noreferrer'
+                              style={{ textDecoration: 'none', color: 'inherit' }}
+                            >
+                              <Tooltip title={filePreview.attachment_name} arrow>
+                                <Typography variant='body2' sx={{ m: 2 }}>
+                                  <div style={{ display: 'flex', alignItems: 'center' }}>
+                                    {/* <Image src={pdfIcon} alt='' width={50} height={50} /> */}
+                                    <Image
+                                      src={getIconByFileType(filePreview.attachment_name)}
+                                      alt=''
+                                      width={20}
+                                      height={20}
+                                    />
+                                    <span style={{ marginLeft: '6px' }}>
+                                      {truncateFileName(getFileNameFromUrl(filePreview.attachment_name))}
+                                    </span>
+                                  </div>
+                                </Typography>
+                              </Tooltip>
+                            </a>
+                          )}
+
+                          {/* Button to remove selected file */}
+                          <Box
+                            sx={{
+                              cursor: 'pointer',
+                              position: 'absolute',
+                              top: 0,
+                              right: 0,
+                              zIndex: 10,
+                              height: '16px',
+                              width: '16px',
+                              borderRadius: 0.4,
+                              backgroundColor: theme.palette.customColors.secondaryBg,
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center'
+                            }}
+                            onClick={() => removeFilePreview(filePreview.id)}
+                          >
+                            <Icon icon='material-symbols-light:close' color='#fff' />
+                          </Box>
+                        </Box>
                       </Box>
-                    </Box>
-                  </Box>
+                    </Grid>
+                  ))}
                 </Grid>
-              ))}
-            </Grid>
-          </Box>
-          <Box>
-            <Grid container spacing={2}>
-              <Grid item>
-                {batchDetails?.status !== 'accepted' && type !== 'submittedBatch' && (
-                  <Button
-                    disabled={regId !== '' ? false : true}
-                    variant='contained'
-                    color='primary'
-                    onClick={() => handleSaveBatch('save')}
-                    size='large'
-                  >
-                    Save
-                  </Button>
-                )}
-              </Grid>
-              <Grid item>
-                {batchDetails?.status !== 'accepted' && type === 'submittedBatch' && (
-                  <Button
-                    variant='contained'
-                    color='primary'
-                    onClick={() => handleSaveBatch('saveBatch')}
-                    disabled={batchDetails?.status === 'rejected' ? true : false}
-                    size='large'
-                  >
-                    Save Batch
-                  </Button>
-                )}
-              </Grid>
-            </Grid>
-          </Box>
-        </Box>
-      </Card>
-
-      <Dialog open={isModalOpen} onClose={() => setIsModalOpen(false)}>
-        <DialogTitle>
-          Registration ID*
-          <IconButton
-            aria-label='close'
-            onClick={() => setIsModalOpen(false)}
-            sx={{ top: 10, right: 10, position: 'absolute', color: 'grey.500' }}
-          >
-            <Icon icon='mdi:close' />
-          </IconButton>
-        </DialogTitle>
-        <DialogContent sx={{ width: 350 }}>
-          <Box sx={{ mt: 6 }}>
-            <form onSubmit={handleSubmit(onSubmit)}>
-              <FormControl fullWidth>
-                <Controller
-                  name='registrationId'
-                  control={control}
-                  rules={{ required: 'Registration ID is required' }}
-                  render={({ field: { value, onChange } }) => (
-                    <TextField
-                      label='Registration ID'
-                      value={value}
-                      onChange={onChange}
-                      placeholder='Enter Registration ID'
-                      error={Boolean(errors.registrationId)}
-                      name='registrationId'
-                    />
-                  )}
-                />
-                {errors.registrationId && (
-                  <FormHelperText sx={{ color: 'error.main' }}>{errors.registrationId.message}</FormHelperText>
-                )}
-              </FormControl>
-            </form>
-          </Box>
-        </DialogContent>
-        <DialogActions>
-          <LoadingButton
-            loading={btnLoader}
-            size='large'
-            sx={{ width: '100%' }}
-            variant='contained'
-            onClick={handleSubmit(onSubmit)}
-          >
-            Add ID
-          </LoadingButton>
-        </DialogActions>
-      </Dialog>
-      <Dialog open={isModalOpenDelete} onClose={() => setIsModalOpenDelete(false)}>
-        <DialogTitle>
-          <IconButton
-            aria-label='close'
-            onClick={() => setIsModalOpenDelete(false)}
-            sx={{ top: 10, right: 10, position: 'absolute', color: 'grey.500' }}
-          >
-            <Icon icon='mdi:close' />
-          </IconButton>
-          <Box
-            sx={{
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '32px',
-
-              // padding: '40px',
-              alignItems: 'center'
-            }}
-          >
-            <Box
-              sx={{
-                padding: '16px',
-                borderRadius: '12px',
-                backgroundColor: theme.palette.customColors.mdAntzNeutral
-              }}
-            >
-              <Icon width='70px' height='70px' color={'#ff3838'} icon={'mdi:delete'} />
+              </Box>
+              <Box>
+                <Grid container spacing={2}>
+                  <Grid item>
+                    {batchDetails?.status !== 'accepted' && type !== 'submittedBatch' && (
+                      <Button
+                        disabled={regId !== 'NA' ? false : true}
+                        variant='contained'
+                        color='primary'
+                        onClick={() => handleSaveBatch('save')}
+                        size='large'
+                      >
+                        Save
+                      </Button>
+                    )}
+                  </Grid>
+                  <Grid item>
+                    {batchDetails?.status !== 'accepted' &&
+                      batchDetails?.status !== 'rejected' &&
+                      type === 'submittedBatch' && (
+                        <Button
+                          variant='contained'
+                          color='primary'
+                          onClick={() => handleSaveBatch('saveBatch')}
+                          disabled={buttonEnabled}
+                          size='large'
+                        >
+                          Save Batch
+                        </Button>
+                      )}
+                  </Grid>
+                </Grid>
+              </Box>
             </Box>
-            <Box>
-              <Typography sx={{ fontWeight: 600, fontSize: 24, textAlign: 'center', mb: '12px' }}>
-                Are you sure you want to delete this attachment?
-              </Typography>
-            </Box>
-            <Box sx={{ display: 'flex', justifyContent: 'space-evenly', width: '100%' }}>
-              <Button
-                disabled={btnLoader}
-                onClick={() => setIsModalOpenDelete(false)}
-                variant='outlined'
-                sx={{
-                  color: 'gray',
-                  width: '45%'
-                }}
+          </Card>
+
+          <Dialog open={isModalOpen} onClose={() => setIsModalOpen(false)}>
+            <DialogTitle>
+              Registration ID*
+              <IconButton
+                aria-label='close'
+                onClick={() => setIsModalOpen(false)}
+                sx={{ top: 10, right: 10, position: 'absolute', color: 'grey.500' }}
               >
-                Cancel
-              </Button>
-
+                <Icon icon='mdi:close' />
+              </IconButton>
+            </DialogTitle>
+            <DialogContent sx={{ width: 350 }}>
+              <Box sx={{ mt: 6 }}>
+                <form onSubmit={handleSubmit(onSubmit)}>
+                  <FormControl fullWidth>
+                    <Controller
+                      name='registrationId'
+                      control={control}
+                      rules={{ required: 'Registration ID is required' }}
+                      render={({ field: { value, onChange } }) => (
+                        <TextField
+                          label='Registration ID'
+                          value={value}
+                          onChange={onChange}
+                          placeholder='Enter Registration ID'
+                          error={Boolean(errors.registrationId)}
+                          name='registrationId'
+                        />
+                      )}
+                    />
+                    {errors.registrationId && (
+                      <FormHelperText sx={{ color: 'error.main' }}>{errors.registrationId.message}</FormHelperText>
+                    )}
+                  </FormControl>
+                </form>
+              </Box>
+            </DialogContent>
+            <DialogActions>
               <LoadingButton
                 loading={btnLoader}
                 size='large'
+                sx={{ width: '100%' }}
                 variant='contained'
-                sx={{ width: '45%' }}
-                onClick={() => confirmDeleteAction()}
+                onClick={handleSubmit(onSubmit)}
               >
-                Delete
+                Add ID
               </LoadingButton>
-            </Box>
-          </Box>
-        </DialogTitle>
-        <DialogContent />
-      </Dialog>
+            </DialogActions>
+          </Dialog>
+          <Dialog open={isModalOpenDelete} onClose={() => setIsModalOpenDelete(false)}>
+            <DialogTitle>
+              <IconButton
+                aria-label='close'
+                onClick={() => setIsModalOpenDelete(false)}
+                sx={{ top: 10, right: 10, position: 'absolute', color: 'grey.500' }}
+              >
+                <Icon icon='mdi:close' />
+              </IconButton>
+              <Box
+                sx={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '32px',
+
+                  // padding: '40px',
+                  alignItems: 'center'
+                }}
+              >
+                <Box
+                  sx={{
+                    padding: '16px',
+                    borderRadius: '12px',
+                    backgroundColor: theme.palette.customColors.mdAntzNeutral
+                  }}
+                >
+                  <Icon width='70px' height='70px' color={'#ff3838'} icon={'mdi:delete'} />
+                </Box>
+                <Box>
+                  <Typography sx={{ fontWeight: 600, fontSize: 24, textAlign: 'center', mb: '12px' }}>
+                    Are you sure you want to delete this attachment?
+                  </Typography>
+                </Box>
+                <Box sx={{ display: 'flex', justifyContent: 'space-evenly', width: '100%' }}>
+                  <Button
+                    disabled={btnLoader}
+                    onClick={() => setIsModalOpenDelete(false)}
+                    variant='outlined'
+                    sx={{
+                      color: 'gray',
+                      width: '45%'
+                    }}
+                  >
+                    Cancel
+                  </Button>
+
+                  <LoadingButton
+                    loading={btnLoader}
+                    size='large'
+                    variant='contained'
+                    sx={{ width: '45%' }}
+                    onClick={() => confirmDeleteAction()}
+                  >
+                    Delete
+                  </LoadingButton>
+                </Box>
+              </Box>
+            </DialogTitle>
+            <DialogContent />
+          </Dialog>
+        </>
+      ) : (
+        <Error404></Error404>
+      )}
     </>
   )
 }

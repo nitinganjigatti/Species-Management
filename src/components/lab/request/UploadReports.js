@@ -11,7 +11,8 @@ import Image from 'next/image'
 import { useDropzone } from 'react-dropzone'
 import { useTheme } from '@mui/material/styles'
 import Icon from 'src/@core/components/icon'
-import imageUploader from 'public/images/imageUploader/imageUploader.png'
+import imageUploader from 'public/images/gallery_add_Icon.png'
+import Toaster from 'src/components/Toaster'
 
 const UploadReports = ({
   animalID,
@@ -20,9 +21,10 @@ const UploadReports = ({
   type,
   id,
   handleCloseUploader,
-  setAlertDefaults,
+
   handleClosePopover,
-  fetchRequestDetails
+  fetchRequestDetails,
+  buttonText
 }) => {
   const theme = useTheme()
   const [uploadedImage, setUploadedImage] = useState()
@@ -82,19 +84,20 @@ const UploadReports = ({
       '*/*': []
     },
     onDrop: acceptedFiles => {
-      const reader = new FileReader()
-      const files = acceptedFiles
-      if (files && files.length !== 0) {
-        reader.onload = () => {
-          setImgSrc(pre => [...pre, reader?.result])
-        }
-        setDisplayFile(files[0]?.name)
-        reader?.readAsDataURL(files[0])
-        setImgArr(pre => [...pre, files[0]])
-        setValue('image', files)
+      const newImgArr = []
 
-        clearErrors('image')
-      }
+      acceptedFiles.forEach(file => {
+        const reader = new FileReader()
+        reader.onload = () => {
+          setImgSrc(prev => [...prev, reader.result])
+        }
+        reader.readAsDataURL(file)
+        newImgArr.push(file)
+      })
+
+      setImgArr(prev => [...prev, ...newImgArr])
+      setValue('image', newImgArr)
+      clearErrors('image')
     }
   })
 
@@ -102,20 +105,24 @@ const UploadReports = ({
     fileInputRef?.current?.click()
   }
 
-  const handleInputImageChange = file => {
-    const reader = new FileReader()
-    const { files } = file.target
-    console.log('files :>> ', files)
-    if (files && files.length !== 0) {
+  const handleInputImageChange = event => {
+    const { files } = event.target
+    if (!files) return
+
+    const newImgArr = []
+
+    Array.from(files).forEach(file => {
+      const reader = new FileReader()
       reader.onload = () => {
-        setImgSrc(pre => [...pre, reader?.result])
+        setImgSrc(prev => [...prev, reader.result])
       }
-      setDisplayFile(files[0]?.name)
-      reader?.readAsDataURL(files[0])
-      setImgArr(pre => [...pre, files[0]])
-      setValue('image', files)
-      clearErrors('image')
-    }
+      reader.readAsDataURL(file)
+      newImgArr.push(file)
+    })
+
+    setImgArr(prev => [...prev, ...newImgArr])
+    setValue('image', newImgArr)
+    clearErrors('image')
   }
 
   // const removeSelectedImage = index => {
@@ -155,7 +162,8 @@ const UploadReports = ({
     const lab_test_files = []
 
     if (!imgArr?.length) {
-      setAlertDefaults({ status: true, message: 'Upload File is Required', severity: 'error' })
+      Toaster({ type: 'error', message: 'File is Required' })
+
       setSubmitting(false)
     } else {
       const payload = {
@@ -167,32 +175,33 @@ const UploadReports = ({
         entity_id: id
       }
 
-      console.log('payload', payload)
+      // console.log('payload', payload)
 
-      // try {
-      //   const response = await UploadLabReports(payload)
-      //   if (response?.success) {
-      //     handleCloseUploader(false)
-      //     handleClosePopover()
-      //     reset(defaultValues)
-      //     setImgSrc('')
-      //     reset()
-      //     setImgArr([])
+      try {
+        const response = await UploadLabReports(payload)
+        if (response?.success) {
+          handleCloseUploader(false)
+          handleClosePopover()
+          reset(defaultValues)
+          setImgSrc('')
+          reset()
+          setImgArr([])
 
-      //     setAlertDefaults({ status: true, message: response?.message, severity: 'success' })
+          Toaster({ type: 'success', message: response.message })
 
-      //     fetchRequestDetails()
-      //     setKey(key + 1)
-      //   } else {
-      //     reset(defaultValues)
-      //     setAlertDefaults({ status: true, message: response?.message, severity: 'error' })
-      //   }
-      //   // Reset the form after successful submission
-      // } catch (error) {
-      //   console.error(error)
-      // } finally {
-      //   setSubmitting(false)
-      // }
+          fetchRequestDetails()
+          setKey(key + 1)
+        } else {
+          reset(defaultValues)
+
+          Toaster({ type: 'error', message: response.message })
+        }
+        // Reset the form after successful submission
+      } catch (error) {
+        console.error(error)
+      } finally {
+        setSubmitting(false)
+      }
     }
   }
 
@@ -210,157 +219,108 @@ const UploadReports = ({
   const [key, setKey] = useState(0)
 
   return (
-    <div>
-      <form onSubmit={handleSubmit(onSubmit)}>
-        <Grid container>
-          <Grid item md={12} xs={12} sm={12} sx={{ m: 5 }}>
-            <Card key={key}>
-              <CardHeader title='Upload File' />
-              <CardContent>
-                {/* <FileUploaderSingle onImageUpload={onImageUpload} image={uploadedImage} /> */}
-                <Grid container>
-                  {/* {imgSrc !== '' ? null : ( */}
-                  <Grid item md={12} sm={12} xs={12}>
-                    <input
-                      type='file'
-                      accept='*/*'
-                      onChange={e => handleInputImageChange(e)}
-                      style={{ display: 'none' }}
-                      name='image'
-                      ref={fileInputRef}
-                    />
+    <form onSubmit={handleSubmit(onSubmit)}>
+      <Grid container>
+        <Grid item md={12} xs={12} sm={12} sx={{ m: 5 }}>
+          <Box key={key}>
+            <Grid container>
+              {/* {imgSrc !== '' ? null : ( */}
+              <Grid item md={12} sm={12} xs={12}>
+                <Box sx={{ display: 'flex', alignItems: 'center', width: 'auto', flexWrap: 'wrap' }}>
+                  <input
+                    multiple
+                    type='file'
+                    accept='*/*'
+                    onChange={e => handleInputImageChange(e)}
+                    style={{ display: 'none' }}
+                    name='image'
+                    ref={fileInputRef}
+                  />
 
-                    <Box
-                      {...getRootProps({ className: 'dropzone' })}
-                      onClick={handleAddImageClick}
-                      sx={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 7,
-                        height: 100,
+                  <Box
+                    {...getRootProps({ className: 'dropzone' })}
+                    onClick={handleAddImageClick}
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 7,
+                      height: 60,
+                      borderRadius: '8px',
+                      border: `2px dotted #D8D8DD`,
+                      padding: 3,
+                      width: '414px',
+                      flexWrap: 'wrap'
+                    }}
+                  >
+                    <Image alt={'filename'} src={imageUploader} width={32} height={32} />
+                    <Typography>Drop your lab files here</Typography>
+                  </Box>
 
-                        border: `2px solid ${theme.palette.customColors.trackBg}`,
-                        borderRadius: 1,
-                        padding: 3
-                      }}
-                    >
-                      <Image alt={'filename'} src={imageUploader} width={50} height={50} />
-
-                      <Typography>Drop your image here</Typography>
+                  {imgArr?.length > 0 && (
+                    <Box sx={{ marginLeft: 'auto', paddingRight: 2 }}>
+                      <LoadingButton loading={submitting} onClick={handleSubmitData} type='submit' variant='contained'>
+                        {buttonText || 'Upload'}
+                      </LoadingButton>
                     </Box>
-                  </Grid>
-                  {/* )} */}
-                  <Grid item md={12} sm={12} xs={12} sx={{ display: 'flex', justifyContent: 'flex-start' }}>
-                    <Stack direction='row' sx={{ px: 2, display: 'flex', flexWrap: 'wrap', gap: 3 }}>
-                      {imgSrc?.length > 0 &&
-                        imgSrc?.map((img, index) => (
-                          <Box key={index} sx={{ display: 'flex', mt: 3 }}>
-                            {console.log('img :>> ', img)}
-                            <Box
-                              sx={{
-                                position: 'relative',
-                                backgroundColor: theme.palette.customColors.tableHeaderBg,
-                                borderRadius: '10px',
-                                height: 121,
-                                padding: '10.5px',
-                                boxSizing: 'border-box'
-                              }}
-                            >
-                              <img
-                                style={{
-                                  aspectRatio: 2 / 2,
-                                  height: '100%',
-                                  borderRadius: '5%'
-                                }}
-                                alt='image'
-                                src={img.startsWith('data:image/') ? img : '/icons/document_icon.png'}
-                              />
-                              <Box
-                                sx={{
-                                  cursor: 'pointer',
-                                  position: 'absolute',
-                                  top: 0,
-                                  right: 0,
-                                  zIndex: 10,
-                                  height: '24px',
-                                  borderRadius: 0.4,
-                                  backgroundColor: theme.palette.customColors.secondaryBg
-                                }}
-                              >
-                                <Icon
-                                  icon='material-symbols-light:close'
-                                  color='#fff'
-                                  onClick={() => removeSelectedImage(index)}
-                                >
-                                  {' '}
-                                </Icon>
-                              </Box>
-                            </Box>
-                          </Box>
-                        ))}
-                    </Stack>
-                  </Grid>
-                </Grid>
-              </CardContent>
-            </Card>
-          </Grid>
-
-          {/* <Grid item md={4} xs={12} sm={12}>
-            <Card>
-              <CardHeader title='Document Upload' />
-              <CardContent>
-                <Typography variant='h5' gutterBottom>
-                  Drop file here or click to upload
-                </Typography>
-                <Controller
-                  name='document'
-                  control={control}
-                  defaultValue={null}
-                  render={({ field }) => (
-                    <>
-                      <Input
-                        type='file'
-                        onChange={e => {
-                          handleFileChange(e)
-                          field.onChange(e)
-                        }}
-                      />
-                      {errors.document && <Typography color='error'>{errors.document.message}</Typography>}
-                    </>
                   )}
-                />
-                {selectedFile && (
-                  <div>
-                    <Typography variant='h6' gutterBottom>
-                      Uploaded Document
-                    </Typography>
-                    <Typography>{selectedFile.name}</Typography>
-                  </div>
-                )}
-              </CardContent>
-            </Card>
-          </Grid> */}
+                </Box>
+              </Grid>
+              {/* )} */}
+              <Grid item md={12} sm={12} xs={12} sx={{ display: 'flex', justifyContent: 'flex-start' }}>
+                <Stack direction='row' sx={{ px: 2, display: 'flex', flexWrap: 'wrap', gap: 3 }}>
+                  {imgSrc?.length > 0 &&
+                    imgSrc?.map((img, index) => (
+                      <Box key={index} sx={{ display: 'flex', mt: 3 }}>
+                        {/* {console.log('img :>> ', img)} */}
+                        <Box
+                          sx={{
+                            position: 'relative',
+                            backgroundColor: theme.palette.customColors.tableHeaderBg,
+                            borderRadius: '10px',
+                            height: 121,
+                            padding: '10.5px',
+                            boxSizing: 'border-box'
+                          }}
+                        >
+                          <img
+                            style={{
+                              aspectRatio: 2 / 2,
+                              height: '100%',
+                              borderRadius: '5%'
+                            }}
+                            alt='image'
+                            src={img.startsWith('data:image/') ? img : '/icons/document_icon.png'}
+                          />
+                          <Box
+                            sx={{
+                              cursor: 'pointer',
+                              position: 'absolute',
+                              top: 0,
+                              right: 0,
+                              zIndex: 10,
+                              height: '24px',
+                              borderRadius: 0.4,
+                              backgroundColor: theme.palette.customColors.secondaryBg
+                            }}
+                          >
+                            <Icon
+                              icon='material-symbols-light:close'
+                              color='#fff'
+                              onClick={() => removeSelectedImage(index)}
+                            >
+                              {' '}
+                            </Icon>
+                          </Box>
+                        </Box>
+                      </Box>
+                    ))}
+                </Stack>
+              </Grid>
+            </Grid>
+          </Box>
         </Grid>
-        {imgArr?.length > 0 && (
-          <div style={{ display: 'flex', justifyContent: 'flex-end', margin: '10px', gap: 10, marginRight: 15 }}>
-            <LoadingButton loading={submitting} onClick={handleSubmitData} type='submit' variant='contained'>
-              Submit Reports
-            </LoadingButton>
-            {/* <LoadingButton
-            onClick={() => {
-              reset(defaultValues)
-              // setUploadedImage('')
-              setKey(key + 1)
-              setFiles([])
-            }}
-            variant='outlined'
-          >
-            Reset
-          </LoadingButton> */}
-          </div>
-        )}
-      </form>
-    </div>
+      </Grid>
+    </form>
   )
 }
 

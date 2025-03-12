@@ -22,7 +22,7 @@ export const GetRequestPopUpById = 'antz/request/lab-tests'
 
 export const GETLABLISTBYTESTID = 'antz/tests/list-available'
 
-export const RequestDetails = 'antz/request/tests'
+export const RequestDetails = 'antz/request/tests/v2'
 
 export const AddLAB = 'antz/labs/create-lab'
 
@@ -110,11 +110,17 @@ export const SALTS = 'salts'
 
 export const STORAGE = 'storage'
 
+export const DRIVER = 'driver'
+
+export const VARIANTS = 'variants'
+
 export const IMAGE_BASE_URL = 'https://ehostingguru.com/stage/med-zoo-4th-sep/public/'
 
 export const PHARMACY_MASTER_BASE_URL = 'v1/master/pharma/'
 
 export const PHARMACY_BASE_URL = 'v1/pharma/'
+
+export const UPDATE_PURCHASE_BASE_URL = 'v2/pharma/'
 
 export const RETURN_REQUEST = 'return-item'
 
@@ -144,6 +150,8 @@ export const DASHBOARD_REPORT = 'reports'
 
 export const DASHBOARD_FAST_MOVING = 'fastmoving-stocks?page=1&limit=10'
 
+export const DASHBOARD_EXPIRED_STOCKS = 'expired-stocks?page=1&limit=10'
+
 export const DASHBOARD_NEW_REQUEST = 'new-request?page=1&limit=10'
 
 export const DASHBOARD_COMPLETED_REQUESTS = 'completed-request'
@@ -161,6 +169,82 @@ export const STOCK_ADJUSTMENT = 'stock-adjustment'
 export const STOCK_ADJUSTMENT_REASON = 'stock-adjustment-reason'
 
 export const LOCAL_TO_LOCAL_DISPATCH = 'direct-dispatch-local'
+
+export const AlTERNATIVE_MEDICINE = 'alternate'
+
+export const REJECT_MEDICINE = 'reject'
+
+export const NOT_AVAILABLE_PRODUCT = 'notAvailClose'
+
+export const DISCARD_PRODUCT = 'discard'
+
+export const DASHBOARD_STORE_WISE_DISPATCH_REPORT = 'storewise-dispatch-report'
+
+export const DASHBOARD_STORE_DISPATCH_REPORT = 'store-dispatch-report'
+
+export const DASHBOARD_MONTH_WISE_DISPATCH_REPORT = 'monthly-dispatch-report'
+
+export const DASHBOARD_MONTH_WISE_PURCHASE_REPORT = 'monthly-purchase-report'
+
+export const DASHBOARD_DOCTOR_DISPATCH_FILTER = 'store-doctor-dispatch-filter'
+
+export const DASHBOARD_DOCTORWISE_MEDICINE_FILTER = 'doctorwise-medicine-filter'
+
+export const DASHBOARD_COMPLETED_PENDING_REQUEST = 'completed-pending-request'
+
+export const DASHBOARD_DOCTOR_WISE_REQUEST = 'doctorwise-request'
+
+export const DASHBOARD_REQUEST_SENT = 'request-sent'
+
+export const DASHBOARD_RECEIVED_MEDICINES = 'received-medicines'
+
+export const DASHBOARD_RECEIVED_MEDICINE_REPORT = 'received-medicine-report'
+
+export const DASHBOARD_MEDICINEWISE_DOCTOR_FILTER = 'medicinewise-doctor-filter'
+
+export const DISCARD_REASON = 'discard-reason'
+
+export const STOCK = 'pharmacy/stock'
+
+export const STOCK_WITH_BATCH = 'pharmacy/stock/batches'
+
+export const PURCHASE_BY_PRODUCT = 'v1/pharma/purchase/getPurchaseListByProduct'
+
+export const VARIANTS_MAPPING = 'variantMapping'
+
+export const VALIDATE_PURCHASE = 'validate'
+
+export const REQUEST_PENDING_PRODUCTS = 'v1/pharmacy/request-pending-products'
+
+export const LEDGER = 'v1/pharma/stock/ledger-log'
+
+export const PRODUCT_DASHBOARD = 'v1/pharma/stock/dashboard'
+
+export const PRODUCT_DASHBOARD_MONTHLY_PURCHASE = 'v1/pharma/stock/monthly-purchase'
+
+export const PRODUCT_DASHBOARD_MONTHLY_DISPATCH = 'v1/pharma/stock/monthly-dispatch'
+
+export const PRODUCT_ABOUT_TO_EXPIRE = 'v1/pharma/stock/about-to-expire'
+
+export const PRODUCT_EXPIRED_BATCHES = 'v1/pharma/stock/expired'
+
+export const PRODUCT_QUANTITY_IN_STORE = 'v1/pharma/stock/quantity-details'
+
+export const All_STORES_REQUESTS = 'request-item-store'
+
+export const SELECTED_STORES_REQUESTS = 'request-store-item'
+
+export const ALL_SHIPPING_ITEMS_OF_SELECTED_STORE = 'dispatch-store-item'
+
+export const ALL_SHIPPED_ITEMS_OF_SELECTED_STORE = 'shipment-store-item'
+
+export const SELECTED_STORE_SHIPMENT_ORDER_DETAILS = 'shipment-store-item/shipped'
+
+export const PRODUCT_DISPATCH = 'v1/pharma/stock/dispatch-details'
+
+export const PRODUCT_PURCHASE = 'v1/pharma/stock/purchase-details'
+
+export const PRODUCT_PURCHASE_BATCH_LIST = 'purchase'
 
 export const FEED_DETAILS = 'details'
 
@@ -248,7 +332,21 @@ export const DISCARD_LIST_BY_ID = 'discard-list-by-id'
 
 export const DISCARD_DELETE = 'discard-delete'
 
+export const COUNT_GET_BY_SPECIES = 'count-get-by-species'
+
+export const LIST_GET_BY_SPECIES = 'list-get-by-species'
+
+export const EGG_STATUS_LIST = 'master/data/all'
+
+export const SPECIES_WISE_DETAILS = 'species-wise-details'
+
 export const NECROPSY_REPORTS = 'necropsy-report'
+
+export const GET_COLLECTED_BY = 'get-collected-by-list'
+
+export const DASHBOARD_DISCARD = 'discarded/list'
+
+export const DASHBOARD_BATCH = 'discard/filtered-list'
 
 export const ADD_SPECIES = 'v1/parivesh/species/add'
 
@@ -301,3 +399,27 @@ export const SPECIES = 'species'
 export const ASSIGN_TO_SPECIES = 'assign-to-species'
 
 export const DELETE_SPECIES = 'delete-species'
+
+export const USERS_REPORT = '/user/report'
+
+export const HOUSING_REPORT = 'v1/species/report?include_housing=1'
+
+export const SPECIES_REPORT = 'v1/species/reportv1'
+
+export const ANIMAL_REPORT = 'v1/animal/report'
+
+export const USER_REPORT = 'v1/user/report'
+
+export const MEDICAL_REPORT = 'v1/medical/report'
+
+export const All_ANIMAL_LIST = 'v1/all/animal/report'
+
+export const REPORT_TYPE = 'v1/report/daily/report/type'
+
+export const LAB_MORTALITY_REASON = 'masters/mannerofDeath'
+
+export const DELETE_ATTACHMENT_FOR_ANIMAL = 'v1/parivesh/species/site/deleteattachmentforanimal'
+
+export const DOWNLOAD_CSV_FOR_BATCH_DATA = 'v1/parivesh/animal/site/downloadcsvforbatchdata'
+
+export const SPECIES_LIST = 'species-list-egg-wise'

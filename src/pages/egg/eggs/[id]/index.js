@@ -30,6 +30,34 @@ const EggDetail = () => {
 
   const authData = useContext(AuthContext)
   const egg_collection_permission = authData?.userData?.roles?.settings?.enable_egg_collection_module
+  const [queryParams, setQueryParams] = useState({})
+
+  // console.log('queryParams :>> ', queryParams)
+
+  useEffect(() => {
+    if (router.query) {
+      setQueryParams(router.query)
+    }
+
+    router.beforePopState(({ url, as, options }) => {
+      // Intercept the back button and append query parameters
+      if (as.startsWith('/egg/eggs')) {
+        router.push({
+          pathname: '/egg/eggs',
+          query: queryParams
+        })
+
+        return false // Prevent the default back action
+      }
+
+      return true
+    })
+
+    return () => {
+      // Clean up the beforePopState event
+      router.beforePopState(() => true)
+    }
+  }, [router, queryParams])
 
   const GetGalleryImgListFunc = () => {
     try {
@@ -98,6 +126,13 @@ const EggDetail = () => {
     }
   }, [])
 
+  const handleBackButton = () => {
+    router.push({
+      pathname: '/egg/eggs',
+      query: queryParams
+    })
+  }
+
   return (
     <>
       {egg_collection_permission ? (
@@ -107,7 +142,7 @@ const EggDetail = () => {
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
             <Breadcrumbs aria-label='breadcrumb'>
               <Typography color='inherit'>Egg</Typography>
-              <Typography sx={{ cursor: 'pointer' }} color='inherit' onClick={() => Router.push('/egg/eggs')}>
+              <Typography sx={{ cursor: 'pointer' }} color='inherit' onClick={() => handleBackButton()}>
                 Egg List
               </Typography>
               <Typography color='text.primary'>Egg Details</Typography>
@@ -117,6 +152,7 @@ const EggDetail = () => {
               GetGalleryImgList={GetGalleryImgListFunc}
               getDetails={getDetails}
               eggDetails={eggDetails}
+              handleBackButton={handleBackButton}
             />
             {eggDetails?.animal_data?.animal_id && <AnimalDetails eggDetails={eggDetails} />}
             <EggSecondSecion

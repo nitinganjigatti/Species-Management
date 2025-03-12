@@ -1,14 +1,23 @@
-import React, { useCallback, useEffect, useState } from 'react'
+import React, { useCallback, useContext, useEffect, useState } from 'react'
 import moment from 'moment'
-import CustomTable from 'src/components/parivesh/CustomTable'
-import { Avatar, Tooltip, Typography, debounce } from '@mui/material'
+import { Avatar, Card, CardHeader, Grid, Tooltip, Typography, debounce } from '@mui/material'
 import Icon from 'src/@core/components/icon'
 import { Box } from '@mui/system'
 import Router, { useRouter } from 'next/router'
 import { usePariveshContext } from 'src/context/PariveshContext'
 import { getBatchListSpecies } from 'src/lib/api/parivesh/batchListSpecies'
+import FallbackSpinner from 'src/@core/components/spinner'
+import ConfirmationDialog from 'src/components/confirmation-dialog'
+import ConfirmationCheckBox from 'src/views/forms/form-elements/confirmationCheckBox'
+import ServerSideToolbarWithFilter from 'src/views/table/data-grid/ServerSideToolbarWithFilter'
+import { useTheme } from '@emotion/react'
+import { DataGrid } from '@mui/x-data-grid'
+import Utility from 'src/utility'
+import { AuthContext } from 'src/context/AuthContext'
+import Error404 from 'src/pages/404'
 
-const SubmittedBatches = ({ searchParams, type }) => {
+const SubmittedBatches = ({ type }) => {
+  const theme = useTheme()
   const [rows, setRows] = useState([])
   const [total, setTotal] = useState(0)
   const [loading, setLoading] = useState(false)
@@ -17,8 +26,11 @@ const SubmittedBatches = ({ searchParams, type }) => {
   const [dialog, setDialog] = useState(false)
   const [check, setCheck] = useState(false)
   const [sort, setSort] = useState('DESC')
-  const [sortColumn, setSortColumn] = useState('batch_code')
+  const [sortColumn, setSortColumn] = useState('submitted_on')
+  const [loader, setLoader] = useState(false)
   const { selectedParivesh } = usePariveshContext()
+  const authData = useContext(AuthContext)
+  const pariveshAccess = authData?.userData?.roles?.settings?.enable_parivesh
 
   const handleSortModel = newModel => {
     if (newModel.length) {
@@ -178,10 +190,14 @@ const SubmittedBatches = ({ searchParams, type }) => {
       renderCell: params => (
         <Box sx={{ display: 'flex', flexDirection: 'column' }}>
           <Typography variant='body2' sx={{ color: 'text.primary' }}>
-            {params.row.submitted_on ? moment.utc(params.row.submitted_on).format('D MMMM YYYY') : '-'}
+            {params.row.submitted_on
+              ? Utility.formatDisplayDate(Utility.convertUTCToLocal(params.row.submitted_on))
+              : '-'}
           </Typography>
           <Typography variant='body2' sx={{ color: '#839D8D', fontSize: '12px' }}>
-            {params.row.submitted_on ? moment.utc(params.row.submitted_on).local().format('hh:mm A') : '-'}
+            {params.row.submitted_on
+              ? Utility.extractHoursAndMinutes(Utility.convertUTCToLocal(params.row.submitted_on))
+              : '-'}
           </Typography>
         </Box>
       )
@@ -222,7 +238,9 @@ const SubmittedBatches = ({ searchParams, type }) => {
               {params.row.submitted_by_user?.user_name ? params.row.submitted_by_user?.user_name : '-'}
             </Typography>
             <Typography noWrap variant='body2' sx={{ color: '#44544a9c', fontSize: 12 }}>
-              {params.row.submitted_on ? moment.utc(params.row.submitted_on).format('DD MMMM YYYY') : '-'}
+              {params.row.submitted_on
+                ? Utility.formatDisplayDate(Utility.convertUTCToLocal(params.row.submitted_on))
+                : '-'}
             </Typography>
           </Box>
         </Box>
@@ -289,6 +307,8 @@ const SubmittedBatches = ({ searchParams, type }) => {
                   ? '#00AFD6'
                   : params.row.status === 'accepted'
                   ? '#37BD69'
+                  : params.row.status === 'withdrawn'
+                  ? '#FA6140'
                   : '#E93353',
               fontSize: 14
             }}
@@ -301,7 +321,9 @@ const SubmittedBatches = ({ searchParams, type }) => {
               : '-'}
           </Typography>
           <Typography noWrap variant='body2' sx={{ color: '#44544a9c', fontSize: 12 }}>
-            {params.row.submitted_on ? moment.utc(params.row.submitted_on).format('DD MMMM YYYY') : '-'}
+            {params.row.submitted_on
+              ? Utility.formatDisplayDate(Utility.convertUTCToLocal(params.row.submitted_on))
+              : '-'}
           </Typography>
         </Box>
         // <Typography variant='body2' sx={{ color: '#E93353' }}>
@@ -346,27 +368,87 @@ const SubmittedBatches = ({ searchParams, type }) => {
     </>
   )
 
-  return (
-    <CustomTable
-      rows={indexedRows === undefined ? [] : indexedRows}
-      columns={columns}
-      total={total}
-      loading={loading}
-      searchValue={searchValue}
-      paginationModel={paginationModel}
-      setPaginationModel={setPaginationModel}
-      handleSearch={handleSearch}
-      onCellClick={onCellClick}
-      dialog={dialog}
-      onClose={onClose}
-      check={check}
-      setCheck={setCheck}
-      headerAction={headerAction}
-      title={'Submitted Batches'}
-      searchParams={searchParams}
-      handleSortModel={handleSortModel}
-    />
-  )
+  const tableData = () => {
+    return (
+      <>
+        {loader ? (
+          <FallbackSpinner />
+        ) : (
+          <Card sx={{ mt: 4 }}>
+            <CardHeader title={'Submitted Batches'} action={headerAction} />
+            <ConfirmationDialog
+              // icon={'mdi:delete'}
+              image={'https://app.antzsystems.com/uploads/6515471031963.jpg'}
+              iconColor={'#ff3838'}
+              title={'Are you sure you want to delete this ingredient?'}
+              // description={`Since ingredient IND000123 isn't included in any recipe or diet, you can delete it.`}
+              formComponent={
+                <ConfirmationCheckBox
+                  title={'This ingredient is part of 15 recipes and 10 diets.'}
+                  label={'Deactivate this ingredient in all records'}
+                  description={
+                    'Deactivating this ingredient prevents its addition to new recipes or diets, but you can swap it with another ingredient.'
+                  }
+                  color={theme.palette.formContent?.tertiary}
+                  value={check}
+                  setValue={setCheck}
+                />
+              }
+              dialogBoxStatus={dialog}
+              onClose={onClose}
+              ConfirmationText={'Delete'}
+              confirmAction={onClose}
+            />
+            <DataGrid
+              disableColumnMenu
+              disableColumnFilter
+              disableColumnSorting
+              sx={{
+                '.MuiDataGrid-cell:focus': {
+                  outline: 'none'
+                },
+
+                '& .MuiDataGrid-row:hover': {
+                  cursor: 'pointer'
+                }
+              }}
+              columnVisibilityModel={{
+                sl_no: false
+              }}
+              hideFooterSelectedRowCount
+              disableColumnSelector={true}
+              autoHeight
+              pagination
+              rows={indexedRows === undefined ? [] : indexedRows}
+              columns={columns}
+              total={total}
+              sortingMode='server'
+              paginationMode='server'
+              pageSizeOptions={[7, 10, 25, 50]}
+              paginationModel={paginationModel}
+              onSortModelChange={handleSortModel}
+              slots={{ toolbar: ServerSideToolbarWithFilter }}
+              onPaginationModelChange={setPaginationModel}
+              loading={loading}
+              slotProps={{
+                baseButton: {
+                  variant: 'outlined'
+                },
+                toolbar: {
+                  value: searchValue,
+                  clearSearch: () => handleSearch(''),
+                  onChange: event => handleSearch(event.target.value)
+                }
+              }}
+              onCellClick={onCellClick}
+            />
+          </Card>
+        )}
+      </>
+    )
+  }
+
+  return <>{pariveshAccess ? <Grid>{tableData()}</Grid> : <Error404></Error404>}</>
 }
 
 export default SubmittedBatches

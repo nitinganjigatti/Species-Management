@@ -20,8 +20,10 @@ import { DeleteEggById } from 'src/lib/api/egg/discard'
 import Toaster from 'src/components/Toaster'
 import Utility from 'src/utility'
 
-const EggDisCarded = ({ eggList, getEggListSummary, fetchTableData }) => {
+const EggDisCarded = ({ eggList, getEggListSummary, fetchTableData, setDetailDrawer }) => {
   const theme = useTheme()
+
+  console.log('eggList :>> ', eggList)
 
   const [iseOpen, setIsOpen] = useState(false)
   const [loading, setLoading] = useState(false)
@@ -31,7 +33,7 @@ const EggDisCarded = ({ eggList, getEggListSummary, fetchTableData }) => {
     setIsOpen(true)
 
     if (item) {
-      console.log('item :>> ', item?.egg_id)
+      // console.log('item :>> ', item?.egg_id)
 
       setEggId(item?.id)
     }
@@ -45,7 +47,8 @@ const EggDisCarded = ({ eggList, getEggListSummary, fetchTableData }) => {
     const payload = {
       id: eggID
     }
-    console.log('params  handleDelete :>> ', payload)
+
+    // console.log('params  handleDelete :>> ', payload)
     try {
       await DeleteEggById(payload).then(res => {
         console.log('res :>> ', res)
@@ -56,6 +59,7 @@ const EggDisCarded = ({ eggList, getEggListSummary, fetchTableData }) => {
           if (getEggListSummary) {
             getEggListSummary()
           }
+          setDetailDrawer(false)
           if (fetchTableData) {
             fetchTableData()
           }
@@ -74,135 +78,136 @@ const EggDisCarded = ({ eggList, getEggListSummary, fetchTableData }) => {
 
   return (
     <>
-      <Box
-        sx={{
-          bgcolor: 'white',
-          borderRadius: '8px',
-          width: '514px',
-          my: 4,
-          alignItems: 'center',
-          ml: 4,
+      {eggList?.length > 0 && (
+        <Box
+          sx={{
+            bgcolor: 'white',
+            borderRadius: '8px',
+            width: '514px',
+            my: 4,
+            alignItems: 'center',
+            ml: 4,
 
-          display: 'flex',
-          justifyContent: 'center',
-          py: '20px',
-          border: 1,
-          borderColor: '#c3cec7'
-        }}
+            display: 'flex',
+            justifyContent: 'center',
+            py: '20px',
+            border: 1,
+            borderColor: '#c3cec7'
+          }}
 
-        // onScroll={handleScroll}
-      >
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-          {eggList?.map(item => (
-            <Box
-              key={item?.id}
-              sx={{
-                width: '482px',
-                height: '104px',
-                border: '2px solid #FFD3D3',
-                borderRadius: '8px',
-                display: 'flex',
-                gap: 4,
-                alignItems: 'center'
-              }}
-            >
+          // onScroll={handleScroll}
+        >
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+            {eggList?.map(item => (
               <Box
+                key={item?.id}
                 sx={{
-                  width: '70px',
+                  width: '482px',
                   height: '104px',
-                  backgroundColor: '#FFD3D3',
-                  borderLeft: '1px solid FFD3D3',
+                  border: '2px solid #FFD3D3',
+                  borderRadius: '8px',
                   display: 'flex',
-                  borderTopLeftRadius: '5px ',
-                  borderBottomLeftRadius: '5px ',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  opacity: 0.8
+                  gap: 4,
+                  alignItems: 'center'
                 }}
               >
-                <Avatar src={'/icons/redEgg.png'} sx={{ width: '36.33px', height: '30px' }} />
-              </Box>
-              <Box
-                sx={{
-                  flex: 1,
-                  padding: '16px',
-                  display: 'flex',
-                  flexDirection: 'column'
-                }}
-              >
-                <Typography
+                <Box
                   sx={{
-                    fontSize: '16px',
-                    fontWeight: '500',
-                    fontFamily: 'Inter',
-                    position: 'relative',
-                    lineHeight: '19.36px',
-                    right: '10px'
+                    width: '70px',
+                    height: '104px',
+                    backgroundColor: '#FFD3D3',
+                    borderLeft: '1px solid FFD3D3',
+                    display: 'flex',
+                    borderTopLeftRadius: '5px ',
+                    borderBottomLeftRadius: '5px ',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    opacity: 0.8
                   }}
                 >
-                  {' '}
-                  {item?.common_name ? item?.common_name : '-'}
-                </Typography>
-                <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                  <Box>
-                    {' '}
-                    <Typography
-                      sx={{
-                        fontSize: '16px',
-                        fontWeight: '400',
-                        fontFamily: 'Inter',
-                        color: '#44544A',
-                        position: 'relative',
-                        right: '10px',
-
-                        // bottom: '2px',
-                        lineHeight: '19.36px'
-                      }}
-                    >
-                      {item?.egg_code}
-                    </Typography>
-                  </Box>
-
-                  <Stack
-                    direction='row'
+                  <Avatar src={'/icons/redEgg.png'} sx={{ width: '36.33px', height: '30px' }} />
+                </Box>
+                <Box
+                  sx={{
+                    flex: 1,
+                    padding: '16px',
+                    display: 'flex',
+                    flexDirection: 'column'
+                  }}
+                >
+                  <Typography
                     sx={{
-                      width: 280,
+                      fontSize: '16px',
+                      fontWeight: '500',
+                      fontFamily: 'Inter',
                       position: 'relative',
-                      display: 'flex',
-                      justifyContent: 'space-between',
-                      alignItems: 'center'
+                      lineHeight: '19.36px',
+                      right: '10px'
                     }}
                   >
-                    <Box
+                    {' '}
+                    {item?.common_name ? item?.common_name : 'unknown'}
+                  </Typography>
+                  <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                    <Box>
+                      {' '}
+                      <Typography
+                        sx={{
+                          fontSize: '16px',
+                          fontWeight: '400',
+                          fontFamily: 'Inter',
+                          color: '#44544A',
+                          position: 'relative',
+                          right: '10px',
+
+                          // bottom: '2px',
+                          lineHeight: '19.36px'
+                        }}
+                      >
+                        {item?.egg_code}
+                      </Typography>
+                    </Box>
+
+                    <Stack
+                      direction='row'
                       sx={{
-                        px: 3,
-                        backgroundColor: '#FFD3D3',
-                        textAlign: 'center',
-                        borderRadius: '4px',
-                        opacity: 0.8
+                        width: 280,
+                        position: 'relative',
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'center'
                       }}
                     >
-                      <Tooltip title={item?.egg_condition} placement='bottom'>
-                        <Typography
-                          sx={{
-                            fontSize: '14px',
-                            fontWeight: '500',
-                            textOverflow: 'ellipsis',
-                            overflow: 'hidden',
-                            whiteSpace: 'nowrap',
-                            color: '#E93353',
-                            maxWidth: 100
-                          }}
-                        >
-                          {item?.egg_condition}
-                        </Typography>
-                      </Tooltip>
-                    </Box>
-                    <IconButton onClick={() => handleOpenDeletePopUp(item)}>
-                      <Icon icon='flowbite:trash-bin-outline' fontSize={24} />
-                    </IconButton>
-                  </Stack>
-                  {/* <Box
+                      <Box
+                        sx={{
+                          px: 3,
+                          backgroundColor: '#FFD3D3',
+                          textAlign: 'center',
+                          borderRadius: '4px',
+                          opacity: 0.8
+                        }}
+                      >
+                        <Tooltip title={item?.egg_condition} placement='bottom'>
+                          <Typography
+                            sx={{
+                              fontSize: '14px',
+                              fontWeight: '500',
+                              textOverflow: 'ellipsis',
+                              overflow: 'hidden',
+                              whiteSpace: 'nowrap',
+                              color: '#E93353',
+                              maxWidth: 100
+                            }}
+                          >
+                            {item?.egg_condition}
+                          </Typography>
+                        </Tooltip>
+                      </Box>
+                      <IconButton onClick={() => handleOpenDeletePopUp(item)}>
+                        <Icon icon='flowbite:trash-bin-outline' fontSize={24} />
+                      </IconButton>
+                    </Stack>
+                    {/* <Box
                     sx={{
                       px: 3,
                       backgroundColor: '#FFD3D3',
@@ -233,37 +238,37 @@ const EggDisCarded = ({ eggList, getEggListSummary, fetchTableData }) => {
                   <Box sx={{ position: 'relative', left: '10px' }}>
                     <Icon icon='flowbite:trash-bin-outline' fontSize={24} />
                   </Box> */}
-                </Box>
+                  </Box>
 
-                <Box
-                  sx={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'center',
-                    position: 'relative',
-                    right: '12px'
-
-                    // bottom: '10px'
-                  }}
-                >
-                  <Typography
+                  <Box
                     sx={{
-                      fontSize: '14px',
-                      fontWeight: '400',
-                      fontFamily: 'Inter',
-                      lineHeight: '16.94px'
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      position: 'relative',
+                      right: '12px'
+
+                      // bottom: '10px'
                     }}
                   >
-                    {' '}
-                    {/* {item.collection_date ? moment(item.collection_date).format('DD MMM YYYY') : '-'} */}
-                    {item.collection_date ? Utility.formatDisplayDate(item.collection_date) : '-'}
-                  </Typography>
+                    <Typography
+                      sx={{
+                        fontSize: '14px',
+                        fontWeight: '400',
+                        fontFamily: 'Inter',
+                        lineHeight: '16.94px'
+                      }}
+                    >
+                      {/* {item.collection_date ? moment(item.collection_date).format('DD MMM YYYY') : '-'} */}
+                      {item.collection_date ? Utility.formatDisplayDate(item.collection_date) : '-'}
+                    </Typography>
+                  </Box>
                 </Box>
               </Box>
-            </Box>
-          ))}
+            ))}
+          </Box>
         </Box>
-      </Box>
+      )}
 
       <Dialog open={iseOpen} onClose={() => setOpenDiscardDialog(false)}>
         <Card

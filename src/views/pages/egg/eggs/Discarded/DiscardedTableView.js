@@ -8,46 +8,87 @@ import { useTheme } from '@mui/material/styles'
 import moment from 'moment'
 import { DiscardedEggList } from 'src/lib/api/egg/discard'
 import DiscardDetail from './DiscardDetail'
+import Utility from 'src/utility'
+import EggTableHeader from '../EggTableHeader'
+import dayjs from 'dayjs'
+import { useRouter } from 'next/router'
 
-const DiscardedTableView = ({ filterByNurseryId, setTotal }) => {
+const DiscardedTableView = ({
+  tabValue,
+  setFilterList,
+  filterList,
+  setSelectedFiltersOptions,
+  selectedFiltersOptions,
+  setTotal,
+  selectedOptions,
+  setSelectedOptions,
+  setBatchList,
+  filterByNurseryId
+}) => {
+  const router = useRouter()
+  const { search_value } = router.query
   const theme = useTheme()
   const [sort, setSort] = useState('desc')
   const [rows, setRows] = useState([])
 
   const [totalpage, setTotalPage] = useState(0)
   const [searchValue, setSearchValue] = useState('')
-  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
+  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 50 })
   const [loading, setLoading] = useState(false)
   const [detailDrawer, setDetailDrawer] = useState(false)
   const [eggDiscardedId, setEggDiscardedId] = useState('')
+  const [searchQuery, setSearchQuery] = useState(search_value || '')
 
   function loadServerRows(currentPage, data) {
     return data
   }
 
   const fetchTableData = useCallback(
-    async (sort, q, nurseryId) => {
+    async (sort, q, selectedFiltersOptions = {}, filterByNurseryId) => {
+      // console.log('selectedFiltersOptions discard :>> ', selectedFiltersOptions)
+
+      // debugger
       try {
         setLoading(true)
+
+        // Extracting IDs from selectedFiltersOptions, with a fallback to empty arrays
+        // const nurseryIds = selectedFiltersOptions?.Nursery?.map(option => option.id)
+
+        // const eggStateIds = selectedFiltersOptions?.Stage?.map(option => option.id) || []
+        const discardedByIds = selectedFiltersOptions['Discarded By']?.map(option => option.id) || []
+        const activeStatus = selectedFiltersOptions['Security Check']?.map(option => option.id) || []
+
+        const siteIds = selectedFiltersOptions?.Site?.map(option => option.id) || []
+
+        // const statusId = selectedFiltersOptions?.status ? [selectedFiltersOptions.status] : []
+
+        const discardedDate = selectedFiltersOptions?.collected_date
+          ? dayjs(selectedFiltersOptions?.collected_date).format('YYYY-MM-DD')
+          : ''
 
         const params = {
           sort,
           q,
           page_no: paginationModel.page + 1,
           limit: paginationModel.pageSize,
-          nursery_id: nurseryId ? nurseryId : filterByNurseryId
+          nursery_id: filterByNurseryId || '',
+
+          // egg_state_id: eggStateIds,
+          discarded_by: discardedByIds?.length > 0 ? JSON.stringify(discardedByIds) : '',
+          site_id: siteIds?.length > 0 ? JSON.stringify(siteIds) : '',
+          activity_status: activeStatus?.length > 0 ? JSON.stringify(activeStatus) : '',
+
+          // egg_status_id: eggStateIds.length > 0 ? statusId : [],
+          discarded_on: discardedDate ? discardedDate : ''
         }
 
-        const res = await DiscardedEggList({ params: params })
-
-        // let listWithId = res.data.result.map((el, i) => {
-        //   return { ...el, uid: i + 1 }
-        // })
+        const res = await DiscardedEggList({ params })
 
         if (res.data.success) {
           setTotal(Number(res?.data?.data?.total_count))
           setTotalPage(Number(res?.data?.data?.total_count))
           setRows(loadServerRows(paginationModel.page, res?.data?.data?.result))
+          setBatchList(res?.data?.data?.result)
         } else {
           setRows([])
         }
@@ -64,8 +105,8 @@ const DiscardedTableView = ({ filterByNurseryId, setTotal }) => {
   useEffect(() => {
     // debugger
 
-    fetchTableData(sort, searchValue, filterByNurseryId)
-  }, [fetchTableData, filterByNurseryId])
+    fetchTableData(sort, searchValue, selectedFiltersOptions, filterByNurseryId)
+  }, [fetchTableData, selectedFiltersOptions, filterByNurseryId])
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
@@ -79,12 +120,12 @@ const DiscardedTableView = ({ filterByNurseryId, setTotal }) => {
     debounce(async (sort, q) => {
       setSearchValue(q)
       try {
-        await fetchTableData(sort, q, filterByNurseryId)
+        await fetchTableData(sort, q, selectedFiltersOptions)
       } catch (error) {
         console.error(error)
       }
     }, 1000),
-    []
+    [fetchTableData, selectedFiltersOptions]
   )
 
   const handleSortModel = newModel => {
@@ -105,8 +146,7 @@ const DiscardedTableView = ({ filterByNurseryId, setTotal }) => {
 
   const columns = [
     {
-      flex: 0.02,
-      Width: 40,
+      width: 60,
       field: 'uid',
       headerName: 'NO',
       align: 'center',
@@ -125,19 +165,17 @@ const DiscardedTableView = ({ filterByNurseryId, setTotal }) => {
       )
     },
     {
-      flex: 0.25,
-      minWidth: 60,
+      width: 200,
       sortable: false,
       field: 'request_id_and_egg',
       headerName: 'Request ID & Eggs',
-
       renderCell: params => (
         <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
           <Box sx={{ p: '6px', height: '40px', width: '40px', borderRadius: '4px', bgcolor: '#EFF5F2' }}>
             <img style={{ width: '100%', height: '100%' }} src={'/icons/redEgg.png'} alt='Egg' />
           </Box>
 
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: '4px', width: '75%' }}>
             <Tooltip title={params.row.request_id ? params.row.request_id : '-'}>
               <Typography
                 sx={{
@@ -166,19 +204,17 @@ const DiscardedTableView = ({ filterByNurseryId, setTotal }) => {
                 width: '100%'
               }}
             >
-              {params.row?.egg_count ? params.row?.egg_count : '-'} Eggs
+              {params.row?.egg_count ? params.row?.egg_count : '-'} {params.row?.egg_count > '1' ? 'Eggs' : 'Egg'}
             </Typography>
           </Box>
         </Box>
       )
     },
     {
-      flex: 0.3,
-      minWidth: 10,
+      width: 240,
       field: 'request_created_on',
       sortable: false,
       headerName: 'Request Created On',
-
       renderCell: params => (
         <Box sx={{ ml: 2, display: 'flex', justifyContent: 'center', flexDirection: 'column', alignItems: 'center' }}>
           <Typography
@@ -191,11 +227,11 @@ const DiscardedTableView = ({ filterByNurseryId, setTotal }) => {
             }}
           >
             {params.row.requested_on
-              ? moment(moment.utc(params.row.requested_on).toDate().toLocaleString()).format('DD MMM YYYY')
+              ? Utility.formatDisplayDate(Utility.convertUTCToLocal(params.row.requested_on))
               : '-'}{' '}
             |{' '}
             {params.row.requested_on
-              ? moment(moment.utc(params.row.requested_on).toDate().toLocaleString()).format('hh:mm A')
+              ? Utility.extractHoursAndMinutes(Utility.convertUTCToLocal(params.row.requested_on))
               : '-'}
           </Typography>{' '}
         </Box>
@@ -203,8 +239,7 @@ const DiscardedTableView = ({ filterByNurseryId, setTotal }) => {
     },
 
     {
-      flex: 0.2,
-      minWidth: 20,
+      width: 180,
       sortable: false,
       field: 'nursery_name',
       headerName: 'Nursery',
@@ -223,12 +258,10 @@ const DiscardedTableView = ({ filterByNurseryId, setTotal }) => {
     },
 
     // {
-    //   flex: 0.2,
-    //   minWidth: 10,
+    //   width: 10,
     //   sortable: false,
     //   field: 'collected_on',
     //   headerName: 'COLLECTED ON',
-
     //   renderCell: params => (
     //     <Typography
     //       sx={{
@@ -244,8 +277,7 @@ const DiscardedTableView = ({ filterByNurseryId, setTotal }) => {
     //   )
     // },
     {
-      flex: 0.3,
-      minWidth: 20,
+      width: 220,
       sortable: false,
       field: 'created_by',
       headerName: 'Created By',
@@ -298,8 +330,13 @@ const DiscardedTableView = ({ filterByNurseryId, setTotal }) => {
                   lineHeight: '14.52px'
                 }}
               >
-                {params.row.requested_on ? moment(params.row.requested_on).format('DD MMM YYYY') : '-'} |{' '}
-                {params.row.requested_on ? moment(params.row.requested_on).format('HH : MM A') : '-'}
+                {params.row.requested_on
+                  ? Utility.formatDisplayDate(Utility.convertUTCToLocal(params.row.requested_on))
+                  : '-'}{' '}
+                |{' '}
+                {params.row.requested_on
+                  ? Utility.extractHoursAndMinutes(Utility.convertUTCToLocal(params.row.requested_on))
+                  : '-'}
               </Typography>
             </Box>
           </Box>
@@ -307,33 +344,14 @@ const DiscardedTableView = ({ filterByNurseryId, setTotal }) => {
       )
     },
     {
-      flex: 0.3,
-      minWidth: 20,
+      width: 220,
       sortable: false,
       field: 'security_check',
       headerName: 'Security Check',
       renderCell: params => (
         <>
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            {/* <Avatar
-              variant='square'
-              alt='Icon Image'
-              sx={{
-                width: 30,
-                height: 30,
-                mr: 4,
-                borderRadius: '50%',
-                background: '#E8F4F2',
-                overflow: 'hidden'
-              }}
-            > */}
-            {params.row.activity_status === 'DISCARD_REQUEST_GENERATED' ? (
-              <img
-                style={{ width: '100%', height: '100%', maxWidth: '24px', maxHeight: '24px', objectFit: 'cover' }}
-                src='/icons/pending_security_check_icon.png'
-                alt='Profile'
-              />
-            ) : (
+            {params.row.activity_status === 'COMPLETED' ? (
               <img
                 style={{
                   width: '100%',
@@ -345,33 +363,42 @@ const DiscardedTableView = ({ filterByNurseryId, setTotal }) => {
                 src='/icons/security_check_icon.png'
                 alt='Profile'
               />
+            ) : (
+              <img
+                style={{
+                  width: '100%',
+                  height: '100%',
+                  maxWidth: '26px',
+                  maxHeight: '26px',
+                  objectFit: 'cover',
+                  marginLeft: 3
+                }}
+                src='/icons/pending_security_check_icon.png'
+                alt='Profile'
+              />
             )}
             {/* </Avatar> */}
 
-            <Box
-              sx={{ display: 'flex', flexDirection: 'column', m: 1 }}
-              className={status === 'eggs_received' ? 'hideField' : ''}
-            >
+            <Box sx={{ display: 'flex', flexDirection: 'column', m: 1 }}>
               {params.row.activity_status === 'DISCARD_REQUEST_GENERATED' ? (
                 <Typography
                   noWrap
                   sx={{
                     color: '#FA6140',
-
                     fontSize: '16px',
                     fontWeight: '500',
-                    lineHeight: '16.94px'
+                    ml: 0.5
                   }}
                 >
                   {params.row.activity_status === 'DISCARD_REQUEST_GENERATED' ? 'Pending' : '-'}
                 </Typography>
-              ) : (
+              ) : params.row.activity_status === 'COMPLETED' ? (
                 <>
                   <Typography
                     noWrap
                     sx={{
                       color: theme.palette.primary.main,
-                      fontSize: '14px',
+                      fontSize: '16px',
                       fontWeight: '500',
                       lineHeight: '16.94px'
                     }}
@@ -391,6 +418,36 @@ const DiscardedTableView = ({ filterByNurseryId, setTotal }) => {
                     {params.row.discarded_person_name ? params.row.discarded_person_name : '-'}
                   </Typography>
                 </>
+              ) : (
+                params.row.activity_status === 'CANCELED' && (
+                  <>
+                    <Typography
+                      noWrap
+                      sx={{
+                        color: '#FA6140',
+                        fontSize: '16px',
+                        fontWeight: '500',
+                        lineHeight: '16.94px',
+                        ml: 1
+                      }}
+                    >
+                      Canceled
+                    </Typography>
+
+                    <Typography
+                      noWrap
+                      sx={{
+                        color: theme.palette.customColors.neutralSecondary,
+                        fontSize: '12px',
+                        fontWeight: '400',
+                        lineHeight: '14.52px',
+                        ml: 1
+                      }}
+                    >
+                      {params.row.commented_by ? params.row.commented_by : '-'}
+                    </Typography>
+                  </>
+                )
               )}
             </Box>
           </Box>
@@ -412,6 +469,22 @@ const DiscardedTableView = ({ filterByNurseryId, setTotal }) => {
 
   return (
     <Box>
+      <EggTableHeader
+        totalCount={totalpage}
+        setFilterList={setFilterList}
+        filterList={filterList}
+        handleSearch={handleSearch}
+        setSelectedFiltersOptions={setSelectedFiltersOptions}
+        selectedFiltersOptions={selectedFiltersOptions}
+        searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
+        selectedOptions={selectedOptions}
+        setSelectedOptions={setSelectedOptions}
+        data={indexedRows}
+        loading={loading}
+        tableSearch={searchValue}
+        filterByNurseryId={filterByNurseryId}
+      />
       <DataGrid
         sx={{
           '.MuiDataGrid-cell:focus': {
@@ -448,7 +521,7 @@ const DiscardedTableView = ({ filterByNurseryId, setTotal }) => {
         pageSizeOptions={[7, 10, 25, 50]}
         paginationModel={paginationModel}
         onSortModelChange={handleSortModel}
-        slots={{ toolbar: ServerSideToolbarWithFilter }}
+        // slots={{ toolbar: ServerSideToolbarWithFilter }}
         rowHeight={72}
         onPaginationModelChange={setPaginationModel}
         onCellClick={onCellClick}

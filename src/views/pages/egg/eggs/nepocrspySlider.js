@@ -42,6 +42,7 @@ const NecropsySlider = ({ eggID, setOpenNecropsy, openNecropsy, fetchTableData }
 
   const [isSampleTaken, setIsSampleTaken] = useState(false)
   const [loading, setLoading] = useState(false)
+  const [fileError, setFileError] = useState(false)
 
   const defaultValues = {
     sample_taken: '',
@@ -138,7 +139,14 @@ const NecropsySlider = ({ eggID, setOpenNecropsy, openNecropsy, fetchTableData }
   }
 
   const onSubmit = async values => {
+    if (!isSampleTaken) {
+      setFileError(true) // show error if no file is uploaded
+
+      return
+    }
+
     setLoading(true)
+    setFileError(false)
 
     const payload = {
       egg_id: eggID,
@@ -221,7 +229,7 @@ const NecropsySlider = ({ eggID, setOpenNecropsy, openNecropsy, fetchTableData }
                   border: 1,
                   borderRadius: '8px',
                   border: 1,
-                  borderColor: '#c3cec7',
+                  borderColor: fileError ? 'red' : '#c3cec7',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'space-between',

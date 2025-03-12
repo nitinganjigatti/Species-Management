@@ -14,10 +14,11 @@ import { DataGrid } from '@mui/x-data-grid'
 import Card from '@mui/material/Card'
 import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
 import { debounce } from 'lodash'
+import { useTheme } from '@emotion/react'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
-import { Box, Avatar, Badge } from '@mui/material'
+import { Box, Avatar, Badge, Breadcrumbs, Tooltip } from '@mui/material'
 import IconButton from '@mui/material/IconButton'
 import Router from 'next/router'
 import CommonDialogBox from 'src/components/CommonDialogBox'
@@ -25,14 +26,16 @@ import MedicineConfigure from 'src/components/pharmacy/medicine/MedicineConfigur
 import Utility from 'src/utility'
 
 import { AuthContext } from 'src/context/AuthContext'
+import ErrorScreen from 'src/pages/Error'
+import { left } from '@popperjs/core'
 
 const ListOfLab = () => {
+  const theme = useTheme()
   const [loader, setLoader] = useState(false)
   const [show, setShow] = useState(false)
   const [configureMedId, setConfigureMedId] = useState('')
   const [storedData, setStoredData] = useState()
-  const authData = useContext(AuthContext)
-  console.log('authData :>> ')
+  const authData = useContext(AuthContext) || {}
 
   useEffect(() => {
     const Data = window.localStorage.getItem('userDetails')
@@ -49,7 +52,7 @@ const ListOfLab = () => {
 
   const handleEdit = async (e, params) => {
     e.stopPropagation()
-    console.log('params Lab', params.row.id)
+
     Router.push({
       pathname: '/lab/add-Lab',
       query: { id: params.row.id, action: 'edit' }
@@ -74,16 +77,26 @@ const ListOfLab = () => {
       field: 'lab_name',
       headerName: 'LAB NAME',
       renderCell: params => (
-        <Typography
-          variant='body2'
-          sx={{ color: 'text.primary', textTransform: 'capitalize', cursor: 'pointer' }}
+        <Box>
+          <Typography>
+            <Box>
+              {params.row.is_default === '1' ? (
+                <Badge color='success' badgeContent='Default' style={{ left: '28px', position: 'relative' }}></Badge>
+              ) : null}
+            </Box>
+          </Typography>
 
-          // onClick={() =>
+          <Typography
+            variant='body2'
+            sx={{ color: 'text.primary', textTransform: 'capitalize', cursor: 'pointer' }}
 
-          // }
-        >
-          {params.row.lab_name}
-        </Typography>
+            // onClick={() =>
+
+            // }
+          >
+            {params.row.lab_name}{' '}
+          </Typography>
+        </Box>
       )
     },
 
@@ -93,7 +106,17 @@ const ListOfLab = () => {
       field: 'type',
       headerName: 'Type',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary', textTransform: 'capitalize' }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            textTransform: 'capitalize',
+
+            fontFamily: 'Inter'
+          }}
+        >
           <span alt={params.row.type}>{params.row.type}</span>
         </Typography>
       )
@@ -105,9 +128,11 @@ const ListOfLab = () => {
       field: 'address',
       headerName: 'Address',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          <span alt={params.row.address}>{params.row.address}</span>
-        </Typography>
+        <Tooltip title={params.row?.address ? params.row?.address : '-'}>
+          <Typography variant='body2' sx={{ color: 'text.primary', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+            {params?.row?.address ? params?.row?.address : '-'}
+          </Typography>
+        </Tooltip>
       )
     },
 
@@ -128,6 +153,7 @@ const ListOfLab = () => {
           flex: 0.2,
           minWidth: 20,
           field: 'Action',
+          sortable: false,
           headerName: 'Action',
           renderCell: params => (
             <Box>
@@ -138,12 +164,12 @@ const ListOfLab = () => {
           )
         }
       : null
-  ]
+  ].filter(column => column !== null)
 
   /***** Serverside pagination */
   const [total, setTotal] = useState(0)
 
-  const [sort, setSort] = useState('asc')
+  const [sort, setSort] = useState('ASC')
   const [rows, setRows] = useState([])
 
   const [searchValue, setSearchValue] = useState('')
@@ -160,9 +186,9 @@ const ListOfLab = () => {
         setLoading(true)
 
         const params = {
-          sort,
+          sort_order: sort.toUpperCase(),
           q,
-          column,
+          sort_column: column,
           page: paginationModel.page + 1,
           limit: paginationModel.pageSize
         }
@@ -206,14 +232,12 @@ const ListOfLab = () => {
 
   const handleSearch = async value => {
     setSearchValue(value)
-
-    // console.log('SearchValue', value)
     await searchTableData({ sort, q: value, column: sortColumn })
   }
 
   const headerAction = (
     <>
-      {authData?.userData?.roles?.settings?.add_lab ? (
+      {authData?.userData?.roles?.settings?.add_lab === true ? (
         <div>
           <Button
             size='big'
@@ -247,49 +271,67 @@ const ListOfLab = () => {
 
   return (
     <>
-      {loader ? (
-        <FallbackSpinner />
-      ) : (
+      {authData?.userData?.modules?.lab_data?.lab?.length > 0 || authData?.userData?.roles?.settings?.add_lab ? (
         <>
-          {/* <CommonDialogBox
+          {loader ? (
+            <FallbackSpinner />
+          ) : (
+            <>
+              {/* <CommonDialogBox
             title={'Configure Medicine'}
             dialogBoxStatus={show}
             formComponent={<MedicineConfigure configureMedId={configureMedId} />}
             close={closeDialog}
             show={showDialog}
           /> */}
-          <Card>
-            <CardHeader title='Lab List' action={headerAction} />
-            <DataGrid
-              autoHeight
-              pagination
-              rows={indexedRows === undefined ? [] : indexedRows}
-              rowCount={total}
-              columns={columns}
-              sortingMode='server'
-              pageSizeOptions={[10, 25, 50]}
-              paginationModel={paginationModel}
-              onSortModelChange={handleSortModel}
-              slots={{ toolbar: ServerSideToolbar }}
-              // onPaginationModelChange={handlePaginationModelChange}
-              loading={loading}
-              onCellClick={onCellClick}
-              slotProps={{
-                baseButton: {
-                  variant: 'outlined'
-                },
-                toolbar: {
-                  value: searchValue,
-                  clearSearch: () => handleSearch(''),
-                  onChange: event => {
-                    setSearchValue(event.target.value)
-                    handleSearch(event.target.value)
-                  }
-                }
-              }}
-            />
-          </Card>
+              <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
+                {/* <Typography sx={{ cursor: 'pointer' }} color='inherit'>
+      Lab
+    </Typography> */}
+                <Typography sx={{ cursor: 'pointer' }} color='inherit'>
+                  Labs
+                </Typography>
+                <Typography sx={{ cursor: 'pointer' }} color='text.primary'>
+                  Labs list
+                </Typography>
+              </Breadcrumbs>
+              <Card>
+                <CardHeader title='Lab List' action={headerAction} />
+                <DataGrid
+                  autoHeight
+                  pagination
+                  disableColumnMenu
+                  rows={indexedRows === undefined ? [] : indexedRows}
+                  rowCount={total}
+                  columns={columns}
+                  sortingMode='server'
+                  pageSizeOptions={[10, 25, 50]}
+                  paginationModel={paginationModel}
+                  onSortModelChange={handleSortModel}
+                  slots={{ toolbar: ServerSideToolbar }}
+                  onPaginationModelChange={setPaginationModel}
+                  loading={loading}
+                  onCellClick={onCellClick}
+                  slotProps={{
+                    baseButton: {
+                      variant: 'outlined'
+                    },
+                    toolbar: {
+                      value: searchValue,
+                      clearSearch: () => handleSearch(''),
+                      onChange: event => {
+                        setSearchValue(event.target.value)
+                        handleSearch(event.target.value)
+                      }
+                    }
+                  }}
+                />
+              </Card>
+            </>
+          )}
         </>
+      ) : (
+        <ErrorScreen />
       )}
     </>
   )

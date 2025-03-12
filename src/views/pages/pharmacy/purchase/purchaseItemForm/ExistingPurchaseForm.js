@@ -338,11 +338,12 @@ const ExistingPurchaseForm = props => {
   useEffect(() => {
     if (productExpiryDate !== '') {
       setValue('purchase_expiry_date', dayjs(productExpiryDate))
+    } else {
+      setValue('purchase_expiry_date', '')
     }
   }, [productExpiryDate, expiryDateLoader])
 
   useEffect(() => {
-    debugger
     if (nestedRowMedicine.medicine_name !== '') {
       console.log(optionsMedicineList)
 

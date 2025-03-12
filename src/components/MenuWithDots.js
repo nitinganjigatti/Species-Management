@@ -1,19 +1,11 @@
-// ** React Imports
 import { useState } from 'react'
-
-// ** MUI Imports
 import Menu from '@mui/material/Menu'
 import MenuItem from '@mui/material/MenuItem'
 import IconButton from '@mui/material/IconButton'
-
-// ** Icon Imports
 import Icon from 'src/@core/components/icon'
+import Box from '@mui/material/Box'
 
-// const options = ['Make It Available']
-// const ITEM_HEIGHT = 48
-
-const MenuWithDots = ({ option, action }) => {
-  // ** State
+const MenuWithDots = ({ options, disabled = false }) => {
   const [anchorEl, setAnchorEl] = useState(null)
 
   const handleClick = event => {
@@ -25,38 +17,51 @@ const MenuWithDots = ({ option, action }) => {
   }
 
   return (
-    <div>
-      <IconButton aria-label='more' aria-controls='long-menu' aria-haspopup='true' onClick={handleClick}>
+    <Box sx={{ textAlign: 'left' }}>
+      <IconButton onClick={handleClick}>
         <Icon icon='mdi:dots-vertical' />
       </IconButton>
       <Menu
+        sx={{
+          minWidth: '400px',
+          width: '400px',
+          minHeight: '124px',
+          display: 'flex',
+          flexDirection: 'column',
+          flexWrap: 'wrap',
+          gap: '8px'
+        }}
         keepMounted
         id='long-menu'
         anchorEl={anchorEl}
         onClose={handleClose}
         open={Boolean(anchorEl)}
-
-        // PaperProps={{
-        //   style: {
-        //     maxHeight: ITEM_HEIGHT * 4.5
-        //   }
-        // }}
       >
-        {/* {options.map(option => (
-          <MenuItem key={option} selected={option === 'Pyxis'} onClick={handleClose}>
-            {option}
-          </MenuItem>
-        ))} */}
-        <MenuItem
-          onClick={() => {
-            action()
-            handleClose()
-          }}
-        >
-          {option ? option : null}
-        </MenuItem>
+        {options?.length > 0
+          ? options?.map((option, index) => (
+              <MenuItem
+                sx={{
+                  color: 'customColors.neutralSecondary',
+                  fontSize: '14px',
+                  fontWeight: 400,
+                  padding: '12px',
+                  '&:hover': {
+                    backgroundColor: 'customColors.displaybgPrimary'
+                  }
+                }}
+                disabled={disabled}
+                key={index}
+                onClick={() => {
+                  option.action()
+                  handleClose()
+                }}
+              >
+                {option.label}
+              </MenuItem>
+            ))
+          : null}
       </Menu>
-    </div>
+    </Box>
   )
 }
 

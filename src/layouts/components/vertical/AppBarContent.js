@@ -31,6 +31,7 @@ const AppBarContent = props => {
   const pharmacyList = authData?.userData?.modules?.pharmacy_data?.pharmacy
   const { selectedPharmacy } = usePharmacyContext()
   const router = useRouter()
+  console.log(router?.pathname, 'qwer')
 
   return (
     <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -42,7 +43,7 @@ const AppBarContent = props => {
         ) : null}
         {/* <ModeToggler settings={settings} saveSettings={saveSettings} /> */}
         {moduleName === 'pharmacy' && pharmacyList?.length > 0 && <SelectPharmacy />}
-        {moduleName === 'parivesh' && <SelectParivesh />}
+        {moduleName === 'parivesh' && !router?.pathname.startsWith('/parivesh/species') && <SelectParivesh />}
       </Box>
       {router?.asPath?.includes('pharmacy') && (
         <Typography variant='h6' sx={{ ml: 'auto', mr: 4 }}>

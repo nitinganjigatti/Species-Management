@@ -4,6 +4,7 @@ import { read, readAsync, write } from '../lib/windows/utils'
 import { callRefreshToken } from 'src/lib/api/auth'
 
 import { usePharmacyContext } from './PharmacyContext'
+import { usePariveshContext } from './PariveshContext'
 
 // ** Next Import
 import { useRouter } from 'next/router'
@@ -36,7 +37,7 @@ const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(defaultProvider.user)
   const [userData, setUserData] = useState(defaultProvider.userData)
   const [loading, setLoading] = useState(defaultProvider.loading)
-
+  const { setSelectedParivesh, setOrganizationList } = usePariveshContext()
   const { selectedPharmacy, setSelectedPharmacy } = usePharmacyContext()
 
   // ** Hooks
@@ -105,6 +106,7 @@ const AuthProvider = ({ children }) => {
                   setSelectedPharmacy(foundPharmacy)
                 }
               }
+
               findSelectedPharmacy()
               if (storedPharmacy === '' || foundStored() === false) {
                 if (options?.length > 0) {
@@ -115,7 +117,9 @@ const AuthProvider = ({ children }) => {
                   localStorage.removeItem('selectedStore')
                 }
               } else {
-                setSelectedPharmacy(storedPharmacy)
+                setSelectedPharmacy(await readAsync('selectedStore'))
+
+                // findSelectedPharmacy()
               }
 
               const userData = {
@@ -128,6 +132,7 @@ const AuthProvider = ({ children }) => {
                 // role: resData.roles.role_name,
                 username: resData?.user?.user_first_name
               }
+              write('userDetails', resData)
               write('role', resData?.roles?.role_name)
               write('userData', userData)
 
@@ -168,6 +173,8 @@ const AuthProvider = ({ children }) => {
     setUser(null)
     setUserData(null)
     setSelectedPharmacy('')
+    setSelectedParivesh('')
+    setOrganizationList([])
     setLoading(false)
   }
 
@@ -274,6 +281,8 @@ const AuthProvider = ({ children }) => {
     setUser(null)
     setUserData(null)
     setSelectedPharmacy('')
+    setSelectedParivesh('')
+    setOrganizationList([])
     localStorage.removeItem('userData')
     localStorage.removeItem('userDetails')
     localStorage.removeItem('refreshToken')

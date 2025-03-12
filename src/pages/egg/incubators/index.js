@@ -1,64 +1,46 @@
 /* eslint-disable lines-around-comment */
 import React, { useState, useEffect, useCallback, useContext } from 'react'
-
-import { getIngredientList } from 'src/lib/api/diet/getIngredients'
-
 import FallbackSpinner from 'src/@core/components/spinner/index'
 import CardHeader from '@mui/material/CardHeader'
 import { DataGrid } from '@mui/x-data-grid'
 import { debounce } from 'lodash'
-import Tab from '@mui/material/Tab'
-import TabPanel from '@mui/lab/TabPanel'
-import TabContext from '@mui/lab/TabContext'
-import { styled } from '@mui/material/styles'
-import MuiTabList from '@mui/lab/TabList'
-import TabList from '@mui/lab/TabList'
-import moment from 'moment'
-import { Avatar, Button, Tooltip, Box, Breadcrumbs } from '@mui/material'
-
-// ** MUI Imports
-import IconButton from '@mui/material/IconButton'
+import { Avatar, Button, Tooltip, Box, Breadcrumbs, Grid, TextField, FormControl, Autocomplete } from '@mui/material'
 import Card from '@mui/material/Card'
 import Typography from '@mui/material/Typography'
-
-// ** Icon Imports
+import CustomChip from 'src/@core/components/mui/chip'
 import Icon from 'src/@core/components/icon'
 import Router from 'next/router'
-import ServerSideToolbarWithFilter from 'src/views/table/data-grid/ServerSideToolbarWithFilter'
-import ConfirmationDialog from 'src/components/confirmation-dialog'
-import ConfirmationCheckBox from 'src/views/forms/form-elements/confirmationCheckBox'
 import { useTheme } from '@mui/material/styles'
-import AddIngredients from 'src/components/diet/AddIngredients'
 import Error404 from 'src/pages/404'
 // import redBlink from 'public/images/gif/redBlink.gif'
 import redBlink from 'public/images/branding/Antz_logo_h_color.svg'
-
 import { AuthContext } from 'src/context/AuthContext'
-import { getUnitsForIngredient } from 'src/lib/api/diet/getFeedDetails'
 import AddIncubators from '../../../views/pages/egg/incubator/addIncubators'
 import Styles from './dot.module.css'
-import { getIncubatorList } from 'src/lib/api/egg/incubator'
+import { getAvailibilityList, getIncubatorList } from 'src/lib/api/egg/incubator'
+import { GetRoomList } from 'src/lib/api/egg/room/getRoom'
 import Utility from 'src/utility'
 import ErrorScreen from 'src/pages/Error'
 
 const IncubatorsList = () => {
-  const cuurent_date = moment().format('YYYY-MM-DD')
-
   const theme = useTheme()
   const [loader, setLoader] = useState(false)
   const [total, setTotal] = useState(0)
   const [sort, setSort] = useState('desc')
   const [rows, setRows] = useState([])
   const [searchValue, setSearchValue] = useState('')
-  const [sortColumning, setsortColumning] = useState('ingredient_name')
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [loading, setLoading] = useState(false)
   const [dialog, setDialog] = useState(false)
 
-  const authData = useContext(AuthContext)
-  const eggModule = authData?.userData?.roles?.settings?.egg_module
-  const eggModuleAccess = authData?.userData?.roles?.settings?.egg_module_access
+  const [defaultSite, setDefaultSite] = useState(null)
+  const [defaultRoom, setDefaultRoom] = useState(null)
+  const [roomList, setRoomList] = useState([])
+  const [availibilityList, setAvailibilityList] = useState([])
+  const [defaultStatus, setDefaultStatus] = useState(null)
+  const [defaultAvailibility, setDefaultAvailibility] = useState(null)
 
+  const authData = useContext(AuthContext)
   const egg_nursery_permission = authData?.userData?.permission?.user_settings?.add_nursery_permisson
   const egg_collection_permission = authData?.userData?.roles?.settings?.enable_egg_collection_module
 
@@ -72,24 +54,21 @@ const IncubatorsList = () => {
   }
 
   const fetchTableData = useCallback(
-    async q => {
+    async (q, siteId, roomId, availibility, status) => {
       try {
-        // console.log('til_date', cuurent_date)
+        // console.log('til_date', siteId)
         setLoading(true)
 
         const params = {
-          q,
+          q: q || searchValue,
           sort,
-          from_date: '2024-05-29',
-          til_date: cuurent_date,
           page: paginationModel.page + 1,
           limit: paginationModel.pageSize,
-          // room_id: 1,
-          room_id: '',
-          // nursery_id: 2,
+          type: status || 'all',
+          room_id: roomId,
           nursery_id: '',
-          // site_id: 14
-          site_id: ''
+          availability: availibility,
+          site_id: siteId
         }
         // console.log('params', params)
         await getIncubatorList({ params }).then(res => {
@@ -115,7 +94,13 @@ const IncubatorsList = () => {
 
   useEffect(() => {
     if (egg_nursery_permission || egg_collection_permission) {
-      fetchTableData(searchValue)
+      fetchTableData(
+        searchValue,
+        defaultSite?.site_id,
+        defaultRoom?.room_id,
+        defaultAvailibility?.key,
+        defaultStatus?.key
+      )
     }
   }, [fetchTableData])
 
@@ -135,11 +120,40 @@ const IncubatorsList = () => {
     // }
   }
 
-  const searchTableData = useCallback(
+  const RoomList = async q => {
+    try {
+      const params = {
+        page: 1,
+        limit: 50,
+        // nursery_id:
+        search: q
+      }
+      await GetRoomList({ params: params }).then(res => {
+        setRoomList(res?.data?.result)
+      })
+    } catch (e) {
+      console.log(e)
+    }
+  }
+  const AvailibityList = async () => {
+    try {
+      await getAvailibilityList().then(res => {
+        setAvailibilityList(res?.data?.data)
+      })
+    } catch (e) {
+      console.log(e)
+    }
+  }
+
+  useEffect(() => {
+    // RoomList('')
+    AvailibityList()
+  }, [])
+
+  const searchRoom = useCallback(
     debounce(async q => {
-      setSearchValue(q)
       try {
-        await fetchTableData(q)
+        await RoomList(q)
       } catch (error) {
         console.error(error)
       }
@@ -147,9 +161,17 @@ const IncubatorsList = () => {
     []
   )
 
-  // const handleSidebarOpen = () => {
-  //   setDialog(true)
-  // }
+  const searchTableData = useCallback(
+    debounce(async (q, siteId, roomId, availibility, status) => {
+      setSearchValue(q)
+      try {
+        await fetchTableData(q, siteId, roomId, availibility, status)
+      } catch (error) {
+        console.error(error)
+      }
+    }, 1000),
+    []
+  )
 
   const handleSidebarClose = () => {
     setDialog(false)
@@ -157,7 +179,6 @@ const IncubatorsList = () => {
 
   const headerAction = (
     <>
-      {/* {eggModule && (eggModuleAccess === 'ADD' || eggModuleAccess === 'EDIT' || eggModuleAccess === 'DELETE') && ( */}
       {egg_nursery_permission && (
         <Button
           sx={{ height: '40px', width: '126px' }}
@@ -169,13 +190,12 @@ const IncubatorsList = () => {
           &nbsp; Add New
         </Button>
       )}
-      {/* )} */}
     </>
   )
 
-  const handleSearch = value => {
+  const handleSearch = (value, siteId, roomId, availibility, status) => {
     setSearchValue(value)
-    searchTableData(value)
+    searchTableData(value, siteId, roomId, availibility, status)
   }
 
   const columns = [
@@ -326,7 +346,7 @@ const IncubatorsList = () => {
       minWidth: 20,
       sortable: false,
       field: 'room_name',
-      headerName: 'ROOM NO',
+      headerName: 'ROOM',
       renderCell: params => (
         <Tooltip title={params.row.room_name ? params.row.room_name : '-'}>
           <Typography
@@ -362,6 +382,30 @@ const IncubatorsList = () => {
         >
           {params.row.no_of_eggs ? params.row.no_of_eggs : '-'}
         </Typography>
+      )
+    },
+    {
+      flex: 0.2,
+      minWidth: 20,
+      sortable: false,
+      align: 'center',
+      field: 'active',
+      headerName: 'Status',
+      renderCell: params => (
+        <CustomChip
+          skin='light'
+          size='small'
+          label={params.row?.active === '1' ? 'Active' : 'InActive'}
+          color={params.row?.active === '1' ? 'success' : 'error'}
+          sx={{
+            height: 20,
+            fontWeight: 600,
+            borderRadius: '5px',
+            fontSize: '0.875rem',
+            textTransform: 'capitalize',
+            '& .MuiChip-label': { mt: -0.25 }
+          }}
+        />
       )
     },
     {
@@ -432,25 +476,6 @@ const IncubatorsList = () => {
     })
   }
 
-  // const TabBadge = ({ label, totalCount }) => (
-  //   <div style={{ display: 'flex', alignItems: 'center', justifyItems: 'center', justifyContent: 'space-between' }}>
-  //     {label}
-  //     {totalCount ? (
-  //       <Chip sx={{ ml: '6px', fontSize: '12px' }} size='small' label={totalCount} color='secondary' />
-  //     ) : null}
-  //   </div>
-  // )
-
-  // const StyledTextField = styled(TextField)({
-  //   '& .MuiInputBase-root': {
-  //     top: 6,
-  //     padding: '0px 8px 4px 8px', // Adjust padding to decrease height
-  //     fontSize: '14px' // Adjust font size if needed
-  //   },
-  //   '& .MuiInputLabel-root': {
-  //     fontSize: '14px' // Adjust label font size if needed
-  //   }
-  // })
   return (
     <>
       {egg_nursery_permission || egg_collection_permission ? (
@@ -469,152 +494,260 @@ const IncubatorsList = () => {
               <CardHeader title='Incubator List' action={headerAction} />
 
               {/* <Grid sx={{ pl: 2, mb: 2 }} container>
-            <Grid sx={{ px: 2 }} item xs={12} sm={6} md={4} lg={2}>
-              <Autocomplete
-                value={defaultUom}
-                disablePortal
-                id='uom'
-                options={uomList?.length > 0 ? uomList : []}
-                getOptionLabel={option => option.name}
-                isOptionEqualToValue={(option, value) => option?._id === value?._id}
-                onChange={(e, val) => {
-                  if (val === null) {
-                    setDefaultUom(null)
+                <Grid sx={{ px: 2 }} item xs={12} sm={6} md={4} lg={2}>
+                  <Autocomplete
+                    value={defaultUom}
+                    disablePortal
+                    id='uom'
+                    options={uomList?.length > 0 ? uomList : []}
+                    getOptionLabel={option => option.name}
+                    isOptionEqualToValue={(option, value) => option?._id === value?._id}
+                    onChange={(e, val) => {
+                      if (val === null) {
+                        setDefaultUom(null)
 
-                    return onChange('')
-                  } else {
-                    setDefaultUom(val)
+                        return onChange('')
+                      } else {
+                        setDefaultUom(val)
 
-                    return onChange(val._id)
-                  }
-                }}
-                renderInput={params => (
-                  <StyledTextField
-                    {...params}
-                    label='All Time'
-                    placeholder='Search & Select'
-                    // error={Boolean(errors.uom)}
+                        return onChange(val._id)
+                      }
+                    }}
+                    renderInput={params => (
+                      <StyledTextField
+                        {...params}
+                        label='All Time'
+                        placeholder='Search & Select'
+                        // error={Boolean(errors.uom)}
+                      />
+                    )}
                   />
-                )}
-              />
-            </Grid>
-            <Grid sx={{ px: 2 }} item xs={12} sm={6} md={4} lg={2}>
-              <Autocomplete
-                value={defaultUom}
-                disablePortal
-                id='uom'
-                options={uomList?.length > 0 ? uomList : []}
-                getOptionLabel={option => option.name}
-                isOptionEqualToValue={(option, value) => option?._id === value?._id}
-                onChange={(e, val) => {
-                  if (val === null) {
-                    setDefaultUom(null)
+                </Grid>
+                <Grid sx={{ px: 2 }} item xs={12} sm={6} md={4} lg={2}>
+                  <Autocomplete
+                    value={defaultUom}
+                    disablePortal
+                    id='uom'
+                    options={uomList?.length > 0 ? uomList : []}
+                    getOptionLabel={option => option.name}
+                    isOptionEqualToValue={(option, value) => option?._id === value?._id}
+                    onChange={(e, val) => {
+                      if (val === null) {
+                        setDefaultUom(null)
 
-                    return onChange('')
-                  } else {
-                    setDefaultUom(val)
+                        return onChange('')
+                      } else {
+                        setDefaultUom(val)
 
-                    return onChange(val._id)
-                  }
-                }}
-                renderInput={params => (
-                  <StyledTextField
-                    {...params}
-                    label='Deviced'
-                    placeholder='Search & Select'
-                    // error={Boolean(errors.uom)}
+                        return onChange(val._id)
+                      }
+                    }}
+                    renderInput={params => (
+                      <StyledTextField
+                        {...params}
+                        label='Deviced'
+                        placeholder='Search & Select'
+                        // error={Boolean(errors.uom)}
+                      />
+                    )}
                   />
-                )}
-              />
-            </Grid>
-            <Grid sx={{ px: 2 }} item xs={12} sm={6} md={4} lg={2}>
-              <Autocomplete
-                value={defaultUom}
-                disablePortal
-                id='uom'
-                options={uomList?.length > 0 ? uomList : []}
-                getOptionLabel={option => option.name}
-                isOptionEqualToValue={(option, value) => option?._id === value?._id}
-                onChange={(e, val) => {
-                  if (val === null) {
-                    setDefaultUom(null)
+                </Grid>
+                <Grid sx={{ px: 2 }} item xs={12} sm={6} md={4} lg={2}>
+                  <Autocomplete
+                    value={defaultUom}
+                    disablePortal
+                    id='uom'
+                    options={uomList?.length > 0 ? uomList : []}
+                    getOptionLabel={option => option.name}
+                    isOptionEqualToValue={(option, value) => option?._id === value?._id}
+                    onChange={(e, val) => {
+                      if (val === null) {
+                        setDefaultUom(null)
 
-                    return onChange('')
-                  } else {
-                    setDefaultUom(val)
+                        return onChange('')
+                      } else {
+                        setDefaultUom(val)
 
-                    return onChange(val._id)
-                  }
-                }}
-                renderInput={params => (
-                  <StyledTextField
-                    {...params}
-                    label='Availability'
-                    placeholder='Search & Select'
-                    // error={Boolean(errors.uom)}
+                        return onChange(val._id)
+                      }
+                    }}
+                    renderInput={params => (
+                      <StyledTextField
+                        {...params}
+                        label='Availability'
+                        placeholder='Search & Select'
+                        // error={Boolean(errors.uom)}
+                      />
+                    )}
                   />
-                )}
-              />
-            </Grid>
-            <Grid sx={{ px: 2 }} item xs={12} sm={6} md={4} lg={2}>
-              <Autocomplete
-                value={defaultUom}
-                disablePortal
-                id='uom'
-                options={uomList?.length > 0 ? uomList : []}
-                getOptionLabel={option => option.name}
-                isOptionEqualToValue={(option, value) => option?._id === value?._id}
-                onChange={(e, val) => {
-                  if (val === null) {
-                    setDefaultUom(null)
+                </Grid>
+                <Grid sx={{ px: 2 }} item xs={12} sm={6} md={4} lg={2}>
+                  <Autocomplete
+                    value={defaultUom}
+                    disablePortal
+                    id='uom'
+                    options={uomList?.length > 0 ? uomList : []}
+                    getOptionLabel={option => option.name}
+                    isOptionEqualToValue={(option, value) => option?._id === value?._id}
+                    onChange={(e, val) => {
+                      if (val === null) {
+                        setDefaultUom(null)
 
-                    return onChange('')
-                  } else {
-                    setDefaultUom(val)
+                        return onChange('')
+                      } else {
+                        setDefaultUom(val)
 
-                    return onChange(val._id)
-                  }
-                }}
-                renderInput={params => (
-                  <StyledTextField
-                    {...params}
-                    label='Site'
-                    placeholder='Search & Select'
-                    // error={Boolean(errors.uom)}
+                        return onChange(val._id)
+                      }
+                    }}
+                    renderInput={params => (
+                      <StyledTextField
+                        {...params}
+                        label='Site'
+                        placeholder='Search & Select'
+                        // error={Boolean(errors.uom)}
+                      />
+                    )}
                   />
-                )}
-              />
-            </Grid>
-            <Grid sx={{ px: 2 }} item xs={12} sm={6} md={4} lg={2}>
-              <Autocomplete
-                value={defaultUom}
-                disablePortal
-                id='uom'
-                options={uomList?.length > 0 ? uomList : []}
-                getOptionLabel={option => option.name}
-                isOptionEqualToValue={(option, value) => option?._id === value?._id}
-                onChange={(e, val) => {
-                  if (val === null) {
-                    setDefaultUom(null)
+                </Grid>
+                <Grid sx={{ px: 2 }} item xs={12} sm={6} md={4} lg={2}>
+                  <Autocomplete
+                    value={defaultUom}
+                    disablePortal
+                    id='uom'
+                    options={uomList?.length > 0 ? uomList : []}
+                    getOptionLabel={option => option.name}
+                    isOptionEqualToValue={(option, value) => option?._id === value?._id}
+                    onChange={(e, val) => {
+                      if (val === null) {
+                        setDefaultUom(null)
 
-                    return onChange('')
-                  } else {
-                    setDefaultUom(val)
+                        return onChange('')
+                      } else {
+                        setDefaultUom(val)
 
-                    return onChange(val._id)
-                  }
-                }}
-                renderInput={params => (
-                  <StyledTextField
-                    {...params}
-                    label='Room'
-                    placeholder='Search & Select'
-                    // error={Boolean(errors.uom)}
+                        return onChange(val._id)
+                      }
+                    }}
+                    renderInput={params => (
+                      <StyledTextField
+                        {...params}
+                        label='Room'
+                        placeholder='Search & Select'
+                        // error={Boolean(errors.uom)}
+                      />
+                    )}
                   />
-                )}
-              />
-            </Grid>
-          </Grid> */}
+                </Grid>
+              </Grid> */}
+              <Grid sx={{ ml: -2, mb: 6, mt: -4 }} container columns={15} spacing={6}>
+                <Grid item xs={3}>
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      border: '1px solid #C3CEC7',
+                      borderRadius: '4px',
+                      padding: '0 8px',
+                      height: '40px'
+                    }}
+                  >
+                    <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.OnSurfaceVariant} />
+                    <TextField
+                      variant='outlined'
+                      placeholder='Search...'
+                      InputProps={
+                        {
+                          // disableUnderline: true
+                        }
+                      }
+                      onChange={e =>
+                        handleSearch(
+                          e.target.value,
+                          defaultSite?.site_id,
+                          defaultRoom?.room_id,
+                          defaultAvailibility?.key,
+                          defaultStatus?.key
+                        )
+                      }
+                      sx={{
+                        '& .MuiOutlinedInput-root': {
+                          border: 'none',
+                          padding: '0',
+                          '& fieldset': {
+                            border: 'none'
+                          }
+                        }
+                      }}
+                    />
+                  </Box>
+                </Grid>
+
+                <Grid item xs={3}>
+                  <FormControl fullWidth>
+                    <Autocomplete
+                      name='status'
+                      value={defaultStatus}
+                      disablePortal
+                      id='status'
+                      options={[
+                        { label: 'All', key: 'all' },
+                        { label: 'Active', key: 'only_active' },
+                        { label: 'Inactive', key: 'only_deactive' }
+                      ]}
+                      getOptionLabel={option => option.label}
+                      isOptionEqualToValue={(option, value) => option?.key === value?.key}
+                      onChange={(e, val) => {
+                        if (val === null) {
+                          setDefaultStatus(null)
+                          fetchTableData(
+                            searchValue,
+                            defaultSite?.site_id,
+                            defaultRoom?.room_id,
+                            defaultAvailibility?.key,
+                            ''
+                          )
+                        } else {
+                          setDefaultStatus(val)
+                          fetchTableData(
+                            searchValue,
+                            defaultSite?.site_id,
+                            defaultRoom?.room_id,
+                            defaultAvailibility?.key,
+                            val?.key
+                          )
+                        }
+                      }}
+                      renderInput={params => (
+                        <TextField
+                          sx={{
+                            backgroundColor: '#fff',
+                            borderColor: '1px solid #C3CEC7',
+                            width: '100%',
+                            '& .MuiOutlinedInput-root': {
+                              height: 40,
+                              borderRadius: '4px'
+                            },
+                            '& .MuiInputLabel-root': {
+                              top: -7
+                            },
+                            '& input': {
+                              position: 'relative',
+                              top: -7
+                            }
+                          }}
+                          onChange={e => {
+                            searchNursery(e.target.value)
+                          }}
+                          {...params}
+                          label='Status'
+                          placeholder='Search & Select'
+                        />
+                      )}
+                    />
+                  </FormControl>
+                </Grid>
+              </Grid>
               <DataGrid
                 sx={{
                   '.MuiDataGrid-cell:focus': {
@@ -642,19 +775,19 @@ const IncubatorsList = () => {
                 pageSizeOptions={[7, 10, 25, 50]}
                 paginationModel={paginationModel}
                 onSortModelChange={handleSortModel}
-                slots={{ toolbar: ServerSideToolbarWithFilter }}
+                // slots={{ toolbar: ServerSideToolbarWithFilter }}
                 onPaginationModelChange={setPaginationModel}
                 loading={loading}
-                slotProps={{
-                  baseButton: {
-                    variant: 'outlined'
-                  },
-                  toolbar: {
-                    value: searchValue,
-                    clearSearch: () => handleSearch(''),
-                    onChange: event => handleSearch(event.target.value)
-                  }
-                }}
+                // slotProps={{
+                //   baseButton: {
+                //     variant: 'outlined'
+                //   },
+                //   toolbar: {
+                //     value: searchValue,
+                //     clearSearch: () => handleSearch(''),
+                //     onChange: event => handleSearch(event.target.value)
+                //   }
+                // }}
                 onCellClick={onCellClick}
               />
               <AddIncubators actionApi={fetchTableData} sidebarOpen={dialog} handleSidebarClose={handleSidebarClose} />
@@ -663,6 +796,7 @@ const IncubatorsList = () => {
         )
       ) : (
         <>
+          {' '}
           <ErrorScreen></ErrorScreen>
         </>
       )}

@@ -6,8 +6,8 @@ set -e
 BRANCH=$1
 ENV_TO_LOAD=$2
 GITHUB_RUN_ID=$3
-ANTZ_DEPLOYMENT_TOKEN=$4 
-GITHUB_WORKFLOW=$5 
+ANTZ_DEPLOYMENT_TOKEN=$4
+GITHUB_WORKFLOW=$5
 GITHUB_REPOSITORY="ANTZ-Systems/antz_web_dashboard"
 
 echo $BRANCH
@@ -81,7 +81,7 @@ echo "Running npm install:"; pwd
 #rm package-lock.json
 #npm update
 #npm install --legacy-peer-deps
-npm install
+npm install --production
 #### BACKUP the existing FOLDER as ZIP(SITE FOLDER)
 
 #Create build
@@ -94,9 +94,9 @@ echo "Downloading artifact"
 # Download the artifact using artifact name and workflow run ID (replace placeholders)
 ARTIFACT_NAME="nextjs-build-output"  # Replace with the name from your workflow
 
-echo $GITHUB_RUN_ID 
-echo $ANTZ_DEPLOYMENT_TOKEN 
-echo $GITHUB_WORKFLOW 
+echo $GITHUB_RUN_ID
+echo $ANTZ_DEPLOYMENT_TOKEN
+echo $GITHUB_WORKFLOW
 echo $GITHUB_REPOSITORY
 # Get the artifact URL
 echo "https://api.github.com/repos/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID}/artifacts";

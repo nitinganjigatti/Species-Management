@@ -99,11 +99,11 @@ export async function GetLabRequestTestStatusById({ params }) {
   return response.data
 }
 
-export async function DeleteLAbRequestAttachment(id) {
+export async function DeleteLAbRequestAttachment(id, params) {
   try {
-    const url = `medical/${id}/${LabFileDelete}`
+    const url = `medical/${id}/${LabFileDelete}?lab_test_id=${params?.lab_test_id}`
 
-    const response = await axiosPost({ url })
+    const response = await axiosPost({ url: url })
 
     return response?.data
   } catch (error) {
@@ -120,6 +120,24 @@ export async function DeleteLAbRequestAttachment(id) {
 
 export async function GetLabListByTestId({ params }) {
   const response = await axiosGet({ url: `${GETLABLISTBYTESTID}`, params })
+
+  return response.data
+}
+
+export async function getLabListByMultipleIds(id, params) {
+  const response = await axiosPost({ url: `antz/labs/bulk-assign-labs-list/${id}`, body: params })
+
+  return response.data
+}
+
+export async function postBulkStatus({ params }) {
+  const response = await axiosPost({ url: `antz/bulk/update/tests/status`, body: params })
+
+  return response.data
+}
+
+export async function postBulkTransfer({ params }) {
+  const response = await axiosPost({ url: `antz/labs/bulk-assign-labs-transfer`, body: params })
 
   return response.data
 }

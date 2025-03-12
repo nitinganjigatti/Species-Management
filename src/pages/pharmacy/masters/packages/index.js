@@ -13,10 +13,11 @@ import { DataGrid } from '@mui/x-data-grid'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
-import { Box } from '@mui/material'
+import { Box, TextField } from '@mui/material'
 import { debounce } from 'lodash'
 
 import Router from 'next/router'
+import { useTheme } from '@emotion/react'
 
 import { getPackages, addPackages, updatePackage } from 'src/lib/api/pharmacy/packages'
 
@@ -33,8 +34,13 @@ import { AddButton } from 'src/components/Buttons'
 import { useContext } from 'react'
 import { AuthContext } from 'src/context/AuthContext'
 import Utility from 'src/utility'
+import CommonTable from 'src/views/table/data-grid/CommonTable'
+import { AddButtonContained } from 'src/components/ButtonContained'
+import RenderUtility from 'src/utility/render'
 
 const ManufacturerList = () => {
+  const theme = useTheme()
+
   const [packages, setPackages] = useState([])
   const [loader, setLoader] = useState(false)
 
@@ -63,7 +69,6 @@ const ManufacturerList = () => {
   }
 
   const setAlertDefaults = ({ message, severity, status }) => {
-    debugger
     setOpenSnackbar(status)
     setSnackbarMessage(message)
     setSeverity(severity)
@@ -91,10 +96,10 @@ const ManufacturerList = () => {
       flex: 0.05,
       Width: 40,
       field: 'id',
-      headerName: 'SL No',
+      headerName: 'S.NO',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {parseInt(params.row.sl_no)}
+          {parseInt(params.row.sl_no) + '.'}
         </Typography>
       )
     },
@@ -104,7 +109,15 @@ const ManufacturerList = () => {
       field: 'label',
       headerName: 'Package',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
           {params.row.label}
         </Typography>
       )
@@ -116,7 +129,15 @@ const ManufacturerList = () => {
       field: 'active',
       headerName: 'STATUS',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
           {params.row.active === '1' ? 'Active' : 'Inactive'}
         </Typography>
       )
@@ -219,9 +240,12 @@ const ManufacturerList = () => {
 
   const headerAction = (
     <div>
-      {/* {selectedPharmacy.type === 'central' &&
-        (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') && ( */}
-      {pharmacyRole && <AddButton title='Add Package' action={() => addEventSidebarOpen()} />}
+      {pharmacyRole && (
+        <Grid item>
+          {' '}
+          <AddButtonContained title='Add Package' action={() => addEventSidebarOpen()} fullWidth='fullWidth' />
+        </Grid>
+      )}
     </div>
   )
 
@@ -277,8 +301,77 @@ const ManufacturerList = () => {
           ) : (
             <>
               <Card>
-                <CardHeader title='Packages' action={headerAction} />
-                <DataGrid
+                <CardHeader
+                  sx={{
+                    display: 'flex',
+                    flexDirection: { xs: 'column', sm: 'row' },
+                    justifyContent: 'flex-start', // Align content to the left
+                    alignItems: 'flex-start', // Align items to the top left
+                    gap: { xs: 3, sm: 0 },
+                    '& .MuiCardHeader-action': {
+                      width: { xs: '100% ', sm: 'auto' }
+                    }
+                  }}
+                  title={RenderUtility.pageTitle('Packages')}
+                  action={headerAction}
+                />
+                <Grid
+                  item
+                  sx={{
+                    mx: { xs: 4 },
+                    ml: { md: 4 }
+                  }}
+                >
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+                      borderRadius: '8px',
+                      padding: '0 8px',
+                      height: '40px',
+                      width: {
+                        xs: '100%',
+                        sm: '250px'
+                      }
+                    }}
+                  >
+                    <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
+                    <TextField
+                      variant='outlined'
+                      placeholder='Search...'
+                      onChange={e => handleSearch(e.target.value)}
+                      fullWidth
+                      sx={{
+                        '& .MuiOutlinedInput-root': {
+                          border: 'none',
+                          padding: '0',
+                          '& fieldset': {
+                            border: 'none'
+                          }
+                        }
+                      }}
+                    />
+                  </Box>
+                </Grid>
+                <Grid
+                  sx={{
+                    mx: 4
+                  }}
+                >
+                  <CommonTable
+                    onRowClick={''}
+                    indexedRows={indexedRows}
+                    total={total}
+                    columns={columns}
+                    paginationModel={paginationModel}
+                    handleSortModel={handleSortModel}
+                    setPaginationModel={setPaginationModel}
+                    loading={loading}
+                    searchValue={searchValue}
+                  />
+                </Grid>
+                {/* <DataGrid
                   columnVisibilityModel={{
                     id: false
                   }}
@@ -308,7 +401,7 @@ const ManufacturerList = () => {
                       onChange: event => handleSearch(event.target.value)
                     }
                   }}
-                />
+                /> */}
               </Card>
               <AddPackages
                 drawerWidth={400}

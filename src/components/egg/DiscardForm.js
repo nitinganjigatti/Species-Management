@@ -27,7 +27,7 @@ import { LoadingButton } from '@mui/lab'
 import { GetEggMaster, AddEggStatusAndCondition } from 'src/lib/api/egg/egg'
 import Toaster from 'src/components/Toaster'
 
-const DiscardForm = ({ isOpen, setIsOpen, eggID, callApi }) => {
+const DiscardForm = ({ isOpen, setIsOpen, eggID, callApi, getDetails, GetGalleryImgList }) => {
   const theme = useTheme()
   const fileInputRef = useRef(null)
   const [reason, setReason] = useState('')
@@ -36,7 +36,11 @@ const DiscardForm = ({ isOpen, setIsOpen, eggID, callApi }) => {
   const [imgSrc, setImgSrc] = useState('')
   const [discardReason, setDiscardReason] = useState([])
   const [eggStateID, setEggStateId] = useState(null)
+  const [loader, setLoader] = useState(false)
 
+  const [imgArr, setImgArr] = useState([])
+
+  // console.log('imgArr :>> ', imgArr)
   const [displayFile, setDisplayFile] = useState('')
 
   const getEggMasterData = async () => {
@@ -109,21 +113,24 @@ const DiscardForm = ({ isOpen, setIsOpen, eggID, callApi }) => {
     reValidateMode: 'onChange'
   })
 
+  // image
+
   const { getRootProps, getInputProps } = useDropzone({
-    multiple: false,
+    multiple: true,
     accept: {
-      'image/*': ['.png', '.jpg', '.jpeg', '.gif']
+      '*/*': []
     },
     onDrop: acceptedFiles => {
       const reader = new FileReader()
       const files = acceptedFiles
       if (files && files.length !== 0) {
         reader.onload = () => {
-          setImgSrc(reader?.result)
+          setImgSrc(pre => [...pre, reader?.result])
         }
         setDisplayFile(files[0]?.name)
         reader?.readAsDataURL(files[0])
-        setValue('image', files[0])
+        setImgArr(pre => [...pre, files[0]])
+        setValue('image', files)
 
         clearErrors('image')
       }
@@ -134,26 +141,79 @@ const DiscardForm = ({ isOpen, setIsOpen, eggID, callApi }) => {
     fileInputRef?.current?.click()
   }
 
+  // const handleInputImageChange = file => {
+  //   const reader = new FileReader()
+  //   const { files } = file.target
+
+  //   if (files && files.length !== 0) {
+  //     reader.onload = () => {
+  //       setImgSrc(pre => [...pre, reader?.result])
+  //     }
+  //     setDisplayFile(files[0]?.name)
+  //     reader?.readAsDataURL(files[0])
+  //     setImgArr(pre => [...pre, files[0]])
+  //     setValue('image', files)
+  //     clearErrors('image')
+  //   }
+  // }
   const handleInputImageChange = file => {
-    const reader = new FileReader()
     const { files } = file.target
+
     if (files && files.length !== 0) {
-      reader.onload = () => {
-        setImgSrc(reader?.result)
+      // Clear existing images and names before adding new ones
+      setImgSrc([])
+      setImgArr([])
+
+      for (let i = 0; i < files.length; i++) {
+        const reader = new FileReader()
+        const currentFile = files[i]
+
+        // Closure to capture the current file
+        reader.onload = e => {
+          // Add the new image source to the state
+          setImgSrc(pre => [...pre, e.target.result])
+        }
+
+        // Start reading the current file as a data URL
+        reader.readAsDataURL(currentFile)
       }
-      setDisplayFile(files[0]?.name)
-      reader?.readAsDataURL(files[0])
-      setValue('image', files[0])
+
+      // Update file display and set form values
+      setDisplayFile(files.length > 1 ? `${files.length} files selected` : files[0]?.name)
+      setImgArr(pre => [...pre, ...files]) // Store all selected files
+      setValue('image', files) // Update your form state
       clearErrors('image')
     }
   }
 
-  const removeSelectedImage = () => {
-    setImgSrc('')
-    setValue('image', '')
+  const removeSelectedImage = index => {
+    setImgSrc(prevImages => {
+      const updatedImages = prevImages.filter((_, i) => i !== index)
+      if (updatedImages.length === 0) {
+        setValue('image', '')
+      } else {
+        setValue('image', updatedImages)
+      }
+
+      return updatedImages
+    })
+
+    setImgArr(prevFiles => {
+      const updatedFiles = prevFiles.filter((_, i) => i !== index)
+      if (updatedFiles.length === 0) {
+        setValue('image', '')
+      } else {
+        setValue('image', updatedFiles)
+      }
+
+      return updatedFiles
+    })
   }
 
+  // ---------------
+
   const onSubmit = async values => {
+    setLoader(true)
     try {
       const payload = {
         egg_id: eggID,
@@ -161,8 +221,11 @@ const DiscardForm = ({ isOpen, setIsOpen, eggID, callApi }) => {
         egg_state_id: reason,
         is_necropsy_needed: values?.necropsy_Btn,
         comment: getValues('comment'),
-        egg_attachment: [getValues('image')]
+        egg_attachment: imgArr
+
+        // egg_attachment: [getValues('image')]
       }
+      console.log('payload :>> ', payload)
 
       const res = await AddEggStatusAndCondition(payload)
       if (res.success) {
@@ -170,22 +233,32 @@ const DiscardForm = ({ isOpen, setIsOpen, eggID, callApi }) => {
         setImgSrc('')
         reset()
         setIsOpen(false)
+        setLoader(false)
         Toaster({ type: 'success', message: res?.message })
 
         if (callApi) {
           callApi('')
+        }
+
+        if (getDetails) {
+          getDetails(eggID)
+        }
+        if (GetGalleryImgList) {
+          GetGalleryImgList({ ref_id: eggID, ref_type: 'egg' })
         }
       } else {
         // setReason('')
         // setImgSrc('')
         // // reset()
         // setIsOpen(false)
+        setLoader(false)
         Toaster({ type: 'error', message: res?.message })
       }
 
       // Perform any additional operations, e.g., API call
     } catch (error) {
       console.error('Error while :', error)
+      setLoader(false)
       Toaster({ type: 'error', message: 'An error occurred while Discard' })
     }
   }
@@ -283,7 +356,7 @@ const DiscardForm = ({ isOpen, setIsOpen, eggID, callApi }) => {
                 </Box>
               ))}
             </Box>
-            {!reason && <FormHelperText sx={{ color: 'error.main', m: 5 }}>State Is Required</FormHelperText>}
+            {!reason && <FormHelperText sx={{ color: 'error.main', m: 5 }}>State Is required</FormHelperText>}
 
             <Typography variant='h6' sx={{ m: 5 }}>
               Add Reason For Discard
@@ -324,78 +397,84 @@ const DiscardForm = ({ isOpen, setIsOpen, eggID, callApi }) => {
               </FormControl>
 
               <Grid container sx={{ justifyContent: 'space-between' }}>
-                {imgSrc !== '' ? null : (
-                  <Grid item md={12}>
-                    <input
-                      type='file'
-                      accept='image/*'
-                      onChange={e => handleInputImageChange(e)}
-                      style={{ display: 'none' }}
-                      name='image'
-                      ref={fileInputRef}
-                    />
+                <Grid item md={12} sm={12} xs={12}>
+                  <input
+                    type='file'
+                    accept='image/*'
+                    onChange={e => handleInputImageChange(e)}
+                    style={{ display: 'none' }}
+                    name='image'
+                    ref={fileInputRef}
+                    multiple={true}
+                  />
 
-                    <Box
-                      {...getRootProps({ className: 'dropzone' })}
-                      onClick={handleAddImageClick}
-                      sx={{
-                        display: 'flex',
-                        alignItems: 'center',
-                        gap: 7,
-                        height: 70,
+                  <Box
+                    {...getRootProps({ className: 'dropzone' })}
+                    onClick={handleAddImageClick}
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 7,
+                      height: 70,
 
-                        border: `1px dashed #c5c6cd`,
-                        borderRadius: 1,
+                      border: `1px dashed #c5c6cd`,
+                      borderRadius: 1,
 
-                        padding: 3
-                      }}
-                    >
-                      <Image alt={'filename'} src={imageUploader} width={50} height={50} />
+                      padding: 3
+                    }}
+                  >
+                    <Image alt={'filename'} src={imageUploader} width={50} height={50} />
 
-                      <Typography>Drop your image here</Typography>
-                    </Box>
-                  </Grid>
-                )}
-                <Grid item md={12}>
-                  {imgSrc !== '' && (
-                    <Box sx={{ display: 'flex' }}>
-                      <Box
-                        sx={{
-                          position: 'relative',
-                          backgroundColor: theme.palette.customColors.tableHeaderBg,
-                          borderRadius: '10px',
-                          height: 121,
-                          padding: '10.5px',
-                          boxSizing: 'border-box'
-                        }}
-                      >
-                        <img
-                          style={{
-                            aspectRatio: 2 / 2,
-                            height: '100%',
-                            borderRadius: '5%',
-                            objectFit: 'cover'
-                          }}
-                          alt='Uploaded image'
-                          src={typeof imgSrc === 'string' ? imgSrc : imgSrc}
-                        />
+                    <Typography>Drop your image here</Typography>
+                  </Box>
+                </Grid>
+
+                <Grid item md={12} sm={12} xs={12}>
+                  {imgSrc && imgSrc.length > 0 && (
+                    <Box sx={{ display: 'flex', mt: 2 }}>
+                      {imgSrc.map((src, index) => (
                         <Box
+                          key={index}
                           sx={{
-                            cursor: 'pointer',
-                            position: 'absolute',
-                            top: 0,
-                            right: 0,
-                            zIndex: 1,
-                            height: '24px',
-                            borderRadius: 0.4,
-                            backgroundColor: theme.palette.customColors.secondaryBg
+                            position: 'relative',
+                            backgroundColor: theme.palette.customColors.tableHeaderBg,
+                            borderRadius: '10px',
+                            height: 121,
+                            padding: '10.5px',
+                            boxSizing: 'border-box',
+                            marginRight: '10px' // Add margin for spacing between images
                           }}
                         >
-                          <Icon icon='material-symbols-light:close' color='#fff' onClick={() => removeSelectedImage()}>
-                            {' '}
-                          </Icon>
+                          <img
+                            style={{
+                              aspectRatio: 2 / 2,
+                              height: '100%',
+                              borderRadius: '5%',
+                              objectFit: 'cover'
+                            }}
+                            alt={`Uploaded image ${index}`}
+                            src={typeof src === 'string' ? src : src}
+                          />
+                          <Box
+                            sx={{
+                              cursor: 'pointer',
+                              position: 'absolute',
+                              top: 0,
+                              right: 0,
+                              zIndex: 1,
+                              height: '24px',
+                              borderRadius: 0.4,
+                              backgroundColor: theme.palette.customColors.secondaryBg
+                            }}
+                          >
+                            <Icon
+                              icon='material-symbols-light:close'
+                              color='#fff'
+                              onClick={() => removeSelectedImage(index)} // Pass the index here
+                            />
+                          </Box>
                         </Box>
-                      </Box>
+                      ))}
                     </Box>
                   )}
                 </Grid>
@@ -427,7 +506,6 @@ const DiscardForm = ({ isOpen, setIsOpen, eggID, callApi }) => {
                     render={({ field: { value, onChange } }) => (
                       <RadioGroup
                         row
-                        // aria-labelledby='demo-row-radio-buttons-group-label'
                         value={value}
                         name='necropsy_Btn'
                         sx={{ display: 'flex', flexDirection: 'row', gap: 3, justifyContent: 'space-between' }}
@@ -495,7 +573,14 @@ const DiscardForm = ({ isOpen, setIsOpen, eggID, callApi }) => {
                 zIndex: 1
               }}
             >
-              <LoadingButton fullWidth variant='contained' type='submit' size='large'>
+              <LoadingButton
+                loading={loader}
+                disabled={loader}
+                fullWidth
+                variant='contained'
+                type='submit'
+                size='large'
+              >
                 Discard
               </LoadingButton>
             </Box>

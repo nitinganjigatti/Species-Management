@@ -62,6 +62,9 @@ function ProductForm({
     // Clone the existing array and update the batch for the current index
     const updatedBatches = [...selectedBatches]
     updatedBatches[index] = newValue
+    setValue(`product_batches[${index}].multiplier`, updatedBatches[0]?.multiplier)
+    setValue(`product_batches[${index}].variant_id`, updatedBatches[0]?.variant_id)
+
     setSelectedBatches(updatedBatches)
   }
 
@@ -77,7 +80,9 @@ function ProductForm({
               label: '',
               value: ''
             },
-            qty: ''
+            qty: '',
+            variant_id: '',
+            multiplier: ''
           }
         ]
       }
@@ -90,7 +95,9 @@ function ProductForm({
           label: '',
           value: ''
         },
-        qty: ''
+        qty: '',
+        variant_id: '',
+        multiplier: ''
       }
 
   const ProductValidationSchema = !editMode
@@ -102,58 +109,36 @@ function ProductForm({
           Yup.object().shape({
             batch_no: Yup.object({
               value: Yup.string()
+                .required('Batch number is required')
                 .test('uniqueBatchNo', 'Batch number already exists for this product', function (value) {
                   const duplicate = productArray.some(
                     item => item.batch_no === value && item?.stock_id === watch('stock_id')?.value
                   )
-
                   return !duplicate
                 })
                 .test('unique-batch-no', 'Batch number is already selected', function (value) {
                   const { product_batches } = this.options.from[2].value
-
                   const allBatchNumbers = product_batches?.map(batch => batch.batch_no)
-
                   const selectedBatchCount = allBatchNumbers?.filter(batchNo => batchNo?.value === value).length
-
                   return (selectedBatchCount === undefined ? 0 : selectedBatchCount) === 1
                 })
             }),
             qty: Yup.number()
-
-              // .test('max-quantity', `Quantity can not be more than total available quantity`, function (value) {
-              //   const { stock_id } = this?.options?.from[1]?.value // Accessing form values
-              //   const allValues = getValues()
-
-              //   const sum = allValues.product_batches.reduce((accumulator, batch) => {
-              //     return accumulator + (parseFloat(batch.qty) || 0)
-              //   }, 0)
-
-              //   // Find all rows in productArray with matching batch_no
-              //   const matchingRows = productArrayUi.filter(item => item.stock_id?.value === stock_id?.value)
-
-              //   // Calculate the sum of quantities in matching rows
-              //   const sumOfQuantities = matchingRows.reduce((sum, row) => sum + row.qty, 0)
-              //   const remainingQuantity = totalProductQty - sumOfQuantities
-
-              //   // Check if the current value exceeds the remaining quantity
-              //   setTotalQty(remainingQuantity)
-
-              //   // return value <= remainingQuantity || sum <= remainingQuantity
-              //   return sum <= remainingQuantity
-              // })
+              .test('batch-required', 'Batch number is required', function (value) {
+                return this.parent.batch_no?.value // Ensure batch_no is selected
+              })
               .test('max-quantity', `Quantity can not be more than total available quantity`, function (value) {
                 const { product_batches } = this?.options?.from[1]?.value // Accessing form values
-                // console.log('product_batches', product_batches)
                 clearErrors('product_batches')
 
                 const isValid = product_batches?.every(item => {
                   const batchQty = parseFloat(item?.batch_no?.qty)
                   const inputQty = parseFloat(item?.qty)
-
                   return inputQty <= batchQty
                 })
-
+                if (!isValid) {
+                  return this.createError({ message: 'Quantity cannot be more than total available quantity' })
+                }
                 return isValid
               })
               .required('Quantity is required')
@@ -317,7 +302,9 @@ function ProductForm({
         ...data?.product_batches?.map(item => ({
           stock_id: data?.stock_id,
           batch_no: item?.batch_no,
-          qty: item?.qty
+          qty: item?.qty,
+          variant_id: item?.variant_id,
+          multiplier: item?.multiplier
         })),
         ...prevArray.slice(index + 1)
       ])
@@ -327,7 +314,9 @@ function ProductForm({
           return {
             stock_id: data?.stock_id?.value,
             batch_no: item?.batch_no?.value,
-            qty: item?.qty
+            qty: item?.qty,
+            variant_id: item?.variant_id,
+            multiplier: item?.multiplier
           }
         }),
         ...prevArray.slice(index + 1)
@@ -339,7 +328,9 @@ function ProductForm({
         ...data?.product_batches?.map(item => ({
           stock_id: data?.stock_id,
           batch_no: item?.batch_no,
-          qty: item?.qty
+          qty: item?.qty,
+          variant_id: item?.variant_id,
+          multiplier: item?.multiplier
         }))
       ])
       setProductArray(prevArray => [
@@ -348,7 +339,9 @@ function ProductForm({
           return {
             stock_id: data?.stock_id?.value,
             batch_no: item?.batch_no?.value,
-            qty: item?.qty
+            qty: item?.qty,
+            variant_id: item?.variant_id,
+            multiplier: item?.multiplier
           }
         })
       ])
@@ -368,14 +361,18 @@ function ProductForm({
     updatedProductArray[selectedIndex] = {
       stock_id: data.stock_id?.value,
       batch_no: data.batch_no?.value,
-      qty: data.qty
+      qty: data.qty,
+      variant_id: data?.variant_id,
+      multiplier: data?.multiplier
     }
 
     // Update the data at the found index
     updatedProductArrayUi[selectedIndex] = {
       stock_id: data.stock_id,
       batch_no: data.batch_no,
-      qty: data.qty
+      qty: data.qty,
+      variant_id: data?.variant_id,
+      multiplier: data?.multiplier
     }
 
     // Update the state
@@ -391,8 +388,8 @@ function ProductForm({
   useEffect(() => {
     if (!editMode) {
       try {
-        getProductList({ params: { sort: 'asc', q: '', limit: 20 } }).then(res => {
-          if (res?.data?.list_items.length > 0) {
+        getProductList({ params: { sort: 'asc', q: '', limit: 20, is_specific: 1 } }).then(res => {
+          if (res?.data?.list_items?.length > 0) {
             setProducts(
               res?.data?.list_items?.map(item => ({
                 label: item.name,
@@ -411,9 +408,8 @@ function ProductForm({
   const searchProductData = useCallback(
     debounce(async searchText => {
       try {
-        await getProductList({ params: { sort: 'asc', q: searchText, limit: 20 } }).then(res => {
-          if (res?.data?.list_items.length > 0) {
-            // console.log('first', res?.data)
+        await getProductList({ params: { sort: 'asc', q: searchText, limit: 20, is_specific: 1 } }).then(res => {
+          if (res?.data?.list_items?.length > 0) {
             setProducts(
               res?.data?.list_items?.map(item => ({
                 label: item.name,
@@ -442,7 +438,9 @@ function ProductForm({
             res?.data?.items?.map(item => ({
               label: item?.batch_no,
               value: item?.batch_no,
-              qty: item?.qty
+              qty: item?.qty,
+              variant_id: item?.variant_id,
+              multiplier: item?.multiplier
             }))
           )
 
@@ -478,6 +476,8 @@ function ProductForm({
       setValue('stock_id', dataForEditRow?.stock_id)
       setValue('batch_no', dataForEditRow?.batch_no)
       setValue('qty', dataForEditRow?.qty)
+      setValue('variant_id', dataForEditRow?.variant_id)
+      setValue('multiplier', dataForEditRow?.multiplier)
 
       callBatchesApi(dataForEditRow.stock_id?.value, dataForEditRow?.stock_id?.stock_type)
       setTotalQty(getValues('batch_no.qty'))
@@ -578,9 +578,16 @@ function ProductForm({
                     />
                     {errors?.stock_id && (
                       <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
-                        {errors?.stock_id?.message || 'Product Name is required'}
+                        {errors?.stock_id?.message?.includes('cannot be null')
+                          ? 'Product Name is required'
+                          : errors?.stock_id?.message || 'Product Name is required'}
                       </FormHelperText>
                     )}
+                    {/* {errors?.stock_id && (
+                      <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
+                        {errors?.stock_id?.message || 'Product Name is required'}
+                      </FormHelperText>
+                    )} */}
                   </>
                 )}
               />
@@ -592,7 +599,7 @@ function ProductForm({
           <FormGroup>
             {fields.map((field, index) => (
               <Grid container gap={3} key={field?.id} sx={{ mb: 2 }}>
-                <Grid item xs={12} sm={4.5}>
+                <Grid item xs={12} sm={3}>
                   <FormControl fullWidth>
                     <Controller
                       name={`product_batches[${index}].batch_no`}
@@ -620,8 +627,6 @@ function ProductForm({
                               field.onChange(newValue)
 
                               handleBatchChange(event, newValue, index)
-
-                              // console.log('first', newValue)
                             }}
                             renderInput={params => (
                               <TextField
@@ -634,11 +639,18 @@ function ProductForm({
                           />
                           {errors?.product_batches?.[index]?.batch_no && (
                             <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
-                              {errors?.product_batches?.[index]?.batch_no?.message === 'batch_no cannot be null'
-                                ? 'Batch No is required'
+                              {errors?.product_batches?.[index]?.batch_no?.message?.includes('cannot be null') ||
+                              errors?.product_batches?.[index]?.batch_no?.message?.includes('must be a `object` type')
+                                ? 'Batch No. is required'
                                 : errors?.product_batches?.[index]?.batch_no?.message ||
                                   'Batch number already exists for this product' ||
                                   'Batch No. is required'}
+                              {/* {errors?.product_batches?.[index]?.batch_no?.message ===
+                              `product_batches[${index}].batch_no cannot be null`
+                                ? 'Batch No. is required'
+                                : errors?.product_batches?.[index]?.batch_no?.message ||
+                                  'Batch number already exists for this product' ||
+                                  'Batch No. is required'} */}
                             </FormHelperText>
                           )}
                         </>
@@ -646,8 +658,33 @@ function ProductForm({
                     />
                   </FormControl>
                 </Grid>
-
-                <Grid item xs={12} sm={4.5}>
+                <Grid item xs={12} sm={3}>
+                  <FormControl fullWidth>
+                    <Controller
+                      name={`product_batches[${index}].multiplier`}
+                      control={control}
+                      rules={{ required: true }}
+                      render={({ field: { value, onChange } }) => (
+                        <TextField
+                          disabled
+                          type='text'
+                          value={value}
+                          label='Product Variant'
+                          error={Boolean(errors?.product_batches?.[index]?.multiplier)}
+                          name={`product_batches[${index}].multiplier`}
+                          onKeyUp={() => {
+                            if (!errors?.product_batches?.[index]?.multiplier) {
+                              errors?.product_batches?.forEach((batchError, index) => {
+                                clearErrors('product_batches', index)
+                              })
+                            }
+                          }}
+                        />
+                      )}
+                    ></Controller>
+                  </FormControl>
+                </Grid>
+                <Grid item xs={12} sm={3}>
                   <FormControl fullWidth>
                     <Controller
                       name={`product_batches[${index}].qty`}
@@ -686,6 +723,7 @@ function ProductForm({
                     }`}
                   </Typography>
                 </Grid>
+
                 <Grid
                   item
                   alignSelf='center'
@@ -701,8 +739,8 @@ function ProductForm({
             ))}
           </FormGroup>
         ) : (
-          <Grid container mb={3} justifyContent={'space-between'}>
-            <Grid item xs={12} sm={12} md={5.9}>
+          <Grid container mb={3} rowSpacing={4} columnSpacing={2}>
+            <Grid item xs={12} sm={4} md={4}>
               <FormControl fullWidth>
                 <Controller
                   name='batch_no'
@@ -748,8 +786,31 @@ function ProductForm({
                 />
               </FormControl>
             </Grid>
-
-            <Grid item xs={12} sm={12} md={5.8}>
+            <Grid item xs={12} sm={4}>
+              <FormControl fullWidth>
+                <Controller
+                  name='multiplier'
+                  control={control}
+                  rules={{ required: true }}
+                  render={({ field: { value, onChange } }) => (
+                    <TextField
+                      disabled
+                      type='text'
+                      value={value}
+                      label='Product Variant'
+                      name='multiplier'
+                      error={Boolean(errors.multiplier)}
+                      onChange={onChange}
+                    />
+                  )}
+                >
+                  {errors.multiplier && (
+                    <FormHelperText sx={{ color: 'error.main' }}>{errors?.multiplier?.message}</FormHelperText>
+                  )}
+                </Controller>
+              </FormControl>
+            </Grid>
+            <Grid item xs={12} sm={4} md={4}>
               <FormControl fullWidth>
                 <Controller
                   name='qty'
@@ -801,7 +862,7 @@ function ProductForm({
           <Grid Grid sx={{ height: '100%' }} alignItems='flex-end' justifyContent='flex-end' container>
             {editMode ? (
               <Button type='submit' variant='contained'>
-                Edit
+                Update
               </Button>
             ) : (
               <Button type='submit' variant='contained'>

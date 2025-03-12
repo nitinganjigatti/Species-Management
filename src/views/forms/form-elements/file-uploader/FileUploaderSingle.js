@@ -1,5 +1,5 @@
 // ** React Imports
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 
 // ** Next Import
 import Link from 'next/link'
@@ -42,14 +42,19 @@ const FileUploaderSingle = props => {
   const { getRootProps, getInputProps } = useDropzone({
     multiple: false,
     accept: {
-      'image/*': ['.png', '.jpg', '.jpeg', '.pdf']
+      'image/*': ['.png', '.jpg', '.jpeg']
     },
     onDrop: acceptedFiles => {
-      console.log(acceptedFiles.map(file => Object.assign(file)))
       props?.onImageUpload(acceptedFiles.map(file => Object.assign(file)))
       setFiles(acceptedFiles.map(file => Object.assign(file)))
     }
   })
+
+  useEffect(() => {
+    if (props?.files?.length === 0) {
+      setFiles([])
+    }
+  }, [props])
 
   const img = files.map(file => (
     <img
@@ -64,7 +69,8 @@ const FileUploaderSingle = props => {
   return (
     <Box {...getRootProps({ className: 'dropzone' })} sx={files.length ? {} : {}}>
       <input {...getInputProps()} />
-      {files.length > 0 || (props?.image !== '' && props.image !== undefined) ? (
+
+      {files.length > 0 || (props?.image !== '' && props.image !== undefined && props.image !== null) ? (
         files.length > 0 ? (
           img
         ) : (

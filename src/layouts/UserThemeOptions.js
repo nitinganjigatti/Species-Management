@@ -63,20 +63,67 @@ const UserThemeOptions = () => {
         trackBg: '#F2F2F4',
         avatarBg: '#F1F1F3',
         tooltipBg: '#262732',
+
+        displaybgPrimary: '#E8F4F2',
         tableHeaderBg: '#E8F4F2',
+        Secondary: '#00D6C9',
+        Surface: '#F2FFF8',
+        Outline: '#839D8D',
+
+        // *** name required
+
         secondaryBg: '#7A8684',
         mdAntzNeutral: '#0000000D',
         OnSurfaceVariant: '#44544A',
         neutralSecondary: '##7A8684',
+        textLabel: '#00ABAB',
+
+        // **
+        OnSurfaceVariant: '#44544A',
+
+        // *** name required
+        customTableCellBg: '#FCF4AE33',
+
+        // **
+        neutral05: '#0000000D',
+        customCardBorder: '#00ABAB',
+        OnSecondaryContainer: '#1F415B',
+        neutralSecondary: '#7A8684',
+        customHeadingTextColor: '#44544A',
+        customTextColorGray2: '#44544ADE',
+
+        // *** name required
+        customTableHeaderBg: '#C1D3D0',
+
+        customTableBorderBg: '#DAE7DF',
+        customDropdownColor: '#FA6140',
+
+        // **
+        moderateSecondary: '#E4B819',
+        neutral_50: '#00000066',
+        Tertiary: '#FA6140',
         neutralPrimary: '#000000',
+        OnPrimaryContainer: '#1F515B',
+        TertiaryContainer: '#FFBDA8',
         OutlineVariant: '#C3CEC7',
-        addPrimary: '#00AFD6'
+        OnPrimarycontainer10: '#1F515B0D',
+        Notes: '#FCF4AE',
+        Background: '#EFF5F2',
+        SecondaryDark: '#00ABAB',
+        SecondaryContainer: '#AFEFEB',
+        Error: '#E93353',
+        ErrorContainer: '#FFD3D3',
+        addPrimary: '#00AFD6',
+        displaybgSecondary: '#DDEBE9',
+        SurfaceVariant: '#DAE7DF',
+        OnPrimary: '#FFFFFF'
       },
       primary: {
         // light: '#20DE67',
         light: '#1F515B',
         main: '#37BD69',
         dark: '#006D35',
+        OnSurface: '#006D35',
         contrastText: '#FFF'
       },
       formContent: {

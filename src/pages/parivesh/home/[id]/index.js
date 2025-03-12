@@ -1,17 +1,27 @@
-import React from 'react'
+import React, { useContext } from 'react'
 import { Box } from '@mui/system'
 import SubmittedBatches from './submitted-batches'
 import ReportedBatches from './reported-batches'
+import { AuthContext } from 'src/context/AuthContext'
+import Error404 from 'src/pages/404'
 
 const BatchList = ({ params, searchParams }) => {
+  const authData = useContext(AuthContext)
+  const pariveshAccess = authData?.userData?.roles?.settings?.enable_parivesh
   return (
     <>
-      <Box>
-        <ReportedBatches searchParams={searchParams} type='reportedBatch' />
-      </Box>
-      <Box>
-        <SubmittedBatches searchParams={searchParams} type='submittedBatch' />
-      </Box>
+      {pariveshAccess ? (
+        <>
+          <Box>
+            <ReportedBatches type='toBeSubmittedBatch' />
+          </Box>
+          <Box>
+            <SubmittedBatches type='submittedBatch' />
+          </Box>
+        </>
+      ) : (
+        <Error404></Error404>
+      )}
     </>
   )
 }

@@ -23,13 +23,13 @@ import React, { useCallback, useEffect, useState } from 'react'
 import { Controller, useFieldArray, useForm } from 'react-hook-form'
 import Icon from 'src/@core/components/icon'
 import Toaster from 'src/components/Toaster'
-import { AddAllocation, GetAssesmentTypes, GetMasterList } from 'src/lib/api/egg/allocation'
+import { AddAllocation, GetAssesmentTypes } from 'src/lib/api/egg/allocation'
 import { getIncubatorList } from 'src/lib/api/egg/incubator'
 import { GetNurseryList } from 'src/lib/api/egg/nursery'
 import { GetRoomList } from 'src/lib/api/egg/room/getRoom'
 import * as yup from 'yup'
 
-const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi, allocationValues }) => {
+const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi, allocationValues, getDetails }) => {
   // const [nurseryName, setNurseryName] = useState([])
   // const [roomName, setRoomName] = useState([])
   const [incubatorList, setIncubatorList] = useState([])
@@ -190,7 +190,8 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi, allocationVal
   const fetchIncubatorData = async (id, q) => {
     const params = {
       room_id: id,
-      q
+      q,
+      type: 'only_active'
     }
     const incubatorName = await getIncubatorList({ params: params })
 
@@ -235,7 +236,9 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi, allocationVal
       const response = await AddAllocation(params)
       if (response.success) {
         Toaster({ type: 'success', message: response.message })
-
+        if (getDetails) {
+          getDetails(allocateEggId)
+        }
         if (callApi) {
           callApi('')
         }
@@ -243,12 +246,12 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi, allocationVal
         setOpenDrawer(false)
       } else {
         Toaster({ type: 'error', message: response.message })
-        setLoader(true)
+        setLoader(false)
       }
     } catch (error) {
       console.error('Error while adding', error)
       Toaster({ type: 'error', message: 'An error occurred while adding' })
-      setLoader(true)
+      setLoader(false)
     }
   }
 
@@ -591,7 +594,7 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi, allocationVal
                                   }*`}
                                   value={value}
                                   onChange={e => {
-                                    debugger
+                                    // debugger
                                     const inputValue = e.target.value
                                     if (inputValue === '' || parseFloat(inputValue) >= 1) {
                                       onChange(e)

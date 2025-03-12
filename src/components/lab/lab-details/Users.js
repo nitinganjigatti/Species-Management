@@ -1,134 +1,109 @@
 import { Icon } from '@iconify/react'
-import { Box, Card, CardHeader, IconButton, Typography } from '@mui/material'
+import { Box, Card, CardHeader, IconButton, Typography, TextField } from '@mui/material'
 import { DataGrid } from '@mui/x-data-grid'
 import React, { useEffect, useState } from 'react'
-import { GetLabSitesById, GetLabUsersById } from 'src/lib/api/lab/labDetails'
-import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
+import { GetLabUsersById } from 'src/lib/api/lab/labDetails'
 
 const Users = ({ labId }) => {
-  console.log('labId', labId)
+  const [total, setTotal] = useState(0)
+  const [sortModel, setSortModel] = useState([{ field: 'users', sort: 'asc' }])
+  const [rows, setRows] = useState([])
+  const [searchValue, setSearchValue] = useState('')
+  const [loading, setLoading] = useState(false)
+
+  const indexedRows = rows?.map((row, index) => {
+    return {
+      ...row,
+      id: index + 1
+    }
+  })
 
   const columns = [
     {
       flex: 2.3,
       minWidth: 20,
-      field: 'users',
-      headerName: 'Users',
-      hide: true,
+      field: 'id',
+      headerName: 'SL',
+      hide: false,
+      sortable: true,
       renderCell: params => (
         <>
           <Typography variant='body2' sx={{ color: 'text.primary' }}>
-            {params?.row?.user_first_name}
+            {params?.row?.id}
+          </Typography>
+        </>
+      )
+    },
+    {
+      flex: 2.3,
+      minWidth: 20,
+      field: 'users',
+      headerName: 'Users',
+      hide: false,
+      sortable: true,
+      renderCell: params => (
+        <>
+          <Typography variant='body2' sx={{ color: 'text.primary' }}>
+            {params?.row?.user_full_name}
           </Typography>
         </>
       )
     }
-
-    // {
-    //   flex: 0.2,
-    //   minWidth: 20,
-
-    //   // field: 'Action',
-    //   // headerName: 'Action',
-    //   renderCell: params => (
-    //     <>
-    //       <Box sx={{ display: 'flex', alignItems: 'right', textAlign: 'right' }}>
-    //         <IconButton size='small' sx={{ mr: 0.5 }}>
-    //           <Icon icon='ant-design:more-outlined' fontSize={30} />
-    //         </IconButton>
-    //       </Box>
-    //     </>
-    //   )
-    // }
   ]
 
-  /***** Server side pagination */
+  const handleSortModelChange = newModel => {
+    setSortModel(newModel)
+    fetchTableData(newModel[0]?.sort, searchValue)
+  }
 
-  const [total, setTotal] = useState(0)
+  const handleSearch = event => {
+    const value = event.target.value
+    setSearchValue(value)
+    fetchTableData(sortModel[0]?.sort, value)
+  }
 
-  const [sort, setSort] = useState('desc')
-  const [rows, setRows] = useState([])
-  const [searchValue, setSearchValue] = useState('')
-
-  // const [sortColumn, setSortColumn] = useState('label')
-  // const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
-  const [loading, setLoading] = useState(false)
-
-  const getSlNo = index => index + 1
-
-  const indexedRows = rows?.map((row, index) => ({
-    ...row,
-    sl_no: getSlNo(index)
-  }))
-  const getRowId = row => row?.user_first_name
-
-  // const handleSortModel = newModel => {
-  //   if (newModel.length) {
-  //     setSort(newModel[0].sort)
-  //     setSortColumn(newModel[0].field)
-  //     fetchTableData(newModel[0].sort, searchValue, newModel[0].field, status)
-  //   } else {
-  //   }
-  // }
-
-  // const handleSearch = value => {
-  //   setSearchValue(value)
-  //   searchTableData(sort, value, 'request_number', status)
-  // }
-
-  const LabUsersById = async labId => {
+  const fetchTableData = async (sort, q) => {
     const params = {
-      // id: labId
       lab_id: labId,
-      sort
+      sort,
+      q
     }
     try {
       const res = await GetLabUsersById({ params })
+      debugger
       setLoading(false)
-      console.log('res', res?.data?.labs)
       setRows(res?.data?.labs)
-    } catch (error) {}
+    } catch (error) {
+      setLoading(false)
+      console.error(error)
+    }
   }
 
   useEffect(() => {
     if (labId) {
       setLoading(true)
-      LabUsersById(labId)
+      fetchTableData(sortModel[0]?.sort, searchValue)
     }
-  }, [])
+  }, [labId])
 
   return (
     <Card>
-      <CardHeader
-        title='USERS'
+      <CardHeader title='USERS' />
 
-        //    action={headerAction}
-      />
       <DataGrid
         autoHeight
+        columnVisibilityModel={{
+          id: false
+        }}
         hideFooterPagination
         rows={indexedRows === undefined ? [] : indexedRows}
-        getRowId={getRowId}
         rowCount={total}
         columns={columns}
-        // slots={{ toolbar: ServerSideToolbar }}
+        sortingMode='server'
+        sortModel={sortModel}
+        disableColumnMenu={true}
+        onSortModelChange={handleSortModelChange}
         loading={loading}
-        slotProps={{
-          baseButton: {
-            variant: 'outlined'
-          }
-
-          // toolbar: {
-          //   value: searchValue,
-          //   clearSearch: () => handleSearch(''),
-
-          //   onChange: event => {
-          //     setSearchValue(event.target.value)
-
-          //     return handleSearch(event.target.value)
-          //   }
-          // }
-        }}
       />
     </Card>
   )

@@ -52,6 +52,10 @@ import {
 } from 'src/lib/api/egg/egg/createAnimal'
 import { DatePicker } from '@mui/x-date-pickers'
 import moment from 'moment'
+import EnclosureSelectionDialog from 'src/components/egg/EnclosureSelectionDialog'
+import { useContext } from 'react'
+import { AuthContext } from 'src/context/AuthContext'
+import AnimalParentCard from '../../../utility/animalParentCard'
 
 const ConditionSlider = ({
   getActivityLogsFunc,
@@ -88,6 +92,12 @@ const ConditionSlider = ({
   const [sexingTypeList, setSexingTypeList] = useState([])
   const [lifeStageList, setLifeStageList] = useState([])
   const [contraceptionTypeList, setContraceptionTypeList] = useState([])
+  //for enclosure
+  const [open, setOpen] = useState(false)
+  const [enclosureData, setEnclosureData] = useState({})
+
+  const authData = useContext(AuthContext)
+  const animal_record_access = authData?.userData?.roles?.settings?.collection_animal_record_access
 
   const getEggMasterData = async () => {
     try {
@@ -124,7 +134,7 @@ const ConditionSlider = ({
     animalOwnershipTerms: '',
     accessionDate: null,
     collectionType: '',
-    enclosure: '',
+    enclosure_id: '',
     sextype: '',
     mastersOrganization: '',
     institution: '',
@@ -175,9 +185,10 @@ const ConditionSlider = ({
             ),
           accessionDate: yup.string().required('Accession date is required'),
           collectionType: yup.string().required('Collection type is required'),
-          enclosure: yup.string().required('Enclosure is required'),
+          enclosure_id: yup.string().required('Enclosure is required'),
           sextype: yup.string().required('Sex type is required'),
           birthDate: yup.string().required('Birth date is required'),
+          enclosure_id: yup.string().required('Enclosure is required'),
           localIdentifier: yup
             .string()
             .test(
@@ -217,6 +228,7 @@ const ConditionSlider = ({
     clearErrors,
     watch,
     reset,
+    resetField,
     formState: { errors }
   } = useForm({
     defaultValues,
@@ -293,143 +305,6 @@ const ConditionSlider = ({
     setValue('image', '')
   }
 
-  // const onSubmit = async values => {
-  //   try {
-  //     setLoader(true)
-  //     let payload
-  //     if (Number(getValues('current_state')) === 1) {
-  //       payload = {
-  //         egg_id: eggId,
-  //         egg_status_id: getValues('current_state'),
-  //         comment: getValues('comment'),
-  //         egg_attachment: imgArr
-  //       }
-  //     } else if (Number(getValues('current_state')) === 2) {
-  //       payload = {
-  //         egg_id: eggId,
-  //         egg_status_id: getValues('current_state'),
-  //         egg_state_id: getValues('select_stage'),
-  //         comment: getValues('comment'),
-  //         egg_attachment: imgArr
-  //       }
-  //     } else if (Number(getValues('current_state')) === 3) {
-  //       payload = {
-  //         egg_id: eggId,
-  //         egg_status_id: getValues('current_state'),
-  //         egg_state_id: getValues('select_stage'),
-  //         comment: getValues('comment'),
-  //         egg_attachment: imgArr
-  //       }
-  //     } else if (Number(getValues('current_state')) === 4) {
-  //       payload = {
-  //         egg_id: eggId,
-  //         egg_status_id: getValues('current_state'),
-  //         hatched_method: hatched,
-  //         egg_shell_thickness: getValues('shell_thickness'),
-  //         comment: getValues('comment'),
-  //         egg_assisted_by: getValues('assisted_by'),
-  //         egg_attachment: imgArr
-  //       }
-  //     }
-
-  //     const animalPayload = {
-  //       accession_type: values?.accessionType,
-  //       accession_date: moment(values?.accessionDate).format('YYYY-MM-DD'),
-  //       taxonomy_id: values?.species,
-  //       enclosure_id: values?.enclosure,
-  //       sex: values?.sextype,
-  //       collection_type: values?.collectionType,
-  //       organization_id: values?.mastersOrganization,
-  //       from_institution: values?.institution,
-  //       birth_date: moment(values?.birthDate).format('YYYY-MM-DD'),
-  //       local_id_type: values?.localIdentifierType,
-  //       local_id: values?.localIdentifier,
-  //       age: values?.age,
-  //       parent_female: values?.parentMother,
-  //       parent_male: values?.parentFather,
-  //       ownership_term: values?.animalOwnershipTerms,
-  //       sexing_type: values?.sexingType,
-  //       life_stage: values?.lifeStage,
-  //       contraception_type: values.contraceptionType,
-  //       description: '',
-  //       form_type: 'single',
-  //       zoo_id: '',
-  //       site_id: eggDetails?.enclosure_data[0]?.site_id,
-  //       section_id: eggDetails?.enclosure_data[0]?.section_id,
-  //       egg_id: eggId
-  //     }
-
-  //     if (isAnimal && statusID === '4') {
-  //       const ress = await AddEggStatusAndCondition(payload)
-  //       if (ress?.success) {
-  //         // setLoader(false)
-  //         Toaster({ type: 'success', message: res.message })
-  //         const res = await createAnimal(animalPayload)
-  //         if (res.success) {
-  //           setLoader(false)
-  //           setDefaultSpecies(null)
-
-  //           reset()
-  //           setImgSrc('')
-  //           if (getDetails) {
-  //             getDetails(eggId)
-  //           }
-  //           if (GetGalleryImgList) {
-  //             GetGalleryImgList()
-  //           }
-  //           if (getActivityLogsFunc) {
-  //             getActivityLogsFunc()
-  //           }
-
-  //           setOpenDrawer(false)
-
-  //           Toaster({ type: 'success', message: res.message })
-  //         } else {
-  //           setLoader(false)
-  //           // setDefaultSpecies(null)
-  //           Toaster({ type: 'error', message: res.message })
-  //         }
-  //       } else {
-  //         setLoader(false)
-  //         // setDefaultSpecies(null)
-  //         Toaster({ type: 'error', message: res.message })
-  //       }
-  //     } else {
-  //       const res = await AddEggStatusAndCondition(payload)
-  //       if (res.success) {
-  //         setLoader(false)
-
-  //         // console.log('res on submit :>> ', res)
-  //         setImgSrc('')
-  //         reset()
-
-  //         if (getDetails) {
-  //           getDetails(eggId)
-  //         }
-  //         if (GetGalleryImgList) {
-  //           GetGalleryImgList()
-  //         }
-  //         if (getActivityLogsFunc) {
-  //           getActivityLogsFunc()
-  //         }
-  //         setOpenDrawer(false)
-  //         Toaster({ type: 'success', message: res.message })
-  //       } else {
-  //         setLoader(false)
-  //         Toaster({ type: 'error', message: res.message })
-  //       }
-  //     }
-
-  //     // Perform any additional operations, e.g., API call
-  //   } catch (error) {
-  //     setLoader(false)
-  //     if (getDetails) {
-  //       getDetails(eggId)
-  //     }
-  //     Toaster({ type: 'error', message: 'An error occurred while creating animal' })
-  //   }
-  // }
-
   const onSubmit = values => {
     try {
       setLoader(true)
@@ -475,7 +350,7 @@ const ConditionSlider = ({
         accession_type: values?.accessionType,
         accession_date: moment(values?.accessionDate).format('YYYY-MM-DD'),
         taxonomy_id: values?.species,
-        enclosure_id: values?.enclosure,
+        enclosure_id: values?.enclosure_id,
         sex: values?.sextype,
         collection_type: values?.collectionType,
         organization_id: values?.mastersOrganization,
@@ -493,8 +368,8 @@ const ConditionSlider = ({
         description: '',
         form_type: 'single',
         zoo_id: '',
-        site_id: eggDetails?.enclosure_data[0]?.site_id,
-        section_id: eggDetails?.enclosure_data[0]?.section_id,
+        site_id: enclosureData?.site_id,
+        section_id: enclosureData?.section_id,
         egg_id: eggId
       }
 
@@ -678,6 +553,29 @@ const ConditionSlider = ({
     }, 1000),
     []
   )
+
+  const getEnclosureDetails = params => {
+    setEnclosureData(params)
+    setValue('enclosure_id', params?.enclosure_id)
+  }
+
+  const closeEnclosure = () => {
+    setEnclosureData({})
+    resetField('enclosure_id', '')
+  }
+
+  const handleClose = () => {
+    setOpen(false)
+  }
+
+  const checkAddPermission = () => {
+    if (animal_record_access === 'ADD' || animal_record_access === 'EDIT' || animal_record_access === 'DELETE') {
+      return true
+    } else {
+      return false
+    }
+  }
+
   useEffect(() => {
     if (eggDetails) {
       if (Number(eggDetails?.enclosure_data?.length) === 1) {
@@ -693,11 +591,12 @@ const ConditionSlider = ({
     const currentDate = dayjs()
     setValue('accessionDate', currentDate)
     setValue('birthDate', currentDate)
-    if (eggDetails?.parent_list?.mother_list?.length === 1 && eggDetails?.parent_list?.mother_list.length === 1) {
+    if (eggDetails?.parent_list?.mother_list?.length === 1 && eggDetails?.parent_list?.father_list.length === 1) {
       if (
         eggDetails?.parent_list?.mother_list[0].taxonomy_id === eggDetails?.parent_list?.father_list[0]?.taxonomy_id
       ) {
         setValue('species', eggDetails?.parent_list?.mother_list[0]?.taxonomy_id)
+        setDefaultSpecies(eggDetails?.parent_list?.mother_list[0])
       }
     }
     // eggDetails?.enclosure_data
@@ -794,10 +693,11 @@ const ConditionSlider = ({
                       <FormHelperText sx={{ color: 'error.main' }}>{errors?.current_state?.message}</FormHelperText>
                     )}
                   </FormControl>
-
                   {eggStaged?.length > 0 && (
                     <FormControl sx={{ width: '100%' }}>
-                      <InputLabel id='select_stage'>Select Stage*</InputLabel>
+                      <InputLabel id='select_stage'>
+                        {statusID === '3' ? 'Select Reason* ' : 'Select Stage* '}
+                      </InputLabel>
                       <Controller
                         name='select_stage'
                         control={control}
@@ -827,60 +727,57 @@ const ConditionSlider = ({
 
                   {statusID === '4' && (
                     <>
-                      <Box sx={{ display: 'flex', justifyContent: 'center', mb: 4 }}>
-                        <FormControl>
-                          <RadioGroup
-                            aria-labelledby='demo-row-radio-buttons-group-label'
-                            name='hatched_method_Btn'
-                            sx={{ display: 'flex', justifyContent: 'center' }}
-                            value={hatched}
-                            onChange={e => setHatched(e.target.value)}
-                          >
-                            <Box sx={{ display: 'flex', gap: '24px' }}>
-                              <Box
-                                error={Boolean(errors?.hatched_method_Btn)}
-                                sx={{
-                                  display: 'flex',
-                                  flexDirection: 'row',
-                                  alignItems: 'center',
-                                  // gap: 2,
-                                  border: `2px solid ${theme.palette.customColors.trackBg}`,
-                                  borderRadius: '10px',
-
-                                  // opacity: 0.6,
-                                  width: 228,
-                                  justifyContent: 'space-between'
-                                }}
-                              >
-                                <Typography ml={2}>Normal Hatch</Typography>
-                                <FormControlLabel value='normal_hatch' control={<Radio />} />
-                              </Box>
-                              <Box
-                                sx={{
-                                  display: 'flex',
-                                  flexDirection: 'row',
-                                  alignItems: 'center',
-                                  // gap: 2,
-                                  border: `2px solid ${theme.palette.customColors.trackBg}`,
-                                  p: 2,
-                                  borderRadius: '10px',
-                                  // opacity: 0.6,
-                                  width: 228,
-                                  justifyContent: 'space-between'
-                                }}
-                              >
-                                <Typography ml={2}>Assisted Hatch</Typography>
-                                <FormControlLabel value='assisted_hatch' control={<Radio />} />
-                              </Box>
+                      <FormControl sx={{ mb: 4 }} fullWidth>
+                        <RadioGroup
+                          aria-labelledby='demo-row-radio-buttons-group-label'
+                          name='hatched_method_Btn'
+                          sx={{ display: 'flex', justifyContent: 'center' }}
+                          value={hatched}
+                          onChange={e => setHatched(e.target.value)}
+                        >
+                          <Box sx={{ display: 'flex', gap: '24px' }}>
+                            <Box
+                              error={Boolean(errors?.hatched_method_Btn)}
+                              sx={{
+                                display: 'flex',
+                                flexDirection: 'row',
+                                alignItems: 'center',
+                                gap: 2,
+                                border: `2px solid ${theme.palette.customColors.trackBg}`,
+                                borderRadius: '10px',
+                                // opacity: 0.6,
+                                width: '100%',
+                                justifyContent: 'space-between'
+                              }}
+                            >
+                              <Typography ml={2}>Normal Hatch</Typography>
+                              <FormControlLabel value='normal_hatch' control={<Radio />} />
                             </Box>
-                          </RadioGroup>
-                          {errors?.hatched_method_Btn && (
-                            <FormHelperText sx={{ color: 'error.main' }}>
-                              {errors?.hatched_method_Btn?.message}
-                            </FormHelperText>
-                          )}
-                        </FormControl>
-                      </Box>
+                            <Box
+                              sx={{
+                                display: 'flex',
+                                flexDirection: 'row',
+                                alignItems: 'center',
+                                // gap: 2,
+                                border: `2px solid ${theme.palette.customColors.trackBg}`,
+                                p: 2,
+                                borderRadius: '10px',
+                                // opacity: 0.6,
+                                width: '100%',
+                                justifyContent: 'space-between'
+                              }}
+                            >
+                              <Typography ml={2}>Assisted Hatch</Typography>
+                              <FormControlLabel value='assisted_hatch' control={<Radio />} />
+                            </Box>
+                          </Box>
+                        </RadioGroup>
+                        {errors?.hatched_method_Btn && (
+                          <FormHelperText sx={{ color: 'error.main' }}>
+                            {errors?.hatched_method_Btn?.message}
+                          </FormHelperText>
+                        )}
+                      </FormControl>
 
                       <FormControl fullWidth>
                         <Controller
@@ -923,7 +820,7 @@ const ConditionSlider = ({
                                 }
                               }}
                               InputProps={{
-                                endAdornment: <InputAdornment position='end'>MM</InputAdornment>
+                                endAdornment: <InputAdornment position='end'>mm</InputAdornment>
                               }}
                               // inputProps={{ min: 1 }}
                             />
@@ -1081,7 +978,8 @@ const ConditionSlider = ({
                       </Stack>
                     </Grid>
                   </Grid>
-                  {statusID === '4' && (
+                  {console.log('permission check', checkAddPermission())}
+                  {statusID === '4' && checkAddPermission() && (
                     <Box sx={{ mt: 3, p: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <Typography sx={{ fontWeight: 500 }}>Add this as an animal</Typography>
 
@@ -1099,7 +997,6 @@ const ConditionSlider = ({
                     sx={{
                       p: 4,
                       mt: 6,
-
                       display: 'flex',
                       flexDirection: 'column',
                       gap: 3,
@@ -1133,14 +1030,11 @@ const ConditionSlider = ({
                                   flexDirection: 'row',
                                   alignItems: 'center',
                                   flexGrow: 1,
-
                                   gap: 2,
                                   border: 1,
                                   borderColor: '#c5c6cd',
                                   p: 2,
                                   borderRadius: '5px',
-
-                                  // opacity: 0.6,
                                   justifyContent: 'space-between'
                                 }}
                               >
@@ -1158,9 +1052,6 @@ const ConditionSlider = ({
                                   borderColor: '#c5c6cd',
                                   p: 2,
                                   borderRadius: '5px',
-
-                                  // opacity: 0.6,
-
                                   justifyContent: 'space-between'
                                 }}
                               >
@@ -1176,7 +1067,7 @@ const ConditionSlider = ({
                   </Box>
                 )}
 
-                {isAnimal && statusID === '4' && (
+                {isAnimal && statusID === '4' && checkAddPermission() && (
                   <Box mb={35}>
                     <Typography sx={{ fontSize: 20, fontWeight: 500, mb: 2 }}>Add Animal Details</Typography>
                     <Box
@@ -1197,30 +1088,23 @@ const ConditionSlider = ({
                           control={control}
                           rules={{ required: true }}
                           render={({ field: { value, onChange } }) => (
-                            // <Select
-                            //   name='species'
-                            //   value={value}
-                            //   label='Add Species'
-                            //   onChange={onChange}
-                            //   labelId='species'
-                            //   error={Boolean(errors?.species)}
-                            // >
-                            //   {[{ id: 1, name: 'dog' }].map(val => (
-                            //     <MenuItem key={val?.id} value={val?.id}>
-                            //       {val?.name}
-                            //     </MenuItem>
-                            //   ))}
-                            // </Select>
                             <Autocomplete
+                              sx={{
+                                '& .MuiOutlinedInput-root': {
+                                  borderColor: Boolean(errors.species) && 'red',
+                                  color: 'rgba(76, 78, 100, 0.6)'
+                                },
+                                '& .MuiAutocomplete-input': {
+                                  color: 'rgba(76, 78, 100, 0.87)'
+                                }
+                              }}
                               name='species'
                               value={defaultSpecies}
-                              // value={value}
                               disablePortal
                               placeholder='Species / Taxonomy'
-                              // disabled={isEdit || isPreFilled}
                               id='species'
                               options={taxonomyList?.length > 0 ? taxonomyList : []}
-                              getOptionLabel={option => option.scientific_name}
+                              getOptionLabel={option => `${option.common_name} (${option.scientific_name})`}
                               isOptionEqualToValue={(option, value) => option?.tsn === value?.tsn}
                               onChange={(e, val) => {
                                 if (val === null) {
@@ -1239,9 +1123,14 @@ const ConditionSlider = ({
                                     searchSpecies(e.target.value)
                                   }}
                                   {...params}
-                                  label='Select Species *'
-                                  placeholder='Search & Select'
+                                  label='Species / Taxonomy *'
+                                  placeholder='Select Species / Taxonomy'
                                   error={Boolean(errors.species)}
+                                  sx={{
+                                    '& .MuiInputLabel-root': {
+                                      color: 'rgba(76, 78, 100, 0.6)'
+                                    }
+                                  }}
                                 />
                               )}
                             />
@@ -1265,7 +1154,7 @@ const ConditionSlider = ({
                               label='Accession Type *'
                               onChange={onChange}
                               labelId='accessionType'
-                              error={Boolean(errors?.species)}
+                              error={Boolean(errors?.accessionType)}
                             >
                               {accessionTypeList?.map(val => (
                                 <MenuItem key={val?.accession_id} value={val?.accession_id}>
@@ -1279,35 +1168,35 @@ const ConditionSlider = ({
                           <FormHelperText sx={{ color: 'error.main' }}>{errors?.accessionType?.message}</FormHelperText>
                         )}
                       </FormControl>
-                      <FormControl fullWidth sx={{ mb: 4 }}>
-                        <InputLabel id='institution'>
-                          Institution {Number(watch('accessionType')) === 4 && '*'}
-                        </InputLabel>
-                        <Controller
-                          name='institution'
-                          control={control}
-                          rules={{ required: true }}
-                          render={({ field: { value, onChange } }) => (
-                            <Select
-                              name='institution'
-                              value={value}
-                              label={`Accession Type ${Number(watch('accessionType')) === 4 && '*'}`}
-                              onChange={onChange}
-                              labelId='institution'
-                              error={Boolean(errors?.institution)}
-                            >
-                              {institutesList?.map(val => (
-                                <MenuItem key={val?.id} value={val?.id}>
-                                  {val?.label}
-                                </MenuItem>
-                              ))}
-                            </Select>
+                      {Number(watch('accessionType')) === 2 && (
+                        <FormControl fullWidth sx={{ mb: 4 }}>
+                          <InputLabel id='institution'>Institution*</InputLabel>
+                          <Controller
+                            name='institution'
+                            control={control}
+                            rules={{ required: true }}
+                            render={({ field: { value, onChange } }) => (
+                              <Select
+                                name='institution'
+                                value={value}
+                                label={'Institution*'}
+                                onChange={onChange}
+                                labelId='institution'
+                                error={Boolean(errors?.institution)}
+                              >
+                                {institutesList?.map(val => (
+                                  <MenuItem key={val?.id} value={val?.id}>
+                                    {val?.label}
+                                  </MenuItem>
+                                ))}
+                              </Select>
+                            )}
+                          />
+                          {errors?.institution && (
+                            <FormHelperText sx={{ color: 'error.main' }}>{errors?.institution?.message}</FormHelperText>
                           )}
-                        />
-                        {errors?.institution && (
-                          <FormHelperText sx={{ color: 'error.main' }}>{errors?.institution?.message}</FormHelperText>
-                        )}
-                      </FormControl>
+                        </FormControl>
+                      )}
                       <FormControl fullWidth sx={{ mb: 4 }}>
                         <InputLabel id='animalOwnershipTerms'>Ownership Term</InputLabel>
                         <Controller
@@ -1318,7 +1207,7 @@ const ConditionSlider = ({
                             <Select
                               name='animalOwnershipTerms'
                               value={value}
-                              label='Animal Ownership Terms'
+                              label='Ownership Terms'
                               onChange={onChange}
                               labelId='animalOwnershipTerms'
                               error={Boolean(errors?.animalOwnershipTerms)}
@@ -1345,15 +1234,14 @@ const ConditionSlider = ({
                           rules={{ required: true }}
                           render={({ field: { value, onChange } }) => (
                             <LocalizationProvider dateAdapter={AdapterDayjs}>
-                              {/* <DemoContainer components={['DatePicker']}> */}
                               <DatePicker
                                 sx={{ width: '100%', '& .MuiIconButton-edgeEnd': { display: 'block' } }}
                                 value={value}
                                 onChange={onChange}
                                 label={'Accession Date *'}
                                 maxDate={dayjs()}
+                                format='DD/MM/YYYY'
                               />
-                              {/* </DemoContainer> */}
                             </LocalizationProvider>
                           )}
                         />
@@ -1362,89 +1250,73 @@ const ConditionSlider = ({
                         )}
                       </FormControl>
 
-                      <FormControl fullWidth sx={{ mb: 4 }}>
-                        <InputLabel id='enclosure'>Select Enclosure *</InputLabel>
-                        <Controller
-                          name='enclosure'
-                          control={control}
-                          rules={{ required: true }}
-                          render={({ field: { value, onChange } }) => (
-                            <Select
-                              name='enclosure'
-                              value={value}
-                              label='Select Enclosure *'
-                              onChange={onChange}
-                              labelId='enclosure'
-                              error={Boolean(errors?.enclosure)}
-                            >
-                              {eggDetails?.enclosure_data?.map(val => (
-                                <MenuItem key={val?.enclosure_id} value={val?.enclosure_id}>
-                                  {/* {val?.user_enclosure_name} */}
-                                  <Box
-                                    sx={{
-                                      backgroundColor: theme.palette.customColors.tableHeaderBg,
-                                      display: 'flex',
-                                      padding: '12px',
-                                      width: '100%',
-                                      alignItems: 'center',
-                                      borderRadius: '8px',
-                                      gap: '12px'
-                                    }}
-                                  >
-                                    <Avatar
-                                      variant='rounded'
-                                      alt='Medicine Image'
-                                      sx={{
-                                        width: '48px',
-                                        height: '48px',
-                                        borderRadius: '50%'
-                                      }}
-                                      src={val?.enclosure_qr_image}
-                                    />
+                      {Object.keys(enclosureData).length <= 0 && (
+                        <div style={{ zIndex: 2, position: 'relative' }}>
+                          <div
+                            onClick={() => setOpen(true)}
+                            style={{
+                              position: 'absolute',
+                              width: '100%',
+                              height: '56px',
+                              zIndex: 1,
+                              cursor: 'pointer'
+                            }}
+                          ></div>
+                          <FormControl fullWidth sx={{ mb: 4 }}>
+                            <Controller
+                              name='enclosure_id'
+                              control={control}
+                              rules={{ required: true }}
+                              render={({ field: { value, onChange } }) => (
+                                <TextField
+                                  value={value}
+                                  label='Select Enclosure *'
+                                  name='enclosure_id'
+                                  error={Boolean(errors.enclosure_id)}
+                                  onChange={onChange}
+                                  placeholder=''
+                                  onClick={() => setOpen(true)}
+                                  disabled
+                                  InputProps={{
+                                    endAdornment: (
+                                      <InputAdornment position='end'>
+                                        <Icon
+                                          icon={'material-symbols:add-circle-outline'}
+                                          style={{ color: '#37BD69' }}
+                                        ></Icon>
+                                      </InputAdornment>
+                                    )
+                                  }}
+                                  sx={{
+                                    '& .MuiInputLabel-root': {
+                                      color: 'rgba(76, 78, 100, 0.6)'
+                                    },
+                                    '& .MuiOutlinedInput-root.Mui-disabled .MuiOutlinedInput-notchedOutline': {
+                                      borderColor: errors.enclosure_id ? 'red' : undefined
+                                    }
+                                  }}
+                                />
+                              )}
+                            />
+                            {errors.enclosure_id && (
+                              <FormHelperText sx={{ color: 'error.main' }}>
+                                {errors?.enclosure_id?.message}
+                              </FormHelperText>
+                            )}
+                          </FormControl>
+                        </div>
+                      )}
+                      {Object.keys(enclosureData).length > 0 && (
+                        <div style={{ marginBottom: '16px' }}>
+                          <EnclosureCard
+                            user_enclosure_name={enclosureData?.user_enclosure_name}
+                            section_name={enclosureData?.section_name}
+                            site_name={enclosureData?.site_name}
+                            closeEnclosureCard={() => closeEnclosure()}
+                          ></EnclosureCard>
+                        </div>
+                      )}
 
-                                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                                      <Typography
-                                        sx={{
-                                          color: theme.palette.customColors.OnSurfaceVariant,
-                                          fontSize: '16px',
-                                          fontWeight: '600',
-                                          lineHeight: '19.36px'
-                                        }}
-                                      >
-                                        Encl: {val?.user_enclosure_name ? val?.user_enclosure_name : '-'}
-                                      </Typography>
-
-                                      <Typography
-                                        sx={{
-                                          color: theme.palette.customColors.OnSurfaceVariant,
-                                          fontSize: '14px',
-                                          fontWeight: '400',
-                                          lineHeight: '16.94px'
-                                        }}
-                                      >
-                                        Sec: {val?.section_name ? val?.section_name : '-'}
-                                      </Typography>
-                                      <Typography
-                                        sx={{
-                                          color: theme.palette.customColors.OnSurfaceVariant,
-                                          fontSize: '14px',
-                                          fontWeight: '400',
-                                          lineHeight: '16.94px'
-                                        }}
-                                      >
-                                        Site: {val?.site_name ? val?.site_name : '-'}
-                                      </Typography>
-                                    </Box>
-                                  </Box>
-                                </MenuItem>
-                              ))}
-                            </Select>
-                          )}
-                        />
-                        {errors?.enclosure && (
-                          <FormHelperText sx={{ color: 'error.main' }}>{errors?.enclosure?.message}</FormHelperText>
-                        )}
-                      </FormControl>
                       <FormControl fullWidth sx={{ mb: 4 }}>
                         <InputLabel id='enclosure'>Sex Type *</InputLabel>
                         <Controller
@@ -1516,7 +1388,7 @@ const ConditionSlider = ({
                             <Select
                               name='mastersOrganization'
                               value={value}
-                              label='Animal Ownership Terms'
+                              label='Select Organization'
                               onChange={onChange}
                               labelId='mastersOrganization'
                               error={Boolean(errors?.mastersOrganization)}
@@ -1543,7 +1415,6 @@ const ConditionSlider = ({
                           rules={{ required: true }}
                           render={({ field: { value, onChange } }) => (
                             <LocalizationProvider dateAdapter={AdapterDayjs}>
-                              {/* <DemoContainer components={['DatePicker']}> */}
                               <DatePicker
                                 sx={{ width: '100%', '& .MuiIconButton-edgeEnd': { display: 'block' } }}
                                 value={value}
@@ -1551,7 +1422,6 @@ const ConditionSlider = ({
                                 label={'Birth Date *'}
                                 maxDate={dayjs()}
                               />
-                              {/* </DemoContainer> */}
                             </LocalizationProvider>
                           )}
                         />
@@ -1595,7 +1465,7 @@ const ConditionSlider = ({
                               <Select
                                 name='type'
                                 value={value}
-                                label='Animal Ownership Terms'
+                                label='Type'
                                 onChange={onChange}
                                 labelId='type'
                                 error={Boolean(errors?.type)}
@@ -1647,28 +1517,30 @@ const ConditionSlider = ({
                           </FormHelperText>
                         )}
                       </FormControl>
-                      <FormControl sx={{ mb: 4 }} fullWidth>
-                        <Controller
-                          name='localIdentifier'
-                          control={control}
-                          rules={{ required: true }}
-                          render={({ field: { value, onChange } }) => (
-                            <TextField
-                              error={Boolean(errors?.comment)}
-                              value={value}
-                              label={`Local Identifier ${watch('localIdentifierType') !== '' ? '*' : ''}`}
-                              name='localIdentifier'
-                              onChange={onChange}
-                              placeholder=''
-                            />
+                      {watch('localIdentifierType') === '' ? null : (
+                        <FormControl sx={{ mb: 4 }} fullWidth>
+                          <Controller
+                            name='localIdentifier'
+                            control={control}
+                            rules={{ required: true }}
+                            render={({ field: { value, onChange } }) => (
+                              <TextField
+                                error={Boolean(errors?.comment)}
+                                value={value}
+                                label={`Local Identifier ${watch('localIdentifierType') !== '' ? '*' : ''}`}
+                                name='localIdentifier'
+                                onChange={onChange}
+                                placeholder=''
+                              />
+                            )}
+                          />
+                          {errors.localIdentifier && (
+                            <FormHelperText sx={{ color: 'error.main' }}>
+                              {errors?.localIdentifier?.message}
+                            </FormHelperText>
                           )}
-                        />
-                        {errors.localIdentifier && (
-                          <FormHelperText sx={{ color: 'error.main' }}>
-                            {errors?.localIdentifier?.message}
-                          </FormHelperText>
-                        )}
-                      </FormControl>
+                        </FormControl>
+                      )}
 
                       <FormControl fullWidth sx={{ mb: 4 }}>
                         <InputLabel id='parentMother'>Parent Mother</InputLabel>
@@ -1680,103 +1552,17 @@ const ConditionSlider = ({
                             <Select
                               name='parentMother'
                               value={value}
-                              label='Animal Ownership Terms'
+                              label='Parent Mother'
                               onChange={onChange}
                               labelId='parentMother'
                               error={Boolean(errors?.parentMother)}
                             >
-                              {eggDetails?.parent_list?.mother_list?.map(val => (
-                                <MenuItem key={val?._id} value={val?._id}>
-                                  {/* {val?.common_name} */}
-                                  <Box
-                                    sx={{
-                                      backgroundColor: theme.palette.customColors.tableHeaderBg,
-                                      display: 'flex',
-                                      padding: '12px',
-                                      width: '100%',
-                                      borderRadius: '10px',
-                                      gap: '12px'
-                                    }}
-                                  >
-                                    <Box
-                                      sx={{
-                                        alignItems: 'center',
-                                        display: 'flex',
-                                        flexDirection: 'column',
-                                        gap: '10px'
-                                      }}
-                                    >
-                                      <Avatar
-                                        variant='rounded'
-                                        alt='Medicine Image'
-                                        sx={{
-                                          width: '44px',
-                                          height: '44px',
-                                          borderRadius: '50%',
-                                          border: '1px',
-                                          overflow: 'hidden'
-                                        }}
-                                        src={val?.default_icon}
-                                        // src={
-                                        //   'https://buffer.com/library/content/images/size/w1200/2023/10/free-images.jpg'
-                                        // }
-                                      />
-                                      <Typography
-                                        sx={{
-                                          height: '22px',
-                                          width: '22px',
-                                          textAlign: 'center',
-                                          backgroundColor: val?.sex === 'female' ? '#FFD3D3' : '#AFEFEB'
-                                        }}
-                                      >
-                                        {val?.sex === 'female' ? 'F' : 'M'}
-                                      </Typography>
-                                    </Box>
-
-                                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                                      <Typography
-                                        sx={{
-                                          color: theme.palette.customColors.OnSurfaceVariant,
-                                          fontSize: '16px',
-                                          fontWeight: '600',
-                                          lineHeight: '19.36px'
-                                        }}
-                                      >
-                                        {val?.animal_id ? val?.animal_id : '-'}
-                                      </Typography>
-
-                                      <Typography
-                                        sx={{
-                                          color: theme.palette.customColors.OnSurfaceVariant,
-                                          fontSize: '14px',
-                                          fontWeight: '500',
-                                          lineHeight: '16.94px'
-                                        }}
-                                      >
-                                        {val?.common_name ? val?.common_name : '-'}
-                                      </Typography>
-                                      <Typography
-                                        sx={{
-                                          color: theme.palette.customColors.OnSurfaceVariant,
-                                          fontSize: '14px',
-                                          fontWeight: '400',
-                                          lineHeight: '16.94px'
-                                        }}
-                                      >
-                                        {val?.user_enclosure_name ? val?.user_enclosure_name : '-'}
-                                      </Typography>
-                                      <Typography
-                                        sx={{
-                                          color: theme.palette.customColors.OnSurfaceVariant,
-                                          fontSize: '14px',
-                                          fontWeight: '400',
-                                          lineHeight: '16.94px'
-                                        }}
-                                      >
-                                        {val?.section_name ? val?.section_name : '-'}
-                                      </Typography>
-                                    </Box>
-                                  </Box>
+                              {eggDetails?.parent_list?.mother_list?.map(item => (
+                                <MenuItem key={item?._id} value={item?.animal_id}>
+                                  <AnimalParentCard
+                                    data={item}
+                                    backgroundColor={theme.palette.customColors.tableHeaderBg}
+                                  />
                                 </MenuItem>
                               ))}
                             </Select>
@@ -1796,103 +1582,17 @@ const ConditionSlider = ({
                             <Select
                               name='parentFather'
                               value={value}
-                              label='Animal Ownership Terms'
+                              label='Parent Father'
                               onChange={onChange}
                               labelId='parentFather'
                               error={Boolean(errors?.parentFather)}
                             >
-                              {eggDetails?.parent_list?.father_list?.map(val => (
-                                <MenuItem key={val?._id} value={val?._id}>
-                                  {/* {val?.common_name} */}
-                                  <Box
-                                    sx={{
-                                      backgroundColor: theme.palette.customColors.tableHeaderBg,
-                                      display: 'flex',
-                                      padding: '12px',
-                                      width: '100%',
-                                      borderRadius: '10px',
-                                      gap: '12px'
-                                    }}
-                                  >
-                                    <Box
-                                      sx={{
-                                        alignItems: 'center',
-                                        display: 'flex',
-                                        flexDirection: 'column',
-                                        gap: '10px'
-                                      }}
-                                    >
-                                      <Avatar
-                                        variant='rounded'
-                                        alt='Medicine Image'
-                                        sx={{
-                                          width: '44px',
-                                          height: '44px',
-                                          borderRadius: '50%',
-                                          border: '1px',
-                                          overflow: 'hidden'
-                                        }}
-                                        src={val?.default_icon}
-                                        // src={
-                                        //   'https://buffer.com/library/content/images/size/w1200/2023/10/free-images.jpg'
-                                        // }
-                                      />
-                                      <Typography
-                                        sx={{
-                                          height: '22px',
-                                          width: '22px',
-                                          textAlign: 'center',
-                                          backgroundColor: val?.sex === 'female' ? '#FFD3D3' : '#AFEFEB'
-                                        }}
-                                      >
-                                        {val?.sex === 'female' ? 'F' : 'M'}
-                                      </Typography>
-                                    </Box>
-
-                                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                                      <Typography
-                                        sx={{
-                                          color: theme.palette.customColors.OnSurfaceVariant,
-                                          fontSize: '16px',
-                                          fontWeight: '600',
-                                          lineHeight: '19.36px'
-                                        }}
-                                      >
-                                        {val?.animal_id ? val?.animal_id : '-'}
-                                      </Typography>
-
-                                      <Typography
-                                        sx={{
-                                          color: theme.palette.customColors.OnSurfaceVariant,
-                                          fontSize: '14px',
-                                          fontWeight: '500',
-                                          lineHeight: '16.94px'
-                                        }}
-                                      >
-                                        {val?.common_name ? val?.common_name : '-'}
-                                      </Typography>
-                                      <Typography
-                                        sx={{
-                                          color: theme.palette.customColors.OnSurfaceVariant,
-                                          fontSize: '14px',
-                                          fontWeight: '400',
-                                          lineHeight: '16.94px'
-                                        }}
-                                      >
-                                        {val?.user_enclosure_name ? val?.user_enclosure_name : '-'}
-                                      </Typography>
-                                      <Typography
-                                        sx={{
-                                          color: theme.palette.customColors.OnSurfaceVariant,
-                                          fontSize: '14px',
-                                          fontWeight: '400',
-                                          lineHeight: '16.94px'
-                                        }}
-                                      >
-                                        {val?.section_name ? val?.section_name : '-'}
-                                      </Typography>
-                                    </Box>
-                                  </Box>
+                              {eggDetails?.parent_list?.father_list?.map(item => (
+                                <MenuItem key={item?._id} value={item?.animal_id}>
+                                  <AnimalParentCard
+                                    data={item}
+                                    backgroundColor={theme.palette.customColors.tableHeaderBg}
+                                  />
                                 </MenuItem>
                               ))}
                             </Select>
@@ -2023,9 +1723,90 @@ const ConditionSlider = ({
               </Box>
             </form>
           </Box>
+          {open && (
+            <EnclosureSelectionDialog
+              open={open}
+              handleClose={() => handleClose()}
+              getEnclosureDetails={getEnclosureDetails}
+            ></EnclosureSelectionDialog>
+          )}
         </Box>
       </Drawer>
     </>
+  )
+}
+
+const EnclosureCard = ({ user_enclosure_name, section_name, site_name, enclosure_qr_image, closeEnclosureCard }) => {
+  const theme = useTheme()
+
+  return (
+    <Box
+      sx={{
+        backgroundColor: theme.palette.customColors.tableHeaderBg,
+        display: 'flex',
+        padding: '12px',
+        width: '100%',
+        alignItems: 'center',
+        borderRadius: '8px',
+        gap: '12px'
+      }}
+    >
+      <Box sx={{ height: '44px', width: '44px' }}>
+        <Avatar
+          variant='rounded'
+          alt='Medicine Image'
+          sx={{
+            height: '100%',
+            width: '100%',
+            borderRadius: '50%',
+            border: '1px',
+            '& .css-1pqm26d-MuiAvatar-img': {
+              objectFit: 'contain'
+            }
+          }}
+          src={enclosure_qr_image}
+        />
+      </Box>
+
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: '2px', flex: 1 }}>
+        <Typography
+          sx={{
+            color: theme.palette.customColors.OnSurfaceVariant,
+            fontSize: '16px',
+            fontWeight: '600',
+            lineHeight: '19.36px'
+          }}
+        >
+          Encl: {user_enclosure_name ? user_enclosure_name : '-'}
+        </Typography>
+
+        <Typography
+          sx={{
+            color: theme.palette.customColors.OnSurfaceVariant,
+            fontSize: '14px',
+            fontWeight: '400',
+            lineHeight: '16.94px'
+          }}
+        >
+          Sec: {section_name ? section_name : '-'}
+        </Typography>
+        <Typography
+          sx={{
+            color: theme.palette.customColors.OnSurfaceVariant,
+            fontSize: '14px',
+            fontWeight: '400',
+            lineHeight: '16.94px'
+          }}
+        >
+          Site: {site_name ? site_name : '-'}
+        </Typography>
+      </Box>
+      <Box sx={{}}>
+        <IconButton size='small' onClick={closeEnclosureCard} sx={{ color: 'text.primary' }}>
+          <Icon icon='mdi:close-circle-outline' fontSize={36} style={{ color: 'red' }} />
+        </IconButton>
+      </Box>
+    </Box>
   )
 }
 

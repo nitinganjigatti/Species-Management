@@ -285,8 +285,8 @@ export default function AddProduct() {
         reset()
         const toastMessage = id ? 'Product Updated Successfully' : 'New Product Created Successfully'
         toast.success(toastMessage)
-
-        router.push('/pharmacy/new-product-request/')
+        router.back()
+        // router.push('/pharmacy/new-product-request/')
       } else {
         setSubmitLoader(false)
       }
@@ -304,7 +304,8 @@ export default function AddProduct() {
     } else if (previousPrescriptionLength) {
       setConfirmationBox(true)
     } else {
-      router.push('/pharmacy/new-product-request/')
+      router.back()
+      // router.push('/pharmacy/new-product-request/')
     }
   }
 
@@ -434,7 +435,8 @@ export default function AddProduct() {
     } else if (previousPrescriptionLength) {
       handleCancelDialogBox()
     } else {
-      router.push('/pharmacy/new-product-request/')
+      router.back()
+      // router.push('/pharmacy/new-product-request/')
     }
   }
 
@@ -451,9 +453,8 @@ export default function AddProduct() {
                   <Icon
                     style={{ cursor: 'pointer' }}
                     onClick={() => {
-                      isDirty || imgSrcChange || previousPrescriptionLength
-                        ? handleCancelDialogBox()
-                        : router.push('/pharmacy/new-product-request/')
+                      isDirty || imgSrcChange || previousPrescriptionLength ? handleCancelDialogBox() : router.back()
+                      // router.push('/pharmacy/new-product-request/')
                     }}
                     icon='ep:back'
                   />
@@ -528,6 +529,7 @@ export default function AddProduct() {
                               <MenuItem value='allopathy'>Allopathy</MenuItem>
                               <MenuItem value='ayurveda'>Ayurveda</MenuItem>
                               <MenuItem value='unani'>Unani</MenuItem>
+                              <MenuItem value='homeopathy'>Homeopathy</MenuItem>
                               <MenuItem value='non_medical'>Non Medical</MenuItem>
                             </Select>
                           )}
@@ -668,71 +670,88 @@ export default function AddProduct() {
                         {imgSrc !== '' && imgSrc !== null && (
                           <Box
                             sx={{
-                              display: 'flex'
+                              display: 'flex',
+                              alignItems: 'center', // Align items vertically in the center
+                              flexWrap: 'wrap', // Allow wrapping on smaller screens
+                              gap: 2 // Add spacing between items
                             }}
                           >
-                            <Box sx={{ display: 'flex' }}>
-                              <img
-                                style={{
-                                  width: '38px',
-                                  height: '38px',
-                                  padding: '0.1875rem',
-                                  borderRadius: '10px',
-                                  border: '1px solid rgba(93, 89, 98, 0.14)'
-                                }}
-                                width={50}
-                                height={50}
-                                alt='Uploaded image'
-                                src={typeof imgSrc === 'string' ? `${imgSrc}` : imgSrc}
-                              />
+                            <img
+                              style={{
+                                width: '38px',
+                                height: '38px',
+                                padding: '0.1875rem',
+                                borderRadius: '10px',
+                                border: '1px solid rgba(93, 89, 98, 0.14)'
+                              }}
+                              alt='Uploaded image'
+                              src={typeof imgSrc === 'string' ? `${imgSrc}` : imgSrc}
+                            />
 
-                              <Typography sx={{ margin: '10px' }}>
-                                {responseImage ? responseImage.slice(-10) : displayFile}
-                              </Typography>
-                              <Box sx={{ cursor: 'pointer', margin: '10px' }}>
-                                <Icon icon='material-symbols-light:close' onClick={() => removeSelectedImage()}>
-                                  {' '}
-                                </Icon>
-                              </Box>
+                            <Typography
+                              sx={{
+                                marginTop: { xs: '8px', sm: 0 }, // Adjust margin for smaller screens
+                                wordBreak: 'break-word' // Prevent text overflow
+                              }}
+                            >
+                              {responseImage ? responseImage.slice(-10) : displayFile}
+                            </Typography>
+
+                            <Box
+                              sx={{
+                                cursor: 'pointer',
+                                marginTop: { xs: '8px', sm: 0 } // Adjust margin for smaller screens
+                              }}
+                            >
+                              <Icon icon='material-symbols-light:close' onClick={() => removeSelectedImage()} />
                             </Box>
                           </Box>
                         )}
 
-                        <Grid item xs={12} sm={12} style={{ position: 'relative' }}>
+                        <Grid
+                          item
+                          xs={12}
+                          sm={12}
+                          sx={{
+                            position: 'relative',
+                            width: { xs: '100%', sm: '300px' }, // Full width on small screens, fixed on larger ones
+                            height: '50px'
+
+                            // marginLeft: { xs: '0', sm: '150px' } // Remove margin on smaller screens
+                          }}
+                        >
                           <input
                             type='file'
                             accept='image/*'
                             onChange={e => handleInputImageChange(e)}
                             name='product_image'
-                            style={{ opacity: 0, position: 'relative', height: '36px', cursor: 'pointer', zIndex: 1 }}
+                            style={{
+                              position: 'absolute',
+                              top: 0,
+                              left: 0,
+                              width: '100%',
+                              height: '100%',
+                              opacity: 0,
+                              cursor: 'pointer',
+                              zIndex: 2
+                            }}
                           />
                           {(imgSrc === '' || imgSrc === null) && (
                             <AddButton
-                              title=' Upload Image'
-                              styles={{ zIndex: 0, position: 'absolute', left: '0px' }}
+                              title='Upload Image'
+                              styles={{
+                                position: 'absolute',
+                                left: '10px',
+                                top: '0px',
+                                width: '100%',
+                                height: '100%',
+                                zIndex: 1
+                              }}
                             />
                           )}
                         </Grid>
-
-                        {/* <Grid item xs={12} sm={12} style={{ position: 'relative' }}>
-                          <input
-                            type='file'
-                            accept='image/*'
-                            onChange={e => handleInputImageChange(e)}
-                            name='product_image'
-                            ref={fileInputRef}
-                            style={{ opacity: 0, position: 'relative', height: '36px', cursor: 'pointer', zIndex: 1 }}
-                          />
-                          {imgSrc === '' && (
-                            <AddButton
-                              title=' Upload Image'
-                              styles={{ zIndex: 0, position: 'absolute', left: '0px' }}
-                            />
-                          )}
-                        </Grid> */}
-
-                        {/* {imgSrc === '' && ( */}
                       </Grid>
+
                       {/* {confirmationBox && (
                         <Grid>
                           <CommonDialogBox
@@ -749,92 +768,53 @@ export default function AddProduct() {
                           open={() => setConfirmationBox(true)}
                           content={'Are you sure you want to cancel?'}
                           closeDialog={() => setConfirmationBox(false)}
-                          action={() => router.push('/pharmacy/new-product-request/')}
+                          action={() => {
+                            // router.push('/pharmacy/new-product-request/')
+                            router.back()
+                          }}
                         />
                       )}
-                      {/* salt composition */}
-
-                      {/* <Grid item xs={12} sm={12}>
-                    <FormGroup>
-                      <Grid container item xs={12} sm={12} alignItems='center' spacing={2}>
-                        <Grid item xs={6}>
-                          <span style={{ marginRight: '10px' }}>Salt Composition</span>
-                        </Grid>
-                      </Grid>
-                      {fields.map((field, index) => (
-                        <Grid container spacing={5} key={field.id} style={{ marginTop: '0px' }}>
-                          <Grid item xs={4}>
-                            <FormControl fullWidth>
-                              <Controller
-                                name={`salts[${index}].salt_id`}
-                                control={control}
-                                rules={{ required: false }}
-                                render={({ field: { value, onChange } }) => (
-                                  <TextField
-                                    value={value}
-                                    label='Salt Name'
-                                    onChange={onChange}
-                                    placeholder='Salt Name'
-                                    error={Boolean(errors?.salts?.[index]?.salt_id)}
-                                    name={`salts[${index}].salt_id`}
-                                  />
-                                )}
-                              />
-                            </FormControl>
-                          </Grid>
-                          <Grid item xs={4}>
-                            <FormControl fullWidth>
-                              <Controller
-                                name={`salts[${index}].salt_qty`}
-                                control={control}
-                                rules={{ required: false }}
-                                render={({ field: { value, onChange } }) => (
-                                  <TextField
-                                    value={value}
-                                    label='Strength'
-                                    onChange={onChange}
-                                    placeholder='Strength'
-                                    error={Boolean(errors?.salts?.[index]?.salt_qty)}
-                                    name={`salts[${index}].salt_qty`}
-                                  />
-                                )}
-                              />
-                            </FormControl>
-                          </Grid>
-
-                          <Grid
-                            item
-                            xs={4}
-                            // eslint-disable-next-line lines-around-comment
-                            // justifyContent='flex-end'
-
-                            alignSelf='center'
-                            sx={{
-                              display: 'flex',
-                              justifyItems: 'center',
-                              alignItems: 'center'
-                            }}
-                          >
-                            {handleAddRemoveSalts(fields, index)}
-                          </Grid>
-                        </Grid>
-                      ))}
-                    </FormGroup>
-                  </Grid> */}
 
                       <Grid item xs={12} sm={6}>
                         <Typography sx={{ mb: 4 }}>Prescription Images</Typography>
-                        <Grid item xs={12} sm={12} sx={{ position: 'relative' }}>
+                        <Grid
+                          item
+                          xs={12}
+                          sm={12}
+                          sx={{
+                            position: 'relative',
+                            width: '300px', // Adjust container width as needed
+                            height: '50px', // Adjust height to match the button
+                            // marginLeft: '180px',
+                            marginTop: '20px'
+                          }}
+                        >
                           <input
                             type='file'
                             accept='image/*'
                             multiple
                             onChange={e => handleFileChange(e)}
                             name='prescription_images'
-                            style={{ opacity: 0, position: 'relative', height: '36px', cursor: 'pointer', zIndex: 1 }}
+                            style={{
+                              position: 'absolute',
+                              top: 0,
+                              left: 0,
+                              width: '100%', // Cover the whole button area
+                              height: '100%',
+                              opacity: 0, // Make it invisible
+                              cursor: 'pointer', // Ensure pointer cursor for better UX
+                              zIndex: 2
+                            }}
                           />
                           <AddButton
-                            styles={{ zIndex: 0, position: 'absolute', left: '0px' }}
+                            styles={{
+                              position: 'absolute',
+                              top: '0px',
+                              left: '10px', // Shift the button slightly to the right
+                              width: '100%', // Match container width
+                              height: '100%', // Match container height
+                              zIndex: 1 // Ensure the button is under the input
+                            }}
                             title='Add Prescription'
                           />
                         </Grid>

@@ -1,12 +1,12 @@
 import { axiosFormPost, axiosGet } from '../../utility'
 
-import { ASSESMENT_TYPES, EGG, MASTER_DATA } from 'src/constants/ApiConstant'
+import { ASSESMENT_TYPES, EGG } from 'src/constants/ApiConstant'
 
-export async function GetMasterList() {
-  const response = await axiosGet({ url: `${MASTER_DATA}`, pharmacy: true })
+// export async function GetMasterList() {
+//   const response = await axiosGet({ url: `${MASTER_DATA}`, pharmacy: true })
 
-  return response.data
-}
+//   return response.data
+// }
 
 export async function GetAssesmentTypes() {
   const response = await axiosGet({ url: `${ASSESMENT_TYPES}`, pharmacy: true })

@@ -271,9 +271,22 @@ const IngredientsList = () => {
             {params.row.image ? null : <Icon icon='healthicons:fruits-outline' />}
           </Avatar>
           <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-            <Typography noWrap variant='body2' sx={{ color: 'text.primary', fontSize: '14px', fontWeight: '500' }}>
-              {params.row.ingredient_name ? params.row.ingredient_name : '-'}
-            </Typography>
+            <Tooltip title={params.row.ingredient_name} placement='right'>
+              <Typography
+                noWrap
+                variant='body2'
+                sx={{
+                  color: 'text.primary',
+                  fontSize: '14px',
+                  fontWeight: '500',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  maxWidth: '140px'
+                }}
+              >
+                {params.row.ingredient_name ? params.row.ingredient_name : '-'}
+              </Typography>
+            </Tooltip>
           </Box>
         </Box>
       )

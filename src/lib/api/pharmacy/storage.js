@@ -22,7 +22,6 @@ export async function addStorage(payload) {
 }
 
 export async function updateStorage(id, payload) {
-  debugger
   const url = `${PHARMACY_MASTER_BASE_URL}${STORAGE}/edit/${id}`
   var data = payload
   data.id = id

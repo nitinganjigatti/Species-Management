@@ -13,7 +13,7 @@ import CardContent from '@mui/material/CardContent'
 import { styled, useTheme } from '@mui/material/styles'
 import TableContainer from '@mui/material/TableContainer'
 import TableCell from '@mui/material/TableCell'
-import { Button, CardHeader } from '@mui/material'
+import { Button, CardHeader, Stack } from '@mui/material'
 import IconButton from '@mui/material/IconButton'
 import FormHelperText from '@mui/material/FormHelperText'
 import TextField from '@mui/material/TextField'
@@ -62,6 +62,9 @@ import Error404 from 'src/pages/404'
 import ConfirmDialogBox from 'src/components/ConfirmDialogBox'
 
 import { usePharmacyContext } from 'src/context/PharmacyContext'
+import { getUserList } from 'src/lib/api/pharmacy/dispenseProduct'
+
+import { readAsync } from 'src/lib/windows/utils'
 
 const CalcWrapper = styled(Box)(({ theme }) => ({
   display: 'flex',
@@ -76,6 +79,9 @@ const CalcWrapper = styled(Box)(({ theme }) => ({
 import Icon from 'src/@core/components/icon'
 import { boolean } from 'yup'
 import { AddButton, RequestCancelButton } from 'src/components/Buttons'
+import { AddButtonContained } from 'src/components/ButtonContained'
+import EmptyStateBox from 'src/components/EmptyStateBox'
+import RenderUtility from 'src/utility/render'
 
 const editParamsInitialState = {
   // from_store_type: '',
@@ -87,6 +93,8 @@ const editParamsInitialState = {
   ro_date: Utility.formattedPresentDate(),
   total_qty: '',
   priority_item: 'Normal',
+  user_id: '',
+
   request_item_details: []
 }
 
@@ -99,7 +107,9 @@ const initialNestedRowMedicine = {
   control_substance: false,
   control_substance_file: '',
   uuid: '',
-  stock_type: ''
+  stock_type: '',
+  variant_id: '',
+  multiplier: ''
 
   // to_store_id: '14'
 }
@@ -130,6 +140,7 @@ const AddLocalDispatch = () => {
   // const [deleteItemId, setDeleteItemId] = useState('')
   // const [deleteDialog, setDeleteDialog] = useState(false)
   const [cancelRequestDialog, setCancelRequestDialog] = useState(false)
+  const [users, setUsers] = useState([])
 
   const openCancelDialog = () => {
     setCancelRequestDialog(true)
@@ -149,6 +160,14 @@ const AddLocalDispatch = () => {
   }
 
   const { selectedPharmacy } = usePharmacyContext()
+
+  useEffect(() => {
+    setEditParams({
+      ...editParams,
+      to_store_id: '',
+      to_store_type: ''
+    })
+  }, [selectedPharmacy.id])
 
   const filteredStoreType = value => {
     const storeType = fromStocks?.find(item => item.id == value)?.type
@@ -409,7 +428,9 @@ const AddLocalDispatch = () => {
                 expiry_date: item?.expiry_date,
                 available_item_qty: item?.qty,
                 packageDetails: `${item?.package} of ${item?.package_qty} ${item?.package_uom_label} ${item?.product_form_label}`,
-                manufacture: item?.manufacturer_name
+                manufacture: item?.manufacturer_name,
+                variant_id: item?.variant_id,
+                multiplier: item?.multiplier
               }))
             )
             setTotalBatchQuantity(searchResults?.data?.total_quantity)
@@ -430,9 +451,49 @@ const AddLocalDispatch = () => {
     }
   }
 
+  const getUserLists = async (searchText, limit, page) => {
+    try {
+      const userDetails = await readAsync('userDetails')
+      if (userDetails?.user?.zoos.length > 0) {
+        let zoo_id = userDetails?.user?.zoos[0].zoo_id
+
+        const params = {
+          zoo_id,
+          length: limit ? limit : null,
+          page_no: page ? page : null,
+          q: searchText
+        }
+        await getUserList(params).then(res => {
+          if (res?.data?.length > 0) {
+            setUsers(
+              res?.data?.map(item => ({
+                label: item?.user_name,
+                value: item?.user_id,
+                id: item?.user_id
+              }))
+            )
+          }
+        })
+      }
+    } catch (error) {
+      console.log('user error', error)
+    }
+  }
+
+  const searchUsersList = useCallback(
+    debounce(async searchText => {
+      try {
+        await getUserLists(searchText)
+      } catch (error) {
+        console.error(error)
+      }
+    }, 500),
+    []
+  )
   useEffect(() => {
     getStoresLists()
     fetchMedicineData()
+    getUserLists()
   }, [])
 
   const searchBatchData = useCallback(
@@ -466,24 +527,26 @@ const AddLocalDispatch = () => {
       if (result.success === true && result?.data?.request_item_details?.length > 0) {
         const lineItems = result?.data?.request_item_details.map(el => {
           return {
-            request_item_medicine_id: el.stock_item_id,
-            // medicine_name: el.stock_name,
-            product_name: el.stock_name,
-            request_item_qty: el.qty,
-            request_item_leaf_id: el.stock_item_id,
-            priority_item: el.priority,
-            control_substance: el.control_substance === '0' ? false : true,
-            control_substance_file: el.control_substance_file !== '' ? el.control_substance_file : '',
-            id: el.id,
-            request_item_detail_id: el.id,
-            request_item_batch_no: el.dispatch_batch_no,
-            expiry_date: el.dispatch_expiry_date,
+            request_item_medicine_id: el?.stock_item_id,
+            // medicine_name: el?.stock_name,
+            product_name: el?.stock_name,
+            request_item_qty: el?.qty,
+            request_item_leaf_id: el?.stock_item_id,
+            priority_item: el?.priority,
+            control_substance: el?.control_substance === '1' ? true : false,
+            control_substance_file: el?.control_substance_file !== '' ? el?.control_substance_file : '',
+            id: el?.id,
+            request_item_detail_id: el?.id,
+            request_item_batch_no: el?.dispatch_batch_no,
+            expiry_date: el?.dispatch_expiry_date,
             uuid: uuidv4(),
             available_item_qty: el?.batch_available_qty,
-            dispatch_item_id: el.dispatch_item_id,
+            dispatch_item_id: el?.dispatch_item_id,
             stock_type: el?.stock_type,
             packageDetails: `${el?.package} of ${el?.package_qty} ${el?.package_uom_label} ${el?.product_form_label}`,
-            manufacture: el?.manufacturer
+            manufacture: el?.manufacturer,
+            variant_id: el?.stock_variant_id,
+            multiplier: el?.stock_multiplier
           }
         })
 
@@ -496,6 +559,8 @@ const AddLocalDispatch = () => {
           ro_date: result.data.request_date,
           // from_store_type: result.data.from_store_type,
           to_store_type: result.data.to_store_type,
+          user_id: result?.data?.user_id,
+
           request_item_details: lineItems
         })
       }
@@ -526,7 +591,9 @@ const AddLocalDispatch = () => {
       available_item_qty: getItems[0]?.available_item_qty,
       stock_type: getItems[0]?.stock_type,
       packageDetails: getItems[0]?.packageDetails,
-      manufacture: getItems[0]?.manufacture
+      manufacture: getItems[0]?.manufacture,
+      variant_id: getItems[0]?.variant_id,
+      multiplier: getItems[0]?.multiplier
     })
     // }
   }
@@ -555,7 +622,7 @@ const AddLocalDispatch = () => {
           toast.success(response?.message)
           setSubmitLoader(false)
           getListOfItemsById(id)
-          Router.push(`/pharmacy/local-dispatch/${response?.data}`)
+          Router.replace(`/pharmacy/local-dispatch/${response?.data}`)
         } else {
           setSubmitLoader(false)
           toast.error(response?.message)
@@ -566,13 +633,13 @@ const AddLocalDispatch = () => {
     } else {
       try {
         console.log('postData', postData)
-        debugger
+
         const response = await addDirectDispatchItems(postData)
         if (response?.success) {
           toast.success(response?.message)
           setEditParams(editParamsInitialState)
           setSubmitLoader(false)
-          Router.push(`/pharmacy/local-dispatch/${response?.data}`)
+          Router.replace(`/pharmacy/local-dispatch/${response?.data}`)
         } else {
           setSubmitLoader(false)
           toast.error(response?.message)
@@ -591,7 +658,7 @@ const AddLocalDispatch = () => {
         console.log('cancelRequest result', result)
         if (result?.data?.success === true) {
           toast.success(result?.data?.data)
-          Router.push(`/pharmacy/local-dispatch/local-dispatch-list/`)
+          Router.replace(`/pharmacy/local-dispatch/local-dispatch-list/`)
         } else {
           toast.error(result?.data?.data)
           setDeleteDialog(false)
@@ -624,7 +691,8 @@ const AddLocalDispatch = () => {
                 <Icon
                   style={{ cursor: 'pointer' }}
                   onClick={() => {
-                    Router.push(`/pharmacy/local-dispatch/local-dispatch-list/`)
+                    // Router.push(`/pharmacy/local-dispatch/local-dispatch-list/`)
+                    Router.back()
                   }}
                   icon='ep:back'
                 />
@@ -651,6 +719,7 @@ const AddLocalDispatch = () => {
                     error={duplicateMedError}
                     totalQuantity={totalBatchQuantity}
                     editParams={editParams}
+                    closeDialog={closeDialog}
                   />
                 }
                 close={closeDialog}
@@ -661,53 +730,101 @@ const AddLocalDispatch = () => {
           <CardContent>
             <form>
               <Grid container spacing={5}>
-                <Grid item xs={12} sm={6}>
-                  <Grid xs={12} sm={12} sx={{ mb: 5 }}>
-                    <Grid xs={12} sm={12} sx={{ mb: 5 }}>
-                      <Typography variant='subtitle2' sx={{ mb: 3, color: 'text.primary', letterSpacing: '.1px' }}>
-                        Dispatch to :
-                      </Typography>
-                    </Grid>
-                    <FormControl fullWidth>
-                      <InputLabel id='state_id' error={Boolean(errors.to_store_id)}>
-                        Store*
-                      </InputLabel>
-
-                      <Select
-                        error={Boolean(errors.to_store_id)}
-                        value={editParams.to_store_id}
-                        label='Store*'
-                        disabled={id ? true : false}
-                        onChange={e => {
-                          setEditParams({
-                            ...editParams,
-                            to_store_id: e.target.value,
-                            to_store_type: storesType[filteredStoreType(e.target.value)]
-                          })
-                          setErrors({})
-                        }}
-                        // error={Boolean(errors?.state_id)}
-                        // labelId='state_id'
-                      >
-                        {toStocks?.map((item, index) => (
-                          <MenuItem
-                            key={index}
-                            disabled={item?.status === 'inactive' || item.id === selectedPharmacy.id}
-                            value={item?.id}
-                          >
-                            {item?.name}
-                          </MenuItem>
-                        ))}
-                      </Select>
-
-                      {errors.to_store_id && (
-                        <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
-                          This field is required
-                        </FormHelperText>
-                      )}
-                    </FormControl>
-                  </Grid>
+                <Grid item xs={12} sm={12}>
+                  <Typography
+                    variant='subtitle2'
+                    sx={{
+                      color: 'customColors.customTextColorGray2',
+                      letterSpacing: '.1px',
+                      fontSize: '16px',
+                      fontWeight: 500
+                    }}
+                  >
+                    Dispatch to :
+                  </Typography>
                 </Grid>
+                <Grid item xs={12} sm={6} sx={{ mb: 5, width: '100%' }}>
+                  <FormControl fullWidth>
+                    <InputLabel id='state_id' error={Boolean(errors.to_store_id)}>
+                      Store*
+                    </InputLabel>
+
+                    <Select
+                      error={Boolean(errors.to_store_id)}
+                      value={editParams.to_store_id}
+                      label='Store*'
+                      disabled={id ? true : false}
+                      onChange={e => {
+                        setEditParams({
+                          ...editParams,
+                          to_store_id: e.target.value,
+                          to_store_type: storesType[filteredStoreType(e.target.value)]
+                        })
+                        setErrors({})
+                      }}
+                      // error={Boolean(errors?.state_id)}
+                      // labelId='state_id'
+                    >
+                      {toStocks?.map((item, index) => (
+                        <MenuItem
+                          key={index}
+                          disabled={item?.status === 'inactive' || item.id === selectedPharmacy.id}
+                          value={item?.id}
+                        >
+                          {item?.name}
+                        </MenuItem>
+                      ))}
+                    </Select>
+
+                    {errors.to_store_id && (
+                      <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
+                        This field is required
+                      </FormHelperText>
+                    )}
+                  </FormControl>
+                </Grid>
+                <Grid item xs={12} sm={6} sx={{ mb: 5 }}>
+                  <Autocomplete
+                    fullWidth
+                    disablePortal
+                    options={users}
+                    value={users?.find(user => user?.value === editParams?.user_id) || null}
+                    getOptionLabel={option => option?.label || ''}
+                    isOptionEqualToValue={(option, value) => option.value === value.value}
+                    onKeyUp={e => {
+                      searchUsersList(e.target.value)
+                    }}
+                    renderInput={params => (
+                      <TextField
+                        fullWidth
+                        {...params}
+                        name='search'
+                        label='To '
+                        error={Boolean(errors.search)}
+                        helperText={errors.search}
+                        placeholder='To '
+                      />
+                    )}
+                    onBlur={async () => {
+                      await searchUsersList()
+                    }}
+                    onChange={(event, value) => {
+                      if (value) {
+                        setEditParams({
+                          ...editParams,
+                          user_id: value?.value
+                        })
+                      } else {
+                        setEditParams({
+                          ...editParams,
+                          user_id: null
+                        })
+                      }
+                    }}
+                  />
+                </Grid>
+                {/* </Grid>
+                </Grid> */}
                 <Grid item xs={12} sm={6}>
                   <Grid xs={12} sm={12} sx={{ mb: 5 }}>
                     <Typography variant='subtitle2' sx={{ mb: 3, color: 'text.primary', letterSpacing: '.1px' }}>
@@ -715,7 +832,7 @@ const AddLocalDispatch = () => {
                     </Typography>
                   </Grid>
 
-                  <Grid item xs={12} sm={12} lg={12} sx={{ mx: 'auto', mb: 5 }}>
+                  {/* <Grid item xs={12} sm={12} lg={12} sx={{ mx: 'auto', mb: 5 }}>
                     <FormControl fullWidth>
                       <SingleDatePicker
                         fullWidth
@@ -729,6 +846,7 @@ const AddLocalDispatch = () => {
                           setErrors({})
                         }}
                         customInput={<CustomInput label='Date*' error={Boolean(errors.ro_date)} />}
+                        isClearable={false}
                       />
                       {errors.ro_date && (
                         <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
@@ -736,12 +854,12 @@ const AddLocalDispatch = () => {
                         </FormHelperText>
                       )}
                     </FormControl>
-                  </Grid>
+                  </Grid> */}
                 </Grid>
               </Grid>
             </form>
           </CardContent>
-          <Grid
+          {/* <Grid
             container
             spacing={6}
             sm={12}
@@ -759,154 +877,229 @@ const AddLocalDispatch = () => {
                 handleSubmit()
               }}
             />
-          </Grid>
+          </Grid> */}
 
-          <TableContainer>
-            <Table>
-              <TableHead sx={{ backgroundColor: '#F5F5F7' }}>
-                <TableRow>
-                  <TableCell>Product Name</TableCell>
-                  <TableCell>Batch No</TableCell>
-                  <TableCell>Expiry Date</TableCell>
-                  <TableCell>Priority</TableCell>
-                  <TableCell>Quantity</TableCell>
-                  <TableCell>Action</TableCell>
-                </TableRow>
-              </TableHead>
-              <TableBody>
-                {editParams.request_item_details
-                  ? editParams.request_item_details.map((el, index) => {
-                      return (
-                        <TableRow key={index}>
-                          <TableCell>
-                            <Typography variant='body2' sx={{ color: 'text.primary' }}>
-                              {el.product_name}
-                            </Typography>
-                            {el.control_substance ? (
-                              <CustomChip label='CS' skin='light' color='success' size='small' />
-                            ) : null}
-                            <Typography variant='body2'>{el.packageDetails}</Typography>
-                            <Typography variant='body2'>{el.manufacture}</Typography>
-                          </TableCell>
-                          <TableCell>
-                            <Typography variant='body2' sx={{ color: 'text.primary' }}>
-                              {el.request_item_batch_no}
-                            </Typography>
-                          </TableCell>
+          <Box
+            sx={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', px: 6, mb: 4 }}
+          >
+            <Box>
+              <Typography sx={{ color: 'customColors.customTextColorGray2', fontSize: '16px', fontWeight: 500 }}>
+                Dispatch items
+              </Typography>
 
-                          <TableCell>
-                            <Typography variant='body2' sx={{ color: 'text.primary' }}>
-                              {Utility.formatDisplayDate(el.expiry_date) === 'Invalid date' ? 'NA' : el.expiry_date}
-                            </Typography>
-                          </TableCell>
-                          <TableCell>{el.priority_item}</TableCell>
-
-                          <TableCell>{el.request_item_qty}</TableCell>
-
-                          <TableCell>
-                            <IconButton
-                              size='small'
-                              sx={{ mr: 0.5 }}
-                              aria-label='Edit'
-                              onClick={() => {
-                                //
-                                setMedicineItemId(el.request_item_medicine_id)
-
-                                editTableData(el.uuid)
-                                showDialog()
-                                // }
-                              }}
-                            >
-                              <Icon icon='mdi:pencil-outline' />
-                            </IconButton>
-
-                            <IconButton
-                              onClick={() => {
-                                removeItemsFromTable(el.uuid)
-                              }}
-                              size='small'
-                              sx={{ mr: 0.5 }}
-                            >
-                              <Icon icon='mdi:delete-outline' />
-                            </IconButton>
-                          </TableCell>
-                        </TableRow>
-                      )
-                    })
-                  : null}
-              </TableBody>
-            </Table>
-          </TableContainer>
-          <CardContent sx={{ pt: 8 }}>
-            {totalQty ? (
-              <Grid container>
-                <Grid
-                  item
-                  xs={12}
-                  sm={2}
-                  lg={2}
-                  sx={{
-                    mb: { sm: 0, xs: 4 },
-                    order: { sm: 2, xs: 1 },
-                    marginLeft: 'auto',
-                    mr: { sm: 12, xs: 0 }
-                  }}
-                >
-                  <CalcWrapper>
-                    <Typography variant='body2'>Total Qty:</Typography>
-                    <Typography variant='body2' sx={{ color: 'text.primary', letterSpacing: '.25px', fontWeight: 600 }}>
-                      {totalQty}
-                    </Typography>
-                  </CalcWrapper>
-
-                  <Divider
-                    sx={{
-                      mt: theme => `${theme.spacing(5)} !important`,
-                      mb: theme => `${theme.spacing(3)} !important`
-                    }}
-                  />
-                </Grid>
-              </Grid>
-            ) : null}
-          </CardContent>
-          <Grid item xs={12}>
-            <Box sx={{ float: 'right', my: 4, mx: 6 }}>
-              {id ? (
-                <>
-                  <RequestCancelButton
-                    title='Cancel Request'
-                    action={() => {
-                      openCancelDialog()
-                      // setEditParams(editParamsInitialState)
-                    }}
-                  />
-                </>
-              ) : null}
-              <LoadingButton
-                disabled={editParams.request_item_details.length > 0 ? false : true}
-                sx={{ marginRight: '8px' }}
-                size='large'
-                onClick={() => {
-                  postItemsData()
-                }}
-                variant='contained'
-                loading={submitLoader}
+              <Stack
+                direction='row'
+                spacing={2}
+                divider={<Divider orientation='vertical' flexItem />}
+                sx={{ textAlign: 'center' }}
               >
-                Save
-              </LoadingButton>
-              {id ? null : (
-                <Button
-                  onClick={() => {
-                    setEditParams(editParamsInitialState)
-                  }}
-                  size='large'
-                  variant='outlined'
+                <Typography
+                  variant='body2'
+                  sx={{ color: 'customColors.neutralSecondary', fontSize: '14px', fontWeight: 400 }}
                 >
-                  Reset
-                </Button>
-              )}
+                  Total Dispatch Quantity:{' '}
+                  <Typography component='span' variant='body2' sx={{ color: 'primary.light' }}>
+                    {totalQty ? totalQty : '0'}
+                  </Typography>
+                </Typography>
+                <Typography
+                  variant='body2'
+                  sx={{ color: 'customColors.neutralSecondary', fontSize: '14px', fontWeight: 400 }}
+                >
+                  Total Dispatch Value:{' '}
+                  <Typography component='span' variant='body2' sx={{ color: 'primary.light' }}>
+                    ₹0
+                  </Typography>
+                </Typography>
+              </Stack>
             </Box>
-          </Grid>
+
+            <AddButtonContained
+              title='Add Dispatch Item'
+              action={() => {
+                handleSubmit()
+              }}
+            />
+          </Box>
+
+          {editParams?.request_item_details.length ? (
+            <Box>
+              <Card
+                sx={{
+                  m: 6,
+                  border: '1px solid',
+                  borderColor: 'customColors.customTableBorderBg',
+                  boxShadow: 'none'
+                }}
+              >
+                <TableContainer>
+                  <Table sx={{ borderColor: 'customColors.customTableBorderBg' }}>
+                    <TableHead sx={{ backgroundColor: 'customColors.customTableHeaderBg' }}>
+                      <TableRow>
+                        <TableCell>Product Name</TableCell>
+                        <TableCell>Batch No</TableCell>
+                        <TableCell>Expiry Date</TableCell>
+                        <TableCell>Priority</TableCell>
+                        <TableCell>Quantity</TableCell>
+                        <TableCell>Action</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody sx={{ borderColor: 'customColors.customTableBorderBg' }}>
+                      {editParams.request_item_details
+                        ? editParams.request_item_details.map((el, index) => {
+                            return (
+                              <TableRow key={index} sx={{ '&:last-child td': { borderBottom: 'none' } }}>
+                                <TableCell sx={{ borderBottomColor: 'customColors.customTableBorderBg' }}>
+                                  <Typography component='samp' variant='body2'>
+                                    {RenderUtility?.renderControlLabel(el.control_substance === true, 'CS')}
+                                    {RenderUtility?.renderControlLabel(el.prescription_required === true, 'PR')}
+                                  </Typography>
+                                  <Typography
+                                    component='samp'
+                                    variant='body2'
+                                    sx={{ color: 'primary.light', fontWeight: 600, fontSize: '16px' }}
+                                  >
+                                    {el.product_name}
+                                  </Typography>
+                                  {/* {el.control_substance ? (
+                                    <CustomChip label='CS' skin='light' color='success' size='small' />
+                                  ) : null} */}
+                                  <Typography variant='body2' color='customColors.customHeadingTextColor'>
+                                    {el.packageDetails}
+                                  </Typography>
+                                  <Typography variant='body2' color='customColors.customHeadingTextColor'>
+                                    {el.manufacture}
+                                  </Typography>
+                                </TableCell>
+                                <TableCell>
+                                  <Typography variant='body2' sx={{ color: 'text.primary' }}>
+                                    {el.request_item_batch_no}
+                                  </Typography>
+                                </TableCell>
+
+                                <TableCell>
+                                  <Typography variant='body2' sx={{ color: 'text.primary' }}>
+                                    {el?.stock_type === 'non_medical'
+                                      ? 'NA'
+                                      : Utility?.formatDisplayDate(el?.expiry_date)}
+                                  </Typography>
+                                </TableCell>
+                                <TableCell>{el.priority_item}</TableCell>
+
+                                <TableCell>{el.request_item_qty}</TableCell>
+
+                                <TableCell>
+                                  <IconButton
+                                    size='small'
+                                    sx={{ mr: 0.5 }}
+                                    aria-label='Edit'
+                                    onClick={() => {
+                                      //
+                                      setMedicineItemId(el.request_item_medicine_id)
+
+                                      editTableData(el.uuid)
+                                      showDialog()
+                                      // }
+                                    }}
+                                  >
+                                    <Icon icon='mdi:pencil-outline' />
+                                  </IconButton>
+
+                                  <IconButton
+                                    onClick={() => {
+                                      removeItemsFromTable(el.uuid)
+                                    }}
+                                    size='small'
+                                    sx={{ mr: 0.5 }}
+                                  >
+                                    <Icon icon='mdi:delete-outline' />
+                                  </IconButton>
+                                </TableCell>
+                              </TableRow>
+                            )
+                          })
+                        : null}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+              </Card>
+              {/* <CardContent sx={{ pt: 8 }}>
+                {totalQty ? (
+                  <Grid container>
+                    <Grid
+                      item
+                      xs={12}
+                      sm={2}
+                      lg={2}
+                      sx={{
+                        mb: { sm: 0, xs: 4 },
+                        order: { sm: 2, xs: 1 },
+                        marginLeft: 'auto',
+                        mr: { sm: 12, xs: 0 }
+                      }}
+                    >
+                      <CalcWrapper>
+                        <Typography variant='body2'>Total Qty:</Typography>
+                        <Typography
+                          variant='body2'
+                          sx={{ color: 'text.primary', letterSpacing: '.25px', fontWeight: 600 }}
+                        >
+                          {totalQty}
+                        </Typography>
+                      </CalcWrapper>
+
+                      <Divider
+                        sx={{
+                          mt: theme => `${theme.spacing(5)} !important`,
+                          mb: theme => `${theme.spacing(3)} !important`
+                        }}
+                      />
+                    </Grid>
+                  </Grid>
+                ) : null}
+              </CardContent> */}
+              <Grid item xs={12}>
+                <Box sx={{ float: 'right', my: 4, mx: 6 }}>
+                  {id ? (
+                    <>
+                      <RequestCancelButton
+                        title='Cancel Request'
+                        action={() => {
+                          openCancelDialog()
+                          // setEditParams(editParamsInitialState)
+                        }}
+                      />
+                    </>
+                  ) : null}
+                  <LoadingButton
+                    disabled={editParams.request_item_details.length > 0 ? false : true}
+                    sx={{ marginRight: '8px' }}
+                    size='large'
+                    onClick={() => {
+                      postItemsData()
+                    }}
+                    variant='contained'
+                    loading={submitLoader}
+                  >
+                    Save
+                  </LoadingButton>
+                  {id ? null : (
+                    <Button
+                      onClick={() => {
+                        setEditParams(editParamsInitialState)
+                      }}
+                      size='large'
+                      variant='outlined'
+                    >
+                      Reset
+                    </Button>
+                  )}
+                </Box>
+              </Grid>
+            </Box>
+          ) : (
+            <EmptyStateBox text='No Dispatch Found' imageSrc='/images/out-of-stock.png' />
+          )}
           <ConfirmDialogBox
             open={cancelRequestDialog}
             closeDialog={() => {

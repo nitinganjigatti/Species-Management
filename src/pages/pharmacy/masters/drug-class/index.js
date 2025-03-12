@@ -11,10 +11,11 @@ import { DataGrid } from '@mui/x-data-grid'
 import IconButton from '@mui/material/IconButton'
 import Card from '@mui/material/Card'
 import Typography from '@mui/material/Typography'
+import { useTheme } from '@emotion/react'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
-import { Box } from '@mui/material'
+import { Box, Grid, TextField } from '@mui/material'
 
 import Router from 'next/router'
 import { debounce } from 'lodash'
@@ -32,8 +33,13 @@ import { AddButton } from 'src/components/Buttons'
 import { useContext } from 'react'
 import { AuthContext } from 'src/context/AuthContext'
 import Utility from 'src/utility'
+import CommonTable from 'src/views/table/data-grid/CommonTable'
+import { AddButtonContained } from 'src/components/ButtonContained'
+import RenderUtility from 'src/utility/render'
 
 const ListOfDrugs = () => {
+  const theme = useTheme()
+
   const [drugClass, setDrugClass] = useState([])
   const [loader, setLoader] = useState(false)
 
@@ -84,13 +90,13 @@ const ListOfDrugs = () => {
 
   const columns = [
     {
-      flex: 0.05,
+      flex: 0.2,
       Width: 40,
       field: 'id',
-      headerName: 'SL No',
+      headerName: 'S.NO',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {parseInt(params.row.sl_no)}
+          {parseInt(params.row.sl_no) + '.'}
         </Typography>
       )
     },
@@ -100,7 +106,15 @@ const ListOfDrugs = () => {
       field: 'label',
       headerName: 'NAME',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
           {params.row.label}
         </Typography>
       )
@@ -112,7 +126,15 @@ const ListOfDrugs = () => {
       field: 'active',
       headerName: 'STATUS',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
           {params.row.active === '1' ? 'Active' : 'Inactive'}
         </Typography>
       )
@@ -158,7 +180,6 @@ const ListOfDrugs = () => {
 
   const fetchTableData = useCallback(
     async (sort, q, column) => {
-      debugger
       try {
         setLoading(true)
 
@@ -197,7 +218,6 @@ const ListOfDrugs = () => {
 
   const searchTableData = useCallback(
     debounce(async (sort, q, column) => {
-      debugger
       setSearchValue(q)
       try {
         await fetchTableData(sort, q, column)
@@ -215,9 +235,11 @@ const ListOfDrugs = () => {
 
   const headerAction = (
     <div>
-      {/* {selectedPharmacy.type === 'central' &&
-        (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') && ( */}
-      {pharmacyRole && <AddButton title='Add Drug class' action={() => addEventSidebarOpen()} />}
+      {pharmacyRole && (
+        <Grid item>
+          <AddButtonContained title='Add Drug class' action={() => addEventSidebarOpen()} fullWidth='fullWidth' />
+        </Grid>
+      )}
     </div>
   )
 
@@ -276,8 +298,77 @@ const ListOfDrugs = () => {
           ) : (
             <>
               <Card>
-                <CardHeader title='Drug Class' action={headerAction} />
-                <DataGrid
+                <CardHeader
+                  sx={{
+                    display: 'flex',
+                    flexDirection: { xs: 'column', sm: 'row' },
+                    justifyContent: 'flex-start', // Align content to the left
+                    alignItems: 'flex-start', // Align items to the top left
+                    gap: { xs: 3, sm: 0 },
+                    '& .MuiCardHeader-action': {
+                      width: { xs: '100% ', sm: 'auto' }
+                    }
+                  }}
+                  title={RenderUtility.pageTitle('Drug Class')}
+                  action={headerAction}
+                />
+                <Grid
+                  item
+                  sx={{
+                    mx: { xs: 4 },
+                    ml: { md: 4 }
+                  }}
+                >
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+                      borderRadius: '8px',
+                      padding: '0 8px',
+                      height: '40px',
+                      width: {
+                        xs: '100%',
+                        sm: '250px'
+                      }
+                    }}
+                  >
+                    <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
+                    <TextField
+                      variant='outlined'
+                      placeholder='Search...'
+                      onChange={e => handleSearch(e.target.value)}
+                      fullWidth
+                      sx={{
+                        '& .MuiOutlinedInput-root': {
+                          border: 'none',
+                          padding: '0',
+                          '& fieldset': {
+                            border: 'none'
+                          }
+                        }
+                      }}
+                    />
+                  </Box>
+                </Grid>
+                <Grid
+                  sx={{
+                    mx: { xs: 4 }
+                  }}
+                >
+                  <CommonTable
+                    onRowClick={''}
+                    indexedRows={indexedRows}
+                    total={total}
+                    columns={columns}
+                    paginationModel={paginationModel}
+                    handleSortModel={handleSortModel}
+                    setPaginationModel={setPaginationModel}
+                    loading={loading}
+                    searchValue={searchValue}
+                  />
+                </Grid>
+                {/* <DataGrid
                   columnVisibilityModel={{
                     id: false
                   }}
@@ -307,7 +398,7 @@ const ListOfDrugs = () => {
                       onChange: event => handleSearch(event.target.value)
                     }
                   }}
-                />
+                /> */}
               </Card>
               <AddDrugClass
                 drawerWidth={400}

@@ -6,6 +6,8 @@ import { usePharmacyContext } from 'src/context/PharmacyContext'
 const AddPurchase = () => {
   const { selectedPharmacy } = usePharmacyContext()
 
+  // const {page}
+
   return (
     <>
       {selectedPharmacy.type === 'central' &&

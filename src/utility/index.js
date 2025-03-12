@@ -40,13 +40,19 @@ function formattedPresentDate() {
 }
 
 function formatDisplayDate(date) {
-  return moment(date).format('DD MMM YYYY')
+  const result = moment(date).format('DD MMM YYYY')
+  if (result === 'Invalid date') {
+    return 'NA'
+  } else {
+    return result
+  }
+
+  // return moment(date).format('DD MMM YYYY')
 }
 
 function errorMessageExtractorFromObject(errorMessages) {
   for (const key in errorMessages) {
     if (Object.prototype.hasOwnProperty.call(errorMessages, key)) {
-      debugger
       const errorMessage = errorMessages[key]
       toast.error(errorMessage)
 
@@ -95,6 +101,13 @@ function daysFromToday(inputDate) {
   }
 }
 
+function renderUserAvatar(image) {
+  if (image) {
+    return <CustomAvatar src={image} sx={{ mr: '16px', width: '40px', height: '40px' }} />
+  } else {
+    return <CustomAvatar sx={{ mr: '16px', width: '40px', height: '40px', fontSize: '.8rem' }}></CustomAvatar>
+  }
+}
 function convertUTCToLocal(date) {
   var stillUtc = moment.utc(date).toDate()
   var local = moment(stillUtc).local(true).format('YYYY-MM-DD HH:mm:ss')
@@ -121,12 +134,103 @@ function extractHoursAndMinutes(date) {
   return moment(date).format('hh:mm A')
 }
 
-function renderUserAvatar(image) {
-  if (image) {
-    return <CustomAvatar src={image} sx={{ mr: 3, width: 34, height: 34 }} />
+function formatNumberToDisplay(number) {
+  if (number !== null && !isNaN(number)) {
+    return Number.isInteger(number) ? number.toString() : number.toFixed(2)
   } else {
-    return <CustomAvatar sx={{ mr: 3, width: 34, height: 34, fontSize: '.8rem' }}></CustomAvatar>
+    return '0'
   }
+}
+
+function formatAmountToReadableDigit(value) {
+  // debugger
+
+  const num = parseFloat(value)
+  if (isNaN(num)) return 'Invalid number'
+
+  const roundedNum = num.toFixed(2) // Round to 2 decimal places
+
+  if (num > 999) {
+    return Number(roundedNum).toLocaleString('en-IN', {
+      style: 'currency',
+      currency: 'INR',
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    })
+  }
+
+  return `₹${Number(roundedNum)}`
+
+  // if (value) {
+  //   if (value > 10000) {
+  //     return `₹ ${value.toString().replace(/\B(?=(\d{2})+(?!\d))/g, ',')}.00`
+  //   }
+
+  //   return `₹ ${value}.00`
+
+  //   // return value.toLocaleString('de-DE')
+  // }
+
+  // return '0'
+}
+
+const downloadFileFromURL = async (fileUrl, title = 'report') => {
+  if (!fileUrl) {
+    console.error('No file URL provided')
+
+    return
+  }
+  try {
+    const fileExtension = fileUrl.split('/')
+    const fetchResponse = await fetch(fileUrl)
+    if (!fetchResponse.ok) {
+      throw new Error(`Failed to fetch file: ${fetchResponse.statusText}`)
+    }
+    const blob = await fetchResponse.blob()
+    const url = window.URL.createObjectURL(blob)
+    const fileName = `${fileExtension[fileExtension.length - 1]}`
+    const link = document.createElement('a')
+    link.href = url
+    link.download = fileName
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    window.URL.revokeObjectURL(url)
+  } catch (error) {
+    console.error('Download failed:', error)
+  }
+}
+
+const formatText = text => {
+  return text.replace(/_/g, ' ').replace(/\b\w/g, char => char.toUpperCase())
+}
+
+function toPascalSentenceCase(str) {
+  return str
+    .replace(/[-_]+/g, ' ')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .split(' ')
+    .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()) // Capitalize the first letter of each word
+    .join(' ')
+}
+
+function formatAmountCompactDisplay(value) {
+  // debugger
+
+  const num = parseFloat(value)
+  if (isNaN(num)) return 'Invalid number'
+
+  const roundedNum = num.toFixed(2) // Round to 2 decimal places
+
+  if (num > 999) {
+    return Number(roundedNum).toLocaleString('en-US', {
+      maximumFractionDigits: 2,
+      notation: 'compact',
+      compactDisplay: 'short'
+    })
+  }
+  return `${Number(roundedNum)}`
 }
 
 const Utility = {
@@ -143,7 +247,13 @@ const Utility = {
   convertUTCToLocalDate,
   convertUTCToLocaltime,
   extractHoursAndMinutes,
-  renderUserAvatar
+  formatNumberToDisplay,
+  formatAmountToReadableDigit,
+  downloadFileFromURL,
+  formatText,
+  toPascalSentenceCase,
+  renderUserAvatar,
+  formatAmountCompactDisplay
 }
 
 export default Utility

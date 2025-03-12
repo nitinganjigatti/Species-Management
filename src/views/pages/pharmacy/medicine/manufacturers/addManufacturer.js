@@ -75,7 +75,7 @@ const AddManufacturer = props => {
     async id => {
       try {
         const response = await getManufacturerById(id)
-        debugger
+
         if (response?.success) {
           reset({ id: response.data.id, manufacturer_name: response.data.label, active: response.data.active })
         } else {

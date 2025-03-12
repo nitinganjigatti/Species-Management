@@ -50,6 +50,8 @@ import { AddButton } from 'src/components/Buttons'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import ExistingPurchaseForm from 'src/views/pages/pharmacy/purchase/purchaseItemForm/ExistingPurchaseForm'
 import AddSupplier from 'src/pages/pharmacy/masters/supplier/add-supplier'
+import { AuthContext } from 'src/context/AuthContext'
+import { useContext } from 'react'
 
 const CalcWrapper = styled(Box)(({ theme }) => ({
   display: 'flex',
@@ -133,6 +135,7 @@ const AddExistingPurchase = () => {
   const { id, action } = router.query
 
   const { selectedPharmacy } = usePharmacyContext()
+  const authData = useContext(AuthContext)
 
   const schema = yup.object().shape({
     // product: yup.string().required('Product name is required'),
@@ -429,7 +432,7 @@ const AddExistingPurchase = () => {
 
   const getSuppliersLists = async () => {
     try {
-      const response = await getSuppliers()
+      const response = await getSuppliers({})
 
       if (response.data.data.list_items?.length > 0) {
         setSuppliers(response.data.data.list_items)
@@ -486,6 +489,12 @@ const AddExistingPurchase = () => {
           purchase_expiry_date: response.data.expiry_date
         }))
         setProductExpiryDate(response.data.expiry_date)
+      } else {
+        setNestedRowMedicine(prevState => ({
+          ...prevState,
+          purchase_expiry_date: ''
+        }))
+        setProductExpiryDate('')
       }
     } catch (error) {
       console.log('supplier error', error)
@@ -497,7 +506,6 @@ const AddExistingPurchase = () => {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   const searchMedicineData = useCallback(
     debounce(async searchText => {
-      debugger
       try {
         await fetchMedicineData(searchText)
       } catch (error) {
@@ -738,37 +746,41 @@ const AddExistingPurchase = () => {
 
   return (
     <Card>
-      <Grid
-        container
-        sm={12}
-        xs={12}
-        sx={{
-          display: 'flex',
-          justifyContent: 'space-between',
-          alignItems: 'center'
-        }}
-      >
-        <CardHeader
-          avatar={
-            <Icon
-              style={{ cursor: 'pointer' }}
-              onClick={() => {
-                router.back()
-                // Router.push('/pharmacy/purchase/purchase-list/')
-              }}
-              icon='ep:back'
-            />
-          }
-          title={id ? 'Edit Inventory List' : 'Add Existing Inventory'}
-        />
-
-        <AddButton
-          styles={{ marginRight: 20 }}
-          title='Add Supplier'
-          action={() => {
-            setSupplierDialog(true)
+      <Grid container spacing={6}>
+        <Grid
+          item
+          sm={12}
+          xs={12}
+          sx={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            mr: 5
           }}
-        />
+        >
+          <CardHeader
+            avatar={
+              <Icon
+                style={{ cursor: 'pointer' }}
+                onClick={() => {
+                  router.back()
+                  // Router.push('/pharmacy/purchase/purchase-list/')
+                }}
+                icon='ep:back'
+              />
+            }
+            title={id ? 'Edit Inventory List' : 'Add Existing Inventory'}
+          />
+          {authData?.userData?.roles?.settings?.add_pharmacy && (
+            <AddButton
+              styles={{ marginRight: 20 }}
+              title='Add Supplier'
+              action={() => {
+                setSupplierDialog(true)
+              }}
+            />
+          )}
+        </Grid>
       </Grid>
 
       <form autoComplete='off' onSubmit={handleSubmit(onSubmit)}>
@@ -824,6 +836,7 @@ const AddExistingPurchase = () => {
                         onChange(formatted)
                       }}
                       customInput={<CustomInput label='Purchase Date*' error={Boolean(errors.po_date)} />}
+                      isClearable={false}
                     />
                   )}
                 />

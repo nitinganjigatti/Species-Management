@@ -14,7 +14,8 @@ import {
   Select,
   TextField,
   Typography,
-  debounce
+  debounce,
+  InputAdornment
 } from '@mui/material'
 import { Controller, useForm } from 'react-hook-form'
 import Icon from 'src/@core/components/icon'
@@ -39,6 +40,8 @@ import { DatePicker } from '@mui/x-date-pickers'
 import { GetEggDetails } from 'src/lib/api/egg/egg'
 import moment from 'moment'
 import dayjs from 'dayjs'
+import EnclosureSelectionDialog from 'src/components/egg/EnclosureSelectionDialog'
+import AnimalParentCard from '../../../../utility/animalParentCard'
 
 const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }) => {
   const theme = useTheme()
@@ -58,6 +61,17 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
   const [sexingTypeList, setSexingTypeList] = useState([])
   const [lifeStageList, setLifeStageList] = useState([])
   const [contraceptionTypeList, setContraceptionTypeList] = useState([])
+  const [open, setOpen] = useState(false)
+
+  const [enclosureData, setEnclosureData] = useState({})
+
+  const handleClickOpen = () => {
+    setOpen(true)
+  }
+
+  const handleClose = () => {
+    setOpen(false)
+  }
 
   const getDetails = id => {
     try {
@@ -85,6 +99,7 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
     animalOwnershipTerms: '',
     accessionDate: null,
     collectionType: '',
+    enclosure_id: '',
     enclosure: '',
     sextype: '',
     mastersOrganization: '',
@@ -97,7 +112,8 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
     localIdentifier: '',
     sexingType: '',
     lifeStage: '',
-    contraceptionType: ''
+    contraceptionType: '',
+    enclosure_id: ''
   }
 
   const schema = yup.object().shape({
@@ -135,7 +151,8 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
 
           return true // Otherwise, always pass validation
         }
-      )
+      ),
+    enclosure_id: yup.string().required('Enclosure is required')
   })
 
   const {
@@ -146,6 +163,7 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
     clearErrors,
     watch,
     reset,
+    resetField,
     formState: { errors }
   } = useForm({
     defaultValues,
@@ -163,7 +181,7 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
         accession_type: values?.accessionType,
         accession_date: moment(values?.accessionDate).format('YYYY-MM-DD'),
         taxonomy_id: values?.species,
-        enclosure_id: values?.enclosure,
+        enclosure_id: values?.enclosure_id,
         sex: values?.sextype,
         collection_type: values?.collectionType,
         organization_id: values?.mastersOrganization,
@@ -181,8 +199,8 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
         description: '',
         form_type: 'single',
         zoo_id: '',
-        site_id: eggDetails?.enclosure_data[0]?.site_id,
-        section_id: eggDetails?.enclosure_data[0]?.section_id,
+        site_id: enclosureData?.site_id,
+        section_id: enclosureData?.section_id,
         egg_id: eggId
       }
 
@@ -308,6 +326,16 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
     []
   )
 
+  const getEnclosureDetails = params => {
+    setEnclosureData(params)
+    setValue('enclosure_id', params?.enclosure_id)
+  }
+
+  const closeEnclosure = () => {
+    setEnclosureData({})
+    resetField('enclosure_id', '')
+  }
+
   useEffect(() => {
     if (eggDetails) {
       if (Number(eggDetails?.enclosure_data?.length) === 1) {
@@ -326,11 +354,12 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
       const hatchedDate = dayjs(eggDetails.hatched_date)
       setValue('birthDate', hatchedDate)
     }
-    if (eggDetails?.parent_list?.mother_list?.length === 1 && eggDetails?.parent_list?.mother_list.length === 1) {
+    if (eggDetails?.parent_list?.mother_list?.length === 1 && eggDetails?.parent_list?.father_list.length === 1) {
       if (
         eggDetails?.parent_list?.mother_list[0].taxonomy_id === eggDetails?.parent_list?.father_list[0]?.taxonomy_id
       ) {
         setValue('species', eggDetails?.parent_list?.mother_list[0]?.taxonomy_id)
+        setDefaultSpecies(eggDetails?.parent_list?.mother_list[0])
       }
     }
 
@@ -392,36 +421,28 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
               <Box mb={35}>
                 <Card fullWidth sx={{ py: '20px', px: '16px' }}>
                   <FormControl fullWidth sx={{ mb: 4 }}>
-                    {/* <InputLabel id='species'>Species / Taxonomy</InputLabel> */}
                     <Controller
                       name='species'
                       control={control}
                       rules={{ required: true }}
                       render={({ field: { value, onChange } }) => (
-                        //   <Select
-                        //     name='species'
-                        //     value={value}
-                        //     label='Add Species'
-                        //     onChange={onChange}
-                        //     labelId='species'
-                        //     error={Boolean(errors?.species)}
-                        //   >
-                        //     {taxonomyList?.map(val => (
-                        //       <MenuItem key={val?.taxonomy_id} value={val?.taxonomy_id}>
-                        //         {val?.scientific_name}
-                        //       </MenuItem>
-                        //     ))}
-                        //   </Select>
                         <Autocomplete
+                          sx={{
+                            '& .MuiOutlinedInput-root': {
+                              borderColor: Boolean(errors.species) && 'red',
+                              color: 'rgba(76, 78, 100, 0.6)'
+                            },
+                            '& .MuiAutocomplete-input': {
+                              color: 'rgba(76, 78, 100, 0.87)'
+                            }
+                          }}
                           name='species'
                           value={defaultSpecies}
-                          // value={value}
                           disablePortal
                           placeholder='Species / Taxonomy'
-                          // disabled={isEdit || isPreFilled}
                           id='species'
                           options={taxonomyList?.length > 0 ? taxonomyList : []}
-                          getOptionLabel={option => option.scientific_name}
+                          getOptionLabel={option => `${option.common_name} (${option.scientific_name})`}
                           isOptionEqualToValue={(option, value) => option?.tsn === value?.tsn}
                           onChange={(e, val) => {
                             if (val === null) {
@@ -440,9 +461,14 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
                                 searchSpecies(e.target.value)
                               }}
                               {...params}
-                              label='Select Species *'
-                              placeholder='Search & Select'
+                              label='Species / Taxonomy *'
+                              placeholder='Select Species / Taxonomy'
                               error={Boolean(errors.species)}
+                              sx={{
+                                '& .MuiInputLabel-root': {
+                                  color: 'rgba(76, 78, 100, 0.6)'
+                                }
+                              }}
                             />
                           )}
                         />
@@ -452,7 +478,6 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
                       <FormHelperText sx={{ color: 'error.main' }}>{errors?.species?.message}</FormHelperText>
                     )}
                   </FormControl>
-
                   <FormControl fullWidth sx={{ mb: 4 }}>
                     <InputLabel id='accessionType'>Accession Type *</InputLabel>
                     <Controller
@@ -480,33 +505,35 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
                       <FormHelperText sx={{ color: 'error.main' }}>{errors?.accessionType?.message}</FormHelperText>
                     )}
                   </FormControl>
-                  <FormControl fullWidth sx={{ mb: 4 }}>
-                    <InputLabel id='institution'>Institution {Number(watch('accessionType')) === 4 && '*'}</InputLabel>
-                    <Controller
-                      name='institution'
-                      control={control}
-                      rules={{ required: true }}
-                      render={({ field: { value, onChange } }) => (
-                        <Select
-                          name='institution'
-                          value={value}
-                          label={`Accession Type ${Number(watch('accessionType')) === 4 && '*'}`}
-                          onChange={onChange}
-                          labelId='institution'
-                          error={Boolean(errors?.institution)}
-                        >
-                          {institutesList?.map(val => (
-                            <MenuItem key={val?.id} value={val?.id}>
-                              {val?.label}
-                            </MenuItem>
-                          ))}
-                        </Select>
+                  {Number(watch('accessionType')) === 2 && (
+                    <FormControl fullWidth sx={{ mb: 4 }}>
+                      <InputLabel id='institution'>Institution*</InputLabel>
+                      <Controller
+                        name='institution'
+                        control={control}
+                        rules={{ required: true }}
+                        render={({ field: { value, onChange } }) => (
+                          <Select
+                            name='institution'
+                            value={value}
+                            label={`Institution*`}
+                            onChange={onChange}
+                            labelId='institution'
+                            error={Boolean(errors?.institution)}
+                          >
+                            {institutesList?.map(val => (
+                              <MenuItem key={val?.id} value={val?.id}>
+                                {val?.label}
+                              </MenuItem>
+                            ))}
+                          </Select>
+                        )}
+                      />
+                      {errors?.institution && (
+                        <FormHelperText sx={{ color: 'error.main' }}>{errors?.institution?.message}</FormHelperText>
                       )}
-                    />
-                    {errors?.institution && (
-                      <FormHelperText sx={{ color: 'error.main' }}>{errors?.institution?.message}</FormHelperText>
-                    )}
-                  </FormControl>
+                    </FormControl>
+                  )}
                   <FormControl fullWidth sx={{ mb: 4 }}>
                     <InputLabel id='animalOwnershipTerms'>Ownership Term</InputLabel>
                     <Controller
@@ -517,7 +544,7 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
                         <Select
                           name='animalOwnershipTerms'
                           value={value}
-                          label='Animal Ownership Terms'
+                          label='Ownership Terms'
                           onChange={onChange}
                           labelId='animalOwnershipTerms'
                           error={Boolean(errors?.animalOwnershipTerms)}
@@ -536,7 +563,6 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
                       </FormHelperText>
                     )}
                   </FormControl>
-
                   <FormControl fullWidth sx={{ mb: 4 }}>
                     <Controller
                       name='accessionDate'
@@ -559,8 +585,65 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
                       <FormHelperText sx={{ color: 'error.main' }}>{errors?.accessionDate?.message}</FormHelperText>
                     )}
                   </FormControl>
-
-                  <FormControl fullWidth sx={{ mb: 4 }}>
+                  {Object.keys(enclosureData).length <= 0 && (
+                    <div style={{ zIndex: 2, position: 'relative' }}>
+                      <div
+                        onClick={() => setOpen(true)}
+                        style={{ position: 'absolute', width: '100%', height: '56px', zIndex: 1, cursor: 'pointer' }}
+                      ></div>
+                      <FormControl fullWidth sx={{ mb: 4 }}>
+                        <Controller
+                          name='enclosure_id'
+                          control={control}
+                          rules={{ required: true }}
+                          render={({ field: { value, onChange } }) => (
+                            <TextField
+                              value={value}
+                              label='Select Enclosure *'
+                              name='enclosure_id'
+                              error={Boolean(errors.enclosure_id)}
+                              onChange={onChange}
+                              placeholder=''
+                              onClick={() => setOpen(true)}
+                              disabled
+                              InputProps={{
+                                endAdornment: (
+                                  <InputAdornment position='end'>
+                                    <Icon
+                                      icon={'material-symbols:add-circle-outline'}
+                                      style={{ color: '#37BD69' }}
+                                    ></Icon>
+                                  </InputAdornment>
+                                )
+                              }}
+                              sx={{
+                                '& .MuiInputLabel-root': {
+                                  color: 'rgba(76, 78, 100, 0.6)'
+                                },
+                                '& .MuiOutlinedInput-root.Mui-disabled .MuiOutlinedInput-notchedOutline': {
+                                  borderColor: errors.enclosure_id ? 'red' : undefined
+                                }
+                              }}
+                            />
+                          )}
+                        />
+                        {errors.enclosure_id && (
+                          <FormHelperText sx={{ color: 'error.main' }}>{errors?.enclosure_id?.message}</FormHelperText>
+                        )}
+                      </FormControl>
+                    </div>
+                  )}
+                  {Object.keys(enclosureData).length > 0 && (
+                    <div style={{ marginBottom: '16px' }}>
+                      <EnclosureCard
+                        user_enclosure_name={enclosureData?.user_enclosure_name}
+                        section_name={enclosureData?.section_name}
+                        site_name={enclosureData?.site_name}
+                        closeEnclosureCard={() => closeEnclosure()}
+                      ></EnclosureCard>
+                    </div>
+                  )}
+                  {/* <FormControl fullWidth sx={{ mb: 4 }}>
                     <InputLabel id='enclosure'>Select Enclosure *</InputLabel>
                     <Controller
                       name='enclosure'
@@ -577,7 +660,7 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
                         >
                           {eggDetails?.enclosure_data?.map(val => (
                             <MenuItem key={val?.enclosure_id} value={val?.enclosure_id}>
-                              {/* {val?.user_enclosure_name} */}
+                              {val?.user_enclosure_name}
                               <Box
                                 sx={{
                                   backgroundColor: theme.palette.customColors.tableHeaderBg,
@@ -606,17 +689,17 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
                                   />
                                 </Box>
 
-                                <Box sx={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
-                                  <Typography
-                                    sx={{
-                                      color: theme.palette.customColors.OnSurfaceVariant,
-                                      fontSize: '16px',
-                                      fontWeight: '600',
-                                      lineHeight: '19.36px'
-                                    }}
-                                  >
-                                    Encl: {val?.user_enclosure_name ? val?.user_enclosure_name : '-'}
-                                  </Typography>
+                                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                                    <Typography
+                                      sx={{
+                                        color: theme.palette.customColors.OnSurfaceVariant,
+                                        fontSize: '16px',
+                                        fontWeight: '600',
+                                        lineHeight: '19.36px'
+                                      }}
+                                    >
+                                      Encl: {val?.user_enclosure_name ? val?.user_enclosure_name : '-'}
+                                    </Typography>
 
                                   <Typography
                                     sx={{
@@ -648,7 +731,7 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
                     {errors?.enclosure && (
                       <FormHelperText sx={{ color: 'error.main' }}>{errors?.enclosure?.message}</FormHelperText>
                     )}
-                  </FormControl>
+                  </FormControl> */}
                   <FormControl fullWidth sx={{ mb: 4 }}>
                     <InputLabel id='enclosure'>Sex Type *</InputLabel>
                     <Controller
@@ -718,7 +801,7 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
                         <Select
                           name='mastersOrganization'
                           value={value}
-                          label='Animal Ownership Terms'
+                          label='Select Organization'
                           onChange={onChange}
                           labelId='mastersOrganization'
                           error={Boolean(errors?.mastersOrganization)}
@@ -737,7 +820,6 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
                       </FormHelperText>
                     )}
                   </FormControl>
-
                   <FormControl fullWidth>
                     <Controller
                       name='birthDate'
@@ -759,9 +841,7 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
                       <FormHelperText sx={{ color: 'error.main' }}>{errors?.birthDate?.message}</FormHelperText>
                     )}
                   </FormControl>
-
                   <Typography sx={{ textAlign: 'center', fontSize: 20, fontWeight: 500, my: 4 }}>Or</Typography>
-
                   <Box sx={{ mb: 4, display: 'flex', flex: '1/2', gap: 4 }}>
                     <FormControl fullWidth>
                       <Controller
@@ -795,7 +875,7 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
                           <Select
                             name='type'
                             value={value}
-                            label='Animal Ownership Terms'
+                            label='Type'
                             onChange={onChange}
                             labelId='type'
                             error={Boolean(errors?.type)}
@@ -817,7 +897,6 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
                       )}
                     </FormControl>
                   </Box>
-
                   <FormControl fullWidth sx={{ mb: 4 }}>
                     <InputLabel id='localIdentifierType'>Local Identifier Type</InputLabel>
                     <Controller
@@ -828,7 +907,7 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
                         <Select
                           name='local IdentifierType'
                           value={value}
-                          label='Animal Ownership Terms'
+                          label='Local Identifier Type'
                           onChange={onChange}
                           labelId='localIdentifierType'
                           error={Boolean(errors?.localIdentifierType)}
@@ -847,27 +926,30 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
                       </FormHelperText>
                     )}
                   </FormControl>
-                  <FormControl sx={{ mb: 4 }} fullWidth>
-                    <Controller
-                      name='localIdentifier'
-                      control={control}
-                      rules={{ required: true }}
-                      render={({ field: { value, onChange } }) => (
-                        <TextField
-                          error={Boolean(errors?.comment)}
-                          value={value}
-                          label={`Local Identifier ${watch('localIdentifierType') != '' && '*'}`}
-                          name='localIdentifier'
-                          onChange={onChange}
-                          placeholder=''
-                        />
-                      )}
-                    />
-                    {errors.localIdentifier && (
-                      <FormHelperText sx={{ color: 'error.main' }}>{errors?.localIdentifier?.message}</FormHelperText>
-                    )}
-                  </FormControl>
+                  {/* {watch('localIdentifierType')!=''&& */}
 
+                  {watch('localIdentifierType') === '' ? null : (
+                    <FormControl sx={{ mb: 4 }} fullWidth>
+                      <Controller
+                        name='localIdentifier'
+                        control={control}
+                        rules={{ required: true }}
+                        render={({ field: { value, onChange } }) => (
+                          <TextField
+                            error={Boolean(errors?.comment)}
+                            value={value}
+                            label={`Local Identifier ${watch('localIdentifierType') === '' ? '' : '*'}`}
+                            name='localIdentifier'
+                            onChange={onChange}
+                            placeholder=''
+                          />
+                        )}
+                      />
+                      {errors.localIdentifier && (
+                        <FormHelperText sx={{ color: 'error.main' }}>{errors?.localIdentifier?.message}</FormHelperText>
+                      )}
+                    </FormControl>
+                  )}
                   <FormControl fullWidth sx={{ mb: 4 }}>
                     <InputLabel id='parentMother'>Parent Mother</InputLabel>
                     <Controller
@@ -878,107 +960,17 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
                         <Select
                           name='parentMother'
                           value={value}
-                          label='Animal Ownership Terms'
+                          label='Parent Mother'
                           onChange={onChange}
                           labelId='parentMother'
                           error={Boolean(errors?.parentMother)}
                         >
-                          {eggDetails?.parent_list?.mother_list?.map(val => (
-                            <MenuItem key={val?._id} value={val?._id}>
-                              {/* {val?.common_name} */}
-                              <Box
-                                sx={{
-                                  backgroundColor: theme.palette.customColors.tableHeaderBg,
-                                  display: 'flex',
-                                  padding: '12px',
-                                  width: '100%',
-                                  borderRadius: '10px',
-                                  gap: '12px'
-                                }}
-                              >
-                                <Box
-                                  sx={{
-                                    alignItems: 'center',
-                                    display: 'flex',
-                                    flexDirection: 'column',
-                                    gap: '10px'
-                                  }}
-                                >
-                                  <Box sx={{ height: '44px', width: '44px' }}>
-                                    <Avatar
-                                      variant='square'
-                                      alt='parent Image'
-                                      sx={{
-                                        height: '100%',
-                                        width: '100%',
-                                        borderRadius: '50%',
-                                        border: '1px',
-                                        '& .css-1pqm26d-MuiAvatar-img': {
-                                          objectFit: 'contain'
-                                        }
-                                      }}
-                                      src={val?.default_icon}
-                                      // src={
-                                      //   'https://buffer.com/library/content/images/size/w1200/2023/10/free-images.jpg'
-                                      // }
-                                    />
-                                  </Box>
-                                  <Typography
-                                    sx={{
-                                      height: '22px',
-                                      width: '22px',
-                                      textAlign: 'center',
-                                      backgroundColor: val?.sex === 'female' ? '#FFD3D3' : '#AFEFEB'
-                                    }}
-                                  >
-                                    {val?.sex === 'female' ? 'F' : 'M'}
-                                  </Typography>
-                                </Box>
-
-                                <Box sx={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                                  <Typography
-                                    sx={{
-                                      color: theme.palette.customColors.OnSurfaceVariant,
-                                      fontSize: '16px',
-                                      fontWeight: '600',
-                                      lineHeight: '19.36px'
-                                    }}
-                                  >
-                                    {val?.animal_id ? val?.animal_id : '-'}
-                                  </Typography>
-
-                                  <Typography
-                                    sx={{
-                                      color: theme.palette.customColors.OnSurfaceVariant,
-                                      fontSize: '14px',
-                                      fontWeight: '500',
-                                      lineHeight: '16.94px'
-                                    }}
-                                  >
-                                    {val?.common_name ? val?.common_name : '-'}
-                                  </Typography>
-                                  <Typography
-                                    sx={{
-                                      color: theme.palette.customColors.OnSurfaceVariant,
-                                      fontSize: '14px',
-                                      fontWeight: '400',
-                                      lineHeight: '16.94px'
-                                    }}
-                                  >
-                                    {val?.user_enclosure_name ? val?.user_enclosure_name : '-'}
-                                  </Typography>
-                                  <Typography
-                                    sx={{
-                                      color: theme.palette.customColors.OnSurfaceVariant,
-                                      fontSize: '14px',
-                                      fontWeight: '400',
-                                      lineHeight: '16.94px'
-                                    }}
-                                  >
-                                    {val?.section_name ? val?.section_name : '-'}
-                                  </Typography>
-                                </Box>
-                              </Box>
+                          {eggDetails?.parent_list?.mother_list?.map(item => (
+                            <MenuItem key={item?._id} value={item?.animal_id}>
+                              <AnimalParentCard
+                                data={item}
+                                backgroundColor={theme.palette.customColors.tableHeaderBg}
+                              />
                             </MenuItem>
                           ))}
                         </Select>
@@ -998,107 +990,17 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
                         <Select
                           name='parentFather'
                           value={value}
-                          label='Animal Ownership Terms'
+                          label='Parent Father'
                           onChange={onChange}
                           labelId='parentFather'
                           error={Boolean(errors?.parentFather)}
                         >
-                          {eggDetails?.parent_list?.father_list?.map(val => (
-                            <MenuItem key={val?._id} value={val?._id}>
-                              {/* {val?.common_name} */}
-                              <Box
-                                sx={{
-                                  backgroundColor: theme.palette.customColors.tableHeaderBg,
-                                  display: 'flex',
-                                  padding: '12px',
-                                  width: '100%',
-                                  borderRadius: '10px',
-                                  gap: '12px'
-                                }}
-                              >
-                                <Box
-                                  sx={{
-                                    alignItems: 'center',
-                                    display: 'flex',
-                                    flexDirection: 'column',
-                                    gap: '10px'
-                                  }}
-                                >
-                                  <Box sx={{ height: '44px', width: '44px' }}>
-                                    <Avatar
-                                      variant='square'
-                                      alt='parent Image'
-                                      sx={{
-                                        height: '100%',
-                                        width: '100%',
-                                        borderRadius: '50%',
-                                        border: '1px',
-                                        '& .css-1pqm26d-MuiAvatar-img': {
-                                          objectFit: 'contain'
-                                        }
-                                      }}
-                                      src={val?.default_icon}
-                                      // src={
-                                      //   'https://buffer.com/library/content/images/size/w1200/2023/10/free-images.jpg'
-                                      // }
-                                    />
-                                  </Box>
-                                  <Typography
-                                    sx={{
-                                      height: '22px',
-                                      width: '22px',
-                                      textAlign: 'center',
-                                      backgroundColor: val?.sex === 'female' ? '#FFD3D3' : '#AFEFEB'
-                                    }}
-                                  >
-                                    {val?.sex === 'female' ? 'F' : 'M'}
-                                  </Typography>
-                                </Box>
-
-                                <Box sx={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                                  <Typography
-                                    sx={{
-                                      color: theme.palette.customColors.OnSurfaceVariant,
-                                      fontSize: '16px',
-                                      fontWeight: '600',
-                                      lineHeight: '19.36px'
-                                    }}
-                                  >
-                                    {val?.animal_id ? val?.animal_id : '-'}
-                                  </Typography>
-
-                                  <Typography
-                                    sx={{
-                                      color: theme.palette.customColors.OnSurfaceVariant,
-                                      fontSize: '14px',
-                                      fontWeight: '500',
-                                      lineHeight: '16.94px'
-                                    }}
-                                  >
-                                    {val?.common_name ? val?.common_name : '-'}
-                                  </Typography>
-                                  <Typography
-                                    sx={{
-                                      color: theme.palette.customColors.OnSurfaceVariant,
-                                      fontSize: '14px',
-                                      fontWeight: '400',
-                                      lineHeight: '16.94px'
-                                    }}
-                                  >
-                                    {val?.user_enclosure_name ? val?.user_enclosure_name : '-'}
-                                  </Typography>
-                                  <Typography
-                                    sx={{
-                                      color: theme.palette.customColors.OnSurfaceVariant,
-                                      fontSize: '14px',
-                                      fontWeight: '400',
-                                      lineHeight: '16.94px'
-                                    }}
-                                  >
-                                    {val?.section_name ? val?.section_name : '-'}
-                                  </Typography>
-                                </Box>
-                              </Box>
+                          {eggDetails?.parent_list?.father_list?.map(item => (
+                            <MenuItem key={item?._id} value={item?.animal_id}>
+                              <AnimalParentCard
+                                data={item}
+                                backgroundColor={theme.palette.customColors.tableHeaderBg}
+                              />
                             </MenuItem>
                           ))}
                         </Select>
@@ -1108,7 +1010,6 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
                       <FormHelperText sx={{ color: 'error.main' }}>{errors?.parentFather?.message}</FormHelperText>
                     )}
                   </FormControl>
-
                   <FormControl fullWidth sx={{ mb: 4 }}>
                     <InputLabel id='sexingType'>Sexing Type</InputLabel>
                     <Controller
@@ -1218,9 +1119,90 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
               </LoadingButton>
             </Box>
           </form>
+          {open && (
+            <EnclosureSelectionDialog
+              open={open}
+              handleClose={() => handleClose()}
+              getEnclosureDetails={getEnclosureDetails}
+            ></EnclosureSelectionDialog>
+          )}
         </Box>
       </Drawer>
     </>
+  )
+}
+
+const EnclosureCard = ({ user_enclosure_name, section_name, site_name, enclosure_qr_image, closeEnclosureCard }) => {
+  const theme = useTheme()
+
+  return (
+    <Box
+      sx={{
+        backgroundColor: theme.palette.customColors.tableHeaderBg,
+        display: 'flex',
+        padding: '12px',
+        width: '100%',
+        alignItems: 'center',
+        borderRadius: '8px',
+        gap: '12px'
+      }}
+    >
+      <Box sx={{ height: '44px', width: '44px' }}>
+        <Avatar
+          variant='rounded'
+          alt='Medicine Image'
+          sx={{
+            height: '100%',
+            width: '100%',
+            borderRadius: '50%',
+            border: '1px',
+            '& .css-1pqm26d-MuiAvatar-img': {
+              objectFit: 'contain'
+            }
+          }}
+          src={enclosure_qr_image}
+        />
+      </Box>
+
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: '2px', flex: 1 }}>
+        <Typography
+          sx={{
+            color: theme.palette.customColors.OnSurfaceVariant,
+            fontSize: '16px',
+            fontWeight: '600',
+            lineHeight: '19.36px'
+          }}
+        >
+          Encl: {user_enclosure_name ? user_enclosure_name : '-'}
+        </Typography>
+
+        <Typography
+          sx={{
+            color: theme.palette.customColors.OnSurfaceVariant,
+            fontSize: '14px',
+            fontWeight: '400',
+            lineHeight: '16.94px'
+          }}
+        >
+          Sec: {section_name ? section_name : '-'}
+        </Typography>
+        <Typography
+          sx={{
+            color: theme.palette.customColors.OnSurfaceVariant,
+            fontSize: '14px',
+            fontWeight: '400',
+            lineHeight: '16.94px'
+          }}
+        >
+          Site: {site_name ? site_name : '-'}
+        </Typography>
+      </Box>
+      <Box sx={{}}>
+        <IconButton size='small' onClick={closeEnclosureCard} sx={{ color: 'text.primary' }}>
+          <Icon icon='mdi:close-circle-outline' fontSize={36} style={{ color: 'red' }} />
+        </IconButton>
+      </Box>
+    </Box>
   )
 }
 

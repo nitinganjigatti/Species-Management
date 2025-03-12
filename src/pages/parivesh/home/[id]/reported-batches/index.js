@@ -1,10 +1,18 @@
-// src/pages/RepotedBatch.js
-
-import React, { useCallback, useEffect, useState } from 'react'
-
+import React, { useCallback, useContext, useEffect, useState } from 'react'
 import moment from 'moment'
-import CustomTable from 'src/components/parivesh/CustomTable'
-import { Avatar, Button, Dialog, DialogContent, DialogTitle, IconButton, Typography, debounce } from '@mui/material'
+import {
+  Avatar,
+  Button,
+  Card,
+  CardHeader,
+  Dialog,
+  DialogContent,
+  DialogTitle,
+  Grid,
+  IconButton,
+  Typography,
+  debounce
+} from '@mui/material'
 import { Box } from '@mui/system'
 import Icon from 'src/@core/components/icon'
 import Router from 'next/router'
@@ -14,8 +22,16 @@ import { useTheme } from '@emotion/react'
 import { LoadingButton } from '@mui/lab'
 import { deleteBatchToOrg } from 'src/lib/api/parivesh/addBatch'
 import Toaster from 'src/components/Toaster'
+import FallbackSpinner from 'src/@core/components/spinner'
+import ConfirmationDialog from 'src/components/confirmation-dialog'
+import ConfirmationCheckBox from 'src/views/forms/form-elements/confirmationCheckBox'
+import { DataGrid } from '@mui/x-data-grid'
+import ServerSideToolbarWithFilter from 'src/views/table/data-grid/ServerSideToolbarWithFilter'
+import Utility from 'src/utility'
+import { AuthContext } from 'src/context/AuthContext'
+import Error404 from 'src/pages/404'
 
-const ReportedBatches = ({ searchParams, type }) => {
+const ReportedBatches = ({ type }) => {
   const theme = useTheme()
   const [rows, setRows] = useState([])
   const [total, setTotal] = useState(0)
@@ -30,6 +46,9 @@ const ReportedBatches = ({ searchParams, type }) => {
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [btnLoader, setBtnLoader] = useState(false)
   const [selectedId, setSelectedId] = useState(null)
+  const [loader, setLoader] = useState(false)
+  const authData = useContext(AuthContext)
+  const pariveshAccess = authData?.userData?.roles?.settings?.enable_parivesh
 
   const handleSortModel = newModel => {
     console.log(newModel, 'newModel')
@@ -188,22 +207,22 @@ const ReportedBatches = ({ searchParams, type }) => {
         </Typography>
       )
     },
-    {
-      flex: 0.4,
-      minWidth: 30,
-      field: 'registration_id',
-      headerName: 'REGISTRATION ID',
-      sortable: false,
-      renderCell: params => (
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>
-          <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-            <Typography noWrap variant='body2' sx={{ color: 'text.primary', fontSize: '14px', fontWeight: '500' }}>
-              {params.row.registration_id ? params.row.registration_id : 'NA'}
-            </Typography>
-          </Box>
-        </Box>
-      )
-    },
+    // {
+    //   flex: 0.4,
+    //   minWidth: 30,
+    //   field: 'registration_id',
+    //   headerName: 'REGISTRATION ID',
+    //   sortable: false,
+    //   renderCell: params => (
+    //     <Box sx={{ display: 'flex', alignItems: 'center' }}>
+    //       <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+    //         <Typography noWrap variant='body2' sx={{ color: 'text.primary', fontSize: '14px', fontWeight: '500' }}>
+    //           {params.row.registration_id ? params.row.registration_id : 'NA'}
+    //         </Typography>
+    //       </Box>
+    //     </Box>
+    //   )
+    // },
     {
       flex: 0.3,
       minWidth: 10,
@@ -294,7 +313,9 @@ const ReportedBatches = ({ searchParams, type }) => {
               {params.row.created_by_user?.user_name ? params.row.created_by_user?.user_name : '-'}
             </Typography>
             <Typography noWrap variant='body2' sx={{ color: '#44544a9c', fontSize: 12 }}>
-              {params.row.created_on ? moment.utc(params.row.created_on).format('DD MMMM YYYY') : '-'}
+              {params.row.created_on
+                ? Utility.formatDisplayDate(Utility.convertUTCToLocal(params.row.created_on))
+                : '-'}
             </Typography>
           </Box>
         </Box>
@@ -399,87 +420,155 @@ const ReportedBatches = ({ searchParams, type }) => {
     </>
   )
 
+  const tableData = () => {
+    return (
+      <>
+        {loader ? (
+          <FallbackSpinner />
+        ) : (
+          <Card sx={{ mt: 4 }}>
+            <CardHeader title={'To be Submitted'} action={headerAction} />
+            <ConfirmationDialog
+              // icon={'mdi:delete'}
+              image={'https://app.antzsystems.com/uploads/6515471031963.jpg'}
+              iconColor={'#ff3838'}
+              title={'Are you sure you want to delete this ingredient?'}
+              // description={`Since ingredient IND000123 isn't included in any recipe or diet, you can delete it.`}
+              formComponent={
+                <ConfirmationCheckBox
+                  title={'This ingredient is part of 15 recipes and 10 diets.'}
+                  label={'Deactivate this ingredient in all records'}
+                  description={
+                    'Deactivating this ingredient prevents its addition to new recipes or diets, but you can swap it with another ingredient.'
+                  }
+                  color={theme.palette.formContent?.tertiary}
+                  value={check}
+                  setValue={setCheck}
+                />
+              }
+              dialogBoxStatus={dialog}
+              onClose={onClose}
+              ConfirmationText={'Delete'}
+              confirmAction={onClose}
+            />
+            <DataGrid
+              disableColumnMenu
+              disableColumnFilter
+              disableColumnSorting
+              sx={{
+                '.MuiDataGrid-cell:focus': {
+                  outline: 'none'
+                },
+
+                '& .MuiDataGrid-row:hover': {
+                  cursor: 'pointer'
+                }
+              }}
+              columnVisibilityModel={{
+                sl_no: false
+              }}
+              hideFooterSelectedRowCount
+              disableColumnSelector={true}
+              autoHeight
+              pagination
+              rows={indexedRows === undefined ? [] : indexedRows}
+              columns={columns}
+              total={total}
+              sortingMode='server'
+              paginationMode='server'
+              pageSizeOptions={[7, 10, 25, 50]}
+              paginationModel={paginationModel}
+              onSortModelChange={handleSortModel}
+              slots={{ toolbar: ServerSideToolbarWithFilter }}
+              onPaginationModelChange={setPaginationModel}
+              loading={loading}
+              slotProps={{
+                baseButton: {
+                  variant: 'outlined'
+                },
+                toolbar: {
+                  value: searchValue,
+                  clearSearch: () => handleSearch(''),
+                  onChange: event => handleSearch(event.target.value)
+                }
+              }}
+              onCellClick={onCellClick}
+            />
+          </Card>
+        )}
+      </>
+    )
+  }
+
   return (
     <>
-      <CustomTable
-        rows={indexedRows === undefined ? [] : indexedRows}
-        columns={columns}
-        total={total}
-        loading={loading}
-        searchValue={searchValue}
-        paginationModel={paginationModel}
-        setPaginationModel={setPaginationModel}
-        handleSearch={handleSearch}
-        onCellClick={onCellClick}
-        dialog={dialog}
-        onClose={onClose}
-        check={check}
-        setCheck={setCheck}
-        headerAction={headerAction}
-        title={'Reported Batches'}
-        searchParams={searchParams}
-        handleSortModel={handleSortModel}
-      />
-      <Dialog open={isModalOpen} onClose={() => setIsModalOpen(false)}>
-        <DialogTitle>
-          <IconButton
-            aria-label='close'
-            onClick={() => setIsModalOpen(false)}
-            sx={{ top: 10, right: 10, position: 'absolute', color: 'grey.500' }}
-          >
-            <Icon icon='mdi:close' />
-          </IconButton>
-          <Box
-            sx={{
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '32px',
-
-              // padding: '40px',
-              alignItems: 'center'
-            }}
-          >
-            <Box
-              sx={{
-                padding: '16px',
-                borderRadius: '12px',
-                backgroundColor: theme.palette.customColors.mdAntzNeutral
-              }}
-            >
-              <Icon width='70px' height='70px' color={'#ff3838'} icon={'mdi:delete'} />
-            </Box>
-            <Box>
-              <Typography sx={{ fontWeight: 600, fontSize: 24, textAlign: 'center', mb: '12px' }}>
-                Are you sure you want to delete this batch?
-              </Typography>
-            </Box>
-            <Box sx={{ display: 'flex', justifyContent: 'space-evenly', width: '100%' }}>
-              <Button
-                loading={btnLoader}
+      {pariveshAccess ? (
+        <>
+          <Grid>{tableData()}</Grid>
+          <Dialog open={isModalOpen} onClose={() => setIsModalOpen(false)}>
+            <DialogTitle>
+              <IconButton
+                aria-label='close'
                 onClick={() => setIsModalOpen(false)}
-                variant='outlined'
+                sx={{ top: 10, right: 10, position: 'absolute', color: 'grey.500' }}
+              >
+                <Icon icon='mdi:close' />
+              </IconButton>
+              <Box
                 sx={{
-                  color: 'gray',
-                  width: '45%'
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '32px',
+
+                  // padding: '40px',
+                  alignItems: 'center'
                 }}
               >
-                Cancel
-              </Button>
+                <Box
+                  sx={{
+                    padding: '16px',
+                    borderRadius: '12px',
+                    backgroundColor: theme.palette.customColors.mdAntzNeutral
+                  }}
+                >
+                  <Icon width='70px' height='70px' color={'#ff3838'} icon={'mdi:delete'} />
+                </Box>
+                <Box>
+                  <Typography sx={{ fontWeight: 600, fontSize: 24, textAlign: 'center', mb: '12px' }}>
+                    Are you sure you want to delete this batch?
+                  </Typography>
+                </Box>
+                <Box sx={{ display: 'flex', justifyContent: 'space-evenly', width: '100%' }}>
+                  <Button
+                    loading={btnLoader}
+                    onClick={() => setIsModalOpen(false)}
+                    variant='outlined'
+                    sx={{
+                      color: 'gray',
+                      width: '45%'
+                    }}
+                  >
+                    Cancel
+                  </Button>
 
-              <LoadingButton
-                loading={btnLoader}
-                size='large'
-                variant='contained'
-                sx={{ width: '45%' }}
-                onClick={() => confirmDeleteAction()}
-              >
-                Delete
-              </LoadingButton>
-            </Box>
-          </Box>
-        </DialogTitle>
-        <DialogContent />
-      </Dialog>
+                  <LoadingButton
+                    loading={btnLoader}
+                    size='large'
+                    variant='contained'
+                    sx={{ width: '45%' }}
+                    onClick={() => confirmDeleteAction()}
+                  >
+                    Delete
+                  </LoadingButton>
+                </Box>
+              </Box>
+            </DialogTitle>
+            <DialogContent />
+          </Dialog>
+        </>
+      ) : (
+        <Error404></Error404>
+      )}
     </>
   )
 }

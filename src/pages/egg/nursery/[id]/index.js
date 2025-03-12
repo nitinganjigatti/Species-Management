@@ -1,5 +1,20 @@
 import { Icon } from '@iconify/react'
-import { Card, Box, Typography, debounce, Avatar, IconButton, Button, Breadcrumbs } from '@mui/material'
+import {
+  Card,
+  Box,
+  Typography,
+  debounce,
+  Avatar,
+  IconButton,
+  Button,
+  Breadcrumbs,
+  Grid,
+  TextField,
+  Autocomplete,
+  FormControl,
+  Switch,
+  FormControlLabel
+} from '@mui/material'
 import { DataGrid } from '@mui/x-data-grid'
 import moment from 'moment'
 import { useRouter } from 'next/router'
@@ -7,14 +22,19 @@ import React, { useCallback, useEffect, useState, useContext } from 'react'
 import AddIncubatorRoom from 'src/components/egg/AddIncubatorRoom'
 import DetailCard from 'src/components/egg/DetailCard'
 import { GetNurseryDetailsById, GetRoomByNursery } from 'src/lib/api/egg/nursery'
-import NurserySlider from 'src/views/pages/egg/nursery/NurserySlideSheet'
 import Router from 'next/router'
+import CustomChip from 'src/@core/components/mui/chip'
 import ServerSideToolbarWithFilter from 'src/views/table/data-grid/ServerSideToolbarWithFilter'
 import ErrorScreen from 'src/pages/Error'
 
 import { useTheme } from '@mui/material/styles'
 import Utility from 'src/utility'
 import { AuthContext } from 'src/context/AuthContext'
+import { hatcheryStatus } from 'src/lib/api/egg'
+import Toaster from 'src/components/Toaster'
+import StatusDialogBox from 'src/views/pages/egg/eggs/eggDetails/StatusDialogBox'
+import EditRedirectionDialog from 'src/views/pages/egg/eggs/eggDetails/EditRedirectionDialog'
+import NurseryAddComponent from 'src/components/egg/NurseryAddComponent'
 
 const NurseryDetails = () => {
   const theme = useTheme()
@@ -36,8 +56,18 @@ const NurseryDetails = () => {
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [isPreFilled, setIsPreFilled] = useState({})
 
+  const [defaultStatus, setDefaultStatus] = useState(null)
+
+  const [openStatusDialog, setOpenStatusDialog] = useState(false)
+  const [statusLoading, setStatusLoading] = useState(false)
+  const [incubatorNo, setIncubatorNo] = useState(0)
+
+  const [openRedirectionDialog, setOpenRedirectionDialog] = useState(false)
+  const [editMessage, setEditMessage] = useState('')
+
   const router = useRouter()
   const { id } = router.query
+  const [active, setActive] = useState(false)
 
   const authData = useContext(AuthContext)
   const egg_nursery_permission = authData?.userData?.permission?.user_settings?.add_nursery_permisson
@@ -46,28 +76,74 @@ const NurseryDetails = () => {
   // console.log('rows >>', rows)
   // console.log('Paginate>', paginationModel)
 
-  const fetchNurseryById = async () => {
-    const res = await GetNurseryDetailsById(id)
-    setNurseryData({
-      list: {
-        'Nursery Name': res?.data?.nursery_name,
-        Room: res?.data?.no_of_rooms,
-        Site: res?.data?.site_name,
-        Incubator: res?.data?.no_of_incubators,
-        Eggs: res?.data?.no_of_eggs
-      },
-      Avatar: {
-        profile_Pic: res?.data?.user_profile_pic,
-        user_Name: res?.data?.user_full_name,
-        create_at: res?.data?.created_at,
-        site_id: res?.data?.site_id
-      }
-    })
-    setIsPreFilled(res?.data)
-    setEditNurseryId(id)
-    setEditName(res.data?.nursery_name)
-    setEditSite(res?.data?.site_id)
-    setEditSiteName(res?.data?.site_name)
+  const EditRedirectionFunc = () => {
+    setOpenDrawer(true)
+    setOpenRedirectionDialog(false)
+  }
+
+  const hatcheryStatusFunc = () => {
+    setStatusLoading(true)
+    try {
+      hatcheryStatus({
+        ref_type: 'nursery',
+        ref_id: id,
+        status: active ? 'deactivate' : 'activate'
+      }).then(response => {
+        if (response.success) {
+          Toaster({ type: 'success', message: response.message })
+          setOpenStatusDialog(false)
+          setStatusLoading(false)
+          setActive(!active)
+          fetchNurseryById()
+        } else {
+          Toaster({ type: 'error', message: response.message })
+          setEditMessage(response?.message)
+          setOpenRedirectionDialog(true)
+          fetchNurseryById()
+          setOpenStatusDialog(false)
+          setStatusLoading(false)
+        }
+      })
+    } catch (error) {
+      setOpenStatusDialog(false)
+      setStatusLoading(false)
+      Toaster({ type: 'error', message: response.message })
+    }
+  }
+
+  const fetchNurseryById = () => {
+    try {
+      GetNurseryDetailsById(id).then(res => {
+        if (res?.success) {
+          setIncubatorNo(res?.data?.no_of_incubators)
+          setNurseryData({
+            list: {
+              'Nursery Name': res?.data?.nursery_name,
+              Room: res?.data?.no_of_rooms,
+              Site: res?.data?.site_name,
+              Incubator: res?.data?.no_of_incubators,
+              Eggs: res?.data?.no_of_eggs
+            },
+            Avatar: {
+              profile_Pic: res?.data?.user_profile_pic,
+              user_Name: res?.data?.user_full_name,
+              create_at: res?.data?.created_at,
+              site_id: res?.data?.site_id
+            }
+          })
+          setActive(Boolean(Number(res?.data?.active)))
+          setIsPreFilled(res?.data)
+          setEditNurseryId(id)
+          setEditName(res.data?.nursery_name)
+          setEditSite(res?.data?.site_id)
+          setEditSiteName(res?.data?.site_name)
+        } else {
+          Toaster({ message: res.message, type: 'error' })
+        }
+      })
+    } catch (error) {
+      Toaster({ message: res.message, type: 'error' })
+    }
   }
 
   useEffect(() => {
@@ -87,7 +163,7 @@ const NurseryDetails = () => {
   }
 
   const fetchTableData = useCallback(
-    async (q, column) => {
+    async (q, column, status) => {
       try {
         setLoading(true)
 
@@ -95,6 +171,7 @@ const NurseryDetails = () => {
           sort,
           search: q || '',
           column,
+          status,
           page: paginationModel.page + 1,
           limit: paginationModel.pageSize
         }
@@ -117,15 +194,15 @@ const NurseryDetails = () => {
 
   useEffect(() => {
     if (egg_nursery_permission || egg_collection_permission) {
-      fetchTableData(searchValue, sortColumn)
+      fetchTableData(searchValue, sortColumn, defaultStatus?.key)
     }
   }, [fetchTableData])
 
   const searchTableData = useCallback(
-    debounce(async (sort, q, column) => {
+    debounce(async (q, column, status) => {
       setSearchValue(q)
       try {
-        await fetchTableData(q, column)
+        await fetchTableData(q, column, status)
       } catch (error) {
         console.error(error)
       }
@@ -133,9 +210,9 @@ const NurseryDetails = () => {
     []
   )
 
-  const handleSearch = value => {
+  const handleSearch = (value, status) => {
     setSearchValue(value)
-    searchTableData(sort, value, sortColumn)
+    searchTableData(value, sortColumn, status)
   }
 
   const handleSortModel = newModel => {
@@ -273,6 +350,30 @@ const NurseryDetails = () => {
       )
     },
     {
+      flex: 0.1,
+      minWidth: 20,
+      sortable: false,
+      align: 'left',
+      field: 'active',
+      headerName: 'Status',
+      renderCell: params => (
+        <CustomChip
+          skin='light'
+          size='small'
+          label={params.row?.active === '1' ? 'Active' : 'InActive'}
+          color={params.row?.active === '1' ? 'success' : 'error'}
+          sx={{
+            height: 20,
+            fontWeight: 600,
+            borderRadius: '5px',
+            fontSize: '0.875rem',
+            textTransform: 'capitalize',
+            '& .MuiChip-label': { mt: -0.25 }
+          }}
+        />
+      )
+    },
+    {
       flex: 0.2,
       minWidth: 10,
       field: 'ADDED BY',
@@ -395,10 +496,22 @@ const NurseryDetails = () => {
                 </Typography>
               </Box>
 
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
+              <Box sx={{ display: 'flex', alignItems: 'center' }}>
                 {' '}
                 {egg_nursery_permission && (
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '16px' }}>
+                    <FormControlLabel
+                      control={
+                        <Switch
+                          checked={active}
+                          onChange={e => {
+                            setOpenStatusDialog(true)
+                          }}
+                        />
+                      }
+                      labelPlacement='start'
+                      label='Active'
+                    />
                     <IconButton size='small' sx={{ mr: 4 }} aria-label='Edit' onClick={() => setOpenDrawer(true)}>
                       <Icon
                         icon='mdi:pencil-outline'
@@ -422,6 +535,91 @@ const NurseryDetails = () => {
                 DetailsListData={nurseryData}
                 setOpenDrawer={setOpenDrawer}
               />{' '}
+              <Grid sx={{ ml: -6, mb: 6, mt: 0 }} container columns={15} spacing={6}>
+                <Grid item xs={3}>
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      border: '1px solid #C3CEC7',
+                      borderRadius: '4px',
+                      padding: '0 8px',
+                      height: '40px'
+                    }}
+                  >
+                    <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.OnSurfaceVariant} />
+                    <TextField
+                      variant='outlined'
+                      placeholder='Search...'
+                      InputProps={{
+                        disableUnderline: true
+                      }}
+                      onChange={e => handleSearch(e.target.value, defaultStatus?.key)}
+                      sx={{
+                        '& .MuiOutlinedInput-root': {
+                          border: 'none',
+                          padding: '0',
+                          '& fieldset': {
+                            border: 'none'
+                          }
+                        }
+                      }}
+                    />
+                  </Box>
+                </Grid>
+
+                <Grid item xs={3}>
+                  <FormControl fullWidth>
+                    <Autocomplete
+                      name='status'
+                      value={defaultStatus}
+                      disablePortal
+                      id='status'
+                      options={[
+                        { label: 'Active', key: 'active' },
+                        { label: 'Inactive', key: 'inactive' }
+                      ]}
+                      getOptionLabel={option => option.label}
+                      isOptionEqualToValue={(option, value) => option?.key === value?.key}
+                      onChange={(e, val) => {
+                        if (val === null) {
+                          setDefaultStatus(null)
+                          fetchTableData(searchValue, sortColumn, '')
+                        } else {
+                          setDefaultStatus(val)
+                          fetchTableData(searchValue, sortColumn, val?.key)
+                        }
+                      }}
+                      renderInput={params => (
+                        <TextField
+                          sx={{
+                            backgroundColor: '#fff',
+                            borderColor: '1px solid #C3CEC7',
+                            width: '100%',
+                            '& .MuiOutlinedInput-root': {
+                              height: 40,
+                              borderRadius: '4px'
+                            },
+                            '& .MuiInputLabel-root': {
+                              top: -7
+                            },
+                            '& input': {
+                              position: 'relative',
+                              top: -7
+                            }
+                          }}
+                          onChange={e => {
+                            searchNursery(e.target.value)
+                          }}
+                          {...params}
+                          label='Status'
+                          placeholder='Search & Select'
+                        />
+                      )}
+                    />
+                  </FormControl>
+                </Grid>
+              </Grid>
             </Box>
             <DataGrid
               sx={{
@@ -445,7 +643,7 @@ const NurseryDetails = () => {
               disableMultipleColumnsSorting={true}
               columns={columns}
               sortingMode='server'
-              slots={{ toolbar: ServerSideToolbarWithFilter }}
+              // slots={{ toolbar: ServerSideToolbarWithFilter }}
               paginationMode='server'
               pageSizeOptions={[7, 10, 25, 50]}
               paginationModel={paginationModel}
@@ -453,20 +651,20 @@ const NurseryDetails = () => {
               onPaginationModelChange={setPaginationModel}
               rowHeight={64}
               loading={loading}
-              slotProps={{
-                baseButton: {
-                  variant: 'outlined'
-                },
-                toolbar: {
-                  value: searchValue,
-                  clearSearch: () => handleSearch(''),
-                  onChange: event => handleSearch(event.target.value)
-                }
-              }}
+              // slotProps={{
+              //   baseButton: {
+              //     variant: 'outlined'
+              //   },
+              //   toolbar: {
+              //     value: searchValue,
+              //     clearSearch: () => handleSearch(''),
+              //     onChange: event => handleSearch(event.target.value)
+              //   }
+              // }}
               onCellClick={onCellClick}
             />
             {openDrawer && (
-              <NurserySlider
+              <NurseryAddComponent
                 openDrawer={openDrawer}
                 setOpenDrawer={setOpenDrawer}
                 editName={editName}
@@ -483,6 +681,22 @@ const NurseryDetails = () => {
               isOpen={isOpen}
               setIsOpen={setIsOpen}
               isPreFilled={isPreFilled}
+            />
+            <StatusDialogBox
+              active={active}
+              refType={'nursery'}
+              openStatusDialog={openStatusDialog}
+              setOpenStatusDialog={setOpenStatusDialog}
+              elements={incubatorNo}
+              statusLoading={statusLoading}
+              hatcheryStatusFunc={hatcheryStatusFunc}
+            />
+            <EditRedirectionDialog
+              refType={'nursery'}
+              message={editMessage}
+              openRedirectionDialog={openRedirectionDialog}
+              setOpenRedirectionDialog={setOpenRedirectionDialog}
+              EditRedirectionFunc={EditRedirectionFunc}
             />
           </Card>
         </>

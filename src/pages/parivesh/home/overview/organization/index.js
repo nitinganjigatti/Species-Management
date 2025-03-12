@@ -27,6 +27,7 @@ import { AuthContext } from 'src/context/AuthContext'
 import Toaster from 'src/components/Toaster'
 import { usePariveshContext } from 'src/context/PariveshContext'
 import { getBatchListSpecies } from 'src/lib/api/parivesh/batchListSpecies'
+import Utility from 'src/utility'
 
 const Organization = () => {
   const theme = useTheme()
@@ -36,7 +37,7 @@ const Organization = () => {
   const [rows, setRows] = useState([])
   const { selectedParivesh } = usePariveshContext()
   const [searchValue, setSearchValue] = useState('')
-  const [sortColumn, setSortColumn] = useState('registration_id')
+  const [sortColumn, setSortColumn] = useState('accepted_on')
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [loading, setLoading] = useState(false)
 
@@ -185,10 +186,14 @@ const Organization = () => {
       renderCell: params => (
         <Box sx={{ display: 'flex', flexDirection: 'column' }}>
           <Typography variant='body2' sx={{ color: 'text.primary' }}>
-            {params.row.accepted_on ? moment.utc(params.row.accepted_on).format('D MMMM YYYY') : '-'}
+            {params.row.accepted_on
+              ? Utility.formatDisplayDate(Utility.convertUTCToLocal(params.row.accepted_on))
+              : '-'}
           </Typography>
           <Typography variant='body2' sx={{ color: '#839D8D', fontSize: '12px' }}>
-            {params.row.accepted_on ? moment.utc(params.row.accepted_on).local().format('hh:mm A') : '-'}
+            {params.row.accepted_on
+              ? Utility.extractHoursAndMinutes(Utility.convertUTCToLocal(params.row.accepted_on))
+              : '-'}
           </Typography>
         </Box>
       )
@@ -229,7 +234,9 @@ const Organization = () => {
             </Typography>
             <Typography noWrap variant='body2' sx={{ color: '#44544a9c', fontSize: 12 }}>
               {console.log(params.row, 'params.row')}
-              {params.row.submitted_on ? moment.utc(params.row.submitted_on).format('DD MMMM YYYY') : '-'}
+              {params.row.submitted_on
+                ? Utility.formatDisplayDate(Utility.convertUTCToLocal(params.row.submitted_on))
+                : '-'}
             </Typography>
           </Box>
         </Box>

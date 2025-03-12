@@ -24,6 +24,9 @@ import toast from 'react-hot-toast'
 import { getEntryList } from 'src/lib/api/parivesh/entryList'
 import { usePariveshContext } from 'src/context/PariveshContext'
 import { getOrgCountList } from 'src/lib/api/parivesh/organizationCount'
+import ImageLightbox from 'src/components/parivesh/ImageLightbox'
+import Utility from 'src/utility'
+import Error404 from 'src/pages/404'
 // import { getSpeciesListByOrg } from 'src/lib/api/parivesh'
 
 const SpeciesDetails = () => {
@@ -47,13 +50,15 @@ const SpeciesDetails = () => {
   const [editParams, setEditParams] = useState(editParamsInitialState)
   const [organizationCountList, setOrganizationCountList] = useState([])
   const [speciesDetails, setSpeciesDetails] = useState({})
+  const [orgName, setOrgName] = useState([])
 
-  const { selectedParivesh } = usePariveshContext()
+  // const { selectedParivesh } = usePariveshContext()
 
   const authData = useContext(AuthContext)
+  const pariveshAccess = authData?.userData?.roles?.settings?.enable_parivesh
 
   const router = useRouter()
-  const { id, tsn_id, tsn_relation } = router.query
+  const { id, org_id, tsn_id, tsn_relation } = router.query
 
   // console.log(tsn_relation, id, tsn, router, 'router')
 
@@ -94,12 +99,10 @@ const SpeciesDetails = () => {
       sortable: false,
       renderCell: params => (
         <>
-          <Avatar
-            variant='square'
-            src={params.row.species_image}
-            alt={'species image'}
-            sx={{ height: 'auto', padding: '2px' }}
-          />
+          <div onClick={event => event.stopPropagation()}>
+            <ImageLightbox images={params.row.species_image} />
+            {/* <Avatar variant='square' src={params.row.species_image} alt={''} sx={{ height: 'auto', padding: '2px' }} /> */}
+          </div>
 
           {/* <Tooltip title={params.row.image_type} placement='right'>
             <Typography
@@ -207,6 +210,7 @@ const SpeciesDetails = () => {
     //     </Box>
     //   )
     // },
+
     {
       flex: 0.3,
       minWidth: 30,
@@ -216,10 +220,14 @@ const SpeciesDetails = () => {
       renderCell: params => (
         <Box sx={{ display: 'flex', flexDirection: 'column' }}>
           <Typography variant='body2' sx={{ color: 'text.primary' }}>
-            {params.row.transaction_date ? moment.utc(params.row.transaction_date).format('D MMMM YYYY') : '-'}
+            {params.row.transaction_date
+              ? Utility.formatDisplayDate(Utility.convertUTCToLocal(params.row.transaction_date))
+              : '-'}
           </Typography>
           <Typography variant='body2' sx={{ color: '#839D8D', fontSize: '12px' }}>
-            {params.row.transaction_date ? moment.utc(params.row.transaction_date).local().format('hh:mm A') : '-'}
+            {params.row.transaction_date
+              ? Utility.extractHoursAndMinutes(Utility.convertUTCToLocal(params.row.transaction_date))
+              : '-'}
           </Typography>
         </Box>
         // <Typography variant='body2' sx={{ color: 'text.primary' }}>
@@ -248,6 +256,8 @@ const SpeciesDetails = () => {
     setOpenDrawer(true)
   }
   const handleSidebarClose = () => {
+    setEditParams({ id: null, name: null, active: null })
+    setResetForm(true)
     setOpenDrawer(false)
   }
 
@@ -267,7 +277,7 @@ const SpeciesDetails = () => {
           page: paginationModel.page + 1,
           sortBy: sort,
           sortColumn,
-          org_id: selectedParivesh?.id,
+          org_id: org_id,
           limit: paginationModel.pageSize
         }
 
@@ -295,50 +305,56 @@ const SpeciesDetails = () => {
   }, [fetchTableData, status])
 
   const fetchOrgCountData = useCallback(
-    async (q, id) => {
+    async id => {
       try {
         const params = {
-          q,
-          id
+          org_id: id,
+          tsn_relation: tsn_relation,
+          tsn_id: tsn_id
         }
 
         await getOrgCountList({ params: params }).then(res => {
-          const filteredData = res.data.filter(org => org.org_id === selectedParivesh?.id)
+          console.log(res?.data, 'respon')
+
+          const filteredData = res.data.filter(org => org.org_id === org_id)
+          console.log(filteredData, 'respon123')
+          setOrgName(filteredData)
 
           const transformedData = filteredData.map(org => ({
             organization_name: org.organization_name,
             org_id: org.org_id,
             species_image: org?.species_image,
+            cover_image: org?.cover_image,
             approvedAccordionData: {
               title: 'Approved by Parivesh',
               data: [
                 {
-                  value: org.approved_count_data.total_animal,
+                  value: org?.approved_count_data?.total_animal,
                   label: 'ANIMAL RECORDS ',
                   color: '#FFFFFF',
                   borderColor: '#FFFFFF'
                 },
                 {
-                  value: org.approved_count_data.net_animal,
+                  value: org.approved_count_data?.net_animal,
                   label: 'NET ANIMALS ',
                   color: '#FFFFFF',
                   borderColor: '#FFFFFF'
                 },
-                { value: org.approved_count_data.male_count, label: 'MALE', color: '#00AFD6', borderColor: '#00AFD6' },
+                { value: org.approved_count_data?.male_count, label: 'MALE', color: '#00AFD6', borderColor: '#00AFD6' },
                 {
-                  value: org.approved_count_data.female_count,
+                  value: org.approved_count_data?.female_count,
                   label: 'FEMALE',
                   color: '#FFD3D3',
                   borderColor: '#FFD3D3'
                 },
                 {
-                  value: org.approved_count_data.other_count,
+                  value: org.approved_count_data?.other_count,
                   label: 'OTHERS',
                   color: '#FFFFFF',
                   borderColor: '#FFFFFF'
                 },
                 {
-                  value: org.approved_count_data.species_count,
+                  value: org.approved_count_data?.species_count,
                   label: 'TOTAL SPECIES',
                   color: '#E4B819',
                   borderColor: '#E4B819'
@@ -350,13 +366,13 @@ const SpeciesDetails = () => {
                   content: 'Births',
                   bgColor: '#37BD69',
                   items: [
-                    { value: org.approved_count_data.possession_counts.births.male, bgColor: '#00AFD6' },
-                    { value: org.approved_count_data.possession_counts.births.female, bgColor: '#FFD3D3' },
-                    { value: org.approved_count_data.possession_counts.births.other, bgColor: '#FFFFFF' }
+                    { value: org.approved_count_data?.possession_counts.births.male, bgColor: '#00AFD6' },
+                    { value: org.approved_count_data?.possession_counts.births.female, bgColor: '#FFD3D3' },
+                    { value: org.approved_count_data?.possession_counts.births.other, bgColor: '#FFFFFF' }
                   ]
                 },
                 {
-                  value: org.approved_count_data.possession_counts.deaths.total,
+                  value: org.approved_count_data?.possession_counts.deaths.total,
                   content: 'Deaths',
                   bgColor: '#E93353',
                   items: [
@@ -570,16 +586,17 @@ const SpeciesDetails = () => {
         console.log(e)
       }
     },
-    [selectedParivesh?.id]
+    [org_id]
   )
 
   useEffect(() => {
-    fetchOrgCountData(selectedParivesh?.id)
+    fetchOrgCountData(org_id, tsn_id, tsn_relation)
   }, [fetchOrgCountData])
 
   const handleSubmitData = async data => {
     const payload = {
       ...data,
+      org_id: org_id,
       tsn_id: tsn_id,
       tsn_relation: tsn_relation
     }
@@ -742,75 +759,121 @@ const SpeciesDetails = () => {
     )
   }
 
+  console.log(organizationCountList, 'jjj')
+
   return (
     <>
-      <Box sx={{ mb: 6 }}>
-        <Breadcrumbs aria-label='breadcrumb'>
-          <Typography sx={{ cursor: 'pointer' }} color='inherit' onClick={() => Router.push('/parivesh/species')}>
-            Species
-          </Typography>
-          <Typography color='text.primary'>{speciesDetails?.common_name}</Typography>
-        </Breadcrumbs>
-      </Box>
-      <Box>
-        <Card>
-          {organizationCountList.length > 0 &&
-            organizationCountList.map((org, inx) => {
+      {pariveshAccess ? (
+        <>
+          <Box sx={{ mb: 6 }}>
+            <Breadcrumbs aria-label='breadcrumb'>
+              <Typography sx={{ cursor: 'pointer' }} color='inherit' onClick={() => Router.push('/parivesh/species')}>
+                Species
+              </Typography>
+              <Typography color='text.primary'>{speciesDetails?.common_name}</Typography>
+            </Breadcrumbs>
+          </Box>
+          {!organizationCountList.length > 0 &&
+            orgName?.map((name, indx) => {
               return (
-                <CardContent sx={{ display: 'flex', flexDirection: 'column' }}>
-                  <CustomAccordion
-                    title='Approved by Parivesh'
-                    summaryIcon='ion:checkmark'
-                    data={org?.approvedAccordionData?.data}
-                    cards={org?.approvedAccordionData?.cards}
-                    backgroundImage={org?.species_image !== '' && orgData?.species_image}
-                    isOrganization
-                    organizationName={org.organization_name}
-                  />
+                <Card>
                   <Box
                     sx={{
-                      mt: 3
+                      display: 'flex',
+                      alignItems: 'center',
+                      background: '#00ABAB1A',
+                      padding: '0.8rem',
+                      borderRadius: '0.5rem',
+                      alignContent: 'center',
+                      cursor: 'pointer',
+                      color: '#00AFD6',
+                      m: 3
                     }}
                   >
-                    <CustomAccordion
-                      title='To be submitted'
-                      summaryIcon='mdi:arrow-top-right'
-                      data={org?.yetToSubmitAccordionData?.data}
-                      cards={org?.yetToSubmitAccordionData?.cards}
-                      backgroundImage={org?.species_image !== '' && orgData?.species_image}
-                    />
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        background: '#AFEFEB ',
+                        padding: '8px',
+                        borderRadius: '6px'
+                      }}
+                    >
+                      <Icon icon='material-symbols:corporate-fare' />
+                    </Box>
+
+                    <Typography sx={{ color: '#00AFD6', marginLeft: '0.5rem', fontWeight: 'bold' }} variant='subtitle2'>
+                      {name?.organization_name}
+                    </Typography>
                   </Box>
-                  <Box
-                    sx={{
-                      mt: 3
-                    }}
-                  >
-                    <CustomAccordion
-                      title='Submitted'
-                      summaryIcon='mdi:checkbox-marked'
-                      data={org?.submittedAccordionData?.data}
-                      cards={org?.submittedAccordionData?.cards}
-                      backgroundImage={org?.species_image !== '' && orgData?.species_image}
-                    />
-                  </Box>
-                </CardContent>
+                </Card>
               )
             })}
-        </Card>
-      </Box>
 
-      <Grid>{tableData()}</Grid>
+          <Box>
+            <Card>
+              {organizationCountList.length > 0 &&
+                organizationCountList.map((org, inx) => {
+                  console.log(org, 'pppppqwer')
+                  return (
+                    <CardContent sx={{ display: 'flex', flexDirection: 'column' }}>
+                      <CustomAccordion
+                        title='Approved by Parivesh'
+                        summaryIcon='ion:checkmark'
+                        data={org?.approvedAccordionData?.data}
+                        cards={org?.approvedAccordionData?.cards}
+                        backgroundImage={org?.cover_image}
+                        isOrganization
+                        organizationName={org.organization_name}
+                      />
+                      <Box
+                        sx={{
+                          mt: 3
+                        }}
+                      >
+                        <CustomAccordion
+                          title='To be submitted'
+                          summaryIcon='mdi:arrow-top-right'
+                          data={org?.yetToSubmitAccordionData?.data}
+                          cards={org?.yetToSubmitAccordionData?.cards}
+                          backgroundImage={org?.cover_image}
+                        />
+                      </Box>
+                      <Box
+                        sx={{
+                          mt: 3
+                        }}
+                      >
+                        <CustomAccordion
+                          title='Submitted'
+                          summaryIcon='mdi:checkbox-marked'
+                          data={org?.submittedAccordionData?.data}
+                          cards={org?.submittedAccordionData?.cards}
+                          backgroundImage={org?.cover_image}
+                        />
+                      </Box>
+                    </CardContent>
+                  )
+                })}
+            </Card>
+          </Box>
 
-      <AddSpeciesNewEntry
-        drawerWidth={400}
-        addEventSidebarOpen={openDrawer}
-        handleSidebarClose={handleSidebarClose}
-        handleSubmitData={handleSubmitData}
-        resetForm={resetForm}
-        submitLoader={submitLoader}
-        editParams={editParams}
-        speciesDetails={speciesDetails}
-      />
+          <Grid>{tableData()}</Grid>
+
+          <AddSpeciesNewEntry
+            drawerWidth={400}
+            addEventSidebarOpen={openDrawer}
+            handleSidebarClose={handleSidebarClose}
+            handleSubmitData={handleSubmitData}
+            resetForm={resetForm}
+            submitLoader={submitLoader}
+            editParams={editParams}
+            speciesDetails={speciesDetails}
+          />
+        </>
+      ) : (
+        <Error404></Error404>
+      )}
     </>
   )
 }

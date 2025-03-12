@@ -1,10 +1,12 @@
-import React, { useCallback, useEffect, useState } from 'react'
+import React, { useCallback, useContext, useEffect, useState } from 'react'
 import { Box } from '@mui/system'
 import { Card, CardContent } from '@mui/material'
 import CustomAccordion from 'src/components/parivesh/CustomAccordion'
 import Organization from './organization'
 import { usePariveshContext } from 'src/context/PariveshContext'
 import { getOrgCountList } from 'src/lib/api/parivesh/organizationCount'
+import { AuthContext } from 'src/context/AuthContext'
+import Error404 from 'src/pages/404'
 
 const data = [
   {
@@ -91,6 +93,8 @@ const Overview = () => {
   const { selectedParivesh, setSelectedParivesh, organizationList } = usePariveshContext()
   const [organizationDetails, setOrganizationDetails] = useState([])
   const [organizationCountList, setOrganizationCountList] = useState([])
+  const authData = useContext(AuthContext)
+  const pariveshAccess = authData?.userData?.roles?.settings?.enable_parivesh
 
   useEffect(() => {
     if (selectedParivesh?.id) {
@@ -116,6 +120,7 @@ const Overview = () => {
             organization_name: org.organization_name,
             org_id: org.org_id,
             species_image: org?.species_image,
+            cover_image: org?.cover_image,
             approvedAccordionData: {
               title: 'Approved by Parivesh',
               data: [
@@ -388,86 +393,92 @@ const Overview = () => {
 
   return (
     <>
-      <Box>
-        {organizationDetails.map((organization, index) => {
-          // Find orgData that matches the current organization id
-          const orgData = organizationCountList.find(org => org.org_id === organization.id)
-          // If orgData is found, render CustomAccordion with fetched data
-          if (orgData) {
-            return (
-              <Card key={index} sx={{ mb: 6 }}>
-                <CardContent sx={{ display: 'flex', flexDirection: 'column' }}>
-                  <CustomAccordion
-                    title={orgData.approvedAccordionData.title}
-                    data={orgData.approvedAccordionData.data}
-                    cards={orgData.approvedAccordionData.cards}
-                    backgroundImage={orgData?.species_image !== '' && orgData?.species_image}
-                    // backgroundImage={
-                    //   orgData?.species_image !== ''
-                    //     ? orgData?.species_image
-                    //     : 'https://images.pexels.com/photos/1599452/pexels-photo-1599452.jpeg'
-                    // }
-                    isOrganization
-                    organizationName={orgData.organization_name}
-                    showDetails
-                    summaryIcon='ion:checkmark'
-                    handleBoxClick={() => handleBoxClick(organization)}
-                  />
-                  <Box sx={{ mt: 3 }}>
-                    <CustomAccordion
-                      title={orgData.yetToSubmitAccordionData.title}
-                      data={orgData.yetToSubmitAccordionData.data}
-                      cards={orgData.yetToSubmitAccordionData.cards}
-                      backgroundImage={orgData?.species_image !== '' && orgData?.species_image}
-                      summaryIcon='mdi:arrow-top-right'
-                    />
-                  </Box>
-                  {selectedParivesh?.id && (
-                    <Box sx={{ mt: 3 }}>
+      {pariveshAccess ? (
+        <>
+          <Box>
+            {organizationDetails.map((organization, index) => {
+              // Find orgData that matches the current organization id
+              const orgData = organizationCountList.find(org => org.org_id === organization.id)
+              // If orgData is found, render CustomAccordion with fetched data
+              if (orgData) {
+                return (
+                  <Card key={index} sx={{ mb: 6 }}>
+                    <CardContent sx={{ display: 'flex', flexDirection: 'column' }}>
                       <CustomAccordion
-                        title={orgData.submittedAccordionData.title}
-                        data={orgData.submittedAccordionData.data}
-                        cards={orgData.submittedAccordionData.cards}
-                        backgroundImage={orgData?.species_image !== '' && orgData?.species_image}
-                        summaryIcon='mdi:checkbox-marked'
+                        title={orgData.approvedAccordionData.title}
+                        data={orgData.approvedAccordionData.data}
+                        cards={orgData.approvedAccordionData.cards}
+                        backgroundImage={orgData?.cover_image !== '' && orgData?.cover_image}
+                        // backgroundImage={
+                        //   orgData?.species_image !== ''
+                        //     ? orgData?.species_image
+                        //     : 'https://images.pexels.com/photos/1599452/pexels-photo-1599452.jpeg'
+                        // }
+                        isOrganization
+                        organizationName={orgData.organization_name}
+                        showDetails
+                        summaryIcon='ion:checkmark'
+                        handleBoxClick={() => handleBoxClick(organization)}
                       />
-                    </Box>
-                  )}
-                </CardContent>
-              </Card>
-            )
-          } else {
-            // If orgData is not found, render default or empty data
-            return (
-              <Card key={index} sx={{ mb: 6 }}>
-                <CardContent sx={{ display: 'flex', flexDirection: 'column' }}>
-                  <CustomAccordion
-                    title='Approved by Parivesh'
-                    data={data}
-                    cards={cards}
-                    backgroundImage=''
-                    isOrganization
-                    organizationName={organization.organization_name}
-                    showDetails
-                    handleBoxClick={() => handleBoxClick(organization)}
-                    summaryIcon='ion:checkmark'
-                  />
-                  <Box sx={{ mt: 3 }}>
-                    <CustomAccordion
-                      title='To be submitted'
-                      data={data}
-                      cards={cards}
-                      backgroundImage=''
-                      summaryIcon='mdi:arrow-top-right'
-                    />
-                  </Box>
-                </CardContent>
-              </Card>
-            )
-          }
-        })}
-      </Box>
-      {selectedParivesh?.zoo_id && <Organization />}
+                      <Box sx={{ mt: 3 }}>
+                        <CustomAccordion
+                          title={orgData.yetToSubmitAccordionData.title}
+                          data={orgData.yetToSubmitAccordionData.data}
+                          cards={orgData.yetToSubmitAccordionData.cards}
+                          backgroundImage={orgData?.cover_image !== '' && orgData?.cover_image}
+                          summaryIcon='mdi:arrow-top-right'
+                        />
+                      </Box>
+                      {selectedParivesh?.id && (
+                        <Box sx={{ mt: 3 }}>
+                          <CustomAccordion
+                            title={orgData.submittedAccordionData.title}
+                            data={orgData.submittedAccordionData.data}
+                            cards={orgData.submittedAccordionData.cards}
+                            backgroundImage={orgData?.cover_image !== '' && orgData?.cover_image}
+                            summaryIcon='mdi:checkbox-marked'
+                          />
+                        </Box>
+                      )}
+                    </CardContent>
+                  </Card>
+                )
+              } else {
+                // If orgData is not found, render default or empty data
+                return (
+                  <Card key={index} sx={{ mb: 6 }}>
+                    <CardContent sx={{ display: 'flex', flexDirection: 'column' }}>
+                      <CustomAccordion
+                        title='Approved by Parivesh'
+                        data={data}
+                        cards={cards}
+                        backgroundImage=''
+                        isOrganization
+                        organizationName={organization.organization_name}
+                        showDetails
+                        handleBoxClick={() => handleBoxClick(organization)}
+                        summaryIcon='ion:checkmark'
+                      />
+                      <Box sx={{ mt: 3 }}>
+                        <CustomAccordion
+                          title='To be submitted'
+                          data={data}
+                          cards={cards}
+                          backgroundImage=''
+                          summaryIcon='mdi:arrow-top-right'
+                        />
+                      </Box>
+                    </CardContent>
+                  </Card>
+                )
+              }
+            })}
+          </Box>
+          {selectedParivesh?.zoo_id && <Organization />}
+        </>
+      ) : (
+        <Error404></Error404>
+      )}
     </>
   )
 }

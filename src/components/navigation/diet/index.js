@@ -62,6 +62,7 @@ const composeDietNavigation = () => {
   }
 
   settingsParent.children.push(preparationTypes, cutSize)
+
   const dietNavigation = [
     pharmacyTitle,
     speciesDietList,

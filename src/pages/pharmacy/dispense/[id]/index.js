@@ -8,11 +8,12 @@ import moment from 'moment'
 import { DataGrid } from '@mui/x-data-grid'
 import Error404 from 'src/pages/404'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
+import Utility from 'src/utility'
 
 const IndividualDispense = () => {
   const [dispenseData, setDispenseData] = useState({})
   const router = useRouter()
-  const { id } = router.query
+  const { id, searchTerm } = router.query
   const { selectedPharmacy } = usePharmacyContext()
 
   useEffect(() => {
@@ -151,7 +152,7 @@ const IndividualDispense = () => {
                     <Icon
                       style={{ cursor: 'pointer' }}
                       onClick={() => {
-                        Router?.push('/pharmacy/dispense')
+                        Router.back()
                       }}
                       icon='ep:back'
                     />
@@ -191,7 +192,11 @@ const IndividualDispense = () => {
                       </Box>
                       <Box sx={{ display: 'flex', my: 0 }}>
                         <Typography sx={{ fontWeight: 600 }}>Created At : </Typography>
-                        <Typography>&nbsp;{moment(dispenseData?.created_at).format('D MMM YYYY - h:mmA')}</Typography>
+                        <Typography>
+                          &nbsp;
+                          {Utility.formatDisplayDate(Utility.convertUTCToLocal(dispenseData?.created_at))} -{' '}
+                          {Utility.extractHoursAndMinutes(Utility.convertUTCToLocal(dispenseData?.created_at))}
+                        </Typography>
                       </Box>
                       <Box sx={{ display: 'flex' }}>
                         <Typography sx={{ fontWeight: 600 }}>From Store : </Typography>
