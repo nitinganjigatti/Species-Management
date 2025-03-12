@@ -14,67 +14,115 @@ import {
 } from '@mui/material'
 import CalendarTodayIcon from '@mui/icons-material/CalendarToday'
 import ChevronRightIcon from '@mui/icons-material/ChevronRight'
-import { format, subDays, subMonths } from 'date-fns'
+import { addDays, addMonths, format, subDays, subMonths } from 'date-fns'
 import CloseIcon from '@mui/icons-material/Close'
 import IconButton from '@mui/material/IconButton'
 import { useTheme } from '@emotion/react'
 import { useRouter } from 'next/router'
 import CustomDateRangePicker from './CustomDateRangePicker'
 
-const CommonDateRangePickers = ({ onChange, filterDates }) => {
+const CommonDateRangePickers = ({ onChange, filterDates, showFutureDates = false }) => {
   const theme = useTheme()
   const router = useRouter()
   const today = new Date()
   const [anchorEl, setAnchorEl] = useState(null)
   const [customDialogOpen, setCustomDialogOpen] = useState(false)
-  const [selectedRange, setSelectedRange] = useState(`All time - Upto - ${format(today, 'dd MMM, yyyy')}`)
+
+  const initialSelectedRange = showFutureDates
+    ? `All time - From - ${format(today, 'dd MMM, yyyy')}`
+    : `All time - Upto - ${format(today, 'dd MMM, yyyy')}`
+  const [selectedRange, setSelectedRange] = useState(initialSelectedRange)
   const [tempRange, setTempRange] = useState({})
   const open = Boolean(anchorEl)
 
-  const dateRanges = [
-    {
-      label: 'All time',
-      subLabel: `Upto - ${format(today, 'dd MMM, yyyy')}`,
-      startDate: today,
-      endDate: today
-    },
-    {
-      label: 'Today',
-      subLabel: format(today, 'dd MMM, yyyy'),
-      startDate: today,
-      endDate: today
-    },
-    {
-      label: 'Yesterday',
-      subLabel: format(subDays(today, 1), 'dd MMM, yyyy'),
-      startDate: subDays(today, 1),
-      endDate: subDays(today, 1)
-    },
-    {
-      label: 'Last 7 days',
-      subLabel: `${format(subDays(today, 7), 'dd MMM, yyyy')} - ${format(today, 'dd MMM, yyyy')}`,
-      startDate: subDays(today, 7),
-      endDate: today
-    },
-    {
-      label: 'Last 1 month',
-      subLabel: `${format(subMonths(today, 1), 'dd MMM, yyyy')} - ${format(today, 'dd MMM, yyyy')}`,
-      startDate: subMonths(today, 1), // Start date is 1 month ago from today
-      endDate: today // End date is today
-    },
+  const getDateRanges = showFutureDates => {
+    const today = new Date()
 
-    {
-      label: 'Last 6 months',
-      subLabel: `${format(subMonths(today, 6), 'dd MMM, yyyy')} - ${format(today, 'dd MMM, yyyy')}`,
-      startDate: subMonths(today, 6),
-      endDate: today
-    },
-    {
-      label: 'Custom range',
-      subLabel: 'Select a custom range',
-      hasChevron: true
-    }
-  ]
+    const futureDateRanges = [
+      {
+        label: 'Tomorrow',
+        subLabel: format(addDays(today, 1), 'dd MMM, yyyy'),
+        startDate: addDays(today, 1),
+        endDate: addDays(today, 1)
+      },
+      {
+        label: 'Next 7 days',
+        subLabel: `${format(today, 'dd MMM, yyyy')} - ${format(addDays(today, 7), 'dd MMM, yyyy')}`,
+        startDate: today,
+        endDate: addDays(today, 7)
+      },
+      {
+        label: 'Next 1 month',
+        subLabel: `${format(today, 'dd MMM, yyyy')} - ${format(addMonths(today, 1), 'dd MMM, yyyy')}`,
+        startDate: today,
+        endDate: addMonths(today, 1)
+      },
+      {
+        label: 'Next 6 months',
+        subLabel: `${format(today, 'dd MMM, yyyy')} - ${format(addMonths(today, 6), 'dd MMM, yyyy')}`,
+        startDate: today,
+        endDate: addMonths(today, 6)
+      }
+    ]
+
+    const pastDateRanges = [
+      {
+        label: 'Yesterday',
+        subLabel: format(subDays(today, 1), 'dd MMM, yyyy'),
+        startDate: subDays(today, 1),
+        endDate: subDays(today, 1)
+      },
+      {
+        label: 'Last 7 days',
+        subLabel: `${format(subDays(today, 7), 'dd MMM, yyyy')} - ${format(today, 'dd MMM, yyyy')}`,
+        startDate: subDays(today, 7),
+        endDate: today
+      },
+      {
+        label: 'Last 1 month',
+        subLabel: `${format(subMonths(today, 1), 'dd MMM, yyyy')} - ${format(today, 'dd MMM, yyyy')}`,
+        startDate: subMonths(today, 1),
+        endDate: today
+      },
+      {
+        label: 'Last 6 months',
+        subLabel: `${format(subMonths(today, 6), 'dd MMM, yyyy')} - ${format(today, 'dd MMM, yyyy')}`,
+        startDate: subMonths(today, 6),
+        endDate: today
+      }
+    ]
+
+    const allTimeLabel = showFutureDates
+      ? `From - ${format(today, 'dd MMM, yyyy')}`
+      : `Upto - ${format(today, 'dd MMM, yyyy')}`
+
+    return [
+      {
+        label: 'All time',
+        subLabel: allTimeLabel,
+        startDate: null,
+        endDate: null
+      },
+      {
+        label: 'Today',
+        subLabel: format(today, 'dd MMM, yyyy'),
+        startDate: today,
+        endDate: today
+      },
+      ...(showFutureDates ? futureDateRanges : pastDateRanges),
+      {
+        label: 'Custom range',
+        subLabel: 'Select a custom range',
+        hasChevron: true
+      }
+    ]
+  }
+
+  const [dateRanges, setDateRanges] = useState(getDateRanges(showFutureDates))
+
+  useEffect(() => {
+    setDateRanges(getDateRanges(showFutureDates))
+  }, [showFutureDates])
 
   useEffect(() => {
     if (!filterDates) return
@@ -82,7 +130,10 @@ const CommonDateRangePickers = ({ onChange, filterDates }) => {
 
     // Handle All time case (no dates)
     if (!startDateProp && !endDateProp) {
-      setSelectedRange(`All time - Upto - ${format(today, 'dd MMM, yyyy')}`)
+      const allTimeLabel = showFutureDates
+        ? `All time - From - ${format(today, 'dd MMM, yyyy')}`
+        : `All time - Upto - ${format(today, 'dd MMM, yyyy')}`
+      setSelectedRange(` ${allTimeLabel}`)
 
       return
     }
@@ -101,6 +152,8 @@ const CommonDateRangePickers = ({ onChange, filterDates }) => {
         const rangeEnd = range.endDate
 
         if (
+          rangeStart &&
+          rangeEnd &&
           startDate.toDateString() === rangeStart.toDateString() &&
           endDate.toDateString() === rangeEnd.toDateString()
         ) {
@@ -130,7 +183,7 @@ const CommonDateRangePickers = ({ onChange, filterDates }) => {
         }
       }
     }
-  }, [filterDates])
+  }, [filterDates, showFutureDates])
 
   // useEffect(() => {
   //   const { from_date, to_date } = router.query
@@ -181,7 +234,11 @@ const CommonDateRangePickers = ({ onChange, filterDates }) => {
     if (range.label === 'Custom range') {
       setCustomDialogOpen(true)
     } else if (range.label === 'All time') {
-      setSelectedRange(`${range.label} - ${range.subLabel}`)
+      const allTimeLabel = showFutureDates
+        ? `All time - From - ${format(today, 'dd MMM, yyyy')}`
+        : `All time - Upto - ${format(today, 'dd MMM, yyyy')}`
+
+      setSelectedRange(`All time - ${allTimeLabel}`)
       onChange?.('', '')
     } else if (range.startDate && range.endDate) {
       setSelectedRange(`${range.label} - ${range.subLabel}`)
@@ -421,8 +478,9 @@ const CommonDateRangePickers = ({ onChange, filterDates }) => {
               shouldCloseOnSelect={false}
               onChange={handleDateChange}
               open={true}
-              disableFutureDates={today}
+              disableFutureDates={!showFutureDates ? today : null}
               allowSingleDate={true}
+              selectFutureDates={showFutureDates}
             />
           </Box>
         </DialogContent>

@@ -28,7 +28,6 @@ import ShipmentFilterDrawer from 'src/views/pages/pharmacy/shipment-report/Shipm
 const ShipmentReport = () => {
   const router = useRouter()
   const theme = useTheme()
-  const { selectedPharmacy } = usePharmacyContext()
 
   const updateUrlParams = params => {
     const query = { ...router.query, ...params }
@@ -66,13 +65,13 @@ const ShipmentReport = () => {
   }
 
   const fetchTableData = useCallback(
-    async ({ sort, q, column, filteredData }) => {
+    async ({ sort, q, column, filteredData, page, limit }) => {
       try {
         setLoading(true)
 
         const params = {
-          page: paginationModel?.page + 1,
-          limit: paginationModel?.pageSize,
+          page: page + 1,
+          limit: limit,
 
           sort: sort,
           q: q,
@@ -108,7 +107,14 @@ const ShipmentReport = () => {
   )
 
   useEffect(() => {
-    fetchTableData({ sort: sort, q: searchValue, column: sortColumn, filteredData: filteredData })
+    fetchTableData({
+      sort: sort,
+      q: searchValue,
+      column: sortColumn,
+      filteredData: filteredData,
+      page: paginationModel?.page,
+      limit: paginationModel?.pageSize
+    })
     updateUrlParams({
       sort,
       q: searchValue,
@@ -525,7 +531,13 @@ const ShipmentReport = () => {
     if (newModel.length) {
       setSort(newModel[0].sort)
       setSortColumn(newModel[0].field)
-      fetchTableData({ sort: newModel[0].sort, q: searchValue, column: newModel[0].field })
+      fetchTableData({
+        sort: newModel[0].sort,
+        q: searchValue,
+        column: newModel[0].field,
+        page: paginationModel?.page,
+        limit: paginationModel?.pageSize
+      })
       updateUrlParams({
         sort: newModel[0].sort,
         q: searchValue,
@@ -538,17 +550,17 @@ const ShipmentReport = () => {
   }
 
   const searchTableData = useCallback(
-    debounce(async (sort, q, column) => {
+    debounce(async (sort, q, column, page, limit) => {
       setSearchValue(q)
-      setPaginationModel({ page: 0, pageSize: 10 })
+
       try {
-        await fetchTableData({ sort, q, column })
+        await fetchTableData({ sort, q, column, page, limit })
         updateUrlParams({
-          sort: newModel[0].sort,
+          sort: sort,
           q: q,
-          column: newModel[0].field,
-          page: paginationModel?.page,
-          limit: paginationModel?.pageSize
+          column: column,
+          page: page,
+          limit: limit
         })
       } catch (error) {
         console.error(error)
@@ -559,7 +571,9 @@ const ShipmentReport = () => {
 
   const handleSearch = value => {
     setSearchValue(value)
-    searchTableData(sort, value, sortColumn)
+
+    // setPaginationModel({ page: 0, pageSize: paginationModel?.pageSize })
+    searchTableData(sort, value, sortColumn, paginationModel?.page, paginationModel?.pageSize)
   }
 
   const handleExport = async () => {
@@ -570,8 +584,8 @@ const ShipmentReport = () => {
         sort: sort,
         q: searchValue,
         column: sortColumn,
-        page: 1, // Fetch all pages
-        limit: total, // Set limit to total number of items
+        page: 1,
+        limit: total,
         ...(filterDates?.startDate !== '' && { from_date: filterDates?.startDate }),
         ...(filterDates?.endDate !== '' && { to_date: filterDates?.endDate }),
 

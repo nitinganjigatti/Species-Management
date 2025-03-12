@@ -3,7 +3,7 @@ import { Box, TextField } from '@mui/material'
 import DatePickerWrapper from 'src/@core/styles/libs/react-datepicker'
 import format from 'date-fns/format'
 import DatePicker from 'react-datepicker'
-import { subMonths } from 'date-fns'
+import { subMonths, addMonths } from 'date-fns'
 
 const CustomDateRangePicker = ({
   label = 'Select Date Range',
@@ -14,8 +14,9 @@ const CustomDateRangePicker = ({
   initialEndDate = null,
   onChange = () => {},
   open,
-  disableFutureDates,
-  allowSingleDate = false
+  disableFutureDates = null,
+  allowSingleDate = false,
+  selectFutureDates = false
 }) => {
   // ** States
   const [startDate, setStartDate] = useState(initialStartDate)
@@ -38,7 +39,13 @@ const CustomDateRangePicker = ({
 
   // Calculate the initial month to display
   const currentDate = new Date()
-  const initialMonth = subMonths(currentDate, monthsShown - 1)
+
+  const initialMonth = selectFutureDates
+    ? addMonths(currentDate, monthsShown - 1)
+    : subMonths(currentDate, monthsShown - 1)
+
+  const minDate = selectFutureDates ? currentDate : null
+  const maxDate = disableFutureDates
 
   return (
     <DatePickerWrapper>
@@ -54,13 +61,14 @@ const CustomDateRangePicker = ({
           onChange={handleOnChange}
           popperPlacement={popperPlacement}
           customInput={<CustomInput label={label} start={startDate} end={endDate} />}
-          open={open ? open : false}
-          maxDate={disableFutureDates ? disableFutureDates : null}
+          open={open}
+          minDate={minDate}
+          maxDate={maxDate}
           showDisabledMonthNavigation
           // Set the initial month to show previous month(s)
           openToDate={monthsShown ? initialMonth : null}
           // Reverse the month order
-          showPreviousMonths={false}
+          showPreviousMonths={!selectFutureDates}
           style={{ border: '1px solid red' }}
         />
       </Box>
