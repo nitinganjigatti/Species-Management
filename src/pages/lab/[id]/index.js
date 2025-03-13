@@ -125,6 +125,7 @@ const RequestDetails = () => {
   const [requestById, setRequestById] = useState()
 
   const [permissions, setPermissions] = useState(null)
+  console.log('permissions', permissions)
 
   // const storedData = JSON.parse(localStorage.getItem('userDetails'))
 
@@ -419,6 +420,13 @@ const RequestDetails = () => {
           ['awaiting_sample', 'sample_received', 'sample_rejected', 'inprogress'].includes(item.id)
         )
 
+  const shouldShowDropdown =
+    permissions?.allow_full_access ||
+    (permissions?.perform_tests && permissions?.allow_upload_reports) ||
+    (permissions?.perform_tests && !permissions?.allow_upload_reports && params.row.status !== 'completed')
+
+  console.log('shouldShowDropdown', shouldShowDropdown)
+
   const columns = [
     // {
     //   flex: 0.05,
@@ -466,7 +474,7 @@ const RequestDetails = () => {
       renderCell: params => (
         <>
           <Box sx={{ minWidth: 260 }}>
-            {permissions?.allow_full_access || permissions?.perform_tests ? (
+            {shouldShowDropdown ? (
               <FormControl fullWidth variant='outlined'>
                 <Select
                   size='small'
@@ -712,6 +720,29 @@ const RequestDetails = () => {
                         </Tooltip>
                       )}
                     </>
+
+                    <Tooltip title='Add Comment' arrow placement='top-start'>
+                      <IconButton
+                        variant='outlined'
+                        size='small'
+                        sx={{
+                          p: 2,
+                          '&:hover': {
+                            backgroundColor: 'rgba(68, 84, 74, 0.1)' // Change background color on hover
+                          }
+                        }}
+                        onClick={e => {
+                          e.stopPropagation(), handleOpenTransfer(params)
+                        }}
+                      >
+                        <Icon
+                          icon='fluent:comment-add-28-regular'
+                          width='28'
+                          height='28'
+                          color={'rgba(68, 84, 74, 1)'}
+                        />
+                      </IconButton>
+                    </Tooltip>
                   </Stack>
                 </Box>
               </>
