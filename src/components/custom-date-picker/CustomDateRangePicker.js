@@ -3,7 +3,7 @@ import { Box, TextField } from '@mui/material'
 import DatePickerWrapper from 'src/@core/styles/libs/react-datepicker'
 import format from 'date-fns/format'
 import DatePicker from 'react-datepicker'
-import { subMonths } from 'date-fns'
+import { addMonths, subMonths } from 'date-fns'
 
 const CustomDateRangePicker = ({
   label = 'Select Date Range',
@@ -15,7 +15,8 @@ const CustomDateRangePicker = ({
   onChange = () => {},
   open,
   disableFutureDates,
-  allowSingleDate = false
+  allowSingleDate = false,
+  selectFutureDates = false
 }) => {
   // ** States
   const [startDate, setStartDate] = useState(initialStartDate)
@@ -38,7 +39,11 @@ const CustomDateRangePicker = ({
 
   // Calculate the initial month to display
   const currentDate = new Date()
-  const initialMonth = subMonths(currentDate, monthsShown - 1)
+  const initialMonth = selectFutureDates
+    ? addMonths(currentDate, monthsShown - 2)
+    : subMonths(currentDate, monthsShown - 1)
+
+  console.log(selectFutureDates, disableFutureDates, 'selectFutureDates')
 
   return (
     <DatePickerWrapper>
@@ -55,6 +60,7 @@ const CustomDateRangePicker = ({
           popperPlacement={popperPlacement}
           customInput={<CustomInput label={label} start={startDate} end={endDate} />}
           open={open ? open : false}
+          minDate={selectFutureDates ? currentDate : null}
           maxDate={disableFutureDates ? disableFutureDates : null}
           showDisabledMonthNavigation
           // Set the initial month to show previous month(s)
@@ -69,6 +75,8 @@ const CustomDateRangePicker = ({
 }
 
 export default CustomDateRangePicker
+
+//////////////////////////
 
 // // // ** React Imports
 // import { useState, forwardRef } from 'react'
