@@ -5,11 +5,11 @@ import OrderReceiveForm from 'src/components/pharmacy/localDispatch/OrderReceive
 
 const ShipmentDetails = () => {
   const router = useRouter()
-  const { id, orderId } = router.query
+  const { requestId, orderId } = router.query
 
   return (
     <Card sx={{ p: 6 }}>
-      <OrderReceiveForm orderId={orderId} requestId={id} />
+      <OrderReceiveForm orderId={orderId} requestId={requestId} />
     </Card>
   )
 }

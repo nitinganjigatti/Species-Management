@@ -399,12 +399,13 @@ export default function RequestedItems({ selectedStoreDetails, setSelectedStoreD
         } else {
           setRequestedProducts([])
           setDrawerLoader(false)
-          closeDrawer()
+          // closeDrawer()
         }
       })
     } catch (e) {
       console.log(e)
       setDrawerLoader(false)
+      closeDrawer()
     }
   }
 

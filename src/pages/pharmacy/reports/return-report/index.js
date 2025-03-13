@@ -1,5 +1,6 @@
 import { useTheme } from '@emotion/react'
 import {
+  Badge,
   Card,
   CardHeader,
   CircularProgress,
@@ -12,7 +13,7 @@ import {
   Tooltip,
   Typography
 } from '@mui/material'
-import { Box } from '@mui/system'
+import { Box, width } from '@mui/system'
 import { useRouter } from 'next/router'
 import React, { useCallback, useEffect, useState } from 'react'
 import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDateRangePickers'
@@ -30,7 +31,7 @@ const ReturnReport = () => {
 
   const updateUrlParams = params => {
     const query = { ...router.query, ...params }
-    router.push({ pathname: router.pathname, query }, undefined, { shallow: true })
+    router.replace({ pathname: router.pathname, query }, undefined, { shallow: true })
   }
 
   const [rows, setRows] = useState([])
@@ -45,8 +46,8 @@ const ReturnReport = () => {
   const [expired, setExpired] = useState(false)
 
   const [selectedOptions, setSelectedOptions] = useState({
-    'Batch Number': [],
-    pharmacy: [],
+    'Expiry Date': [],
+    'Near Expiry': [],
     Medicine: []
   })
 
@@ -60,18 +61,28 @@ const ReturnReport = () => {
     endDate: router.query.endDate || ''
   })
 
+  const [expiryFilterDates, setExpiryFilterDates] = useState({
+    startDate: router.query.startDate || '',
+    endDate: router.query.endDate || ''
+  })
+
+  const [nearExpiryFilterDates, setNearExpiryFilterDates] = useState({
+    startDate: router.query.startDate || '',
+    endDate: router.query.endDate || ''
+  })
+
   function loadServerRows(currentPage, data) {
     return data
   }
 
   const fetchReturnReport = useCallback(
-    async ({ sort, q, column, filteredData, expired }) => {
+    async ({ sort, q, column, filteredData, expired, page, limit }) => {
       try {
         setLoading(true)
 
         const params = {
-          page: paginationModel?.page + 1,
-          limit: paginationModel?.pageSize,
+          page: page + 1,
+          limit: limit,
           sort: sort,
           q: q,
           column: column,
@@ -80,6 +91,15 @@ const ReturnReport = () => {
           ...(filteredData?.Medicine && {
             controlled: filteredData.Medicine.controlled,
             prescription: filteredData.Medicine.prescription
+          }),
+          ...(filteredData?.expiryDate && {
+            expired_from_date: filteredData.expiryDate.startDate,
+            expired_to_date: filteredData.expiryDate.endDate
+          }),
+
+          ...(filteredData?.nearExpiryDate && {
+            near_expiry_from_date: filteredData.nearExpiryDate.startDate,
+            near_expiry_to_date: filteredData.nearExpiryDate.endDate
           }),
           expired: expired ? 1 : 0
         }
@@ -102,7 +122,15 @@ const ReturnReport = () => {
   )
 
   useEffect(() => {
-    fetchReturnReport({ sort: sort, q: searchValue, column: sortColumn, filteredData: filteredData, expired: expired })
+    fetchReturnReport({
+      sort: sort,
+      q: searchValue,
+      column: sortColumn,
+      filteredData: filteredData,
+      expired: expired,
+      page: paginationModel?.page,
+      limit: paginationModel?.pageSize
+    })
     updateUrlParams({
       sort,
       q: searchValue,
@@ -133,6 +161,33 @@ const ReturnReport = () => {
             {params.row.id + '.'}
           </Typography>
         </Box>
+      )
+    },
+    {
+      width: 5,
+      field: 'label',
+      headerName: '',
+      sortable: false,
+      renderCell: params => (
+        <Typography
+          sx={{
+            color: 'customColors.OnSecondaryContainer',
+            display: 'flex',
+            alignItems: 'center',
+            fontWeight: 500,
+            fontSize: '14px',
+            ...RenderUtility?.getEllipsisStyleForText()
+          }}
+        >
+          {RenderUtility?.renderControlLabel(
+            !isNaN(params.row?.controlled_substance) && parseInt(params.row?.controlled_substance) === 1,
+            'CS'
+          )}
+          {RenderUtility?.renderControlLabel(
+            !isNaN(params.row?.prescription_required) && parseInt(params.row?.prescription_required) === 1,
+            'PR'
+          )}
+        </Typography>
       )
     },
     {
@@ -387,6 +442,10 @@ const ReturnReport = () => {
     }
   ]
 
+  const handleSwitchChange = event => {
+    setExpired(event.target.checked)
+  }
+
   const handleDateRangeChange = (startDate, endDate) => {
     if (startDate && endDate) {
       setFilterDates({
@@ -409,7 +468,13 @@ const ReturnReport = () => {
     if (newModel.length) {
       setSort(newModel[0].sort)
       setSortColumn(newModel[0].field)
-      fetchReturnReport({ sort: newModel[0].sort, q: searchValue, column: newModel[0].field })
+      fetchReturnReport({
+        sort: newModel[0].sort,
+        q: searchValue,
+        column: newModel[0].field,
+        page: paginationModel?.page,
+        limit: paginationModel?.pageSize
+      })
       updateUrlParams({
         sort: newModel[0].sort,
         q: searchValue,
@@ -422,17 +487,24 @@ const ReturnReport = () => {
   }
 
   const searchTableData = useCallback(
-    debounce(async (sort, q, column) => {
+    debounce(async (sort, q, column, expired, page, limit) => {
       setSearchValue(q)
-      setPaginationModel({ page: 0, pageSize: 10 })
       try {
-        await fetchReturnReport({ sort, q, column })
+        await fetchReturnReport({
+          sort,
+          q,
+          column,
+          expired,
+          page,
+          limit
+        })
+
         updateUrlParams({
-          sort: newModel[0].sort,
+          sort: sort,
           q: q,
-          column: newModel[0].field,
-          page: paginationModel?.page,
-          limit: paginationModel?.pageSize
+          column: column,
+          page,
+          limit
         })
       } catch (error) {
         console.error(error)
@@ -443,18 +515,7 @@ const ReturnReport = () => {
 
   const handleSearch = value => {
     setSearchValue(value)
-    searchTableData(sort, value, sortColumn)
-  }
-
-  const handleSwitchChange = event => {
-    setExpired(event.target.checked)
-    fetchReturnReport({
-      sort: sort,
-      q: searchValue,
-      column: sortColumn,
-      filteredData: filteredData,
-      expired: event.target.checked
-    })
+    searchTableData(sort, value, sortColumn, expired, paginationModel.page, paginationModel.pageSize)
   }
 
   const headerAction = (
@@ -486,7 +547,17 @@ const ReturnReport = () => {
         ...(filteredData?.Medicine && {
           controlled: filteredData.Medicine.controlled,
           prescription: filteredData.Medicine.prescription
-        })
+        }),
+        ...(filteredData?.expiryDate && {
+          expired_from_date: filteredData.expiryDate.startDate,
+          expired_to_date: filteredData.expiryDate.endDate
+        }),
+
+        ...(filteredData?.nearExpiryDate && {
+          near_expiry_from_date: filteredData.nearExpiryDate.startDate,
+          near_expiry_to_date: filteredData.nearExpiryDate.endDate
+        }),
+        expired: expired ? 1 : 0
       }
 
       const res = await getReturnReport({ params })
@@ -526,6 +597,30 @@ const ReturnReport = () => {
       setExportLoading(false)
     }
   }
+
+  const calculateAppliedFiltersCount = () => {
+    let count = 0
+
+    if (filteredData['expiryDate'] && filteredData['expiryDate'].startDate && filteredData['expiryDate'].endDate) {
+      count++
+    }
+
+    if (
+      filteredData['nearExpiryDate'] &&
+      filteredData['nearExpiryDate'].startDate &&
+      filteredData['nearExpiryDate'].endDate
+    ) {
+      count++
+    }
+
+    if (filteredData?.Medicine?.controlled || filteredData?.Medicine?.prescription) {
+      count++
+    }
+
+    return count
+  }
+
+  const appliedFiltersCount = calculateAppliedFiltersCount()
 
   return (
     <>
@@ -625,7 +720,9 @@ const ReturnReport = () => {
                       }}
                       onClick={() => setOpenFilterDrawer(true)}
                     >
-                      <Icon icon='mage:filter' fontSize={24} />
+                      <Badge badgeContent={appliedFiltersCount} color='primary'>
+                        <Icon icon='mage:filter' fontSize={24} />
+                      </Badge>
                     </Box>
                   </Tooltip>
                 </Grid>
@@ -667,6 +764,10 @@ const ReturnReport = () => {
           onApplyFilter={filterList => setFilteredData(filterList)}
           selectedOptions={selectedOptions}
           setSelectedOptions={setSelectedOptions}
+          expiryFilterDates={expiryFilterDates}
+          setExpiryFilterDates={setExpiryFilterDates}
+          nearExpiryFilterDates={nearExpiryFilterDates}
+          setNearExpiryFilterDates={setNearExpiryFilterDates}
         />
       )}
     </>

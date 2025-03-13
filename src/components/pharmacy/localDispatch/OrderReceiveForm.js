@@ -1,5 +1,5 @@
 /* eslint-disable lines-around-comment */
-import React, { forwardRef, useState, useEffect } from 'react'
+import React, { forwardRef, useState, useEffect, useRef } from 'react'
 import TableBasic from 'src/views/table/data-grid/TableBasic'
 
 import {
@@ -19,6 +19,7 @@ import {
   FormGroup,
   FormControlLabel,
   Checkbox,
+  alpha,
   Alert,
   AlertTitle
 } from '@mui/material'
@@ -26,11 +27,10 @@ import { LoadingButton } from '@mui/lab'
 import FormHelperText from '@mui/material/FormHelperText'
 import Icon from 'src/@core/components/icon'
 import CircularProgress from '@mui/material/CircularProgress'
-import DialogTitle from '@mui/material/DialogTitle'
 import DialogActions from '@mui/material/DialogActions'
 import DialogContent from '@mui/material/DialogContent'
-import DialogContentText from '@mui/material/DialogContentText'
-import Card from '@mui/material/Card'
+import FallbackSpinner from 'src/@core/components/spinner'
+
 import Chip from '@mui/material/Chip'
 import Avatar from '@mui/material/Avatar'
 // ** MUI Imports
@@ -43,17 +43,17 @@ import {
   getShipmentOrderDetails,
   getShipmentStatusList,
   resolveDisputeItems,
-  getCommentsList
+  getCommentsList,
+  getShipmentOrderDetailsOfRequests
 } from 'src/lib/api/pharmacy/getShipmentList'
 
 import { updateShipmentRequest } from 'src/lib/api/pharmacy/getRequestItemsList'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import Utility from 'src/utility'
-import FallbackSpinner from 'src/@core/components/spinner'
 import ConfirmDialogBox from 'src/components/ConfirmDialogBox'
-import select from 'src/@core/theme/overrides/select'
 import { useRouter } from 'next/router'
 import { useTheme } from '@emotion/react'
+import ShipmentPrintComponent from 'src/components/ShipmentPrintComponent'
 
 const Transition = forwardRef(function Transition(props, ref) {
   return <Fade ref={ref} {...props} />
@@ -76,52 +76,7 @@ const DisputeItemDetails = React.forwardRef((props, ref) => {
     <div ref={ref}>
       {disputeItemDetails?.item_details?.length > 0 ? (
         <Grid container xs={12} sx={{ mx: 'auto' }}>
-          {console.log('orderData', orderData)}
           <Grid item xs={12}>
-            {/* <Grid
-              container
-              xs={12}
-              className='printable-container'
-              sx={{ backgroundColor: '#EFF5F2', px: 6, borderRadius: '10px' }}
-            >
-              {orderData?.shipment_id ? (
-                <Grid item md={3} sm={3} xs={6}>
-                  <h5 style={{ marginBottom: '0px' }}>Shipping id</h5>
-                  <p>{orderData.shipment_id}</p>
-                </Grid>
-              ) : null}
-              {orderData?.from_store_name ? (
-                <Grid item md={3} sm={3} xs={6}>
-                  <h5 style={{ marginBottom: '0px' }}>From Store </h5>
-                  <p>{orderData.from_store_name}</p>
-                </Grid>
-              ) : null}
-              {orderData?.shipment_date ? (
-                <Grid item md={3} sm={3} xs={6}>
-                  <h5 style={{ marginBottom: '0px' }}>Shipped Date</h5>
-                  <p>{Utility.formatDisplayDate(orderData.shipment_date)}</p>
-                </Grid>
-              ) : null}
-              {orderData?.vehicle_no ? (
-                <Grid item md={3} sm={3} xs={6}>
-                  <h5 style={{ marginBottom: '0px' }}>Vehicle Number</h5>
-                  <p>{orderData.vehicle_no}</p>
-                </Grid>
-              ) : null}
-              {orderData?.to_store_name ? (
-                <Grid item md={3} sm={3} xs={6}>
-                  <h5 style={{ marginBottom: '0px' }}>To Store </h5>
-                  <p>{orderData.to_store_name}</p>
-                </Grid>
-              ) : null}
-
-              {orderData?.person_shipping ? (
-                <Grid item md={3} sm={3} xs={6}>
-                  <h5 style={{ marginBottom: '0px' }}>Driver Name</h5>
-                  <p>{orderData.person_shipping}</p>
-                </Grid>
-              ) : null}
-            </Grid> */}
             <Grid
               container
               xs={12}
@@ -132,25 +87,33 @@ const DisputeItemDetails = React.forwardRef((props, ref) => {
                 <LabelValues label={'Reference No:'} value={orderData?.request_number} />
               ) : null}
               {orderData?.from_store_name ? (
-                <LabelValues label={'Shipped From:'} value={orderData.from_store_name} />
+                <LabelValues label={'Shipped From:'} value={orderData?.from_store_name} />
               ) : null}
-              {orderData?.to_store_name ? <LabelValues label={'Shipped To:'} value={orderData.to_store_name} /> : null}
+              {orderData?.to_store_name ? <LabelValues label={'Shipped To:'} value={orderData?.to_store_name} /> : null}
               {/* {orderData?.shipment_id ? <LabelValues label={'Shipping id:'} value={orderData.shipment_id} /> : null} */}
 
               {orderData?.shipment_date ? (
                 <LabelValues label={'Shipped Date:'} value={Utility.formatDisplayDate(orderData.shipment_date)} />
               ) : null}
               {orderData?.vehicle_no ? <LabelValues label={'Vehicle Number:'} value={orderData.vehicle_no} /> : null}
+              {/* {orderData?.to_store_name ? (
+                <Grid item md={2} sm={3} xs={6}>
+                  <p style={{ margin: '0px' }}>To Store: </p>
+                  <h4 style={{ marginBottom: '0px', marginTop: '10px' }}>{orderData.to_store_name}</h4>
+                </Grid>
+              ) : null} */}
 
               {orderData?.person_shipping ? (
                 <LabelValues label={'Driver Name:'} value={orderData.person_shipping} />
-              ) : null}
-              {orderData?.person_shipping ? <LabelValues label={'Mobile No:'} value={orderData.phone_number} /> : null}
+              ) : // <Grid item md={2} sm={3} xs={6}>
+              //   <p style={{ margin: '0px' }}>Driver Name:</p>
+              //   <h4 style={{ marginBottom: '0px', marginTop: '10px' }}>{orderData.person_shipping}</h4>
+              // </Grid>
+              null}
+              {orderData?.person_shipping ? <LabelValues label={'Mobile No:'} value={orderData?.phone_number} /> : null}
               {orderData?.carton_box ? <LabelValues label={'Carton Boxes:'} value={orderData?.carton_box} /> : null}
-              {orderData?.requested_doctor_user_name ? (
-                <LabelValues label={'To:'} value={orderData?.requested_doctor_user_name} />
-              ) : null}
             </Grid>
+
             {disputeItemDetails?.item_details?.length > 0 ? (
               <>
                 <Box
@@ -166,7 +129,7 @@ const DisputeItemDetails = React.forwardRef((props, ref) => {
                   <Typography variant='h6'>{`Items Shipped - ${disputeItemDetails?.item_details?.length}`}</Typography>
                   {disputeItemDetails?.delivery_status !== 'Delivered' &&
                   selectedPharmacy?.type === 'local' &&
-                  selectedPharmacy?.id !== orderData?.from_store_id ? (
+                  selectedPharmacy?.id == orderData?.to_store_id ? (
                     <>
                       {disputeItemDetails?.dispute_status !== 'Dispute Pending' && (
                         <FormGroup row>
@@ -197,11 +160,12 @@ const DisputeItemDetails = React.forwardRef((props, ref) => {
                 </Grid>
               </>
             ) : null}
-            {/*
-            <Grid container items>
+
+            {/* <Grid container items id={'comments'}>
               <Grid item md={12} sm={12} xs={12} sx={{ my: 6 }}>
                 <FormControl fullWidth>
                   <TextField
+                    // disabled={disableButton()}
                     disabled={
                       selectedPharmacy.type === 'central'
                         ? 'disabled'
@@ -221,7 +185,7 @@ const DisputeItemDetails = React.forwardRef((props, ref) => {
                     name='comments'
                     InputProps={{
                       sx: {
-                        backgroundColor: 'customColors.customTableCellBg'
+                        backgroundColor: 'customColors.Notes' // Setting the background color here
                       },
                       startAdornment: (
                         <InputAdornment position='start'>
@@ -244,7 +208,7 @@ const DisputeItemDetails = React.forwardRef((props, ref) => {
   )
 })
 
-function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
+function OrderReceiveForm({ orderId, requestId }) {
   const defaultValues = {
     shipment_id: '',
     // dispatch_id: '',
@@ -296,12 +260,13 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
   const [rejectItemsError, setRejectItemsError] = useState(null)
   const [listComments, setListComments] = useState([])
   const [wrongCountErr, setWrongCountErr] = useState({})
-  const [loader, setLoader] = useState(false)
+  const [markReceived, setMarkReceived] = useState([])
 
   const [orderData, setOrderData] = useState([])
+  const [showSpinner, setShowSpinner] = useState(false)
+
   const { selectedPharmacy } = usePharmacyContext()
   const theme = useTheme()
-
   const router = useRouter()
   const { id } = router.query
 
@@ -334,6 +299,7 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
         item.id === itemId ? { ...item, [name]: value } : item
       )
     }
+    // console.log('updatedData', updatedData)
     setDisputeItemDetails(updatedData)
   }
 
@@ -347,8 +313,6 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
     setDisputeItemDetails(updatedData)
   }
 
-  // const options = ['Received', 'Broken', 'Missing', 'Wrong count', 'Expired']
-
   const getStatusList = async () => {
     try {
       const status = await getShipmentStatusList()
@@ -360,10 +324,12 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
     }
   }
 
-  const getOrderDetails = async orderId => {
+  const getOrderDetails = async (orderId, requestId) => {
     try {
-      setLoader(true)
-      const response = await getShipmentOrderDetails(orderId)
+      // const response = await getShipmentOrderDetails(orderId)
+      // api updated for normal request api
+      setShowSpinner(true)
+      const response = await getShipmentOrderDetailsOfRequests(orderId, requestId)
 
       if (response?.success === true && response?.data !== '') {
         const disputeLineItems = response?.data?.shipment_item_details?.map((el, index) => {
@@ -396,7 +362,6 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
           ...orderData,
 
           shipping_id: orderId,
-          from_store_id: response?.data?.from_store_id,
           shipment_id: response?.data?.shipment_id,
           shipment_date: response?.data?.shipment_date,
           person_shipping: response?.data?.person_shipping
@@ -410,7 +375,8 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
           to_store_name: response?.data?.to_store_name,
           request_number: response?.data?.request_number,
           carton_box: response?.data?.carton_box,
-          requested_doctor_user_name: response?.data?.requested_doctor_user_name
+          from_store_id: response?.data?.from_store_id,
+          to_store_id: response?.data?.to_store_id
         })
 
         const disputesData = {
@@ -426,13 +392,14 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
 
         setDisputeItemDetails(disputesData)
         setTempDisputeItemDetails(disputesData)
-        setLoader(false)
+        setShowSpinner(false)
       } else {
-        setLoader(false)
+        setShowSpinner(false)
       }
     } catch (error) {
-      setLoader(false)
-      console.error('error', error)
+      setShowSpinner(false)
+
+      console.log('error', error)
     }
   }
 
@@ -456,33 +423,20 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
   }
   useEffect(() => {
     if (orderId) {
-      getOrderDetails(orderId)
+      getOrderDetails(orderId, requestId)
     }
     getStatusList()
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [selectedPharmacy])
 
   const bulkStatusUpdate = async () => {
     const updatedItemDetails = disputeItemDetails.item_details.map(item => {
-      // if (item.status === '' || item.status === 'Expired' || item.status === 'Broken') {
-      //   return {
-      //     ...item,
-      //     status: 'Received'
-      //   }
-      // } else {
-      //   return item
-      // }
-
       return {
         ...item,
         status: 'Received'
       }
     })
 
-    // setDisputeItemDetails(prevState => ({
-    //   ...prevState,
-    //   item_details: updatedItemDetails
-    // }))
     const items = disputeItemDetails
     items['item_details'] = updatedItemDetails
     setDisputeItemDetails({ ...disputeItemDetails, items })
@@ -543,7 +497,7 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
       if (resolved?.success) {
         setResolveLoader(false)
         toast.success(resolved?.data)
-        getOrderDetails(orderId)
+        getOrderDetails(orderId, requestId)
       } else {
         setResolveLoader(false)
       }
@@ -624,7 +578,7 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
       if (resolved?.success) {
         setResolveLoader(false)
         toast.success(resolved?.data)
-        getOrderDetails(orderId)
+        getOrderDetails(orderId, requestId)
         closeDisputeDialog()
       } else {
         setResolveLoader(false)
@@ -642,7 +596,7 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
       // setListComments()
       if (comments.data.length > 0 && comments.success === true) {
         setListComments(comments)
-        openCommentDialog()
+        // openCommentDialog()
       }
     } catch (error) {
       console.log('comments error', error)
@@ -657,6 +611,23 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
     return result
   }
 
+  async function markAsReceived(itemId) {
+    if (!itemId) {
+      console.error('Invalid item ID.')
+
+      return
+    }
+    // Update the status of the specific item to "Received"
+    disputeItemDetails.item_details = disputeItemDetails.item_details.map(item =>
+      item.id === itemId ? { ...item, status: 'Received' } : item
+    )
+    // Call updateStatus to handle the rest of the logic
+    await updateStatus()
+    closeCommentDialog()
+  }
+
+  // Usage in button click
+
   const commentDialogBox = () => {
     return (
       <ConfirmDialogBox
@@ -665,36 +636,78 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
           closeCommentDialog()
         }}
         action={closeCommentDialog}
+        title={'Comments'}
         content={
-          <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(1, 1fr)', gap: 2, my: 2 }}>
-            <Box sx={{}}>
-              {listComments?.data?.length > 0 ? (
-                listComments?.data?.map((el, index) => {
-                  return (
-                    <Card key={index} sx={{ mx: 2, mb: 2 }}>
-                      <CardContent>
-                        <Grid container spacing={2}>
-                          <Grid item xs={6}>
-                            <Typography style={{ fontWeight: 'bold' }}>{el?.from_store}</Typography>
-                          </Grid>
-                          <Grid item xs={6} sx={{ alignItems: 'flex-end', display: 'flex', flexDirection: 'column' }}>
-                            <Typography style={{ fontSize: '12px' }}>
-                              {Utility.formatDisplayDate(el?.created_at)}
-                            </Typography>
-                          </Grid>
-                          <Grid item>
-                            <Typography>{el?.comment}</Typography>
-                          </Grid>
-                        </Grid>
-                      </CardContent>
-                    </Card>
-                  )
-                })
-              ) : (
-                <DialogTitle id='alert-dialog-title'>No comments found for this request</DialogTitle>
-              )}
+          <>
+            <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(1, 1fr)', gap: 2 }}>
+              {/* Medicine Name */}
+              <Box sx={{ bgcolor: 'customColors.Background', px: 2, py: 2, borderRadius: '8px' }}>
+                <Typography variant='h6'>{markReceived?.stock_name}</Typography>
+              </Box>
+
+              <Box>
+                {listComments?.data?.length > 0 ? (
+                  listComments.data.map((el, index) => (
+                    <Box key={index}>
+                      {/* Comment Header */}
+                      <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 2 }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                          <Typography sx={{ fontWeight: 'bold' }}>{selectedPharmacy?.name}</Typography>
+                          <Typography sx={{ color: 'error.main' }}>
+                            • {markReceived?.wrong_count_type} ({markReceived?.wrong_count_number})
+                          </Typography>
+                        </Box>
+                        <Typography sx={{ color: 'customColors.neutralSecondary' }}>
+                          {Utility.formatDisplayDate(el?.created_at)}
+                        </Typography>
+                      </Box>
+
+                      {/* Comment Card */}
+                      <Box
+                        sx={{
+                          mb: 2,
+                          bgcolor: 'customColors.OnPrimarycontainer10',
+                          border: `1px solid ${theme.palette.customColors.neutral05}`,
+                          borderRadius: '8px'
+                        }}
+                      >
+                        <CardContent>
+                          <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 1 }}>
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                              <Typography
+                                sx={{ fontWeight: '600', color: 'customColors.customDropdownColor', fontSize: '12px' }}
+                              >
+                                {el?.from_store}
+                              </Typography>
+                              <Typography sx={{ fontSize: '12px', color: 'customColors.neutralSecondary' }}>
+                                • {Utility.formatDisplayDate(el?.created_at)}
+                              </Typography>
+                            </Box>
+                          </Box>
+                          <Typography
+                            sx={{ fontSize: '14px', fontWeight: 400, color: 'customColors.customHeadingTextColor' }}
+                          >
+                            {el?.comment}
+                          </Typography>
+                        </CardContent>
+                      </Box>
+                    </Box>
+                  ))
+                ) : (
+                  <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                    <CircularProgress />
+                  </Box>
+                )}
+              </Box>
+
+              {/* Mark as Received Button */}
+              <Box sx={{ display: 'flex', justifyContent: 'flex-end', px: 2 }}>
+                <Button type='button' variant='contained' onClick={() => markAsReceived(markReceived?.id)}>
+                  Mark as Received
+                </Button>
+              </Box>
             </Box>
-          </Box>
+          </>
         }
       />
     )
@@ -714,8 +727,8 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
       }
     },
     {
-      flex: 0.2,
-      Width: 40,
+      flex: 0.5,
+      Width: 100,
       field: 'stock_name',
       headerName: 'Product Name',
       renderCell: (params, rowId) => (
@@ -756,17 +769,15 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
     //   flex: 0.2,
     //   minWidth: 20,
     //   field: 'from_store_name',
-    //   headerName: selectedPharmacy?.id === orderData.from_store_id ? 'Shipped To' : 'Shipped From',
+    //   headerName: selectedPharmacy?.type === 'central' ? 'Shipped To' : 'Shipped From',
     //   renderCell: params => (
     //     <div>
     //       <Tooltip
-    //         title={
-    //           selectedPharmacy?.id === orderData.from_store_id ? params.row.to_store_name : params.row.from_store_name
-    //         }
+    //         title={selectedPharmacy?.type === 'central' ? params.row.to_store_name : params.row.from_store_name}
     //         placement='top'
     //       >
     //         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-    //           {selectedPharmacy?.id === orderData.from_store_id ? params.row.to_store_name : params.row.from_store_name}
+    //           {selectedPharmacy?.type === 'central' ? params.row.to_store_name : params.row.from_store_name}
     //         </Typography>
     //       </Tooltip>
     //     </div>
@@ -774,15 +785,15 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
     // },
 
     {
-      flex: 0.4,
-      minWidth: 200,
+      width: 300,
+      minWidth: 300,
       field: 'status',
       // headerName: 'Status',
-      headerName: selectedPharmacy?.id !== orderData.from_store_id ? 'Actions' : 'Status',
+      headerName: selectedPharmacy?.id == orderData.to_store_id ? 'Actions' : 'Status',
       renderCell: params => {
         return (
           <>
-            {selectedPharmacy.id === orderData.from_store_id ? (
+            {selectedPharmacy.id !== orderData.to_store_id ? (
               <>
                 <Grid
                   sx={{
@@ -791,6 +802,7 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
                     alignItems: 'center',
                     justifyContent: 'space-between',
                     textTransform: 'capitalize'
+                    // backgroundColor: 'red'
                   }}
                 >
                   <Typography variant='p' sx={{ mx: 2 }}>
@@ -810,6 +822,7 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
                           params?.row?.dispute_status === 'Dispute Resolved' ? 'Missing - Accepted' : 'Missing - Denied'
                         }`
                       : params?.row?.status}
+                    {/* : params.row.status} */}
                   </Typography>
                   {((params?.row?.dispute_status === 'Not Resolved' ||
                     params?.row?.dispute_status === 'Dispute Pending') &&
@@ -826,8 +839,8 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
                           onClick={() => {
                             resolveItems(params.row)
                           }}
-                          sx={{ padding: 0 }}
-                          color='success'
+                          sx={{ padding: 0, color: 'primary.main' }}
+                          // color='success'
                         >
                           <Icon icon='ion:checkmark-circle' sx={{ width: '40px', height: '40px' }} />
                         </IconButton>
@@ -838,9 +851,9 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
                         onClick={() => {
                           rejectItems(params.row)
                         }}
-                        sx={{ padding: 0 }}
+                        sx={{ padding: 0, color: 'error.main' }}
                         size='large'
-                        color='error'
+                        // color='error'
                       >
                         <Icon icon='ion:close-circle' />
                       </IconButton>
@@ -850,11 +863,11 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
                           closeDisputeDialog()
                         }}
                         action={closeDisputeDialog}
+                        title={'Reason to deny'}
                         content={
                           <Box sx={{ m: 0 }}>
                             <>
                               <DialogContent>
-                                <DialogContentText sx={{ mb: 3 }}>Please enter your comment here.</DialogContentText>
                                 <FormControl fullWidth>
                                   <TextField
                                     id='name'
@@ -871,6 +884,10 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
                                       setRejectItemsError(null)
                                     }}
                                     label='Comment'
+                                    sx={{
+                                      // backgroundColor: 'customColors.Notes'
+                                      backgroundColor: theme => alpha(theme.palette.customColors.Notes, 0.2)
+                                    }}
                                   />
 
                                   <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
@@ -880,8 +897,8 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
                               </DialogContent>
                               <DialogActions className='dialog-actions-dense'>
                                 <Button
-                                  variant='contained'
-                                  color='error'
+                                  variant='outlined'
+                                  // color='error'
                                   size='small'
                                   onClick={() => {
                                     closeDisputeDialog()
@@ -901,6 +918,7 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
                                 </Button>
                               </DialogActions>
                             </>
+                            {/* ) : null} */}
                           </Box>
                         }
                       />
@@ -916,8 +934,30 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
                   params?.row?.dispute_status === undefined ||
                   params?.row?.dispute_status === 'Not Resolved' ||
                   params?.row?.dispute_status === 'Dispute Pending') ? (
-                  <Grid container spacing={2} sx={{ py: 4 }}>
-                    <Grid item xs={5} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <Grid
+                    container
+                    spacing={2}
+                    //  sx={{ py: 4 }}
+                    sx={{
+                      py: 4,
+                      backgroundColor: 'customColors.neutral05', // Add background color
+                      borderRadius: '8px', // Add border radius
+                      padding: 0, // Add padding if required
+                      m: 0,
+                      '& .MuiGrid-item': {
+                        padding: '3px 4px !important' // Specifically target Grid item padding,
+                      }
+                    }}
+                  >
+                    <Grid
+                      item
+                      xs={5}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center'
+                      }}
+                    >
                       <FormControl size='small' style={{ width: '100%' }}>
                         <Select
                           label=''
@@ -944,7 +984,6 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
                       style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12 }}
                     >
                       <TextField
-                        // disabled={getDisableStatus(params.row.id)}
                         id='outlined-size-small'
                         name='wrong_count_number'
                         value={params?.row?.wrong_count_number}
@@ -988,8 +1027,7 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
                     </Grid>
                     <Grid item xs={2} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                       <Button
-                        sx={{ width: 2, maxWidth: 2 }}
-                        // disabled={disableButton()}
+                        sx={{ minWidth: 0, p: 1, m: 1, color: 'customColors.neutralSecondary' }}
                         onClick={event => {
                           clearStatus(params.row.id, event)
                           setWrongCountErr(prevErrors => {
@@ -1004,7 +1042,7 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
                       </Button>
                     </Grid>
                     {wrongCountErr[params.row.uid] && (
-                      <FormHelperText sx={{ mx: 4 }} error>
+                      <FormHelperText sx={{ mx: 4, mt: '-6px' }} error>
                         {wrongCountErr[params.row.uid]}
                       </FormHelperText>
                     )}
@@ -1030,77 +1068,94 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
                               xs={5}
                               style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                             >
-                              <FormControl size='small' style={{ width: '100%' }}>
-                                <Select
-                                  label=''
-                                  // disabled={getDisableStatus(params.row.id)}
-                                  name='wrong_count_type'
-                                  size='small'
-                                  style={{ fontSize: '12px' }}
-                                  value={params?.row?.wrong_count_type}
-                                  error={Boolean(params?.row?.wrong_count_type === '' ? `This field is required` : '')}
-                                  onChange={event => handleStatusChange(params.row.id, event)}
-                                >
-                                  <MenuItem value='shortage' style={{ fontSize: '12px' }}>
-                                    Shortage
-                                  </MenuItem>
-                                  <MenuItem value='excess' style={{ fontSize: '12px' }}>
-                                    Excess
-                                  </MenuItem>
-                                </Select>
-                              </FormControl>
+                              {!params?.row?.wrong_count_type === 'shortage' ? (
+                                <FormControl size='small' style={{ width: '100%' }}>
+                                  <Select
+                                    label=''
+                                    // disabled={getDisableStatus(params.row.id)}
+
+                                    name='wrong_count_type'
+                                    size='small'
+                                    style={{ fontSize: '12px' }}
+                                    value={params?.row?.wrong_count_type}
+                                    error={Boolean(
+                                      params?.row?.wrong_count_type === '' ? `This field is required` : ''
+                                    )}
+                                    onChange={event => handleStatusChange(params.row.id, event)}
+                                  >
+                                    <MenuItem value='shortage' style={{ fontSize: '12px' }}>
+                                      Shortage
+                                    </MenuItem>
+                                    <MenuItem value='excess' style={{ fontSize: '12px' }}>
+                                      Excess
+                                    </MenuItem>
+                                  </Select>
+                                </FormControl>
+                              ) : (
+                                <Typography>
+                                  {params?.row?.wrong_count_type
+                                    ? params.row.wrong_count_type.charAt(0).toUpperCase() +
+                                      params.row.wrong_count_type.slice(1)
+                                    : ''}
+                                  {params?.row?.wrong_count_number ? ` (${params.row.wrong_count_number})` : ''} -
+                                </Typography>
+                              )}
                             </Grid>
                             <Grid
                               item
                               xs={5}
                               style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 12 }}
                             >
-                              <TextField
-                                // disabled={getDisableStatus(params.row.id)}
-                                id='outlined-size-small'
-                                name='wrong_count_number'
-                                value={params?.row?.wrong_count_number}
-                                error={Boolean(
-                                  params?.row?.wrong_count_number === '' ||
-                                    parseInt(params.row.wrong_count_number, 10) < 0
-                                )}
-                                size='small'
-                                onChange={event => {
-                                  handleStatusChange(params.row.id, event)
+                              {!params?.row?.wrong_count_type === 'shortage' ? (
+                                <TextField
+                                  // disabled={getDisableStatus(params.row.id)}
+                                  id='outlined-size-small'
+                                  name='wrong_count_number'
+                                  value={params?.row?.wrong_count_number}
+                                  error={Boolean(
+                                    params?.row?.wrong_count_number === '' ||
+                                      parseInt(params.row.wrong_count_number, 10) < 0
+                                  )}
+                                  size='small'
+                                  onChange={event => {
+                                    handleStatusChange(params.row.id, event)
 
-                                  const inputValue = event.target.value
-                                  const countValue = Number(params?.row?.count)
-                                  const inputValueNumber = Number(inputValue)
+                                    const inputValue = event.target.value
+                                    const countValue = Number(params?.row?.count)
+                                    const inputValueNumber = Number(inputValue)
 
-                                  if (inputValue.trim() === '') {
-                                    setWrongCountErr(prevErrors => ({
-                                      ...prevErrors,
-                                      [params.row.uid]: 'This field is required'
-                                    }))
-                                  } else if (inputValueNumber <= 0) {
-                                    setWrongCountErr(prevErrors => ({
-                                      ...prevErrors,
-                                      [params.row.uid]: 'Number must be positive'
-                                    }))
-                                  } else if (
-                                    params?.row?.wrong_count_type === 'shortage' &&
-                                    inputValueNumber > countValue
-                                  ) {
-                                    setWrongCountErr(prevErrors => ({
-                                      ...prevErrors,
-                                      [params.row.uid]: 'Qty exceeds shipped count.'
-                                    }))
-                                  } else {
-                                    setWrongCountErr(prevErrors => {
-                                      const newErrors = { ...prevErrors }
-                                      delete newErrors[params.row.uid]
+                                    if (inputValue.trim() === '') {
+                                      setWrongCountErr(prevErrors => ({
+                                        ...prevErrors,
+                                        [params.row.uid]: 'This field is required'
+                                      }))
+                                    } else if (inputValueNumber <= 0) {
+                                      setWrongCountErr(prevErrors => ({
+                                        ...prevErrors,
+                                        [params.row.uid]: 'Number must be positive'
+                                      }))
+                                    } else if (
+                                      params?.row?.wrong_count_type === 'shortage' &&
+                                      inputValueNumber > countValue
+                                    ) {
+                                      setWrongCountErr(prevErrors => ({
+                                        ...prevErrors,
+                                        [params.row.uid]: 'Qty exceeds shipped count.'
+                                      }))
+                                    } else {
+                                      setWrongCountErr(prevErrors => {
+                                        const newErrors = { ...prevErrors }
+                                        delete newErrors[params.row.uid]
 
-                                      return newErrors
-                                    })
-                                  }
-                                }}
-                                inputProps={{ style: { fontSize: 12 } }}
-                              />
+                                        return newErrors
+                                      })
+                                    }
+                                  }}
+                                  inputProps={{ style: { fontSize: 12 } }}
+                                />
+                              ) : (
+                                <Typography sx={{ color: 'error.main' }}> Denied</Typography>
+                              )}
                             </Grid>
                             <Grid
                               item
@@ -1108,7 +1163,7 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
                               style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
                             >
                               <Button
-                                sx={{ width: 2, maxWidth: 2 }}
+                                sx={{ width: 1, maxWidth: 1, minWidth: 0, p: 0.5 }}
                                 // disabled={disableButton()}
                                 onClick={event => {
                                   clearStatus(params.row.id, event)
@@ -1137,6 +1192,7 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
                               placeholder='Status'
                               name='status'
                               size='small'
+                              displayEmpty
                               error={Boolean(params?.row?.status === '' ? `This field is required` : '')}
                               // value={params?.row?.status}
                               value={
@@ -1149,7 +1205,13 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
                                   : params?.row?.status
                               }
                               onChange={event => handleStatusChange(params.row.id, event)}
+                              sx={{
+                                backgroundColor: 'customColors.displaybgPrimary' // Apply the background color to the Select component
+                              }}
                             >
+                              <MenuItem value='' disabled>
+                                <span style={{ color: 'customColors.neutral_50' }}>Select Received Status</span>
+                              </MenuItem>
                               {statusOptions?.map((item, index) => (
                                 <MenuItem key={index} value={item?.label}>
                                   {item?.label === 'Broken' || item?.label === 'Expired'
@@ -1170,22 +1232,24 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
                         params?.row?.status === 'Missing - Deny Closed' ||
                         params?.row?.status === 'Missing - Deny Open' ||
                         params.row.status === 'Wrong Count - Deny Open' ? (
-                          <>
+                          <Button
+                            variant='text'
+                            onClick={e => {
+                              e.preventDefault()
+                              setMarkReceived(params.row)
+                              openCommentDialog()
+                            }}
+                            sx={{ p: 0, m: 0 }}
+                          >
                             <Chip
                               label={params.row.total_deny_comments}
-                              avatar={
-                                <Avatar>
-                                  <Icon icon='iconamoon:comment' />
-                                </Avatar>
-                              }
+                              avatar={<Avatar variant='square' alt='' src={'/images/sms.png'}></Avatar>}
                               onClick={() => {
                                 getRejectedCommentsList(params?.row?.dispatch_item_id)
                               }}
-                              sx={{ padding: 0, mx: 2, alignSelf: 'center' }}
+                              sx={{ padding: 0, mx: 0, alignSelf: 'center', borderRadius: '8px' }}
                             />
-
-                            {commentDialogBox()}
-                          </>
+                          </Button>
                         ) : null}
                       </Grid>
                     ) : (
@@ -1235,7 +1299,7 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
     }
     const receivedItems = disputeItemDetails?.item_details
 
-    if (receivedItems.length > 0) {
+    if (receivedItems?.length > 0) {
       const finalReceivedItems = receivedItems.map((item, index) => {
         return {
           ...item,
@@ -1271,6 +1335,7 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
 
           if (result?.success) {
             toast.success(result?.msg)
+
             setSubmitLoader(false)
             location.reload()
             // closeOrderFormDialog()
@@ -1280,6 +1345,9 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
           }
         } catch (error) {
           setSubmitLoader(false)
+          if (markedId) {
+            closeCommentDialog()
+          }
 
           toast.error(error?.msg)
         }
@@ -1294,10 +1362,10 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
     setChecked(isChecked)
 
     if (isChecked) {
-      setSubmitLoader(true)
+      setSubmitLoader(true) // Disable checkbox during submission
       try {
         await bulkStatusUpdate() // Ensure this completes before moving forward
-        await getOrderDetails(orderId) // Refresh the data only after updating status
+        await getOrderDetails(orderId, requestId) // Refresh the data only after updating status
       } catch (error) {
         console.error('Error in bulk status update: ', error)
       } finally {
@@ -1308,99 +1376,97 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
 
   const printRef = React.useRef()
 
-  const handlePrint = () => {
-    const printWindow = window.open('', '_blank')
-    const printContents = printRef.current.innerHTML
+  // const handlePrint = () => {
+  //   const printWindow = window.open('', '_blank')
+  //   const printContents = printRef.current.innerHTML
 
-    const styles = Array.from(document.styleSheets)
-      .map(sheet => {
-        try {
-          return Array.from(sheet.cssRules)
-            .map(rule => rule.cssText)
-            .join('\n')
-        } catch (e) {
-          console.warn('Error accessing stylesheet:', e)
+  //   const styles = Array.from(document.styleSheets)
+  //     .map(sheet => {
+  //       try {
+  //         return Array.from(sheet.cssRules)
+  //           .map(rule => rule.cssText)
+  //           .join('\n')
+  //       } catch (e) {
+  //         console.warn('Error accessing stylesheet:', e)
 
-          return ''
-        }
-      })
-      .join('\n')
+  //         return ''
+  //       }
+  //     })
+  //     .join('\n')
 
-    printWindow.document.write(`
-      <html>
-        <head>
-          <title>${`Shipment Details - ${orderData?.shipment_id || ''}`}</title>
-          <style>
-            /* Include global styles */
-            ${styles}
-            /* You can add specific print styles here */
-            @media print {
-              body {
-                margin: 0;
-                padding: 0;
-              }
-                .printable-container {
-              background-color: ${theme.palette.customColors.lightBg};
-              padding: 16px;
-              border-radius: 8px;
-              border: 1px solid ${theme.palette.customColors.neutral05};
-              margin-top: 16px;
+  //   printWindow.document.write(`
+  //     <html>
+  //       <head>
+  //         <title>${`Shipment Details - ${orderData?.shipment_id || ''}`}</title>
+  //         <style>
+  //           /* Include global styles */
+  //           ${styles}
+  //           /* You can add specific print styles here */
+  //           @media print {
+  //             body {
+  //               margin: 0;
+  //               padding: 0;
+  //             }
+  //               .printable-container {
+  //             background-color: ${theme.palette.customColors.lightBg};
+  //             padding: 16px;
+  //             border-radius: 8px;
+  //             border: 1px solid ${theme.palette.customColors.neutral05};
+  //             margin-top: 16px;
 
-            }
-              .MuiDataGrid-footerContainer{
-              display:none!important;
-              opacity: 0;
-            }
-               .print-title {
-              position: absolute;
-              top: 20px;
-              left: 50%;
-              transform: translateX(-50%);
-              font-size: 24px;
-              font-weight: bold;
-              margin-top: 10px;
-            }
-         .footer {
-            text-align: center;
-            font-size: 16px;
-            position: absolute;
-            bottom: 16px;
-            width: calc(100%);
-          }
-              /* Add more print-specific styles if needed */
-            }
-          </style>
-        </head>
-        <body>
-            <div>
-          ${printContents}
-             </div>
-              <div class="footer">Antz Systems</div> <!-- Add footer with "Antz System" -->
-        </body>
-      </html>
-    `)
+  //           }
+  //             .MuiDataGrid-footerContainer{
+  //             display:none!important;
+  //             opacity: 0;
+  //           }
+  //              .print-title {
+  //             position: absolute;
+  //             top: 20px;
+  //             left: 50%;
+  //             transform: translateX(-50%);
+  //             font-size: 24px;
+  //             font-weight: bold;
+  //             margin-top: 10px;
+  //           }
+  //        .footer {
+  //           text-align: center;
+  //           font-size: 16px;
+  //           position: absolute;
+  //           bottom: 16px;
+  //           width: calc(100%);
+  //         }
+  //             /* Add more print-specific styles if needed */
+  //           }
+  //         </style>
+  //       </head>
+  //       <body>
+  //           <div>
+  //         ${printContents}
+  //            </div>
+  //             <div class="footer">Antz Systems</div> <!-- Add footer with "Antz System" -->
+  //       </body>
+  //     </html>
+  //   `)
 
-    printWindow.document.close()
-    printWindow.focus()
+  //   printWindow.document.close()
+  //   printWindow.focus()
 
-    printWindow.onload = () => {
-      printWindow.print()
-      printWindow.onafterprint = () => {
-        printWindow.close()
-      }
-    }
+  //   printWindow.onload = () => {
+  //     printWindow.print()
+  //     printWindow.onafterprint = () => {
+  //       printWindow.close()
+  //     }
+  //   }
 
-    const interval = setInterval(() => {
-      if (printWindow.closed) {
-        clearInterval(interval)
-      } else {
-        printWindow.close()
-        clearInterval(interval)
-      }
-    }, 500)
-  }
-
-  console.log(disputeItemDetails?.item_details, 'disputeItemDetails')
+  //   const interval = setInterval(() => {
+  //     if (printWindow.closed) {
+  //       clearInterval(interval)
+  //     } else {
+  //       printWindow.close()
+  //       clearInterval(interval)
+  //     }
+  //   }, 500)
+  // }
 
   const isStoreMatch = () => {
     return disputeItemDetails?.item_details?.some(
@@ -1408,14 +1474,23 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
     )
   }
 
+  const shipmentPrintRef = React.useRef(null)
+
+  const handlePrint = () => {
+    // Call the handlePrint method exposed by the ShipmentPrintFormat component
+    if (shipmentPrintRef.current) {
+      shipmentPrintRef.current.handlePrint()
+    }
+  }
+
   return (
     <>
-      {loader ? (
+      {showSpinner ? (
         <FallbackSpinner />
       ) : (
         <>
           {selectedPharmacy?.type === 'local' && isStoreMatch() ? (
-            <>
+            <div>
               <Box sx={{ pb: 6 }}>
                 <Grid container justifyContent='space-between'>
                   <Grid item xs={12} sm='auto'>
@@ -1443,37 +1518,45 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
                         target='_blank'
                         sx={{ mb: 3.5 }}
                         startIcon={<Icon icon='material-symbols:print' />}
-                        // onClick={e => {
-                        //   e.preventDefault()
-                        //   handlePrint()
-                        // }}
                         onClick={handlePrint}
                       >
                         print
                       </Button>
                     </Grid>
-                    {selectedPharmacy?.permission?.key == 'allow_full_access' ||
-                    selectedPharmacy?.permission?.key === 'ADD' ? (
-                      <Grid item>
-                        {disputeItemDetails?.delivery_status !== 'Delivered' &&
-                        selectedPharmacy?.type === 'local' &&
-                        selectedPharmacy?.id !== orderData?.from_store_id ? (
-                          <LoadingButton
-                            size='large'
-                            disabled={disableButton() || submitLoader}
-                            variant='contained'
-                            onClick={() => {
-                              if (!submitLoader) {
-                                updateStatus()
-                              }
-                            }}
-                            loading={submitLoader}
-                          >
-                            Save
-                          </LoadingButton>
-                        ) : null}
-                      </Grid>
-                    ) : null}
+                    {/* <Grid item>
+                {disputeItemDetails?.delivery_status !== 'Delivered' && selectedPharmacy.type === 'central' ? (
+                  <LoadingButton
+                    size='large'
+                    disabled={disableButton() || submitLoader}
+                    variant='contained'
+                    onClick={() => {
+                      if (!submitLoader) {
+                        updateStatus()
+                      }
+                    }}
+                    loading={submitLoader}
+                  >
+                    Save
+                  </LoadingButton>
+                ) : null}
+              </Grid> */}
+                    <Grid item>
+                      {disputeItemDetails?.delivery_status !== 'Delivered' && selectedPharmacy?.type === 'local' && (
+                        <LoadingButton
+                          size='large'
+                          disabled={disableButton() || submitLoader}
+                          variant='contained'
+                          onClick={() => {
+                            if (!submitLoader) {
+                              updateStatus()
+                            }
+                          }}
+                          loading={submitLoader}
+                        >
+                          Save
+                        </LoadingButton>
+                      )}
+                    </Grid>
                   </Grid>
                 </Grid>
               </Box>
@@ -1487,8 +1570,9 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
                 setDisputeItemDetails={setDisputeItemDetails}
                 columns={columns}
               />
+
               {commentDialog && commentDialogBox()}
-            </>
+            </div>
           ) : (
             <Alert severity='warning'>
               <AlertTitle>Warning</AlertTitle>
@@ -1507,6 +1591,16 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
           )}
         </>
       )}
+      {orderData &&
+        ((Array.isArray(orderData) && orderData.length > 0) ||
+          (typeof orderData === 'object' && orderData !== null && Object.keys(orderData).length > 0)) && (
+          <div style={{ display: 'none' }}>
+            <ShipmentPrintComponent
+              ref={shipmentPrintRef}
+              data={orderData} // Pass your shipment data here
+            />
+          </div>
+        )}
     </>
   )
 }

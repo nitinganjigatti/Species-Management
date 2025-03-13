@@ -898,7 +898,7 @@ function OrderReceiveForm({ shipmentId }) {
 
     {
       flex: 0.4,
-      minWidth: 200,
+      minWidth: 300,
       field: 'status',
       // headerName: 'Status',
       headerName: selectedPharmacy?.type === 'central' ? 'Actions' : 'Status',
