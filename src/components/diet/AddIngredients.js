@@ -618,8 +618,6 @@ const AddIngredients = props => {
 
   const sortedIngredientList = [...ingredientList]?.sort((a, b) => a.ingredient_name.localeCompare(b.ingredient_name))
 
-  console.log(theme, 'theme')
-  console.log(theme.components.MuiOutlinedInput.styleOverrides.root.outline, 'raghu')
   return (
     <>
       <Drawer
@@ -681,9 +679,9 @@ const AddIngredients = props => {
                 onChange={handleSearchChange}
                 sx={{
                   '& .MuiOutlinedInput-root': {
-                    borderColor: '#839D8D',
+                    borderColor: theme.palette.customColors.Outline,
                     '& fieldset': {
-                      borderColor: '#839D8D'
+                      borderColor: theme.palette.customColors.Outline
                     }
                   }
                 }}
@@ -700,10 +698,10 @@ const AddIngredients = props => {
                   onChange={handleChangeTopFeed}
                   sx={{
                     '& .MuiOutlinedInput-notchedOutline': {
-                      borderColor: '#839D8D'
+                      borderColor: theme.palette.customColors.Outline
                     },
                     '&:hover .MuiOutlinedInput-notchedOutline': {
-                      borderColor: '#839D8D'
+                      borderColor: theme.palette.customColors.Outline
                     },
                     '& .MuiOutlinedInput-root': {
                       borderRadius: '0px'
@@ -755,13 +753,13 @@ const AddIngredients = props => {
               <Box
                 key={item?.id}
                 sx={{
-                  bgcolor: '#fff',
+                  bgcolor: theme.palette.customColors.OnPrimary,
                   mx: '24px',
                   borderRadius: '8px',
                   my: 4,
                   width: '92%',
                   ...(selectedCard.some(card => card.ingredient_id === item.id) && {
-                    border: '2px solid #37bd69'
+                    border: `2px solid ${theme.palette.primary.main}`
                   })
                 }}
                 onClick={event => handelShowBottom(event, item, index)}
@@ -782,7 +780,7 @@ const AddIngredients = props => {
                         width: '68px',
                         height: '68px',
                         borderRadius: 1,
-                        bgcolor: '#E8F4F2',
+                        bgcolor: theme.palette.customColors.displaybgPrimary,
                         display: 'flex',
                         justifyContent: 'center',
                         alignItems: 'center',
@@ -801,7 +799,7 @@ const AddIngredients = props => {
                         width: '68px',
                         height: '68px',
                         borderRadius: 1,
-                        bgcolor: '#E8F4F2',
+                        bgcolor: theme.palette.customColors.displaybgPrimary,
                         display: 'flex',
                         justifyContent: 'center',
                         alignItems: 'center',
@@ -815,7 +813,12 @@ const AddIngredients = props => {
                       <Avatar
                         variant='square'
                         alt='Medicine Image'
-                        sx={{ width: 40, height: 40, background: '#E8F4F2', borderRadius: 20 }}
+                        sx={{
+                          width: 40,
+                          height: 40,
+                          background: theme.palette.customColors.displaybgPrimary,
+                          borderRadius: 20
+                        }}
                         src={item?.image ? item?.image : '/icons/icon_diet_fill.png'}
                       >
                         {item?.image ? null : <Icon icon='healthicons:fruits-outline' />}
@@ -857,10 +860,10 @@ const AddIngredients = props => {
                             }
                             sx={{
                               '& .MuiOutlinedInput-notchedOutline': {
-                                borderColor: '#839D8D'
+                                borderColor: theme.palette.customColors.Outline
                               },
                               '&:hover .MuiOutlinedInput-notchedOutline': {
-                                borderColor: '#839D8D'
+                                borderColor: theme.palette.customColors.Outline
                               },
                               '& .MuiOutlinedInput-root': {
                                 borderRadius: '0px'
@@ -928,10 +931,10 @@ const AddIngredients = props => {
                                 }
                                 sx={{
                                   '& .MuiOutlinedInput-notchedOutline': {
-                                    borderColor: '#839D8D'
+                                    borderColor: theme.palette.customColors.Outline
                                   },
                                   '&:hover .MuiOutlinedInput-notchedOutline': {
-                                    borderColor: '#839D8D'
+                                    borderColor: theme.palette.customColors.Outline
                                   },
                                   '& .MuiOutlinedInput-root': {
                                     borderRadius: '0px'
@@ -978,7 +981,7 @@ const AddIngredients = props => {
                                   selectedDay.cardId === item.id &&
                                   selectedDay.days?.some(selectedDay => selectedDay.dayId === day.id)
                               )
-                                ? '#203e56'
+                                ? theme.palette.secondary.dark
                                 : '#dedede66',
                               borderRadius: 5,
                               p: 2,
@@ -991,7 +994,7 @@ const AddIngredients = props => {
                                     selectedDay.cardId === item.id &&
                                     selectedDay.days?.some(selectedDay => selectedDay.dayId === day.id)
                                 )
-                                  ? '#203e56'
+                                  ? theme.palette.secondary.dark
                                   : '#dedede',
                                 color: selectedDays.some(
                                   selectedDay =>
@@ -1044,7 +1047,7 @@ const AddIngredients = props => {
                 justifyContent: 'center',
                 alignItems: 'center',
                 height: '40%',
-                color: '#7A7A7A',
+                color: theme.palette.customColors.statusText,
                 fontSize: '16px'
               }}
             >

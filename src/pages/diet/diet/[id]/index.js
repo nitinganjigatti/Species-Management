@@ -336,6 +336,7 @@ const DietDetail = () => {
                   dietDetails={dietDetails}
                   dietModulePermission={dietModule}
                   dietModuleAccess={dietModuleAccess}
+                  refreshDietDetails={getDietDetailsCallback}
                 />
                 <Card sx={{ p: '24px', display: 'flex', flexDirection: 'column', mt: 2 }}>
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 5 }}>

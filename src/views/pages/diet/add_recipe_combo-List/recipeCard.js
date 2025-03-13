@@ -499,6 +499,114 @@ const RecipeCard = ({
                     </Box>
                   </Box>
                 </Box>
+                <Divider />
+                {selectedCardRecipe?.some(card => card?.id === item?.id && card.ingredients?.length > 0) ? (
+                  <Box sx={{ pl: 5, pr: 5, mt: 3, mb: 3 }}>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0 }}>
+                      <Typography sx={{ fontWeight: '500', color: '#00000066', fontSize: '16px' }}>
+                        Ingredients
+                      </Typography>
+                      <Typography sx={{ fontWeight: '500', color: '#00000066', fontSize: '16px', mr: 20 }}>
+                        Cut size
+                      </Typography>
+                    </Box>
+                    {item.ingredients.map((ingredient, index) => (
+                      <Box
+                        key={index}
+                        sx={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          pb: 2,
+                          pt: 1
+                        }}
+                      >
+                        {/* Ingredient Image */}
+
+                        <Avatar
+                          variant='square'
+                          alt={ingredient.ingredient_name}
+                          sx={{
+                            width: 45,
+                            height: 50,
+                            mr: 4,
+                            background: '#E8F4F2',
+                            padding: '8px',
+                            borderRadius: '4px'
+                          }}
+                          src={ingredient?.image ? ingredient?.image : '/icons/icon_ingredient.svg'}
+                        ></Avatar>
+
+                        {/* Ingredient Details */}
+
+                        <Box sx={{ flex: 1 }}>
+                          <Tooltip
+                            title={`${ingredient.ingredient_name} ${ingredient.quantity} ${
+                              ingredient.quantity_type === 'percentage' ? '%' : ''
+                            }`}
+                          >
+                            <Box
+                              sx={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                width: '250px',
+                                overflow: 'hidden'
+                              }}
+                            >
+                              <Typography
+                                variant='body1'
+                                sx={{
+                                  fontWeight: '600',
+                                  color: '#44544A',
+                                  textOverflow: 'ellipsis',
+                                  overflow: 'hidden',
+                                  whiteSpace: 'nowrap',
+                                  flexShrink: 1
+                                }}
+                              >
+                                {ingredient.ingredient_name}
+                              </Typography>
+                              <Typography
+                                variant='body1'
+                                sx={{
+                                  fontWeight: '600',
+                                  color: '#44544A',
+                                  marginLeft: 1,
+                                  flexShrink: 0
+                                }}
+                              >
+                                {ingredient.quantity} {ingredient.quantity_type === 'percentage' ? '%' : ''}
+                              </Typography>
+                            </Box>
+                          </Tooltip>
+
+                          <Typography variant='body2' color='#44544A'>
+                            Id - {'ING' + ingredient.id}
+                          </Typography>
+
+                          <Typography variant='body2' color='#7A8684'>
+                            {ingredient.preparation_type}
+                          </Typography>
+                        </Box>
+
+                        <Typography
+                          variant='body2'
+                          color='#7A8684'
+                          sx={{
+                            textAlign: 'left',
+                            width: '100%',
+                            ml: '2rem',
+                            fontWeight: '600',
+                            color: '#44544A'
+                          }}
+                        >
+                          {ingredient.cut_size}
+                        </Typography>
+                      </Box>
+                    ))}
+                  </Box>
+                ) : (
+                  ''
+                )}
                 {selectedCardRecipe?.some(card => card.id === item.id) ? (
                   <>
                     <Divider />
