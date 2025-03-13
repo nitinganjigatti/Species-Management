@@ -27,6 +27,7 @@ import TableWithFilter from 'src/components/TableWithFilter'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import { AddButtonContained } from 'src/components/ButtonContained'
 import RenderUtility from 'src/utility/render'
+import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDateRangePickers'
 
 const ListOfPurchase = () => {
   const router = useRouter()
@@ -47,11 +48,17 @@ const ListOfPurchase = () => {
   const [searchValue, setSearchValue] = useState(router.query.q || '')
   const [sortColumn, setSortColumn] = useState(router.query.column || 'po_date')
 
+  const [filterDates, setFilterDates] = useState({
+    startDate: router.query.startDate || '',
+    endDate: router.query.endDate || ''
+  })
+
   const [paginationModel, setPaginationModel] = useState({
     page: parseInt(router.query.page) || 0,
     pageSize: parseInt(router.query.limit) || 10
   })
   const [loading, setLoading] = useState(false)
+  const [excelLoader, setExcelLoader] = useState(false)
 
   function loadServerRows(currentPage, data) {
     return data
@@ -60,7 +67,8 @@ const ListOfPurchase = () => {
   const { selectedPharmacy } = usePharmacyContext()
 
   const fetchTableData = useCallback(
-    async ({ sort, q, column }) => {
+    async ({ sort, q, column}) => {
+      debugger
       try {
         setLoading(true)
 
@@ -68,12 +76,15 @@ const ListOfPurchase = () => {
           sort,
           q,
           column,
+          ...(filterDates?.startDate !== '' && { from_date: filterDates?.startDate }),
+          ...(filterDates?.endDate !== '' && { to_date: filterDates?.endDate }),
           page: paginationModel.page + 1,
           limit: paginationModel.pageSize
         }
 
         await getPurchaseList({ params: params }).then(res => {
           if (res?.success === true && res?.data?.length > 0) {
+            console.log('RESPONSE >>', res?.data)
             setTotal(parseInt(res?.count))
             setRows(loadServerRows(paginationModel.page, res?.data))
             updateUrlParams({
@@ -96,7 +107,7 @@ const ListOfPurchase = () => {
         setRows([])
       }
     },
-    [paginationModel]
+    [paginationModel, filterDates]
   )
   useEffect(() => {
     fetchTableData({ sort: sort, q: searchValue, column: sortColumn })
@@ -109,7 +120,7 @@ const ListOfPurchase = () => {
     })
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedPharmacy.id, paginationModel.page, paginationModel.pageSize])
+  }, [selectedPharmacy.id, paginationModel.page, paginationModel.pageSize, filterDates])
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
@@ -164,6 +175,25 @@ const ListOfPurchase = () => {
   const handleSearch = value => {
     setSearchValue(value)
     searchTableData(sort, value, sortColumn)
+  }
+
+  const handleDateRangeChange = (startDate, endDate) => {
+    debugger
+    if (startDate && endDate) {
+      setFilterDates({
+        startDate: Utility.formatDate(startDate),
+        endDate: Utility.formatDate(endDate)
+      })
+
+      console.log('Date range selected:', { startDate, endDate })
+    } else {
+      setFilterDates({
+        startDate: '',
+        endDate: ''
+      })
+
+      console.log('Empty date range selected,', { startDate, endDate })
+    }
   }
 
   const columns = [
@@ -330,17 +360,56 @@ const ListOfPurchase = () => {
     console.log('Handle Header Action')
   }
 
+  const getInventoryDataToExport = async () => {
+    try {
+      setExcelLoader(true)
+      const response = await getPurchaseList({ sort, q: searchValue, column: sortColumn, filterDates })
+      console.log('Response inventory>', response)
+      setExcelLoader(false)
+
+      if (response?.success === true && response?.data?.length > 0) {
+        const data = response.data.map(el => ({
+          ['Invoice No']: el?.po_no,
+          ['Purchase Date']: el?.po_date,
+          ['Supplier Name']: el?.supplier_name,
+          ['Entry Date']: Utility.formatDisplayDate(el?.created_at) ? Utility.formatDisplayDate(el?.created_at) : 'NA',
+          ['Purchase Amount']: Number(el?.net_amount),
+          ['Created By']: el?.created_by_user_name ? el?.created_by_user_name : 'NA',
+          ['Updated By']: el?.updated_by_user_name ? el?.updated_by_user_name : 'NA',
+          ['Created At']: Utility.formatDisplayDate(el?.created_at) ? Utility.formatDisplayDate(el?.created_at) : 'NA',
+          ['Updated At']: Utility.formatDisplayDate(el?.updated_at) ? Utility.formatDisplayDate(el?.updated_at) : 'NA'
+        }))
+
+        Utility.exportToCSV(data, 'Inventory_List')
+      } else {
+        console.log('No data available for export.')
+      }
+    } catch (error) {
+      console.log('Error >', error)
+      setExcelLoader(false)
+    }
+  }
+
   const headerAction = (
     <>
       {(selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') && (
         <Box
           sx={{
             display: 'flex',
-            gap: 2,
+            gap: 3,
             justifyContent: 'flex-start',
             whiteSpace: 'nowrap'
           }}
         >
+          <ExcelExportButton
+            disabled={total === 0}
+            action={() => {
+              getInventoryDataToExport()
+            }}
+            loader={excelLoader}
+            title='Download'
+            fullWidth='fullWidth'
+          />
           <ExcelExportButton
             disabled={total === 0}
             action={() => {
@@ -393,12 +462,23 @@ const ListOfPurchase = () => {
               title={RenderUtility.pageTitle('Inventory List')}
               action={headerAction}
             />
-            <Box
+            {/* <Box
               sx={{
                 display: 'flex',
                 flexDirection: { xs: 'column', sm: 'row' }, // Column for small screens, row for larger screens
                 justifyContent: 'space-between',
                 gap: { xs: 2, sm: 0 } // Adds spacing between elements on small screens
+              }}
+            >
+              {/* Left Box (Search Field) */}
+
+            <Box
+              sx={{
+                display: 'flex',
+                flexDirection: { xs: 'column', sm: 'row' }, // Stack on small screens, row on larger screens
+                justifyContent: 'space-between',
+                alignItems: 'center', // Align items vertically in row mode
+                gap: { xs: 2, sm: 0 } // Add spacing for small screens
               }}
             >
               {/* Left Box (Search Field) */}
@@ -419,7 +499,7 @@ const ListOfPurchase = () => {
                     border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                     borderRadius: '8px',
                     padding: '0 8px',
-                    width: { xs: '100%', sm: '250px' }, // Full width on small screens
+                    width: { xs: '100%', sm: '250px' },
                     height: '40px'
                   }}
                 >
@@ -442,7 +522,13 @@ const ListOfPurchase = () => {
                   />
                 </Box>
               </Grid>
+
+              {/* Right Box (Date Range Picker) */}
+              <Grid item xs={12} md='auto' sx={{ mx: { xs: 3, sm: 4 }, mt: { xs: 2 } }}>
+                <CommonDateRangePickers onChange={handleDateRangeChange} filterDates={filterDates} />
+              </Grid>
             </Box>
+
             <Grid
               sx={{
                 // px: { xs: 2, sm: 4 },
