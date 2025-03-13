@@ -657,10 +657,10 @@ const ConditionSlider = ({
               <Box className='sidebar-body' sx={{ px: '24px', overflowY: 'auto' }}>
                 <Box
                   sx={{
-                    background: '#fff',
+                    background: theme.palette.primary.contrastText,
                     borderRadius: '8px',
                     border: 1,
-                    borderColor: '#c3cec7',
+                    borderColor: theme.palette.customColors.AntzOutlineVariant,
                     py: '20px',
                     px: '16px'
                   }}
@@ -865,10 +865,10 @@ const ConditionSlider = ({
                   sx={{
                     mt: 6,
                     mb: isAnimal || statusID === '3' ? 3 : 35,
-                    background: '#fff',
+                    background: theme.palette.primary.contrastText,
                     borderRadius: '8px',
                     border: 1,
-                    borderColor: '#c3cec7',
+                    borderColor: theme.palette.customColors.AntzOutlineVariant,
                     py: '20px',
                     px: '16px'
                   }}
@@ -966,7 +966,7 @@ const ConditionSlider = ({
                                 >
                                   <Icon
                                     icon='material-symbols-light:close'
-                                    color='#fff'
+                                    color={theme.palette.primary.contrastText}
                                     onClick={() => removeSelectedImage(index)}
                                   >
                                     {' '}
@@ -978,7 +978,7 @@ const ConditionSlider = ({
                       </Stack>
                     </Grid>
                   </Grid>
-                  {console.log('permission check', checkAddPermission())}
+                  {/* {console.log('permission check', checkAddPermission())} */}
                   {statusID === '4' && checkAddPermission() && (
                     <Box sx={{ mt: 3, p: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <Typography sx={{ fontWeight: 500 }}>Add this as an animal</Typography>
@@ -1001,10 +1001,10 @@ const ConditionSlider = ({
                       flexDirection: 'column',
                       gap: 3,
                       mb: 35,
-                      bgcolor: '#fff',
+                      bgcolor: theme.palette.primary.contrastText,
                       borderRadius: '8px',
                       border: 1,
-                      borderColor: '#c3cec7'
+                      borderColor: theme.palette.customColors.AntzOutlineVariant
                     }}
                   >
                     <Typography variant='h6'>Necropsy Needed ?</Typography>
@@ -1032,7 +1032,7 @@ const ConditionSlider = ({
                                   flexGrow: 1,
                                   gap: 2,
                                   border: 1,
-                                  borderColor: '#c5c6cd',
+                                  borderColor: theme.palette.customColors.AntzOutlineVariant,
                                   p: 2,
                                   borderRadius: '5px',
                                   justifyContent: 'space-between'
@@ -1049,7 +1049,7 @@ const ConditionSlider = ({
                                   flexGrow: 1,
                                   gap: 2,
                                   border: 1,
-                                  borderColor: '#c5c6cd',
+                                  borderColor: theme.palette.customColors.AntzOutlineVariant,
                                   p: 2,
                                   borderRadius: '5px',
                                   justifyContent: 'space-between'
@@ -1073,10 +1073,10 @@ const ConditionSlider = ({
                     <Box
                       fullWidth
                       sx={{
-                        background: '#fff',
+                        background: theme.palette.primary.contrastText,
                         borderRadius: '8px',
                         border: 1,
-                        borderColor: '#c3cec7',
+                        borderColor: theme.palette.customColors.AntzOutlineVariant,
                         py: '20px',
                         px: '16px'
                       }}
@@ -1282,7 +1282,7 @@ const ConditionSlider = ({
                                       <InputAdornment position='end'>
                                         <Icon
                                           icon={'material-symbols:add-circle-outline'}
-                                          style={{ color: '#37BD69' }}
+                                          style={{ color: theme.palette.primary.main }}
                                         ></Icon>
                                       </InputAdornment>
                                     )

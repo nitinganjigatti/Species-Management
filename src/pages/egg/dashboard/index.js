@@ -62,7 +62,7 @@ const Dashboard = () => {
             fontSize: '16px',
             lineHeight: '24px',
             letterSpacing: '0.15px',
-            color: '#44544A61'
+            color: theme.palette.customColors.LightTypographyBody1
           }}
         >
           Egg
@@ -75,7 +75,7 @@ const Dashboard = () => {
             fontSize: '16px',
             lineHeight: '24px',
             letterSpacing: '0.15px',
-            color: '#44544ADE'
+            color: theme.palette.customColors.customTextColorGray2
           }}
         >
           Dashboard
@@ -100,7 +100,7 @@ const Dashboard = () => {
               <LocalizationProvider dateAdapter={AdapterDayjs}>
                 <DatePicker
                   sx={{
-                    backgroundColor: '#fff',
+                    backgroundColor: theme.palette.primary.contrastText,
                     borderRadius: '8px',
                     width: '100%',
                     '& .css-sn37jt-MuiInputBase-root-MuiOutlinedInput-root': {
@@ -108,7 +108,7 @@ const Dashboard = () => {
                       borderRadius: '4px'
                     },
                     '& .css-1lqkpd-MuiFormLabel-root-MuiInputLabel-root': { top: '-7px' },
-                    '& .css-1d3z3hw-MuiOutlinedInput-notchedOutline': { border: '1px solid #C3CEC7' }
+                    '& .css-1d3z3hw-MuiOutlinedInput-notchedOutline': { border: `1px solid ${theme.palette.customColors.AntzOutlineVariant}` }
                   }}
                   value={fromDate}
                   onChange={newDate => setFromDate(newDate)}
@@ -118,7 +118,7 @@ const Dashboard = () => {
               </LocalizationProvider>
               <Typography
                 sx={{
-                  color: '#839D8D',
+                  color: theme.palette.customColors.Outline,
                   fontWeight: 400,
                   fontSize: '14px',
                   lineHeight: '16.94px'
@@ -129,7 +129,7 @@ const Dashboard = () => {
               <LocalizationProvider dateAdapter={AdapterDayjs}>
                 <DatePicker
                   sx={{
-                    backgroundColor: '#fff',
+                    backgroundColor: theme.palette.primary.contrastText,
                     borderRadius: '8px',
                     width: '100%',
                     '& .css-sn37jt-MuiInputBase-root-MuiOutlinedInput-root': {
@@ -137,7 +137,7 @@ const Dashboard = () => {
                       borderRadius: '4px'
                     },
                     '& .css-1lqkpd-MuiFormLabel-root-MuiInputLabel-root': { top: '-7px' },
-                    '& .css-1d3z3hw-MuiOutlinedInput-notchedOutline': { border: '1px solid #C3CEC7' }
+                    '& .css-1d3z3hw-MuiOutlinedInput-notchedOutline': { border: `1px solid ${theme.palette.customColors.AntzOutlineVariant}` }
                   }}
                   value={tillDate}
                   onChange={newDate => setTilDate(newDate)}

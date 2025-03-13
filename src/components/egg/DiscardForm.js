@@ -320,10 +320,10 @@ const DiscardForm = ({ isOpen, setIsOpen, eggID, callApi, getDetails, GetGallery
                 display: 'flex',
                 flexDirection: 'column',
                 gap: 3,
-                bgcolor: '#fff',
+                bgcolor: theme.palette.primary.contrastText,
                 borderRadius: '8px',
                 border: 1,
-                borderColor: '#c3cec7'
+                borderColor: theme.palette.customColors.AntzOutlineVariant
               }}
             >
               {discardReason?.map(item => (
@@ -334,7 +334,7 @@ const DiscardForm = ({ isOpen, setIsOpen, eggID, callApi, getDetails, GetGallery
                     justifyContent: 'space-between',
                     alignItems: 'center',
                     border: 1,
-                    borderColor: '#c5c6cd',
+                    borderColor: theme.palette.customColors.AntzOutlineVariant,
                     p: 2,
                     borderRadius: '5px'
 
@@ -369,10 +369,10 @@ const DiscardForm = ({ isOpen, setIsOpen, eggID, callApi, getDetails, GetGallery
                 display: 'flex',
                 flexDirection: 'column',
                 gap: 3,
-                bgcolor: '#fff',
+                bgcolor: theme.palette.primary.contrastText,
                 borderRadius: '8px',
                 border: 1,
-                borderColor: '#c3cec7'
+                borderColor: theme.palette.customColors.AntzOutlineVariant
               }}
             >
               <FormControl fullWidth>
@@ -417,7 +417,7 @@ const DiscardForm = ({ isOpen, setIsOpen, eggID, callApi, getDetails, GetGallery
                       gap: 7,
                       height: 70,
 
-                      border: `1px dashed #c5c6cd`,
+                      border: `1px dashed ${theme.palette.customColors.AntzOutlineVariant}`,
                       borderRadius: 1,
 
                       padding: 3
@@ -469,7 +469,7 @@ const DiscardForm = ({ isOpen, setIsOpen, eggID, callApi, getDetails, GetGallery
                           >
                             <Icon
                               icon='material-symbols-light:close'
-                              color='#fff'
+                              color={theme.palette.primary.contrastText}
                               onClick={() => removeSelectedImage(index)} // Pass the index here
                             />
                           </Box>
@@ -489,10 +489,10 @@ const DiscardForm = ({ isOpen, setIsOpen, eggID, callApi, getDetails, GetGallery
                 flexDirection: 'column',
                 gap: 3,
                 mb: 35,
-                bgcolor: '#fff',
+                bgcolor: theme.palette.primary.contrastText,
                 borderRadius: '8px',
                 border: 1,
-                borderColor: '#c3cec7'
+                borderColor: theme.palette.customColors.AntzOutlineVariant
               }}
             >
               <Typography variant='h6'>Necropsy Needed ?</Typography>
@@ -520,7 +520,7 @@ const DiscardForm = ({ isOpen, setIsOpen, eggID, callApi, getDetails, GetGallery
 
                             gap: 2,
                             border: 1,
-                            borderColor: '#c5c6cd',
+                            borderColor: theme.palette.customColors.AntzOutlineVariant,
                             p: 2,
                             borderRadius: '5px',
 
@@ -539,7 +539,7 @@ const DiscardForm = ({ isOpen, setIsOpen, eggID, callApi, getDetails, GetGallery
                             flexGrow: 1,
                             gap: 2,
                             border: 1,
-                            borderColor: '#c5c6cd',
+                            borderColor: theme.palette.customColors.AntzOutlineVariant,
                             p: 2,
                             borderRadius: '5px',
 

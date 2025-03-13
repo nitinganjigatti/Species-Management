@@ -267,22 +267,29 @@ const EggList = () => {
               fontWeight: 500,
               color:
                 params.row.egg_condition === 'Intact'
-                  ? '#006D35'
+                  ? theme.palette.primary.dark
                   : params.row.egg_condition === 'Thin-Shelled'
-                  ? '#1F515B'
+                  ? theme.palette.primary.light
                   : params.row.egg_condition === 'Broken'
-                  ? '#E93353'
+                  ? theme.palette.customColors.AntzError
                   : params.row.egg_condition === 'Rotten'
-                  ? '#FA6140'
+                  ? theme.palette.customColors.Tertiary
                   : params.row.egg_condition === 'Cracked'
-                  ? '#E4B819'
-                  : '#006D35'
+                  ? theme.palette.customColors.moderateSecondary
+                  : theme.palette.primary.dark
             }}
           >
             {' '}
             {params.row.egg_condition}
           </Typography>
-          <Typography sx={{ fontWeight: 400, fontSize: '14px', color: '#44544A', textTransform: 'capitalize' }}>
+          <Typography
+            sx={{
+              fontWeight: 400,
+              fontSize: '14px',
+              color: theme.palette.customColors.OnSurfaceVariant,
+              textTransform: 'capitalize'
+            }}
+          >
             {params.row.egg_initial_temperature}
           </Typography>
         </Box>
@@ -385,7 +392,7 @@ const EggList = () => {
                   height: 30,
 
                   borderRadius: '50%',
-                  background: '#E8F4F2',
+                  background: theme.palette.customColors.displaybgPrimary,
                   overflow: 'hidden'
                 }}
               >
@@ -682,7 +689,7 @@ const EggList = () => {
                   height: 30,
 
                   borderRadius: '50%',
-                  background: '#E8F4F2',
+                  background: theme.palette.customColors.displaybgPrimary,
                   overflow: 'hidden'
                 }}
               >
@@ -983,7 +990,7 @@ const EggList = () => {
     //             height: 30,
 
     //             borderRadius: '50%',
-    //             background: '#E8F4F2',
+    //             background: theme.palette.customColors.displaybgPrimary,
     //             overflow: 'hidden'
     //           }}
     //         >
@@ -1178,10 +1185,24 @@ const EggList = () => {
       align: 'left',
       renderHeader: () => (
         <Box>
-          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', fontWeight: 500 }}>
+          <Typography
+            sx={{
+              color: 'text.primary',
+              fontSize: '0.75rem',
+              color: theme.palette.customColors.OnSecondaryContainer,
+              fontWeight: 500
+            }}
+          >
             DAYS IN
           </Typography>
-          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', fontWeight: 500 }}>
+          <Typography
+            sx={{
+              color: 'text.primary',
+              fontSize: '0.75rem',
+              color: theme.palette.customColors.OnSecondaryContainer,
+              fontWeight: 500
+            }}
+          >
             INCUBATION
           </Typography>
         </Box>
@@ -1213,16 +1234,16 @@ const EggList = () => {
     //       sx={{
     //         color:
     //           params.row.egg_condition === 'Intact'
-    //             ? '#006D35'
+    //             ? theme.palette.primary.dark
     //             : params.row.egg_condition === 'Thin-Shelled'
-    //             ? '#1F515B'
+    //             ? theme.palette.primary.light
     //             : params.row.egg_condition === 'Broken'
-    //             ? '#E93353'
+    //             ? theme.palette.customColors.AntzError
     //             : params.row.egg_condition === 'Rotten'
-    //             ? '#FA6140'
+    //             ? theme.palette.customColors.Tertiary
     //             : params.row.egg_condition === 'Cracked'
-    //             ? '#E4B819'
-    //             : '#006D35',
+    //             ? theme.palette.customColors.moderateSecondary
+    //             : theme.palette.primary.dark,
     //         fontSize: '16px',
     //         fontWeight: 500,
     //         lineHeight: '19.36px',
@@ -1245,11 +1266,24 @@ const EggList = () => {
       headerName: 'Initial weight in gm',
       renderHeader: () => (
         <Box>
-          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', fontWeight: 500 }}>
+          <Typography
+            sx={{
+              color: 'text.primary',
+              fontSize: '0.75rem',
+              color: theme.palette.customColors.OnSecondaryContainer,
+              fontWeight: 500
+            }}
+          >
             INITIAL WEIGHT
           </Typography>
           <Typography
-            sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', fontWeight: 500, textAlign: 'center' }}
+            sx={{
+              color: 'text.primary',
+              fontSize: '0.75rem',
+              color: theme.palette.customColors.OnSecondaryContainer,
+              fontWeight: 500,
+              textAlign: 'center'
+            }}
           >
             IN GM
           </Typography>
@@ -1278,11 +1312,24 @@ const EggList = () => {
       align: 'center',
       renderHeader: () => (
         <Box>
-          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', fontWeight: 500 }}>
+          <Typography
+            sx={{
+              color: 'text.primary',
+              fontSize: '0.75rem',
+              color: theme.palette.customColors.OnSecondaryContainer,
+              fontWeight: 500
+            }}
+          >
             CURRENT WEIGHT
           </Typography>
           <Typography
-            sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', fontWeight: 500, textAlign: 'center' }}
+            sx={{
+              color: 'text.primary',
+              fontSize: '0.75rem',
+              color: theme.palette.customColors.OnSecondaryContainer,
+              fontWeight: 500,
+              textAlign: 'center'
+            }}
           >
             IN GM
           </Typography>
@@ -1303,7 +1350,7 @@ const EggList = () => {
             calculatePercentageChange(params.row.initial_weight, params.row.current_weight) !== '0' && (
               <span
                 style={{
-                  borderLeft: `1px solid #bdc7c0`,
+                  borderLeft: `1px solid ${theme.palette.customColors.AntzOutlineVariant}`,
                   paddingLeft: 4,
                   color:
                     calculatePercentageChange(params.row.initial_weight, params.row.current_weight) > 0
@@ -1367,10 +1414,24 @@ const EggList = () => {
       headerName: 'No Eggs / Clutch',
       renderHeader: () => (
         <Box>
-          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', fontWeight: 500 }}>
+          <Typography
+            sx={{
+              color: 'text.primary',
+              fontSize: '0.75rem',
+              color: theme.palette.customColors.OnSecondaryContainer,
+              fontWeight: 500
+            }}
+          >
             NO.EGG /
           </Typography>
-          <Typography sx={{ color: 'text.primary', fontSize: '0.75rem', color: '#1F415B', fontWeight: 500 }}>
+          <Typography
+            sx={{
+              color: 'text.primary',
+              fontSize: '0.75rem',
+              color: theme.palette.customColors.OnSecondaryContainer,
+              fontWeight: 500
+            }}
+          >
             CLUTCH
           </Typography>
         </Box>
@@ -1538,7 +1599,7 @@ const EggList = () => {
                 height: 30,
 
                 borderRadius: '50%',
-                background: '#E8F4F2',
+                background: theme.palette.customColors.displaybgPrimary,
                 overflow: 'hidden'
               }}
             >
@@ -1767,7 +1828,10 @@ const EggList = () => {
               Yes <Icon icon='pepicons-pencil:file' fontSize={'24px'} />
             </Typography>
           ) : params.row.is_necropsy_needed === '1' ? (
-            <Button sx={{ color: '#00AFD6', ml: -3 }} onClick={e => handleOpenNecropsy(e, params)}>
+            <Button
+              sx={{ color: theme.palette.customColors.AntzAddPrimary, ml: -3 }}
+              onClick={e => handleOpenNecropsy(e, params)}
+            >
               Attach File
             </Button>
           ) : (
@@ -1802,7 +1866,7 @@ const EggList = () => {
                 height: 30,
 
                 borderRadius: '50%',
-                background: '#E8F4F2',
+                background: theme.palette.customColors.displaybgPrimary,
                 overflow: 'hidden'
               }}
             >
@@ -2076,7 +2140,7 @@ const EggList = () => {
                 height: 30,
 
                 borderRadius: '50%',
-                background: '#E8F4F2',
+                background: theme.palette.customColors.displaybgPrimary,
                 overflow: 'hidden'
               }}
             >
@@ -2183,7 +2247,7 @@ const EggList = () => {
     //               height: 30,
 
     //               borderRadius: '50%',
-    //               background: '#E8F4F2',
+    //               background: theme.palette.customColors.displaybgPrimary,
     //               overflow: 'hidden'
     //             }}
     //           >
@@ -2908,7 +2972,7 @@ const EggList = () => {
                         zIndex: 1,
                         backgroundColor: theme.palette.background.default,
                         borderRight: 1,
-                        borderColor: '#c3cec7'
+                        borderColor: theme.palette.customColors.AntzOutlineVariant
                       },
                       '& .MuiDataGrid-root': {
                         overflowX: 'auto'

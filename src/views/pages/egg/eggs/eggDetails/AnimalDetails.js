@@ -5,7 +5,15 @@ import React from 'react'
 
 const AnimalDetails = ({ eggDetails }) => {
   const headerAction = (
-    <Typography sx={{ color: '#00AFD6', fontSize: '14px', lineHeight: '16.94px', fontWeight: 600, mr: 1 }}>
+    <Typography
+      sx={{
+        color: theme.palette.customColors.AntzAddPrimary,
+        fontSize: '14px',
+        lineHeight: '16.94px',
+        fontWeight: 600,
+        mr: 1
+      }}
+    >
       De-link
     </Typography>
   )
@@ -19,14 +27,14 @@ const AnimalDetails = ({ eggDetails }) => {
 
   const theme = useTheme()
   return (
-    <Card sx={{ backgroundColor: '#fff' }}>
+    <Card sx={{ backgroundColor: theme.palette.primary.contrastText }}>
       <CardHeader
         sx={{ pb: 0 }}
         title={'Animal Details'}
         // action={headerAction}
       />
       <CardContent sx={{ pt: 2 }}>
-        <Box sx={{ backgroundColor: '#EFF5F2', borderRadius: '8px', py: '14px', px: '16px' }}>
+        <Box sx={{ backgroundColor: theme.palette.customColors.lightBg, borderRadius: '8px', py: '14px', px: '16px' }}>
           <Grid spacing={2} sx={{ rowGap: 4, alignItems: 'center' }} container>
             <Grid xs={12} sm={6} md={4} xl={3} item>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -42,7 +50,7 @@ const AnimalDetails = ({ eggDetails }) => {
                     width: 35,
                     height: 35,
                     borderRadius: '50%',
-                    background: '#E8F4F2',
+                    background: theme.palette.customColors.displaybgPrimary,
                     overflow: 'hidden'
                   }}
                 />
