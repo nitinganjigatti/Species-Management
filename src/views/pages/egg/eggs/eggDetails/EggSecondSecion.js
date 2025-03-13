@@ -373,7 +373,7 @@ const EggSecondSecion = ({
           })
           setTotal(parseInt(res?.data?.total_count))
           setRows(loadServerRows(paginationModel.page, listWithId))
-          setRowsWeight(rowWeights)
+          setRowsWeight(rowWeights.reverse())
         } else {
           console.log('res', res.message)
         }
