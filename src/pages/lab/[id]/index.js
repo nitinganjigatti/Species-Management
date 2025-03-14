@@ -75,6 +75,7 @@ import { borderColor, width } from '@mui/system'
 import AnimalParentCard from 'src/views/utility/animalParentCard'
 import AnimalSideSheet from 'src/views/pages/lab/AnimalSideSheet'
 import CommentSideSheet from 'src/views/pages/lab/CommentSideSheet'
+import MedicalRecordNotes from 'src/components/lab/request/MedicalRecordNotes'
 
 const statusData = [
   { id: 'awaiting_sample', name: 'Awaiting Sample' },
@@ -171,6 +172,7 @@ const RequestDetails = () => {
   const [openAnimalSheet, setOpenAnimalSheet] = useState(false)
   const [openCommentSheet, setOpenCommentSheet] = useState(false)
   const [CommentData, setCommentData] = useState({})
+  const [medicalRecordNotes, setMedicalRecordNotes] = useState([])
 
   console.log('CommentData', CommentData)
 
@@ -299,6 +301,7 @@ const RequestDetails = () => {
       setDocument(requestData[0]?.files?.files)
       setMedicalDocument(requestData[0]?.medical_attachements?.files)
       setMedicalImage(requestData[0]?.medical_attachements?.images)
+      setMedicalRecordNotes(requestData[0]?.medical_attachements?.notes)
 
       // ✅ API call ke baad `allCompleted` ko update karein
       setAllCompleted(testReports.every(row => row.status.startsWith('completed')))
@@ -733,28 +736,32 @@ const RequestDetails = () => {
                         )}
                     </>
 
-                    <Tooltip title='Add Comment' arrow placement='top-start'>
-                      <IconButton
-                        variant='outlined'
-                        size='small'
-                        sx={{
-                          p: 2,
-                          '&:hover': {
-                            backgroundColor: 'rgba(68, 84, 74, 0.1)' // Change background color on hover
-                          }
-                        }}
-                        onClick={e => {
-                          e.stopPropagation(), handleOpenCommentSheet(e, params?.row)
-                        }}
-                      >
-                        <Icon
-                          icon='fluent:comment-add-28-regular'
-                          width='28'
-                          height='28'
-                          color={'rgba(68, 84, 74, 1)'}
-                        />
-                      </IconButton>
-                    </Tooltip>
+                    {(permissions?.allow_full_access ||
+                      permissions?.perform_tests ||
+                      permissions?.allow_upload_reports) && (
+                      <Tooltip title='Notes' arrow placement='top-start'>
+                        <IconButton
+                          variant='outlined'
+                          size='small'
+                          sx={{
+                            p: 2,
+                            '&:hover': {
+                              backgroundColor: 'rgba(68, 84, 74, 0.1)' // Change background color on hover
+                            }
+                          }}
+                          onClick={e => {
+                            e.stopPropagation(), handleOpenCommentSheet(e, params?.row)
+                          }}
+                        >
+                          <Icon
+                            icon='fluent:comment-note-24-regular'
+                            width='28'
+                            height='28'
+                            color={'rgba(68, 84, 74, 1)'}
+                          />
+                        </IconButton>
+                      </Tooltip>
+                    )}
                   </Stack>
                 </Box>
               </>
@@ -1341,48 +1348,6 @@ const RequestDetails = () => {
             />
           </Card>
 
-          <Card sx={{ mt: 5 }}>
-            <Box sx={{ py: 5, px: 7 }}>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: '4px', mb: 3 }}>
-                <Icon icon='gg:notes' width='24' height='24' />
-                <Typography sx={{ fontSize: 20, fontWeight: 500 }}>Medical Record Notes</Typography>
-              </Box>
-
-              <Divider />
-
-              <Box
-                sx={{
-                  p: 1,
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: 2,
-                  mt: 3,
-                  maxWidth: '400px',
-                  border: '1px solid #f2f2f2',
-                  borderRadius: '8px',
-                  boxShadow: '0px 0px 5px 0px rgba(0,0,0,0.1)'
-                }}
-              >
-                <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                    <Avatar src={''} alt='User Icon' sx={{ width: 40, height: 40 }} />
-                    <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-                      <Typography sx={{ fontSize: '15px', fontWeight: 500 }}>
-                        Name{' '}
-                        <span style={{ fontSize: '12px', fontWeight: 400 }}>
-                          {' '}
-                          {/* {extractHoursAndMinutes(convertUTCToLocal(item?.user_profile?.created_at))} */}
-                          10min
-                        </span>
-                      </Typography>
-                      <Typography sx={{ fontSize: '15px' }}>Note</Typography>
-                    </Box>
-                  </Box>
-                </Box>
-              </Box>
-            </Box>
-          </Card>
-
           {permissions?.allow_upload_reports ||
           permissions?.allow_full_access ||
           image?.length > 0 ||
@@ -1483,6 +1448,19 @@ const RequestDetails = () => {
           )}
         </>
       )}
+
+      <Card sx={{ mt: 5 }}>
+        <Box sx={{ py: 5, px: 7 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: '4px', mb: 3 }}>
+            <Icon icon='gg:notes' width='24' height='24' />
+            <Typography sx={{ fontSize: 20, fontWeight: 500 }}>Medical Record Notes</Typography>
+          </Box>
+
+          <Divider />
+
+          <MedicalRecordNotes notes={medicalRecordNotes} />
+        </Box>
+      </Card>
 
       <>
         {/* Open PopUp On Clicking Request Id */}
