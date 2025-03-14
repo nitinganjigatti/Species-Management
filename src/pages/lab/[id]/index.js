@@ -54,7 +54,8 @@ import {
   Divider,
   Tooltip,
   DialogContent,
-  Toolbar
+  Toolbar,
+  Avatar
 } from '@mui/material'
 import IconButton from '@mui/material/IconButton'
 import Router from 'next/router'
@@ -73,6 +74,8 @@ import AnimalCard from 'src/views/pages/lab/AnimalCard'
 import { borderColor, width } from '@mui/system'
 import AnimalParentCard from 'src/views/utility/animalParentCard'
 import AnimalSideSheet from 'src/views/pages/lab/AnimalSideSheet'
+import CommentSideSheet from 'src/views/pages/lab/CommentSideSheet'
+import MedicalRecordNotes from 'src/components/lab/request/MedicalRecordNotes'
 
 const statusData = [
   { id: 'awaiting_sample', name: 'Awaiting Sample' },
@@ -125,6 +128,7 @@ const RequestDetails = () => {
   const [requestById, setRequestById] = useState()
 
   const [permissions, setPermissions] = useState(null)
+  console.log('permissions', permissions)
 
   // const storedData = JSON.parse(localStorage.getItem('userDetails'))
 
@@ -151,13 +155,13 @@ const RequestDetails = () => {
   const [labId, setLab_id] = useState('')
 
   const [fileId, setFileId] = useState()
-  const [file, setFile] = useState([])
+
   const [testName, setTestName] = useState()
 
   const [testSampleName, setTestSampleName] = useState('')
 
   const [showTestFile, setShowTestFile] = useState(false)
-  const [transferTestId, setTransferTestId] = useState('')
+
   const [headerStatus, setHeaderStatus] = useState('awaiting_sample')
 
   const [selectedRow, setSelectedRow] = useState([])
@@ -166,6 +170,11 @@ const RequestDetails = () => {
   const [hasCompletedStatus, setHasCompletedStatus] = useState(true)
   const [allCompleted, setAllCompleted] = useState(false)
   const [openAnimalSheet, setOpenAnimalSheet] = useState(false)
+  const [openCommentSheet, setOpenCommentSheet] = useState(false)
+  const [CommentData, setCommentData] = useState({})
+  const [medicalRecordNotes, setMedicalRecordNotes] = useState([])
+
+  console.log('CommentData', CommentData)
 
   useEffect(() => {
     const labObject = localLabData?.find(item => item?.lab_id === lab_id)
@@ -292,6 +301,7 @@ const RequestDetails = () => {
       setDocument(requestData[0]?.files?.files)
       setMedicalDocument(requestData[0]?.medical_attachements?.files)
       setMedicalImage(requestData[0]?.medical_attachements?.images)
+      setMedicalRecordNotes(requestData[0]?.medical_attachements?.notes)
 
       // ✅ API call ke baad `allCompleted` ko update karein
       setAllCompleted(testReports.every(row => row.status.startsWith('completed')))
@@ -330,8 +340,6 @@ const RequestDetails = () => {
 
     setOpenTransfer(true)
     setTestId([params?.row?.id])
-
-    setTransferTestId(params?.row?.test_id)
     const labTestId = [params?.row?.id]
     setTransferStatus(params?.row?.status)
     if (selectedRow?.length === 1) {
@@ -389,7 +397,6 @@ const RequestDetails = () => {
   const handleOpenPopOver = (event, params) => {
     setAnchorEl(event.currentTarget)
     setTestId(params?.row?.id)
-    setTransferTestId(params?.row?.test_id)
     setTransferStatus(params?.row?.status)
     setTestName(params?.row?.test_name)
   }
@@ -418,6 +425,21 @@ const RequestDetails = () => {
       : statusData.filter(item =>
           ['awaiting_sample', 'sample_received', 'sample_rejected', 'inprogress'].includes(item.id)
         )
+
+  const shouldShowDropdown =
+    permissions?.allow_full_access ||
+    (permissions?.perform_tests && permissions?.allow_upload_reports) ||
+    (permissions?.perform_tests &&
+      !permissions?.allow_upload_reports &&
+      params.row.status.split(' ')[0] !== 'completed')
+
+  console.log('shouldShowDropdown', shouldShowDropdown)
+
+  const handleOpenCommentSheet = (e, params) => {
+    console.log('params', params)
+    setOpenCommentSheet(true)
+    setCommentData(params)
+  }
 
   const columns = [
     // {
@@ -466,7 +488,7 @@ const RequestDetails = () => {
       renderCell: params => (
         <>
           <Box sx={{ minWidth: 260 }}>
-            {permissions?.allow_full_access || permissions?.perform_tests ? (
+            {shouldShowDropdown ? (
               <FormControl fullWidth variant='outlined'>
                 <Select
                   size='small'
@@ -687,31 +709,59 @@ const RequestDetails = () => {
                       )}
                     </>
                     <>
-                      {(permissions?.allow_full_access || permissions?.transfer_tests) && (
-                        <Tooltip title='Transfer' arrow placement='top-start'>
-                          <IconButton
-                            variant='outlined'
-                            size='small'
-                            sx={{
-                              p: 2,
-                              '&:hover': {
-                                backgroundColor: 'rgba(68, 84, 74, 0.1)' // Change background color on hover
-                              }
-                            }}
-                            onClick={e => {
-                              e.stopPropagation(), handleOpenTransfer(params)
-                            }}
-                          >
-                            <Icon
-                              icon='mingcute:transfer-3-line'
-                              width='24'
-                              height='24'
-                              color={'rgba(68, 84, 74, 1)'}
-                            />
-                          </IconButton>
-                        </Tooltip>
-                      )}
+                      {(permissions?.allow_full_access || permissions?.transfer_tests) &&
+                        params.row.status.split(' ')[0] !== 'completed' && (
+                          <Tooltip title='Transfer' arrow placement='top-start'>
+                            <IconButton
+                              variant='outlined'
+                              size='small'
+                              sx={{
+                                p: 2,
+                                '&:hover': {
+                                  backgroundColor: 'rgba(68, 84, 74, 0.1)' // Change background color on hover
+                                }
+                              }}
+                              onClick={e => {
+                                e.stopPropagation(), handleOpenTransfer(params)
+                              }}
+                            >
+                              <Icon
+                                icon='mingcute:transfer-3-line'
+                                width='24'
+                                height='24'
+                                color={'rgba(68, 84, 74, 1)'}
+                              />
+                            </IconButton>
+                          </Tooltip>
+                        )}
                     </>
+
+                    {(permissions?.allow_full_access ||
+                      permissions?.perform_tests ||
+                      permissions?.allow_upload_reports) && (
+                      <Tooltip title='Notes' arrow placement='top-start'>
+                        <IconButton
+                          variant='outlined'
+                          size='small'
+                          sx={{
+                            p: 2,
+                            '&:hover': {
+                              backgroundColor: 'rgba(68, 84, 74, 0.1)' // Change background color on hover
+                            }
+                          }}
+                          onClick={e => {
+                            e.stopPropagation(), handleOpenCommentSheet(e, params?.row)
+                          }}
+                        >
+                          <Icon
+                            icon='fluent:comment-note-24-regular'
+                            width='28'
+                            height='28'
+                            color={'rgba(68, 84, 74, 1)'}
+                          />
+                        </IconButton>
+                      </Tooltip>
+                    )}
                   </Stack>
                 </Box>
               </>
@@ -987,6 +1037,18 @@ const RequestDetails = () => {
       setHeaderStatus(value)
       postMultipleStatus(selectedRow, value)
     }
+  }
+
+  function extractHoursAndMinutes(date) {
+    //9:21 PM
+    return moment(date).format('hh:mm A')
+  }
+
+  function convertUTCToLocal(date) {
+    var stillUtc = moment.utc(date).toDate()
+    var local = moment(stillUtc).local(true).format('YYYY-MM-DD HH:mm:ss')
+
+    return local
   }
 
   return (
@@ -1387,6 +1449,19 @@ const RequestDetails = () => {
         </>
       )}
 
+      <Card sx={{ mt: 5 }}>
+        <Box sx={{ py: 5, px: 7 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: '4px', mb: 3 }}>
+            <Icon icon='gg:notes' width='24' height='24' />
+            <Typography sx={{ fontSize: 20, fontWeight: 500 }}>Medical Record Notes</Typography>
+          </Box>
+
+          <Divider />
+
+          <MedicalRecordNotes notes={medicalRecordNotes} />
+        </Box>
+      </Card>
+
       <>
         {/* Open PopUp On Clicking Request Id */}
         <Dialog open={open} onClose={handleClose} maxWidth='md' fullWidth>
@@ -1769,17 +1844,7 @@ const RequestDetails = () => {
                     Cancel
                   </LoadingButton>
 
-                  <LoadingButton
-                    onClick={handleSubmitData}
-                    type='submit'
-                    variant='contained'
-                    size='large'
-                    disabled={
-                      permissions?.allow_full_access !== true ||
-                      permissions?.transfer_tests !== true ||
-                      hasCompletedStatus
-                    }
-                  >
+                  <LoadingButton onClick={handleSubmitData} type='submit' variant='contained' size='large'>
                     CONFIRM
                   </LoadingButton>
                 </Box>
@@ -1899,6 +1964,16 @@ const RequestDetails = () => {
             openAnimalSheet={openAnimalSheet}
             setOpenAnimalSheet={setOpenAnimalSheet}
             request={request}
+          />
+        )}
+      </>
+      <>
+        {openCommentSheet && (
+          <CommentSideSheet
+            openCommentSheet={openCommentSheet}
+            setOpenCommentSheet={setOpenCommentSheet}
+            CommentData={CommentData}
+            api={() => fetchRequestDetails()}
           />
         )}
       </>

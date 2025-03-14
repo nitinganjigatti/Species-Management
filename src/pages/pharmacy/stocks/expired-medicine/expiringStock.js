@@ -20,6 +20,7 @@ import { useTheme } from '@emotion/react'
 import { FormControl, InputLabel, Select, MenuItem } from '@mui/material'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import RenderUtility from 'src/utility/render'
+import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDateRangePickers'
 
 const ExpiringMedicine = () => {
   const theme = useTheme()
@@ -413,6 +414,32 @@ const ExpiringMedicine = () => {
     return <FallbackSpinner />
   }
 
+  const formatDate = dateString => {
+    const date = new Date(dateString)
+    const year = date.getFullYear()
+    const month = (date.getMonth() + 1).toString().padStart(2, '0')
+    const day = date.getDate().toString().padStart(2, '0')
+
+    return `${year}-${month}-${day}`
+  }
+
+  const handleDateRangeChange = (startDate, endDate) => {
+    if (startDate && endDate) {
+      const formattedStartDate = formatDate(startDate)
+      const formattedEndDate = formatDate(endDate)
+      setFilterDates({
+        startDate: formattedStartDate,
+        endDate: formattedEndDate
+      })
+    } else {
+      // If startDate or endDate is empty, pass empty values and fetch data without filtering by date
+      setFilterDates({
+        startDate: '',
+        endDate: ''
+      })
+    }
+  }
+
   return (
     <>
       {loader ? (
@@ -515,8 +542,21 @@ const ExpiringMedicine = () => {
                     </FormControl>
                   </Grid>
                 )} */}
-
               <Grid
+                item
+                sx={{
+                  width: { xs: '100%', md: 'auto' },
+                  height: '50px'
+                }}
+              >
+                <CommonDateRangePickers
+                  onChange={handleDateRangeChange}
+                  filterDates={filterDates}
+                  showFutureDates={true}
+                />
+              </Grid>
+
+              {/* <Grid
                 item
                 sx={{
                   width: { xs: '100%', md: '240px' },
@@ -540,7 +580,7 @@ const ExpiringMedicine = () => {
                     <MenuItem value='60'>30 to 60 Days</MenuItem>
                   </Select>
                 </FormControl>
-              </Grid>
+              </Grid> */}
 
               {/* <Grid item xs={12} sm={7} md={7} sx={{ float: 'right', mr: 1 }}>
                 {status === 'all' || status === 'completed' ? (
