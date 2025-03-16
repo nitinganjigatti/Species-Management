@@ -67,8 +67,8 @@ const ListOfPurchase = () => {
   const { selectedPharmacy } = usePharmacyContext()
 
   const fetchTableData = useCallback(
-    async ({ sort, q, column}) => {
-      debugger
+    async ({ sort, q, column }) => {
+   
       try {
         setLoading(true)
 
@@ -178,7 +178,8 @@ const ListOfPurchase = () => {
   }
 
   const handleDateRangeChange = (startDate, endDate) => {
-    debugger
+    
+    setPaginationModel({ page: 0, pageSize: 10 })
     if (startDate && endDate) {
       setFilterDates({
         startDate: Utility.formatDate(startDate),
@@ -396,8 +397,9 @@ const ListOfPurchase = () => {
         <Box
           sx={{
             display: 'flex',
-            gap: 3,
-            justifyContent: 'flex-start',
+            gap: 4,
+            flexDirection: { xs: 'column', sm: 'row' },
+            justifyContent: { xs: 'center', sm: 'flex-start' },
             whiteSpace: 'nowrap'
           }}
         >
@@ -447,21 +449,56 @@ const ListOfPurchase = () => {
           <FallbackSpinner />
         ) : (
           <Card>
+            {/* <CardHeader
+              sx={{
+                display: 'flex',
+                flexDirection: { xs: 'column', sm: 'column' }, // Stack items in sm screens
+                justifyContent: 'flex-start',
+                alignItems: 'flex-start',
+                gap: { xs: 3, sm: 1 },
+                mx: { xs: -1, sm: 1 },
+                width: '100%', // Ensure the header takes full width
+                '& .MuiCardHeader-content': {
+                  flexGrow: 1, // Allows the title to take full width
+                  width: '100%'
+                },
+
+                '& .MuiCardHeader-action': {
+                  width: { xs: '100% ', sm: 'auto' },
+                  justifyContent: 'flex-end', 
+                },
+                mx: { xs: -1, sm: 1 }
+              }}
+              title={RenderUtility.pageTitle('Inventory List')}
+              action={headerAction}
+            /> */}
             <CardHeader
               sx={{
                 display: 'flex',
-                flexDirection: { xs: 'column', sm: 'row' },
-                justifyContent: 'flex-start', // Align content to the left
-                alignItems: 'flex-start', // Align items to the top left
-                gap: { xs: 3, sm: 2 },
-                '& .MuiCardHeader-action': {
-                  width: { xs: '100% ', sm: 'auto' }
+                flexDirection: { xs: 'column', sm: 'column' }, // Stack items in small screens
+                justifyContent: 'flex-start',
+                alignItems: 'flex-start',
+                gap: { xs: 0, sm: 1 },
+                mx: { xs: 0, sm: 0 },
+                width: '100%', // Ensure full width for header
+                '& .MuiCardHeader-content': {
+                  flexGrow: 1,
+                  width: '100%'
                 },
-                mx: { xs: -1, sm: 0 }
+                '& .MuiCardHeader-action': {
+                  width: '100%', // Full width for actions in xs
+                  display: 'flex',
+                  flexDirection: { xs: 'column', sm: 'row' }, // Stack buttons in xs, row in sm+
+                  alignItems: { xs: 'stretch', sm: 'center' }, // Full width in xs, normal in sm+
+                  justifyContent: { xs: 'flex-start', sm: 'flex-end' }, // Left in xs, right in sm+
+                  gap: 1, // Add spacing between buttons
+                  mt: 1 // Add spacing between title and buttons
+                }
               }}
               title={RenderUtility.pageTitle('Inventory List')}
               action={headerAction}
             />
+
             {/* <Box
               sx={{
                 display: 'flex',
@@ -477,8 +514,9 @@ const ListOfPurchase = () => {
                 display: 'flex',
                 flexDirection: { xs: 'column', sm: 'row' }, // Stack on small screens, row on larger screens
                 justifyContent: 'space-between',
-                alignItems: 'center', // Align items vertically in row mode
-                gap: { xs: 2, sm: 0 } // Add spacing for small screens
+                alignItems: { xs: 'stretch', sm: 'center' }, // Stretch items in column mode
+                gap: { xs: 2, sm: 0 }, // Add spacing for small screens
+                width: '100%' // Ensure full width
               }}
             >
               {/* Left Box (Search Field) */}
@@ -489,7 +527,8 @@ const ListOfPurchase = () => {
                 md={6}
                 lg={4}
                 sx={{
-                  mx: { xs: 3, sm: 4 }
+                  mx: { xs: 3, sm: 4 },
+                  width: { xs: '91%', sm: 'auto' } // Full width on small screens
                 }}
               >
                 <Box
@@ -499,8 +538,9 @@ const ListOfPurchase = () => {
                     border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                     borderRadius: '8px',
                     padding: '0 8px',
-                    width: { xs: '100%', sm: '250px' },
-                    height: '40px'
+                    width: '100%', // Ensure full width for input container
+                    height: '40px',
+                    mx: 1
                   }}
                 >
                   <Icon icon='mi:search' fontSize={20} color={theme.palette.customColors.neutralSecondary} />
@@ -524,7 +564,16 @@ const ListOfPurchase = () => {
               </Grid>
 
               {/* Right Box (Date Range Picker) */}
-              <Grid item xs={12} md='auto' sx={{ mx: { xs: 3, sm: 4 }, mt: { xs: 2 } }}>
+              <Grid
+                item
+                xs={12}
+                sm='auto'
+                sx={{
+                  mx: { xs: 3, sm: 4 },
+                  mt: { xs: 2, sm: 2 },
+                  width: { xs: '92%', sm: 'auto' } // Full width on small screens
+                }}
+              >
                 <CommonDateRangePickers onChange={handleDateRangeChange} filterDates={filterDates} />
               </Grid>
             </Box>
