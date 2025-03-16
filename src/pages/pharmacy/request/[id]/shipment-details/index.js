@@ -10,7 +10,7 @@ const ShipmentDetails = () => {
 
   return (
     <Card sx={{ p: 6 }}>
-      <OrderReceiveForm orderId={orderId} requestId={requestId} />
+      <OrderReceiveForm orderId={orderId} requestId={requestId} requestedFrom={'request'} />
     </Card>
   )
 }

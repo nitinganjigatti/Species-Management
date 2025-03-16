@@ -784,7 +784,7 @@ function OrderReceiveForm({ orderId, requestId }) {
       renderCell: params => {
         return (
           <>
-            {selectedPharmacy.type === 'local' ? (
+            {selectedPharmacy?.type === 'local' ? (
               <>
                 <Grid
                   sx={{
