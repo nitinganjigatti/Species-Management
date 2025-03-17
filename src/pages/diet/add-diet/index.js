@@ -35,6 +35,7 @@ import { getDietTypeList } from 'src/lib/api/diet/dietList'
 import { AuthContext } from 'src/context/AuthContext'
 import { getCutsizeList } from 'src/lib/api/diet/settings/cutSizes'
 import { getFeedTypeList } from 'src/lib/api/diet/feedType'
+import { getUnitsForRecipe } from 'src/lib/api/diet/recipe'
 import Error404 from 'src/pages/404'
 
 const steps = [
@@ -109,6 +110,21 @@ const AddDiet = () => {
       await getDietTypeList({ params: params }).then(res => {
         console.log(res, 'res')
         setUomList(res?.data)
+      })
+    } catch (e) {
+      console.log(e)
+    }
+  }
+
+  const getUnitsListuom = async () => {
+    try {
+      const params = {
+        type: ['length', 'weight'],
+        page: 1,
+        limit: 100
+      }
+      await getUnitsForRecipe({ params: params }).then(res => {
+        setUomprevnew(res?.data?.result)
       })
     } catch (e) {
       console.log(e)
@@ -296,6 +312,7 @@ const AddDiet = () => {
     getUnitsList()
     getcutsizeListFromApi()
     fetchData()
+    getUnitsListuom()
     // callIngredientTypeList({ status: 1, page: 1, limit: 10 })
   }, [])
 
