@@ -606,7 +606,7 @@ const ComboCard = ({
                             padding: '8px',
                             borderRadius: '4px'
                           }}
-                          src={ingredient.image ? ingredient.image : '/icons/icon_ingredient.svg'}
+                          src={ingredient?.image ? ingredient?.image : '/icons/icon_ingredient.svg'}
                         ></Avatar>
 
                         {/* Ingredient Details */}

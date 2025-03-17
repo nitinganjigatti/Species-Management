@@ -25,11 +25,11 @@ import Select from '@mui/material/Select'
 import Divider from '@mui/material/Divider'
 import { Add, Remove } from '@mui/icons-material'
 import toast from 'react-hot-toast'
+import { useTheme } from '@mui/material/styles'
 import { getIngredientList } from 'src/lib/api/diet/getIngredients'
-import { getUnitsForRecipe } from 'src/lib/api/diet/recipe'
-import { getPreparationTypeList } from 'src/lib/api/diet/settings/preparationTypes'
 import { getFeedTypeList } from 'src/lib/api/diet/feedType'
 import { getCutsizeList } from 'src/lib/api/diet/settings/cutSizes'
+import { palette } from '@mui/system'
 
 const AddIngredientswithChoice = props => {
   const {
@@ -46,7 +46,7 @@ const AddIngredientswithChoice = props => {
     uom,
     feedType
   } = props
-
+  const theme = useTheme()
   const [feed, setFeed] = React.useState('')
   const [selectFeed, setSelectFeed] = useState({})
 
@@ -70,6 +70,7 @@ const AddIngredientswithChoice = props => {
 
   const [count, setCount] = useState(1)
   const [showDays, setShowDays] = useState(false)
+  const [loading, setLoading] = useState(false)
 
   const handelShowBottom = (event, item, index) => {
     event.stopPropagation()
@@ -95,6 +96,7 @@ const AddIngredientswithChoice = props => {
     setSearchValue('')
     parentHandleSidebarClose()
     setFeed('')
+    debouncedSearch('')
   }
 
   const handleChangeTopFeed = async event => {
@@ -102,10 +104,12 @@ const AddIngredientswithChoice = props => {
     setFeed(event.target.value)
 
     try {
-      const params = { page: ingredientPage, q: searchValue, sort, feed_type: event.target.value, status: 1 }
+      const params = { page: 1, limit: 20, q: searchValue, sort, feed_type: event.target.value, status: 1 }
       await getIngredientList({ params }).then(res => {
         if (res?.data?.result?.length > 0) {
           setIngredientList(res?.data?.result)
+          setIngredientPage(1)
+          setTotalCount(res?.data?.total_count)
           setReachedEnd(false)
         } else {
           setReachedEnd(false)
@@ -126,6 +130,8 @@ const AddIngredientswithChoice = props => {
       await getIngredientList({ params }).then(res => {
         if (res?.data?.result?.length > 0) {
           setIngredientList(res?.data?.result)
+          setIngredientPage(1)
+          setTotalCount(res?.data?.total_count)
           setReachedEnd(false)
         } else {
           setReachedEnd(false)
@@ -192,8 +198,6 @@ const AddIngredientswithChoice = props => {
     // Get the remarks value
     const remarksData = remarks || ''
     if (!feed_type) {
-      // toast.error('Please select a feed type.')
-
       return
     }
 
@@ -201,8 +205,6 @@ const AddIngredientswithChoice = props => {
       const cutSizeValue = newCutSize ? newCutSize : cutSize[item.id]?.id || ''
       const sizeValue = newUom ? newUom : size[item.id]?.id || ''
       if (!sizeValue) {
-        // toast.error('Cut size and size are required for chopped feed.')
-
         return
       }
     }
@@ -220,8 +222,6 @@ const AddIngredientswithChoice = props => {
     }
 
     if (feed_type !== '') {
-      // Include cut size and its dropdown only if feedType is "Chopped"
-      //const cutSizeValue = newCutSize ? newCutSize : cutSize[item.id]?.id || ''
       const sizeValue = newUom ? newUom?.id : size[item.id]?.id || ''
       const sizeName = newUom ? newUom?.cut_size : size[item.id]?.name || ''
 
@@ -287,7 +287,41 @@ const AddIngredientswithChoice = props => {
     } catch (error) {
       console.error(error)
     }
-  }, [searchValue])
+  }, [])
+
+  // Debounced search function
+  const debouncedSearch = useCallback(
+    debounce(async search => {
+      try {
+        setLoading(true)
+        const params = { page: 1, q: search, sort, status: 1, limit: 20, feed_type: feed }
+        const res = await getIngredientList({ params })
+        if (res?.data?.result.length > 0) {
+          setIngredientList(res.data.result)
+          setIngredientPage(1)
+          setTotalCount(res?.data?.total_count)
+        } else {
+          setIngredientList([])
+        }
+      } catch (error) {
+        console.error(error)
+      } finally {
+        setLoading(false)
+      }
+    }, 500),
+    []
+  )
+
+  const handleSearchChange = e => {
+    const value = e.target.value
+    setSearchValue(value)
+    debouncedSearch(value)
+  }
+
+  const handleCancelClick = () => {
+    setSearchValue('')
+    debouncedSearch('')
+  }
 
   // Top Feed Type
   // const fetchData = async () => {
@@ -418,28 +452,6 @@ const AddIngredientswithChoice = props => {
       setVisibility([])
     }
   }, [allIngredientchoiceSelectedValues, checkid, ingType === 'addingIndex', ingredientChoiceIndex, open])
-
-  const searchData = useCallback(
-    debounce(async search => {
-      if (searchValue != ' ') {
-        try {
-          const params = { page: 1, q: search, sort, status: 1, feed_type: feed }
-          await getIngredientList({ params }).then(res => {
-            if (res?.data?.result.length > 0) {
-              setIngredientList(res?.data?.result)
-              setIngredientPage(1)
-            } else {
-              setIngredientList([])
-            }
-          })
-        } catch (error) {
-          setIngredientPage(1)
-        }
-      }
-    }, 500),
-
-    [searchValue]
-  )
 
   // const handelInputCutSize = (event, item) => {
   //   event.stopPropagation()
@@ -625,6 +637,7 @@ const AddIngredientswithChoice = props => {
   }
 
   const sortedIngredientList = [...ingredientList]?.sort((a, b) => a.ingredient_name.localeCompare(b.ingredient_name))
+  console.log(theme, 'theme')
 
   return (
     <>
@@ -637,11 +650,11 @@ const AddIngredientswithChoice = props => {
           position: 'relative',
           display: 'flex',
           flexDirection: 'column',
-          bgcolor: '#EFF5F2',
+          bgcolor: theme.palette.customColors.bodyBg,
           gap: '24px'
         }}
       >
-        <Box sx={{ position: 'fixed', top: 0, bgcolor: '#EFF5F2', zIndex: 10, width: '562px' }}>
+        <Box sx={{ position: 'fixed', top: 0, bgcolor: theme.palette.customColors.bodyBg, zIndex: 10, width: '562px' }}>
           <Box
             className='sidebar-header'
             sx={{
@@ -653,12 +666,12 @@ const AddIngredientswithChoice = props => {
           >
             <Box sx={{ gap: 2, display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
               <img src='/icons/Activity.svg' alt='Grocery Icon' width='35px' />
-              <Typography variant='h6' sx={{ color: '#44544A' }}>
+              <Typography variant='h6' sx={{ color: theme.palette.customColors.OnSurfaceVariant }}>
                 Select Multiple Items
               </Typography>
             </Box>
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
-              <IconButton size='small' onClick={handleSidebarClose} sx={{ color: '#1F515B' }}>
+              <IconButton size='small' onClick={handleSidebarClose} sx={{ color: theme.palette.primary.light }}>
                 <Icon icon='mdi:close' fontSize={25} />
               </IconButton>
             </Box>
@@ -671,18 +684,25 @@ const AddIngredientswithChoice = props => {
                 value={searchValue}
                 fullWidth
                 InputProps={{
-                  startAdornment: <Icon style={{ marginRight: 10, color: '#44544A' }} icon={'ion:search-outline'} />
+                  startAdornment: (
+                    <Icon
+                      style={{ marginRight: 10, color: theme.palette.customColors.OnSurfaceVariant }}
+                      icon={'ion:search-outline'}
+                    />
+                  ),
+                  endAdornment: searchValue && (
+                    <IconButton onClick={handleCancelClick} size='small' sx={{ padding: 0 }}>
+                      <Icon icon={'ion:close-outline'} style={{ color: theme.palette.customColors.OnSurfaceVariant }} />
+                    </IconButton>
+                  )
                 }}
                 placeholder='Search ingredient'
-                onKeyUp={e => searchData(e.target.value)}
-                onChange={e => {
-                  setSearchValue(e.target.value)
-                }}
+                onChange={handleSearchChange}
                 sx={{
                   '& .MuiOutlinedInput-root': {
-                    borderColor: '#839D8D',
+                    borderColor: theme.palette.customColors.Outline,
                     '& fieldset': {
-                      borderColor: '#839D8D'
+                      borderColor: theme.palette.customColors.Outline
                     }
                   }
                 }}
@@ -699,10 +719,10 @@ const AddIngredientswithChoice = props => {
                   onChange={handleChangeTopFeed}
                   sx={{
                     '& .MuiOutlinedInput-notchedOutline': {
-                      borderColor: '#839D8D'
+                      borderColor: theme.palette.customColors.Outline
                     },
                     '&:hover .MuiOutlinedInput-notchedOutline': {
-                      borderColor: '#839D8D'
+                      borderColor: theme.palette.customColors.Outline
                     },
                     '& .MuiOutlinedInput-root': {
                       borderRadius: '0px'
@@ -742,10 +762,14 @@ const AddIngredientswithChoice = props => {
 
         <Box
           key={feed}
-          sx={{ marginTop: 35, height: '65%', overflowY: 'auto', bgcolor: '#EFF5F2' }}
+          sx={{ marginTop: 35, height: '65%', overflowY: 'auto', bgcolor: theme.palette.customColors.bodyBg }}
           onScroll={handleScroll}
         >
-          {sortedIngredientList?.length > 0 ? (
+          {loading ? (
+            <Box sx={{ display: 'flex', justifyContent: 'center', mt: 20 }}>
+              <CircularProgress />
+            </Box>
+          ) : sortedIngredientList?.length > 0 ? (
             sortedIngredientList?.map((item, index) => (
               <Box
                 key={item?.id}
@@ -755,7 +779,7 @@ const AddIngredientswithChoice = props => {
                   borderRadius: '8px',
                   my: 4,
                   ...(selectedCardIngchoice.some(card => card.ingredient_id === item.id) && {
-                    border: '2px solid #37bd69'
+                    border: `2px solid ${theme.palette.primary.main}`
                   })
                 }}
                 onClick={event => handelShowBottom(event, item, index)}
@@ -775,7 +799,7 @@ const AddIngredientswithChoice = props => {
                         width: '68px',
                         height: '68px',
                         borderRadius: 1,
-                        bgcolor: '#E8F4F2',
+                        bgcolor: theme.palette.customColors.displaybgPrimary,
                         display: 'flex',
                         justifyContent: 'center',
                         alignItems: 'center',
@@ -793,7 +817,7 @@ const AddIngredientswithChoice = props => {
                         width: '68px',
                         height: '68px',
                         borderRadius: 1,
-                        bgcolor: '#E8F4F2',
+                        bgcolor: theme.palette.customColors.displaybgPrimary,
                         display: 'flex',
                         justifyContent: 'center',
                         alignItems: 'center',
@@ -807,7 +831,12 @@ const AddIngredientswithChoice = props => {
                       <Avatar
                         variant='square'
                         alt='Medicine Image'
-                        sx={{ width: 40, height: 40, background: '#E8F4F2', borderRadius: 20 }}
+                        sx={{
+                          width: 40,
+                          height: 40,
+                          background: theme.palette.customColors.displaybgPrimary,
+                          borderRadius: 20
+                        }}
                         src={item?.image ? item?.image : '/icons/icon_diet_fill.png'}
                       ></Avatar>
                     </Box>
@@ -848,10 +877,10 @@ const AddIngredientswithChoice = props => {
                             }
                             sx={{
                               '& .MuiOutlinedInput-notchedOutline': {
-                                borderColor: '#839D8D'
+                                borderColor: theme.palette.customColors.Outline
                               },
                               '&:hover .MuiOutlinedInput-notchedOutline': {
-                                borderColor: '#839D8D'
+                                borderColor: theme.palette.customColors.Outline
                               },
                               '& .MuiOutlinedInput-root': {
                                 borderRadius: '0px'
@@ -921,10 +950,10 @@ const AddIngredientswithChoice = props => {
                                 }
                                 sx={{
                                   '& .MuiOutlinedInput-notchedOutline': {
-                                    borderColor: '#839D8D'
+                                    borderColor: theme.palette.customColors.Outline
                                   },
                                   '&:hover .MuiOutlinedInput-notchedOutline': {
-                                    borderColor: '#839D8D'
+                                    borderColor: theme.palette.customColors.Outline
                                   },
                                   '& .MuiOutlinedInput-root': {
                                     borderRadius: '0px'
@@ -956,21 +985,21 @@ const AddIngredientswithChoice = props => {
                 </>
               </Box>
             ))
-          ) : (
+          ) : searchValue !== '' && sortedIngredientList.length <= 0 ? (
             <Box
               sx={{
                 display: 'flex',
                 justifyContent: 'center',
                 alignItems: 'center',
                 height: '40%',
-                color: '#7A7A7A',
+                color: theme.palette.customColors.statusText,
                 fontSize: '16px'
               }}
             >
               No records to show
             </Box>
-          )}
-          {reachedEnd ? (
+          ) : null}
+          {!loading && reachedEnd ? (
             <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%' }}>
               <CircularProgress sx={{ mb: 10 }} />
             </Box>
@@ -1011,7 +1040,7 @@ const AddIngredientswithChoice = props => {
                 display='flex'
                 alignItems='center'
                 sx={{
-                  border: '1px solid #C3CEC7',
+                  border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                   width: '22%',
                   borderRadius: '5px',
                   float: 'right',
@@ -1022,7 +1051,7 @@ const AddIngredientswithChoice = props => {
                 <IconButton onClick={handleDecrement}>
                   <Remove />
                 </IconButton>
-                <Typography variant='h5' align='center' sx={{ color: '#37BD69' }}>
+                <Typography variant='h5' align='center' sx={{ color: theme.palette.primary.main }}>
                   {count}
                 </Typography>
                 <IconButton onClick={handleIncrement}>
@@ -1040,14 +1069,14 @@ const AddIngredientswithChoice = props => {
                       sx={{
                         fontSize: 11,
                         fontWeight: 'bold',
-                        bgcolor: selectedDays.includes(day.id) ? '#203e56' : '#dedede66',
+                        bgcolor: selectedDays.includes(day.id) ? theme.palette.secondary.dark : '#dedede66',
                         borderRadius: 5,
                         p: 2,
                         justifyContent: 'center',
                         alignItems: 'center',
                         cursor: 'pointer',
                         '&:hover': {
-                          backgroundColor: selectedDays.includes(day.id) ? '#203e56' : '#dedede',
+                          backgroundColor: selectedDays.includes(day.id) ? theme.palette.secondary.dark : '#dedede',
                           color: selectedDays.includes(day.id) ? 'white' : 'black'
                         },
                         color: selectedDays.includes(day.id) ? 'white' : 'black'
