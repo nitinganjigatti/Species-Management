@@ -68,7 +68,6 @@ const ListOfPurchase = () => {
 
   const fetchTableData = useCallback(
     async ({ sort, q, column }) => {
-   
       try {
         setLoading(true)
 
@@ -178,7 +177,6 @@ const ListOfPurchase = () => {
   }
 
   const handleDateRangeChange = (startDate, endDate) => {
-    
     setPaginationModel({ page: 0, pageSize: 10 })
     if (startDate && endDate) {
       setFilterDates({
@@ -475,24 +473,21 @@ const ListOfPurchase = () => {
             <CardHeader
               sx={{
                 display: 'flex',
-                flexDirection: { xs: 'column', sm: 'column' }, // Stack items in small screens
-                justifyContent: 'flex-start',
-                alignItems: 'flex-start',
-                gap: { xs: 0, sm: 1 },
-                mx: { xs: 0, sm: 0 },
-                width: '100%', // Ensure full width for header
+                flexDirection: { xs: 'column', sm: 'row' }, // Stack title and actions in xs, row in sm+
+                justifyContent: 'space-between', // Push title left and actions right on larger screens
+                alignItems: { xs: 'flex-start', sm: 'center' }, // Align items properly
+                width: '100%',
                 '& .MuiCardHeader-content': {
-                  flexGrow: 1,
-                  width: '100%'
+                  flexGrow: 1 // Allows title to take available space
                 },
                 '& .MuiCardHeader-action': {
-                  width: '100%', // Full width for actions in xs
                   display: 'flex',
                   flexDirection: { xs: 'column', sm: 'row' }, // Stack buttons in xs, row in sm+
-                  alignItems: { xs: 'stretch', sm: 'center' }, // Full width in xs, normal in sm+
-                  justifyContent: { xs: 'flex-start', sm: 'flex-end' }, // Left in xs, right in sm+
-                  gap: 1, // Add spacing between buttons
-                  mt: 1 // Add spacing between title and buttons
+                  alignItems: 'stretch', // Ensures full width in column mode
+                  justifyContent: { xs: 'flex-start', sm: 'flex-end' }, // Left align in xs, right align in sm+
+                  gap: 1,
+                  width: { xs: '100%', sm: 'auto' }, // Full width for small screens
+                  mt: { xs: 1, sm: 0 } // Add spacing between title and buttons in xs
                 }
               }}
               title={RenderUtility.pageTitle('Inventory List')}
