@@ -263,11 +263,11 @@ const SpeciesDietList = () => {
             variant='rounded'
             alt='Medicine Image'
             sx={{
-              width: 35,
-              height: 35,
+              width: 40,
+              height: 40,
               borderRadius: '50%',
               background: '#E8F4F2',
-              overflow: 'hidden'
+              padding: '5px'
             }}
           >
             {params.row.default_icon ? (

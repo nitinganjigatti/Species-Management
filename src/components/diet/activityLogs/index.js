@@ -97,7 +97,7 @@ const ActivityLogs = ({
     if (detailsValue?.id) {
       getActivityLogs()
     }
-  }, [])
+  }, [detailsValue?.id, detailsValue?.active])
 
   return (
     <Box sx={{ display: 'flex', marginLeft: 'auto', cursor: 'pointer' }}>

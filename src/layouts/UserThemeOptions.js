@@ -78,9 +78,6 @@ const UserThemeOptions = () => {
         neutralSecondary: '##7A8684',
         textLabel: '#00ABAB',
 
-        // **
-        OnSurfaceVariant: '#44544A',
-
         // *** name required
         customTableCellBg: '#FCF4AE33',
 
@@ -116,7 +113,8 @@ const UserThemeOptions = () => {
         addPrimary: '#00AFD6',
         displaybgSecondary: '#DDEBE9',
         SurfaceVariant: '#DAE7DF',
-        OnPrimary: '#FFFFFF'
+        OnPrimary: '#FFFFFF',
+        statusText: '#7A7A7A'
       },
       primary: {
         // light: '#20DE67',
@@ -140,7 +138,8 @@ const UserThemeOptions = () => {
         paper: mode === 'light' ? '#FFFFFF' : '#30334E',
 
         // default: defaultBgColor()
-        default: bgColor
+        default: bgColor,
+        OnBackground: '#E1F9ED'
       }
     },
     components: {
