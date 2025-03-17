@@ -16,15 +16,15 @@ import { Box, width } from '@mui/system'
 import { useRouter } from 'next/router'
 import React, { useCallback, useEffect, useState } from 'react'
 import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDateRangePickers'
-import { getReturnReport } from 'src/lib/api/pharmacy/getReturnReport'
+import { getReturnReport } from 'src/lib/api/pharmacy/reports'
 import Utility from 'src/utility'
 import RenderUtility from 'src/utility/render'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import StyleWithIconCardComponent from 'src/views/utility/style-with-icon-card'
 import Icon from 'src/@core/components/icon'
-import ReturnReportDrawer from 'src/views/pages/pharmacy/return-report/ReturnReportDrawer'
 import { getStoreList } from 'src/lib/api/pharmacy/getStoreList'
 import { debounce } from 'lodash'
+import ReturnReportDrawer from 'src/views/pages/pharmacy/reports/ReturnReportDrawer'
 
 const ReturnReport = () => {
   const router = useRouter()
@@ -382,17 +382,23 @@ const ReturnReport = () => {
       sortable: false,
       headerName: 'MANUFACTURER NAME',
       renderCell: params => (
-        <Typography
-          variant='body2'
-          sx={{
-            color: theme.palette.customColors.customHeadingTextColor,
-            fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
-          }}
-        >
-          {params.row.manufacturer_name}
-        </Typography>
+        <Tooltip title={params.row.manufacturer_name}>
+          <Typography
+            variant='body2'
+            sx={{
+              color: theme.palette.customColors.customHeadingTextColor,
+              fontSize: '14px',
+              fontWeight: 400,
+              fontFamily: 'Inter',
+              overflow: 'hidden',
+              whiteSpace: 'nowrap',
+              textOverflow: 'ellipsis',
+              maxWidth: 200
+            }}
+          >
+            <span alt={params.row.manufacturer_name}> {params.row.manufacturer_name}</span>
+          </Typography>
+        </Tooltip>
       )
     },
     {
@@ -634,6 +640,16 @@ const ReturnReport = () => {
       setExportLoading(false)
     }
   }
+
+  // const handleExport = async () => {
+  //   try {
+  //     setExportLoading(true)
+  //   } catch (error) {
+  //     console.error('Error downloading Excel:', error)
+  //   } finally {
+  //     setExportLoading(false)
+  //   }
+  // }
 
   const calculateAppliedFiltersCount = () => {
     let count = 0

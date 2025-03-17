@@ -13,7 +13,7 @@ import { useTheme } from '@emotion/react'
 import { Box } from '@mui/system'
 import { useRouter } from 'next/router'
 import React, { useCallback, useEffect, useState } from 'react'
-import { getPurchaseReport } from 'src/lib/api/pharmacy/getPurchaseReport'
+import { getPurchaseReport } from 'src/lib/api/pharmacy/reports'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import RenderUtility from 'src/utility/render'
 import StyleWithIconCardComponent from 'src/views/utility/style-with-icon-card'
@@ -21,8 +21,9 @@ import Utility from 'src/utility'
 import { debounce } from 'lodash'
 import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDateRangePickers'
 import Icon from 'src/@core/components/icon'
-import PurchaseFilterDrawer from 'src/views/pages/pharmacy/purchase-report/PurchaseFilterDrawer'
+
 import { getSuppliers } from 'src/lib/api/pharmacy/getSupplierList'
+import PurchaseFilterDrawer from 'src/views/pages/pharmacy/reports/PurchaseFilterDrawer'
 
 const PurchaseReport = () => {
   const router = useRouter()

@@ -334,6 +334,12 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
     path: '/pharmacy/reports/purchase-report'
   }
 
+  reportsParent.children.push(consumptionReport)
+
+  // reportsParent.children.push(shipmentReport)
+  // reportsParent.children.push(purchaseReport)
+  // reportsParent.children.push(returnReport)
+
   const pharmacyNavigationArray = []
 
   // pharmacyNavigationArray.push(testList)
@@ -347,11 +353,6 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
     requestParent.children.push(nonExistingProductRequestList)
 
     // requestParent.children.push(requestByProductListing)
-
-    reportsParent.children.push(consumptionReport)
-    reportsParent.children.push(shipmentReport)
-    reportsParent.children.push(purchaseReport)
-    reportsParent.children.push(returnReport)
 
     // returnParent.children.push(returnListing)
     // directDispatchParent.children.push(directDispatchList)
@@ -383,7 +384,8 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
       // requestByStoreListing,
       requestParent,
       returnListing,
-      reportsParent,
+
+      // reportsParent,
       directDispatchList
     )
 
@@ -415,7 +417,7 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
       pharmacyNavigationArray.push(stocksAdjustment)
     }
 
-    pharmacyNavigationArray.push(discard, settingsParent)
+    pharmacyNavigationArray.push(reportsParent, discard, settingsParent)
   }
 
   if (selectedPharmacy?.type === 'local') {
@@ -471,7 +473,7 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
     ) {
       pharmacyNavigationArray.push(stocksAdjustment)
     }
-    pharmacyNavigationArray.push(settingsParent)
+    pharmacyNavigationArray.push(reportsParent, settingsParent)
   }
 
   if (pharmacyRole) {

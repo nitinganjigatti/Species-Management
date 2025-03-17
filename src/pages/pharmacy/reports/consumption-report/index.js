@@ -15,17 +15,20 @@ import { debounce } from 'lodash'
 import { useRouter } from 'next/router'
 import React, { useCallback, useEffect, useState } from 'react'
 import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDateRangePickers'
-import { getConsumptionReport } from 'src/lib/api/pharmacy/getConsumptionReport'
+import { getConsumptionReport } from 'src/lib/api/pharmacy/reports'
 import Utility from 'src/utility'
 import Icon from 'src/@core/components/icon'
 import RenderUtility from 'src/utility/render'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import { getStoreList } from 'src/lib/api/pharmacy/getStoreList'
-import ConsumptionReportDrawer from 'src/views/pages/pharmacy/consumption-report/ConsumptionReportDrawer'
+import ConsumptionReportDrawer from 'src/views/pages/pharmacy/reports/ConsumptionReportDrawer'
+import { usePharmacyContext } from 'src/context/PharmacyContext'
 
 const ConsumptionReport = () => {
   const router = useRouter()
   const theme = useTheme()
+
+  const { selectedPharmacy } = usePharmacyContext()
 
   const updateUrlParams = params => {
     const query = { ...router.query, ...params }
@@ -70,7 +73,10 @@ const ConsumptionReport = () => {
         const result = response?.data
 
         if (response?.success) {
-          const pharmacies = result?.list_items.map(({ id, name }) => ({ id, name })) || []
+          let pharmacies = result?.list_items.map(({ id, name }) => ({ id, name })) || []
+
+          pharmacies = pharmacies.filter(pharmacy => pharmacy.id !== selectedPharmacy?.id)
+
           setPharmacyList(pharmacies)
         }
       } catch (error) {
@@ -78,7 +84,7 @@ const ConsumptionReport = () => {
       }
     }
     pharmacyList()
-  }, [])
+  }, [selectedPharmacy])
 
   function loadServerRows(currentPage, data) {
     return data
@@ -137,7 +143,15 @@ const ConsumptionReport = () => {
       page: paginationModel?.page,
       limit: paginationModel?.pageSize
     })
-  }, [paginationModel.page, paginationModel.pageSize, sort, sortColumn, filterDates, filteredData])
+  }, [
+    paginationModel.page,
+    paginationModel.pageSize,
+    sort,
+    sortColumn,
+    filterDates,
+    filteredData,
+    selectedPharmacy?.id
+  ])
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
@@ -169,17 +183,23 @@ const ConsumptionReport = () => {
       headerName: 'PRODUCT NAME',
       sortable: true,
       renderCell: params => (
-        <Typography
-          variant='body2'
-          sx={{
-            color: theme.palette.customColors.customHeadingTextColor,
-            fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
-          }}
-        >
-          {params.row.stock_name}
-        </Typography>
+        <Tooltip title={params.row.stock_name}>
+          <Typography
+            variant='body2'
+            sx={{
+              color: theme.palette.customColors.customHeadingTextColor,
+              fontSize: '14px',
+              fontWeight: 400,
+              fontFamily: 'Inter',
+              overflow: 'hidden',
+              whiteSpace: 'nowrap',
+              textOverflow: 'ellipsis',
+              maxWidth: 200
+            }}
+          >
+            <span alt={params.row.stock_name}> {params.row.stock_name}</span>
+          </Typography>
+        </Tooltip>
       )
     },
     {
@@ -189,17 +209,23 @@ const ConsumptionReport = () => {
       headerName: 'GENERIC NAME',
       sortable: true,
       renderCell: params => (
-        <Typography
-          variant='body2'
-          sx={{
-            color: theme.palette.customColors.customHeadingTextColor,
-            fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
-          }}
-        >
-          {params.row.generic_name}
-        </Typography>
+        <Tooltip title={params.row.generic_name}>
+          <Typography
+            variant='body2'
+            sx={{
+              color: theme.palette.customColors.customHeadingTextColor,
+              fontSize: '14px',
+              fontWeight: 400,
+              fontFamily: 'Inter',
+              overflow: 'hidden',
+              whiteSpace: 'nowrap',
+              textOverflow: 'ellipsis',
+              maxWidth: 200
+            }}
+          >
+            <span alt={params.row.generic_name}> {params.row.generic_name}</span>
+          </Typography>
+        </Tooltip>
       )
     },
     {
@@ -269,17 +295,21 @@ const ConsumptionReport = () => {
       headerName: 'MANUFACTURER NAME',
       sortable: true,
       renderCell: params => (
-        <Tooltip title={params.row?.manufacturer_name}>
+        <Tooltip title={params.row.manufacturer_name}>
           <Typography
             variant='body2'
             sx={{
               color: theme.palette.customColors.customHeadingTextColor,
               fontSize: '14px',
-              fontWeight: 500,
-              fontFamily: 'Inter'
+              fontWeight: 400,
+              fontFamily: 'Inter',
+              overflow: 'hidden',
+              whiteSpace: 'nowrap',
+              textOverflow: 'ellipsis',
+              maxWidth: 200
             }}
           >
-            {params.row.manufacturer_name}
+            <span alt={params.row.manufacturer_name}> {params.row.manufacturer_name}</span>
           </Typography>
         </Tooltip>
       )
@@ -339,8 +369,6 @@ const ConsumptionReport = () => {
           limit: limit
         })
 
-        console.log(q)
-
         updateUrlParams({
           sort: sort,
           q: q,
@@ -357,10 +385,62 @@ const ConsumptionReport = () => {
 
   const handleSearch = value => {
     setSearchValue(value)
-    console.log(value)
-
     searchTableData(sort, value, sortColumn, paginationModel?.page, paginationModel?.pageSize)
   }
+
+  // const handleExport = async () => {
+  //   try {
+  //     setExportLoading(true)
+
+  //     const now = new Date()
+
+  //     const timestamp = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(
+  //       2,
+  //       '0'
+  //     )}/${now.getFullYear()}(${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')})`
+  //     console.log(timestamp)
+
+  //     const params = {
+  //       sort: sort,
+  //       q: searchValue,
+  //       column: sortColumn,
+  //       page: 1,
+  //       limit: total,
+  //       include_dispatch: true,
+  //       ...(filterDates?.startDate !== '' && { from_date: filterDates?.startDate }),
+  //       ...(filterDates?.endDate !== '' && { to_date: filterDates?.endDate }),
+  //       ...(filteredData &&
+  //         filteredData.pharmacy &&
+  //         filteredData.pharmacy.length > 0 && { store_id: filteredData.pharmacy.join(',') })
+  //     }
+
+  //     const res = await getConsumptionReport({ params })
+
+  //     if (res?.success === true && res?.data?.list_items?.length > 0) {
+  //       const ListData = res?.data?.list_items
+
+  //       const tableData = ListData.map((item, index) => {
+  //         return {
+  //           'SL NO': index + 1,
+  //           'PRODUCT NAME': item?.stock_name || '',
+  //           'GENERIC NAME': item?.generic_name || '',
+  //           'TOTAL CONSUMPTION QUANTITY': Utility.formatNumber(item?.total_consumption_quantity) || '',
+  //           'TOTAL CONSUMPTION COST': Utility.formatNumber(item?.total_consumption_cost) || '',
+  //           'AVAILABLE QUANTITY': Utility.formatNumber(item?.available_qty) || '',
+  //           'MANUFACTURER NAME': item?.manufacturer_name || ''
+  //         }
+  //       })
+
+  //       Utility.exportToCSV(tableData, `Consumption_Report ${timestamp}`)
+  //     } else {
+  //       console.warn('No data to export.')
+  //     }
+  //   } catch (e) {
+  //     console.error(e)
+  //   } finally {
+  //     setExportLoading(false)
+  //   }
+  // }
 
   const handleExport = async () => {
     try {
@@ -372,7 +452,6 @@ const ConsumptionReport = () => {
         2,
         '0'
       )}/${now.getFullYear()}(${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')})`
-      console.log(timestamp)
 
       const params = {
         sort: sort,
@@ -385,32 +464,15 @@ const ConsumptionReport = () => {
         ...(filterDates?.endDate !== '' && { to_date: filterDates?.endDate }),
         ...(filteredData &&
           filteredData.pharmacy &&
-          filteredData.pharmacy.length > 0 && { store_id: filteredData.pharmacy.join(',') })
+          filteredData.pharmacy.length > 0 && { store_id: filteredData.pharmacy.join(',') }),
+        response_type: 'csv'
       }
-
-      const res = await getConsumptionReport({ params })
-
-      if (res?.success === true && res?.data?.list_items?.length > 0) {
-        const ListData = res?.data?.list_items
-
-        const tableData = ListData.map((item, index) => {
-          return {
-            'SL NO': index + 1,
-            'PRODUCT NAME': item?.stock_name || '',
-            'GENERIC NAME': item?.generic_name || '',
-            'TOTAL CONSUMPTION QUANTITY': Utility.formatNumber(item?.total_consumption_quantity) || '',
-            'TOTAL CONSUMPTION COST': Utility.formatNumber(item?.total_consumption_cost) || '',
-            'AVAILABLE QUANTITY': Utility.formatNumber(item?.available_qty) || '',
-            'MANUFACTURER NAME': item?.manufacturer_name || ''
-          }
-        })
-
-        Utility.exportToCSV(tableData, `Consumption_Report ${timestamp}`)
-      } else {
-        console.warn('No data to export.')
+      const response = await getConsumptionReport({ params })
+      if (response?.success && response?.data) {
+        Utility.downloadFileFromURL(response.data, `Consumption_Report ${timestamp}`)
       }
-    } catch (e) {
-      console.error(e)
+    } catch (error) {
+      console.error('Error downloading Excel:', error)
     } finally {
       setExportLoading(false)
     }
