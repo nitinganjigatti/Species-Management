@@ -10,7 +10,6 @@ import { useEffect, useState } from 'react'
 import { Stack } from '@mui/system'
 import { Tooltip } from '@mui/material'
 import toast from 'react-hot-toast'
-import { useTheme } from '@mui/material/styles'
 
 const RecipeCard = ({
   rows,
@@ -25,12 +24,11 @@ const RecipeCard = ({
   searchValue,
   setSearchValue,
   fromrow,
-  recipeid,
-  searchData
+  recipeid
 }) => {
   const [remarks, setRemarks] = useState({})
   console.log('remarks', remarks)
-  const theme = useTheme()
+
   const [selectedCount, setSelectedCount] = useState([])
   const [selectedDays, setSelectedDays] = useState()
 
@@ -337,7 +335,6 @@ const RecipeCard = ({
     onChange(filteredItems)
     handleSidebarClose()
     setSearchValue('')
-    searchData('')
   }
 
   const handleAddRemarks = (event, cardId) => {
@@ -395,9 +392,7 @@ const RecipeCard = ({
               <Box
                 sx={{
                   bgcolor: 'background.paper',
-                  border: selectedCardRecipe?.some(card => card.id === item.id)
-                    ? `2px solid ${theme.palette.primary.main}`
-                    : '#fff',
+                  border: selectedCardRecipe?.some(card => card.id === item.id) ? '2px solid #37BD69' : '#fff',
                   boxShadow: 0,
                   mt: 4,
                   borderRadius: '10px',
@@ -418,9 +413,7 @@ const RecipeCard = ({
                       position: 'relative',
                       top: '2px',
 
-                      bgcolor: selectedCardRecipe?.some(card => card.id === item.id)
-                        ? theme.palette.primary.main
-                        : theme.palette.customColors.tableHeaderBg,
+                      bgcolor: selectedCardRecipe?.some(card => card.id === item.id) ? '#37BD69' : '#E8F4F2',
                       borderRadius: '10.88px'
                     }}
                   >
@@ -460,7 +453,7 @@ const RecipeCard = ({
                           sx={{
                             ml: 4,
                             fontSize: '20px',
-                            color: theme.palette.customColors.OnSurfaceVariant,
+                            color: '#44544A',
                             width: '400px',
                             overflow: 'hidden',
                             textOverflow: 'ellipsis',
@@ -536,7 +529,7 @@ const RecipeCard = ({
                             width: 45,
                             height: 50,
                             mr: 4,
-                            background: theme.palette.customColors.tableHeaderBg,
+                            background: '#E8F4F2',
                             padding: '8px',
                             borderRadius: '4px'
                           }}
@@ -549,8 +542,7 @@ const RecipeCard = ({
                           <Tooltip
                             title={`${ingredient.ingredient_name} ${ingredient.quantity} ${
                               ingredient.quantity_type === 'percentage' ? '%' : ''
-                            } ${ingredient.uom_text}
-                            `}
+                            } ${ingredient.uom_text}`}
                           >
                             <Box
                               sx={{
@@ -564,7 +556,7 @@ const RecipeCard = ({
                                 variant='body1'
                                 sx={{
                                   fontWeight: '600',
-                                  color: theme.palette.customColors.OnSurfaceVariant,
+                                  color: '#44544A',
                                   textOverflow: 'ellipsis',
                                   overflow: 'hidden',
                                   whiteSpace: 'nowrap',
@@ -577,7 +569,7 @@ const RecipeCard = ({
                                 variant='body1'
                                 sx={{
                                   fontWeight: '600',
-                                  color: theme.palette.customColors.OnSurfaceVariant,
+                                  color: '#44544A',
                                   marginLeft: 1,
                                   flexShrink: 0
                                 }}
@@ -588,24 +580,24 @@ const RecipeCard = ({
                             </Box>
                           </Tooltip>
 
-                          <Typography variant='body2' color={theme.palette.customColors.OnSurfaceVariant}>
+                          <Typography variant='body2' color='#44544A'>
                             Id - {'ING' + ingredient.id}
                           </Typography>
 
-                          <Typography variant='body2' color={theme.palette.customColors.secondaryBg}>
+                          <Typography variant='body2' color='#7A8684'>
                             {ingredient.preparation_type}
                           </Typography>
                         </Box>
 
                         <Typography
                           variant='body2'
-                          color={theme.palette.customColors.secondaryBg}
+                          color='#7A8684'
                           sx={{
                             textAlign: 'left',
                             width: '100%',
                             ml: '2rem',
                             fontWeight: '600',
-                            color: theme.palette.customColors.OnSurfaceVariant
+                            color: '#44544A'
                           }}
                         >
                           {ingredient.cut_size}

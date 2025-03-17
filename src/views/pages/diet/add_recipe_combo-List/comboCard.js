@@ -11,7 +11,6 @@ import { useEffect, useState } from 'react'
 import { Stack } from '@mui/system'
 import toast from 'react-hot-toast'
 import { Tooltip, Select, MenuItem } from '@mui/material'
-import { useTheme } from '@mui/material/styles'
 import SizeSelector from 'src/components/SelectCutsize'
 
 const ComboCard = ({
@@ -28,10 +27,8 @@ const ComboCard = ({
   setSearchValue,
   fromrow,
   comboid,
-  cutsizelist,
-  searchData
+  cutsizelist
 }) => {
-  const theme = useTheme()
   const [remarks, setRemarks] = useState({})
   console.log('remarks', remarks)
 
@@ -387,7 +384,7 @@ const ComboCard = ({
     setSelectedCardCombo(filteredItems)
 
     onChange(filteredItems)
-    searchData('')
+
     handleSidebarClose()
     setSearchValue('')
   }
@@ -467,9 +464,7 @@ const ComboCard = ({
               <Box
                 sx={{
                   bgcolor: 'background.paper',
-                  border: selectedCardCombo?.some(card => card?.id === item?.id)
-                    ? `2px solid ${theme.palette.primary.main}`
-                    : theme.palette.primary.contrastText,
+                  border: selectedCardCombo?.some(card => card?.id === item?.id) ? '2px solid #37BD69' : '#fff',
                   boxShadow: 0,
                   mt: 4,
                   borderRadius: '10px',
@@ -486,13 +481,11 @@ const ComboCard = ({
                     sx={{
                       width: '68px',
                       height: '68px',
-                      color: theme.palette.primary.contrastText,
+                      color: '#fff',
                       position: 'relative',
                       top: '2px',
 
-                      bgcolor: selectedCardCombo?.some(card => card?.id === item?.id)
-                        ? theme.palette.primary.main
-                        : theme.palette.customColors.displaybgPrimary,
+                      bgcolor: selectedCardCombo?.some(card => card?.id === item?.id) ? '#37BD69' : '#E8F4F2',
                       borderRadius: '10.88px'
                     }}
                   >
@@ -532,7 +525,7 @@ const ComboCard = ({
                           sx={{
                             ml: 4,
                             fontSize: '20px',
-                            color: theme.palette.customColors.OnSurfaceVariant,
+                            color: '#44544A',
                             width: '400px',
                             overflow: 'hidden',
                             textOverflow: 'ellipsis',
@@ -553,14 +546,7 @@ const ComboCard = ({
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '333px', height: '45px' }}>
                       {/* <Divider sx={{ borderLeft: '1px solid #D9D9D9', height: 30, ml: 4, mt: 3 }}></Divider> */}
                       <Box sx={{ ml: '10px', ml: 4 }}>
-                        <Typography
-                          sx={{
-                            mt: 2,
-                            fontSize: '12px',
-                            fontWeight: 'bold',
-                            color: theme.palette.customColors.neutralPrimary
-                          }}
-                        >
+                        <Typography sx={{ mt: 2, fontSize: '12px', fontWeight: 'bold', color: '#000' }}>
                           {item?.ingredients_count}&nbsp;
                           <span style={{ color: '#e55b3e' }}> ({calculateTotalQuantity(item?.by_percentage)}%)</span>
                         </Typography>
@@ -590,19 +576,10 @@ const ComboCard = ({
                 {selectedCardCombo?.some(card => card?.id === item?.id) ? (
                   <Box sx={{ pl: 5, pr: 5, mt: 3, mb: 3 }}>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0 }}>
-                      <Typography
-                        sx={{ fontWeight: '500', color: theme.palette.customColors.neutral_50, fontSize: '16px' }}
-                      >
+                      <Typography sx={{ fontWeight: '500', color: '#00000066', fontSize: '16px' }}>
                         Ingredients
                       </Typography>
-                      <Typography
-                        sx={{
-                          fontWeight: '500',
-                          color: theme.palette.customColors.neutral_50,
-                          fontSize: '16px',
-                          mr: 20
-                        }}
-                      >
+                      <Typography sx={{ fontWeight: '500', color: '#00000066', fontSize: '16px', mr: 20 }}>
                         Cut size
                       </Typography>
                     </Box>
@@ -625,7 +602,7 @@ const ComboCard = ({
                             width: 45,
                             height: 50,
                             mr: 4,
-                            background: theme.palette.customColors.displaybgPrimary,
+                            background: '#E8F4F2',
                             padding: '8px',
                             borderRadius: '4px'
                           }}
@@ -652,7 +629,7 @@ const ComboCard = ({
                                 variant='body1'
                                 sx={{
                                   fontWeight: '600',
-                                  color: theme.palette.customColors.OnSurfaceVariant,
+                                  color: '#44544A',
                                   textOverflow: 'ellipsis',
                                   overflow: 'hidden',
                                   whiteSpace: 'nowrap',
@@ -665,7 +642,7 @@ const ComboCard = ({
                                 variant='body1'
                                 sx={{
                                   fontWeight: '600',
-                                  color: theme.palette.customColors.OnSurfaceVariant,
+                                  color: '#44544A',
                                   marginLeft: 1,
                                   flexShrink: 0
                                 }}
@@ -675,11 +652,11 @@ const ComboCard = ({
                             </Box>
                           </Tooltip>
 
-                          <Typography variant='body2' color={theme.palette.customColors.OnSurfaceVariant}>
+                          <Typography variant='body2' color='#44544A'>
                             Id - {'ING' + ingredient.id}
                           </Typography>
 
-                          <Typography variant='body2' color={theme.palette.customColors.secondaryBg}>
+                          <Typography variant='body2' color='#7A8684'>
                             {ingredient.preparation_type}
                           </Typography>
                         </Box>
@@ -802,7 +779,7 @@ const ComboCard = ({
             justifyContent: 'center',
             alignItems: 'center',
             marginTop: '14%',
-            color: theme.palette.customColors.statusText,
+            color: '#7A7A7A',
             fontSize: '16px'
           }}
         >
