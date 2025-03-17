@@ -2029,11 +2029,12 @@ const DietDetail = () => {
                                                                               m: 1,
                                                                               borderRadius: '16px',
                                                                               px: '10px',
-                                                                              gap: '8px'
+                                                                              gap: '8px',
+                                                                              py: 0.5
                                                                             }}
                                                                           >
                                                                             {name?.ingredient_name}
-                                                                            <Typography
+                                                                            {/* <Typography
                                                                               component='span'
                                                                               sx={{
                                                                                 fontWeight: 'bold',
@@ -2047,7 +2048,7 @@ const DietDetail = () => {
                                                                               {name?.quantity_type === 'percentage'
                                                                                 ? '%'
                                                                                 : ''}
-                                                                            </Typography>
+                                                                            </Typography> */}
                                                                           </Box>
                                                                         ))}
                                                                     </Box>
