@@ -7,7 +7,7 @@ import { getDiscardList } from 'src/lib/api/pharmacy/discard'
 
 // ** MUI Imports
 import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
-import { Card, CardHeader, Typography, Grid, TextField } from '@mui/material'
+import { Card, CardHeader, Typography, Grid, TextField, InputAdornment, Tooltip, CircularProgress } from '@mui/material'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
@@ -378,7 +378,7 @@ const ListOfDiscardProducts = () => {
         width: '100%' // Ensure full width
       }}
     >
-      <ExcelExportButton
+      {/* <ExcelExportButton
         disabled={total === 0}
         action={() => {
           getSupplierDataToExport()
@@ -388,7 +388,7 @@ const ListOfDiscardProducts = () => {
         sx={{
           width: '100%' // Make button full-width
         }}
-      />
+      /> */}
       <AddButtonContained
         title='Return to Supplier'
         action={() => Router.push({ pathname: '/pharmacy/discard/add-discard' })}
@@ -504,14 +504,14 @@ const ListOfDiscardProducts = () => {
                      ) : null}
                        </Grid> */}
               </Box>
-              <Grid
+              {/* <Grid
                 sx={{
                   display: 'flex',
                   flexDirection: { xs: 'column', sm: 'row' },
                   justifyContent: 'flex-start', // Align content to the left
                   alignItems: 'flex-start' // Align items to the top left
                 }}
-              />
+              /> */}
               <Box
                 sx={{
                   display: 'flex',
@@ -522,36 +522,92 @@ const ListOfDiscardProducts = () => {
                 }}
               >
                 {/* Left Box (Search Field) */}
-                <Box
-                  sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-                    borderRadius: '8px',
-                    padding: '0 8px',
-                    width: { xs: '100%', sm: '240px' }, // Full width on small screens
-                    height: '40px'
-                  }}
-                >
-                  <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
-                  <TextField
-                    variant='outlined'
-                    placeholder='Search...'
-                    value={searchValue}
-                    onChange={e => handleSearch(e.target.value)}
-                    fullWidth
-                    sx={{
-                      '& .MuiOutlinedInput-root': {
-                        border: 'none',
-                        padding: '0',
-                        '& fieldset': {
-                          border: 'none'
-                        }
-                      }
-                    }}
-                  />
-                </Box>
                 <Grid
+                  container
+                  spacing={4}
+                  sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
+                >
+                  <Grid item xs={12} sm={6} md={5}>
+                    <CommonDateRangePickers onChange={handleDateRangeChange} filterDates={filterDates} />
+                  </Grid>
+
+                  <Grid item sm={6} xs={12}>
+                    <Grid container spacing={2} justifyContent={{ xs: 'flex-end' }}>
+                      <Grid item xs={12} sm={8} sx={{ flex: 1 }}>
+                        <TextField
+                          variant='outlined'
+                          size='small'
+                          placeholder='Search...'
+                          value={searchValue}
+                          onChange={e => handleSearch(e.target.value)}
+                          fullWidth
+                          InputProps={{
+                            startAdornment: (
+                              <InputAdornment position='start'>
+                                <Icon
+                                  icon='mi:search'
+                                  fontSize={24}
+                                  color={theme.palette.customColors.neutralSecondary}
+                                />
+                              </InputAdornment>
+                            )
+                          }}
+                          sx={{
+                            borderRadius: '8px'
+                          }}
+                        />
+                      </Grid>
+
+                      <Grid
+                        item
+                        sx={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 2,
+                          justifyContent: { sm: 'flex-end', xs: 'flex-end' }
+                        }}
+                      >
+                        <Tooltip title='Export'>
+                          <>
+                            {excelLoader ? (
+                              <Box
+                                sx={{
+                                  display: 'flex',
+                                  justifyContent: 'center',
+                                  width: '40px',
+                                  height: '40px',
+                                  borderRadius: '4px',
+                                  bgcolor: theme?.palette.customColors?.lightBg,
+                                  alignItems: 'center',
+                                  cursor: 'pointer'
+                                }}
+                              >
+                                <CircularProgress color='success' size={30} />
+                              </Box>
+                            ) : (
+                              <Box
+                                sx={{
+                                  display: 'flex',
+                                  justifyContent: 'center',
+                                  width: '40px',
+                                  height: '40px',
+                                  borderRadius: '4px',
+                                  bgcolor: theme?.palette.customColors?.lightBg,
+                                  alignItems: 'center',
+                                  cursor: 'pointer'
+                                }}
+                                onClick={getSupplierDataToExport}
+                              >
+                                <Icon icon='ic:round-download' fontSize={20} />
+                              </Box>
+                            )}
+                          </>
+                        </Tooltip>
+                      </Grid>
+                    </Grid>
+                  </Grid>
+                </Grid>
+                {/* <Grid
                   item
                   xs={12}
                   sm='auto'
@@ -562,7 +618,7 @@ const ListOfDiscardProducts = () => {
                   }}
                 >
                   <CommonDateRangePickers onChange={handleDateRangeChange} filterDates={filterDates} />
-                </Grid>
+                </Grid> */}
               </Box>
               <Grid
                 sx={{
