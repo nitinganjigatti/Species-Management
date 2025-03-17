@@ -1,3 +1,4 @@
+import { useTheme } from '@emotion/react'
 import {
   Badge,
   Card,
@@ -9,22 +10,20 @@ import {
   Tooltip,
   Typography
 } from '@mui/material'
-import { useTheme } from '@emotion/react'
 import { Box } from '@mui/system'
+import { debounce } from 'lodash'
 import { useRouter } from 'next/router'
 import React, { useCallback, useEffect, useState } from 'react'
-import { getPurchaseReport } from 'src/lib/api/pharmacy/getPurchaseReport'
-import CommonTable from 'src/views/table/data-grid/CommonTable'
-import RenderUtility from 'src/utility/render'
-import StyleWithIconCardComponent from 'src/views/utility/style-with-icon-card'
-import Utility from 'src/utility'
-import { debounce } from 'lodash'
 import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDateRangePickers'
+import { getConsumptionReport } from 'src/lib/api/pharmacy/getConsumptionReport'
+import Utility from 'src/utility'
 import Icon from 'src/@core/components/icon'
-import PurchaseFilterDrawer from 'src/views/pages/pharmacy/purchase-report/PurchaseFilterDrawer'
-import { getSuppliers } from 'src/lib/api/pharmacy/getSupplierList'
+import RenderUtility from 'src/utility/render'
+import CommonTable from 'src/views/table/data-grid/CommonTable'
+import { getStoreList } from 'src/lib/api/pharmacy/getStoreList'
+import ConsumptionReportDrawer from 'src/views/pages/pharmacy/consumption-report/ConsumptionReportDrawer'
 
-const PurchaseReport = () => {
+const ConsumptionReport = () => {
   const router = useRouter()
   const theme = useTheme()
 
@@ -33,21 +32,22 @@ const PurchaseReport = () => {
     router.push({ pathname: router.pathname, query }, undefined, { shallow: true })
   }
 
-  const [loading, setLoading] = useState(false)
-  const [total, setTotal] = useState(0)
   const [rows, setRows] = useState([])
+  const [total, setTotal] = useState(0)
+  const [loading, setLoading] = useState(false)
   const [sort, setSort] = useState(router.query.sort || 'asc')
-  const [sortColumn, setSortColumn] = useState(router.query.column || 'stock_name')
+  const [sortColumn, setSortColumn] = useState(router.query.column || 'total_consumption_cost')
   const [searchValue, setSearchValue] = useState(router.query.q || '')
-  const [openFilterDrawer, setOpenFilterDrawer] = useState(false)
-  const [filteredData, setFilteredData] = useState({ suppliersName: [] })
   const [exportLoading, setExportLoading] = useState(false)
-  const [supplierData, setSupplierData] = useState([])
+  const [openFilterDrawer, setOpenFilterDrawer] = useState(false)
+
+  const [filteredData, setFilteredData] = useState({
+    pharmacy: []
+  })
+  const [pharmacyList, setPharmacyList] = useState([])
 
   const [selectedOptions, setSelectedOptions] = useState({
-    'Supplier Name': [],
-    'Requested By': [],
-    Medicine: []
+    Pharmacy: []
   })
 
   const [paginationModel, setPaginationModel] = useState({
@@ -61,21 +61,23 @@ const PurchaseReport = () => {
   })
 
   useEffect(() => {
-    const supplierList = async () => {
+    const pharmacyList = async () => {
       try {
-        const response = await getSuppliers()
+        const params = {
+          type: 'local'
+        }
+        const response = await getStoreList({ params })
         const result = response?.data
 
-        if (result?.success) {
-          const suppliers = result?.data?.list_items.map(({ id, company_name }) => ({ id, company_name })) || []
-          setSupplierData(suppliers)
+        if (response?.success) {
+          const pharmacies = result?.list_items.map(({ id, name }) => ({ id, name })) || []
+          setPharmacyList(pharmacies)
         }
       } catch (error) {
         console.log(error)
       }
     }
-
-    supplierList()
+    pharmacyList()
   }, [])
 
   function loadServerRows(currentPage, data) {
@@ -83,7 +85,7 @@ const PurchaseReport = () => {
   }
 
   const fetchTableData = useCallback(
-    async ({ sort, q, column, filteredData, page, limit }) => {
+    async ({ sort, q, column, page, limit, filteredData }) => {
       try {
         setLoading(true)
 
@@ -93,20 +95,15 @@ const PurchaseReport = () => {
           sort: sort,
           q: q,
           column: column,
+          include_dispatch: true,
           ...(filterDates?.startDate !== '' && { from_date: filterDates?.startDate }),
           ...(filterDates?.endDate !== '' && { to_date: filterDates?.endDate }),
           ...(filteredData &&
-            filteredData.suppliersName &&
-            filteredData.suppliersName.length > 0 && {
-              supplier_id: filteredData.suppliersName.join(',')
-            }),
-          ...(filteredData?.Medicine && {
-            controlled: filteredData.Medicine.controlled,
-            prescription: filteredData.Medicine.prescription
-          })
+            filteredData.pharmacy &&
+            filteredData.pharmacy.length > 0 && { store_id: filteredData.pharmacy.join(',') })
         }
 
-        await getPurchaseReport({ params }).then(res => {
+        await getConsumptionReport({ params: params }).then(res => {
           if (res?.success === true && res?.data?.list_items?.length > 0) {
             setTotal(parseInt(res?.data?.total_count))
             setRows(loadServerRows(paginationModel?.page, res?.data?.list_items))
@@ -129,9 +126,9 @@ const PurchaseReport = () => {
       sort: sort,
       q: searchValue,
       column: sortColumn,
-      filteredData: filteredData,
       page: paginationModel?.page,
-      limit: paginationModel?.pageSize
+      limit: paginationModel?.pageSize,
+      filteredData: filteredData
     })
     updateUrlParams({
       sort,
@@ -140,7 +137,7 @@ const PurchaseReport = () => {
       page: paginationModel?.page,
       limit: paginationModel?.pageSize
     })
-  }, [paginationModel.page, paginationModel.pageSize, filterDates, filteredData, sort, sortColumn])
+  }, [paginationModel.page, paginationModel.pageSize, sort, sortColumn, filterDates, filteredData])
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
@@ -166,66 +163,11 @@ const PurchaseReport = () => {
       )
     },
     {
-      width: 5,
-      field: 'label',
-      headerName: '',
-      sortable: false,
-      renderCell: params => (
-        <Typography
-          sx={{
-            color: 'customColors.OnSecondaryContainer',
-            display: 'flex',
-            alignItems: 'center',
-            fontWeight: 500,
-            fontSize: '14px',
-            ...RenderUtility?.getEllipsisStyleForText()
-          }}
-        >
-          {RenderUtility?.renderControlLabel(
-            !isNaN(params.row?.controlled_substance) && parseInt(params.row?.controlled_substance) === 1,
-            'CS'
-          )}
-          {RenderUtility?.renderControlLabel(
-            !isNaN(params.row?.prescription_required) && parseInt(params.row?.prescription_required) === 1,
-            'PR'
-          )}
-        </Typography>
-      )
-    },
-    {
-      width: 250,
       minWidth: 20,
+      width: 200,
       field: 'stock_name',
-      align: 'left',
-      sortable: true,
       headerName: 'PRODUCT NAME',
-
-      renderCell: params => (
-        <Box>
-          <StyleWithIconCardComponent
-            value={params.row.stock_name}
-            description={params.row.generic_name}
-            icon={params.row.image ? `${params.row.image}` : '/images/Medicine_Icon.png'}
-            showIcon={false}
-            customCss={{
-              p: '0px',
-              width: '100%',
-              height: '100%',
-              fontSize: '14px',
-              avtBorderRadius: '10px',
-              iconWidth: '44px',
-              iconHeight: '44px'
-            }}
-          />
-        </Box>
-      )
-    },
-    {
-      minWidth: 20,
-      width: 160,
-      field: 'batch_no',
-      sortable: false,
-      headerName: 'BATCH NUMBER',
+      sortable: true,
       renderCell: params => (
         <Typography
           variant='body2'
@@ -236,7 +178,87 @@ const PurchaseReport = () => {
             fontFamily: 'Inter'
           }}
         >
-          {params.row.batch_no}
+          {params.row.stock_name}
+        </Typography>
+      )
+    },
+    {
+      minWidth: 20,
+      width: 200,
+      field: 'generic_name',
+      headerName: 'GENERIC NAME',
+      sortable: true,
+      renderCell: params => (
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
+          {params.row.generic_name}
+        </Typography>
+      )
+    },
+    {
+      minWidth: 20,
+      width: 190,
+      field: 'total_consumption_quantity',
+      headerName: 'CONSUMPTION QUANTITY',
+      sortable: true,
+      renderCell: params => (
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
+          {Utility.formatNumber(params.row.total_consumption_quantity)}
+        </Typography>
+      )
+    },
+    {
+      minWidth: 20,
+      width: 190,
+      field: 'total_consumption_cost',
+      headerName: 'CONSUMPTION COST',
+      sortable: true,
+      renderCell: params => (
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
+          {Utility.formatNumber(params.row.total_consumption_cost)}
+        </Typography>
+      )
+    },
+    {
+      minWidth: 20,
+      width: 190,
+      field: 'available_qty',
+      headerName: 'AVAILABLE QUANTITY',
+      sortable: true,
+      renderCell: params => (
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
+          {Utility.formatNumber(params.row.available_qty)}
         </Typography>
       )
     },
@@ -244,261 +266,22 @@ const PurchaseReport = () => {
       minWidth: 20,
       width: 250,
       field: 'manufacturer_name',
-      sortable: false,
       headerName: 'MANUFACTURER NAME',
-      renderCell: params => (
-        <Typography
-          variant='body2'
-          sx={{
-            color: theme.palette.customColors.customHeadingTextColor,
-            fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
-          }}
-        >
-          {params.row.manufacturer_name}
-        </Typography>
-      )
-    },
-    {
-      minWidth: 20,
-      width: 200,
-      field: 'purchase_number',
-      sortable: true,
-      headerName: 'PURCHASE NUMBER',
-      renderCell: params => (
-        <Typography
-          variant='body2'
-          sx={{
-            color: theme.palette.customColors.customHeadingTextColor,
-            fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
-          }}
-        >
-          {params.row.purchase_number}
-        </Typography>
-      )
-    },
-    {
-      minWidth: 20,
-      width: 180,
-      field: 'purchase_date',
-      headerName: 'PURCHASE DATE',
       sortable: true,
       renderCell: params => (
-        <Typography
-          variant='body2'
-          sx={{
-            color: theme.palette.customColors.customHeadingTextColor,
-            fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
-          }}
-        >
-          {Utility.formatDisplayDate(params.row.purchase_date)}
-        </Typography>
-      )
-    },
-    {
-      minWidth: 20,
-      width: 200,
-      field: 'requested_by',
-      sortable: true,
-      headerName: 'REQUESTED BY',
-      renderCell: params => (
-        <Typography
-          variant='body2'
-          sx={{
-            color: theme.palette.customColors.customHeadingTextColor,
-            fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
-          }}
-        >
-          {params.row.requested_by}
-        </Typography>
-      )
-    },
-
-    {
-      minWidth: 20,
-      width: 200,
-      field: 'package',
-      headerName: 'PACKAGE',
-      sortable: false,
-      renderCell: params => (
-        <Tooltip
-          title={`${params.row.package} of ${Utility.formatNumber(params.row.package_qty)}
-            ${params.row.package_uom_label} ${params.row.product_form_label}`}
-        >
+        <Tooltip title={params.row?.manufacturer_name}>
           <Typography
             variant='body2'
             sx={{
               color: theme.palette.customColors.customHeadingTextColor,
               fontSize: '14px',
-              fontWeight: 400,
-              fontFamily: 'Inter',
-              overflow: 'hidden',
-              whiteSpace: 'nowrap',
-              textOverflow: 'ellipsis',
-              maxWidth: 240
+              fontWeight: 500,
+              fontFamily: 'Inter'
             }}
           >
-            {`${params.row.package} of ${Utility.formatNumber(params.row.package_qty)}
-            ${params.row.package_uom_label} ${params.row.product_form_label}`}
+            {params.row.manufacturer_name}
           </Typography>
         </Tooltip>
-      )
-    },
-    {
-      minWidth: 20,
-      width: 180,
-      field: 'expiry_date',
-      headerName: 'EXPIRY DATE',
-      sortable: false,
-      renderCell: params => (
-        <Typography
-          variant='body2'
-          sx={{
-            color: theme.palette.customColors.customHeadingTextColor,
-            fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
-          }}
-        >
-          {Utility.formatDisplayDate(params.row.expiry_date)}
-        </Typography>
-      )
-    },
-    {
-      minWidth: 20,
-      width: 200,
-      field: 'comment',
-      sortable: false,
-      headerName: 'COMMENTS',
-      renderCell: params => (
-        <Typography
-          variant='body2'
-          sx={{
-            color: theme.palette.customColors.customHeadingTextColor,
-            fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
-          }}
-        >
-          {params.row.comment}
-        </Typography>
-      )
-    },
-    {
-      minWidth: 20,
-      width: 250,
-      field: 'supplier_name',
-      sortable: true,
-      headerName: 'SUPPLIER NAME',
-      renderCell: params => (
-        <Typography
-          variant='body2'
-          sx={{
-            color: theme.palette.customColors.customHeadingTextColor,
-            fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
-          }}
-        >
-          {params.row.supplier_name}
-        </Typography>
-      )
-    },
-    {
-      minWidth: 20,
-      width: 180,
-      field: 'unit_price',
-      sortable: false,
-      headerName: 'SUPPLIER PRICE',
-      renderCell: params => (
-        <Typography
-          variant='body2'
-          sx={{
-            color: theme.palette.customColors.customHeadingTextColor,
-            fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
-          }}
-        >
-          {Utility.formatNumber(params.row.unit_price)}
-        </Typography>
-      )
-    },
-    {
-      minWidth: 20,
-      width: 150,
-      field: 'qty',
-      sortable: false,
-      headerName: 'QUANTITY',
-      renderCell: params => (
-        <Typography
-          variant='body2'
-          sx={{
-            color: theme.palette.customColors.customHeadingTextColor,
-            fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
-          }}
-        >
-          {Utility.formatNumber(params.row.qty)}
-        </Typography>
-      )
-    },
-    {
-      minWidth: 20,
-      width: 200,
-      field: 'net_amount',
-      sortable: false,
-      headerName: 'TOTAL AMOUNT',
-      renderCell: params => (
-        <Typography
-          variant='body2'
-          sx={{
-            color: theme.palette.customColors.customHeadingTextColor,
-            fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
-          }}
-        >
-          {Utility.formatNumber(params.row.net_amount)}
-        </Typography>
-      )
-    },
-    {
-      minWidth: 200,
-      field: 'purchase_created_at',
-      sortable: true,
-      headerName: 'Created by ',
-      renderCell: params => (
-        <>
-          {RenderUtility?.renderUserAvatarDetails(
-            params?.row?.user_created_profile_pic,
-            params?.row?.purchase_created_by_user_name,
-            params?.row?.purchase_created_at
-          )}
-        </>
-      )
-    },
-    {
-      minWidth: 250,
-      field: 'purchase_updated_at',
-      sortable: true,
-      headerName: 'Updated by',
-      renderCell: params => (
-        <>
-          {RenderUtility?.renderUserAvatarDetails(
-            params?.row?.user_updated_profile_pic,
-            params?.row?.purchase_updated_by_user_name,
-            params?.row?.purchase_updated_at
-          )}
-        </>
       )
     }
   ]
@@ -548,13 +331,22 @@ const PurchaseReport = () => {
       setSearchValue(q)
 
       try {
-        await fetchTableData({ sort, q, column, page, limit })
+        await fetchTableData({
+          sort: sort,
+          q: q,
+          column: column,
+          page: page,
+          limit: limit
+        })
+
+        console.log(q)
+
         updateUrlParams({
           sort: sort,
           q: q,
           column: column,
-          page,
-          limit
+          page: page,
+          limit: limit
         })
       } catch (error) {
         console.error(error)
@@ -565,7 +357,9 @@ const PurchaseReport = () => {
 
   const handleSearch = value => {
     setSearchValue(value)
-    searchTableData(sort, value, sortColumn, paginationModel.page, paginationModel.pageSize)
+    console.log(value)
+
+    searchTableData(sort, value, sortColumn, paginationModel?.page, paginationModel?.pageSize)
   }
 
   const handleExport = async () => {
@@ -586,20 +380,15 @@ const PurchaseReport = () => {
         column: sortColumn,
         page: 1,
         limit: total,
+        include_dispatch: true,
         ...(filterDates?.startDate !== '' && { from_date: filterDates?.startDate }),
         ...(filterDates?.endDate !== '' && { to_date: filterDates?.endDate }),
         ...(filteredData &&
-          filteredData.suppliersName &&
-          filteredData.suppliersName.length > 0 && {
-            supplier_id: filteredData.suppliersName.join(',')
-          }),
-        ...(filteredData?.Medicine && {
-          controlled: filteredData.Medicine.controlled,
-          prescription: filteredData.Medicine.prescription
-        })
+          filteredData.pharmacy &&
+          filteredData.pharmacy.length > 0 && { store_id: filteredData.pharmacy.join(',') })
       }
 
-      const res = await getPurchaseReport({ params })
+      const res = await getConsumptionReport({ params })
 
       if (res?.success === true && res?.data?.list_items?.length > 0) {
         const ListData = res?.data?.list_items
@@ -607,28 +396,16 @@ const PurchaseReport = () => {
         const tableData = ListData.map((item, index) => {
           return {
             'SL NO': index + 1,
-            'PRODUCT NAME': item.stock_name || '',
-            'GENERIC NAME': item.generic_name || '',
-            'BATCH NUMBER': item.batch_no || '',
-            'MANUFACTURER NAME': item.manufacturer_name || '',
-            'PURCHASE NUMBER': item.purchase_number || '',
-            'PURCHASE DATE': Utility.formatDisplayDate(item.purchase_date) || '',
-            'REQUESTED BY': item.requested_by || '',
-            PACKAGE:
-              `${item.package} of ${Utility.formatNumber(item.package_qty)} ${item.package_uom_label} ${
-                item.product_form_label
-              }` || '',
-            'EXPIRY DATE': Utility.formatDisplayDate(item.expiry_date) || '',
-            COMMENTS: item.comment || '',
-            'SUPPLIER NAME': item.supplier_name || '',
-            'SUPPLIER PRICE': Utility.formatNumber(item.unit_price) || '',
-            QUANTITY: Utility.formatNumber(item.qty) || '',
-            'TOTAL AMOUNT': Utility.formatNumber(item.net_amount) || ''
+            'PRODUCT NAME': item?.stock_name || '',
+            'GENERIC NAME': item?.generic_name || '',
+            'TOTAL CONSUMPTION QUANTITY': Utility.formatNumber(item?.total_consumption_quantity) || '',
+            'TOTAL CONSUMPTION COST': Utility.formatNumber(item?.total_consumption_cost) || '',
+            'AVAILABLE QUANTITY': Utility.formatNumber(item?.available_qty) || '',
+            'MANUFACTURER NAME': item?.manufacturer_name || ''
           }
         })
 
-        // Export to CSV
-        Utility.exportToCSV(tableData, `Purchase-Report ${timestamp}`)
+        Utility.exportToCSV(tableData, `Consumption_Report ${timestamp}`)
       } else {
         console.warn('No data to export.')
       }
@@ -642,11 +419,7 @@ const PurchaseReport = () => {
   const calculateAppliedFiltersCount = () => {
     let count = 0
 
-    if (filteredData.suppliersName && filteredData.suppliersName.length > 0) {
-      count++
-    }
-
-    if (filteredData?.Medicine?.controlled || filteredData?.Medicine?.prescription) {
+    if (filteredData && filteredData.pharmacy && filteredData.pharmacy.length > 0) {
       count++
     }
 
@@ -670,7 +443,7 @@ const PurchaseReport = () => {
             },
             mx: { xs: -1, sm: 0 }
           }}
-          title={RenderUtility.pageTitle('Purchase Report')}
+          title={RenderUtility.pageTitle('Consumption Report')}
         />
         <Box sx={{ marginLeft: 4, marginRight: 4 }}>
           <Grid container spacing={2} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -799,17 +572,17 @@ const PurchaseReport = () => {
         </Grid>
       </Card>
       {openFilterDrawer && (
-        <PurchaseFilterDrawer
+        <ConsumptionReportDrawer
           setOpenFilterDrawer={setOpenFilterDrawer}
           openFilterDrawer={openFilterDrawer}
           onApplyFilter={filterList => setFilteredData(filterList)}
           selectedOptions={selectedOptions}
           setSelectedOptions={setSelectedOptions}
-          supplierData={supplierData}
+          pharmacyList={pharmacyList}
         />
       )}
     </>
   )
 }
 
-export default PurchaseReport
+export default ConsumptionReport

@@ -37,12 +37,10 @@ const ShipmentFilterDrawer = ({
   setOpenFilterDrawer,
   onApplyFilter,
   selectedOptions,
-  setSelectedOptions
+  setSelectedOptions,
+  pharmacyList
 }) => {
   const theme = useTheme()
-
-  const authData = useContext(AuthContext)
-  const pharmacyList = authData?.userData?.modules?.pharmacy_data?.pharmacy
 
   const [selectedMenu, setSelectedMenu] = useState(leftMenu[0])
   const [searchQuery, setSearchQuery] = useState('')

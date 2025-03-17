@@ -249,3 +249,5 @@ export const PURCHASE_REPORT = 'purchase-report'
 export const RETURN_REPORT = 'return-report'
 
 export const SHIPMENT_REPORT = 'shipment-report'
+
+export const CONSUMPTION_REPORT = 'consumption-report'

@@ -4,7 +4,6 @@ import {
   Card,
   CardHeader,
   CircularProgress,
-  debounce,
   FormControlLabel,
   Grid,
   InputAdornment,
@@ -24,6 +23,8 @@ import CommonTable from 'src/views/table/data-grid/CommonTable'
 import StyleWithIconCardComponent from 'src/views/utility/style-with-icon-card'
 import Icon from 'src/@core/components/icon'
 import ReturnReportDrawer from 'src/views/pages/pharmacy/return-report/ReturnReportDrawer'
+import { getStoreList } from 'src/lib/api/pharmacy/getStoreList'
+import { debounce } from 'lodash'
 
 const ReturnReport = () => {
   const router = useRouter()
@@ -41,11 +42,13 @@ const ReturnReport = () => {
   const [sortColumn, setSortColumn] = useState(router.query.column || 'stock_name')
   const [searchValue, setSearchValue] = useState(router.query.q || '')
   const [openFilterDrawer, setOpenFilterDrawer] = useState(false)
-  const [filteredData, setFilteredData] = useState({})
+  const [filteredData, setFilteredData] = useState({ pharmacy: [] })
   const [exportLoading, setExportLoading] = useState(false)
   const [expired, setExpired] = useState(false)
+  const [pharmacyList, setPharmacyList] = useState([])
 
   const [selectedOptions, setSelectedOptions] = useState({
+    Pharmacy: [],
     'Expiry Date': [],
     'Near Expiry': [],
     Medicine: []
@@ -70,6 +73,26 @@ const ReturnReport = () => {
     startDate: router.query.startDate || '',
     endDate: router.query.endDate || ''
   })
+
+  useEffect(() => {
+    const pharmacyList = async () => {
+      try {
+        const params = {
+          type: 'local'
+        }
+        const response = await getStoreList({ params })
+        const result = response?.data
+
+        if (response?.success) {
+          const pharmacies = result?.list_items.map(({ id, name }) => ({ id, name })) || []
+          setPharmacyList(pharmacies)
+        }
+      } catch (error) {
+        console.log(error)
+      }
+    }
+    pharmacyList()
+  }, [])
 
   function loadServerRows(currentPage, data) {
     return data
@@ -101,6 +124,9 @@ const ReturnReport = () => {
             near_expiry_from_date: filteredData.nearExpiryDate.startDate,
             near_expiry_to_date: filteredData.nearExpiryDate.endDate
           }),
+          ...(filteredData &&
+            filteredData.pharmacy &&
+            filteredData.pharmacy.length > 0 && { store_id: filteredData.pharmacy.join(',') }),
           expired: expired ? 1 : 0
         }
         await getReturnReport({ params }).then(res => {
@@ -536,6 +562,14 @@ const ReturnReport = () => {
     try {
       setExportLoading(true)
 
+      const now = new Date()
+
+      const timestamp = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(
+        2,
+        '0'
+      )}/${now.getFullYear()}(${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')})`
+      console.log(timestamp)
+
       const params = {
         sort: sort,
         q: searchValue,
@@ -557,6 +591,9 @@ const ReturnReport = () => {
           near_expiry_from_date: filteredData.nearExpiryDate.startDate,
           near_expiry_to_date: filteredData.nearExpiryDate.endDate
         }),
+        ...(filteredData &&
+          filteredData.pharmacy &&
+          filteredData.pharmacy.length > 0 && { store_id: filteredData.pharmacy.join(',') }),
         expired: expired ? 1 : 0
       }
 
@@ -587,7 +624,7 @@ const ReturnReport = () => {
           }
         })
 
-        Utility.exportToCSV(tableData, 'Return Report')
+        Utility.exportToCSV(tableData, `Return Report ${timestamp}`)
       } else {
         console.warn('No data to export.')
       }
@@ -614,6 +651,10 @@ const ReturnReport = () => {
     }
 
     if (filteredData?.Medicine?.controlled || filteredData?.Medicine?.prescription) {
+      count++
+    }
+
+    if (filteredData && filteredData.pharmacy && filteredData.pharmacy.length > 0) {
       count++
     }
 
@@ -768,6 +809,7 @@ const ReturnReport = () => {
           setExpiryFilterDates={setExpiryFilterDates}
           nearExpiryFilterDates={nearExpiryFilterDates}
           setNearExpiryFilterDates={setNearExpiryFilterDates}
+          pharmacyList={pharmacyList}
         />
       )}
     </>

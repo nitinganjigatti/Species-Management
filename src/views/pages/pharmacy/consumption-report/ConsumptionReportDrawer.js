@@ -1,29 +1,24 @@
 import { useTheme } from '@emotion/react'
 import { LoadingButton } from '@mui/lab'
 import { Badge, Checkbox, Divider, Drawer, Grid, IconButton, TextField, Typography } from '@mui/material'
-import { Box } from '@mui/system'
+import { Box, styled } from '@mui/system'
 import React, { useCallback, useEffect, useState } from 'react'
 import Icon from 'src/@core/components/icon'
-import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDateRangePickers'
-import Utility from 'src/utility'
 
-const leftMenu = [
-  { id: 1, name: 'Pharmacy' },
-  { id: 2, name: 'Expiry Date' },
-  { id: 3, name: 'Near Expiry' },
-  { id: 4, name: 'Medicine' }
-]
+const leftMenu = [{ id: 1, name: 'Pharmacy' }]
 
-const ReturnReportDrawer = ({
+const StyledBadge = styled(Badge)(({ theme }) => ({
+  '& .MuiBadge-badge': {
+    borderRadius: '20%'
+  }
+}))
+
+const ConsumptionReportDrawer = ({
   openFilterDrawer,
   setOpenFilterDrawer,
   onApplyFilter,
   selectedOptions,
   setSelectedOptions,
-  expiryFilterDates,
-  setExpiryFilterDates,
-  nearExpiryFilterDates,
-  setNearExpiryFilterDates,
   pharmacyList
 }) => {
   const theme = useTheme()
@@ -32,50 +27,12 @@ const ReturnReportDrawer = ({
   const [selectAll, setSelectAll] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
 
-  const MEDICINE_ALL = 'all'
-  const MEDICINE_CONTROLLED = 'controlled'
-  const MEDICINE_PRESCRIPTION = 'prescription'
-
   const handleCloseDrawer = () => {
     setOpenFilterDrawer(false)
   }
 
   const handleMenuClick = menu => {
     setSelectedMenu(menu)
-  }
-
-  const handleExpiryDateRangeChange = (startDate, endDate) => {
-    if (selectedMenu.name === 'Expiry Date') {
-      if (startDate && endDate) {
-        setExpiryFilterDates({
-          startDate: Utility.formatDate(startDate),
-          endDate: Utility.formatDate(endDate)
-        })
-
-        console.log('Date range selected for expiry medicine:', { startDate, endDate })
-      } else {
-        setExpiryFilterDates({
-          startDate: '',
-          endDate: ''
-        })
-
-        console.log('Empty date range selected for expiry medicine,', { startDate, endDate })
-      }
-    } else if (selectedMenu.name === 'Near Expiry') {
-      if (startDate && endDate) {
-        setNearExpiryFilterDates({
-          startDate: Utility.formatDate(startDate),
-          endDate: Utility.formatDate(endDate)
-        })
-        console.log('Date range selected for near expiry medicines:', { startDate, endDate })
-      } else {
-        setNearExpiryFilterDates({
-          startDate: '',
-          endDate: ''
-        })
-        console.log('Empty date range selected for near expiry medicines,', { startDate, endDate })
-      }
-    }
   }
 
   const handleSelectAll = useCallback(
@@ -127,76 +84,20 @@ const ReturnReportDrawer = ({
     }
   }, [selectedOptions, searchQuery, pharmacyList, selectedMenu])
 
-  const handleMedicineCheckbox = useCallback(
-    id => {
-      handleCheckbox(id, 'Medicine')
-    },
-    [handleCheckbox]
-  )
-
   const applyFilters = () => {
     const filterData = {}
 
     //Attach Pharmacy filters to object to send
     if (selectedOptions['Pharmacy'] && selectedOptions['Pharmacy'].length > 0) {
-      filterData['pharmacy'] = selectedOptions['Pharmacy']
-    }
-
-    // Attach expiry date filters to object to send
-    if (selectedOptions['Expiry Date'] && expiryFilterDates.startDate && expiryFilterDates.endDate) {
-      filterData['expiryDate'] = {
-        startDate: expiryFilterDates.startDate,
-        endDate: expiryFilterDates.endDate
-      }
-    }
-
-    // Attach near-expiry date filters to object to send
-    if (selectedOptions['Near Expiry'] && nearExpiryFilterDates.startDate && nearExpiryFilterDates.endDate) {
-      filterData['nearExpiryDate'] = {
-        startDate: nearExpiryFilterDates.startDate,
-        endDate: nearExpiryFilterDates.endDate
-      }
-    }
-
-    let controlled = 0
-    let prescription = 0
-
-    if (
-      selectedOptions['Medicine'].includes(MEDICINE_CONTROLLED) &&
-      selectedOptions['Medicine'].includes(MEDICINE_PRESCRIPTION)
-    ) {
-      controlled = 1
-      prescription = 1
-    } else if (selectedOptions['Medicine'].includes(MEDICINE_CONTROLLED)) {
-      controlled = 1
-      prescription = 0
-    } else if (selectedOptions['Medicine'].includes(MEDICINE_PRESCRIPTION)) {
-      controlled = 0
-      prescription = 1
-    }
-
-    // Attach medicine options to object to send
-    filterData['Medicine'] = {
-      controlled: controlled,
-      prescription: prescription
+      filterData.pharmacy = selectedOptions['Pharmacy']
     }
 
     onApplyFilter(filterData)
     setOpenFilterDrawer(false)
   }
 
-  const hasFilterSelected = menuName => {
-    if (menuName === 'Expiry Date') {
-      return expiryFilterDates.startDate !== '' && expiryFilterDates.endDate !== ''
-    } else if (menuName === 'Near Expiry') {
-      return nearExpiryFilterDates.startDate !== '' && nearExpiryFilterDates.endDate !== ''
-    } else if (menuName === 'Medicine') {
-      return selectedOptions['Medicine'].length > 0
-    } else if (menuName === 'Pharmacy') {
-      return selectedOptions['Pharmacy'].length > 0
-    }
-
-    return false
+  const getMenuBadgeCount = menuName => {
+    return selectedOptions[menuName] ? selectedOptions[menuName].length : 0
   }
 
   const filteredPharmacyList = pharmacyList?.filter(pharmacy =>
@@ -259,24 +160,19 @@ const ReturnReportDrawer = ({
                 }}
                 onClick={() => handleMenuClick(menu)}
               >
-                <Badge
-                  color='primary'
-                  variant='dot'
-                  invisible={!hasFilterSelected(menu.name)}
+                <Typography
                   sx={{
-                    '& .MuiBadge-badge': {
-                      minWidth: '10px',
-                      height: '10px',
-                      borderRadius: '50%',
-                      right: -5,
-                      top: 8
-                    }
+                    color: theme.palette.primary.dark,
+                    fontSize: '16px',
+                    fontWeight: 400,
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '10px'
                   }}
                 >
-                  <Typography sx={{ color: theme.palette.primary.dark, fontSize: '16px', fontWeight: 400 }}>
-                    {menu.name}
-                  </Typography>
-                </Badge>
+                  {menu.name}
+                  <StyledBadge badgeContent={getMenuBadgeCount(menu.name)} color='primary' sx={{ ml: 2 }} />
+                </Typography>
               </Box>
             ))}
           </Grid>
@@ -359,61 +255,6 @@ const ReturnReportDrawer = ({
                     </Box>
                   ))}
                 </>
-              ) : selectedMenu.name === 'Expiry Date' ? (
-                <>
-                  <CommonDateRangePickers onChange={handleExpiryDateRangeChange} filterDates={expiryFilterDates} />
-                </>
-              ) : selectedMenu.name === 'Near Expiry' ? (
-                <>
-                  <CommonDateRangePickers
-                    onChange={handleExpiryDateRangeChange}
-                    filterDates={nearExpiryFilterDates}
-                    showFutureDates={true}
-                  />
-                </>
-              ) : selectedMenu.name === 'Medicine' ? (
-                <>
-                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-                    <Checkbox
-                      checked={
-                        selectedOptions['Medicine'].includes(MEDICINE_CONTROLLED) &&
-                        selectedOptions['Medicine'].includes(MEDICINE_PRESCRIPTION)
-                      }
-                      onChange={e => {
-                        if (e.target.checked) {
-                          setSelectedOptions(prev => ({
-                            ...prev,
-                            Medicine: [MEDICINE_CONTROLLED, MEDICINE_PRESCRIPTION]
-                          }))
-                        } else {
-                          setSelectedOptions(prev => ({
-                            ...prev,
-                            Medicine: []
-                          }))
-                        }
-                      }}
-                      inputProps={{ 'aria-label': 'controlled' }}
-                    />
-                    <Typography sx={{ fontSize: '16px', fontWeight: 400, color: '#839D8D' }}>Select All</Typography>
-                  </Box>
-                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-                    <Checkbox
-                      checked={selectedOptions['Medicine'].includes(MEDICINE_CONTROLLED)}
-                      onChange={() => handleMedicineCheckbox(MEDICINE_CONTROLLED)}
-                      inputProps={{ 'aria-label': 'controlled' }}
-                    />
-                    <Typography sx={{ fontSize: '16px', fontWeight: 400, color: '#839D8D' }}>Controlled</Typography>
-                  </Box>
-                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-                    <Checkbox
-                      checked={selectedOptions['Medicine'].includes(MEDICINE_PRESCRIPTION)}
-                      onChange={() => handleMedicineCheckbox(MEDICINE_PRESCRIPTION)}
-                      inputProps={{ 'aria-label': 'controlled' }}
-                    />
-                    <Typography sx={{ fontSize: '16px', fontWeight: 400, color: '#839D8D' }}>Prescription</Typography>
-                  </Box>
-                  <Divider sx={{ mb: 3 }} />
-                </>
               ) : null}
             </Box>
           </Grid>
@@ -447,4 +288,4 @@ const ReturnReportDrawer = ({
   )
 }
 
-export default ReturnReportDrawer
+export default ConsumptionReportDrawer

@@ -13,9 +13,7 @@ import {
 import { Box } from '@mui/system'
 import { useRouter } from 'next/router'
 import React, { useCallback, useEffect, useState } from 'react'
-import FallbackSpinner from 'src/@core/components/spinner'
 import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDateRangePickers'
-import { usePharmacyContext } from 'src/context/PharmacyContext'
 import { getShipmentReport } from 'src/lib/api/pharmacy/getShipmentReport'
 import Utility from 'src/utility'
 import RenderUtility from 'src/utility/render'
@@ -24,6 +22,7 @@ import StyleWithIconCardComponent from 'src/views/utility/style-with-icon-card'
 import Icon from 'src/@core/components/icon'
 import { debounce } from 'lodash'
 import ShipmentFilterDrawer from 'src/views/pages/pharmacy/shipment-report/ShipmentFilterDrawer'
+import { getStoreList } from 'src/lib/api/pharmacy/getStoreList'
 
 const ShipmentReport = () => {
   const router = useRouter()
@@ -41,8 +40,9 @@ const ShipmentReport = () => {
   const [sortColumn, setSortColumn] = useState(router.query.column || 'stock_name')
   const [searchValue, setSearchValue] = useState(router.query.q || '')
   const [openFilterDrawer, setOpenFilterDrawer] = useState(false)
-  const [filteredData, setFilteredData] = useState({})
+  const [filteredData, setFilteredData] = useState({ pharmacy: [] })
   const [exportLoading, setExportLoading] = useState(false)
+  const [pharmacyList, setPharmacyList] = useState([])
 
   const [selectedOptions, setSelectedOptions] = useState({
     'Batch Number': [],
@@ -59,6 +59,26 @@ const ShipmentReport = () => {
     startDate: router.query.startDate || '',
     endDate: router.query.endDate || ''
   })
+
+  useEffect(() => {
+    const pharmacyList = async () => {
+      try {
+        const params = {
+          type: 'local'
+        }
+        const response = await getStoreList({ params })
+        const result = response?.data
+
+        if (response?.success) {
+          const pharmacies = result?.list_items.map(({ id, name }) => ({ id, name })) || []
+          setPharmacyList(pharmacies)
+        }
+      } catch (error) {
+        console.log(error)
+      }
+    }
+    pharmacyList()
+  }, [])
 
   function loadServerRows(currentPage, data) {
     return data
@@ -79,8 +99,9 @@ const ShipmentReport = () => {
           ...(filterDates?.startDate !== '' && { from_date: filterDates?.startDate }),
           ...(filterDates?.endDate !== '' && { to_date: filterDates?.endDate }),
 
-          ...(filteredData['pharmacy'] &&
-            filteredData['pharmacy'].length > 0 && { store_id: filteredData['pharmacy'].join(',') }),
+          ...(filteredData &&
+            filteredData.pharmacy &&
+            filteredData.pharmacy.length > 0 && { store_id: filteredData.pharmacy.join(',') }),
 
           ...(filteredData?.Medicine && {
             controlled: filteredData.Medicine.controlled,
@@ -122,7 +143,7 @@ const ShipmentReport = () => {
       page: paginationModel?.page,
       limit: paginationModel?.pageSize
     })
-  }, [paginationModel.page, paginationModel.pageSize, filterDates, filteredData, sort, searchValue, sortColumn])
+  }, [paginationModel.page, paginationModel.pageSize, filterDates, filteredData, sort, sortColumn])
 
   //   console.log('rows data :', rows)
 
@@ -149,6 +170,33 @@ const ShipmentReport = () => {
             {params.row.id + '.'}
           </Typography>
         </Box>
+      )
+    },
+    {
+      width: 5,
+      field: 'label',
+      headerName: '',
+      sortable: false,
+      renderCell: params => (
+        <Typography
+          sx={{
+            color: 'customColors.OnSecondaryContainer',
+            display: 'flex',
+            alignItems: 'center',
+            fontWeight: 500,
+            fontSize: '14px',
+            ...RenderUtility?.getEllipsisStyleForText()
+          }}
+        >
+          {RenderUtility?.renderControlLabel(
+            !isNaN(params.row?.controlled_substance) && parseInt(params.row?.controlled_substance) === 1,
+            'CS'
+          )}
+          {RenderUtility?.renderControlLabel(
+            !isNaN(params.row?.prescription_required) && parseInt(params.row?.prescription_required) === 1,
+            'PR'
+          )}
+        </Typography>
       )
     },
     {
@@ -571,14 +619,20 @@ const ShipmentReport = () => {
 
   const handleSearch = value => {
     setSearchValue(value)
-
-    // setPaginationModel({ page: 0, pageSize: paginationModel?.pageSize })
     searchTableData(sort, value, sortColumn, paginationModel?.page, paginationModel?.pageSize)
   }
 
   const handleExport = async () => {
     try {
       setExportLoading(true)
+
+      const now = new Date()
+
+      const timestamp = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(
+        2,
+        '0'
+      )}/${now.getFullYear()}(${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')})`
+      console.log(timestamp)
 
       const params = {
         sort: sort,
@@ -589,8 +643,9 @@ const ShipmentReport = () => {
         ...(filterDates?.startDate !== '' && { from_date: filterDates?.startDate }),
         ...(filterDates?.endDate !== '' && { to_date: filterDates?.endDate }),
 
-        ...(filteredData['pharmacy'] &&
-          filteredData['pharmacy'].length > 0 && { store_id: filteredData['pharmacy'].join(',') }),
+        ...(filteredData &&
+          filteredData.pharmacy &&
+          filteredData.pharmacy.length > 0 && { store_id: filteredData.pharmacy.join(',') }),
 
         ...(filteredData?.Medicine && {
           controlled: filteredData.Medicine.controlled,
@@ -632,7 +687,7 @@ const ShipmentReport = () => {
           }
         })
 
-        Utility.exportToCSV(tableData, 'Shipment Report')
+        Utility.exportToCSV(tableData, `Shipment Report ${timestamp}`)
       } else {
         console.warn('No data to export.')
       }
@@ -646,7 +701,7 @@ const ShipmentReport = () => {
   const calculateAppliedFiltersCount = () => {
     let count = 0
 
-    if (filteredData['pharmacy'] && filteredData['pharmacy'].length > 0) {
+    if (filteredData && filteredData.pharmacy && filteredData.pharmacy.length > 0) {
       count++
     }
 
@@ -678,12 +733,12 @@ const ShipmentReport = () => {
         />
         <Box sx={{ marginLeft: 4, marginRight: 4 }}>
           <Grid container spacing={2} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <Grid item xs={12} md='auto'>
+            <Grid item xs={12} sm={6} md='auto'>
               <CommonDateRangePickers onChange={handleDateRangeChange} filterDates={filterDates} />
             </Grid>
-            <Grid item sx={12} md='auto'>
+            <Grid item xs={12} md='auto'>
               <Grid container spacing={2} alignItems='center' justifyContent={{ xs: 'flex-start', md: 'flex-end' }}>
-                <Grid item xs={12} sm={6} md='auto'>
+                <Grid item xs={12} sm={8} md='auto'>
                   <TextField
                     variant='outlined'
                     size='small'
@@ -703,7 +758,18 @@ const ShipmentReport = () => {
                     }}
                   />
                 </Grid>
-                <Grid item>
+                <Grid
+                  item
+                  xs={12}
+                  sm={4}
+                  md='auto'
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 2,
+                    justifyContent: { sm: 'flex-end', xs: 'flex-end' }
+                  }}
+                >
                   <Tooltip title='Export'>
                     <>
                       {loading || exportLoading ? (
@@ -740,8 +806,6 @@ const ShipmentReport = () => {
                       )}
                     </>
                   </Tooltip>
-                </Grid>
-                <Grid item>
                   <Tooltip title='Filters'>
                     <Box
                       sx={{
@@ -800,6 +864,7 @@ const ShipmentReport = () => {
           onApplyFilter={filterList => setFilteredData(filterList)}
           selectedOptions={selectedOptions}
           setSelectedOptions={setSelectedOptions}
+          pharmacyList={pharmacyList}
         />
       )}
     </>
