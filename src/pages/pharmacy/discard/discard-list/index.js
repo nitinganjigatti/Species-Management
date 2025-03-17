@@ -23,6 +23,7 @@ import { useTheme } from '@emotion/react'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import { AddButtonContained } from 'src/components/ButtonContained'
 import RenderUtility from 'src/utility/render'
+import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDateRangePickers'
 
 const ListOfDiscardProducts = () => {
   const theme = useTheme()
@@ -40,6 +41,11 @@ const ListOfDiscardProducts = () => {
   const [rows, setRows] = useState([])
   const [searchValue, setSearchValue] = useState(router.query.q || '')
   const [sortColumn, setSortColumn] = useState(router.query.column || 'created_at')
+  const [excelLoader, setExcelLoader] = useState(false)
+  const [filterDates, setFilterDates] = useState({
+    startDate: router.query.startDate || '',
+    endDate: router.query.endDate || ''
+  })
 
   const [paginationModel, setPaginationModel] = useState({
     page: parseInt(router.query.page) || 0,
@@ -63,6 +69,8 @@ const ListOfDiscardProducts = () => {
           sort,
           q,
           column,
+          ...(filterDates?.startDate !== '' && { from_date: filterDates?.startDate }),
+          ...(filterDates?.endDate !== '' && { to_date: filterDates?.endDate }),
           page: page + 1,
           limit
         }
@@ -83,7 +91,7 @@ const ListOfDiscardProducts = () => {
         setLoading(false)
       }
     },
-    [paginationModel]
+    [paginationModel, filterDates]
   )
 
   useEffect(() => {
@@ -102,7 +110,7 @@ const ListOfDiscardProducts = () => {
       page: paginationModel.page,
       limit: paginationModel.pageSize
     })
-  }, [paginationModel.page, paginationModel.pageSize, selectedPharmacy])
+  }, [paginationModel.page, paginationModel.pageSize, selectedPharmacy, filterDates])
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
@@ -296,33 +304,98 @@ const ListOfDiscardProducts = () => {
     }
   ]
 
+  const getSupplierDataToExport = async () => {
+    try {
+      setExcelLoader(true)
+
+      const response = await getDiscardList({ sort, q: searchValue, column: sortColumn })
+      console.log('Response inventory>', response)
+      setExcelLoader(false)
+      if (response?.success === true && response?.data?.list_items?.length > 0) {
+        const data = response?.data?.list_items?.map(el => ({
+          ['Request Number']: el?.req_no,
+          ['Supplier Name']: el?.supplier_name,
+          ['Quantity']: el?.total_qty,
+          ['Discarded Date']: Utility.formatDisplayDate(el?.discarded_date)
+            ? Utility.formatDisplayDate(el?.discarded_date)
+            : 'NA',
+          ['Discarded By']: el?.created_by_user_name ? el?.created_by_user_name : 'NA'
+        }))
+
+        Utility.exportToCSV(data, 'Return_Supplier_List')
+      } else {
+        console.log('No data available for export.')
+      }
+    } catch (error) {
+      console.log('Error >>', error)
+    }
+  }
+
   const handleHeaderAction = () => {
     console.log('Handle Header Action')
   }
+  // const headerAction = (
+  //   <Grid
+  //     sx={{
+  //       display: 'flex',
+  //       flexDirection: 'row', // Ensure buttons stay inline
+  //       alignItems: 'center', // Align buttons parallel to the title
+  //       gap: 4,
+  //       mt: { xs: 0 }
+  //     }}
+  //   >
+  //     <ExcelExportButton
+  //       disabled={total === 0}
+  //       action={() => {
+  //         getSupplierDataToExport()
+  //       }}
+  //       loader={excelLoader}
+  //       title='download'
+  //       sx={{
+  //         minWidth: 120, // Set a minimum width for smaller buttons
+  //         maxWidth: 160, // Limit button expansion
+  //         padding: '6px 12px' // Adjust padding for better size
+  //       }}
+  //     />
+  //     <AddButtonContained
+  //       title='Return to Supplier'
+  //       action={() => Router.push({ pathname: '/pharmacy/discard/add-discard' })}
+  //       sx={{
+  //         // minWidth: { xs: 100, sm: 0 },
+  //         // maxWidth: { xs: 100, sm: 0 },
+  //         // padding: '6px 12px'
+  //       }}
+  //     />
+  //   </Grid>
+  // )
 
   const headerAction = (
-    <Grid sx={{ display: 'flex', gap: 2 }}>
-      {/* <ExcelExportButton
-        disabled={total === 0 ? true : false}
+    <Grid
+      sx={{
+        display: 'flex',
+        flexDirection: { xs: 'column', sm: 'row' }, // Stack buttons vertically
+        gap: 2, // Add spacing between buttons
+        width: '100%' // Ensure full width
+      }}
+    >
+      <ExcelExportButton
+        disabled={total === 0}
         action={() => {
-          Router.push({
-            pathname: '/pharmacy/purchase/import-purchases/'
-
-            // pathname: '/pharmacy/purchase/import-purchases/v2'
-          })
+          getSupplierDataToExport()
         }}
-        title='Import Inventory'
-      /> */}
-      {selectedPharmacy.type === 'central' &&
-      (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') ? (
-        <AddButtonContained
-          title='Return to Supplier'
-          action={() => Router.push({ pathname: '/pharmacy/discard/add-discard' })}
-          fullWidth='fullWidth'
-        />
-      ) : (
-        <></>
-      )}
+        loader={excelLoader}
+        title='Download'
+        sx={{
+          width: '100%' // Make button full-width
+        }}
+      />
+      <AddButtonContained
+        title='Return to Supplier'
+        action={() => Router.push({ pathname: '/pharmacy/discard/add-discard' })}
+        sx={{
+          width: '100%' // Make button full-width
+        }}
+      />
     </Grid>
   )
 
@@ -332,6 +405,25 @@ const ListOfDiscardProducts = () => {
       (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD')
     ) {
       handleEdit(params.row.id)
+    }
+  }
+
+  const handleDateRangeChange = (startDate, endDate) => {
+    setPaginationModel({ page: 0, pageSize: 10 })
+    if (startDate && endDate) {
+      setFilterDates({
+        startDate: Utility.formatDate(startDate),
+        endDate: Utility.formatDate(endDate)
+      })
+
+      console.log('Date range selected:', { startDate, endDate })
+    } else {
+      setFilterDates({
+        startDate: '',
+        endDate: ''
+      })
+
+      console.log('Empty date range selected,', { startDate, endDate })
     }
   }
 
@@ -434,11 +526,10 @@ const ListOfDiscardProducts = () => {
                   sx={{
                     display: 'flex',
                     alignItems: 'center',
-
                     border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                     borderRadius: '8px',
                     padding: '0 8px',
-                    width: { xs: '100%', sm: '250px' }, // Full width on small screens
+                    width: { xs: '100%', sm: '240px' }, // Full width on small screens
                     height: '40px'
                   }}
                 >
@@ -460,6 +551,18 @@ const ListOfDiscardProducts = () => {
                     }}
                   />
                 </Box>
+                <Grid
+                  item
+                  xs={12}
+                  sm='auto'
+                  sx={{
+                    mx: { xs: 0, sm: 1 },
+                    mt: { xs: 3, sm: 2 },
+                    width: { xs: '100%', sm: 'auto' } // Full width on small screens
+                  }}
+                >
+                  <CommonDateRangePickers onChange={handleDateRangeChange} filterDates={filterDates} />
+                </Grid>
               </Box>
               <Grid
                 sx={{
