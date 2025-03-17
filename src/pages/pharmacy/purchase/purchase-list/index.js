@@ -571,7 +571,7 @@ const ListOfPurchase = () => {
                       >
                         <Tooltip title='Export'>
                           <>
-                            {loading || excelLoader ? (
+                            {excelLoader ? (
                               <Box
                                 sx={{
                                   display: 'flex',
