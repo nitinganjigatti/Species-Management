@@ -410,7 +410,9 @@ const ShipmentDetails = ({ data, printedDate }) => {
 
           <div style={{ display: 'flex', marginBottom: '10px' }}>
             <div style={{ width: '130px', color: '#7A8684', fontSize: '14px', fontWeight: 400 }}>Ordered By:</div>
-            <div style={{ fontWeight: 600, fontSize: '14px', color: '#44544A' }}>{data.created_by_user_name}</div>
+            <div style={{ fontWeight: 600, fontSize: '14px', color: '#44544A' }}>
+              {data.created_by_user_name || 'NA'}
+            </div>
           </div>
 
           <div style={{ display: 'flex', marginBottom: '10px' }}>
