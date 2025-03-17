@@ -8,8 +8,6 @@ import {
   Avatar,
   Card,
   CardContent,
-  CircularProgress,
-  Divider,
   useMediaQuery
 } from '@mui/material'
 import Router, { useRouter } from 'next/router'
@@ -24,7 +22,7 @@ import Toaster from 'src/components/Toaster'
 import Tooltip from '@mui/material/Tooltip'
 import ChangeDietName from 'src/components/diet/ChangeDietname'
 
-const DietDetailCard = ({ dietDetails, dietModulePermission, dietModuleAccess }) => {
+const DietDetailCard = ({ dietDetails, dietModulePermission, dietModuleAccess, refreshDietDetails }) => {
   const router = useRouter()
   const { source, recipeId, ingId } = router.query
   const theme = useTheme()
@@ -116,6 +114,7 @@ const DietDetailCard = ({ dietDetails, dietModulePermission, dietModuleAccess })
 
       if (response.success) {
         setIsActive(isActive === '0' ? '1' : '0')
+        refreshDietDetails()
         Toaster({ type: 'success', message: response.message })
       } else {
         alert('something went wrong')
@@ -126,7 +125,6 @@ const DietDetailCard = ({ dietDetails, dietModulePermission, dietModuleAccess })
   }
 
   const handlebackClick = () => {
-    debugger
     if (source !== undefined && source === 'recipedetail') {
       Router.push({
         pathname: `/diet/recipe/${recipeId}`,
@@ -181,7 +179,7 @@ const DietDetailCard = ({ dietDetails, dietModulePermission, dietModuleAccess })
                 alt={dietDetails?.image}
                 sx={{
                   width: '100%',
-                  height: dietDetails?.image ? '300px' : '250px',
+                  height: '100%',
                   borderRadius: '8px',
                   '& img': {
                     objectFit: isSmallDevice ? '' : 'cover',
@@ -370,7 +368,7 @@ const DietDetailCard = ({ dietDetails, dietModulePermission, dietModuleAccess })
           <ActivityLogs
             activitySidebarOpen={activitySidebarOpen}
             activity_type='diet'
-            detailsValue={{ id: dietDetails?.id }}
+            detailsValue={dietDetails}
             searchValue={activitySearchValue}
             setSearchValue={setActivitySearchValue}
             handleSidebarClose={handleSidebarClose}

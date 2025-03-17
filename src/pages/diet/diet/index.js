@@ -23,6 +23,7 @@ import { getDietList } from 'src/lib/api/diet/dietList'
 import CustomChip from 'src/@core/components/mui/chip'
 
 import { AuthContext } from 'src/context/AuthContext'
+import { useTheme } from '@mui/material/styles'
 import Error404 from 'src/pages/404'
 
 // Styled TabList component
@@ -33,6 +34,7 @@ const roleColors = {
 
 const Diet = () => {
   const router = useRouter()
+  const theme = useTheme()
   const { query } = router
   const [total, setTotal] = useState(0)
   const [sort, setSort] = useState('desc')
@@ -215,7 +217,14 @@ const Diet = () => {
           <Avatar
             variant='square'
             alt='Diet Image'
-            sx={{ width: 40, height: 40, mr: 4, background: '#E8F4F2', padding: '8px', borderRadius: '4px' }}
+            sx={{
+              width: 40,
+              height: 40,
+              mr: 4,
+              background: theme.palette.customColors.tableHeaderBg,
+              padding: '8px',
+              borderRadius: '4px'
+            }}
             src={params.row.diet_image ? params.row.diet_image : '/icons/icon_diet_fill.png'}
           ></Avatar>
           <Box sx={{ display: 'flex', flexDirection: 'column' }}>
@@ -271,7 +280,7 @@ const Diet = () => {
               height: 30,
               mr: 4,
               borderRadius: '50%',
-              background: '#E8F4F2',
+              background: theme.palette.customColors.tableHeaderBg,
               overflow: 'hidden'
             }}
           >
@@ -289,7 +298,7 @@ const Diet = () => {
             <Typography noWrap variant='body2' sx={{ color: 'text.primary', fontSize: 14, fontWeight: 500 }}>
               {params.row.user_name ? params.row.user_name : '-'}
             </Typography>
-            <Typography noWrap variant='body2' sx={{ color: '#44544a9c', fontSize: 12 }}>
+            <Typography noWrap variant='body2' sx={{ color: theme.palette.customColors.secondaryBg, fontSize: 12 }}>
               {params.row.created_at ? 'Created on' + ' ' + params.row.created_at : '-'}
             </Typography>
           </Box>
