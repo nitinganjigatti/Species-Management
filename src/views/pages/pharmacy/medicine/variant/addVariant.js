@@ -26,7 +26,7 @@ import { getVariantById } from 'src/lib/api/pharmacy/variant'
 // ** Styled Components
 
 const schema = yup.object().shape({
-  description: yup.string().required('Description is required'),
+  // description: yup.string().required('Description is required'),
   active: yup.string().nullable(),
   unit_multiplier: yup
     .number()
@@ -169,7 +169,7 @@ const AddVariant = props => {
               rules={{ required: true }}
               render={({ field: { value, onChange } }) => (
                 <TextField
-                  label='Description*'
+                  label='Description'
                   value={value}
                   multiline
                   rows={4}

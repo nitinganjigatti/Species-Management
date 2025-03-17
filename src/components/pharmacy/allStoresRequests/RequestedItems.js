@@ -645,7 +645,7 @@ export default function RequestedItems({ selectedStoreDetails, setSelectedStoreD
                   }}
                 >
                   <MenuItem value='all'>All</MenuItem>
-                  <MenuItem value='1'>Controlled Drug</MenuItem>
+                  <MenuItem value='1'>Controlled Substance</MenuItem>
                 </Select>
               </FormControl>
             </Grid>
@@ -835,8 +835,8 @@ export default function RequestedItems({ selectedStoreDetails, setSelectedStoreD
         }}
       >
         <Tab value='all' label={'All'} />
-        {selectedPharmacy.type === 'central' && <Tab value='Available' label={'Available'} />}
-        {selectedPharmacy.type === 'central' && <Tab value='NotAvailable' label={'NotAvailable'} />}
+        {selectedPharmacy.type === 'central' && <Tab value='Available' label={'Stock Available'} />}
+        {selectedPharmacy.type === 'central' && <Tab value='NotAvailable' label={'Not Available'} />}
       </TabLists>
 
       <TabPanel
