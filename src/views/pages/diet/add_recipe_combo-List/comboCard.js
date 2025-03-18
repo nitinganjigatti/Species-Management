@@ -110,8 +110,6 @@ const ComboCard = ({
         }
       })
       setSize(updatedSize) // Merge with the existing size state
-    } else {
-      setSize({})
     }
 
     const previousSelectedDays = selectedDays || [] // Keep track of previous selections

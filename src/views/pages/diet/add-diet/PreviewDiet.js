@@ -978,7 +978,7 @@ const StepPreviewDiet = ({
                     variant='body2'
                     sx={{
                       width: '100%',
-                      color: '#7A8684',
+                      color: theme.palette.customColors.secondaryBg,
                       fontSize: '14px',
                       overflow: 'hidden',
                       textOverflow: 'ellipsis',
@@ -999,7 +999,7 @@ const StepPreviewDiet = ({
                         fontSize: '13px',
 
                         textDecoration: 'underline',
-                        color: '#000',
+                        color: theme.palette.customColors.neutralPrimary,
                         cursor: 'pointer'
                       }}
                     >
@@ -1042,7 +1042,7 @@ const StepPreviewDiet = ({
                           sx={{
                             border: 'none',
                             height: '40px',
-                            backgroundColor: '#fff',
+                            backgroundColor: theme.palette.secondary.contrastText,
                             pl: '0 !important',
                             py: 0,
                             width: '180px',
@@ -1076,7 +1076,7 @@ const StepPreviewDiet = ({
                           sx={{
                             border: 'none',
                             height: '40px',
-                            backgroundColor: '#fff',
+                            backgroundColor: theme.palette.secondary.contrastText,
                             position: isSmallDevice ? '' : 'sticky ',
                             left: '180px',
                             p: 0,
@@ -1113,7 +1113,7 @@ const StepPreviewDiet = ({
                                 backgroundColor: '#C1D3D099',
                                 height: '40px',
                                 width: '141px',
-                                borderRight: '1px solid #C3CEC7',
+                                borderRight: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                                 textAlign: 'center'
                               }}
                             >
@@ -1126,7 +1126,7 @@ const StepPreviewDiet = ({
                                 backgroundColor: '#C1D3D099',
                                 height: '40px',
                                 width: '141px',
-                                borderRight: '1px solid #C3CEC7',
+                                borderRight: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                                 textAlign: 'center'
                               }}
                             >
@@ -1139,7 +1139,7 @@ const StepPreviewDiet = ({
                                 backgroundColor: '#C1D3D099',
                                 height: '40px',
                                 width: '141px',
-                                borderRight: '1px solid #C3CEC7',
+                                borderRight: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                                 textAlign: 'center'
                               }}
                             >
@@ -1155,7 +1155,7 @@ const StepPreviewDiet = ({
                                 backgroundColor: '#C1D3D099',
                                 height: '40px',
                                 width: '137px',
-                                borderRight: '1px solid #C3CEC7',
+                                borderRight: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                                 textAlign: 'center'
                               }}
                             >
@@ -1185,7 +1185,7 @@ const StepPreviewDiet = ({
                                 backgroundColor: '#C1D3D099',
                                 height: '40px',
                                 width: '140px',
-                                borderRight: '1px solid #C3CEC7',
+                                borderRight: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                                 textAlign: 'center'
                               }}
                             >
@@ -1198,7 +1198,7 @@ const StepPreviewDiet = ({
                                 backgroundColor: '#C1D3D099',
                                 height: '40px',
                                 width: '140px',
-                                borderRight: '1px solid #C3CEC7',
+                                borderRight: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                                 textAlign: 'center'
                               }}
                             >
@@ -1211,7 +1211,7 @@ const StepPreviewDiet = ({
                                 backgroundColor: '#C1D3D099',
                                 height: '40px',
                                 width: '140px',
-                                borderRight: '1px solid #C3CEC7',
+                                borderRight: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                                 textAlign: 'center'
                               }}
                             >
@@ -1224,7 +1224,7 @@ const StepPreviewDiet = ({
                                 backgroundColor: '#C1D3D099',
                                 height: '40px',
                                 width: '157px',
-                                borderRight: '1px solid #C3CEC7',
+                                borderRight: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                                 textAlign: 'center'
                               }}
                             >
@@ -1237,7 +1237,7 @@ const StepPreviewDiet = ({
                                 backgroundColor: '#C1D3D099',
                                 height: '40px',
                                 width: '127px',
-                                borderRight: '1px solid #C3CEC7',
+                                borderRight: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                                 textAlign: 'center'
                               }}
                             >
@@ -1253,7 +1253,7 @@ const StepPreviewDiet = ({
                                 backgroundColor: '#C1D3D099',
                                 height: '40px',
                                 width: '137px',
-                                borderRight: '1px solid #C3CEC7',
+                                borderRight: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                                 textAlign: 'center'
                               }}
                             >
@@ -1269,7 +1269,7 @@ const StepPreviewDiet = ({
                                 backgroundColor: '#C1D3D099',
                                 height: '40px',
                                 width: '137px',
-                                borderRight: '1px solid #C3CEC7',
+                                borderRight: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                                 textAlign: 'center'
                               }}
                             >
@@ -1285,7 +1285,7 @@ const StepPreviewDiet = ({
                                     backgroundColor: '#C1D3D099',
                                     height: '40px',
                                     width: '140px',
-                                    borderRight: '1px solid #C3CEC7',
+                                    borderRight: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                                     textAlign: 'center'
                                   }}
                                 >
@@ -1330,7 +1330,7 @@ const StepPreviewDiet = ({
                                   border: 'none',
                                   pl: 0,
                                   pr: '36px',
-                                  background: '#fff',
+                                  background: theme.palette.secondary.contrastText,
                                   height: '185px',
                                   //display: 'flex',
                                   //flexDirection: 'column',
@@ -1356,7 +1356,7 @@ const StepPreviewDiet = ({
                                   <Typography
                                     sx={{
                                       textAlign: 'center',
-                                      color: '#00AFD6',
+                                      color: theme.palette.customColors.addPrimary,
                                       fontWeight: 500,
                                       fontSize: '14px',
                                       mt: '10px',
@@ -1368,7 +1368,7 @@ const StepPreviewDiet = ({
                                   <Box
                                     sx={{
                                       borderRadius: '25px',
-                                      border: `2px dotted #00AFD6`,
+                                      border: `2px dotted ${theme.palette.customColors.addPrimary}`,
                                       py: '5px',
                                       px: '4px'
                                     }}
@@ -1376,7 +1376,7 @@ const StepPreviewDiet = ({
                                     <Typography
                                       sx={{
                                         textAlign: 'center',
-                                        color: '#00AFD6',
+                                        color: theme.palette.customColors.addPrimary,
                                         fontWeight: 500,
                                         fontSize: '16px',
                                         lineHeight: '19.36px'
@@ -1386,13 +1386,19 @@ const StepPreviewDiet = ({
                                     </Typography>
                                   </Box>
                                   <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-                                    <Box sx={{ width: 0, height: '19px', borderLeft: `2px solid #00AFD6` }}></Box>
+                                    <Box
+                                      sx={{
+                                        width: 0,
+                                        height: '19px',
+                                        borderLeft: `2px solid ${theme.palette.customColors.addPrimary}`
+                                      }}
+                                    ></Box>
                                   </Box>
 
                                   <Box
                                     sx={{
                                       borderRadius: '25px',
-                                      border: `2px dotted #00AFD6`,
+                                      border: `2px dotted ${theme.palette.customColors.addPrimary}`,
                                       py: '5px',
                                       px: '4px'
                                     }}
@@ -1400,7 +1406,7 @@ const StepPreviewDiet = ({
                                     <Typography
                                       sx={{
                                         textAlign: 'center',
-                                        color: '#00AFD6',
+                                        color: theme.palette.customColors.addPrimary,
                                         fontWeight: 500,
                                         fontSize: '16px',
                                         lineHeight: '19.36px'
@@ -1420,7 +1426,7 @@ const StepPreviewDiet = ({
                                           position: isSmallDevice ? '' : 'sticky ',
                                           left: '180px',
                                           border: 'none',
-                                          backgroundColor: '#fff'
+                                          backgroundColor: theme.palette.secondary.contrastText
                                           //float: 'left',
                                           // display: 'flex',
                                           // flexDirection: 'row'
@@ -1457,7 +1463,7 @@ const StepPreviewDiet = ({
                                             display: 'flex',
                                             flexDirection: 'column',
 
-                                            //backgroundColor: '#E1F9ED',
+                                            //backgroundColor: theme.palette.background.OnBackground,
                                             backgroundColor: '#00d6c957',
                                             borderRadius: '8px',
                                             p: '12px',
@@ -1501,7 +1507,7 @@ const StepPreviewDiet = ({
                                                 {item?.ingredient_name && (
                                                   <Typography
                                                     sx={{
-                                                      color: '#000',
+                                                      color: theme.palette.customColors.neutralPrimary,
                                                       lineHeight: '16.94px',
                                                       fontWeight: 600,
                                                       fontSize: '16px'
@@ -1514,7 +1520,7 @@ const StepPreviewDiet = ({
                                                   (item?.master_cut_size ? (
                                                     <Typography
                                                       sx={{
-                                                        color: '#7A8684',
+                                                        color: theme.palette.customColors.secondaryBg,
                                                         lineHeight: '16.94px',
                                                         fontWeight: 400,
                                                         fontSize: '14px'
@@ -1526,7 +1532,7 @@ const StepPreviewDiet = ({
                                                   ) : (
                                                     <Typography
                                                       sx={{
-                                                        color: '#7A8684',
+                                                        color: theme.palette.customColors.secondaryBg,
                                                         lineHeight: '16.94px',
                                                         fontWeight: 400,
                                                         fontSize: '14px'
@@ -1549,7 +1555,7 @@ const StepPreviewDiet = ({
                                                     <Box key={index} sx={{ display: 'flex' }}>
                                                       <Typography
                                                         sx={{
-                                                          color: '#1F515B',
+                                                          color: theme.palette.primary.light,
                                                           lineHeight: '16.94px',
                                                           fontWeight: 400,
                                                           fontSize: '14px'
@@ -1559,7 +1565,7 @@ const StepPreviewDiet = ({
                                                       </Typography>
                                                       <Typography
                                                         sx={{
-                                                          color: '#000',
+                                                          color: theme.palette.customColors.neutralPrimary,
                                                           lineHeight: '16.94px',
                                                           fontWeight: 600,
                                                           fontSize: '14px'
@@ -1581,7 +1587,7 @@ const StepPreviewDiet = ({
                                                   {item?.preparationType && (
                                                     <Typography
                                                       sx={{
-                                                        color: '#1F515B',
+                                                        color: theme.palette.primary.light,
                                                         lineHeight: '16.94px',
                                                         fontWeight: 400,
                                                         fontSize: '14px'
@@ -1593,7 +1599,7 @@ const StepPreviewDiet = ({
                                                   {item?.desc && (
                                                     <Typography
                                                       sx={{
-                                                        color: '#1F515B',
+                                                        color: theme.palette.primary.light,
                                                         lineHeight: '16.94px',
                                                         fontWeight: 400,
                                                         fontSize: '14px'
@@ -1607,7 +1613,7 @@ const StepPreviewDiet = ({
                                               {item?.remarks && (
                                                 <Box
                                                   sx={{
-                                                    backgroundColor: '#0000000d',
+                                                    backgroundColor: theme.palette.customColors.mdAntzNeutral,
                                                     display: 'flex',
                                                     flexDirection: 'column',
                                                     gap: '4px',
@@ -1617,7 +1623,7 @@ const StepPreviewDiet = ({
                                                 >
                                                   <Typography
                                                     sx={{
-                                                      color: '#000',
+                                                      color: theme.palette.customColors.neutralPrimary,
                                                       lineHeight: '16.94px',
                                                       fontWeight: 600,
                                                       fontSize: '14px'
@@ -1627,7 +1633,7 @@ const StepPreviewDiet = ({
                                                   </Typography>
                                                   <Typography
                                                     sx={{
-                                                      color: '#000',
+                                                      color: theme.palette.customColors.neutralPrimary,
                                                       lineHeight: '16.94px',
                                                       fontWeight: 400,
                                                       fontSize: '14px'
@@ -1652,7 +1658,7 @@ const StepPreviewDiet = ({
                                                         width: '48px',
                                                         height: '32px',
                                                         borderRadius: '16px',
-                                                        backgroundColor: '#0000000d',
+                                                        backgroundColor: theme.palette.customColors.mdAntzNeutral,
                                                         display: 'center',
                                                         justifyContent: 'center',
                                                         alignItems: 'center'
@@ -1663,7 +1669,7 @@ const StepPreviewDiet = ({
                                                           fontWeight: 400,
                                                           fontSize: '13px',
                                                           lineHeight: '18px',
-                                                          color: '#44544A'
+                                                          color: theme.palette.customColors.OnSurfaceVariant
                                                         }}
                                                       >
                                                         {getDayName(dayId)}
@@ -1692,7 +1698,7 @@ const StepPreviewDiet = ({
                                         >
                                           <Box
                                             sx={{
-                                              backgroundColor: '#0000000d',
+                                              backgroundColor: theme.palette.customColors.mdAntzNeutral,
                                               p: '10px',
                                               display: 'flex',
                                               justifyContent: 'center',
@@ -1714,7 +1720,7 @@ const StepPreviewDiet = ({
                                           >
                                             <Typography
                                               sx={{
-                                                color: '#000',
+                                                color: theme.palette.customColors.neutralPrimary,
                                                 lineHeight: '16.94px',
                                                 fontWeight: 400,
                                                 fontSize: '14px',
@@ -1782,7 +1788,7 @@ const StepPreviewDiet = ({
                                               >
                                                 <Box
                                                   sx={{
-                                                    backgroundColor: '#0000000d',
+                                                    backgroundColor: theme.palette.customColors.mdAntzNeutral,
                                                     p: '10px',
                                                     display: 'flex',
                                                     justifyContent: 'center',
@@ -1804,7 +1810,7 @@ const StepPreviewDiet = ({
                                                 >
                                                   <Typography
                                                     sx={{
-                                                      color: '#000',
+                                                      color: theme.palette.customColors.neutralPrimary,
                                                       lineHeight: '16.94px',
                                                       fontWeight: 400,
                                                       fontSize: '14px',
@@ -1979,7 +1985,7 @@ const StepPreviewDiet = ({
                                           position: isSmallDevice ? '' : 'sticky ',
                                           left: '180px',
                                           border: 'none',
-                                          backgroundColor: '#fff'
+                                          backgroundColor: theme.palette.secondary.contrastText
                                           //float: 'left',
                                           // display: 'flex',
                                           // flexDirection: 'row'
@@ -2016,8 +2022,8 @@ const StepPreviewDiet = ({
                                             display: 'flex',
                                             flexDirection: 'column',
 
-                                            //backgroundColor: '#E1F9ED',
-                                            backgroundColor: '#E1F9ED',
+                                            //backgroundColor: theme.palette.background.OnBackground,
+                                            backgroundColor: theme.palette.background.OnBackground,
                                             borderRadius: '8px',
                                             p: '12px',
                                             gap: '16px'
@@ -2056,18 +2062,17 @@ const StepPreviewDiet = ({
                                                 gap: '12px'
                                               }}
                                             >
-                                              <Box
-                                                sx={{ display: 'flex' }}
-                                                onClick={() => handleclickRecipeDetail(item.recipe_id)}
-                                              >
+                                              <Box sx={{ display: 'flex' }}>
                                                 {item?.recipe_name && (
                                                   <Typography
                                                     sx={{
-                                                      color: '#000',
+                                                      color: theme.palette.customColors.neutralPrimary,
                                                       lineHeight: '16.94px',
                                                       fontWeight: 600,
-                                                      fontSize: '16px'
+                                                      fontSize: '16px',
+                                                      cursor: 'pointer'
                                                     }}
+                                                    onClick={() => handleclickRecipeDetail(item.recipe_id)}
                                                   >
                                                     {item?.recipe_name}
                                                   </Typography>
@@ -2078,7 +2083,7 @@ const StepPreviewDiet = ({
                                                 {/* {item?.ingredient_name && item.ingredient_name.length > 0 && (
                                                   <Typography
                                                     sx={{
-                                                      color: '#7A8684',
+                                                      color: theme.palette.customColors.secondaryBg,
                                                       lineHeight: '16.94px',
                                                       fontWeight: 400,
                                                       fontSize: '14px',
@@ -2125,11 +2130,12 @@ const StepPreviewDiet = ({
                                                         m: 1,
                                                         borderRadius: '16px',
                                                         px: '10px',
-                                                        gap: '8px'
+                                                        gap: '8px',
+                                                        py: 0.5
                                                       }}
                                                     >
                                                       {name?.ingredient_name}
-                                                      <Typography
+                                                      {/* <Typography
                                                         component='span'
                                                         sx={{
                                                           fontWeight: 'bold',
@@ -2141,7 +2147,7 @@ const StepPreviewDiet = ({
                                                         {parseFloat(name?.quantity)}
                                                         {''}
                                                         {name?.quantity_type === 'percentage' ? '%' : ''}
-                                                      </Typography>
+                                                      </Typography> */}
                                                     </Box>
                                                   ))}
                                               </Box>
@@ -2157,7 +2163,7 @@ const StepPreviewDiet = ({
                                                     <Box key={index} sx={{ display: 'flex' }}>
                                                       <Typography
                                                         sx={{
-                                                          color: '#1F515B',
+                                                          color: theme.palette.primary.light,
                                                           lineHeight: '16.94px',
                                                           fontWeight: 400,
                                                           fontSize: '14px'
@@ -2167,7 +2173,7 @@ const StepPreviewDiet = ({
                                                       </Typography>
                                                       <Typography
                                                         sx={{
-                                                          color: '#000',
+                                                          color: theme.palette.customColors.neutralPrimary,
                                                           lineHeight: '16.94px',
                                                           fontWeight: 600,
                                                           fontSize: '14px'
@@ -2189,7 +2195,7 @@ const StepPreviewDiet = ({
                                                   {item?.preparationType && (
                                                     <Typography
                                                       sx={{
-                                                        color: '#1F515B',
+                                                        color: theme.palette.primary.light,
                                                         lineHeight: '16.94px',
                                                         fontWeight: 400,
                                                         fontSize: '14px'
@@ -2201,7 +2207,7 @@ const StepPreviewDiet = ({
                                                   {item?.desc && (
                                                     <Typography
                                                       sx={{
-                                                        color: '#1F515B',
+                                                        color: theme.palette.primary.light,
                                                         lineHeight: '16.94px',
                                                         fontWeight: 400,
                                                         fontSize: '14px'
@@ -2215,7 +2221,7 @@ const StepPreviewDiet = ({
                                               {item?.remarks && (
                                                 <Box
                                                   sx={{
-                                                    backgroundColor: '#0000000d',
+                                                    backgroundColor: theme.palette.customColors.mdAntzNeutral,
                                                     display: 'flex',
                                                     flexDirection: 'column',
                                                     gap: '4px',
@@ -2225,7 +2231,7 @@ const StepPreviewDiet = ({
                                                 >
                                                   <Typography
                                                     sx={{
-                                                      color: '#000',
+                                                      color: theme.palette.customColors.neutralPrimary,
                                                       lineHeight: '16.94px',
                                                       fontWeight: 600,
                                                       fontSize: '14px'
@@ -2235,7 +2241,7 @@ const StepPreviewDiet = ({
                                                   </Typography>
                                                   <Typography
                                                     sx={{
-                                                      color: '#000',
+                                                      color: theme.palette.customColors.neutralPrimary,
                                                       lineHeight: '16.94px',
                                                       fontWeight: 400,
                                                       fontSize: '14px'
@@ -2261,7 +2267,7 @@ const StepPreviewDiet = ({
                                                         width: '48px',
                                                         height: '32px',
                                                         borderRadius: '16px',
-                                                        backgroundColor: '#0000000d',
+                                                        backgroundColor: theme.palette.customColors.mdAntzNeutral,
                                                         display: 'center',
                                                         justifyContent: 'center',
                                                         alignItems: 'center'
@@ -2272,7 +2278,7 @@ const StepPreviewDiet = ({
                                                           fontWeight: 400,
                                                           fontSize: '13px',
                                                           lineHeight: '18px',
-                                                          color: '#44544A'
+                                                          color: theme.palette.customColors.OnSurfaceVariant
                                                         }}
                                                       >
                                                         {getDayName(dayId)}
@@ -2301,7 +2307,7 @@ const StepPreviewDiet = ({
                                         >
                                           <Box
                                             sx={{
-                                              backgroundColor: '#0000000d',
+                                              backgroundColor: theme.palette.customColors.mdAntzNeutral,
                                               p: '10px',
                                               display: 'flex',
                                               justifyContent: 'center',
@@ -2323,7 +2329,7 @@ const StepPreviewDiet = ({
                                           >
                                             <Typography
                                               sx={{
-                                                color: '#000',
+                                                color: theme.palette.customColors.neutralPrimary,
                                                 lineHeight: '16.94px',
                                                 fontWeight: 400,
                                                 fontSize: '14px',
@@ -2391,7 +2397,7 @@ const StepPreviewDiet = ({
                                               >
                                                 <Box
                                                   sx={{
-                                                    backgroundColor: '#0000000d',
+                                                    backgroundColor: theme.palette.customColors.mdAntzNeutral,
                                                     p: '10px',
                                                     display: 'flex',
                                                     justifyContent: 'center',
@@ -2413,7 +2419,7 @@ const StepPreviewDiet = ({
                                                 >
                                                   <Typography
                                                     sx={{
-                                                      color: '#000',
+                                                      color: theme.palette.customColors.neutralPrimary,
                                                       lineHeight: '16.94px',
                                                       fontWeight: 400,
                                                       fontSize: '14px',
@@ -2590,7 +2596,7 @@ const StepPreviewDiet = ({
                                           position: isSmallDevice ? '' : 'sticky ',
                                           left: '180px',
                                           border: 'none',
-                                          backgroundColor: '#fff'
+                                          backgroundColor: theme.palette.secondary.contrastText
                                           //float: 'left',
                                           // display: 'flex',
                                           // flexDirection: 'row'
@@ -2627,7 +2633,7 @@ const StepPreviewDiet = ({
                                             display: 'flex',
                                             flexDirection: 'column',
 
-                                            //backgroundColor: '#E1F9ED',
+                                            //backgroundColor: theme.palette.background.OnBackground,
                                             backgroundColor: '#DAE7DF99',
                                             borderRadius: '8px',
                                             p: '12px',
@@ -2667,18 +2673,17 @@ const StepPreviewDiet = ({
                                                 gap: '12px'
                                               }}
                                             >
-                                              <Box
-                                                sx={{ display: 'flex' }}
-                                                onClick={() => handleclickComboDetail(item.recipe_id)}
-                                              >
+                                              <Box sx={{ display: 'flex' }}>
                                                 {item?.recipe_name && (
                                                   <Typography
                                                     sx={{
-                                                      color: '#000',
+                                                      color: theme.palette.customColors.neutralPrimary,
                                                       lineHeight: '16.94px',
                                                       fontWeight: 600,
-                                                      fontSize: '16px'
+                                                      fontSize: '16px',
+                                                      cursor: 'pointer'
                                                     }}
+                                                    onClick={() => handleclickComboDetail(item.recipe_id)}
                                                   >
                                                     {item?.recipe_name}
                                                   </Typography>
@@ -2691,7 +2696,7 @@ const StepPreviewDiet = ({
                                                         fontWeight: 400,
                                                         fontSize: '14px',
                                                         lineHeight: '18px',
-                                                        color: '#1F415B'
+                                                        color: theme.palette.secondary.dark
                                                       }}
                                                     >
                                                       &nbsp;-&nbsp; {all?.preparation_type}
@@ -2704,7 +2709,7 @@ const StepPreviewDiet = ({
                                                         fontWeight: 400,
                                                         fontSize: '14px',
                                                         lineHeight: '18px',
-                                                        color: '#1F415B'
+                                                        color: theme.palette.secondary.dark
                                                       }}
                                                     >
                                                       &nbsp;-&nbsp; {all?.preparation_type}
@@ -2717,7 +2722,7 @@ const StepPreviewDiet = ({
                                                 {/* {item?.ingredient_name && item.ingredient_name.length > 0 && (
                                                   <Typography
                                                     sx={{
-                                                      color: '#7A8684',
+                                                      color: theme.palette.customColors.secondaryBg,
                                                       lineHeight: '16.94px',
                                                       fontWeight: 400,
                                                       fontSize: '14px',
@@ -2760,7 +2765,7 @@ const StepPreviewDiet = ({
                                                         display: 'flex',
                                                         alignItems: 'center',
                                                         marginRight: '10px',
-                                                        backgroundColor: '#0000000d',
+                                                        backgroundColor: theme.palette.customColors.mdAntzNeutral,
                                                         m: 1,
                                                         borderRadius: '16px',
                                                         px: '10px',
@@ -2796,7 +2801,7 @@ const StepPreviewDiet = ({
                                                     <Box key={index} sx={{ display: 'flex' }}>
                                                       <Typography
                                                         sx={{
-                                                          color: '#1F515B',
+                                                          color: theme.palette.primary.light,
                                                           lineHeight: '16.94px',
                                                           fontWeight: 400,
                                                           fontSize: '14px'
@@ -2806,7 +2811,7 @@ const StepPreviewDiet = ({
                                                       </Typography>
                                                       <Typography
                                                         sx={{
-                                                          color: '#000',
+                                                          color: theme.palette.customColors.neutralPrimary,
                                                           lineHeight: '16.94px',
                                                           fontWeight: 600,
                                                           fontSize: '14px'
@@ -2828,7 +2833,7 @@ const StepPreviewDiet = ({
                                                   {item?.preparationType && (
                                                     <Typography
                                                       sx={{
-                                                        color: '#1F515B',
+                                                        color: theme.palette.primary.light,
                                                         lineHeight: '16.94px',
                                                         fontWeight: 400,
                                                         fontSize: '14px'
@@ -2840,7 +2845,7 @@ const StepPreviewDiet = ({
                                                   {item?.desc && (
                                                     <Typography
                                                       sx={{
-                                                        color: '#1F515B',
+                                                        color: theme.palette.primary.light,
                                                         lineHeight: '16.94px',
                                                         fontWeight: 400,
                                                         fontSize: '14px'
@@ -2854,7 +2859,7 @@ const StepPreviewDiet = ({
                                               {item?.remarks && (
                                                 <Box
                                                   sx={{
-                                                    backgroundColor: '#0000000D',
+                                                    backgroundColor: theme.palette.customColors.mdAntzNeutral,
                                                     display: 'flex',
                                                     flexDirection: 'column',
                                                     gap: '4px',
@@ -2864,7 +2869,7 @@ const StepPreviewDiet = ({
                                                 >
                                                   <Typography
                                                     sx={{
-                                                      color: '#000',
+                                                      color: theme.palette.customColors.neutralPrimary,
                                                       lineHeight: '16.94px',
                                                       fontWeight: 600,
                                                       fontSize: '14px'
@@ -2874,7 +2879,7 @@ const StepPreviewDiet = ({
                                                   </Typography>
                                                   <Typography
                                                     sx={{
-                                                      color: '#000',
+                                                      color: theme.palette.customColors.neutralPrimary,
                                                       lineHeight: '16.94px',
                                                       fontWeight: 400,
                                                       fontSize: '14px'
@@ -2899,7 +2904,7 @@ const StepPreviewDiet = ({
                                                         width: '48px',
                                                         height: '32px',
                                                         borderRadius: '16px',
-                                                        backgroundColor: '#0000000D',
+                                                        backgroundColor: theme.palette.customColors.mdAntzNeutral,
                                                         display: 'center',
                                                         justifyContent: 'center',
                                                         alignItems: 'center'
@@ -2910,7 +2915,7 @@ const StepPreviewDiet = ({
                                                           fontWeight: 400,
                                                           fontSize: '13px',
                                                           lineHeight: '18px',
-                                                          color: '#44544A'
+                                                          color: theme.palette.customColors.OnSurfaceVariant
                                                         }}
                                                       >
                                                         {getDayName(dayId)}
@@ -2939,7 +2944,7 @@ const StepPreviewDiet = ({
                                         >
                                           <Box
                                             sx={{
-                                              backgroundColor: '#0000000d',
+                                              backgroundColor: theme.palette.customColors.mdAntzNeutral,
                                               p: '10px',
                                               display: 'flex',
                                               justifyContent: 'center',
@@ -2961,7 +2966,7 @@ const StepPreviewDiet = ({
                                           >
                                             <Typography
                                               sx={{
-                                                color: '#000',
+                                                color: theme.palette.customColors.neutralPrimary,
                                                 lineHeight: '16.94px',
                                                 fontWeight: 400,
                                                 fontSize: '14px',
@@ -3029,7 +3034,7 @@ const StepPreviewDiet = ({
                                               >
                                                 <Box
                                                   sx={{
-                                                    backgroundColor: '#0000000d',
+                                                    backgroundColor: theme.palette.customColors.mdAntzNeutral,
                                                     p: '10px',
                                                     display: 'flex',
                                                     justifyContent: 'center',
@@ -3051,7 +3056,7 @@ const StepPreviewDiet = ({
                                                 >
                                                   <Typography
                                                     sx={{
-                                                      color: '#000',
+                                                      color: theme.palette.customColors.neutralPrimary,
                                                       lineHeight: '16.94px',
                                                       fontWeight: 400,
                                                       fontSize: '14px',
@@ -3225,7 +3230,7 @@ const StepPreviewDiet = ({
                                           position: isSmallDevice ? '' : 'sticky ',
                                           left: '180px',
                                           border: 'none',
-                                          backgroundColor: '#fff'
+                                          backgroundColor: theme.palette.secondary.contrastText
                                           //float: 'left',
                                           // display: 'flex',
                                           // flexDirection: 'row'
@@ -3262,7 +3267,7 @@ const StepPreviewDiet = ({
                                             display: 'flex',
                                             flexDirection: 'column',
 
-                                            //backgroundColor: '#E1F9ED',
+                                            //backgroundColor: theme.palette.background.OnBackground,
                                             backgroundColor: '#00d6c957',
                                             borderRadius: '8px',
                                             p: '12px',
@@ -3304,7 +3309,7 @@ const StepPreviewDiet = ({
                                             {item?.no_of_component_required && (
                                               <Typography
                                                 sx={{
-                                                  color: '#000',
+                                                  color: theme.palette.customColors.neutralPrimary,
                                                   lineHeight: '16.94px',
                                                   fontWeight: 600,
                                                   fontSize: '16px'
@@ -3342,7 +3347,7 @@ const StepPreviewDiet = ({
                                                           fontWeight: 600,
                                                           fontSize: '14px',
                                                           lineHeight: '16.94px',
-                                                          color: '#1F415B'
+                                                          color: theme.palette.secondary.dark
                                                         }}
                                                       >
                                                         {item?.ingredient_name}
@@ -3354,7 +3359,7 @@ const StepPreviewDiet = ({
                                                             fontWeight: 400,
                                                             fontSize: '14px',
                                                             lineHeight: '18px',
-                                                            color: '#1F415B'
+                                                            color: theme.palette.secondary.dark
                                                           }}
                                                         >
                                                           &nbsp;-&nbsp; {item?.preparation_type}&nbsp;-&nbsp;
@@ -3366,7 +3371,7 @@ const StepPreviewDiet = ({
                                                             fontWeight: 400,
                                                             fontSize: '14px',
                                                             lineHeight: '18px',
-                                                            color: '#1F415B'
+                                                            color: theme.palette.secondary.dark
                                                           }}
                                                         >
                                                           &nbsp;-&nbsp; {item?.preparation_type}
@@ -3381,7 +3386,7 @@ const StepPreviewDiet = ({
                                             {item?.remarks && (
                                               <Box
                                                 sx={{
-                                                  backgroundColor: '#0000000d',
+                                                  backgroundColor: theme.palette.customColors.mdAntzNeutral,
                                                   display: 'flex',
                                                   flexDirection: 'column',
                                                   gap: '4px',
@@ -3391,7 +3396,7 @@ const StepPreviewDiet = ({
                                               >
                                                 <Typography
                                                   sx={{
-                                                    color: '#000',
+                                                    color: theme.palette.customColors.neutralPrimary,
                                                     lineHeight: '16.94px',
                                                     fontWeight: 600,
                                                     fontSize: '14px'
@@ -3401,7 +3406,7 @@ const StepPreviewDiet = ({
                                                 </Typography>
                                                 <Typography
                                                   sx={{
-                                                    color: '#000',
+                                                    color: theme.palette.customColors.neutralPrimary,
                                                     lineHeight: '16.94px',
                                                     fontWeight: 400,
                                                     fontSize: '14px'
@@ -3425,7 +3430,7 @@ const StepPreviewDiet = ({
                                                         width: '48px',
                                                         height: '32px',
                                                         borderRadius: '16px',
-                                                        backgroundColor: '#0000000d',
+                                                        backgroundColor: theme.palette.customColors.mdAntzNeutral,
                                                         display: 'center',
                                                         justifyContent: 'center',
                                                         alignItems: 'center'
@@ -3436,7 +3441,7 @@ const StepPreviewDiet = ({
                                                           fontWeight: 400,
                                                           fontSize: '13px',
                                                           lineHeight: '18px',
-                                                          color: '#44544A'
+                                                          color: theme.palette.customColors.OnSurfaceVariant
                                                         }}
                                                       >
                                                         {getDayName(dayId)}
@@ -3465,7 +3470,7 @@ const StepPreviewDiet = ({
                                         >
                                           <Box
                                             sx={{
-                                              backgroundColor: '#0000000d',
+                                              backgroundColor: theme.palette.customColors.mdAntzNeutral,
                                               p: '10px',
 
                                               display: 'flex',
@@ -3488,7 +3493,7 @@ const StepPreviewDiet = ({
                                           >
                                             <Typography
                                               sx={{
-                                                color: '#000',
+                                                color: theme.palette.customColors.neutralPrimary,
                                                 lineHeight: '16.94px',
                                                 fontWeight: 400,
                                                 fontSize: '14px',
@@ -3556,7 +3561,7 @@ const StepPreviewDiet = ({
                                               >
                                                 <Box
                                                   sx={{
-                                                    backgroundColor: '#0000000d',
+                                                    backgroundColor: theme.palette.customColors.mdAntzNeutral,
                                                     p: '10px',
 
                                                     display: 'flex',
@@ -3579,7 +3584,7 @@ const StepPreviewDiet = ({
                                                 >
                                                   <Typography
                                                     sx={{
-                                                      color: '#000',
+                                                      color: theme.palette.customColors.neutralPrimary,
                                                       lineHeight: '16.94px',
                                                       fontWeight: 400,
                                                       fontSize: '14px',
@@ -3748,7 +3753,7 @@ const StepPreviewDiet = ({
                             <TableRow
                               sx={{
                                 width: '100%', // Ensure the row spans the full width of the table
-                                borderBottom: '1px solid #C3CEC7', // Add border directly to the row
+                                borderBottom: `1px solid ${theme.palette.customColors.OutlineVariant}`, // Add border directly to the row
                                 minHeight: '48px', // Optional: set a minimum height for the row
                                 display: 'table-row' // Default behavior for TableRow
                               }}

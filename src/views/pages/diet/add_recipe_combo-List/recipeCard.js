@@ -542,7 +542,7 @@ const RecipeCard = ({
                           <Tooltip
                             title={`${ingredient.ingredient_name} ${ingredient.quantity} ${
                               ingredient.quantity_type === 'percentage' ? '%' : ''
-                            }`}
+                            } ${ingredient.uom_text}`}
                           >
                             <Box
                               sx={{
@@ -574,7 +574,8 @@ const RecipeCard = ({
                                   flexShrink: 0
                                 }}
                               >
-                                {ingredient.quantity} {ingredient.quantity_type === 'percentage' ? '%' : ''}
+                                {ingredient.quantity} {ingredient.quantity_type === 'percentage' ? '%' : ''}{' '}
+                                {ingredient.uom_text}
                               </Typography>
                             </Box>
                           </Tooltip>
