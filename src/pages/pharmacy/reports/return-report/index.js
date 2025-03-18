@@ -663,110 +663,21 @@ const ReturnReport = () => {
       <Card>
         <CardHeader
           sx={{
+            width: '100%',
             display: 'flex',
-            flexDirection: { xs: 'row', sm: 'row' },
             justifyContent: 'space-between',
-            alignItems: 'flex-start',
-            gap: { xs: 3, sm: 2 },
-            '& .MuiCardHeader-action': {
-              width: { xs: '100% ', sm: 'auto' }
-            },
-            mx: { xs: -1, sm: 0 }
+            alignItems: 'center',
+            flexWrap: 'wrap', // Add flexWrap to handle small screens
+            gap: 2, // Add a gap for better spacing when wrapping
+            [theme.breakpoints.down('sm')]: {
+              flexDirection: 'row', // Keep items in a row
+              justifyContent: 'space-between' // Maintain space between
+            }
           }}
           title={RenderUtility.pageTitle('Return Report')}
           action={headerAction}
         />
         <CardContent sx={{ paddingTop: '4px' }}>
-          {/* <Box sx={{ marginLeft: 4, marginRight: 4 }}>
-            <Grid container spacing={2} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <Grid item xs={12} md='auto'>
-                <CommonDateRangePickers onChange={handleDateRangeChange} filterDates={filterDates} />
-              </Grid>
-              <Grid item sx={12} md='auto'>
-                <Grid container spacing={2} alignItems='center' justifyContent={{ xs: 'flex-start', md: 'flex-end' }}>
-                  <Grid item xs={12} sm={6} md='auto'>
-                    <TextField
-                      variant='outlined'
-                      size='small'
-                      placeholder='Search...'
-                      value={searchValue}
-                      onChange={e => handleSearch(e.target.value)}
-                      fullWidth
-                      InputProps={{
-                        startAdornment: (
-                          <InputAdornment position='start'>
-                            <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
-                          </InputAdornment>
-                        )
-                      }}
-                      sx={{
-                        borderRadius: '8px'
-                      }}
-                    />
-                  </Grid>
-                  <Grid item>
-                    <Tooltip title='Export'>
-                      <>
-                        {loading || exportLoading ? (
-                          <Box
-                            sx={{
-                              display: 'flex',
-                              justifyContent: 'center',
-                              width: '40px',
-                              height: '40px',
-                              borderRadius: '4px',
-                              bgcolor: theme?.palette.customColors?.lightBg,
-                              alignItems: 'center',
-                              cursor: 'pointer'
-                            }}
-                          >
-                            <CircularProgress color='success' size={30} />
-                          </Box>
-                        ) : (
-                          <Box
-                            sx={{
-                              display: 'flex',
-                              justifyContent: 'center',
-                              width: '40px',
-                              height: '40px',
-                              borderRadius: '4px',
-                              bgcolor: theme?.palette.customColors?.lightBg,
-                              alignItems: 'center',
-                              cursor: 'pointer'
-                            }}
-                            onClick={handleExport}
-                          >
-                            <Icon icon='ic:round-download' fontSize={20} />
-                          </Box>
-                        )}
-                      </>
-                    </Tooltip>
-                  </Grid>
-                  <Grid item>
-                    <Tooltip title='Filters'>
-                      <Box
-                        sx={{
-                          display: 'flex',
-                          justifyContent: 'center',
-                          width: '40px',
-                          height: '40px',
-                          borderRadius: '4px',
-                          bgcolor: theme?.palette.customColors?.lightBg,
-                          alignItems: 'center',
-                          cursor: 'pointer'
-                        }}
-                        onClick={() => setOpenFilterDrawer(true)}
-                      >
-                        <Badge badgeContent={appliedFiltersCount} color='primary'>
-                          <Icon icon='mage:filter' fontSize={24} />
-                        </Badge>
-                      </Box>
-                    </Tooltip>
-                  </Grid>
-                </Grid>
-              </Grid>
-            </Grid>
-          </Box> */}
           <Box
             sx={{
               display: 'flex',
