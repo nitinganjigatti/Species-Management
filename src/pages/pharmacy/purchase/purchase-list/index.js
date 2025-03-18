@@ -27,6 +27,7 @@ import Router from 'next/router'
 import Error404 from 'src/pages/404'
 import { useTheme } from '@emotion/react'
 import { useRouter } from 'next/router'
+import { format, subDays, subMonths } from 'date-fns'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import { AddButton, ExcelExportButton } from 'src/components/Buttons'
 import Utility from 'src/utility'
@@ -59,8 +60,8 @@ const ListOfPurchase = () => {
   const [sortColumn, setSortColumn] = useState(router.query.column || 'po_date')
 
   const [filterDates, setFilterDates] = useState({
-    startDate: router.query.startDate || '',
-    endDate: router.query.endDate || ''
+    startDate: router.query.startDate || Utility.formatDate(format(subMonths(new Date(), 1), 'dd MMM, yyyy')),
+    endDate: router.query.endDate || Utility.formatDate(format(new Date(), 'dd MMM, yyyy'))
   })
 
   const [paginationModel, setPaginationModel] = useState({
