@@ -2,6 +2,7 @@ import { useTheme } from '@emotion/react'
 import {
   Badge,
   Card,
+  CardContent,
   CardHeader,
   CircularProgress,
   FormControlLabel,
@@ -162,7 +163,9 @@ const ReturnReport = () => {
       q: searchValue,
       column: sortColumn,
       page: paginationModel?.page,
-      limit: paginationModel?.pageSize
+      limit: paginationModel?.pageSize,
+      startDate: filterDates?.startDate,
+      endDate: filterDates?.endDate
     })
   }, [paginationModel.page, paginationModel.pageSize, filterDates, filteredData, expired])
 
@@ -417,7 +420,7 @@ const ReturnReport = () => {
             fontFamily: 'Inter'
           }}
         >
-          {Utility.formatNumber(params.row.total_return_qty)}
+          {params.row?.total_return_qty ? Utility.formatNumber(params.row.total_return_qty) : 0}
         </Typography>
       )
     },
@@ -437,7 +440,7 @@ const ReturnReport = () => {
             fontFamily: 'Inter'
           }}
         >
-          {Utility.formatNumber(params.row.return_value)}
+          {Utility.formatAmountToReadableDigit(params.row.return_value)}
         </Typography>
       )
     },
@@ -485,9 +488,19 @@ const ReturnReport = () => {
         endDate: Utility.formatDate(endDate)
       })
 
+      updateUrlParams({
+        startDate: filterDates?.startDate,
+        endDate: filterDates?.endDate
+      })
+
       console.log('Date range selected:', { startDate, endDate })
     } else {
       setFilterDates({
+        startDate: '',
+        endDate: ''
+      })
+
+      updateUrlParams({
         startDate: '',
         endDate: ''
       })
@@ -512,7 +525,9 @@ const ReturnReport = () => {
         q: searchValue,
         column: newModel[0].field,
         page: paginationModel?.page,
-        limit: paginationModel?.pageSize
+        limit: paginationModel?.pageSize,
+        startDate: filterDates?.startDate,
+        endDate: filterDates?.endDate
       })
     } else {
     }
@@ -536,7 +551,9 @@ const ReturnReport = () => {
           q: q,
           column: column,
           page,
-          limit
+          limit,
+          startDate: filterDates?.startDate,
+          endDate: filterDates?.endDate
         })
       } catch (error) {
         console.error(error)
@@ -567,14 +584,12 @@ const ReturnReport = () => {
   const handleExport = async () => {
     try {
       setExportLoading(true)
-
       const now = new Date()
 
       const timestamp = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(
         2,
         '0'
       )}/${now.getFullYear()}(${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')})`
-      console.log(timestamp)
 
       const params = {
         sort: sort,
@@ -600,56 +615,20 @@ const ReturnReport = () => {
         ...(filteredData &&
           filteredData.pharmacy &&
           filteredData.pharmacy.length > 0 && { store_id: filteredData.pharmacy.join(',') }),
-        expired: expired ? 1 : 0
+        expired: expired ? 1 : 0,
+        response_type: 'csv'
       }
 
-      const res = await getReturnReport({ params })
-
-      if (res?.success === true && res?.data?.list_items?.length > 0) {
-        const ListData = res?.data?.list_items
-
-        const tableData = ListData.map((item, index) => {
-          return {
-            'SL NO': index + 1,
-            'PRODUCT NAME': item.stock_name || '',
-            'GENERIC NAME': item.generic_name || '',
-            PACKAGE:
-              `${item.package} of ${Utility.formatNumber(item.package_qty)} ${item.package_uom_label} ${
-                item.product_form_label
-              }` || '',
-            'EXPIRY DATE': Utility.formatDisplayDate(item.expiry_date) || '',
-            'RETURN NUMBER': item.return_number || '',
-            'RETURN DATE': Utility.formatDisplayDate(item.return_date) || '',
-            'BATCH NUMBER': item.batch_no || '',
-            'FROM STORE': item.from_store || '',
-            'MANUFACTURER NAME': item.manufacturer_name || '',
-            'TOTAL RETURN QUANTITY': Utility.formatNumber(item.total_return_qty) || '',
-            'TOTAL RETURN VALUE': Utility.formatNumber(item.return_value) || '',
-            'CREATED BY': item.return_created_by_user_name || '',
-            'UPDATED BY': item.return_updated_by_user_name || ''
-          }
-        })
-
-        Utility.exportToCSV(tableData, `Return Report ${timestamp}`)
-      } else {
-        console.warn('No data to export.')
+      const response = await getReturnReport({ params })
+      if (response?.success && response?.data) {
+        Utility.downloadFileFromURL(response.data, `Return_Report ${timestamp}`)
       }
-    } catch (e) {
-      console.error(e)
+    } catch (error) {
+      console.error('Error downloading Excel:', error)
     } finally {
       setExportLoading(false)
     }
   }
-
-  // const handleExport = async () => {
-  //   try {
-  //     setExportLoading(true)
-  //   } catch (error) {
-  //     console.error('Error downloading Excel:', error)
-  //   } finally {
-  //     setExportLoading(false)
-  //   }
-  // }
 
   const calculateAppliedFiltersCount = () => {
     let count = 0
@@ -685,8 +664,8 @@ const ReturnReport = () => {
         <CardHeader
           sx={{
             display: 'flex',
-            flexDirection: { xs: 'column', sm: 'row' },
-            justifyContent: 'flex-start',
+            flexDirection: { xs: 'row', sm: 'row' },
+            justifyContent: 'space-between',
             alignItems: 'flex-start',
             gap: { xs: 3, sm: 2 },
             '& .MuiCardHeader-action': {
@@ -697,122 +676,231 @@ const ReturnReport = () => {
           title={RenderUtility.pageTitle('Return Report')}
           action={headerAction}
         />
-        <Box sx={{ marginLeft: 4, marginRight: 4 }}>
-          <Grid container spacing={2} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <Grid item xs={12} md='auto'>
-              <CommonDateRangePickers onChange={handleDateRangeChange} filterDates={filterDates} />
-            </Grid>
-            <Grid item sx={12} md='auto'>
-              <Grid container spacing={2} alignItems='center' justifyContent={{ xs: 'flex-start', md: 'flex-end' }}>
-                <Grid item xs={12} sm={6} md='auto'>
-                  <TextField
-                    variant='outlined'
-                    size='small'
-                    placeholder='Search...'
-                    value={searchValue}
-                    onChange={e => handleSearch(e.target.value)}
-                    fullWidth
-                    InputProps={{
-                      startAdornment: (
-                        <InputAdornment position='start'>
-                          <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
-                        </InputAdornment>
-                      )
-                    }}
-                    sx={{
-                      borderRadius: '8px'
-                    }}
-                  />
-                </Grid>
-                <Grid item>
-                  <Tooltip title='Export'>
-                    <>
-                      {loading || exportLoading ? (
-                        <Box
-                          sx={{
-                            display: 'flex',
-                            justifyContent: 'center',
-                            width: '40px',
-                            height: '40px',
-                            borderRadius: '4px',
-                            bgcolor: theme?.palette.customColors?.lightBg,
-                            alignItems: 'center',
-                            cursor: 'pointer'
-                          }}
-                        >
-                          <CircularProgress color='success' size={30} />
-                        </Box>
-                      ) : (
-                        <Box
-                          sx={{
-                            display: 'flex',
-                            justifyContent: 'center',
-                            width: '40px',
-                            height: '40px',
-                            borderRadius: '4px',
-                            bgcolor: theme?.palette.customColors?.lightBg,
-                            alignItems: 'center',
-                            cursor: 'pointer'
-                          }}
-                          onClick={handleExport}
-                        >
-                          <Icon icon='ic:round-download' fontSize={20} />
-                        </Box>
-                      )}
-                    </>
-                  </Tooltip>
-                </Grid>
-                <Grid item>
-                  <Tooltip title='Filters'>
-                    <Box
-                      sx={{
-                        display: 'flex',
-                        justifyContent: 'center',
-                        width: '40px',
-                        height: '40px',
-                        borderRadius: '4px',
-                        bgcolor: theme?.palette.customColors?.lightBg,
-                        alignItems: 'center',
-                        cursor: 'pointer'
+        <CardContent sx={{ paddingTop: '4px' }}>
+          {/* <Box sx={{ marginLeft: 4, marginRight: 4 }}>
+            <Grid container spacing={2} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <Grid item xs={12} md='auto'>
+                <CommonDateRangePickers onChange={handleDateRangeChange} filterDates={filterDates} />
+              </Grid>
+              <Grid item sx={12} md='auto'>
+                <Grid container spacing={2} alignItems='center' justifyContent={{ xs: 'flex-start', md: 'flex-end' }}>
+                  <Grid item xs={12} sm={6} md='auto'>
+                    <TextField
+                      variant='outlined'
+                      size='small'
+                      placeholder='Search...'
+                      value={searchValue}
+                      onChange={e => handleSearch(e.target.value)}
+                      fullWidth
+                      InputProps={{
+                        startAdornment: (
+                          <InputAdornment position='start'>
+                            <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
+                          </InputAdornment>
+                        )
                       }}
-                      onClick={() => setOpenFilterDrawer(true)}
-                    >
-                      <Badge badgeContent={appliedFiltersCount} color='primary'>
-                        <Icon icon='mage:filter' fontSize={24} />
-                      </Badge>
-                    </Box>
-                  </Tooltip>
+                      sx={{
+                        borderRadius: '8px'
+                      }}
+                    />
+                  </Grid>
+                  <Grid item>
+                    <Tooltip title='Export'>
+                      <>
+                        {loading || exportLoading ? (
+                          <Box
+                            sx={{
+                              display: 'flex',
+                              justifyContent: 'center',
+                              width: '40px',
+                              height: '40px',
+                              borderRadius: '4px',
+                              bgcolor: theme?.palette.customColors?.lightBg,
+                              alignItems: 'center',
+                              cursor: 'pointer'
+                            }}
+                          >
+                            <CircularProgress color='success' size={30} />
+                          </Box>
+                        ) : (
+                          <Box
+                            sx={{
+                              display: 'flex',
+                              justifyContent: 'center',
+                              width: '40px',
+                              height: '40px',
+                              borderRadius: '4px',
+                              bgcolor: theme?.palette.customColors?.lightBg,
+                              alignItems: 'center',
+                              cursor: 'pointer'
+                            }}
+                            onClick={handleExport}
+                          >
+                            <Icon icon='ic:round-download' fontSize={20} />
+                          </Box>
+                        )}
+                      </>
+                    </Tooltip>
+                  </Grid>
+                  <Grid item>
+                    <Tooltip title='Filters'>
+                      <Box
+                        sx={{
+                          display: 'flex',
+                          justifyContent: 'center',
+                          width: '40px',
+                          height: '40px',
+                          borderRadius: '4px',
+                          bgcolor: theme?.palette.customColors?.lightBg,
+                          alignItems: 'center',
+                          cursor: 'pointer'
+                        }}
+                        onClick={() => setOpenFilterDrawer(true)}
+                      >
+                        <Badge badgeContent={appliedFiltersCount} color='primary'>
+                          <Icon icon='mage:filter' fontSize={24} />
+                        </Badge>
+                      </Box>
+                    </Tooltip>
+                  </Grid>
                 </Grid>
               </Grid>
             </Grid>
-          </Grid>
-        </Box>
-        <Grid sx={{ mx: { xs: 3, sm: 4 } }}>
-          <CommonTable
-            columns={columns}
-            indexedRows={indexedRows}
-            total={total}
-            paginationModel={paginationModel}
-            loading={loading}
-            setPaginationModel={setPaginationModel}
-            searchValue={searchValue}
-            onPaginationModelChange={model => {
-              setPaginationModel(model)
-              router.replace({
-                pathname: router.pathname,
-                query: {
-                  ...router.query,
-                  page: model.page + 1,
-                  pageSize: model.pageSize,
-                  searchValue,
-                  sort,
-                  sortColumn
-                }
-              })
+          </Box> */}
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: { xs: 'column', sm: 'row' },
+              justifyContent: 'space-between',
+              alignItems: { xs: 'stretch', sm: 'center' },
+              gap: { xs: 2, sm: 0 },
+              width: '100%'
             }}
-            handleSortModel={handleSortModel}
-          />
-        </Grid>
+          >
+            <Grid container spacing={4} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <Grid item xs={12} sm={5} md={5}>
+                <CommonDateRangePickers onChange={handleDateRangeChange} filterDates={filterDates} />
+              </Grid>
+
+              <Grid item sm={7} xs={12}>
+                <Grid container spacing={2} justifyContent={{ xs: 'flex-end' }}>
+                  <Grid item xs={12} sm={8} sx={{ flex: 1 }}>
+                    <TextField
+                      variant='outlined'
+                      size='small'
+                      placeholder='Search...'
+                      value={searchValue}
+                      onChange={e => handleSearch(e.target.value)}
+                      fullWidth
+                      InputProps={{
+                        startAdornment: (
+                          <InputAdornment position='start'>
+                            <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
+                          </InputAdornment>
+                        )
+                      }}
+                      sx={{
+                        borderRadius: '8px'
+                      }}
+                    />
+                  </Grid>
+
+                  <Grid
+                    item
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 2,
+                      justifyContent: 'flex-end'
+                    }}
+                  >
+                    <Tooltip title='Export'>
+                      <>
+                        {loading || exportLoading ? (
+                          <Box
+                            sx={{
+                              display: 'flex',
+                              justifyContent: 'center',
+                              width: '40px',
+                              height: '40px',
+                              borderRadius: '4px',
+                              bgcolor: theme?.palette.customColors?.lightBg,
+                              alignItems: 'center',
+                              cursor: 'pointer'
+                            }}
+                          >
+                            <CircularProgress color='success' size={30} />
+                          </Box>
+                        ) : (
+                          <Box
+                            sx={{
+                              display: 'flex',
+                              justifyContent: 'center',
+                              width: '40px',
+                              height: '40px',
+                              borderRadius: '4px',
+                              bgcolor: theme?.palette.customColors?.lightBg,
+                              alignItems: 'center',
+                              cursor: 'pointer'
+                            }}
+                            onClick={handleExport}
+                          >
+                            <Icon icon='ic:round-download' fontSize={20} />
+                          </Box>
+                        )}
+                      </>
+                    </Tooltip>
+                    <Tooltip title='Filters'>
+                      <Box
+                        sx={{
+                          display: 'flex',
+                          justifyContent: 'center',
+                          width: '40px',
+                          height: '40px',
+                          borderRadius: '4px',
+                          bgcolor: theme?.palette.customColors?.lightBg,
+                          alignItems: 'center',
+                          cursor: 'pointer'
+                        }}
+                        onClick={() => setOpenFilterDrawer(true)}
+                      >
+                        <Badge badgeContent={appliedFiltersCount} color='primary'>
+                          <Icon icon='mage:filter' fontSize={24} />
+                        </Badge>
+                      </Box>
+                    </Tooltip>
+                  </Grid>
+                </Grid>
+              </Grid>
+            </Grid>
+          </Box>
+          <Grid>
+            <CommonTable
+              columns={columns}
+              indexedRows={indexedRows}
+              total={total}
+              paginationModel={paginationModel}
+              loading={loading}
+              setPaginationModel={setPaginationModel}
+              searchValue={searchValue}
+              onPaginationModelChange={model => {
+                setPaginationModel(model)
+                router.replace({
+                  pathname: router.pathname,
+                  query: {
+                    ...router.query,
+                    page: model.page + 1,
+                    pageSize: model.pageSize,
+                    searchValue,
+                    sort,
+                    sortColumn
+                  }
+                })
+              }}
+              handleSortModel={handleSortModel}
+            />
+          </Grid>
+        </CardContent>
       </Card>
       {openFilterDrawer && (
         <ReturnReportDrawer

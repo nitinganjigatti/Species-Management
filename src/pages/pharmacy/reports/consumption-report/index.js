@@ -2,6 +2,7 @@ import { useTheme } from '@emotion/react'
 import {
   Badge,
   Card,
+  CardContent,
   CardHeader,
   CircularProgress,
   Grid,
@@ -23,6 +24,7 @@ import CommonTable from 'src/views/table/data-grid/CommonTable'
 import { getStoreList } from 'src/lib/api/pharmacy/getStoreList'
 import ConsumptionReportDrawer from 'src/views/pages/pharmacy/reports/ConsumptionReportDrawer'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
+import { format, subMonths } from 'date-fns'
 
 const ConsumptionReport = () => {
   const router = useRouter()
@@ -59,8 +61,8 @@ const ConsumptionReport = () => {
   })
 
   const [filterDates, setFilterDates] = useState({
-    startDate: router.query.startDate || '',
-    endDate: router.query.endDate || ''
+    startDate: router.query.startDate || Utility.formatDate(format(subMonths(new Date(), 1), 'dd MMM, yyyy')),
+    endDate: router.query.endDate || Utility.formatDate(format(new Date(), 'dd MMM, yyyy'))
   })
 
   useEffect(() => {
@@ -141,7 +143,9 @@ const ConsumptionReport = () => {
       q: searchValue,
       column: sortColumn,
       page: paginationModel?.page,
-      limit: paginationModel?.pageSize
+      limit: paginationModel?.pageSize,
+      startDate: filterDates?.startDate,
+      endDate: filterDates?.endDate
     })
   }, [
     paginationModel.page,
@@ -244,7 +248,7 @@ const ConsumptionReport = () => {
             fontFamily: 'Inter'
           }}
         >
-          {Utility.formatNumber(params.row.total_consumption_quantity)}
+          {params.row.total_consumption_quantity ? Utility.formatNumber(params.row.total_consumption_quantity) : 0}
         </Typography>
       )
     },
@@ -264,7 +268,7 @@ const ConsumptionReport = () => {
             fontFamily: 'Inter'
           }}
         >
-          {Utility.formatNumber(params.row.total_consumption_cost)}
+          {Utility.formatAmountToReadableDigit(params.row.total_consumption_cost)}
         </Typography>
       )
     },
@@ -284,7 +288,7 @@ const ConsumptionReport = () => {
             fontFamily: 'Inter'
           }}
         >
-          {Utility.formatNumber(params.row.available_qty)}
+          {params.row.available_qty ? Utility.formatNumber(params.row.available_qty) : 0}
         </Typography>
       )
     },
@@ -323,9 +327,19 @@ const ConsumptionReport = () => {
         endDate: Utility.formatDate(endDate)
       })
 
+      updateUrlParams({
+        startDate: filterDates?.startDate,
+        endDate: filterDates?.endDate
+      })
+
       console.log('Date range selected:', { startDate, endDate })
     } else {
       setFilterDates({
+        startDate: '',
+        endDate: ''
+      })
+
+      updateUrlParams({
         startDate: '',
         endDate: ''
       })
@@ -350,7 +364,9 @@ const ConsumptionReport = () => {
         q: searchValue,
         column: newModel[0].field,
         page: paginationModel?.page,
-        limit: paginationModel?.pageSize
+        limit: paginationModel?.pageSize,
+        startDate: filterDates?.startDate,
+        endDate: filterDates?.endDate
       })
     } else {
     }
@@ -374,7 +390,9 @@ const ConsumptionReport = () => {
           q: q,
           column: column,
           page: page,
-          limit: limit
+          limit: limit,
+          startDate: filterDates?.startDate,
+          endDate: filterDates?.endDate
         })
       } catch (error) {
         console.error(error)
@@ -387,60 +405,6 @@ const ConsumptionReport = () => {
     setSearchValue(value)
     searchTableData(sort, value, sortColumn, paginationModel?.page, paginationModel?.pageSize)
   }
-
-  // const handleExport = async () => {
-  //   try {
-  //     setExportLoading(true)
-
-  //     const now = new Date()
-
-  //     const timestamp = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(
-  //       2,
-  //       '0'
-  //     )}/${now.getFullYear()}(${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')})`
-  //     console.log(timestamp)
-
-  //     const params = {
-  //       sort: sort,
-  //       q: searchValue,
-  //       column: sortColumn,
-  //       page: 1,
-  //       limit: total,
-  //       include_dispatch: true,
-  //       ...(filterDates?.startDate !== '' && { from_date: filterDates?.startDate }),
-  //       ...(filterDates?.endDate !== '' && { to_date: filterDates?.endDate }),
-  //       ...(filteredData &&
-  //         filteredData.pharmacy &&
-  //         filteredData.pharmacy.length > 0 && { store_id: filteredData.pharmacy.join(',') })
-  //     }
-
-  //     const res = await getConsumptionReport({ params })
-
-  //     if (res?.success === true && res?.data?.list_items?.length > 0) {
-  //       const ListData = res?.data?.list_items
-
-  //       const tableData = ListData.map((item, index) => {
-  //         return {
-  //           'SL NO': index + 1,
-  //           'PRODUCT NAME': item?.stock_name || '',
-  //           'GENERIC NAME': item?.generic_name || '',
-  //           'TOTAL CONSUMPTION QUANTITY': Utility.formatNumber(item?.total_consumption_quantity) || '',
-  //           'TOTAL CONSUMPTION COST': Utility.formatNumber(item?.total_consumption_cost) || '',
-  //           'AVAILABLE QUANTITY': Utility.formatNumber(item?.available_qty) || '',
-  //           'MANUFACTURER NAME': item?.manufacturer_name || ''
-  //         }
-  //       })
-
-  //       Utility.exportToCSV(tableData, `Consumption_Report ${timestamp}`)
-  //     } else {
-  //       console.warn('No data to export.')
-  //     }
-  //   } catch (e) {
-  //     console.error(e)
-  //   } finally {
-  //     setExportLoading(false)
-  //   }
-  // }
 
   const handleExport = async () => {
     try {
@@ -507,131 +471,141 @@ const ConsumptionReport = () => {
           }}
           title={RenderUtility.pageTitle('Consumption Report')}
         />
-        <Box sx={{ marginLeft: 4, marginRight: 4 }}>
-          <Grid container spacing={2} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <Grid item xs={12} sm={6} md='auto'>
-              <CommonDateRangePickers onChange={handleDateRangeChange} filterDates={filterDates} />
-            </Grid>
-            <Grid item xs={12} md='auto'>
-              <Grid container spacing={2} alignItems='center' justifyContent={{ xs: 'flex-start', md: 'flex-end' }}>
-                <Grid item xs={12} sm={8} md='auto'>
-                  <TextField
-                    variant='outlined'
-                    size='small'
-                    placeholder='Search...'
-                    value={searchValue}
-                    onChange={e => handleSearch(e.target.value)}
-                    fullWidth
-                    InputProps={{
-                      startAdornment: (
-                        <InputAdornment position='start'>
-                          <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
-                        </InputAdornment>
-                      )
-                    }}
-                    sx={{
-                      borderRadius: '8px'
-                    }}
-                  />
-                </Grid>
-                <Grid
-                  item
-                  xs={12}
-                  sm={4}
-                  md='auto'
-                  sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 2,
-                    justifyContent: { sm: 'flex-end', xs: 'flex-end' }
-                  }}
-                >
-                  <Tooltip title='Export'>
-                    <>
-                      {loading || exportLoading ? (
-                        <Box
-                          sx={{
-                            display: 'flex',
-                            justifyContent: 'center',
-                            width: '40px',
-                            height: '40px',
-                            borderRadius: '4px',
-                            bgcolor: theme?.palette.customColors?.lightBg,
-                            alignItems: 'center',
-                            cursor: 'pointer'
-                          }}
-                        >
-                          <CircularProgress color='success' size={30} />
-                        </Box>
-                      ) : (
-                        <Box
-                          sx={{
-                            display: 'flex',
-                            justifyContent: 'center',
-                            width: '40px',
-                            height: '40px',
-                            borderRadius: '4px',
-                            bgcolor: theme?.palette.customColors?.lightBg,
-                            alignItems: 'center',
-                            cursor: 'pointer'
-                          }}
-                          onClick={handleExport}
-                        >
-                          <Icon icon='ic:round-download' fontSize={20} />
-                        </Box>
-                      )}
-                    </>
-                  </Tooltip>
-                  <Tooltip title='Filters'>
-                    <Box
-                      sx={{
-                        display: 'flex',
-                        justifyContent: 'center',
-                        width: '40px',
-                        height: '40px',
-                        borderRadius: '4px',
-                        bgcolor: theme?.palette.customColors?.lightBg,
-                        alignItems: 'center',
-                        cursor: 'pointer'
+        <CardContent sx={{ paddingTop: '4px' }}>
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: { xs: 'column', sm: 'row' },
+              justifyContent: 'space-between',
+              alignItems: { xs: 'stretch', sm: 'center' },
+              gap: { xs: 2, sm: 0 },
+              width: '100%'
+            }}
+          >
+            <Grid container spacing={4} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <Grid item xs={12} sm={5} md={5}>
+                <CommonDateRangePickers onChange={handleDateRangeChange} filterDates={filterDates} />
+              </Grid>
+
+              <Grid item sm={7} xs={12}>
+                <Grid container spacing={2} justifyContent={{ xs: 'flex-end' }}>
+                  <Grid item xs={12} sm={8} sx={{ flex: 1 }}>
+                    <TextField
+                      variant='outlined'
+                      size='small'
+                      placeholder='Search...'
+                      value={searchValue}
+                      onChange={e => handleSearch(e.target.value)}
+                      fullWidth
+                      InputProps={{
+                        startAdornment: (
+                          <InputAdornment position='start'>
+                            <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
+                          </InputAdornment>
+                        )
                       }}
-                      onClick={() => setOpenFilterDrawer(true)}
-                    >
-                      <Badge badgeContent={appliedFiltersCount} color='primary'>
-                        <Icon icon='mage:filter' fontSize={24} />
-                      </Badge>
-                    </Box>
-                  </Tooltip>
+                      sx={{
+                        borderRadius: '8px'
+                      }}
+                    />
+                  </Grid>
+
+                  <Grid
+                    item
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 2,
+                      justifyContent: { sm: 'flex-end', xs: 'flex-end' }
+                    }}
+                  >
+                    <Tooltip title='Export'>
+                      <>
+                        {loading || exportLoading ? (
+                          <Box
+                            sx={{
+                              display: 'flex',
+                              justifyContent: 'center',
+                              width: '40px',
+                              height: '40px',
+                              borderRadius: '4px',
+                              bgcolor: theme?.palette.customColors?.lightBg,
+                              alignItems: 'center',
+                              cursor: 'pointer'
+                            }}
+                          >
+                            <CircularProgress color='success' size={30} />
+                          </Box>
+                        ) : (
+                          <Box
+                            sx={{
+                              display: 'flex',
+                              justifyContent: 'center',
+                              width: '40px',
+                              height: '40px',
+                              borderRadius: '4px',
+                              bgcolor: theme?.palette.customColors?.lightBg,
+                              alignItems: 'center',
+                              cursor: 'pointer'
+                            }}
+                            onClick={handleExport}
+                          >
+                            <Icon icon='ic:round-download' fontSize={20} />
+                          </Box>
+                        )}
+                      </>
+                    </Tooltip>
+                    <Tooltip title='Filters'>
+                      <Box
+                        sx={{
+                          display: 'flex',
+                          justifyContent: 'center',
+                          width: '40px',
+                          height: '40px',
+                          borderRadius: '4px',
+                          bgcolor: theme?.palette.customColors?.lightBg,
+                          alignItems: 'center',
+                          cursor: 'pointer'
+                        }}
+                        onClick={() => setOpenFilterDrawer(true)}
+                      >
+                        <Badge badgeContent={appliedFiltersCount} color='primary'>
+                          <Icon icon='mage:filter' fontSize={24} />
+                        </Badge>
+                      </Box>
+                    </Tooltip>
+                  </Grid>
                 </Grid>
               </Grid>
             </Grid>
+          </Box>
+          <Grid>
+            <CommonTable
+              columns={columns}
+              indexedRows={indexedRows}
+              total={total}
+              paginationModel={paginationModel}
+              loading={loading}
+              setPaginationModel={setPaginationModel}
+              searchValue={searchValue}
+              onPaginationModelChange={model => {
+                setPaginationModel(model)
+                router.replace({
+                  pathname: router.pathname,
+                  query: {
+                    ...router.query,
+                    page: model.page + 1,
+                    pageSize: model.pageSize,
+                    searchValue,
+                    sort,
+                    sortColumn
+                  }
+                })
+              }}
+              handleSortModel={handleSortModel}
+            />
           </Grid>
-        </Box>
-        <Grid sx={{ mx: { xs: 3, sm: 4 } }}>
-          <CommonTable
-            columns={columns}
-            indexedRows={indexedRows}
-            total={total}
-            paginationModel={paginationModel}
-            loading={loading}
-            setPaginationModel={setPaginationModel}
-            searchValue={searchValue}
-            onPaginationModelChange={model => {
-              setPaginationModel(model)
-              router.replace({
-                pathname: router.pathname,
-                query: {
-                  ...router.query,
-                  page: model.page + 1,
-                  pageSize: model.pageSize,
-                  searchValue,
-                  sort,
-                  sortColumn
-                }
-              })
-            }}
-            handleSortModel={handleSortModel}
-          />
-        </Grid>
+        </CardContent>
       </Card>
       {openFilterDrawer && (
         <ConsumptionReportDrawer

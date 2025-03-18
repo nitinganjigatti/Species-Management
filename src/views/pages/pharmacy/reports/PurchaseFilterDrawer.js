@@ -349,7 +349,7 @@ const PurchaseFilterDrawer = ({
         }}
       >
         <LoadingButton fullWidth variant='outlined' size='large'>
-          CANCEL ALL
+          CLOSE
         </LoadingButton>
         <LoadingButton fullWidth variant='contained' size='large' onClick={applyFilters}>
           APPLY FILTER

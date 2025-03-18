@@ -308,7 +308,7 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
   }
 
   const reportsParent = {
-    icon: '',
+    icon: 'tabler:report-analytics',
     title: 'Reports',
     path: '/pharmacy/reports',
     children: []
