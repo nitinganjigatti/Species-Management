@@ -55,8 +55,7 @@ import {
   Tooltip,
   DialogContent,
   Toolbar,
-  Avatar,
-  GridRowParams
+  Avatar
 } from '@mui/material'
 import IconButton from '@mui/material/IconButton'
 import Router from 'next/router'
@@ -140,6 +139,8 @@ const RequestDetails = () => {
   const PrvLabId = request[0]?.lab_id
 
   const [lab, setLab] = React.useState([])
+
+  const [parentLab, setParentLab] = React.useState(null)
 
   /***** Serverside pagination */
   const [total, setTotal] = useState(0)
@@ -289,7 +290,7 @@ const RequestDetails = () => {
 
       const requestData = response?.data?.result || []
       const testReports = requestData[0]?.test_reports || []
-
+      setParentLab(response?.data?.result[0]?.lab_id)
       setLab_id(requestData[0]?.lab_id)
       setAnimalId(requestData[0]?.animal_details?.animal_id)
       setLabRequestId(requestData[0]?.request_id)
@@ -323,8 +324,10 @@ const RequestDetails = () => {
 
   const getAccessLabs = async (id, labId) => {
     const params = {
-      test_ids: labId
+      test_ids: labId,
+      lab_id: parentLab
     }
+    debugger
     await getLabListByMultipleIds(id, params).then(res => {
       // console.log('res', res?.data)
       setLab(res?.data)
@@ -430,9 +433,9 @@ const RequestDetails = () => {
   const shouldShowDropdown =
     permissions?.allow_full_access ||
     (permissions?.perform_tests && permissions?.allow_upload_reports) ||
-    (permissions?.perform_tests && !permissions?.allow_upload_reports)
-  // &&
-  // params.row.status.split(' ')[0] !== 'completed'
+    (permissions?.perform_tests &&
+      !permissions?.allow_upload_reports &&
+      params.row.status.split(' ')[0] !== 'completed')
 
   console.log('shouldShowDropdown', shouldShowDropdown)
 
@@ -440,21 +443,6 @@ const RequestDetails = () => {
     console.log('params', params)
     setOpenCommentSheet(true)
     setCommentData(params)
-  }
-
-  const handleRowPermission = ({ params }) => {
-    if (
-      permissions?.perform_tests &&
-      !permissions?.allow_upload_reports &&
-      !permissions?.allow_full_access &&
-      !params.row.status.includes('completed')
-    ) {
-      return true
-    } else if ((permissions?.perform_tests && permissions?.allow_upload_reports) || permissions?.allow_full_access) {
-      return true
-    } else {
-      return false
-    }
   }
 
   const columns = [
@@ -504,7 +492,7 @@ const RequestDetails = () => {
       renderCell: params => (
         <>
           <Box sx={{ minWidth: 260 }}>
-            {shouldShowDropdown && handleRowPermission({ params }) ? (
+            {shouldShowDropdown ? (
               <FormControl fullWidth variant='outlined'>
                 <Select
                   size='small'
@@ -1005,10 +993,9 @@ const RequestDetails = () => {
 
   const handleRowSelection = (rowSelectionModel, details) => {
     setSelectedRow(rowSelectionModel)
-    debugger
+
     // Retrieve the complete row data based on selected row IDs
     const selectedRowData = rows.filter(row => rowSelectionModel.includes(row.id))
-
     setSelectedRowData(selectedRowData)
   }
 
@@ -1036,7 +1023,7 @@ const RequestDetails = () => {
 
   const handleHeaderDropdown = e => {
     const value = e.target.value
-    debugger
+
     if (
       (value === 'completed_positive' ||
         value === 'completed_negative' ||
@@ -1051,7 +1038,6 @@ const RequestDetails = () => {
       Toaster({ type: 'error', message: 'Attach the report before completing the test' })
       fetchRequestDetails()
     } else {
-      debugger
       setHeaderStatus(value)
       postMultipleStatus(selectedRow, value)
     }
@@ -1207,63 +1193,76 @@ const RequestDetails = () => {
               }}
             >
               <Typography sx={{ fontSize: '20px', fontWeight: 500 }}>Lab Tests </Typography>
-              {(permissions?.transfer_tests === true ||
-                permissions?.perform_tests === true ||
-                permissions?.allow_upload_reports === true ||
-                permissions?.allow_full_access === true) &&
-                selectedRow?.length > 0 && (
-                  <Box sx={{ display: 'flex', gap: 4, alignItems: 'center' }}>
-                    <Box
-                      sx={{
-                        p: 2,
-                        bgcolor: '#0000000D',
-                        width: '35px',
-                        height: '35px',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        borderRadius: '8px'
-                      }}
-                    >
-                      <Typography sx={{ fontSize: '15px', fontWeight: 400 }}>{selectedRow?.length}</Typography>
-                    </Box>
+              {selectedRow?.length > 0 && (
+                <Box sx={{ display: 'flex', gap: 4, alignItems: 'center' }}>
+                  <Box
+                    sx={{
+                      p: 2,
+                      bgcolor: '#0000000D',
+                      width: '35px',
+                      height: '35px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      borderRadius: '8px'
+                    }}
+                  >
+                    <Typography sx={{ fontSize: '15px', fontWeight: 400 }}>{selectedRow?.length}</Typography>
+                  </Box>
 
-                    {(permissions?.transfer_tests === true || permissions?.allow_full_access === true) && (
-                      <Button variant='contained' sx={{ display: 'flex', gap: 2 }} onClick={() => handleOpenTransfer()}>
-                        <Icon icon='mingcute:transfer-3-line' width='24px' height='24px' /> Transfer
-                      </Button>
-                    )}
+                  {(permissions?.transfer_tests === true || permissions?.allow_full_access === true) && (
+                    <Button variant='contained' sx={{ display: 'flex', gap: 2 }} onClick={() => handleOpenTransfer()}>
+                      <Icon icon='mingcute:transfer-3-line' width='24px' height='24px' /> Transfer
+                    </Button>
+                  )}
 
-                    <Box>
-                      {(permissions?.allow_full_access || permissions?.perform_tests) && (
-                        <FormControl fullWidth variant='outlined'>
-                          <Select
-                            size='small'
-                            labelId='demo-simple-select-label'
-                            id='demo-simple-select'
-                            // defaultValue={'awaiting_sample'}
-                            value={headerStatus}
-                            onChange={e => handleHeaderDropdown(e)}
-                            sx={{
-                              width: 237,
-                              fontSize: '14px',
+                  <Box>
+                    {(permissions?.allow_full_access || permissions?.perform_tests) && (
+                      <FormControl fullWidth variant='outlined'>
+                        <Select
+                          size='small'
+                          labelId='demo-simple-select-label'
+                          id='demo-simple-select'
+                          // defaultValue={'awaiting_sample'}
+                          value={headerStatus}
+                          onChange={e => handleHeaderDropdown(e)}
+                          sx={{
+                            width: 237,
+                            fontSize: '14px',
 
-                              // border: '1px solid red',
+                            // border: '1px solid red',
 
-                              backgroundColor:
-                                headerStatus === 'pending' ||
-                                headerStatus === 'transferred' ||
-                                headerStatus === 'awaiting_sample' ||
-                                headerStatus === 'sample_rejected'
-                                  ? 'rgba(255, 0, 0, 0.1)' // light red background for pending
-                                  : headerStatus === 'completed'
-                                  ? 'rgba(0, 128, 0, 0.1)' // light green background for completed
-                                  : headerStatus === 'inprogress'
-                                  ? 'rgba(228, 184, 25, 0.1)'
-                                  : headerStatus === 'sample_received'
-                                  ? 'rgba(0, 128, 0, 0.1)'
-                                  : 'rgba(0, 128, 0, 0.1)',
+                            backgroundColor:
+                              headerStatus === 'pending' ||
+                              headerStatus === 'transferred' ||
+                              headerStatus === 'awaiting_sample' ||
+                              headerStatus === 'sample_rejected'
+                                ? 'rgba(255, 0, 0, 0.1)' // light red background for pending
+                                : headerStatus === 'completed'
+                                ? 'rgba(0, 128, 0, 0.1)' // light green background for completed
+                                : headerStatus === 'inprogress'
+                                ? 'rgba(228, 184, 25, 0.1)'
+                                : headerStatus === 'sample_received'
+                                ? 'rgba(0, 128, 0, 0.1)'
+                                : 'rgba(0, 128, 0, 0.1)',
 
+                            color:
+                              headerStatus === 'pending' ||
+                              headerStatus === 'transferred' ||
+                              headerStatus === 'awaiting_sample' ||
+                              headerStatus === 'sample_rejected'
+                                ? '#FA6140'
+                                : headerStatus === 'completed'
+                                ? '#37BD69'
+                                : headerStatus === 'inprogress'
+                                ? '#E4B819 '
+                                : headerStatus === 'sample_received'
+                                ? '#37BD69'
+                                : '#37BD69',
+
+                            borderRadius: '8px',
+
+                            '& .MuiSelect-icon': {
                               color:
                                 headerStatus === 'pending' ||
                                 headerStatus === 'transferred' ||
@@ -1273,62 +1272,45 @@ const RequestDetails = () => {
                                   : headerStatus === 'completed'
                                   ? '#37BD69'
                                   : headerStatus === 'inprogress'
-                                  ? '#E4B819 '
+                                  ? '#E4B819'
                                   : headerStatus === 'sample_received'
                                   ? '#37BD69'
-                                  : '#37BD69',
+                                  : '#37BD69'
+                            },
 
-                              borderRadius: '8px',
+                            '&:hover .MuiOutlinedInput-notchedOutline': {
+                              border: '0',
 
-                              '& .MuiSelect-icon': {
-                                color:
-                                  headerStatus === 'pending' ||
-                                  headerStatus === 'transferred' ||
-                                  headerStatus === 'awaiting_sample' ||
-                                  headerStatus === 'sample_rejected'
-                                    ? '#FA6140'
-                                    : headerStatus === 'completed'
-                                    ? '#37BD69'
-                                    : headerStatus === 'inprogress'
-                                    ? '#E4B819'
-                                    : headerStatus === 'sample_received'
-                                    ? '#37BD69'
-                                    : '#37BD69'
-                              },
+                              borderColor:
+                                headerStatus === 'pending' ||
+                                headerStatus === 'transferred' ||
+                                headerStatus === 'awaiting_sample' ||
+                                headerStatus === 'sample_rejected' ||
+                                headerStatus === 'sample_received'
+                                  ? '#FA6140' // Custom red border for these statuses
+                                  : headerStatus === 'completed'
+                                  ? '#37BD69' // Custom green border for completed
+                                  : headerStatus === 'inprogress'
+                                  ? '#E4B819' // Custom yellow border for in progress
+                                  : '#37BD69' // Default green border
+                            },
 
-                              '&:hover .MuiOutlinedInput-notchedOutline': {
-                                border: '0',
-
-                                borderColor:
-                                  headerStatus === 'pending' ||
-                                  headerStatus === 'transferred' ||
-                                  headerStatus === 'awaiting_sample' ||
-                                  headerStatus === 'sample_rejected' ||
-                                  headerStatus === 'sample_received'
-                                    ? '#FA6140' // Custom red border for these statuses
-                                    : headerStatus === 'completed'
-                                    ? '#37BD69' // Custom green border for completed
-                                    : headerStatus === 'inprogress'
-                                    ? '#E4B819' // Custom yellow border for in progress
-                                    : '#37BD69' // Default green border
-                              },
-
-                              '& .MuiOutlinedInput-notchedOutline': {
-                                border: '0'
-                              }
-                            }}
-                          >
-                            {filteredStatusData?.map((item, index) => (
-                              <MenuItem key={index} value={item?.id}>
-                                {item?.name}
-                              </MenuItem>
-                            ))}
-                          </Select>
-                        </FormControl>
-                      )}
-                    </Box>
+                            '& .MuiOutlinedInput-notchedOutline': {
+                              border: '0'
+                            }
+                          }}
+                        >
+                          {filteredStatusData?.map((item, index) => (
+                            <MenuItem key={index} value={item?.id}>
+                              {item?.name}
+                            </MenuItem>
+                          ))}
+                        </Select>
+                      </FormControl>
+                    )}
                   </Box>
-                )}
+                </Box>
+              )}
             </Box>
 
             <DataGrid
@@ -1336,28 +1318,6 @@ const RequestDetails = () => {
                 permissions?.perform_tests || permissions?.allow_full_access || permissions?.transfer_tests
               }
               onRowSelectionModelChange={handleRowSelection}
-              isRowSelectable={params => {
-                if (
-                  (permissions?.view &&
-                    permissions?.transfer_tests === false &&
-                    permissions?.perform_tests === false &&
-                    permissions?.allow_upload_reports === false &&
-                    permissions?.allow_full_access === false) ||
-                  (permissions?.perform_tests === true &&
-                    permissions?.allow_upload_reports === false &&
-                    permissions?.allow_full_access === false &&
-                    params.row.status.includes('completed')) ||
-                  (permissions?.perform_tests === false &&
-                    permissions?.transfer_tests === true &&
-                    permissions?.allow_upload_reports === false &&
-                    permissions?.allow_full_access === false &&
-                    params.row.status.includes('completed'))
-                ) {
-                  return false
-                } else {
-                  return true
-                }
-              }}
               sx={{
                 '& .MuiDataGrid-row:hover .customButton': {
                   display: 'block'
