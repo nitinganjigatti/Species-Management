@@ -8,7 +8,17 @@ import Icon from 'src/@core/components/icon'
 
 // ** MUI Imports
 import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
-import { Card, CardHeader, Typography, Grid, TextField } from '@mui/material'
+import {
+  Card,
+  CardHeader,
+  Typography,
+  Grid,
+  TextField,
+  CardContent,
+  Tooltip,
+  CircularProgress,
+  InputAdornment
+} from '@mui/material'
 
 // ** Icon Imports
 import { Box } from '@mui/material'
@@ -27,6 +37,7 @@ import TableWithFilter from 'src/components/TableWithFilter'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import { AddButtonContained } from 'src/components/ButtonContained'
 import RenderUtility from 'src/utility/render'
+import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDateRangePickers'
 
 const ListOfPurchase = () => {
   const router = useRouter()
@@ -47,11 +58,17 @@ const ListOfPurchase = () => {
   const [searchValue, setSearchValue] = useState(router.query.q || '')
   const [sortColumn, setSortColumn] = useState(router.query.column || 'po_date')
 
+  const [filterDates, setFilterDates] = useState({
+    startDate: router.query.startDate || '',
+    endDate: router.query.endDate || ''
+  })
+
   const [paginationModel, setPaginationModel] = useState({
     page: parseInt(router.query.page) || 0,
     pageSize: parseInt(router.query.limit) || 10
   })
   const [loading, setLoading] = useState(false)
+  const [excelLoader, setExcelLoader] = useState(false)
 
   function loadServerRows(currentPage, data) {
     return data
@@ -68,12 +85,15 @@ const ListOfPurchase = () => {
           sort,
           q,
           column,
+          ...(filterDates?.startDate !== '' && { from_date: filterDates?.startDate }),
+          ...(filterDates?.endDate !== '' && { to_date: filterDates?.endDate }),
           page: paginationModel.page + 1,
           limit: paginationModel.pageSize
         }
 
         await getPurchaseList({ params: params }).then(res => {
           if (res?.success === true && res?.data?.length > 0) {
+            console.log('RESPONSE >>', res?.data)
             setTotal(parseInt(res?.count))
             setRows(loadServerRows(paginationModel.page, res?.data))
             updateUrlParams({
@@ -96,7 +116,7 @@ const ListOfPurchase = () => {
         setRows([])
       }
     },
-    [paginationModel]
+    [paginationModel, filterDates]
   )
   useEffect(() => {
     fetchTableData({ sort: sort, q: searchValue, column: sortColumn })
@@ -109,7 +129,7 @@ const ListOfPurchase = () => {
     })
 
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedPharmacy.id, paginationModel.page, paginationModel.pageSize])
+  }, [selectedPharmacy.id, paginationModel.page, paginationModel.pageSize, filterDates])
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
@@ -164,6 +184,25 @@ const ListOfPurchase = () => {
   const handleSearch = value => {
     setSearchValue(value)
     searchTableData(sort, value, sortColumn)
+  }
+
+  const handleDateRangeChange = (startDate, endDate) => {
+    setPaginationModel({ page: 0, pageSize: 10 })
+    if (startDate && endDate) {
+      setFilterDates({
+        startDate: Utility.formatDate(startDate),
+        endDate: Utility.formatDate(endDate)
+      })
+
+      console.log('Date range selected:', { startDate, endDate })
+    } else {
+      setFilterDates({
+        startDate: '',
+        endDate: ''
+      })
+
+      console.log('Empty date range selected,', { startDate, endDate })
+    }
   }
 
   const columns = [
@@ -330,17 +369,57 @@ const ListOfPurchase = () => {
     console.log('Handle Header Action')
   }
 
+  const getInventoryDataToExport = async () => {
+    try {
+      setExcelLoader(true)
+      const response = await getPurchaseList({ sort, q: searchValue, column: sortColumn, filterDates })
+      console.log('Response inventory>', response)
+      setExcelLoader(false)
+
+      if (response?.success === true && response?.data?.length > 0) {
+        const data = response.data.map(el => ({
+          ['Invoice No']: el?.po_no,
+          ['Purchase Date']: el?.po_date,
+          ['Supplier Name']: el?.supplier_name,
+          ['Entry Date']: Utility.formatDisplayDate(el?.created_at) ? Utility.formatDisplayDate(el?.created_at) : 'NA',
+          ['Purchase Amount']: Number(el?.net_amount),
+          ['Created By']: el?.created_by_user_name ? el?.created_by_user_name : 'NA',
+          ['Updated By']: el?.updated_by_user_name ? el?.updated_by_user_name : 'NA',
+          ['Created At']: Utility.formatDisplayDate(el?.created_at) ? Utility.formatDisplayDate(el?.created_at) : 'NA',
+          ['Updated At']: Utility.formatDisplayDate(el?.updated_at) ? Utility.formatDisplayDate(el?.updated_at) : 'NA'
+        }))
+
+        Utility.exportToCSV(data, 'Inventory_List')
+      } else {
+        console.log('No data available for export.')
+      }
+    } catch (error) {
+      console.log('Error >', error)
+      setExcelLoader(false)
+    }
+  }
+
   const headerAction = (
     <>
       {(selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') && (
         <Box
           sx={{
             display: 'flex',
-            gap: 2,
-            justifyContent: 'flex-start',
+            gap: 4,
+            flexDirection: { xs: 'column', sm: 'row' },
+            justifyContent: { xs: 'center', sm: 'flex-start' },
             whiteSpace: 'nowrap'
           }}
         >
+          {/* <ExcelExportButton
+            disabled={total === 0}
+            action={() => {
+              getInventoryDataToExport()
+            }}
+            loader={excelLoader}
+            title='Download'
+            fullWidth='fullWidth'
+          /> */}
           <ExcelExportButton
             disabled={total === 0}
             action={() => {
@@ -378,22 +457,54 @@ const ListOfPurchase = () => {
           <FallbackSpinner />
         ) : (
           <Card>
+            {/* <CardHeader
+              sx={{
+                display: 'flex',
+                flexDirection: { xs: 'column', sm: 'column' }, // Stack items in sm screens
+                justifyContent: 'flex-start',
+                alignItems: 'flex-start',
+                gap: { xs: 3, sm: 1 },
+                mx: { xs: -1, sm: 1 },
+                width: '100%', // Ensure the header takes full width
+                '& .MuiCardHeader-content': {
+                  flexGrow: 1, // Allows the title to take full width
+                  width: '100%'
+                },
+
+                '& .MuiCardHeader-action': {
+                  width: { xs: '100% ', sm: 'auto' },
+                  justifyContent: 'flex-end',
+                },
+                mx: { xs: -1, sm: 1 }
+              }}
+              title={RenderUtility.pageTitle('Inventory List')}
+              action={headerAction}
+            /> */}
             <CardHeader
               sx={{
                 display: 'flex',
-                flexDirection: { xs: 'column', sm: 'row' },
-                justifyContent: 'flex-start', // Align content to the left
-                alignItems: 'flex-start', // Align items to the top left
-                gap: { xs: 3, sm: 2 },
-                '& .MuiCardHeader-action': {
-                  width: { xs: '100% ', sm: 'auto' }
+                flexDirection: { xs: 'column', sm: 'row' }, // Stack title and actions in xs, row in sm+
+                justifyContent: 'space-between', // Push title left and actions right on larger screens
+                alignItems: { xs: 'flex-start', sm: 'center' }, // Align items properly
+                width: '100%',
+                '& .MuiCardHeader-content': {
+                  flexGrow: 1 // Allows title to take available space
                 },
-                mx: { xs: -1, sm: 0 }
+                '& .MuiCardHeader-action': {
+                  display: 'flex',
+                  flexDirection: { xs: 'column', sm: 'row' }, // Stack buttons in xs, row in sm+
+                  alignItems: 'stretch', // Ensures full width in column mode
+                  justifyContent: { xs: 'flex-start', sm: 'flex-end' }, // Left align in xs, right align in sm+
+                  gap: 1,
+                  width: { xs: '100%', sm: 'auto' } // Full width for small screens
+                  // mt: { xs: 1, sm: 0 } // Add spacing between title and buttons in xs
+                }
               }}
               title={RenderUtility.pageTitle('Inventory List')}
               action={headerAction}
             />
-            <Box
+
+            {/* <Box
               sx={{
                 display: 'flex',
                 flexDirection: { xs: 'column', sm: 'row' }, // Column for small screens, row for larger screens
@@ -402,80 +513,143 @@ const ListOfPurchase = () => {
               }}
             >
               {/* Left Box (Search Field) */}
-              <Grid
-                item
-                xs={12}
-                sm={8}
-                md={6}
-                lg={4}
+            <CardContent sx={{ paddingTop: '4px' }}>
+              <Box
                 sx={{
-                  mx: { xs: 3, sm: 4 }
+                  display: 'flex',
+                  flexDirection: { xs: 'column', sm: 'row' }, // Stack on small screens, row on larger screens
+                  justifyContent: 'space-between',
+                  alignItems: { xs: 'stretch', sm: 'center' }, // Stretch items in column mode
+                  gap: { xs: 2, sm: 0 }, // Add spacing for small screens
+                  width: '100%' // Ensure full width
                 }}
               >
-                <Box
-                  sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-                    borderRadius: '8px',
-                    padding: '0 8px',
-                    width: { xs: '100%', sm: '250px' }, // Full width on small screens
-                    height: '40px'
-                  }}
+                <Grid
+                  container
+                  spacing={4}
+                  sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
                 >
-                  <Icon icon='mi:search' fontSize={20} color={theme.palette.customColors.neutralSecondary} />
-                  <TextField
-                    variant='outlined'
-                    placeholder='Search...'
-                    value={searchValue}
-                    onChange={e => handleSearch(e.target.value)}
-                    fullWidth
-                    sx={{
-                      '& .MuiOutlinedInput-root': {
-                        border: 'none',
-                        padding: '0',
-                        '& fieldset': {
-                          border: 'none'
-                        }
+                  <Grid item xs={12} sm={6} md={5}>
+                    <CommonDateRangePickers onChange={handleDateRangeChange} filterDates={filterDates} />
+                  </Grid>
+
+                  <Grid item sm={6} xs={12}>
+                    <Grid container spacing={2} justifyContent={{ xs: 'flex-end' }}>
+                      <Grid item xs={12} sm={8} sx={{ flex: 1 }}>
+                        <TextField
+                          variant='outlined'
+                          size='small'
+                          placeholder='Search...'
+                          value={searchValue}
+                          onChange={e => handleSearch(e.target.value)}
+                          fullWidth
+                          InputProps={{
+                            startAdornment: (
+                              <InputAdornment position='start'>
+                                <Icon
+                                  icon='mi:search'
+                                  fontSize={24}
+                                  color={theme.palette.customColors.neutralSecondary}
+                                />
+                              </InputAdornment>
+                            )
+                          }}
+                          sx={{
+                            borderRadius: '8px'
+                          }}
+                        />
+                      </Grid>
+
+                      <Grid
+                        item
+                        sx={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 2,
+                          justifyContent: { sm: 'flex-end', xs: 'flex-end' }
+                        }}
+                      >
+                        <Tooltip title='Export'>
+                          <>
+                            {excelLoader ? (
+                              <Box
+                                sx={{
+                                  display: 'flex',
+                                  justifyContent: 'center',
+                                  width: '40px',
+                                  height: '40px',
+                                  borderRadius: '4px',
+                                  bgcolor: theme?.palette.customColors?.lightBg,
+                                  alignItems: 'center',
+                                  cursor: 'pointer'
+                                }}
+                              >
+                                <CircularProgress color='success' size={30} />
+                              </Box>
+                            ) : (
+                              <Box
+                                sx={{
+                                  display: 'flex',
+                                  justifyContent: 'center',
+                                  width: '40px',
+                                  height: '40px',
+                                  borderRadius: '4px',
+                                  bgcolor: theme?.palette.customColors?.lightBg,
+                                  alignItems: 'center',
+                                  cursor: 'pointer'
+                                }}
+                                onClick={getInventoryDataToExport}
+                              >
+                                <Icon icon='ic:round-download' fontSize={20} />
+                              </Box>
+                            )}
+                          </>
+                        </Tooltip>
+                      </Grid>
+                    </Grid>
+                  </Grid>
+                </Grid>
+                {/* Left Box (Search Field) */}
+
+                {/* Right Box (Date Range Picker) */}
+              </Box>
+
+              <Grid
+                sx={
+                  {
+                    // px: { xs: 2, sm: 4 },
+                    // py: { xs: 2, sm: 4 },
+                    // mx: { xs: 3, sm: 4 }
+                  }
+                }
+              >
+                <CommonTable
+                  onRowClick={onRowClick}
+                  indexedRows={indexedRows}
+                  total={total}
+                  columns={columns}
+                  paginationModel={paginationModel}
+                  onPaginationModelChange={model => {
+                    setPaginationModel(model) // Update page and pageSize in the state
+                    router.replace({
+                      pathname: router.pathname,
+                      query: {
+                        ...router.query,
+                        page: model.page + 1, // API uses 1-indexed pages
+                        pageSize: model.pageSize,
+                        searchValue,
+                        sort,
+                        sortColumn
                       }
-                    }}
-                  />
-                </Box>
+                    })
+                  }}
+                  handleSortModel={handleSortModel}
+                  setPaginationModel={setPaginationModel}
+                  loading={loading}
+                  searchValue={searchValue}
+                />
               </Grid>
-            </Box>
-            <Grid
-              sx={{
-                // px: { xs: 2, sm: 4 },
-                // py: { xs: 2, sm: 4 },
-                mx: { xs: 3, sm: 4 }
-              }}
-            >
-              <CommonTable
-                onRowClick={onRowClick}
-                indexedRows={indexedRows}
-                total={total}
-                columns={columns}
-                paginationModel={paginationModel}
-                onPaginationModelChange={model => {
-                  setPaginationModel(model) // Update page and pageSize in the state
-                  router.replace({
-                    pathname: router.pathname,
-                    query: {
-                      ...router.query,
-                      page: model.page + 1, // API uses 1-indexed pages
-                      pageSize: model.pageSize,
-                      searchValue,
-                      sort,
-                      sortColumn
-                    }
-                  })
-                }}
-                handleSortModel={handleSortModel}
-                setPaginationModel={setPaginationModel}
-                loading={loading}
-                searchValue={searchValue}
-              />
-            </Grid>
+            </CardContent>
           </Card>
         )
       ) : null}
