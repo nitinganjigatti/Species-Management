@@ -14,6 +14,7 @@ import { Box } from '@mui/system'
 import { debounce } from 'lodash'
 import { useRouter } from 'next/router'
 import React, { useCallback, useEffect, useState } from 'react'
+import { format, subDays, subMonths } from 'date-fns'
 import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDateRangePickers'
 import { getConsumptionReport } from 'src/lib/api/pharmacy/reports'
 import Utility from 'src/utility'
@@ -38,7 +39,7 @@ const ConsumptionReport = () => {
   const [rows, setRows] = useState([])
   const [total, setTotal] = useState(0)
   const [loading, setLoading] = useState(false)
-  const [sort, setSort] = useState(router.query.sort || 'asc')
+  const [sort, setSort] = useState(router.query.sort || 'desc')
   const [sortColumn, setSortColumn] = useState(router.query.column || 'total_consumption_cost')
   const [searchValue, setSearchValue] = useState(router.query.q || '')
   const [exportLoading, setExportLoading] = useState(false)
@@ -58,10 +59,18 @@ const ConsumptionReport = () => {
     pageSize: parseInt(router.query.limit) || 10
   })
 
+  // const [filterDates, setFilterDates] = useState({
+  //   startDate: router.query.startDate || '',
+  //   endDate: router.query.endDate || ''
+  // })
+
   const [filterDates, setFilterDates] = useState({
-    startDate: router.query.startDate || '',
-    endDate: router.query.endDate || ''
+    startDate: router.query.startDate || Utility.formatDate(format(subMonths(new Date(), 1), 'dd MMM, yyyy')),
+    endDate: router.query.endDate || Utility.formatDate(format(new Date(), 'dd MMM, yyyy'))
   })
+
+  // debugger
+  // console.log(format(new Date(), 'dd MMM, yyyy'))
 
   useEffect(() => {
     const pharmacyList = async () => {
@@ -140,7 +149,9 @@ const ConsumptionReport = () => {
       q: searchValue,
       column: sortColumn,
       page: paginationModel?.page,
-      limit: paginationModel?.pageSize
+      limit: paginationModel?.pageSize,
+      startDate: filterDates?.startDate,
+      endDate: filterDates?.endDate
     })
   }, [paginationModel.page, paginationModel.pageSize, sort, sortColumn, filterDates, filteredData, selectedPharmacy.id])
 
@@ -255,7 +266,7 @@ const ConsumptionReport = () => {
             fontFamily: 'Inter'
           }}
         >
-          {Utility.formatNumber(params.row.total_consumption_cost)}
+          {Utility.formatAmountToReadableDigit(params.row.total_consumption_cost)}
         </Typography>
       )
     },
@@ -275,7 +286,7 @@ const ConsumptionReport = () => {
             fontFamily: 'Inter'
           }}
         >
-          {Utility.formatNumber(params.row.available_qty)}
+          {params.row.available_qty ? Utility.formatNumber(params.row.available_qty) : 0}
         </Typography>
       )
     },
@@ -314,9 +325,19 @@ const ConsumptionReport = () => {
         endDate: Utility.formatDate(endDate)
       })
 
+      updateUrlParams({
+        startDate: filterDates?.startDate,
+        endDate: filterDates?.endDate
+      })
+
       console.log('Date range selected:', { startDate, endDate })
     } else {
       setFilterDates({
+        startDate: '',
+        endDate: ''
+      })
+
+      updateUrlParams({
         startDate: '',
         endDate: ''
       })
@@ -341,7 +362,9 @@ const ConsumptionReport = () => {
         q: searchValue,
         column: newModel[0].field,
         page: paginationModel?.page,
-        limit: paginationModel?.pageSize
+        limit: paginationModel?.pageSize,
+        startDate: filterDates?.startDate,
+        endDate: filterDates?.endDate
       })
     } else {
     }
@@ -365,7 +388,9 @@ const ConsumptionReport = () => {
           q: q,
           column: column,
           page: page,
-          limit: limit
+          limit: limit,
+          startDate: filterDates?.startDate,
+          endDate: filterDates?.endDate
         })
       } catch (error) {
         console.error(error)

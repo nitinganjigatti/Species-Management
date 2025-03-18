@@ -27,6 +27,7 @@ import Router from 'next/router'
 import Error404 from 'src/pages/404'
 import { useTheme } from '@emotion/react'
 import { useRouter } from 'next/router'
+import { format, subDays, subMonths } from 'date-fns'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import { AddButton, ExcelExportButton } from 'src/components/Buttons'
 import Utility from 'src/utility'
@@ -59,8 +60,8 @@ const ListOfPurchase = () => {
   const [sortColumn, setSortColumn] = useState(router.query.column || 'po_date')
 
   const [filterDates, setFilterDates] = useState({
-    startDate: router.query.startDate || '',
-    endDate: router.query.endDate || ''
+    startDate: router.query.startDate || Utility.formatDate(format(subMonths(new Date(), 1), 'dd MMM, yyyy')),
+    endDate: router.query.endDate || Utility.formatDate(format(new Date(), 'dd MMM, yyyy'))
   })
 
   const [paginationModel, setPaginationModel] = useState({
@@ -155,7 +156,7 @@ const ListOfPurchase = () => {
   }
 
   const searchTableData = useCallback(
-    debounce(async (sort, q, column) => {
+    debounce(async (sort, q, column, filterDates) => {
       setSearchValue(q)
       setPaginationModel({ page: 0, pageSize: 10 })
       try {
@@ -165,7 +166,9 @@ const ListOfPurchase = () => {
           q: q,
           column: newModel[0].field,
           page: paginationModel?.page,
-          limit: paginationModel?.pageSize
+          limit: paginationModel?.pageSize,
+          ...(filterDates?.startDate !== '' && { from_date: filterDates?.startDate }),
+          ...(filterDates?.endDate !== '' && { to_date: filterDates?.endDate })
         })
       } catch (error) {
         console.error(error)
@@ -183,7 +186,7 @@ const ListOfPurchase = () => {
 
   const handleSearch = value => {
     setSearchValue(value)
-    searchTableData(sort, value, sortColumn)
+    searchTableData(sort, value, sortColumn, filterDates)
   }
 
   const handleDateRangeChange = (startDate, endDate) => {
@@ -372,7 +375,21 @@ const ListOfPurchase = () => {
   const getInventoryDataToExport = async () => {
     try {
       setExcelLoader(true)
-      const response = await getPurchaseList({ sort, q: searchValue, column: sortColumn, filterDates })
+
+      const now = new Date()
+
+      const timestamp = `${String(now.getDate()).padStart(2, '0')}-${String(now.getMonth() + 1).padStart(
+        2,
+        '0'
+      )}-${now.getFullYear()} ${String(now.getHours()).padStart(2, '0')}-${String(now.getMinutes()).padStart(2, '0')}`
+      const params = {
+        sort: sort,
+        q: searchValue,
+        column: sortColumn,
+        ...(filterDates?.startDate !== '' && { from_date: filterDates?.startDate }),
+        ...(filterDates?.endDate !== '' && { to_date: filterDates?.endDate })
+      }
+      const response = await getPurchaseList({ params })
       console.log('Response inventory>', response)
       setExcelLoader(false)
 
@@ -389,7 +406,7 @@ const ListOfPurchase = () => {
           ['Updated At']: Utility.formatDisplayDate(el?.updated_at) ? Utility.formatDisplayDate(el?.updated_at) : 'NA'
         }))
 
-        Utility.exportToCSV(data, 'Inventory_List')
+        Utility.exportToCSV(data, `Purchase_list ${timestamp}`)
       } else {
         console.log('No data available for export.')
       }
