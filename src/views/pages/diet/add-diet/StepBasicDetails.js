@@ -611,7 +611,7 @@ const StepBasicDetails = ({
           alignItems='center'
           sx={{
             mt: 12,
-            border: '3px dotted #37BD69',
+            border: `3px dotted ${theme.palette.primary.main}`,
             padding: '8px 16px',
             backgroundColor: '#37bd6912',
             borderRadius: '8px',
@@ -630,7 +630,7 @@ const StepBasicDetails = ({
           <Typography
             sx={{
               mb: 1,
-              color: '#37BD69',
+              color: theme.palette.primary.main,
               cursor: 'pointer',
               fontWeight: 500,
               textAlign: 'center',
@@ -824,7 +824,7 @@ const StepBasicDetails = ({
   return (
     <>
       {loader ? (
-        <CardContent sx={{ background: '#fff', height: '100vh' }}>
+        <CardContent sx={{ background: theme.palette.primary.contrastText, height: '100vh' }}>
           <Box sx={{ display: 'flex', justifyContent: 'center', mt: 20 }}>
             <CircularProgress />
           </Box>
@@ -1079,9 +1079,9 @@ const StepBasicDetails = ({
                       container
                       spacing={5}
                       sx={{
-                        borderLeft: '1px solid #C3CEC7',
-                        borderRight: '1px solid #C3CEC7',
-                        borderTop: '1px solid #C3CEC7',
+                        borderLeft: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+                        borderRight: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+                        borderTop: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                         borderRadius: '0.5rem',
                         mx: 0
                       }}
@@ -1090,7 +1090,7 @@ const StepBasicDetails = ({
                         container
                         spacing={5}
                         sx={{
-                          background: '#E1F9ED',
+                          background: theme.palette.background.OnBackground,
                           mt: 0,
                           borderTopLeftRadius: 7,
                           borderTopRightRadius: 7,
@@ -1137,7 +1137,12 @@ const StepBasicDetails = ({
                             return (
                               <Grid
                                 container
-                                sx={{ px: 5, py: 5, borderBottom: '1px solid #C3CEC7', borderRadius: '7px' }}
+                                sx={{
+                                  px: 5,
+                                  py: 5,
+                                  borderBottom: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+                                  borderRadius: '7px'
+                                }}
                                 key={index}
                               >
                                 <Grid item xs={12} sm={0.5} md={0.5}>
@@ -1148,7 +1153,7 @@ const StepBasicDetails = ({
                                       width: isSmallDevice ? 30 : 40,
                                       height: isSmallDevice ? 30 : 40,
                                       mr: 4,
-                                      background: isSmallDevice ? '' : '#E8F4F2',
+                                      background: isSmallDevice ? '' : theme.palette.customColors.tableHeaderBg,
                                       padding: isSmallDevice ? '0px' : '8px',
                                       borderRadius: '50%',
                                       marginTop: isSmallDevice ? '5px' : '0px'
@@ -1168,7 +1173,9 @@ const StepBasicDetails = ({
                                       {all?.recipe_name}
                                     </Typography>
                                   </Tooltip>
-                                  <Typography sx={{ color: '#7A8684', fontSize: '12px', pl: 3 }}>
+                                  <Typography
+                                    sx={{ color: theme.palette.customColors.secondaryBg, fontSize: '12px', pl: 3 }}
+                                  >
                                     {'REP' + all?.recipe_id}
                                   </Typography>
                                 </Grid>
@@ -1187,7 +1194,9 @@ const StepBasicDetails = ({
                                       <Grid item key={index}>
                                         <Typography
                                           sx={{
-                                            color: all?.days_of_week?.includes(index + 1) ? '#1F415B' : '#839D8D',
+                                            color: all?.days_of_week?.includes(index + 1)
+                                              ? theme.palette.secondary.dark
+                                              : theme.palette.customColors.Outline,
                                             marginRight: 4
                                           }}
                                         >
@@ -1239,9 +1248,9 @@ const StepBasicDetails = ({
                       container
                       spacing={5}
                       sx={{
-                        borderLeft: '1px solid #C3CEC7',
-                        borderRight: '1px solid #C3CEC7',
-                        borderTop: '1px solid #C3CEC7',
+                        borderLeft: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+                        borderRight: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+                        borderTop: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                         borderRadius: '0.5rem',
                         mx: 0
                       }}
@@ -1297,7 +1306,12 @@ const StepBasicDetails = ({
                             return (
                               <Grid
                                 container
-                                sx={{ px: 5, py: 5, borderBottom: '1px solid #C3CEC7', borderRadius: '7px' }}
+                                sx={{
+                                  px: 5,
+                                  py: 5,
+                                  borderBottom: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+                                  borderRadius: '7px'
+                                }}
                                 key={index}
                               >
                                 <Grid item xs={12} sm={0.5} md={0.5}>
@@ -1308,7 +1322,7 @@ const StepBasicDetails = ({
                                       width: isSmallDevice ? 30 : 40,
                                       height: isSmallDevice ? 30 : 40,
                                       mr: 4,
-                                      background: isSmallDevice ? '' : '#E8F4F2',
+                                      background: isSmallDevice ? '' : theme.palette.customColors.tableHeaderBg,
                                       padding: isSmallDevice ? '0px' : '8px',
                                       borderRadius: '50%',
                                       marginTop: isSmallDevice ? '5px' : '0px'
@@ -1328,7 +1342,9 @@ const StepBasicDetails = ({
                                       {all?.recipe_name}
                                     </Typography>
                                   </Tooltip>
-                                  <Typography sx={{ color: '#7A8684', fontSize: '12px', pl: 3 }}>
+                                  <Typography
+                                    sx={{ color: theme.palette.customColors.secondaryBg, fontSize: '12px', pl: 3 }}
+                                  >
                                     {'CMB' + all?.recipe_id}
                                   </Typography>
                                 </Grid>
@@ -1347,7 +1363,9 @@ const StepBasicDetails = ({
                                       <Grid item key={index}>
                                         <Typography
                                           sx={{
-                                            color: all?.days_of_week?.includes(index + 1) ? '#1F415B' : '#839D8D',
+                                            color: all?.days_of_week?.includes(index + 1)
+                                              ? theme.palette.secondary.dark
+                                              : theme.palette.customColors.Outline,
                                             marginRight: 4
                                           }}
                                         >
@@ -1398,9 +1416,9 @@ const StepBasicDetails = ({
                       container
                       spacing={5}
                       sx={{
-                        borderLeft: '1px solid #C3CEC7',
-                        borderRight: '1px solid #C3CEC7',
-                        borderTop: '1px solid #C3CEC7',
+                        borderLeft: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+                        borderRight: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+                        borderTop: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                         borderRadius: '0.5rem',
                         mx: 0
                       }}
@@ -1449,7 +1467,12 @@ const StepBasicDetails = ({
                             return (
                               <Grid
                                 container
-                                sx={{ px: 5, py: 5, borderBottom: '1px solid #C3CEC7', borderRadius: '7px' }}
+                                sx={{
+                                  px: 5,
+                                  py: 5,
+                                  borderBottom: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+                                  borderRadius: '7px'
+                                }}
                                 key={index}
                               >
                                 <Grid item xs={12} sm={0.5} md={0.5}>
@@ -1460,7 +1483,7 @@ const StepBasicDetails = ({
                                       width: isSmallDevice ? 30 : 40,
                                       height: isSmallDevice ? 30 : 40,
                                       mr: 4,
-                                      background: isSmallDevice ? '' : '#E8F4F2',
+                                      background: isSmallDevice ? '' : theme.palette.customColors.tableHeaderBg,
                                       padding: isSmallDevice ? '0px' : '8px',
                                       borderRadius: '50%',
                                       marginTop: isSmallDevice ? '5px' : '0px'
@@ -1474,7 +1497,9 @@ const StepBasicDetails = ({
                                       {all.ingredient_name}
                                     </Typography>
                                   </Tooltip>
-                                  <Typography sx={{ color: '#7A8684', fontSize: '12px', pl: 3 }}>
+                                  <Typography
+                                    sx={{ color: theme.palette.customColors.secondaryBg, fontSize: '12px', pl: 3 }}
+                                  >
                                     {'ING' + all?.ingredient_id}
                                   </Typography>
                                 </Grid>
@@ -1487,7 +1512,9 @@ const StepBasicDetails = ({
                                       <Grid item key={day}>
                                         <Typography
                                           sx={{
-                                            color: all.days_of_week?.includes(index + 1) ? '#1F415B' : '#839D8D',
+                                            color: all.days_of_week?.includes(index + 1)
+                                              ? theme.palette.secondary.dark
+                                              : theme.palette.customColors.Outline,
                                             marginRight: 4
                                           }}
                                         >
@@ -1539,9 +1566,9 @@ const StepBasicDetails = ({
                       container
                       spacing={5}
                       sx={{
-                        borderLeft: '1px solid #C3CEC7',
-                        borderRight: '1px solid #C3CEC7',
-                        borderTop: '1px solid #C3CEC7',
+                        borderLeft: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+                        borderRight: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+                        borderTop: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                         borderRadius: '0.5rem',
                         mx: 0
                       }}
@@ -1581,7 +1608,12 @@ const StepBasicDetails = ({
                             return (
                               <Grid
                                 container
-                                sx={{ px: 5, py: 5, borderBottom: '1px solid #C3CEC7', borderRadius: '7px' }}
+                                sx={{
+                                  px: 5,
+                                  py: 5,
+                                  borderBottom: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+                                  borderRadius: '7px'
+                                }}
                                 key={index}
                               >
                                 {/* <Grid item xs={12} sm={0.5}>
@@ -1590,7 +1622,9 @@ const StepBasicDetails = ({
                                 <Grid item xs={12} sm={2.2}>
                                   <Typography>
                                     Offer Minimum{' '}
-                                    <span style={{ color: '#37BD69', fontSize: '17px', fontWeight: 600 }}>
+                                    <span
+                                      style={{ color: theme.palette.primary.main, fontSize: '17px', fontWeight: 600 }}
+                                    >
                                       {all.no_of_component_required}
                                     </span>{' '}
                                   </Typography>
@@ -1613,7 +1647,9 @@ const StepBasicDetails = ({
                                       <Grid item key={day}>
                                         <Typography
                                           sx={{
-                                            color: all?.days_of_week?.includes(index + 1) ? '#1F415B' : '#839D8D',
+                                            color: all?.days_of_week?.includes(index + 1)
+                                              ? theme.palette.secondary.dark
+                                              : theme.palette.customColors.Outline,
                                             marginRight: 4
                                           }}
                                         >
@@ -1671,7 +1707,9 @@ const StepBasicDetails = ({
                                                 width: isSmallDevice ? 35 : 40,
                                                 height: isSmallDevice ? 35 : 40,
                                                 mr: 4,
-                                                background: isSmallDevice ? '' : '#E8F4F2',
+                                                background: isSmallDevice
+                                                  ? ''
+                                                  : theme.palette.customColors.tableHeaderBg,
                                                 padding: isSmallDevice ? '0px' : '8px',
                                                 borderRadius: '50%'
                                               }}
@@ -1699,11 +1737,15 @@ const StepBasicDetails = ({
                                               >
                                                 {all?.ingredient_name}
                                               </span>
-                                              <span style={{ color: '#7A8684', fontSize: 13 }}>
+                                              <span
+                                                style={{ color: theme.palette.customColors.secondaryBg, fontSize: 13 }}
+                                              >
                                                 {'ING' + all?.ingredient_id}
                                               </span>
 
-                                              <span style={{ color: '#7A8684', fontSize: 13 }}>
+                                              <span
+                                                style={{ color: theme.palette.customColors.secondaryBg, fontSize: 13 }}
+                                              >
                                                 {all?.preparation_type}
                                               </span>
                                             </Box>
@@ -1741,11 +1783,21 @@ const StepBasicDetails = ({
                                           sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start' }}
                                         >
                                           <Icon
-                                            style={{ marginLeft: '14px', color: '#00D6C9', fontWeight: 600 }}
+                                            style={{
+                                              marginLeft: '14px',
+                                              color: theme.palette.customColors.Secondary,
+                                              fontWeight: 600
+                                            }}
                                             icon='material-symbols:add'
                                           />
 
-                                          <span style={{ marginLeft: '12px', color: '#00D6C9', fontWeight: 500 }}>
+                                          <span
+                                            style={{
+                                              marginLeft: '12px',
+                                              color: theme.palette.customColors.Secondary,
+                                              fontWeight: 500
+                                            }}
+                                          >
                                             Add
                                           </span>
                                         </Box>
@@ -1774,7 +1826,7 @@ const StepBasicDetails = ({
                       mb: 1,
                       mt: 6,
                       float: 'left',
-                      color: '#37BD69',
+                      color: theme.palette.primary.main,
                       display: 'flex',
                       alignItems: 'center',
                       cursor: 'pointer',
@@ -1791,7 +1843,7 @@ const StepBasicDetails = ({
                       mt: 6,
                       ml: 12,
                       float: 'left',
-                      color: '#37BD69',
+                      color: theme.palette.primary.main,
                       display: 'flex',
                       alignItems: 'center',
                       cursor: 'pointer',
@@ -1808,7 +1860,7 @@ const StepBasicDetails = ({
                       mt: 6,
                       ml: 12,
                       float: 'left',
-                      color: '#37BD69',
+                      color: theme.palette.primary.main,
                       display: 'flex',
                       alignItems: 'center',
                       cursor: 'pointer',
@@ -1826,7 +1878,7 @@ const StepBasicDetails = ({
                       mt: 6,
                       ml: 12,
                       float: 'left',
-                      color: '#37BD69',
+                      color: theme.palette.primary.main,
                       display: 'flex',
                       alignItems: 'center',
                       cursor: 'pointer',
