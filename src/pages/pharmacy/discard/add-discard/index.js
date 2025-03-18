@@ -585,7 +585,7 @@ const AddDiscardProducts = () => {
           ['Stock Type']: el?.stock_type
         }))
 
-        Utility.exportToCSV(data, 'Discarditems')
+        Utility.exportToCSV(data, 'Return_Supplier')
       } else {
         console.log('No data available for export.')
       }
