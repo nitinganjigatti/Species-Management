@@ -9,6 +9,7 @@ import { useState, useEffect, useCallback } from 'react'
 import { getRecipeList } from 'src/lib/api/diet/recipe'
 import { CircularProgress, debounce } from '@mui/material'
 import ComboCard from 'src/views/pages/diet/add_recipe_combo-List/comboCard'
+import { useTheme } from '@mui/material/styles'
 
 const ComboList = props => {
   const {
@@ -26,7 +27,7 @@ const ComboList = props => {
     comboid,
     cutsizelist
   } = props
-
+  const theme = useTheme()
   const [rows, setRows] = useState([])
   const [searchValue, setSearchValue] = useState('')
   const [ingredientList, setIngredientList] = useState([])
@@ -39,7 +40,7 @@ const ComboList = props => {
   useEffect(() => {
     const getRecipeListData = async () => {
       setReachedEnd(true)
-      const params = { page: ingredientPage, q: searchValue, sort, status: 1, meal_type: 'combo' }
+      const params = { page: ingredientPage, q: searchValue, sort, status: 1, limit: 10, meal_type: 'combo' }
       const res = await getRecipeList({ params })
 
       if (res?.data?.result?.length > 0) {
@@ -60,7 +61,7 @@ const ComboList = props => {
     }
 
     getRecipeListData()
-  }, [ingredientPage, searchValue, sort])
+  }, [ingredientPage, sort])
 
   function loadServerRows(currentPage, data) {
     return data
@@ -77,7 +78,7 @@ const ComboList = props => {
         setReachedEnd(true) // Prevent multiple API calls
 
         try {
-          const params = { page: ingredientPage + 1, q: searchValue, sort, status: 1, meal_type: 'combo' }
+          const params = { page: ingredientPage + 1, q: searchValue, sort, status: 1, limit: 10, meal_type: 'combo' }
           const res = await getRecipeList({ params })
 
           if (res?.data?.result?.length > 0) {
@@ -103,32 +104,39 @@ const ComboList = props => {
     }
   }
 
-  const searchData = useCallback(
+  // Debounced search function
+  const debouncedSearch = useCallback(
     debounce(async search => {
-      if (search.trim()) {
-        try {
-          const params = { page: 1, q: search, sort, status: 1, meal_type: 'combo' }
-          const res = await getRecipeList({ params })
-          if (res?.data?.result.length > 0) {
-            // Append new results while ensuring unique IDs
-            const newResults = res.data.result.filter(
-              item => !ingredientList.some(existingItem => existingItem.id === item.id)
-            )
-
-            const combinedList = [...ingredientList, ...newResults]
-            const uniqueList = Array.from(new Map(combinedList.map(item => [item.id, item])).values())
-
-            setIngredientList(uniqueList)
-            setIngredientPage(1)
-          }
-        } catch (error) {
-          console.error(error)
+      try {
+        //setLoading(true)
+        const params = { page: 1, q: search, sort, status: 1, limit: 10, meal_type: 'combo' }
+        const res = await getRecipeList({ params })
+        if (res?.data?.result.length > 0) {
+          setIngredientList(res.data.result)
           setIngredientPage(1)
+          setTotalCount(res?.data?.total_count)
+        } else {
+          setIngredientList([])
         }
+      } catch (error) {
+        console.error(error)
+      } finally {
+        //setLoading(false)
       }
     }, 500),
-    [searchValue]
+    []
   )
+
+  const handleSearchChange = e => {
+    const value = e.target.value
+    setSearchValue(value)
+    debouncedSearch(value)
+  }
+
+  const handleCancelClick = () => {
+    setSearchValue('')
+    debouncedSearch('')
+  }
 
   return (
     <Drawer
@@ -185,13 +193,15 @@ const ComboList = props => {
               value={searchValue}
               fullWidth
               InputProps={{
-                startAdornment: <Icon style={{ marginRight: 10, color: '#44544A' }} icon={'ion:search-outline'} />
+                startAdornment: <Icon style={{ marginRight: 10, color: '#44544A' }} icon={'ion:search-outline'} />,
+                endAdornment: searchValue && (
+                  <IconButton onClick={handleCancelClick} size='small' sx={{ padding: 0 }}>
+                    <Icon icon={'ion:close-outline'} style={{ color: theme.palette.customColors.OnSurfaceVariant }} />
+                  </IconButton>
+                )
               }}
               placeholder='Search combo'
-              onKeyUp={e => searchData(e.target.value)}
-              onChange={e => {
-                setSearchValue(e.target.value)
-              }}
+              onChange={handleSearchChange}
               sx={{
                 '& .MuiOutlinedInput-root': {
                   borderColor: '#839D8D',

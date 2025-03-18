@@ -625,7 +625,7 @@ const ProductDetailsList = () => {
                     />
                     <ListItemText
                       primary={`Unit Multiplier: ${variant.unit_multiplier}`}
-                      secondary={`Description: ${variant.description}`}
+                      secondary={`${variant.description}` ? `Description: ${variant.description}` : null}
                     />
                   </ListItem>
                 ))}

@@ -140,6 +140,8 @@ const RequestDetails = () => {
 
   const [lab, setLab] = React.useState([])
 
+  const [parentLab, setParentLab] = React.useState(null)
+
   /***** Serverside pagination */
   const [total, setTotal] = useState(0)
 
@@ -288,7 +290,7 @@ const RequestDetails = () => {
 
       const requestData = response?.data?.result || []
       const testReports = requestData[0]?.test_reports || []
-
+      setParentLab(response?.data?.result[0]?.lab_id)
       setLab_id(requestData[0]?.lab_id)
       setAnimalId(requestData[0]?.animal_details?.animal_id)
       setLabRequestId(requestData[0]?.request_id)
@@ -322,8 +324,10 @@ const RequestDetails = () => {
 
   const getAccessLabs = async (id, labId) => {
     const params = {
-      test_ids: labId
+      test_ids: labId,
+      lab_id: parentLab
     }
+    debugger
     await getLabListByMultipleIds(id, params).then(res => {
       // console.log('res', res?.data)
       setLab(res?.data)

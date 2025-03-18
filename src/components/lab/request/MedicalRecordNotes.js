@@ -5,7 +5,7 @@ const MedicalRecordNotes = ({ notes }) => {
   if (!notes?.length) {
     return (
       <Box sx={{ py: 4, textAlign: 'center' }}>
-        <Typography sx={{ color: '#6F7F75' }}>No notes available</Typography>
+        <Typography sx={{ color: '#6F7F75' }}>Empty Notes</Typography>
       </Box>
     )
   }

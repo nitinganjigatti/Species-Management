@@ -332,7 +332,7 @@ const ListOfSpeciesMapped = ({
                         alt={species.scientific_name}
                         sx={{
                           '& img': {
-                            objectFit: 'contain'
+                            objectFit: 'inherit'
                           }
                         }}
                       />

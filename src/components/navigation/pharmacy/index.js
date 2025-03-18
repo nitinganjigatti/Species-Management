@@ -312,6 +312,20 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
     path: '/pharmacy/discard/discard-list'
   }
 
+  const reportsParent = {
+    icon: 'tabler:report-analytics',
+    title: 'Reports',
+    path: '/pharmacy/reports',
+    children: []
+  }
+
+  const consumptionReport = {
+    title: 'Consumption Report',
+    path: '/pharmacy/reports/consumption-report'
+  }
+
+  reportsParent.children.push(consumptionReport)
+
   const pharmacyNavigationArray = []
 
   // pharmacyNavigationArray.push(testList)
@@ -323,6 +337,7 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
     requestParent.children.push(requestListing)
     requestParent.children.push(requestByStoreListing)
     requestParent.children.push(nonExistingProductRequestList)
+
     // requestParent.children.push(requestByProductListing)
 
     // returnParent.children.push(returnListing)
@@ -386,7 +401,7 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
       pharmacyNavigationArray.push(stocksAdjustment)
     }
 
-    pharmacyNavigationArray.push(discard, settingsParent)
+    pharmacyNavigationArray.push(reportsParent, discard, settingsParent)
   }
 
   if (selectedPharmacy?.type === 'local') {
@@ -442,7 +457,7 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
     ) {
       pharmacyNavigationArray.push(stocksAdjustment)
     }
-    pharmacyNavigationArray.push(settingsParent)
+    pharmacyNavigationArray.push(reportsParent, settingsParent)
   }
 
   if (pharmacyRole) {

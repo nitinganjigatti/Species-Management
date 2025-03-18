@@ -246,6 +246,8 @@ export const PRODUCT_PURCHASE = 'v1/pharma/stock/purchase-details'
 
 export const PRODUCT_PURCHASE_BATCH_LIST = 'purchase'
 
+export const CONSUMPTION_REPORT = 'consumption-report'
+
 export const FEED_DETAILS = 'details'
 
 export const FEED = 'feed'

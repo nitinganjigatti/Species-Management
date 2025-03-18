@@ -427,11 +427,12 @@ const SpeciesMappedtoDiet = ({
                   }
                 }}
               >
+                {console.log(species, 'species')}
                 <ListItemAvatar>
                   <Avatar
                     sx={{
                       '& img': {
-                        objectFit: 'contain'
+                        objectFit: 'inherit'
                       }
                     }}
                     src={species.default_icon}
