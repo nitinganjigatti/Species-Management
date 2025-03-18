@@ -15,6 +15,7 @@ import { Box } from '@mui/material'
 
 import Router, { useRouter } from 'next/router'
 import Error404 from 'src/pages/404'
+import { format, subDays, subMonths } from 'date-fns'
 
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import { AddButton, ExcelExportButton } from 'src/components/Buttons'
@@ -43,8 +44,8 @@ const ListOfDiscardProducts = () => {
   const [sortColumn, setSortColumn] = useState(router.query.column || 'created_at')
   const [excelLoader, setExcelLoader] = useState(false)
   const [filterDates, setFilterDates] = useState({
-    startDate: router.query.startDate || '',
-    endDate: router.query.endDate || ''
+    startDate: router.query.startDate || Utility.formatDate(format(subMonths(new Date(), 1), 'dd MMM, yyyy')),
+    endDate: router.query.endDate || Utility.formatDate(format(new Date(), 'dd MMM, yyyy'))
   })
 
   const [paginationModel, setPaginationModel] = useState({
@@ -143,19 +144,27 @@ const ListOfDiscardProducts = () => {
   }
 
   const searchTableData = useCallback(
-    debounce(async (sort, q, column) => {
+    debounce(async (sort, q, column, filterDates) => {
       setSearchValue(q)
       setTotal(0)
       setPaginationModel({ page: 0, pageSize: 10 })
 
       try {
-        await fetchTableData({ sort, q, column, page: paginationModel.page, limit: paginationModel.pageSize })
+        await fetchTableData({
+          sort,
+          q,
+          column,
+          page: paginationModel.page,
+          limit: paginationModel.pageSize
+        })
         updateUrlParams({
           sort,
           q: q,
           column: sortColumn,
           page: paginationModel.page,
-          limit: paginationModel.pageSize
+          limit: paginationModel.pageSize,
+          ...(filterDates?.startDate !== '' && { from_date: filterDates?.startDate }),
+          ...(filterDates?.endDate !== '' && { to_date: filterDates?.endDate })
         })
       } catch (error) {
         console.error(error)
@@ -166,7 +175,7 @@ const ListOfDiscardProducts = () => {
 
   const handleSearch = value => {
     setSearchValue(value)
-    searchTableData(sort, value, sortColumn)
+    searchTableData(sort, value, sortColumn, filterDates)
   }
 
   const handleEdit = id => {
@@ -308,7 +317,22 @@ const ListOfDiscardProducts = () => {
     try {
       setExcelLoader(true)
 
-      const response = await getDiscardList({ sort, q: searchValue, column: sortColumn })
+      const now = new Date()
+
+      const timestamp = `${String(now.getDate()).padStart(2, '0')}-${String(now.getMonth() + 1).padStart(
+        2,
+        '0'
+      )}-${now.getFullYear()} ${String(now.getHours()).padStart(2, '0')}-${String(now.getMinutes()).padStart(2, '0')}`
+
+      const params = {
+        sort: sort,
+        q: searchValue,
+        column: sortColumn,
+        ...(filterDates?.startDate !== '' && { from_date: filterDates?.startDate }),
+        ...(filterDates?.endDate !== '' && { to_date: filterDates?.endDate })
+      }
+
+      const response = await getDiscardList({ params })
       console.log('Response inventory>', response)
       setExcelLoader(false)
       if (response?.success === true && response?.data?.list_items?.length > 0) {
@@ -322,7 +346,7 @@ const ListOfDiscardProducts = () => {
           ['Discarded By']: el?.created_by_user_name ? el?.created_by_user_name : 'NA'
         }))
 
-        Utility.exportToCSV(data, 'Return_Supplier_List')
+        Utility.exportToCSV(data, `Return_Supplier_List ${timestamp}`)
       } else {
         console.log('No data available for export.')
       }
@@ -378,7 +402,7 @@ const ListOfDiscardProducts = () => {
         width: '100%' // Ensure full width
       }}
     >
-      {/* <ExcelExportButton
+      {/* <ExcelExportButton 
         disabled={total === 0}
         action={() => {
           getSupplierDataToExport()
