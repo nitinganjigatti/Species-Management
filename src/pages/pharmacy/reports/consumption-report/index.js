@@ -149,7 +149,9 @@ const ConsumptionReport = () => {
       q: searchValue,
       column: sortColumn,
       page: paginationModel?.page,
-      limit: paginationModel?.pageSize
+      limit: paginationModel?.pageSize,
+      startDate: filterDates?.startDate,
+      endDate: filterDates?.endDate
     })
   }, [paginationModel.page, paginationModel.pageSize, sort, sortColumn, filterDates, filteredData, selectedPharmacy.id])
 
@@ -323,9 +325,19 @@ const ConsumptionReport = () => {
         endDate: Utility.formatDate(endDate)
       })
 
+      updateUrlParams({
+        startDate: filterDates?.startDate,
+        endDate: filterDates?.endDate
+      })
+
       console.log('Date range selected:', { startDate, endDate })
     } else {
       setFilterDates({
+        startDate: '',
+        endDate: ''
+      })
+
+      updateUrlParams({
         startDate: '',
         endDate: ''
       })
@@ -350,7 +362,9 @@ const ConsumptionReport = () => {
         q: searchValue,
         column: newModel[0].field,
         page: paginationModel?.page,
-        limit: paginationModel?.pageSize
+        limit: paginationModel?.pageSize,
+        startDate: filterDates?.startDate,
+        endDate: filterDates?.endDate
       })
     } else {
     }
@@ -374,7 +388,9 @@ const ConsumptionReport = () => {
           q: q,
           column: column,
           page: page,
-          limit: limit
+          limit: limit,
+          startDate: filterDates?.startDate,
+          endDate: filterDates?.endDate
         })
       } catch (error) {
         console.error(error)
