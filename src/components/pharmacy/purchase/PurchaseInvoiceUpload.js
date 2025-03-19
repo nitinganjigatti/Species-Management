@@ -199,12 +199,22 @@ const PurchaseInvoiceUpload = ({ setPurchaseItems, reset, closeDialog, handleInp
         base64String = reader.result.split(',')[1].toString('utf-8')
         console.log(base64String)
         const utf8Base64 = decodeURIComponent(base64String)
+
         axios
-          .post('https://api.dev.antzsystems.com:8082/infer', {
-            dataType: 'bytes',
-            data: utf8Base64,
-            save: false
-          })
+          .post(
+            'https://api.dev.antzsystems.com:8082/infer',
+            {
+              dataType: 'bytes',
+              data: utf8Base64,
+              save: false
+            },
+            {
+              headers: {
+                'X-API-KEY': '4ebaa3c6-9e70-42dd-bc1b-74e948aa468b',
+                'Content-Type': 'application/json'
+              }
+            }
+          )
           .then(data => {
             setSubmitLoader(false)
             closeDialog()
