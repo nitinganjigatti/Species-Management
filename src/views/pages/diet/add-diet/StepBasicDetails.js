@@ -1629,7 +1629,7 @@ const StepBasicDetails = ({
                                     </span>{' '}
                                   </Typography>
                                 </Grid>
-                                <Grid item xs={12} sm={2.3} sx={{ pl: 2 }}>
+                                <Grid item xs={12} sm={2.3} sx={{ pl:1 }}>
                                   <Typography className='w_155'>
                                     <Tooltip
                                       title={all?.ingredientList.map(all => all.preparation_type).join(', ')}
@@ -1642,7 +1642,7 @@ const StepBasicDetails = ({
                                   </Typography>
                                 </Grid>
                                 <Grid item xs={12} sm={2.7}>
-                                  <Grid container spacing={1} sx={{ pl: 2 }}>
+                                  <Grid container spacing={1} sx={{ pl: 11 }}>
                                     {days.map((day, index) => (
                                       <Grid item key={day}>
                                         <Typography

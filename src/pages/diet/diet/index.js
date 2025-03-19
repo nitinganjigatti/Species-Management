@@ -208,7 +208,7 @@ const Diet = () => {
       )
     },
     {
-      flex: 0.5,
+      flex: 0.8,
       minWidth: 30,
       field: 'diet_no',
       headerName: 'Diet Id',
@@ -398,53 +398,57 @@ const Diet = () => {
                 {/* </TabList>    */}
               </Grid>
 
-              <DataGrid
-                sx={{
-                  '.MuiDataGrid-cell:focus': {
-                    outline: 'none'
-                  },
+              <Box sx={{ width: '100%', overflowX: 'auto' }}>
+                <DataGrid
+                  sx={{
+                    height: 700,
+                    minWidth: '900px',
+                    '.MuiDataGrid-cell:focus': {
+                      outline: 'none'
+                    },
 
-                  '& .MuiDataGrid-row:hover': {
-                    cursor: 'pointer'
-                  }
-                }}
-                columnVisibilityModel={{
-                  sl_no: false
-                }}
-                hideFooterSelectedRowCount
-                disableColumnSelector={true}
-                autoHeight
-                pagination
-                rows={indexedRows === undefined ? [] : indexedRows}
-                rowCount={total}
-                columns={columns}
-                sortingMode='server'
-                paginationMode='server'
-                pageSizeOptions={[7, 10, 25, 50]}
-                paginationModel={paginationModel}
-                onSortModelChange={handleSortModel}
-                slots={{ toolbar: ServerSideToolbarWithFilter }}
-                onPaginationModelChange={newPaginationModel => {
-                  updateQueryParams({
-                    page: newPaginationModel.page,
-                    pageSize: newPaginationModel.pageSize
-                  })
-                  setPaginationModel(newPaginationModel)
-                }}
-                loading={loading}
-                slotProps={{
-                  baseButton: {
-                    variant: 'outlined'
-                  },
-                  toolbar: {
-                    value: searchValue,
-                    title: 'diet',
-                    clearSearch: () => handleSearch(''),
-                    onChange: event => handleSearch(event.target.value)
-                  }
-                }}
-                onCellClick={onCellClick}
-              />
+                    '& .MuiDataGrid-row:hover': {
+                      cursor: 'pointer'
+                    }
+                  }}
+                  columnVisibilityModel={{
+                    sl_no: false
+                  }}
+                  hideFooterSelectedRowCount
+                  disableColumnSelector={true}
+                  autoHeight
+                  pagination
+                  rows={indexedRows === undefined ? [] : indexedRows}
+                  rowCount={total}
+                  columns={columns}
+                  sortingMode='server'
+                  paginationMode='server'
+                  pageSizeOptions={[7, 10, 25, 50]}
+                  paginationModel={paginationModel}
+                  onSortModelChange={handleSortModel}
+                  slots={{ toolbar: ServerSideToolbarWithFilter }}
+                  onPaginationModelChange={newPaginationModel => {
+                    updateQueryParams({
+                      page: newPaginationModel.page,
+                      pageSize: newPaginationModel.pageSize
+                    })
+                    setPaginationModel(newPaginationModel)
+                  }}
+                  loading={loading}
+                  slotProps={{
+                    baseButton: {
+                      variant: 'outlined'
+                    },
+                    toolbar: {
+                      value: searchValue,
+                      title: 'diet',
+                      clearSearch: () => handleSearch(''),
+                      onChange: event => handleSearch(event.target.value)
+                    }
+                  }}
+                  onCellClick={onCellClick}
+                />
+              </Box>
             </Card>
           </>
         )}
