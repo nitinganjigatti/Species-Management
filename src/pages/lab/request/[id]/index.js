@@ -128,7 +128,7 @@ const RequestDetails = () => {
   const [requestById, setRequestById] = useState()
 
   const [permissions, setPermissions] = useState(null)
-  console.log('permissions', permissions)
+  // console.log('permissions', permissions)
 
   // const storedData = JSON.parse(localStorage.getItem('userDetails'))
 
@@ -165,6 +165,7 @@ const RequestDetails = () => {
   const [headerStatus, setHeaderStatus] = useState('awaiting_sample')
 
   const [selectedRow, setSelectedRow] = useState([])
+  const [fromParam, setFromParam] = useState(false)
 
   const [selectedRowData, setSelectedRowData] = useState([])
   const [hasCompletedStatus, setHasCompletedStatus] = useState(true)
@@ -174,7 +175,7 @@ const RequestDetails = () => {
   const [CommentData, setCommentData] = useState({})
   const [medicalRecordNotes, setMedicalRecordNotes] = useState([])
 
-  console.log('CommentData', CommentData)
+  // console.log('CommentData', CommentData)
 
   useEffect(() => {
     const labObject = localLabData?.find(item => item?.lab_id === lab_id)
@@ -331,23 +332,28 @@ const RequestDetails = () => {
   }
 
   const handleOpenTransfer = async params => {
+    // console.log('params', params?.row)
     const hasCompleted = selectedRowData.some(item => item.status.startsWith('completed'))
     if (hasCompleted) {
       setHasCompletedStatus(true)
     } else {
       setHasCompletedStatus(false)
     }
-
     setOpenTransfer(true)
-    setTestId([params?.row?.id])
+
     const labTestId = [params?.row?.id]
-    setTransferStatus(params?.row?.status)
-    if (selectedRow?.length === 1) {
-      setTestName(selectedRowData[0]?.test_name)
-      setTestSampleName(selectedRowData[0]?.sample_name)
-    } else {
+    if (params?.row) {
+      setFromParam(true)
       setTestName(params?.row?.test_name)
       setTestSampleName(params?.row?.sample_name)
+    } else {
+      setFromParam(false)
+      setTestId([params?.row?.id])
+      setTransferStatus(params?.row?.status)
+      if (selectedRow?.length === 1) {
+        setTestName(selectedRowData[0]?.test_name)
+        setTestSampleName(selectedRowData[0]?.sample_name)
+      }
     }
 
     if (selectedRow.length >= 1) {
@@ -1627,7 +1633,7 @@ const RequestDetails = () => {
                   alignItems: selectedRowData?.length > 1 && 'center'
                 }}
               >
-                {selectedRowData?.length > 1 ? (
+                {selectedRowData?.length > 1 && !fromParam ? (
                   <>
                     <Typography sx={{ fontSize: '14px' }}>No of Tests : </Typography>
 
@@ -1676,7 +1682,7 @@ const RequestDetails = () => {
                   alignItems: selectedRowData?.length > 1 && 'center'
                 }}
               >
-                {selectedRowData?.length > 1 ? (
+                {selectedRowData?.length > 1 && !fromParam ? (
                   <>
                     <Typography sx={{ fontSize: '14px' }}>No of Samples : </Typography>
 
