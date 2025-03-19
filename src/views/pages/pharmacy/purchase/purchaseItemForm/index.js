@@ -599,7 +599,7 @@ const PurchaseItemForm = props => {
                       style={{ opacity: option.status ? 1 : 0.5, pointerEvents: option.status ? 'auto' : 'none' }}
                     >
                       <Box>
-                        <Typography>{option.label}</Typography>
+                        <Typography>{option.value ? option.label : ''}</Typography>
                         <Typography variant='body2'>{option.package_details}</Typography>
                         <Typography variant='body2'>{option.manufacture}</Typography>
                       </Box>
@@ -657,8 +657,7 @@ const PurchaseItemForm = props => {
                   onBlur={e => {
                     if (!nonMedicalProduct) {
                       const product = getValues()
-
-                      if (product?.product?.value !== '' && product?.purchase_batch_no !== '') {
+                      if (product?.product?.value && product?.purchase_batch_no) {
                         checkMedicineExpiryDate(product?.product?.value, product?.purchase_batch_no)
                       }
                     }
