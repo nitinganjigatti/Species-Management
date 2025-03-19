@@ -130,7 +130,7 @@ const FeedTypes = () => {
 
   const columns = [
     {
-      flex: 0.1,
+      flex: 0.3,
       minWidth: 30,
       field: 'id',
       headerName: 'SL',
@@ -141,7 +141,7 @@ const FeedTypes = () => {
       )
     },
     {
-      flex: 0.2,
+      flex: 0.5,
       minWidth: 30,
       field: 'feed_type_name',
       headerName: 'FEEDS',
@@ -161,7 +161,7 @@ const FeedTypes = () => {
       )
     },
     {
-      flex: 0.7,
+      flex: 0.5,
       minWidth: 10,
       field: 'desc',
       headerName: 'DESCRIPTION',
@@ -264,52 +264,56 @@ const FeedTypes = () => {
     return (
       <Card>
         <CardHeader title='Feed Types' action={headerAction} />
-        <DataGrid
-          sx={{
-            '.MuiDataGrid-cell:focus': {
-              outline: 'none'
-            },
+        <Box sx={{ width: '100%', overflowX: 'auto' }}>
+          <DataGrid
+            sx={{
+              height: 700,
+              minWidth: '900px',
+              '.MuiDataGrid-cell:focus': {
+                outline: 'none'
+              },
 
-            '& .MuiDataGrid-row:hover': {
-              cursor: 'pointer'
-            }
-          }}
-          columnVisibilityModel={{
-            sl_no: false
-          }}
-          hideFooterSelectedRowCount
-          disableColumnSelector={true}
-          autoHeight
-          pagination
-          rows={indexedRows === undefined ? [] : indexedRows}
-          rowCount={total}
-          columns={columns}
-          sortingMode='server'
-          paginationMode='server'
-          pageSizeOptions={[7, 10, 25, 50]}
-          paginationModel={paginationModel}
-          onSortModelChange={handleSortModel}
-          slots={{ toolbar: ServerSideToolbarWithFilter }}
-          onPaginationModelChange={newPaginationModel => {
-            updateQueryParams({
-              page: newPaginationModel.page,
-              pageSize: newPaginationModel.pageSize
-            })
-            setPaginationModel(newPaginationModel)
-          }}
-          loading={loading}
-          slotProps={{
-            baseButton: {
-              variant: 'outlined'
-            },
-            toolbar: {
-              value: searchValue,
-              clearSearch: () => handleSearch(''),
-              onChange: event => handleSearch(event.target.value)
-            }
-          }}
-          onCellClick={onCellClick}
-        />
+              '& .MuiDataGrid-row:hover': {
+                cursor: 'pointer'
+              }
+            }}
+            columnVisibilityModel={{
+              sl_no: false
+            }}
+            hideFooterSelectedRowCount
+            disableColumnSelector={true}
+            autoHeight
+            pagination
+            rows={indexedRows === undefined ? [] : indexedRows}
+            rowCount={total}
+            columns={columns}
+            sortingMode='server'
+            paginationMode='server'
+            pageSizeOptions={[7, 10, 25, 50]}
+            paginationModel={paginationModel}
+            onSortModelChange={handleSortModel}
+            slots={{ toolbar: ServerSideToolbarWithFilter }}
+            onPaginationModelChange={newPaginationModel => {
+              updateQueryParams({
+                page: newPaginationModel.page,
+                pageSize: newPaginationModel.pageSize
+              })
+              setPaginationModel(newPaginationModel)
+            }}
+            loading={loading}
+            slotProps={{
+              baseButton: {
+                variant: 'outlined'
+              },
+              toolbar: {
+                value: searchValue,
+                clearSearch: () => handleSearch(''),
+                onChange: event => handleSearch(event.target.value)
+              }
+            }}
+            onCellClick={onCellClick}
+          />
+        </Box>
       </Card>
     )
   }

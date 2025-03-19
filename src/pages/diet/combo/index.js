@@ -236,7 +236,7 @@ const RecipeList = () => {
 
   const columns = [
     {
-      flex: 0.17,
+      flex: 0.01,
       Width: 40,
       field: 'uid',
       headerName: 'SL ',
@@ -247,8 +247,8 @@ const RecipeList = () => {
       )
     },
     {
-      flex: 0.4,
-      minWidth: 30,
+      flex: 1,
+      minWidth: 40,
       field: 'recipe_name',
       headerName: 'COMBO',
       renderCell: params => (
@@ -270,7 +270,7 @@ const RecipeList = () => {
       )
     },
     {
-      flex: 0.3,
+      flex: 0.4,
       minWidth: 10,
       field: 'id',
       headerName: 'COMBO ID',
@@ -320,8 +320,8 @@ const RecipeList = () => {
       )
     },
     {
-      flex: 0.5,
-      minWidth: 60,
+      flex: 0.7,
+      minWidth: 50,
       field: 'user_name',
       headerName: 'CREATED BY',
       renderCell: params => (
@@ -360,7 +360,7 @@ const RecipeList = () => {
       )
     },
     {
-      flex: 0.3,
+      flex: 0.4,
       minWidth: 10,
       field: 'status',
       headerName: 'STATUS',
@@ -433,52 +433,56 @@ const RecipeList = () => {
           <Card>
             <CardHeader title='Combo' action={headerAction} />
 
-            <DataGrid
-              sx={{
-                '.MuiDataGrid-cell:focus': {
-                  outline: 'none'
-                },
+            <Box sx={{ width: '100%', overflowX: 'auto' }}>
+              <DataGrid
+                sx={{
+                  height: 700,
+                  minWidth: '900px',
+                  '.MuiDataGrid-cell:focus': {
+                    outline: 'none'
+                  },
 
-                '& .MuiDataGrid-row:hover': {
-                  cursor: 'pointer'
-                }
-              }}
-              columnVisibilityModel={{
-                sl_no: false
-              }}
-              hideFooterSelectedRowCount
-              disableColumnSelector={true}
-              autoHeight
-              pagination
-              rows={indexedRows === undefined ? [] : indexedRows}
-              rowCount={total}
-              columns={columns}
-              sortingMode='server'
-              paginationMode='server'
-              pageSizeOptions={[7, 10, 25, 50]}
-              paginationModel={paginationModel}
-              onSortModelChange={handleSortModel}
-              slots={{ toolbar: ServerSideToolbarWithFilter }}
-              onPaginationModelChange={newPaginationModel => {
-                updateQueryParams({
-                  page: newPaginationModel.page,
-                  pageSize: newPaginationModel.pageSize
-                })
-                setPaginationModel(newPaginationModel)
-              }}
-              loading={loading}
-              slotProps={{
-                baseButton: {
-                  variant: 'outlined'
-                },
-                toolbar: {
-                  value: searchValue,
-                  clearSearch: () => handleSearch(''),
-                  onChange: event => handleSearch(event.target.value)
-                }
-              }}
-              onCellClick={onCellClick}
-            />
+                  '& .MuiDataGrid-row:hover': {
+                    cursor: 'pointer'
+                  }
+                }}
+                columnVisibilityModel={{
+                  sl_no: false
+                }}
+                hideFooterSelectedRowCount
+                disableColumnSelector={true}
+                autoHeight
+                pagination
+                rows={indexedRows === undefined ? [] : indexedRows}
+                rowCount={total}
+                columns={columns}
+                sortingMode='server'
+                paginationMode='server'
+                pageSizeOptions={[7, 10, 25, 50]}
+                paginationModel={paginationModel}
+                onSortModelChange={handleSortModel}
+                slots={{ toolbar: ServerSideToolbarWithFilter }}
+                onPaginationModelChange={newPaginationModel => {
+                  updateQueryParams({
+                    page: newPaginationModel.page,
+                    pageSize: newPaginationModel.pageSize
+                  })
+                  setPaginationModel(newPaginationModel)
+                }}
+                loading={loading}
+                slotProps={{
+                  baseButton: {
+                    variant: 'outlined'
+                  },
+                  toolbar: {
+                    value: searchValue,
+                    clearSearch: () => handleSearch(''),
+                    onChange: event => handleSearch(event.target.value)
+                  }
+                }}
+                onCellClick={onCellClick}
+              />
+            </Box>
           </Card>
         )}
       </>

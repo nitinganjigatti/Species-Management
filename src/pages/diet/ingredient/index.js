@@ -244,7 +244,7 @@ const IngredientsList = () => {
 
   const columns = [
     {
-      flex: 0.27,
+      flex: 0.1,
       Width: 40,
       field: 'uid',
       headerName: 'SL',
@@ -255,7 +255,7 @@ const IngredientsList = () => {
       )
     },
     {
-      flex: 0.5,
+      flex: 1.1,
       minWidth: 30,
       field: 'ingredient_name',
       headerName: 'INGREDIENTS',
@@ -265,7 +265,7 @@ const IngredientsList = () => {
           <Avatar
             variant='square'
             alt='Medicine Image'
-            sx={{ width: 40, height: 40, mr: 4, background: '#E8F4F2', padding: '8px', borderRadius: '4px' }}
+            sx={{ width: 40, height: 40, mr: 3, background: '#E8F4F2', padding: '8px', borderRadius: '4px' }}
             src={params.row.image ? params.row.image : '/icons/icon_ingredient_fill.png'}
           >
             {params.row.image ? null : <Icon icon='healthicons:fruits-outline' />}
@@ -292,7 +292,7 @@ const IngredientsList = () => {
       )
     },
     {
-      flex: 0.5,
+      flex: 0.85,
       minWidth: 30,
       field: 'ingredient_alias',
       headerName: 'Ingredient alias',
@@ -311,7 +311,7 @@ const IngredientsList = () => {
       )
     },
     {
-      flex: 0.3,
+      flex: 0.6,
       minWidth: 10,
       field: 'id',
       headerName: 'INGREDIENT ID',
@@ -322,7 +322,7 @@ const IngredientsList = () => {
       )
     },
     {
-      flex: 0.3,
+      flex: 0.54,
       minWidth: 10,
       field: 'calorie',
       headerName: 'CALORIES',
@@ -360,7 +360,7 @@ const IngredientsList = () => {
       )
     },
     {
-      flex: 0.6,
+      flex: 1,
       minWidth: 60,
       field: 'user_name',
       headerName: 'CREATED BY',
@@ -401,7 +401,7 @@ const IngredientsList = () => {
       )
     },
     {
-      flex: 0.3,
+      flex: 0.5,
       minWidth: 10,
       field: 'status',
       headerName: 'STATUS',
@@ -494,52 +494,56 @@ const IngredientsList = () => {
               ConfirmationText={'Delete'}
               confirmAction={onClose}
             />
-            <DataGrid
-              sx={{
-                '.MuiDataGrid-cell:focus': {
-                  outline: 'none'
-                },
 
-                '& .MuiDataGrid-row:hover': {
-                  cursor: 'pointer'
-                }
-              }}
-              columnVisibilityModel={{
-                sl_no: false
-              }}
-              hideFooterSelectedRowCount
-              disableColumnSelector={true}
-              autoHeight
-              pagination
-              rows={indexedRows === undefined ? [] : indexedRows}
-              rowCount={total}
-              columns={columns}
-              sortingMode='server'
-              paginationMode='server'
-              pageSizeOptions={[7, 10, 25, 50]}
-              paginationModel={paginationModel}
-              onSortModelChange={handleSortModel}
-              slots={{ toolbar: ServerSideToolbarWithFilter }}
-              onPaginationModelChange={newPaginationModel => {
-                updateQueryParams({
-                  page: newPaginationModel.page,
-                  pageSize: newPaginationModel.pageSize
-                })
-                setPaginationModel(newPaginationModel)
-              }}
-              loading={loading}
-              slotProps={{
-                baseButton: {
-                  variant: 'outlined'
-                },
-                toolbar: {
-                  value: searchValue,
-                  clearSearch: () => handleSearch(''),
-                  onChange: event => handleSearch(event.target.value)
-                }
-              }}
-              onCellClick={onCellClick}
-            />
+            <Box sx={{ width: '100%', overflowX: 'auto' }}>
+              <DataGrid
+                sx={{
+                  height: 700,
+                  minWidth: '900px',
+                  '.MuiDataGrid-cell:focus': {
+                    outline: 'none'
+                  },
+                  '& .MuiDataGrid-row:hover': {
+                    cursor: 'pointer'
+                  }
+                }}
+                columnVisibilityModel={{
+                  sl_no: false
+                }}
+                hideFooterSelectedRowCount
+                disableColumnSelector={true}
+                pagination
+                autoHeight
+                rows={indexedRows === undefined ? [] : indexedRows}
+                rowCount={total}
+                columns={columns}
+                sortingMode='server'
+                paginationMode='server'
+                pageSizeOptions={[7, 10, 25, 50]}
+                paginationModel={paginationModel}
+                onSortModelChange={handleSortModel}
+                slots={{ toolbar: ServerSideToolbarWithFilter }}
+                onPaginationModelChange={newPaginationModel => {
+                  updateQueryParams({
+                    page: newPaginationModel.page,
+                    pageSize: newPaginationModel.pageSize
+                  })
+                  setPaginationModel(newPaginationModel)
+                }}
+                loading={loading}
+                slotProps={{
+                  baseButton: {
+                    variant: 'outlined'
+                  },
+                  toolbar: {
+                    value: searchValue,
+                    clearSearch: () => handleSearch(''),
+                    onChange: event => handleSearch(event.target.value)
+                  }
+                }}
+                onCellClick={onCellClick}
+              />
+            </Box>
           </Card>
         )}
       </>

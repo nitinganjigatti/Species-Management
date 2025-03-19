@@ -244,7 +244,7 @@ const RecipeList = () => {
       )
     },
     {
-      flex: 0.5,
+      flex: 1,
       minWidth: 30,
       field: 'recipe_name',
       headerName: 'RECIPE',
@@ -438,53 +438,56 @@ const RecipeList = () => {
         ) : (
           <Card>
             <CardHeader title='Recipes' action={headerAction} />
+            <Box sx={{ width: '100%', overflowX: 'auto' }}>
+              <DataGrid
+                sx={{
+                  height: 700,
+                  minWidth: '900px',
+                  '.MuiDataGrid-cell:focus': {
+                    outline: 'none'
+                  },
 
-            <DataGrid
-              sx={{
-                '.MuiDataGrid-cell:focus': {
-                  outline: 'none'
-                },
-
-                '& .MuiDataGrid-row:hover': {
-                  cursor: 'pointer'
-                }
-              }}
-              columnVisibilityModel={{
-                sl_no: false
-              }}
-              hideFooterSelectedRowCount
-              disableColumnSelector={true}
-              autoHeight
-              pagination
-              rows={indexedRows === undefined ? [] : indexedRows}
-              rowCount={total}
-              columns={columns}
-              sortingMode='server'
-              paginationMode='server'
-              pageSizeOptions={[7, 10, 25, 50]}
-              paginationModel={paginationModel}
-              onSortModelChange={handleSortModel}
-              slots={{ toolbar: ServerSideToolbarWithFilter }}
-              onPaginationModelChange={newPaginationModel => {
-                updateQueryParams({
-                  page: newPaginationModel.page,
-                  pageSize: newPaginationModel.pageSize
-                })
-                setPaginationModel(newPaginationModel)
-              }}
-              loading={loading}
-              slotProps={{
-                baseButton: {
-                  variant: 'outlined'
-                },
-                toolbar: {
-                  value: searchValue,
-                  clearSearch: () => handleSearch(''),
-                  onChange: event => handleSearch(event.target.value)
-                }
-              }}
-              onCellClick={onCellClick}
-            />
+                  '& .MuiDataGrid-row:hover': {
+                    cursor: 'pointer'
+                  }
+                }}
+                columnVisibilityModel={{
+                  sl_no: false
+                }}
+                hideFooterSelectedRowCount
+                disableColumnSelector={true}
+                autoHeight
+                pagination
+                rows={indexedRows === undefined ? [] : indexedRows}
+                rowCount={total}
+                columns={columns}
+                sortingMode='server'
+                paginationMode='server'
+                pageSizeOptions={[7, 10, 25, 50]}
+                paginationModel={paginationModel}
+                onSortModelChange={handleSortModel}
+                slots={{ toolbar: ServerSideToolbarWithFilter }}
+                onPaginationModelChange={newPaginationModel => {
+                  updateQueryParams({
+                    page: newPaginationModel.page,
+                    pageSize: newPaginationModel.pageSize
+                  })
+                  setPaginationModel(newPaginationModel)
+                }}
+                loading={loading}
+                slotProps={{
+                  baseButton: {
+                    variant: 'outlined'
+                  },
+                  toolbar: {
+                    value: searchValue,
+                    clearSearch: () => handleSearch(''),
+                    onChange: event => handleSearch(event.target.value)
+                  }
+                }}
+                onCellClick={onCellClick}
+              />
+            </Box>
           </Card>
         )}
       </>
