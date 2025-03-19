@@ -41,7 +41,7 @@ const AppBarContent = props => {
         {moduleName === 'pharmacy' && pharmacyList?.length > 0 && <SelectPharmacy />}
       </Box>
       {router?.asPath?.includes('pharmacy') && (
-        <Typography variant='h6' sx={{ ml: 'auto', mr: 4 }}>
+        <Typography variant='h6' sx={{ ml: 'auto', mr: 4, display: { xs: 'none', sm: 'none', md: 'block' } }}>
           {selectedPharmacy?.name}
         </Typography>
       )}

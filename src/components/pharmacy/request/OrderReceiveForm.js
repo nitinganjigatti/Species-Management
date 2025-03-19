@@ -1722,7 +1722,8 @@ function OrderReceiveForm({ orderId, requestId, requestedFrom }) {
               You don't have an access to view this request
               <Button
                 onClick={() => {
-                  router.push('/pharmacy/local-dispatch/local-dispatch-list/')
+                  // router.push('/pharmacy/local-dispatch/local-dispatch-list/')
+                  router.back()
                 }}
                 variant='contained'
                 size='small'

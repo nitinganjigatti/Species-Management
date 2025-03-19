@@ -13,7 +13,7 @@ import CardContent from '@mui/material/CardContent'
 import { styled, useTheme } from '@mui/material/styles'
 import TableContainer from '@mui/material/TableContainer'
 import TableCell from '@mui/material/TableCell'
-import { Button, CardHeader, InputAdornment } from '@mui/material'
+import { Button, CardHeader, InputAdornment, alpha } from '@mui/material'
 import IconButton from '@mui/material/IconButton'
 import FormHelperText from '@mui/material/FormHelperText'
 import TextField from '@mui/material/TextField'
@@ -66,7 +66,7 @@ import UploadIcon from 'public/images/upload_invoice_icon.png'
 import TotalAmountIcon from 'public/images/amount_summary.png'
 import { borderRadius, getValue } from '@mui/system'
 import { getVariantFOrProduct } from 'src/lib/api/pharmacy/variant'
-// import PurchaseInvoiceUpload from './PurchaseInvoiceUpload'
+import PurchaseInvoiceUpload from './PurchaseInvoiceUpload'
 import { v4 as uuidv4 } from 'uuid'
 
 const CalcWrapper = styled(Box)(({ theme }) => ({
@@ -1457,15 +1457,15 @@ const AddPurchaseForm = () => {
                   // gap: 2
                 }}
               >
-                {/* {authData?.userData?.roles?.settings?.add_pharmacy && (
-                <AddButton
-                  // sx={{ mx: 24 }}
-                  title='Upload Invoice '
-                  action={() => {
-                    setInvoiceUploadDialog(true)
-                  }}
-                />
-              )} */}
+                {authData?.userData?.roles?.settings?.add_pharmacy && !id && (
+                  <AddButton
+                    // sx={{ mx: 24 }}
+                    title='Upload Invoice '
+                    action={() => {
+                      setInvoiceUploadDialog(true)
+                    }}
+                  />
+                )}
                 {authData?.userData?.roles?.settings?.add_pharmacy && (
                   <AddButton
                     // sx={{ mx: 24 }}
@@ -2871,8 +2871,8 @@ const AddPurchaseForm = () => {
           deleteLoader={deleteLoader}
         />
       )}
-      {/* <CommonDialogBox
-        noWidth={800}
+      <CommonDialogBox
+        dialogWithMaxWidth={true}
         title={
           <Box
             sx={{
@@ -2883,10 +2883,13 @@ const AddPurchaseForm = () => {
               color: 'customColors.OnSurfaceVariant',
               display: 'flex',
               gap: 2,
-              alignItems: 'center'
+              alignItems: 'center',
+              py: 2,
+              borderBottom: '1px solid',
+              borderColor: theme => alpha(theme.palette.customColors.neutral05, 0.05)
             }}
           >
-            Upload Invoice
+            Attach Invoice
           </Box>
         }
         dialogBoxStatus={invoiceUploadDialog}
@@ -2906,7 +2909,7 @@ const AddPurchaseForm = () => {
         show={() => {
           setInvoiceUploadDialog(true)
         }}
-      /> */}
+      />
     </Card>
   )
 }
