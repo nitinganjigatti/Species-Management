@@ -24,6 +24,7 @@ import CustomChip from 'src/@core/components/mui/chip'
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
 import Router, { useRouter } from 'next/router'
+import { useTheme } from '@mui/material/styles'
 import ServerSideToolbarWithFilter from 'src/views/table/data-grid/ServerSideToolbarWithFilter'
 import { updateRecipeStatus } from 'src/lib/api/diet/recipe'
 import { AuthContext } from 'src/context/AuthContext'
@@ -39,7 +40,7 @@ const RecipeList = () => {
   const router = useRouter()
   const { query } = router
   const [loader, setLoader] = useState(false)
-
+  const theme = useTheme()
   const [total, setTotal] = useState(0)
   const [sortBy, setSortBy] = useState('desc')
   const [sortColumn, setSortColumn] = useState('created_at')
@@ -233,8 +234,8 @@ const RecipeList = () => {
 
   const columns = [
     {
-      flex: 0.21,
-      Width: 40,
+      //flex: 0.21,
+      width: 70,
       field: 'uid',
       headerName: 'SL ',
       renderCell: params => (
@@ -244,8 +245,8 @@ const RecipeList = () => {
       )
     },
     {
-      flex: 1,
-      minWidth: 30,
+      //flex: 1,
+      width: 300,
       field: 'recipe_name',
       headerName: 'RECIPE',
       renderCell: params => (
@@ -269,7 +270,7 @@ const RecipeList = () => {
                   fontWeight: '500',
                   overflow: 'hidden',
                   textOverflow: 'ellipsis',
-                  maxWidth: '140px'
+                  maxWidth: '200px'
                 }}
               >
                 {params.row.recipe_name ? params.row.recipe_name : '-'}
@@ -280,8 +281,8 @@ const RecipeList = () => {
       )
     },
     {
-      flex: 0.3,
-      minWidth: 10,
+      //flex: 0.3,
+      width: 130,
       field: 'id',
       headerName: 'RECIPE ID',
       renderCell: params => (
@@ -291,8 +292,8 @@ const RecipeList = () => {
       )
     },
     {
-      flex: 0.3,
-      minWidth: 10,
+      //flex: 0.3,
+      width: 200,
       field: 'portion_size',
       headerName: 'PORTION SIZE',
       renderCell: params => (
@@ -302,8 +303,8 @@ const RecipeList = () => {
       )
     },
     {
-      flex: 0.4,
-      minWidth: 20,
+      //flex: 0.4,
+      width: 200,
       field: 'ingredient_name',
       headerName: 'NO OF INGREDIENTS',
       renderCell: params => (
@@ -329,8 +330,8 @@ const RecipeList = () => {
       )
     },
     {
-      flex: 0.5,
-      minWidth: 60,
+      //flex: 0.5,
+      width: 260,
       field: 'user_name',
       headerName: 'CREATED BY',
       renderCell: params => (
@@ -369,8 +370,8 @@ const RecipeList = () => {
       )
     },
     {
-      flex: 0.3,
-      minWidth: 10,
+      //flex: 0.3,
+      width: 100,
       field: 'status',
       headerName: 'STATUS',
       renderCell: params => (
@@ -437,18 +438,38 @@ const RecipeList = () => {
           <FallbackSpinner />
         ) : (
           <Card>
-            <CardHeader title='Recipes' action={headerAction} />
+            <CardHeader title='Recipes' action={headerAction} sx={{ px: 5 }} />
             <Box sx={{ width: '100%', overflowX: 'auto' }}>
               <DataGrid
                 sx={{
                   height: 700,
-                  minWidth: '900px',
                   '.MuiDataGrid-cell:focus': {
                     outline: 'none'
                   },
-
                   '& .MuiDataGrid-row:hover': {
                     cursor: 'pointer'
+                  },
+                  '& .MuiDataGrid-columnHeaders': {
+                    backgroundColor: theme.palette.customColors.customTableHeaderBg,
+                    color: theme.palette.customColors.customHeadingTextColor
+                  },
+                  '.MuiDataGrid-virtualScroller': {
+                    overflowX: 'auto'
+                  },
+                  '.MuiDataGrid-main': {
+                    borderLeft: '1px solid #0000000D',
+                    borderRight: '1px solid #0000000D',
+                    marginLeft: '20px',
+                    marginRight: '20px',
+                    borderRadius: '8px',
+                    border: '1px solid rgba(233, 233, 236, 1)'
+                  },
+                  '& .MuiDataGrid-footerContainer': {
+                    borderTop: 'none'
+                  },
+
+                  '& .MuiDataGrid-row:last-of-type .MuiDataGrid-cell': {
+                    borderBottom: 'none'
                   }
                 }}
                 columnVisibilityModel={{
