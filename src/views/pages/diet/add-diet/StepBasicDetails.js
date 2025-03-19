@@ -539,7 +539,9 @@ const StepBasicDetails = ({
 
       if (invalidIndexes.length > 0) {
         invalidIndexes.forEach(index => {
-          toast.error(`Meal ${index + 1} must contain at least one of Ingredient, Recipe, or Ingredients with choice.`)
+          toast.error(
+            `Meal ${index + 1} must contain at least one of ingredient, recipe, combo or ingredients with choice.`
+          )
         })
 
         return
@@ -751,6 +753,7 @@ const StepBasicDetails = ({
 
   const removeingClickCombo = (recipeIdToRemove, val) => {
     setComboChildStateValue(prevSelectedCard => {
+      console.log(prevSelectedCard, 'prevSelectedCard')
       const filteredChildStateValue = prevSelectedCard.filter(recipe => recipe.recipe_id !== recipeIdToRemove)
 
       setAllComboSelectedValues(prevAllSelectedValues => {
@@ -762,7 +765,7 @@ const StepBasicDetails = ({
 
       // Update fieldsIngredients by filtering out ingredients based on recipeIdToRemove
       const updatedFieldsIngredients = fieldsIngredients.map(field => {
-        field.recipe = field.recipe?.filter(ing => String(ing.recipe_id) !== recipeIdToRemove)
+        field.combo = field.combo?.filter(ing => String(ing.recipe_id) !== recipeIdToRemove)
 
         return field
       })
@@ -1986,6 +1989,7 @@ const StepBasicDetails = ({
             setAllRecipeSelectedValues={setAllRecipeSelectedValues}
             formData={formData}
             onRemove={removeingClickRecipe}
+            dietid={id}
           />
           <ComboList
             recipeList={recipeList}
@@ -2002,6 +2006,7 @@ const StepBasicDetails = ({
             formData={formData}
             onRemove={removeingClickCombo}
             cutsizelist={cutsizelist}
+            dietid={id}
           />
         </form>
       )}

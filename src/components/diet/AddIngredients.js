@@ -554,6 +554,7 @@ const AddIngredients = props => {
     debounce(async search => {
       try {
         setLoading(true)
+        console.log(feed, 'feed')
         const params = { page: 1, q: search, sort, status: 1, limit: 20, feed_type: feed }
         const res = await getIngredientList({ params })
         if (res?.data?.result.length > 0) {
@@ -569,7 +570,7 @@ const AddIngredients = props => {
         setLoading(false)
       }
     }, 500),
-    []
+    [ingredientList]
   )
 
   const handleSearchChange = e => {

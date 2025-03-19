@@ -309,7 +309,7 @@ const AddIngredientswithChoice = props => {
         setLoading(false)
       }
     }, 500),
-    []
+    [ingredientList]
   )
 
   const handleSearchChange = e => {
@@ -614,7 +614,7 @@ const AddIngredientswithChoice = props => {
           const matchedIngredientName = matchedIngredient.ingredientList.map(ingredient => ingredient.name).join(', ')
 
           toast.error(
-            `Ingredient(s) ${matchedIngredientName} already exist(s) with same preparation_type and days_of_week`
+            `Ingredient(s) ${matchedIngredientName} already exist(s) with same preparation type and days of the week`
           )
 
           return

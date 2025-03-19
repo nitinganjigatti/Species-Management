@@ -249,7 +249,10 @@ const ListOfSpeciesMapped = ({
                 }}
               >
                 <ListItemAvatar>
-                  <Avatar src={dietDetails.diet_image} alt={dietDetails.diet_name} />
+                  <Avatar
+                    src={dietDetails?.diet_image ? dietDetails?.diet_image : '/icons/icon_diet_fill.png'}
+                    alt={dietDetails.diet_name}
+                  />
                 </ListItemAvatar>
                 <ListItemText
                   primary={dietDetails.diet_name}
@@ -328,12 +331,18 @@ const ListOfSpeciesMapped = ({
                   >
                     <ListItemAvatar>
                       <Avatar
-                        src={species.default_icon}
+                        src={species.default_icon ? species.default_icon : '/icons/species.svg'}
                         alt={species.scientific_name}
                         sx={{
                           '& img': {
                             objectFit: 'inherit'
-                          }
+                          },
+                          borderRadius:
+                            species?.default_icon && species.default_icon.includes('.svg')
+                              ? 'unset'
+                              : species?.default_icon
+                              ? '50%'
+                              : 'unset'
                         }}
                       />
                     </ListItemAvatar>
