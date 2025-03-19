@@ -75,6 +75,7 @@ const AuthProvider = ({ children }) => {
       // eslint-disable-next-line react-hooks/exhaustive-deps
       const storedToken = window.localStorage.getItem(authConfig?.storageTokenKeyName)
       if (storedToken) {
+        setLoading(true)
         const userObj = read('userData')
         if (userObj) {
           try {
