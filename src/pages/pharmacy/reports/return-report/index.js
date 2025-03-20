@@ -26,10 +26,13 @@ import Icon from 'src/@core/components/icon'
 import { getStoreList } from 'src/lib/api/pharmacy/getStoreList'
 import { debounce } from 'lodash'
 import ReturnReportDrawer from 'src/views/pages/pharmacy/reports/ReturnReportDrawer'
+import { format, subMonths } from 'date-fns'
+import { usePharmacyContext } from 'src/context/PharmacyContext'
 
 const ReturnReport = () => {
   const router = useRouter()
   const theme = useTheme()
+  const { selectedPharmacy } = usePharmacyContext()
 
   const updateUrlParams = params => {
     const query = { ...router.query, ...params }
@@ -61,18 +64,18 @@ const ReturnReport = () => {
   })
 
   const [filterDates, setFilterDates] = useState({
-    startDate: router.query.startDate || '',
-    endDate: router.query.endDate || ''
+    startDate: router.query.startDate || Utility.formatDate(format(subMonths(new Date(), 1), 'dd MMM, yyyy')),
+    endDate: router.query.endDate || Utility.formatDate(format(new Date(), 'dd MMM, yyyy'))
   })
 
   const [expiryFilterDates, setExpiryFilterDates] = useState({
-    startDate: router.query.startDate || '',
-    endDate: router.query.endDate || ''
+    startDate: '',
+    endDate: ''
   })
 
   const [nearExpiryFilterDates, setNearExpiryFilterDates] = useState({
-    startDate: router.query.startDate || '',
-    endDate: router.query.endDate || ''
+    startDate: '',
+    endDate: ''
   })
 
   useEffect(() => {
@@ -85,7 +88,8 @@ const ReturnReport = () => {
         const result = response?.data
 
         if (response?.success) {
-          const pharmacies = result?.list_items.map(({ id, name }) => ({ id, name })) || []
+          let pharmacies = result?.list_items.map(({ id, name }) => ({ id, name })) || []
+          pharmacies = pharmacies.filter(pharmacy => pharmacy.id !== selectedPharmacy?.id)
           setPharmacyList(pharmacies)
         }
       } catch (error) {
@@ -93,7 +97,7 @@ const ReturnReport = () => {
       }
     }
     pharmacyList()
-  }, [])
+  }, [selectedPharmacy])
 
   function loadServerRows(currentPage, data) {
     return data
@@ -167,7 +171,7 @@ const ReturnReport = () => {
       startDate: filterDates?.startDate,
       endDate: filterDates?.endDate
     })
-  }, [paginationModel.page, paginationModel.pageSize, filterDates, filteredData, expired])
+  }, [paginationModel.page, paginationModel.pageSize, filterDates, filteredData, expired, selectedPharmacy?.id])
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
@@ -483,14 +487,16 @@ const ReturnReport = () => {
 
   const handleDateRangeChange = (startDate, endDate) => {
     if (startDate && endDate) {
+      const formattedStartDate = Utility.formatDate(startDate)
+      const formattedEndDate = Utility.formatDate(endDate)
       setFilterDates({
-        startDate: Utility.formatDate(startDate),
-        endDate: Utility.formatDate(endDate)
+        startDate: formattedStartDate,
+        endDate: formattedEndDate
       })
 
       updateUrlParams({
-        startDate: filterDates?.startDate,
-        endDate: filterDates?.endDate
+        startDate: formattedStartDate,
+        endDate: formattedEndDate
       })
 
       console.log('Date range selected:', { startDate, endDate })
@@ -509,6 +515,8 @@ const ReturnReport = () => {
     }
   }
 
+  // console.log(`startDate : ${filterDates.startDate}`, `endDate : ${filterDates.endDate}`)
+
   const handleSortModel = newModel => {
     if (newModel.length) {
       setSort(newModel[0].sort)
@@ -517,6 +525,8 @@ const ReturnReport = () => {
         sort: newModel[0].sort,
         q: searchValue,
         column: newModel[0].field,
+        filteredData: filteredData,
+        expired: expired,
         page: paginationModel?.page,
         limit: paginationModel?.pageSize
       })
@@ -541,6 +551,7 @@ const ReturnReport = () => {
           sort,
           q,
           column,
+          filteredData,
           expired,
           page,
           limit
@@ -559,7 +570,7 @@ const ReturnReport = () => {
         console.error(error)
       }
     }, 1000),
-    []
+    [filterDates, filteredData]
   )
 
   const handleSearch = value => {
@@ -667,11 +678,11 @@ const ReturnReport = () => {
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
-            flexWrap: 'wrap', // Add flexWrap to handle small screens
-            gap: 2, // Add a gap for better spacing when wrapping
+            flexWrap: 'wrap',
+            gap: 2,
             [theme.breakpoints.down('sm')]: {
-              flexDirection: 'row', // Keep items in a row
-              justifyContent: 'space-between' // Maintain space between
+              flexDirection: 'row',
+              justifyContent: 'space-between'
             }
           }}
           title={RenderUtility.pageTitle('Return Report')}

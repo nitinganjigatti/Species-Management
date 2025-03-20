@@ -227,7 +227,7 @@ const ConsumptionReport = () => {
               maxWidth: 200
             }}
           >
-            <span alt={params.row.generic_name}> {params.row.generic_name}</span>
+            {params.row.generic_name ? <span alt={params.row.generic_name}> {params.row.generic_name}</span> : 'NA'}
           </Typography>
         </Tooltip>
       )
@@ -322,14 +322,16 @@ const ConsumptionReport = () => {
 
   const handleDateRangeChange = (startDate, endDate) => {
     if (startDate && endDate) {
+      const formattedStartDate = Utility.formatDate(startDate)
+      const formattedEndDate = Utility.formatDate(endDate)
       setFilterDates({
-        startDate: Utility.formatDate(startDate),
-        endDate: Utility.formatDate(endDate)
+        startDate: formattedStartDate,
+        endDate: formattedEndDate
       })
 
       updateUrlParams({
-        startDate: filterDates?.startDate,
-        endDate: filterDates?.endDate
+        startDate: formattedStartDate,
+        endDate: formattedEndDate
       })
 
       console.log('Date range selected:', { startDate, endDate })
@@ -357,7 +359,8 @@ const ConsumptionReport = () => {
         q: searchValue,
         column: newModel[0].field,
         page: paginationModel?.page,
-        limit: paginationModel?.pageSize
+        limit: paginationModel?.pageSize,
+        filteredData: filteredData
       })
       updateUrlParams({
         sort: newModel[0].sort,
@@ -382,7 +385,8 @@ const ConsumptionReport = () => {
           q: q,
           column: column,
           page: page,
-          limit: limit
+          limit: limit,
+          filteredData: filteredData
         })
 
         updateUrlParams({
@@ -398,7 +402,7 @@ const ConsumptionReport = () => {
         console.error(error)
       }
     }, 1000),
-    []
+    [filterDates, filteredData]
   )
 
   const handleSearch = value => {

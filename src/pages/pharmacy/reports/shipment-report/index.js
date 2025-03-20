@@ -24,10 +24,13 @@ import Icon from 'src/@core/components/icon'
 import { debounce } from 'lodash'
 import { getStoreList } from 'src/lib/api/pharmacy/getStoreList'
 import ShipmentFilterDrawer from 'src/views/pages/pharmacy/reports/ShipmentFilterDrawer'
+import { format, subMonths } from 'date-fns'
+import { usePharmacyContext } from 'src/context/PharmacyContext'
 
 const ShipmentReport = () => {
   const router = useRouter()
   const theme = useTheme()
+  const { selectedPharmacy } = usePharmacyContext()
 
   const updateUrlParams = params => {
     const query = { ...router.query, ...params }
@@ -57,8 +60,8 @@ const ShipmentReport = () => {
   })
 
   const [filterDates, setFilterDates] = useState({
-    startDate: router.query.startDate || '',
-    endDate: router.query.endDate || ''
+    startDate: router.query.startDate || Utility.formatDate(format(subMonths(new Date(), 1), 'dd MMM, yyyy')),
+    endDate: router.query.endDate || Utility.formatDate(format(new Date(), 'dd MMM, yyyy'))
   })
 
   useEffect(() => {
@@ -71,7 +74,8 @@ const ShipmentReport = () => {
         const result = response?.data
 
         if (response?.success) {
-          const pharmacies = result?.list_items.map(({ id, name }) => ({ id, name })) || []
+          let pharmacies = result?.list_items.map(({ id, name }) => ({ id, name })) || []
+          pharmacies = pharmacies.filter(pharmacy => pharmacy?.id !== selectedPharmacy?.id)
           setPharmacyList(pharmacies)
         }
       } catch (error) {
@@ -79,7 +83,7 @@ const ShipmentReport = () => {
       }
     }
     pharmacyList()
-  }, [])
+  }, [selectedPharmacy])
 
   function loadServerRows(currentPage, data) {
     return data
@@ -146,7 +150,15 @@ const ShipmentReport = () => {
       startDate: filterDates?.startDate,
       endDate: filterDates?.endDate
     })
-  }, [paginationModel.page, paginationModel.pageSize, filterDates, filteredData, sort, sortColumn])
+  }, [
+    paginationModel.page,
+    paginationModel.pageSize,
+    filterDates,
+    filteredData,
+    sort,
+    sortColumn,
+    selectedPharmacy?.id
+  ])
 
   //   console.log('rows data :', rows)
 
@@ -156,8 +168,6 @@ const ShipmentReport = () => {
     ...row,
     id: getSlNo(index)
   }))
-
-  //   console.log('Indexed Rows :', indexedRows)
 
   const columns = [
     {
@@ -554,14 +564,16 @@ const ShipmentReport = () => {
 
   const handleDateRangeChange = (startDate, endDate) => {
     if (startDate && endDate) {
+      const formattedStartDate = Utility.formatDate(startDate)
+      const formattedEndDate = Utility.formatDate(endDate)
       setFilterDates({
-        startDate: Utility.formatDate(startDate),
-        endDate: Utility.formatDate(endDate)
+        startDate: formattedStartDate,
+        endDate: formattedEndDate
       })
 
       updateUrlParams({
-        startDate: filterDates?.startDate,
-        endDate: filterDates?.endDate
+        startDate: formattedStartDate,
+        endDate: formattedEndDate
       })
 
       console.log('Date range selected:', { startDate, endDate })
@@ -588,6 +600,7 @@ const ShipmentReport = () => {
         sort: newModel[0].sort,
         q: searchValue,
         column: newModel[0].field,
+        filteredData: filteredData,
         page: paginationModel?.page,
         limit: paginationModel?.pageSize
       })
@@ -609,7 +622,7 @@ const ShipmentReport = () => {
       setSearchValue(q)
 
       try {
-        await fetchTableData({ sort, q, column, page, limit })
+        await fetchTableData({ sort, q, column, filteredData, page, limit })
         updateUrlParams({
           sort: sort,
           q: q,
@@ -623,7 +636,7 @@ const ShipmentReport = () => {
         console.error(error)
       }
     }, 1000),
-    []
+    [filterDates, filteredData]
   )
 
   const handleSearch = value => {
