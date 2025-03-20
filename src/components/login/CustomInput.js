@@ -73,7 +73,7 @@ const CustomInput = ({
                 {getIcon()}
                 <Divider
                   sx={{
-                    mx: 2,
+                    mx: 2.5,
                     minHeight: 20,
                     width: '1px',
                     backgroundColor: theme.palette.customColors?.OnSurfaceVariant
