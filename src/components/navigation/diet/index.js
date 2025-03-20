@@ -6,7 +6,8 @@ const composeDietNavigation = () => {
   const feedTypes = {
     title: 'Feed Types',
     path: '/diet/feed',
-    icon: 'material-symbols:inventory-2-outline'
+    icon: <img src='/icons/feedtypes_dark.svg' alt='Grocery Icon' />,
+    activeIcon: <img src='/icons/feedtypes_white.svg' alt='Grocery Icon' />
   }
 
   const ingredientsList = {
@@ -26,8 +27,8 @@ const composeDietNavigation = () => {
   const speciesDietList = {
     title: 'Species Diet List',
     path: '/diet/species-diet',
-    icon: 'mdi:rabbit-variant-outline'
-    //activeIcon: <img src='/icons/icon_species_diet_white.png' alt='Grocery Icon' />
+    icon: <img src='/icons/icon_species_diet.png' alt='Grocery Icon' />,
+    activeIcon: <img src='/icons/icon_species_diet_white.png' alt='Grocery Icon' />
   }
 
   const recipeList = {

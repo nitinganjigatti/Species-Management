@@ -149,11 +149,11 @@ const RecipeList = props => {
         position: 'relative',
         display: 'flex',
         flexDirection: 'column',
-        bgcolor: '#EFF5F2',
+        bgcolor: theme.palette.customColors.bodyBg,
         gap: '24px'
       }}
     >
-      <Box sx={{ position: 'fixed', top: 0, bgcolor: '#EFF5F2', zIndex: 10, width: '562px' }}>
+      <Box sx={{ position: 'fixed', top: 0, bgcolor: theme.palette.customColors.bodyBg, zIndex: 10, width: '562px' }}>
         <Box
           className='sidebar-header'
           sx={{
@@ -165,7 +165,7 @@ const RecipeList = props => {
         >
           <Box sx={{ gap: 2, display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
             <img src='/icons/Activity.svg' alt='Grocery Icon' width='35px' />
-            <Typography variant='h6' sx={{ color: '#44544A' }}>
+            <Typography variant='h6' sx={{ color: theme.palette.customColors.OnSurfaceVariant }}>
               Add Recipes
             </Typography>
           </Box>
@@ -176,7 +176,7 @@ const RecipeList = props => {
                 handleSidebarClose()
                 setSearchValue('')
               }}
-              sx={{ color: '#1F515B' }}
+              sx={{ color: theme.palette.primary.light }}
             >
               <Icon icon='mdi:close' fontSize={25} />
             </IconButton>
@@ -195,7 +195,12 @@ const RecipeList = props => {
               value={searchValue}
               fullWidth
               InputProps={{
-                startAdornment: <Icon style={{ marginRight: 10, color: '#44544A' }} icon={'ion:search-outline'} />,
+                startAdornment: (
+                  <Icon
+                    style={{ marginRight: 10, color: theme.palette.customColors.OnSurfaceVariant }}
+                    icon={'ion:search-outline'}
+                  />
+                ),
                 endAdornment: searchValue && (
                   <IconButton onClick={handleCancelClick} size='small' sx={{ padding: 0 }}>
                     <Icon icon={'ion:close-outline'} style={{ color: theme.palette.customColors.OnSurfaceVariant }} />
@@ -206,9 +211,9 @@ const RecipeList = props => {
               onChange={handleSearchChange}
               sx={{
                 '& .MuiOutlinedInput-root': {
-                  borderColor: '#839D8D',
+                  borderColor: theme.palette.customColors.Outline,
                   '& fieldset': {
-                    borderColor: '#839D8D'
+                    borderColor: theme.palette.customColors.Outline
                   }
                 }
               }}
@@ -220,7 +225,7 @@ const RecipeList = props => {
       {/* on scroll */}
       <Box
         className=''
-        sx={{ marginTop: 30, height: '70%', overflowY: 'auto', bgcolor: '#EFF5F2', p: 4 }}
+        sx={{ marginTop: 30, height: '70%', overflowY: 'auto', bgcolor: theme.palette.customColors.bodyBg, p: 4 }}
         onScroll={handleScroll}
       >
         <RecipeCard
