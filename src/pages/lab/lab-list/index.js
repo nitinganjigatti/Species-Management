@@ -54,7 +54,7 @@ const ListOfLab = () => {
     e.stopPropagation()
 
     Router.push({
-      pathname: '/lab/add-Lab',
+      pathname: '/lab/lab-list/add-Lab',
       query: { id: params.row.id, action: 'edit' }
     })
   }
@@ -243,7 +243,7 @@ const ListOfLab = () => {
             size='big'
             variant='outlined'
             onClick={() => {
-              Router.push('/lab/add-Lab')
+              Router.push('/lab/lab-list/add-Lab')
             }}
           >
             Add Lab
@@ -264,7 +264,7 @@ const ListOfLab = () => {
     const data = params.row
 
     Router.push({
-      pathname: '/lab/lab-details',
+      pathname: '/lab/lab-list/lab-details',
       query: { id: data?.id }
     })
   }
@@ -288,12 +288,8 @@ const ListOfLab = () => {
                 {/* <Typography sx={{ cursor: 'pointer' }} color='inherit'>
       Lab
     </Typography> */}
-                <Typography sx={{ cursor: 'pointer' }} color='inherit'>
-                  Labs
-                </Typography>
-                <Typography sx={{ cursor: 'pointer' }} color='text.primary'>
-                  Labs list
-                </Typography>
+                <Typography color='inherit'>Lab</Typography>
+                <Typography color='text.primary'>Lab list</Typography>
               </Breadcrumbs>
               <Card>
                 <CardHeader title='Lab List' action={headerAction} />

@@ -905,9 +905,7 @@ const AddLab = () => {
                 {/* <Typography sx={{ cursor: 'pointer' }} color='inherit'>
       Lab
     </Typography> */}
-                <Typography sx={{ cursor: 'pointer' }} color='inherit'>
-                  Labs
-                </Typography>
+                <Typography color='inherit'>Lab</Typography>
                 <Typography
                   sx={{ cursor: 'pointer' }}
                   color='inherit'
@@ -919,9 +917,7 @@ const AddLab = () => {
                 >
                   Lab list
                 </Typography>
-                <Typography sx={{ cursor: 'pointer' }} color='text.primary'>
-                  Add lab
-                </Typography>
+                <Typography color='text.primary'>Add lab</Typography>
               </Breadcrumbs>
               <Grid container spacing={6} className='match-height'>
                 <Grid item xs={12}>
