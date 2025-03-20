@@ -8,6 +8,8 @@ import { LoadingButton } from '@mui/lab'
 import { postComment } from 'src/lib/api/lab/getLabRequest'
 import Toaster from 'src/components/Toaster'
 import moment from 'moment'
+import { format } from 'date-fns'
+import Utility from 'src/utility'
 
 const CommentSideSheet = ({ openCommentSheet, setOpenCommentSheet, CommentData, api }) => {
   const [loading, setLoading] = useState(false)
@@ -102,7 +104,15 @@ const CommentSideSheet = ({ openCommentSheet, setOpenCommentSheet, CommentData, 
                     {CommentData?.notes_modified_by || CommentData?.notes_added_by}
                   </Typography>
                   <Typography sx={{ fontSize: '12px', color: '#6F7F75' }}>
-                    {formatDateTime(CommentData.notes_modified_at || CommentData.notes_added_at)}
+                    {format(
+                      new Date(
+                        Utility.convertUTCToLocal(
+                          CommentData.notes_modified_at ? CommentData.notes_modified_at : CommentData.notes_added_at
+                        )
+                      ),
+                      'dd MMM yyyy hh:mm a'
+                    )}
+                    {/* {(CommentData.notes_modified_at || CommentData.notes_added_at)} */}
                     {/* {CommentData.notes_modified_at && ' (edited)'} */}
                   </Typography>
                 </Box>

@@ -98,6 +98,7 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
     // icon: 'material-symbols:request-quote-outline',
     path: '/pharmacy/requests-by-store/all-stores-request-list'
   }
+
   const requestByProductListing = {
     title: 'Request By Products',
 
@@ -324,7 +325,7 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
     path: '/pharmacy/reports/consumption-report'
   }
 
-  reportsParent.children.push(consumptionReport)
+  // reportsParent.children.push(consumptionReport)
 
   const pharmacyNavigationArray = []
 
@@ -401,7 +402,7 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
       pharmacyNavigationArray.push(stocksAdjustment)
     }
 
-    pharmacyNavigationArray.push(reportsParent, discard, settingsParent)
+    pharmacyNavigationArray.push(discard, settingsParent)
   }
 
   if (selectedPharmacy?.type === 'local') {
