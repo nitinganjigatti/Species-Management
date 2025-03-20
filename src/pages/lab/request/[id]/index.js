@@ -925,7 +925,14 @@ const RequestDetails = () => {
         replaced_lab_id,
         transfer_reason
       }
-      const response = await transferLab(id, payload)
+
+      const payloadData = {
+        test_ids: selectedRow,
+        replaced_lab_id,
+        transfer_reason
+      }
+      // const response = await transferLab(id, payload)
+      const response = await postBulkTransfer({ params: payloadData })
       if (response?.success) {
         handleCloseTransfer()
 
