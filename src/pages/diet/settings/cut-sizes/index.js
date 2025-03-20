@@ -214,11 +214,13 @@ const CutSizes = () => {
         await fetchTableData(sort, searchValue, sortColumn)
       } else {
         setSubmitLoader(false)
+        setOpenDrawer(false)
         Toaster({ type: 'error', message: response?.message })
       }
     } catch (e) {
       console.log(e)
       setSubmitLoader(false)
+      setOpenDrawer(false)
       Toaster({ type: 'error', message: JSON.stringify(e) })
     }
   }
