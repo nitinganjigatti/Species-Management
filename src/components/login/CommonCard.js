@@ -11,7 +11,7 @@ const CommonCard = ({ children, bgImage, logoSrc, title, subtitle, sx = {} }) =>
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        backgroundImage: `url(${bgImage || '/images/login/bg_image.png'})`,
+        backgroundImage: `url(${bgImage || '/images/login/Login_Bg_Image.svg'})`,
         backgroundSize: 'cover',
         backgroundPosition: 'bottom',
         padding: '1.25rem',

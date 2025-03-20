@@ -44,7 +44,7 @@ import BlankLayout from 'src/@core/layouts/BlankLayout'
 
 // ** Demo Imports
 import CommonCard from 'src/components/login/CommonCard'
-import LoginField from 'src/components/login/LoginField'
+import CustomInput from 'src/components/login/CustomInput'
 import CustomButton from 'src/components/login/CustomButton'
 
 // ** Custom Components
@@ -59,7 +59,8 @@ const LinkStyled = styled(Link)(({ theme }) => ({
 
 const schema = yup.object().shape({
   email: yup.string().required('Username/Email required').min(4),
-  password: yup.string().trim('').required()
+  // password: yup.string().trim('Password required').required()
+  password: yup.string().required('Password required')
 })
 
 const defaultValues = {
@@ -125,7 +126,7 @@ const LoginPage = () => {
               control={control}
               rules={{ required: true }}
               render={({ field: { value, onChange, onBlur } }) => (
-                <LoginField
+                <CustomInput
                   type='email'
                   name='email'
                   label='Username/Email'
@@ -134,6 +135,7 @@ const LoginPage = () => {
                   onChange={onChange}
                   onBlur={onBlur}
                   autoComplete='email'
+                  error={!!errors.email}
                 />
               )}
             />
@@ -146,7 +148,7 @@ const LoginPage = () => {
               control={control}
               rules={{ required: true }}
               render={({ field: { value, onChange, onBlur } }) => (
-                <LoginField
+                <CustomInput
                   type={'password'}
                   label='Password'
                   placeholder='Enter password'
@@ -155,6 +157,7 @@ const LoginPage = () => {
                   onChange={onChange}
                   onBlur={onBlur}
                   autoComplete='current-password'
+                  error={!!errors.password}
                 />
               )}
             />

@@ -3,7 +3,7 @@ import { Box, TextField, InputAdornment, IconButton, Typography, Divider, alpha 
 import Icon from 'src/@core/components/icon'
 import { useTheme } from '@emotion/react'
 
-const LoginField = ({
+const CustomInput = ({
   type = 'text',
   label = '',
   placeholder = '',
@@ -71,7 +71,14 @@ const LoginField = ({
             >
               <Box sx={{ display: 'flex', alignItems: 'center', color: 'customColors.OnSurfaceVariant' }}>
                 {getIcon()}
-                <Divider sx={{ mx: 1.5, height: 24, backgroundColor: 'customColors.OnSurfaceVariant' }} />
+                <Divider
+                  sx={{
+                    mx: 2,
+                    minHeight: 20,
+                    width: '1px',
+                    backgroundColor: theme.palette.customColors?.OnSurfaceVariant
+                  }}
+                />
               </Box>
             </InputAdornment>
           ),
@@ -140,7 +147,7 @@ const LoginField = ({
   )
 }
 
-export default LoginField
+export default CustomInput
 
 // import React, { useState } from 'react'
 

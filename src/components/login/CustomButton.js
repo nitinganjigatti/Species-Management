@@ -28,7 +28,7 @@ const CustomButton = ({
         ...sx
       }}
       {...rest}
-      disabled={loading} // Disable button when loading
+      // disabled={loading} // Disable button when loading
     >
       {loading ? <CircularProgress size={24} sx={{ color: 'white' }} /> : children}
     </Button>
@@ -36,33 +36,3 @@ const CustomButton = ({
 }
 
 export default CustomButton
-
-// import React from 'react'
-// import Button from '@mui/material/Button'
-
-// const CustomButton = ({ children, onClick, type = 'button', fullWidth = false, size = 'medium', sx = {}, ...rest }) => {
-//   return (
-//     <Button
-//       type={type}
-//       fullWidth={fullWidth}
-//       size={size}
-//       variant='contained'
-//       onClick={onClick}
-//       sx={{
-//         height: 56,
-//         backgroundColor: '#000000',
-//         mb: 3,
-//         mt: 3,
-//         '&:hover': {
-//           backgroundColor: '#333333'
-//         },
-//         ...sx // Allow additional custom styles
-//       }}
-//       {...rest}
-//     >
-//       {children}
-//     </Button>
-//   )
-// }
-
-// export default CustomButton

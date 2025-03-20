@@ -30,12 +30,13 @@ import * as yup from 'yup'
 
 import CommonCard from 'src/components/login/CommonCard'
 import CustomButton from 'src/components/login/CustomButton'
-import LoginField from 'src/components/login/LoginField'
+import CustomInput from 'src/components/login/CustomInput'
 import { useRouter } from 'next/router'
 import VerifyOtp from '../verify-otp'
 import { useState } from 'react'
 import { sendOTP } from 'src/lib/api/login'
 import toast from 'react-hot-toast'
+import Utility from 'src/utility'
 
 const TypographyStyled = styled(Typography)(({ theme }) => ({
   fontWeight: 600,
@@ -89,7 +90,7 @@ const ForgotPassword = () => {
       if (response.success === true) {
         const { user_id, account_status, user_email, user_mobile_number, temp_auth_token } = response.data
 
-        console.log('User Details:', {
+        const encryptedQuery = Utility.encryptData({
           user_id,
           account_status,
           user_email,
@@ -101,13 +102,14 @@ const ForgotPassword = () => {
         // router.push('/verify-otp')
         router.push({
           pathname: '/verify-otp',
-          query: {
-            user_id,
-            account_status,
-            user_email,
-            user_mobile_number,
-            temp_auth_token
-          }
+          query: { data: encryptedQuery }
+          // query: {
+          //   user_id,
+          //   account_status,
+          //   user_email,
+          //   user_mobile_number,
+          //   temp_auth_token
+          // }
         })
         setLoading(false)
       } else {
@@ -118,9 +120,6 @@ const ForgotPassword = () => {
       console.error(error)
       setLoading(false)
     }
-
-    // setIsOtpSent(true)
-    // router.push('/verify-otp')
   }
 
   return (
@@ -138,7 +137,7 @@ const ForgotPassword = () => {
               name='email'
               control={control}
               render={({ field: { value, onChange, onBlur } }) => (
-                <LoginField
+                <CustomInput
                   type='email'
                   name='email'
                   label='Username/Email'
