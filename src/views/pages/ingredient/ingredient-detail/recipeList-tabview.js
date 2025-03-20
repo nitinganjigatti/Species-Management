@@ -9,7 +9,7 @@ import Tab from '@mui/material/Tab'
 import TabPanel from '@mui/lab/TabPanel'
 import TabContext from '@mui/lab/TabContext'
 import TabList from '@mui/lab/TabList'
-import { Avatar, Box, CardContent } from '@mui/material'
+import { Avatar, Box, CardContent, Tooltip } from '@mui/material'
 
 // ** MUI Imports
 import Typography from '@mui/material/Typography'
@@ -183,15 +183,17 @@ const RecipeListTabview = ({ IngredientName, onTotalChange }) => {
             {params.row.recipe_image ? null : <Icon icon='healthicons:fruits-outline' />}
           </Avatar>
           <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-            <Typography
-              noWrap
-              variant='body2'
-              sx={{ color: 'text.primary' }}
-              className='text_overflow_moduled'
-              onClick={() => handleclickChange(params.row, 'ingdetail')}
-            >
-              {params.row.recipe_name ? params.row.recipe_name : '-'}
-            </Typography>
+            <Tooltip title={params.row.recipe_name ? params.row.recipe_name : ''}>
+              <Typography
+                noWrap
+                variant='body2'
+                sx={{ color: 'text.primary', width: '200px' }}
+                className='text_overflow_moduled'
+                onClick={() => handleclickChange(params.row, 'ingdetail')}
+              >
+                {params.row.recipe_name ? params.row.recipe_name : '-'}
+              </Typography>
+            </Tooltip>
           </Box>
         </Box>
       )

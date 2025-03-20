@@ -1169,7 +1169,8 @@ const StepBasicDetails = ({
                                     <Typography
                                       className='recipe_name'
                                       sx={{
-                                        pl: 3
+                                        pl: 3,
+                                        cursor: 'pointer'
                                       }}
                                       onClick={() => handleclickRecipeDetail(all.recipe_id)}
                                     >
@@ -1338,7 +1339,8 @@ const StepBasicDetails = ({
                                     <Typography
                                       className='recipe_name'
                                       sx={{
-                                        pl: 3
+                                        pl: 3,
+                                        cursor: 'pointer'
                                       }}
                                       onClick={() => handleclickComboDetail(all.recipe_id)}
                                     >
@@ -1632,7 +1634,7 @@ const StepBasicDetails = ({
                                     </span>{' '}
                                   </Typography>
                                 </Grid>
-                                <Grid item xs={12} sm={2.3} sx={{ pl:1 }}>
+                                <Grid item xs={12} sm={2.3} sx={{ pl: 1 }}>
                                   <Typography className='w_155'>
                                     <Tooltip
                                       title={all?.ingredientList.map(all => all.preparation_type).join(', ')}

@@ -162,8 +162,8 @@ const FeedDetails = () => {
       )
     },
     {
-      flex: 0.5,
-      minWidth: 30,
+      flex: 0.9,
+      minWidth: 40,
       field: 'ingredient_name',
       headerName: 'INGREDIENTS',
       renderCell: params => (
@@ -382,7 +382,7 @@ const FeedDetails = () => {
                           FeedDetailsValue={FeedDetailsValue}
                           permission={dietModuleAccess === 'EDIT' || dietModuleAccess === 'DELETE' ? true : false}
                         />
-                        <Grid item xs={8}>
+                        <Grid item md={8} xs={12}>
                           <TabContext value={value}>
                             <TabList onChange={handleChange} aria-label='customized tabs example'>
                               <Tab

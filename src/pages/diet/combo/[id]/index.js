@@ -265,7 +265,7 @@ const RecipeDetail = () => {
                         getRecipeDetailval={getRecipeDetailval}
                       />
 
-                      <Grid item xs={8}>
+                      <Grid item md={8} xs={12}>
                         <TabContext value={value}>
                           <TabList onChange={handleChange} aria-label='customized tabs example'>
                             <Tab
