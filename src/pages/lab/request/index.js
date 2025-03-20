@@ -52,7 +52,7 @@ const ListOfRequest = () => {
   const handleClickRequestId = params => {
     const id = params.row.lab_test_id
     router.push({
-      pathname: `/lab/${id}`,
+      pathname: `/lab/request/${id}`,
       query: { lab_id: params.row.lab_id }
     })
   }
