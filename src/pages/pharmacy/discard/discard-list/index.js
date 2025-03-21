@@ -60,20 +60,23 @@ const ListOfDiscardProducts = () => {
   const { selectedPharmacy } = usePharmacyContext()
 
   const fetchTableData = useCallback(
-    async ({ sort, q, column, page, limit }) => {
+    async ({ sort, q, column, page, limit, filterDates }) => {
       console.log(page, 'page')
 
       try {
         setLoading(true)
-
+        const isEmptyDates = filterDates?.startDate === '' && filterDates?.endDate === ''
         const params = {
           sort,
           q,
           column,
-          ...(filterDates?.startDate !== '' && { from_date: filterDates?.startDate }),
-          ...(filterDates?.endDate !== '' && { to_date: filterDates?.endDate }),
-          page: page + 1,
-          limit
+          ...(isEmptyDates
+            ? { from_date: '', to_date: '' } // Explicitly send empty values
+            : filterDates?.startDate && filterDates?.endDate
+            ? { from_date: filterDates.startDate, to_date: filterDates.endDate }
+            : {}),
+          page: paginationModel.page + 1,
+          limit: paginationModel.pageSize
         }
 
         await getDiscardList({ params: params }).then(res => {
@@ -81,6 +84,23 @@ const ListOfDiscardProducts = () => {
           if (res?.success === true && res?.data?.list_items?.length > 0) {
             setTotal(parseInt(res?.data?.total_count))
             setRows(loadServerRows(paginationModel.page, res?.data?.list_items))
+            const urlParams = {
+              sort,
+              q,
+              column,
+              page: paginationModel?.page,
+              limit: paginationModel?.pageSize
+            }
+
+            if (isEmptyDates) {
+              urlParams.from_date = ''
+              urlParams.to_date = ''
+            } else if (filterDates?.startDate && filterDates?.endDate) {
+              urlParams.from_date = filterDates.startDate
+              urlParams.to_date = filterDates.endDate
+            }
+
+            updateUrlParams(urlParams)
           } else {
             setTotal(0)
             setRows([])
@@ -96,22 +116,21 @@ const ListOfDiscardProducts = () => {
   )
 
   useEffect(() => {
-    fetchTableData({
-      sort,
-      q: searchValue,
-      column: sortColumn,
-      page: paginationModel.page,
-      limit: paginationModel.pageSize
-    })
+    if (filterDates?.startDate !== undefined && filterDates?.endDate !== undefined) {
+      fetchTableData({ sort, q: searchValue, column: sortColumn, filterDates })
 
-    updateUrlParams({
-      sort,
-      q: searchValue,
-      column: sortColumn,
-      page: paginationModel.page,
-      limit: paginationModel.pageSize
-    })
-  }, [paginationModel.page, paginationModel.pageSize, selectedPharmacy, filterDates])
+      updateUrlParams({
+        sort,
+        q: searchValue,
+        column: sortColumn,
+        page: paginationModel?.page,
+        limit: paginationModel?.pageSize,
+        from_date: filterDates?.startDate || '',
+        to_date: filterDates?.endDate || ''
+      })
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedPharmacy.id, paginationModel.page, paginationModel.pageSize, filterDates])
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
@@ -155,7 +174,8 @@ const ListOfDiscardProducts = () => {
           q,
           column,
           page: paginationModel.page,
-          limit: paginationModel.pageSize
+          limit: paginationModel.pageSize,
+          filterDates
         })
         updateUrlParams({
           sort,
@@ -437,21 +457,31 @@ const ListOfDiscardProducts = () => {
 
   const handleDateRangeChange = (startDate, endDate) => {
     setPaginationModel({ page: 0, pageSize: 10 })
-    if (startDate && endDate) {
-      setFilterDates({
-        startDate: Utility.formatDate(startDate),
-        endDate: Utility.formatDate(endDate)
-      })
 
-      console.log('Date range selected:', { startDate, endDate })
-    } else {
-      setFilterDates({
-        startDate: '',
-        endDate: ''
-      })
+    const formattedStartDate = startDate ? Utility.formatDate(startDate) : ''
+    const formattedEndDate = endDate ? Utility.formatDate(endDate) : ''
 
-      console.log('Empty date range selected,', { startDate, endDate })
+    const updatedFilterDates = {
+      startDate: formattedStartDate,
+      endDate: formattedEndDate
     }
+
+    setFilterDates(updatedFilterDates)
+
+    // Ensure URL update happens AFTER state is set
+    setTimeout(() => {
+      updateUrlParams({
+        sort,
+        q: searchValue,
+        column: sortColumn,
+        page: 0, // Reset to first page when filtering
+        limit: paginationModel?.pageSize,
+        from_date: updatedFilterDates.startDate,
+        to_date: updatedFilterDates.endDate
+      })
+    }, 0) // Ensures state updates first
+
+    console.log('Date range selected:', updatedFilterDates)
   }
 
   return (
