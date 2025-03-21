@@ -6,7 +6,6 @@ export const ForgotPasswordProvider = ({ children }) => {
   const [forgotPasswordData, setForgotPasswordData] = useState(null)
   const [verifyOtpData, setVerifyOtpData] = useState(null)
 
-  // Load data from localStorage only on the client-side
   useEffect(() => {
     if (typeof window !== 'undefined') {
       const storedForgotPasswordData = localStorage.getItem('forgotPasswordData')
@@ -17,7 +16,7 @@ export const ForgotPasswordProvider = ({ children }) => {
     }
   }, [])
 
-  // Save data to localStorage when state updates
+  // Save data
   useEffect(() => {
     if (typeof window !== 'undefined' && forgotPasswordData) {
       localStorage.setItem('forgotPasswordData', JSON.stringify(forgotPasswordData))
@@ -30,7 +29,7 @@ export const ForgotPasswordProvider = ({ children }) => {
     }
   }, [verifyOtpData])
 
-  // Clear data on logout or after password reset
+  // Clear data
   const clearForgotPasswordData = () => {
     if (typeof window !== 'undefined') {
       localStorage.removeItem('forgotPasswordData')
