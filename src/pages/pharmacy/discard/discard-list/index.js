@@ -33,7 +33,7 @@ const ListOfDiscardProducts = () => {
   /***** Server side pagination */
   const updateUrlParams = params => {
     const query = { ...router.query, ...params }
-    router.push({ pathname: router.pathname, query }, undefined, { shallow: true })
+    router.replace({ pathname: router.pathname, query }, undefined, { shallow: true })
   }
 
   const [loader, setLoader] = useState(false)
@@ -116,6 +116,7 @@ const ListOfDiscardProducts = () => {
   )
 
   useEffect(() => {
+    debugger
     if (filterDates?.startDate !== undefined && filterDates?.endDate !== undefined) {
       fetchTableData({ sort, q: searchValue, column: sortColumn, filterDates })
 
