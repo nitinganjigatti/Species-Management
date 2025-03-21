@@ -76,8 +76,6 @@ const LoginPage = () => {
   const theme = useTheme()
   const { settings } = useSettings()
 
-  console.log(auth.loading, 'auth')
-
   // ** Vars
   const { skin } = settings
 
@@ -92,7 +90,7 @@ const LoginPage = () => {
     resolver: yupResolver(schema)
   })
 
-  const onSubmit = data => {
+  const onSubmit = async data => {
     const { email, password } = data
     auth.login({ email, password, rememberMe }, () => {
       setError('email', {
@@ -169,7 +167,7 @@ const LoginPage = () => {
             <LinkStyled href='/forgot-password'>Forgot Password?</LinkStyled>
           </Box>
 
-          <CustomButton type='submit' fullWidth size='large' sx={{ mb: 4, mt: 3 }} loading={auth.loading}>
+          <CustomButton type='submit' fullWidth size='large' sx={{ mb: 4, mt: 3 }} loading={auth.loginLoading}>
             Login
           </CustomButton>
         </form>

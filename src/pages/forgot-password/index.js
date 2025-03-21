@@ -37,6 +37,7 @@ import { useState } from 'react'
 import { sendOTP } from 'src/lib/api/login'
 import toast from 'react-hot-toast'
 import Utility from 'src/utility'
+import { useForgotPassword } from 'src/context/ForgotPasswordContext'
 
 const TypographyStyled = styled(Typography)(({ theme }) => ({
   fontWeight: 600,
@@ -51,6 +52,7 @@ const ForgotPassword = () => {
   const { settings } = useSettings()
   const { skin } = settings
   const hidden = useMediaQuery(theme.breakpoints.down('md'))
+  const { setForgotPasswordData } = useForgotPassword()
 
   const schema = yup.object().shape({
     // email: yup.string().email('Enter a valid email').required('Email is required')
@@ -88,29 +90,30 @@ const ForgotPassword = () => {
       const response = await sendOTP(payload)
       console.log('OTP Sent:', response)
       if (response.success === true) {
-        const { user_id, account_status, user_email, user_mobile_number, temp_auth_token } = response.data
+        // const { user_id, account_status, user_email, user_mobile_number, temp_auth_token } = response.data
 
-        const encryptedQuery = Utility.encryptData({
-          user_id,
-          account_status,
-          user_email,
-          user_mobile_number,
-          temp_auth_token
-        })
+        // const encryptedQuery = Utility.encryptData({
+        //   user_id,
+        //   account_status,
+        //   user_email,
+        //   user_mobile_number,
+        //   temp_auth_token
+        // })
         toast.success(response?.message)
         // setIsOtpSent(true)
-        // router.push('/verify-otp')
-        router.push({
-          pathname: '/verify-otp',
-          query: { data: encryptedQuery }
-          // query: {
-          //   user_id,
-          //   account_status,
-          //   user_email,
-          //   user_mobile_number,
-          //   temp_auth_token
-          // }
-        })
+        router.push('/verify-otp')
+        setForgotPasswordData(response.data)
+        // router.push({
+        //   pathname: '/verify-otp',
+        //   query: { data: encryptedQuery }
+        //   // query: {
+        //   //   user_id,
+        //   //   account_status,
+        //   //   user_email,
+        //   //   user_mobile_number,
+        //   //   temp_auth_token
+        //   // }
+        // })
         setLoading(false)
       } else {
         toast.error(response?.message)

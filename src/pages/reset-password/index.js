@@ -12,6 +12,7 @@ import { useRouter } from 'next/router'
 import { resetPassword } from 'src/lib/api/login'
 import toast from 'react-hot-toast'
 import Utility from 'src/utility'
+import { useForgotPassword } from 'src/context/ForgotPasswordContext'
 
 const ResetPassword = () => {
   const [isInteracted, setIsInteracted] = useState(false)
@@ -19,6 +20,8 @@ const ResetPassword = () => {
   const router = useRouter()
   const { data } = router.query
   const userData = data ? Utility.decryptData(data) : null
+
+  const { verifyOtpData, clearForgotPasswordData } = useForgotPassword()
 
   const {
     control,
@@ -57,16 +60,17 @@ const ResetPassword = () => {
     // Handle form submission logic here
 
     const payload = {
-      user_id: userData?.user_id,
+      user_id: verifyOtpData?.user_id,
       new_password: data.newPassword
     }
     try {
       setLoading(true)
-      const response = await resetPassword(payload, userData?.temp_auth_token)
+      const response = await resetPassword(payload, verifyOtpData?.temp_auth_token)
       console.log('resetPasswords :', response)
       if (response.success === true) {
         toast.success(response?.message)
         router.push('/login')
+        clearForgotPasswordData()
         setLoading(false)
       } else {
         toast.error(response?.message)
@@ -107,14 +111,14 @@ const ResetPassword = () => {
             mb: 2,
             bgcolor: '#FFFFFF66',
             p: 1,
-            pr: userData?.profile_pic ? 2 : 0,
+            pr: verifyOtpData ? 2 : 0,
             borderRadius: 4
           }}
         >
-          <Avatar src={userData?.profile_pic} alt='User' sx={{ width: 40, height: 40, mr: 1.5 }} />
+          <Avatar src={verifyOtpData?.profile_pic} alt='User' sx={{ width: 40, height: 40, mr: 1.5 }} />
           <Typography sx={{ color: 'customColors.OnSurfaceVariant', fontSize: '14px', fontWeight: 500 }}>
-            {userData?.user_first_name && userData?.user_last_name
-              ? `${userData?.user_first_name} ${userData?.user_last_name}`
+            {verifyOtpData?.user_first_name && verifyOtpData?.user_last_name
+              ? `${verifyOtpData?.user_first_name} ${verifyOtpData?.user_last_name}`
               : ''}
           </Typography>
         </Box>

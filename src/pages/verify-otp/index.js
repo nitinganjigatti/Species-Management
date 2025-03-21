@@ -22,6 +22,7 @@ import toast from 'react-hot-toast'
 import Icon from 'src/@core/components/icon'
 import { CircularProgress } from '@mui/material'
 import Utility from 'src/utility'
+import { useForgotPassword } from 'src/context/ForgotPasswordContext'
 
 const schema = yup.object().shape({
   //   otp: yup.string().length(4, 'Enter a valid 4-digit OTP').required('OTP is required')
@@ -41,6 +42,7 @@ const VerifyOtp = () => {
   const router = useRouter()
   const { data } = router.query
   const userData = data ? Utility.decryptData(data) : null
+  const { forgotPasswordData, setForgotPasswordData, setVerifyOtpData } = useForgotPassword()
 
   const [countdown, setCountdown] = useState(59)
   const [showResendOptions, setShowResendOptions] = useState(false)
@@ -50,6 +52,8 @@ const VerifyOtp = () => {
     whatsapp: false,
     email: false
   })
+
+  console.log('forgotPasswordData:', forgotPasswordData)
 
   useEffect(() => {
     if (countdown > 0) {
@@ -76,34 +80,31 @@ const VerifyOtp = () => {
 
     const payload = {
       otp: data.otp,
-      user_id: userData?.user_id
+      // user_id: userData?.user_id
+      user_id: forgotPasswordData?.user_id
     }
     try {
       setLoading(true)
-      const response = await verifyOTP(payload, userData?.temp_auth_token)
+      const response = await verifyOTP(payload, forgotPasswordData?.temp_auth_token)
       console.log('verify OTP :', response)
       if (response.success === true) {
+        setVerifyOtpData(response.data)
         toast.success(response?.message)
-        const { user_id, profile_pic, user_first_name, user_last_name, temp_auth_token } = response.data
+        router.push('/reset-password')
 
-        const encryptedQuery = Utility.encryptData({
-          user_id,
-          profile_pic,
-          user_first_name,
-          user_last_name,
-          temp_auth_token
-        })
-        router.push({
-          pathname: '/reset-password',
-          query: { data: encryptedQuery }
-          // query: {
-          //   user_id,
-          //   profile_pic,
-          //   user_first_name,
-          //   user_last_name,
-          //   temp_auth_token
-          // }
-        })
+        // const { user_id, profile_pic, user_first_name, user_last_name, temp_auth_token } = response.data
+
+        // const encryptedQuery = Utility.encryptData({
+        //   user_id,
+        //   profile_pic,
+        //   user_first_name,
+        //   user_last_name,
+        //   temp_auth_token
+        // })
+        // router.push({
+        //   pathname: '/reset-password',
+        //   query: { data: encryptedQuery }
+        // })
         setLoading(false)
       } else {
         toast.error(response?.message)
@@ -117,7 +118,7 @@ const VerifyOtp = () => {
 
   const sendOtpRequest = async medium => {
     const payload = {
-      user_email: userData?.user_email,
+      user_email: forgotPasswordData?.user_email,
       medium: medium
     }
 
@@ -127,28 +128,32 @@ const VerifyOtp = () => {
       console.log(`OTP Sent via ${medium}:`, response)
 
       if (response.success === true) {
-        const { user_id, account_status, user_email, user_mobile_number, temp_auth_token } = response.data
-
-        console.log('User Details:', {
-          user_id,
-          account_status,
-          user_email,
-          user_mobile_number,
-          temp_auth_token
-        })
-
+        setForgotPasswordData(response.data)
         toast.success(response?.message)
         setLoadingStates(prev => ({ ...prev, [medium]: false }))
-        router.push({
-          pathname: '/verify-otp',
-          query: {
-            user_id,
-            account_status,
-            user_email,
-            user_mobile_number,
-            temp_auth_token
-          }
-        })
+
+        // const { user_id, account_status, user_email, user_mobile_number, temp_auth_token } = response.data
+
+        // console.log('User Details:', {
+        //   user_id,
+        //   account_status,
+        //   user_email,
+        //   user_mobile_number,
+        //   temp_auth_token
+        // })
+
+        // toast.success(response?.message)
+        // setLoadingStates(prev => ({ ...prev, [medium]: false }))
+        // router.push({
+        //   pathname: '/verify-otp',
+        //   query: {
+        //     user_id,
+        //     account_status,
+        //     user_email,
+        //     user_mobile_number,
+        //     temp_auth_token
+        //   }
+        // })
       } else {
         toast.error(response?.message)
       }
@@ -165,7 +170,9 @@ const VerifyOtp = () => {
       // bgImage='/images/frog_img.png'
       logoSrc='/images/login/Vantara_Logo_registered.svg'
       title='Enter OTP'
-      subtitle={`Please enter the 4-digit OTP sent to your phone number ${userData?.user_mobile_number} `}
+      subtitle={`Please enter the 4-digit OTP sent to your phone number ${
+        forgotPasswordData?.user_mobile_number && forgotPasswordData?.user_mobile_number
+      } `}
     >
       <form noValidate autoComplete='off' onSubmit={handleSubmit(onSubmit)}>
         <FormControl fullWidth sx={{ mb: 6 }}>
