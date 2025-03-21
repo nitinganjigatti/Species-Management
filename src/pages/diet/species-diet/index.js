@@ -20,7 +20,8 @@ import {
   FormControl,
   InputLabel,
   Select,
-  MenuItem
+  MenuItem,
+  CircularProgress
 } from '@mui/material'
 
 // ** MUI Imports
@@ -52,6 +53,7 @@ const SpeciesDietList = () => {
   const [speciesDetailsDrawer, setSpeciesDetailsDrawer] = useState(false) // has to be modified
   // const [attachmentUploadConfirmDialog, setAttachmentUploadConfirmDialog] = useState(false) // has to be modified
   const [filterByDiet, setFilterByDiet] = useState('-1')
+  const [exportLoading, setExportLoading] = useState(false)
 
   ///////////////////////Filter-Code////////////////////////////
   // const [isSearchOpen, setIsSearchOpen] = useState(false)
@@ -173,7 +175,7 @@ const SpeciesDietList = () => {
     debounce(async q => {
       setSearchValue(q)
       try {
-        await fetchTableData(q)
+        await fetchTableData({ q })
       } catch (error) {
         console.error(error)
       }
@@ -643,6 +645,37 @@ const SpeciesDietList = () => {
     ////////////////////////////////////////////////////////////////////////////////
   ]
 
+  const handleExport = async () => {
+    try {
+      setExportLoading(true)
+
+      // const now = new Date()
+
+      // const timestamp = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(
+      //   2,
+      //   '0'
+      // )}/${now.getFullYear()}(${String(now.getHours()).padStart(2, '0')}:${String(now.getMinutes()).padStart(2, '0')})`
+
+      const params = {
+        // sort: sort,
+        q: searchValue,
+        // column: sortColumn,
+        response_type: 'csv',
+        with_diet: filterByDiet
+      }
+      const response = await getSpeciesList(params)
+      if (response?.success && response?.data) {
+        const csvFile = response?.data.split('/')
+        const fileName = csvFile[csvFile.length - 1]
+        Utility.downloadFileFromURL(response.data, `${fileName}`)
+      }
+    } catch (error) {
+      console.error('Error downloading Excel:', error)
+    } finally {
+      setExportLoading(false)
+    }
+  }
+
   const onCellClick = e => {
     // console.log('e.row.species_id', e.row.species_id)
     // console.log('e.field', e.field)
@@ -745,6 +778,44 @@ const SpeciesDietList = () => {
                   }
                 }}
               />
+            </Box>
+            <Box>
+              <Tooltip title='Export'>
+                <>
+                  {loading || exportLoading ? (
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        justifyContent: 'center',
+                        width: '40px',
+                        height: '40px',
+                        borderRadius: '4px',
+                        bgcolor: theme?.palette.customColors?.lightBg,
+                        alignItems: 'center',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      <CircularProgress color='success' size={30} />
+                    </Box>
+                  ) : (
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        justifyContent: 'center',
+                        width: '40px',
+                        height: '40px',
+                        borderRadius: '4px',
+                        bgcolor: theme?.palette.customColors?.lightBg,
+                        alignItems: 'center',
+                        cursor: 'pointer'
+                      }}
+                      onClick={handleExport}
+                    >
+                      <Icon icon='ic:round-download' fontSize={20} />
+                    </Box>
+                  )}
+                </>
+              </Tooltip>
             </Box>
             {/* <Box
               sx={{
