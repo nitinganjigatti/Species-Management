@@ -708,8 +708,8 @@ const Overview = props => {
               lineColor={'#37BD69'}
               seriesBarName='Dispatch Value'
               seriesLineName='Dispatch Count'
-              countLabel='Show Dispatch Count'
-              valueLabel='Show Dispatch Value'
+              barLabel='Show Dispatch Value'
+              lineLabel='Show Dispatch Count'
             />
           </Card>
         </Grid>
@@ -724,8 +724,8 @@ const Overview = props => {
               lineColor={'#AFEFEB'}
               seriesBarName='Purchase Value'
               seriesLineName='Purchase Count'
-              countLabel='Show Purchase Count'
-              valueLabel='Show Purchase Value'
+              barLabel='Show Purchase Value'
+              lineLabel='Show Purchase Count'
             />
           </Card>
         </Grid>
