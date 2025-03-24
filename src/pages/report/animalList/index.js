@@ -36,7 +36,7 @@ const AnimalList = () => {
   const { organizationList } = usePariveshContext()
   const authData = useContext(AuthContext)
   const reports_module = authData?.userData?.roles?.settings?.enable_reports_module
-  
+
   const categories = ['Site', 'Species']
   const enable_animal_report = authData?.userData?.permission?.user_settings?.enable_animal_report
   const { animalId } = router.query
@@ -66,7 +66,7 @@ const AnimalList = () => {
   const [sites, setSites] = useState(
     authData?.userData?.user?.zoos[0]?.sites?.slice().sort((a, b) => a.site_name.localeCompare(b.site_name)) || [] || []
   )
-  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
+  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 50 })
   const [total, setTotal] = useState(0)
 
   // const [selectedOptions, setSelectedOptions] = useState([])
@@ -1081,7 +1081,7 @@ const AnimalList = () => {
                     pagination={true}
                     columns={columns.length && columns}
                     pageSizeOptions={[7, 10, 25, 50]}
-                    rowsInView={7}
+                    rowsInView={10}
                     rowsInViewOptions={[5, 7, 10, 25, 50]}
                     paginationModel={paginationModel}
                     onPaginationModelChange={setPaginationModel}

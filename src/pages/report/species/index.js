@@ -59,7 +59,7 @@ const SpeciesReport = () => {
   const [sites, setSites] = useState(
     authData?.userData?.user?.zoos[0]?.sites?.slice().sort((a, b) => a.site_name.localeCompare(b.site_name)) || [] || []
   )
-  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
+  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 50 })
   const [total, setTotal] = useState(0)
 
   // const [selectedOptions, setSelectedOptions] = useState([])
@@ -132,7 +132,7 @@ const SpeciesReport = () => {
       setIsLoader(true)
       const response = await getSpeciesListing()
       if (response.success) {
-        console.log('Response >', response.data)
+        // console.log('Response >', response.data)
         setIsLoader(false)
         setSpeciesList(response.data.result)
       } else {
@@ -276,7 +276,7 @@ const SpeciesReport = () => {
 
   useEffect(() => {
     if (router.pathname === '/report/species') {
-      console.log('Before apiFilterParams', apiFilterParams)
+      // console.log('Before apiFilterParams', apiFilterParams)
       setSelectedSites([])
       setSelectedOptions({})
       setApiFilterParams(() => initialFilterParams) // Ensures the update happens correctly
@@ -298,7 +298,7 @@ const SpeciesReport = () => {
         pinned: 'left',
         sortable: false,
         disableColumnMenu: true,
-        width: 400,
+        width: 320,
         renderCell: params => (
           <CardHeader
             sx={{ paddingX: 0 }}
@@ -1094,7 +1094,7 @@ const SpeciesReport = () => {
                       pagination={true}
                       columns={columns.length && columns}
                       pageSizeOptions={[7, 10, 25, 50]}
-                      rowsInView={7}
+                      rowsInView={10}
                       rowsInViewOptions={[5, 7, 10, 25, 50]}
                       paginationModel={paginationModel}
                       onPaginationModelChange={setPaginationModel}

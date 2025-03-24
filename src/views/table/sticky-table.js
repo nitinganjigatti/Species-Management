@@ -76,7 +76,7 @@ const StickyTable = ({
       ...nonPinnedColumns,
       ...rightPinnedColumns // Right pinned columns in normal order
     ]
-    console.log('columns', columns)
+    // console.log('columns', columns)
     setRearrangedColumns(prev => Columns)
   }, [columns])
 
@@ -252,7 +252,7 @@ const StickyTable = ({
 
     rightOffset = rightOffset + totalWidth
     return (
-      <TableRow sx={{ backgroundColor: '#e8f5f2', position: 'relative', zIndex: 200 }}>
+      <TableRow sx={{ position: 'relative', zIndex: 200 }}>
         {rowSelection && (
           <TableCell
             sx={{
@@ -260,7 +260,6 @@ const StickyTable = ({
               position: 'sticky',
               left: 0,
               zIndex: 200,
-              backgroundColor: '#e8f5f2',
               fontWeight: 'bold',
               width: '48px'
             }}
@@ -331,7 +330,6 @@ const StickyTable = ({
                 minWidth: isGrouped ? widthWithSubHeader : col.width,
                 maxWidth: isGrouped ? widthWithSubHeader : col.width,
                 fontWeight: 'bold',
-                backgroundColor: '#e8f5f2',
                 color: theme.palette.customColors.OnSecondaryContainer,
                 // borderRight: '1px solid pink',
                 borderBottom: 'none',
@@ -627,10 +625,10 @@ const StickyTable = ({
             // backgroundColor: rowIndex % 2 === 0 ? '#f9f9f9' : 'white',
             backgroundColor: 'white',
             position: 'relative',
-            cursor: onRowClick && 'pointer',
-            '&:hover': {
-              backgroundColor: !onCellClick && onRowClick && '#ECFFDC'
-            }
+            cursor: onRowClick && 'pointer'
+            // '&:hover': {
+            //   backgroundColor: !onCellClick && onRowClick && '#ECFFDC'
+            // }
           }}
         >
           {rowSelection && (
@@ -734,9 +732,9 @@ const StickyTable = ({
                       maxWidth: subCol.width,
                       backgroundColor: 'inherit',
                       cursor: onCellClick && 'pointer',
-                      '&:hover': {
-                        backgroundColor: onCellClick && '#ECFFDC'
-                      },
+                      // '&:hover': {
+                      //   backgroundColor: onCellClick && '#ECFFDC'
+                      // },
                       ...pinnedStyle,
                       ...borderStyle,
                       ...col.columnStyle,
@@ -765,9 +763,9 @@ const StickyTable = ({
 
                   backgroundColor: 'inherit',
                   cursor: onCellClick && 'pointer',
-                  '&:hover': {
-                    backgroundColor: onCellClick && '#ECFFDC'
-                  },
+                  // '&:hover': {
+                  //   backgroundColor: onCellClick && '#ECFFDC'
+                  // },
                   ...pinnedStyle,
                   ...borderStyle,
                   ...col.columnStyle,
@@ -917,10 +915,9 @@ const StickyTable = ({
             position: 'relative',
             border: '1px solid #ddd',
             overflow: loading ? 'hidden' : 'auto',
-            '&::-webkit-scrollbar': { width: '4px', height: '4px' },
-            '&::-webkit-scrollbar-thumb': { backgroundColor: '#aaa', borderRadius: '4px' },
-            '&::-webkit-scrollbar-thumb:hover': { backgroundColor: '#888' },
-            '&::-webkit-scrollbar-track': { backgroundColor: '#f0f0f0' }
+            '&::-webkit-scrollbar': { width: '0px', height: '0px' }
+            // '&::-webkit-scrollbar-thumb:hover': { backgroundColor: '#888' },
+            // '&::-webkit-scrollbar-track': { backgroundColor: '#f0f0f0' }
           }}
         >
           <Table stickyHeader>
