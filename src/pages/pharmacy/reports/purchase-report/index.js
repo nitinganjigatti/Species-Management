@@ -34,8 +34,6 @@ const PurchaseReport = () => {
   const theme = useTheme()
   const { selectedPharmacy } = usePharmacyContext()
 
-  console.log(selectedPharmacy)
-
   const updateUrlParams = params => {
     const query = { ...router.query, ...params }
     router.push({ pathname: router.pathname, query }, undefined, { shallow: true })

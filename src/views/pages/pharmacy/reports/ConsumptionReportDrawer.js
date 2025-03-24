@@ -1,11 +1,33 @@
 import { useTheme } from '@emotion/react'
 import { LoadingButton } from '@mui/lab'
-import { Badge, Checkbox, Divider, Drawer, Grid, IconButton, TextField, Typography } from '@mui/material'
+import {
+  Badge,
+  Checkbox,
+  Divider,
+  Drawer,
+  FormControl,
+  Grid,
+  IconButton,
+  MenuItem,
+  Select,
+  TextField,
+  Typography
+} from '@mui/material'
 import { Box, styled } from '@mui/system'
 import React, { useCallback, useEffect, useState } from 'react'
 import Icon from 'src/@core/components/icon'
 
-const leftMenu = [{ id: 1, name: 'Pharmacy' }]
+const leftMenu = [
+  { id: 1, name: 'Pharmacy' },
+  { id: 2, name: 'Product Type' },
+  { id: 3, name: 'Drug Type' }
+]
+
+const drugTypeOptions = [
+  { id: 'all', name: 'All' },
+  { id: 'controlled', name: 'Controlled' },
+  { id: 'prescription', name: 'Prescription' }
+]
 
 const StyledBadge = styled(Badge)(({ theme }) => ({
   '& .MuiBadge-badge': {
@@ -19,13 +41,22 @@ const ConsumptionReportDrawer = ({
   onApplyFilter,
   selectedOptions,
   setSelectedOptions,
-  pharmacyList
+  pharmacyList,
+  productTypes,
+  handleSelectAllProductTypes,
+  handleSelectAllPharmacy
 }) => {
   const theme = useTheme()
 
   const [selectedMenu, setSelectedMenu] = useState(leftMenu[0])
-  const [selectAll, setSelectAll] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
+
+  const isAllProductTypesSelected =
+    productTypes?.length > 0 && selectedOptions['Product Type']?.length === productTypes?.length
+
+  const isAllPharmaciesSelected =
+    pharmacyList?.length > 0 && selectedOptions['Pharmacy']?.length === pharmacyList?.length
 
   const handleCloseDrawer = () => {
     setOpenFilterDrawer(false)
@@ -34,19 +65,6 @@ const ConsumptionReportDrawer = ({
   const handleMenuClick = menu => {
     setSelectedMenu(menu)
   }
-
-  const handleSelectAll = useCallback(
-    (list, filterFn, menuName, event) => {
-      const filteredList = list?.filter(filterFn) || []
-
-      setSelectedOptions(prevOptions => ({
-        ...prevOptions,
-        [menuName]: event.target.checked ? filteredList.map(item => item.id) : []
-      }))
-      setSelectAll(event.target.checked)
-    },
-    [setSelectedOptions, setSelectAll]
-  )
 
   const handleCheckbox = useCallback(
     (id, menuName) => {
@@ -64,27 +82,20 @@ const ConsumptionReportDrawer = ({
     [setSelectedOptions]
   )
 
+  const handleDrugTypeChange = event => {
+    setSelectedOptions(prevOptions => ({
+      ...prevOptions,
+      'Drug Type': event.target.value
+    }))
+  }
+
   const handleSearch = useCallback(event => {
     setSearchQuery(event.target.value)
   }, [])
 
-  useEffect(() => {
-    if (selectedMenu.name === 'Pharmacy') {
-      const filteredList = pharmacyList?.filter(pharmacy =>
-        pharmacy.name.toLowerCase().includes(searchQuery.toLowerCase())
-      )
-      if (
-        filteredList?.length > 0 &&
-        filteredList?.every(pharmacy => selectedOptions['Pharmacy']?.includes(pharmacy.id))
-      ) {
-        setSelectAll(true)
-      } else {
-        setSelectAll(false)
-      }
-    }
-  }, [selectedOptions, searchQuery, pharmacyList, selectedMenu])
-
-  const applyFilters = () => {
+  const applyFilters = useCallback(() => {
+    if (isSubmitting) return
+    setIsSubmitting(true)
     const filterData = {}
 
     //Attach Pharmacy filters to object to send
@@ -92,17 +103,38 @@ const ConsumptionReportDrawer = ({
       filterData.pharmacy = selectedOptions['Pharmacy']
     }
 
+    if (selectedOptions['Product Type'] && selectedOptions['Product Type'].length > 0) {
+      filterData.productType = selectedOptions['Product Type']
+    }
+
+    if (selectedOptions['Drug Type'] && selectedOptions['Drug Type'] !== 'all') {
+      filterData[selectedOptions['Drug Type']] = 1
+    }
+
     onApplyFilter(filterData)
     setOpenFilterDrawer(false)
-  }
+    setIsSubmitting(false)
+  }, [selectedOptions, onApplyFilter, setOpenFilterDrawer, isSubmitting])
 
   const getMenuBadgeCount = menuName => {
+    if (menuName === 'Drug Type') {
+      return selectedOptions[menuName] && selectedOptions[menuName] !== 'all' ? 1 : 0
+    }
+
     return selectedOptions[menuName] ? selectedOptions[menuName].length : 0
   }
 
   const filteredPharmacyList = pharmacyList?.filter(pharmacy =>
     pharmacy.name.toLowerCase().includes(searchQuery.toLowerCase())
   )
+
+  const handlePharmacySelectAll = () => {
+    handleSelectAllPharmacy()
+  }
+
+  const handleProductTypeSelectAll = () => {
+    handleSelectAllProductTypes()
+  }
 
   return (
     <Drawer
@@ -228,16 +260,10 @@ const ConsumptionReportDrawer = ({
                   </Box>
                   <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
                     <Checkbox
-                      checked={selectAll}
+                      checked={isAllPharmaciesSelected}
+                      indeterminate={selectedOptions['Pharmacy']?.length > 0 && !isAllPharmaciesSelected}
                       inputProps={{ 'aria-label': 'controlled' }}
-                      onChange={e =>
-                        handleSelectAll(
-                          filteredPharmacyList,
-                          pharmacy => pharmacy.name.toLowerCase().includes(searchQuery.toLowerCase()),
-                          'Pharmacy',
-                          e
-                        )
-                      }
+                      onChange={handlePharmacySelectAll}
                     />
                     <Typography sx={{ fontSize: '16px', fontWeight: 400, color: '#839D8D' }}>Select All</Typography>
                   </Box>
@@ -254,6 +280,59 @@ const ConsumptionReportDrawer = ({
                       </Typography>
                     </Box>
                   ))}
+                </>
+              ) : selectedMenu.name === 'Product Type' ? (
+                <>
+                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
+                    <Checkbox
+                      checked={isAllProductTypesSelected}
+                      indeterminate={selectedOptions['Product Type']?.length > 0 && !isAllProductTypesSelected}
+                      inputProps={{ 'aria-label': 'controlled' }}
+                      onChange={handleProductTypeSelectAll}
+                    />
+                    <Typography sx={{ fontSize: '16px', fontWeight: 400, color: '#839D8D' }}>Select All</Typography>
+                  </Box>
+                  <Divider sx={{ mb: 3 }} />
+                  {productTypes?.map(type => (
+                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }} key={type?.id}>
+                      <Checkbox
+                        inputProps={{ 'aria-label': 'controlled' }}
+                        checked={selectedOptions['Product Type']?.includes(type?.id)}
+                        onChange={() => handleCheckbox(type?.id, 'Product Type')}
+                      />
+                      <Typography sx={{ fontSize: '16px', fontWeight: 400, color: '#839D8D' }}>{type?.name}</Typography>
+                    </Box>
+                  ))}
+                </>
+              ) : selectedMenu.name === 'Drug Type' ? (
+                <>
+                  <FormControl fullWidth>
+                    <Select
+                      value={selectedOptions['Drug Type'] || 'all'}
+                      onChange={handleDrugTypeChange}
+                      sx={{
+                        '& .MuiSelect-select': {
+                          fontSize: '16px',
+                          fontWeight: 400,
+                          color: '#839D8D'
+                        }
+                      }}
+                    >
+                      {drugTypeOptions.map(option => (
+                        <MenuItem
+                          key={option.id}
+                          value={option.id}
+                          sx={{
+                            fontSize: '16px',
+                            fontWeight: 400,
+                            color: '#839D8D'
+                          }}
+                        >
+                          {option.name}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
                 </>
               ) : null}
             </Box>
@@ -280,7 +359,7 @@ const ConsumptionReportDrawer = ({
         <LoadingButton fullWidth variant='outlined' size='large' onClick={handleCloseDrawer}>
           CLOSE
         </LoadingButton>
-        <LoadingButton fullWidth variant='contained' size='large' onClick={applyFilters}>
+        <LoadingButton fullWidth variant='contained' size='large' onClick={applyFilters} disabled={isSubmitting}>
           APPLY FILTER
         </LoadingButton>
       </Box>

@@ -26,6 +26,14 @@ import ConsumptionReportDrawer from 'src/views/pages/pharmacy/reports/Consumptio
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import { format, subMonths } from 'date-fns'
 
+const productTypes = [
+  { id: 'allopathy', name: 'Allopathy' },
+  { id: 'ayurveda', name: 'Ayurveda' },
+  { id: 'unani', name: 'Unani' },
+  { id: 'homeopathy', name: 'Homeopathy' },
+  { id: 'non_medical', name: 'Non Medical' }
+]
+
 const ConsumptionReport = () => {
   const router = useRouter()
   const theme = useTheme()
@@ -34,7 +42,7 @@ const ConsumptionReport = () => {
 
   const updateUrlParams = params => {
     const query = { ...router.query, ...params }
-    router.push({ pathname: router.pathname, query }, undefined, { shallow: true })
+    router.replace({ pathname: router.pathname, query }, undefined, { shallow: true })
   }
 
   const [rows, setRows] = useState([])
@@ -45,6 +53,8 @@ const ConsumptionReport = () => {
   const [searchValue, setSearchValue] = useState(router.query.q || '')
   const [exportLoading, setExportLoading] = useState(false)
   const [openFilterDrawer, setOpenFilterDrawer] = useState(false)
+  const [selectAllPharmacy, setSelectAllPharmacy] = useState(false)
+  const [selectAllProductTypes, setSelectAllProductTypes] = useState(false)
 
   const [filteredData, setFilteredData] = useState({
     pharmacy: []
@@ -52,7 +62,9 @@ const ConsumptionReport = () => {
   const [pharmacyList, setPharmacyList] = useState([])
 
   const [selectedOptions, setSelectedOptions] = useState({
-    Pharmacy: []
+    Pharmacy: [],
+    'Product Type': [],
+    'Drug Type': 'all'
   })
 
   const [paginationModel, setPaginationModel] = useState({
@@ -88,6 +100,36 @@ const ConsumptionReport = () => {
     pharmacyList()
   }, [selectedPharmacy])
 
+  const handleSelectAllPharmacy = () => {
+    setSelectAllPharmacy(!selectAllPharmacy)
+    if (!selectAllPharmacy) {
+      setSelectedOptions({
+        ...selectedOptions,
+        Pharmacy: pharmacyList.map(p => p.id)
+      })
+    } else {
+      setSelectedOptions({
+        ...selectedOptions,
+        Pharmacy: []
+      })
+    }
+  }
+
+  const handleSelectAllProductTypes = () => {
+    setSelectAllProductTypes(!selectAllProductTypes)
+    if (!selectAllProductTypes) {
+      setSelectedOptions({
+        ...selectedOptions,
+        'Product Type': productTypes.map(pr => pr.id)
+      })
+    } else {
+      setSelectedOptions({
+        ...selectedOptions,
+        'Product Type': []
+      })
+    }
+  }
+
   function loadServerRows(currentPage, data) {
     return data
   }
@@ -108,7 +150,12 @@ const ConsumptionReport = () => {
           ...(filterDates?.endDate !== '' && { to_date: filterDates?.endDate }),
           ...(filteredData &&
             filteredData.pharmacy &&
-            filteredData.pharmacy.length > 0 && { store_id: filteredData.pharmacy.join(',') })
+            filteredData.pharmacy.length > 0 && { store_id: filteredData.pharmacy.join(',') }),
+          ...(filteredData &&
+            filteredData.productType &&
+            filteredData.productType.length > 0 && { product_type: filteredData.productType.join(',') }),
+          ...(filteredData && filteredData.controlled && { controlled: filteredData.controlled }),
+          ...(filteredData && filteredData.prescription && { prescription: filteredData.prescription })
         }
 
         await getConsumptionReport({ params: params }).then(res => {
@@ -187,20 +234,21 @@ const ConsumptionReport = () => {
       headerName: 'PRODUCT NAME',
       sortable: true,
       renderCell: params => (
-        <Tooltip title={params.row.stock_name}>
+        <Tooltip title={params.row?.stock_name} placement='top'>
           <Typography
-            variant='body2'
             sx={{
-              color: theme.palette.customColors.customHeadingTextColor,
+              color: 'customColors.OnSecondaryContainer',
+              display: 'flex',
+              alignItems: 'center',
+              fontWeight: 500,
               fontSize: '14px',
-              fontWeight: 400,
-              fontFamily: 'Inter',
-              overflow: 'hidden',
-              whiteSpace: 'nowrap',
-              textOverflow: 'ellipsis',
-              maxWidth: 200
+              ...RenderUtility?.getEllipsisStyleForText()
             }}
           >
+            {RenderUtility?.renderControlLabel(
+              !isNaN(params.row?.controlled_substance) && parseInt(params.row?.controlled_substance) === 1,
+              'CS'
+            )}
             <span alt={params.row.stock_name}> {params.row.stock_name}</span>
           </Typography>
         </Tooltip>
@@ -234,10 +282,25 @@ const ConsumptionReport = () => {
     },
     {
       minWidth: 20,
-      width: 190,
+      width: 170,
       field: 'total_consumption_quantity',
-      headerName: 'CONSUMPTION QUANTITY',
+      headerName: '',
       sortable: true,
+      renderHeader: () => (
+        <div
+          style={{
+            whiteSpace: 'normal',
+            lineHeight: '1',
+            textAlign: 'center',
+            fontSize: '12px',
+            fontWeight: 450
+          }}
+        >
+          CONSUMPTION
+          <br />
+          QUANTITY
+        </div>
+      ),
       renderCell: params => (
         <Typography
           variant='body2'
@@ -256,8 +319,23 @@ const ConsumptionReport = () => {
       minWidth: 20,
       width: 190,
       field: 'total_consumption_cost',
-      headerName: 'CONSUMPTION COST',
+      headerName: '',
       sortable: true,
+      renderHeader: () => (
+        <div
+          style={{
+            whiteSpace: 'normal',
+            lineHeight: '1',
+            textAlign: 'center',
+            fontSize: '12px',
+            fontWeight: 450
+          }}
+        >
+          CONSUMPTION
+          <br />
+          VALUE
+        </div>
+      ),
       renderCell: params => (
         <Typography
           variant='body2'
@@ -276,8 +354,23 @@ const ConsumptionReport = () => {
       minWidth: 20,
       width: 190,
       field: 'available_qty',
-      headerName: 'AVAILABLE QUANTITY',
+      headerName: '',
       sortable: true,
+      renderHeader: () => (
+        <div
+          style={{
+            whiteSpace: 'normal',
+            lineHeight: '1',
+            textAlign: 'center',
+            fontSize: '12px',
+            fontWeight: 450
+          }}
+        >
+          CURRENT STOCK
+          <br />
+          AVAILABLE
+        </div>
+      ),
       renderCell: params => (
         <Typography
           variant='body2'
@@ -433,6 +526,11 @@ const ConsumptionReport = () => {
         ...(filteredData &&
           filteredData.pharmacy &&
           filteredData.pharmacy.length > 0 && { store_id: filteredData.pharmacy.join(',') }),
+        ...(filteredData &&
+          filteredData.productType &&
+          filteredData.productType.length > 0 && { product_type: filteredData.productType.join(',') }),
+        ...(filteredData && filteredData.controlled && { controlled: filteredData.controlled }),
+        ...(filteredData && filteredData.prescription && { prescription: filteredData.prescription }),
         response_type: 'csv'
       }
       const response = await getConsumptionReport({ params })
@@ -453,10 +551,20 @@ const ConsumptionReport = () => {
       count++
     }
 
+    if (filteredData && filteredData.productType && filteredData.productType.length > 0) {
+      count++
+    }
+
+    if (filteredData && (filteredData.controlled || filteredData.prescription)) {
+      count++
+    }
+
     return count
   }
 
   const appliedFiltersCount = calculateAppliedFiltersCount()
+
+  console.log(filteredData)
 
   return (
     <>
@@ -619,6 +727,9 @@ const ConsumptionReport = () => {
           selectedOptions={selectedOptions}
           setSelectedOptions={setSelectedOptions}
           pharmacyList={pharmacyList}
+          productTypes={productTypes}
+          handleSelectAllPharmacy={handleSelectAllPharmacy}
+          handleSelectAllProductTypes={handleSelectAllProductTypes}
         />
       )}
     </>

@@ -320,7 +320,7 @@ const RequestedItemFilterDrawer = ({
                     <Checkbox
                       checked={selectAllUser}
                       inputProps={{ 'aria-label': 'controlled' }}
-                      onChange={handleSelectAllUser}
+                      onChange={handleUserSelectAll}
                     />
                     <Typography sx={{ fontSize: '16px', fontWeight: 400, color: '#839D8D' }}>Select All</Typography>
                   </Box>
