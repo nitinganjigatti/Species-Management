@@ -83,6 +83,7 @@ const UserThemeOptions = () => {
 
         // *** name required
         customTableCellBg: '#FCF4AE33',
+        activeMenuGroup: '#DAE7DF99',
 
         // **
         neutral05: '#0000000D',
