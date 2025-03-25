@@ -1,8 +1,28 @@
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import { alpha, Box, Card, Typography } from '@mui/material'
 import Image from 'next/image'
 
+const backgroundImages = [
+  '/images/login/Login_Bg_Image_1.svg',
+  '/images/login/Login_Bg_Image_2.svg',
+  '/images/login/Login_Bg_Image_3.svg'
+]
+
 const CommonCard = ({ children, bgImage, logoVantara, logoAntz, title, subtitle, sx = {} }) => {
+  // const [currentBgImage, setCurrentBgImage] = useState(backgroundImages[0])
+
+  // useEffect(() => {
+  //   const interval = setInterval(() => {
+  //     setCurrentBgImage(prevImage => {
+  //       const currentIndex = backgroundImages.indexOf(prevImage)
+  //       const nextIndex = (currentIndex + 1) % backgroundImages.length
+  //       return backgroundImages[nextIndex]
+  //     })
+  //   }, 60000) // 60000ms = 1 minute
+
+  //   return () => clearInterval(interval) // Cleanup interval on component unmount
+  // }, [])
+
   return (
     <Box
       sx={{
