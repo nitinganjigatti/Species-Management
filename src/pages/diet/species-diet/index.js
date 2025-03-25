@@ -39,9 +39,10 @@ import ErrorScreen from 'src/pages/Error'
 import SpeciesDetails from './speciesDetails'
 import { getSpeciesList, speciesAttachmentUpload } from 'src/lib/api/diet/speciesDiet'
 import Toaster from 'src/components/Toaster'
+import UploadDiet from './uploadDiet'
 
 const SpeciesDietList = () => {
-  const colWidths = [65, 300, 140, 100]
+  const colWidths = [65, 300, 200, 100]
   const theme = useTheme()
   const [total, setTotal] = useState(0)
   const [rows, setRows] = useState([])
@@ -51,6 +52,7 @@ const SpeciesDietList = () => {
   const [loading, setLoading] = useState(false)
 
   const [speciesDetailsDrawer, setSpeciesDetailsDrawer] = useState(false) // has to be modified
+  const [uploadDietDrawer, setUploadDietDrawer] = useState(false) // has to be modified
   // const [attachmentUploadConfirmDialog, setAttachmentUploadConfirmDialog] = useState(false) // has to be modified
   const [filterByDiet, setFilterByDiet] = useState('-1')
   const [exportLoading, setExportLoading] = useState(false)
@@ -78,6 +80,7 @@ const SpeciesDietList = () => {
   const [attachmentWidth, setAttachmentWidth] = useState(0)
   const [uploadingAttachment, setUploadingAttachment] = useState(false)
   const [speciesId, setspeciesId] = useState(null)
+  const [speciesData, setSpeciesData] = useState({})
 
   ///////////////////////////////////////////////////
 
@@ -110,7 +113,7 @@ const SpeciesDietList = () => {
   //   setAttachmentUploadConfirmDialog(false)
   // }
 
-  const fileInputRef = useRef(null)
+  // const fileInputRef = useRef(null)
 
   const authData = useContext(AuthContext)
 
@@ -199,15 +202,15 @@ const SpeciesDietList = () => {
     // console.log('speciesIdup', speciesId)
 
     const allowedTypes = [
-      'application/pdf',
-      'image/jpeg',
-      'image/png',
-      'image/gif',
-      'application/msword',
-      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-      'application/vnd.ms-excel',
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-      'text/csv'
+      'application/pdf'
+      // 'image/jpeg',
+      // 'image/png',
+      // 'image/gif',
+      // 'application/msword',
+      // 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      // 'application/vnd.ms-excel',
+      // 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      // 'text/csv'
     ]
     if (!file || !allowedTypes.includes(file.type)) {
       Toaster({ type: 'error', message: 'Please select a valid file.' })
@@ -319,9 +322,10 @@ const SpeciesDietList = () => {
     },
     {
       width: colWidths[2],
+      // flex: 1,
       sortable: false,
-      field: 'diet_assigned',
-      headerName: 'DIETS ASSIGNED',
+      field: 'attachment_count',
+      headerName: 'ACTIVE DIETS',
       renderCell: params => (
         <Tooltip title={params.row.attachment_count ? params.row.attachment_count : '-'}>
           <Typography
@@ -337,6 +341,31 @@ const SpeciesDietList = () => {
             }}
           >
             {params.row.attachment_count ? params.row.attachment_count : '-'}
+          </Typography>
+        </Tooltip>
+      )
+    },
+    {
+      width: colWidths[2],
+      // flex: 1,
+      sortable: false,
+      field: 'inactive_attachment_count',
+      headerName: 'INACTIVE DIETS',
+      renderCell: params => (
+        <Tooltip title={params.row.inactive_attachment_count ? params.row.inactive_attachment_count : '-'}>
+          <Typography
+            noWrap
+            sx={{
+              color: theme.palette.customColors.OnSurfaceVariant,
+              fontSize: '16px',
+              fontWeight: '400',
+              lineHeight: '19.36px',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              ml: 2
+            }}
+          >
+            {params.row.inactive_attachment_count ? params.row.inactive_attachment_count : '-'}
           </Typography>
         </Tooltip>
       )
@@ -447,160 +476,161 @@ const SpeciesDietList = () => {
     //     )
     //   }
     // },
-    {
-      // width: ,
-      width: attachmentWidth,
-      sortable: false,
-      field: 'diet_attached',
-      headerName: 'Primary Diets',
-      renderCell: ({ row }) => {
-        return (
-          <Box sx={{ ml: 1, width: '100%', display: 'flex', gap: 2, justifyContent: 'space-between' }}>
-            {/* Attachment Section */}
-            <Box onClick={() => setSpeciesDetailsDrawer(true)} sx={{ width: '100%', display: 'flex', gap: 2 }}>
-              {uploadingAttachment === true && speciesId == row.species_id && (
-                <Box
-                  sx={{
-                    width: '144px',
-                    height: '32px',
-                    padding: '6px',
-                    borderRadius: '4px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '4px',
-                    backgroundColor: theme.components.MuiDialog.styleOverrides.paper.backgroundColor
-                  }}
-                >
-                  <Avatar variant='rounded' alt='Medicine Image' sx={{ width: 20, height: 20, overflow: 'hidden' }}>
-                    <img style={{ width: '100%', height: '100%' }} src={'/icons/files_green.svg'} alt='Profile' />
-                  </Avatar>
-                  <Box sx={{ width: '110px' }}>
-                    <Typography
-                      noWrap
-                      sx={{
-                        color: theme.palette.customColors.OnSurfaceVariant,
-                        fontSize: '16px',
-                        fontWeight: '400',
-                        lineHeight: '19.36px',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis'
-                      }}
-                    >
-                      uploading...
-                    </Typography>
-                    <LinearProgress sx={{ height: '2px' }} value={50} />
-                  </Box>
-                </Box>
-              )}
-              {row.attachments.length > 0 ? (
-                attachmentWidth > 250 ? (
-                  <>
-                    {row.attachments.slice(0, Math.floor((attachmentWidth - 100) / 150)).map((item, index) => (
-                      <Box
-                        key={index}
-                        onClick={e => {
-                          e.stopPropagation()
-                          window.open(item.file, '_blank')
-                        }}
-                        sx={{
-                          width: '144px',
-                          height: '32px',
-                          padding: '6px',
-                          borderRadius: '4px',
-                          display: 'flex',
-                          alignItems: 'center',
-                          gap: '4px',
-                          backgroundColor: theme.components.MuiDialog.styleOverrides.paper.backgroundColor
-                        }}
-                      >
-                        <Avatar
-                          variant='rounded'
-                          alt='Medicine Image'
-                          sx={{ width: 20, height: 20, overflow: 'hidden' }}
-                        >
-                          <img
-                            style={{ width: '100%', height: '100%' }}
-                            src={'/icons/documents_icon.svg'}
-                            alt='Profile'
-                          />
-                        </Avatar>
-                        <Typography
-                          noWrap
-                          sx={{
-                            color: theme.palette.customColors.OnSurfaceVariant,
-                            fontSize: '16px',
-                            fontWeight: '400',
-                            lineHeight: '19.36px',
-                            overflow: 'hidden',
-                            textOverflow: 'ellipsis'
-                          }}
-                        >
-                          {item.file_original_name}
-                        </Typography>
-                      </Box>
-                    ))}
-                    {/* Show extra count if any */}
-                    {row.attachments.length > Math.floor((attachmentWidth - 100) / 150) && (
-                      <Box
-                        sx={{
-                          height: '32px',
-                          padding: '6px',
-                          borderRadius: '4px',
-                          backgroundColor: theme.components.MuiDialog.styleOverrides.paper.backgroundColor,
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center'
-                        }}
-                      >
-                        <Typography
-                          noWrap
-                          sx={{
-                            color: theme.palette.primary.dark,
-                            fontSize: '14px',
-                            fontWeight: '600',
-                            lineHeight: '16.94px'
-                          }}
-                        >
-                          +{row.attachments.length - Math.floor((attachmentWidth - 100) / 150)}
-                        </Typography>
-                      </Box>
-                    )}
-                  </>
-                ) : (
-                  <Typography
-                    sx={{
-                      color: theme.palette.primary.dark,
-                      fontSize: '14px',
-                      fontWeight: '600',
-                      lineHeight: '16.94px'
-                    }}
-                  >
-                    +{row.attachments.length}
-                  </Typography>
-                )
-              ) : (
-                <Typography
-                  sx={{
-                    color: '#E93353',
-                    fontSize: '14px',
-                    fontWeight: 500,
-                    lineHeight: '16.96px',
-                    letterSpacing: '0.1px'
-                  }}
-                >
-                  -
-                </Typography>
-              )}
-            </Box>
+    // {
+    //   // width: ,
+    //   width: attachmentWidth,
+    //   sortable: false,
+    //   field: 'diet_attached',
+    //   headerName: 'Primary Diets',
+    //   renderCell: ({ row }) => {
+    //     return (
+    //       <Box sx={{ ml: 1, width: '100%', display: 'flex', gap: 2, justifyContent: 'space-between' }}>
+    //         {/* Attachment Section */}
+    //         <Box onClick={() => setSpeciesDetailsDrawer(true)} sx={{ width: '100%', display: 'flex', gap: 2 }}>
+    //           {uploadingAttachment === true && speciesId == row.species_id && (
+    //             <Box
+    //               sx={{
+    //                 width: '144px',
+    //                 height: '32px',
+    //                 padding: '6px',
+    //                 borderRadius: '4px',
+    //                 display: 'flex',
+    //                 alignItems: 'center',
+    //                 gap: '4px',
+    //                 backgroundColor: theme.components.MuiDialog.styleOverrides.paper.backgroundColor
+    //               }}
+    //             >
+    //               <Avatar variant='rounded' alt='Medicine Image' sx={{ width: 20, height: 20, overflow: 'hidden' }}>
+    //                 <img style={{ width: '100%', height: '100%' }} src={'/icons/files_green.svg'} alt='Profile' />
+    //               </Avatar>
+    //               <Box sx={{ width: '110px' }}>
+    //                 <Typography
+    //                   noWrap
+    //                   sx={{
+    //                     color: theme.palette.customColors.OnSurfaceVariant,
+    //                     fontSize: '16px',
+    //                     fontWeight: '400',
+    //                     lineHeight: '19.36px',
+    //                     overflow: 'hidden',
+    //                     textOverflow: 'ellipsis'
+    //                   }}
+    //                 >
+    //                   uploading...
+    //                 </Typography>
+    //                 <LinearProgress sx={{ height: '2px' }} value={50} />
+    //               </Box>
+    //             </Box>
+    //           )}
+    //           {row.attachments.length > 0 ? (
+    //             attachmentWidth > 250 ? (
+    //               <>
+    //                 {row.attachments.slice(0, Math.floor((attachmentWidth - 100) / 150)).map((item, index) => (
+    //                   <Box
+    //                     key={index}
+    //                     onClick={e => {
+    //                       e.stopPropagation()
+    //                       window.open(item.file, '_blank')
+    //                     }}
+    //                     sx={{
+    //                       width: '144px',
+    //                       height: '32px',
+    //                       padding: '6px',
+    //                       borderRadius: '4px',
+    //                       display: 'flex',
+    //                       alignItems: 'center',
+    //                       gap: '4px',
+    //                       backgroundColor: theme.components.MuiDialog.styleOverrides.paper.backgroundColor
+    //                     }}
+    //                   >
+    //                     <Avatar
+    //                       variant='rounded'
+    //                       alt='Medicine Image'
+    //                       sx={{ width: 20, height: 20, overflow: 'hidden' }}
+    //                     >
+    //                       <img
+    //                         style={{ width: '100%', height: '100%' }}
+    //                         src={'/icons/documents_icon.svg'}
+    //                         alt='Profile'
+    //                       />
+    //                     </Avatar>
+    //                     <Typography
+    //                       noWrap
+    //                       sx={{
+    //                         color: theme.palette.customColors.OnSurfaceVariant,
+    //                         fontSize: '16px',
+    //                         fontWeight: '400',
+    //                         lineHeight: '19.36px',
+    //                         overflow: 'hidden',
+    //                         textOverflow: 'ellipsis'
+    //                       }}
+    //                     >
+    //                       {item.file_original_name}
+    //                     </Typography>
+    //                   </Box>
+    //                 ))}
+    //                 {/* Show extra count if any */}
+    //                 {row.attachments.length > Math.floor((attachmentWidth - 100) / 150) && (
+    //                   <Box
+    //                     sx={{
+    //                       height: '32px',
+    //                       padding: '6px',
+    //                       borderRadius: '4px',
+    //                       backgroundColor: theme.components.MuiDialog.styleOverrides.paper.backgroundColor,
+    //                       display: 'flex',
+    //                       alignItems: 'center',
+    //                       justifyContent: 'center'
+    //                     }}
+    //                   >
+    //                     <Typography
+    //                       noWrap
+    //                       sx={{
+    //                         color: theme.palette.primary.dark,
+    //                         fontSize: '14px',
+    //                         fontWeight: '600',
+    //                         lineHeight: '16.94px'
+    //                       }}
+    //                     >
+    //                       +{row.attachments.length - Math.floor((attachmentWidth - 100) / 150)}
+    //                     </Typography>
+    //                   </Box>
+    //                 )}
+    //               </>
+    //             ) : (
+    //               <Typography
+    //                 sx={{
+    //                   color: theme.palette.primary.dark,
+    //                   fontSize: '14px',
+    //                   fontWeight: '600',
+    //                   lineHeight: '16.94px'
+    //                 }}
+    //               >
+    //                 +{row.attachments.length}
+    //               </Typography>
+    //             )
+    //           ) : (
+    //             <Typography
+    //               sx={{
+    //                 color: '#E93353',
+    //                 fontSize: '14px',
+    //                 fontWeight: 500,
+    //                 lineHeight: '16.96px',
+    //                 letterSpacing: '0.1px'
+    //               }}
+    //             >
+    //               -
+    //             </Typography>
+    //           )}
+    //         </Box>
 
-            {/* Upload Section */}
-          </Box>
-        )
-      }
-    },
+    //         {/* Upload Section */}
+    //       </Box>
+    //     )
+    //   }
+    // },
 
     {
-      width: colWidths[3],
+      // width: colWidths[3],
+      flex: 1,
       sortable: false,
       field: 'diet_attachment_upload',
       headerName: '',
@@ -614,7 +644,8 @@ const SpeciesDietList = () => {
               // } else {
               //   fileInputRef.current.click()
               // }
-              fileInputRef.current.click()
+              setUploadDietDrawer(true)
+              // fileInputRef.current.click()
             }}
             sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px' }}
           >
@@ -677,10 +708,13 @@ const SpeciesDietList = () => {
   }
 
   const onCellClick = e => {
-    // console.log('e.row.species_id', e.row.species_id)
+    // console.log('e.row.species_id', e.row)
     // console.log('e.field', e.field)
     // console.log('e.field', e)
-
+    const scientific_name = e.row.scientific_name
+    const common_name = e.row.common_name
+    const default_icon = e.row.default_icon
+    setSpeciesData({ default_icon, scientific_name, common_name })
     setspeciesId(e.row.species_id)
   }
   useEffect(() => {
@@ -866,7 +900,7 @@ const SpeciesDietList = () => {
             </Box> */}
           </Box>
         </Box>
-        <input
+        {/* <input
           type='file'
           multiple
           accept='application/pdf, image/*, application/msword, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/vnd.ms-excel, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, text/csv'
@@ -875,7 +909,7 @@ const SpeciesDietList = () => {
           onChange={e => {
             handleFileUpload(e, speciesId)
           }}
-        />
+        /> */}
         <DataGrid
           ref={gridRef}
           sx={{
@@ -932,9 +966,18 @@ const SpeciesDietList = () => {
           fetchTableData={fetchTableData}
           speciesId={speciesId}
           setspeciesId={setspeciesId}
-          fileInputRef={fileInputRef}
           speciesDetailsDrawer={speciesDetailsDrawer}
           setSpeciesDetailsDrawer={setSpeciesDetailsDrawer}
+        />
+      )}
+      {uploadDietDrawer && (
+        <UploadDiet
+          fetchTableData={fetchTableData}
+          speciesId={speciesId}
+          speciesData={speciesData}
+          setspeciesId={setspeciesId}
+          uploadDietDrawer={uploadDietDrawer}
+          setUploadDietDrawer={setUploadDietDrawer}
         />
       )}
 

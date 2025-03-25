@@ -1,12 +1,14 @@
-import { LoadingButton } from '@mui/lab'
+import { LoadingButton, TabContext, TabList, TabPanel } from '@mui/lab'
 import {
   Avatar,
   Button,
+  Chip,
   CircularProgress,
   Drawer,
   IconButton,
   LinearProgress,
   Switch,
+  Tab,
   Tooltip,
   Typography
 } from '@mui/material'
@@ -22,6 +24,8 @@ import {
 } from 'src/lib/api/diet/speciesDiet'
 import Toaster from 'src/components/Toaster'
 import Utility from 'src/utility'
+import moment from 'moment'
+import UploadDiet from './uploadDiet'
 
 function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, speciesId, setspeciesId, fetchTableData }) {
   const theme = useTheme()
@@ -31,6 +35,11 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
   const [specieDetails, setSpecieDetails] = useState({})
   const [uploadingAttachment, setUploadingAttachment] = useState(false)
   const [uploadingFileName, setUploadingFileName] = useState('')
+
+  const [status, setStatus] = useState('1')
+
+  const [uploadDietDrawer, setUploadDietDrawer] = useState(false) // has to be modified
+  const [speciesData, setSpeciesData] = useState({})
 
   const [dietAttachmentActiveConfirm, setDietAttachmentActiveConfirm] = useState(false)
   const [dietAttachmentUploadConfirm, setDietAttachmentUploadConfirm] = useState(false)
@@ -85,11 +94,13 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
           attachment_id: `${attachmentId}`
         })
         Toaster({ type: 'success', message: 'Diet has been set as the primary diet successfully' })
+
         // Toaster({ type: 'success', message: res.message || 'Diet has been set as the primary diet successfully' })
         await fetchTableData()
         await getSpecieDetail()
       } catch (error) {
         Toaster({ type: 'error', message: 'Failed to set as the primary diet' })
+
         // Toaster({ type: 'error', message: error.message || 'Failed to set as the primary diet' })
       } finally {
         setDetailsLoader(false)
@@ -102,18 +113,20 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
     const file = event?.target?.files[0]
 
     const allowedTypes = [
-      'application/pdf',
-      'image/jpeg',
-      'image/png',
-      'image/gif',
-      'application/msword',
-      'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-      'application/vnd.ms-excel',
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-      'text/csv'
+      'application/pdf'
+
+      // 'image/jpeg',
+      // 'image/png',
+      // 'image/gif',
+      // 'application/msword',
+      // 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+      // 'application/vnd.ms-excel',
+      // 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+      // 'text/csv'
     ]
     if (!file || !allowedTypes.includes(file.type)) {
       Toaster({ type: 'error', message: 'Please select a valid file.' })
+
       return
     }
     setUploadingFileName(file.name)
@@ -133,106 +146,75 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
       setUploadingFileName('')
     }
   }
+
   ////////////////////////////////////////////////////////////
 
   const SpeciesDietCard = ({ default_icon, common_name, scientific_name, active_attachments_count }) => (
     <Box
       sx={{
-        width: '100%'
+        backgroundColor: '#fff',
+        borderRadius: '8px',
+        border: '1px solid #C3CEC7',
+        padding: '20px 16px',
+        width: '100%',
+        display: 'flex',
+        alignItems: 'center',
+        gap: '8px'
       }}
     >
-      <Box
+      <Avatar
+        variant='rounded'
+        alt='Medicine Image'
         sx={{
-          backgroundColor: '#fff',
-          borderRadius: '8px',
+          width: 35,
+          height: 35,
           border: '1px solid #C3CEC7',
-          display: 'flex',
-          gap: 1,
-          padding: '20px 16px'
+          borderRadius: '50%',
+          background: '#E8F4F2',
+          overflow: 'hidden'
         }}
       >
-        <Box sx={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px' }}>
-          <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', gap: '8px' }}>
-            <Avatar
-              variant='rounded'
-              alt='Medicine Image'
-              sx={{
-                width: 35,
-                height: 35,
-                border: '1px solid #C3CEC7',
-                borderRadius: '50%',
-                background: '#E8F4F2',
-                overflow: 'hidden'
-              }}
-            >
-              {default_icon ? (
-                <img style={{ width: '100%', height: '100%' }} src={default_icon} alt='Profile' />
-              ) : (
-                <Icon icon='mdi:user' />
-              )}
-            </Avatar>
+        {default_icon ? (
+          <img style={{ width: '100%', height: '100%' }} src={default_icon} alt='Profile' />
+        ) : (
+          <Icon icon='mdi:user' />
+        )}
+      </Avatar>
 
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-              <Tooltip title={scientific_name ? scientific_name : '-'}>
-                <Typography
-                  sx={{
-                    color: theme.palette.primary.light,
-                    fontSize: '16px',
-                    fontWeight: '500',
-                    lineHeight: '19.36px',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                    whiteSpace: 'nowrap',
-                    maxWidth: 360
-                  }}
-                >
-                  {scientific_name ? scientific_name : '-'}
-                </Typography>
-              </Tooltip>
-              <Tooltip title={common_name ? common_name : '-'}>
-                <Typography
-                  sx={{
-                    color: theme.palette.primary.light,
-                    fontStyle: 'italic',
-                    fontSize: '14px',
-                    fontWeight: '400',
-                    lineHeight: '16.94px',
-                    overflow: 'hidden',
-                    textOverflow: 'ellipsis',
-                    whiteSpace: 'nowrap',
-                    maxWidth: 360
-                  }}
-                >
-                  {common_name ? common_name : '-'}
-                </Typography>
-              </Tooltip>
-            </Box>
-          </Box>
-        </Box>
-        {/* <Box
-          sx={{
-            backgroundColor: theme.palette.customColors.tableHeaderBg,
-            borderRadius: '4px',
-            width: '64px',
-            height: '24px',
-            p: '3px 8px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            gap: 1
-          }}
-        >
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+        <Tooltip title={scientific_name ? scientific_name : '-'}>
           <Typography
-            sx={{ color: theme.palette.primary.light, fontSize: '16px', fontWeight: '600', lineHeight: '19.36px' }}
+            sx={{
+              color: theme.palette.primary.light,
+              fontSize: '16px',
+              fontWeight: '500',
+              lineHeight: '19.36px',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+              maxWidth: 360
+            }}
           >
-            {active_attachments_count}
+            {scientific_name ? scientific_name : '-'}
           </Typography>
+        </Tooltip>
+        <Tooltip title={common_name ? common_name : '-'}>
           <Typography
-            sx={{ color: theme.palette.primary.light, fontSize: '14px', fontWeight: '400', lineHeight: '16.94px' }}
+            sx={{
+              color: theme.palette.primary.light,
+              fontStyle: 'italic',
+              fontSize: '14px',
+              fontWeight: '400',
+              lineHeight: '16.94px',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+              maxWidth: 360
+            }}
           >
-            Deits
+            {common_name ? common_name : '-'}
           </Typography>
-        </Box> */}
+        </Tooltip>
       </Box>
     </Box>
   )
@@ -306,9 +288,9 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
       <Box>
         <Box
           sx={{
+            boxShadow: '0px 2px 2px 0px #0000001A',
             backgroundColor: '#fff',
             borderRadius: '8px',
-            border: '1px solid #C3CEC7',
             display: 'flex',
             gap: 1,
             cursor: 'pointer',
@@ -333,10 +315,10 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
                   overflow: 'hidden'
                 }}
               >
-                <img style={{ width: '100%', height: '100%' }} src={'/icons/documents_icon.svg'} alt='Profile' />
+                <img style={{ width: '100%', height: '100%' }} src={'/icons/pdf_Icon2.svg'} alt='Profile' />
               </Avatar>
 
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
+              <Box sx={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                 <Box sx={{ display: 'flex', flexDirection: 'row', gap: '8px' }}>
                   <Tooltip title={item?.file_original_name ? item?.file_original_name : '-'}>
                     <Typography
@@ -355,7 +337,7 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
                     </Typography>
                   </Tooltip>
 
-                  <Box sx={{ backgroundColor: '#0000000D', padding: '5px 8px', borderRadius: '4px' }}>
+                  {/* <Box sx={{ backgroundColor: '#0000000D', padding: '5px 8px', borderRadius: '4px' }}>
                     <Typography
                       sx={{ color: '#00000066', fontSize: '12px', fontWeight: '5040', lineHeight: '14.52px' }}
                     >
@@ -363,80 +345,136 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
                         ? (item?.file_size / (1024 * 1024)).toFixed(2) + ' MB'
                         : (item?.file_size / 1024).toFixed(2) + ' KB'}
                     </Typography>
-                  </Box>
+                  </Box> */}
                 </Box>
                 <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <Avatar
                     variant='rounded'
-                    alt='Medicine Image'
+                    alt='dietitian_by_profile'
                     sx={{
-                      width: 34,
-                      height: 34,
+                      width: 24,
+                      height: 24,
                       borderRadius: '50%',
                       background: '#E8F4F2',
                       overflow: 'hidden'
                     }}
                   >
-                    {item?.attached_by_profile ? (
-                      <img style={{ width: '100%', height: '100%' }} src={item?.attached_by_profile} alt='Profile' />
+                    {item?.dietitian_by_profile ? (
+                      <img style={{ width: '100%', height: '100%' }} src={item?.dietitian_by_profile} alt='Profile' />
                     ) : (
                       <Icon icon='mdi:user' />
                     )}
                   </Avatar>
 
-                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                    <Tooltip title={item?.attached_by ? item?.attached_by : '-'}>
-                      <Typography
-                        sx={{
-                          color: theme.palette.primary.light,
-                          fontSize: '14px',
-                          fontWeight: '500',
-                          lineHeight: '16.96px',
-                          letterSpacing: '0.1px',
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                          whiteSpace: 'nowrap',
-                          width: 240
-                        }}
-                      >
-                        {item?.attached_by}
-                      </Typography>
-                    </Tooltip>
+                  <Tooltip title={item?.dietitian_name ? item?.dietitian_name : '-'}>
                     <Typography
                       sx={{
-                        color: theme.palette.customColors.neutralSecondary,
-                        fontSize: '12px',
-                        fontWeight: '400',
-                        lineHeight: '14.52px',
+                        color: theme.palette.customColors.OnSurfaceVariant,
+                        fontSize: '14px',
+                        fontWeight: '500',
+                        lineHeight: '100%',
+                        letterSpacing: '0.1px',
                         overflow: 'hidden',
                         textOverflow: 'ellipsis',
                         whiteSpace: 'nowrap',
-                        width: 240
+                        maxWidth: 100
                       }}
                     >
-                      {Utility.convertUTCToLocalDate(item.modified_at) +
-                        ' | ' +
-                        Utility.convertUTCToLocaltime(item.modified_at)}{' '}
-                      {/* {Utility.convertUTCToLocalDate(item.created_at) +
-                        ' | ' +
-                        Utility.convertUTCToLocaltime(item.created_at)}{' '} */}
-                      {/* which time wll be use here modified or created? */}
+                      {item?.dietitian_name ? item?.dietitian_name : '-'}
                     </Typography>
-                  </Box>
+                  </Tooltip>
+
+                  {/* <Tooltip title={item?.attached_by ? item?.attached_by : '-'}> */}
+                  <Typography
+                    sx={{
+                      color: theme.palette.customColors.Outline,
+                      fontSize: '14px',
+                      fontWeight: '500',
+                      lineHeight: '100%',
+                      letterSpacing: '0.1px'
+
+                      // overflow: 'hidden',
+                      // textOverflow: 'ellipsis',
+                      // whiteSpace: 'nowrap',
+                      // maxWidth: 100
+                    }}
+                  >
+                    &#8226; Dietitian
+                  </Typography>
+                  {/* </Tooltip> */}
+                </Box>
+                {item?.notes && (
+                  <Typography
+                    sx={{
+                      color: theme.palette.customColors.OnSurfaceVariant,
+                      fontSize: '14px',
+                      fontWeight: '400',
+                      lineHeight: '20px',
+                      letterSpacing: '0%'
+                    }}
+                  >
+                    {item?.notes}
+                  </Typography>
+                )}
+                <Box sx={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                  <Typography
+                    sx={{
+                      color: theme.palette.customColors.Outline,
+                      fontSize: '10px',
+                      fontWeight: '500',
+                      lineHeight: '100%',
+                      letterSpacing: '0%'
+                    }}
+                  >
+                    Uploaded by&nbsp; •
+                  </Typography>
+                  <Tooltip title={item?.attached_by ? item?.attached_by : '-'}>
+                    <Typography
+                      sx={{
+                        color: theme.palette.primary.light,
+                        fontSize: '12px',
+                        fontWeight: '400',
+                        lineHeight: '100%',
+                        letterSpacing: '0%',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
+                        maxWidth: 100
+                      }}
+                    >
+                      {item?.attached_by}
+                    </Typography>
+                  </Tooltip>
+                  <Typography
+                    sx={{
+                      color: theme.palette.customColors.neutralSecondary,
+                      fontSize: '12px',
+                      fontWeight: '400',
+                      lineHeight: '14.52px',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap'
+                    }}
+                  >
+                    •&nbsp; {moment(Utility.convertUTCToLocalDate(item.created_at)).format('DD MMM YYYY')}
+                  </Typography>
+                  <Typography
+                    sx={{
+                      color: theme.palette.customColors.neutralSecondary,
+                      fontSize: '12px',
+                      fontWeight: '400',
+                      lineHeight: '14.52px',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap'
+                    }}
+                  >
+                    •&nbsp; {Utility.convertUTCToLocaltime(item.created_at)}
+                  </Typography>
                 </Box>
               </Box>
             </Box>
             <Box>
-              {/* <Icon
-                onClick={e => {
-                  e.stopPropagation()
-                  removeAttachment(item?.attachment_id)
-                }}
-                icon='akar-icons:cross'
-                style={{ cursor: 'pointer' }}
-                fontSize={20}
-                color={'#839D8D'}
-              /> */}
               <Switch
                 onClick={e => {
                   e.stopPropagation()
@@ -447,6 +485,11 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
             </Box>
           </Box>
         </Box>
+        {/* <Typography sx={{ color: '#00000066', fontSize: '12px', fontWeight: '5040', lineHeight: '14.52px' }}>
+          {Number(item?.file_size) >= 1048576
+            ? (item?.file_size / (1024 * 1024)).toFixed(2) + ' MB'
+            : (item?.file_size / 1024).toFixed(2) + ' KB'}
+        </Typography> */}
       </Box>
     )
   }
@@ -456,7 +499,9 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
       sx={{
         backgroundColor: '#DAE7DF',
         borderRadius: '8px',
+
         // alignItems: 'center',
+        boxShadow: '0px 2px 2px 0px #0000001A',
         justifyContent: 'space-between',
         display: 'flex',
         gap: 1,
@@ -467,110 +512,205 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
         window.open(item.file, '_blank')
       }}
     >
-      <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', gap: '8px' }}>
-        <Avatar
-          variant='rounded'
-          alt='Medicine Image'
-          sx={{
-            pt: '6px',
-            width: 48,
-            height: 48,
-            background: '#0000000D',
-            overflow: 'hidden'
-          }}
-        >
-          <img style={{ width: '100%', height: '100%' }} src={'/icons/documents_icon.svg'} alt='Profile' />
-        </Avatar>
+      <Box sx={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'start', gap: '8px' }}>
+        <Box sx={{ width: '100%', display: 'flex', alignItems: 'start', gap: '8px' }}>
+          <Avatar
+            variant='rounded'
+            alt='Medicine Image'
+            sx={{
+              pt: '6px',
+              width: 48,
+              height: 48,
+              background: '#FFD3D34D',
+              overflow: 'hidden'
+            }}
+          >
+            <img style={{ width: '100%', height: '100%' }} src={'/icons/pdf_Icon2.svg'} alt='Profile' />
+          </Avatar>
 
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-          <Box sx={{ display: 'flex', flexDirection: 'row', gap: '8px' }}>
-            <Tooltip title={item.file_original_name ? item.file_original_name : '-'}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+            <Box sx={{ display: 'flex', flexDirection: 'row', gap: '8px' }}>
+              <Tooltip title={item?.file_original_name ? item?.file_original_name : '-'}>
+                <Typography
+                  sx={{
+                    color: theme.palette.customColors.OnSurfaceVariant,
+                    fontSize: '16px',
+                    fontWeight: '500',
+                    lineHeight: '19.36px',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
+                    width: 240
+                  }}
+                >
+                  {item?.file_original_name}
+                </Typography>
+              </Tooltip>
+
+              {/* <Box sx={{ backgroundColor: '#0000000D', padding: '5px 8px', borderRadius: '4px' }}>
+                    <Typography
+                      sx={{ color: '#00000066', fontSize: '12px', fontWeight: '5040', lineHeight: '14.52px' }}
+                    >
+                      {Number(item?.file_size) >= 1048576
+                        ? (item?.file_size / (1024 * 1024)).toFixed(2) + ' MB'
+                        : (item?.file_size / 1024).toFixed(2) + ' KB'}
+                    </Typography>
+                  </Box> */}
+            </Box>
+            <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <Avatar
+                variant='rounded'
+                alt='dietitian_by_profile'
+                sx={{
+                  width: 24,
+                  height: 24,
+                  borderRadius: '50%',
+                  background: '#E8F4F2',
+                  overflow: 'hidden'
+                }}
+              >
+                {item?.dietitian_by_profile ? (
+                  <img style={{ width: '100%', height: '100%' }} src={item?.dietitian_by_profile} alt='Profile' />
+                ) : (
+                  <Icon icon='mdi:user' />
+                )}
+              </Avatar>
+
+              <Tooltip title={item?.dietitian_name ? item?.dietitian_name : '-'}>
+                <Typography
+                  sx={{
+                    color: theme.palette.customColors.OnSurfaceVariant,
+                    fontSize: '14px',
+                    fontWeight: '500',
+                    lineHeight: '100%',
+                    letterSpacing: '0.1px',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
+                    maxWidth: 100
+                  }}
+                >
+                  {item?.dietitian_name ? item?.dietitian_name : '-'}
+                </Typography>
+              </Tooltip>
+
+              {/* <Tooltip title={item?.attached_by ? item?.attached_by : '-'}> */}
+              <Typography
+                sx={{
+                  color: theme.palette.customColors.Outline,
+                  fontSize: '14px',
+                  fontWeight: '500',
+                  lineHeight: '100%',
+                  letterSpacing: '0.1px'
+
+                  // overflow: 'hidden',
+                  // textOverflow: 'ellipsis',
+                  // whiteSpace: 'nowrap',
+                  // maxWidth: 100
+                }}
+              >
+                &#8226; Dietitian
+              </Typography>
+              {/* </Tooltip> */}
+            </Box>
+            {item?.notes && (
               <Typography
                 sx={{
                   color: theme.palette.customColors.OnSurfaceVariant,
-                  fontSize: '16px',
-                  fontWeight: '500',
-                  lineHeight: '19.36px',
-                  overflow: 'hidden',
-                  textOverflow: 'ellipsis',
-                  whiteSpace: 'nowrap',
-                  width: 240
+                  fontSize: '14px',
+                  fontWeight: '400',
+                  lineHeight: '20px',
+                  letterSpacing: '0%'
                 }}
               >
-                {item.file_original_name}
+                {item?.notes}
               </Typography>
-            </Tooltip>
-
-            <Box sx={{ backgroundColor: '#0000000D', padding: '5px 8px', borderRadius: '4px' }}>
-              <Typography sx={{ color: '#00000066', fontSize: '12px', fontWeight: '5040', lineHeight: '14.52px' }}>
-                {Number(item?.file_size) >= 1048576
-                  ? (item?.file_size / (1024 * 1024)).toFixed(2) + ' MB'
-                  : (item?.file_size / 1024).toFixed(2) + ' KB'}
+            )}
+            <Box sx={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+              <Typography
+                sx={{
+                  color: theme.palette.customColors.Outline,
+                  fontSize: '10px',
+                  fontWeight: '500',
+                  lineHeight: '100%',
+                  letterSpacing: '0%'
+                }}
+              >
+                Uploaded by&nbsp; •
+              </Typography>
+              <Tooltip title={item?.detached_by ? item?.detached_by : '-'}>
+                <Typography
+                  sx={{
+                    color: theme.palette.primary.light,
+                    fontSize: '12px',
+                    fontWeight: '400',
+                    lineHeight: '100%',
+                    letterSpacing: '0%',
+                    overflow: 'hidden',
+                    textOverflow: 'ellipsis',
+                    whiteSpace: 'nowrap',
+                    maxWidth: 100
+                  }}
+                >
+                  {item?.detached_by}
+                </Typography>
+              </Tooltip>
+              <Typography
+                sx={{
+                  color: theme.palette.customColors.neutralSecondary,
+                  fontSize: '12px',
+                  fontWeight: '400',
+                  lineHeight: '14.52px',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap'
+                }}
+              >
+                •&nbsp; {moment(Utility.convertUTCToLocalDate(item.created_at)).format('DD MMM YYYY')}
+              </Typography>
+              <Typography
+                sx={{
+                  color: theme.palette.customColors.neutralSecondary,
+                  fontSize: '12px',
+                  fontWeight: '400',
+                  lineHeight: '14.52px',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  whiteSpace: 'nowrap'
+                }}
+              >
+                •&nbsp; {Utility.convertUTCToLocaltime(item.created_at)}
               </Typography>
             </Box>
           </Box>
-          <Box sx={{ display: 'flex', gap: '8px', alignItems: 'end' }}>
-            {/* <Typography
-              sx={{
-                color: '#E93353',
-                fontSize: '12px',
-                fontWeight: 400,
-                lineHeight: '14.52px',
-                mr: 1
-              }}
-            >
-              Detached by
-            </Typography> */}
-            <Typography
-              sx={{
-                color: theme.palette.customColors.OnSurfaceVariant,
-                fontSize: '14px',
-                fontWeight: 500,
-                lineHeight: '16.96px',
-                letterSpacing: '0.1px'
-              }}
-            >
-              {item.detached_by}
-            </Typography>
-            <Typography
-              sx={{
-                color: theme.palette.customColors.neutralSecondary,
-                fontSize: '12px',
-                fontWeight: 400,
-                lineHeight: '14.52px'
-              }}
-            >
-              {Utility.convertUTCToLocalDate(item.modified_at) +
-                ' | ' +
-                Utility.convertUTCToLocaltime(item.modified_at)}{' '}
-            </Typography>
-          </Box>
+        </Box>
+        <Box>
+          <Switch
+            onClick={e => {
+              e.stopPropagation()
+              setDietAttachmentId(item.attachment_id)
+
+              // if (Number(specieDetails.active_attachments_count) === 0) {
+              //   speciesAttachmentActiveFunc(speciesId, dietAttachmentId)
+              // } else {
+              //   setDietAttachmentActiveConfirm(true)
+              // }
+              speciesAttachmentActiveFunc(speciesId, dietAttachmentId)
+            }}
+          />
         </Box>
       </Box>
-      {/* <Button
-        onClick={e => {
-          e.stopPropagation()
-          setDietAttachmentId(item.attachment_id)
-          setDietAttachmentActiveConfirm(true)
-        }}
-        sx={{ height: '32px' }}
-        variant='contained'
-      >
-        Attach
-      </Button> */}
-      <Switch
-        onClick={e => {
-          e.stopPropagation()
-          setDietAttachmentId(item.attachment_id)
-          // if (Number(specieDetails.active_attachments_count) === 0) {
-          //   speciesAttachmentActiveFunc(speciesId, dietAttachmentId)
-          // } else {
-          //   setDietAttachmentActiveConfirm(true)
-          // }
-          speciesAttachmentActiveFunc(speciesId, dietAttachmentId)
-        }}
-      />
     </Box>
+  )
+
+  const handleChange = (event, newValue) => {
+    setStatus(newValue)
+  }
+
+  const TabBadge = ({ label }) => (
+    <div style={{ display: 'flex', alignItems: 'center', justifyItems: 'center', justifyContent: 'space-between' }}>
+      {label}
+    </div>
   )
 
   return (
@@ -644,7 +784,50 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
         ) : (
           <>
             {SpeciesDietCard(specieDetails)}
-            <Box
+            <TabContext sx={{ width: '100%' }} value={status}>
+              <TabList
+                sx={{ width: '100%', borderBottom: `1px solid ${theme.palette.customColors.Outline}` }}
+                onChange={handleChange}
+              >
+                <Tab
+                  sx={{ flex: 1 }}
+                  value='1'
+                  label={<TabBadge label={`Active Diets - ${specieDetails?.active_attachments?.length}`} />}
+                />
+                <Tab
+                  sx={{ flex: 1 }}
+                  value='0'
+                  label={<TabBadge label={`Inactive Diets - ${specieDetails?.deactive_attachments?.length}`} />}
+                />
+              </TabList>
+              <TabPanel value='1'>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 3
+                  }}
+                >
+                  {specieDetails?.active_attachments?.map((item, index) => (
+                    <DietAttachedCard index={index} item={item} />
+                  ))}
+                </Box>
+              </TabPanel>
+              <TabPanel value='0'>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: 3
+                  }}
+                >
+                  {specieDetails?.deactive_attachments?.map((item, index) => (
+                    <DietDetachedCard index={index} item={item} />
+                  ))}
+                </Box>
+              </TabPanel>
+            </TabContext>
+            {/* <Box
               sx={{
                 display: 'flex',
                 flexDirection: 'column',
@@ -684,7 +867,7 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
               {specieDetails?.deactive_attachments?.map((item, index) => (
                 <DietDetachedCard index={index} item={item} />
               ))}
-            </Box>
+            </Box> */}
           </>
         )}
       </Box>
@@ -710,14 +893,19 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
           size='large'
           sx={{ height: '58px', width: '514px' }}
           onClick={() => {
-            fileInputRef.current.click()
-            // setDietAttachmentUploadConfirm(true)
+            const scientific_name = specieDetails.scientific_name
+            const common_name = specieDetails.common_name
+            const default_icon = specieDetails.default_icon
+            setSpeciesData({ default_icon, scientific_name, common_name })
+            setspeciesId(specieDetails.species_id)
+            setUploadDietDrawer(true)
           }}
+
           // loading={loader}
         >
           UPLOAD NEW
         </LoadingButton>
-        <input
+        {/* <input
           type='file'
           multiple
           accept='application/pdf, image/*, application/msword, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/vnd.ms-excel, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, text/csv'
@@ -726,6 +914,17 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
           onChange={e => {
             handleFileUpload(e, speciesId)
           }}
+        /> */}
+        <UploadDiet
+          fetchTableData={fetchTableData}
+          getSpecieDetail={getSpecieDetail}
+          speciesId={speciesId}
+          speciesData={speciesData}
+          setspeciesId={setspeciesId}
+          fileInputRef={fileInputRef}
+          uploadDietDrawer={uploadDietDrawer}
+          setUploadDietDrawer={setUploadDietDrawer}
+          speciesDetailsDrawer={speciesDetailsDrawer}
         />
       </Box>
 
