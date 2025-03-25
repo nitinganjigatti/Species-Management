@@ -64,7 +64,9 @@ const defaultValues = {
   purchase_variant_id: '',
   purchase_unit_qty: 0,
   purchase_variant_ratio: '',
-  isVariantIdPresent: false
+  isVariantIdPresent: false,
+  purchase_created_by: '',
+  medicine_name_by_ml: ''
 }
 
 const PurchaseItemForm = props => {
@@ -281,7 +283,9 @@ const PurchaseItemForm = props => {
       purchase_variant_id,
       purchase_unit_qty,
       purchase_variant_ratio,
-      isVariantIdPresent
+      isVariantIdPresent,
+      purchase_created_by,
+      medicine_name_by_ml
 
       // purchase_purchase_price,
     } = params
@@ -318,7 +322,9 @@ const PurchaseItemForm = props => {
       purchase_variant_id,
       purchase_unit_qty,
       purchase_variant_ratio,
-      isVariantIdPresent
+      isVariantIdPresent,
+      purchase_created_by,
+      medicine_name_by_ml
     }
     if (priceValidationError === true) {
       setValidatePurchaseDialog(true)
@@ -489,6 +495,8 @@ const PurchaseItemForm = props => {
       const totalUnitQty = checkNumber(nestedRowMedicine?.purchase_variant_ratio * nestedRowMedicine?.purchase_qty)
       setValue('isVariantIdPresent', true)
       setValue('purchase_unit_qty', totalUnitQty)
+      setValue('purchase_created_by', nestedRowMedicine?.purchase_created_by)
+      setValue('medicine_name_by_ml', nestedRowMedicine?.medicine_name_by_ml)
     } else {
       setValue('purchase_expiry_date', '')
       setValue('purchase_variant_id', '')
@@ -525,6 +533,8 @@ const PurchaseItemForm = props => {
       setValue('purchase_variant_id', nestedRowMedicine?.purchase_variant_id)
       setValue('purchase_variant_ratio', nestedRowMedicine?.purchase_variant_ratio)
       setValue('isVariantIdPresent', nestedRowMedicine?.isVariantIdPresent)
+      setValue('purchase_created_by', nestedRowMedicine?.purchase_created_by)
+      setValue('medicine_name_by_ml', nestedRowMedicine?.medicine_name_by_ml)
 
       if (nestedRowMedicine.stock_type === 'non_medical') {
         setNonMedicalProduct(true)
@@ -537,6 +547,10 @@ const PurchaseItemForm = props => {
         setValue('purchase_variant_id', ''),
         setValue('isVariantIdPresent', false)
       setValue('purchase_variant_ratio', '')
+
+      // setValue('purchase_created_by', '')
+      // setValue('medicine_name_by_ml', '')
+
       searchMedicineData('')
     }
   }, [])
@@ -657,8 +671,16 @@ const PurchaseItemForm = props => {
                   onBlur={e => {
                     if (!nonMedicalProduct) {
                       const product = getValues()
-                      if (product?.product?.value && product?.purchase_batch_no) {
-                        checkMedicineExpiryDate(product?.product?.value, product?.purchase_batch_no)
+
+                      // console.log('product', product)
+
+                      // debugger
+                      if (product?.purchase_created_by !== 'invoice_upload') {
+                        debugger
+                        if (product?.product?.value && product?.purchase_batch_no) {
+                          // setValue('medicine_name_by_ml', nestedRowMedicine?.medicine_name_by_ml
+                          checkMedicineExpiryDate(product?.product?.value, product?.purchase_batch_no)
+                        }
                       }
                     }
                   }}

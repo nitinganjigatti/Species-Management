@@ -256,7 +256,9 @@ const PurchaseInvoiceUpload = ({ setPurchaseItems, reset, closeDialog, handleInp
                   purchase_cgst_amount: el?.gst_amount ? el?.gst_amount / 2 : 0,
                   purchase_sgst_amount: el?.gst_amount ? el?.gst_amount / 2 : 0,
                   purchase_igst: el?.purchase_igst ? el?.purchase_igst : 0,
-                  purchase_igst_amount: el?.purchase_igst_amount ? el?.purchase_igst_amount : 0
+                  purchase_igst_amount: el?.purchase_igst_amount ? el?.purchase_igst_amount : 0,
+                  purchase_created_by: 'invoice_upload',
+                  medicine_name_by_ml: el?.medicine_name
                 }
               })
               setPurchaseItems(prev => ({
@@ -281,7 +283,8 @@ const PurchaseInvoiceUpload = ({ setPurchaseItems, reset, closeDialog, handleInp
                 freight_gst: '',
                 freight_total_charges: '',
                 additional_charges: '',
-                round_off: ''
+                round_off: '',
+                purchase_created_by: 'invoice_upload'
               }))
               debugger
 
@@ -330,7 +333,8 @@ const PurchaseInvoiceUpload = ({ setPurchaseItems, reset, closeDialog, handleInp
                 freight_gst: '',
                 freight_total_charges: '',
                 additional_charges: '',
-                round_off: ''
+                round_off: '',
+                purchase_created_by: 'invoice_upload'
               })
               handleInputImageChange(file)
             }
