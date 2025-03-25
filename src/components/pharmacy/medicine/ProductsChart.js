@@ -17,8 +17,8 @@ const ProductsChart = ({
   lineColor,
   seriesBarName,
   seriesLineName,
-  countLabel,
-  valueLabel
+  barLabel,
+  lineLabel
 }) => {
   const theme = useTheme()
 
@@ -103,7 +103,8 @@ const ProductsChart = ({
     },
     // dataLabels: { enabled: false },
     stroke: {
-      width: [0, 3],
+      // width: [0, 3],
+      width: series.map(s => (s.type === 'line' ? 3 : 0)),
       curve: 'smooth',
       colors: [barColor, lineColor]
     },
@@ -115,6 +116,9 @@ const ProductsChart = ({
     //   type: 'solid',
     //   colors: ['#FA6140']
     // },
+    dataLabels: {
+      enabled: false
+    },
     xaxis: { categories: shortMonths, labels: { rotate: -45, show: true } },
     yaxis: [
       showBar
@@ -218,7 +222,7 @@ const ProductsChart = ({
                 }}
               />
             }
-            label={<span style={{ fontSize: '12px' }}>{countLabel}</span>}
+            label={<span style={{ fontSize: '12px' }}>{barLabel}</span>}
           />
           <FormControlLabel
             control={
@@ -234,7 +238,7 @@ const ProductsChart = ({
                 }}
               />
             }
-            label={<span style={{ fontSize: '12px' }}>{valueLabel}</span>}
+            label={<span style={{ fontSize: '12px' }}>{lineLabel}</span>}
           />
         </Box>
         {/* <ReactApexcharts
