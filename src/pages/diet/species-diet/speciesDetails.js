@@ -315,7 +315,7 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
                   overflow: 'hidden'
                 }}
               >
-                <img style={{ width: '100%', height: '100%' }} src={'/icons/pdf_icon2.svg'} alt='Profile' />
+                <img style={{ width: '100%', height: '100%' }} src={'/icons/pdf_Icon2.svg'} alt='Profile' />
               </Avatar>
 
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -525,7 +525,7 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
               overflow: 'hidden'
             }}
           >
-            <img style={{ width: '100%', height: '100%' }} src={'/icons/pdf_icon2.svg'} alt='Profile' />
+            <img style={{ width: '100%', height: '100%' }} src={'/icons/pdf_Icon2.svg'} alt='Profile' />
           </Avatar>
 
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
