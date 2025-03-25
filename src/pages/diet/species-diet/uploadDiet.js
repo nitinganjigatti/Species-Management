@@ -38,7 +38,16 @@ const schema = yup.object().shape({
   attachment: yup.string().required('Attachment is required')
 })
 
-function UploadDiet({ uploadDietDrawer, setUploadDietDrawer, speciesId, setspeciesId, fetchTableData, speciesData }) {
+function UploadDiet({
+  uploadDietDrawer,
+  setUploadDietDrawer,
+  speciesId,
+  setspeciesId,
+  fetchTableData,
+  speciesData,
+  getSpecieDetail,
+  speciesDetailsDrawer
+}) {
   const theme = useTheme()
   const fileInputRef = useRef(null)
 
@@ -69,8 +78,10 @@ function UploadDiet({ uploadDietDrawer, setUploadDietDrawer, speciesId, setspeci
   })
 
   useEffect(() => {
-    getUsers()
-  }, [])
+    if (uploadDietDrawer) {
+      getUsers()
+    }
+  }, [uploadDietDrawer])
 
   const getUsers = async () => {
     try {
@@ -116,6 +127,9 @@ function UploadDiet({ uploadDietDrawer, setUploadDietDrawer, speciesId, setspeci
       setDefaultPreparedBy(null)
       setSelectedFileName(null)
       setSelectedFile(null)
+      if (speciesDetailsDrawer) {
+        getSpecieDetail(speciesId)
+      }
     } catch (error) {
       Toaster({ type: 'error', message: error.message || 'File upload failed.' })
     } finally {
@@ -381,7 +395,7 @@ function UploadDiet({ uploadDietDrawer, setUploadDietDrawer, speciesId, setspeci
                                     height: '48px'
                                   }}
                                 >
-                                  <Image alt={'filename'} src={UploadDocIcon} width={48} height={48} />
+                                  <Image alt={'filename'} src={'/icons/pdf_icon2.svg'} width={48} height={48} />
                                   <Typography
                                     sx={{
                                       backgroundColor: theme.palette.customColors.Background,
@@ -389,7 +403,7 @@ function UploadDiet({ uploadDietDrawer, setUploadDietDrawer, speciesId, setspeci
                                       borderRadius: '4px',
                                       fontWeight: 400,
                                       fontSize: 14,
-                                      lineHeight: '100%',
+                                      lineHeight: '20px',
                                       letterSpacing: '0%',
                                       color: theme.palette.customColors.OnSurfaceVariant
                                     }}

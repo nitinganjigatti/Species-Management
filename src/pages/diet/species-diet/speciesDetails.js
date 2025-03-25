@@ -286,7 +286,6 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
             boxShadow: '0px 2px 2px 0px #0000001A',
             backgroundColor: '#fff',
             borderRadius: '8px',
-            border: '1px solid #C3CEC7',
             display: 'flex',
             gap: 1,
             cursor: 'pointer',
@@ -404,7 +403,7 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
                       color: theme.palette.customColors.OnSurfaceVariant,
                       fontSize: '14px',
                       fontWeight: '400',
-                      lineHeight: '100%',
+                      lineHeight: '20px',
                       letterSpacing: '0%'
                     }}
                   >
@@ -612,7 +611,7 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
                   color: theme.palette.customColors.OnSurfaceVariant,
                   fontSize: '14px',
                   fontWeight: '400',
-                  lineHeight: '100%',
+                  lineHeight: '20px',
                   letterSpacing: '0%'
                 }}
               >
@@ -907,12 +906,14 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
         /> */}
         <UploadDiet
           fetchTableData={fetchTableData}
+          getSpecieDetail={getSpecieDetail}
           speciesId={speciesId}
           speciesData={speciesData}
           setspeciesId={setspeciesId}
           fileInputRef={fileInputRef}
           uploadDietDrawer={uploadDietDrawer}
           setUploadDietDrawer={setUploadDietDrawer}
+          speciesDetailsDrawer={speciesDetailsDrawer}
         />
       </Box>
 
