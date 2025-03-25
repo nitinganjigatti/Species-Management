@@ -130,7 +130,8 @@ const ForgotPassword = () => {
       {isOtpSent && <VerifyOtp />}
       <CommonCard
         // bgImage='/images/frog_img.png'
-        logoSrc='/images/login/Vantara_Logo_registered.svg'
+        // logoVantara='/images/login/Vantara_Logo_registered.svg'
+        // logoAntz
         title='Recover account'
         subtitle='An OTP will be sent via SMS to your phone number for login verification'
       >

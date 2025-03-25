@@ -168,7 +168,8 @@ const VerifyOtp = () => {
   return (
     <CommonCard
       // bgImage='/images/frog_img.png'
-      logoSrc='/images/login/Vantara_Logo_registered.svg'
+      // logoVantara='/images/login/Vantara_Logo_registered.svg'
+      // logoAntz
       title='Enter OTP'
       subtitle={`Please enter the 4-digit OTP sent to your phone number ${
         forgotPasswordData?.user_mobile_number && forgotPasswordData?.user_mobile_number

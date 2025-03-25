@@ -2,7 +2,7 @@ import React from 'react'
 import { alpha, Box, Card, Typography } from '@mui/material'
 import Image from 'next/image'
 
-const CommonCard = ({ children, bgImage, logoSrc, title, subtitle, sx = {} }) => {
+const CommonCard = ({ children, bgImage, logoVantara, logoAntz, title, subtitle, sx = {} }) => {
   return (
     <Box
       sx={{
@@ -29,7 +29,17 @@ const CommonCard = ({ children, bgImage, logoSrc, title, subtitle, sx = {} }) =>
         }}
       >
         <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', mb: 6 }}>
-          <Image src={logoSrc} width={160} height={36} alt='Logo' />
+          {process.env.NEXT_PUBLIC_BRANDING === 'vantara' ? (
+            <Image
+              src={'/images/login/Vantara_Logo_registered.svg' || logoVantara}
+              width={160}
+              height={36}
+              alt='Logo'
+            />
+          ) : (
+            <Image src={'/branding/antz/Antz_logo_h_color.svg' || logoAntz} width={160} height={60} alt='Logo' />
+          )}
+          {/* <Image src={logoAlt || logoSrc} width={160} height={36} alt='Logo' /> */}
           <Typography sx={{ color: 'customColors.OnSurfaceVariant', fontSize: '20px', fontWeight: 500, mt: 2 }}>
             {title}
           </Typography>
