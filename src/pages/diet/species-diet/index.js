@@ -325,7 +325,7 @@ const SpeciesDietList = () => {
       // flex: 1,
       sortable: false,
       field: 'attachment_count',
-      headerName: 'ACTIVE DIET',
+      headerName: 'ACTIVE DIETS',
       renderCell: params => (
         <Tooltip title={params.row.attachment_count ? params.row.attachment_count : '-'}>
           <Typography
