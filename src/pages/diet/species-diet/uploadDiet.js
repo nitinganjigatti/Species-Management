@@ -449,7 +449,7 @@ function UploadDiet({
                                     color: theme.palette.customColors.OnSurfaceVariant60
                                   }}
                                 >
-                                  Drop your image here
+                                  Drop your file here
                                 </Typography>
                               </Box>
                             )}
