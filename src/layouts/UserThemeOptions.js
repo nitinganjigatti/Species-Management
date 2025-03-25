@@ -75,6 +75,7 @@ const UserThemeOptions = () => {
         secondaryBg: '#7A8684',
         mdAntzNeutral: '#0000000D',
         OnSurfaceVariant: '#44544A',
+        neutralSecondary: '#7A8684',
         textLabel: '#00ABAB',
 
         // *** name required
