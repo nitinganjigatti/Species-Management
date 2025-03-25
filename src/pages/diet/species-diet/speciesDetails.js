@@ -94,11 +94,13 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
           attachment_id: `${attachmentId}`
         })
         Toaster({ type: 'success', message: 'Diet has been set as the primary diet successfully' })
+
         // Toaster({ type: 'success', message: res.message || 'Diet has been set as the primary diet successfully' })
         await fetchTableData()
         await getSpecieDetail()
       } catch (error) {
         Toaster({ type: 'error', message: 'Failed to set as the primary diet' })
+
         // Toaster({ type: 'error', message: error.message || 'Failed to set as the primary diet' })
       } finally {
         setDetailsLoader(false)
@@ -112,6 +114,7 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
 
     const allowedTypes = [
       'application/pdf'
+
       // 'image/jpeg',
       // 'image/png',
       // 'image/gif',
@@ -123,6 +126,7 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
     ]
     if (!file || !allowedTypes.includes(file.type)) {
       Toaster({ type: 'error', message: 'Please select a valid file.' })
+
       return
     }
     setUploadingFileName(file.name)
@@ -142,6 +146,7 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
       setUploadingFileName('')
     }
   }
+
   ////////////////////////////////////////////////////////////
 
   const SpeciesDietCard = ({ default_icon, common_name, scientific_name, active_attachments_count }) => (
@@ -387,6 +392,7 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
                       fontWeight: '500',
                       lineHeight: '100%',
                       letterSpacing: '0.1px'
+
                       // overflow: 'hidden',
                       // textOverflow: 'ellipsis',
                       // whiteSpace: 'nowrap',
@@ -450,7 +456,7 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
                       whiteSpace: 'nowrap'
                     }}
                   >
-                    •&nbsp; {moment(Utility.convertUTCToLocalDate(item.modified_at)).format('DD MMM YYYY')}
+                    •&nbsp; {moment(Utility.convertUTCToLocalDate(item.created_at)).format('DD MMM YYYY')}
                   </Typography>
                   <Typography
                     sx={{
@@ -463,7 +469,7 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
                       whiteSpace: 'nowrap'
                     }}
                   >
-                    •&nbsp; {Utility.convertUTCToLocaltime(item.modified_at)}
+                    •&nbsp; {Utility.convertUTCToLocaltime(item.created_at)}
                   </Typography>
                 </Box>
               </Box>
@@ -493,6 +499,7 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
       sx={{
         backgroundColor: '#DAE7DF',
         borderRadius: '8px',
+
         // alignItems: 'center',
         boxShadow: '0px 2px 2px 0px #0000001A',
         justifyContent: 'space-between',
@@ -595,6 +602,7 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
                   fontWeight: '500',
                   lineHeight: '100%',
                   letterSpacing: '0.1px'
+
                   // overflow: 'hidden',
                   // textOverflow: 'ellipsis',
                   // whiteSpace: 'nowrap',
@@ -628,7 +636,7 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
                   letterSpacing: '0%'
                 }}
               >
-                Updated by&nbsp; •
+                Uploaded by&nbsp; •
               </Typography>
               <Tooltip title={item?.detached_by ? item?.detached_by : '-'}>
                 <Typography
@@ -658,7 +666,7 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
                   whiteSpace: 'nowrap'
                 }}
               >
-                •&nbsp; {moment(Utility.convertUTCToLocalDate(item.modified_at)).format('DD MMM YYYY')}
+                •&nbsp; {moment(Utility.convertUTCToLocalDate(item.created_at)).format('DD MMM YYYY')}
               </Typography>
               <Typography
                 sx={{
@@ -671,7 +679,7 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
                   whiteSpace: 'nowrap'
                 }}
               >
-                •&nbsp; {Utility.convertUTCToLocaltime(item.modified_at)}
+                •&nbsp; {Utility.convertUTCToLocaltime(item.created_at)}
               </Typography>
             </Box>
           </Box>
@@ -681,6 +689,7 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
             onClick={e => {
               e.stopPropagation()
               setDietAttachmentId(item.attachment_id)
+
               // if (Number(specieDetails.active_attachments_count) === 0) {
               //   speciesAttachmentActiveFunc(speciesId, dietAttachmentId)
               // } else {
@@ -697,6 +706,7 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
   const handleChange = (event, newValue) => {
     setStatus(newValue)
   }
+
   const TabBadge = ({ label }) => (
     <div style={{ display: 'flex', alignItems: 'center', justifyItems: 'center', justifyContent: 'space-between' }}>
       {label}
@@ -890,6 +900,7 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
             setspeciesId(specieDetails.species_id)
             setUploadDietDrawer(true)
           }}
+
           // loading={loader}
         >
           UPLOAD NEW
