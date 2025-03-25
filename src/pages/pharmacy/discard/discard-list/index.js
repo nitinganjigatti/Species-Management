@@ -33,7 +33,7 @@ const ListOfDiscardProducts = () => {
   /***** Server side pagination */
   const updateUrlParams = params => {
     const query = { ...router.query, ...params }
-    router.push({ pathname: router.pathname, query }, undefined, { shallow: true })
+    router.replace({ pathname: router.pathname, query }, undefined, { shallow: true })
   }
 
   const [loader, setLoader] = useState(false)
@@ -44,8 +44,12 @@ const ListOfDiscardProducts = () => {
   const [sortColumn, setSortColumn] = useState(router.query.column || 'created_at')
   const [excelLoader, setExcelLoader] = useState(false)
   const [filterDates, setFilterDates] = useState({
-    startDate: router.query.startDate || Utility.formatDate(format(subMonths(new Date(), 1), 'dd MMM, yyyy')),
-    endDate: router.query.endDate || Utility.formatDate(format(new Date(), 'dd MMM, yyyy'))
+    startDate:
+      router.query.from_date === ''
+        ? ''
+        : router.query.from_date || Utility.formatDate(format(subMonths(new Date(), 1), 'dd MMM, yyyy')),
+    endDate:
+      router.query.to_date === '' ? '' : router.query.to_date || Utility.formatDate(format(new Date(), 'dd MMM, yyyy'))
   })
 
   const [paginationModel, setPaginationModel] = useState({
@@ -116,6 +120,7 @@ const ListOfDiscardProducts = () => {
   )
 
   useEffect(() => {
+    debugger
     if (filterDates?.startDate !== undefined && filterDates?.endDate !== undefined) {
       fetchTableData({ sort, q: searchValue, column: sortColumn, filterDates })
 
@@ -456,32 +461,29 @@ const ListOfDiscardProducts = () => {
   }
 
   const handleDateRangeChange = (startDate, endDate) => {
-    setPaginationModel({ page: 0, pageSize: 10 })
-
-    const formattedStartDate = startDate ? Utility.formatDate(startDate) : ''
-    const formattedEndDate = endDate ? Utility.formatDate(endDate) : ''
-
-    const updatedFilterDates = {
-      startDate: formattedStartDate,
-      endDate: formattedEndDate
-    }
-
-    setFilterDates(updatedFilterDates)
-
-    // Ensure URL update happens AFTER state is set
-    setTimeout(() => {
-      updateUrlParams({
-        sort,
-        q: searchValue,
-        column: sortColumn,
-        page: 0, // Reset to first page when filtering
-        limit: paginationModel?.pageSize,
-        from_date: updatedFilterDates.startDate,
-        to_date: updatedFilterDates.endDate
+    if (startDate && endDate) {
+      const formattedStartDate = Utility.formatDate(startDate)
+      const formattedEndDate = Utility.formatDate(endDate)
+      setFilterDates({
+        startDate: formattedStartDate,
+        endDate: formattedEndDate
       })
-    }, 0) // Ensures state updates first
-
-    console.log('Date range selected:', updatedFilterDates)
+      updateUrlParams({
+        from_date: formattedStartDate,
+        to_date: formattedEndDate
+      })
+      console.log('Date range selected:', { startDate, endDate })
+    } else {
+      setFilterDates({
+        startDate: '',
+        endDate: ''
+      })
+      updateUrlParams({
+        from_date: '',
+        to_date: ''
+      })
+      console.log('Empty date range selected,', { startDate, endDate })
+    }
   }
 
   return (
