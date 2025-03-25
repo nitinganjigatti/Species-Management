@@ -101,6 +101,7 @@ function UploadDiet({
     const allowedTypes = ['application/pdf']
     if (!file || !allowedTypes.includes(file.type)) {
       Toaster({ type: 'error', message: 'Please select a valid file.' })
+
       return
     }
     setSelectedFile(file)
@@ -110,6 +111,7 @@ function UploadDiet({
       clearErrors('attachment')
     }
   }
+
   ////////////////////////////////////////////////////////////
   const onSubmit = async ({ dietitian_id, notes }) => {
     setUploadingAttachment(true)
@@ -395,7 +397,7 @@ function UploadDiet({
                                     height: '48px'
                                   }}
                                 >
-                                  <Image alt={'filename'} src={'/icons/pdf_icon2.svg'} width={48} height={48} />
+                                  <Image alt={'filename'} src={'/icons/pdf_Icon2.svg'} width={48} height={48} />
                                   <Typography
                                     sx={{
                                       backgroundColor: theme.palette.customColors.Background,
