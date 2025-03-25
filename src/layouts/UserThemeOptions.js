@@ -75,6 +75,7 @@ const UserThemeOptions = () => {
         secondaryBg: '#7A8684',
         mdAntzNeutral: '#0000000D',
         OnSurfaceVariant: '#44544A',
+        OnSurfaceVariant60: '#44544A99',
         neutralSecondary: '#7A8684',
         textLabel: '#00ABAB',
 
@@ -94,6 +95,8 @@ const UserThemeOptions = () => {
 
         customTableBorderBg: '#DAE7DF',
         customDropdownColor: '#FA6140',
+
+        errorText: '#FF4D49',
 
         // **
         moderateSecondary: '#E4B819',
