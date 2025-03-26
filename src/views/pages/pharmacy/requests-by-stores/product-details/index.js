@@ -519,7 +519,7 @@ const RequestedProductDetails = props => {
                       padding: '8px'
                     }}
                   >
-                    Pending Items -
+                    Pending Quantity -
                     <Typography
                       component='span'
                       sx={{

@@ -99,7 +99,8 @@ const editParamsInitialState = {
   freight_gst: '',
   freight_total_charges: '',
   additional_charges: '',
-  round_off: ''
+  round_off: '',
+  purchase_created_by: 'manually'
 }
 
 const initialNestedRowMedicine = {
@@ -125,7 +126,9 @@ const initialNestedRowMedicine = {
   purchase_variant_id: '',
   purchase_unit_qty: '',
   purchase_variant_ratio: '',
-  isVariantIdPresent: false
+  isVariantIdPresent: false,
+  purchase_created_by: 'form',
+  medicine_name_by_ml: ''
 }
 
 const CustomInput = forwardRef(({ ...props }, ref) => {
@@ -643,7 +646,10 @@ const AddPurchaseForm = () => {
           console.log('error', response.message)
         }
       } else {
-        const response = await addPurchase(postData)
+        // const response = await addPurchase(postData)
+        if (postData?.purchase_created_by === 'invoice_upload') {
+          console.log('ml trained triggered')
+        }
         if (response?.success) {
           toast.success(response.message)
           setEditParams(editParamsInitialState)
@@ -996,7 +1002,9 @@ const AddPurchaseForm = () => {
         purchase_variant_id: getItems[0]?.purchase_variant_id,
         purchase_unit_qty: getItems[0]?.purchase_unit_qty,
         purchase_variant_ratio: getItems[0]?.purchase_variant_ratio,
-        isVariantIdPresent: getItems[0]?.isVariantIdPresent
+        isVariantIdPresent: getItems[0]?.isVariantIdPresent,
+        purchase_created_by: getItems[0]?.purchase_created_by,
+        medicine_name_by_ml: getItems[0]?.medicine_name_by_ml
 
         // purchase_gst_type: getItems[0].purchase_gst_type,
         // purchase_tax_amount: getItems[0].purchase_tax_amount
@@ -1056,7 +1064,9 @@ const AddPurchaseForm = () => {
         purchase_variant_id: getItems[0]?.purchase_variant_id,
         purchase_unit_qty: getItems[0]?.purchase_unit_qty,
         purchase_variant_ratio: getItems[0]?.purchase_variant_ratio,
-        isVariantIdPresent: getItems[0]?.isVariantIdPresent
+        isVariantIdPresent: getItems[0]?.isVariantIdPresent,
+        purchase_created_by: getItems[0]?.purchase_created_by,
+        medicine_name_by_ml: getItems[0]?.medicine_name_by_ml
       })
     }
   }
@@ -1391,25 +1401,33 @@ const AddPurchaseForm = () => {
   // }, [grandTotalAmount])
 
   const validateErrorForItemId = (index, el) => {
-    setItemIdErrors(prevErrors => {
-      const newErrors = { ...prevErrors }
+    // setItemIdErrors(prevErrors => {
+    //   const newErrors = { ...prevErrors }
 
-      if (!el?.purchase_stock_item_id) {
-        newErrors[index] = 'Product Information not found, please update the details'
-      } else {
-        delete newErrors[index] // Remove error if the issue is resolved
-      }
+    //   if (el?.purchase_stock_item_id === '' || el?.purchase_stock_item_id === null) {
+    //     newErrors[index] = `${el.medicine_name}Product Information not found, please update the details`
+    //   } else {
+    //     delete newErrors[index]
+    //   }
 
-      return newErrors
-    })
+    //   return newErrors
+    // })
+    const error = editParams.purchase_details.some(
+      el => el?.purchase_stock_item_id === '' || el?.purchase_stock_item_id === null
+    )
+    console.log('error', error)
+
+    return error
   }
+
   useEffect(() => {
-    if (editParams.purchase_details) {
-      editParams.purchase_details.forEach((el, index) => {
-        validateErrorForItemId(index, el)
-      })
-    }
-  }, [editParams.purchase_details])
+    // if (editParams.purchase_details) {
+    //   editParams.purchase_details.forEach((el, index) => {
+    //     validateErrorForItemId(index, el)
+    //   })
+    // }
+    // console.log('modified')
+  }, [editParams?.purchase_details])
 
   return (
     <Card>
@@ -2082,7 +2100,6 @@ const AddPurchaseForm = () => {
           </Grid>
         </CardContent>
         <Divider sx={{ mx: '20px' }} />
-
         <CardContent>
           <Grid container>
             <Grid
@@ -2250,7 +2267,8 @@ const AddPurchaseForm = () => {
                             <Typography variant='body2'>{el?.manufacture}</Typography>
                             {!el?.purchase_stock_item_id && (
                               <Typography sx={{ color: 'error.main', fontSize: '12px' }}>
-                                {itemIdIdErrors[index]}
+                                {/* {itemIdIdErrors[index]} */}
+                                Product Information not found, please update the details
                               </Typography>
                             )}
                           </TableCell>
@@ -2788,17 +2806,17 @@ const AddPurchaseForm = () => {
           </Grid>
           {/* // ) : null} */}
         </Grid>
+        {console.log('Object.keys(itemIdIdErrors)', itemIdIdErrors)}
+
         <Grid item xs={12}>
           <Box sx={{ float: 'right', my: 4, mx: 6 }}>
             <LoadingButton
               // disabled={editParams.purchase_details.length > 0 && inputValue ? false : true}
               disabled={
-                editParams.purchase_details.length > 0 &&
-                inputValue &&
-                !isError &&
-                !Object.keys(itemIdIdErrors)?.length > 0
+                editParams.purchase_details.length > 0 && inputValue && !isError && !validateErrorForItemId()
                   ? false
                   : true
+                // !Object.keys(itemIdIdErrors)?.length > 0
               }
               sx={{ marginRight: '8px' }}
               size='large'

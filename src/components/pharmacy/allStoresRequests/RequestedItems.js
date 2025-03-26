@@ -113,7 +113,7 @@ export default function RequestedItems({ selectedStoreDetails, setSelectedStoreD
   const [requestItems, setRequestItems] = useState([])
   const [fulfillMedicine, setFulfillMedicine] = useState(false)
   const [show, setShow] = useState(false)
-  const [requestedItemsSubTab, setRequestedItemsSubTab] = useState(router.query.requestedItemsSubTab || 'all')
+  const [requestedItemsSubTab, setRequestedItemsSubTab] = useState(router.query.requestedItemsSubTab || 'Available')
 
   const showDialog = () => {
     setShow(true)
@@ -743,6 +743,7 @@ export default function RequestedItems({ selectedStoreDetails, setSelectedStoreD
               closeFulfillDialog()
               fetchRequestedItemsById(sideDrawerItemDetails?.selectedStoreId, sideDrawerItemDetails?.selectedItemId)
             }}
+            reqColor
           />
         </Dialog>
         <Grid container sx>
@@ -838,19 +839,11 @@ export default function RequestedItems({ selectedStoreDetails, setSelectedStoreD
           mt: 5
         }}
       >
-        <Tab value='all' label={'All'} />
         {selectedPharmacy?.type === 'central' && <Tab value='Available' label={'Available'} />}
         {selectedPharmacy?.type === 'central' && <Tab value='NotAvailable' label={'NotAvailable'} />}
+        <Tab value='all' label={'All'} />
       </TabLists>
 
-      <TabPanel
-        value='all'
-        sx={{
-          padding: '0px !important'
-        }}
-      >
-        {pageContent()}
-      </TabPanel>
       {selectedPharmacy.type === 'central' && (
         <TabPanel
           value='Available'
@@ -871,6 +864,14 @@ export default function RequestedItems({ selectedStoreDetails, setSelectedStoreD
           {pageContent()}
         </TabPanel>
       )}
+      <TabPanel
+        value='all'
+        sx={{
+          padding: '0px !important'
+        }}
+      >
+        {pageContent()}
+      </TabPanel>
     </TabContext>
   )
 }
