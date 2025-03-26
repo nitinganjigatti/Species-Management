@@ -50,13 +50,13 @@ const ShipmentReport = () => {
 
   const [selectedOptions, setSelectedOptions] = useState({
     'Batch Number': [],
-    pharmacy: [],
-    Medicine: []
+    Pharmacy: [],
+    'Drug Type': []
   })
 
   const [paginationModel, setPaginationModel] = useState({
     page: parseInt(router.query.page) || 0,
-    pageSize: parseInt(router.query.limit) || 10
+    pageSize: parseInt(router.query.limit) || 50
   })
 
   const [filterDates, setFilterDates] = useState({
@@ -108,9 +108,9 @@ const ShipmentReport = () => {
             filteredData.pharmacy &&
             filteredData.pharmacy.length > 0 && { store_id: filteredData.pharmacy.join(',') }),
 
-          ...(filteredData?.Medicine && {
-            controlled: filteredData.Medicine.controlled,
-            prescription: filteredData.Medicine.prescription
+          ...(filteredData['Drug Type'] && {
+            controlled: filteredData['Drug Type'].controlled,
+            prescription: filteredData['Drug Type'].prescription
           })
         }
 
@@ -668,9 +668,9 @@ const ShipmentReport = () => {
           filteredData.pharmacy &&
           filteredData.pharmacy.length > 0 && { store_id: filteredData.pharmacy.join(',') }),
 
-        ...(filteredData?.Medicine && {
-          controlled: filteredData.Medicine.controlled,
-          prescription: filteredData.Medicine.prescription
+        ...(filteredData['Drug Type'] && {
+          controlled: filteredData['Drug Type'].controlled,
+          prescription: filteredData['Drug Type'].prescription
         }),
         response_type: 'csv'
       }
@@ -692,7 +692,7 @@ const ShipmentReport = () => {
       count++
     }
 
-    if (filteredData?.Medicine?.controlled || filteredData?.Medicine?.prescription) {
+    if (filteredData['Drug Type']?.controlled || filteredData['Drug Type']?.prescription) {
       count++
     }
 

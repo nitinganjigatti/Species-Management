@@ -5,33 +5,35 @@ import {
   CardContent,
   CardHeader,
   CircularProgress,
-  FormControlLabel,
   Grid,
   InputAdornment,
-  Switch,
   TextField,
   Tooltip,
   Typography
 } from '@mui/material'
+import CustomAvatar from 'src/@core/components/mui/avatar'
 import { Box } from '@mui/system'
+import { format, subMonths } from 'date-fns'
+import { debounce } from 'lodash'
 import { useRouter } from 'next/router'
 import React, { useCallback, useEffect, useState } from 'react'
 import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDateRangePickers'
-import { getReturnReport } from 'src/lib/api/pharmacy/reports'
+import { usePharmacyContext } from 'src/context/PharmacyContext'
+import { getDispenseReport } from 'src/lib/api/pharmacy/reports'
 import Utility from 'src/utility'
 import RenderUtility from 'src/utility/render'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
-import StyleWithIconCardComponent from 'src/views/utility/style-with-icon-card'
 import Icon from 'src/@core/components/icon'
+import DispenseReportFilterDrawer from 'src/views/pages/pharmacy/reports/DispenseReportFilterDrawer'
 import { getStoreList } from 'src/lib/api/pharmacy/getStoreList'
-import { debounce } from 'lodash'
-import ReturnReportDrawer from 'src/views/pages/pharmacy/reports/ReturnReportDrawer'
-import { format, subMonths } from 'date-fns'
-import { usePharmacyContext } from 'src/context/PharmacyContext'
+import StyleWithIconCardComponent from 'src/views/utility/style-with-icon-card'
+import { getUserList } from 'src/lib/api/pharmacy/dispenseProduct'
+import { readAsync } from 'src/lib/windows/utils'
 
-const ReturnReport = () => {
+const DispenseReport = () => {
   const router = useRouter()
   const theme = useTheme()
+
   const { selectedPharmacy } = usePharmacyContext()
 
   const updateUrlParams = params => {
@@ -43,20 +45,14 @@ const ReturnReport = () => {
   const [total, setTotal] = useState(0)
   const [loading, setLoading] = useState(false)
   const [sort, setSort] = useState(router.query.sort || 'asc')
-  const [sortColumn, setSortColumn] = useState(router.query.column || 'stock_name')
+  const [sortColumn, setSortColumn] = useState(router.query.column || 'dispense_number')
   const [searchValue, setSearchValue] = useState(router.query.q || '')
-  const [openFilterDrawer, setOpenFilterDrawer] = useState(false)
-  const [filteredData, setFilteredData] = useState({ pharmacy: [] })
   const [exportLoading, setExportLoading] = useState(false)
-  const [expired, setExpired] = useState(false)
+  const [openFilterDrawer, setOpenFilterDrawer] = useState(false)
   const [pharmacyList, setPharmacyList] = useState([])
-
-  const [selectedOptions, setSelectedOptions] = useState({
-    Pharmacy: [],
-    'Expiry Date': [],
-    'Near Expiry': [],
-    'Drug Type': []
-  })
+  const [users, setUsers] = useState([])
+  const [selectAllPharmacy, setSelectAllPharmacy] = useState(false)
+  const [selectAllUser, setSelectAllUser] = useState(false)
 
   const [paginationModel, setPaginationModel] = useState({
     page: parseInt(router.query.page) || 0,
@@ -68,14 +64,14 @@ const ReturnReport = () => {
     endDate: router.query.endDate || Utility.formatDate(format(new Date(), 'dd MMM, yyyy'))
   })
 
-  const [expiryFilterDates, setExpiryFilterDates] = useState({
-    startDate: '',
-    endDate: ''
+  const [filteredData, setFilteredData] = useState({
+    pharmacy: []
   })
 
-  const [nearExpiryFilterDates, setNearExpiryFilterDates] = useState({
-    startDate: '',
-    endDate: ''
+  const [selectedOptions, setSelectedOptions] = useState({
+    Pharmacy: [],
+    User: [],
+    'Drug Type': 'all'
   })
 
   useEffect(() => {
@@ -89,22 +85,77 @@ const ReturnReport = () => {
 
         if (response?.success) {
           let pharmacies = result?.list_items.map(({ id, name }) => ({ id, name })) || []
+
           pharmacies = pharmacies.filter(pharmacy => pharmacy.id !== selectedPharmacy?.id)
+
           setPharmacyList(pharmacies)
         }
       } catch (error) {
         console.log(error)
       }
     }
+
+    const getUserLists = async () => {
+      try {
+        const userDetails = await readAsync('userDetails')
+        if (userDetails?.user?.zoos.length > 0) {
+          let zoo_id = userDetails?.user?.zoos[0].zoo_id
+          await getUserList({ zoo_id }).then(res => {
+            if (res?.data?.length > 0) {
+              setUsers(
+                res?.data?.map(item => ({
+                  name: item?.user_name,
+                  id: item?.user_id
+                }))
+              )
+            }
+          })
+        }
+      } catch (error) {
+        console.log('user error', error)
+      }
+    }
+
     pharmacyList()
+    getUserLists()
   }, [selectedPharmacy])
+
+  const handleSelectAllPharmacy = () => {
+    setSelectAllPharmacy(!selectAllPharmacy)
+    if (!selectAllPharmacy) {
+      setSelectedOptions({
+        ...selectedOptions,
+        Pharmacy: pharmacyList.map(p => p.id)
+      })
+    } else {
+      setSelectedOptions({
+        ...selectedOptions,
+        Pharmacy: []
+      })
+    }
+  }
+
+  const handleSelectAllUser = () => {
+    setSelectAllUser(!selectAllUser)
+    if (!selectAllUser) {
+      setSelectedOptions({
+        ...selectedOptions,
+        User: users.map(u => u.id)
+      })
+    } else {
+      setSelectedOptions({
+        ...selectedOptions,
+        User: []
+      })
+    }
+  }
 
   function loadServerRows(currentPage, data) {
     return data
   }
 
-  const fetchReturnReport = useCallback(
-    async ({ sort, q, column, filteredData, expired, page, limit }) => {
+  const fetchTableData = useCallback(
+    async ({ sort, q, column, page, limit, filteredData }) => {
       try {
         setLoading(true)
 
@@ -116,25 +167,13 @@ const ReturnReport = () => {
           column: column,
           ...(filterDates?.startDate !== '' && { from_date: filterDates?.startDate }),
           ...(filterDates?.endDate !== '' && { to_date: filterDates?.endDate }),
-          ...(filteredData['Drug Type'] && {
-            controlled: filteredData['Drug Type'].controlled,
-            prescription: filteredData['Drug Type'].prescription
-          }),
-          ...(filteredData?.expiryDate && {
-            expired_from_date: filteredData.expiryDate.startDate,
-            expired_to_date: filteredData.expiryDate.endDate
-          }),
-
-          ...(filteredData?.nearExpiryDate && {
-            near_expiry_from_date: filteredData.nearExpiryDate.startDate,
-            near_expiry_to_date: filteredData.nearExpiryDate.endDate
-          }),
           ...(filteredData &&
             filteredData.pharmacy &&
             filteredData.pharmacy.length > 0 && { store_id: filteredData.pharmacy.join(',') }),
-          expired: expired ? 1 : 0
+          ...(filteredData && filteredData.controlled && { controlled: filteredData.controlled }),
+          ...(filteredData && filteredData.prescription && { prescription: filteredData.prescription })
         }
-        await getReturnReport({ params }).then(res => {
+        await getDispenseReport({ params: params }).then(res => {
           if (res?.success === true && res?.data?.list_items?.length > 0) {
             setTotal(parseInt(res?.data?.total_count))
             setRows(loadServerRows(paginationModel?.page, res?.data?.list_items))
@@ -153,15 +192,15 @@ const ReturnReport = () => {
   )
 
   useEffect(() => {
-    fetchReturnReport({
+    fetchTableData({
       sort: sort,
       q: searchValue,
       column: sortColumn,
-      filteredData: filteredData,
-      expired: expired,
       page: paginationModel?.page,
-      limit: paginationModel?.pageSize
+      limit: paginationModel?.pageSize,
+      filteredData: filteredData
     })
+
     updateUrlParams({
       sort,
       q: searchValue,
@@ -171,7 +210,15 @@ const ReturnReport = () => {
       startDate: filterDates?.startDate,
       endDate: filterDates?.endDate
     })
-  }, [paginationModel.page, paginationModel.pageSize, filterDates, filteredData, expired, selectedPharmacy?.id])
+  }, [
+    paginationModel.page,
+    paginationModel.pageSize,
+    sort,
+    sortColumn,
+    filterDates,
+    filteredData,
+    selectedPharmacy?.id
+  ])
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
@@ -197,6 +244,26 @@ const ReturnReport = () => {
       )
     },
     {
+      minWidth: 20,
+      width: 200,
+      field: 'dispense_number',
+      headerName: 'DISPENSE NUMBER',
+      sortable: true,
+      renderCell: params => (
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
+          {params.row.dispense_number}
+        </Typography>
+      )
+    },
+    {
       width: 5,
       field: 'label',
       headerName: '',
@@ -216,6 +283,10 @@ const ReturnReport = () => {
             !isNaN(params.row?.controlled_substance) && parseInt(params.row?.controlled_substance) === 1,
             'CS'
           )}
+          {RenderUtility?.renderControlLabel(
+            !isNaN(params.row?.prescription_required) && parseInt(params.row?.prescription_required) === 1,
+            'PR'
+          )}
         </Typography>
       )
     },
@@ -231,7 +302,7 @@ const ReturnReport = () => {
         <Box>
           <StyleWithIconCardComponent
             value={params.row.stock_name}
-            description={params.row.generic_name}
+            description={params.row.generic_name ? params.row.generic_name : 'NA'}
             icon={params.row.image ? `${params.row.image}` : '/images/Medicine_Icon.png'}
             showIcon={false}
             customCss={{
@@ -249,15 +320,12 @@ const ReturnReport = () => {
     },
     {
       minWidth: 20,
-      width: 200,
-      field: 'package',
-      headerName: 'PACKAGE',
+      width: 250,
+      field: 'manufacturer_name',
       sortable: false,
+      headerName: 'MANUFACTURER NAME',
       renderCell: params => (
-        <Tooltip
-          title={`${params.row.package} of ${Utility.formatNumber(params.row.package_qty)}
-              ${params.row.package_uom_label} ${params.row.product_form_label}`}
-        >
+        <Tooltip title={params.row.manufacturer_name}>
           <Typography
             variant='body2'
             sx={{
@@ -268,76 +336,55 @@ const ReturnReport = () => {
               overflow: 'hidden',
               whiteSpace: 'nowrap',
               textOverflow: 'ellipsis',
-              maxWidth: 240
+              maxWidth: 200
             }}
           >
-            {`${params.row.package} of ${Utility.formatNumber(params.row.package_qty)}
-              ${params.row.package_uom_label} ${params.row.product_form_label}`}
+            <span alt={params.row.manufacturer_name}> {params.row.manufacturer_name}</span>
           </Typography>
         </Tooltip>
       )
     },
     {
       minWidth: 20,
-      width: 180,
-      field: 'expiry_date',
-      headerName: 'EXPIRY DATE',
+      width: 170,
+      field: 'dispense_qty',
+      headerName: 'DISPENSE QUANTITY',
       sortable: true,
-      renderCell: params => (
-        <Typography
-          variant='body2'
-          sx={{
-            color: theme.palette.customColors.customHeadingTextColor,
-            fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
-          }}
-        >
-          {Utility.formatDisplayDate(params.row.expiry_date)}
-        </Typography>
-      )
-    },
-    {
-      minWidth: 20,
-      width: 200,
-      field: 'return_number',
-      headerName: 'RETURN NUMBER',
-      sortable: true,
-      renderCell: params => (
-        <Typography
-          variant='body2'
-          sx={{
-            color: theme.palette.customColors.customHeadingTextColor,
-            fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
-          }}
-        >
-          {params.row.return_number}
-        </Typography>
-      )
-    },
-    {
-      minWidth: 20,
-      width: 180,
-      field: 'return_date',
-      headerName: 'RETURN DATE',
-      sortable: true,
-      renderCell: params => (
-        <Typography
-          variant='body2'
-          sx={{
-            color: theme.palette.customColors.customHeadingTextColor,
-            fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
-          }}
-        >
-          {Utility.formatDisplayDate(params.row.return_date)}
-        </Typography>
-      )
-    },
 
+      renderCell: params => (
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
+          {params.row.dispense_qty ? Utility.formatNumber(params.row.dispense_qty) : 0}
+        </Typography>
+      )
+    },
+    {
+      minWidth: 20,
+      width: 190,
+      field: 'total_consumption_cost',
+      headerName: 'DISPENSE VALUE',
+      sortable: true,
+      renderCell: params => (
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
+          {Utility.formatAmountToReadableDigit(params.row.dispense_value)}
+        </Typography>
+      )
+    },
     {
       minWidth: 20,
       width: 160,
@@ -379,107 +426,62 @@ const ReturnReport = () => {
       )
     },
     {
-      minWidth: 20,
-      width: 250,
-      field: 'manufacturer_name',
-      sortable: false,
-      headerName: 'MANUFACTURER NAME',
-      renderCell: params => (
-        <Tooltip title={params.row.manufacturer_name}>
-          <Typography
-            variant='body2'
-            sx={{
-              color: theme.palette.customColors.customHeadingTextColor,
-              fontSize: '14px',
-              fontWeight: 400,
-              fontFamily: 'Inter',
-              overflow: 'hidden',
-              whiteSpace: 'nowrap',
-              textOverflow: 'ellipsis',
-              maxWidth: 200
-            }}
-          >
-            <span alt={params.row.manufacturer_name}> {params.row.manufacturer_name}</span>
-          </Typography>
-        </Tooltip>
-      )
-    },
-    {
-      minWidth: 20,
-      width: 180,
-      field: 'return_qty',
-      headerName: 'TOTAL RETURN QUANTITY',
-      sortable: true,
-      renderCell: params => (
-        <Typography
-          variant='body2'
-          sx={{
-            color: theme.palette.customColors.customHeadingTextColor,
-            fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
-          }}
-        >
-          {params.row?.total_return_qty ? Utility.formatNumber(params.row.total_return_qty) : 0}
-        </Typography>
-      )
-    },
-    {
-      minWidth: 20,
-      width: 180,
-      field: 'return_value',
-      headerName: 'TOTAL RETURN VALUE',
-      sortable: false,
-      renderCell: params => (
-        <Typography
-          variant='body2'
-          sx={{
-            color: theme.palette.customColors.customHeadingTextColor,
-            fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
-          }}
-        >
-          {Utility.formatAmountToReadableDigit(params.row.return_value)}
-        </Typography>
-      )
-    },
-    {
       minWidth: 200,
-      field: 'return_created_at',
+      field: 'dispense_to_user_name',
       sortable: true,
-      headerName: 'Created by ',
+      headerName: 'DISPENSE TO ',
       renderCell: params => (
         <>
-          {RenderUtility?.renderUserAvatarDetails(
-            params?.row?.user_created_profile_pic,
-            params?.row?.return_created_by_user_name,
-            params?.row?.return_created_at
-          )}
+          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+            {params?.row?.dispense_to_user_profile_pic ? (
+              <CustomAvatar
+                src={params?.row?.dispense_to_user_profile_pic}
+                sx={{ mr: '16px', width: '40px', height: '40px' }}
+              />
+            ) : (
+              <CustomAvatar sx={{ mr: '16px', width: '40px', height: '40px', fontSize: '.8rem' }}></CustomAvatar>
+            )}
+            <Tooltip title={params.row.dispense_to_user_name}>
+              <Typography
+                variant='subtitle2'
+                sx={{
+                  color: 'text.primary',
+                  fontSize: '14px',
+                  fontWeight: 400,
+                  fontFamily: 'Inter',
+                  overflow: 'hidden',
+                  whiteSpace: 'nowrap',
+                  textOverflow: 'ellipsis',
+                  maxWidth: 200
+                }}
+              >
+                {params?.row?.dispense_to_user_name ? (
+                  <span alt={params.row.dispense_to_user_name}> {params.row.dispense_to_user_name}</span>
+                ) : (
+                  'NA'
+                )}
+              </Typography>
+            </Tooltip>
+          </Box>
         </>
       )
     },
     {
-      minWidth: 250,
-      field: 'return_updated_at',
-
+      minWidth: 200,
+      field: 'dispense_date',
       sortable: true,
-      headerName: 'Updated by',
+      headerName: 'DISPENSE BY',
       renderCell: params => (
         <>
           {RenderUtility?.renderUserAvatarDetails(
-            params?.row?.user_updated_profile_pic,
-            params?.row?.return_updated_by_user_name,
-            params?.row?.return_updated_at
+            params?.row?.user_created_profile_pic,
+            params?.row?.dispense_created_by_user_name,
+            params?.row?.dispense_date
           )}
         </>
       )
     }
   ]
-
-  const handleSwitchChange = event => {
-    setExpired(event.target.checked)
-  }
 
   const handleDateRangeChange = (startDate, endDate) => {
     if (startDate && endDate) {
@@ -511,20 +513,17 @@ const ReturnReport = () => {
     }
   }
 
-  // console.log(`startDate : ${filterDates.startDate}`, `endDate : ${filterDates.endDate}`)
-
   const handleSortModel = newModel => {
     if (newModel.length) {
       setSort(newModel[0].sort)
       setSortColumn(newModel[0].field)
-      fetchReturnReport({
+      fetchTableData({
         sort: newModel[0].sort,
         q: searchValue,
         column: newModel[0].field,
-        filteredData: filteredData,
-        expired: expired,
         page: paginationModel?.page,
-        limit: paginationModel?.pageSize
+        limit: paginationModel?.pageSize,
+        filteredData: filteredData
       })
       updateUrlParams({
         sort: newModel[0].sort,
@@ -540,25 +539,26 @@ const ReturnReport = () => {
   }
 
   const searchTableData = useCallback(
-    debounce(async (sort, q, column, expired, page, limit) => {
+    debounce(async (sort, q, column, page, limit) => {
       setSearchValue(q)
+
       try {
-        await fetchReturnReport({
-          sort,
-          q,
-          column,
-          filteredData,
-          expired,
-          page,
-          limit
+        await fetchTableData({
+          sort: sort,
+          q: q,
+          column: column,
+          page: page,
+          limit: limit,
+          filteredData: filteredData
         })
 
         updateUrlParams({
           sort: sort,
           q: q,
           column: column,
-          page,
-          limit,
+          page: page,
+          limit: limit,
+
           startDate: filterDates?.startDate,
           endDate: filterDates?.endDate
         })
@@ -571,22 +571,8 @@ const ReturnReport = () => {
 
   const handleSearch = value => {
     setSearchValue(value)
-    searchTableData(sort, value, sortColumn, expired, paginationModel.page, paginationModel.pageSize)
+    searchTableData(sort, value, sortColumn, paginationModel?.page, paginationModel?.pageSize)
   }
-
-  const headerAction = (
-    <div>
-      <Grid item>
-        <FormControlLabel
-          control={
-            <Switch sx={{ mr: { sm: 5 }, mt: { xs: 1, sm: 1 } }} checked={expired} onChange={handleSwitchChange} />
-          }
-          labelPlacement='start'
-          label='Expired'
-        />
-      </Grid>
-    </div>
-  )
 
   const handleExport = async () => {
     try {
@@ -602,36 +588,19 @@ const ReturnReport = () => {
         sort: sort,
         q: searchValue,
         column: sortColumn,
-        page: 1, // Fetch all pages
-        limit: total, // Set limit to total number of items
+        page: 1,
+        limit: total,
+        response_type: 'csv',
         ...(filterDates?.startDate !== '' && { from_date: filterDates?.startDate }),
-        ...(filterDates?.endDate !== '' && { to_date: filterDates?.endDate }),
-        ...(filteredData['Drug Type'] && {
-          controlled: filteredData['Drug Type'].controlled,
-          prescription: filteredData['Drug Type'].prescription
-        }),
-        ...(filteredData?.expiryDate && {
-          expired_from_date: filteredData.expiryDate.startDate,
-          expired_to_date: filteredData.expiryDate.endDate
-        }),
-
-        ...(filteredData?.nearExpiryDate && {
-          near_expiry_from_date: filteredData.nearExpiryDate.startDate,
-          near_expiry_to_date: filteredData.nearExpiryDate.endDate
-        }),
-        ...(filteredData &&
-          filteredData.pharmacy &&
-          filteredData.pharmacy.length > 0 && { store_id: filteredData.pharmacy.join(',') }),
-        expired: expired ? 1 : 0,
-        response_type: 'csv'
+        ...(filterDates?.endDate !== '' && { to_date: filterDates?.endDate })
       }
 
-      const response = await getReturnReport({ params })
+      const response = await getDispenseReport({ params })
       if (response?.success && response?.data) {
-        Utility.downloadFileFromURL(response.data, `Return_Report ${timestamp}`)
+        Utility.downloadFileFromURL(response.data, `Dispense_Report ${timestamp}`)
       }
-    } catch (error) {
-      console.error('Error downloading Excel:', error)
+    } catch (e) {
+      console.error(`Error Downloading Excel`, e)
     } finally {
       setExportLoading(false)
     }
@@ -640,23 +609,11 @@ const ReturnReport = () => {
   const calculateAppliedFiltersCount = () => {
     let count = 0
 
-    if (filteredData['expiryDate'] && filteredData['expiryDate'].startDate && filteredData['expiryDate'].endDate) {
-      count++
-    }
-
-    if (
-      filteredData['nearExpiryDate'] &&
-      filteredData['nearExpiryDate'].startDate &&
-      filteredData['nearExpiryDate'].endDate
-    ) {
-      count++
-    }
-
-    if (filteredData['Drug Type']?.controlled || filteredData['Drug Type']?.prescription) {
-      count++
-    }
-
     if (filteredData && filteredData.pharmacy && filteredData.pharmacy.length > 0) {
+      count++
+    }
+
+    if (filteredData && (filteredData.controlled || filteredData.prescription)) {
       count++
     }
 
@@ -670,21 +627,19 @@ const ReturnReport = () => {
       <Card>
         <CardHeader
           sx={{
-            width: '100%',
             display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center',
-            flexWrap: 'wrap',
-            gap: 2,
-            [theme.breakpoints.down('sm')]: {
-              flexDirection: 'row',
-              justifyContent: 'space-between'
-            }
+            flexDirection: { xs: 'column', sm: 'row' },
+            justifyContent: 'flex-start',
+            alignItems: 'flex-start',
+            gap: { xs: 3, sm: 2 },
+            '& .MuiCardHeader-action': {
+              width: { xs: '100% ', sm: 'auto' }
+            },
+            mx: { xs: -1, sm: 0 }
           }}
-          title={RenderUtility.pageTitle('Return Report')}
-          action={headerAction}
+          title={RenderUtility.pageTitle('Dispense Report')}
         />
-        <CardContent sx={{ paddingTop: '4px' }}>
+        <CardContent>
           <Box
             sx={{
               display: 'flex',
@@ -729,7 +684,7 @@ const ReturnReport = () => {
                       display: 'flex',
                       alignItems: 'center',
                       gap: 2,
-                      justifyContent: 'flex-end'
+                      justifyContent: { sm: 'flex-end', xs: 'flex-end' }
                     }}
                   >
                     <Tooltip title='Export'>
@@ -821,21 +776,20 @@ const ReturnReport = () => {
         </CardContent>
       </Card>
       {openFilterDrawer && (
-        <ReturnReportDrawer
+        <DispenseReportFilterDrawer
           setOpenFilterDrawer={setOpenFilterDrawer}
           openFilterDrawer={openFilterDrawer}
           onApplyFilter={filterList => setFilteredData(filterList)}
           selectedOptions={selectedOptions}
           setSelectedOptions={setSelectedOptions}
-          expiryFilterDates={expiryFilterDates}
-          setExpiryFilterDates={setExpiryFilterDates}
-          nearExpiryFilterDates={nearExpiryFilterDates}
-          setNearExpiryFilterDates={setNearExpiryFilterDates}
           pharmacyList={pharmacyList}
+          handleSelectAllPharmacy={handleSelectAllPharmacy}
+          users={users}
+          handleSelectAllUser={handleSelectAllUser}
         />
       )}
     </>
   )
 }
 
-export default ReturnReport
+export default DispenseReport

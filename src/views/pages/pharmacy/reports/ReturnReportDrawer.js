@@ -11,7 +11,7 @@ const leftMenu = [
   { id: 1, name: 'Pharmacy' },
   { id: 2, name: 'Expiry Date' },
   { id: 3, name: 'Near Expiry' },
-  { id: 4, name: 'Medicine' }
+  { id: 4, name: 'Drug Type' }
 ]
 
 const ReturnReportDrawer = ({
@@ -129,7 +129,7 @@ const ReturnReportDrawer = ({
 
   const handleMedicineCheckbox = useCallback(
     id => {
-      handleCheckbox(id, 'Medicine')
+      handleCheckbox(id, 'Drug Type')
     },
     [handleCheckbox]
   )
@@ -162,21 +162,21 @@ const ReturnReportDrawer = ({
     let prescription = 0
 
     if (
-      selectedOptions['Medicine'].includes(MEDICINE_CONTROLLED) &&
-      selectedOptions['Medicine'].includes(MEDICINE_PRESCRIPTION)
+      selectedOptions['Drug Type'].includes(MEDICINE_CONTROLLED) &&
+      selectedOptions['Drug Type'].includes(MEDICINE_PRESCRIPTION)
     ) {
       controlled = 1
       prescription = 1
-    } else if (selectedOptions['Medicine'].includes(MEDICINE_CONTROLLED)) {
+    } else if (selectedOptions['Drug Type'].includes(MEDICINE_CONTROLLED)) {
       controlled = 1
       prescription = 0
-    } else if (selectedOptions['Medicine'].includes(MEDICINE_PRESCRIPTION)) {
+    } else if (selectedOptions['Drug Type'].includes(MEDICINE_PRESCRIPTION)) {
       controlled = 0
       prescription = 1
     }
 
     // Attach medicine options to object to send
-    filterData['Medicine'] = {
+    filterData['Drug Type'] = {
       controlled: controlled,
       prescription: prescription
     }
@@ -190,8 +190,8 @@ const ReturnReportDrawer = ({
       return expiryFilterDates.startDate !== '' && expiryFilterDates.endDate !== ''
     } else if (menuName === 'Near Expiry') {
       return nearExpiryFilterDates.startDate !== '' && nearExpiryFilterDates.endDate !== ''
-    } else if (menuName === 'Medicine') {
-      return selectedOptions['Medicine'].length > 0
+    } else if (menuName === 'Drug Type') {
+      return selectedOptions['Drug Type'].length > 0
     } else if (menuName === 'Pharmacy') {
       return selectedOptions['Pharmacy'].length > 0
     }
@@ -371,24 +371,24 @@ const ReturnReportDrawer = ({
                     showFutureDates={true}
                   />
                 </>
-              ) : selectedMenu.name === 'Medicine' ? (
+              ) : selectedMenu.name === 'Drug Type' ? (
                 <>
                   <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
                     <Checkbox
                       checked={
-                        selectedOptions['Medicine'].includes(MEDICINE_CONTROLLED) &&
-                        selectedOptions['Medicine'].includes(MEDICINE_PRESCRIPTION)
+                        selectedOptions['Drug Type'].includes(MEDICINE_CONTROLLED) &&
+                        selectedOptions['Drug Type'].includes(MEDICINE_PRESCRIPTION)
                       }
                       onChange={e => {
                         if (e.target.checked) {
                           setSelectedOptions(prev => ({
                             ...prev,
-                            Medicine: [MEDICINE_CONTROLLED, MEDICINE_PRESCRIPTION]
+                            'Drug Type': [MEDICINE_CONTROLLED, MEDICINE_PRESCRIPTION]
                           }))
                         } else {
                           setSelectedOptions(prev => ({
                             ...prev,
-                            Medicine: []
+                            'Drug Type': []
                           }))
                         }
                       }}
@@ -398,7 +398,7 @@ const ReturnReportDrawer = ({
                   </Box>
                   <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
                     <Checkbox
-                      checked={selectedOptions['Medicine'].includes(MEDICINE_CONTROLLED)}
+                      checked={selectedOptions['Drug Type'].includes(MEDICINE_CONTROLLED)}
                       onChange={() => handleMedicineCheckbox(MEDICINE_CONTROLLED)}
                       inputProps={{ 'aria-label': 'controlled' }}
                     />
@@ -406,7 +406,7 @@ const ReturnReportDrawer = ({
                   </Box>
                   <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
                     <Checkbox
-                      checked={selectedOptions['Medicine'].includes(MEDICINE_PRESCRIPTION)}
+                      checked={selectedOptions['Drug Type'].includes(MEDICINE_PRESCRIPTION)}
                       onChange={() => handleMedicineCheckbox(MEDICINE_PRESCRIPTION)}
                       inputProps={{ 'aria-label': 'controlled' }}
                     />

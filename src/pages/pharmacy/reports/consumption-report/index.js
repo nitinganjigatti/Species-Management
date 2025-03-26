@@ -290,7 +290,7 @@ const ConsumptionReport = () => {
         <div
           style={{
             whiteSpace: 'normal',
-            lineHeight: '1',
+            lineHeight: '1.3',
             textAlign: 'center',
             fontSize: '12px',
             fontWeight: 450
@@ -325,7 +325,7 @@ const ConsumptionReport = () => {
         <div
           style={{
             whiteSpace: 'normal',
-            lineHeight: '1',
+            lineHeight: '1.3',
             textAlign: 'center',
             fontSize: '12px',
             fontWeight: 450
@@ -360,7 +360,7 @@ const ConsumptionReport = () => {
         <div
           style={{
             whiteSpace: 'normal',
-            lineHeight: '1',
+            lineHeight: '1.3',
             textAlign: 'center',
             fontSize: '12px',
             fontWeight: 450
