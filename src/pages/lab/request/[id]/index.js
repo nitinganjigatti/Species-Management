@@ -77,22 +77,6 @@ import AnimalSideSheet from 'src/views/pages/lab/AnimalSideSheet'
 import CommentSideSheet from 'src/views/pages/lab/CommentSideSheet'
 import MedicalRecordNotes from 'src/components/lab/request/MedicalRecordNotes'
 
-const statusData = [
-  { id: 'awaiting_sample', name: 'Awaiting Sample' },
-  { id: 'sample_received', name: 'Sample Received' },
-  { id: 'sample_rejected', name: 'Sample Rejected' },
-  { id: 'sample_clotted', name: 'Sample Clotted' },
-  { id: 'sample_haemolysed', name: 'Sample Haemolysed' },
-  { id: 'inprogress', name: 'In Progress' },
-  { id: 'completed', name: 'Completed' },
-  { id: 'sample_insufficient', name: 'Sample Insufficient' },
-  { id: 'completed_positive', name: 'Completed - Positive' },
-  { id: 'completed_negative', name: 'Completed - Negative' },
-  { id: 'completed_detected', name: 'Completed - Detected' },
-  { id: 'completed_not_detected', name: 'Completed - Not Detected' },
-  { id: 'completed_inconclusive', name: 'Completed - Inconclusive' }
-]
-
 const RequestDetails = () => {
   const theme = useTheme()
 
@@ -176,6 +160,9 @@ const RequestDetails = () => {
   const [openCommentSheet, setOpenCommentSheet] = useState(false)
   const [CommentData, setCommentData] = useState({})
   const [medicalRecordNotes, setMedicalRecordNotes] = useState([])
+
+  const [statusList, setStatusList] = useState([])
+  const [filteredStatusData, setFilteredStatusData] = useState([])
 
   // console.log('CommentData', CommentData)
 
@@ -277,6 +264,19 @@ const RequestDetails = () => {
   //   }
   // }, [])
 
+  useEffect(() => {
+    const filteredStatusBlockData =
+      permissions?.allow_full_access || (permissions?.allow_upload_reports && permissions?.perform_tests)
+        ? statusList
+        : permissions?.perform_tests
+        ? statusList?.filter(item => ['pending', 'inprogress'].includes(item.status))
+        : null
+
+    if (filteredStatusBlockData) {
+      setFilteredStatusData(filteredStatusBlockData)
+    }
+  }, [statusList])
+
   const fetchRequestDetails = useCallback(async (sort, q) => {
     try {
       setLoading(true)
@@ -292,6 +292,7 @@ const RequestDetails = () => {
       const requestData = response?.data?.result || []
       const testReports = requestData[0]?.test_reports || []
 
+      setStatusList(response?.data?.lab_test_status_master)
       setLab_id(requestData[0]?.lab_id)
       setAnimalId(requestData[0]?.animal_details?.animal_id)
       setLabRequestId(requestData[0]?.request_id)
@@ -427,20 +428,20 @@ const RequestDetails = () => {
     setTestDoc(params?.row?.attachments?.docs)
   }
 
-  const filteredStatusData =
-    permissions?.allow_full_access || permissions?.allow_upload_reports
-      ? statusData
-      : statusData.filter(item =>
-          ['awaiting_sample', 'sample_received', 'sample_rejected', 'inprogress'].includes(item.id)
-        )
+  // const filteredStatusData =
+  //   permissions?.allow_full_access || permissions?.allow_upload_reports // Full access  || Performtest + upload Report > All status should list
+  //     ? statusList
+  //     : statusList.filter(
+  //         // Perform test > status > pending and in progress
+  //         item => ['pending', 'inprogress'].includes(item.key)
+  //         // item => ['awaiting_sample', 'sample_received', 'sample_rejected', 'inprogress'].includes(item.id)
+  //       )
 
   const shouldShowDropdown =
     permissions?.allow_full_access ||
     (permissions?.perform_tests && permissions?.allow_upload_reports) ||
     (permissions?.perform_tests && !permissions?.allow_upload_reports)
   // && params.row.status.split(' ')[0] !== 'completed')
-
-  // console.log('shouldShowDropdown', shouldShowDropdown)
 
   const handleOpenCommentSheet = (e, params) => {
     console.log('params', params)
@@ -575,8 +576,8 @@ const RequestDetails = () => {
                   }}
                 >
                   {filteredStatusData?.map((item, index) => (
-                    <MenuItem key={index} value={item?.id}>
-                      {item?.name}
+                    <MenuItem key={index} value={item?.key}>
+                      {item?.value}
                     </MenuItem>
                   ))}
                 </Select>
@@ -1311,8 +1312,8 @@ const RequestDetails = () => {
                           }}
                         >
                           {filteredStatusData?.map((item, index) => (
-                            <MenuItem key={index} value={item?.id}>
-                              {item?.name}
+                            <MenuItem key={index} value={item?.key}>
+                              {item?.value}
                             </MenuItem>
                           ))}
                         </Select>
