@@ -433,9 +433,15 @@ const SpeciesMappedtoDiet = ({
                     sx={{
                       '& img': {
                         objectFit: 'inherit'
-                      }
+                      },
+                      borderRadius:
+                        species?.default_icon && species.default_icon.includes('.svg')
+                          ? 'unset'
+                          : species?.default_icon
+                          ? '50%'
+                          : 'unset'
                     }}
-                    src={species.default_icon}
+                    src={species.default_icon ? species.default_icon : '/icons/species.svg'}
                     alt={species.scientific_name}
                   />
                 </ListItemAvatar>

@@ -8,7 +8,7 @@ import Button from '@mui/material/Button'
 import DoneIcon from '@mui/icons-material/Done'
 import { useEffect, useState } from 'react'
 import { Stack } from '@mui/system'
-import { Tooltip } from '@mui/material'
+import { Tooltip, CircularProgress } from '@mui/material'
 import toast from 'react-hot-toast'
 
 const RecipeCard = ({
@@ -24,7 +24,9 @@ const RecipeCard = ({
   searchValue,
   setSearchValue,
   fromrow,
-  recipeid
+  recipeid,
+  loading,
+  dietid
 }) => {
   const [remarks, setRemarks] = useState({})
   console.log('remarks', remarks)
@@ -88,19 +90,55 @@ const RecipeCard = ({
       setSelectedCardRecipe(updatedSelectedCard)
     }
 
-    const previousSelectedDays = selectedDays || [] // Keep track of previous selections
-
+    const previousSelectedDays = selectedDays || []
     if (
+      allRecipeSelectedValues &&
+      allRecipeSelectedValues?.length > 0 &&
+      allRecipeSelectedValues.some(item => item?.mealid === checkid) &&
+      !dietid
+    ) {
+      const cardIds = selectedValuesWithCheckId.map(item => item.recipe_id)
+      const days = selectedValuesWithCheckId.map(item => item.days_of_week)
+      const updatedRemarks = { ...remarks }
+
+      // Update selectedDays state with the extracted values
+      const updatedSelectedDays = rows.map(row => {
+        const previousDay = previousSelectedDays.find(prev => prev.cardId === row.id)
+
+        if (previousDay) {
+          // If the card has previously selected days, retain them
+          return previousDay
+        } else {
+          return {
+            cardId: row.id,
+            days: Day.map(day => ({
+              id: day.id,
+              name: day.name,
+              isActive: true
+            }))
+          }
+        }
+      })
+
+      setSelectedDays(updatedSelectedDays)
+
+      selectedValuesWithCheckId?.forEach(item => {
+        if (item.mealid === checkid) {
+          updatedRemarks[item.recipe_id] = item.remarks || ''
+        }
+      })
+
+      setRemarks(updatedRemarks)
+    } else if (
       allRecipeSelectedValues &&
       allRecipeSelectedValues?.length > 0 &&
       allRecipeSelectedValues.some(item => item?.mealid === checkid)
     ) {
       const cardIds = selectedValuesWithCheckId.map(item => item.recipe_id)
       const days = selectedValuesWithCheckId.map(item => item.days_of_week)
-      const newRemarks = {}
+      const updatedRemarks = { ...remarks }
 
-      // Update selectedDays state with the extracted values
-      console.log('selectedValuesWithCheckId :>> ', selectedValuesWithCheckId)
+      // Create updatedSelectedDays for the new selection
       const updatedSelectedDays = []
       cardIds.forEach((cardId, index) => {
         updatedSelectedDays.push({
@@ -113,28 +151,28 @@ const RecipeCard = ({
         })
       })
 
-      // Merge updatedSelectedDays with rows
+      // Merge updatedSelectedDays with the existing selectedDays state
       const finalSelectedDays = rows.map(row => {
         const updatedDay = updatedSelectedDays.find(updated => updated.cardId === row.id)
 
         if (updatedDay) {
-          return updatedDay
+          return updatedDay // Use the updated selection if available
         } else {
-          return {
-            cardId: row.id,
-            days: Day
-          }
+          const existingDay = selectedDays.find(existing => existing.cardId === row.id)
+          return existingDay || { cardId: row.id, days: Day }
         }
       })
+
       setSelectedDays(finalSelectedDays)
 
+      // Update remarks for the selected cards
       selectedValuesWithCheckId?.forEach(item => {
         if (item.mealid === checkid) {
-          newRemarks[item.recipe_id] = item.remarks
+          updatedRemarks[item.recipe_id] = item.remarks || ''
         }
       })
 
-      setRemarks(newRemarks)
+      setRemarks(updatedRemarks)
     } else if (
       allRecipeSelectedValues &&
       allRecipeSelectedValues?.length > 0 &&
@@ -151,7 +189,7 @@ const RecipeCard = ({
           isActive: true
         }))
 
-        return previousDay ? previousDay : { cardId: row.id, days: enabledAllDays } // Keep previously selected days if available, or enable all days
+        return previousDay ? previousDay : { cardId: row.id, days: enabledAllDays }
       })
       setSelectedDays(finalSelectedDays)
       setRemarks({})
@@ -186,7 +224,31 @@ const RecipeCard = ({
             days: Day.map(day => ({
               id: day.id,
               name: day.name,
-              isActive: true // Enable all days for new cards
+              isActive: true
+            }))
+          }
+        }
+      })
+
+      setSelectedDays(updatedSelectedDays)
+      //setRemarks({})
+    } else if (searchValue !== '' && !dietid) {
+      const previousSelectedDays = selectedDays || []
+
+      // Map over rows to retain previously selected days for matching cards
+      const updatedSelectedDays = rows.map(row => {
+        const previousDay = previousSelectedDays.find(prev => prev.cardId === row.id)
+
+        if (previousDay) {
+          // If the card has previously selected days, retain them
+          return previousDay
+        } else {
+          return {
+            cardId: row.id,
+            days: Day.map(day => ({
+              id: day.id,
+              name: day.name,
+              isActive: true
             }))
           }
         }
@@ -194,7 +256,7 @@ const RecipeCard = ({
 
       setSelectedDays(updatedSelectedDays)
       setRemarks({})
-    } else if (!searchValue) {
+    } else if (!searchValue && selectedCardRecipe.length <= 0) {
       const previousSelectedDays = selectedDays || []
       const initialSelectedDays = rows.map(row => ({
         cardId: row.id,
@@ -385,7 +447,11 @@ const RecipeCard = ({
 
   return (
     <Box>
-      {sortedRecipeList?.length > 0 ? (
+      {loading ? (
+        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 20 }}>
+          <CircularProgress />
+        </Box>
+      ) : sortedRecipeList?.length > 0 ? (
         sortedRecipeList?.map((item, index) => {
           return (
             <>

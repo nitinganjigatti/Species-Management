@@ -10,7 +10,7 @@ import FormControl from '@mui/material/FormControl'
 import { useEffect, useState } from 'react'
 import { Stack } from '@mui/system'
 import toast from 'react-hot-toast'
-import { Tooltip, Select, MenuItem } from '@mui/material'
+import { Tooltip, Select, MenuItem, CircularProgress } from '@mui/material'
 import SizeSelector from 'src/components/SelectCutsize'
 
 const ComboCard = ({
@@ -27,11 +27,11 @@ const ComboCard = ({
   setSearchValue,
   fromrow,
   comboid,
-  cutsizelist
+  cutsizelist,
+  dietid,
+  loading
 }) => {
   const [remarks, setRemarks] = useState({})
-  console.log('remarks', remarks)
-
   const [selectedCount, setSelectedCount] = useState([])
   const [selectedDays, setSelectedDays] = useState()
 
@@ -87,7 +87,7 @@ const ComboCard = ({
           ...item,
           id: String(item.recipe_id)
         }))
-        .filter(item => !currentselectedCardCombo.some(existingItem => existingItem.recipe_id === item.recipe_id)) // Avoid duplicates
+        .filter(item => !currentselectedCardCombo.some(existingItem => existingItem.recipe_id === item.recipe_id))
     ]
     if (!searchValue) {
       setSelectedCardCombo(updatedSelectedCard)
@@ -95,8 +95,8 @@ const ComboCard = ({
 
     // Set the `size` state for the selected combos
     if (selectedValuesWithCheckId?.length) {
-      console.log(selectedValuesWithCheckId, 'selectedValuesWithCheckId')
-      const updatedSize = {}
+      const updatedSize = { ...size }
+
       selectedValuesWithCheckId.forEach(combo => {
         if (combo.mealid === checkid) {
           console.log(combo, 'combo')
@@ -109,22 +109,59 @@ const ComboCard = ({
           updatedSize[combo.recipe_id] = ingredientCutSizes
         }
       })
-      setSize(updatedSize) // Merge with the existing size state
+
+      setSize(updatedSize)
     }
 
-    const previousSelectedDays = selectedDays || [] // Keep track of previous selections
-
+    const previousSelectedDays = selectedDays || []
     if (
+      allComboSelectedValues &&
+      allComboSelectedValues?.length > 0 &&
+      allComboSelectedValues.some(item => item?.mealid === checkid) &&
+      !dietid
+    ) {
+      const cardIds = selectedValuesWithCheckId.map(item => item.recipe_id)
+      const days = selectedValuesWithCheckId.map(item => item.days_of_week)
+      const updatedRemarks = { ...remarks }
+
+      // Update selectedDays state with the extracted values
+      const updatedSelectedDays = rows.map(row => {
+        const previousDay = previousSelectedDays.find(prev => prev.cardId === row.id)
+
+        if (previousDay) {
+          // If the card has previously selected days, retain them
+          return previousDay
+        } else {
+          return {
+            cardId: row.id,
+            days: Day.map(day => ({
+              id: day.id,
+              name: day.name,
+              isActive: true
+            }))
+          }
+        }
+      })
+
+      setSelectedDays(updatedSelectedDays)
+
+      selectedValuesWithCheckId?.forEach(item => {
+        if (item.mealid === checkid) {
+          updatedRemarks[item.recipe_id] = item.remarks || ''
+        }
+      })
+
+      setRemarks(updatedRemarks)
+    } else if (
       allComboSelectedValues &&
       allComboSelectedValues?.length > 0 &&
       allComboSelectedValues.some(item => item?.mealid === checkid)
     ) {
       const cardIds = selectedValuesWithCheckId.map(item => item.recipe_id)
       const days = selectedValuesWithCheckId.map(item => item.days_of_week)
-      const newRemarks = {}
+      const updatedRemarks = { ...remarks }
 
-      // Update selectedDays state with the extracted values
-      console.log('selectedValuesWithCheckId :>> ', selectedValuesWithCheckId)
+      // Create updatedSelectedDays for the new selection
       const updatedSelectedDays = []
       cardIds.forEach((cardId, index) => {
         updatedSelectedDays.push({
@@ -137,28 +174,28 @@ const ComboCard = ({
         })
       })
 
-      // Merge updatedSelectedDays with rows
+      // Merge updatedSelectedDays with the existing selectedDays state
       const finalSelectedDays = rows.map(row => {
         const updatedDay = updatedSelectedDays.find(updated => updated.cardId === row.id)
 
         if (updatedDay) {
-          return updatedDay
+          return updatedDay // Use the updated selection if available
         } else {
-          return {
-            cardId: row.id,
-            days: Day
-          }
+          const existingDay = selectedDays.find(existing => existing.cardId === row.id)
+          return existingDay || { cardId: row.id, days: Day }
         }
       })
+
       setSelectedDays(finalSelectedDays)
 
+      // Update remarks for the selected cards
       selectedValuesWithCheckId?.forEach(item => {
         if (item.mealid === checkid) {
-          newRemarks[item.recipe_id] = item.remarks
+          updatedRemarks[item.recipe_id] = item.remarks || ''
         }
       })
 
-      setRemarks(newRemarks)
+      setRemarks(updatedRemarks)
     } else if (
       allComboSelectedValues &&
       allComboSelectedValues?.length > 0 &&
@@ -172,10 +209,10 @@ const ComboCard = ({
         const enabledAllDays = Day.map(day => ({
           id: day.id,
           name: day.name,
-          isActive: true // Enable all days if mealid does not match checkid
+          isActive: true
         }))
 
-        return previousDay ? previousDay : { cardId: row.id, days: enabledAllDays } // Keep previously selected days if available, or enable all days
+        return previousDay ? previousDay : { cardId: row.id, days: enabledAllDays }
       })
       setSelectedDays(finalSelectedDays)
       setRemarks({})
@@ -210,7 +247,31 @@ const ComboCard = ({
             days: Day.map(day => ({
               id: day.id,
               name: day.name,
-              isActive: true // Enable all days for new cards
+              isActive: true
+            }))
+          }
+        }
+      })
+
+      setSelectedDays(updatedSelectedDays)
+      //setRemarks({})
+    } else if (searchValue !== '' && !dietid) {
+      const previousSelectedDays = selectedDays || []
+
+      // Map over rows to retain previously selected days for matching cards
+      const updatedSelectedDays = rows.map(row => {
+        const previousDay = previousSelectedDays.find(prev => prev.cardId === row.id)
+
+        if (previousDay) {
+          // If the card has previously selected days, retain them
+          return previousDay
+        } else {
+          return {
+            cardId: row.id,
+            days: Day.map(day => ({
+              id: day.id,
+              name: day.name,
+              isActive: true
             }))
           }
         }
@@ -218,15 +279,15 @@ const ComboCard = ({
 
       setSelectedDays(updatedSelectedDays)
       setRemarks({})
-    } else if (!searchValue) {
+    } else if (!searchValue && selectedCardCombo.length <= 0) {
       const previousSelectedDays = selectedDays || []
       const initialSelectedDays = rows.map(row => ({
         cardId: row.id,
         days: Day
       }))
-
       setSelectedDays(initialSelectedDays)
       setRemarks({})
+      setSize({})
     }
   }, [allComboSelectedValues, checkid, formData, rows, addEventSidebarOpen, searchValue])
 
@@ -426,7 +487,6 @@ const ComboCard = ({
   }
 
   const handleChangeSize = (event, item, ingredient) => {
-    console.log(ingredient, 'ingredient')
     event.stopPropagation()
     const { value } = event.target
 
@@ -455,7 +515,11 @@ const ComboCard = ({
 
   return (
     <Box>
-      {sortedRecipeList?.length > 0 ? (
+      {loading ? (
+        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 20 }}>
+          <CircularProgress />
+        </Box>
+      ) : sortedRecipeList?.length > 0 ? (
         sortedRecipeList?.map((item, index) => {
           return (
             <>
