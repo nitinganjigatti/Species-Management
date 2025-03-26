@@ -23,12 +23,15 @@ import {
   Button,
   Card,
   CardContent,
+  CircularProgress,
   FormControl,
   Grid,
+  InputAdornment,
   InputLabel,
   MenuItem,
   Select,
   TextField,
+  Tooltip,
   debounce
 } from '@mui/material'
 
@@ -49,17 +52,17 @@ import { useTheme } from '@emotion/react'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import toast from 'react-hot-toast'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
-import { AddButtonContained } from 'src/components/ButtonContained'
+import { AddButtonContained, ExcelExportButton } from 'src/components/ButtonContained'
 import RenderUtility from 'src/utility/render'
 import { AuthContext } from 'src/context/AuthContext'
 import { width } from '@mui/system'
+import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDateRangePickers'
 
 export default function NewProductList() {
   const theme = useTheme()
   const router = useRouter()
 
   const updateUrlParams = useCallback(params => {
-    // debugger
     const newQuery = { ...router.query, ...params }
     router.replace({ pathname: router.pathname, query: newQuery }, undefined)
   }, [])
@@ -78,6 +81,10 @@ export default function NewProductList() {
   const [statusCall, setStatusCall] = useState(false)
   const { selectedPharmacy } = usePharmacyContext()
   const [selectedPharmacyId, setSelectedPharmacyId] = useState('')
+  const [filterDates, setFilterDates] = useState({
+    startDate: router.query.startDate || '',
+    endDate: router.query.endDate || ''
+  })
 
   const authData = useContext(AuthContext)
 
@@ -337,6 +344,7 @@ export default function NewProductList() {
   const [imgUrl, setImageUrl] = useState()
   const [rows, setRows] = useState([])
   const [status, setStatus] = useState(router.query.status || 'Approved')
+  const [excelLoader, setExcelLoader] = useState(false)
 
   const handleChange = (event, newValue) => {
     // Reset total and search value
@@ -355,7 +363,8 @@ export default function NewProductList() {
       status: newValue, // Use the updated status
       filterByPharmacyId: filterByPharmacyId === 'all' ? '' : filterByPharmacyId, // Use the current pharmacy filter
       page: 1,
-      limit: paginationModel.pageSize
+      limit: paginationModel.pageSize,
+      filterDates
     })
     updateUrlParams({
       sort,
@@ -364,7 +373,9 @@ export default function NewProductList() {
       status: newValue,
       filterByPharmacyId: filterByPharmacyId === 'all' ? '' : filterByPharmacyId,
       page: paginationModel?.page,
-      limit: paginationModel?.pageSize
+      limit: paginationModel?.pageSize,
+      ...(filterDates?.startDate !== '' && { from_date: filterDates?.startDate }),
+      ...(filterDates?.endDate !== '' && { to_date: filterDates?.endDate })
     })
   }
 
@@ -373,7 +384,7 @@ export default function NewProductList() {
   }
 
   const fetchTableData = useCallback(
-    async ({ sort, q, column, status, filterByPharmacyId, page, limit }) => {
+    async ({ sort, q, column, status, filterByPharmacyId, page, limit, filterDates }) => {
       try {
         setLoading(true)
 
@@ -384,6 +395,8 @@ export default function NewProductList() {
           page: page || paginationModel.page + 1, // Fallback to current page if not provided
           limit: limit || paginationModel.pageSize, // Fallback to current limit if not provided
           type: status,
+          ...(filterDates?.startDate !== '' && { from_date: filterDates?.startDate }),
+          ...(filterDates?.endDate !== '' && { to_date: filterDates?.endDate }),
           pharmacy: filterByPharmacyId === 'all' ? '' : filterByPharmacyId
         }
 
@@ -404,12 +417,12 @@ export default function NewProductList() {
         setLoading(false)
       }
     },
-    [paginationModel.page, paginationModel.pageSize] // Ensure state is watched properly
+    [paginationModel.page, paginationModel.pageSize, filterDates] // Ensure state is watched properly
   )
 
   const handleSortModel = async newModel => {
     if (newModel.length > 0) {
-      await searchTableData({ sort: newModel[0].sort, q: searchValue, column: newModel[0].field, status })
+      await searchTableData({ sort: newModel[0].sort, q: searchValue, column: newModel[0].field, status, filterDates })
       updateUrlParams({
         sort: newModel[0].sort,
         q: searchValue,
@@ -417,7 +430,9 @@ export default function NewProductList() {
         status: status,
         filterByPharmacyId: filterByPharmacyId === 'all' ? '' : filterByPharmacyId,
         page: paginationModel.page,
-        limit: paginationModel.pageSize
+        limit: paginationModel.pageSize,
+        ...(filterDates?.startDate !== '' && { from_date: filterDates?.startDate }),
+        ...(filterDates?.endDate !== '' && { to_date: filterDates?.endDate })
       })
     } else {
     }
@@ -446,7 +461,7 @@ export default function NewProductList() {
   )
 
   const searchTableData = useCallback(
-    debounce(async ({ sort, q, column, status, filterByPharmacyId }) => {
+    debounce(async ({ sort, q, column, status, filterByPharmacyId, filterDates }) => {
       setSearchValue(q)
       setPaginationModel({ page: 0, pageSize: 10 })
       try {
@@ -455,7 +470,10 @@ export default function NewProductList() {
           q,
           column,
           status,
-          filterByPharmacyId: filterByPharmacyId === 'all' ? '' : filterByPharmacyId
+          filterByPharmacyId: filterByPharmacyId === 'all' ? '' : filterByPharmacyId,
+          page: paginationModel.page,
+          limit: paginationModel.pageSize,
+          filterDates
         })
         updateUrlParams({
           sort: sort,
@@ -464,7 +482,9 @@ export default function NewProductList() {
           status: status,
           filterByPharmacyId: filterByPharmacyId,
           page: paginationModel.page,
-          limit: paginationModel.pageSize
+          limit: paginationModel.pageSize,
+          ...(filterDates?.startDate !== '' && { from_date: filterDates?.startDate }),
+          ...(filterDates?.endDate !== '' && { to_date: filterDates?.endDate })
         })
       } catch (error) {
         console.error(error)
@@ -476,9 +496,9 @@ export default function NewProductList() {
   const handleSearch = async value => {
     setSearchValue(value)
     if (value === '') {
-      await searchTableData({ sort, q: value, column: 'id', status, filterByPharmacyId })
+      await searchTableData({ sort, q: value, column: 'id', status, filterByPharmacyId, filterDates })
     } else {
-      await searchTableData({ sort, q: value, column: 'request_number', status, filterByPharmacyId })
+      await searchTableData({ sort, q: value, column: 'id', status, filterByPharmacyId, filterDates })
     }
   }
 
@@ -513,7 +533,8 @@ export default function NewProductList() {
       q: searchValue,
       column: sortColumn,
       status,
-      filterByPharmacyId: pharmacyFilterValue
+      filterByPharmacyId: pharmacyFilterValue,
+      filterDates
     })
     updateUrlParams({
       sort,
@@ -522,9 +543,11 @@ export default function NewProductList() {
       status: status,
       filterByPharmacyId: pharmacyFilterValue,
       page: paginationModel?.page,
-      limit: paginationModel?.pageSize
+      limit: paginationModel?.pageSize,
+      ...(filterDates?.startDate !== '' && { from_date: filterDates?.startDate }),
+      ...(filterDates?.endDate !== '' && { to_date: filterDates?.endDate })
     })
-  }, [sort, sortColumn, selectedPharmacy])
+  }, [sort, sortColumn, selectedPharmacy, filterDates])
 
   const handleEdit = id => {
     router.push({
@@ -554,6 +577,70 @@ export default function NewProductList() {
     sl_no: getSlNo(index)
   }))
 
+  const getProductRequestToExport = async () => {
+    try {
+      debugger
+      setExcelLoader(true)
+
+      const params = {
+        sort: sort,
+        q: searchValue,
+        column: sortColumn,
+        type: status,
+        pharmacy: filterByPharmacyId === 'all' ? '' : filterByPharmacyId,
+        ...(filterDates?.startDate !== '' && { from_date: filterDates?.startDate }),
+        ...(filterDates?.endDate !== '' && { to_date: filterDates?.endDate })
+      }
+
+      const response = await getNonExistingProductList({ params })
+      console.log('Response inventory>', response)
+      setExcelLoader(false)
+      if (response?.success === true && response?.data?.length > 0) {
+        const data = response?.data
+          ?.map(el => {
+            return el.request_items.map(item => ({
+              ['Request Number']: el?.request_number,
+              ['Store Name']: el?.to_store_name,
+              ['status']: el?.status,
+              ['Product Name']: item.product_name,
+              ['Quantity']: item.quantity,
+              ['Priority']: item.priority,
+              ['Created At']: Utility.formatDisplayDate(el?.created_at)
+                ? Utility.formatDisplayDate(el?.created_at)
+                : 'NA',
+              ['Requested User']: el?.requested_user_name ? el?.requested_user_name : 'NA'
+            }))
+          })
+          .flat() // Use flat() to flatten the array of arrays into a single array
+
+        Utility.exportToCSV(data, 'Existing_ProductList')
+      } else {
+        console.log('No data available for export.')
+      }
+    } catch (error) {
+      console.log('Error >>', error)
+    }
+  }
+
+  const handleDateRangeChange = (startDate, endDate) => {
+    setPaginationModel({ page: 0, pageSize: 10 })
+    if (startDate && endDate) {
+      setFilterDates({
+        startDate: Utility.formatDate(startDate),
+        endDate: Utility.formatDate(endDate)
+      })
+
+      console.log('Date range selected:', { startDate, endDate })
+    } else {
+      setFilterDates({
+        startDate: '',
+        endDate: ''
+      })
+
+      console.log('Empty date range selected,', { startDate, endDate })
+    }
+  }
+
   const tableData = () => {
     return (
       <>
@@ -572,7 +659,8 @@ export default function NewProductList() {
               },
               gap: { xs: 3, sm: 0 },
               '& .MuiCardHeader-action': {
-                width: { xs: '100% ', sm: 'auto' }
+                width: { xs: '100% ', sm: 'auto' },
+                mb: filterByPharmacyId || searchValue || excelLoader ? { xs: 3, sm: 3 } : 0
               },
               mx: { xs: -1, sm: 1 },
               mt: 1
@@ -582,107 +670,146 @@ export default function NewProductList() {
           <Box
             sx={{
               display: 'flex',
-              flexDirection: { xs: 'column', md: 'row' },
-              justifyContent: { xs: 'center', md: 'space-between' },
+              justifyContent: 'space-between',
               alignItems: 'center',
-
-              // padding: '2px',
-              margin: selectedPharmacy?.type === 'local' ? '1rem 1.375rem 0px 1.375rem' : '0rem 1.375rem 0px 1.375rem',
-              gap: { xs: 2, md: 3 }
+              flexWrap: { xs: 'wrap', sm: 'nowrap' }, // Allow wrapping on small screens
+              mx: { xs: 3, md: 5 },
+              gap: { sm: 2 }
             }}
           >
-            {/* <Box
-                sx={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-                  borderRadius: '8px',
-                  padding: '0 8px',
-                  height: '40px',
+            {/* Left Box (Date Picker) */}
+            <Grid item xs={12} sm={4} md={3} sx={{ mb: { xs: 3, sm: 0 }, width: { xs: '100%', sm: 'auto' } }}>
+              <CommonDateRangePickers onChange={handleDateRangeChange} filterDates={filterDates} />
+            </Grid>
 
-                  // ml: { sm: 4.5},
-                  width: { xs: '100%', md: '290px' },
-                  marginBottom: { xs: 2, md: 0 }
-                }}
-              >
-                <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} /> */}
-            <TextField
-              variant='outlined'
-              size='small'
-              placeholder='Search...'
-              value={searchValue}
-              onChange={e => handleSearch(e.target.value)}
-              fullWidth
-              sx={{
-                borderRadius: '8px',
-                width: { xs: '100%', md: '290px' }
-              }}
-            />
-            {/* </Box> */}
+            {/* Right Box (Download, Pharmacy Filter, Search) */}
 
-            {/* Filters */}
-            <Grid
-              container
-              spacing={2}
+            <Box
               sx={{
                 display: 'flex',
-                flexWrap: { xs: 'wrap', md: 'nowrap' },
-                justifyContent: { xs: 'center', md: 'flex-end' },
-                alignItems: 'center'
-
-                // width: '100%'
+                alignItems: 'center',
+                justifyContent: { xs: 'flex-end', sm: 'flex-end' },
+                flexWrap: { xs: 'wrap', sm: 'nowrap' },
+                mt: { xs: 1, sm: 0 }
               }}
             >
-              {/* Filter by Stores */}
-              <Grid
-                item
-                xs={12}
+              {/* Search Field */}
+              <TextField
+                variant='outlined'
+                size='small'
+                placeholder='Search...'
+                value={searchValue}
+                onChange={e => handleSearch(e.target.value)}
                 sx={{
-                  maxWidth: { xs: '100%', md: '250px' },
-                  width: '100%',
-                  height: '48px',
-                  mt: { xs: 2, md: 0 }
+                  flex: 1,
+                  mr: { sm: 1 },
+                  borderRadius: '8px',
+                  minWidth: 250
+                  // mt: { xs: 3, sm: 0 }
+                }}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position='start'>
+                      <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
+                    </InputAdornment>
+                  )
+                }}
+              />
+
+              {/* Pharmacy Filter */}
+
+              <FormControl
+                size='small'
+                sx={{
+                  mt: { xs: 4, sm: 0 },
+                  // mr: { sm: 2 },
+                  // ml: { xs: 2 },
+                  minWidth: { xs: '230px', sm: '10px' }, // Increased width for both small and larger screens
+                  flex: { xs: 1, sm: 'auto' }
                 }}
               >
-                <FormControl fullWidth size='small'>
-                  <InputLabel>Filter by Pharmacy</InputLabel>
-                  <Select
-                    value={filterByPharmacyId}
-                    label='Filter by Pharmacy'
-                    onChange={e => {
-                      setPaginationModel({ page: 0, pageSize: 10 })
-                      const selectedId = e.target.value
+                <InputLabel>Filter by Pharmacy</InputLabel>
+                <Select
+                  value={filterByPharmacyId}
+                  label='Filter by Pharmacy'
+                  onChange={e => {
+                    setPaginationModel({ page: 0, pageSize: 10 })
+                    const selectedId = e.target.value
 
-                      // Update the dropdown value
-                      setFilterByPharmacyId(selectedId)
+                    // Update the dropdown value
+                    setFilterByPharmacyId(selectedId)
 
-                      // Fetch table data with the selected pharmacy filter
-                      fetchTableData({
-                        sort,
-                        q: searchValue,
-                        column: sortColumn,
-                        status,
-                        filterByPharmacyId: selectedId === 'all' ? '' : selectedId,
-                        page: 0,
-                        limit: 10
-                      })
-                    }}
-                  >
-                    <MenuItem value='all'>All</MenuItem>
-                    {authData.userData.modules.pharmacy_data.pharmacy?.map(item => (
-                      <MenuItem key={item.id} value={item.id}>
-                        {item.name}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-              </Grid>
-            </Grid>
+                    // Fetch table data with the selected pharmacy filter
+                    fetchTableData({
+                      sort,
+                      q: searchValue,
+                      column: sortColumn,
+                      status,
+                      filterByPharmacyId: selectedId === 'all' ? '' : selectedId,
+                      page: 0,
+                      limit: 10,
+                      filterDates
+                    })
+                  }}
+                >
+                  <MenuItem value='all'>All</MenuItem>
+                  {authData.userData.modules.pharmacy_data.pharmacy?.map(item => (
+                    <MenuItem key={item.id} value={item.id}>
+                      {item.name}
+                    </MenuItem>
+                  ))}
+                </Select>
+              </FormControl>
+
+              {/* Download Button */}
+              <Tooltip title='Export'>
+                <>
+                  {excelLoader ? (
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        justifyContent: 'center',
+                        width: '40px',
+                        height: '40px',
+                        borderRadius: '4px',
+                        bgcolor: theme?.palette.customColors?.lightBg,
+                        alignItems: 'center',
+                        cursor: 'pointer',
+                        mt: { xs: 3, sm: 0 },
+                        ml: { xs: 2 }
+                      }}
+                    >
+                      <CircularProgress color='success' size={30} />
+                    </Box>
+                  ) : (
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        justifyContent: 'center',
+                        width: { xs: '10%', sm: '40px' },
+                        height: { xs: '40px', sm: '40px' },
+                        borderRadius: '4px',
+                        bgcolor: theme?.palette.customColors?.lightBg,
+                        alignItems: 'center',
+                        cursor: 'pointer',
+                        mt: { xs: 3, sm: 0 },
+                        ml: { xs: 2 }
+                        // mr: { xs: 3 }
+                      }}
+                      onClick={getProductRequestToExport}
+                    >
+                      <Icon icon='ic:round-download' fontSize={20} />
+                    </Box>
+                  )}
+                </>
+              </Tooltip>
+            </Box>
           </Box>
 
           <Grid
             sx={{
-              mx: { xs: 3, md: 5 }
+              mx: { xs: 2, md: 5 },
+              mt: { xs: -1 }
             }}
           >
             <CommonTable
