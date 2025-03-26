@@ -73,7 +73,7 @@ const AllStoresRequestList = () => {
       )
     },
     {
-      width: 400,
+      width: 250,
       field: 'store_name',
       headerName: 'Store Name',
       renderCell: params => (
@@ -91,8 +91,7 @@ const AllStoresRequestList = () => {
     },
 
     {
-      width: 300,
-
+      width: 200,
       field: 'pending_items',
       headerName: 'Total Pending Items',
       renderCell: params => (
@@ -108,8 +107,9 @@ const AllStoresRequestList = () => {
         </Typography>
       )
     },
+
     {
-      width: 300,
+      width: 200,
       field: 'emergency_items',
       headerName: 'Emergency Items',
       renderCell: params => (
@@ -124,6 +124,40 @@ const AllStoresRequestList = () => {
           {params.row.emergency_items}
         </Typography>
       )
+    },
+    {
+      width: 200,
+      field: 'available_product_count',
+      headerName: 'available product',
+      renderCell: params => (
+        <Typography
+          sx={{
+            color: theme.palette.customColors.OnSurfaceVariant,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
+          {params?.row?.available_product_count}
+        </Typography>
+      )
+    },
+    {
+      width: 200,
+      field: 'not_available_product_count',
+      headerName: 'not available product',
+      renderCell: params => (
+        <Typography
+          sx={{
+            color: theme.palette.customColors.OnSurfaceVariant,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
+          {params?.row?.not_available_product_count}
+        </Typography>
+      )
     }
   ]
 
@@ -131,14 +165,14 @@ const AllStoresRequestList = () => {
 
   const [total, setTotal] = useState(0)
 
-  const [sort, setSort] = useState(router.query.sort || 'asc')
+  const [sort, setSort] = useState(router.query.sort || 'desc')
   const [rows, setRows] = useState([])
   const [searchValue, setSearchValue] = useState(router.query.q || '')
   const [sortColumn, setSortColumn] = useState(router.query.column || 'name')
 
   const [paginationModel, setPaginationModel] = useState({
     page: parseInt(router.query.page) || 0,
-    pageSize: parseInt(router.query.limit) || 10
+    pageSize: parseInt(router.query.limit) || 50
   })
 
   const [loading, setLoading] = useState(false)
@@ -611,6 +645,7 @@ const AllStoresRequestList = () => {
               setPaginationModel={setPaginationModel}
               loading={loading}
               searchValue={searchValue}
+              maxHeight='60vh'
             />
           </Grid>
 

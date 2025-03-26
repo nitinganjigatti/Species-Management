@@ -1,6 +1,7 @@
 /* eslint-disable lines-around-comment */
 import { DataGrid } from '@mui/x-data-grid'
 import { useTheme } from '@emotion/react'
+import { h } from '@fullcalendar/core/preact'
 
 const CommonTable = ({
   onRowClick,
@@ -17,7 +18,8 @@ const CommonTable = ({
   checkBoxOption,
   onRowSelectionModelChange,
   selectedRows,
-  disablePagination = false // New prop to control pagination
+  disablePagination = false, // New prop to control pagination
+  maxHeight
 }) => {
   const theme = useTheme()
 
@@ -38,7 +40,8 @@ const CommonTable = ({
         },
         '.MuiDataGrid-virtualScroller': {
           // overflow: 'hidden',
-          overflowX: 'auto'
+          overflowX: 'auto',
+          ...(maxHeight && { maxHeight: maxHeight, overflowY: 'auto !important' })
         },
         '.MuiDataGrid-main': {
           // margin: '2px',
