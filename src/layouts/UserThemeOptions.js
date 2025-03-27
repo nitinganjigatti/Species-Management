@@ -96,6 +96,8 @@ const UserThemeOptions = () => {
         customDropdownColor: '#FA6140',
 
         errorText: '#FF4D49',
+        shadowColor: '#0000001A',
+        avatarBackground: '#FFD3D34D',
 
         // **
         moderateSecondary: '#E4B819',

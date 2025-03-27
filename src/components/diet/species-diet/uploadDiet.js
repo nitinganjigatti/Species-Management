@@ -26,7 +26,6 @@ import { yupResolver } from '@hookform/resolvers/yup'
 import Image from 'next/image'
 import { getUserList } from 'src/lib/api/pharmacy/dispenseProduct'
 import { readAsync } from 'src/lib/windows/utils'
-import toast from 'react-hot-toast'
 
 const defaultValues = {
   dietitian_id: '',
@@ -101,8 +100,7 @@ function UploadDiet({
 
     const allowedTypes = ['application/pdf']
     if (!file || !allowedTypes.includes(file.type)) {
-      toast.error('Only PDF files are supported. Please upload a PDF file.')
-      // Toaster({ type: 'error', message: 'Only PDF files are supported. Please upload a PDF file.' })
+      Toaster({ type: 'error', message: 'Please select a valid file.' })
       return
     }
     setSelectedFile(file)
@@ -143,7 +141,10 @@ function UploadDiet({
     <Box
       sx={{
         position: 'fixed',
-        width: '560px',
+        width: {
+          xs: '100%', // 0px and up
+          sm: '560px'
+        },
         zIndex: 100,
         backgroundColor: '#fff',
         display: 'flex',
@@ -239,7 +240,7 @@ function UploadDiet({
         <Box
           sx={{
             backgroundColor: 'background.default',
-            height: '100%',
+            height: '100vh',
             pb: '132px',
             overflowY: 'auto',
             display: 'flex',
@@ -472,7 +473,10 @@ function UploadDiet({
           sx={{
             height: '122px',
             width: '100%',
-            maxWidth: '562px',
+            width: {
+              xs: '100%', // 0px and up
+              sm: '560px'
+            },
             position: 'fixed',
             bottom: 0,
             bgcolor: 'white',
@@ -488,7 +492,7 @@ function UploadDiet({
             type='submit'
             variant='contained'
             size='large'
-            sx={{ height: '58px', width: '514px' }}
+            sx={{ height: '58px', width: '514px', mx: 4 }}
             // onClick={() => {
             //   handleSubmit()
             // }}
