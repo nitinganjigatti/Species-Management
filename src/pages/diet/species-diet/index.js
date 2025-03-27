@@ -116,6 +116,8 @@ const SpeciesDietList = () => {
   // const fileInputRef = useRef(null)
 
   const authData = useContext(AuthContext)
+  const dietModule = authData?.userData?.roles?.settings?.diet_module
+  const dietModuleAccess = authData?.userData?.roles?.settings?.diet_module_access
 
   function loadServerRows(currentPage, data) {
     return data
@@ -136,7 +138,7 @@ const SpeciesDietList = () => {
           // site_ids: siteIds.length > 0 ? JSON.stringify(siteIds) : '',
           // section_ids: sectionIds.length > 0 ? JSON.stringify(ids.sectionIds) : '',
           // enclosure_ids: enclosureIds.length > 0 ? JSON.stringify(ids.enclosureIds) : '',
-          q: q ? q : searchValue,
+          q: q?.q ? q?.q : searchValue,
           page_no: paginationModel.page + 1,
           limit: paginationModel.pageSize,
           with_diet: filterByDiet
@@ -270,13 +272,17 @@ const SpeciesDietList = () => {
             sx={{
               width: 40,
               height: 40,
-              borderRadius: '50%',
-              background: '#E8F4F2',
-              padding: '5px'
+              // borderRadius: '50%',
+              background: 'none',
+              padding: '2px'
             }}
           >
             {params.row.default_icon ? (
-              <img style={{ width: '100%', height: '100%' }} src={params.row.default_icon} alt='Profile' />
+              <img
+                style={{ width: '100%', height: '100%', borderRadius: '50%' }}
+                src={params.row.default_icon}
+                alt='Profile'
+              />
             ) : (
               <Icon icon='mdi:user' />
             )}
@@ -635,40 +641,44 @@ const SpeciesDietList = () => {
       field: 'diet_attachment_upload',
       headerName: '',
       renderCell: params => (
-        <Box sx={{ width: '100%', display: 'flex', justifyContent: 'end' }}>
-          <Box
-            onClick={e => {
-              // console.log('e', e.target)
-              // if (Number(params.row.attachment_count) > 0) {
-              //   setAttachmentUploadConfirmDialog(true)
-              // } else {
-              //   fileInputRef.current.click()
-              // }
-              setUploadDietDrawer(true)
-              // fileInputRef.current.click()
-            }}
-            sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px' }}
-          >
-            <Typography
-              sx={{
-                color: theme.palette.primary.dark,
-                fontSize: '14px',
-                fontWeight: 500,
-                lineHeight: '16.96px',
-                letterSpacing: '0.1px'
-              }}
-            >
-              Upload
-            </Typography>
-            <Avatar
-              variant='square'
-              alt='Medicine Image'
-              sx={{ width: 20, height: 20, background: 'transparent', overflow: 'hidden' }}
-            >
-              <img style={{ width: '100%', height: '100%' }} src={'/icons/little_upload_icon.svg'} alt='Profile' />
-            </Avatar>
-          </Box>
-        </Box>
+        <>
+          {(dietModuleAccess === 'ADD' || dietModuleAccess === 'EDIT' || dietModuleAccess === 'DELETE') && (
+            <Box sx={{ width: '100%', display: 'flex', justifyContent: 'end' }}>
+              <Box
+                onClick={e => {
+                  // console.log('e', e.target)
+                  // if (Number(params.row.attachment_count) > 0) {
+                  //   setAttachmentUploadConfirmDialog(true)
+                  // } else {
+                  //   fileInputRef.current.click()
+                  // }
+                  setUploadDietDrawer(true)
+                  // fileInputRef.current.click()
+                }}
+                sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px' }}
+              >
+                <Typography
+                  sx={{
+                    color: theme.palette.primary.dark,
+                    fontSize: '14px',
+                    fontWeight: 500,
+                    lineHeight: '16.96px',
+                    letterSpacing: '0.1px'
+                  }}
+                >
+                  Upload
+                </Typography>
+                <Avatar
+                  variant='square'
+                  alt='Medicine Image'
+                  sx={{ width: 20, height: 20, background: 'transparent', overflow: 'hidden' }}
+                >
+                  <img style={{ width: '100%', height: '100%' }} src={'/icons/little_upload_icon.svg'} alt='Profile' />
+                </Avatar>
+              </Box>
+            </Box>
+          )}
+        </>
       )
     }
     ///////////////////////Code-For-Show-Rsponsive-Multiple-Attachment////////////////////////////
