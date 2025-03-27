@@ -796,8 +796,8 @@ const PurchaseItemForm = props => {
                 <TextField
                   {...field}
                   onKeyUp={e => {
-                    setValue('purchase_unit_qty', '')
-                    setValue('purchase_qty', '')
+                    // setValue('purchase_unit_qty', '')
+                    // setValue('purchase_qty', '')
                     calculateStuff()
 
                     const productData = {
@@ -915,8 +915,15 @@ const PurchaseItemForm = props => {
                   value={value}
                   onChange={(e, val) => {
                     setValue('purchase_variant_ratio', Number(val?.props?.children))
-                    setValue('purchase_unit_qty', '')
-                    setValue('purchase_qty', '')
+                    console.log('variant ratio', Number(val?.props?.children))
+                    const purchaseQty = watch('purchase_qty')
+
+                    const totalUnitQty = purchaseQty
+                      ? purchaseQty * Number(val?.props?.children)
+                      : Number(val?.props?.children) * 1
+                    setValue('purchase_unit_qty', totalUnitQty)
+
+                    // setValue('purchase_qty', '')
                     onChange(e)
                   }}
                   label='Product Variant*'

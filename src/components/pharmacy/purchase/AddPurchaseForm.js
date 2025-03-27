@@ -197,7 +197,7 @@ const AddPurchaseForm = () => {
   const [inputValue, setInputValue] = useState('')
   const [isError, setIsError] = useState(false)
   const [invoiceUploadDialog, setInvoiceUploadDialog] = useState(false)
-  const [itemIdIdErrors, setItemIdErrors] = useState({})
+  const [showAmount, setShowAmount] = useState(false)
 
   const schema = yup.object().shape({
     // product: yup.string().required('Product name is required'),
@@ -623,7 +623,7 @@ const AddPurchaseForm = () => {
     postData.net_amount = grandTotalAmount
     // added grand total amount
     console.log('postData', postData)
-    debugger
+    // debugger
     try {
       if (id) {
         postData.antz_pharmacy_purchase_id = id
@@ -646,9 +646,18 @@ const AddPurchaseForm = () => {
           console.log('error', response.message)
         }
       } else {
-        // const response = await addPurchase(postData)
+        const response = await addPurchase(postData)
         if (postData?.purchase_created_by === 'invoice_upload') {
+          const suggestionData = postData?.purchase_details?.map(el => {
+            return {
+              medicine_name_by_ml: el?.medicine_name_by_ml,
+              medicine_name_in_db: el?.medicine_name,
+              purchase_unit_id: el?.purchase_unit_id
+            }
+          })
+
           console.log('ml trained triggered')
+          console.log('suggestionData', suggestionData)
         }
         if (response?.success) {
           toast.success(response.message)
@@ -1400,18 +1409,7 @@ const AddPurchaseForm = () => {
   //   }
   // }, [grandTotalAmount])
 
-  const validateErrorForItemId = (index, el) => {
-    // setItemIdErrors(prevErrors => {
-    //   const newErrors = { ...prevErrors }
-
-    //   if (el?.purchase_stock_item_id === '' || el?.purchase_stock_item_id === null) {
-    //     newErrors[index] = `${el.medicine_name}Product Information not found, please update the details`
-    //   } else {
-    //     delete newErrors[index]
-    //   }
-
-    //   return newErrors
-    // })
+  const validateErrorForItemId = () => {
     const error = editParams.purchase_details.some(
       el => el?.purchase_stock_item_id === '' || el?.purchase_stock_item_id === null
     )
@@ -1420,14 +1418,21 @@ const AddPurchaseForm = () => {
     return error
   }
 
-  useEffect(() => {
-    // if (editParams.purchase_details) {
-    //   editParams.purchase_details.forEach((el, index) => {
-    //     validateErrorForItemId(index, el)
-    //   })
-    // }
-    // console.log('modified')
-  }, [editParams?.purchase_details])
+  const validateAndShowAmount = () => {
+    const numericInputValue = parseFloat(inputValue)
+    const numericGrandTotal = parseFloat(grandTotalAmount)
+
+    if (isNaN(numericInputValue) || isNaN(numericGrandTotal)) {
+      setShowAmount(false)
+
+      return
+    }
+    if (numericInputValue > numericGrandTotal * 0.5) {
+      setShowAmount(true)
+    } else {
+      setShowAmount(false)
+    }
+  }
 
   return (
     <Card>
@@ -2678,7 +2683,8 @@ const AddPurchaseForm = () => {
                         }}
                       >
                         {/* {totalLineItemsPurchase?.toFixed(2)} */}
-                        {grandTotalAmount ? grandTotalAmount?.toFixed(2) : 0.0}
+                        {/* {grandTotalAmount ? grandTotalAmount?.toFixed(2) : 0.0} */}
+                        {showAmount && grandTotalAmount}
                       </Typography>
                       {/* {/* Input Box with Icon */}
 
@@ -2751,6 +2757,7 @@ const AddPurchaseForm = () => {
                         size='small'
                         placeholder='Enter value'
                         value={inputValue}
+                        onBlur={validateAndShowAmount}
                         onChange={e => {
                           // Restrict non-numeric inputs and update value
                           const value = e.target.value
@@ -2806,7 +2813,6 @@ const AddPurchaseForm = () => {
           </Grid>
           {/* // ) : null} */}
         </Grid>
-        {console.log('Object.keys(itemIdIdErrors)', itemIdIdErrors)}
 
         <Grid item xs={12}>
           <Box sx={{ float: 'right', my: 4, mx: 6 }}>
@@ -2816,7 +2822,6 @@ const AddPurchaseForm = () => {
                 editParams.purchase_details.length > 0 && inputValue && !isError && !validateErrorForItemId()
                   ? false
                   : true
-                // !Object.keys(itemIdIdErrors)?.length > 0
               }
               sx={{ marginRight: '8px' }}
               size='large'

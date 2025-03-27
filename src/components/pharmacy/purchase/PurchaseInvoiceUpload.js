@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from 'react'
+import { useState, useEffect, useRef, useCallback } from 'react'
 import axios from 'axios'
 import { Typography, Grid, Box, Button, FormControl, TextField, FormHelperText, Card, Tab, alpha } from '@mui/material'
 import IconButton from '@mui/material/IconButton'
@@ -9,6 +9,7 @@ import { LoadingButton } from '@mui/lab'
 import { TabContext, TabList, TabPanel } from '@mui/lab'
 import { v4 as uuidv4 } from 'uuid'
 import { useTheme } from '@emotion/react'
+import { useDropzone } from 'react-dropzone'
 
 const PurchaseInvoiceUpload = ({ setPurchaseItems, reset, closeDialog, handleInputImageChange }) => {
   const theme = useTheme()
@@ -20,7 +21,7 @@ const PurchaseInvoiceUpload = ({ setPurchaseItems, reset, closeDialog, handleInp
   const [permissionDenied, setPermissionDenied] = useState(false)
   const [hasPermission, setHasPermission] = useState(false)
   const [tabStatus, setTabStatus] = useState('by_camera')
-  const [file, setFile] = useState(null)
+  const [file, setFile] = useState([])
   const [error, setError] = useState('')
 
   const videoRef = useRef(null) // Reference to video element
@@ -162,7 +163,8 @@ const PurchaseInvoiceUpload = ({ setPurchaseItems, reset, closeDialog, handleInp
 
       // setCapturedImage(imageDataUrl)
 
-      setFile(file)
+      // setFile(file)
+      setFile(prev => [...prev, file])
 
       // stopCamera()
       console.log('Picture captured.')
@@ -193,7 +195,7 @@ const PurchaseInvoiceUpload = ({ setPurchaseItems, reset, closeDialog, handleInp
     if (file) {
       setSubmitLoader(true)
       const reader = new FileReader()
-      reader.readAsDataURL(file)
+      reader.readAsDataURL(file[0])
 
       reader.onload = () => {
         base64String = reader.result.split(',')[1].toString('utf-8')
@@ -286,7 +288,6 @@ const PurchaseInvoiceUpload = ({ setPurchaseItems, reset, closeDialog, handleInp
                 round_off: '',
                 purchase_created_by: 'invoice_upload'
               }))
-              debugger
 
               // setPurchaseItems({
               //   po_no: responseData?.po_no,
@@ -356,7 +357,11 @@ const PurchaseInvoiceUpload = ({ setPurchaseItems, reset, closeDialog, handleInp
     setTabStatus(newValue)
   }
 
-  const imagePreview = file => {
+  const handleDeleteFile = fileIndex => {
+    setFile(prev => prev.filter((file, index) => index !== fileIndex))
+  }
+
+  const imagePreview = (file, index) => {
     return (
       <Box
         sx={{
@@ -369,7 +374,8 @@ const PurchaseInvoiceUpload = ({ setPurchaseItems, reset, closeDialog, handleInp
           backgroundColor: 'customColors.displaybgPrimary',
           padding: '16px',
           boxShadow: 1,
-          height: 'auto'
+          height: 'auto',
+          my: 1
         }}
       >
         <>
@@ -382,7 +388,7 @@ const PurchaseInvoiceUpload = ({ setPurchaseItems, reset, closeDialog, handleInp
           <Icon
             disabled={submitLoader}
             onClick={() => {
-              setFile(null)
+              handleDeleteFile(index)
               if (browseButtonRef.current) browseButtonRef.current.value = ''
             }}
             icon='solar:close-square-bold'
@@ -400,13 +406,33 @@ const PurchaseInvoiceUpload = ({ setPurchaseItems, reset, closeDialog, handleInp
     )
   }
 
+  const onDrop = useCallback((acceptedFiles, rejectedFiles) => {
+    if (rejectedFiles.length > 0) {
+      setError('File type not allowed. Please upload a JPEG or PNG.')
+
+      return
+    }
+
+    // const selectedFile = acceptedFiles[0]
+    if (selectedFile) {
+      setFile(acceptedFiles)
+      setError('')
+    }
+  }, [])
+
+  const { getRootProps, getInputProps } = useDropzone({
+    multiple: true,
+    accept: { 'image/jpeg': [], 'image/png': [] },
+    onDrop
+  })
+
   return (
     <Box
       sx={{
         width: { lg: '100%', md: '100%', sm: '100%', xs: '100%' },
 
         // minWidth: { lg: 1000, md: 1000, sm: '100%', xs: '100%' },
-        minHeight: { lg: 400, md: 400 },
+        // minHeight: { lg: 400, md: 400 },
         mb: 4
       }}
     >
@@ -429,7 +455,7 @@ const PurchaseInvoiceUpload = ({ setPurchaseItems, reset, closeDialog, handleInp
           }}
         >
           <Tab
-            disabled={file && file?.size > 0 ? true : false}
+            disabled={file?.length > 0 ? true : false}
             value='by_camera'
             label='Scan with Camera'
             sx={{ width: 'auto' }}
@@ -437,7 +463,7 @@ const PurchaseInvoiceUpload = ({ setPurchaseItems, reset, closeDialog, handleInp
             icon={<Icon icon='mdi:camera-outline' />}
           />
           <Tab
-            disabled={file && file?.size > 0 ? true : false}
+            disabled={file?.length > 0 ? true : false}
             value='by_input'
             label='Upload from device'
             sx={{ width: 'auto' }}
@@ -618,8 +644,12 @@ const PurchaseInvoiceUpload = ({ setPurchaseItems, reset, closeDialog, handleInp
                           </Box>
                         )}
                       </Grid>
-                      <Grid item xs={12} sm={3}>
-                        {file && file.size > 0 && <>{imagePreview(file)}</>}
+                      <Grid item xs={12} sm={3} sx={{ overflowY: 'auto', height: 400 }}>
+                        {console.log('file', file)}
+                        {/* {file && file.size > 0 && <>{imagePreview(file)}</>} */}
+                        {Array.isArray(file) && file.length > 0 && (
+                          <>{file.map((el, index) => imagePreview(el, index))}</>
+                        )}
                       </Grid>
                     </Grid>
                   )}
@@ -641,32 +671,49 @@ const PurchaseInvoiceUpload = ({ setPurchaseItems, reset, closeDialog, handleInp
           </Grid>
         </TabPanel>
         <TabPanel value='by_input' sx={{ px: '24px' }}>
+          {console.log('file', file)}
           <Grid
             container
-            gap={6}
+            gap={1}
             sx={{
               display: 'flex',
               alignItems: 'center'
             }}
           >
-            <Grid item xs={12} sm={8}>
+            <Grid item xs={12} md={5} sm={12}>
               <FormControl fullWidth sx={{ my: 4 }}>
                 <input
                   type='file'
                   ref={fileInputRef}
                   style={{ display: 'none' }}
                   accept=' .jpeg, .jpg, .png'
+                  // onChange={e => {
+                  //   const file = e.target.files[0]
+                  //   if (!file) return
+                  //   const allowedTypes = ['image/jpeg', 'image/png']
+                  //   if (allowedTypes.includes(file.type)) {
+                  //     setFile(file)
+                  //     setError('')
+                  //   } else {
+                  //     setError('File type not allowed. Please upload a JPEG, or PNG.')
+                  //     e.target.value = ''
+                  //   }
+                  // }}
+                  multiple
                   onChange={e => {
-                    const file = e.target.files[0]
-                    if (!file) return
+                    const files = Array.from(e.target.files)
+                    if (files.length === 0) return
                     const allowedTypes = ['image/jpeg', 'image/png']
-                    if (allowedTypes.includes(file.type)) {
-                      setFile(file)
-                      setError('')
-                    } else {
-                      setError('File type not allowed. Please upload a JPEG, or PNG.')
-                      e.target.value = ''
+                    const validFiles = files.filter(file => allowedTypes.includes(file.type))
+                    if (validFiles.length !== files.length) {
+                      setError('Some files are not allowed. Please upload only JPEG or PNG.')
+
+                      return
                     }
+
+                    // setFile(validFiles)
+                    setFile(prev => [...prev, ...validFiles])
+                    setError('')
                   }}
                 />
 
@@ -693,6 +740,7 @@ const PurchaseInvoiceUpload = ({ setPurchaseItems, reset, closeDialog, handleInp
                   readOnly
                 /> */}
                 <Box
+                  {...getRootProps({ className: 'dropzone' })}
                   onClick={handleClick}
                   ref={browseButtonRef}
                   sx={{
@@ -777,48 +825,67 @@ const PurchaseInvoiceUpload = ({ setPurchaseItems, reset, closeDialog, handleInp
               </FormControl>
             </Grid>
 
-            <Grid item xs={12} sm={1.5}>
-              {file && file?.size > 0 && (
-                <Box
-                  sx={{
-                    position: 'relative',
-                    display: 'flex',
-                    justifyContent: 'center',
-                    alignItems: 'center',
-                    borderRadius: '8px',
-                    overflow: 'hidden',
-                    backgroundColor: 'customColors.displaybgPrimary',
-                    padding: '8px',
-                    boxShadow: 1,
-                    height: 'auto'
-                  }}
-                >
-                  <>
-                    <img
-                      alt='Preview'
-                      src={file && file?.size > 0 ? URL.createObjectURL(file) : ''}
-                      style={{ display: 'block', width: '116px', height: '96px' }}
-                    />
+            <Grid
+              item
+              xs={12}
+              md={6}
+              sm={12}
+              sx={{
+                display: 'flex',
 
-                    <Icon
-                      disabled={submitLoader}
-                      onClick={() => {
-                        setFile(null)
-                        if (browseButtonRef.current) browseButtonRef.current.value = ''
+                overflowX: 'auto'
+              }}
+            >
+              {file &&
+                file?.length > 0 &&
+                file.map((el, index) => {
+                  return (
+                    <Box
+                      key={index}
+                      sx={{
+                        position: 'relative',
+                        display: 'flex',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        borderRadius: '8px',
+                        overflow: 'hidden',
+                        backgroundColor: 'customColors.displaybgPrimary',
+                        padding: '8px',
+                        boxShadow: 1,
+                        height: 'auto',
+                        mx: 2,
+                        minWidth: '124px'
                       }}
-                      icon='solar:close-square-bold'
-                      style={{
-                        position: 'absolute',
-                        top: '0px',
-                        right: '0px',
-                        cursor: 'pointer'
-                      }}
-                      width='24'
-                      height='24'
-                    />
-                  </>
-                </Box>
-              )}
+                    >
+                      <>
+                        <img
+                          alt='Preview'
+                          src={URL.createObjectURL(el) || ''}
+                          style={{ display: 'block', width: '116px', height: '96px' }}
+                        />
+
+                        <Icon
+                          disabled={submitLoader}
+                          onClick={() => {
+                            handleDeleteFile(index)
+
+                            // setFile(null)
+                            // if (browseButtonRef.current) browseButtonRef.current.value = ''
+                          }}
+                          icon='solar:close-square-bold'
+                          style={{
+                            position: 'absolute',
+                            top: '0px',
+                            right: '0px',
+                            cursor: 'pointer'
+                          }}
+                          width='24'
+                          height='24'
+                        />
+                      </>
+                    </Box>
+                  )
+                })}
             </Grid>
           </Grid>
         </TabPanel>
@@ -826,9 +893,10 @@ const PurchaseInvoiceUpload = ({ setPurchaseItems, reset, closeDialog, handleInp
       <Grid
         item
         sx={{
-          mb: 4,
+          mb: 1,
           height: 44,
-          position: 'absolute',
+
+          // position: 'absolute',
           bottom: 0,
           right: 30,
 
@@ -838,7 +906,7 @@ const PurchaseInvoiceUpload = ({ setPurchaseItems, reset, closeDialog, handleInp
         }}
       >
         <LoadingButton
-          disabled={file && file?.size > 0 ? false : true}
+          disabled={file?.length > 0 ? false : true}
           size='large'
           loading={submitLoader}
           variant='outlined'
@@ -851,7 +919,7 @@ const PurchaseInvoiceUpload = ({ setPurchaseItems, reset, closeDialog, handleInp
         </LoadingButton>
         <LoadingButton
           loading={submitLoader}
-          disabled={file && file?.size > 0 ? false : true}
+          disabled={file?.length > 0 ? false : true}
           size='large'
           variant='contained'
           onClick={submitImage}

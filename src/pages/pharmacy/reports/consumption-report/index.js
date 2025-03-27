@@ -69,7 +69,7 @@ const ConsumptionReport = () => {
 
   const [paginationModel, setPaginationModel] = useState({
     page: parseInt(router.query.page) || 0,
-    pageSize: parseInt(router.query.limit) || 10
+    pageSize: parseInt(router.query.limit) || 50
   })
 
   const [filterDates, setFilterDates] = useState({
@@ -290,7 +290,7 @@ const ConsumptionReport = () => {
         <div
           style={{
             whiteSpace: 'normal',
-            lineHeight: '1',
+            lineHeight: '1.3',
             textAlign: 'center',
             fontSize: '12px',
             fontWeight: 450
@@ -325,7 +325,7 @@ const ConsumptionReport = () => {
         <div
           style={{
             whiteSpace: 'normal',
-            lineHeight: '1',
+            lineHeight: '1.3',
             textAlign: 'center',
             fontSize: '12px',
             fontWeight: 450
@@ -360,7 +360,7 @@ const ConsumptionReport = () => {
         <div
           style={{
             whiteSpace: 'normal',
-            lineHeight: '1',
+            lineHeight: '1.3',
             textAlign: 'center',
             fontSize: '12px',
             fontWeight: 450
@@ -563,8 +563,6 @@ const ConsumptionReport = () => {
   }
 
   const appliedFiltersCount = calculateAppliedFiltersCount()
-
-  console.log(filteredData)
 
   return (
     <>

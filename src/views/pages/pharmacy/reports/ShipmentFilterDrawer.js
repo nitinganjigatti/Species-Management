@@ -22,8 +22,8 @@ import { AuthContext } from 'src/context/AuthContext'
 
 const leftMenu = [
   // { id: , name: 'Batch Number' },
-  { id: 1, name: 'pharmacy' },
-  { id: 2, name: 'Medicine' }
+  { id: 1, name: 'Pharmacy' },
+  { id: 2, name: 'Drug Type' }
 ]
 
 const StyledBadge = styled(Badge)(({ theme }) => ({
@@ -52,15 +52,10 @@ const ShipmentFilterDrawer = ({
 
   const handleCloseDrawer = () => {
     setOpenFilterDrawer(false)
-    setSelectedMenu(leftMenu[0])
-    setSelectAll(false)
-    setSearchQuery('')
   }
 
   const handleMenuClick = menu => {
     setSelectedMenu(menu)
-    setSearchQuery('')
-    setSelectAll(false)
   }
 
   const handleSelectAll = useCallback(
@@ -97,13 +92,13 @@ const ShipmentFilterDrawer = ({
   }, [])
 
   useEffect(() => {
-    if (selectedMenu.name === 'pharmacy') {
+    if (selectedMenu.name === 'Pharmacy') {
       const filteredList = pharmacyList?.filter(pharmacy =>
         pharmacy.name.toLowerCase().includes(searchQuery.toLowerCase())
       )
       if (
         filteredList?.length > 0 &&
-        filteredList?.every(pharmacy => selectedOptions['pharmacy']?.includes(pharmacy.id))
+        filteredList?.every(pharmacy => selectedOptions['Pharmacy']?.includes(pharmacy.id))
       ) {
         setSelectAll(true)
       } else {
@@ -114,40 +109,37 @@ const ShipmentFilterDrawer = ({
 
   const handleMedicineCheckbox = useCallback(
     id => {
-      handleCheckbox(id, 'Medicine')
+      handleCheckbox(id, 'Drug Type')
     },
     [handleCheckbox]
   )
 
   const applyFilters = () => {
     const filterData = {}
-    if (selectedOptions['Batch Number'] && selectedOptions['Batch Number'].length > 0) {
-      filterData['batchNumbers'] = selectedOptions['Batch Number']
-    }
 
-    if (selectedOptions['pharmacy'] && selectedOptions['pharmacy'].length > 0) {
-      filterData['pharmacy'] = selectedOptions['pharmacy']
+    if (selectedOptions['Pharmacy'] && selectedOptions['Pharmacy'].length > 0) {
+      filterData['pharmacy'] = selectedOptions['Pharmacy']
     }
 
     let controlled = 0
     let prescription = 0
 
     if (
-      selectedOptions['Medicine'].includes(MEDICINE_CONTROLLED) &&
-      selectedOptions['Medicine'].includes(MEDICINE_PRESCRIPTION)
+      selectedOptions['Drug Type'].includes(MEDICINE_CONTROLLED) &&
+      selectedOptions['Drug Type'].includes(MEDICINE_PRESCRIPTION)
     ) {
       controlled = 1
       prescription = 1
-    } else if (selectedOptions['Medicine'].includes(MEDICINE_CONTROLLED)) {
+    } else if (selectedOptions['Drug Type'].includes(MEDICINE_CONTROLLED)) {
       controlled = 1
       prescription = 0
-    } else if (selectedOptions['Medicine'].includes(MEDICINE_PRESCRIPTION)) {
+    } else if (selectedOptions['Drug Type'].includes(MEDICINE_PRESCRIPTION)) {
       controlled = 0
       prescription = 1
     }
 
     // Attach medicine options to object to send
-    filterData['Medicine'] = {
+    filterData['Drug Type'] = {
       controlled: controlled,
       prescription: prescription
     }
@@ -296,7 +288,7 @@ const ShipmentFilterDrawer = ({
                     </Box> */}
                   {/* <Divider sx={{ mb: 3 }} /> */}
                 </>
-              ) : selectedMenu?.name === 'pharmacy' ? (
+              ) : selectedMenu?.name === 'Pharmacy' ? (
                 <>
                   <Box
                     sx={{
@@ -337,7 +329,7 @@ const ShipmentFilterDrawer = ({
                         handleSelectAll(
                           filteredPharmacyList,
                           pharmacy => pharmacy.name.toLowerCase().includes(searchQuery.toLowerCase()),
-                          'pharmacy',
+                          'Pharmacy',
                           e
                         )
                       }
@@ -349,8 +341,8 @@ const ShipmentFilterDrawer = ({
                     <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }} key={pharmacy?.id}>
                       <Checkbox
                         inputProps={{ 'aria-label': 'controlled' }}
-                        checked={selectedOptions['pharmacy']?.includes(pharmacy?.id)}
-                        onChange={() => handleCheckbox(pharmacy?.id, 'pharmacy')}
+                        checked={selectedOptions['Pharmacy']?.includes(pharmacy?.id)}
+                        onChange={() => handleCheckbox(pharmacy?.id, 'Pharmacy')}
                       />
                       <Typography sx={{ fontSize: '16px', fontWeight: 400, color: '#839D8D' }}>
                         {pharmacy?.name}
@@ -358,24 +350,24 @@ const ShipmentFilterDrawer = ({
                     </Box>
                   ))}
                 </>
-              ) : selectedMenu?.name === 'Medicine' ? (
+              ) : selectedMenu?.name === 'Drug Type' ? (
                 <>
                   <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
                     <Checkbox
                       checked={
-                        selectedOptions['Medicine'].includes(MEDICINE_CONTROLLED) &&
-                        selectedOptions['Medicine'].includes(MEDICINE_PRESCRIPTION)
+                        selectedOptions['Drug Type'].includes(MEDICINE_CONTROLLED) &&
+                        selectedOptions['Drug Type'].includes(MEDICINE_PRESCRIPTION)
                       }
                       onChange={e => {
                         if (e.target.checked) {
                           setSelectedOptions(prev => ({
                             ...prev,
-                            Medicine: [MEDICINE_CONTROLLED, MEDICINE_PRESCRIPTION]
+                            'Drug Type': [MEDICINE_CONTROLLED, MEDICINE_PRESCRIPTION]
                           }))
                         } else {
                           setSelectedOptions(prev => ({
                             ...prev,
-                            Medicine: []
+                            'Drug Type': []
                           }))
                         }
                       }}
@@ -385,7 +377,7 @@ const ShipmentFilterDrawer = ({
                   </Box>
                   <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
                     <Checkbox
-                      checked={selectedOptions['Medicine'].includes(MEDICINE_CONTROLLED)}
+                      checked={selectedOptions['Drug Type'].includes(MEDICINE_CONTROLLED)}
                       onChange={() => handleMedicineCheckbox(MEDICINE_CONTROLLED)}
                       inputProps={{ 'aria-label': 'controlled' }}
                     />
@@ -393,7 +385,7 @@ const ShipmentFilterDrawer = ({
                   </Box>
                   <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
                     <Checkbox
-                      checked={selectedOptions['Medicine'].includes(MEDICINE_PRESCRIPTION)}
+                      checked={selectedOptions['Drug Type'].includes(MEDICINE_PRESCRIPTION)}
                       onChange={() => handleMedicineCheckbox(MEDICINE_PRESCRIPTION)}
                       inputProps={{ 'aria-label': 'controlled' }}
                     />

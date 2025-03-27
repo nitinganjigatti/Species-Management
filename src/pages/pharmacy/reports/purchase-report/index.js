@@ -58,7 +58,7 @@ const PurchaseReport = () => {
 
   const [paginationModel, setPaginationModel] = useState({
     page: parseInt(router.query.page) || 0,
-    pageSize: parseInt(router.query.limit) || 10
+    pageSize: parseInt(router.query.limit) || 50
   })
 
   const [filterDates, setFilterDates] = useState({
@@ -174,6 +174,26 @@ const PurchaseReport = () => {
       )
     },
     {
+      minWidth: 20,
+      width: 200,
+      field: 'purchase_number',
+      sortable: true,
+      headerName: 'PURCHASE NUMBER',
+      renderCell: params => (
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
+          {params.row.purchase_number}
+        </Typography>
+      )
+    },
+    {
       width: 5,
       field: 'label',
       headerName: '',
@@ -212,7 +232,7 @@ const PurchaseReport = () => {
         <Box>
           <StyleWithIconCardComponent
             value={params.row.stock_name}
-            description={params.row.generic_name}
+            description={params.row.generic_name ? params.row.generic_name : 'NA'}
             icon={params.row.image ? `${params.row.image}` : '/images/Medicine_Icon.png'}
             showIcon={false}
             customCss={{
@@ -272,26 +292,6 @@ const PurchaseReport = () => {
             <span alt={params.row.manufacturer_name}> {params.row.manufacturer_name}</span>
           </Typography>
         </Tooltip>
-      )
-    },
-    {
-      minWidth: 20,
-      width: 200,
-      field: 'purchase_number',
-      sortable: true,
-      headerName: 'PURCHASE NUMBER',
-      renderCell: params => (
-        <Typography
-          variant='body2'
-          sx={{
-            color: theme.palette.customColors.customHeadingTextColor,
-            fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
-          }}
-        >
-          {params.row.purchase_number}
-        </Typography>
       )
     },
     {

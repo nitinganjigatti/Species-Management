@@ -335,13 +335,19 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
   }
 
   const requestReport = {
-    title: 'Request Report',
+    title: 'Pending Request Report',
     path: '/pharmacy/reports/request-report'
+  }
+
+  const dispenseReport = {
+    title: 'Dispense Report',
+    path: '/pharmacy/reports/dispense-report'
   }
 
   reportsParent.children.push(consumptionReport)
   reportsParent.children.push(returnReport)
   reportsParent.children.push(shipmentReport)
+  reportsParent.children.push(dispenseReport)
 
   const pharmacyNavigationArray = []
 
