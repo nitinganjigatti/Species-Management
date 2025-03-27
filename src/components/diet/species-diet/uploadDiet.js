@@ -100,7 +100,7 @@ function UploadDiet({
 
     const allowedTypes = ['application/pdf']
     if (!file || !allowedTypes.includes(file.type)) {
-      Toaster({ type: 'error', message: 'Please select a valid file.' })
+      Toaster({ type: 'error', message: 'Only PDF files are supported. Please upload a PDF file.', ignoreCase: true })
       return
     }
     setSelectedFile(file)
