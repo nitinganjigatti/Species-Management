@@ -45,7 +45,7 @@ const DispenseReport = () => {
   const [total, setTotal] = useState(0)
   const [loading, setLoading] = useState(false)
   const [sort, setSort] = useState(router.query.sort || 'asc')
-  const [sortColumn, setSortColumn] = useState(router.query.column || 'dispense_number')
+  const [sortColumn, setSortColumn] = useState(router.query.column || 'stock_name')
   const [searchValue, setSearchValue] = useState(router.query.q || '')
   const [exportLoading, setExportLoading] = useState(false)
   const [openFilterDrawer, setOpenFilterDrawer] = useState(false)
@@ -170,6 +170,9 @@ const DispenseReport = () => {
           ...(filteredData &&
             filteredData.pharmacy &&
             filteredData.pharmacy.length > 0 && { store_id: filteredData.pharmacy.join(',') }),
+          ...(filteredData &&
+            filteredData.user &&
+            filteredData.user.length > 0 && { user_id: filteredData.user.join(',') }),
           ...(filteredData && filteredData.controlled && { controlled: filteredData.controlled }),
           ...(filteredData && filteredData.prescription && { prescription: filteredData.prescription })
         }
@@ -245,7 +248,7 @@ const DispenseReport = () => {
     },
     {
       minWidth: 20,
-      width: 200,
+      width: 180,
       field: 'dispense_number',
       headerName: 'DISPENSE NUMBER',
       sortable: true,
@@ -263,33 +266,34 @@ const DispenseReport = () => {
         </Typography>
       )
     },
-    {
-      width: 5,
-      field: 'label',
-      headerName: '',
-      sortable: false,
-      renderCell: params => (
-        <Typography
-          sx={{
-            color: 'customColors.OnSecondaryContainer',
-            display: 'flex',
-            alignItems: 'center',
-            fontWeight: 500,
-            fontSize: '14px',
-            ...RenderUtility?.getEllipsisStyleForText()
-          }}
-        >
-          {RenderUtility?.renderControlLabel(
-            !isNaN(params.row?.controlled_substance) && parseInt(params.row?.controlled_substance) === 1,
-            'CS'
-          )}
-          {RenderUtility?.renderControlLabel(
-            !isNaN(params.row?.prescription_required) && parseInt(params.row?.prescription_required) === 1,
-            'PR'
-          )}
-        </Typography>
-      )
-    },
+
+    // {
+    //   width: 5,
+    //   field: 'label',
+    //   headerName: '',
+    //   sortable: false,
+    //   renderCell: params => (
+    //     <Typography
+    //       sx={{
+    //         color: 'customColors.OnSecondaryContainer',
+    //         display: 'flex',
+    //         alignItems: 'center',
+    //         fontWeight: 500,
+    //         fontSize: '14px',
+    //         ...RenderUtility?.getEllipsisStyleForText()
+    //       }}
+    //     >
+    //       {RenderUtility?.renderControlLabel(
+    //         !isNaN(params.row?.controlled_substance) && parseInt(params.row?.controlled_substance) === 1,
+    //         'CS'
+    //       )}
+    //       {RenderUtility?.renderControlLabel(
+    //         !isNaN(params.row?.prescription_required) && parseInt(params.row?.prescription_required) === 1,
+    //         'PR'
+    //       )}
+    //     </Typography>
+    //   )
+    // },
     {
       width: 250,
       minWidth: 20,
@@ -301,7 +305,41 @@ const DispenseReport = () => {
       renderCell: params => (
         <Box>
           <StyleWithIconCardComponent
-            value={params.row.stock_name}
+            value={
+              <>
+                <Typography sx={{ display: 'flex', alignItems: 'center' }}>
+                  <Typography
+                    sx={{
+                      color: 'customColors.OnSecondaryContainer',
+                      display: 'flex',
+
+                      alignItems: 'center',
+                      fontWeight: 500,
+                      fontSize: '14px',
+                      ...RenderUtility?.getEllipsisStyleForText()
+                    }}
+                  >
+                    {RenderUtility?.renderControlLabel(
+                      !isNaN(params.row?.controlled_substance) && parseInt(params.row?.controlled_substance) === 1,
+                      'CS'
+                    )}
+                  </Typography>
+                  <Typography
+                    sx={{
+                      color: 'customColors.customHeadingTextColor',
+                      fontWeight: 500,
+                      fontSize: '14px',
+                      overflow: 'hidden',
+                      whiteSpace: 'nowrap',
+                      textOverflow: 'ellipsis',
+                      maxWidth: 250
+                    }}
+                  >
+                    {params.row.stock_name}
+                  </Typography>
+                </Typography>
+              </>
+            }
             description={params.row.generic_name ? params.row.generic_name : 'NA'}
             icon={params.row.image ? `${params.row.image}` : '/images/Medicine_Icon.png'}
             showIcon={false}
@@ -320,28 +358,22 @@ const DispenseReport = () => {
     },
     {
       minWidth: 20,
-      width: 250,
-      field: 'manufacturer_name',
+      width: 160,
+      field: 'batch_no',
       sortable: false,
-      headerName: 'MANUFACTURER NAME',
+      headerName: 'BATCH NUMBER',
       renderCell: params => (
-        <Tooltip title={params.row.manufacturer_name}>
-          <Typography
-            variant='body2'
-            sx={{
-              color: theme.palette.customColors.customHeadingTextColor,
-              fontSize: '14px',
-              fontWeight: 400,
-              fontFamily: 'Inter',
-              overflow: 'hidden',
-              whiteSpace: 'nowrap',
-              textOverflow: 'ellipsis',
-              maxWidth: 200
-            }}
-          >
-            <span alt={params.row.manufacturer_name}> {params.row.manufacturer_name}</span>
-          </Typography>
-        </Tooltip>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
+          {params.row.batch_no}
+        </Typography>
       )
     },
     {
@@ -387,22 +419,28 @@ const DispenseReport = () => {
     },
     {
       minWidth: 20,
-      width: 160,
-      field: 'batch_no',
+      width: 250,
+      field: 'manufacturer_name',
       sortable: false,
-      headerName: 'BATCH NUMBER',
+      headerName: 'MANUFACTURER NAME',
       renderCell: params => (
-        <Typography
-          variant='body2'
-          sx={{
-            color: theme.palette.customColors.customHeadingTextColor,
-            fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
-          }}
-        >
-          {params.row.batch_no}
-        </Typography>
+        <Tooltip title={params.row.manufacturer_name}>
+          <Typography
+            variant='body2'
+            sx={{
+              color: theme.palette.customColors.customHeadingTextColor,
+              fontSize: '14px',
+              fontWeight: 400,
+              fontFamily: 'Inter',
+              overflow: 'hidden',
+              whiteSpace: 'nowrap',
+              textOverflow: 'ellipsis',
+              maxWidth: 200
+            }}
+          >
+            <span alt={params.row.manufacturer_name}> {params.row.manufacturer_name}</span>
+          </Typography>
+        </Tooltip>
       )
     },
     {
@@ -592,7 +630,15 @@ const DispenseReport = () => {
         limit: total,
         response_type: 'csv',
         ...(filterDates?.startDate !== '' && { from_date: filterDates?.startDate }),
-        ...(filterDates?.endDate !== '' && { to_date: filterDates?.endDate })
+        ...(filterDates?.endDate !== '' && { to_date: filterDates?.endDate }),
+        ...(filteredData &&
+          filteredData.pharmacy &&
+          filteredData.pharmacy.length > 0 && { store_id: filteredData.pharmacy.join(',') }),
+        ...(filteredData &&
+          filteredData.user &&
+          filteredData.user.length > 0 && { user_id: filteredData.user.join(',') }),
+        ...(filteredData && filteredData.controlled && { controlled: filteredData.controlled }),
+        ...(filteredData && filteredData.prescription && { prescription: filteredData.prescription })
       }
 
       const response = await getDispenseReport({ params })
@@ -610,6 +656,10 @@ const DispenseReport = () => {
     let count = 0
 
     if (filteredData && filteredData.pharmacy && filteredData.pharmacy.length > 0) {
+      count++
+    }
+
+    if (filteredData && filteredData.user && filteredData.user.length > 0) {
       count++
     }
 

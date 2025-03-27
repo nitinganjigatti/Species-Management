@@ -545,7 +545,7 @@ const RequestReport = () => {
       }
       const response = await getRequestedItemsReport({ params })
       if (response?.success && response?.data) {
-        Utility.downloadFileFromURL(response.data, `Requested_Items_Report ${timestamp}`)
+        Utility.downloadFileFromURL(response.data, `Pending_Request_Report ${timestamp}`)
       }
     } catch (error) {
       console.error('Error downloading Excel:', error)

@@ -28,6 +28,8 @@ import PurchaseFilterDrawer from 'src/views/pages/pharmacy/reports/PurchaseFilte
 import { format, subMonths } from 'date-fns'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import Error404 from 'src/pages/404'
+import { readAsync } from 'src/lib/windows/utils'
+import { getUserList } from 'src/lib/api/pharmacy/dispenseProduct'
 
 const PurchaseReport = () => {
   const router = useRouter()
@@ -49,11 +51,14 @@ const PurchaseReport = () => {
   const [filteredData, setFilteredData] = useState({ suppliersName: [] })
   const [exportLoading, setExportLoading] = useState(false)
   const [supplierData, setSupplierData] = useState([])
+  const [selectAllSupplier, setSelectAllSupplier] = useState(false)
+  const [users, setUsers] = useState([])
+  const [selectAllUser, setSelectAllUser] = useState(false)
 
   const [selectedOptions, setSelectedOptions] = useState({
     'Supplier Name': [],
     'Requested By': [],
-    Medicine: []
+    'Drug Type': 'all'
   })
 
   const [paginationModel, setPaginationModel] = useState({
@@ -81,8 +86,60 @@ const PurchaseReport = () => {
       }
     }
 
+    const getUserLists = async () => {
+      try {
+        const userDetails = await readAsync('userDetails')
+        if (userDetails?.user?.zoos.length > 0) {
+          let zoo_id = userDetails?.user?.zoos[0].zoo_id
+          await getUserList({ zoo_id }).then(res => {
+            if (res?.data?.length > 0) {
+              setUsers(
+                res?.data?.map(item => ({
+                  name: item?.user_name,
+                  id: item?.user_id
+                }))
+              )
+            }
+          })
+        }
+      } catch (error) {
+        console.log('user error', error)
+      }
+    }
+
     supplierList()
+    getUserLists()
   }, [])
+
+  const handleSelectAllSuppliers = () => {
+    setSelectAllSupplier(!selectAllSupplier)
+    if (!selectAllSupplier) {
+      setSelectedOptions({
+        ...selectedOptions,
+        'Supplier Name': supplierData.map(s => s.id)
+      })
+    } else {
+      setSelectedOptions({
+        ...selectedOptions,
+        'Supplier Name': []
+      })
+    }
+  }
+
+  const handleSelectAllUser = () => {
+    setSelectAllUser(!selectAllUser)
+    if (!selectAllUser) {
+      setSelectedOptions({
+        ...selectedOptions,
+        ['Requested By']: users.map(u => u.id)
+      })
+    } else {
+      setSelectedOptions({
+        ...selectedOptions,
+        ['Requested By']: []
+      })
+    }
+  }
 
   function loadServerRows(currentPage, data) {
     return data
@@ -106,10 +163,13 @@ const PurchaseReport = () => {
             filteredData.suppliersName.length > 0 && {
               supplier_id: filteredData.suppliersName.join(',')
             }),
-          ...(filteredData?.Medicine && {
-            controlled: filteredData.Medicine.controlled,
-            prescription: filteredData.Medicine.prescription
-          })
+          ...(filteredData && filteredData.controlled && { controlled: filteredData.controlled }),
+          ...(filteredData && filteredData.prescription && { prescription: filteredData.prescription }),
+          ...(filteredData &&
+            filteredData.requestedBy &&
+            filteredData.requestedBy.length > 0 && {
+              user_id: filteredData.requestedBy.join(',')
+            })
         }
 
         await getPurchaseReport({ params }).then(res => {
@@ -193,33 +253,34 @@ const PurchaseReport = () => {
         </Typography>
       )
     },
-    {
-      width: 5,
-      field: 'label',
-      headerName: '',
-      sortable: false,
-      renderCell: params => (
-        <Typography
-          sx={{
-            color: 'customColors.OnSecondaryContainer',
-            display: 'flex',
-            alignItems: 'center',
-            fontWeight: 500,
-            fontSize: '14px',
-            ...RenderUtility?.getEllipsisStyleForText()
-          }}
-        >
-          {RenderUtility?.renderControlLabel(
-            !isNaN(params.row?.controlled_substance) && parseInt(params.row?.controlled_substance) === 1,
-            'CS'
-          )}
-          {RenderUtility?.renderControlLabel(
-            !isNaN(params.row?.prescription_required) && parseInt(params.row?.prescription_required) === 1,
-            'PR'
-          )}
-        </Typography>
-      )
-    },
+
+    // {
+    //   width: 5,
+    //   field: 'label',
+    //   headerName: '',
+    //   sortable: false,
+    //   renderCell: params => (
+    //     <Typography
+    //       sx={{
+    //         color: 'customColors.OnSecondaryContainer',
+    //         display: 'flex',
+    //         alignItems: 'center',
+    //         fontWeight: 500,
+    //         fontSize: '14px',
+    //         ...RenderUtility?.getEllipsisStyleForText()
+    //       }}
+    //     >
+    //       {RenderUtility?.renderControlLabel(
+    //         !isNaN(params.row?.controlled_substance) && parseInt(params.row?.controlled_substance) === 1,
+    //         'CS'
+    //       )}
+    //       {RenderUtility?.renderControlLabel(
+    //         !isNaN(params.row?.prescription_required) && parseInt(params.row?.prescription_required) === 1,
+    //         'PR'
+    //       )}
+    //     </Typography>
+    //   )
+    // },
     {
       width: 250,
       minWidth: 20,
@@ -231,7 +292,41 @@ const PurchaseReport = () => {
       renderCell: params => (
         <Box>
           <StyleWithIconCardComponent
-            value={params.row.stock_name}
+            value={
+              <>
+                <Typography sx={{ display: 'flex', alignItems: 'center' }}>
+                  <Typography
+                    sx={{
+                      color: 'customColors.OnSecondaryContainer',
+                      display: 'flex',
+
+                      alignItems: 'center',
+                      fontWeight: 500,
+                      fontSize: '14px',
+                      ...RenderUtility?.getEllipsisStyleForText()
+                    }}
+                  >
+                    {RenderUtility?.renderControlLabel(
+                      !isNaN(params.row?.controlled_substance) && parseInt(params.row?.controlled_substance) === 1,
+                      'CS'
+                    )}
+                  </Typography>
+                  <Typography
+                    sx={{
+                      color: 'customColors.customHeadingTextColor',
+                      fontWeight: 500,
+                      fontSize: '14px',
+                      overflow: 'hidden',
+                      whiteSpace: 'nowrap',
+                      textOverflow: 'ellipsis',
+                      maxWidth: 250
+                    }}
+                  >
+                    {params.row.stock_name}
+                  </Typography>
+                </Typography>
+              </>
+            }
             description={params.row.generic_name ? params.row.generic_name : 'NA'}
             icon={params.row.image ? `${params.row.image}` : '/images/Medicine_Icon.png'}
             showIcon={false}
@@ -250,10 +345,10 @@ const PurchaseReport = () => {
     },
     {
       minWidth: 20,
-      width: 160,
-      field: 'batch_no',
-      sortable: false,
-      headerName: 'BATCH NUMBER',
+      width: 180,
+      field: 'purchase_date',
+      headerName: 'PURCHASE DATE',
+      sortable: true,
       renderCell: params => (
         <Typography
           variant='body2'
@@ -264,7 +359,93 @@ const PurchaseReport = () => {
             fontFamily: 'Inter'
           }}
         >
-          {params.row.batch_no}
+          {Utility.formatDisplayDate(params.row.purchase_date)}
+        </Typography>
+      )
+    },
+    {
+      minWidth: 20,
+      width: 150,
+      field: 'qty',
+      sortable: false,
+      headerName: 'PURCHASE QUANTITY',
+      renderCell: params => (
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
+          {params.row.qty ? Utility.formatNumber(params.row.qty) : 0}
+        </Typography>
+      )
+    },
+    {
+      minWidth: 20,
+      width: 180,
+      field: 'unit_price',
+      sortable: false,
+      headerName: 'SUPPLIER PRICE',
+      renderCell: params => (
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
+          {Utility.formatAmountToReadableDigit(params.row.unit_price)}
+        </Typography>
+      )
+    },
+    {
+      minWidth: 20,
+      width: 180,
+      field: 'supplier_name',
+      sortable: true,
+      headerName: 'SUPPLIER NAME',
+      renderCell: params => (
+        <Tooltip title={params.row.supplier_name}>
+          <Typography
+            variant='body2'
+            sx={{
+              color: theme.palette.customColors.customHeadingTextColor,
+              fontSize: '14px',
+              fontWeight: 400,
+              fontFamily: 'Inter',
+              overflow: 'hidden',
+              whiteSpace: 'nowrap',
+              textOverflow: 'ellipsis',
+              maxWidth: 200
+            }}
+          >
+            <span alt={params.row.supplier_name}> {params.row.supplier_name}</span>
+          </Typography>
+        </Tooltip>
+      )
+    },
+    {
+      minWidth: 20,
+      width: 200,
+      field: 'net_amount',
+      sortable: false,
+      headerName: 'TOTAL PURCHASE AMOUNT',
+      renderCell: params => (
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
+          {Utility.formatAmountToReadableDigit(params.row.net_amount)}
         </Typography>
       )
     },
@@ -296,10 +477,10 @@ const PurchaseReport = () => {
     },
     {
       minWidth: 20,
-      width: 180,
-      field: 'purchase_date',
-      headerName: 'PURCHASE DATE',
-      sortable: true,
+      width: 160,
+      field: 'batch_no',
+      sortable: false,
+      headerName: 'BATCH NUMBER',
       renderCell: params => (
         <Typography
           variant='body2'
@@ -310,13 +491,14 @@ const PurchaseReport = () => {
             fontFamily: 'Inter'
           }}
         >
-          {Utility.formatDisplayDate(params.row.purchase_date)}
+          {params.row.batch_no}
         </Typography>
       )
     },
+
     {
       minWidth: 20,
-      width: 200,
+      width: 180,
       field: 'requested_by',
       sortable: true,
       headerName: 'REQUESTED BY',
@@ -411,92 +593,7 @@ const PurchaseReport = () => {
         </Tooltip>
       )
     },
-    {
-      minWidth: 20,
-      width: 250,
-      field: 'supplier_name',
-      sortable: true,
-      headerName: 'SUPPLIER NAME',
-      renderCell: params => (
-        <Tooltip title={params.row.supplier_name}>
-          <Typography
-            variant='body2'
-            sx={{
-              color: theme.palette.customColors.customHeadingTextColor,
-              fontSize: '14px',
-              fontWeight: 400,
-              fontFamily: 'Inter',
-              overflow: 'hidden',
-              whiteSpace: 'nowrap',
-              textOverflow: 'ellipsis',
-              maxWidth: 200
-            }}
-          >
-            <span alt={params.row.supplier_name}> {params.row.supplier_name}</span>
-          </Typography>
-        </Tooltip>
-      )
-    },
-    {
-      minWidth: 20,
-      width: 180,
-      field: 'unit_price',
-      sortable: false,
-      headerName: 'SUPPLIER PRICE',
-      renderCell: params => (
-        <Typography
-          variant='body2'
-          sx={{
-            color: theme.palette.customColors.customHeadingTextColor,
-            fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
-          }}
-        >
-          {Utility.formatAmountToReadableDigit(params.row.unit_price)}
-        </Typography>
-      )
-    },
-    {
-      minWidth: 20,
-      width: 150,
-      field: 'qty',
-      sortable: false,
-      headerName: 'QUANTITY',
-      renderCell: params => (
-        <Typography
-          variant='body2'
-          sx={{
-            color: theme.palette.customColors.customHeadingTextColor,
-            fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
-          }}
-        >
-          {params.row.qty ? Utility.formatNumber(params.row.qty) : 0}
-        </Typography>
-      )
-    },
-    {
-      minWidth: 20,
-      width: 200,
-      field: 'net_amount',
-      sortable: false,
-      headerName: 'TOTAL AMOUNT',
-      renderCell: params => (
-        <Typography
-          variant='body2'
-          sx={{
-            color: theme.palette.customColors.customHeadingTextColor,
-            fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
-          }}
-        >
-          {Utility.formatAmountToReadableDigit(params.row.net_amount)}
-        </Typography>
-      )
-    },
+
     {
       minWidth: 200,
       field: 'purchase_created_at',
@@ -635,10 +732,13 @@ const PurchaseReport = () => {
           filteredData.suppliersName.length > 0 && {
             supplier_id: filteredData.suppliersName.join(',')
           }),
-        ...(filteredData?.Medicine && {
-          controlled: filteredData.Medicine.controlled,
-          prescription: filteredData.Medicine.prescription
-        }),
+        ...(filteredData && filteredData.controlled && { controlled: filteredData.controlled }),
+        ...(filteredData && filteredData.prescription && { prescription: filteredData.prescription }),
+        ...(filteredData &&
+          filteredData.requestedBy &&
+          filteredData.requestedBy.length > 0 && {
+            user_id: filteredData.requestedBy.join(',')
+          }),
         response_type: 'csv'
       }
       const response = await getPurchaseReport({ params })
@@ -659,7 +759,11 @@ const PurchaseReport = () => {
       count++
     }
 
-    if (filteredData?.Medicine?.controlled || filteredData?.Medicine?.prescription) {
+    if (filteredData && (filteredData.controlled || filteredData.prescription)) {
+      count++
+    }
+
+    if (filteredData.requestedBy && filteredData.requestedBy.length > 0) {
       count++
     }
 
@@ -667,6 +771,8 @@ const PurchaseReport = () => {
   }
 
   const appliedFiltersCount = calculateAppliedFiltersCount()
+
+  console.log(filteredData)
 
   return (
     <>
@@ -839,6 +945,9 @@ const PurchaseReport = () => {
               selectedOptions={selectedOptions}
               setSelectedOptions={setSelectedOptions}
               supplierData={supplierData}
+              handleSelectAllSuppliers={handleSelectAllSuppliers}
+              users={users}
+              handleSelectAllUser={handleSelectAllUser}
             />
           )}
         </>

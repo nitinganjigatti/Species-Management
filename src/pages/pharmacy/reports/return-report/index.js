@@ -214,28 +214,49 @@ const ReturnReport = () => {
       )
     },
     {
-      width: 5,
-      field: 'label',
-      headerName: '',
-      sortable: false,
+      minWidth: 20,
+      width: 170,
+      field: 'return_number',
+      headerName: 'RETURN NUMBER',
+      sortable: true,
       renderCell: params => (
         <Typography
+          variant='body2'
           sx={{
-            color: 'customColors.OnSecondaryContainer',
-            display: 'flex',
-            alignItems: 'center',
-            fontWeight: 500,
+            color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
-            ...RenderUtility?.getEllipsisStyleForText()
+            fontWeight: 500,
+            fontFamily: 'Inter'
           }}
         >
-          {RenderUtility?.renderControlLabel(
-            !isNaN(params.row?.controlled_substance) && parseInt(params.row?.controlled_substance) === 1,
-            'CS'
-          )}
+          {params.row.return_number}
         </Typography>
       )
     },
+
+    // {
+    //   width: 5,
+    //   field: 'label',
+    //   headerName: '',
+    //   sortable: false,
+    //   renderCell: params => (
+    //     <Typography
+    //       sx={{
+    //         color: 'customColors.OnSecondaryContainer',
+    //         display: 'flex',
+    //         alignItems: 'center',
+    //         fontWeight: 500,
+    //         fontSize: '14px',
+    //         ...RenderUtility?.getEllipsisStyleForText()
+    //       }}
+    //     >
+    //       {RenderUtility?.renderControlLabel(
+    //         !isNaN(params.row?.controlled_substance) && parseInt(params.row?.controlled_substance) === 1,
+    //         'CS'
+    //       )}
+    //     </Typography>
+    //   )
+    // },
     {
       width: 250,
       minWidth: 20,
@@ -247,7 +268,41 @@ const ReturnReport = () => {
       renderCell: params => (
         <Box>
           <StyleWithIconCardComponent
-            value={params.row.stock_name}
+            value={
+              <>
+                <Typography sx={{ display: 'flex', alignItems: 'center' }}>
+                  <Typography
+                    sx={{
+                      color: 'customColors.OnSecondaryContainer',
+                      display: 'flex',
+
+                      alignItems: 'center',
+                      fontWeight: 500,
+                      fontSize: '14px',
+                      ...RenderUtility?.getEllipsisStyleForText()
+                    }}
+                  >
+                    {RenderUtility?.renderControlLabel(
+                      !isNaN(params.row?.controlled_substance) && parseInt(params.row?.controlled_substance) === 1,
+                      'CS'
+                    )}
+                  </Typography>
+                  <Typography
+                    sx={{
+                      color: 'customColors.customHeadingTextColor',
+                      fontWeight: 500,
+                      fontSize: '14px',
+                      overflow: 'hidden',
+                      whiteSpace: 'nowrap',
+                      textOverflow: 'ellipsis',
+                      maxWidth: 250
+                    }}
+                  >
+                    {params.row.stock_name}
+                  </Typography>
+                </Typography>
+              </>
+            }
             description={params.row.generic_name}
             icon={params.row.image ? `${params.row.image}` : '/images/Medicine_Icon.png'}
             showIcon={false}
@@ -316,9 +371,9 @@ const ReturnReport = () => {
     },
     {
       minWidth: 20,
-      width: 200,
-      field: 'return_number',
-      headerName: 'RETURN NUMBER',
+      width: 180,
+      field: 'return_qty',
+      headerName: 'TOTAL RETURN QUANTITY',
       sortable: true,
       renderCell: params => (
         <Typography
@@ -330,7 +385,27 @@ const ReturnReport = () => {
             fontFamily: 'Inter'
           }}
         >
-          {params.row.return_number}
+          {params.row?.total_return_qty ? Utility.formatNumber(params.row.total_return_qty) : 0}
+        </Typography>
+      )
+    },
+    {
+      minWidth: 20,
+      width: 180,
+      field: 'return_value',
+      headerName: 'TOTAL RETURN VALUE',
+      sortable: true,
+      renderCell: params => (
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
+          {Utility.formatAmountToReadableDigit(params.row.return_value)}
         </Typography>
       )
     },
@@ -419,46 +494,6 @@ const ReturnReport = () => {
             <span alt={params.row.manufacturer_name}> {params.row.manufacturer_name}</span>
           </Typography>
         </Tooltip>
-      )
-    },
-    {
-      minWidth: 20,
-      width: 180,
-      field: 'return_qty',
-      headerName: 'TOTAL RETURN QUANTITY',
-      sortable: true,
-      renderCell: params => (
-        <Typography
-          variant='body2'
-          sx={{
-            color: theme.palette.customColors.customHeadingTextColor,
-            fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
-          }}
-        >
-          {params.row?.total_return_qty ? Utility.formatNumber(params.row.total_return_qty) : 0}
-        </Typography>
-      )
-    },
-    {
-      minWidth: 20,
-      width: 180,
-      field: 'return_value',
-      headerName: 'TOTAL RETURN VALUE',
-      sortable: false,
-      renderCell: params => (
-        <Typography
-          variant='body2'
-          sx={{
-            color: theme.palette.customColors.customHeadingTextColor,
-            fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
-          }}
-        >
-          {Utility.formatAmountToReadableDigit(params.row.return_value)}
-        </Typography>
       )
     },
     {

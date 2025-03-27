@@ -15,7 +15,6 @@ import {
   Typography
 } from '@mui/material'
 import { Box } from '@mui/system'
-import { setQuarter } from 'date-fns'
 import React, { useCallback, useState } from 'react'
 import Icon from 'src/@core/components/icon'
 
@@ -103,6 +102,10 @@ const DispenseReportFilterDrawer = ({
     //Attach Pharmacy filters to object to send
     if (selectedOptions['Pharmacy'] && selectedOptions['Pharmacy'].length > 0) {
       filterData.pharmacy = selectedOptions['Pharmacy']
+    }
+
+    if (selectedOptions['User'] && selectedOptions['User'].length > 0) {
+      filterData.user = selectedOptions['User']
     }
 
     if (selectedOptions['Drug Type'] && selectedOptions['Drug Type'] !== 'all') {

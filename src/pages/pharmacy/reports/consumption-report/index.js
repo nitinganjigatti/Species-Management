@@ -49,7 +49,7 @@ const ConsumptionReport = () => {
   const [total, setTotal] = useState(0)
   const [loading, setLoading] = useState(false)
   const [sort, setSort] = useState(router.query.sort || 'asc')
-  const [sortColumn, setSortColumn] = useState(router.query.column || 'total_consumption_cost')
+  const [sortColumn, setSortColumn] = useState(router.query.column || 'stock_name')
   const [searchValue, setSearchValue] = useState(router.query.q || '')
   const [exportLoading, setExportLoading] = useState(false)
   const [openFilterDrawer, setOpenFilterDrawer] = useState(false)

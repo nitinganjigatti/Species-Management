@@ -15,15 +15,19 @@ import {
 import { useTheme } from '@mui/material/styles'
 import Icon from 'src/@core/components/icon'
 import { Box, styled } from '@mui/system'
-import { useRouter } from 'next/router'
 import React, { useCallback, useContext, useEffect, useState } from 'react'
 import { LoadingButton } from '@mui/lab'
-import { AuthContext } from 'src/context/AuthContext'
 
 const leftMenu = [
   // { id: , name: 'Batch Number' },
   { id: 1, name: 'Pharmacy' },
   { id: 2, name: 'Drug Type' }
+]
+
+const drugTypeOptions = [
+  { id: 'all', name: 'All' },
+  { id: 'controlled', name: 'Controlled' },
+  { id: 'prescription', name: 'Prescription' }
 ]
 
 const StyledBadge = styled(Badge)(({ theme }) => ({
@@ -38,17 +42,17 @@ const ShipmentFilterDrawer = ({
   onApplyFilter,
   selectedOptions,
   setSelectedOptions,
-  pharmacyList
+  pharmacyList,
+  handleSelectAllPharmacy
 }) => {
   const theme = useTheme()
 
   const [selectedMenu, setSelectedMenu] = useState(leftMenu[0])
   const [searchQuery, setSearchQuery] = useState('')
-  const [selectAll, setSelectAll] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
 
-  const MEDICINE_ALL = 'all'
-  const MEDICINE_CONTROLLED = 'controlled'
-  const MEDICINE_PRESCRIPTION = 'prescription'
+  const isAllPharmaciesSelected =
+    pharmacyList?.length > 0 && selectedOptions['Pharmacy']?.length === pharmacyList?.length
 
   const handleCloseDrawer = () => {
     setOpenFilterDrawer(false)
@@ -56,20 +60,15 @@ const ShipmentFilterDrawer = ({
 
   const handleMenuClick = menu => {
     setSelectedMenu(menu)
+    setSearchQuery('')
   }
 
-  const handleSelectAll = useCallback(
-    (list, filterFn, menuName, event) => {
-      const filteredList = list?.filter(filterFn) || []
-
-      setSelectedOptions(prevOptions => ({
-        ...prevOptions,
-        [menuName]: event.target.checked ? filteredList.map(item => item.id) : []
-      }))
-      setSelectAll(event.target.checked)
-    },
-    [setSelectedOptions, setSelectAll]
-  )
+  const handleDrugTypeChange = event => {
+    setSelectedOptions(prevOptions => ({
+      ...prevOptions,
+      'Drug Type': event.target.value
+    }))
+  }
 
   const handleCheckbox = useCallback(
     (id, menuName) => {
@@ -91,68 +90,37 @@ const ShipmentFilterDrawer = ({
     setSearchQuery(event.target.value)
   }, [])
 
-  useEffect(() => {
-    if (selectedMenu.name === 'Pharmacy') {
-      const filteredList = pharmacyList?.filter(pharmacy =>
-        pharmacy.name.toLowerCase().includes(searchQuery.toLowerCase())
-      )
-      if (
-        filteredList?.length > 0 &&
-        filteredList?.every(pharmacy => selectedOptions['Pharmacy']?.includes(pharmacy.id))
-      ) {
-        setSelectAll(true)
-      } else {
-        setSelectAll(false)
-      }
-    }
-  }, [selectedOptions, searchQuery, pharmacyList, selectedMenu])
-
-  const handleMedicineCheckbox = useCallback(
-    id => {
-      handleCheckbox(id, 'Drug Type')
-    },
-    [handleCheckbox]
-  )
-
-  const applyFilters = () => {
+  const applyFilters = useCallback(() => {
+    if (isSubmitting) return
+    setIsSubmitting(true)
     const filterData = {}
 
     if (selectedOptions['Pharmacy'] && selectedOptions['Pharmacy'].length > 0) {
       filterData['pharmacy'] = selectedOptions['Pharmacy']
     }
 
-    let controlled = 0
-    let prescription = 0
-
-    if (
-      selectedOptions['Drug Type'].includes(MEDICINE_CONTROLLED) &&
-      selectedOptions['Drug Type'].includes(MEDICINE_PRESCRIPTION)
-    ) {
-      controlled = 1
-      prescription = 1
-    } else if (selectedOptions['Drug Type'].includes(MEDICINE_CONTROLLED)) {
-      controlled = 1
-      prescription = 0
-    } else if (selectedOptions['Drug Type'].includes(MEDICINE_PRESCRIPTION)) {
-      controlled = 0
-      prescription = 1
-    }
-
-    // Attach medicine options to object to send
-    filterData['Drug Type'] = {
-      controlled: controlled,
-      prescription: prescription
+    if (selectedOptions['Drug Type'] && selectedOptions['Drug Type'] !== 'all') {
+      filterData[selectedOptions['Drug Type']] = 1
     }
 
     onApplyFilter(filterData)
     setOpenFilterDrawer(false)
-  }
+    setIsSubmitting(false)
+  }, [selectedOptions, onApplyFilter, setOpenFilterDrawer, isSubmitting])
 
   const filteredPharmacyList = pharmacyList?.filter(pharmacy =>
     pharmacy.name.toLowerCase().includes(searchQuery.toLowerCase())
   )
 
+  const handlePharmacySelectAll = () => {
+    handleSelectAllPharmacy()
+  }
+
   const getMenuBadgeCount = menuName => {
+    if (menuName === 'Drug Type') {
+      return selectedOptions[menuName] && selectedOptions[menuName] !== 'all' ? 1 : 0
+    }
+
     return selectedOptions[menuName] ? selectedOptions[menuName].length : 0
   }
 
@@ -323,16 +291,10 @@ const ShipmentFilterDrawer = ({
                   </Box>
                   <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
                     <Checkbox
-                      checked={selectAll}
+                      checked={isAllPharmaciesSelected}
+                      indeterminate={selectedOptions['Pharmacy']?.length > 0 && !isAllPharmaciesSelected}
                       inputProps={{ 'aria-label': 'controlled' }}
-                      onChange={e =>
-                        handleSelectAll(
-                          filteredPharmacyList,
-                          pharmacy => pharmacy.name.toLowerCase().includes(searchQuery.toLowerCase()),
-                          'Pharmacy',
-                          e
-                        )
-                      }
+                      onChange={handlePharmacySelectAll}
                     />
                     <Typography sx={{ fontSize: '16px', fontWeight: 400, color: '#839D8D' }}>Select All</Typography>
                   </Box>
@@ -352,46 +314,33 @@ const ShipmentFilterDrawer = ({
                 </>
               ) : selectedMenu?.name === 'Drug Type' ? (
                 <>
-                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-                    <Checkbox
-                      checked={
-                        selectedOptions['Drug Type'].includes(MEDICINE_CONTROLLED) &&
-                        selectedOptions['Drug Type'].includes(MEDICINE_PRESCRIPTION)
-                      }
-                      onChange={e => {
-                        if (e.target.checked) {
-                          setSelectedOptions(prev => ({
-                            ...prev,
-                            'Drug Type': [MEDICINE_CONTROLLED, MEDICINE_PRESCRIPTION]
-                          }))
-                        } else {
-                          setSelectedOptions(prev => ({
-                            ...prev,
-                            'Drug Type': []
-                          }))
+                  <FormControl fullWidth>
+                    <Select
+                      value={selectedOptions['Drug Type'] || 'all'}
+                      onChange={handleDrugTypeChange}
+                      sx={{
+                        '& .MuiSelect-select': {
+                          fontSize: '16px',
+                          fontWeight: 400,
+                          color: '#839D8D'
                         }
                       }}
-                      inputProps={{ 'aria-label': 'controlled' }}
-                    />
-                    <Typography sx={{ fontSize: '16px', fontWeight: 400, color: '#839D8D' }}>Select All</Typography>
-                  </Box>
-                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-                    <Checkbox
-                      checked={selectedOptions['Drug Type'].includes(MEDICINE_CONTROLLED)}
-                      onChange={() => handleMedicineCheckbox(MEDICINE_CONTROLLED)}
-                      inputProps={{ 'aria-label': 'controlled' }}
-                    />
-                    <Typography sx={{ fontSize: '16px', fontWeight: 400, color: '#839D8D' }}>Controlled</Typography>
-                  </Box>
-                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-                    <Checkbox
-                      checked={selectedOptions['Drug Type'].includes(MEDICINE_PRESCRIPTION)}
-                      onChange={() => handleMedicineCheckbox(MEDICINE_PRESCRIPTION)}
-                      inputProps={{ 'aria-label': 'controlled' }}
-                    />
-                    <Typography sx={{ fontSize: '16px', fontWeight: 400, color: '#839D8D' }}>Prescription</Typography>
-                  </Box>
-                  <Divider sx={{ mb: 3 }} />
+                    >
+                      {drugTypeOptions.map(option => (
+                        <MenuItem
+                          key={option.id}
+                          value={option.id}
+                          sx={{
+                            fontSize: '16px',
+                            fontWeight: 400,
+                            color: '#839D8D'
+                          }}
+                        >
+                          {option.name}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
                 </>
               ) : null}
             </Box>
