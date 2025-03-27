@@ -124,8 +124,8 @@ const VerticalNavLink = ({
                 ...(navCollapsed && !navHover ? { mr: 0 } : { mr: 2 }),
                 ...(parent ? { ml: 2, mr: 4 } : {}),
                 '& svg': {
-                  // ...(!parent ? { fontSize: '1.5rem' } : { fontSize: '0.5rem' }),
-                  // ...(parent && item.icon ? { fontSize: '0.875rem' } : {})
+                  ...(!parent ? { fontSize: '1.5rem' } : { fontSize: '0.5rem' }),
+                  ...(parent && item.icon ? { fontSize: '0.875rem' } : {})
                 }
               }}
             >
@@ -141,24 +141,9 @@ const VerticalNavLink = ({
             </ListItemIcon>
           )}
 
-          {!item.icon && (
-            <Box
-              sx={{
-                ml: '0.5rem',
-                mr: '0.5rem',
-                height: '24px',
-                width: '24px',
-                display: 'flex',
-                justifyContent: 'center',
-                alignItems: 'center'
-              }}
-            >
-              <Box sx={{ height: '8px', width: '8px', borderRadius: '50%', backgroundColor: '#44544A' }}></Box>
-            </Box>
-          )}
           <MenuItemTextMetaWrapper
             sx={{
-              ...(!item.icon ? { ml: 4 } : isSubToSub ? { ml: 8 } : {}),
+              ...(isSubToSub ? { ml: 8 } : {}),
               ...(navCollapsed && !navHover ? { opacity: 0 } : { opacity: 1 })
             }}
           >

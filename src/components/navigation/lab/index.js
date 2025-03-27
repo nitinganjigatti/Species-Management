@@ -8,13 +8,6 @@ const ComposeLabNavigation = ({ labRole }) => {
     sectionTitle: 'Lab'
   }
 
-  const labParent = {
-    title: 'Lab',
-    path: '/lab/lab-list',
-    // icon: 'icon-park-outline:traditional-chinese-medicine',
-    children: []
-  }
-
   const lab = {
     title: 'My Lab',
     path: '/lab/lab-list',
@@ -66,7 +59,7 @@ const ComposeLabNavigation = ({ labRole }) => {
     medical_add_tests ||
     medical_add_mortality_reasons
   ) {
-    // labNavigationArray.push(labTitle)
+    labNavigationArray.push(labTitle)
 
     // if (medical_add_samples || medical_add_tests || medical_add_mortality_reasons) {
     mastersLabParent.children = []
@@ -74,11 +67,11 @@ const ComposeLabNavigation = ({ labRole }) => {
     // }
 
     if (labList?.length > 0 || addlabPermission) {
-      labParent.children.push(lab)
+      labNavigationArray.push(lab)
     }
 
     if (labList?.length > 0) {
-      labParent.children.push(request)
+      labNavigationArray.push(request)
     }
 
     if (medical_add_samples) {
@@ -93,8 +86,7 @@ const ComposeLabNavigation = ({ labRole }) => {
       mastersLabParent.children.push(mortalityReason)
     }
 
-    labParent.children.push(mastersLabParent)
-    labNavigationArray.push(labParent)
+    labNavigationArray.push(mastersLabParent)
   }
 
   // if (labList.length > 0) {

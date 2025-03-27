@@ -22,7 +22,6 @@ import Icon from 'src/@core/components/icon'
 
 // ** Configs Import
 import themeConfig from 'src/configs/themeConfig'
-import { useTheme } from '@mui/material/styles'
 
 // ** Utils
 import { hasActiveChild, removeChildren } from 'src/@core/layouts/utils'
@@ -44,7 +43,6 @@ const MenuItemTextWrapper = styled(Box)(({ theme }) => ({
 }))
 
 const VerticalNavGroup = props => {
-  const theme = useTheme()
   // ** Props
   const {
     item,
@@ -162,7 +160,6 @@ const VerticalNavGroup = props => {
           className='nav-group'
           onClick={handleGroupClick}
           sx={{
-            ...(parent && item.children ? { backgroundColor: '#fff' } : { backgroundColor: '#fff' }),
             mt: 1.5,
             flexDirection: 'column',
             transition: 'padding .25s ease-in-out',
@@ -179,30 +176,20 @@ const VerticalNavGroup = props => {
             sx={{
               py: 2.25,
               width: '100%',
-              // borderRadius: !icon && parent && '8px',
-              '&:hover': {
-                backgroundColor: 'transparent'
-              },
-              borderBottom: !item.icon && ` 1px solid ${theme.palette.customColors.OutlineVariant}`,
+              borderRadius: '8px',
               transition: 'padding-left .25s ease-in-out',
               pr: navCollapsed && !navHover ? (collapsedNavWidth - navigationBorderWidth - 24 - 16) / 8 : 3,
               pl: navCollapsed && !navHover ? (collapsedNavWidth - navigationBorderWidth - 24 - 16) / 8 : 4,
               '&.Mui-selected': {
-                // backgroundColor: 'action.selected',
-                backgroundColor: parent && item.icon ? theme.palette.customColors.activeMenuGroup : 'transparent',
-                borderRadius: parent && item.icon ? '8px' : '0px',
+                backgroundColor: 'action.selected',
                 '&:hover': {
-                  backgroundColor: 'transparent'
-                  // backgroundColor: 'action.selected'
+                  backgroundColor: 'action.selected'
                 }
               },
               '&.Mui-selected.Mui-focusVisible': {
-                // backgroundColor: 'action.focus',
-                backgroundColor: 'transparent',
+                backgroundColor: 'action.focus',
                 '&:hover': {
-                  borderRadius: '8px',
-                  // backgroundColor: 'action.focus'
-                  backgroundColor: 'transparent'
+                  backgroundColor: 'action.focus'
                 }
               }
             }}
@@ -217,8 +204,7 @@ const VerticalNavGroup = props => {
                   color: parent && item.children ? 'text.secondary' : 'text.primary'
                 }}
               >
-                {/* <UserIcon icon={icon} {...(parent && { fontSize: '0.5rem' })} /> */}
-                <UserIcon icon={icon} {...(parent && { fontSize: '1.5rem' })} />
+                <UserIcon icon={icon} {...(parent && { fontSize: '0.5rem' })} />
               </ListItemIcon>
             )}
             <MenuItemTextWrapper sx={{ ...menuGroupCollapsedStyles, ...(isSubToSub ? { ml: 8 } : {}) }}>
@@ -226,7 +212,6 @@ const VerticalNavGroup = props => {
                 {...((themeConfig.menuTextTruncate || (!themeConfig.menuTextTruncate && navCollapsed && !navHover)) && {
                   noWrap: true
                 })}
-                sx={{ color: theme.palette.customColors.Outline }}
               >
                 <Translations text={item.title} />
               </Typography>
@@ -251,10 +236,7 @@ const VerticalNavGroup = props => {
                     sx={{ mr: 1.5, '& .MuiChip-label': { px: 2.5, lineHeight: 1.385, textTransform: 'capitalize' } }}
                   />
                 ) : null}
-                <Icon
-                  color={parent && item.icon ? '' : theme.palette.customColors.Outline}
-                  icon={direction === 'ltr' ? 'mdi:chevron-right' : 'mdi:chevron-left'}
-                />
+                <Icon icon={direction === 'ltr' ? 'mdi:chevron-right' : 'mdi:chevron-left'} />
               </Box>
             </MenuItemTextWrapper>
           </ListItemButton>
