@@ -320,7 +320,7 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
                   overflow: 'hidden'
                 }}
               >
-                <img style={{ width: '100%', height: '100%' }} src={'/icons/pdf_Icon2.svg'} alt='Profile' />
+                <img style={{ width: '100%', height: '100%' }} src={'/icons/pdf_icon2.svg'} alt='Profile' />
               </Avatar>
 
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -461,7 +461,7 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
                       whiteSpace: 'nowrap'
                     }}
                   >
-                    •&nbsp; {moment(Utility.convertUTCToLocalDate(item.created_at)).format('DD MMM YYYY')}
+                    •&nbsp; {moment(Utility.convertUTCToLocalDate(item.modified_at)).format('DD MMM YYYY')}
                   </Typography>
                   <Typography
                     sx={{
@@ -474,7 +474,7 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
                       whiteSpace: 'nowrap'
                     }}
                   >
-                    •&nbsp; {Utility.convertUTCToLocaltime(item.created_at)}
+                    •&nbsp; {Utility.convertUTCToLocaltime(item.modified_at)}
                   </Typography>
                 </Box>
               </Box>
@@ -532,7 +532,7 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
               overflow: 'hidden'
             }}
           >
-            <img style={{ width: '100%', height: '100%' }} src={'/icons/pdf_Icon2.svg'} alt='Profile' />
+            <img style={{ width: '100%', height: '100%' }} src={'/icons/pdf_icon2.svg'} alt='Profile' />
           </Avatar>
 
           <Box sx={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
@@ -643,7 +643,7 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
                   letterSpacing: '0%'
                 }}
               >
-                Uploaded by&nbsp; •
+                Updated by&nbsp; •
               </Typography>
               <Tooltip title={item?.detached_by ? item?.detached_by : '-'}>
                 <Typography
@@ -673,7 +673,7 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
                   whiteSpace: 'nowrap'
                 }}
               >
-                •&nbsp; {moment(Utility.convertUTCToLocalDate(item.created_at)).format('DD MMM YYYY')}
+                •&nbsp; {moment(Utility.convertUTCToLocalDate(item.modified_at)).format('DD MMM YYYY')}
               </Typography>
               <Typography
                 sx={{
@@ -686,7 +686,7 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
                   whiteSpace: 'nowrap'
                 }}
               >
-                •&nbsp; {Utility.convertUTCToLocaltime(item.created_at)}
+                •&nbsp; {Utility.convertUTCToLocaltime(item.modified_at)}
               </Typography>
             </Box>
           </Box>
@@ -915,7 +915,6 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
           >
             UPLOAD NEW
           </LoadingButton>
-
           {/* <input
           type='file'
           multiple
@@ -928,7 +927,6 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
         /> */}
         </Box>
       )}
-
       <UploadDiet
         fetchTableData={fetchTableData}
         getSpecieDetail={getSpecieDetail}

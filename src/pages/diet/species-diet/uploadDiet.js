@@ -397,7 +397,7 @@ function UploadDiet({
                                     height: '48px'
                                   }}
                                 >
-                                  <Image alt={'filename'} src={'/icons/pdf_Icon2.svg'} width={48} height={48} />
+                                  <Image alt={'filename'} src={'/icons/pdf_icon2.svg'} width={48} height={48} />
                                   <Typography
                                     sx={{
                                       backgroundColor: theme.palette.customColors.Background,
@@ -449,7 +449,7 @@ function UploadDiet({
                                     color: theme.palette.customColors.OnSurfaceVariant60
                                   }}
                                 >
-                                  Drop your file here
+                                  Drop your image here
                                 </Typography>
                               </Box>
                             )}
