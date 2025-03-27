@@ -26,6 +26,7 @@ import { yupResolver } from '@hookform/resolvers/yup'
 import Image from 'next/image'
 import { getUserList } from 'src/lib/api/pharmacy/dispenseProduct'
 import { readAsync } from 'src/lib/windows/utils'
+import toast from 'react-hot-toast'
 
 const defaultValues = {
   dietitian_id: '',
@@ -34,7 +35,7 @@ const defaultValues = {
 }
 
 const schema = yup.object().shape({
-  dietitian_id: yup.string().trim().required('Dietitian id is required'),
+  dietitian_id: yup.string().trim().required('Dietitian name is required'),
   attachment: yup.string().required('Attachment is required')
 })
 
@@ -100,7 +101,8 @@ function UploadDiet({
 
     const allowedTypes = ['application/pdf']
     if (!file || !allowedTypes.includes(file.type)) {
-      Toaster({ type: 'error', message: 'Please select a valid file.' })
+      toast.error('Only PDF files are supported. Please upload a PDF file.')
+      // Toaster({ type: 'error', message: 'Only PDF files are supported. Please upload a PDF file.' })
       return
     }
     setSelectedFile(file)
