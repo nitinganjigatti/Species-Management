@@ -461,7 +461,7 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
                       whiteSpace: 'nowrap'
                     }}
                   >
-                    •&nbsp; {moment(Utility.convertUTCToLocalDate(item.modified_at)).format('DD MMM YYYY')}
+                    •&nbsp; {moment(Utility.convertUTCToLocalDate(item.created_at)).format('DD MMM YYYY')}
                   </Typography>
                   <Typography
                     sx={{
@@ -474,7 +474,7 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
                       whiteSpace: 'nowrap'
                     }}
                   >
-                    •&nbsp; {Utility.convertUTCToLocaltime(item.modified_at)}
+                    •&nbsp; {Utility.convertUTCToLocaltime(item.created_at)}
                   </Typography>
                 </Box>
               </Box>
