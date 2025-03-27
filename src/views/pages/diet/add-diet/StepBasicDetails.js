@@ -224,6 +224,7 @@ const StepBasicDetails = ({
 
   const handleRecipeStateChange = value => {
     setRecipeChildStateValue(value)
+
     const uniqueValues = value.filter(
       (val, index, self) => index === self.findIndex(v => v.recipe_id === val.recipe_id && v.mealid === val.mealid)
     )
@@ -243,6 +244,7 @@ const StepBasicDetails = ({
         field.recipe = updatedValues.filter(up => up?.mealid === field.mealid)
       }
       console.log(updatedValues, 'updatedValues')
+
       // Return the updated values to setAllSelectedValues
       return updatedValues
     })
@@ -253,6 +255,7 @@ const StepBasicDetails = ({
   const handleComboStateChange = value => {
     console.log('Received value:', value)
     setComboChildStateValue(value)
+
     const uniqueValues = value.filter(
       (val, index, self) => index === self.findIndex(v => v?.recipe_id === val?.recipe_id && v?.mealid === val?.mealid)
     )
@@ -272,6 +275,7 @@ const StepBasicDetails = ({
         field.combo = updatedValues.filter(up => up?.mealid === field.mealid)
       }
       console.log(updatedValues, 'updatedValues')
+
       // Return the updated values to setAllSelectedValues
       return updatedValues
     })
@@ -460,6 +464,7 @@ const StepBasicDetails = ({
     setOpenIngredientchoice(false)
   }
   console.log(fieldsIngredients, 'fieldsIngredients')
+
   const onSubmit = async data => {
     console.log(data, 'data')
     window.scrollTo(0, 0)
@@ -685,6 +690,7 @@ const StepBasicDetails = ({
       // Update fieldsIngredients by filtering out ingredients based on ingredientIdToRemove
       const updatedFieldsIngredients = fieldsIngredients.map(field => {
         field.ingredient = field.ingredient?.filter(ing => String(ing.ingredient_id) !== ingredientIdToRemove)
+
         return field
       })
 
@@ -762,7 +768,7 @@ const StepBasicDetails = ({
 
       // Update fieldsIngredients by filtering out ingredients based on recipeIdToRemove
       const updatedFieldsIngredients = fieldsIngredients.map(field => {
-        field.recipe = field.recipe?.filter(ing => String(ing.recipe_id) !== recipeIdToRemove)
+        field.combo = field.combo?.filter(ing => String(ing.recipe_id) !== recipeIdToRemove)
 
         return field
       })
@@ -790,6 +796,7 @@ const StepBasicDetails = ({
                 ing => ing?.ingredient_id !== ingredientIdToRemove
               )
             }
+
             return ingredient
           })
           .filter(ingredient => ingredient.ingredientList.length > 0)
@@ -806,6 +813,7 @@ const StepBasicDetails = ({
                 item => String(item.ingredient_id) !== ingredientIdToRemove
               )
             }
+
             return ing
           })
           .filter(ing => ing?.ingredientList && ing?.ingredientList.length > 0)
