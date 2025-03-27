@@ -13,7 +13,7 @@ import {
   Tooltip,
   Typography
 } from '@mui/material'
-import { Box, width } from '@mui/system'
+import { Box } from '@mui/system'
 import { useRouter } from 'next/router'
 import React, { useCallback, useEffect, useState } from 'react'
 import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDateRangePickers'
@@ -46,21 +46,25 @@ const ReturnReport = () => {
   const [sortColumn, setSortColumn] = useState(router.query.column || 'stock_name')
   const [searchValue, setSearchValue] = useState(router.query.q || '')
   const [openFilterDrawer, setOpenFilterDrawer] = useState(false)
-  const [filteredData, setFilteredData] = useState({ pharmacy: [] })
+
+  const [filteredData, setFilteredData] = useState({
+    pharmacy: []
+  })
   const [exportLoading, setExportLoading] = useState(false)
   const [expired, setExpired] = useState(false)
   const [pharmacyList, setPharmacyList] = useState([])
+  const [selectAllPharmacy, setSelectAllPharmacy] = useState(false)
 
   const [selectedOptions, setSelectedOptions] = useState({
     Pharmacy: [],
     'Expiry Date': [],
     'Near Expiry': [],
-    Medicine: []
+    'Drug Type': 'all'
   })
 
   const [paginationModel, setPaginationModel] = useState({
     page: parseInt(router.query.page) || 0,
-    pageSize: parseInt(router.query.limit) || 10
+    pageSize: parseInt(router.query.limit) || 50
   })
 
   const [filterDates, setFilterDates] = useState({
@@ -99,6 +103,21 @@ const ReturnReport = () => {
     pharmacyList()
   }, [selectedPharmacy])
 
+  const handleSelectAllPharmacy = () => {
+    setSelectAllPharmacy(!selectAllPharmacy)
+    if (!selectAllPharmacy) {
+      setSelectedOptions({
+        ...selectedOptions,
+        Pharmacy: pharmacyList.map(p => p.id)
+      })
+    } else {
+      setSelectedOptions({
+        ...selectedOptions,
+        Pharmacy: []
+      })
+    }
+  }
+
   function loadServerRows(currentPage, data) {
     return data
   }
@@ -116,10 +135,8 @@ const ReturnReport = () => {
           column: column,
           ...(filterDates?.startDate !== '' && { from_date: filterDates?.startDate }),
           ...(filterDates?.endDate !== '' && { to_date: filterDates?.endDate }),
-          ...(filteredData?.Medicine && {
-            controlled: filteredData.Medicine.controlled,
-            prescription: filteredData.Medicine.prescription
-          }),
+          ...(filteredData && filteredData.controlled && { controlled: filteredData.controlled }),
+          ...(filteredData && filteredData.prescription && { prescription: filteredData.prescription }),
           ...(filteredData?.expiryDate && {
             expired_from_date: filteredData.expiryDate.startDate,
             expired_to_date: filteredData.expiryDate.endDate
@@ -215,10 +232,6 @@ const ReturnReport = () => {
           {RenderUtility?.renderControlLabel(
             !isNaN(params.row?.controlled_substance) && parseInt(params.row?.controlled_substance) === 1,
             'CS'
-          )}
-          {RenderUtility?.renderControlLabel(
-            !isNaN(params.row?.prescription_required) && parseInt(params.row?.prescription_required) === 1,
-            'PR'
           )}
         </Typography>
       )
@@ -610,10 +623,8 @@ const ReturnReport = () => {
         limit: total, // Set limit to total number of items
         ...(filterDates?.startDate !== '' && { from_date: filterDates?.startDate }),
         ...(filterDates?.endDate !== '' && { to_date: filterDates?.endDate }),
-        ...(filteredData?.Medicine && {
-          controlled: filteredData.Medicine.controlled,
-          prescription: filteredData.Medicine.prescription
-        }),
+        ...(filteredData && filteredData.controlled && { controlled: filteredData.controlled }),
+        ...(filteredData && filteredData.prescription && { prescription: filteredData.prescription }),
         ...(filteredData?.expiryDate && {
           expired_from_date: filteredData.expiryDate.startDate,
           expired_to_date: filteredData.expiryDate.endDate
@@ -656,7 +667,7 @@ const ReturnReport = () => {
       count++
     }
 
-    if (filteredData?.Medicine?.controlled || filteredData?.Medicine?.prescription) {
+    if (filteredData && (filteredData.controlled || filteredData.prescription)) {
       count++
     }
 
@@ -668,6 +679,8 @@ const ReturnReport = () => {
   }
 
   const appliedFiltersCount = calculateAppliedFiltersCount()
+
+  console.log(filteredData)
 
   return (
     <>
@@ -836,6 +849,7 @@ const ReturnReport = () => {
           nearExpiryFilterDates={nearExpiryFilterDates}
           setNearExpiryFilterDates={setNearExpiryFilterDates}
           pharmacyList={pharmacyList}
+          handleSelectAllPharmacy={handleSelectAllPharmacy}
         />
       )}
     </>

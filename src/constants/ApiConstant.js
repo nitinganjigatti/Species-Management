@@ -253,3 +253,5 @@ export const SHIPMENT_REPORT = 'shipment-report'
 export const CONSUMPTION_REPORT = 'consumption-report'
 
 export const REQUESTED_ITEMS_REPORT = 'requested-items'
+
+export const DISPENSE_REPORT = 'dispense-report'

@@ -1,13 +1,40 @@
 import { useTheme } from '@emotion/react'
 import { LoadingButton } from '@mui/lab'
-import { Badge, Checkbox, Divider, Drawer, Grid, IconButton, TextField, Typography } from '@mui/material'
+import {
+  Badge,
+  Checkbox,
+  Divider,
+  Drawer,
+  FormControl,
+  Grid,
+  IconButton,
+  MenuItem,
+  Select,
+  TextField,
+  Typography
+} from '@mui/material'
 import { Box, styled } from '@mui/system'
 import React, { useCallback, useEffect, useState } from 'react'
 import Icon from 'src/@core/components/icon'
 
 const leftMenu = [
-  { id: 1, name: 'pharmacy' },
-  { id: 2, name: 'user' }
+  { id: 1, name: 'Pharmacy' },
+  { id: 2, name: 'User' },
+  { id: 3, name: 'Drug Type' },
+  { id: 4, name: 'Priority' }
+]
+
+const drugTypeOptions = [
+  { id: 'all', name: 'All' },
+  { id: 'controlled', name: 'Controlled' },
+  { id: 'prescription', name: 'Prescription' }
+]
+
+const priorityOptions = [
+  { id: 'all', name: 'All' },
+  { id: 'normal', name: 'Normal' },
+  { id: 'high', name: 'High' },
+  { id: 'emergency', name: 'Emergency' }
 ]
 
 const StyledBadge = styled(Badge)(({ theme }) => ({
@@ -24,42 +51,28 @@ const RequestedItemFilterDrawer = ({
   setSelectedOptions,
   pharmacyList,
   users,
-  selectAllPharmacy,
   handleSelectAllPharmacy,
-  selectAllUser,
   handleSelectAllUser
 }) => {
   const theme = useTheme()
 
   const [selectedMenu, setSelectedMenu] = useState(leftMenu[0])
   const [searchQuery, setSearchQuery] = useState('')
-  const [selectAll, setSelectAll] = useState(false)
+  const [isSubmitting, setIsSubmitting] = useState(false)
+
+  const isAllPharmaciesSelected =
+    pharmacyList?.length > 0 && selectedOptions['Pharmacy']?.length === pharmacyList?.length
+
+  const isAllUsersSelected = users?.length > 0 && selectedOptions['User'].length === users?.length
 
   const handleCloseDrawer = () => {
     setOpenFilterDrawer(false)
-    setSelectedMenu(leftMenu[0])
-    setSelectAll(false)
-    setSearchQuery('')
   }
 
   const handleMenuClick = menu => {
     setSelectedMenu(menu)
     setSearchQuery('')
-    setSelectAll(false)
   }
-
-  const handleSelectAll = useCallback(
-    (list, filterFn, menuName, event) => {
-      const filteredList = list?.filter(filterFn) || []
-
-      setSelectedOptions(prevOptions => ({
-        ...prevOptions,
-        [menuName]: event.target.checked ? filteredList.map(item => item.id) : []
-      }))
-      setSelectAll(event.target.checked)
-    },
-    [setSelectedOptions, setSelectAll]
-  )
 
   const handleCheckbox = useCallback(
     (id, menuName) => {
@@ -77,49 +90,49 @@ const RequestedItemFilterDrawer = ({
     [setSelectedOptions]
   )
 
+  const handleDrugTypeChange = event => {
+    setSelectedOptions(prevOptions => ({
+      ...prevOptions,
+      'Drug Type': event.target.value
+    }))
+  }
+
+  const handlePriorityChange = event => {
+    setSelectedOptions(prevOptions => ({
+      ...prevOptions,
+      Priority: event.target.value
+    }))
+  }
+
   const handleSearch = useCallback(event => {
     setSearchQuery(event.target.value)
   }, [])
 
-  useEffect(() => {
-    if (selectedMenu.name === 'pharmacy') {
-      const filteredList = pharmacyList?.filter(pharmacy =>
-        pharmacy.name.toLowerCase().includes(searchQuery.toLowerCase())
-      )
-      if (
-        filteredList?.length > 0 &&
-        filteredList?.every(pharmacy => selectedOptions['pharmacy']?.includes(pharmacy.id))
-      ) {
-        setSelectAll(true)
-      } else {
-        setSelectAll(false)
-      }
-    }
+  const applyFilters = useCallback(() => {
+    if (isSubmitting) return
+    setIsSubmitting(true)
 
-    if (selectedMenu.name === 'user') {
-      const filteredList = users?.filter(user => user.name.toLowerCase().includes(searchQuery.toLowerCase()))
-      if (filteredList?.length > 0 && filteredList?.every(user => selectedOptions['user']?.includes(user.id))) {
-        setSelectAll(true)
-      } else {
-        setSelectAll(false)
-      }
-    }
-  }, [selectedOptions, searchQuery, pharmacyList, selectedMenu, users])
-
-  const applyFilters = () => {
     const filterData = {}
 
-    if (selectedOptions['user'] && selectedOptions['user'].length > 0) {
-      filterData['user'] = selectedOptions['user']
+    if (selectedOptions['User'] && selectedOptions['User'].length > 0) {
+      filterData['User'] = selectedOptions['User']
     }
 
-    if (selectedOptions['pharmacy'] && selectedOptions['pharmacy'].length > 0) {
-      filterData['pharmacy'] = selectedOptions['pharmacy']
+    if (selectedOptions['Pharmacy'] && selectedOptions['Pharmacy'].length > 0) {
+      filterData['Pharmacy'] = selectedOptions['Pharmacy']
+    }
+
+    if (selectedOptions['Drug Type'] && selectedOptions['Drug Type'] !== 'all') {
+      filterData[selectedOptions['Drug Type']] = 1
+    }
+
+    if (selectedOptions['Priority'] && selectedOptions['Priority'] !== 'all') {
+      filterData['Priority'] = selectedOptions['Priority']
     }
 
     onApplyFilter(filterData)
     setOpenFilterDrawer(false)
-  }
+  }, [selectedOptions, onApplyFilter, setOpenFilterDrawer, isSubmitting])
 
   const filteredPharmacyList = pharmacyList?.filter(pharmacy =>
     pharmacy.name.toLowerCase().includes(searchQuery.toLowerCase())
@@ -128,6 +141,14 @@ const RequestedItemFilterDrawer = ({
   const filteredUsersList = users?.filter(user => user.name.toLowerCase().includes(searchQuery.toLowerCase()))
 
   const getMenuBadgeCount = menuName => {
+    if (menuName === 'Drug Type') {
+      return selectedOptions[menuName] && selectedOptions[menuName] !== 'all' ? 1 : 0
+    }
+
+    if (menuName === 'Priority') {
+      return selectedOptions[menuName] && selectedOptions[menuName] !== 'all' ? 1 : 0
+    }
+
     return selectedOptions[menuName] ? selectedOptions[menuName].length : 0
   }
 
@@ -228,7 +249,7 @@ const RequestedItemFilterDrawer = ({
                 scrollbarWidth: 'none'
               }}
             >
-              {selectedMenu.name === 'pharmacy' ? (
+              {selectedMenu.name === 'Pharmacy' ? (
                 <>
                   <Box
                     sx={{
@@ -263,7 +284,8 @@ const RequestedItemFilterDrawer = ({
                   </Box>
                   <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
                     <Checkbox
-                      checked={selectAllPharmacy}
+                      checked={isAllPharmaciesSelected}
+                      indeterminate={selectedOptions['Pharmacy']?.length > 0 && !isAllPharmaciesSelected}
                       inputProps={{ 'aria-label': 'controlled' }}
                       onChange={handlePharmacySelectAll}
                     />
@@ -274,8 +296,8 @@ const RequestedItemFilterDrawer = ({
                     <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }} key={pharmacy?.id}>
                       <Checkbox
                         inputProps={{ 'aria-label': 'controlled' }}
-                        checked={selectedOptions['pharmacy']?.includes(pharmacy?.id)}
-                        onChange={() => handleCheckbox(pharmacy?.id, 'pharmacy')}
+                        checked={selectedOptions['Pharmacy']?.includes(pharmacy?.id)}
+                        onChange={() => handleCheckbox(pharmacy?.id, 'Pharmacy')}
                       />
                       <Typography sx={{ fontSize: '16px', fontWeight: 400, color: '#839D8D' }}>
                         {pharmacy?.name}
@@ -283,7 +305,7 @@ const RequestedItemFilterDrawer = ({
                     </Box>
                   ))}
                 </>
-              ) : selectedMenu.name === 'user' ? (
+              ) : selectedMenu.name === 'User' ? (
                 <>
                   <Box
                     sx={{
@@ -318,7 +340,8 @@ const RequestedItemFilterDrawer = ({
                   </Box>
                   <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
                     <Checkbox
-                      checked={selectAllUser}
+                      checked={isAllUsersSelected}
+                      indeterminate={selectedOptions['User']?.length > 0 && !isAllUsersSelected}
                       inputProps={{ 'aria-label': 'controlled' }}
                       onChange={handleUserSelectAll}
                     />
@@ -329,12 +352,72 @@ const RequestedItemFilterDrawer = ({
                     <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }} key={user?.id}>
                       <Checkbox
                         inputProps={{ 'aria-label': 'controlled' }}
-                        checked={selectedOptions['user']?.includes(user?.id)}
-                        onChange={() => handleCheckbox(user?.id, 'user')}
+                        checked={selectedOptions['User']?.includes(user?.id)}
+                        onChange={() => handleCheckbox(user?.id, 'User')}
                       />
                       <Typography sx={{ fontSize: '16px', fontWeight: 400, color: '#839D8D' }}>{user?.name}</Typography>
                     </Box>
                   ))}
+                </>
+              ) : selectedMenu.name === 'Drug Type' ? (
+                <>
+                  <FormControl fullWidth>
+                    <Select
+                      value={selectedOptions['Drug Type'] || 'all'}
+                      onChange={handleDrugTypeChange}
+                      sx={{
+                        '& .MuiSelect-select': {
+                          fontSize: '16px',
+                          fontWeight: 400,
+                          color: '#839D8D'
+                        }
+                      }}
+                    >
+                      {drugTypeOptions.map(option => (
+                        <MenuItem
+                          key={option.id}
+                          value={option.id}
+                          sx={{
+                            fontSize: '16px',
+                            fontWeight: 400,
+                            color: '#839D8D'
+                          }}
+                        >
+                          {option.name}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                </>
+              ) : selectedMenu.name === 'Priority' ? (
+                <>
+                  <FormControl fullWidth>
+                    <Select
+                      value={selectedOptions['Priority'] || 'all'}
+                      onChange={handlePriorityChange}
+                      sx={{
+                        '& .MuiSelect-select': {
+                          fontSize: '16px',
+                          fontWeight: 400,
+                          color: '#839D8D'
+                        }
+                      }}
+                    >
+                      {priorityOptions.map(option => (
+                        <MenuItem
+                          key={option.id}
+                          value={option.id}
+                          sx={{
+                            fontSize: '16px',
+                            fontWeight: 400,
+                            color: '#839D8D'
+                          }}
+                        >
+                          {option.name}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
                 </>
               ) : null}
             </Box>

@@ -11,48 +11,48 @@ import {
   Tooltip,
   Typography
 } from '@mui/material'
+import CustomAvatar from 'src/@core/components/mui/avatar'
 import { Box } from '@mui/system'
+import { format, subMonths } from 'date-fns'
+import { debounce } from 'lodash'
 import { useRouter } from 'next/router'
 import React, { useCallback, useEffect, useState } from 'react'
 import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDateRangePickers'
-import { getShipmentReport } from 'src/lib/api/pharmacy/reports'
+import { usePharmacyContext } from 'src/context/PharmacyContext'
+import { getDispenseReport } from 'src/lib/api/pharmacy/reports'
 import Utility from 'src/utility'
 import RenderUtility from 'src/utility/render'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
-import StyleWithIconCardComponent from 'src/views/utility/style-with-icon-card'
 import Icon from 'src/@core/components/icon'
-import { debounce } from 'lodash'
+import DispenseReportFilterDrawer from 'src/views/pages/pharmacy/reports/DispenseReportFilterDrawer'
 import { getStoreList } from 'src/lib/api/pharmacy/getStoreList'
-import ShipmentFilterDrawer from 'src/views/pages/pharmacy/reports/ShipmentFilterDrawer'
-import { format, subMonths } from 'date-fns'
-import { usePharmacyContext } from 'src/context/PharmacyContext'
+import StyleWithIconCardComponent from 'src/views/utility/style-with-icon-card'
+import { getUserList } from 'src/lib/api/pharmacy/dispenseProduct'
+import { readAsync } from 'src/lib/windows/utils'
 
-const ShipmentReport = () => {
+const DispenseReport = () => {
   const router = useRouter()
   const theme = useTheme()
+
   const { selectedPharmacy } = usePharmacyContext()
 
   const updateUrlParams = params => {
     const query = { ...router.query, ...params }
-    router.push({ pathname: router.pathname, query }, undefined, { shallow: true })
+    router.replace({ pathname: router.pathname, query }, undefined, { shallow: true })
   }
 
   const [rows, setRows] = useState([])
   const [total, setTotal] = useState(0)
   const [loading, setLoading] = useState(false)
   const [sort, setSort] = useState(router.query.sort || 'asc')
-  const [sortColumn, setSortColumn] = useState(router.query.column || 'stock_name')
+  const [sortColumn, setSortColumn] = useState(router.query.column || 'dispense_number')
   const [searchValue, setSearchValue] = useState(router.query.q || '')
-  const [openFilterDrawer, setOpenFilterDrawer] = useState(false)
-  const [filteredData, setFilteredData] = useState({ pharmacy: [] })
   const [exportLoading, setExportLoading] = useState(false)
+  const [openFilterDrawer, setOpenFilterDrawer] = useState(false)
   const [pharmacyList, setPharmacyList] = useState([])
-
-  const [selectedOptions, setSelectedOptions] = useState({
-    'Batch Number': [],
-    Pharmacy: [],
-    'Drug Type': []
-  })
+  const [users, setUsers] = useState([])
+  const [selectAllPharmacy, setSelectAllPharmacy] = useState(false)
+  const [selectAllUser, setSelectAllUser] = useState(false)
 
   const [paginationModel, setPaginationModel] = useState({
     page: parseInt(router.query.page) || 0,
@@ -62,6 +62,16 @@ const ShipmentReport = () => {
   const [filterDates, setFilterDates] = useState({
     startDate: router.query.startDate || Utility.formatDate(format(subMonths(new Date(), 1), 'dd MMM, yyyy')),
     endDate: router.query.endDate || Utility.formatDate(format(new Date(), 'dd MMM, yyyy'))
+  })
+
+  const [filteredData, setFilteredData] = useState({
+    pharmacy: []
+  })
+
+  const [selectedOptions, setSelectedOptions] = useState({
+    Pharmacy: [],
+    User: [],
+    'Drug Type': 'all'
   })
 
   useEffect(() => {
@@ -75,46 +85,95 @@ const ShipmentReport = () => {
 
         if (response?.success) {
           let pharmacies = result?.list_items.map(({ id, name }) => ({ id, name })) || []
-          pharmacies = pharmacies.filter(pharmacy => pharmacy?.id !== selectedPharmacy?.id)
+
+          pharmacies = pharmacies.filter(pharmacy => pharmacy.id !== selectedPharmacy?.id)
+
           setPharmacyList(pharmacies)
         }
       } catch (error) {
         console.log(error)
       }
     }
+
+    const getUserLists = async () => {
+      try {
+        const userDetails = await readAsync('userDetails')
+        if (userDetails?.user?.zoos.length > 0) {
+          let zoo_id = userDetails?.user?.zoos[0].zoo_id
+          await getUserList({ zoo_id }).then(res => {
+            if (res?.data?.length > 0) {
+              setUsers(
+                res?.data?.map(item => ({
+                  name: item?.user_name,
+                  id: item?.user_id
+                }))
+              )
+            }
+          })
+        }
+      } catch (error) {
+        console.log('user error', error)
+      }
+    }
+
     pharmacyList()
+    getUserLists()
   }, [selectedPharmacy])
+
+  const handleSelectAllPharmacy = () => {
+    setSelectAllPharmacy(!selectAllPharmacy)
+    if (!selectAllPharmacy) {
+      setSelectedOptions({
+        ...selectedOptions,
+        Pharmacy: pharmacyList.map(p => p.id)
+      })
+    } else {
+      setSelectedOptions({
+        ...selectedOptions,
+        Pharmacy: []
+      })
+    }
+  }
+
+  const handleSelectAllUser = () => {
+    setSelectAllUser(!selectAllUser)
+    if (!selectAllUser) {
+      setSelectedOptions({
+        ...selectedOptions,
+        User: users.map(u => u.id)
+      })
+    } else {
+      setSelectedOptions({
+        ...selectedOptions,
+        User: []
+      })
+    }
+  }
 
   function loadServerRows(currentPage, data) {
     return data
   }
 
   const fetchTableData = useCallback(
-    async ({ sort, q, column, filteredData, page, limit }) => {
+    async ({ sort, q, column, page, limit, filteredData }) => {
       try {
         setLoading(true)
 
         const params = {
           page: page + 1,
           limit: limit,
-
           sort: sort,
           q: q,
           column: column,
           ...(filterDates?.startDate !== '' && { from_date: filterDates?.startDate }),
           ...(filterDates?.endDate !== '' && { to_date: filterDates?.endDate }),
-
           ...(filteredData &&
             filteredData.pharmacy &&
             filteredData.pharmacy.length > 0 && { store_id: filteredData.pharmacy.join(',') }),
-
-          ...(filteredData['Drug Type'] && {
-            controlled: filteredData['Drug Type'].controlled,
-            prescription: filteredData['Drug Type'].prescription
-          })
+          ...(filteredData && filteredData.controlled && { controlled: filteredData.controlled }),
+          ...(filteredData && filteredData.prescription && { prescription: filteredData.prescription })
         }
-
-        await getShipmentReport({ params: params }).then(res => {
+        await getDispenseReport({ params: params }).then(res => {
           if (res?.success === true && res?.data?.list_items?.length > 0) {
             setTotal(parseInt(res?.data?.total_count))
             setRows(loadServerRows(paginationModel?.page, res?.data?.list_items))
@@ -137,10 +196,11 @@ const ShipmentReport = () => {
       sort: sort,
       q: searchValue,
       column: sortColumn,
-      filteredData: filteredData,
       page: paginationModel?.page,
-      limit: paginationModel?.pageSize
+      limit: paginationModel?.pageSize,
+      filteredData: filteredData
     })
+
     updateUrlParams({
       sort,
       q: searchValue,
@@ -153,14 +213,12 @@ const ShipmentReport = () => {
   }, [
     paginationModel.page,
     paginationModel.pageSize,
-    filterDates,
-    filteredData,
     sort,
     sortColumn,
+    filterDates,
+    filteredData,
     selectedPharmacy?.id
   ])
-
-  //   console.log('rows data :', rows)
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
@@ -183,6 +241,26 @@ const ShipmentReport = () => {
             {params.row.id + '.'}
           </Typography>
         </Box>
+      )
+    },
+    {
+      minWidth: 20,
+      width: 200,
+      field: 'dispense_number',
+      headerName: 'DISPENSE NUMBER',
+      sortable: true,
+      renderCell: params => (
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
+          {params.row.dispense_number}
+        </Typography>
       )
     },
     {
@@ -224,7 +302,7 @@ const ShipmentReport = () => {
         <Box>
           <StyleWithIconCardComponent
             value={params.row.stock_name}
-            description={params.row.generic_name}
+            description={params.row.generic_name ? params.row.generic_name : 'NA'}
             icon={params.row.image ? `${params.row.image}` : '/images/Medicine_Icon.png'}
             showIcon={false}
             customCss={{
@@ -242,168 +320,10 @@ const ShipmentReport = () => {
     },
     {
       minWidth: 20,
-      width: 200,
-      field: 'shiment_number',
-      headerName: 'SHIPMENT NUMBER',
-      sortable: true,
-      renderCell: params => (
-        <Typography
-          variant='body2'
-          sx={{
-            color: theme.palette.customColors.customHeadingTextColor,
-            fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
-          }}
-        >
-          {params.row.shiment_number}
-        </Typography>
-      )
-    },
-    {
-      minWidth: 20,
-      width: 200,
-      field: 'package',
-      headerName: 'PACKAGE',
-      sortable: false,
-      renderCell: params => (
-        <Tooltip
-          title={`${params.row.package} of ${Utility.formatNumber(params.row.package_qty)}
-          ${params.row.package_uom_label} ${params.row.product_form_label}`}
-        >
-          <Typography
-            variant='body2'
-            sx={{
-              color: theme.palette.customColors.customHeadingTextColor,
-              fontSize: '14px',
-              fontWeight: 400,
-              fontFamily: 'Inter',
-              overflow: 'hidden',
-              whiteSpace: 'nowrap',
-              textOverflow: 'ellipsis',
-              maxWidth: 240
-            }}
-          >
-            {`${params.row.package} of ${Utility.formatNumber(params.row.package_qty)}
-          ${params.row.package_uom_label} ${params.row.product_form_label}`}
-          </Typography>
-        </Tooltip>
-      )
-    },
-    {
-      minWidth: 20,
-      width: 180,
-      field: 'shipment_date',
-      headerName: 'SHIPMENT DATE',
-      sortable: true,
-      renderCell: params => (
-        <Typography
-          variant='body2'
-          sx={{
-            color: theme.palette.customColors.customHeadingTextColor,
-            fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
-          }}
-        >
-          {Utility.formatDisplayDate(params.row.shipment_date)}
-        </Typography>
-      )
-    },
-    {
-      minWidth: 20,
-      width: 180,
-      field: 'shipment_status',
-      sortable: false,
-      headerName: 'SHIPMENT STATUS',
-      renderCell: params => (
-        <Typography
-          variant='body2'
-          sx={{
-            color: theme.palette.customColors.customHeadingTextColor,
-            fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
-          }}
-        >
-          {params.row.shipment_status}
-        </Typography>
-      )
-    },
-    {
-      minWidth: 20,
-      width: 160,
-      field: 'to_store',
-      headerName: 'TO STORE',
-      sortable: true,
-      renderCell: params => (
-        <Typography
-          variant='body2'
-          sx={{
-            color: theme.palette.customColors.customHeadingTextColor,
-            fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
-          }}
-        >
-          {params.row.to_store}
-        </Typography>
-      )
-    },
-    {
-      minWidth: 20,
-      width: 190,
-      field: 'total_shipped_qty',
-      headerName: 'SHIPPED QUANTITY',
-      sortable: true,
-      renderCell: params => (
-        <Typography
-          variant='body2'
-          sx={{
-            color: theme.palette.customColors.customHeadingTextColor,
-            fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
-          }}
-        >
-          {params.row.total_shipped_qty ? Utility.formatNumber(params.row.total_shipped_qty) : 0}
-        </Typography>
-      )
-    },
-    {
-      minWidth: 20,
-      width: 190,
-      field: 'Total_shipping_value',
-      headerName: 'TOTAL SHIPPING VALUE',
-      sortable: true,
-      renderCell: params => (
-        <Typography
-          variant='body2'
-          sx={{
-            color: theme.palette.customColors.customHeadingTextColor,
-            fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
-          }}
-        >
-          {Utility.formatAmountToReadableDigit(params.row.Total_shipping_value)}
-        </Typography>
-      )
-    },
-
-    {
-      minWidth: 20,
-      width: 200,
-      field: 'batch',
-      sortable: false,
-      headerName: 'BATCH NUMBER'
-    },
-    {
-      minWidth: 20,
       width: 250,
       field: 'manufacturer_name',
+      sortable: false,
       headerName: 'MANUFACTURER NAME',
-      sortable: true,
       renderCell: params => (
         <Tooltip title={params.row.manufacturer_name}>
           <Typography
@@ -426,9 +346,30 @@ const ShipmentReport = () => {
     },
     {
       minWidth: 20,
-      width: 180,
-      field: 'person_shipping',
-      headerName: 'PERSON SHIPPING',
+      width: 170,
+      field: 'dispense_qty',
+      headerName: 'DISPENSE QUANTITY',
+      sortable: true,
+
+      renderCell: params => (
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
+          {params.row.dispense_qty ? Utility.formatNumber(params.row.dispense_qty) : 0}
+        </Typography>
+      )
+    },
+    {
+      minWidth: 20,
+      width: 190,
+      field: 'total_consumption_cost',
+      headerName: 'DISPENSE VALUE',
       sortable: true,
       renderCell: params => (
         <Typography
@@ -440,56 +381,16 @@ const ShipmentReport = () => {
             fontFamily: 'Inter'
           }}
         >
-          {params.row.person_shipping}
-        </Typography>
-      )
-    },
-    {
-      minWidth: 20,
-      width: 180,
-      field: 'vehicle_no',
-      sortable: false,
-      headerName: 'VEHICLE NUMBER',
-      renderCell: params => (
-        <Typography
-          variant='body2'
-          sx={{
-            color: theme.palette.customColors.customHeadingTextColor,
-            fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
-          }}
-        >
-          {params.row.vehicle_no}
-        </Typography>
-      )
-    },
-    {
-      minWidth: 20,
-      width: 180,
-      field: 'phone_number',
-      sortable: false,
-      headerName: 'PHONE NUMBER',
-      renderCell: params => (
-        <Typography
-          variant='body2'
-          sx={{
-            color: theme.palette.customColors.customHeadingTextColor,
-            fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
-          }}
-        >
-          {params.row.phone_number}
+          {Utility.formatAmountToReadableDigit(params.row.dispense_value)}
         </Typography>
       )
     },
     {
       minWidth: 20,
       width: 160,
-      field: 'receiver_name',
+      field: 'batch_no',
       sortable: false,
-      headerName: 'RECEIVER NAME',
+      headerName: 'BATCH NUMBER',
       renderCell: params => (
         <Typography
           variant='body2'
@@ -500,62 +401,82 @@ const ShipmentReport = () => {
             fontFamily: 'Inter'
           }}
         >
-          {params.row.receiver_name}
+          {params.row.batch_no}
         </Typography>
       )
     },
     {
       minWidth: 20,
-      width: 200,
-      field: 'comments',
-      sortable: false,
-      headerName: 'COMMENTS',
+      width: 160,
+      field: 'from_store',
+      sortable: true,
+      headerName: 'FROM STORE',
       renderCell: params => (
-        <Tooltip title={params.row.comments}>
-          <Typography
-            variant='body2'
-            sx={{
-              color: theme.palette.customColors.customHeadingTextColor,
-              fontSize: '14px',
-              fontWeight: 400,
-              fontFamily: 'Inter',
-              overflow: 'hidden',
-              whiteSpace: 'nowrap',
-              textOverflow: 'ellipsis',
-              maxWidth: 200
-            }}
-          >
-            <span alt={params.row.comments}> {params.row.comments}</span>
-          </Typography>
-        </Tooltip>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
+          {params.row.from_store}
+        </Typography>
       )
     },
     {
       minWidth: 200,
-      field: 'shipment_created_at',
+      field: 'dispense_to_user_name',
       sortable: true,
-      headerName: 'Created by ',
+      headerName: 'DISPENSE TO ',
       renderCell: params => (
         <>
-          {RenderUtility?.renderUserAvatarDetails(
-            params?.row?.user_created_profile_pic,
-            params?.row?.shipment_created_by_user_name,
-            params?.row?.shipment_created_at
-          )}
+          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+            {params?.row?.dispense_to_user_profile_pic ? (
+              <CustomAvatar
+                src={params?.row?.dispense_to_user_profile_pic}
+                sx={{ mr: '16px', width: '40px', height: '40px' }}
+              />
+            ) : (
+              <CustomAvatar sx={{ mr: '16px', width: '40px', height: '40px', fontSize: '.8rem' }}></CustomAvatar>
+            )}
+            <Tooltip title={params.row.dispense_to_user_name}>
+              <Typography
+                variant='subtitle2'
+                sx={{
+                  color: 'text.primary',
+                  fontSize: '14px',
+                  fontWeight: 400,
+                  fontFamily: 'Inter',
+                  overflow: 'hidden',
+                  whiteSpace: 'nowrap',
+                  textOverflow: 'ellipsis',
+                  maxWidth: 200
+                }}
+              >
+                {params?.row?.dispense_to_user_name ? (
+                  <span alt={params.row.dispense_to_user_name}> {params.row.dispense_to_user_name}</span>
+                ) : (
+                  'NA'
+                )}
+              </Typography>
+            </Tooltip>
+          </Box>
         </>
       )
     },
     {
-      minWidth: 250,
-      field: 'updated_by',
-      sortable: false,
-      headerName: 'Updated by',
+      minWidth: 200,
+      field: 'dispense_date',
+      sortable: true,
+      headerName: 'DISPENSE BY',
       renderCell: params => (
         <>
           {RenderUtility?.renderUserAvatarDetails(
-            params?.row?.user_updated_profile_pic,
-            params?.row?.shipment_updated_by_user_name,
-            params?.row?.shipment_updated_at
+            params?.row?.user_created_profile_pic,
+            params?.row?.dispense_created_by_user_name,
+            params?.row?.dispense_date
           )}
         </>
       )
@@ -600,9 +521,9 @@ const ShipmentReport = () => {
         sort: newModel[0].sort,
         q: searchValue,
         column: newModel[0].field,
-        filteredData: filteredData,
         page: paginationModel?.page,
-        limit: paginationModel?.pageSize
+        limit: paginationModel?.pageSize,
+        filteredData: filteredData
       })
       updateUrlParams({
         sort: newModel[0].sort,
@@ -622,13 +543,22 @@ const ShipmentReport = () => {
       setSearchValue(q)
 
       try {
-        await fetchTableData({ sort, q, column, filteredData, page, limit })
+        await fetchTableData({
+          sort: sort,
+          q: q,
+          column: column,
+          page: page,
+          limit: limit,
+          filteredData: filteredData
+        })
+
         updateUrlParams({
           sort: sort,
           q: q,
           column: column,
           page: page,
           limit: limit,
+
           startDate: filterDates?.startDate,
           endDate: filterDates?.endDate
         })
@@ -647,7 +577,6 @@ const ShipmentReport = () => {
   const handleExport = async () => {
     try {
       setExportLoading(true)
-
       const now = new Date()
 
       const timestamp = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(
@@ -661,25 +590,17 @@ const ShipmentReport = () => {
         column: sortColumn,
         page: 1,
         limit: total,
+        response_type: 'csv',
         ...(filterDates?.startDate !== '' && { from_date: filterDates?.startDate }),
-        ...(filterDates?.endDate !== '' && { to_date: filterDates?.endDate }),
-
-        ...(filteredData &&
-          filteredData.pharmacy &&
-          filteredData.pharmacy.length > 0 && { store_id: filteredData.pharmacy.join(',') }),
-
-        ...(filteredData['Drug Type'] && {
-          controlled: filteredData['Drug Type'].controlled,
-          prescription: filteredData['Drug Type'].prescription
-        }),
-        response_type: 'csv'
+        ...(filterDates?.endDate !== '' && { to_date: filterDates?.endDate })
       }
-      const response = await getShipmentReport({ params })
+
+      const response = await getDispenseReport({ params })
       if (response?.success && response?.data) {
-        Utility.downloadFileFromURL(response.data, `Shipment_Report ${timestamp}`)
+        Utility.downloadFileFromURL(response.data, `Dispense_Report ${timestamp}`)
       }
-    } catch (error) {
-      console.error('Error downloading Excel:', error)
+    } catch (e) {
+      console.error(`Error Downloading Excel`, e)
     } finally {
       setExportLoading(false)
     }
@@ -692,7 +613,7 @@ const ShipmentReport = () => {
       count++
     }
 
-    if (filteredData['Drug Type']?.controlled || filteredData['Drug Type']?.prescription) {
+    if (filteredData && (filteredData.controlled || filteredData.prescription)) {
       count++
     }
 
@@ -707,7 +628,7 @@ const ShipmentReport = () => {
         <CardHeader
           sx={{
             display: 'flex',
-            flexDirection: { xs: 'row', sm: 'row' },
+            flexDirection: { xs: 'column', sm: 'row' },
             justifyContent: 'flex-start',
             alignItems: 'flex-start',
             gap: { xs: 3, sm: 2 },
@@ -716,9 +637,9 @@ const ShipmentReport = () => {
             },
             mx: { xs: -1, sm: 0 }
           }}
-          title={RenderUtility.pageTitle('Shipment Report')}
+          title={RenderUtility.pageTitle('Dispense Report')}
         />
-        <CardContent sx={{ paddingTop: '4px' }}>
+        <CardContent>
           <Box
             sx={{
               display: 'flex',
@@ -855,17 +776,20 @@ const ShipmentReport = () => {
         </CardContent>
       </Card>
       {openFilterDrawer && (
-        <ShipmentFilterDrawer
+        <DispenseReportFilterDrawer
           setOpenFilterDrawer={setOpenFilterDrawer}
           openFilterDrawer={openFilterDrawer}
           onApplyFilter={filterList => setFilteredData(filterList)}
           selectedOptions={selectedOptions}
           setSelectedOptions={setSelectedOptions}
           pharmacyList={pharmacyList}
+          handleSelectAllPharmacy={handleSelectAllPharmacy}
+          users={users}
+          handleSelectAllUser={handleSelectAllUser}
         />
       )}
     </>
   )
 }
 
-export default ShipmentReport
+export default DispenseReport

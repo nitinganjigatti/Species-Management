@@ -11,7 +11,7 @@ import {
   Tooltip,
   Typography
 } from '@mui/material'
-import { Box } from '@mui/system'
+import { Box, display } from '@mui/system'
 import { format, subMonths } from 'date-fns'
 import { debounce } from 'lodash'
 import { useRouter } from 'next/router'
@@ -47,7 +47,7 @@ const RequestReport = () => {
   const [sortColumn, setSortColumn] = useState(router.query.column || 'product_name')
   const [searchValue, setSearchValue] = useState(router.query.q || '')
   const [openFilterDrawer, setOpenFilterDrawer] = useState(false)
-  const [filteredData, setFilteredData] = useState({ pharmacy: [] })
+  const [filteredData, setFilteredData] = useState({ Pharmacy: [] })
   const [exportLoading, setExportLoading] = useState(false)
   const [pharmacyList, setPharmacyList] = useState([])
   const [users, setUsers] = useState([])
@@ -55,13 +55,15 @@ const RequestReport = () => {
   const [selectAllUser, setSelectAllUser] = useState(false)
 
   const [selectedOptions, setSelectedOptions] = useState({
-    pharmacy: [],
-    user: []
+    Pharmacy: [],
+    User: [],
+    'Drug Type': 'all',
+    Priority: 'all'
   })
 
   const [paginationModel, setPaginationModel] = useState({
     page: parseInt(router.query.page) || 0,
-    pageSize: parseInt(router.query.limit) || 10
+    pageSize: parseInt(router.query.limit) || 50
   })
 
   const [filterDates, setFilterDates] = useState({
@@ -116,12 +118,12 @@ const RequestReport = () => {
     if (!selectAllPharmacy) {
       setSelectedOptions({
         ...selectedOptions,
-        pharmacy: pharmacyList.map(p => p.id)
+        Pharmacy: pharmacyList.map(p => p.id)
       })
     } else {
       setSelectedOptions({
         ...selectedOptions,
-        pharmacy: []
+        Pharmacy: []
       })
     }
   }
@@ -131,12 +133,12 @@ const RequestReport = () => {
     if (!selectAllUser) {
       setSelectedOptions({
         ...selectedOptions,
-        user: users.map(u => u.id)
+        User: users.map(u => u.id)
       })
     } else {
       setSelectedOptions({
         ...selectedOptions,
-        user: []
+        User: []
       })
     }
   }
@@ -159,11 +161,14 @@ const RequestReport = () => {
           ...(filterDates?.startDate !== '' && { from_date: filterDates?.startDate }),
           ...(filterDates?.endDate !== '' && { to_date: filterDates?.endDate }),
           ...(filteredData &&
-            filteredData.pharmacy &&
-            filteredData.pharmacy.length > 0 && { store_id: filteredData.pharmacy.join(',') }),
+            filteredData.Pharmacy &&
+            filteredData.Pharmacy.length > 0 && { store_id: filteredData.Pharmacy.join(',') }),
           ...(filteredData &&
-            filteredData.user &&
-            filteredData.user.length > 0 && { user_id: filteredData.user.join(',') })
+            filteredData.User &&
+            filteredData.User.length > 0 && { user_id: filteredData.User.join(',') }),
+          ...(filteredData && filteredData.controlled && { controlled: filteredData.controlled }),
+          ...(filteredData && filteredData.prescription && { prescription: filteredData.prescription }),
+          ...(filteredData && filteredData.Priority && { priority: filteredData.Priority })
         }
         await getRequestedItemsReport({ params: params }).then(res => {
           if (res?.success === true && res?.data?.list_items?.length > 0) {
@@ -212,7 +217,7 @@ const RequestReport = () => {
 
   const columns = [
     {
-      width: 100,
+      width: 80,
       minWidth: 20,
       field: 'id',
       sortable: false,
@@ -227,10 +232,47 @@ const RequestReport = () => {
       )
     },
     {
+      width: 5,
+      field: 'priority',
+      headerName: '',
+      headerAlign: 'left',
+      textAlign: 'center',
+      sortable: false,
+      renderCell: params => <Box>{RenderUtility.getPriorityIcons(params.row.priority)}</Box>
+    },
+
+    // {
+    //   width: 5,
+    //   field: 'label',
+    //   headerName: '',
+    //   sortable: false,
+    //   renderCell: params => (
+    //     <Typography
+    //       sx={{
+    //         color: 'customColors.OnSecondaryContainer',
+    //         display: 'flex',
+    //         alignItems: 'center',
+    //         fontWeight: 500,
+    //         fontSize: '14px',
+    //         ...RenderUtility?.getEllipsisStyleForText()
+    //       }}
+    //     >
+    //       {RenderUtility?.renderControlLabel(
+    //         !isNaN(params.row?.controlled_substance) && parseInt(params.row?.controlled_substance) === 1,
+    //         'CS'
+    //       )}
+    //       {RenderUtility?.renderControlLabel(
+    //         !isNaN(params.row?.prescription_required) && parseInt(params.row?.prescription_required) === 1,
+    //         'PR'
+    //       )}
+    //     </Typography>
+    //   )
+    // },
+    {
       minWidth: 20,
-      width: 200,
+      width: 160,
       field: 'request_ID',
-      headerName: 'SHIPMENT NUMBER',
+      headerName: 'REQUEST NUMBER',
       sortable: false,
       renderCell: params => (
         <Typography
@@ -257,7 +299,41 @@ const RequestReport = () => {
       renderCell: params => (
         <Box>
           <StyleWithIconCardComponent
-            value={params.row.product_name}
+            value={
+              <>
+                <Typography sx={{ display: 'flex', alignItems: 'center' }}>
+                  <Typography
+                    sx={{
+                      color: 'customColors.OnSecondaryContainer',
+                      display: 'flex',
+
+                      alignItems: 'center',
+                      fontWeight: 500,
+                      fontSize: '14px',
+                      ...RenderUtility?.getEllipsisStyleForText()
+                    }}
+                  >
+                    {RenderUtility?.renderControlLabel(
+                      !isNaN(params.row?.controlled_substance) && parseInt(params.row?.controlled_substance) === 1,
+                      'CS'
+                    )}
+                  </Typography>
+                  <Typography
+                    sx={{
+                      color: 'customColors.customHeadingTextColor',
+                      fontWeight: 500,
+                      fontSize: '14px',
+                      overflow: 'hidden',
+                      whiteSpace: 'nowrap',
+                      textOverflow: 'ellipsis',
+                      maxWidth: 250
+                    }}
+                  >
+                    {params.row.product_name}
+                  </Typography>
+                </Typography>
+              </>
+            }
             description={params.row.generic_name ? params.row.generic_name : 'NA'}
             icon={params.row.product_image ? `${params.row.product_image}` : '/images/Medicine_Icon.png'}
             showIcon={false}
@@ -461,8 +537,11 @@ const RequestReport = () => {
         ...(filterDates?.endDate !== '' && { to_date: filterDates?.endDate }),
 
         ...(filteredData &&
-          filteredData.pharmacy &&
-          filteredData.pharmacy.length > 0 && { store_id: filteredData.pharmacy.join(',') })
+          filteredData.Pharmacy &&
+          filteredData.Pharmacy.length > 0 && { store_id: filteredData.Pharmacy.join(',') }),
+        ...(filteredData && filteredData.controlled && { controlled: filteredData.controlled }),
+        ...(filteredData && filteredData.prescription && { prescription: filteredData.prescription }),
+        ...(filteredData && filteredData.Priority && { priority: filteredData.Priority })
       }
       const response = await getRequestedItemsReport({ params })
       if (response?.success && response?.data) {
@@ -478,11 +557,19 @@ const RequestReport = () => {
   const calculateAppliedFiltersCount = () => {
     let count = 0
 
-    if (filteredData && filteredData.pharmacy && filteredData.pharmacy.length > 0) {
+    if (filteredData && filteredData.Pharmacy && filteredData.Pharmacy.length > 0) {
       count++
     }
 
-    if (filteredData && filteredData.user && filteredData.user.length > 0) {
+    if (filteredData && filteredData.User && filteredData.User.length > 0) {
+      count++
+    }
+
+    if (filteredData && (filteredData.controlled || filteredData.prescription)) {
+      count++
+    }
+
+    if (filteredData && filteredData.Priority) {
       count++
     }
 
@@ -510,7 +597,7 @@ const RequestReport = () => {
                 },
                 mx: { xs: -1, sm: 0 }
               }}
-              title={RenderUtility.pageTitle('Request Report')}
+              title={RenderUtility.pageTitle('Pending Request Report')}
             />
             <CardContent sx={{ paddingTop: '4px' }}>
               <Box
@@ -665,9 +752,7 @@ const RequestReport = () => {
               setSelectedOptions={setSelectedOptions}
               pharmacyList={pharmacyList}
               users={users}
-              selectAllPharmacy={selectAllPharmacy}
               handleSelectAllPharmacy={handleSelectAllPharmacy}
-              selectAllUser={selectAllUser}
               handleSelectAllUser={handleSelectAllUser}
             />
           )}

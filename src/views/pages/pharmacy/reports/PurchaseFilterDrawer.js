@@ -4,7 +4,6 @@ import { Badge, Checkbox, Divider, Drawer, Grid, IconButton, styled, TextField, 
 import { borderRadius, Box, padding } from '@mui/system'
 import React, { useCallback, useEffect, useState } from 'react'
 import Icon from 'src/@core/components/icon'
-import { getSuppliers } from 'src/lib/api/pharmacy/getSupplierList'
 
 const leftMenu = [
   { id: 1, name: 'Supplier Name' },
