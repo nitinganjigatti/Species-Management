@@ -615,10 +615,12 @@ export default function NewProductList() {
 
         Utility.exportToCSV(data, 'Existing_ProductList')
       } else {
+        toast.error('No data available for export')
         console.log('No data available for export.')
       }
     } catch (error) {
       console.log('Error >>', error)
+      toast.error('Error >', error) 
     }
   }
 
