@@ -52,6 +52,7 @@ const SpeciesMappedtoDiet = ({
   const theme = useTheme()
   const [loader, setLoader] = useState(false)
   const isSmallDevice = useMediaQuery(theme.breakpoints.down('md'))
+
   const handleSearch = event => {
     setSearchQuery(event.target.value)
   }
@@ -81,6 +82,7 @@ const SpeciesMappedtoDiet = ({
     const updatedSpeciesIds = tempSelectedSpecies
     const speciesIdsNumbers = updatedSpeciesIds.map(id => Number(id))
     setLoader(true)
+
     const payload = {
       diet_id: dietId,
       species_ids: JSON.stringify(speciesIdsNumbers)
@@ -92,6 +94,7 @@ const SpeciesMappedtoDiet = ({
       if (response.success === true) {
         Toaster({
           type: 'success',
+
           //message: tempSelectedSpecies?.length + ' ' + `Species successfully added to ${dietname} diet`,
           message: response.message
         })
@@ -126,6 +129,7 @@ const SpeciesMappedtoDiet = ({
     console.log(tempSelectedSpecies, 'ppp')
     if (val === 'select') {
       setIsOpennew(true)
+
       // setIsOpen(false)
       setspeciesview(val)
     } else {
@@ -446,9 +450,18 @@ const SpeciesMappedtoDiet = ({
                   />
                 </ListItemAvatar>
                 <ListItemText
-                  primary={species.scientific_name ? species.scientific_name : '-'}
+                  primary={species.common_name ? species.common_name : '-'}
+                  // primary={species.scientific_name ? species.scientific_name : '-'}
+                  // primaryTypographyProps={{
+                  //   sx: { color: theme.palette.customColors.OnSurfaceVariant, fontSize: '16px', fontWeight: 600 }
+                  // }}
                   primaryTypographyProps={{
-                    sx: { color: theme.palette.customColors.OnSurfaceVariant, fontSize: '16px', fontWeight: 600 }
+                    sx: {
+                      color: theme.palette.customColors.OnSurfaceVariant,
+                      fontSize: '16px',
+                      fontWeight: 400,
+                      fontStyle: 'italic'
+                    }
                   }}
                   secondary={
                     <>
@@ -457,11 +470,15 @@ const SpeciesMappedtoDiet = ({
                         sx={{
                           color: theme.palette.customColors.OnSurfaceVariant,
                           fontSize: '16px',
-                          fontWeight: 400,
-                          fontStyle: 'italic'
+                          fontWeight: 600
+
+                          // color: theme.palette.customColors.OnSurfaceVariant,
+                          // fontSize: '16px',
+                          // fontWeight: 400,
+                          // fontStyle: 'italic'
                         }}
                       >
-                        {species.common_name ? species.common_name : '-'}
+                        {species.scientific_name ? species.scientific_name : '-'}
                       </Typography>
                     </>
                   }
