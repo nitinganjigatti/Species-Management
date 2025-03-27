@@ -189,8 +189,17 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
                 <img style={{ width: '100%', height: '100%' }} src={'/icons/pdf_icon2.svg'} alt='pdf' />
               </Avatar>
 
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                <Box sx={{ display: 'flex', flexDirection: 'row', gap: '8px' }}>
+              <Box sx={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                <Box
+                  sx={{
+                    width: '100%',
+                    display: 'flex',
+                    flexDirection: 'row',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: '8px'
+                  }}
+                >
                   <Tooltip title={item?.file_original_name ? item?.file_original_name : '-'}>
                     <Typography
                       sx={{
@@ -201,12 +210,25 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
                         overflow: 'hidden',
                         textOverflow: 'ellipsis',
                         whiteSpace: 'nowrap',
-                        width: 240
+                        width: 'calc(100% - 120px)'
+                        // minWidth: 150
                       }}
                     >
                       {item?.file_original_name}
                     </Typography>
                   </Tooltip>
+                  <Switch
+                    sx={{ marginLeft: -85 }}
+                    onClick={e => {
+                      e.stopPropagation()
+                      if (type === 'attach') {
+                        removeAttachment(speciesId, item?.attachment_id)
+                      } else {
+                        speciesAttachmentActiveFunc(speciesId, item.attachment_id)
+                      }
+                    }}
+                    defaultChecked={type === 'attach' ? true : false}
+                  />
                 </Box>
                 <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <Avatar
@@ -260,17 +282,20 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
                 {item?.notes && (
                   <Typography
                     sx={{
+                      width: { xs: 'calc(100% - 10px)', sm: '100%' },
                       color: theme.palette.customColors.OnSurfaceVariant,
                       fontSize: '14px',
                       fontWeight: '400',
                       lineHeight: '20px',
-                      letterSpacing: '0%'
+                      letterSpacing: '0%',
+                      textAlign: 'justify'
                     }}
                   >
                     {item?.notes}
                   </Typography>
                 )}
-                <Box sx={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                {/* ///////////////////////////////////////// */}
+                <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: '8px', alignItems: 'center' }}>
                   <Typography
                     sx={{
                       color: theme.palette.customColors.Outline,
@@ -327,19 +352,6 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
                   </Typography>
                 </Box>
               </Box>
-            </Box>
-            <Box>
-              <Switch
-                onClick={e => {
-                  e.stopPropagation()
-                  if (type === 'attach') {
-                    removeAttachment(speciesId, item?.attachment_id)
-                  } else {
-                    speciesAttachmentActiveFunc(speciesId, item.attachment_id)
-                  }
-                }}
-                defaultChecked={type === 'attach' ? true : false}
-              />
             </Box>
           </Box>
         </Box>
@@ -434,11 +446,13 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
                 <Tab
                   sx={{ flex: 1 }}
                   value='1'
+                  style={{ fontSize: 12 }}
                   label={<TabBadge label={`Active Diets - ${specieDetails?.active_attachments?.length}`} />}
                 />
                 <Tab
                   sx={{ flex: 1 }}
                   value='0'
+                  style={{ fontSize: 12 }}
                   label={<TabBadge label={`Inactive Diets - ${specieDetails?.deactive_attachments?.length}`} />}
                 />
               </TabList>
@@ -492,7 +506,7 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
           fullWidth
           variant='contained'
           size='large'
-          sx={{ height: '58px', width: '514px' }}
+          sx={{ height: '58px', width: '514px', mx: 4 }}
           onClick={() => {
             const scientific_name = specieDetails.scientific_name
             const common_name = specieDetails.common_name
