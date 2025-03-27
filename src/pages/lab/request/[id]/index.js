@@ -76,6 +76,7 @@ import AnimalParentCard from 'src/views/utility/animalParentCard'
 import AnimalSideSheet from 'src/views/pages/lab/AnimalSideSheet'
 import CommentSideSheet from 'src/views/pages/lab/CommentSideSheet'
 import MedicalRecordNotes from 'src/components/lab/request/MedicalRecordNotes'
+import ScrollToTop from 'src/@core/components/scroll-to-top'
 
 const RequestDetails = () => {
   const theme = useTheme()
@@ -337,21 +338,21 @@ const RequestDetails = () => {
   const handleOpenTransfer = async params => {
     // console.log('params', params?.row)
     const hasCompleted = selectedRowData.some(item => item.status.startsWith('completed'))
-    if (hasCompleted) {
+    if (hasCompleted && !params) {
       setHasCompletedStatus(true)
     } else {
       setHasCompletedStatus(false)
     }
     setOpenTransfer(true)
-
     const labTestId = [params?.row?.id]
     if (params?.row) {
       setFromParam(true)
       setTestName(params?.row?.test_name)
       setTestSampleName(params?.row?.sample_name)
+      setTestId([params?.row?.id])
+      // console.log('first', params?.row?.id)
     } else {
       setFromParam(false)
-      setTestId([params?.row?.id])
       setTransferStatus(params?.row?.status)
       if (selectedRow?.length === 1) {
         setTestName(selectedRowData[0]?.test_name)
@@ -364,21 +365,6 @@ const RequestDetails = () => {
     } else {
       await getAccessLabs(LabRequestId, labTestId)
     }
-
-    // if()
-
-    // if (permissions?.transfer_tests === true || permissions?.allow_full_access === true) {
-    //   setOpenTransfer(true)
-
-    //   // setSelectedLab(params.row)
-
-    //   const params = {
-    //     test_id: transferTestId || transferId,
-    //     lab_id: labId,
-    //     show_external_labs: 1
-    //   }
-    //   await getLabList(params)
-    // }
   }
 
   useEffect(() => {
@@ -422,7 +408,7 @@ const RequestDetails = () => {
   }
 
   const handleOpenShowFile = (e, params) => {
-    setShowTestFile(true)
+    // setShowTestFile(true)
 
     setTestImage(params?.row?.attachments?.images)
     setTestDoc(params?.row?.attachments?.docs)
@@ -441,14 +427,28 @@ const RequestDetails = () => {
     permissions?.allow_full_access ||
     (permissions?.perform_tests && permissions?.allow_upload_reports) ||
     (permissions?.perform_tests && !permissions?.allow_upload_reports)
-  // && params.row.status.split(' ')[0] !== 'completed')
 
   const handleOpenCommentSheet = (e, params) => {
-    console.log('params', params)
+    // console.log('params', params)
     setOpenCommentSheet(true)
     setCommentData(params)
   }
 
+  const handleRowPermission = ({ params }) => {
+    const st = statusList.filter(status => status.key === params.row.status)
+    if (
+      permissions?.perform_tests &&
+      !permissions?.allow_upload_reports &&
+      !permissions?.allow_full_access &&
+      st[0].status != 'completed'
+    ) {
+      return true
+    } else if ((permissions?.perform_tests && permissions?.allow_upload_reports) || permissions?.allow_full_access) {
+      return true
+    } else {
+      return false
+    }
+  }
   const columns = [
     // {
     //   flex: 0.05,
@@ -496,7 +496,7 @@ const RequestDetails = () => {
       renderCell: params => (
         <>
           <Box sx={{ minWidth: 260 }}>
-            {shouldShowDropdown ? (
+            {shouldShowDropdown && handleRowPermission({ params }) ? (
               <FormControl fullWidth variant='outlined'>
                 <Select
                   size='small'
@@ -832,6 +832,7 @@ const RequestDetails = () => {
     reset()
     setOpenTransfer(false)
     handleClosePopover()
+    setTestId([])
   }
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
@@ -877,7 +878,7 @@ const RequestDetails = () => {
       if (errors) {
         handleSubmit(onSubmit)
       } else {
-        scrollToTop()
+        ScrollToTop()
       }
     } catch (error) {
       console.error(error)
@@ -891,17 +892,25 @@ const RequestDetails = () => {
       ...params
     }
 
-    // setSubmitLoader(true)
-
-    // if (transferStatus !== 'completed') {
-
-    if (selectedRow?.length > 1) {
-      const params = {
+    // console.log('selectedRowData', selectedRowData)
+    // console.log('selectedRow', selectedRow)
+    if (selectedRowData.some(item => item?.status === 'completed')) {
+      Toaster({ type: 'error', message: "A test with status 'completed' was found!" })
+      setOpenTransfer(false)
+    } else {
+      // if (selectedRow?.length > 1) {
+      const payloadMulti = {
         test_ids: selectedRow,
         replaced_lab_id,
         transfer_reason
       }
-      const res = await postBulkTransfer({ params })
+      const payloadSingle = {
+        test_ids: testId,
+        replaced_lab_id,
+        transfer_reason
+      }
+      // console.log('params1', params)
+      const res = await postBulkTransfer({ params: testId.length ? payloadSingle : payloadMulti })
       if (res?.success) {
         handleCloseTransfer()
         Toaster({ type: 'success', message: res.message })
@@ -918,52 +927,46 @@ const RequestDetails = () => {
         })
         Toaster({ type: 'error', message: res.message })
       }
-    } else {
-      const { lab_name, replaced_lab_id, transfer_reason } = {
-        ...params
-      }
-      const id = testId
-
-      const payload = {
-        replaced_lab_id,
-        transfer_reason
-      }
-
-      const payloadData = {
-        test_ids: selectedRow,
-        replaced_lab_id,
-        transfer_reason
-      }
-      // const response = await transferLab(id, payload)
-      const response = await postBulkTransfer({ params: payloadData })
-      if (response?.success) {
-        handleCloseTransfer()
-
-        Toaster({ type: 'success', message: response.message })
-
-        reset({
-          replaced_lab_id: '',
-          transfer_reason: ''
-        })
-
-        fetchRequestDetails()
-      } else {
-        handleCloseTransfer()
-        reset({
-          replaced_lab_id: '',
-          transfer_reason: ''
-        })
-        Toaster({ type: 'error', message: response.message })
-      }
     }
+    // } else {
+    //   const { lab_name, replaced_lab_id, transfer_reason } = {
+    //     ...params
+    //   }
+    //   // const id = testId
 
-    // }
-    //  else {
-    //   handleCloseTransfer()
-    //   reset()
-    //   Toaster({ type: 'error', message: 'Completed test can not be transferred' })
-    // }
+    //   // const payload = {
+    //   //   replaced_lab_id,
+    //   //   transfer_reason
+    //   // }
 
+    //   const payloadData = {
+    //     test_ids: testId,
+    //     replaced_lab_id,
+    //     transfer_reason
+    //   }
+    //   console.log('params0', payloadData)
+    //   // const response = await transferLab(id, payload)
+    //   // const response = await postBulkTransfer({ params: payloadData })
+    //   // if (response?.success) {
+    //   //   handleCloseTransfer()
+
+    //   //   Toaster({ type: 'success', message: response.message })
+
+    //   //   reset({
+    //   //     replaced_lab_id: '',
+    //   //     transfer_reason: ''
+    //   //   })
+
+    //   //   fetchRequestDetails()
+    //   // } else {
+    //   //   handleCloseTransfer()
+    //   //   reset({
+    //   //     replaced_lab_id: '',
+    //   //     transfer_reason: ''
+    //   //   })
+    //   //   Toaster({ type: 'error', message: response.message })
+    //   // }
+    // }
     // // setSubmitLoader(false)
   }
 
@@ -1329,6 +1332,28 @@ const RequestDetails = () => {
                 permissions?.perform_tests || permissions?.allow_full_access || permissions?.transfer_tests
               }
               onRowSelectionModelChange={handleRowSelection}
+              isRowSelectable={params => {
+                if (
+                  (permissions?.view &&
+                    permissions?.transfer_tests === false &&
+                    permissions?.perform_tests === false &&
+                    permissions?.allow_upload_reports === false &&
+                    permissions?.allow_full_access === false) ||
+                  (permissions?.perform_tests === true &&
+                    permissions?.allow_upload_reports === false &&
+                    permissions?.allow_full_access === false &&
+                    params.row.status.includes('completed')) ||
+                  (permissions?.perform_tests === false &&
+                    permissions?.transfer_tests === true &&
+                    permissions?.allow_upload_reports === false &&
+                    permissions?.allow_full_access === false &&
+                    params.row.status.includes('completed'))
+                ) {
+                  return false
+                } else {
+                  return true
+                }
+              }}
               sx={{
                 '& .MuiDataGrid-row:hover .customButton': {
                   display: 'block'
@@ -1859,7 +1884,13 @@ const RequestDetails = () => {
                     Cancel
                   </LoadingButton>
 
-                  <LoadingButton onClick={handleSubmitData} type='submit' variant='contained' size='large'>
+                  <LoadingButton
+                    disabled={hasCompletedStatus}
+                    onClick={handleSubmitData}
+                    type='submit'
+                    variant='contained'
+                    size='large'
+                  >
                     CONFIRM
                   </LoadingButton>
                 </Box>
