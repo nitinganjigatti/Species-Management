@@ -65,7 +65,7 @@ const DispenseReportFilterDrawer = ({
 
   const handleMenuClick = menu => {
     setSelectedMenu(menu)
-    searchQuery('')
+    setSearchQuery('')
   }
 
   const handleCheckbox = useCallback(

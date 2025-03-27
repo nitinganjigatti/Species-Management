@@ -64,6 +64,7 @@ const ConsumptionReportDrawer = ({
 
   const handleMenuClick = menu => {
     setSelectedMenu(menu)
+    setSearchQuery('')
   }
 
   const handleCheckbox = useCallback(

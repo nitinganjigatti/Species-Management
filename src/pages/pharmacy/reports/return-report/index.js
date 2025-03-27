@@ -46,16 +46,20 @@ const ReturnReport = () => {
   const [sortColumn, setSortColumn] = useState(router.query.column || 'stock_name')
   const [searchValue, setSearchValue] = useState(router.query.q || '')
   const [openFilterDrawer, setOpenFilterDrawer] = useState(false)
-  const [filteredData, setFilteredData] = useState({ pharmacy: [] })
+
+  const [filteredData, setFilteredData] = useState({
+    pharmacy: []
+  })
   const [exportLoading, setExportLoading] = useState(false)
   const [expired, setExpired] = useState(false)
   const [pharmacyList, setPharmacyList] = useState([])
+  const [selectAllPharmacy, setSelectAllPharmacy] = useState(false)
 
   const [selectedOptions, setSelectedOptions] = useState({
     Pharmacy: [],
     'Expiry Date': [],
     'Near Expiry': [],
-    'Drug Type': []
+    'Drug Type': 'all'
   })
 
   const [paginationModel, setPaginationModel] = useState({
@@ -99,6 +103,21 @@ const ReturnReport = () => {
     pharmacyList()
   }, [selectedPharmacy])
 
+  const handleSelectAllPharmacy = () => {
+    setSelectAllPharmacy(!selectAllPharmacy)
+    if (!selectAllPharmacy) {
+      setSelectedOptions({
+        ...selectedOptions,
+        Pharmacy: pharmacyList.map(p => p.id)
+      })
+    } else {
+      setSelectedOptions({
+        ...selectedOptions,
+        Pharmacy: []
+      })
+    }
+  }
+
   function loadServerRows(currentPage, data) {
     return data
   }
@@ -116,10 +135,8 @@ const ReturnReport = () => {
           column: column,
           ...(filterDates?.startDate !== '' && { from_date: filterDates?.startDate }),
           ...(filterDates?.endDate !== '' && { to_date: filterDates?.endDate }),
-          ...(filteredData['Drug Type'] && {
-            controlled: filteredData['Drug Type'].controlled,
-            prescription: filteredData['Drug Type'].prescription
-          }),
+          ...(filteredData && filteredData.controlled && { controlled: filteredData.controlled }),
+          ...(filteredData && filteredData.prescription && { prescription: filteredData.prescription }),
           ...(filteredData?.expiryDate && {
             expired_from_date: filteredData.expiryDate.startDate,
             expired_to_date: filteredData.expiryDate.endDate
@@ -606,10 +623,8 @@ const ReturnReport = () => {
         limit: total, // Set limit to total number of items
         ...(filterDates?.startDate !== '' && { from_date: filterDates?.startDate }),
         ...(filterDates?.endDate !== '' && { to_date: filterDates?.endDate }),
-        ...(filteredData['Drug Type'] && {
-          controlled: filteredData['Drug Type'].controlled,
-          prescription: filteredData['Drug Type'].prescription
-        }),
+        ...(filteredData && filteredData.controlled && { controlled: filteredData.controlled }),
+        ...(filteredData && filteredData.prescription && { prescription: filteredData.prescription }),
         ...(filteredData?.expiryDate && {
           expired_from_date: filteredData.expiryDate.startDate,
           expired_to_date: filteredData.expiryDate.endDate
@@ -652,7 +667,7 @@ const ReturnReport = () => {
       count++
     }
 
-    if (filteredData['Drug Type']?.controlled || filteredData['Drug Type']?.prescription) {
+    if (filteredData && (filteredData.controlled || filteredData.prescription)) {
       count++
     }
 
@@ -664,6 +679,8 @@ const ReturnReport = () => {
   }
 
   const appliedFiltersCount = calculateAppliedFiltersCount()
+
+  console.log(filteredData)
 
   return (
     <>
@@ -832,6 +849,7 @@ const ReturnReport = () => {
           nearExpiryFilterDates={nearExpiryFilterDates}
           setNearExpiryFilterDates={setNearExpiryFilterDates}
           pharmacyList={pharmacyList}
+          handleSelectAllPharmacy={handleSelectAllPharmacy}
         />
       )}
     </>

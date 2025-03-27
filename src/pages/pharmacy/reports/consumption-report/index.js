@@ -69,7 +69,7 @@ const ConsumptionReport = () => {
 
   const [paginationModel, setPaginationModel] = useState({
     page: parseInt(router.query.page) || 0,
-    pageSize: parseInt(router.query.limit) || 10
+    pageSize: parseInt(router.query.limit) || 50
   })
 
   const [filterDates, setFilterDates] = useState({
@@ -563,8 +563,6 @@ const ConsumptionReport = () => {
   }
 
   const appliedFiltersCount = calculateAppliedFiltersCount()
-
-  console.log(filteredData)
 
   return (
     <>
