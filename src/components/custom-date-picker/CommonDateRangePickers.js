@@ -21,7 +21,7 @@ import { useTheme } from '@emotion/react'
 import { useRouter } from 'next/router'
 import CustomDateRangePicker from './CustomDateRangePicker'
 
-const CommonDateRangePickers = ({ onChange, filterDates, showFutureDates = false }) => {
+const CommonDateRangePickers = ({ onChange, filterDates, showFutureDates = false, showAllTime = false }) => {
   const theme = useTheme()
   const router = useRouter()
   const today = new Date()
@@ -96,13 +96,7 @@ const CommonDateRangePickers = ({ onChange, filterDates, showFutureDates = false
       ? `From - ${format(today, 'dd MMM, yyyy')}`
       : `Upto - ${format(today, 'dd MMM, yyyy')}`
 
-    return [
-      {
-        label: 'All time',
-        subLabel: allTimeLabel,
-        startDate: null,
-        endDate: null
-      },
+    const baseRanges = [
       {
         label: 'Today',
         subLabel: format(today, 'dd MMM, yyyy'),
@@ -116,6 +110,31 @@ const CommonDateRangePickers = ({ onChange, filterDates, showFutureDates = false
         hasChevron: true
       }
     ]
+
+    return showAllTime
+      ? baseRanges
+      : [{ label: 'All time', subLabel: allTimeLabel, startDate: null, endDate: null }, ...baseRanges]
+
+    // return [
+    //   {
+    //     label: 'All time',
+    //     subLabel: allTimeLabel,
+    //     startDate: null,
+    //     endDate: null
+    //   },
+    //   {
+    //     label: 'Today',
+    //     subLabel: format(today, 'dd MMM, yyyy'),
+    //     startDate: today,
+    //     endDate: today
+    //   },
+    //   ...(showFutureDates ? futureDateRanges : pastDateRanges),
+    //   {
+    //     label: 'Custom range',
+    //     subLabel: 'Select a custom range',
+    //     hasChevron: true
+    //   }
+    // ]
   }
 
   const [dateRanges, setDateRanges] = useState(getDateRanges(showFutureDates))

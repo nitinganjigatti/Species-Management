@@ -29,7 +29,7 @@ const ExpiringMedicine = () => {
   /***** Server side pagination */
 
   const [total, setTotal] = useState(0)
-  const [sort, setSort] = useState('asc')
+  const [sort, setSort] = useState('desc')
   const [rows, setRows] = useState([])
   const [searchValue, setSearchValue] = useState('')
   const [sortColumn, setSortColumn] = useState('label')
@@ -117,7 +117,7 @@ const ExpiringMedicine = () => {
         setLoading(false)
       }
     },
-    [paginationModel, filterDates, searchTriggered]
+    [paginationModel, filterDates, searchTriggered, sort]
   )
 
   useEffect(() => {
@@ -149,17 +149,20 @@ const ExpiringMedicine = () => {
   // }
 
   const handleSortModel = newModel => {
+    // console.log(newModel, 'newModel')
+
     if (newModel.length) {
-      setSort(newModel[0].sort)
+      setSort(prev => (prev === 'asc' ? 'desc' : 'asc'))
+      // setSort(newModel[0].sort)
       setSortColumn(newModel[0].field)
-      fetchTableData(
-        newModel[0].sort,
-        searchValue,
-        newModel[0].field,
-        filterDates?.startDate,
-        filterDates?.endDate,
-        selectedPharmacy?.id
-      )
+      // fetchTableData(
+      //   newModel[0].sort,
+      //   searchValue,
+      //   newModel[0].field,
+      //   filterDates?.startDate,
+      //   filterDates?.endDate,
+      //   selectedPharmacy?.id
+      // )
     }
   }
 
@@ -250,7 +253,7 @@ const ExpiringMedicine = () => {
     {
       width: 350,
       minWidth: 200,
-      field: 'stock_item_name',
+      field: 'label',
       headerName: 'Product Name',
       renderCell: params => (
         <Tooltip title={params.row.stock_items_name} placement='top'>
@@ -553,6 +556,7 @@ const ExpiringMedicine = () => {
                   onChange={handleDateRangeChange}
                   filterDates={filterDates}
                   showFutureDates={true}
+                  showAllTime={true}
                 />
               </Grid>
 
