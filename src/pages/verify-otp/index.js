@@ -9,9 +9,6 @@ import { useTheme, styled } from '@mui/material/styles'
 import { useForm, Controller } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 import * as yup from 'yup'
-import SmsIcon from '@mui/icons-material/Sms'
-import WhatsAppIcon from '@mui/icons-material/WhatsApp'
-import EmailIcon from '@mui/icons-material/Email'
 import CommonCard from 'src/components/login/CommonCard'
 import CustomButton from 'src/components/login/CustomButton'
 import CustomInput from 'src/components/login/CustomInput'
@@ -44,7 +41,8 @@ const VerifyOtp = () => {
   const userData = data ? Utility.decryptData(data) : null
   const { forgotPasswordData, setForgotPasswordData, setVerifyOtpData } = useForgotPassword()
 
-  const [countdown, setCountdown] = useState(59)
+  const initialCountdown = 59
+  const [countdown, setCountdown] = useState(0)
   const [showResendOptions, setShowResendOptions] = useState(false)
   const [loading, setLoading] = useState(false)
   const [loadingStates, setLoadingStates] = useState({
@@ -55,66 +53,57 @@ const VerifyOtp = () => {
 
   console.log('forgotPasswordData:', forgotPasswordData)
 
+  // useEffect(() => {
+  //   if (countdown > 0) {
+  //     const timer = setTimeout(() => setCountdown(countdown - 1), 1000)
+  //     return () => clearTimeout(timer)
+  //   } else {
+  //     setShowResendOptions(true)
+  //   }
+  // }, [countdown])
+
+  useEffect(() => {
+    const storedTimestamp = localStorage.getItem('otpTimestamp')
+    const storedCountdown = localStorage.getItem('otpCountdown')
+
+    if (storedTimestamp && storedCountdown) {
+      const elapsedTime = Math.floor((Date.now() - parseInt(storedTimestamp, 10)) / 1000)
+      const remainingTime = parseInt(storedCountdown, 10) - elapsedTime
+
+      if (remainingTime > 0) {
+        setCountdown(remainingTime)
+        setShowResendOptions(false)
+      } else {
+        setShowResendOptions(true)
+      }
+    } else {
+      // If the user is coming for the first time, start countdown automatically
+      localStorage.setItem('otpTimestamp', Date.now().toString())
+      localStorage.setItem('otpCountdown', initialCountdown.toString())
+      setCountdown(initialCountdown)
+      setShowResendOptions(false)
+    }
+  }, [])
+
   useEffect(() => {
     if (countdown > 0) {
-      const timer = setTimeout(() => setCountdown(countdown - 1), 1000)
-      return () => clearTimeout(timer)
-    } else {
-      setShowResendOptions(true)
+      const timer = setInterval(() => {
+        setCountdown(prevCountdown => {
+          if (prevCountdown <= 1) {
+            clearInterval(timer)
+            setShowResendOptions(true)
+            localStorage.removeItem('otpTimestamp')
+            localStorage.removeItem('otpCountdown')
+            return 0
+          }
+          localStorage.setItem('otpCountdown', (prevCountdown - 1).toString())
+          return prevCountdown - 1
+        })
+      }, 1000)
+
+      return () => clearInterval(timer)
     }
   }, [countdown])
-
-  const {
-    control,
-    handleSubmit,
-    formState: { errors },
-    setError,
-    clearErrors
-  } = useForm({
-    resolver: yupResolver(schema),
-    defaultValues: { otp: '' }
-  })
-
-  const onSubmit = async data => {
-    console.log('OTP Verified:', data)
-
-    const payload = {
-      otp: data.otp,
-      // user_id: userData?.user_id
-      user_id: forgotPasswordData?.user_id
-    }
-    try {
-      setLoading(true)
-      const response = await verifyOTP(payload, forgotPasswordData?.temp_auth_token)
-      console.log('verify OTP :', response)
-      if (response.success === true) {
-        setVerifyOtpData(response.data)
-        toast.success(response?.message)
-        router.push('/reset-password')
-
-        // const { user_id, profile_pic, user_first_name, user_last_name, temp_auth_token } = response.data
-
-        // const encryptedQuery = Utility.encryptData({
-        //   user_id,
-        //   profile_pic,
-        //   user_first_name,
-        //   user_last_name,
-        //   temp_auth_token
-        // })
-        // router.push({
-        //   pathname: '/reset-password',
-        //   query: { data: encryptedQuery }
-        // })
-        setLoading(false)
-      } else {
-        toast.error(response?.message)
-        setLoading(false)
-      }
-    } catch (error) {
-      console.error(error)
-      setLoading(false)
-    }
-  }
 
   const sendOtpRequest = async medium => {
     const payload = {
@@ -130,6 +119,10 @@ const VerifyOtp = () => {
       if (response.success === true) {
         setForgotPasswordData(response.data)
         toast.success(response?.message)
+        localStorage.setItem('otpTimestamp', Date.now().toString())
+        localStorage.setItem('otpCountdown', initialCountdown.toString())
+        setCountdown(initialCountdown)
+        setShowResendOptions(false)
         setLoadingStates(prev => ({ ...prev, [medium]: false }))
 
         // const { user_id, account_status, user_email, user_mobile_number, temp_auth_token } = response.data
@@ -162,6 +155,60 @@ const VerifyOtp = () => {
       toast.error('Something went wrong, please try again.')
     } finally {
       setLoadingStates(prev => ({ ...prev, [medium]: false }))
+    }
+  }
+
+  const {
+    control,
+    handleSubmit,
+    formState: { errors },
+    setError,
+    clearErrors
+  } = useForm({
+    resolver: yupResolver(schema),
+    defaultValues: { otp: '' }
+  })
+
+  const onSubmit = async data => {
+    console.log('OTP Verified:', data)
+
+    const payload = {
+      otp: data.otp,
+      // user_id: userData?.user_id
+      user_id: forgotPasswordData?.user_id
+    }
+    try {
+      setLoading(true)
+      const response = await verifyOTP(payload, forgotPasswordData?.temp_auth_token)
+      console.log('verify OTP :', response)
+      if (response.success === true) {
+        setVerifyOtpData(response.data)
+        toast.success(response?.message)
+        localStorage.removeItem('otpTimestamp')
+        localStorage.removeItem('otpCountdown')
+        router.push('/reset-password')
+
+        // const { user_id, profile_pic, user_first_name, user_last_name, temp_auth_token } = response.data
+
+        // const encryptedQuery = Utility.encryptData({
+        //   user_id,
+        //   profile_pic,
+        //   user_first_name,
+        //   user_last_name,
+        //   temp_auth_token
+        // })
+        // router.push({
+        //   pathname: '/reset-password',
+        //   query: { data: encryptedQuery }
+        // })
+        setLoading(false)
+      } else {
+        toast.error(response?.message)
+        setLoading(false)
+      }
+    } catch (error) {
+      console.error(error)
+      setLoading(false)
     }
   }
 
@@ -243,7 +290,7 @@ const VerifyOtp = () => {
             >
               Didn’t receive OTP? Resend via
             </Typography>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 2, mb: 6 }}>
+            <Box sx={{ display: 'flex', justifyContent: 'center', gap: 2, mb: 6 }}>
               <Button
                 variant='text'
                 sx={{ color: 'customColors.OnPrimaryContainer', bgcolor: 'customColors.neutral05' }}
@@ -260,14 +307,14 @@ const VerifyOtp = () => {
               >
                 {loadingStates.whatsapp ? <CircularProgress size={20} /> : 'WhatsApp'}
               </Button>
-              <Button
+              {/* <Button
                 variant='text'
                 sx={{ color: 'customColors.OnPrimaryContainer', bgcolor: 'customColors.neutral05' }}
                 startIcon={!loadingStates.email && <Icon icon='ic:outline-email' />}
                 onClick={() => sendOtpRequest('email')}
               >
                 {loadingStates.email ? <CircularProgress size={20} /> : 'Email'}
-              </Button>
+              </Button> */}
             </Box>
           </>
         )}

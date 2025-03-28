@@ -42,7 +42,7 @@ const CommonCard = ({ children, bgImage, logoVantara, logoAntz, title, subtitle,
         sx={{
           background: 'transparent',
           border: '1px solid transparent',
-          backgroundColor: alpha('#F2FFF8D9', 0.85),
+          backgroundColor: alpha('#F2FFF8D9', 0.9),
           p: 6,
           width: { xs: '90%', md: 390 },
           borderRadius: '20px'
@@ -60,7 +60,14 @@ const CommonCard = ({ children, bgImage, logoVantara, logoAntz, title, subtitle,
             <Image src={'/branding/antz/Antz_logo_h_color.svg' || logoAntz} width={160} height={60} alt='Logo' />
           )}
           {/* <Image src={logoAlt || logoSrc} width={160} height={36} alt='Logo' /> */}
-          <Typography sx={{ color: 'customColors.OnSurfaceVariant', fontSize: '20px', fontWeight: 500, mt: 2 }}>
+          <Typography
+            sx={{
+              color: 'customColors.OnSurfaceVariant',
+              fontSize: '20px',
+              fontWeight: 500,
+              mt: process.env.NEXT_PUBLIC_BRANDING === 'vantara' ? 2 : 5
+            }}
+          >
             {title}
           </Typography>
           {subtitle && (
