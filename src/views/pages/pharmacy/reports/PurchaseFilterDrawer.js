@@ -20,7 +20,7 @@ import Icon from 'src/@core/components/icon'
 
 const leftMenu = [
   { id: 1, name: 'Supplier Name' },
-  { id: 2, name: 'Requested By' },
+  { id: 2, name: 'Created By' },
   { id: 3, name: 'Drug Type' }
 ]
 
@@ -56,7 +56,7 @@ const PurchaseFilterDrawer = ({
   const isAllSupplierSelected =
     supplierData?.length > 0 && selectedOptions['Supplier Name']?.length === supplierData?.length
 
-  const isAllUsersSelected = users?.length > 0 && selectedOptions['Requested By'].length === users?.length
+  const isAllUsersSelected = users?.length > 0 && selectedOptions['Created By'].length === users?.length
 
   const handleCloseDrawer = () => {
     setOpenFilterDrawer(false)
@@ -103,8 +103,8 @@ const PurchaseFilterDrawer = ({
       filterData['suppliersName'] = selectedOptions['Supplier Name']
     }
 
-    if (selectedOptions['Requested By'] && selectedOptions['Requested By'].length > 0) {
-      filterData['requestedBy'] = selectedOptions['Requested By']
+    if (selectedOptions['Created By'] && selectedOptions['Created By'].length > 0) {
+      filterData['createdBy'] = selectedOptions['Created By']
     }
 
     if (selectedOptions['Drug Type'] && selectedOptions['Drug Type'] !== 'all') {
@@ -283,7 +283,7 @@ const PurchaseFilterDrawer = ({
                     </Box>
                   ))}
                 </>
-              ) : selectedMenu.name === 'Requested By' ? (
+              ) : selectedMenu.name === 'Created By' ? (
                 <>
                   <Box
                     sx={{
@@ -319,7 +319,7 @@ const PurchaseFilterDrawer = ({
                   <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
                     <Checkbox
                       checked={isAllUsersSelected}
-                      indeterminate={selectedOptions['Requested By']?.length > 0 && !isAllUsersSelected}
+                      indeterminate={selectedOptions['Created By']?.length > 0 && !isAllUsersSelected}
                       inputProps={{ 'aria-label': 'controlled' }}
                       onChange={handleUserSelectAll}
                     />
@@ -330,8 +330,8 @@ const PurchaseFilterDrawer = ({
                     <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }} key={user?.id}>
                       <Checkbox
                         inputProps={{ 'aria-label': 'controlled' }}
-                        checked={selectedOptions['Requested By']?.includes(user?.id)}
-                        onChange={() => handleCheckbox(user?.id, 'Requested By')}
+                        checked={selectedOptions['Created By']?.includes(user?.id)}
+                        onChange={() => handleCheckbox(user?.id, 'Created By')}
                       />
                       <Typography sx={{ fontSize: '16px', fontWeight: 400, color: '#839D8D' }}>{user?.name}</Typography>
                     </Box>

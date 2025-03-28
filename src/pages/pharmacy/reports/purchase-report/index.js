@@ -57,7 +57,7 @@ const PurchaseReport = () => {
 
   const [selectedOptions, setSelectedOptions] = useState({
     'Supplier Name': [],
-    'Requested By': [],
+    'Created By': [],
     'Drug Type': 'all'
   })
 
@@ -131,12 +131,12 @@ const PurchaseReport = () => {
     if (!selectAllUser) {
       setSelectedOptions({
         ...selectedOptions,
-        ['Requested By']: users.map(u => u.id)
+        ['Created By']: users.map(u => u.id)
       })
     } else {
       setSelectedOptions({
         ...selectedOptions,
-        ['Requested By']: []
+        ['Created By']: []
       })
     }
   }
@@ -166,9 +166,9 @@ const PurchaseReport = () => {
           ...(filteredData && filteredData.controlled && { controlled: filteredData.controlled }),
           ...(filteredData && filteredData.prescription && { prescription: filteredData.prescription }),
           ...(filteredData &&
-            filteredData.requestedBy &&
-            filteredData.requestedBy.length > 0 && {
-              user_id: filteredData.requestedBy.join(',')
+            filteredData.createdBy &&
+            filteredData.createdBy.length > 0 && {
+              user_id: filteredData.createdBy.join(',')
             })
         }
 
@@ -735,9 +735,9 @@ const PurchaseReport = () => {
         ...(filteredData && filteredData.controlled && { controlled: filteredData.controlled }),
         ...(filteredData && filteredData.prescription && { prescription: filteredData.prescription }),
         ...(filteredData &&
-          filteredData.requestedBy &&
-          filteredData.requestedBy.length > 0 && {
-            user_id: filteredData.requestedBy.join(',')
+          filteredData.createdBy &&
+          filteredData.createdBy.length > 0 && {
+            user_id: filteredData.createdBy.join(',')
           }),
         response_type: 'csv'
       }
@@ -763,7 +763,7 @@ const PurchaseReport = () => {
       count++
     }
 
-    if (filteredData.requestedBy && filteredData.requestedBy.length > 0) {
+    if (filteredData.createdBy && filteredData.createdBy.length > 0) {
       count++
     }
 
