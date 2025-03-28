@@ -113,7 +113,8 @@ const LoginPage = () => {
     >
       <CommonCard
         // bgImage='/images/frog_img.png'
-        logoSrc='/images/login/Vantara_Logo_registered.svg'
+        // logoVantara='/images/login/Vantara_Logo_registered.svg'
+        // logoAntz
         title='Login to your account'
         subtitle=''
       >
