@@ -33,7 +33,7 @@ const ListOfDiscardProducts = () => {
   /***** Server side pagination */
   const updateUrlParams = params => {
     const query = { ...router.query, ...params }
-    router.push({ pathname: router.pathname, query }, undefined, { shallow: true })
+    router.replace({ pathname: router.pathname, query }, undefined, { shallow: true })
   }
 
   const [loader, setLoader] = useState(false)
@@ -44,8 +44,12 @@ const ListOfDiscardProducts = () => {
   const [sortColumn, setSortColumn] = useState(router.query.column || 'created_at')
   const [excelLoader, setExcelLoader] = useState(false)
   const [filterDates, setFilterDates] = useState({
-    startDate: router.query.startDate || Utility.formatDate(format(subMonths(new Date(), 1), 'dd MMM, yyyy')),
-    endDate: router.query.endDate || Utility.formatDate(format(new Date(), 'dd MMM, yyyy'))
+    startDate:
+      router.query.from_date === ''
+        ? ''
+        : router.query.from_date || Utility.formatDate(format(subMonths(new Date(), 1), 'dd MMM, yyyy')),
+    endDate:
+      router.query.to_date === '' ? '' : router.query.to_date || Utility.formatDate(format(new Date(), 'dd MMM, yyyy'))
   })
 
   const [paginationModel, setPaginationModel] = useState({
@@ -60,7 +64,7 @@ const ListOfDiscardProducts = () => {
   const { selectedPharmacy } = usePharmacyContext()
 
   const fetchTableData = useCallback(
-    async ({ sort, q, column, page, limit }) => {
+    async ({ sort, q, column, page, limit, filterDates }) => {
       console.log(page, 'page')
 
       try {
@@ -81,6 +85,23 @@ const ListOfDiscardProducts = () => {
           if (res?.success === true && res?.data?.list_items?.length > 0) {
             setTotal(parseInt(res?.data?.total_count))
             setRows(loadServerRows(paginationModel.page, res?.data?.list_items))
+            const urlParams = {
+              sort,
+              q,
+              column,
+              page: paginationModel?.page,
+              limit: paginationModel?.pageSize
+            }
+
+            if (isEmptyDates) {
+              urlParams.from_date = ''
+              urlParams.to_date = ''
+            } else if (filterDates?.startDate && filterDates?.endDate) {
+              urlParams.from_date = filterDates.startDate
+              urlParams.to_date = filterDates.endDate
+            }
+
+            updateUrlParams(urlParams)
           } else {
             setTotal(0)
             setRows([])
@@ -101,7 +122,8 @@ const ListOfDiscardProducts = () => {
       q: searchValue,
       column: sortColumn,
       page: paginationModel.page,
-      limit: paginationModel.pageSize
+      limit: paginationModel.pageSize,
+      filterDates
     })
 
     updateUrlParams({
@@ -109,7 +131,9 @@ const ListOfDiscardProducts = () => {
       q: searchValue,
       column: sortColumn,
       page: paginationModel.page,
-      limit: paginationModel.pageSize
+      limit: paginationModel.pageSize,
+      from_date: filterDates?.startDate || '',
+      to_date: filterDates?.endDate || ''
     })
   }, [paginationModel.page, paginationModel.pageSize, selectedPharmacy, filterDates])
 
@@ -131,14 +155,17 @@ const ListOfDiscardProducts = () => {
         q: searchValue,
         column: field,
         page: paginationModel.page,
-        limit: paginationModel.pageSize
+        limit: paginationModel.pageSize,
+        filterDates
       })
       updateUrlParams({
         sort,
         q: searchValue,
         column: sortColumn,
         page: paginationModel.page,
-        limit: paginationModel.pageSize
+        limit: paginationModel.pageSize,
+        ...(filterDates?.startDate !== '' && { from_date: filterDates?.startDate }),
+        ...(filterDates?.endDate !== '' && { to_date: filterDates?.endDate })
       })
     }
   }
@@ -155,7 +182,8 @@ const ListOfDiscardProducts = () => {
           q,
           column,
           page: paginationModel.page,
-          limit: paginationModel.pageSize
+          limit: paginationModel.pageSize,
+          filterDates
         })
         updateUrlParams({
           sort,
