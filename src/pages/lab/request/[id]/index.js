@@ -3,9 +3,6 @@ import React, { useState, useEffect, useCallback, useContext } from 'react'
 import {
   GetRequestDetails,
   GetRequestPopUp,
-  transferLab,
-  getNoOfLab,
-  UpdateStatus,
   DeleteLAbRequestAttachment,
   GetLabListByTestId,
   postBulkStatus,
@@ -21,10 +18,8 @@ import { useForm, Controller } from 'react-hook-form'
 // ** MUI Imports
 import { LoadingButton } from '@mui/lab'
 import Typography from '@mui/material/Typography'
-import CardHeader from '@mui/material/CardHeader'
 import { DataGrid } from '@mui/x-data-grid'
 import Card from '@mui/material/Card'
-import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
 import { debounce } from 'lodash'
 import { useTheme } from '@mui/material/styles'
 
@@ -49,18 +44,14 @@ import {
   Select,
   MenuItem,
   FormHelperText,
-  Popover,
   Breadcrumbs,
   Divider,
   Tooltip,
-  DialogContent,
-  Toolbar,
-  Avatar
+  DialogContent
 } from '@mui/material'
 import IconButton from '@mui/material/IconButton'
 import Router from 'next/router'
 import Utility from 'src/utility'
-import FileUploaderSingle from 'src/views/forms/form-elements/file-uploader/FileUploaderSingle'
 import UploadReports from 'src/components/lab/request/UploadReports'
 import { useRouter } from 'next/navigation'
 import { useSearchParams } from 'next/navigation'
@@ -70,8 +61,6 @@ import moment from 'moment'
 import CommonMediaView from 'src/components/lab/CommonMediaView'
 import { AuthContext } from 'src/context/AuthContext'
 import Toaster from 'src/components/Toaster'
-import AnimalCard from 'src/views/pages/lab/AnimalCard'
-import { borderColor, width } from '@mui/system'
 import AnimalParentCard from 'src/views/utility/animalParentCard'
 import AnimalSideSheet from 'src/views/pages/lab/AnimalSideSheet'
 import CommentSideSheet from 'src/views/pages/lab/CommentSideSheet'
@@ -86,7 +75,6 @@ const RequestDetails = () => {
   const [fileViews, setFileViews] = useState(authData?.userData?.settings?.DEFAULT_IMAGE_MASTER)
 
   const [loader, setLoader] = useState(false)
-  const [selectedLab, setSelectedLab] = useState()
   const [image, setImage] = useState()
   const [document, setDocument] = useState()
   const [medicalImage, setMedicalImage] = useState()
@@ -94,7 +82,6 @@ const RequestDetails = () => {
   const [testImage, setTestImage] = useState()
 
   const [testDoc, setTestDoc] = useState()
-  const [popUpRow, setPopUpRow] = useState([])
   const [transferStatus, setTransferStatus] = useState('')
 
   const { id, lab_id } = Router.query
@@ -115,9 +102,6 @@ const RequestDetails = () => {
   const [requestById, setRequestById] = useState()
 
   const [permissions, setPermissions] = useState(null)
-  // console.log('permissions', permissions)
-
-  // const storedData = JSON.parse(localStorage.getItem('userDetails'))
 
   const [status, setStatus] = React.useState('awaiting_sample')
 
@@ -144,7 +128,6 @@ const RequestDetails = () => {
   const [fileId, setFileId] = useState()
 
   const [testName, setTestName] = useState()
-
   const [testSampleName, setTestSampleName] = useState('')
 
   const [showTestFile, setShowTestFile] = useState(false)
@@ -164,8 +147,6 @@ const RequestDetails = () => {
 
   const [statusList, setStatusList] = useState([])
   const [filteredStatusData, setFilteredStatusData] = useState([])
-
-  // console.log('CommentData', CommentData)
 
   useEffect(() => {
     const labObject = localLabData?.find(item => item?.lab_id === lab_id)
@@ -198,23 +179,6 @@ const RequestDetails = () => {
     let testIds = [params?.id] // Single ID ko array me store karna
 
     postMultipleStatus(testIds, value)
-
-    // const id = params
-
-    // const payload = {
-    //   status: event.target.value
-    // }
-
-    // const response = await UpdateStatus(id, payload)
-    // if (response?.success) {
-    //   Toaster({ type: 'success', message: response.message })
-
-    //   fetchRequestDetails()
-    // } else {
-    //   fetchRequestDetails()
-    //   setStatus(params?.row?.status)
-    //   Toaster({ type: 'error', message: response.message })
-    // }
   }
 
   const handleClickOpen = async item => {
@@ -233,37 +197,6 @@ const RequestDetails = () => {
   const handleClose = () => {
     setOpen(false)
   }
-
-  // const fetchRequestDetails = useCallback(async (sort, q) => {
-  //   try {
-  //     setLoading(true)
-
-  //     const params = {
-  //       lab_id: Selectedlab_id,
-  //       q,
-  //       sort
-  //     }
-
-  //     const response = await GetRequestDetails(id, { params })
-
-  //     setLab_id(response?.data.result[0]?.lab_id)
-  //     setAnimalId(response?.data?.result[0]?.animal_details?.animal_id)
-  //     setLabRequestId(response?.data?.result[0]?.request_id)
-  //     setMedicineId(response?.data?.result[0]?.medical_record_id)
-  //     setRequest(response?.data?.result)
-  //     setRequestId(response?.data?.result[0]?.id)
-  //     setRows(loadServerRows(paginationModel.page, response?.data?.result[0].test_reports))
-  //     setTotal(parseInt(response?.data?.total_count))
-  //     setImage(response?.data?.result[0]?.files?.images)
-  //     setDocument(response?.data?.result[0]?.files?.files)
-  //     setMedicalDocument(response?.data?.result[0]?.medical_attachements?.files)
-  //     setMedicalImage(response?.data?.result[0]?.medical_attachements?.images)
-  //   } catch (error) {
-  //     console.error('Error fetching data:', error)
-  //   } finally {
-  //     setLoading(false)
-  //   }
-  // }, [])
 
   useEffect(() => {
     const filteredStatusBlockData =
@@ -289,7 +222,6 @@ const RequestDetails = () => {
       }
 
       const response = await GetRequestDetails(id, { params })
-
       const requestData = response?.data?.result || []
       const testReports = requestData[0]?.test_reports || []
 
@@ -350,6 +282,7 @@ const RequestDetails = () => {
       setTestName(params?.row?.test_name)
       setTestSampleName(params?.row?.sample_name)
       setTestId([params?.row?.id])
+      await getAccessLabs(LabRequestId, labTestId)
       // console.log('first', params?.row?.id)
     } else {
       setFromParam(false)
@@ -358,13 +291,11 @@ const RequestDetails = () => {
         setTestName(selectedRowData[0]?.test_name)
         setTestSampleName(selectedRowData[0]?.sample_name)
       }
-    }
-
-    if (selectedRow.length >= 1) {
       await getAccessLabs(LabRequestId, selectedRow)
-    } else {
-      await getAccessLabs(LabRequestId, labTestId)
     }
+    // if (selectedRow.length >= 1) {
+    // } else {
+    // }
   }
 
   useEffect(() => {
@@ -778,41 +709,6 @@ const RequestDetails = () => {
         ]
       : []),
 
-    // {
-    //   flex: 0.2,
-    //   minWidth: 10,
-    //   sortable: false,
-
-    //   // field: 'Action',
-    //   // headerName: 'Action',
-
-    //   renderCell: params => (
-    //     <>
-    //       {params?.row?.attachments?.images?.length > 0 || params?.row?.attachments?.docs?.length > 0 ? (
-    //         <Box sx={{ display: 'flex', alignItems: 'center' }}>
-    //           <IconButton onClick={e => handleOpenShowFile(e, params)}>
-    //             <Icon icon='et:attachments' fontSize={15} />
-    //           </IconButton>
-
-    //           <Typography variant='body2' sx={{ color: 'text.primary' }}>
-    //             {
-    //               params?.row?.attachments?.images?.length > 0 && params?.row?.attachments?.docs?.length > 0
-    //                 ? params.row.attachments.images.length + params.row.attachments.docs.length
-    //                 : params?.row?.attachments?.images?.length > 0
-    //                 ? params.row.attachments.images.length
-    //                 : params?.row?.attachments?.docs
-    //                 ? params.row.attachments.docs.length
-    //                 : null
-
-    //               // params?.row?.attachments?.docs?.length
-    //             }
-    //           </Typography>
-    //         </Box>
-    //       ) : null}
-    //     </>
-    //   )
-    // }
-
     ,
   ]
 
@@ -843,7 +739,6 @@ const RequestDetails = () => {
   }))
 
   // form
-
   const defaultValues = {
     lab_name: request?.lab_id,
     replaced_lab_id: '',
@@ -883,8 +778,6 @@ const RequestDetails = () => {
     } catch (error) {
       console.error(error)
     }
-
-    // handleSubmit(onSubmit)()
   }
 
   const onSubmit = async params => {
@@ -928,46 +821,6 @@ const RequestDetails = () => {
         Toaster({ type: 'error', message: res.message })
       }
     }
-    // } else {
-    //   const { lab_name, replaced_lab_id, transfer_reason } = {
-    //     ...params
-    //   }
-    //   // const id = testId
-
-    //   // const payload = {
-    //   //   replaced_lab_id,
-    //   //   transfer_reason
-    //   // }
-
-    //   const payloadData = {
-    //     test_ids: testId,
-    //     replaced_lab_id,
-    //     transfer_reason
-    //   }
-    //   console.log('params0', payloadData)
-    //   // const response = await transferLab(id, payload)
-    //   // const response = await postBulkTransfer({ params: payloadData })
-    //   // if (response?.success) {
-    //   //   handleCloseTransfer()
-
-    //   //   Toaster({ type: 'success', message: response.message })
-
-    //   //   reset({
-    //   //     replaced_lab_id: '',
-    //   //     transfer_reason: ''
-    //   //   })
-
-    //   //   fetchRequestDetails()
-    //   // } else {
-    //   //   handleCloseTransfer()
-    //   //   reset({
-    //   //     replaced_lab_id: '',
-    //   //     transfer_reason: ''
-    //   //   })
-    //   //   Toaster({ type: 'error', message: response.message })
-    //   // }
-    // }
-    // // setSubmitLoader(false)
   }
 
   const handleDeleteImg = async (e, item) => {
@@ -1167,9 +1020,6 @@ const RequestDetails = () => {
                         sx={{
                           display: 'flex',
                           gap: 2,
-
-                          // mt: 2,
-
                           bgcolor: 'rgba(0, 128, 0, 0.1)',
                           cursor: 'pointer',
                           borderRadius: '50%',
@@ -1243,9 +1093,6 @@ const RequestDetails = () => {
                           sx={{
                             width: 237,
                             fontSize: '14px',
-
-                            // border: '1px solid red',
-
                             backgroundColor:
                               headerStatus === 'pending' ||
                               headerStatus === 'transferred' ||
@@ -1294,7 +1141,6 @@ const RequestDetails = () => {
 
                             '&:hover .MuiOutlinedInput-notchedOutline': {
                               border: '0',
-
                               borderColor:
                                 headerStatus === 'pending' ||
                                 headerStatus === 'transferred' ||
@@ -1308,7 +1154,6 @@ const RequestDetails = () => {
                                   ? '#E4B819' // Custom yellow border for in progress
                                   : '#37BD69' // Default green border
                             },
-
                             '& .MuiOutlinedInput-notchedOutline': {
                               border: '0'
                             }
@@ -1374,13 +1219,11 @@ const RequestDetails = () => {
                 baseButton: {
                   variant: 'outlined'
                 }
-
                 // toolbar: {
                 //   value: searchValue,
                 //   clearSearch: () => handleSearch(''),
                 //   onChange: event => {
                 //     setSearchValue(event.target.value)
-
                 //     return handleSearch(event.target.value)
                 //   }
                 // }
@@ -1393,7 +1236,7 @@ const RequestDetails = () => {
           image?.length > 0 ||
           document?.length > 0 ? (
             <Card sx={{ mt: 5 }}>
-              <Box sx={{ py: 5, px: 8 }}>
+              <Box sx={{ py: 5, px: 5 }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: '4px', mb: 3 }}>
                   <img src='/images/attach_file_icon.png' alt='default icon' style={{ width: 12 }} />
                   <Typography sx={{ fontSize: 20, fontWeight: 500 }}>Lab Attachments</Typography>
@@ -1401,7 +1244,7 @@ const RequestDetails = () => {
 
                 <Divider />
               </Box>
-              <Box sx={{ mb: '20px', px: 4 }}>
+              <Box sx={{ mb: '20px', px: 0 }}>
                 {permissions?.allow_upload_reports || permissions?.allow_full_access ? (
                   <UploadReports
                     animalID={animanlId}
@@ -1413,13 +1256,14 @@ const RequestDetails = () => {
                     handleClosePopover={handleClosePopover}
                     fetchRequestDetails={fetchRequestDetails}
                     buttonText='Submit Reports'
+                    restrictExecutiveFiles={true}
                   />
                 ) : null}
               </Box>
 
               {/* image or Doc View */}
               {image?.length > 0 || document?.length > 0 ? (
-                <Box sx={{ px: 8, mb: 8 }}>
+                <Box sx={{ px: 5, mb: 8 }}>
                   <Box sx={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', gap: 4 }}>
                     {image && (
                       <CommonMediaView
@@ -1481,7 +1325,6 @@ const RequestDetails = () => {
                     )}
                   </Box>
                 </>
-
                 <></>
               </Box>
             </Card>
@@ -1490,7 +1333,7 @@ const RequestDetails = () => {
       )}
 
       <Card sx={{ mt: 5 }}>
-        <Box sx={{ py: 5, px: 7 }}>
+        <Box sx={{ py: 5, px: 5 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: '4px', mb: 3 }}>
             <Icon icon='gg:notes' width='24' height='24' />
             <Typography sx={{ fontSize: 20, fontWeight: 500 }}>Medical Record Notes</Typography>

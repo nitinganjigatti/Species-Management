@@ -21,7 +21,7 @@ const UploadReports = ({
   type,
   id,
   handleCloseUploader,
-
+  restrictExecutiveFiles = [false],
   handleClosePopover,
   fetchRequestDetails,
   buttonText
@@ -105,23 +105,102 @@ const UploadReports = ({
     fileInputRef?.current?.click()
   }
 
+  // const handleInputImageChange = event => {
+  //   const { files } = event.target
+
+  //   const newImgArr = []
+
+  //   Array.from(files).forEach(file => {
+  //     const reader = new FileReader()
+  //     reader.onload = () => {
+  //       setImgSrc(prev => [...prev, reader.result])
+  //     }
+  //     reader.readAsDataURL(file)
+  //     newImgArr.push(file)
+  //   })
+
+  //   setImgArr(prev => [...prev, ...newImgArr])
+  //   setValue('image', newImgArr)
+  //   clearErrors('image')
+  // }
+
+  // const handleInputImageChange = event => {
+  //   const { files } = event.target
+
+  //   const newFileArr = []
+  //   const allowedTypes = [
+  //     'image/png',
+  //     'image/jpeg', // PNG, JPG
+  //     'application/pdf', // PDF
+  //     'application/msword', // DOC
+  //     'application/vnd.openxmlformats-officedocument.wordprocessingml.document', // DOCX
+  //     'application/vnd.ms-excel', // XLS
+  //     'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', // XLSX
+  //     'text/csv' // CSV
+  //   ]
+
+  //   Array.from(files).forEach(file => {
+  //     if (!allowedTypes.includes(file.type)) {
+  //       Toaster({ type: 'error', message: 'Please select a valid file.' })
+  //       return
+  //     }
+
+  //     const reader = new FileReader()
+  //     reader.onload = () => {
+  //       setImgSrc(prev => [...prev, reader.result])
+  //     }
+  //     reader.readAsDataURL(file)
+  //     newFileArr.push(file)
+  //   })
+
+  //   setImgArr(prev => [...prev, ...newFileArr])
+  //   setValue('image', newFileArr)
+  //   clearErrors('image')
+  // }
+
   const handleInputImageChange = event => {
     const { files } = event.target
     if (!files) return
+    const newFileArr = []
 
-    const newImgArr = []
+    const allowedTypes = [
+      'image/png',
+      'image/jpeg', // PNG, JPG
+      'application/pdf', // PDF
+      'application/msword', // DOC
+      'application/vnd.openxmlformats-officedocument.wordprocessingml.document', // DOCX
+      'application/vnd.ms-excel', // XLS
+      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', // XLSX
+      'text/csv' // CSV
+    ]
 
-    Array.from(files).forEach(file => {
-      const reader = new FileReader()
-      reader.onload = () => {
-        setImgSrc(prev => [...prev, reader.result])
-      }
-      reader.readAsDataURL(file)
-      newImgArr.push(file)
-    })
+    if (restrictExecutiveFiles) {
+      Array.from(files).forEach(file => {
+        if (!allowedTypes.includes(file.type)) {
+          Toaster({ type: 'error', message: 'Executive files are not valid.' })
+          return
+        }
 
-    setImgArr(prev => [...prev, ...newImgArr])
-    setValue('image', newImgArr)
+        const reader = new FileReader()
+        reader.onload = () => {
+          setImgSrc(prev => [...prev, reader.result])
+        }
+        reader.readAsDataURL(file)
+        newFileArr.push(file)
+      })
+    } else {
+      Array.from(files).forEach(file => {
+        const reader = new FileReader()
+        reader.onload = () => {
+          setImgSrc(prev => [...prev, reader.result])
+        }
+        reader.readAsDataURL(file)
+        newFileArr.push(file)
+      })
+    }
+
+    setImgArr(prev => [...prev, ...newFileArr])
+    setValue('image', newFileArr)
     clearErrors('image')
   }
 
