@@ -377,6 +377,8 @@ const AddDirectDispatch = () => {
       }
 
       const searchResults = await getMedicineList({ params: params })
+      console.log(searchResults, 'searchResults')
+
       if (searchResults?.data?.list_items?.length > 0) {
         setOptionsMedicineList(
           searchResults?.data?.list_items?.map(item => ({
@@ -386,7 +388,8 @@ const AddDirectDispatch = () => {
             control_substance: item.controlled_substance === '1' ? true : false,
             stock_type: item.stock_type,
             packageDetails: `${item?.package} of ${item?.package_qty} ${item?.package_uom_label} ${item?.product_form_label}`,
-            manufacture: item?.manufacturer_name
+            manufacture: item?.manufacturer_name,
+            unit_price: item?.unit_price
           }))
         )
       }
@@ -421,7 +424,8 @@ const AddDirectDispatch = () => {
                 packageDetails: `${item?.package} of ${item?.package_qty} ${item?.package_uom_label} ${item?.product_form_label}`,
                 manufacture: item?.manufacturer_name,
                 variant_id: item?.variant_id,
-                multiplier: item?.multiplier
+                multiplier: item?.multiplier,
+                unit_price: item?.unit_price
               }))
             )
             setTotalBatchQuantity(searchResults?.data?.total_quantity)
@@ -538,7 +542,8 @@ const AddDirectDispatch = () => {
             packageDetails: `${el?.package} of ${el?.package_qty} ${el?.package_uom_label} ${el?.product_form_label}`,
             manufacture: el?.manufacturer,
             variant_id: el?.stock_variant_id,
-            multiplier: el?.stock_multiplier
+            multiplier: el?.stock_multiplier,
+            unit_price: el?.unit_price
           }
         })
 
@@ -607,7 +612,8 @@ const AddDirectDispatch = () => {
       packageDetails: getItems[0]?.packageDetails,
       manufacture: getItems[0]?.manufacture,
       variant_id: getItems[0]?.variant_id,
-      multiplier: getItems[0]?.multiplier
+      multiplier: getItems[0]?.multiplier,
+      unit_price: getItems[0]?.unit_price
     })
     // }
   }
@@ -743,6 +749,12 @@ const AddDirectDispatch = () => {
   //     }
   //   }
   // }
+
+  const totalDispatchValue = editParams.request_item_details.reduce((total, item) => {
+    return total + item.request_item_qty * parseFloat(item.unit_price)
+  }, 0)
+
+  console.log(editParams.request_item_details, 'editParams')
 
   return (
     <>
@@ -1003,7 +1015,7 @@ const AddDirectDispatch = () => {
                 >
                   Total Dispatch Value:{' '}
                   <Typography component='span' variant='body2' sx={{ color: 'primary.light' }}>
-                    ₹0
+                    {Utility.formatAmountToReadableDigit(totalDispatchValue)}
                   </Typography>
                 </Typography>
               </Stack>
@@ -1068,6 +1080,8 @@ const AddDirectDispatch = () => {
                         <TableCell>Expiry Date</TableCell>
                         <TableCell>Priority</TableCell>
                         <TableCell>Quantity</TableCell>
+                        <TableCell>Unit Price</TableCell>
+                        <TableCell>Total Value</TableCell>
                         <TableCell>Action</TableCell>
                       </TableRow>
                     </TableHead>
@@ -1117,6 +1131,12 @@ const AddDirectDispatch = () => {
 
                                 <TableCell sx={{ borderBottomColor: 'customColors.customTableBorderBg' }}>
                                   {el.request_item_qty}
+                                </TableCell>
+                                <TableCell sx={{ borderBottomColor: 'customColors.customTableBorderBg' }}>
+                                  {Utility.formatAmountToReadableDigit(el.unit_price)}
+                                </TableCell>
+                                <TableCell sx={{ borderBottomColor: 'customColors.customTableBorderBg' }}>
+                                  {Utility.formatAmountToReadableDigit(el.request_item_qty * el.unit_price)}
                                 </TableCell>
 
                                 <TableCell sx={{ borderBottomColor: 'customColors.customTableBorderBg' }}>
