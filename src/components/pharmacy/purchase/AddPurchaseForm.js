@@ -1359,7 +1359,7 @@ const AddPurchaseForm = () => {
   // ---------------
 
   useEffect(() => {
-    if (Number(inputValue) !== Number(grandTotalAmount)) {
+    if (Number(inputValue).toFixed(2) !== Number(grandTotalAmount).toFixed(2)) {
       setIsError(true)
     } else {
       setIsError(false)
