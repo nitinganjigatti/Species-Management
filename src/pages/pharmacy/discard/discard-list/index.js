@@ -251,30 +251,30 @@ const ListOfDiscardProducts = () => {
       )
     },
 
-    // {
-    //   flex: 0.2,
-    //   minWidth: 20,
-    //   field: 'discarded_date',
-    //   headerName: 'Discarded Date',
-    //   type: 'number',
-    //   headerAlign: 'left',
-    //   align: 'left',
-    //   renderCell: params => (
-    //     <Typography
-    //       variant='body2'
-    //       sx={{
-    //         color: theme.palette.customColors.customHeadingTextColor,
-    //         fontSize: '14px',
-    //         fontWeight: 500,
-    //         fontFamily: 'Inter'
-    //       }}
-    //     >
-    //       {Utility.formatDisplayDate(params.row.discarded_date) === 'Invalid date'
-    //         ? 'NA'
-    //         : Utility.formatDisplayDate(params.row.discarded_date)}
-    //     </Typography>
-    //   )
-    // },
+    {
+      flex: 0.2,
+      minWidth: 20,
+      field: 'discarded_date',
+      headerName: 'Discarded Date',
+      type: 'number',
+      headerAlign: 'left',
+      align: 'left', 
+      renderCell: params => (
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
+          {Utility.formatDisplayDate(params.row.discarded_date) === 'Invalid date'
+            ? 'NA'
+            : Utility.formatDisplayDate(params.row.discarded_date)}
+        </Typography>
+      )
+    },
     {
       flex: 0.2,
       Width: 20,
