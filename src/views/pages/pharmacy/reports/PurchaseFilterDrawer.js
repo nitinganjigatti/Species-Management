@@ -10,16 +10,17 @@ import {
   IconButton,
   MenuItem,
   Select,
+  styled,
   TextField,
   Typography
 } from '@mui/material'
-import { Box, styled } from '@mui/system'
+import { Box } from '@mui/system'
 import React, { useCallback, useEffect, useState } from 'react'
 import Icon from 'src/@core/components/icon'
 
 const leftMenu = [
-  { id: 1, name: 'Pharmacy' },
-  { id: 2, name: 'Product Type' },
+  { id: 1, name: 'Supplier Name' },
+  { id: 2, name: 'Created By' },
   { id: 3, name: 'Drug Type' }
 ]
 
@@ -35,16 +36,16 @@ const StyledBadge = styled(Badge)(({ theme }) => ({
   }
 }))
 
-const ConsumptionReportDrawer = ({
+const PurchaseFilterDrawer = ({
   openFilterDrawer,
   setOpenFilterDrawer,
   onApplyFilter,
   selectedOptions,
   setSelectedOptions,
-  pharmacyList,
-  productTypes,
-  handleSelectAllProductTypes,
-  handleSelectAllPharmacy
+  supplierData,
+  handleSelectAllSuppliers,
+  users,
+  handleSelectAllUser
 }) => {
   const theme = useTheme()
 
@@ -52,14 +53,14 @@ const ConsumptionReportDrawer = ({
   const [searchQuery, setSearchQuery] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  const isAllProductTypesSelected =
-    productTypes?.length > 0 && selectedOptions['Product Type']?.length === productTypes?.length
+  const isAllSupplierSelected =
+    supplierData?.length > 0 && selectedOptions['Supplier Name']?.length === supplierData?.length
 
-  const isAllPharmaciesSelected =
-    pharmacyList?.length > 0 && selectedOptions['Pharmacy']?.length === pharmacyList?.length
+  const isAllUsersSelected = users?.length > 0 && selectedOptions['Created By'].length === users?.length
 
   const handleCloseDrawer = () => {
     setOpenFilterDrawer(false)
+    setSelectedMenu(leftMenu[0])
   }
 
   const handleMenuClick = menu => {
@@ -98,14 +99,12 @@ const ConsumptionReportDrawer = ({
     if (isSubmitting) return
     setIsSubmitting(true)
     const filterData = {}
-
-    //Attach Pharmacy filters to object to send
-    if (selectedOptions['Pharmacy'] && selectedOptions['Pharmacy'].length > 0) {
-      filterData.pharmacy = selectedOptions['Pharmacy']
+    if (selectedOptions['Supplier Name'] && selectedOptions['Supplier Name'].length > 0) {
+      filterData['suppliersName'] = selectedOptions['Supplier Name']
     }
 
-    if (selectedOptions['Product Type'] && selectedOptions['Product Type'].length > 0) {
-      filterData.productType = selectedOptions['Product Type']
+    if (selectedOptions['Created By'] && selectedOptions['Created By'].length > 0) {
+      filterData['createdBy'] = selectedOptions['Created By']
     }
 
     if (selectedOptions['Drug Type'] && selectedOptions['Drug Type'] !== 'all') {
@@ -125,16 +124,18 @@ const ConsumptionReportDrawer = ({
     return selectedOptions[menuName] ? selectedOptions[menuName].length : 0
   }
 
-  const filteredPharmacyList = pharmacyList?.filter(pharmacy =>
-    pharmacy.name.toLowerCase().includes(searchQuery.toLowerCase())
+  const filteredSuppliersList = supplierData?.filter(supplier =>
+    supplier.company_name.toLowerCase().includes(searchQuery.toLowerCase())
   )
 
-  const handlePharmacySelectAll = () => {
-    handleSelectAllPharmacy()
+  const filteredUsersList = users?.filter(user => user.name.toLowerCase().includes(searchQuery.toLowerCase()))
+
+  const handleSuppliersSelectAll = () => {
+    handleSelectAllSuppliers()
   }
 
-  const handleProductTypeSelectAll = () => {
-    handleSelectAllProductTypes()
+  const handleUserSelectAll = () => {
+    handleSelectAllUser()
   }
 
   return (
@@ -226,7 +227,7 @@ const ConsumptionReportDrawer = ({
                 scrollbarWidth: 'none'
               }}
             >
-              {selectedMenu.name === 'Pharmacy' ? (
+              {selectedMenu.name === 'Supplier Name' ? (
                 <>
                   <Box
                     sx={{
@@ -261,47 +262,78 @@ const ConsumptionReportDrawer = ({
                   </Box>
                   <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
                     <Checkbox
-                      checked={isAllPharmaciesSelected}
-                      indeterminate={selectedOptions['Pharmacy']?.length > 0 && !isAllPharmaciesSelected}
+                      checked={isAllSupplierSelected}
+                      indeterminate={selectedOptions['Supplier Name']?.length > 0 && !isAllSupplierSelected}
                       inputProps={{ 'aria-label': 'controlled' }}
-                      onChange={handlePharmacySelectAll}
+                      onChange={handleSuppliersSelectAll}
                     />
                     <Typography sx={{ fontSize: '16px', fontWeight: 400, color: '#839D8D' }}>Select All</Typography>
                   </Box>
                   <Divider sx={{ mb: 3 }} />
-                  {filteredPharmacyList?.map(pharmacy => (
-                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }} key={pharmacy?.id}>
+                  {filteredSuppliersList?.map(supplier => (
+                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }} key={supplier?.id}>
                       <Checkbox
                         inputProps={{ 'aria-label': 'controlled' }}
-                        checked={selectedOptions['Pharmacy']?.includes(pharmacy?.id)}
-                        onChange={() => handleCheckbox(pharmacy?.id, 'Pharmacy')}
+                        checked={selectedOptions['Supplier Name']?.includes(supplier?.id)}
+                        onChange={() => handleCheckbox(supplier?.id, 'Supplier Name')}
                       />
                       <Typography sx={{ fontSize: '16px', fontWeight: 400, color: '#839D8D' }}>
-                        {pharmacy?.name}
+                        {supplier?.company_name}
                       </Typography>
                     </Box>
                   ))}
                 </>
-              ) : selectedMenu.name === 'Product Type' ? (
+              ) : selectedMenu.name === 'Created By' ? (
                 <>
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      border: '1px solid #C3CEC7',
+                      borderRadius: '4px',
+                      padding: '0 8px',
+                      height: '40px',
+                      mb: 4
+                    }}
+                  >
+                    <Icon icon='mi:search' color={theme.palette.customColors.OnSurfaceVariant} />
+                    <TextField
+                      variant='outlined'
+                      placeholder='Search'
+                      value={searchQuery}
+                      onChange={handleSearch}
+                      InputProps={{
+                        disableUnderline: false
+                      }}
+                      sx={{
+                        '& .MuiOutlinedInput-root': {
+                          border: 'none',
+                          padding: '0',
+                          '& fieldset': {
+                            border: 'none'
+                          }
+                        }
+                      }}
+                    />
+                  </Box>
                   <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
                     <Checkbox
-                      checked={isAllProductTypesSelected}
-                      indeterminate={selectedOptions['Product Type']?.length > 0 && !isAllProductTypesSelected}
+                      checked={isAllUsersSelected}
+                      indeterminate={selectedOptions['Created By']?.length > 0 && !isAllUsersSelected}
                       inputProps={{ 'aria-label': 'controlled' }}
-                      onChange={handleProductTypeSelectAll}
+                      onChange={handleUserSelectAll}
                     />
                     <Typography sx={{ fontSize: '16px', fontWeight: 400, color: '#839D8D' }}>Select All</Typography>
                   </Box>
                   <Divider sx={{ mb: 3 }} />
-                  {productTypes?.map(type => (
-                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }} key={type?.id}>
+                  {filteredUsersList?.map(user => (
+                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }} key={user?.id}>
                       <Checkbox
                         inputProps={{ 'aria-label': 'controlled' }}
-                        checked={selectedOptions['Product Type']?.includes(type?.id)}
-                        onChange={() => handleCheckbox(type?.id, 'Product Type')}
+                        checked={selectedOptions['Created By']?.includes(user?.id)}
+                        onChange={() => handleCheckbox(user?.id, 'Created By')}
                       />
-                      <Typography sx={{ fontSize: '16px', fontWeight: 400, color: '#839D8D' }}>{type?.name}</Typography>
+                      <Typography sx={{ fontSize: '16px', fontWeight: 400, color: '#839D8D' }}>{user?.name}</Typography>
                     </Box>
                   ))}
                 </>
@@ -357,10 +389,10 @@ const ConsumptionReportDrawer = ({
           zIndex: 123
         }}
       >
-        <LoadingButton fullWidth variant='outlined' size='large' onClick={handleCloseDrawer}>
+        <LoadingButton fullWidth variant='outlined' size='large'>
           CLOSE
         </LoadingButton>
-        <LoadingButton fullWidth variant='contained' size='large' onClick={applyFilters} disabled={isSubmitting}>
+        <LoadingButton fullWidth variant='contained' size='large' onClick={applyFilters}>
           APPLY FILTER
         </LoadingButton>
       </Box>
@@ -368,4 +400,4 @@ const ConsumptionReportDrawer = ({
   )
 }
 
-export default ConsumptionReportDrawer
+export default PurchaseFilterDrawer

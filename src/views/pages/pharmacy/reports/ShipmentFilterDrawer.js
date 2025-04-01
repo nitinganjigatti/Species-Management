@@ -1,5 +1,3 @@
-import { useTheme } from '@emotion/react'
-import { LoadingButton } from '@mui/lab'
 import {
   Badge,
   Checkbox,
@@ -8,19 +6,22 @@ import {
   FormControl,
   Grid,
   IconButton,
+  InputLabel,
   MenuItem,
   Select,
   TextField,
   Typography
 } from '@mui/material'
-import { Box, styled } from '@mui/system'
-import React, { useCallback, useEffect, useState } from 'react'
+import { useTheme } from '@mui/material/styles'
 import Icon from 'src/@core/components/icon'
+import { Box, styled } from '@mui/system'
+import React, { useCallback, useContext, useEffect, useState } from 'react'
+import { LoadingButton } from '@mui/lab'
 
 const leftMenu = [
+  // { id: , name: 'Batch Number' },
   { id: 1, name: 'Pharmacy' },
-  { id: 2, name: 'Product Type' },
-  { id: 3, name: 'Drug Type' }
+  { id: 2, name: 'Drug Type' }
 ]
 
 const drugTypeOptions = [
@@ -35,15 +36,13 @@ const StyledBadge = styled(Badge)(({ theme }) => ({
   }
 }))
 
-const ConsumptionReportDrawer = ({
+const ShipmentFilterDrawer = ({
   openFilterDrawer,
   setOpenFilterDrawer,
   onApplyFilter,
   selectedOptions,
   setSelectedOptions,
   pharmacyList,
-  productTypes,
-  handleSelectAllProductTypes,
   handleSelectAllPharmacy
 }) => {
   const theme = useTheme()
@@ -51,9 +50,6 @@ const ConsumptionReportDrawer = ({
   const [selectedMenu, setSelectedMenu] = useState(leftMenu[0])
   const [searchQuery, setSearchQuery] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
-
-  const isAllProductTypesSelected =
-    productTypes?.length > 0 && selectedOptions['Product Type']?.length === productTypes?.length
 
   const isAllPharmaciesSelected =
     pharmacyList?.length > 0 && selectedOptions['Pharmacy']?.length === pharmacyList?.length
@@ -65,6 +61,13 @@ const ConsumptionReportDrawer = ({
   const handleMenuClick = menu => {
     setSelectedMenu(menu)
     setSearchQuery('')
+  }
+
+  const handleDrugTypeChange = event => {
+    setSelectedOptions(prevOptions => ({
+      ...prevOptions,
+      'Drug Type': event.target.value
+    }))
   }
 
   const handleCheckbox = useCallback(
@@ -83,13 +86,6 @@ const ConsumptionReportDrawer = ({
     [setSelectedOptions]
   )
 
-  const handleDrugTypeChange = event => {
-    setSelectedOptions(prevOptions => ({
-      ...prevOptions,
-      'Drug Type': event.target.value
-    }))
-  }
-
   const handleSearch = useCallback(event => {
     setSearchQuery(event.target.value)
   }, [])
@@ -99,13 +95,8 @@ const ConsumptionReportDrawer = ({
     setIsSubmitting(true)
     const filterData = {}
 
-    //Attach Pharmacy filters to object to send
     if (selectedOptions['Pharmacy'] && selectedOptions['Pharmacy'].length > 0) {
-      filterData.pharmacy = selectedOptions['Pharmacy']
-    }
-
-    if (selectedOptions['Product Type'] && selectedOptions['Product Type'].length > 0) {
-      filterData.productType = selectedOptions['Product Type']
+      filterData['pharmacy'] = selectedOptions['Pharmacy']
     }
 
     if (selectedOptions['Drug Type'] && selectedOptions['Drug Type'] !== 'all') {
@@ -117,14 +108,6 @@ const ConsumptionReportDrawer = ({
     setIsSubmitting(false)
   }, [selectedOptions, onApplyFilter, setOpenFilterDrawer, isSubmitting])
 
-  const getMenuBadgeCount = menuName => {
-    if (menuName === 'Drug Type') {
-      return selectedOptions[menuName] && selectedOptions[menuName] !== 'all' ? 1 : 0
-    }
-
-    return selectedOptions[menuName] ? selectedOptions[menuName].length : 0
-  }
-
   const filteredPharmacyList = pharmacyList?.filter(pharmacy =>
     pharmacy.name.toLowerCase().includes(searchQuery.toLowerCase())
   )
@@ -133,8 +116,12 @@ const ConsumptionReportDrawer = ({
     handleSelectAllPharmacy()
   }
 
-  const handleProductTypeSelectAll = () => {
-    handleSelectAllProductTypes()
+  const getMenuBadgeCount = menuName => {
+    if (menuName === 'Drug Type') {
+      return selectedOptions[menuName] && selectedOptions[menuName] !== 'all' ? 1 : 0
+    }
+
+    return selectedOptions[menuName] ? selectedOptions[menuName].length : 0
   }
 
   return (
@@ -226,7 +213,50 @@ const ConsumptionReportDrawer = ({
                 scrollbarWidth: 'none'
               }}
             >
-              {selectedMenu.name === 'Pharmacy' ? (
+              {selectedMenu?.name === 'Batch Number' ? (
+                <>
+                  {/* <Box
+                        sx={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          border: '1px solid #C3CEC7',
+                          borderRadius: '4px',
+                          padding: '0 8px',
+                          height: '40px',
+                          mb: 4
+                        }}
+                      >
+                        <Icon icon='mi:search' color={theme.palette.customColors.OnSurfaceVariant} />
+                        <TextField
+                          variant='outlined'
+                          placeholder='Search'
+                          value={searchQuery}
+                          onChange={handleSearch}
+                          InputProps={{
+                            disableUnderline: false
+                          }}
+                          sx={{
+                            '& .MuiOutlinedInput-root': {
+                              border: 'none',
+                              padding: '0',
+                              '& fieldset': {
+                                border: 'none'
+                              }
+                            }
+                          }}
+                        />
+                      </Box> */}
+                  {/* <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
+                        <Checkbox
+                          checked={selectAll}
+                          //   onChange={handleSelectAllChange}
+                          inputProps={{ 'aria-label': 'controlled' }}
+                        />
+                        <Typography sx={{ fontSize: '16px', fontWeight: 400, color: '#839D8D' }}>Select All</Typography>
+                      </Box> */}
+                  {/* <Divider sx={{ mb: 3 }} /> */}
+                </>
+              ) : selectedMenu?.name === 'Pharmacy' ? (
                 <>
                   <Box
                     sx={{
@@ -282,30 +312,7 @@ const ConsumptionReportDrawer = ({
                     </Box>
                   ))}
                 </>
-              ) : selectedMenu.name === 'Product Type' ? (
-                <>
-                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-                    <Checkbox
-                      checked={isAllProductTypesSelected}
-                      indeterminate={selectedOptions['Product Type']?.length > 0 && !isAllProductTypesSelected}
-                      inputProps={{ 'aria-label': 'controlled' }}
-                      onChange={handleProductTypeSelectAll}
-                    />
-                    <Typography sx={{ fontSize: '16px', fontWeight: 400, color: '#839D8D' }}>Select All</Typography>
-                  </Box>
-                  <Divider sx={{ mb: 3 }} />
-                  {productTypes?.map(type => (
-                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }} key={type?.id}>
-                      <Checkbox
-                        inputProps={{ 'aria-label': 'controlled' }}
-                        checked={selectedOptions['Product Type']?.includes(type?.id)}
-                        onChange={() => handleCheckbox(type?.id, 'Product Type')}
-                      />
-                      <Typography sx={{ fontSize: '16px', fontWeight: 400, color: '#839D8D' }}>{type?.name}</Typography>
-                    </Box>
-                  ))}
-                </>
-              ) : selectedMenu.name === 'Drug Type' ? (
+              ) : selectedMenu?.name === 'Drug Type' ? (
                 <>
                   <FormControl fullWidth>
                     <Select
@@ -360,7 +367,7 @@ const ConsumptionReportDrawer = ({
         <LoadingButton fullWidth variant='outlined' size='large' onClick={handleCloseDrawer}>
           CLOSE
         </LoadingButton>
-        <LoadingButton fullWidth variant='contained' size='large' onClick={applyFilters} disabled={isSubmitting}>
+        <LoadingButton fullWidth variant='contained' size='large' onClick={applyFilters}>
           APPLY FILTER
         </LoadingButton>
       </Box>
@@ -368,4 +375,4 @@ const ConsumptionReportDrawer = ({
   )
 }
 
-export default ConsumptionReportDrawer
+export default ShipmentFilterDrawer

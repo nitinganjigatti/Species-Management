@@ -92,6 +92,7 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
     // icon: 'material-symbols:request-quote-outline',
     path: '/pharmacy/requests-by-store/all-stores-request-list'
   }
+
   const requestByProductListing = {
     title: 'Request By Products',
 
@@ -318,7 +319,35 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
     path: '/pharmacy/reports/consumption-report'
   }
 
+  const returnReport = {
+    title: 'Return Report',
+    path: '/pharmacy/reports/return-report'
+  }
+
+  const shipmentReport = {
+    title: 'Shipment Report',
+    path: '/pharmacy/reports/shipment-report'
+  }
+
+  const purchaseReport = {
+    title: 'Purchase Report',
+    path: '/pharmacy/reports/purchase-report'
+  }
+
+  const requestReport = {
+    title: 'Pending Request Report',
+    path: '/pharmacy/reports/request-report'
+  }
+
+  const dispenseReport = {
+    title: 'Dispense Report',
+    path: '/pharmacy/reports/dispense-report'
+  }
+
   reportsParent.children.push(consumptionReport)
+  reportsParent.children.push(returnReport)
+  reportsParent.children.push(shipmentReport)
+  reportsParent.children.push(dispenseReport)
 
   const pharmacyNavigationArray = []
 
@@ -331,6 +360,9 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
     requestParent.children.push(requestListing)
     requestParent.children.push(requestByStoreListing)
     requestParent.children.push(nonExistingProductRequestList)
+
+    reportsParent.children.push(purchaseReport)
+    reportsParent.children.push(requestReport)
 
     // requestParent.children.push(requestByProductListing)
 

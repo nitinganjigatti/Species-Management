@@ -26,6 +26,7 @@ import { useTheme } from '@emotion/react'
 import FilterListIcon from '@mui/icons-material/FilterList'
 import { getPurchaseDetailsList } from 'src/lib/api/pharmacy/getMedicineList'
 import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDateRangePickers'
+import { v4 as uuidv4 } from 'uuid'
 
 const formatDate = dateString => {
   const date = new Date(dateString)
@@ -54,6 +55,7 @@ function Purchase({ tabValue, updateUrlParams }) {
     page: parseInt(router.query.page) || 0,
     pageSize: parseInt(router.query.limit) || 10
   })
+
   const [filterDates, setFilterDates] = useState({
     startDate: router.query.from_date || '',
     endDate: router.query.to_date || ''
@@ -197,6 +199,7 @@ function Purchase({ tabValue, updateUrlParams }) {
       headerName: 'TOTAL VALUE (₹)',
       renderCell: params => {
         const totalValue = params.row.qty * params.row.net_unit_price
+
         return (
           <Typography
             variant='body2'
@@ -275,6 +278,7 @@ function Purchase({ tabValue, updateUrlParams }) {
     },
     {
       width: 200,
+
       // field: 'veterinarian',
       // headerName: 'VETERINARIAN',
       field: 'created_by_user_name',
@@ -333,6 +337,7 @@ function Purchase({ tabValue, updateUrlParams }) {
           page: paginationModel.page + 1,
           limit: paginationModel.pageSize
         }
+
         // Call the API to fetch data with the sorting and other params
         await getPurchaseDetailsList(params, id).then(res => {
           if (res?.success) {
@@ -376,13 +381,24 @@ function Purchase({ tabValue, updateUrlParams }) {
     }
   }, [fetchTableData, updateUrlParams, router.query.tab])
 
-  const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
+  // const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
-  const indexedRows = rows?.map((row, index) => ({
-    ...row,
-    id: `${row.id}`,
-    sl_no: getSlNo(index)
-  }))
+  // const indexedRows = rows?.map((row, index) => ({
+  //   ...row,
+  //   id: `${row.id}`,
+  //   sl_no: getSlNo(index)
+  // }))
+
+  const indexedRows = rows?.map((row, index) => {
+    const baseIndex = paginationModel.page * paginationModel.pageSize
+
+    return {
+      ...row,
+      id: uuidv4(),
+      uuid: `${row.id}`,
+      sl_no: baseIndex + index + 1
+    }
+  })
 
   const searchTableData = useCallback(
     debounce(async ({ sort, q, column }) => {
@@ -420,7 +436,7 @@ function Purchase({ tabValue, updateUrlParams }) {
     console.log(data, 'data123')
     Router.push({
       pathname: `/pharmacy/medicine/${id}/purchase-details`,
-      query: { p_id: data?.id, po_no: data?.po_no, action: 'edit' }
+      query: { p_id: data?.uuid, po_no: data?.po_no, action: 'edit' }
     })
   }
 

@@ -19,8 +19,9 @@ import Icon from 'src/@core/components/icon'
 
 const leftMenu = [
   { id: 1, name: 'Pharmacy' },
-  { id: 2, name: 'Product Type' },
-  { id: 3, name: 'Drug Type' }
+  { id: 2, name: 'User' },
+  { id: 3, name: 'Drug Type' },
+  { id: 4, name: 'Priority' }
 ]
 
 const drugTypeOptions = [
@@ -29,22 +30,29 @@ const drugTypeOptions = [
   { id: 'prescription', name: 'Prescription' }
 ]
 
+const priorityOptions = [
+  { id: 'all', name: 'All' },
+  { id: 'normal', name: 'Normal' },
+  { id: 'high', name: 'High' },
+  { id: 'emergency', name: 'Emergency' }
+]
+
 const StyledBadge = styled(Badge)(({ theme }) => ({
   '& .MuiBadge-badge': {
     borderRadius: '20%'
   }
 }))
 
-const ConsumptionReportDrawer = ({
+const RequestedItemFilterDrawer = ({
   openFilterDrawer,
   setOpenFilterDrawer,
   onApplyFilter,
   selectedOptions,
   setSelectedOptions,
   pharmacyList,
-  productTypes,
-  handleSelectAllProductTypes,
-  handleSelectAllPharmacy
+  users,
+  handleSelectAllPharmacy,
+  handleSelectAllUser
 }) => {
   const theme = useTheme()
 
@@ -52,11 +60,10 @@ const ConsumptionReportDrawer = ({
   const [searchQuery, setSearchQuery] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  const isAllProductTypesSelected =
-    productTypes?.length > 0 && selectedOptions['Product Type']?.length === productTypes?.length
-
   const isAllPharmaciesSelected =
     pharmacyList?.length > 0 && selectedOptions['Pharmacy']?.length === pharmacyList?.length
+
+  const isAllUsersSelected = users?.length > 0 && selectedOptions['User'].length === users?.length
 
   const handleCloseDrawer = () => {
     setOpenFilterDrawer(false)
@@ -90,6 +97,13 @@ const ConsumptionReportDrawer = ({
     }))
   }
 
+  const handlePriorityChange = event => {
+    setSelectedOptions(prevOptions => ({
+      ...prevOptions,
+      Priority: event.target.value
+    }))
+  }
+
   const handleSearch = useCallback(event => {
     setSearchQuery(event.target.value)
   }, [])
@@ -97,44 +111,53 @@ const ConsumptionReportDrawer = ({
   const applyFilters = useCallback(() => {
     if (isSubmitting) return
     setIsSubmitting(true)
+
     const filterData = {}
 
-    //Attach Pharmacy filters to object to send
-    if (selectedOptions['Pharmacy'] && selectedOptions['Pharmacy'].length > 0) {
-      filterData.pharmacy = selectedOptions['Pharmacy']
+    if (selectedOptions['User'] && selectedOptions['User'].length > 0) {
+      filterData['User'] = selectedOptions['User']
     }
 
-    if (selectedOptions['Product Type'] && selectedOptions['Product Type'].length > 0) {
-      filterData.productType = selectedOptions['Product Type']
+    if (selectedOptions['Pharmacy'] && selectedOptions['Pharmacy'].length > 0) {
+      filterData['Pharmacy'] = selectedOptions['Pharmacy']
     }
 
     if (selectedOptions['Drug Type'] && selectedOptions['Drug Type'] !== 'all') {
       filterData[selectedOptions['Drug Type']] = 1
     }
 
+    if (selectedOptions['Priority'] && selectedOptions['Priority'] !== 'all') {
+      filterData['Priority'] = selectedOptions['Priority']
+    }
+
     onApplyFilter(filterData)
     setOpenFilterDrawer(false)
-    setIsSubmitting(false)
   }, [selectedOptions, onApplyFilter, setOpenFilterDrawer, isSubmitting])
+
+  const filteredPharmacyList = pharmacyList?.filter(pharmacy =>
+    pharmacy.name.toLowerCase().includes(searchQuery.toLowerCase())
+  )
+
+  const filteredUsersList = users?.filter(user => user.name.toLowerCase().includes(searchQuery.toLowerCase()))
 
   const getMenuBadgeCount = menuName => {
     if (menuName === 'Drug Type') {
       return selectedOptions[menuName] && selectedOptions[menuName] !== 'all' ? 1 : 0
     }
 
+    if (menuName === 'Priority') {
+      return selectedOptions[menuName] && selectedOptions[menuName] !== 'all' ? 1 : 0
+    }
+
     return selectedOptions[menuName] ? selectedOptions[menuName].length : 0
   }
-
-  const filteredPharmacyList = pharmacyList?.filter(pharmacy =>
-    pharmacy.name.toLowerCase().includes(searchQuery.toLowerCase())
-  )
 
   const handlePharmacySelectAll = () => {
     handleSelectAllPharmacy()
   }
 
-  const handleProductTypeSelectAll = () => {
-    handleSelectAllProductTypes()
+  const handleUserSelectAll = () => {
+    handleSelectAllUser()
   }
 
   return (
@@ -164,13 +187,13 @@ const ConsumptionReportDrawer = ({
           <Icon icon='mage:filter' fontSize={30} />
           <Typography sx={{ fontSize: '24px', fontWeight: 500 }}>Filter</Typography>
         </Box>
-
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
           <IconButton size='small' sx={{ color: 'text.primary' }} onClick={handleCloseDrawer}>
             <Icon icon='mdi:close' fontSize={24} />
           </IconButton>
         </Box>
       </Box>
+
       <Box
         sx={{
           '& .MuiDrawer-paper': { width: ['100%', '562px'] },
@@ -282,26 +305,57 @@ const ConsumptionReportDrawer = ({
                     </Box>
                   ))}
                 </>
-              ) : selectedMenu.name === 'Product Type' ? (
+              ) : selectedMenu.name === 'User' ? (
                 <>
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      border: '1px solid #C3CEC7',
+                      borderRadius: '4px',
+                      padding: '0 8px',
+                      height: '40px',
+                      mb: 4
+                    }}
+                  >
+                    <Icon icon='mi:search' color={theme.palette.customColors.OnSurfaceVariant} />
+                    <TextField
+                      variant='outlined'
+                      placeholder='Search'
+                      value={searchQuery}
+                      onChange={handleSearch}
+                      InputProps={{
+                        disableUnderline: false
+                      }}
+                      sx={{
+                        '& .MuiOutlinedInput-root': {
+                          border: 'none',
+                          padding: '0',
+                          '& fieldset': {
+                            border: 'none'
+                          }
+                        }
+                      }}
+                    />
+                  </Box>
                   <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
                     <Checkbox
-                      checked={isAllProductTypesSelected}
-                      indeterminate={selectedOptions['Product Type']?.length > 0 && !isAllProductTypesSelected}
+                      checked={isAllUsersSelected}
+                      indeterminate={selectedOptions['User']?.length > 0 && !isAllUsersSelected}
                       inputProps={{ 'aria-label': 'controlled' }}
-                      onChange={handleProductTypeSelectAll}
+                      onChange={handleUserSelectAll}
                     />
                     <Typography sx={{ fontSize: '16px', fontWeight: 400, color: '#839D8D' }}>Select All</Typography>
                   </Box>
                   <Divider sx={{ mb: 3 }} />
-                  {productTypes?.map(type => (
-                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }} key={type?.id}>
+                  {filteredUsersList?.map(user => (
+                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }} key={user?.id}>
                       <Checkbox
                         inputProps={{ 'aria-label': 'controlled' }}
-                        checked={selectedOptions['Product Type']?.includes(type?.id)}
-                        onChange={() => handleCheckbox(type?.id, 'Product Type')}
+                        checked={selectedOptions['User']?.includes(user?.id)}
+                        onChange={() => handleCheckbox(user?.id, 'User')}
                       />
-                      <Typography sx={{ fontSize: '16px', fontWeight: 400, color: '#839D8D' }}>{type?.name}</Typography>
+                      <Typography sx={{ fontSize: '16px', fontWeight: 400, color: '#839D8D' }}>{user?.name}</Typography>
                     </Box>
                   ))}
                 </>
@@ -320,6 +374,36 @@ const ConsumptionReportDrawer = ({
                       }}
                     >
                       {drugTypeOptions.map(option => (
+                        <MenuItem
+                          key={option.id}
+                          value={option.id}
+                          sx={{
+                            fontSize: '16px',
+                            fontWeight: 400,
+                            color: '#839D8D'
+                          }}
+                        >
+                          {option.name}
+                        </MenuItem>
+                      ))}
+                    </Select>
+                  </FormControl>
+                </>
+              ) : selectedMenu.name === 'Priority' ? (
+                <>
+                  <FormControl fullWidth>
+                    <Select
+                      value={selectedOptions['Priority'] || 'all'}
+                      onChange={handlePriorityChange}
+                      sx={{
+                        '& .MuiSelect-select': {
+                          fontSize: '16px',
+                          fontWeight: 400,
+                          color: '#839D8D'
+                        }
+                      }}
+                    >
+                      {priorityOptions.map(option => (
                         <MenuItem
                           key={option.id}
                           value={option.id}
@@ -360,7 +444,7 @@ const ConsumptionReportDrawer = ({
         <LoadingButton fullWidth variant='outlined' size='large' onClick={handleCloseDrawer}>
           CLOSE
         </LoadingButton>
-        <LoadingButton fullWidth variant='contained' size='large' onClick={applyFilters} disabled={isSubmitting}>
+        <LoadingButton fullWidth variant='contained' size='large' onClick={applyFilters}>
           APPLY FILTER
         </LoadingButton>
       </Box>
@@ -368,4 +452,4 @@ const ConsumptionReportDrawer = ({
   )
 }
 
-export default ConsumptionReportDrawer
+export default RequestedItemFilterDrawer

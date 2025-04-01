@@ -11,30 +11,26 @@ import {
   Tooltip,
   Typography
 } from '@mui/material'
+import CustomAvatar from 'src/@core/components/mui/avatar'
 import { Box } from '@mui/system'
+import { format, subMonths } from 'date-fns'
 import { debounce } from 'lodash'
 import { useRouter } from 'next/router'
 import React, { useCallback, useEffect, useState } from 'react'
 import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDateRangePickers'
-import { getConsumptionReport } from 'src/lib/api/pharmacy/reports'
+import { usePharmacyContext } from 'src/context/PharmacyContext'
+import { getDispenseReport } from 'src/lib/api/pharmacy/reports'
 import Utility from 'src/utility'
-import Icon from 'src/@core/components/icon'
 import RenderUtility from 'src/utility/render'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
+import Icon from 'src/@core/components/icon'
+import DispenseReportFilterDrawer from 'src/views/pages/pharmacy/reports/DispenseReportFilterDrawer'
 import { getStoreList } from 'src/lib/api/pharmacy/getStoreList'
-import ConsumptionReportDrawer from 'src/views/pages/pharmacy/reports/consumptionReportDrawer'
-import { usePharmacyContext } from 'src/context/PharmacyContext'
-import { format, subMonths } from 'date-fns'
+import StyleWithIconCardComponent from 'src/views/utility/style-with-icon-card'
+import { getUserList } from 'src/lib/api/pharmacy/dispenseProduct'
+import { readAsync } from 'src/lib/windows/utils'
 
-const productTypes = [
-  { id: 'allopathy', name: 'Allopathy' },
-  { id: 'ayurveda', name: 'Ayurveda' },
-  { id: 'unani', name: 'Unani' },
-  { id: 'homeopathy', name: 'Homeopathy' },
-  { id: 'non_medical', name: 'Non Medical' }
-]
-
-const ConsumptionReport = () => {
+const DispenseReport = () => {
   const router = useRouter()
   const theme = useTheme()
 
@@ -53,19 +49,10 @@ const ConsumptionReport = () => {
   const [searchValue, setSearchValue] = useState(router.query.q || '')
   const [exportLoading, setExportLoading] = useState(false)
   const [openFilterDrawer, setOpenFilterDrawer] = useState(false)
-  const [selectAllPharmacy, setSelectAllPharmacy] = useState(false)
-  const [selectAllProductTypes, setSelectAllProductTypes] = useState(false)
-
-  const [filteredData, setFilteredData] = useState({
-    pharmacy: []
-  })
   const [pharmacyList, setPharmacyList] = useState([])
-
-  const [selectedOptions, setSelectedOptions] = useState({
-    Pharmacy: [],
-    'Product Type': [],
-    'Drug Type': 'all'
-  })
+  const [users, setUsers] = useState([])
+  const [selectAllPharmacy, setSelectAllPharmacy] = useState(false)
+  const [selectAllUser, setSelectAllUser] = useState(false)
 
   const [paginationModel, setPaginationModel] = useState({
     page: parseInt(router.query.page) || 0,
@@ -75,6 +62,16 @@ const ConsumptionReport = () => {
   const [filterDates, setFilterDates] = useState({
     startDate: router.query.startDate || Utility.formatDate(format(subMonths(new Date(), 1), 'dd MMM, yyyy')),
     endDate: router.query.endDate || Utility.formatDate(format(new Date(), 'dd MMM, yyyy'))
+  })
+
+  const [filteredData, setFilteredData] = useState({
+    pharmacy: []
+  })
+
+  const [selectedOptions, setSelectedOptions] = useState({
+    Pharmacy: [],
+    User: [],
+    'Drug Type': 'all'
   })
 
   useEffect(() => {
@@ -97,7 +94,30 @@ const ConsumptionReport = () => {
         console.log(error)
       }
     }
+
+    const getUserLists = async () => {
+      try {
+        const userDetails = await readAsync('userDetails')
+        if (userDetails?.user?.zoos.length > 0) {
+          let zoo_id = userDetails?.user?.zoos[0].zoo_id
+          await getUserList({ zoo_id }).then(res => {
+            if (res?.data?.length > 0) {
+              setUsers(
+                res?.data?.map(item => ({
+                  name: item?.user_name,
+                  id: item?.user_id
+                }))
+              )
+            }
+          })
+        }
+      } catch (error) {
+        console.log('user error', error)
+      }
+    }
+
     pharmacyList()
+    getUserLists()
   }, [selectedPharmacy])
 
   const handleSelectAllPharmacy = () => {
@@ -115,17 +135,17 @@ const ConsumptionReport = () => {
     }
   }
 
-  const handleSelectAllProductTypes = () => {
-    setSelectAllProductTypes(!selectAllProductTypes)
-    if (!selectAllProductTypes) {
+  const handleSelectAllUser = () => {
+    setSelectAllUser(!selectAllUser)
+    if (!selectAllUser) {
       setSelectedOptions({
         ...selectedOptions,
-        'Product Type': productTypes.map(pr => pr.id)
+        User: users.map(u => u.id)
       })
     } else {
       setSelectedOptions({
         ...selectedOptions,
-        'Product Type': []
+        User: []
       })
     }
   }
@@ -145,20 +165,18 @@ const ConsumptionReport = () => {
           sort: sort,
           q: q,
           column: column,
-          include_dispatch: true,
           ...(filterDates?.startDate !== '' && { from_date: filterDates?.startDate }),
           ...(filterDates?.endDate !== '' && { to_date: filterDates?.endDate }),
           ...(filteredData &&
             filteredData.pharmacy &&
             filteredData.pharmacy.length > 0 && { store_id: filteredData.pharmacy.join(',') }),
           ...(filteredData &&
-            filteredData.productType &&
-            filteredData.productType.length > 0 && { product_type: filteredData.productType.join(',') }),
+            filteredData.user &&
+            filteredData.user.length > 0 && { user_id: filteredData.user.join(',') }),
           ...(filteredData && filteredData.controlled && { controlled: filteredData.controlled }),
           ...(filteredData && filteredData.prescription && { prescription: filteredData.prescription })
         }
-
-        await getConsumptionReport({ params: params }).then(res => {
+        await getDispenseReport({ params: params }).then(res => {
           if (res?.success === true && res?.data?.list_items?.length > 0) {
             setTotal(parseInt(res?.data?.total_count))
             setRows(loadServerRows(paginationModel?.page, res?.data?.list_items))
@@ -185,6 +203,7 @@ const ConsumptionReport = () => {
       limit: paginationModel?.pageSize,
       filteredData: filteredData
     })
+
     updateUrlParams({
       sort,
       q: searchValue,
@@ -229,78 +248,10 @@ const ConsumptionReport = () => {
     },
     {
       minWidth: 20,
-      width: 200,
-      field: 'stock_name',
-      headerName: 'PRODUCT NAME',
+      width: 180,
+      field: 'dispense_number',
+      headerName: 'DISPENSE NUMBER',
       sortable: true,
-      renderCell: params => (
-        <Tooltip title={params.row?.stock_name} placement='top'>
-          <Typography
-            sx={{
-              color: 'customColors.OnSecondaryContainer',
-              display: 'flex',
-              alignItems: 'center',
-              fontWeight: 500,
-              fontSize: '14px',
-              ...RenderUtility?.getEllipsisStyleForText()
-            }}
-          >
-            {RenderUtility?.renderControlLabel(
-              !isNaN(params.row?.controlled_substance) && parseInt(params.row?.controlled_substance) === 1,
-              'CS'
-            )}
-            <span alt={params.row.stock_name}> {params.row.stock_name}</span>
-          </Typography>
-        </Tooltip>
-      )
-    },
-    {
-      minWidth: 20,
-      width: 200,
-      field: 'generic_name',
-      headerName: 'GENERIC NAME',
-      sortable: true,
-      renderCell: params => (
-        <Tooltip title={params.row.generic_name}>
-          <Typography
-            variant='body2'
-            sx={{
-              color: theme.palette.customColors.customHeadingTextColor,
-              fontSize: '14px',
-              fontWeight: 400,
-              fontFamily: 'Inter',
-              overflow: 'hidden',
-              whiteSpace: 'nowrap',
-              textOverflow: 'ellipsis',
-              maxWidth: 200
-            }}
-          >
-            {params.row.generic_name ? <span alt={params.row.generic_name}> {params.row.generic_name}</span> : 'NA'}
-          </Typography>
-        </Tooltip>
-      )
-    },
-    {
-      minWidth: 20,
-      width: 170,
-      field: 'total_consumption_quantity',
-      headerName: '',
-      sortable: true,
-      renderHeader: () => (
-        <div
-          style={{
-            whiteSpace: 'normal',
-            lineHeight: '1.3',
-            textAlign: 'center',
-            fontSize: '12px',
-            fontWeight: 450
-          }}
-        >
-          CONSUMPTION
-          <br />
-          QUANTITY
-        </div>
-      ),
       renderCell: params => (
         <Typography
           variant='body2'
@@ -311,7 +262,138 @@ const ConsumptionReport = () => {
             fontFamily: 'Inter'
           }}
         >
-          {params.row.total_consumption_quantity ? Utility.formatNumber(params.row.total_consumption_quantity) : 0}
+          {params.row.dispense_number}
+        </Typography>
+      )
+    },
+
+    // {
+    //   width: 5,
+    //   field: 'label',
+    //   headerName: '',
+    //   sortable: false,
+    //   renderCell: params => (
+    //     <Typography
+    //       sx={{
+    //         color: 'customColors.OnSecondaryContainer',
+    //         display: 'flex',
+    //         alignItems: 'center',
+    //         fontWeight: 500,
+    //         fontSize: '14px',
+    //         ...RenderUtility?.getEllipsisStyleForText()
+    //       }}
+    //     >
+    //       {RenderUtility?.renderControlLabel(
+    //         !isNaN(params.row?.controlled_substance) && parseInt(params.row?.controlled_substance) === 1,
+    //         'CS'
+    //       )}
+    //       {RenderUtility?.renderControlLabel(
+    //         !isNaN(params.row?.prescription_required) && parseInt(params.row?.prescription_required) === 1,
+    //         'PR'
+    //       )}
+    //     </Typography>
+    //   )
+    // },
+    {
+      width: 250,
+      minWidth: 20,
+      field: 'stock_name',
+      align: 'left',
+      sortable: true,
+      headerName: 'PRODUCT NAME',
+
+      renderCell: params => (
+        <Box>
+          <StyleWithIconCardComponent
+            value={
+              <>
+                <Typography sx={{ display: 'flex', alignItems: 'center' }}>
+                  <Typography
+                    sx={{
+                      color: 'customColors.OnSecondaryContainer',
+                      display: 'flex',
+
+                      alignItems: 'center',
+                      fontWeight: 500,
+                      fontSize: '14px',
+                      ...RenderUtility?.getEllipsisStyleForText()
+                    }}
+                  >
+                    {RenderUtility?.renderControlLabel(
+                      !isNaN(params.row?.controlled_substance) && parseInt(params.row?.controlled_substance) === 1,
+                      'CS'
+                    )}
+                  </Typography>
+                  <Typography
+                    sx={{
+                      color: 'customColors.customHeadingTextColor',
+                      fontWeight: 500,
+                      fontSize: '14px',
+                      overflow: 'hidden',
+                      whiteSpace: 'nowrap',
+                      textOverflow: 'ellipsis',
+                      maxWidth: 250
+                    }}
+                  >
+                    {params.row.stock_name}
+                  </Typography>
+                </Typography>
+              </>
+            }
+            description={params.row.generic_name ? params.row.generic_name : 'NA'}
+            icon={params.row.image ? `${params.row.image}` : '/images/Medicine_Icon.png'}
+            showIcon={false}
+            customCss={{
+              p: '0px',
+              width: '100%',
+              height: '100%',
+              fontSize: '14px',
+              avtBorderRadius: '10px',
+              iconWidth: '44px',
+              iconHeight: '44px'
+            }}
+          />
+        </Box>
+      )
+    },
+    {
+      minWidth: 20,
+      width: 160,
+      field: 'batch_no',
+      sortable: false,
+      headerName: 'BATCH NUMBER',
+      renderCell: params => (
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
+          {params.row.batch_no}
+        </Typography>
+      )
+    },
+    {
+      minWidth: 20,
+      width: 170,
+      field: 'dispense_qty',
+      headerName: 'DISPENSE QUANTITY',
+      sortable: true,
+
+      renderCell: params => (
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
+          {params.row.dispense_qty ? Utility.formatNumber(params.row.dispense_qty) : 0}
         </Typography>
       )
     },
@@ -319,23 +401,8 @@ const ConsumptionReport = () => {
       minWidth: 20,
       width: 190,
       field: 'total_consumption_cost',
-      headerName: '',
+      headerName: 'DISPENSE VALUE',
       sortable: true,
-      renderHeader: () => (
-        <div
-          style={{
-            whiteSpace: 'normal',
-            lineHeight: '1.3',
-            textAlign: 'center',
-            fontSize: '12px',
-            fontWeight: 450
-          }}
-        >
-          CONSUMPTION
-          <br />
-          VALUE
-        </div>
-      ),
       renderCell: params => (
         <Typography
           variant='body2'
@@ -346,42 +413,7 @@ const ConsumptionReport = () => {
             fontFamily: 'Inter'
           }}
         >
-          {Utility.formatAmountToReadableDigit(params.row.total_consumption_cost)}
-        </Typography>
-      )
-    },
-    {
-      minWidth: 20,
-      width: 190,
-      field: 'available_qty',
-      headerName: '',
-      sortable: true,
-      renderHeader: () => (
-        <div
-          style={{
-            whiteSpace: 'normal',
-            lineHeight: '1.3',
-            textAlign: 'center',
-            fontSize: '12px',
-            fontWeight: 450
-          }}
-        >
-          CURRENT STOCK
-          <br />
-          AVAILABLE
-        </div>
-      ),
-      renderCell: params => (
-        <Typography
-          variant='body2'
-          sx={{
-            color: theme.palette.customColors.customHeadingTextColor,
-            fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
-          }}
-        >
-          {params.row.available_qty ? Utility.formatNumber(params.row.available_qty) : 0}
+          {Utility.formatAmountToReadableDigit(params.row.dispense_value)}
         </Typography>
       )
     },
@@ -389,8 +421,8 @@ const ConsumptionReport = () => {
       minWidth: 20,
       width: 250,
       field: 'manufacturer_name',
+      sortable: false,
       headerName: 'MANUFACTURER NAME',
-      sortable: true,
       renderCell: params => (
         <Tooltip title={params.row.manufacturer_name}>
           <Typography
@@ -409,6 +441,82 @@ const ConsumptionReport = () => {
             <span alt={params.row.manufacturer_name}> {params.row.manufacturer_name}</span>
           </Typography>
         </Tooltip>
+      )
+    },
+    {
+      minWidth: 20,
+      width: 160,
+      field: 'from_store',
+      sortable: true,
+      headerName: 'FROM STORE',
+      renderCell: params => (
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
+          {params.row.from_store}
+        </Typography>
+      )
+    },
+    {
+      minWidth: 200,
+      field: 'dispense_to_user_name',
+      sortable: true,
+      headerName: 'DISPENSE TO ',
+      renderCell: params => (
+        <>
+          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+            {params?.row?.dispense_to_user_profile_pic ? (
+              <CustomAvatar
+                src={params?.row?.dispense_to_user_profile_pic}
+                sx={{ mr: '16px', width: '40px', height: '40px' }}
+              />
+            ) : (
+              <CustomAvatar sx={{ mr: '16px', width: '40px', height: '40px', fontSize: '.8rem' }}></CustomAvatar>
+            )}
+            <Tooltip title={params.row.dispense_to_user_name}>
+              <Typography
+                variant='subtitle2'
+                sx={{
+                  color: 'text.primary',
+                  fontSize: '14px',
+                  fontWeight: 400,
+                  fontFamily: 'Inter',
+                  overflow: 'hidden',
+                  whiteSpace: 'nowrap',
+                  textOverflow: 'ellipsis',
+                  maxWidth: 200
+                }}
+              >
+                {params?.row?.dispense_to_user_name ? (
+                  <span alt={params.row.dispense_to_user_name}> {params.row.dispense_to_user_name}</span>
+                ) : (
+                  'NA'
+                )}
+              </Typography>
+            </Tooltip>
+          </Box>
+        </>
+      )
+    },
+    {
+      minWidth: 200,
+      field: 'dispense_date',
+      sortable: true,
+      headerName: 'DISPENSE BY',
+      renderCell: params => (
+        <>
+          {RenderUtility?.renderUserAvatarDetails(
+            params?.row?.user_created_profile_pic,
+            params?.row?.dispense_created_by_user_name,
+            params?.row?.dispense_date
+          )}
+        </>
       )
     }
   ]
@@ -488,6 +596,7 @@ const ConsumptionReport = () => {
           column: column,
           page: page,
           limit: limit,
+
           startDate: filterDates?.startDate,
           endDate: filterDates?.endDate
         })
@@ -506,7 +615,6 @@ const ConsumptionReport = () => {
   const handleExport = async () => {
     try {
       setExportLoading(true)
-
       const now = new Date()
 
       const timestamp = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(
@@ -520,25 +628,25 @@ const ConsumptionReport = () => {
         column: sortColumn,
         page: 1,
         limit: total,
-        include_dispatch: true,
+        response_type: 'csv',
         ...(filterDates?.startDate !== '' && { from_date: filterDates?.startDate }),
         ...(filterDates?.endDate !== '' && { to_date: filterDates?.endDate }),
         ...(filteredData &&
           filteredData.pharmacy &&
           filteredData.pharmacy.length > 0 && { store_id: filteredData.pharmacy.join(',') }),
         ...(filteredData &&
-          filteredData.productType &&
-          filteredData.productType.length > 0 && { product_type: filteredData.productType.join(',') }),
+          filteredData.user &&
+          filteredData.user.length > 0 && { user_id: filteredData.user.join(',') }),
         ...(filteredData && filteredData.controlled && { controlled: filteredData.controlled }),
-        ...(filteredData && filteredData.prescription && { prescription: filteredData.prescription }),
-        response_type: 'csv'
+        ...(filteredData && filteredData.prescription && { prescription: filteredData.prescription })
       }
-      const response = await getConsumptionReport({ params })
+
+      const response = await getDispenseReport({ params })
       if (response?.success && response?.data) {
-        Utility.downloadFileFromURL(response.data, `Consumption_Report ${timestamp}`)
+        Utility.downloadFileFromURL(response.data, `Dispense_Report ${timestamp}`)
       }
-    } catch (error) {
-      console.error('Error downloading Excel:', error)
+    } catch (e) {
+      console.error(`Error Downloading Excel`, e)
     } finally {
       setExportLoading(false)
     }
@@ -551,7 +659,7 @@ const ConsumptionReport = () => {
       count++
     }
 
-    if (filteredData && filteredData.productType && filteredData.productType.length > 0) {
+    if (filteredData && filteredData.user && filteredData.user.length > 0) {
       count++
     }
 
@@ -579,9 +687,9 @@ const ConsumptionReport = () => {
             },
             mx: { xs: -1, sm: 0 }
           }}
-          title={RenderUtility.pageTitle('Consumption Report')}
+          title={RenderUtility.pageTitle('Dispense Report')}
         />
-        <CardContent sx={{ paddingTop: '4px' }}>
+        <CardContent>
           <Box
             sx={{
               display: 'flex',
@@ -718,20 +826,20 @@ const ConsumptionReport = () => {
         </CardContent>
       </Card>
       {openFilterDrawer && (
-        <ConsumptionReportDrawer
+        <DispenseReportFilterDrawer
           setOpenFilterDrawer={setOpenFilterDrawer}
           openFilterDrawer={openFilterDrawer}
           onApplyFilter={filterList => setFilteredData(filterList)}
           selectedOptions={selectedOptions}
           setSelectedOptions={setSelectedOptions}
           pharmacyList={pharmacyList}
-          productTypes={productTypes}
           handleSelectAllPharmacy={handleSelectAllPharmacy}
-          handleSelectAllProductTypes={handleSelectAllProductTypes}
+          users={users}
+          handleSelectAllUser={handleSelectAllUser}
         />
       )}
     </>
   )
 }
 
-export default ConsumptionReport
+export default DispenseReport
