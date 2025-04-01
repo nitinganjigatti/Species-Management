@@ -49,7 +49,8 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
           species_id: `${speciesId}`,
           attachment_id: `${attachment_id}`
         })
-        Toaster({ type: 'success', message: res.message || 'Attachment removed successfully' })
+        // Toaster({ type: 'success', message: res.message || 'Attachment removed successfully' })
+        Toaster({ type: 'success', message: 'Diet Deactivated Successfully' })
         await fetchTableData()
         await getSpecieDetail()
       } catch (error) {
@@ -69,7 +70,8 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
           species_id: `${speciesId}`,
           attachment_id: `${attachmentId}`
         })
-        Toaster({ type: 'success', message: 'Diet has been set as the primary diet successfully' })
+        // Toaster({ type: 'success', message: 'Diet has been set as the primary diet successfully' })
+        Toaster({ type: 'success', message: 'Diet Activated Successfully' })
         await fetchTableData()
         await getSpecieDetail()
       } catch (error) {

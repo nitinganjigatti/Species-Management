@@ -290,7 +290,7 @@ const SpeciesDietList = () => {
       field: 'attachment_count',
       headerName: 'ACTIVE DIETS',
       renderCell: params => (
-        <Tooltip title={params.row.attachment_count ? params.row.attachment_count : '-'}>
+        <Tooltip title={params.row.attachment_count ? params.row.attachment_count : 0}>
           <Typography
             noWrap
             sx={{
@@ -303,7 +303,7 @@ const SpeciesDietList = () => {
               ml: 2
             }}
           >
-            {params.row.attachment_count ? params.row.attachment_count : '-'}
+            {params.row.attachment_count ? params.row.attachment_count : 0}
           </Typography>
         </Tooltip>
       )
@@ -315,7 +315,7 @@ const SpeciesDietList = () => {
       field: 'inactive_attachment_count',
       headerName: 'INACTIVE DIETS',
       renderCell: params => (
-        <Tooltip title={params.row.inactive_attachment_count ? params.row.inactive_attachment_count : '-'}>
+        <Tooltip title={params.row.inactive_attachment_count ? params.row.inactive_attachment_count : 0}>
           <Typography
             noWrap
             sx={{
@@ -328,7 +328,7 @@ const SpeciesDietList = () => {
               ml: 2
             }}
           >
-            {params.row.inactive_attachment_count ? params.row.inactive_attachment_count : '-'}
+            {params.row.inactive_attachment_count ? params.row.inactive_attachment_count : 0}
           </Typography>
         </Tooltip>
       )
