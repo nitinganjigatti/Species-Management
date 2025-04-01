@@ -219,6 +219,26 @@ const ShipmentReport = () => {
         </Typography>
       )
     },
+    {
+      minWidth: 20,
+      width: 200,
+      field: 'request_number',
+      headerName: 'REQUEST NUMBER',
+      sortable: true,
+      renderCell: params => (
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
+          {params.row.request_number}
+        </Typography>
+      )
+    },
 
     // {
     //   width: 5,
