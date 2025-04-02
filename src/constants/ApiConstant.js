@@ -255,3 +255,5 @@ export const CONSUMPTION_REPORT = 'consumption-report'
 export const REQUESTED_ITEMS_REPORT = 'requested-items'
 
 export const DISPENSE_REPORT = 'dispense-report'
+
+export const RETURN_TO_SUPPLIER = 'return-supplier-report'

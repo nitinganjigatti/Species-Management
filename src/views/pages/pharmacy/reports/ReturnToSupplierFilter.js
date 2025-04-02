@@ -1,4 +1,5 @@
 import { useTheme } from '@emotion/react'
+import styled from '@emotion/styled'
 import { LoadingButton } from '@mui/lab'
 import {
   Badge,
@@ -10,17 +11,16 @@ import {
   IconButton,
   MenuItem,
   Select,
-  styled,
   TextField,
   Typography
 } from '@mui/material'
 import { Box } from '@mui/system'
-import React, { useCallback, useEffect, useState } from 'react'
+import React, { useCallback, useState } from 'react'
 import Icon from 'src/@core/components/icon'
 
 const leftMenu = [
   { id: 1, name: 'Supplier Name' },
-  { id: 2, name: 'Created By' },
+  { id: 2, name: 'Discarded By' },
   { id: 3, name: 'Drug Type' }
 ]
 
@@ -36,7 +36,7 @@ const StyledBadge = styled(Badge)(({ theme }) => ({
   }
 }))
 
-const PurchaseFilterDrawer = ({
+const ReturnToSupplierFilter = ({
   openFilterDrawer,
   setOpenFilterDrawer,
   onApplyFilter,
@@ -56,7 +56,7 @@ const PurchaseFilterDrawer = ({
   const isAllSupplierSelected =
     supplierData?.length > 0 && selectedOptions['Supplier Name']?.length === supplierData?.length
 
-  const isAllUsersSelected = users?.length > 0 && selectedOptions['Created By'].length === users?.length
+  const isAllUsersSelected = users?.length > 0 && selectedOptions['Discarded By'].length === users?.length
 
   const handleCloseDrawer = () => {
     setOpenFilterDrawer(false)
@@ -103,8 +103,8 @@ const PurchaseFilterDrawer = ({
       filterData['suppliersName'] = selectedOptions['Supplier Name']
     }
 
-    if (selectedOptions['Created By'] && selectedOptions['Created By'].length > 0) {
-      filterData['createdBy'] = selectedOptions['Created By']
+    if (selectedOptions['Discarded By'] && selectedOptions['Discarded By'].length > 0) {
+      filterData['discardedBy'] = selectedOptions['Discarded By']
     }
 
     if (selectedOptions['Drug Type'] && selectedOptions['Drug Type'] !== 'all') {
@@ -283,7 +283,7 @@ const PurchaseFilterDrawer = ({
                     </Box>
                   ))}
                 </>
-              ) : selectedMenu.name === 'Created By' ? (
+              ) : selectedMenu.name === 'Discarded By' ? (
                 <>
                   <Box
                     sx={{
@@ -319,7 +319,7 @@ const PurchaseFilterDrawer = ({
                   <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
                     <Checkbox
                       checked={isAllUsersSelected}
-                      indeterminate={selectedOptions['Created By']?.length > 0 && !isAllUsersSelected}
+                      indeterminate={selectedOptions['Discarded By']?.length > 0 && !isAllUsersSelected}
                       inputProps={{ 'aria-label': 'controlled' }}
                       onChange={handleUserSelectAll}
                     />
@@ -330,8 +330,8 @@ const PurchaseFilterDrawer = ({
                     <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }} key={user?.id}>
                       <Checkbox
                         inputProps={{ 'aria-label': 'controlled' }}
-                        checked={selectedOptions['Created By']?.includes(user?.id)}
-                        onChange={() => handleCheckbox(user?.id, 'Created By')}
+                        checked={selectedOptions['Discarded By']?.includes(user?.id)}
+                        onChange={() => handleCheckbox(user?.id, 'Discarded By')}
                       />
                       <Typography sx={{ fontSize: '16px', fontWeight: 400, color: '#839D8D' }}>{user?.name}</Typography>
                     </Box>
@@ -400,4 +400,4 @@ const PurchaseFilterDrawer = ({
   )
 }
 
-export default PurchaseFilterDrawer
+export default ReturnToSupplierFilter

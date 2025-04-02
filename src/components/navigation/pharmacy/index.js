@@ -344,6 +344,11 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
     path: '/pharmacy/reports/dispense-report'
   }
 
+  const returnToSupplierReport = {
+    title: 'Return To Supplier Report',
+    path: '/pharmacy/reports/return-to-supplier'
+  }
+
   reportsParent.children.push(consumptionReport)
   reportsParent.children.push(returnReport)
   reportsParent.children.push(shipmentReport)
@@ -363,6 +368,7 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
 
     reportsParent.children.push(purchaseReport)
     reportsParent.children.push(requestReport)
+    reportsParent.children.push(returnToSupplierReport)
 
     // requestParent.children.push(requestByProductListing)
 
