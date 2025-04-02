@@ -481,9 +481,10 @@ function AlternativeMedicine({ parentId, updateRequestItems, existingListItems, 
                       <Typography variant='body2'>{`Product - ${option.name}`}</Typography>
                       <Typography variant='body2'>{option.package}</Typography>
                       <Typography variant='body2'>{option.manufacture}</Typography>
-                      {option.control_substance === true && (
+                      {/* {option.control_substance === true && (
                         <CustomChip label='CS' skin='light' color='success' size='small' />
-                      )}
+                      )} */}
+                      {RenderUtility?.renderControlLabel(option.control_substance === true, 'CS')}
                       {option.prescription_required === true && (
                         <CustomChip label='PR' skin='light' color='success' size='small' />
                       )}
