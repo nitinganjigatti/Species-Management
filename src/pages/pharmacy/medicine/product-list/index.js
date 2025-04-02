@@ -533,10 +533,11 @@ const ListOfMedicine = () => {
     ...row,
     sl_no: getSlNo(index)
   }))
-  const [tabValue, setTabValue] = useState('all')
+  const [tabValue, setTabValue] = useState( router.query.status || 'all')
 
   const handleTabChange = (event, newValue) => {
     setTabValue(newValue)
+    setPaginationModel({ page: 0, pageSize: 10 })
     setSearchValue('')
     setStatusFilter(newValue)
   }
