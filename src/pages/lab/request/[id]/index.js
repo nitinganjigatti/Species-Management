@@ -1340,7 +1340,6 @@ const RequestDetails = () => {
           </Box>
 
           <Divider />
-
           <MedicalRecordNotes notes={medicalRecordNotes} />
         </Box>
       </Card>
@@ -1517,7 +1516,15 @@ const RequestDetails = () => {
 
                     <Tooltip
                       title={
-                        <Box>
+                        <Box
+                          sx={{
+                            maxHeight: '250px',
+                            overflowY: 'auto',
+                            borderRadius: '4px',
+                            '&::-webkit-scrollbar': { display: 'none' },
+                            scrollbarWidth: 'none'
+                          }}
+                        >
                           {selectedRowData.map(name => (
                             <Typography key={name?.id} sx={{ fontSize: '15px', color: '#fff' }}>
                               {name?.test_name}
@@ -1566,7 +1573,15 @@ const RequestDetails = () => {
 
                     <Tooltip
                       title={
-                        <Box>
+                        <Box
+                          sx={{
+                            maxHeight: '250px',
+                            overflowY: 'auto',
+                            borderRadius: '4px',
+                            '&::-webkit-scrollbar': { display: 'none' },
+                            scrollbarWidth: 'none'
+                          }}
+                        >
                           {selectedRowData.map(name => (
                             <Typography key={name?.id} sx={{ fontSize: '15px', color: '#fff' }}>
                               {name?.sample_name}
