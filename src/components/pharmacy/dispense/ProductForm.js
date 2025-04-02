@@ -5,6 +5,7 @@ import {
   FormGroup,
   FormHelperText,
   Grid,
+  Paper,
   Table,
   TableCell,
   TableHead,
@@ -46,6 +47,8 @@ function ProductForm({
   setAddedProductQty,
   setDispensesPayload
 }) {
+  const theme = useTheme()
+
   const [totalProductQty, setTotalProductQty] = useState(null)
   const [totalQty, setTotalQty] = useState(0)
 
@@ -297,6 +300,8 @@ function ProductForm({
   // }
 
   function submitItems(data) {
+    console.log(data, 'data')
+
     const index = productArrayUi.findIndex(item => item.stock_id?.value === data?.stock_id?.value)
 
     // If index is found, insert the new items just after that index
@@ -308,7 +313,8 @@ function ProductForm({
           batch_no: item?.batch_no,
           qty: item?.qty,
           variant_id: item?.variant_id,
-          multiplier: item?.multiplier
+          multiplier: item?.multiplier,
+          unit_price: data?.stock_id?.unit_price
         })),
         ...prevArray.slice(index + 1)
       ])
@@ -320,7 +326,8 @@ function ProductForm({
             batch_no: item?.batch_no?.value,
             qty: item?.qty,
             variant_id: item?.variant_id,
-            multiplier: item?.multiplier
+            multiplier: item?.multiplier,
+            unit_price: data?.stock_id?.unit_price
           }
         }),
         ...prevArray.slice(index + 1)
@@ -334,7 +341,8 @@ function ProductForm({
           batch_no: item?.batch_no,
           qty: item?.qty,
           variant_id: item?.variant_id,
-          multiplier: item?.multiplier
+          multiplier: item?.multiplier,
+          unit_price: data?.stock_id?.unit_price
         }))
       ])
       setProductArray(prevArray => [
@@ -345,7 +353,8 @@ function ProductForm({
             batch_no: item?.batch_no?.value,
             qty: item?.qty,
             variant_id: item?.variant_id,
-            multiplier: item?.multiplier
+            multiplier: item?.multiplier,
+            unit_price: data?.stock_id?.unit_price
           }
         })
       ])
@@ -367,7 +376,8 @@ function ProductForm({
       batch_no: data.batch_no?.value,
       qty: data.qty,
       variant_id: data?.variant_id,
-      multiplier: data?.multiplier
+      multiplier: data?.multiplier,
+      unit_price: data?.stock_id?.unit_price
     }
 
     // Update the data at the found index
@@ -376,7 +386,8 @@ function ProductForm({
       batch_no: data.batch_no,
       qty: data.qty,
       variant_id: data?.variant_id,
-      multiplier: data?.multiplier
+      multiplier: data?.multiplier,
+      unit_price: data?.stock_id?.unit_price
     }
 
     // Update the state
@@ -393,6 +404,8 @@ function ProductForm({
     if (!editMode) {
       try {
         getProductList({ params: { sort: 'asc', q: '', limit: 20, is_specific: 1 } }).then(res => {
+          console.log('unit_price', res)
+
           if (res?.data?.list_items?.length > 0) {
             setProducts(
               res?.data?.list_items?.map(item => ({
@@ -447,6 +460,7 @@ function ProductForm({
   const callBatchesApi = (stock_id, stock_type) => {
     if (stock_id) {
       getBatchList({ ProductId: stock_id, store_type: selectedPharmacy?.type, stock_type }).then(res => {
+        console.log('unit_price', res)
         if (res?.data?.items?.length > 0) {
           setBatches(
             res?.data?.items?.map(item => ({
@@ -563,11 +577,11 @@ function ProductForm({
         <Grid container mb={5}>
           <Grid item xs={12}>
             <FormControl fullWidth>
-              <Typography sx={{ my: 2 }}>
+              {/* <Typography sx={{ my: 2 }}>
                 {`${
                   errors?.stock_id || watch('stock_id')?.value === '' ? '' : 'Total Available Quantity: ' + totalQty
                 } `}
-              </Typography>
+              </Typography> */}
               <Controller
                 name='stock_id'
                 control={control}
@@ -583,6 +597,8 @@ function ProductForm({
                       options={products}
                       value={field?.value}
                       onChange={(event, newValue) => {
+                        console.log(newValue, 'newValue')
+
                         field.onChange(newValue)
                         callBatchesApi(newValue?.value, newValue?.stock_type)
                         setValue('batch_no', '')
