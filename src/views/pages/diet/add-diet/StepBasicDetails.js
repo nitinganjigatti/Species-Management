@@ -1520,7 +1520,7 @@ const StepBasicDetails = ({
                                             color: all.days_of_week?.includes(index + 1)
                                               ? theme.palette.secondary.dark
                                               : theme.palette.customColors.Outline,
-                                            marginRight: 4
+                                            marginRight: 3
                                           }}
                                         >
                                           {day}
