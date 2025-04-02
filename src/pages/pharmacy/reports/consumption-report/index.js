@@ -282,10 +282,11 @@ const ConsumptionReport = () => {
     },
     {
       minWidth: 20,
-      width: 170,
+      width: 160,
       field: 'total_consumption_quantity',
       headerName: '',
       sortable: true,
+      align: 'center',
       renderHeader: () => (
         <div
           style={{
@@ -317,10 +318,11 @@ const ConsumptionReport = () => {
     },
     {
       minWidth: 20,
-      width: 190,
+      width: 160,
       field: 'total_consumption_cost',
       headerName: '',
       sortable: true,
+      align: 'center',
       renderHeader: () => (
         <div
           style={{
@@ -352,10 +354,11 @@ const ConsumptionReport = () => {
     },
     {
       minWidth: 20,
-      width: 190,
+      width: 170,
       field: 'available_qty',
       headerName: '',
       sortable: true,
+      align: 'center',
       renderHeader: () => (
         <div
           style={{

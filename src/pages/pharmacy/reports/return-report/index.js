@@ -197,6 +197,8 @@ const ReturnReport = () => {
     id: getSlNo(index)
   }))
 
+  console.log(indexedRows)
+
   const columns = [
     {
       width: 100,
@@ -230,6 +232,26 @@ const ReturnReport = () => {
           }}
         >
           {params.row.return_number}
+        </Typography>
+      )
+    },
+    {
+      minWidth: 20,
+      width: 170,
+      field: 'shipment_id',
+      headerName: 'SHIPMENT NUMBER',
+      sortable: true,
+      renderCell: params => (
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
+          {params.row.shipment_id}
         </Typography>
       )
     },

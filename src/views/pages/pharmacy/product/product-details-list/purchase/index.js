@@ -152,7 +152,7 @@ function Purchase({ tabValue, updateUrlParams }) {
             fontFamily: 'Inter'
           }}
         >
-          {params.row.net_unit_price}
+          {Utility.formatAmountToReadableDigit(params.row.net_unit_price)}
         </Typography>
       )
     },

@@ -11,55 +11,48 @@ import {
   Tooltip,
   Typography
 } from '@mui/material'
-import { Box, display } from '@mui/system'
+import { Box } from '@mui/system'
 import { format, subMonths } from 'date-fns'
-import { debounce } from 'lodash'
 import { useRouter } from 'next/router'
 import React, { useCallback, useEffect, useState } from 'react'
 import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDateRangePickers'
-import { usePharmacyContext } from 'src/context/PharmacyContext'
-import { getStoreList } from 'src/lib/api/pharmacy/getStoreList'
-import { getRequestedItemsReport } from 'src/lib/api/pharmacy/reports'
-import Error404 from 'src/pages/404'
+import { getReturnToSupplier } from 'src/lib/api/pharmacy/reports'
 import Utility from 'src/utility'
-import Icon from 'src/@core/components/icon'
 import RenderUtility from 'src/utility/render'
+import Icon from 'src/@core/components/icon'
+import { debounce } from 'lodash'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
+import ReturnToSupplierFilter from 'src/views/pages/pharmacy/reports/ReturnToSupplierFilter'
 import StyleWithIconCardComponent from 'src/views/utility/style-with-icon-card'
-import RequestedItemFilterDrawer from 'src/views/pages/pharmacy/reports/RequestedItemFilterDrawer'
+import { usePharmacyContext } from 'src/context/PharmacyContext'
+import Error404 from 'src/pages/404'
+import { getSuppliers } from 'src/lib/api/pharmacy/getSupplierList'
 import { readAsync } from 'src/lib/windows/utils'
 import { getUserList } from 'src/lib/api/pharmacy/dispenseProduct'
 
-const RequestReport = () => {
+const ReturnSupplier = () => {
   const router = useRouter()
   const theme = useTheme()
+
   const { selectedPharmacy } = usePharmacyContext()
 
   const updateUrlParams = params => {
     const query = { ...router.query, ...params }
-    router.push({ pathname: router.pathname, query }, undefined, { shallow: true })
+    router.replace({ pathname: router.pathname, query }, undefined, { shallow: true })
   }
 
-  const [loading, setLoading] = useState(false)
-  const [total, setTotal] = useState(0)
   const [rows, setRows] = useState([])
+  const [total, setTotal] = useState(0)
+  const [loading, setLoading] = useState(false)
   const [sort, setSort] = useState(router.query.sort || 'asc')
-  const [sortColumn, setSortColumn] = useState(router.query.column || 'product_name')
+  const [sortColumn, setSortColumn] = useState(router.query.column || 'stock_name')
   const [searchValue, setSearchValue] = useState(router.query.q || '')
-  const [openFilterDrawer, setOpenFilterDrawer] = useState(false)
-  const [filteredData, setFilteredData] = useState({ Pharmacy: [] })
   const [exportLoading, setExportLoading] = useState(false)
-  const [pharmacyList, setPharmacyList] = useState([])
+  const [openFilterDrawer, setOpenFilterDrawer] = useState(false)
+  const [supplierData, setSupplierData] = useState([])
+  const [selectAllSupplier, setSelectAllSupplier] = useState(false)
   const [users, setUsers] = useState([])
-  const [selectAllPharmacy, setSelectAllPharmacy] = useState(false)
   const [selectAllUser, setSelectAllUser] = useState(false)
-
-  const [selectedOptions, setSelectedOptions] = useState({
-    Pharmacy: [],
-    User: [],
-    'Drug Type': 'all',
-    Priority: 'all'
-  })
 
   const [paginationModel, setPaginationModel] = useState({
     page: parseInt(router.query.page) || 0,
@@ -71,18 +64,25 @@ const RequestReport = () => {
     endDate: router.query.endDate || Utility.formatDate(format(new Date(), 'dd MMM, yyyy'))
   })
 
+  const [filteredData, setFilteredData] = useState({
+    suppliersName: []
+  })
+
+  const [selectedOptions, setSelectedOptions] = useState({
+    'Supplier Name': [],
+    'Discarded By': [],
+    'Drug Type': 'all'
+  })
+
   useEffect(() => {
-    const pharmacyList = async () => {
+    const supplierList = async () => {
       try {
-        const params = {
-          type: 'local'
-        }
-        const response = await getStoreList({ params })
+        const response = await getSuppliers()
         const result = response?.data
 
-        if (response?.success) {
-          let pharmacies = result?.list_items.map(({ id, name }) => ({ id, name })) || []
-          setPharmacyList(pharmacies)
+        if (result?.success) {
+          const suppliers = result?.data?.list_items.map(({ id, company_name }) => ({ id, company_name })) || []
+          setSupplierData(suppliers)
         }
       } catch (error) {
         console.log(error)
@@ -109,21 +109,22 @@ const RequestReport = () => {
         console.log('user error', error)
       }
     }
-    pharmacyList()
+
+    supplierList()
     getUserLists()
   }, [])
 
-  const handleSelectAllPharmacy = () => {
-    setSelectAllPharmacy(!selectAllPharmacy)
-    if (!selectAllPharmacy) {
+  const handleSelectAllSuppliers = () => {
+    setSelectAllSupplier(!selectAllSupplier)
+    if (!selectAllSupplier) {
       setSelectedOptions({
         ...selectedOptions,
-        Pharmacy: pharmacyList.map(p => p.id)
+        'Supplier Name': supplierData.map(s => s.id)
       })
     } else {
       setSelectedOptions({
         ...selectedOptions,
-        Pharmacy: []
+        'Supplier Name': []
       })
     }
   }
@@ -133,12 +134,12 @@ const RequestReport = () => {
     if (!selectAllUser) {
       setSelectedOptions({
         ...selectedOptions,
-        User: users.map(u => u.id)
+        'Discarded By': users.map(u => u.id)
       })
     } else {
       setSelectedOptions({
         ...selectedOptions,
-        User: []
+        'Discarded By': []
       })
     }
   }
@@ -161,16 +162,19 @@ const RequestReport = () => {
           ...(filterDates?.startDate !== '' && { from_date: filterDates?.startDate }),
           ...(filterDates?.endDate !== '' && { to_date: filterDates?.endDate }),
           ...(filteredData &&
-            filteredData.Pharmacy &&
-            filteredData.Pharmacy.length > 0 && { store_id: filteredData.Pharmacy.join(',') }),
-          ...(filteredData &&
-            filteredData.User &&
-            filteredData.User.length > 0 && { user_id: filteredData.User.join(',') }),
+            filteredData.suppliersName &&
+            filteredData.suppliersName.length > 0 && {
+              supplier_id: filteredData.suppliersName.join(',')
+            }),
           ...(filteredData && filteredData.controlled && { controlled: filteredData.controlled }),
           ...(filteredData && filteredData.prescription && { prescription: filteredData.prescription }),
-          ...(filteredData && filteredData.Priority && { priority: filteredData.Priority })
+          ...(filteredData &&
+            filteredData.discardedBy &&
+            filteredData.discardedBy.length > 0 && {
+              user_id: filteredData.discardedBy.join(',')
+            })
         }
-        await getRequestedItemsReport({ params: params }).then(res => {
+        await getReturnToSupplier({ params }).then(res => {
           if (res?.success === true && res?.data?.list_items?.length > 0) {
             setTotal(parseInt(res?.data?.total_count))
             setRows(loadServerRows(paginationModel?.page, res?.data?.list_items))
@@ -197,6 +201,7 @@ const RequestReport = () => {
       limit: paginationModel?.pageSize,
       filteredData: filteredData
     })
+
     updateUrlParams({
       sort,
       q: searchValue,
@@ -206,7 +211,7 @@ const RequestReport = () => {
       startDate: filterDates?.startDate,
       endDate: filterDates?.endDate
     })
-  }, [paginationModel.page, paginationModel.pageSize, filterDates, sort, sortColumn, filteredData])
+  }, [paginationModel.page, paginationModel.pageSize, sort, sortColumn, filterDates, filteredData])
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
@@ -217,7 +222,7 @@ const RequestReport = () => {
 
   const columns = [
     {
-      width: 80,
+      width: 100,
       minWidth: 20,
       field: 'id',
       sortable: false,
@@ -232,47 +237,10 @@ const RequestReport = () => {
       )
     },
     {
-      width: 5,
-      field: 'priority',
-      headerName: '',
-      headerAlign: 'left',
-      textAlign: 'center',
-      sortable: false,
-      renderCell: params => <Box>{RenderUtility.getPriorityIcons(params.row.priority)}</Box>
-    },
-
-    // {
-    //   width: 5,
-    //   field: 'label',
-    //   headerName: '',
-    //   sortable: false,
-    //   renderCell: params => (
-    //     <Typography
-    //       sx={{
-    //         color: 'customColors.OnSecondaryContainer',
-    //         display: 'flex',
-    //         alignItems: 'center',
-    //         fontWeight: 500,
-    //         fontSize: '14px',
-    //         ...RenderUtility?.getEllipsisStyleForText()
-    //       }}
-    //     >
-    //       {RenderUtility?.renderControlLabel(
-    //         !isNaN(params.row?.controlled_substance) && parseInt(params.row?.controlled_substance) === 1,
-    //         'CS'
-    //       )}
-    //       {RenderUtility?.renderControlLabel(
-    //         !isNaN(params.row?.prescription_required) && parseInt(params.row?.prescription_required) === 1,
-    //         'PR'
-    //       )}
-    //     </Typography>
-    //   )
-    // },
-    {
       minWidth: 20,
-      width: 160,
-      field: 'request_ID',
-      headerName: 'REQUEST NUMBER',
+      width: 180,
+      field: 'discard_number',
+      headerName: 'RETURN REQUEST NUMBER',
       sortable: true,
       renderCell: params => (
         <Typography
@@ -284,14 +252,34 @@ const RequestReport = () => {
             fontFamily: 'Inter'
           }}
         >
-          {params.row.request_ID}
+          {params.row.discard_number}
+        </Typography>
+      )
+    },
+    {
+      minWidth: 20,
+      width: 180,
+      field: 'discarded_date',
+      headerName: 'RETURN DATE',
+      sortable: true,
+      renderCell: params => (
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
+          {Utility.formatDisplayDate(params.row.discarded_date)}
         </Typography>
       )
     },
     {
       width: 250,
       minWidth: 20,
-      field: 'product_name',
+      field: 'stock_name',
       align: 'left',
       sortable: true,
       headerName: 'PRODUCT NAME',
@@ -329,13 +317,13 @@ const RequestReport = () => {
                       maxWidth: 250
                     }}
                   >
-                    {params.row.product_name}
+                    {params.row.stock_name}
                   </Typography>
                 </Typography>
               </>
             }
             description={params.row.generic_name ? params.row.generic_name : 'NA'}
-            icon={params.row.product_image ? `${params.row.product_image}` : '/images/Medicine_Icon.png'}
+            icon={params.row.image ? `${params.row.image}` : '/images/Medicine_Icon.png'}
             showIcon={false}
             customCss={{
               p: '0px',
@@ -352,10 +340,146 @@ const RequestReport = () => {
     },
     {
       minWidth: 20,
+      width: 160,
+      field: 'batch_no',
+      sortable: true,
+      headerName: 'BATCH NUMBER',
+      renderCell: params => (
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
+          {params.row.batch_no}
+        </Typography>
+      )
+    },
+    {
+      minWidth: 20,
+      width: 180,
+      field: 'unit_price',
+      headerName: 'NET UNIT PRICE',
+      sortable: true,
+      renderCell: params => (
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
+          {Utility.formatAmountToReadableDigit(params.row.unit_price)}
+        </Typography>
+      )
+    },
+    {
+      minWidth: 20,
+      width: 180,
+      field: 'discarded_value',
+      headerName: 'TOTAL VALUE',
+      sortable: true,
+      renderCell: params => (
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
+          {Utility.formatAmountToReadableDigit(params.row.discarded_value)}
+        </Typography>
+      )
+    },
+    {
+      minWidth: 20,
+      width: 180,
+      field: 'discarded_quantity',
+      headerName: 'DISCARDED QUANTITY',
+      sortable: true,
+      renderCell: params => (
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
+          {params.row?.discarded_quantity ? Utility.formatNumber(params.row.discarded_quantity) : 0}
+        </Typography>
+      )
+    },
+    {
+      minWidth: 20,
+      width: 200,
+      field: 'supplier_name',
+      sortable: true,
+      headerName: 'SUPPLIER NAME',
+      renderCell: params => (
+        <Tooltip title={params.row.supplier_name}>
+          <Typography
+            variant='body2'
+            sx={{
+              color: theme.palette.customColors.customHeadingTextColor,
+              fontSize: '14px',
+              fontWeight: 400,
+              fontFamily: 'Inter',
+              overflow: 'hidden',
+              whiteSpace: 'nowrap',
+              textOverflow: 'ellipsis',
+              maxWidth: 200
+            }}
+          >
+            <span alt={params.row.supplier_name}> {params.row.supplier_name}</span>
+          </Typography>
+        </Tooltip>
+      )
+    },
+    {
+      minWidth: 20,
+      width: 200,
+      field: 'package',
+      headerName: 'PACKAGE',
+      sortable: false,
+      renderCell: params => (
+        <Tooltip
+          title={`${params.row.package} of ${Utility.formatNumber(params.row.package_qty)}
+                ${params.row.package_uom_label} ${params.row.product_form_label}`}
+        >
+          <Typography
+            variant='body2'
+            sx={{
+              color: theme.palette.customColors.customHeadingTextColor,
+              fontSize: '14px',
+              fontWeight: 400,
+              fontFamily: 'Inter',
+              overflow: 'hidden',
+              whiteSpace: 'nowrap',
+              textOverflow: 'ellipsis',
+              maxWidth: 240
+            }}
+          >
+            {`${params.row.package} of ${Utility.formatNumber(params.row.package_qty)}
+                ${params.row.package_uom_label} ${params.row.product_form_label}`}
+          </Typography>
+        </Tooltip>
+      )
+    },
+    {
+      minWidth: 20,
       width: 250,
       field: 'manufacturer_name',
-      headerName: 'MANUFACTURER NAME',
       sortable: true,
+      headerName: 'MANUFACTURER NAME',
       renderCell: params => (
         <Tooltip title={params.row.manufacturer_name}>
           <Typography
@@ -377,56 +501,16 @@ const RequestReport = () => {
       )
     },
     {
-      minWidth: 20,
-      width: 190,
-      field: 'requested_quantity',
-      headerName: 'REQUESTED QUANTITY',
-      sortable: true,
-      renderCell: params => (
-        <Typography
-          variant='body2'
-          sx={{
-            color: theme.palette.customColors.customHeadingTextColor,
-            fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
-          }}
-        >
-          {params.row.requested_quantity ? Utility.formatNumber(params.row.requested_quantity) : 0}
-        </Typography>
-      )
-    },
-    {
-      minWidth: 20,
-      width: 160,
-      field: 'request_from',
-      headerName: 'REQUESTED FROM',
-      sortable: true,
-      renderCell: params => (
-        <Typography
-          variant='body2'
-          sx={{
-            color: theme.palette.customColors.customHeadingTextColor,
-            fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
-          }}
-        >
-          {params.row.request_from}
-        </Typography>
-      )
-    },
-    {
       minWidth: 200,
-      field: 'requested_date',
+      field: 'discard_created_at',
       sortable: true,
-      headerName: 'REQUESTED BY ',
+      headerName: 'DISCARDED BY',
       renderCell: params => (
         <>
           {RenderUtility?.renderUserAvatarDetails(
-            params?.row?.requested_by_profile_pic,
-            params?.row?.requested_by,
-            params?.row?.requested_date
+            params?.row?.user_created_profile_pic,
+            params?.row?.discard_created_by_user_name,
+            params?.row?.discard_created_at
           )}
         </>
       )
@@ -443,8 +527,8 @@ const RequestReport = () => {
       })
 
       updateUrlParams({
-        startDate: filterDates?.startDate,
-        endDate: filterDates?.endDate
+        startDate: formattedStartDate,
+        endDate: formattedEndDate
       })
 
       console.log('Date range selected:', { startDate, endDate })
@@ -461,33 +545,6 @@ const RequestReport = () => {
 
       console.log('Empty date range selected,', { startDate, endDate })
     }
-  }
-
-  const searchTableData = useCallback(
-    debounce(async (sort, q, column, page, limit) => {
-      setSearchValue(q)
-
-      try {
-        await fetchTableData({ sort, q, column, page, limit, filteredData })
-        updateUrlParams({
-          sort: sort,
-          q: q,
-          column: column,
-          page: page,
-          limit: limit,
-          startDate: filterDates?.startDate,
-          endDate: filterDates?.endDate
-        })
-      } catch (error) {
-        console.error(error)
-      }
-    }, 1000),
-    [filterDates, filteredData]
-  )
-
-  const handleSearch = value => {
-    setSearchValue(value)
-    searchTableData(sort, value, sortColumn, paginationModel?.page, paginationModel?.pageSize)
   }
 
   const handleSortModel = newModel => {
@@ -515,6 +572,42 @@ const RequestReport = () => {
     }
   }
 
+  const searchTableData = useCallback(
+    debounce(async (sort, q, column, page, limit) => {
+      setSearchValue(q)
+
+      try {
+        await fetchTableData({
+          sort: sort,
+          q: q,
+          column: column,
+          page: page,
+          limit: limit,
+          filteredData: filteredData
+        })
+
+        updateUrlParams({
+          sort: sort,
+          q: q,
+          column: column,
+          page: page,
+          limit: limit,
+
+          startDate: filterDates?.startDate,
+          endDate: filterDates?.endDate
+        })
+      } catch (error) {
+        console.error(error)
+      }
+    }, 1000),
+    [filterDates, filteredData]
+  )
+
+  const handleSearch = value => {
+    setSearchValue(value)
+    searchTableData(sort, value, sortColumn, paginationModel?.page, paginationModel?.pageSize)
+  }
+
   const handleExport = async () => {
     try {
       setExportLoading(true)
@@ -532,20 +625,25 @@ const RequestReport = () => {
         column: sortColumn,
         page: 1,
         limit: total,
-        response_type: 'csv',
         ...(filterDates?.startDate !== '' && { from_date: filterDates?.startDate }),
         ...(filterDates?.endDate !== '' && { to_date: filterDates?.endDate }),
-
         ...(filteredData &&
-          filteredData.Pharmacy &&
-          filteredData.Pharmacy.length > 0 && { store_id: filteredData.Pharmacy.join(',') }),
+          filteredData.suppliersName &&
+          filteredData.suppliersName.length > 0 && {
+            supplier_id: filteredData.suppliersName.join(',')
+          }),
         ...(filteredData && filteredData.controlled && { controlled: filteredData.controlled }),
         ...(filteredData && filteredData.prescription && { prescription: filteredData.prescription }),
-        ...(filteredData && filteredData.Priority && { priority: filteredData.Priority })
+        ...(filteredData &&
+          filteredData.discardedBy &&
+          filteredData.discardedBy.length > 0 && {
+            user_id: filteredData.discardedBy.join(',')
+          }),
+        response_type: 'csv'
       }
-      const response = await getRequestedItemsReport({ params })
+      const response = await getReturnToSupplier({ params })
       if (response?.success && response?.data) {
-        Utility.downloadFileFromURL(response.data, `Pending_Request_Report ${timestamp}`)
+        Utility.downloadFileFromURL(response.data, `Return_To_Supplier_Report ${timestamp}`)
       }
     } catch (error) {
       console.error('Error downloading Excel:', error)
@@ -557,11 +655,7 @@ const RequestReport = () => {
   const calculateAppliedFiltersCount = () => {
     let count = 0
 
-    if (filteredData && filteredData.Pharmacy && filteredData.Pharmacy.length > 0) {
-      count++
-    }
-
-    if (filteredData && filteredData.User && filteredData.User.length > 0) {
+    if (filteredData.suppliersName && filteredData.suppliersName.length > 0) {
       count++
     }
 
@@ -569,7 +663,7 @@ const RequestReport = () => {
       count++
     }
 
-    if (filteredData && filteredData.Priority) {
+    if (filteredData.discardedBy && filteredData.discardedBy.length > 0) {
       count++
     }
 
@@ -587,19 +681,20 @@ const RequestReport = () => {
           <Card>
             <CardHeader
               sx={{
+                width: '100%',
                 display: 'flex',
-                flexDirection: { xs: 'column', sm: 'row' },
-                justifyContent: 'flex-start',
-                alignItems: 'flex-start',
-                gap: { xs: 3, sm: 2 },
-                '& .MuiCardHeader-action': {
-                  width: { xs: '100% ', sm: 'auto' }
-                },
-                mx: { xs: -1, sm: 0 }
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                flexWrap: 'wrap',
+                gap: 2,
+                [theme.breakpoints.down('sm')]: {
+                  flexDirection: 'row',
+                  justifyContent: 'space-between'
+                }
               }}
-              title={RenderUtility.pageTitle('Pending Request Report')}
+              title={RenderUtility.pageTitle('Return To Supplier Report')}
             />
-            <CardContent sx={{ paddingTop: '4px' }}>
+            <CardContent>
               <Box
                 sx={{
                   display: 'flex',
@@ -705,7 +800,7 @@ const RequestReport = () => {
                             }}
                             onClick={() => setOpenFilterDrawer(true)}
                           >
-                            <Badge color='primary' badgeContent={appliedFiltersCount}>
+                            <Badge badgeContent={appliedFiltersCount} color='primary'>
                               <Icon icon='mage:filter' fontSize={24} />
                             </Badge>
                           </Box>
@@ -744,24 +839,26 @@ const RequestReport = () => {
             </CardContent>
           </Card>
           {openFilterDrawer && (
-            <RequestedItemFilterDrawer
+            <ReturnToSupplierFilter
               setOpenFilterDrawer={setOpenFilterDrawer}
               openFilterDrawer={openFilterDrawer}
               onApplyFilter={filterList => setFilteredData(filterList)}
               selectedOptions={selectedOptions}
               setSelectedOptions={setSelectedOptions}
-              pharmacyList={pharmacyList}
+              supplierData={supplierData}
+              handleSelectAllSuppliers={handleSelectAllSuppliers}
               users={users}
-              handleSelectAllPharmacy={handleSelectAllPharmacy}
               handleSelectAllUser={handleSelectAllUser}
             />
           )}
         </>
       ) : (
-        <Error404 />
+        <>
+          <Error404 />
+        </>
       )}
     </>
   )
 }
 
-export default RequestReport
+export default ReturnSupplier
