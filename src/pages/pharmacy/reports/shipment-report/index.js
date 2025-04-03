@@ -401,6 +401,46 @@ const ShipmentReport = () => {
     },
     {
       minWidth: 20,
+      width: 180,
+      field: 'net_unit_price',
+      headerName: 'NET UNIT PRICE',
+      sortable: true,
+      renderCell: params => (
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
+          {Utility.formatAmountToReadableDigit(params.row.net_unit_price)}
+        </Typography>
+      )
+    },
+    {
+      minWidth: 20,
+      width: 180,
+      field: 'Total_shipping_value',
+      headerName: 'TOTAL SHIPPING VALUE',
+      sortable: true,
+      renderCell: params => (
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
+          {Utility.formatAmountToReadableDigit(params.row.Total_shipping_value)}
+        </Typography>
+      )
+    },
+    {
+      minWidth: 20,
       width: 200,
       field: 'batch',
       sortable: false,
@@ -450,7 +490,7 @@ const ShipmentReport = () => {
       width: 180,
       field: 'shipment_status',
       sortable: false,
-      headerName: 'SHIPMENT STATUS',
+      headerName: 'SHIPMENT TYPE',
       renderCell: params => (
         <Typography
           variant='body2'
@@ -501,7 +541,7 @@ const ShipmentReport = () => {
             fontFamily: 'Inter'
           }}
         >
-          {params.row.person_shipping}
+          {params.row.shipment_status === 'Shipped' ? params.row.person_shipping : '-'}
         </Typography>
       )
     },
@@ -521,7 +561,7 @@ const ShipmentReport = () => {
             fontFamily: 'Inter'
           }}
         >
-          {params.row.vehicle_no}
+          {params.row.vehicle_no ? params.row.vehicle_no : '-'}
         </Typography>
       )
     },
@@ -561,36 +601,37 @@ const ShipmentReport = () => {
             fontFamily: 'Inter'
           }}
         >
-          {params.row.receiver_name}
+          {params.row.shipment_status === 'PickedUp' ? params.row.person_shipping : '-'}
         </Typography>
       )
     },
-    {
-      minWidth: 20,
-      width: 200,
-      field: 'comments',
-      sortable: false,
-      headerName: 'COMMENTS',
-      renderCell: params => (
-        <Tooltip title={params.row.comments}>
-          <Typography
-            variant='body2'
-            sx={{
-              color: theme.palette.customColors.customHeadingTextColor,
-              fontSize: '14px',
-              fontWeight: 400,
-              fontFamily: 'Inter',
-              overflow: 'hidden',
-              whiteSpace: 'nowrap',
-              textOverflow: 'ellipsis',
-              maxWidth: 200
-            }}
-          >
-            <span alt={params.row.comments}> {params.row.comments}</span>
-          </Typography>
-        </Tooltip>
-      )
-    },
+
+    // {
+    //   minWidth: 20,
+    //   width: 200,
+    //   field: 'comments',
+    //   sortable: false,
+    //   headerName: 'COMMENTS',
+    //   renderCell: params => (
+    //     <Tooltip title={params.row.comments}>
+    //       <Typography
+    //         variant='body2'
+    //         sx={{
+    //           color: theme.palette.customColors.customHeadingTextColor,
+    //           fontSize: '14px',
+    //           fontWeight: 400,
+    //           fontFamily: 'Inter',
+    //           overflow: 'hidden',
+    //           whiteSpace: 'nowrap',
+    //           textOverflow: 'ellipsis',
+    //           maxWidth: 200
+    //         }}
+    //       >
+    //         <span alt={params.row.comments}> {params.row.comments}</span>
+    //       </Typography>
+    //     </Tooltip>
+    //   )
+    // },
     {
       minWidth: 200,
       field: 'shipment_created_at',
