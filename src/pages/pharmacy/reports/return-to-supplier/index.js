@@ -501,6 +501,32 @@ const ReturnSupplier = () => {
       )
     },
     {
+      minWidth: 20,
+      width: 250,
+      field: 'comments',
+      sortable: true,
+      headerName: 'COMMENTS',
+      renderCell: params => (
+        <Tooltip title={params.row.comments}>
+          <Typography
+            variant='body2'
+            sx={{
+              color: theme.palette.customColors.customHeadingTextColor,
+              fontSize: '14px',
+              fontWeight: 400,
+              fontFamily: 'Inter',
+              overflow: 'hidden',
+              whiteSpace: 'nowrap',
+              textOverflow: 'ellipsis',
+              maxWidth: 200
+            }}
+          >
+            <span alt={params.row.comments}> {params.row.comments}</span>
+          </Typography>
+        </Tooltip>
+      )
+    },
+    {
       minWidth: 200,
       field: 'discard_created_at',
       sortable: true,
