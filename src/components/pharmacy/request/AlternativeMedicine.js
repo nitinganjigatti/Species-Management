@@ -673,7 +673,7 @@ function AlternativeMedicine({ parentId, updateRequestItems, existingListItems, 
               type='text'
               value={nestedRowMedicine.alternate_comments}
               error={Boolean(itemErrors.alternate_comments)}
-              label='Alternate comments'
+              label='Comments'
               onChange={event => {
                 setNestedRowMedicine({ ...nestedRowMedicine, alternate_comments: event.target.value })
                 setItemErrors({})
