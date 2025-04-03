@@ -1,8 +1,6 @@
 import { TabContext, TabList, TabPanel } from '@mui/lab'
-import { Box, Breadcrumbs, Card, Grid, Tab, Typography } from '@mui/material'
+import { Breadcrumbs, Grid, Tab, Typography } from '@mui/material'
 import React, { useEffect, useState } from 'react'
-import Equipments from 'src/components/lab/lab-details/Equipments'
-import OverView from 'src/components/lab/lab-details/OverView'
 import ShowLabCard from 'src/components/lab/lab-details/ShowLabCard'
 import Site from 'src/components/lab/lab-details/Site'
 import Tests from 'src/components/lab/lab-details/Tests'
@@ -14,6 +12,9 @@ import FallbackSpinner from 'src/@core/components/spinner/index'
 
 const LabDetails = () => {
   const theme = useTheme()
+  const router = useRouter()
+  const { id } = router.query
+
   const [loader, setLoader] = useState(false)
   const [status, setStatus] = useState('site')
   const [showLabDetails, setShowLabDetails] = useState()
@@ -22,8 +23,6 @@ const LabDetails = () => {
   const handleChange = (event, newValue) => {
     setStatus(newValue)
   }
-  const router = useRouter()
-  const { id } = router.query
 
   const labDetailsById = async id => {
     try {
@@ -50,9 +49,6 @@ const LabDetails = () => {
       ) : (
         <>
           <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
-            {/* <Typography sx={{ cursor: 'pointer' }} color='inherit'>
-      Lab
-    </Typography> */}
             <Typography sx={{ cursor: 'pointer' }} color='inherit'>
               Labs
             </Typography>

@@ -4,7 +4,6 @@ import {
   GetRequestDetails,
   GetRequestPopUp,
   transferLab,
-  getNoOfLab,
   UpdateStatus,
   DeleteLAbRequestAttachment,
   GetLabListByTestId,
@@ -129,7 +128,7 @@ const RequestDetails = () => {
   const [requestById, setRequestById] = useState()
 
   const [permissions, setPermissions] = useState(null)
-  console.log('permissions', permissions)
+  // console.log('permissions', permissions)
 
   // const storedData = JSON.parse(localStorage.getItem('userDetails'))
 
@@ -175,7 +174,7 @@ const RequestDetails = () => {
   const [CommentData, setCommentData] = useState({})
   const [medicalRecordNotes, setMedicalRecordNotes] = useState([])
 
-  console.log('CommentData', CommentData)
+  // console.log('CommentData', CommentData)
 
   useEffect(() => {
     const labObject = localLabData?.find(item => item?.lab_id === lab_id)

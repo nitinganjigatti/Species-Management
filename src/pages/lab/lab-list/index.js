@@ -1,13 +1,8 @@
 import React, { useState, useEffect, useCallback, useContext } from 'react'
-
 import { getLabList } from 'src/lib/api/lab/addLab'
-import { IMAGE_BASE_URL } from 'src/constants/ApiConstant'
-
 import Button from '@mui/material/Button'
 import FallbackSpinner from 'src/@core/components/spinner/index'
-
 // ** MUI Imports
-
 import Typography from '@mui/material/Typography'
 import CardHeader from '@mui/material/CardHeader'
 import { DataGrid } from '@mui/x-data-grid'
@@ -15,19 +10,15 @@ import Card from '@mui/material/Card'
 import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
 import { debounce } from 'lodash'
 import { useTheme } from '@mui/material/styles'
-
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
-import { Box, Avatar, Badge, Breadcrumbs, Tooltip } from '@mui/material'
+import { Box, Badge, Breadcrumbs, Tooltip } from '@mui/material'
 import IconButton from '@mui/material/IconButton'
 import Router from 'next/router'
 import CommonDialogBox from 'src/components/CommonDialogBox'
 import MedicineConfigure from 'src/components/pharmacy/medicine/MedicineConfigure'
-import Utility from 'src/utility'
-
 import { AuthContext } from 'src/context/AuthContext'
 import ErrorScreen from 'src/pages/Error'
-import { left } from '@popperjs/core'
 
 const ListOfLab = () => {
   const theme = useTheme()
@@ -86,20 +77,12 @@ const ListOfLab = () => {
             </Box>
           </Typography>
 
-          <Typography
-            variant='body2'
-            sx={{ color: 'text.primary', textTransform: 'capitalize', cursor: 'pointer' }}
-
-            // onClick={() =>
-
-            // }
-          >
+          <Typography variant='body2' sx={{ color: 'text.primary', textTransform: 'capitalize', cursor: 'pointer' }}>
             {params.row.lab_name}{' '}
           </Typography>
         </Box>
       )
     },
-
     {
       flex: 0.2,
       minWidth: 20,
@@ -135,7 +118,6 @@ const ListOfLab = () => {
         </Tooltip>
       )
     },
-
     // {
     //   flex: 0.2,
     //   minWidth: 20,
@@ -147,7 +129,6 @@ const ListOfLab = () => {
     //     </Typography>
     //   )
     // },
-
     authData?.userData?.roles?.settings?.add_lab
       ? {
           flex: 0.2,
@@ -168,7 +149,6 @@ const ListOfLab = () => {
 
   /***** Serverside pagination */
   const [total, setTotal] = useState(0)
-
   const [sort, setSort] = useState('ASC')
   const [rows, setRows] = useState([])
 
@@ -195,7 +175,6 @@ const ListOfLab = () => {
 
         await getLabList({ params: params }).then(res => {
           setTotal(parseInt(res?.data?.total_count))
-
           setRows(loadServerRows(paginationModel.page, res?.data?.result))
         })
         setLoading(false)
@@ -285,9 +264,6 @@ const ListOfLab = () => {
             show={showDialog}
           /> */}
               <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
-                {/* <Typography sx={{ cursor: 'pointer' }} color='inherit'>
-      Lab
-    </Typography> */}
                 <Typography color='inherit'>Lab</Typography>
                 <Typography color='text.primary'>Lab list</Typography>
               </Breadcrumbs>
