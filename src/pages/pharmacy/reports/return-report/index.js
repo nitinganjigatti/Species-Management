@@ -412,6 +412,26 @@ const ReturnReport = () => {
     {
       minWidth: 20,
       width: 180,
+      field: 'net_unit_price',
+      headerName: 'NET UNIT PRICE',
+      sortable: true,
+      renderCell: params => (
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
+          {Utility.formatAmountToReadableDigit(params.row.net_unit_price)}
+        </Typography>
+      )
+    },
+    {
+      minWidth: 20,
+      width: 180,
       field: 'return_value',
       headerName: 'TOTAL RETURN VALUE',
       sortable: true,
