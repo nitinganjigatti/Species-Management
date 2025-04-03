@@ -303,7 +303,7 @@ const IndividualDispense = () => {
             {dispenseData?.animal_details?.length > 0 ? (
               <>
                 <CardHeader title='Animal List' />
-                <Box p={4}>
+                <Box px={4}>
                   <TableBasic rows={animalDispenseRows} columns={animalsColumns} />
                 </Box>
                 {/* <DataGrid
