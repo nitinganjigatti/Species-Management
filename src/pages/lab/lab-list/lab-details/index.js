@@ -9,9 +9,11 @@ import Tests from 'src/components/lab/lab-details/Tests'
 import Users from 'src/components/lab/lab-details/Users'
 import { getLabDeatilsById } from 'src/lib/api/lab/addLab'
 import { useRouter } from 'next/router'
+import { useTheme } from '@mui/material/styles'
 import FallbackSpinner from 'src/@core/components/spinner/index'
 
 const LabDetails = () => {
+  const theme = useTheme()
   const [loader, setLoader] = useState(false)
   const [status, setStatus] = useState('site')
   const [showLabDetails, setShowLabDetails] = useState()

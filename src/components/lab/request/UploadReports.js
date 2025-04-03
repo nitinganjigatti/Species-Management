@@ -325,7 +325,7 @@ const UploadReports = ({
                       gap: 7,
                       height: 60,
                       borderRadius: '8px',
-                      border: `2px dotted #D8D8DD`,
+                      border: `2px dotted ${theme.palette.customColors.OutlineSecondary}`,
                       padding: 3,
                       width: '414px',
                       flexWrap: 'wrap'
@@ -384,7 +384,7 @@ const UploadReports = ({
                           >
                             <Icon
                               icon='material-symbols-light:close'
-                              color='#fff'
+                              color={theme.palette.primary.contrastText}
                               onClick={() => removeSelectedImage(index)}
                             >
                               {' '}

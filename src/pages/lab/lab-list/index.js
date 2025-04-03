@@ -14,7 +14,7 @@ import { DataGrid } from '@mui/x-data-grid'
 import Card from '@mui/material/Card'
 import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
 import { debounce } from 'lodash'
-import { useTheme } from '@emotion/react'
+import { useTheme } from '@mui/material/styles'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
