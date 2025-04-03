@@ -244,7 +244,9 @@ const AddPurchaseForm = () => {
   const showDialog = () => {
     setShow(true)
   }
-
+  useEffect(() => {
+    console.log('edit params', editParams)
+  }, [editParams])
   // const getStoreType = id => {
   //   const foundOStores = stores.find(item => item.id === id)
   //   if (foundOStores) {
@@ -291,7 +293,9 @@ const AddPurchaseForm = () => {
     const totalFreight = parseFloat(totalFreightCharges) || 0
     const additional = parseFloat(additionalCharges) || 0
     const totalItems = parseFloat(totalLineItemsPurchase) || 0
-
+    console.log('additional', additional)
+    console.log('totalItems', totalItems)
+    console.log('totalFreight', totalFreight)
     const result = totalItems + totalFreight + additional + roundUp
 
     return result
@@ -1480,7 +1484,7 @@ const AddPurchaseForm = () => {
                   // gap: 2
                 }}
               >
-                {authData?.userData?.roles?.settings?.add_pharmacy && !id && (
+                {/* {authData?.userData?.roles?.settings?.add_pharmacy && !id && (
                   <AddButton
                     // sx={{ mx: 24 }}
                     title='Upload Invoice '
@@ -1488,7 +1492,7 @@ const AddPurchaseForm = () => {
                       setInvoiceUploadDialog(true)
                     }}
                   />
-                )}
+                )} */}
                 {authData?.userData?.roles?.settings?.add_pharmacy && (
                   <AddButton
                     // sx={{ mx: 24 }}

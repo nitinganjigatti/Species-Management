@@ -295,7 +295,7 @@ const ListOfPurchase = () => {
             fontFamily: 'Inter'
           }}
         >
-          {params?.row?.net_amount}
+          {Number(params?.row?.net_amount).toFixed(2)}
         </Typography>
       )
     },
@@ -463,7 +463,7 @@ const ListOfPurchase = () => {
 
                 '& .MuiCardHeader-action': {
                   width: { xs: '100% ', sm: 'auto' },
-                  justifyContent: 'flex-end', 
+                  justifyContent: 'flex-end',
                 },
                 mx: { xs: -1, sm: 1 }
               }}
