@@ -57,7 +57,7 @@ const PurchaseReport = () => {
 
   const [selectedOptions, setSelectedOptions] = useState({
     'Supplier Name': [],
-    'Requested By': [],
+    'Created By': [],
     'Drug Type': 'all'
   })
 
@@ -131,12 +131,12 @@ const PurchaseReport = () => {
     if (!selectAllUser) {
       setSelectedOptions({
         ...selectedOptions,
-        ['Requested By']: users.map(u => u.id)
+        ['Created By']: users.map(u => u.id)
       })
     } else {
       setSelectedOptions({
         ...selectedOptions,
-        ['Requested By']: []
+        ['Created By']: []
       })
     }
   }
@@ -166,9 +166,9 @@ const PurchaseReport = () => {
           ...(filteredData && filteredData.controlled && { controlled: filteredData.controlled }),
           ...(filteredData && filteredData.prescription && { prescription: filteredData.prescription }),
           ...(filteredData &&
-            filteredData.requestedBy &&
-            filteredData.requestedBy.length > 0 && {
-              user_id: filteredData.requestedBy.join(',')
+            filteredData.createdBy &&
+            filteredData.createdBy.length > 0 && {
+              user_id: filteredData.createdBy.join(',')
             })
         }
 
@@ -386,9 +386,9 @@ const PurchaseReport = () => {
     {
       minWidth: 20,
       width: 180,
-      field: 'unit_price',
+      field: 'net_unit_price',
       sortable: false,
-      headerName: 'SUPPLIER PRICE',
+      headerName: 'NET UNIT PRICE',
       renderCell: params => (
         <Typography
           variant='body2'
@@ -399,7 +399,28 @@ const PurchaseReport = () => {
             fontFamily: 'Inter'
           }}
         >
-          {Utility.formatAmountToReadableDigit(params.row.unit_price)}
+          {Utility.formatAmountToReadableDigit(params.row.net_unit_price)}
+        </Typography>
+      )
+    },
+
+    {
+      minWidth: 20,
+      width: 200,
+      field: 'purchase_value',
+      sortable: false,
+      headerName: 'TOTAL PURCHASE AMOUNT',
+      renderCell: params => (
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
+          {Utility.formatAmountToReadableDigit(params.row.purchase_value)}
         </Typography>
       )
     },
@@ -427,26 +448,6 @@ const PurchaseReport = () => {
             <span alt={params.row.supplier_name}> {params.row.supplier_name}</span>
           </Typography>
         </Tooltip>
-      )
-    },
-    {
-      minWidth: 20,
-      width: 200,
-      field: 'net_amount',
-      sortable: false,
-      headerName: 'TOTAL PURCHASE AMOUNT',
-      renderCell: params => (
-        <Typography
-          variant='body2'
-          sx={{
-            color: theme.palette.customColors.customHeadingTextColor,
-            fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
-          }}
-        >
-          {Utility.formatAmountToReadableDigit(params.row.net_amount)}
-        </Typography>
       )
     },
     {
@@ -735,9 +736,9 @@ const PurchaseReport = () => {
         ...(filteredData && filteredData.controlled && { controlled: filteredData.controlled }),
         ...(filteredData && filteredData.prescription && { prescription: filteredData.prescription }),
         ...(filteredData &&
-          filteredData.requestedBy &&
-          filteredData.requestedBy.length > 0 && {
-            user_id: filteredData.requestedBy.join(',')
+          filteredData.createdBy &&
+          filteredData.createdBy.length > 0 && {
+            user_id: filteredData.createdBy.join(',')
           }),
         response_type: 'csv'
       }
@@ -763,7 +764,7 @@ const PurchaseReport = () => {
       count++
     }
 
-    if (filteredData.requestedBy && filteredData.requestedBy.length > 0) {
+    if (filteredData.createdBy && filteredData.createdBy.length > 0) {
       count++
     }
 

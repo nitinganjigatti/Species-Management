@@ -44,7 +44,7 @@ const RequestReport = () => {
   const [total, setTotal] = useState(0)
   const [rows, setRows] = useState([])
   const [sort, setSort] = useState(router.query.sort || 'asc')
-  const [sortColumn, setSortColumn] = useState(router.query.column || 'product_name')
+  const [sortColumn, setSortColumn] = useState(router.query.column || 'request_ID')
   const [searchValue, setSearchValue] = useState(router.query.q || '')
   const [openFilterDrawer, setOpenFilterDrawer] = useState(false)
   const [filteredData, setFilteredData] = useState({ Pharmacy: [] })
@@ -270,10 +270,10 @@ const RequestReport = () => {
     // },
     {
       minWidth: 20,
-      width: 160,
+      width: 180,
       field: 'request_ID',
       headerName: 'REQUEST NUMBER',
-      sortable: false,
+      sortable: true,
       renderCell: params => (
         <Typography
           variant='body2'
@@ -393,6 +393,26 @@ const RequestReport = () => {
           }}
         >
           {params.row.requested_quantity ? Utility.formatNumber(params.row.requested_quantity) : 0}
+        </Typography>
+      )
+    },
+    {
+      minWidth: 20,
+      width: 190,
+      field: 'pending_quantity',
+      headerName: 'PENDING QUANTITY',
+      sortable: true,
+      renderCell: params => (
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
+          {params.row.pending_quantity ? Utility.formatNumber(params.row.pending_quantity) : 0}
         </Typography>
       )
     },

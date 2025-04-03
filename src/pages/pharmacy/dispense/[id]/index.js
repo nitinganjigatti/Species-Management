@@ -59,6 +59,28 @@ const IndividualDispense = () => {
           {params.row.qty}
         </Typography>
       )
+    },
+    {
+      flex: 0.15,
+      minWidth: 120,
+      field: 'unit_price',
+      headerName: 'Unit Price',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {Utility.formatAmountToReadableDigit(params.row.unit_price)}
+        </Typography>
+      )
+    },
+    {
+      flex: 0.15,
+      minWidth: 120,
+      field: 'total_price',
+      headerName: 'Total Value',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {Utility.formatAmountToReadableDigit(params.row.qty * params.row.unit_price)}
+        </Typography>
+      )
     }
   ]
 

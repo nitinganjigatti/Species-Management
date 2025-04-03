@@ -233,6 +233,26 @@ const ReturnReport = () => {
         </Typography>
       )
     },
+    {
+      minWidth: 20,
+      width: 170,
+      field: 'shipment_id',
+      headerName: 'SHIPMENT NUMBER',
+      sortable: true,
+      renderCell: params => (
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
+          {params.row.shipment_id}
+        </Typography>
+      )
+    },
 
     // {
     //   width: 5,
@@ -385,7 +405,27 @@ const ReturnReport = () => {
             fontFamily: 'Inter'
           }}
         >
-          {params.row?.total_return_qty ? Utility.formatNumber(params.row.total_return_qty) : 0}
+          {params.row?.return_qty ? Utility.formatNumber(params.row.return_qty) : 0}
+        </Typography>
+      )
+    },
+    {
+      minWidth: 20,
+      width: 180,
+      field: 'net_unit_price',
+      headerName: 'NET UNIT PRICE',
+      sortable: true,
+      renderCell: params => (
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
+          {Utility.formatAmountToReadableDigit(params.row.net_unit_price)}
         </Typography>
       )
     },

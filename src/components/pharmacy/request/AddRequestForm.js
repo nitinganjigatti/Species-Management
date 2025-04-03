@@ -844,9 +844,10 @@ const AddRequestForm = () => {
                         <Typography>{option.name}</Typography>
                         <Typography variant='body2'>{option.package}</Typography>
                         <Typography variant='body2'>{option.manufacture}</Typography>
-                        {option.control_substance === true && (
+                        {/* {option.control_substance === true && (
                           <CustomChip label='CS' skin='light' color='success' size='small' />
-                        )}{' '}
+                        )}{' '} */}
+                         {RenderUtility?.renderControlLabel(option.control_substance === true, 'CS')}
                         {option.prescription_required === true && (
                           <CustomChip label='PR' skin='light' color='success' size='small' />
                         )}
@@ -1954,7 +1955,7 @@ const AddRequestForm = () => {
       <CardContent>
         <Grid container>
           <CommonDialogBox
-            title={'Add Request Item'}
+            title={'Add Request Item '}
             dialogBoxStatus={show}
             formComponent={createForm()}
             close={closeDialog}

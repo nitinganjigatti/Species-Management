@@ -65,7 +65,8 @@ const defaultValues = {
   manufacture: '',
   control_substance: false,
   variant_id: '',
-  multiplier: ''
+  multiplier: '',
+  unit_price: ''
 }
 
 const schema = yup.object().shape({
@@ -166,6 +167,8 @@ export const AddItemsForm = ({
   console.log(batchList, 'list')
 
   const onSubmit = async params => {
+    console.log(params, 'params')
+
     setBatchError(false)
 
     const {
@@ -179,7 +182,8 @@ export const AddItemsForm = ({
       manufacture,
       control_substance,
       variant_id,
-      multiplier
+      multiplier,
+      unit_price
     } = {
       ...params
     }
@@ -273,8 +277,8 @@ export const AddItemsForm = ({
         manufacture,
         control_substance,
         variant_id,
-        multiplier
-
+        multiplier,
+        unit_price
         // to_store_id: '14'
       },
       type
@@ -353,7 +357,8 @@ export const AddItemsForm = ({
         packageDetails: nestedMedicine?.packageDetails,
         manufacture: nestedMedicine?.manufacture,
         variant_id: nestedMedicine?.variant_id,
-        multiplier: nestedMedicine?.multiplier
+        multiplier: nestedMedicine?.multiplier,
+        unit_price: nestedMedicine?.unit_price
       })
 
       async function searchMedicine() {
@@ -372,6 +377,8 @@ export const AddItemsForm = ({
     }
     checkTotalCount()
   }, [])
+
+  console.log(productList, 'productList')
 
   return (
     <>
@@ -406,6 +413,7 @@ export const AddItemsForm = ({
                       setValue('stock_type', '')
                       setValue('packageDetails', '')
                       setValue('manufacture', '')
+                      setValue('unit_price', '')
 
                       if (value === null || value.status === 0) {
                         return onChange(null)
@@ -416,6 +424,7 @@ export const AddItemsForm = ({
                         setValue('packageDetails', value.packageDetails)
                         setValue('manufacture', value.manufacture)
                         setValue('control_substance', value.control_substance)
+                        setValue('unit_price', value.unit_price)
                       } else {
                       }
                       checkTotalCount()
@@ -446,9 +455,10 @@ export const AddItemsForm = ({
                           {/* <Typography>{option.label}</Typography> */}
                           <Typography variant='body2'>{option.packageDetails}</Typography>
                           <Typography variant='body2'>{option.manufacture}</Typography>
-                          {option.control_substance === true && (
+                          {RenderUtility?.renderControlLabel(option.control_substance === true, 'CS')}
+                          {/* {option.control_substance === true && (
                             <CustomChip label='CS' skin='light' color='success' size='small' />
-                          )}{' '}
+                          )}{' '} */}
                           {option.prescription_required === true && (
                             <CustomChip label='PR' skin='light' color='success' size='small' />
                           )}
@@ -471,7 +481,7 @@ export const AddItemsForm = ({
               {errors?.request_item && (
                 <FormHelperText sx={{ color: 'error.main' }}>{errors?.request_item?.message}</FormHelperText>
               )}
-              {watch('packageDetails') && (
+              {/* {watch('packageDetails') && (
                 <Box sx={{ mx: 1, my: 2, display: 'flex' }}>
                   <Chip
                     label={watch('packageDetails')}
@@ -488,7 +498,7 @@ export const AddItemsForm = ({
                     sx={{ fontSize: 11, height: '22px' }}
                   />
                 </Box>
-              )}
+              )} */}
               {/* <Box>
                 <Typography>{option.name}</Typography>
                 <Typography variant='body2'>{option.package}</Typography>
@@ -554,7 +564,7 @@ export const AddItemsForm = ({
                   <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
                     <Typography
                       color='customColors.neutralSecondary'
-                      sx={{ fontWeight: 400, fontFamily: 'Inter', fontSize: '12px', mb: 1 }}
+                      sx={{ fontWeight: 400, fontFamily: 'Inter', fontSize: '12px' }}
                     >
                       Availability:
                     </Typography>
@@ -563,6 +573,26 @@ export const AddItemsForm = ({
                       style={{ fontWeight: 400, fontSize: '12px', color: 'customColors.OnPrimaryContainer' }}
                     >
                       {batchLoading ? <LoaderIcon /> : `${totalAvailableCount}`}
+                    </Typography>
+                  </Box>
+                  <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+                    <Typography
+                      color='customColors.neutralSecondary'
+                      sx={{ fontWeight: 400, fontFamily: 'Inter', fontSize: '12px' }}
+                    >
+                      Unit Price:
+                    </Typography>
+                    <Typography sx={{ fontWeight: 400, fontSize: '12px', color: 'customColors.OnPrimaryContainer' }}>
+                      {Utility.formatAmountToReadableDigit(watch('unit_price'))}
+                    </Typography>
+                    <Typography
+                      color='customColors.neutralSecondary'
+                      sx={{ fontWeight: 400, fontFamily: 'Inter', fontSize: '12px', marginLeft: '8px' }}
+                    >
+                      Total Value:
+                    </Typography>
+                    <Typography sx={{ fontWeight: 400, fontSize: '12px', color: 'customColors.OnPrimaryContainer' }}>
+                      {Utility.formatAmountToReadableDigit(watch('unit_price') * watch('request_item_qty')) || 0}
                     </Typography>
                   </Box>
                 </Box>

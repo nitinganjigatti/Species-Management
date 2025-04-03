@@ -5,6 +5,7 @@ import {
   FormGroup,
   FormHelperText,
   Grid,
+  Paper,
   Table,
   TableCell,
   TableHead,
@@ -26,6 +27,9 @@ import { usePharmacyContext } from 'src/context/PharmacyContext'
 import { useContext } from 'react'
 import { AuthContext } from 'src/context/AuthContext'
 import Spacing from 'src/@core/theme/spacing'
+import { da } from 'date-fns/locale'
+import Utility from 'src/utility'
+import { useTheme } from '@emotion/react'
 
 function ProductForm({
   closeDialog,
@@ -42,6 +46,8 @@ function ProductForm({
   setAddedProductQty,
   setDispensesPayload
 }) {
+  const theme = useTheme()
+
   const [totalProductQty, setTotalProductQty] = useState(null)
   const [totalQty, setTotalQty] = useState(0)
 
@@ -314,6 +320,8 @@ function ProductForm({
   // }
 
   function submitItems(data) {
+    console.log(data, 'data')
+
     const index = productArrayUi.findIndex(item => item.stock_id?.value === data?.stock_id?.value)
 
     // If index is found, insert the new items just after that index
@@ -325,7 +333,8 @@ function ProductForm({
           batch_no: item?.batch_no,
           qty: item?.qty,
           variant_id: item?.variant_id,
-          multiplier: item?.multiplier
+          multiplier: item?.multiplier,
+          unit_price: data?.stock_id?.unit_price
         })),
         ...prevArray.slice(index + 1)
       ])
@@ -337,7 +346,8 @@ function ProductForm({
             batch_no: item?.batch_no?.value,
             qty: item?.qty,
             variant_id: item?.variant_id,
-            multiplier: item?.multiplier
+            multiplier: item?.multiplier,
+            unit_price: data?.stock_id?.unit_price
           }
         }),
         ...prevArray.slice(index + 1)
@@ -351,7 +361,8 @@ function ProductForm({
           batch_no: item?.batch_no,
           qty: item?.qty,
           variant_id: item?.variant_id,
-          multiplier: item?.multiplier
+          multiplier: item?.multiplier,
+          unit_price: data?.stock_id?.unit_price
         }))
       ])
       setProductArray(prevArray => [
@@ -362,7 +373,8 @@ function ProductForm({
             batch_no: item?.batch_no?.value,
             qty: item?.qty,
             variant_id: item?.variant_id,
-            multiplier: item?.multiplier
+            multiplier: item?.multiplier,
+            unit_price: data?.stock_id?.unit_price
           }
         })
       ])
@@ -384,7 +396,8 @@ function ProductForm({
       batch_no: data.batch_no?.value,
       qty: data.qty,
       variant_id: data?.variant_id,
-      multiplier: data?.multiplier
+      multiplier: data?.multiplier,
+      unit_price: data?.stock_id?.unit_price
     }
 
     // Update the data at the found index
@@ -393,7 +406,8 @@ function ProductForm({
       batch_no: data.batch_no,
       qty: data.qty,
       variant_id: data?.variant_id,
-      multiplier: data?.multiplier
+      multiplier: data?.multiplier,
+      unit_price: data?.stock_id?.unit_price
     }
 
     // Update the state
@@ -410,12 +424,15 @@ function ProductForm({
     if (!editMode) {
       try {
         getProductList({ params: { sort: 'asc', q: '', limit: 20, is_specific: 1 } }).then(res => {
+          console.log('unit_price', res)
+
           if (res?.data?.list_items?.length > 0) {
             setProducts(
               res?.data?.list_items?.map(item => ({
                 label: item.name,
                 value: item.id,
-                stock_type: item.stock_type
+                stock_type: item.stock_type,
+                unit_price: item.unit_price
               }))
             )
           }
@@ -435,7 +452,8 @@ function ProductForm({
               res?.data?.list_items?.map(item => ({
                 label: item.name,
                 value: item.id,
-                stock_type: item.stock_type
+                stock_type: item.stock_type,
+                unit_price: item.unit_price
               }))
             )
           }
@@ -454,6 +472,7 @@ function ProductForm({
   const callBatchesApi = (stock_id, stock_type) => {
     if (stock_id) {
       getBatchList({ ProductId: stock_id, store_type: selectedPharmacy?.type, stock_type }).then(res => {
+        console.log('unit_price', res)
         if (res?.data?.items?.length > 0) {
           setBatches(
             res?.data?.items?.map(item => ({
@@ -504,6 +523,8 @@ function ProductForm({
       setTotalQty(getValues('batch_no.qty'))
     }
   }, [editMode])
+
+  console.log(products, 'products')
 
   return (
     <Box>
@@ -559,11 +580,11 @@ function ProductForm({
         <Grid container mb={5}>
           <Grid item xs={12}>
             <FormControl fullWidth>
-              <Typography sx={{ my: 2 }}>
+              {/* <Typography sx={{ my: 2 }}>
                 {`${
                   errors?.stock_id || watch('stock_id')?.value === '' ? '' : 'Total Available Quantity: ' + totalQty
                 } `}
-              </Typography>
+              </Typography> */}
               <Controller
                 name='stock_id'
                 control={control}
@@ -579,6 +600,8 @@ function ProductForm({
                       options={products}
                       value={field?.value}
                       onChange={(event, newValue) => {
+                        console.log(newValue, 'newValue')
+
                         field.onChange(newValue)
                         callBatchesApi(newValue?.value, newValue?.stock_type)
                         setValue('batch_no', '')
@@ -613,6 +636,50 @@ function ProductForm({
                 )}
               />
             </FormControl>
+
+            {watch('stock_id')?.unit_price && (
+              <Paper
+                elevation={0}
+                sx={{
+                  backgroundColor: 'customColors.Surface',
+                  padding: 3,
+                  borderRadius: 1,
+
+                  // border: '1px solid #37BD69',
+                  border: `1px solid ${theme.palette.primary.main}`,
+                  mt: 5
+                }}
+              >
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                  <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+                    <Typography
+                      color='customColors.neutralSecondary'
+                      sx={{ fontWeight: 400, fontFamily: 'Inter', fontSize: '12px' }}
+                    >
+                      Total Available Quantity:
+                    </Typography>
+                    <Typography
+                      color='primary.light'
+                      style={{ fontWeight: 400, fontSize: '12px', color: 'customColors.OnPrimaryContainer' }}
+                    >
+                      {`${errors?.stock_id || watch('stock_id')?.value === '' ? '' : totalQty} `}
+                    </Typography>
+                  </Box>
+
+                  <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+                    <Typography
+                      color='customColors.neutralSecondary'
+                      sx={{ fontWeight: 400, fontFamily: 'Inter', fontSize: '12px' }}
+                    >
+                      Unit Price:
+                    </Typography>
+                    <Typography sx={{ fontWeight: 400, fontSize: '12px', color: 'customColors.OnPrimaryContainer' }}>
+                      {Utility.formatAmountToReadableDigit(watch('stock_id')?.unit_price) || 0}
+                    </Typography>
+                  </Box>
+                </Box>
+              </Paper>
+            )}
           </Grid>
         </Grid>
         {/* /////////////////////////////////////////////////// */}
