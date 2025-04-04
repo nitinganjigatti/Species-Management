@@ -601,7 +601,7 @@ const ShipmentReport = () => {
             fontFamily: 'Inter'
           }}
         >
-          {params.row.receiver_name ? params.row.receiver_name : '-'}
+          {params.row.shipment_status === 'PickedUp' ? params.row.receiver_name : '-'}
         </Typography>
       )
     },
