@@ -26,8 +26,6 @@ import { usePharmacyContext } from 'src/context/PharmacyContext'
 
 import { useContext } from 'react'
 import { AuthContext } from 'src/context/AuthContext'
-import Spacing from 'src/@core/theme/spacing'
-import { da } from 'date-fns/locale'
 import Utility from 'src/utility'
 import { useTheme } from '@emotion/react'
 import RenderUtility from 'src/utility/render'
@@ -773,9 +771,9 @@ function ProductForm({
         </Box>
 
         {!editMode ? (
-          <FormGroup>
+          <FormGroup sx={{ bgcolor: '#0000000D', padding: 2, borderRadius: 1 }}>
             {fields.map((field, index) => (
-              <Grid container gap={3} key={field?.id} sx={{ mb: 2 }}>
+              <Grid container gap={3} key={field?.id} sx={{ mb: 2, mt: 2 }}>
                 <Grid item xs={12} sm={3}>
                   <FormControl fullWidth>
                     <Controller

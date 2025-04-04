@@ -574,7 +574,29 @@ export const AddItemsForm = ({
                       {batchLoading ? <LoaderIcon /> : `${totalAvailableCount}`}
                     </Typography>
                   </Box>
-                  <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+
+                  <Box
+                    sx={{
+                      backgroundColor: 'customColors.OnPrimaryContainer',
+                      borderRadius: '16px',
+                      padding: '5px 15px',
+                      width: 'fit-content',
+                      color: 'customColors.OnPrimary'
+                    }}
+                  >
+                    <Typography
+                      variant='body1'
+                      component='span'
+                      sx={{
+                        fontSize: '12px',
+                        fontWeight: 400,
+                        color: 'customColors.OnPrimary'
+                      }}
+                    >
+                      Unit Price - {Utility.formatAmountToReadableDigit(watch('unit_price'))}
+                    </Typography>
+                  </Box>
+                  {/* <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
                     <Typography
                       color='customColors.neutralSecondary'
                       sx={{ fontWeight: 400, fontFamily: 'Inter', fontSize: '12px' }}
@@ -593,7 +615,7 @@ export const AddItemsForm = ({
                     <Typography sx={{ fontWeight: 400, fontSize: '12px', color: 'customColors.OnPrimaryContainer' }}>
                       {Utility.formatAmountToReadableDigit(watch('unit_price') * watch('request_item_qty')) || 0}
                     </Typography>
-                  </Box>
+                  </Box> */}
                 </Box>
               </Paper>
             )}
