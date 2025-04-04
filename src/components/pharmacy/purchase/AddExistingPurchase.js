@@ -974,7 +974,7 @@ const AddExistingPurchase = () => {
                       type='text'
                       name='requested_by'
                       disabled={id ? true : false}
-                      error={Boolean(errors.po_no)}
+                      // error={Boolean(errors.po_no)}
                       label='Requested by'
                     />
                   )}

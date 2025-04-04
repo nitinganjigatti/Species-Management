@@ -40,8 +40,8 @@ const ShipmentReport = () => {
   const [rows, setRows] = useState([])
   const [total, setTotal] = useState(0)
   const [loading, setLoading] = useState(false)
-  const [sort, setSort] = useState(router.query.sort || 'asc')
-  const [sortColumn, setSortColumn] = useState(router.query.column || 'stock_name')
+  const [sort, setSort] = useState(router.query.sort || 'desc')
+  const [sortColumn, setSortColumn] = useState(router.query.column || 'shipment_date')
   const [searchValue, setSearchValue] = useState(router.query.q || '')
   const [openFilterDrawer, setOpenFilterDrawer] = useState(false)
   const [filteredData, setFilteredData] = useState({ pharmacy: [] })
@@ -64,6 +64,18 @@ const ShipmentReport = () => {
     startDate: router.query.startDate || Utility.formatDate(format(subMonths(new Date(), 1), 'dd MMM, yyyy')),
     endDate: router.query.endDate || Utility.formatDate(format(new Date(), 'dd MMM, yyyy'))
   })
+
+  useEffect(() => {
+    setSelectedOptions({
+      'Batch Number': [],
+      Pharmacy: [],
+      'Drug Type': 'all'
+    })
+
+    setFilteredData({
+      pharmacy: []
+    })
+  }, [selectedPharmacy?.id])
 
   useEffect(() => {
     const pharmacyList = async () => {
@@ -182,8 +194,6 @@ const ShipmentReport = () => {
     ...row,
     id: getSlNo(index)
   }))
-
-  console.log(indexedRows)
 
   const columns = [
     {
@@ -387,6 +397,7 @@ const ShipmentReport = () => {
       field: 'total_shipped_qty',
       headerName: 'SHIPPED QUANTITY',
       sortable: true,
+      align: 'center',
       renderCell: params => (
         <Typography
           variant='body2'
@@ -407,6 +418,7 @@ const ShipmentReport = () => {
       field: 'net_unit_price',
       headerName: 'NET UNIT PRICE',
       sortable: true,
+      align: 'right',
       renderCell: params => (
         <Typography
           variant='body2'
@@ -427,6 +439,7 @@ const ShipmentReport = () => {
       field: 'Total_shipping_value',
       headerName: 'TOTAL SHIPPING VALUE',
       sortable: true,
+      align: 'right',
       renderCell: params => (
         <Typography
           variant='body2'
@@ -489,26 +502,6 @@ const ShipmentReport = () => {
     },
     {
       minWidth: 20,
-      width: 180,
-      field: 'shipment_status',
-      sortable: false,
-      headerName: 'SHIPMENT TYPE',
-      renderCell: params => (
-        <Typography
-          variant='body2'
-          sx={{
-            color: theme.palette.customColors.customHeadingTextColor,
-            fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
-          }}
-        >
-          {params.row.shipment_status}
-        </Typography>
-      )
-    },
-    {
-      minWidth: 20,
       width: 160,
       field: 'to_store',
       headerName: 'TO STORE',
@@ -524,6 +517,26 @@ const ShipmentReport = () => {
           }}
         >
           {params.row.to_store}
+        </Typography>
+      )
+    },
+    {
+      minWidth: 20,
+      width: 160,
+      field: 'shipment_status',
+      sortable: false,
+      headerName: 'SHIPMENT TYPE',
+      renderCell: params => (
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
+          {params.row.shipment_status === 'PickedUp' ? 'Picked up' : params.row.shipment_status}
         </Typography>
       )
     },
@@ -818,7 +831,9 @@ const ShipmentReport = () => {
             },
             mx: { xs: -1, sm: 0 }
           }}
-          title={RenderUtility.pageTitle('Shipment Report')}
+          title={RenderUtility.pageTitle(
+            `${selectedPharmacy?.type === 'central' ? 'Shipment Report' : 'Dispatch Report'}`
+          )}
         />
         <CardContent sx={{ paddingTop: '4px' }}>
           <Box

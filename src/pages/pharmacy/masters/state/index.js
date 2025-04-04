@@ -221,7 +221,9 @@ const ListOfStates = () => {
             fontFamily: 'Inter'
           }}
         >
-          {params.row.status}
+          {params.row.status
+            ? params.row.status.charAt(0).toUpperCase() + params.row.status.slice(1).toLowerCase()
+            : ''}
         </Typography>
       )
     },
