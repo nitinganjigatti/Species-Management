@@ -66,6 +66,18 @@ const ShipmentReport = () => {
   })
 
   useEffect(() => {
+    setSelectedOptions({
+      'Batch Number': [],
+      Pharmacy: [],
+      'Drug Type': 'all'
+    })
+
+    setFilteredData({
+      pharmacy: []
+    })
+  }, [selectedPharmacy?.id])
+
+  useEffect(() => {
     const pharmacyList = async () => {
       try {
         const params = {
@@ -385,6 +397,7 @@ const ShipmentReport = () => {
       field: 'total_shipped_qty',
       headerName: 'SHIPPED QUANTITY',
       sortable: true,
+      align: 'center',
       renderCell: params => (
         <Typography
           variant='body2'
@@ -405,6 +418,7 @@ const ShipmentReport = () => {
       field: 'net_unit_price',
       headerName: 'NET UNIT PRICE',
       sortable: true,
+      align: 'right',
       renderCell: params => (
         <Typography
           variant='body2'
@@ -425,6 +439,7 @@ const ShipmentReport = () => {
       field: 'Total_shipping_value',
       headerName: 'TOTAL SHIPPING VALUE',
       sortable: true,
+      align: 'right',
       renderCell: params => (
         <Typography
           variant='body2'
@@ -487,26 +502,6 @@ const ShipmentReport = () => {
     },
     {
       minWidth: 20,
-      width: 180,
-      field: 'shipment_status',
-      sortable: false,
-      headerName: 'SHIPMENT TYPE',
-      renderCell: params => (
-        <Typography
-          variant='body2'
-          sx={{
-            color: theme.palette.customColors.customHeadingTextColor,
-            fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
-          }}
-        >
-          {params.row.shipment_status}
-        </Typography>
-      )
-    },
-    {
-      minWidth: 20,
       width: 160,
       field: 'to_store',
       headerName: 'TO STORE',
@@ -522,6 +517,26 @@ const ShipmentReport = () => {
           }}
         >
           {params.row.to_store}
+        </Typography>
+      )
+    },
+    {
+      minWidth: 20,
+      width: 180,
+      field: 'shipment_status',
+      sortable: false,
+      headerName: 'SHIPMENT TYPE',
+      renderCell: params => (
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
+          {params.row.shipment_status === 'PickedUp' ? 'Picked up' : params.row.shipment_status}
         </Typography>
       )
     },
@@ -581,7 +596,7 @@ const ShipmentReport = () => {
             fontFamily: 'Inter'
           }}
         >
-          {params.row.phone_number}
+          {params.row.phone_number ? params.row.phone_number : '-'}
         </Typography>
       )
     },
@@ -816,7 +831,9 @@ const ShipmentReport = () => {
             },
             mx: { xs: -1, sm: 0 }
           }}
-          title={RenderUtility.pageTitle('Shipment Report')}
+          title={RenderUtility.pageTitle(
+            `${selectedPharmacy?.type === 'central' ? 'Shipment Report' : 'Dispatch Report'}`
+          )}
         />
         <CardContent sx={{ paddingTop: '4px' }}>
           <Box

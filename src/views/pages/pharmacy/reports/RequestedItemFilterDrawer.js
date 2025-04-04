@@ -26,8 +26,8 @@ const leftMenu = [
 
 const drugTypeOptions = [
   { id: 'all', name: 'All' },
-  { id: 'controlled', name: 'Controlled' },
-  { id: 'prescription', name: 'Prescription' }
+  { id: 'controlled', name: 'Controlled Substance' },
+  { id: 'prescription', name: 'Prescription Required' }
 ]
 
 const priorityOptions = [
@@ -63,7 +63,7 @@ const RequestedItemFilterDrawer = ({
   const isAllPharmaciesSelected =
     pharmacyList?.length > 0 && selectedOptions['Pharmacy']?.length === pharmacyList?.length
 
-  const isAllUsersSelected = users?.length > 0 && selectedOptions['User'].length === users?.length
+  const isAllUsersSelected = users?.length > 0 && selectedOptions['User']?.length === users?.length
 
   const handleCloseDrawer = () => {
     setOpenFilterDrawer(false)
@@ -72,6 +72,10 @@ const RequestedItemFilterDrawer = ({
   const handleMenuClick = menu => {
     setSelectedMenu(menu)
     setSearchQuery('')
+  }
+
+  const handleClearAll = () => {
+    setSelectedOptions({})
   }
 
   const handleCheckbox = useCallback(
@@ -441,8 +445,8 @@ const RequestedItemFilterDrawer = ({
           zIndex: 123
         }}
       >
-        <LoadingButton fullWidth variant='outlined' size='large' onClick={handleCloseDrawer}>
-          CLOSE
+        <LoadingButton fullWidth variant='outlined' size='large' onClick={handleClearAll}>
+          CLEAR ALL
         </LoadingButton>
         <LoadingButton fullWidth variant='contained' size='large' onClick={applyFilters}>
           APPLY FILTER

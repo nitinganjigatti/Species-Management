@@ -19,15 +19,15 @@ import React, { useCallback, useState } from 'react'
 import Icon from 'src/@core/components/icon'
 
 const leftMenu = [
-  { id: 1, name: 'Pharmacy' },
+  // { id: 1, name: 'Pharmacy' },
   { id: 2, name: 'User' },
   { id: 3, name: 'Drug Type' }
 ]
 
 const drugTypeOptions = [
   { id: 'all', name: 'All' },
-  { id: 'controlled', name: 'Controlled' },
-  { id: 'prescription', name: 'Prescription' }
+  { id: 'controlled', name: 'Controlled Substance' },
+  { id: 'prescription', name: 'Prescription Required' }
 ]
 
 const StyledBadge = styled(Badge)(({ theme }) => ({
@@ -56,7 +56,7 @@ const DispenseReportFilterDrawer = ({
   const isAllPharmaciesSelected =
     pharmacyList?.length > 0 && selectedOptions['Pharmacy']?.length === pharmacyList?.length
 
-  const isAllUsersSelected = users?.length > 0 && selectedOptions['User'].length === users?.length
+  const isAllUsersSelected = users?.length > 0 && selectedOptions['User']?.length === users?.length
 
   const handleCloseDrawer = () => {
     setOpenFilterDrawer(false)
@@ -65,6 +65,10 @@ const DispenseReportFilterDrawer = ({
   const handleMenuClick = menu => {
     setSelectedMenu(menu)
     setSearchQuery('')
+  }
+
+  const handleClearAll = () => {
+    setSelectedOptions({})
   }
 
   const handleCheckbox = useCallback(
@@ -389,8 +393,8 @@ const DispenseReportFilterDrawer = ({
           zIndex: 123
         }}
       >
-        <LoadingButton fullWidth variant='outlined' size='large' onClick={handleCloseDrawer}>
-          CLOSE
+        <LoadingButton fullWidth variant='outlined' size='large' onClick={handleClearAll}>
+          CLEAR ALL
         </LoadingButton>
         <LoadingButton fullWidth variant='contained' size='large' onClick={applyFilters} disabled={isSubmitting}>
           APPLY FILTER

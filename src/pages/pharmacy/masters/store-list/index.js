@@ -166,7 +166,7 @@ const ListOfStores = () => {
             fontFamily: 'Inter'
           }}
         >
-          {params.row.latitude}
+          {params.row.latitude ? params.row.latitude : '-'}
         </Typography>
       )
     },
@@ -184,7 +184,7 @@ const ListOfStores = () => {
             fontFamily: 'Inter'
           }}
         >
-          {params.row.logitude}
+          {params.row.logitude ? params.row.logitude : '-'}
         </Typography>
       )
     },
@@ -203,7 +203,7 @@ const ListOfStores = () => {
             fontFamily: 'Inter'
           }}
         >
-          {params.row.site_name}
+          {params.row.site_name ? params.row.site_name : '-'}
         </Typography>
       )
     },
@@ -222,7 +222,9 @@ const ListOfStores = () => {
             fontFamily: 'Inter'
           }}
         >
-          {params.row.status}
+          {params.row.status
+            ? params.row.status.charAt(0).toUpperCase() + params.row.status.slice(1).toLowerCase()
+            : ''}
         </Typography>
       )
     },
