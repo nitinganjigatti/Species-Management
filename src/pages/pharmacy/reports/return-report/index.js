@@ -92,6 +92,16 @@ const ReturnReport = () => {
     setFilteredData({
       pharmacy: []
     })
+
+    setExpiryFilterDates({
+      startDate: '',
+      endDate: ''
+    })
+
+    setNearExpiryFilterDates({
+      startDate: '',
+      endDate: ''
+    })
   }, [selectedPharmacy.id])
 
   useEffect(() => {
