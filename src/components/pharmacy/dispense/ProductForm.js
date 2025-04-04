@@ -18,7 +18,7 @@ import * as Yup from 'yup'
 import { Controller, useFieldArray, useForm } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 import { getBatchList, getProductList } from 'src/lib/api/pharmacy/dispenseProduct'
-import { Box } from '@mui/system'
+import { Box, color, Stack } from '@mui/system'
 import Icon from 'src/@core/components/icon'
 import ConfirmDialog from 'src/components/ConfirmationDialog'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
@@ -26,6 +26,10 @@ import { usePharmacyContext } from 'src/context/PharmacyContext'
 import { useContext } from 'react'
 import { AuthContext } from 'src/context/AuthContext'
 import Spacing from 'src/@core/theme/spacing'
+import { da } from 'date-fns/locale'
+import Utility from 'src/utility'
+import { useTheme } from '@emotion/react'
+import RenderUtility from 'src/utility/render'
 
 function ProductForm({
   closeDialog,
@@ -394,7 +398,12 @@ function ProductForm({
               res?.data?.list_items?.map(item => ({
                 label: item.name,
                 value: item.id,
-                stock_type: item.stock_type
+                stock_type: item.stock_type,
+                unit_price: item.unit_price,
+                status: item?.active === '0' ? 0 : 1,
+                manufacture: item?.manufacturer_name,
+                packageDetails: `${item?.package} of ${item?.package_qty} ${item?.package_uom_label} ${item?.product_form_label}`,
+                control_substance: item.controlled_substance === '1' ? true : false
               }))
             )
           }
@@ -414,7 +423,12 @@ function ProductForm({
               res?.data?.list_items?.map(item => ({
                 label: item.name,
                 value: item.id,
-                stock_type: item.stock_type
+                stock_type: item.stock_type,
+                unit_price: item.unit_price,
+                status: item?.active === '0' ? 0 : 1,
+                manufacture: item?.manufacturer_name,
+                packageDetails: `${item?.package} of ${item?.package_qty} ${item?.package_uom_label} ${item?.product_form_label}`,
+                control_substance: item.controlled_substance === '1' ? true : false
               }))
             )
           }
@@ -484,6 +498,17 @@ function ProductForm({
     }
   }, [editMode])
 
+  // console.log(products, 'products')
+  // console.log(watch('product_batches'), 'product_batches')
+  // console.log(dataForEditRow, 'dataForEditRow')
+
+  const productBatches = watch('product_batches') || []
+  const unitPrice = watch('stock_id')?.unit_price || 0
+  const watchQty = watch('qty') || 0
+  console.log(watchQty, 'watchQty')
+
+  const totalQuantity = editMode ? watchQty : productBatches.reduce((sum, batch) => sum + Number(batch.qty), 0)
+
   return (
     <Box>
       <ConfirmDialog
@@ -550,9 +575,9 @@ function ProductForm({
                   <>
                     <Autocomplete
                       forcePopupIcon={false}
-                      ListboxProps={{ style: { maxHeight: 130 } }}
+                      // ListboxProps={{ style: { maxHeight: 130 } }}
                       inputProps={{ tabIndex: '6' }}
-                      disablePortal
+                      // disablePortal
                       noOptionsText='Type to search'
                       id='autocomplete-controlled'
                       options={products}
@@ -575,6 +600,22 @@ function ProductForm({
                           error={Boolean(errors?.stock_id)}
                         />
                       )}
+                      renderOption={(props, option) => (
+                        <li
+                          {...props}
+                          style={{ opacity: option.status ? 1 : 0.5, pointerEvents: option.status ? 'auto' : 'none' }}
+                        >
+                          <Box>
+                            <Typography>{option.label}</Typography>
+                            <Typography variant='body2'>{option.packageDetails}</Typography>
+                            <Typography variant='body2'>{option.manufacture}</Typography>
+                            {RenderUtility?.renderControlLabel(option.control_substance === true, 'CS')}
+                            {option.prescription_required === true && (
+                              <CustomChip label='PR' skin='light' color='success' size='small' />
+                            )}
+                          </Box>
+                        </li>
+                      )}
                     />
                     {errors?.stock_id && (
                       <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
@@ -592,9 +633,129 @@ function ProductForm({
                 )}
               />
             </FormControl>
+            {watch('stock_id')?.unit_price && (
+              <Paper
+                elevation={0}
+                sx={{
+                  backgroundColor: 'customColors.Surface',
+                  padding: 3,
+                  borderRadius: 1,
+
+                  // border: '1px solid #37BD69',
+                  border: `1px solid ${theme.palette.primary.main}`,
+                  mt: 5
+                }}
+              >
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+                  <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+                    <Typography
+                      color='customColors.neutralSecondary'
+                      sx={{ fontWeight: 400, fontFamily: 'Inter', fontSize: '12px' }}
+                    >
+                      Available Packing:
+                    </Typography>
+                    <Typography
+                      color='primary.light'
+                      style={{ fontWeight: 400, fontSize: '12px', color: 'customColors.OnPrimaryContainer' }}
+                    >
+                      {watch('stock_id')?.packageDetails}
+                    </Typography>
+                  </Box>
+                  <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+                    <Typography
+                      color='customColors.neutralSecondary'
+                      sx={{ fontWeight: 400, fontFamily: 'Inter', fontSize: '12px' }}
+                    >
+                      Manufactured by:
+                    </Typography>
+                    <Typography
+                      color='primary.light'
+                      style={{ fontWeight: 400, fontSize: '12px', color: 'customColors.OnPrimaryContainer' }}
+                    >
+                      {watch('stock_id')?.manufacture}
+                    </Typography>
+                  </Box>
+
+                  <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+                    <Typography
+                      color='customColors.neutralSecondary'
+                      sx={{ fontWeight: 400, fontFamily: 'Inter', fontSize: '12px' }}
+                    >
+                      Total Available Quantity:
+                    </Typography>
+                    <Typography
+                      color='primary.light'
+                      style={{ fontWeight: 400, fontSize: '12px', color: 'customColors.OnPrimaryContainer' }}
+                    >
+                      {`${errors?.stock_id || watch('stock_id')?.value === '' ? '' : totalQty} `}
+                    </Typography>
+                  </Box>
+                  <Box
+                    sx={{
+                      backgroundColor: 'customColors.OnPrimaryContainer',
+                      borderRadius: '16px',
+                      padding: '5px 15px',
+                      width: 'fit-content',
+                      color: 'customColors.OnPrimary'
+                    }}
+                  >
+                    <Typography
+                      variant='body1'
+                      component='span'
+                      sx={{
+                        fontSize: '12px',
+                        fontWeight: 400,
+                        color: 'customColors.OnPrimary'
+                      }}
+                    >
+                      Unit Price - {Utility.formatAmountToReadableDigit(watch('stock_id')?.unit_price) || 0}
+                    </Typography>
+                  </Box>
+
+                  {/* <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+                    <Typography
+                      color='customColors.neutralSecondary'
+                      sx={{ fontWeight: 400, fontFamily: 'Inter', fontSize: '12px' }}
+                    >
+                      Unit Price:
+                    </Typography>
+                    <Typography sx={{ fontWeight: 400, fontSize: '12px', color: 'customColors.OnPrimaryContainer' }}>
+                      {Utility.formatAmountToReadableDigit(watch('stock_id')?.unit_price) || 0}
+                    </Typography>
+                  </Box> */}
+                </Box>
+              </Paper>
+            )}
           </Grid>
         </Grid>
         {/* /////////////////////////////////////////////////// */}
+
+        <Box sx={{ mb: 4 }}>
+          <Typography sx={{ color: 'customColors.customTextColorGray2', fontSize: '14px', fontWeight: 400 }}>
+            Dispense Quantity
+          </Typography>
+
+          {/* {totalQuantity > 0 && ( */}
+          <Stack
+            direction='row'
+            spacing={3}
+            // divider={<Divider orientation='vertical' flexItem />}
+            sx={{ textAlign: 'center' }}
+          >
+            <Typography
+              variant='body2'
+              sx={{ color: 'customColors.neutralSecondary', fontSize: '14px', fontWeight: 400 }}
+            >
+              Total Dispense Quantity:{' '}
+              <Typography component='span' variant='body2' sx={{ color: 'primary.light' }}>
+                {/* {Utility.formatAmountToReadableDigit(watch('stock_id')?.unit_price)} */}
+                {Utility.formatAmountToReadableDigit(unitPrice * totalQuantity) || 0}
+              </Typography>
+            </Typography>
+          </Stack>
+          {/* )} */}
+        </Box>
+
         {!editMode ? (
           <FormGroup>
             {fields.map((field, index) => (
@@ -607,10 +768,10 @@ function ProductForm({
                       render={({ field }) => (
                         <>
                           <Autocomplete
-                            ListboxProps={{ style: { maxHeight: 100 } }}
+                            // ListboxProps={{ style: { maxHeight: 100 } }}
                             forcePopupIcon={false}
                             inputProps={{ tabIndex: '6' }}
-                            disablePortal
+                            // disablePortal
                             id={`product_batches[${index}].batch_no`}
                             options={batches}
                             getOptionLabel={option => option?.label || ''}
@@ -635,6 +796,55 @@ function ProductForm({
                                 placeholder='Search'
                                 error={Boolean(errors?.product_batches?.[index]?.batch_no)}
                               />
+                            )}
+                            renderOption={(props, option) => (
+                              <Box
+                                component='li'
+                                {...props}
+                                sx={{
+                                  border: '1px solid transparent',
+                                  '&:last-child': {
+                                    borderBottom: 'none'
+                                  },
+                                  m: 3,
+                                  '&:hover': {
+                                    border: `1px solid ${theme.palette.customColors.neutral05}`
+                                  },
+
+                                  borderRadius: '2px'
+                                }}
+                              >
+                                <Box sx={{ p: 1 }}>
+                                  <Typography
+                                    variant='body2'
+                                    color='customColors.customHeadingTextColor'
+                                    sx={{ fontWeight: 600 }}
+                                  >
+                                    {option.label}
+                                  </Typography>
+                                  <Typography variant='body2' color='customColors.neutralSecondary'>
+                                    Expiry Date: {Utility.formatDisplayDate(option?.expiry_date)}
+                                  </Typography>
+                                  <Typography variant='body2' color='customColors.Tertiary'>
+                                    Availability: {option?.qty}
+                                  </Typography>
+                                </Box>
+                              </Box>
+                            )}
+                            PaperComponent={({ children, ...props }) => (
+                              <Paper
+                                {...props}
+                                elevation={3}
+                                sx={{
+                                  mt: 1,
+                                  '& .MuiAutocomplete-listbox': {
+                                    p: 0,
+                                    maxHeight: '300px'
+                                  }
+                                }}
+                              >
+                                {children}
+                              </Paper>
                             )}
                           />
                           {errors?.product_batches?.[index]?.batch_no && (
@@ -851,13 +1061,11 @@ function ProductForm({
             </Grid>
           </Grid>
         )}
-
         {errors?.product_batches?.some(batch => batch?.qty) && (
           <FormHelperText sx={{ color: 'error.main', fontSize: 16 }} id='validation-basic-first-name'>
             {errors.product_batches.find(batch => batch?.qty)?.qty?.message || 'Quantity should be greater than 0'}
           </FormHelperText>
         )}
-
         <Grid item xs={12} sm={12} sx={{ mt: '40px' }}>
           <Grid Grid sx={{ height: '100%' }} alignItems='flex-end' justifyContent='flex-end' container>
             {editMode ? (

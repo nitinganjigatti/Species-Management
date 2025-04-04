@@ -11,26 +11,26 @@ import {
   Tooltip,
   Typography
 } from '@mui/material'
-import CustomAvatar from 'src/@core/components/mui/avatar'
 import { Box } from '@mui/system'
 import { format, subMonths } from 'date-fns'
-import { debounce } from 'lodash'
 import { useRouter } from 'next/router'
 import React, { useCallback, useEffect, useState } from 'react'
 import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDateRangePickers'
-import { usePharmacyContext } from 'src/context/PharmacyContext'
-import { getDispenseReport } from 'src/lib/api/pharmacy/reports'
+import { getReturnToSupplier } from 'src/lib/api/pharmacy/reports'
 import Utility from 'src/utility'
 import RenderUtility from 'src/utility/render'
-import CommonTable from 'src/views/table/data-grid/CommonTable'
 import Icon from 'src/@core/components/icon'
-import DispenseReportFilterDrawer from 'src/views/pages/pharmacy/reports/DispenseReportFilterDrawer'
-import { getStoreList } from 'src/lib/api/pharmacy/getStoreList'
+import { debounce } from 'lodash'
+import CommonTable from 'src/views/table/data-grid/CommonTable'
+import ReturnToSupplierFilter from 'src/views/pages/pharmacy/reports/ReturnToSupplierFilter'
 import StyleWithIconCardComponent from 'src/views/utility/style-with-icon-card'
-import { getUserList } from 'src/lib/api/pharmacy/dispenseProduct'
+import { usePharmacyContext } from 'src/context/PharmacyContext'
+import Error404 from 'src/pages/404'
+import { getSuppliers } from 'src/lib/api/pharmacy/getSupplierList'
 import { readAsync } from 'src/lib/windows/utils'
+import { getUserList } from 'src/lib/api/pharmacy/dispenseProduct'
 
-const DispenseReport = () => {
+const ReturnSupplier = () => {
   const router = useRouter()
   const theme = useTheme()
 
@@ -49,9 +49,9 @@ const DispenseReport = () => {
   const [searchValue, setSearchValue] = useState(router.query.q || '')
   const [exportLoading, setExportLoading] = useState(false)
   const [openFilterDrawer, setOpenFilterDrawer] = useState(false)
-  const [pharmacyList, setPharmacyList] = useState([])
+  const [supplierData, setSupplierData] = useState([])
+  const [selectAllSupplier, setSelectAllSupplier] = useState(false)
   const [users, setUsers] = useState([])
-  const [selectAllPharmacy, setSelectAllPharmacy] = useState(false)
   const [selectAllUser, setSelectAllUser] = useState(false)
 
   const [paginationModel, setPaginationModel] = useState({
@@ -65,30 +65,24 @@ const DispenseReport = () => {
   })
 
   const [filteredData, setFilteredData] = useState({
-    pharmacy: []
+    suppliersName: []
   })
 
   const [selectedOptions, setSelectedOptions] = useState({
-    Pharmacy: [],
-    User: [],
+    'Supplier Name': [],
+    'Discarded By': [],
     'Drug Type': 'all'
   })
 
   useEffect(() => {
-    const pharmacyList = async () => {
+    const supplierList = async () => {
       try {
-        const params = {
-          type: 'local'
-        }
-        const response = await getStoreList({ params })
+        const response = await getSuppliers()
         const result = response?.data
 
-        if (response?.success) {
-          let pharmacies = result?.list_items.map(({ id, name }) => ({ id, name })) || []
-
-          pharmacies = pharmacies.filter(pharmacy => pharmacy.id !== selectedPharmacy?.id)
-
-          setPharmacyList(pharmacies)
+        if (result?.success) {
+          const suppliers = result?.data?.list_items.map(({ id, company_name }) => ({ id, company_name })) || []
+          setSupplierData(suppliers)
         }
       } catch (error) {
         console.log(error)
@@ -116,21 +110,21 @@ const DispenseReport = () => {
       }
     }
 
-    pharmacyList()
+    supplierList()
     getUserLists()
-  }, [selectedPharmacy])
+  }, [])
 
-  const handleSelectAllPharmacy = () => {
-    setSelectAllPharmacy(!selectAllPharmacy)
-    if (!selectAllPharmacy) {
+  const handleSelectAllSuppliers = () => {
+    setSelectAllSupplier(!selectAllSupplier)
+    if (!selectAllSupplier) {
       setSelectedOptions({
         ...selectedOptions,
-        Pharmacy: pharmacyList.map(p => p.id)
+        'Supplier Name': supplierData.map(s => s.id)
       })
     } else {
       setSelectedOptions({
         ...selectedOptions,
-        Pharmacy: []
+        'Supplier Name': []
       })
     }
   }
@@ -140,12 +134,12 @@ const DispenseReport = () => {
     if (!selectAllUser) {
       setSelectedOptions({
         ...selectedOptions,
-        User: users.map(u => u.id)
+        'Discarded By': users.map(u => u.id)
       })
     } else {
       setSelectedOptions({
         ...selectedOptions,
-        User: []
+        'Discarded By': []
       })
     }
   }
@@ -168,15 +162,19 @@ const DispenseReport = () => {
           ...(filterDates?.startDate !== '' && { from_date: filterDates?.startDate }),
           ...(filterDates?.endDate !== '' && { to_date: filterDates?.endDate }),
           ...(filteredData &&
-            filteredData.pharmacy &&
-            filteredData.pharmacy.length > 0 && { store_id: filteredData.pharmacy.join(',') }),
-          ...(filteredData &&
-            filteredData.user &&
-            filteredData.user.length > 0 && { user_id: filteredData.user.join(',') }),
+            filteredData.suppliersName &&
+            filteredData.suppliersName.length > 0 && {
+              supplier_id: filteredData.suppliersName.join(',')
+            }),
           ...(filteredData && filteredData.controlled && { controlled: filteredData.controlled }),
-          ...(filteredData && filteredData.prescription && { prescription: filteredData.prescription })
+          ...(filteredData && filteredData.prescription && { prescription: filteredData.prescription }),
+          ...(filteredData &&
+            filteredData.discardedBy &&
+            filteredData.discardedBy.length > 0 && {
+              user_id: filteredData.discardedBy.join(',')
+            })
         }
-        await getDispenseReport({ params: params }).then(res => {
+        await getReturnToSupplier({ params }).then(res => {
           if (res?.success === true && res?.data?.list_items?.length > 0) {
             setTotal(parseInt(res?.data?.total_count))
             setRows(loadServerRows(paginationModel?.page, res?.data?.list_items))
@@ -213,15 +211,7 @@ const DispenseReport = () => {
       startDate: filterDates?.startDate,
       endDate: filterDates?.endDate
     })
-  }, [
-    paginationModel.page,
-    paginationModel.pageSize,
-    sort,
-    sortColumn,
-    filterDates,
-    filteredData,
-    selectedPharmacy?.id
-  ])
+  }, [paginationModel.page, paginationModel.pageSize, sort, sortColumn, filterDates, filteredData])
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
@@ -249,8 +239,8 @@ const DispenseReport = () => {
     {
       minWidth: 20,
       width: 180,
-      field: 'dispense_number',
-      headerName: 'DISPENSE NUMBER',
+      field: 'discard_number',
+      headerName: 'RETURN REQUEST NUMBER',
       sortable: true,
       renderCell: params => (
         <Typography
@@ -262,38 +252,30 @@ const DispenseReport = () => {
             fontFamily: 'Inter'
           }}
         >
-          {params.row.dispense_number}
+          {params.row.discard_number}
         </Typography>
       )
     },
-
-    // {
-    //   width: 5,
-    //   field: 'label',
-    //   headerName: '',
-    //   sortable: false,
-    //   renderCell: params => (
-    //     <Typography
-    //       sx={{
-    //         color: 'customColors.OnSecondaryContainer',
-    //         display: 'flex',
-    //         alignItems: 'center',
-    //         fontWeight: 500,
-    //         fontSize: '14px',
-    //         ...RenderUtility?.getEllipsisStyleForText()
-    //       }}
-    //     >
-    //       {RenderUtility?.renderControlLabel(
-    //         !isNaN(params.row?.controlled_substance) && parseInt(params.row?.controlled_substance) === 1,
-    //         'CS'
-    //       )}
-    //       {RenderUtility?.renderControlLabel(
-    //         !isNaN(params.row?.prescription_required) && parseInt(params.row?.prescription_required) === 1,
-    //         'PR'
-    //       )}
-    //     </Typography>
-    //   )
-    // },
+    {
+      minWidth: 20,
+      width: 180,
+      field: 'discarded_date',
+      headerName: 'RETURN DATE',
+      sortable: true,
+      renderCell: params => (
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
+          {Utility.formatDisplayDate(params.row.discarded_date)}
+        </Typography>
+      )
+    },
     {
       width: 250,
       minWidth: 20,
@@ -360,7 +342,7 @@ const DispenseReport = () => {
       minWidth: 20,
       width: 160,
       field: 'batch_no',
-      sortable: false,
+      sortable: true,
       headerName: 'BATCH NUMBER',
       renderCell: params => (
         <Typography
@@ -378,29 +360,8 @@ const DispenseReport = () => {
     },
     {
       minWidth: 20,
-      width: 170,
-      field: 'dispense_qty',
-      headerName: 'DISPENSE QUANTITY',
-      sortable: true,
-
-      renderCell: params => (
-        <Typography
-          variant='body2'
-          sx={{
-            color: theme.palette.customColors.customHeadingTextColor,
-            fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
-          }}
-        >
-          {params.row.dispense_qty ? Utility.formatNumber(params.row.dispense_qty) : 0}
-        </Typography>
-      )
-    },
-    {
-      minWidth: 20,
       width: 180,
-      field: 'net_unit_price',
+      field: 'unit_price',
       headerName: 'NET UNIT PRICE',
       sortable: true,
       renderCell: params => (
@@ -413,15 +374,15 @@ const DispenseReport = () => {
             fontFamily: 'Inter'
           }}
         >
-          {Utility.formatAmountToReadableDigit(params.row.net_unit_price)}
+          {Utility.formatAmountToReadableDigit(params.row.unit_price)}
         </Typography>
       )
     },
     {
       minWidth: 20,
-      width: 190,
-      field: 'total_consumption_cost',
-      headerName: 'DISPENSE VALUE',
+      width: 180,
+      field: 'discarded_value',
+      headerName: 'TOTAL VALUE',
       sortable: true,
       renderCell: params => (
         <Typography
@@ -433,15 +394,91 @@ const DispenseReport = () => {
             fontFamily: 'Inter'
           }}
         >
-          {Utility.formatAmountToReadableDigit(params.row.dispense_value)}
+          {Utility.formatAmountToReadableDigit(params.row.discarded_value)}
         </Typography>
+      )
+    },
+    {
+      minWidth: 20,
+      width: 180,
+      field: 'discarded_quantity',
+      headerName: 'DISCARDED QUANTITY',
+      sortable: true,
+      renderCell: params => (
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
+          {params.row?.discarded_quantity ? Utility.formatNumber(params.row.discarded_quantity) : 0}
+        </Typography>
+      )
+    },
+    {
+      minWidth: 20,
+      width: 200,
+      field: 'supplier_name',
+      sortable: true,
+      headerName: 'SUPPLIER NAME',
+      renderCell: params => (
+        <Tooltip title={params.row.supplier_name}>
+          <Typography
+            variant='body2'
+            sx={{
+              color: theme.palette.customColors.customHeadingTextColor,
+              fontSize: '14px',
+              fontWeight: 400,
+              fontFamily: 'Inter',
+              overflow: 'hidden',
+              whiteSpace: 'nowrap',
+              textOverflow: 'ellipsis',
+              maxWidth: 200
+            }}
+          >
+            <span alt={params.row.supplier_name}> {params.row.supplier_name}</span>
+          </Typography>
+        </Tooltip>
+      )
+    },
+    {
+      minWidth: 20,
+      width: 200,
+      field: 'package',
+      headerName: 'PACKAGE',
+      sortable: false,
+      renderCell: params => (
+        <Tooltip
+          title={`${params.row.package} of ${Utility.formatNumber(params.row.package_qty)}
+                ${params.row.package_uom_label} ${params.row.product_form_label}`}
+        >
+          <Typography
+            variant='body2'
+            sx={{
+              color: theme.palette.customColors.customHeadingTextColor,
+              fontSize: '14px',
+              fontWeight: 400,
+              fontFamily: 'Inter',
+              overflow: 'hidden',
+              whiteSpace: 'nowrap',
+              textOverflow: 'ellipsis',
+              maxWidth: 240
+            }}
+          >
+            {`${params.row.package} of ${Utility.formatNumber(params.row.package_qty)}
+                ${params.row.package_uom_label} ${params.row.product_form_label}`}
+          </Typography>
+        </Tooltip>
       )
     },
     {
       minWidth: 20,
       width: 250,
       field: 'manufacturer_name',
-      sortable: false,
+      sortable: true,
       headerName: 'MANUFACTURER NAME',
       renderCell: params => (
         <Tooltip title={params.row.manufacturer_name}>
@@ -465,76 +502,41 @@ const DispenseReport = () => {
     },
     {
       minWidth: 20,
-      width: 160,
-      field: 'from_store',
+      width: 250,
+      field: 'comments',
       sortable: true,
-      headerName: 'FROM STORE',
+      headerName: 'COMMENTS',
       renderCell: params => (
-        <Typography
-          variant='body2'
-          sx={{
-            color: theme.palette.customColors.customHeadingTextColor,
-            fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
-          }}
-        >
-          {params.row.from_store}
-        </Typography>
+        <Tooltip title={params.row.comments}>
+          <Typography
+            variant='body2'
+            sx={{
+              color: theme.palette.customColors.customHeadingTextColor,
+              fontSize: '14px',
+              fontWeight: 400,
+              fontFamily: 'Inter',
+              overflow: 'hidden',
+              whiteSpace: 'nowrap',
+              textOverflow: 'ellipsis',
+              maxWidth: 200
+            }}
+          >
+            <span alt={params.row.comments}> {params.row.comments}</span>
+          </Typography>
+        </Tooltip>
       )
     },
     {
       minWidth: 200,
-      field: 'dispense_to_user_name',
+      field: 'discard_created_at',
       sortable: true,
-      headerName: 'DISPENSE TO ',
-      renderCell: params => (
-        <>
-          <Box sx={{ display: 'flex', alignItems: 'center' }}>
-            {params?.row?.dispense_to_user_profile_pic ? (
-              <CustomAvatar
-                src={params?.row?.dispense_to_user_profile_pic}
-                sx={{ mr: '16px', width: '40px', height: '40px' }}
-              />
-            ) : (
-              <CustomAvatar sx={{ mr: '16px', width: '40px', height: '40px', fontSize: '.8rem' }}></CustomAvatar>
-            )}
-            <Tooltip title={params.row.dispense_to_user_name}>
-              <Typography
-                variant='subtitle2'
-                sx={{
-                  color: 'text.primary',
-                  fontSize: '14px',
-                  fontWeight: 400,
-                  fontFamily: 'Inter',
-                  overflow: 'hidden',
-                  whiteSpace: 'nowrap',
-                  textOverflow: 'ellipsis',
-                  maxWidth: 200
-                }}
-              >
-                {params?.row?.dispense_to_user_name ? (
-                  <span alt={params.row.dispense_to_user_name}> {params.row.dispense_to_user_name}</span>
-                ) : (
-                  'NA'
-                )}
-              </Typography>
-            </Tooltip>
-          </Box>
-        </>
-      )
-    },
-    {
-      minWidth: 200,
-      field: 'dispense_date',
-      sortable: true,
-      headerName: 'DISPENSE BY',
+      headerName: 'DISCARDED BY',
       renderCell: params => (
         <>
           {RenderUtility?.renderUserAvatarDetails(
             params?.row?.user_created_profile_pic,
-            params?.row?.dispense_created_by_user_name,
-            params?.row?.dispense_date
+            params?.row?.discard_created_by_user_name,
+            params?.row?.discard_created_at
           )}
         </>
       )
@@ -635,6 +637,7 @@ const DispenseReport = () => {
   const handleExport = async () => {
     try {
       setExportLoading(true)
+
       const now = new Date()
 
       const timestamp = `${String(now.getDate()).padStart(2, '0')}/${String(now.getMonth() + 1).padStart(
@@ -648,25 +651,28 @@ const DispenseReport = () => {
         column: sortColumn,
         page: 1,
         limit: total,
-        response_type: 'csv',
         ...(filterDates?.startDate !== '' && { from_date: filterDates?.startDate }),
         ...(filterDates?.endDate !== '' && { to_date: filterDates?.endDate }),
         ...(filteredData &&
-          filteredData.pharmacy &&
-          filteredData.pharmacy.length > 0 && { store_id: filteredData.pharmacy.join(',') }),
-        ...(filteredData &&
-          filteredData.user &&
-          filteredData.user.length > 0 && { user_id: filteredData.user.join(',') }),
+          filteredData.suppliersName &&
+          filteredData.suppliersName.length > 0 && {
+            supplier_id: filteredData.suppliersName.join(',')
+          }),
         ...(filteredData && filteredData.controlled && { controlled: filteredData.controlled }),
-        ...(filteredData && filteredData.prescription && { prescription: filteredData.prescription })
+        ...(filteredData && filteredData.prescription && { prescription: filteredData.prescription }),
+        ...(filteredData &&
+          filteredData.discardedBy &&
+          filteredData.discardedBy.length > 0 && {
+            user_id: filteredData.discardedBy.join(',')
+          }),
+        response_type: 'csv'
       }
-
-      const response = await getDispenseReport({ params })
+      const response = await getReturnToSupplier({ params })
       if (response?.success && response?.data) {
-        Utility.downloadFileFromURL(response.data, `Dispense_Report ${timestamp}`)
+        Utility.downloadFileFromURL(response.data, `Return_To_Supplier_Report ${timestamp}`)
       }
-    } catch (e) {
-      console.error(`Error Downloading Excel`, e)
+    } catch (error) {
+      console.error('Error downloading Excel:', error)
     } finally {
       setExportLoading(false)
     }
@@ -675,15 +681,15 @@ const DispenseReport = () => {
   const calculateAppliedFiltersCount = () => {
     let count = 0
 
-    if (filteredData && filteredData.pharmacy && filteredData.pharmacy.length > 0) {
-      count++
-    }
-
-    if (filteredData && filteredData.user && filteredData.user.length > 0) {
+    if (filteredData.suppliersName && filteredData.suppliersName.length > 0) {
       count++
     }
 
     if (filteredData && (filteredData.controlled || filteredData.prescription)) {
+      count++
+    }
+
+    if (filteredData.discardedBy && filteredData.discardedBy.length > 0) {
       count++
     }
 
@@ -692,174 +698,193 @@ const DispenseReport = () => {
 
   const appliedFiltersCount = calculateAppliedFiltersCount()
 
+  console.log(filteredData)
+
   return (
     <>
-      <Card>
-        <CardHeader
-          sx={{
-            display: 'flex',
-            flexDirection: { xs: 'column', sm: 'row' },
-            justifyContent: 'flex-start',
-            alignItems: 'flex-start',
-            gap: { xs: 3, sm: 2 },
-            '& .MuiCardHeader-action': {
-              width: { xs: '100% ', sm: 'auto' }
-            },
-            mx: { xs: -1, sm: 0 }
-          }}
-          title={RenderUtility.pageTitle('Dispense Report')}
-        />
-        <CardContent>
-          <Box
-            sx={{
-              display: 'flex',
-              flexDirection: { xs: 'column', sm: 'row' },
-              justifyContent: 'space-between',
-              alignItems: { xs: 'stretch', sm: 'center' },
-              gap: { xs: 2, sm: 0 },
-              width: '100%'
-            }}
-          >
-            <Grid container spacing={4} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-              <Grid item xs={12} sm={5} md={5}>
-                <CommonDateRangePickers onChange={handleDateRangeChange} filterDates={filterDates} />
-              </Grid>
-
-              <Grid item sm={7} xs={12}>
-                <Grid container spacing={2} justifyContent={{ xs: 'flex-end' }}>
-                  <Grid item xs={12} sm={8} sx={{ flex: 1 }}>
-                    <TextField
-                      variant='outlined'
-                      size='small'
-                      placeholder='Search...'
-                      value={searchValue}
-                      onChange={e => handleSearch(e.target.value)}
-                      fullWidth
-                      InputProps={{
-                        startAdornment: (
-                          <InputAdornment position='start'>
-                            <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
-                          </InputAdornment>
-                        )
-                      }}
-                      sx={{
-                        borderRadius: '8px'
-                      }}
-                    />
+      {selectedPharmacy.type === 'central' ? (
+        <>
+          <Card>
+            <CardHeader
+              sx={{
+                width: '100%',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                flexWrap: 'wrap',
+                gap: 2,
+                [theme.breakpoints.down('sm')]: {
+                  flexDirection: 'row',
+                  justifyContent: 'space-between'
+                }
+              }}
+              title={RenderUtility.pageTitle('Return To Supplier Report')}
+            />
+            <CardContent>
+              <Box
+                sx={{
+                  display: 'flex',
+                  flexDirection: { xs: 'column', sm: 'row' },
+                  justifyContent: 'space-between',
+                  alignItems: { xs: 'stretch', sm: 'center' },
+                  gap: { xs: 2, sm: 0 },
+                  width: '100%'
+                }}
+              >
+                <Grid
+                  container
+                  spacing={4}
+                  sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
+                >
+                  <Grid item xs={12} sm={5} md={5}>
+                    <CommonDateRangePickers onChange={handleDateRangeChange} filterDates={filterDates} />
                   </Grid>
 
-                  <Grid
-                    item
-                    sx={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: 2,
-                      justifyContent: { sm: 'flex-end', xs: 'flex-end' }
-                    }}
-                  >
-                    <Tooltip title='Export'>
-                      <>
-                        {loading || exportLoading ? (
-                          <Box
-                            sx={{
-                              display: 'flex',
-                              justifyContent: 'center',
-                              width: '40px',
-                              height: '40px',
-                              borderRadius: '4px',
-                              bgcolor: theme?.palette.customColors?.lightBg,
-                              alignItems: 'center',
-                              cursor: 'pointer'
-                            }}
-                          >
-                            <CircularProgress color='success' size={30} />
-                          </Box>
-                        ) : (
-                          <Box
-                            sx={{
-                              display: 'flex',
-                              justifyContent: 'center',
-                              width: '40px',
-                              height: '40px',
-                              borderRadius: '4px',
-                              bgcolor: theme?.palette.customColors?.lightBg,
-                              alignItems: 'center',
-                              cursor: 'pointer'
-                            }}
-                            onClick={handleExport}
-                          >
-                            <Icon icon='ic:round-download' fontSize={20} />
-                          </Box>
-                        )}
-                      </>
-                    </Tooltip>
-                    <Tooltip title='Filters'>
-                      <Box
+                  <Grid item sm={7} xs={12}>
+                    <Grid container spacing={2} justifyContent={{ xs: 'flex-end' }}>
+                      <Grid item xs={12} sm={8} sx={{ flex: 1 }}>
+                        <TextField
+                          variant='outlined'
+                          size='small'
+                          placeholder='Search...'
+                          value={searchValue}
+                          onChange={e => handleSearch(e.target.value)}
+                          fullWidth
+                          InputProps={{
+                            startAdornment: (
+                              <InputAdornment position='start'>
+                                <Icon
+                                  icon='mi:search'
+                                  fontSize={24}
+                                  color={theme.palette.customColors.neutralSecondary}
+                                />
+                              </InputAdornment>
+                            )
+                          }}
+                          sx={{
+                            borderRadius: '8px'
+                          }}
+                        />
+                      </Grid>
+
+                      <Grid
+                        item
                         sx={{
                           display: 'flex',
-                          justifyContent: 'center',
-                          width: '40px',
-                          height: '40px',
-                          borderRadius: '4px',
-                          bgcolor: theme?.palette.customColors?.lightBg,
                           alignItems: 'center',
-                          cursor: 'pointer'
+                          gap: 2,
+                          justifyContent: { sm: 'flex-end', xs: 'flex-end' }
                         }}
-                        onClick={() => setOpenFilterDrawer(true)}
                       >
-                        <Badge badgeContent={appliedFiltersCount} color='primary'>
-                          <Icon icon='mage:filter' fontSize={24} />
-                        </Badge>
-                      </Box>
-                    </Tooltip>
+                        <Tooltip title='Export'>
+                          <>
+                            {loading || exportLoading ? (
+                              <Box
+                                sx={{
+                                  display: 'flex',
+                                  justifyContent: 'center',
+                                  width: '40px',
+                                  height: '40px',
+                                  borderRadius: '4px',
+                                  bgcolor: theme?.palette.customColors?.lightBg,
+                                  alignItems: 'center',
+                                  cursor: 'pointer'
+                                }}
+                              >
+                                <CircularProgress color='success' size={30} />
+                              </Box>
+                            ) : (
+                              <Box
+                                sx={{
+                                  display: 'flex',
+                                  justifyContent: 'center',
+                                  width: '40px',
+                                  height: '40px',
+                                  borderRadius: '4px',
+                                  bgcolor: theme?.palette.customColors?.lightBg,
+                                  alignItems: 'center',
+                                  cursor: 'pointer'
+                                }}
+                                onClick={handleExport}
+                              >
+                                <Icon icon='ic:round-download' fontSize={20} />
+                              </Box>
+                            )}
+                          </>
+                        </Tooltip>
+                        <Tooltip title='Filters'>
+                          <Box
+                            sx={{
+                              display: 'flex',
+                              justifyContent: 'center',
+                              width: '40px',
+                              height: '40px',
+                              borderRadius: '4px',
+                              bgcolor: theme?.palette.customColors?.lightBg,
+                              alignItems: 'center',
+                              cursor: 'pointer'
+                            }}
+                            onClick={() => setOpenFilterDrawer(true)}
+                          >
+                            <Badge badgeContent={appliedFiltersCount} color='primary'>
+                              <Icon icon='mage:filter' fontSize={24} />
+                            </Badge>
+                          </Box>
+                        </Tooltip>
+                      </Grid>
+                    </Grid>
                   </Grid>
                 </Grid>
+              </Box>
+              <Grid>
+                <CommonTable
+                  columns={columns}
+                  indexedRows={indexedRows}
+                  total={total}
+                  paginationModel={paginationModel}
+                  loading={loading}
+                  setPaginationModel={setPaginationModel}
+                  searchValue={searchValue}
+                  onPaginationModelChange={model => {
+                    setPaginationModel(model)
+                    router.replace({
+                      pathname: router.pathname,
+                      query: {
+                        ...router.query,
+                        page: model.page + 1,
+                        pageSize: model.pageSize,
+                        searchValue,
+                        sort,
+                        sortColumn
+                      }
+                    })
+                  }}
+                  handleSortModel={handleSortModel}
+                />
               </Grid>
-            </Grid>
-          </Box>
-          <Grid>
-            <CommonTable
-              columns={columns}
-              indexedRows={indexedRows}
-              total={total}
-              paginationModel={paginationModel}
-              loading={loading}
-              setPaginationModel={setPaginationModel}
-              searchValue={searchValue}
-              onPaginationModelChange={model => {
-                setPaginationModel(model)
-                router.replace({
-                  pathname: router.pathname,
-                  query: {
-                    ...router.query,
-                    page: model.page + 1,
-                    pageSize: model.pageSize,
-                    searchValue,
-                    sort,
-                    sortColumn
-                  }
-                })
-              }}
-              handleSortModel={handleSortModel}
+            </CardContent>
+          </Card>
+          {openFilterDrawer && (
+            <ReturnToSupplierFilter
+              setOpenFilterDrawer={setOpenFilterDrawer}
+              openFilterDrawer={openFilterDrawer}
+              onApplyFilter={filterList => setFilteredData(filterList)}
+              selectedOptions={selectedOptions}
+              setSelectedOptions={setSelectedOptions}
+              supplierData={supplierData}
+              handleSelectAllSuppliers={handleSelectAllSuppliers}
+              users={users}
+              handleSelectAllUser={handleSelectAllUser}
             />
-          </Grid>
-        </CardContent>
-      </Card>
-      {openFilterDrawer && (
-        <DispenseReportFilterDrawer
-          setOpenFilterDrawer={setOpenFilterDrawer}
-          openFilterDrawer={openFilterDrawer}
-          onApplyFilter={filterList => setFilteredData(filterList)}
-          selectedOptions={selectedOptions}
-          setSelectedOptions={setSelectedOptions}
-          pharmacyList={pharmacyList}
-          handleSelectAllPharmacy={handleSelectAllPharmacy}
-          users={users}
-          handleSelectAllUser={handleSelectAllUser}
-        />
+          )}
+        </>
+      ) : (
+        <>
+          <Error404 />
+        </>
       )}
     </>
   )
 }
 
-export default DispenseReport
+export default ReturnSupplier

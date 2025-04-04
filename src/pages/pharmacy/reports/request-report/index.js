@@ -273,7 +273,7 @@ const RequestReport = () => {
       width: 160,
       field: 'request_ID',
       headerName: 'REQUEST NUMBER',
-      sortable: false,
+      sortable: true,
       renderCell: params => (
         <Typography
           variant='body2'
@@ -393,6 +393,26 @@ const RequestReport = () => {
           }}
         >
           {params.row.requested_quantity ? Utility.formatNumber(params.row.requested_quantity) : 0}
+        </Typography>
+      )
+    },
+    {
+      minWidth: 20,
+      width: 190,
+      field: 'pending_quantity',
+      headerName: 'PENDING QUANTITY',
+      sortable: true,
+      renderCell: params => (
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
+          {params.row.pending_quantity ? Utility.formatNumber(params.row.pending_quantity) : 0}
         </Typography>
       )
     },

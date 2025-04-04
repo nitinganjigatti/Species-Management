@@ -2,13 +2,14 @@ import { Avatar, Card, CardContent, CardHeader, Grid, Typography } from '@mui/ma
 import Router, { useRouter } from 'next/router'
 import Icon from 'src/@core/components/icon'
 import React, { useEffect, useState } from 'react'
-import { Box } from '@mui/system'
+import { Box, Stack } from '@mui/system'
 import { getDispenseById } from 'src/lib/api/pharmacy/dispenseProduct'
 import moment from 'moment'
 import { DataGrid } from '@mui/x-data-grid'
 import Error404 from 'src/pages/404'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import Utility from 'src/utility'
+import TableBasic from 'src/views/table/data-grid/TableBasic'
 
 const IndividualDispense = () => {
   const [dispenseData, setDispenseData] = useState({})
@@ -67,6 +68,7 @@ const IndividualDispense = () => {
       flex: 0.1,
       field: ' ',
       headerName: '',
+      sortable: false,
       renderCell: params => (
         <Box sx={{ p: 1.4 }}>
           <Avatar
@@ -137,6 +139,23 @@ const IndividualDispense = () => {
       )
     }
   ]
+
+  const dispenseRows = dispenseData?.dispense_item_details?.map((row, index) => ({
+    ...row,
+    id: `${row.id}`,
+    sl_no: index + 1
+  }))
+  const animalDispenseRows = dispenseData?.animal_details?.map((row, index) => ({
+    ...row,
+    id: `${row.animal_id}`,
+    sl_no: index + 1
+  }))
+
+  console.log(dispenseRows, 'dispenseRows')
+
+  const totalDispenseQuantity = dispenseRows?.reduce((sum, item) => {
+    return sum + Number(item.qty) * Number(item.unit_price)
+  }, 0)
 
   return (
     <>
@@ -243,29 +262,59 @@ const IndividualDispense = () => {
               </Card>
             </Grid>
           </Grid>
+          <Card>
+            {dispenseData?.dispense_item_details?.length > 0 ? (
+              <>
+                {/* <CardHeader title='Dispense List' /> */}
+                <Box px={4} pt={4}>
+                  <Typography sx={{ color: 'customColors.customTextColorGray2', fontSize: '16px', fontWeight: 500 }}>
+                    Dispense List
+                  </Typography>
 
-          {dispenseData?.dispense_item_details?.length > 0 ? (
-            <Card>
-              <CardHeader title='Dispense List' />
-              <DataGrid
-                autoHeight
-                columns={dispenseColumns}
-                getRowId={row => row?.id}
-                rows={dispenseData?.dispense_item_details}
-              />
-            </Card>
-          ) : null}
-          {dispenseData?.animal_details?.length > 0 ? (
-            <Card>
-              <CardHeader title='Animal List' />
-              <DataGrid
+                  <Stack
+                    direction='row'
+                    spacing={2}
+                    // divider={<Divider orientation='vertical' flexItem />}
+                    sx={{ textAlign: 'center' }}
+                  >
+                    <Typography
+                      variant='body2'
+                      sx={{ color: 'customColors.neutralSecondary', fontSize: '14px', fontWeight: 400 }}
+                    >
+                      Total Dispense Quantity:{' '}
+                      <Typography component='span' variant='body2' sx={{ color: 'primary.light' }}>
+                        {totalDispenseQuantity ? totalDispenseQuantity : '0'}
+                      </Typography>
+                    </Typography>
+                  </Stack>
+                </Box>
+                <Box p={4}>
+                  <TableBasic rows={dispenseRows} columns={dispenseColumns} />
+                </Box>
+
+                {/* <DataGrid
+                  autoHeight
+                  columns={dispenseColumns}
+                  getRowId={row => row?.id}
+                  rows={dispenseData?.dispense_item_details}
+                /> */}
+              </>
+            ) : null}
+            {dispenseData?.animal_details?.length > 0 ? (
+              <>
+                <CardHeader title='Animal List' />
+                <Box px={4}>
+                  <TableBasic rows={animalDispenseRows} columns={animalsColumns} />
+                </Box>
+                {/* <DataGrid
                 autoHeight
                 columns={animalsColumns}
                 getRowId={row => row.animal_id}
                 rows={dispenseData?.animal_details}
-              />
-            </Card>
-          ) : null}
+              /> */}
+              </>
+            ) : null}
+          </Card>
         </Box>
       ) : (
         <>

@@ -258,6 +258,8 @@ export const RETURN_REPORT = 'return-report'
 
 export const SHIPMENT_REPORT = 'shipment-report'
 
+export const RETURN_TO_SUPPLIER = 'return-supplier-report'
+
 export const FEED_DETAILS = 'details'
 
 export const FEED = 'feed'
