@@ -9,6 +9,7 @@ import DoneIcon from '@mui/icons-material/Done'
 import { useEffect, useState } from 'react'
 import { Stack } from '@mui/system'
 import { Tooltip, CircularProgress } from '@mui/material'
+import { useTheme } from '@mui/material/styles'
 import toast from 'react-hot-toast'
 
 const RecipeCard = ({
@@ -30,7 +31,7 @@ const RecipeCard = ({
 }) => {
   const [remarks, setRemarks] = useState({})
   console.log('remarks', remarks)
-
+  const theme = useTheme()
   const [selectedCount, setSelectedCount] = useState([])
   const [selectedDays, setSelectedDays] = useState()
 
@@ -458,7 +459,9 @@ const RecipeCard = ({
               <Box
                 sx={{
                   bgcolor: 'background.paper',
-                  border: selectedCardRecipe?.some(card => card.id === item.id) ? '2px solid #37BD69' : '#fff',
+                  border: selectedCardRecipe?.some(card => card.id === item.id)
+                    ? `2px solid ${theme.palette.primary.main}`
+                    : theme.palette.primary.contrastText,
                   boxShadow: 0,
                   mt: 4,
                   borderRadius: '10px',
@@ -475,11 +478,13 @@ const RecipeCard = ({
                     sx={{
                       width: '68px',
                       height: '68px',
-                      color: '#fff',
+                      color: theme.palette.primary.contrastText,
                       position: 'relative',
                       top: '2px',
 
-                      bgcolor: selectedCardRecipe?.some(card => card.id === item.id) ? '#37BD69' : '#E8F4F2',
+                      bgcolor: selectedCardRecipe?.some(card => card.id === item.id)
+                        ? theme.palette.primary.main
+                        : theme.palette.customColors.tableHeaderBg,
                       borderRadius: '10.88px'
                     }}
                   >
@@ -519,7 +524,7 @@ const RecipeCard = ({
                           sx={{
                             ml: 4,
                             fontSize: '20px',
-                            color: '#44544A',
+                            color: theme.palette.customColors.OnSurfaceVariant,
                             width: '400px',
                             overflow: 'hidden',
                             textOverflow: 'ellipsis',
@@ -540,7 +545,7 @@ const RecipeCard = ({
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '333px', height: '45px' }}>
                       {/* <Divider sx={{ borderLeft: '1px solid #D9D9D9', height: 30, ml: 4, mt: 3 }}></Divider>
                     <Box sx={{ ml: '10px' }}>
-                      <Typography sx={{ mt: 2, fontSize: '12px', fontWeight: 'bold', color: '#000' }}>
+                      <Typography sx={{ mt: 2, fontSize: '12px', fontWeight: 'bold', color: theme.palette.customColors.neutralPrimary }}>
                         {item?.ingredients_count}&nbsp;
                         <span style={{ color: '#e55b3e' }}> ({calculateTotalQuantity(item?.by_percentage)}%)</span>
                       </Typography>
@@ -548,7 +553,14 @@ const RecipeCard = ({
                     </Box>
                     <Divider sx={{ borderLeft: '1px solid #D9D9D9', height: 30, mr: 2, mt: 3 }}></Divider> */}
                       <Box sx={{ ml: 4 }}>
-                        <Typography sx={{ mt: 2, fontSize: '12px', color: '#000', fontWeight: 'bold' }}>
+                        <Typography
+                          sx={{
+                            mt: 2,
+                            fontSize: '12px',
+                            color: theme.palette.customColors.neutralPrimary,
+                            fontWeight: 'bold'
+                          }}
+                        >
                           {' '}
                           {item?.by_quantity?.length} nos
                         </Typography>
@@ -556,7 +568,7 @@ const RecipeCard = ({
                       </Box>
                       {/* <Divider sx={{ borderLeft: '1px solid #D9D9D9', height: 30, mr: 2, mt: 3 }}></Divider>
                     <Box>
-                      <Typography sx={{ mt: 2, fontSize: '12px', color: '#000', fontWeight: 'bold' }}>
+                      <Typography sx={{ mt: 2, fontSize: '12px', color: theme.palette.customColors.neutralPrimary, fontWeight: 'bold' }}>
                         {' '}
                         {item?.total_kcal ? item?.total_kcal : 0}
                       </Typography>
@@ -569,10 +581,19 @@ const RecipeCard = ({
                 {selectedCardRecipe?.some(card => card?.id === item?.id && card.ingredients?.length > 0) ? (
                   <Box sx={{ pl: 5, pr: 5, mt: 3, mb: 3 }}>
                     <Box sx={{ display: 'flex', justifyContent: 'space-between', mb: 0 }}>
-                      <Typography sx={{ fontWeight: '500', color: '#00000066', fontSize: '16px' }}>
+                      <Typography
+                        sx={{ fontWeight: '500', color: theme.palette.customColors.neutral_50, fontSize: '16px' }}
+                      >
                         Ingredients
                       </Typography>
-                      <Typography sx={{ fontWeight: '500', color: '#00000066', fontSize: '16px', mr: 20 }}>
+                      <Typography
+                        sx={{
+                          fontWeight: '500',
+                          color: theme.palette.customColors.neutral_50,
+                          fontSize: '16px',
+                          mr: 20
+                        }}
+                      >
                         Cut size
                       </Typography>
                     </Box>
@@ -595,7 +616,7 @@ const RecipeCard = ({
                             width: 45,
                             height: 50,
                             mr: 4,
-                            background: '#E8F4F2',
+                            background: theme.palette.customColors.tableHeaderBg,
                             padding: '8px',
                             borderRadius: '4px'
                           }}
@@ -622,7 +643,7 @@ const RecipeCard = ({
                                 variant='body1'
                                 sx={{
                                   fontWeight: '600',
-                                  color: '#44544A',
+                                  color: theme.palette.customColors.OnSurfaceVariant,
                                   textOverflow: 'ellipsis',
                                   overflow: 'hidden',
                                   whiteSpace: 'nowrap',
@@ -635,7 +656,7 @@ const RecipeCard = ({
                                 variant='body1'
                                 sx={{
                                   fontWeight: '600',
-                                  color: '#44544A',
+                                  color: theme.palette.customColors.OnSurfaceVariant,
                                   marginLeft: 1,
                                   flexShrink: 0
                                 }}
@@ -646,24 +667,24 @@ const RecipeCard = ({
                             </Box>
                           </Tooltip>
 
-                          <Typography variant='body2' color='#44544A'>
+                          <Typography variant='body2' color={theme.palette.customColors.OnSurfaceVariant}>
                             Id - {'ING' + ingredient.id}
                           </Typography>
 
-                          <Typography variant='body2' color='#7A8684'>
+                          <Typography variant='body2' color={theme.palette.customColors.secondaryBg}>
                             {ingredient.preparation_type}
                           </Typography>
                         </Box>
 
                         <Typography
                           variant='body2'
-                          color='#7A8684'
+                          color={theme.palette.customColors.secondaryBg}
                           sx={{
                             textAlign: 'left',
                             width: '100%',
                             ml: '2rem',
                             fontWeight: '600',
-                            color: '#44544A'
+                            color: theme.palette.customColors.OnSurfaceVariant
                           }}
                         >
                           {ingredient.cut_size}
@@ -750,7 +771,7 @@ const RecipeCard = ({
             justifyContent: 'center',
             alignItems: 'center',
             marginTop: '14%',
-            color: '#7A7A7A',
+            color: theme.palette.customColors.statusText,
             fontSize: '16px'
           }}
         >

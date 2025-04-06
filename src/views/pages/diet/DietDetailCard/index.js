@@ -8,7 +8,10 @@ import {
   Avatar,
   Card,
   CardContent,
-  useMediaQuery
+  useMediaQuery,
+  Button,
+  Menu,
+  MenuItem
 } from '@mui/material'
 import Router, { useRouter } from 'next/router'
 import Icon from 'src/@core/components/icon'
@@ -22,7 +25,15 @@ import Toaster from 'src/components/Toaster'
 import Tooltip from '@mui/material/Tooltip'
 import ChangeDietName from 'src/components/diet/ChangeDietname'
 
-const DietDetailCard = ({ dietDetails, dietModulePermission, dietModuleAccess, refreshDietDetails }) => {
+const DietDetailCard = ({
+  dietDetails,
+  dietModulePermission,
+  dietModuleAccess,
+  refreshDietDetails,
+  handleSpeciesClick,
+  handleSpeciesClicknew,
+  setapplyfilterCheck
+}) => {
   const router = useRouter()
   const { source, recipeId, ingId } = router.query
   const theme = useTheme()
@@ -42,6 +53,8 @@ const DietDetailCard = ({ dietDetails, dietModulePermission, dietModuleAccess, r
   // const [activePayload, setActivePayload] = useState(FeedDetailsValue?.active || false)
   const [activePayload, setActivePayload] = useState(false)
   const [confirmDialogBox, setConfirmDialogBox] = useState(false)
+  const [anchorEl, setAnchorEl] = useState(null)
+  const open = Boolean(anchorEl)
 
   const handleSwitchChange = async event => {
     if (dietModuleAccess && (dietModuleAccess === 'EDIT' || dietModuleAccess === 'DELETE')) {
@@ -54,7 +67,7 @@ const DietDetailCard = ({ dietDetails, dietModulePermission, dietModuleAccess, r
   const handleClosenew = () => {
     setConfirmDialogBox(false)
   }
-
+  console.log(dietModulePermission, 'dietModulePermission')
   const handleSidebarClose = () => {
     setActivitySidebarOpen(false)
   }
@@ -141,6 +154,14 @@ const DietDetailCard = ({ dietDetails, dietModulePermission, dietModuleAccess, r
     }
   }
 
+  const handleClick = event => {
+    setAnchorEl(event.currentTarget)
+  }
+
+  const handleClose = () => {
+    setAnchorEl(null)
+  }
+
   return (
     <Card>
       <CardContent>
@@ -173,13 +194,14 @@ const DietDetailCard = ({ dietDetails, dietModulePermission, dietModuleAccess, r
           container
         >
           <Grid md={3.8} xs={12} item>
-            <Box item sx={{ borderTopLeftRadius: 36, borderTopRightRadius: 36 }}>
+            {/* <Box item sx={{ borderTopLeftRadius: 36, borderTopRightRadius: 36 }}>
               <Avatar
                 variant='square'
                 alt={dietDetails?.image}
                 sx={{
                   width: '100%',
-                  height: '100%',
+                  //height: '100%',
+                  height: '145px',
                   borderRadius: '8px',
                   '& img': {
                     objectFit: isSmallDevice ? '' : 'cover',
@@ -188,6 +210,178 @@ const DietDetailCard = ({ dietDetails, dietModulePermission, dietModuleAccess, r
                 }}
                 src={dietDetails?.image ? dietDetails?.image : '/icons/icon_diet_fill.png'}
               ></Avatar>
+            </Box> */}
+            <Box
+              sx={{
+                maxWidth: 400,
+                border: '1px solid #d0d0d0',
+                borderRadius: 2,
+                overflow: 'hidden'
+                // boxShadow: 2
+              }}
+            >
+              {/* Image Section */}
+              <Avatar
+                variant='square'
+                alt={dietDetails?.image}
+                sx={{
+                  width: '100%',
+                  height: '100%',
+                  // height: '145px',
+                  borderRadius: '8px',
+                  '& img': {
+                    objectFit: isSmallDevice ? '' : 'cover',
+                    objectPosition: isSmallDevice ? 'left' : 'center'
+                  }
+                }}
+                src={dietDetails?.image ? dietDetails?.image : '/icons/icon_diet_fill.png'}
+              ></Avatar>
+
+              {/* Details Section */}
+              <Box sx={{ p: 3, pt: 5 }}>
+                <Box display='flex' justifyContent='space-between' alignItems='center' mb={2}>
+                  <Typography fontWeight='400' sx={{ color: theme.palette.customColors.secondaryBg }}>
+                    Assigned to
+                  </Typography>
+                  <div>
+                    <Button
+                      variant='outlined'
+                      size='small'
+                      onClick={handleClick}
+                      sx={{
+                        textTransform: 'none',
+                        fontWeight: 'bold',
+                        fontSize: '14px',
+                        color: theme.palette.primary.dark,
+                        pl: 4,
+                        pr: 4,
+                        pt: 2,
+                        pb: 2
+                      }}
+                    >
+                      + Assign
+                    </Button>
+                    <Menu
+                      anchorEl={anchorEl}
+                      open={open}
+                      onClose={handleClose}
+                      anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
+                      transformOrigin={{ vertical: 'top', horizontal: 'left' }}
+                      // disablePortal // Prevents rendering in a separate portal
+                      disableScrollLock // Prevents background scrolling from being locked
+                      sx={{
+                        '& .MuiPaper-root': {
+                          boxShadow: 'none',
+                          minWidth: 150,
+                          position: 'absolute',
+                          left: '484px !important'
+                        }
+                      }} // Removes shadow for a cleaner look
+                    >
+                      <MenuItem
+                        onClick={() => {
+                          handleSpeciesClick('species')
+                          handleClose()
+                          setapplyfilterCheck(false)
+                        }}
+                        sx={{ fontSize: '14px' }}
+                      >
+                        Assign to Species
+                      </MenuItem>
+                      <MenuItem
+                        onClick={() => {
+                          handleSpeciesClick('animals')
+                          handleClose()
+                          setapplyfilterCheck(false)
+                        }}
+                        sx={{ fontSize: '14px' }}
+                      >
+                        Assign to Animals
+                      </MenuItem>
+                    </Menu>
+                  </div>
+                </Box>
+                {console.log(theme, 'them')}
+                {/* Species and Animals Details */}
+                <Grid container spacing={2}>
+                  {/* Species Section */}
+                  <Grid item xs={12}>
+                    <Box display='flex' justifyContent='space-between' alignItems='center'>
+                      {/* Label */}
+                      <Typography
+                        variant='body2'
+                        fontWeight='bold'
+                        sx={{ color: theme.palette.customColors.secondaryBg, fontSize: '16px' }}
+                      >
+                        Species
+                      </Typography>
+                      {/* Value and Primary */}
+                      <Box
+                        display='flex'
+                        alignItems='center'
+                        onClick={() => handleSpeciesClicknew('details', 'species')}
+                        sx={{ cursor: 'pointer' }}
+                      >
+                        <Typography variant='h6' color={theme.palette.primary.main}>
+                          {dietDetails.total_species}
+                        </Typography>
+                        <Typography
+                          variant='caption'
+                          sx={{
+                            background: theme.palette.customColors.bodyBg,
+                            p: '5px',
+                            borderRadius: '3px',
+                            ml: 2,
+                            color: theme.palette.customColors.OnSurfaceVariant,
+                            fontWeight: '600'
+                          }}
+                        >
+                          Primary {dietDetails.total_primary_species}
+                        </Typography>
+                      </Box>
+                    </Box>
+                  </Grid>
+
+                  {/* Animals Section */}
+                  <Grid item xs={12}>
+                    <Box
+                      display='flex'
+                      justifyContent='space-between'
+                      alignItems='center'
+                      sx={{ pb: 3, cursor: 'pointer' }}
+                      onClick={() => handleSpeciesClicknew('details', 'animals')}
+                    >
+                      {/* Label */}
+                      <Typography
+                        variant='body2'
+                        fontWeight='bold'
+                        sx={{ color: theme.palette.customColors.secondaryBg, fontSize: '16px' }}
+                      >
+                        Animals
+                      </Typography>
+                      {/* Value and Primary */}
+                      <Box display='flex' alignItems='center'>
+                        <Typography variant='h6' color={theme.palette.primary.main}>
+                          {dietDetails.total_animals}
+                        </Typography>
+                        <Typography
+                          variant='caption'
+                          sx={{
+                            background: theme.palette.customColors.bodyBg,
+                            p: '5px',
+                            borderRadius: '3px',
+                            ml: 2,
+                            color: theme.palette.customColors.OnSurfaceVariant,
+                            fontWeight: '600'
+                          }}
+                        >
+                          Primary {dietDetails.total_primary_animals}
+                        </Typography>
+                      </Box>
+                    </Box>
+                  </Grid>
+                </Grid>
+              </Box>
             </Box>
           </Grid>
           <Grid item md={7.8} xs={12}>
@@ -202,10 +396,19 @@ const DietDetailCard = ({ dietDetails, dietModulePermission, dietModuleAccess, r
                 }}
               >
                 <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
-                  <Typography sx={{ fontWeight: 500, fontSize: '22px', color: '#44544A' }}>
+                  <Typography
+                    sx={{ fontWeight: 500, fontSize: '22px', color: theme.palette.customColors.OnSurfaceVariant }}
+                  >
                     {dietDetails?.diet_no}
                   </Typography>
-                  <Typography sx={{ fontWeight: 500, fontSize: '16px', color: '#44544A', fontStyle: 'italic' }}>
+                  <Typography
+                    sx={{
+                      fontWeight: 500,
+                      fontSize: '16px',
+                      color: theme.palette.customColors.OnSurfaceVariant,
+                      fontStyle: 'italic'
+                    }}
+                  >
                     {dietDetails?.diet_name}
                   </Typography>
                 </Box>
@@ -221,7 +424,21 @@ const DietDetailCard = ({ dietDetails, dietModulePermission, dietModuleAccess, r
                   <Box>
                     <FormControlLabel
                       control={
-                        <Switch checked={isActive === '1' ? true : false} onChange={handleSwitchChange} fontSize={2} />
+                        <Switch
+                          checked={isActive === '1' ? true : false}
+                          onChange={handleSwitchChange}
+                          fontSize={2}
+                          disabled={dietModuleAccess !== 'EDIT'}
+                          sx={{
+                            '&.Mui-disabled': {
+                              color: 'grey'
+                            },
+                            '& .MuiSwitch-switchBase.Mui-disabled + .MuiSwitch-track': {
+                              backgroundColor: '#ccc',
+                              opacity: 0.7
+                            }
+                          }}
+                        />
                       }
                       labelPlacement='start'
                       label={isActive === '1' ? 'Active' : 'InActive'}
