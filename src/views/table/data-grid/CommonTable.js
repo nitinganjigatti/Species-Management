@@ -1,7 +1,6 @@
 /* eslint-disable lines-around-comment */
 import { DataGrid } from '@mui/x-data-grid'
 import { useTheme } from '@emotion/react'
-import { h } from '@fullcalendar/core/preact'
 
 const CommonTable = ({
   onRowClick,

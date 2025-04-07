@@ -26,6 +26,7 @@ import ConsumptionReportDrawer from 'src/views/pages/pharmacy/reports/Consumptio
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import { format, subMonths } from 'date-fns'
 import { ExportButton } from 'src/views/utility/render-snippets'
+import StyleWithIconCardComponent from 'src/views/utility/style-with-icon-card'
 
 const productTypes = [
   { id: 'allopathy', name: 'Allopathy' },
@@ -79,6 +80,18 @@ const ConsumptionReport = () => {
   })
 
   useEffect(() => {
+    setSelectedOptions({
+      Pharmacy: [],
+      'Product Type': [],
+      'Drug Type': 'all'
+    })
+
+    setFilteredData({
+      pharmacy: []
+    })
+  }, [selectedPharmacy?.id])
+
+  useEffect(() => {
     const pharmacyList = async () => {
       try {
         const params = {
@@ -99,7 +112,7 @@ const ConsumptionReport = () => {
       }
     }
     pharmacyList()
-  }, [selectedPharmacy])
+  }, [selectedPharmacy?.id])
 
   const handleSelectAllPharmacy = () => {
     setSelectAllPharmacy(!selectAllPharmacy)
@@ -235,24 +248,56 @@ const ConsumptionReport = () => {
       headerName: 'PRODUCT NAME',
       sortable: true,
       renderCell: params => (
-        <Tooltip title={params.row?.stock_name} placement='top'>
-          <Typography
-            sx={{
-              color: 'customColors.OnSecondaryContainer',
-              display: 'flex',
-              alignItems: 'center',
-              fontWeight: 500,
+        <>
+          <StyleWithIconCardComponent
+            value={
+              <Box>
+                <Typography sx={{ display: 'flex', alignItems: 'center' }}>
+                  <Typography
+                    sx={{
+                      color: 'customColors.OnSecondaryContainer',
+                      display: 'flex',
+
+                      alignItems: 'center',
+                      fontWeight: 500,
+                      fontSize: '14px',
+                      ...RenderUtility?.getEllipsisStyleForText()
+                    }}
+                  >
+                    {RenderUtility?.renderControlLabel(
+                      !isNaN(params.row?.controlled_substance) && parseInt(params.row?.controlled_substance) === 1,
+                      'CS'
+                    )}
+                  </Typography>
+                  <Typography
+                    sx={{
+                      color: 'customColors.customHeadingTextColor',
+                      fontWeight: 500,
+                      fontSize: '14px',
+                      overflow: 'hidden',
+                      whiteSpace: 'nowrap',
+                      textOverflow: 'ellipsis',
+                      maxWidth: 250
+                    }}
+                  >
+                    {params.row.stock_name}
+                  </Typography>
+                </Typography>
+              </Box>
+            }
+            icon={params.row.image ? `${params.row.image}` : '/images/Medicine_Icon.png'}
+            showIcon={false}
+            customCss={{
+              p: '0px',
+              width: '100%',
+              height: '100%',
               fontSize: '14px',
-              ...RenderUtility?.getEllipsisStyleForText()
+              avtBorderRadius: '10px',
+              iconWidth: '44px',
+              iconHeight: '44px'
             }}
-          >
-            {RenderUtility?.renderControlLabel(
-              !isNaN(params.row?.controlled_substance) && parseInt(params.row?.controlled_substance) === 1,
-              'CS'
-            )}
-            <span alt={params.row.stock_name}> {params.row.stock_name}</span>
-          </Typography>
-        </Tooltip>
+          />
+        </>
       )
     },
     {
@@ -323,7 +368,7 @@ const ConsumptionReport = () => {
       field: 'total_consumption_cost',
       headerName: '',
       sortable: true,
-      align: 'center',
+      align: 'right',
       renderHeader: () => (
         <div
           style={{
@@ -411,6 +456,36 @@ const ConsumptionReport = () => {
             }}
           >
             <span alt={params.row.manufacturer_name}> {params.row.manufacturer_name}</span>
+          </Typography>
+        </Tooltip>
+      )
+    },
+    {
+      minWidth: 20,
+      width: 200,
+      field: 'package',
+      headerName: 'PACKAGE',
+      sortable: false,
+      renderCell: params => (
+        <Tooltip
+          title={`${params.row.package} of ${Utility.formatNumber(params.row.package_qty)}
+                ${params.row.package_uom_label} ${params.row.product_form_label}`}
+        >
+          <Typography
+            variant='body2'
+            sx={{
+              color: theme.palette.customColors.customHeadingTextColor,
+              fontSize: '14px',
+              fontWeight: 400,
+              fontFamily: 'Inter',
+              overflow: 'hidden',
+              whiteSpace: 'nowrap',
+              textOverflow: 'ellipsis',
+              maxWidth: 240
+            }}
+          >
+            {`${params.row.package} of ${Utility.formatNumber(params.row.package_qty)}
+                ${params.row.package_uom_label} ${params.row.product_form_label}`}
           </Typography>
         </Tooltip>
       )

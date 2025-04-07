@@ -44,8 +44,8 @@ const DispenseReport = () => {
   const [rows, setRows] = useState([])
   const [total, setTotal] = useState(0)
   const [loading, setLoading] = useState(false)
-  const [sort, setSort] = useState(router.query.sort || 'asc')
-  const [sortColumn, setSortColumn] = useState(router.query.column || 'stock_name')
+  const [sort, setSort] = useState(router.query.sort || 'desc')
+  const [sortColumn, setSortColumn] = useState(router.query.column || 'dispense_number')
   const [searchValue, setSearchValue] = useState(router.query.q || '')
   const [exportLoading, setExportLoading] = useState(false)
   const [openFilterDrawer, setOpenFilterDrawer] = useState(false)
@@ -73,6 +73,18 @@ const DispenseReport = () => {
     User: [],
     'Drug Type': 'all'
   })
+
+  useEffect(() => {
+    setSelectedOptions({
+      Pharmacy: [],
+      User: [],
+      'Drug Type': 'all'
+    })
+
+    setFilteredData({
+      pharmacy: []
+    })
+  }, [selectedPharmacy?.id])
 
   useEffect(() => {
     const pharmacyList = async () => {
@@ -382,7 +394,7 @@ const DispenseReport = () => {
       field: 'dispense_qty',
       headerName: 'DISPENSE QUANTITY',
       sortable: true,
-
+      align: 'center',
       renderCell: params => (
         <Typography
           variant='body2'
@@ -403,6 +415,7 @@ const DispenseReport = () => {
       field: 'net_unit_price',
       headerName: 'NET UNIT PRICE',
       sortable: true,
+      align: 'right',
       renderCell: params => (
         <Typography
           variant='body2'
@@ -423,6 +436,7 @@ const DispenseReport = () => {
       field: 'total_consumption_cost',
       headerName: 'DISPENSE VALUE',
       sortable: true,
+      align: 'right',
       renderCell: params => (
         <Typography
           variant='body2'

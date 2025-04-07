@@ -325,7 +325,7 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
   }
 
   const shipmentReport = {
-    title: 'Shipment Report',
+    title: `${selectedPharmacy?.type === 'central' ? 'Shipment Report' : 'Dispatch Report'}`,
     path: '/pharmacy/reports/shipment-report'
   }
 
