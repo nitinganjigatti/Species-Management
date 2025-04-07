@@ -3,23 +3,16 @@ import React, { useState, useEffect, useCallback } from 'react'
 import { aboutExpiringProduct } from 'src/lib/api/pharmacy/getStocksReportById'
 import FallbackSpinner from 'src/@core/components/spinner'
 import { debounce } from 'lodash'
-import { DataGrid } from '@mui/x-data-grid'
-import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import Utility from 'src/utility'
-import { ExcelExportButton } from 'src/components/Buttons'
 import Icon from 'src/@core/components/icon'
 import { useTheme } from '@emotion/react'
 import {
   Card,
-  Box,
   Typography,
   CardHeader,
   Grid,
-  Button,
   MenuItem,
-  Switch,
-  FormControlLabel,
   Tooltip,
   TextField,
   FormControl,
@@ -31,6 +24,8 @@ import {
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import RenderUtility from 'src/utility/render'
 import { getStoreList } from 'src/lib/api/pharmacy/getStoreList'
+import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDateRangePickers'
+import { ExportButton } from 'src/views/utility/render-snippets'
 
 const ExpiringMedicine = () => {
   const theme = useTheme()
@@ -62,6 +57,26 @@ const ExpiringMedicine = () => {
   const [storeId, setStoreId] = useState(selectedPharmacy.id)
   function loadServerRows(currentPage, data) {
     return data
+  }
+
+  const handleDateRangeChange = (startDate, endDate) => {
+    if (startDate && endDate) {
+      const formattedStartDate = Utility.formatDate(startDate)
+      const formattedEndDate = Utility.formatDate(endDate)
+      setFilterDates({
+        startDate: formattedStartDate,
+        endDate: formattedEndDate
+      })
+
+      console.log('Date range selected:', { startDate, endDate })
+    } else {
+      setFilterDates({
+        startDate: '',
+        endDate: ''
+      })
+
+      console.log('Empty date range selected,', { startDate, endDate })
+    }
   }
 
   // const fetchTableData = useCallback(
@@ -233,42 +248,6 @@ const ExpiringMedicine = () => {
   //   setPaginationModel(prev => ({ ...prev, page: 0 })) // Reset to first page
   //   searchTableData(sort, value, sortColumn, filterDates?.startDate, filterDates?.endDate, selectedPharmacy?.id)
   // }
-
-  const filterByDays = days => {
-    const currentDate = new Date()
-    const selectedDays = parseInt(days)
-    let startDate
-    let endDate
-
-    switch (selectedDays) {
-      case 7:
-        startDate = Utility.formattedPresentDate()
-        endDate = Utility.getFeaturesDates(currentDate, 7)
-        setFilterDates({ startDate, endDate })
-        break
-      case 15:
-        startDate = Utility.getFeaturesDates(currentDate, 7)
-        endDate = Utility.getFeaturesDates(currentDate, 15)
-        setFilterDates({ startDate, endDate })
-
-        break
-      case 30:
-        startDate = Utility.getFeaturesDates(currentDate, 15)
-        endDate = Utility.getFeaturesDates(currentDate, 30)
-        setFilterDates({ startDate, endDate })
-        break
-      case 60:
-        startDate = Utility.getFeaturesDates(currentDate, 30)
-        endDate = Utility.getFeaturesDates(currentDate, 60)
-        setFilterDates({ startDate, endDate })
-        break
-      default:
-        startDate = Utility.getFeaturesDates(currentDate, selectedDays)
-        endDate = Utility.formattedPresentDate()
-        setFilterDates({ startDate, endDate })
-        break
-    }
-  }
 
   const columns = [
     // {
@@ -453,20 +432,6 @@ const ExpiringMedicine = () => {
     // }
   }
 
-  const headerAction = (
-    <Box sx={{ mr: { xs: 0, sm: 1 } }}>
-      <ExcelExportButton
-        disabled={total === 0 ? true : false}
-        action={() => {
-          getDataToExport()
-        }}
-        loader={excelLoader}
-        title='Download'
-        fullWidth='fullWidth'
-      />
-    </Box>
-  )
-
   const handleHeaderAction = () => {
     console.log('Handle Header Action')
   }
@@ -570,40 +535,19 @@ const ExpiringMedicine = () => {
                 <Grid
                   item
                   sx={{
-                    width: { xs: '100%', md: '200px' },
-                    height: '50px',
+                    display: 'flex',
+                    justifyContent: 'center',
+                    gap: 2,
+                    alignItems: 'center',
+                    width: { xs: '100%', md: 'auto' },
+
                     mx: { xs: 0, md: 2, lg: 2 },
+
                     my: { xs: 2, md: 0, lg: 0 }
                   }}
                 >
-                  <FormControl fullWidth size='small'>
-                    <InputLabel id='filter-days-label'>Filter by days</InputLabel>
-                    <Select
-                      size='small'
-                      value={selectDays}
-                      label='Filter by days'
-                      onChange={e => {
-                        filterByDays(e.target.value)
-                        setSelectDays(e.target.value)
-                      }}
-                    >
-                      <MenuItem value='7'>7 Days</MenuItem>
-                      <MenuItem value='15'>7 to 15 Days </MenuItem>
-                      <MenuItem value='30'>15 to 30 Days</MenuItem>
-                      <MenuItem value='60'>30 to 60 Days</MenuItem>
-                    </Select>
-                  </FormControl>
-                </Grid>
-                <Grid item xs={12} md={4} lg={4}>
-                  <ExcelExportButton
-                    disabled={total === 0 ? true : false}
-                    action={() => {
-                      getDataToExport()
-                    }}
-                    loader={excelLoader}
-                    title='Download'
-                    fullWidth='fullWidth'
-                  />
+                  <CommonDateRangePickers onChange={handleDateRangeChange} filterDates={filterDates} />
+                  <ExportButton loading={excelLoader} onClick={getDataToExport} disabled={total === 0 ? true : false} />
                 </Grid>
               </Grid>
             </Grid>

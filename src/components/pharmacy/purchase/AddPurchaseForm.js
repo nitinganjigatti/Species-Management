@@ -1484,7 +1484,7 @@ const AddPurchaseForm = () => {
                   // gap: 2
                 }}
               >
-                {/* {authData?.userData?.roles?.settings?.add_pharmacy && !id && (
+                {authData?.userData?.roles?.settings?.add_pharmacy && !id && (
                   <AddButton
                     // sx={{ mx: 24 }}
                     title='Upload Invoice '
@@ -1492,7 +1492,7 @@ const AddPurchaseForm = () => {
                       setInvoiceUploadDialog(true)
                     }}
                   />
-                )} */}
+                )}
                 {authData?.userData?.roles?.settings?.add_pharmacy && (
                   <AddButton
                     // sx={{ mx: 24 }}

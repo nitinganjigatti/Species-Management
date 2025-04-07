@@ -3,26 +3,21 @@ import React, { useState, useEffect, useCallback } from 'react'
 import { getExpiredMedicine } from 'src/lib/api/pharmacy/getStocksReportById'
 import FallbackSpinner from 'src/@core/components/spinner'
 import { debounce } from 'lodash'
-import { DataGrid } from '@mui/x-data-grid'
-import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
 import Typography from '@mui/material/Typography'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import Utility from 'src/utility'
-import { ExcelExportButton } from 'src/components/Buttons'
 import { useTheme } from '@emotion/react'
 import Icon from 'src/@core/components/icon'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import RenderUtility from 'src/utility/render'
 import { getStoreList } from 'src/lib/api/pharmacy/getStoreList'
+import { ExportButton } from 'src/views/utility/render-snippets'
 
 import {
   Card,
   CardHeader,
   Grid,
-  Button,
   MenuItem,
-  Switch,
-  FormControlLabel,
   Tooltip,
   TextField,
   FormControl,
@@ -452,15 +447,7 @@ const ExpiredMedicine = () => {
                     my: selectedPharmacy.type === 'central' ? 0 : 2
                   }}
                 >
-                  <ExcelExportButton
-                    disabled={total === 0 ? true : false}
-                    action={() => {
-                      getDataToExport()
-                    }}
-                    loader={excelLoader}
-                    title='Download'
-                    fullWidth='fullWidth'
-                  />
+                  <ExportButton loading={excelLoader} onClick={getDataToExport} disabled={total === 0 ? true : false} />
                 </Grid>
               </Grid>
             </Grid>

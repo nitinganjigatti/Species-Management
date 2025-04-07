@@ -25,6 +25,7 @@ import { getStoreList } from 'src/lib/api/pharmacy/getStoreList'
 import ConsumptionReportDrawer from 'src/views/pages/pharmacy/reports/ConsumptionReportDrawer'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import { format, subMonths } from 'date-fns'
+import { ExportButton } from 'src/views/utility/render-snippets'
 
 const productTypes = [
   { id: 'allopathy', name: 'Allopathy' },
@@ -632,42 +633,7 @@ const ConsumptionReport = () => {
                       justifyContent: { sm: 'flex-end', xs: 'flex-end' }
                     }}
                   >
-                    <Tooltip title='Export'>
-                      <>
-                        {loading || exportLoading ? (
-                          <Box
-                            sx={{
-                              display: 'flex',
-                              justifyContent: 'center',
-                              width: '40px',
-                              height: '40px',
-                              borderRadius: '4px',
-                              bgcolor: theme?.palette.customColors?.lightBg,
-                              alignItems: 'center',
-                              cursor: 'pointer'
-                            }}
-                          >
-                            <CircularProgress color='success' size={30} />
-                          </Box>
-                        ) : (
-                          <Box
-                            sx={{
-                              display: 'flex',
-                              justifyContent: 'center',
-                              width: '40px',
-                              height: '40px',
-                              borderRadius: '4px',
-                              bgcolor: theme?.palette.customColors?.lightBg,
-                              alignItems: 'center',
-                              cursor: 'pointer'
-                            }}
-                            onClick={handleExport}
-                          >
-                            <Icon icon='ic:round-download' fontSize={20} />
-                          </Box>
-                        )}
-                      </>
-                    </Tooltip>
+                    <ExportButton loading={loading || exportLoading} onClick={handleExport} />
                     <Tooltip title='Filters'>
                       <Box
                         sx={{
