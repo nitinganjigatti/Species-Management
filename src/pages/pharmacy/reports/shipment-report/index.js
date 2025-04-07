@@ -12,38 +12,29 @@ import {
   Typography
 } from '@mui/material'
 import { Box } from '@mui/system'
-import { debounce } from 'lodash'
 import { useRouter } from 'next/router'
 import React, { useCallback, useEffect, useState } from 'react'
 import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDateRangePickers'
-import { getConsumptionReport } from 'src/lib/api/pharmacy/reports'
+import { getShipmentReport } from 'src/lib/api/pharmacy/reports'
 import Utility from 'src/utility'
-import Icon from 'src/@core/components/icon'
 import RenderUtility from 'src/utility/render'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
-import { getStoreList } from 'src/lib/api/pharmacy/getStoreList'
-import ConsumptionReportDrawer from 'src/views/pages/pharmacy/reports/consumptionReportDrawer'
-import { usePharmacyContext } from 'src/context/PharmacyContext'
-import { format, subMonths } from 'date-fns'
 import StyleWithIconCardComponent from 'src/views/utility/style-with-icon-card'
+import Icon from 'src/@core/components/icon'
+import { debounce } from 'lodash'
+import { getStoreList } from 'src/lib/api/pharmacy/getStoreList'
+import ShipmentFilterDrawer from 'src/views/pages/pharmacy/reports/ShipmentFilterDrawer'
+import { format, subMonths } from 'date-fns'
+import { usePharmacyContext } from 'src/context/PharmacyContext'
 
-const productTypes = [
-  { id: 'allopathy', name: 'Allopathy' },
-  { id: 'ayurveda', name: 'Ayurveda' },
-  { id: 'unani', name: 'Unani' },
-  { id: 'homeopathy', name: 'Homeopathy' },
-  { id: 'non_medical', name: 'Non Medical' }
-]
-
-const ConsumptionReport = () => {
+const ShipmentReport = () => {
   const router = useRouter()
   const theme = useTheme()
-
   const { selectedPharmacy } = usePharmacyContext()
 
   const updateUrlParams = params => {
     const query = { ...router.query, ...params }
-    router.replace({ pathname: router.pathname, query }, undefined, { shallow: true })
+    router.push({ pathname: router.pathname, query }, undefined, { shallow: true })
   }
 
   const [rows, setRows] = useState([])
@@ -52,19 +43,15 @@ const ConsumptionReport = () => {
   const [sort, setSort] = useState(router.query.sort || 'asc')
   const [sortColumn, setSortColumn] = useState(router.query.column || 'stock_name')
   const [searchValue, setSearchValue] = useState(router.query.q || '')
-  const [exportLoading, setExportLoading] = useState(false)
   const [openFilterDrawer, setOpenFilterDrawer] = useState(false)
-  const [selectAllPharmacy, setSelectAllPharmacy] = useState(false)
-  const [selectAllProductTypes, setSelectAllProductTypes] = useState(false)
-
-  const [filteredData, setFilteredData] = useState({
-    pharmacy: []
-  })
+  const [filteredData, setFilteredData] = useState({ pharmacy: [] })
+  const [exportLoading, setExportLoading] = useState(false)
   const [pharmacyList, setPharmacyList] = useState([])
+  const [selectAllPharmacy, setSelectAllPharmacy] = useState(false)
 
   const [selectedOptions, setSelectedOptions] = useState({
+    'Batch Number': [],
     Pharmacy: [],
-    'Product Type': [],
     'Drug Type': 'all'
   })
 
@@ -80,8 +67,8 @@ const ConsumptionReport = () => {
 
   useEffect(() => {
     setSelectedOptions({
+      'Batch Number': [],
       Pharmacy: [],
-      'Product Type': [],
       'Drug Type': 'all'
     })
 
@@ -101,9 +88,7 @@ const ConsumptionReport = () => {
 
         if (response?.success) {
           let pharmacies = result?.list_items.map(({ id, name }) => ({ id, name })) || []
-
-          pharmacies = pharmacies.filter(pharmacy => pharmacy.id !== selectedPharmacy?.id)
-
+          pharmacies = pharmacies.filter(pharmacy => pharmacy?.id !== selectedPharmacy?.id)
           setPharmacyList(pharmacies)
         }
       } catch (error) {
@@ -111,7 +96,7 @@ const ConsumptionReport = () => {
       }
     }
     pharmacyList()
-  }, [selectedPharmacy?.id])
+  }, [selectedPharmacy])
 
   const handleSelectAllPharmacy = () => {
     setSelectAllPharmacy(!selectAllPharmacy)
@@ -128,50 +113,34 @@ const ConsumptionReport = () => {
     }
   }
 
-  const handleSelectAllProductTypes = () => {
-    setSelectAllProductTypes(!selectAllProductTypes)
-    if (!selectAllProductTypes) {
-      setSelectedOptions({
-        ...selectedOptions,
-        'Product Type': productTypes.map(pr => pr.id)
-      })
-    } else {
-      setSelectedOptions({
-        ...selectedOptions,
-        'Product Type': []
-      })
-    }
-  }
-
   function loadServerRows(currentPage, data) {
     return data
   }
 
   const fetchTableData = useCallback(
-    async ({ sort, q, column, page, limit, filteredData }) => {
+    async ({ sort, q, column, filteredData, page, limit }) => {
       try {
         setLoading(true)
 
         const params = {
           page: page + 1,
           limit: limit,
+
           sort: sort,
           q: q,
           column: column,
-          include_dispatch: true,
           ...(filterDates?.startDate !== '' && { from_date: filterDates?.startDate }),
           ...(filterDates?.endDate !== '' && { to_date: filterDates?.endDate }),
+
           ...(filteredData &&
             filteredData.pharmacy &&
             filteredData.pharmacy.length > 0 && { store_id: filteredData.pharmacy.join(',') }),
-          ...(filteredData &&
-            filteredData.productType &&
-            filteredData.productType.length > 0 && { product_type: filteredData.productType.join(',') }),
+
           ...(filteredData && filteredData.controlled && { controlled: filteredData.controlled }),
           ...(filteredData && filteredData.prescription && { prescription: filteredData.prescription })
         }
 
-        await getConsumptionReport({ params: params }).then(res => {
+        await getShipmentReport({ params: params }).then(res => {
           if (res?.success === true && res?.data?.list_items?.length > 0) {
             setTotal(parseInt(res?.data?.total_count))
             setRows(loadServerRows(paginationModel?.page, res?.data?.list_items))
@@ -194,9 +163,9 @@ const ConsumptionReport = () => {
       sort: sort,
       q: searchValue,
       column: sortColumn,
+      filteredData: filteredData,
       page: paginationModel?.page,
-      limit: paginationModel?.pageSize,
-      filteredData: filteredData
+      limit: paginationModel?.pageSize
     })
     updateUrlParams({
       sort,
@@ -210,12 +179,14 @@ const ConsumptionReport = () => {
   }, [
     paginationModel.page,
     paginationModel.pageSize,
-    sort,
-    sortColumn,
     filterDates,
     filteredData,
+    sort,
+    sortColumn,
     selectedPharmacy?.id
   ])
+
+  //   console.log('rows data :', rows)
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
@@ -243,14 +214,84 @@ const ConsumptionReport = () => {
     {
       minWidth: 20,
       width: 200,
-      field: 'stock_name',
-      headerName: 'PRODUCT NAME',
+      field: 'shiment_number',
+      headerName: 'SHIPMENT NUMBER',
       sortable: true,
       renderCell: params => (
-        <>
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
+          {params.row.shiment_number}
+        </Typography>
+      )
+    },
+    {
+      minWidth: 20,
+      width: 200,
+      field: 'request_number',
+      headerName: 'REQUEST NUMBER',
+      sortable: true,
+      renderCell: params => (
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
+          {params.row.request_number}
+        </Typography>
+      )
+    },
+
+    // {
+    //   width: 5,
+    //   field: 'label',
+    //   headerName: '',
+    //   sortable: false,
+    //   renderCell: params => (
+    //     <Typography
+    //       sx={{
+    //         color: 'customColors.OnSecondaryContainer',
+    //         display: 'flex',
+    //         alignItems: 'center',
+    //         fontWeight: 500,
+    //         fontSize: '14px',
+    //         ...RenderUtility?.getEllipsisStyleForText()
+    //       }}
+    //     >
+    //       {RenderUtility?.renderControlLabel(
+    //         !isNaN(params.row?.controlled_substance) && parseInt(params.row?.controlled_substance) === 1,
+    //         'CS'
+    //       )}
+    //       {RenderUtility?.renderControlLabel(
+    //         !isNaN(params.row?.prescription_required) && parseInt(params.row?.prescription_required) === 1,
+    //         'PR'
+    //       )}
+    //     </Typography>
+    //   )
+    // },
+    {
+      width: 250,
+      minWidth: 20,
+      field: 'stock_name',
+      align: 'left',
+      sortable: true,
+      headerName: 'PRODUCT NAME',
+
+      renderCell: params => (
+        <Box>
           <StyleWithIconCardComponent
             value={
-              <Box>
+              <>
                 <Typography sx={{ display: 'flex', alignItems: 'center' }}>
                   <Typography
                     sx={{
@@ -282,8 +323,9 @@ const ConsumptionReport = () => {
                     {params.row.stock_name}
                   </Typography>
                 </Typography>
-              </Box>
+              </>
             }
+            description={params.row.generic_name}
             icon={params.row.image ? `${params.row.image}` : '/images/Medicine_Icon.png'}
             showIcon={false}
             customCss={{
@@ -296,17 +338,20 @@ const ConsumptionReport = () => {
               iconHeight: '44px'
             }}
           />
-        </>
+        </Box>
       )
     },
     {
       minWidth: 20,
       width: 200,
-      field: 'generic_name',
-      headerName: 'GENERIC NAME',
-      sortable: true,
+      field: 'package',
+      headerName: 'PACKAGE',
+      sortable: false,
       renderCell: params => (
-        <Tooltip title={params.row.generic_name}>
+        <Tooltip
+          title={`${params.row.package} of ${Utility.formatNumber(params.row.package_qty)}
+          ${params.row.package_uom_label} ${params.row.product_form_label}`}
+        >
           <Typography
             variant='body2'
             sx={{
@@ -317,36 +362,21 @@ const ConsumptionReport = () => {
               overflow: 'hidden',
               whiteSpace: 'nowrap',
               textOverflow: 'ellipsis',
-              maxWidth: 200
+              maxWidth: 240
             }}
           >
-            {params.row.generic_name ? <span alt={params.row.generic_name}> {params.row.generic_name}</span> : 'NA'}
+            {`${params.row.package} of ${Utility.formatNumber(params.row.package_qty)}
+          ${params.row.package_uom_label} ${params.row.product_form_label}`}
           </Typography>
         </Tooltip>
       )
     },
     {
       minWidth: 20,
-      width: 160,
-      field: 'total_consumption_quantity',
-      headerName: '',
+      width: 180,
+      field: 'shipment_date',
+      headerName: 'SHIPMENT DATE',
       sortable: true,
-      align: 'center',
-      renderHeader: () => (
-        <div
-          style={{
-            whiteSpace: 'normal',
-            lineHeight: '1.3',
-            textAlign: 'center',
-            fontSize: '12px',
-            fontWeight: 450
-          }}
-        >
-          CONSUMPTION
-          <br />
-          QUANTITY
-        </div>
-      ),
       renderCell: params => (
         <Typography
           variant='body2'
@@ -357,32 +387,38 @@ const ConsumptionReport = () => {
             fontFamily: 'Inter'
           }}
         >
-          {params.row.total_consumption_quantity ? Utility.formatNumber(params.row.total_consumption_quantity) : 0}
+          {Utility.formatDisplayDate(params.row.shipment_date)}
         </Typography>
       )
     },
     {
       minWidth: 20,
-      width: 160,
-      field: 'total_consumption_cost',
-      headerName: '',
+      width: 190,
+      field: 'total_shipped_qty',
+      headerName: 'SHIPPED QUANTITY',
+      sortable: true,
+      align: 'center',
+      renderCell: params => (
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
+          {params.row.total_shipped_qty ? Utility.formatNumber(params.row.total_shipped_qty) : 0}
+        </Typography>
+      )
+    },
+    {
+      minWidth: 20,
+      width: 180,
+      field: 'net_unit_price',
+      headerName: 'NET UNIT PRICE',
       sortable: true,
       align: 'right',
-      renderHeader: () => (
-        <div
-          style={{
-            whiteSpace: 'normal',
-            lineHeight: '1.3',
-            textAlign: 'center',
-            fontSize: '12px',
-            fontWeight: 450
-          }}
-        >
-          CONSUMPTION
-          <br />
-          VALUE
-        </div>
-      ),
       renderCell: params => (
         <Typography
           variant='body2'
@@ -393,32 +429,17 @@ const ConsumptionReport = () => {
             fontFamily: 'Inter'
           }}
         >
-          {Utility.formatAmountToReadableDigit(params.row.total_consumption_cost)}
+          {Utility.formatAmountToReadableDigit(params.row.net_unit_price)}
         </Typography>
       )
     },
     {
       minWidth: 20,
-      width: 170,
-      field: 'available_qty',
-      headerName: '',
+      width: 180,
+      field: 'Total_shipping_value',
+      headerName: 'TOTAL SHIPPING VALUE',
       sortable: true,
-      align: 'center',
-      renderHeader: () => (
-        <div
-          style={{
-            whiteSpace: 'normal',
-            lineHeight: '1.3',
-            textAlign: 'center',
-            fontSize: '12px',
-            fontWeight: 450
-          }}
-        >
-          CURRENT STOCK
-          <br />
-          AVAILABLE
-        </div>
-      ),
+      align: 'right',
       renderCell: params => (
         <Typography
           variant='body2'
@@ -429,7 +450,27 @@ const ConsumptionReport = () => {
             fontFamily: 'Inter'
           }}
         >
-          {params.row.available_qty ? Utility.formatNumber(params.row.available_qty) : 0}
+          {Utility.formatAmountToReadableDigit(params.row.Total_shipping_value)}
+        </Typography>
+      )
+    },
+    {
+      minWidth: 20,
+      width: 200,
+      field: 'batch',
+      sortable: false,
+      headerName: 'BATCH NUMBER',
+      renderCell: params => (
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
+          {params.row.batch}
         </Typography>
       )
     },
@@ -461,32 +502,179 @@ const ConsumptionReport = () => {
     },
     {
       minWidth: 20,
-      width: 200,
-      field: 'package',
-      headerName: 'PACKAGE',
-      sortable: false,
+      width: 160,
+      field: 'to_store',
+      headerName: 'TO STORE',
+      sortable: true,
       renderCell: params => (
-        <Tooltip
-          title={`${params.row.package} of ${Utility.formatNumber(params.row.package_qty)}
-                ${params.row.package_uom_label} ${params.row.product_form_label}`}
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
         >
-          <Typography
-            variant='body2'
-            sx={{
-              color: theme.palette.customColors.customHeadingTextColor,
-              fontSize: '14px',
-              fontWeight: 400,
-              fontFamily: 'Inter',
-              overflow: 'hidden',
-              whiteSpace: 'nowrap',
-              textOverflow: 'ellipsis',
-              maxWidth: 240
-            }}
-          >
-            {`${params.row.package} of ${Utility.formatNumber(params.row.package_qty)}
-                ${params.row.package_uom_label} ${params.row.product_form_label}`}
-          </Typography>
-        </Tooltip>
+          {params.row.to_store}
+        </Typography>
+      )
+    },
+    {
+      minWidth: 20,
+      width: 180,
+      field: 'shipment_status',
+      sortable: false,
+      headerName: 'SHIPMENT TYPE',
+      renderCell: params => (
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
+          {params.row.shipment_status === 'PickedUp' ? 'Picked up' : params.row.shipment_status}
+        </Typography>
+      )
+    },
+    {
+      minWidth: 20,
+      width: 180,
+      field: 'person_shipping',
+      headerName: 'PERSON SHIPPING',
+      sortable: true,
+      renderCell: params => (
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
+          {params.row.shipment_status === 'Shipped' ? params.row.person_shipping : '-'}
+        </Typography>
+      )
+    },
+    {
+      minWidth: 20,
+      width: 180,
+      field: 'vehicle_no',
+      sortable: false,
+      headerName: 'VEHICLE NUMBER',
+      renderCell: params => (
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
+          {params.row.vehicle_no ? params.row.vehicle_no : '-'}
+        </Typography>
+      )
+    },
+    {
+      minWidth: 20,
+      width: 180,
+      field: 'phone_number',
+      sortable: false,
+      headerName: 'PHONE NUMBER',
+      renderCell: params => (
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
+          {params.row.phone_number ? params.row.phone_number : '-'}
+        </Typography>
+      )
+    },
+    {
+      minWidth: 20,
+      width: 160,
+      field: 'receiver_name',
+      sortable: false,
+      headerName: 'RECEIVER NAME',
+      renderCell: params => (
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
+          {params.row.shipment_status === 'PickedUp' ? params.row.receiver_name : '-'}
+        </Typography>
+      )
+    },
+
+    // {
+    //   minWidth: 20,
+    //   width: 200,
+    //   field: 'comments',
+    //   sortable: false,
+    //   headerName: 'COMMENTS',
+    //   renderCell: params => (
+    //     <Tooltip title={params.row.comments}>
+    //       <Typography
+    //         variant='body2'
+    //         sx={{
+    //           color: theme.palette.customColors.customHeadingTextColor,
+    //           fontSize: '14px',
+    //           fontWeight: 400,
+    //           fontFamily: 'Inter',
+    //           overflow: 'hidden',
+    //           whiteSpace: 'nowrap',
+    //           textOverflow: 'ellipsis',
+    //           maxWidth: 200
+    //         }}
+    //       >
+    //         <span alt={params.row.comments}> {params.row.comments}</span>
+    //       </Typography>
+    //     </Tooltip>
+    //   )
+    // },
+    {
+      minWidth: 200,
+      field: 'shipment_created_at',
+      sortable: true,
+      headerName: 'Created by ',
+      renderCell: params => (
+        <>
+          {RenderUtility?.renderUserAvatarDetails(
+            params?.row?.user_created_profile_pic,
+            params?.row?.shipment_created_by_user_name,
+            params?.row?.shipment_created_at
+          )}
+        </>
+      )
+    },
+    {
+      minWidth: 250,
+      field: 'updated_by',
+      sortable: false,
+      headerName: 'Updated by',
+      renderCell: params => (
+        <>
+          {RenderUtility?.renderUserAvatarDetails(
+            params?.row?.user_updated_profile_pic,
+            params?.row?.shipment_updated_by_user_name,
+            params?.row?.shipment_updated_at
+          )}
+        </>
       )
     }
   ]
@@ -529,9 +717,9 @@ const ConsumptionReport = () => {
         sort: newModel[0].sort,
         q: searchValue,
         column: newModel[0].field,
+        filteredData: filteredData,
         page: paginationModel?.page,
-        limit: paginationModel?.pageSize,
-        filteredData: filteredData
+        limit: paginationModel?.pageSize
       })
       updateUrlParams({
         sort: newModel[0].sort,
@@ -551,15 +739,7 @@ const ConsumptionReport = () => {
       setSearchValue(q)
 
       try {
-        await fetchTableData({
-          sort: sort,
-          q: q,
-          column: column,
-          page: page,
-          limit: limit,
-          filteredData: filteredData
-        })
-
+        await fetchTableData({ sort, q, column, filteredData, page, limit })
         updateUrlParams({
           sort: sort,
           q: q,
@@ -598,22 +778,20 @@ const ConsumptionReport = () => {
         column: sortColumn,
         page: 1,
         limit: total,
-        include_dispatch: true,
         ...(filterDates?.startDate !== '' && { from_date: filterDates?.startDate }),
         ...(filterDates?.endDate !== '' && { to_date: filterDates?.endDate }),
+
         ...(filteredData &&
           filteredData.pharmacy &&
           filteredData.pharmacy.length > 0 && { store_id: filteredData.pharmacy.join(',') }),
-        ...(filteredData &&
-          filteredData.productType &&
-          filteredData.productType.length > 0 && { product_type: filteredData.productType.join(',') }),
+
         ...(filteredData && filteredData.controlled && { controlled: filteredData.controlled }),
         ...(filteredData && filteredData.prescription && { prescription: filteredData.prescription }),
         response_type: 'csv'
       }
-      const response = await getConsumptionReport({ params })
+      const response = await getShipmentReport({ params })
       if (response?.success && response?.data) {
-        Utility.downloadFileFromURL(response.data, `Consumption_Report ${timestamp}`)
+        Utility.downloadFileFromURL(response.data, `Shipment_Report ${timestamp}`)
       }
     } catch (error) {
       console.error('Error downloading Excel:', error)
@@ -626,10 +804,6 @@ const ConsumptionReport = () => {
     let count = 0
 
     if (filteredData && filteredData.pharmacy && filteredData.pharmacy.length > 0) {
-      count++
-    }
-
-    if (filteredData && filteredData.productType && filteredData.productType.length > 0) {
       count++
     }
 
@@ -648,7 +822,7 @@ const ConsumptionReport = () => {
         <CardHeader
           sx={{
             display: 'flex',
-            flexDirection: { xs: 'column', sm: 'row' },
+            flexDirection: { xs: 'row', sm: 'row' },
             justifyContent: 'flex-start',
             alignItems: 'flex-start',
             gap: { xs: 3, sm: 2 },
@@ -657,7 +831,9 @@ const ConsumptionReport = () => {
             },
             mx: { xs: -1, sm: 0 }
           }}
-          title={RenderUtility.pageTitle('Consumption Report')}
+          title={RenderUtility.pageTitle(
+            `${selectedPharmacy?.type === 'central' ? 'Shipment Report' : 'Dispatch Report'}`
+          )}
         />
         <CardContent sx={{ paddingTop: '4px' }}>
           <Box
@@ -796,20 +972,18 @@ const ConsumptionReport = () => {
         </CardContent>
       </Card>
       {openFilterDrawer && (
-        <ConsumptionReportDrawer
+        <ShipmentFilterDrawer
           setOpenFilterDrawer={setOpenFilterDrawer}
           openFilterDrawer={openFilterDrawer}
           onApplyFilter={filterList => setFilteredData(filterList)}
           selectedOptions={selectedOptions}
           setSelectedOptions={setSelectedOptions}
           pharmacyList={pharmacyList}
-          productTypes={productTypes}
           handleSelectAllPharmacy={handleSelectAllPharmacy}
-          handleSelectAllProductTypes={handleSelectAllProductTypes}
         />
       )}
     </>
   )
 }
 
-export default ConsumptionReport
+export default ShipmentReport

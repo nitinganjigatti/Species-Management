@@ -105,6 +105,7 @@ const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
           .min(3, 'Person Receiving Info must be at least 3 characters')
           .required('Person Receiving  Info is required'),
         shipment_date: yup.string().required('Shipment Date is required'),
+
         // phone_number: yup
         //   .number()
         //   .required('Mobile Number is required')
@@ -195,13 +196,14 @@ const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
       payloadItem.dispatch_item_id = value.dispatch_item_id
       payloadItem.dispatch_id = value.dispatch_id
       payloadItem.shipment_date = shipmentDate
-      payloadItem.person_shipping = person_shipping
-      payloadItem.receiver_name = receiver_name
+      payloadItem.person_shipping = deliveryType?.Ship ? person_shipping : ''
+      payloadItem.receiver_name = deliveryType?.Ship ? '' : receiver_name
       payloadItem.status = deliveryType.Ship ? 'Shipped' : 'PickedUp'
-      payloadItem.to_store_id = storeDetails.to_store_id
-      payloadItem.from_store_id = storeDetails.from_store_id
-      payloadItem.vehicle_no = vehicle_no
-      ;(payloadItem.phone_number = phone_number), (payloadItem.carton_box = carton_box)
+      payloadItem.to_store_id = value?.to_store_id ? value?.to_store_id : storeDetails.to_store_id
+      payloadItem.from_store_id = value?.from_store_id ? value?.from_store_id : storeDetails.from_store_id
+      payloadItem.vehicle_no = deliveryType?.Ship ? vehicle_no : ''
+      payloadItem.phone_number = phone_number
+      payloadItem.carton_box = carton_box
 
       payload.push(payloadItem)
     })
@@ -530,7 +532,6 @@ const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
                       maxDate={new Date()}
                       name={'Shipment Date*'}
                       label='Shipment Date*'
-                      maxDate={new Date()}
                       placeholderText={'Shipment Date*'}
                       onChangeHandler={date => {
                         // console.log(date)

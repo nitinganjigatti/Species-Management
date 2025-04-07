@@ -1675,23 +1675,25 @@ const IndividualRequest = () => {
                           }}
                         >
                           Total Requested Value:
-                          <Box
-                            component='span'
-                            sx={{
-                              fontWeight: '500',
-                              fontSize: '16px',
-                              color: 'primary.light',
-                              lineHeight: '19.36px',
-                              mx: 2,
-                              ...RenderUtility?.getEllipsisStyleForText('100')
-                            }}
-                          >
-                            {Utility.formatAmountToReadableDigit(requestItems?.requested_amount)}
-                            {/* ₹
+                          <Tooltip title={Utility.formatAmountToReadableDigit(requestItems?.requested_amount)}>
+                            <Box
+                              component='span'
+                              sx={{
+                                fontWeight: '500',
+                                fontSize: '16px',
+                                color: 'primary.light',
+                                lineHeight: '19.36px',
+                                mx: 2,
+                                ...RenderUtility?.getEllipsisStyleForText('100')
+                              }}
+                            >
+                              {Utility.formatAmountToReadableDigit(requestItems?.requested_amount)}
+                              {/* ₹
                             {RenderUtility?.getToolTipForText(
                               Utility.formatNumberToDisplay(requestItems?.requested_amount)
                             )} */}
-                          </Box>
+                            </Box>
+                          </Tooltip>
                         </Typography>
 
                         {/* <Typography
@@ -1773,18 +1775,20 @@ const IndividualRequest = () => {
                           }}
                         >
                           Shipped Value:
-                          <Box
-                            component='span'
-                            sx={{
-                              fontWeight: '500',
-                              fontSize: '16px',
-                              color: 'primary.main',
-                              lineHeight: '19.36px',
-                              mx: 2
-                            }}
-                          >
-                            ₹{Utility.formatNumberToDisplay(requestItems?.shipped_amount)}
-                          </Box>
+                          <Tooltip title={`₹${Utility.formatNumberToDisplay(requestItems?.shipped_amount)}`}>
+                            <Box
+                              component='span'
+                              sx={{
+                                fontWeight: '500',
+                                fontSize: '16px',
+                                color: 'primary.main',
+                                lineHeight: '19.36px',
+                                mx: 2
+                              }}
+                            >
+                              ₹{Utility.formatNumberToDisplay(requestItems?.shipped_amount)}
+                            </Box>
+                          </Tooltip>
                         </Typography>
                       </Grid>
 

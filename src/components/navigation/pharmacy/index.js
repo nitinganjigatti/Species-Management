@@ -325,7 +325,40 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
     path: '/pharmacy/reports/consumption-report'
   }
 
-  // reportsParent.children.push(consumptionReport)
+  const returnReport = {
+    title: 'Return Report',
+    path: '/pharmacy/reports/return-report'
+  }
+
+  const shipmentReport = {
+    title: `${selectedPharmacy?.type === 'central' ? 'Shipment Report' : 'Dispatch Report'}`,
+    path: '/pharmacy/reports/shipment-report'
+  }
+
+  const purchaseReport = {
+    title: 'Purchase Report',
+    path: '/pharmacy/reports/purchase-report'
+  }
+
+  const requestReport = {
+    title: 'Pending Request Report',
+    path: '/pharmacy/reports/request-report'
+  }
+
+  const dispenseReport = {
+    title: 'Dispense Report',
+    path: '/pharmacy/reports/dispense-report'
+  }
+
+  const returnToSupplierReport = {
+    title: 'Return To Supplier Report',
+    path: '/pharmacy/reports/return-to-supplier'
+  }
+
+  reportsParent.children.push(consumptionReport)
+  reportsParent.children.push(returnReport)
+  reportsParent.children.push(shipmentReport)
+  reportsParent.children.push(dispenseReport)
 
   const pharmacyNavigationArray = []
 
@@ -338,6 +371,10 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
     requestParent.children.push(requestListing)
     requestParent.children.push(requestByStoreListing)
     requestParent.children.push(nonExistingProductRequestList)
+
+    reportsParent.children.push(purchaseReport)
+    reportsParent.children.push(requestReport)
+    reportsParent.children.push(returnToSupplierReport)
 
     // requestParent.children.push(requestByProductListing)
 
