@@ -400,7 +400,8 @@ const ExpiringMedicine = () => {
             ['Medicine Name']: el?.stock_items_name,
             ['Batch']: el?.batch_no,
             ['Expire Date']: el?.expiry_date,
-            ['Quantity']: el?.stock_qty
+            ['Quantity']: el?.stock_qty,
+            ['Store Name']: el?.store_name
           }
         })
 
