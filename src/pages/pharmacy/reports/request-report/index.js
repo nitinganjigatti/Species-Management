@@ -43,7 +43,7 @@ const RequestReport = () => {
   const [loading, setLoading] = useState(false)
   const [total, setTotal] = useState(0)
   const [rows, setRows] = useState([])
-  const [sort, setSort] = useState(router.query.sort || 'asc')
+  const [sort, setSort] = useState(router.query.sort || 'desc')
   const [sortColumn, setSortColumn] = useState(router.query.column || 'request_ID')
   const [searchValue, setSearchValue] = useState(router.query.q || '')
   const [openFilterDrawer, setOpenFilterDrawer] = useState(false)
@@ -382,6 +382,7 @@ const RequestReport = () => {
       field: 'requested_quantity',
       headerName: 'REQUESTED QUANTITY',
       sortable: true,
+      align: 'center',
       renderCell: params => (
         <Typography
           variant='body2'
@@ -402,6 +403,7 @@ const RequestReport = () => {
       field: 'pending_quantity',
       headerName: 'PENDING QUANTITY',
       sortable: true,
+      align: 'center',
       renderCell: params => (
         <Typography
           variant='body2'

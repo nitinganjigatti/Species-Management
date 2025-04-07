@@ -1140,6 +1140,7 @@ const AddRequestForm = () => {
             <FormControl fullWidth>
               <TextField
                 type='number'
+                onWheel={event => event.target.blur()}
                 value={nestedRowMedicine.request_item_qty}
                 error={Boolean(itemErrors.request_item_qty)}
                 label='Quantity*'

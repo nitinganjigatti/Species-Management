@@ -186,170 +186,327 @@ const PurchaseInvoiceUpload = ({ setPurchaseItems, reset, closeDialog, handleInp
     }
   }, [videoRef, currentCamera, tabStatus])
 
+  // const submitImage = async () => {
+  //   // const file = browseButtonRef.current.files[0]
+  //   // const file = file
+  //   const convert_image = ''
+  //   let base64String = ''
+
+  //   if (file) {
+  //     setSubmitLoader(true)
+  //     const reader = new FileReader()
+  //     reader.readAsDataURL(file[0])
+
+  //     reader.onload = () => {
+  //       base64String = reader.result.split(',')[1].toString('utf-8')
+  //       console.log(base64String)
+  //       const utf8Base64 = decodeURIComponent(base64String)
+
+  //       axios
+  //         .post(
+  //           'https://api.dev.antzsystems.com:8082/inferInvoices',
+  //           {
+  //             dataType: 'bytes',
+  //             data: utf8Base64,
+  //             save: false
+  //           },
+  //           {
+  //             headers: {
+  //               'X-API-KEY': '4ebaa3c6-9e70-42dd-bc1b-74e948aa468b',
+  //               'Content-Type': 'application/json'
+  //             }
+  //           }
+  //         )
+  //         .then(data => {
+  //           setSubmitLoader(false)
+  //           closeDialog()
+  //           console.log(data.data.data)
+  //           const responseData = data.data.data
+  //           if (responseData) {
+  //             const purchase_details = responseData.product_details.map((el, index) => {
+  //               return {
+  //                 ...el,
+
+  //                 uid: uuidv4(),
+  //                 medicine_name: el?.medicine_name,
+  //                 purchase_stock_item_id: el?.purchase_stock_item_id,
+  //                 id: el?.id || '',
+  //                 stock_type: el?.stock_type,
+  //                 package_details:
+  //                   el?.package && el?.package_qty && el?.package_uom_label && el?.product_form_label
+  //                     ? `${el.package} of ${el.package_qty} ${el.package_uom_label} ${el.product_form_label}`
+  //                     : '',
+  //                 manufacture: el?.manufacturer,
+  //                 purchase_expiry_date: el?.purchase_expiry_date,
+  //                 purchase_variant_id: el?.purchase_variant_id,
+  //                 purchase_variant_ratio: el?.unit_multiplier ? el?.unit_multiplier : 1,
+
+  //                 // purchase_unit_qty: el?.purchase_qty,
+  //                 purchase_qty: el?.purchase_qty,
+  //                 purchase_unit_price: el?.purchase_unit_price,
+  //                 purchase_gross_amount:
+  //                   el?.purchase_qty && el?.purchase_unit_price ? el?.purchase_unit_price * el?.purchase_qty : 0,
+  //                 purchase_taxable_amount: el?.purchase_taxable_amount,
+  //                 purchase_discount: el?.purchase_discount ? el?.purchase_discount : 0,
+  //                 purchase_taxable_amount: el?.purchase_taxable_amount ? el?.purchase_taxable_amount : 0,
+  //                 purchase_net_amount: el?.purchase_net_amount,
+  //                 purchase_purchase_price: el?.purchase_purchase_price,
+  //                 purchase_free_quantity: el?.purchase_free_quantity,
+  //                 purchase_gst: el?.purchase_gst,
+  //                 purchase_cgst: el?.purchase_gst ? el?.purchase_gst / 2 : 0,
+  //                 purchase_sgst: el?.purchase_gst ? el?.purchase_gst / 2 : 0,
+  //                 purchase_cgst_amount: el?.gst_amount ? el?.gst_amount / 2 : 0,
+  //                 purchase_sgst_amount: el?.gst_amount ? el?.gst_amount / 2 : 0,
+  //                 purchase_igst: el?.purchase_igst ? el?.purchase_igst : 0,
+  //                 purchase_igst_amount: el?.purchase_igst_amount ? el?.purchase_igst_amount : 0,
+  //                 purchase_created_by: 'invoice_upload',
+  //                 medicine_name_by_ml: el?.medicine_name
+  //               }
+  //             })
+  //             setPurchaseItems(prev => ({
+  //               ...prev,
+  //               po_no: responseData?.po_no,
+  //               po_date: formatInvoiceDate(responseData?.po_date),
+  //               store_id: '',
+  //               requested_by: responseData ? responseData['requested by'] : '',
+  //               supplier_id: responseData?.supplier_id,
+  //               description: responseData?.description,
+  //               type_of_store: responseData?.type_of_store,
+  //               purchase_details: purchase_details,
+  //               total_amount: 0,
+  //               discount_type: '',
+  //               discount_amount: 0,
+  //               discount_percentage: 0,
+  //               net_amount: 0,
+  //               tax_amount: 0,
+  //               purchase_order_no: '',
+  //               invoice_transcript: [],
+  //               freight_charges: '',
+  //               freight_gst: '',
+  //               freight_total_charges: '',
+  //               additional_charges: '',
+  //               round_off: '',
+  //               purchase_created_by: 'invoice_upload'
+  //             }))
+
+  //             // setPurchaseItems({
+  //             //   po_no: responseData?.po_no,
+  //             //   po_date: formatInvoiceDate(responseData?.po_date),
+  //             //   store_id: '',
+  //             //   supplier_id: responseData?.supplier_id,
+  //             //   description: responseData?.description,
+  //             //   type_of_store: responseData?.type_of_store,
+  //             //   purchase_details: purchase_details,
+  //             //   total_amount: 0,
+  //             //   discount_type: '',
+  //             //   discount_amount: 0,
+  //             //   discount_percentage: 0,
+  //             //   net_amount: 0,
+  //             //   tax_amount: 0,
+  //             //   purchase_order_no: '',
+  //             //   requested_by: '',
+  //             //   invoice_transcript: [],
+  //             //   freight_charges: '',
+  //             //   freight_gst: '',
+  //             //   freight_total_charges: '',
+  //             //   additional_charges: '',
+  //             //   round_off: ''
+  //             // })
+  //             // debugger
+  //             reset({
+  //               po_no: responseData?.po_no,
+  //               po_date: formatInvoiceDate(responseData?.po_date),
+  //               store_id: '',
+  //               requested_by: responseData ? responseData['requested by'] : '',
+  //               supplier_id: responseData?.supplier_id,
+  //               description: responseData?.description,
+  //               type_of_store: responseData?.type_of_store,
+  //               purchase_details: purchase_details,
+  //               total_amount: 0,
+  //               discount_type: '',
+  //               discount_amount: 0,
+  //               discount_percentage: 0,
+  //               net_amount: 0,
+  //               tax_amount: 0,
+  //               purchase_order_no: '',
+  //               invoice_transcript: [],
+  //               freight_charges: '',
+  //               freight_gst: '',
+  //               freight_total_charges: '',
+  //               additional_charges: '',
+  //               round_off: '',
+  //               purchase_created_by: 'invoice_upload'
+  //             })
+  //             handleInputImageChange(file)
+  //           }
+  //         })
+  //         .catch(error => {
+  //           setSubmitLoader(false)
+  //           console.error('Error fetching image data:', error)
+  //         })
+  //     }
+  //     reader.onerror = error => {
+  //       setSubmitLoader(false)
+
+  //       console.error('Error converting image to Base64:', error)
+  //     }
+  //   }
+  // }
   const submitImage = async () => {
-    // const file = browseButtonRef.current.files[0]
-    // const file = file
-    const convert_image = ''
-    let base64String = ''
+    if (!file || file.length === 0) {
+      console.error('No files selected')
 
-    if (file) {
-      setSubmitLoader(true)
-      const reader = new FileReader()
-      reader.readAsDataURL(file[0])
+      return
+    }
 
-      reader.onload = () => {
-        base64String = reader.result.split(',')[1].toString('utf-8')
-        console.log(base64String)
-        const utf8Base64 = decodeURIComponent(base64String)
+    setSubmitLoader(true)
 
-        axios
-          .post(
-            'https://api.dev.antzsystems.com:8082/infer',
-            {
-              dataType: 'bytes',
-              data: utf8Base64,
-              save: false
-            },
-            {
-              headers: {
-                'X-API-KEY': '4ebaa3c6-9e70-42dd-bc1b-74e948aa468b',
-                'Content-Type': 'application/json'
+    const promises = Array.from(file).map(file => {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader()
+        reader.readAsDataURL(file)
+
+        reader.onload = () => {
+          const base64String = reader.result.split(',')[1]
+          resolve(base64String)
+        }
+
+        reader.onerror = error => reject(error)
+      })
+    })
+
+    try {
+      const base64Images = await Promise.all(promises)
+
+      const response = await axios
+        .post(
+          'https://api.dev.antzsystems.com:8082/inferInvoices',
+          {
+            dataType: 'bytes',
+            data: base64Images,
+            save: false
+          },
+          {
+            headers: {
+              'X-API-KEY': '4ebaa3c6-9e70-42dd-bc1b-74e948aa468b',
+              'Content-Type': 'application/json'
+            }
+          }
+        )
+        .then(data => {
+          setSubmitLoader(false)
+          closeDialog()
+          console.log(data.data.data)
+          const responseData = data.data.data
+          if (responseData) {
+            const purchase_details = responseData.product_details.map((el, index) => {
+              return {
+                ...el,
+
+                uid: uuidv4(),
+                medicine_name: el?.medicine_name,
+                purchase_stock_item_id: el?.purchase_stock_item_id,
+                id: el?.id || '',
+                stock_type: el?.stock_type,
+                package_details:
+                  el?.package && el?.package_qty && el?.package_uom_label && el?.product_form_label
+                    ? `${el.package} of ${el.package_qty} ${el.package_uom_label} ${el.product_form_label}`
+                    : '',
+                manufacture: el?.manufacturer,
+                purchase_expiry_date: el?.purchase_expiry_date,
+                purchase_variant_id: el?.purchase_variant_id,
+                purchase_variant_ratio: el?.unit_multiplier ? el?.unit_multiplier : 1,
+
+                // purchase_unit_qty: el?.purchase_qty,
+                purchase_qty: el?.purchase_qty,
+                purchase_unit_price: el?.purchase_unit_price,
+
+                // purchase_gross_amount:
+                // el?.purchase_qty && el?.purchase_unit_price ? el?.purchase_unit_price * el?.purchase_qty : 0,
+                purchase_taxable_amount: el?.purchase_taxable_amount,
+                purchase_discount: el?.purchase_discount ? el?.purchase_discount : 0,
+                purchase_taxable_amount: el?.purchase_taxable_amount ? el?.purchase_taxable_amount : 0,
+                purchase_net_amount: el?.purchase_net_amount,
+                purchase_purchase_price: el?.purchase_purchase_price,
+                purchase_free_quantity: el?.purchase_free_quantity,
+                purchase_gst: el?.purchase_gst,
+                purchase_cgst: el?.purchase_gst ? el?.purchase_gst / 2 : 0,
+                purchase_sgst: el?.purchase_gst ? el?.purchase_gst / 2 : 0,
+                purchase_cgst_amount: el?.gst_amount ? el?.gst_amount / 2 : 0,
+                purchase_sgst_amount: el?.gst_amount ? el?.gst_amount / 2 : 0,
+                purchase_igst: el?.purchase_igst ? el?.purchase_igst : 0,
+                purchase_igst_amount: el?.purchase_igst_amount ? el?.purchase_igst_amount : 0,
+                purchase_created_by: 'invoice_upload',
+                medicine_name_by_ml: el?.medicine_name,
+                purchase_gross_amount: el?.purchase_unit_price * el?.purchase_qty
               }
-            }
-          )
-          .then(data => {
-            setSubmitLoader(false)
-            closeDialog()
-            console.log(data.data.data)
-            const responseData = data.data.data
-            if (responseData) {
-              const purchase_details = responseData.product_details.map((el, index) => {
-                return {
-                  ...el,
+            })
+            setPurchaseItems(prev => ({
+              ...prev,
+              po_no: responseData?.po_no,
+              po_date: formatInvoiceDate(responseData?.po_date),
+              store_id: '',
+              requested_by: responseData ? responseData?.requested_by : '',
+              supplier_id: responseData?.supplier_id,
+              description: responseData?.description,
+              type_of_store: responseData?.type_of_store,
+              purchase_details: purchase_details,
 
-                  uid: uuidv4(),
-                  medicine_name: el?.medicine_name,
-                  purchase_stock_item_id: el?.purchase_stock_item_id,
-                  id: el?.id || '',
-                  stock_type: el?.stock_type,
-                  package_details:
-                    el?.package && el?.package_qty && el?.package_uom_label && el?.product_form_label
-                      ? `${el.package} of ${el.package_qty} ${el.package_uom_label} ${el.product_form_label}`
-                      : '',
-                  manufacture: el?.manufacturer,
-                  purchase_expiry_date: el?.purchase_expiry_date,
-                  purchase_variant_id: el?.purchase_variant_id,
-                  purchase_variant_ratio: el?.unit_multiplier ? el?.unit_multiplier : 1,
+              total_amount: responseData?.total_amount,
 
-                  // purchase_unit_qty: el?.purchase_qty,
-                  purchase_qty: el?.purchase_qty,
-                  purchase_unit_price: el?.purchase_unit_price,
-                  purchase_gross_amount:
-                    el?.purchase_qty && el?.purchase_unit_price ? el?.purchase_unit_price * el?.purchase_qty : 0,
-                  purchase_taxable_amount: el?.purchase_taxable_amount,
-                  purchase_discount: el?.purchase_discount ? el?.purchase_discount : 0,
-                  purchase_taxable_amount: el?.purchase_taxable_amount ? el?.purchase_taxable_amount : 0,
-                  purchase_net_amount: el?.purchase_net_amount,
-                  purchase_purchase_price: el?.purchase_purchase_price,
-                  purchase_free_quantity: el?.purchase_free_quantity,
-                  purchase_gst: el?.purchase_gst,
-                  purchase_cgst: el?.purchase_gst ? el?.purchase_gst / 2 : 0,
-                  purchase_sgst: el?.purchase_gst ? el?.purchase_gst / 2 : 0,
-                  purchase_cgst_amount: el?.gst_amount ? el?.gst_amount / 2 : 0,
-                  purchase_sgst_amount: el?.gst_amount ? el?.gst_amount / 2 : 0,
-                  purchase_igst: el?.purchase_igst ? el?.purchase_igst : 0,
-                  purchase_igst_amount: el?.purchase_igst_amount ? el?.purchase_igst_amount : 0,
-                  purchase_created_by: 'invoice_upload',
-                  medicine_name_by_ml: el?.medicine_name
-                }
-              })
-              setPurchaseItems(prev => ({
-                ...prev,
-                po_no: responseData?.po_no,
-                po_date: formatInvoiceDate(responseData?.po_date),
-                store_id: '',
-                requested_by: responseData ? responseData['requested by'] : '',
-                supplier_id: responseData?.supplier_id,
-                description: responseData?.description,
-                type_of_store: responseData?.type_of_store,
-                purchase_details: purchase_details,
-                total_amount: 0,
-                discount_type: '',
-                discount_amount: 0,
-                discount_percentage: 0,
-                net_amount: 0,
-                tax_amount: 0,
-                purchase_order_no: '',
-                invoice_transcript: [],
-                freight_charges: '',
-                freight_gst: '',
-                freight_total_charges: '',
-                additional_charges: '',
-                round_off: '',
-                purchase_created_by: 'invoice_upload'
-              }))
+              discount_type: '',
+              discount_amount: 0,
+              discount_percentage: 0,
 
-              // setPurchaseItems({
-              //   po_no: responseData?.po_no,
-              //   po_date: formatInvoiceDate(responseData?.po_date),
-              //   store_id: '',
-              //   supplier_id: responseData?.supplier_id,
-              //   description: responseData?.description,
-              //   type_of_store: responseData?.type_of_store,
-              //   purchase_details: purchase_details,
-              //   total_amount: 0,
-              //   discount_type: '',
-              //   discount_amount: 0,
-              //   discount_percentage: 0,
-              //   net_amount: 0,
-              //   tax_amount: 0,
-              //   purchase_order_no: '',
-              //   requested_by: '',
-              //   invoice_transcript: [],
-              //   freight_charges: '',
-              //   freight_gst: '',
-              //   freight_total_charges: '',
-              //   additional_charges: '',
-              //   round_off: ''
-              // })
-              // debugger
-              reset({
-                po_no: responseData?.po_no,
-                po_date: formatInvoiceDate(responseData?.po_date),
-                store_id: '',
-                requested_by: responseData ? responseData['requested by'] : '',
-                supplier_id: responseData?.supplier_id,
-                description: responseData?.description,
-                type_of_store: responseData?.type_of_store,
-                purchase_details: purchase_details,
-                total_amount: 0,
-                discount_type: '',
-                discount_amount: 0,
-                discount_percentage: 0,
-                net_amount: 0,
-                tax_amount: 0,
-                purchase_order_no: '',
-                invoice_transcript: [],
-                freight_charges: '',
-                freight_gst: '',
-                freight_total_charges: '',
-                additional_charges: '',
-                round_off: '',
-                purchase_created_by: 'invoice_upload'
-              })
-              handleInputImageChange(file)
-            }
-          })
-          .catch(error => {
-            setSubmitLoader(false)
-            console.error('Error fetching image data:', error)
-          })
-      }
-      reader.onerror = error => {
-        setSubmitLoader(false)
+              net_amount: responseData?.net_amount,
 
-        console.error('Error converting image to Base64:', error)
-      }
+              tax_amount: 0,
+              purchase_order_no: '',
+              invoice_transcript: [],
+              freight_charges: '',
+              freight_gst: '',
+              freight_total_charges: '',
+              additional_charges: '',
+              round_off: '',
+              purchase_created_by: 'invoice_upload'
+            }))
+
+            reset({
+              po_no: responseData?.po_no,
+              po_date: formatInvoiceDate(responseData?.po_date),
+              store_id: '',
+              requested_by: responseData ? responseData?.requested_by : '',
+              supplier_id: responseData?.supplier_id,
+              description: responseData?.description,
+              type_of_store: responseData?.type_of_store,
+              purchase_details: purchase_details,
+
+              total_amount: responseData?.total_amount,
+
+              discount_type: '',
+              discount_amount: 0,
+              discount_percentage: 0,
+
+              net_amount: responseData?.net_amount,
+              tax_amount: 0,
+              purchase_order_no: '',
+              invoice_transcript: [],
+              freight_charges: '',
+              freight_gst: '',
+              freight_total_charges: '',
+              additional_charges: '',
+              round_off: '',
+              purchase_created_by: 'invoice_upload'
+            })
+            handleInputImageChange(file)
+          }
+        })
+      debugger
+      console.log('Upload success:', response.data)
+    } catch (error) {
+      console.error('Error uploading images:', error)
+    } finally {
+      setSubmitLoader(false)
     }
   }
 
@@ -396,7 +553,8 @@ const PurchaseInvoiceUpload = ({ setPurchaseItems, reset, closeDialog, handleInp
               position: 'absolute',
               top: '0px',
               right: '0px',
-              cursor: 'pointer'
+              cursor: 'pointer',
+              pointerEvents: submitLoader ? 'none' : 'auto'
             }}
             width='24'
             height='24'
@@ -407,15 +565,19 @@ const PurchaseInvoiceUpload = ({ setPurchaseItems, reset, closeDialog, handleInp
   }
 
   const onDrop = useCallback((acceptedFiles, rejectedFiles) => {
-    if (rejectedFiles.length > 0) {
-      setError('File type not allowed. Please upload a JPEG or PNG.')
+    debugger
 
-      return
-    }
+    // if (rejectedFiles.length > 0) {
+    //   setError('File type not allowed. Please upload a JPEG or PNG.')
+
+    //   return
+    // }
 
     // const selectedFile = acceptedFiles[0]
-    if (selectedFile) {
-      setFile(acceptedFiles)
+    if (acceptedFiles) {
+      // setFile(acceptedFiles)
+      setFile(prev => [...prev, ...acceptedFiles])
+
       setError('')
     }
   }, [])
@@ -444,9 +606,6 @@ const PurchaseInvoiceUpload = ({ setPurchaseItems, reset, closeDialog, handleInp
             backgroundColor: 'customColors.OnPrimary',
             color: 'customColors.neutralSecondary',
             '& .MuiTabs-flexContainer': {
-              // borderBottom: '1px solid',
-              // borderColor: '#e0e0e0',
-
               // borderBottom: `1px solid ${theme.palette.customColors.neutralSecondary}`,
               display: 'flex'
 
@@ -457,7 +616,24 @@ const PurchaseInvoiceUpload = ({ setPurchaseItems, reset, closeDialog, handleInp
           <Tab
             disabled={file?.length > 0 ? true : false}
             value='by_camera'
-            label='Scan with Camera'
+            label={
+              <Typography
+                sx={{
+                  fontWeight: 500,
+                  fontSize: '14px',
+                  color: tabStatus === 'by_camera' ? '#37BD69' : 'customColors.onSurfaceVariant',
+                  display: { sm: 'inline', md: 'inline', lg: 'inline' },
+                  '&::after': {
+                    content: {
+                      xs: "'Camera'",
+                      sm: "'Camera'",
+                      md: "'Scan with Camera'",
+                      lg: "'Scan with Camera'"
+                    }
+                  }
+                }}
+              />
+            }
             sx={{ width: 'auto' }}
             iconPosition='start'
             icon={<Icon icon='mdi:camera-outline' />}
@@ -465,7 +641,24 @@ const PurchaseInvoiceUpload = ({ setPurchaseItems, reset, closeDialog, handleInp
           <Tab
             disabled={file?.length > 0 ? true : false}
             value='by_input'
-            label='Upload from device'
+            label={
+              <Typography
+                sx={{
+                  fontWeight: 500,
+                  fontSize: '14px',
+                  color: tabStatus === 'by_input' ? '#37BD69' : 'customColors.onSurfaceVariant',
+                  display: { sm: 'inline', md: 'inline', lg: 'inline' },
+                  '&::after': {
+                    content: {
+                      xs: "'Upload'",
+                      sm: "'Upload'",
+                      md: "'Upload from device'",
+                      lg: "'Upload from device'"
+                    }
+                  }
+                }}
+              />
+            }
             sx={{ width: 'auto' }}
             iconPosition='start'
             icon={<Icon icon='icon-park-outline:download-computer' />}
@@ -625,16 +818,26 @@ const PurchaseInvoiceUpload = ({ setPurchaseItems, reset, closeDialog, handleInp
 
                             {/* Action Buttons */}
                             <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 2 }}>
-                              <Button variant='contained' color='error' onClick={stopCamera}>
+                              <Button
+                                variant='contained'
+                                size='small'
+                                sx={{
+                                  pointerEvents: submitLoader ? 'none !important' : 'auto'
+                                }}
+                                color='error'
+                                onClick={stopCamera}
+                              >
                                 Turn Off Camera
                               </Button>
                               <Button
+                                size='small'
                                 variant='contained'
                                 sx={{
                                   backgroundColor: 'customColors.addPrimary',
                                   '&:hover': {
                                     backgroundColor: 'customColors.addPrimary'
-                                  }
+                                  },
+                                  pointerEvents: submitLoader ? 'none !important' : 'auto'
                                 }}
                                 onClick={takePicture}
                               >
@@ -740,6 +943,7 @@ const PurchaseInvoiceUpload = ({ setPurchaseItems, reset, closeDialog, handleInp
                   readOnly
                 /> */}
                 <Box
+                  disabled={true}
                   {...getRootProps({ className: 'dropzone' })}
                   onClick={handleClick}
                   ref={browseButtonRef}
@@ -760,7 +964,8 @@ const PurchaseInvoiceUpload = ({ setPurchaseItems, reset, closeDialog, handleInp
                     justifyContent: 'start',
                     alignItems: 'center',
                     minHeight: '115px',
-                    maxHeight: '115px'
+                    maxHeight: '115px',
+                    pointerEvents: submitLoader ? 'none !important' : ''
                   }}
                 >
                   <Box
@@ -865,7 +1070,6 @@ const PurchaseInvoiceUpload = ({ setPurchaseItems, reset, closeDialog, handleInp
                         />
 
                         <Icon
-                          disabled={submitLoader}
                           onClick={() => {
                             handleDeleteFile(index)
 
@@ -877,7 +1081,9 @@ const PurchaseInvoiceUpload = ({ setPurchaseItems, reset, closeDialog, handleInp
                             position: 'absolute',
                             top: '0px',
                             right: '0px',
-                            cursor: 'pointer'
+                            cursor: 'pointer',
+
+                            pointerEvents: submitLoader ? 'none' : 'auto'
                           }}
                           width='24'
                           height='24'
@@ -932,3 +1138,21 @@ const PurchaseInvoiceUpload = ({ setPurchaseItems, reset, closeDialog, handleInp
 }
 
 export default PurchaseInvoiceUpload
+
+//   {
+//     "medicine_name": "ATARAX 25 TAB.",
+//     "purchase_unit_price": 103.25,
+//     "purchase_hsn_no": "30049088",
+//     "purchase_batch_no": "E2402151",
+//     "purchase_expiry_date": "2026-07-31",
+//     "purchase_qty": 50.0,
+//     "purchase_free_quantity": 0.0,
+//     "purchase_purchase_price": 103.25,
+//     "purchase_discount": 30.0,
+//     "purchase_taxable_amount": 3613.73,
+//     "purchase_gst": 12.0,
+//     "gst_amount": 433.66,
+//     "purchase_net_amount": 5162.5,
+//     "purchase_variant_id": "15TAB",
+//     "purchase_stock_item_id": null
+// }

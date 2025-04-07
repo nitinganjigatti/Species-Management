@@ -619,6 +619,7 @@ function AlternativeMedicine({ parentId, updateRequestItems, existingListItems, 
               value={nestedRowMedicine.request_item_qty}
               error={Boolean(itemErrors.request_item_qty)}
               label='Quantity*'
+              onWheel={event => event.target.blur()}
               onChange={event => {
                 setNestedRowMedicine({ ...nestedRowMedicine, request_item_qty: event.target.value })
                 setItemErrors({})

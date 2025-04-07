@@ -44,8 +44,8 @@ const PurchaseReport = () => {
   const [loading, setLoading] = useState(false)
   const [total, setTotal] = useState(0)
   const [rows, setRows] = useState([])
-  const [sort, setSort] = useState(router.query.sort || 'asc')
-  const [sortColumn, setSortColumn] = useState(router.query.column || 'stock_name')
+  const [sort, setSort] = useState(router.query.sort || 'desc')
+  const [sortColumn, setSortColumn] = useState(router.query.column || 'purchase_date')
   const [searchValue, setSearchValue] = useState(router.query.q || '')
   const [openFilterDrawer, setOpenFilterDrawer] = useState(false)
   const [filteredData, setFilteredData] = useState({ suppliersName: [] })
@@ -368,6 +368,7 @@ const PurchaseReport = () => {
       width: 150,
       field: 'qty',
       sortable: false,
+      align: 'center',
       headerName: 'PURCHASE QUANTITY',
       renderCell: params => (
         <Typography
@@ -385,9 +386,10 @@ const PurchaseReport = () => {
     },
     {
       minWidth: 20,
-      width: 180,
+      width: 150,
       field: 'net_unit_price',
       sortable: false,
+      align: 'right',
       headerName: 'NET UNIT PRICE',
       renderCell: params => (
         <Typography
@@ -409,6 +411,7 @@ const PurchaseReport = () => {
       width: 200,
       field: 'purchase_value',
       sortable: false,
+      align: 'right',
       headerName: 'TOTAL PURCHASE AMOUNT',
       renderCell: params => (
         <Typography
@@ -513,7 +516,7 @@ const PurchaseReport = () => {
             fontFamily: 'Inter'
           }}
         >
-          {params.row.requested_by}
+          {params.row.requested_by ? params.row.requested_by : '-'}
         </Typography>
       )
     },
@@ -589,7 +592,7 @@ const PurchaseReport = () => {
               maxWidth: 200
             }}
           >
-            <span alt={params.row.comment}> {params.row.comment}</span>
+            <span alt={params.row.comment}> {params.row.comment ? params.row.comment : '-'}</span>
           </Typography>
         </Tooltip>
       )

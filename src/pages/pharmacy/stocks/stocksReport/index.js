@@ -79,6 +79,7 @@ const ListOfStocks = () => {
     router.replace({ pathname: router.pathname, query }, undefined, { shallow: true })
   }
   const { selectedPharmacy } = usePharmacyContext()
+
   const [loading, setLoading] = useState(false)
   const [sort, setSort] = useState('asc')
   const [stockReport, setStockReport] = useState([])
@@ -518,6 +519,29 @@ const ListOfStocks = () => {
       )
     },
     {
+      ...(stockId === 'all' && {
+        width: 200,
+        field: 'store_name',
+        headerName: 'Store Name',
+        renderCell: params => (
+          <Tooltip title={params.row.store_name} placement='top'>
+            <Typography
+              variant='body2'
+              sx={{
+                color: theme.palette.customColors.customHeadingTextColor,
+                fontSize: '14px',
+                fontWeight: 500,
+                fontFamily: 'Inter'
+              }}
+            >
+              {params.row.store_name}
+            </Typography>
+          </Tooltip>
+        )
+      })
+    },
+
+    {
       // flex: 0.2,
       minWidth: 160,
       field: 'stock_qty',
@@ -639,7 +663,28 @@ const ListOfStocks = () => {
         </Tooltip>
       )
     },
-
+    {
+      ...(stockId === 'all' && {
+        width: 200,
+        field: 'store_name',
+        headerName: 'Store Name',
+        renderCell: params => (
+          <Tooltip title={params.row.store_name} placement='top'>
+            <Typography
+              variant='body2'
+              sx={{
+                color: theme.palette.customColors.customHeadingTextColor,
+                fontSize: '14px',
+                fontWeight: 500,
+                fontFamily: 'Inter'
+              }}
+            >
+              {params.row.store_name}
+            </Typography>
+          </Tooltip>
+        )
+      })
+    },
     {
       // flex: 0.2,
       minWidth: 160,

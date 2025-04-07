@@ -47,7 +47,21 @@ const StyleWithIconCardComponent = ({ value, description, icon, bgColor, onClick
         </Box>
         <Box flex='1' ml={2}>
           {value && (
-            <Tooltip title={value}>
+            <Tooltip
+              title={value}
+              componentsProps={{
+                tooltip: {
+                  sx: {
+                    bgcolor: '#ededed', // Background color
+                    color: '#000', // Text color
+                    fontSize: '14px',
+                    fontWeight: '500',
+                    borderRadius: '4px', // Optional: Rounded corners
+                    boxShadow: 2 // Optional: Adds a subtle shadow
+                  }
+                }
+              }}
+            >
               <Typography
                 variant='body1'
                 sx={{
