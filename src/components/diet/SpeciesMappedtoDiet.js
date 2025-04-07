@@ -57,6 +57,7 @@ const SpeciesMappedtoDiet = ({
   const listInnerRef = useRef(null)
   const theme = useTheme()
   const isSmallDevice = useMediaQuery(theme.breakpoints.down('md'))
+
   const handleSearch = event => {
     const value = event.target.value
     setSearchQuery(value)
@@ -97,6 +98,7 @@ const SpeciesMappedtoDiet = ({
   const handleSelectedclick = val => {
     if (val === 'select') {
       setIsOpennew(true)
+
       // setIsOpen(false)
       setspeciesview(val)
     } else {

@@ -75,6 +75,7 @@ const UserThemeOptions = () => {
         secondaryBg: '#7A8684',
         mdAntzNeutral: '#0000000D',
         OnSurfaceVariant: '#44544A',
+        OnSurfaceVariant60: '#44544A99',
         textLabel: '#00ABAB',
 
         // *** name required
@@ -93,6 +94,10 @@ const UserThemeOptions = () => {
 
         customTableBorderBg: '#DAE7DF',
         customDropdownColor: '#FA6140',
+
+        errorText: '#FF4D49',
+        shadowColor: '#0000001A',
+        avatarBackground: '#FFD3D34D',
 
         // **
         moderateSecondary: '#E4B819',

@@ -839,8 +839,34 @@ const AddIngredients = props => {
                       direction='row'
                       sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 2, mt: 1 }}
                     >
-                      <Typography>Id - {item?.id}</Typography>
-                      <Typography>Feed Type - {item?.feed_type_label}</Typography>
+                      <Typography>Id - {item?.id}</Typography> 
+                      <Typography
+                        sx={{
+                          mr: 3,
+                          maxWidth: 150,
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap',
+                          display: 'flex',
+                          alignItems: 'center'
+                        }}
+                        noWrap
+                      >
+                        Feed Type -&nbsp;
+                        <Tooltip title={item?.feed_type_label || ''}>
+                          <span
+                            style={{
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                              whiteSpace: 'nowrap',
+                              display: 'inline-block',
+                              maxWidth: '100%'
+                            }}
+                          >
+                            {item?.feed_type_label}
+                          </span>
+                        </Tooltip>
+                      </Typography>
                     </Stack>
                     <Stack
                       direction='row'
