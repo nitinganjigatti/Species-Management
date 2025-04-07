@@ -1104,7 +1104,7 @@ const AddLab = () => {
                                     cursor: 'pointer',
                                     display: 'flex',
                                     justifyContent: 'center',
-                                    bgcolor: '#20de67',
+                                    bgcolor: theme.palette.customColors.mainBg,
                                     borderRadius: '8px',
                                     p: 2,
                                     width: '100%'
@@ -1155,7 +1155,7 @@ const AddLab = () => {
                                                   gap={2}
                                                   sx={{ display: 'flex', alignItems: 'center', p: 1 }}
                                                 >
-                                                  <Icon icon='ic:baseline-check' fontSize={20} color='#20de67' />
+                                                  <Icon icon='ic:baseline-check' fontSize={20} color={theme.palette.customColors.mainBg} />
                                                   <Typography sx>{child.test_name}</Typography>
                                                 </Stack>
                                               ) : null
@@ -1204,7 +1204,11 @@ const AddLab = () => {
                                                   gap={2}
                                                   sx={{ display: 'flex', alignItems: 'center', p: 1 }}
                                                 >
-                                                  <Icon icon='ic:baseline-check' fontSize={20} color='#20de67' />
+                                                  <Icon
+                                                    icon='ic:baseline-check'
+                                                    fontSize={20}
+                                                    color={theme.palette.customColors.mainBg}
+                                                  />
                                                   <Typography>{child.test_name}</Typography>
                                                 </Stack>
                                               ) : null
@@ -1228,7 +1232,7 @@ const AddLab = () => {
                             <Card sx={{ p: 2 }}>
                               <Box
                                 sx={{
-                                  bgcolor: '#20de67',
+                                  bgcolor: theme.palette.customColors.mainBg,
                                   borderRadius: '8px',
                                   p: 2,
                                   mb: 2
@@ -1382,7 +1386,7 @@ const AddLab = () => {
                                             >
                                               {/* <Icon
                                             icon='material-symbols-light:close'
-                                            color='#fff'
+                                            color={theme.palette.primary.contrastText}
                                             // onClick={() => removeSelectedImage(index)}
                                           ></Icon> */}
                                             </Box>
@@ -1427,7 +1431,7 @@ const AddLab = () => {
                                                 >
                                                   <Icon
                                                     icon='material-symbols-light:close'
-                                                    color='#fff'
+                                                    color={theme.palette.primary.contrastText}
                                                     onClick={() => removeSelectedImage(index)}
                                                   >
                                                     {' '}
