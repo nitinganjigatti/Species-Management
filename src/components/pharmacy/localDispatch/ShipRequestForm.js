@@ -532,7 +532,6 @@ const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
                       maxDate={new Date()}
                       name={'Shipment Date*'}
                       label='Shipment Date*'
-                      maxDate={new Date()}
                       placeholderText={'Shipment Date*'}
                       onChangeHandler={date => {
                         // console.log(date)
