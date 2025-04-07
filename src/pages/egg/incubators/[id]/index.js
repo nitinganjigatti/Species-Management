@@ -326,7 +326,7 @@ const IncubatorDetails = () => {
           {calculatePercentageChange(params.row.initial_weight, params.row.current_weight) != 0 && (
             <span
               style={{
-                borderLeft: `1px solid #bdc7c0`,
+                borderLeft: `1px solid ${theme.palette.customColors.AntzOutlineVariant}`,
                 paddingLeft: 4,
                 color:
                   calculatePercentageChange(params.row.initial_weight, params.row.current_weight) > 0

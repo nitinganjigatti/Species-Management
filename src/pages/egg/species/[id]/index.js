@@ -403,7 +403,7 @@ const SpeciesDetail = () => {
         )
       }
 
-      console.log(columns, 'columns')
+      // console.log(columns, 'columns')
 
       // Adding custom renderCell for "Egg Number" column to display EggNumber and egg_status
       const eggnumberByColumn = columns.find(column => column.field === 'egg_code')
@@ -432,7 +432,7 @@ const SpeciesDetail = () => {
           //       sx={{
           //         color: theme.palette.primary.main,
           //         fontSize: '13px',
-          //         background: '#E1F9ED',
+          //         background: theme.palette.customColors.AntzOnBackground,
           //         borderRadius: '3px',
           //         fontWeight: 600,
           //         mt: 1,
