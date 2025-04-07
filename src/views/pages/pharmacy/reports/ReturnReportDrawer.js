@@ -93,7 +93,12 @@ const ReturnReportDrawer = ({
   }
 
   const handleClearAll = () => {
-    setSelectedOptions({})
+    setSelectedOptions({
+      Pharmacy: [],
+      'Expiry Date': [],
+      'Near Expiry': [],
+      'Drug Type': 'all'
+    })
     setNearExpiryFilterDates({
       startDate: '',
       endDate: ''
@@ -372,7 +377,12 @@ const ReturnReportDrawer = ({
                 </>
               ) : selectedMenu.name === 'Expiry Date' ? (
                 <>
-                  <CommonDateRangePickers onChange={handleExpiryDateRangeChange} filterDates={expiryFilterDates} />
+                  <CommonDateRangePickers
+                    onChange={handleExpiryDateRangeChange}
+                    filterDates={expiryFilterDates}
+                    useCustomText={true}
+                    customText='Select Expiry Date'
+                  />
                 </>
               ) : selectedMenu.name === 'Near Expiry' ? (
                 <>
@@ -380,6 +390,8 @@ const ReturnReportDrawer = ({
                     onChange={handleExpiryDateRangeChange}
                     filterDates={nearExpiryFilterDates}
                     showFutureDates={true}
+                    useCustomText={true}
+                    customText='Select Near Expiry'
                   />
                 </>
               ) : selectedMenu.name === 'Drug Type' ? (

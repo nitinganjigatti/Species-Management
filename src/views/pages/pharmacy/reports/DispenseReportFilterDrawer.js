@@ -68,7 +68,11 @@ const DispenseReportFilterDrawer = ({
   }
 
   const handleClearAll = () => {
-    setSelectedOptions({})
+    setSelectedOptions({
+      Pharmacy: [],
+      User: [],
+      'Drug Type': 'all'
+    })
   }
 
   const handleCheckbox = useCallback(

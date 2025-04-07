@@ -69,7 +69,11 @@ const ReturnToSupplierFilter = ({
   }
 
   const handleClearAll = () => {
-    setSelectedOptions({})
+    setSelectedOptions({
+      'Supplier Name': [],
+      'Discarded By': [],
+      'Drug Type': 'all'
+    })
   }
 
   const handleCheckbox = useCallback(

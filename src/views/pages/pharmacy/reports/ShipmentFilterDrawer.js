@@ -64,7 +64,11 @@ const ShipmentFilterDrawer = ({
   }
 
   const handleClearAll = () => {
-    setSelectedOptions({})
+    setSelectedOptions({
+      'Batch Number': [],
+      Pharmacy: [],
+      'Drug Type': 'all'
+    })
   }
 
   const handleDrugTypeChange = event => {

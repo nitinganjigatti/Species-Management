@@ -75,7 +75,12 @@ const RequestedItemFilterDrawer = ({
   }
 
   const handleClearAll = () => {
-    setSelectedOptions({})
+    setSelectedOptions({
+      Pharmacy: [],
+      User: [],
+      'Drug Type': 'all',
+      Priority: 'all'
+    })
   }
 
   const handleCheckbox = useCallback(
