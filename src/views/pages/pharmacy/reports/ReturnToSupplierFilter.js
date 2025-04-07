@@ -26,8 +26,8 @@ const leftMenu = [
 
 const drugTypeOptions = [
   { id: 'all', name: 'All' },
-  { id: 'controlled', name: 'Controlled' },
-  { id: 'prescription', name: 'Prescription' }
+  { id: 'controlled', name: 'Controlled Substance' },
+  { id: 'prescription', name: 'Prescription required' }
 ]
 
 const StyledBadge = styled(Badge)(({ theme }) => ({
@@ -56,7 +56,7 @@ const ReturnToSupplierFilter = ({
   const isAllSupplierSelected =
     supplierData?.length > 0 && selectedOptions['Supplier Name']?.length === supplierData?.length
 
-  const isAllUsersSelected = users?.length > 0 && selectedOptions['Discarded By'].length === users?.length
+  const isAllUsersSelected = users?.length > 0 && selectedOptions['Discarded By']?.length === users?.length
 
   const handleCloseDrawer = () => {
     setOpenFilterDrawer(false)
@@ -66,6 +66,14 @@ const ReturnToSupplierFilter = ({
   const handleMenuClick = menu => {
     setSelectedMenu(menu)
     setSearchQuery('')
+  }
+
+  const handleClearAll = () => {
+    setSelectedOptions({
+      'Supplier Name': [],
+      'Discarded By': [],
+      'Drug Type': 'all'
+    })
   }
 
   const handleCheckbox = useCallback(
@@ -389,8 +397,8 @@ const ReturnToSupplierFilter = ({
           zIndex: 123
         }}
       >
-        <LoadingButton fullWidth variant='outlined' size='large' onClick={handleCloseDrawer}>
-          CLOSE
+        <LoadingButton fullWidth variant='outlined' size='large' onClick={handleClearAll}>
+          CANCEL ALL
         </LoadingButton>
         <LoadingButton fullWidth variant='contained' size='large' onClick={applyFilters}>
           APPLY FILTER

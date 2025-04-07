@@ -42,8 +42,8 @@ const ReturnReport = () => {
   const [rows, setRows] = useState([])
   const [total, setTotal] = useState(0)
   const [loading, setLoading] = useState(false)
-  const [sort, setSort] = useState(router.query.sort || 'asc')
-  const [sortColumn, setSortColumn] = useState(router.query.column || 'stock_name')
+  const [sort, setSort] = useState(router.query.sort || 'desc')
+  const [sortColumn, setSortColumn] = useState(router.query.column || 'return_date')
   const [searchValue, setSearchValue] = useState(router.query.q || '')
   const [openFilterDrawer, setOpenFilterDrawer] = useState(false)
 
@@ -81,6 +81,28 @@ const ReturnReport = () => {
     startDate: '',
     endDate: ''
   })
+
+  useEffect(() => {
+    setSelectedOptions({
+      Pharmacy: [],
+      'Expiry Date': [],
+      'Near Expiry': [],
+      'Drug Type': 'all'
+    })
+    setFilteredData({
+      pharmacy: []
+    })
+
+    setExpiryFilterDates({
+      startDate: '',
+      endDate: ''
+    })
+
+    setNearExpiryFilterDates({
+      startDate: '',
+      endDate: ''
+    })
+  }, [selectedPharmacy.id])
 
   useEffect(() => {
     const pharmacyList = async () => {
@@ -197,8 +219,6 @@ const ReturnReport = () => {
     id: getSlNo(index)
   }))
 
-  console.log(indexedRows)
-
   const columns = [
     {
       width: 100,
@@ -291,7 +311,7 @@ const ReturnReport = () => {
         <Box>
           <StyleWithIconCardComponent
             value={
-              <>
+              <Box>
                 <Typography sx={{ display: 'flex', alignItems: 'center' }}>
                   <Typography
                     sx={{
@@ -323,7 +343,7 @@ const ReturnReport = () => {
                     {params.row.stock_name}
                   </Typography>
                 </Typography>
-              </>
+              </Box>
             }
             description={params.row.generic_name}
             icon={params.row.image ? `${params.row.image}` : '/images/Medicine_Icon.png'}
@@ -397,6 +417,7 @@ const ReturnReport = () => {
       field: 'return_qty',
       headerName: 'TOTAL RETURN QUANTITY',
       sortable: true,
+      align: 'center',
       renderCell: params => (
         <Typography
           variant='body2'
@@ -407,7 +428,7 @@ const ReturnReport = () => {
             fontFamily: 'Inter'
           }}
         >
-          {params.row?.total_return_qty ? Utility.formatNumber(params.row.total_return_qty) : 0}
+          {params.row?.return_qty ? Utility.formatNumber(params.row.return_qty) : 0}
         </Typography>
       )
     },
@@ -417,6 +438,7 @@ const ReturnReport = () => {
       field: 'net_unit_price',
       headerName: 'NET UNIT PRICE',
       sortable: true,
+      align: 'right',
       renderCell: params => (
         <Typography
           variant='body2'
@@ -436,6 +458,7 @@ const ReturnReport = () => {
       width: 180,
       field: 'return_value',
       headerName: 'TOTAL RETURN VALUE',
+      align: 'right',
       sortable: true,
       renderCell: params => (
         <Typography
@@ -757,8 +780,6 @@ const ReturnReport = () => {
 
   const appliedFiltersCount = calculateAppliedFiltersCount()
 
-  console.log(filteredData)
-
   return (
     <>
       <Card>
@@ -927,6 +948,7 @@ const ReturnReport = () => {
           setNearExpiryFilterDates={setNearExpiryFilterDates}
           pharmacyList={pharmacyList}
           handleSelectAllPharmacy={handleSelectAllPharmacy}
+          selectedPharmacy={selectedPharmacy}
         />
       )}
     </>

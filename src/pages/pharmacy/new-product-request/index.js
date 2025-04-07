@@ -755,11 +755,14 @@ export default function NewProductList() {
                   }}
                 >
                   <MenuItem value='all'>All</MenuItem>
-                  {authData.userData.modules.pharmacy_data.pharmacy?.map(item => (
-                    <MenuItem key={item.id} value={item.id}>
-                      {item.name}
-                    </MenuItem>
-                  ))}
+                  {authData.userData.modules.pharmacy_data.pharmacy?.map(
+                    item =>
+                      item.type === 'local' && (
+                        <MenuItem key={item.id} value={item.id}>
+                          {item.name}
+                        </MenuItem>
+                      )
+                  )}
                 </Select>
               </FormControl>
 

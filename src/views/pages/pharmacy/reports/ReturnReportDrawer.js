@@ -20,17 +20,10 @@ import Icon from 'src/@core/components/icon'
 import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDateRangePickers'
 import Utility from 'src/utility'
 
-const leftMenu = [
-  { id: 1, name: 'Pharmacy' },
-  { id: 2, name: 'Expiry Date' },
-  { id: 3, name: 'Near Expiry' },
-  { id: 4, name: 'Drug Type' }
-]
-
 const drugTypeOptions = [
   { id: 'all', name: 'All' },
-  { id: 'controlled', name: 'Controlled' },
-  { id: 'prescription', name: 'Prescription' }
+  { id: 'controlled', name: 'Controlled Substance' },
+  { id: 'prescription', name: 'Prescription required' }
 ]
 
 const StyledBadge = styled(Badge)(({ theme }) => ({
@@ -50,11 +43,36 @@ const ReturnReportDrawer = ({
   nearExpiryFilterDates,
   setNearExpiryFilterDates,
   pharmacyList,
-  handleSelectAllPharmacy
+  handleSelectAllPharmacy,
+  selectedPharmacy
 }) => {
   const theme = useTheme()
 
-  const [selectedMenu, setSelectedMenu] = useState(leftMenu[0])
+  const leftMenu = [
+    ...(selectedPharmacy?.type === 'central'
+      ? [
+          { id: 1, name: 'Pharmacy' },
+          { id: 2, name: 'Expiry Date' },
+          { id: 3, name: 'Near Expiry' },
+          { id: 4, name: 'Drug Type' }
+        ]
+      : [
+          { id: 1, name: 'Expiry Date' },
+          { id: 2, name: 'Near Expiry' },
+          { id: 3, name: 'Drug Type' }
+        ])
+  ]
+
+  // const leftMenu = [
+  //   ...(selectedPharmacy.type === 'central' ? [{ id: 1, name: 'Pharmacy' }] : []),
+  //   { id: 2, name: 'Expiry Date' },
+  //   { id: 3, name: 'Near Expiry' },
+  //   { id: 4, name: 'Drug Type' }
+  // ]
+
+  const [selectedMenu, setSelectedMenu] = useState(
+    selectedPharmacy.type === 'central' ? { id: 1, name: 'Pharmacy' } : { id: 2, name: 'Expiry Date' }
+  )
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
 
@@ -72,6 +90,23 @@ const ReturnReportDrawer = ({
   const handleMenuClick = menu => {
     setSelectedMenu(menu)
     setSearchQuery('')
+  }
+
+  const handleClearAll = () => {
+    setSelectedOptions({
+      Pharmacy: [],
+      'Expiry Date': [],
+      'Near Expiry': [],
+      'Drug Type': 'all'
+    })
+    setNearExpiryFilterDates({
+      startDate: '',
+      endDate: ''
+    })
+    setExpiryFilterDates({
+      startDate: '',
+      endDate: ''
+    })
   }
 
   const handleDrugTypeChange = event => {
@@ -342,7 +377,12 @@ const ReturnReportDrawer = ({
                 </>
               ) : selectedMenu.name === 'Expiry Date' ? (
                 <>
-                  <CommonDateRangePickers onChange={handleExpiryDateRangeChange} filterDates={expiryFilterDates} />
+                  <CommonDateRangePickers
+                    onChange={handleExpiryDateRangeChange}
+                    filterDates={expiryFilterDates}
+                    useCustomText={true}
+                    customText='Select Expiry Date'
+                  />
                 </>
               ) : selectedMenu.name === 'Near Expiry' ? (
                 <>
@@ -350,6 +390,8 @@ const ReturnReportDrawer = ({
                     onChange={handleExpiryDateRangeChange}
                     filterDates={nearExpiryFilterDates}
                     showFutureDates={true}
+                    useCustomText={true}
+                    customText='Select Near Expiry'
                   />
                 </>
               ) : selectedMenu.name === 'Drug Type' ? (
@@ -404,8 +446,8 @@ const ReturnReportDrawer = ({
           zIndex: 123
         }}
       >
-        <LoadingButton fullWidth variant='outlined' size='large' onClick={handleCloseDrawer}>
-          CLOSE
+        <LoadingButton fullWidth variant='outlined' size='large' onClick={handleClearAll}>
+          CLEAR ALL
         </LoadingButton>
         <LoadingButton fullWidth variant='contained' size='large' onClick={applyFilters}>
           APPLY FILTER

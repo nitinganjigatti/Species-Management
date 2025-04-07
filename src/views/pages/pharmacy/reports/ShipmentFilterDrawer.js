@@ -26,8 +26,8 @@ const leftMenu = [
 
 const drugTypeOptions = [
   { id: 'all', name: 'All' },
-  { id: 'controlled', name: 'Controlled' },
-  { id: 'prescription', name: 'Prescription' }
+  { id: 'controlled', name: 'Controlled Substance' },
+  { id: 'prescription', name: 'Prescription Required' }
 ]
 
 const StyledBadge = styled(Badge)(({ theme }) => ({
@@ -61,6 +61,14 @@ const ShipmentFilterDrawer = ({
   const handleMenuClick = menu => {
     setSelectedMenu(menu)
     setSearchQuery('')
+  }
+
+  const handleClearAll = () => {
+    setSelectedOptions({
+      'Batch Number': [],
+      Pharmacy: [],
+      'Drug Type': 'all'
+    })
   }
 
   const handleDrugTypeChange = event => {
@@ -216,44 +224,44 @@ const ShipmentFilterDrawer = ({
               {selectedMenu?.name === 'Batch Number' ? (
                 <>
                   {/* <Box
-                        sx={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          border: '1px solid #C3CEC7',
-                          borderRadius: '4px',
-                          padding: '0 8px',
-                          height: '40px',
-                          mb: 4
+                      sx={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        border: '1px solid #C3CEC7',
+                        borderRadius: '4px',
+                        padding: '0 8px',
+                        height: '40px',
+                        mb: 4
+                      }}
+                    >
+                      <Icon icon='mi:search' color={theme.palette.customColors.OnSurfaceVariant} />
+                      <TextField
+                        variant='outlined'
+                        placeholder='Search'
+                        value={searchQuery}
+                        onChange={handleSearch}
+                        InputProps={{
+                          disableUnderline: false
                         }}
-                      >
-                        <Icon icon='mi:search' color={theme.palette.customColors.OnSurfaceVariant} />
-                        <TextField
-                          variant='outlined'
-                          placeholder='Search'
-                          value={searchQuery}
-                          onChange={handleSearch}
-                          InputProps={{
-                            disableUnderline: false
-                          }}
-                          sx={{
-                            '& .MuiOutlinedInput-root': {
-                              border: 'none',
-                              padding: '0',
-                              '& fieldset': {
-                                border: 'none'
-                              }
+                        sx={{
+                          '& .MuiOutlinedInput-root': {
+                            border: 'none',
+                            padding: '0',
+                            '& fieldset': {
+                              border: 'none'
                             }
-                          }}
-                        />
-                      </Box> */}
+                          }
+                        }}
+                      />
+                    </Box> */}
                   {/* <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-                        <Checkbox
-                          checked={selectAll}
-                          //   onChange={handleSelectAllChange}
-                          inputProps={{ 'aria-label': 'controlled' }}
-                        />
-                        <Typography sx={{ fontSize: '16px', fontWeight: 400, color: '#839D8D' }}>Select All</Typography>
-                      </Box> */}
+                      <Checkbox
+                        checked={selectAll}
+                        //   onChange={handleSelectAllChange}
+                        inputProps={{ 'aria-label': 'controlled' }}
+                      />
+                      <Typography sx={{ fontSize: '16px', fontWeight: 400, color: '#839D8D' }}>Select All</Typography>
+                    </Box> */}
                   {/* <Divider sx={{ mb: 3 }} /> */}
                 </>
               ) : selectedMenu?.name === 'Pharmacy' ? (
@@ -364,8 +372,8 @@ const ShipmentFilterDrawer = ({
           zIndex: 123
         }}
       >
-        <LoadingButton fullWidth variant='outlined' size='large' onClick={handleCloseDrawer}>
-          CLOSE
+        <LoadingButton fullWidth variant='outlined' size='large' onClick={handleClearAll}>
+          CLEAR ALL
         </LoadingButton>
         <LoadingButton fullWidth variant='contained' size='large' onClick={applyFilters}>
           APPLY FILTER

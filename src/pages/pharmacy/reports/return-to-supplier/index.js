@@ -44,8 +44,8 @@ const ReturnSupplier = () => {
   const [rows, setRows] = useState([])
   const [total, setTotal] = useState(0)
   const [loading, setLoading] = useState(false)
-  const [sort, setSort] = useState(router.query.sort || 'asc')
-  const [sortColumn, setSortColumn] = useState(router.query.column || 'stock_name')
+  const [sort, setSort] = useState(router.query.sort || 'desc')
+  const [sortColumn, setSortColumn] = useState(router.query.column || 'discarded_date')
   const [searchValue, setSearchValue] = useState(router.query.q || '')
   const [exportLoading, setExportLoading] = useState(false)
   const [openFilterDrawer, setOpenFilterDrawer] = useState(false)
@@ -289,7 +289,7 @@ const ReturnSupplier = () => {
           <StyleWithIconCardComponent
             value={
               <>
-                <Typography sx={{ display: 'flex', alignItems: 'center' }}>
+                <Box sx={{ display: 'flex', alignItems: 'center' }}>
                   <Typography
                     sx={{
                       color: 'customColors.OnSecondaryContainer',
@@ -317,9 +317,9 @@ const ReturnSupplier = () => {
                       maxWidth: 250
                     }}
                   >
-                    {params.row.stock_name}
+                    <span>{params.row.stock_name}</span>
                   </Typography>
-                </Typography>
+                </Box>
               </>
             }
             description={params.row.generic_name ? params.row.generic_name : 'NA'}
@@ -364,6 +364,7 @@ const ReturnSupplier = () => {
       field: 'unit_price',
       headerName: 'NET UNIT PRICE',
       sortable: true,
+      align: 'right',
       renderCell: params => (
         <Typography
           variant='body2'
@@ -384,6 +385,7 @@ const ReturnSupplier = () => {
       field: 'discarded_value',
       headerName: 'TOTAL VALUE',
       sortable: true,
+      align: 'right',
       renderCell: params => (
         <Typography
           variant='body2'
@@ -404,6 +406,7 @@ const ReturnSupplier = () => {
       field: 'discarded_quantity',
       headerName: 'DISCARDED QUANTITY',
       sortable: true,
+      align: 'center',
       renderCell: params => (
         <Typography
           variant='body2'
@@ -476,7 +479,7 @@ const ReturnSupplier = () => {
     },
     {
       minWidth: 20,
-      width: 250,
+      width: 220,
       field: 'manufacturer_name',
       sortable: true,
       headerName: 'MANUFACTURER NAME',
@@ -521,7 +524,7 @@ const ReturnSupplier = () => {
               maxWidth: 200
             }}
           >
-            <span alt={params.row.comments}> {params.row.comments}</span>
+            <span alt={params.row.comments}> {params.row.comments ? params.row.comments : '-'}</span>
           </Typography>
         </Tooltip>
       )

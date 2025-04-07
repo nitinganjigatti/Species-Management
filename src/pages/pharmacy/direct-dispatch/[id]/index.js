@@ -50,6 +50,7 @@ import { styled } from '@mui/material/styles'
 import MuiTabList from '@mui/lab/TabList'
 import RenderUtility from 'src/utility/render'
 import EmptyStateBox from 'src/components/EmptyStateBox'
+import { width } from '@mui/system'
 
 const Transition = forwardRef(function Transition(props, ref) {
   return <Fade ref={ref} {...props} />
@@ -199,6 +200,9 @@ const IndividualRequest = () => {
     try {
       setLoader(true)
       const response = await getShippedItemsByRequestId(id)
+
+      console.log(response, 'res1234')
+
       if (response.success) {
         const mappedWithUid = response?.data?.map((item, index) => ({
           ...item,
@@ -401,6 +405,33 @@ const IndividualRequest = () => {
     // },
 
     {
+      flex: 0.6,
+      minWidth: 20,
+      field: 'unit_price',
+      headerName: 'unit price',
+      type: 'number',
+      align: 'right',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {Utility.formatAmountToReadableDigit(params.row.unit_price)}
+        </Typography>
+      )
+    },
+    {
+      flex: 0.2,
+      minWidth: 20,
+      field: 'qty',
+      headerName: 'total value',
+      type: 'number',
+      align: 'right',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {Utility.formatAmountToReadableDigit(params.row.unit_price * params.row.qty)}
+        </Typography>
+      )
+    },
+
+    {
       flex: 0.2,
       minWidth: 20,
       field: 'requested_qty',
@@ -595,7 +626,27 @@ const IndividualRequest = () => {
         </Typography>
       )
     },
-
+    {
+      width: 140,
+      field: 'unit_price',
+      headerName: 'unit price',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {console.log(params, 'params')}
+          {params.row.unit_price}
+        </Typography>
+      )
+    },
+    {
+      width: 140,
+      field: 'qty',
+      headerName: 'total value',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {Utility.formatAmountToReadableDigit(params.row.unit_price * params.row.dispatch_qty)}
+        </Typography>
+      )
+    },
     {
       width: 140,
       field: 'dispatch_qty',
@@ -981,6 +1032,8 @@ const IndividualRequest = () => {
     })
   }
 
+  console.log(shippedItems, 'shippedItems')
+
   return (
     <>
       {loader ? (
@@ -1052,6 +1105,26 @@ const IndividualRequest = () => {
                         </Box>
                       </Box>
                     </Grid>
+                    {value === 'dispatch' && (
+                      <>
+                        <Grid item xs={3} sm={12 / 5} lg={12 / 5}>
+                          <h5 style={{ marginBottom: '0px', marginTop: '0px' }}>Requested Amount</h5>
+                          <p style={{ marginBottom: '0' }}>{requestItems?.requested_amount}</p>
+                        </Grid>
+                        {shippedItems.length > 0 && (
+                          <>
+                            <Grid item xs={3} sm={12 / 5} lg={12 / 5}>
+                              <h5 style={{ marginBottom: '0px', marginTop: '0px' }}>Shipped Amount</h5>
+                              <p style={{ marginBottom: '0' }}>{requestItems?.shipped_amount}</p>
+                            </Grid>
+                            <Grid item xs={3} sm={12 / 5} lg={12 / 5}>
+                              <h5 style={{ marginBottom: '0px', marginTop: '0px' }}>Shipped Qty</h5>
+                              <p style={{ marginBottom: '0' }}>{requestItems?.shipped_qty}</p>
+                            </Grid>
+                          </>
+                        )}
+                      </>
+                    )}
                   </Grid>
                 </Box>
                 <Box>
