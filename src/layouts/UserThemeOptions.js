@@ -63,7 +63,7 @@ const UserThemeOptions = () => {
         trackBg: '#F2F2F4',
         avatarBg: '#F1F1F3',
         tooltipBg: '#262732',
-
+        OnTertiaryContainer: '#250E01',
         displaybgPrimary: '#E8F4F2',
         tableHeaderBg: '#E8F4F2',
         Secondary: '#00D6C9',
@@ -97,6 +97,8 @@ const UserThemeOptions = () => {
         customDropdownColor: '#FA6140',
 
         errorText: '#FF4D49',
+        shadowColor: '#0000001A',
+        avatarBackground: '#FFD3D34D',
 
         // **
         moderateSecondary: '#E4B819',

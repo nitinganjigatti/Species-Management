@@ -124,6 +124,7 @@ const App = props => {
                             <ReactHotToast>
                               <Toaster
                                 position={settings.toastPosition}
+                                containerClassName='react-hot-toast-container'
                                 toastOptions={{ className: 'react-hot-toast' }}
                               />
                             </ReactHotToast>

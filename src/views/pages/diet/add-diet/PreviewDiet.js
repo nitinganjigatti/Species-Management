@@ -1503,8 +1503,21 @@ const StepPreviewDiet = ({
                                                 gap: '12px'
                                               }}
                                             >
-                                              <Box sx={{ display: 'flex' }}>
+                                              <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap' }}>
                                                 {item?.ingredient_name && (
+                                                  <Typography
+                                                    sx={{
+                                                      color: theme.palette.customColors.OnSurfaceVariant,
+                                                      fontSize: '13px',
+                                                      fontWeight: 400,
+                                                      display: 'block',
+                                                      width: '100%'
+                                                    }}
+                                                  >
+                                                    Ingredient
+                                                  </Typography>
+                                                )}
+                                                <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap' }}>
                                                   <Typography
                                                     sx={{
                                                       color: theme.palette.customColors.neutralPrimary,
@@ -1515,33 +1528,34 @@ const StepPreviewDiet = ({
                                                   >
                                                     {item?.ingredient_name}
                                                   </Typography>
-                                                )}
-                                                {item?.preparation_type &&
-                                                  (item?.master_cut_size ? (
-                                                    <Typography
-                                                      sx={{
-                                                        color: theme.palette.customColors.secondaryBg,
-                                                        lineHeight: '16.94px',
-                                                        fontWeight: 400,
-                                                        fontSize: '14px'
-                                                      }}
-                                                    >
-                                                      &nbsp;-&nbsp; {item?.preparation_type}&nbsp;-&nbsp;
-                                                      {item?.master_cut_size}
-                                                    </Typography>
-                                                  ) : (
-                                                    <Typography
-                                                      sx={{
-                                                        color: theme.palette.customColors.secondaryBg,
-                                                        lineHeight: '16.94px',
-                                                        fontWeight: 400,
-                                                        fontSize: '14px'
-                                                      }}
-                                                    >
-                                                      &nbsp;-&nbsp; {item?.preparation_type}
-                                                      {/* {item?.master_cut_size + item.feed_uom_name} */}
-                                                    </Typography>
-                                                  ))}
+
+                                                  {item?.preparation_type &&
+                                                    (item?.master_cut_size ? (
+                                                      <Typography
+                                                        sx={{
+                                                          color: theme.palette.customColors.OnSurfaceVariant,
+                                                          lineHeight: '16.94px',
+                                                          fontWeight: 400,
+                                                          fontSize: '14px'
+                                                        }}
+                                                      >
+                                                        &nbsp;-&nbsp; {item?.preparation_type}&nbsp;-&nbsp;
+                                                        {item?.master_cut_size}
+                                                      </Typography>
+                                                    ) : (
+                                                      <Typography
+                                                        sx={{
+                                                          color: theme.palette.customColors.OnSurfaceVariant,
+                                                          lineHeight: '16.94px',
+                                                          fontWeight: 400,
+                                                          fontSize: '14px'
+                                                        }}
+                                                      >
+                                                        &nbsp;-&nbsp; {item?.preparation_type}
+                                                        {/* {item?.master_cut_size + item.feed_uom_name} */}
+                                                      </Typography>
+                                                    ))}
+                                                </Box>
                                               </Box>
 
                                               {item?.ingredient?.length > 0 && (
@@ -2062,23 +2076,37 @@ const StepPreviewDiet = ({
                                                 gap: '12px'
                                               }}
                                             >
-                                              <Box sx={{ display: 'flex' }}>
+                                              {console.log(item, 'item')}
+                                              <Box sx={{ display: 'flex', flexDirection: 'column' }}>
                                                 {item?.recipe_name && (
-                                                  <Typography
-                                                    sx={{
-                                                      color: theme.palette.customColors.neutralPrimary,
-                                                      lineHeight: '16.94px',
-                                                      fontWeight: 600,
-                                                      fontSize: '16px',
-                                                      cursor: 'pointer'
-                                                    }}
-                                                    onClick={() => handleclickRecipeDetail(item.recipe_id)}
-                                                  >
-                                                    {item?.recipe_name}
-                                                  </Typography>
+                                                  <>
+                                                    <Typography
+                                                      sx={{
+                                                        color: theme.palette.customColors.OnSurfaceVariant,
+                                                        fontSize: '13px',
+                                                        fontWeight: 400,
+                                                        display: 'block'
+                                                      }}
+                                                    >
+                                                      Recipe
+                                                    </Typography>
+                                                    <Typography
+                                                      sx={{
+                                                        color: theme.palette.customColors.neutralPrimary,
+                                                        lineHeight: '16.94px',
+                                                        fontWeight: 600,
+                                                        fontSize: '16px',
+                                                        cursor: 'pointer',
+                                                        display: 'block'
+                                                      }}
+                                                      onClick={() => handleclickRecipeDetail(item.recipe_id)}
+                                                    >
+                                                      {item?.recipe_name}
+                                                    </Typography>
+                                                  </>
                                                 )}
                                               </Box>
-
+                                              <Divider />
                                               <Box sx={{ display: 'flex', flexWrap: 'wrap' }}>
                                                 {/* {item?.ingredient_name && item.ingredient_name.length > 0 && (
                                                   <Typography
@@ -2118,38 +2146,66 @@ const StepPreviewDiet = ({
                                                     ))}
                                                   </Typography>
                                                 )} */}
-                                                {item?.ingredients?.length > 0 &&
-                                                  item?.ingredients.map((name, index) => (
-                                                    <Box
-                                                      key={index}
-                                                      sx={{
-                                                        display: 'flex',
-                                                        alignItems: 'center',
-                                                        marginRight: '10px',
-                                                        backgroundColor: '#00D6C933',
-                                                        m: 1,
-                                                        borderRadius: '16px',
-                                                        px: '10px',
-                                                        gap: '8px',
-                                                        py: 0.5
-                                                      }}
-                                                    >
-                                                      {name?.ingredient_name}
-                                                      {/* <Typography
-                                                        component='span'
+                                                <Typography
+                                                  sx={{
+                                                    color: theme.palette.customColors.OnSurfaceVariant,
+                                                    fontSize: '13px',
+                                                    fontWeight: 400,
+                                                    width: '100%',
+                                                    mb: 1
+                                                  }}
+                                                >
+                                                  Ingredients used
+                                                </Typography>
+                                                {item?.ingredients?.length > 0 && (
+                                                  <Box
+                                                    sx={{
+                                                      display: 'flex',
+                                                      flexWrap: 'wrap',
+                                                      alignItems: 'center',
+                                                      gap: '10px'
+                                                    }}
+                                                  >
+                                                    {item.ingredients.map((name, index) => (
+                                                      <Box
+                                                        key={index}
                                                         sx={{
-                                                          fontWeight: 'bold',
-                                                          marginLeft: '2px',
-                                                          fontSize: '14px',
-                                                          lineHeight: '1.7rem'
+                                                          display: 'flex',
+                                                          alignItems: 'center',
+                                                          backgroundColor: theme.palette.customColors.mdAntzNeutral,
+                                                          borderRadius: '8px',
+                                                          px: '10px',
+                                                          py: '2px'
                                                         }}
                                                       >
-                                                        {parseFloat(name?.quantity)}
-                                                        {''}
-                                                        {name?.quantity_type === 'percentage' ? '%' : ''}
-                                                      </Typography> */}
-                                                    </Box>
-                                                  ))}
+                                                        <Typography
+                                                          component='span'
+                                                          sx={{
+                                                            fontSize: '14px',
+                                                            lineHeight: '1.7rem',
+                                                            color: '#000'
+                                                          }}
+                                                        >
+                                                          {`${name?.ingredient_name || ''} | ${
+                                                            name?.preparation_type || ''
+                                                          } | ${name?.cut_size || ''} |  `}
+                                                        </Typography>
+                                                        <Typography
+                                                          component='span'
+                                                          sx={{
+                                                            fontWeight: 'bold',
+                                                            fontSize: '14px',
+                                                            lineHeight: '1.7rem',
+                                                            marginLeft: '2px',
+                                                            color: '#000'
+                                                          }}
+                                                        >
+                                                          {` ${parseFloat(name?.quantity) || 0}${' ' + name?.uom_text}`}
+                                                        </Typography>
+                                                      </Box>
+                                                    ))}
+                                                  </Box>
+                                                )}
                                               </Box>
 
                                               {item?.recipe?.length > 0 && (
@@ -2673,20 +2729,32 @@ const StepPreviewDiet = ({
                                                 gap: '12px'
                                               }}
                                             >
-                                              <Box sx={{ display: 'flex' }}>
+                                              <Box sx={{ display: 'flex', flexDirection: 'column' }}>
                                                 {item?.recipe_name && (
-                                                  <Typography
-                                                    sx={{
-                                                      color: theme.palette.customColors.neutralPrimary,
-                                                      lineHeight: '16.94px',
-                                                      fontWeight: 600,
-                                                      fontSize: '16px',
-                                                      cursor: 'pointer'
-                                                    }}
-                                                    onClick={() => handleclickComboDetail(item.recipe_id)}
-                                                  >
-                                                    {item?.recipe_name}
-                                                  </Typography>
+                                                  <>
+                                                    <Typography
+                                                      sx={{
+                                                        color: theme.palette.customColors.OnSurfaceVariant,
+                                                        fontSize: '13px',
+                                                        fontWeight: 400,
+                                                        display: 'block'
+                                                      }}
+                                                    >
+                                                      Combo
+                                                    </Typography>
+                                                    <Typography
+                                                      sx={{
+                                                        color: theme.palette.customColors.neutralPrimary,
+                                                        lineHeight: '16.94px',
+                                                        fontWeight: 600,
+                                                        fontSize: '16px',
+                                                        cursor: 'pointer'
+                                                      }}
+                                                      onClick={() => handleclickComboDetail(item.recipe_id)}
+                                                    >
+                                                      {item?.recipe_name}
+                                                    </Typography>
+                                                  </>
                                                 )}
                                                 {/* 
                                                 {item?.ingredients.map(all =>
@@ -2717,7 +2785,7 @@ const StepPreviewDiet = ({
                                                   )
                                                 )} */}
                                               </Box>
-
+                                              <Divider />
                                               <Box sx={{ display: 'flex', flexWrap: 'wrap' }}>
                                                 {/* {item?.ingredient_name && item.ingredient_name.length > 0 && (
                                                   <Typography
@@ -2757,37 +2825,69 @@ const StepPreviewDiet = ({
                                                     ))}
                                                   </Typography>
                                                 )} */}
-                                                {item?.ingredients?.length > 0 &&
-                                                  item?.ingredients.map((name, index) => (
-                                                    <Box
-                                                      key={index}
-                                                      sx={{
-                                                        display: 'flex',
-                                                        alignItems: 'center',
-                                                        marginRight: '10px',
-                                                        backgroundColor: theme.palette.customColors.mdAntzNeutral,
-                                                        m: 1,
-                                                        borderRadius: '16px',
-                                                        px: '10px',
-                                                        gap: '8px'
-                                                      }}
-                                                    >
-                                                      {name?.ingredient_name}
-                                                      <Typography
-                                                        component='span'
+
+                                                <Typography
+                                                  sx={{
+                                                    color: theme.palette.customColors.OnSurfaceVariant,
+                                                    fontSize: '13px',
+                                                    fontWeight: 400,
+                                                    width: '100%',
+                                                    mb: 1
+                                                  }}
+                                                >
+                                                  Ingredients used
+                                                </Typography>
+                                                {item?.ingredients?.length > 0 && (
+                                                  <Box
+                                                    sx={{
+                                                      display: 'flex',
+                                                      flexWrap: 'wrap',
+                                                      alignItems: 'center',
+                                                      gap: '10px'
+                                                    }}
+                                                  >
+                                                    {item.ingredients.map((name, index) => (
+                                                      <Box
+                                                        key={index}
                                                         sx={{
-                                                          fontWeight: 'bold',
-                                                          marginLeft: '2px',
-                                                          fontSize: '14px',
-                                                          lineHeight: '1.7rem'
+                                                          display: 'flex',
+                                                          alignItems: 'center',
+                                                          backgroundColor: theme.palette.customColors.mdAntzNeutral,
+                                                          borderRadius: '8px',
+                                                          px: '10px',
+                                                          py: '2px'
                                                         }}
                                                       >
-                                                        {parseFloat(name?.quantity)}
-                                                        {''}
-                                                        {name?.quantity_type === 'percentage' ? '%' : ''}
-                                                      </Typography>
-                                                    </Box>
-                                                  ))}
+                                                        <Typography
+                                                          component='span'
+                                                          sx={{
+                                                            fontSize: '14px',
+                                                            lineHeight: '1.7rem',
+                                                            color: '#000'
+                                                          }}
+                                                        >
+                                                          {`${name?.ingredient_name || ''} | ${
+                                                            name?.preparation_type || ''
+                                                          } | ${name?.cut_size || ''} |  `}
+                                                        </Typography>
+                                                        <Typography
+                                                          component='span'
+                                                          sx={{
+                                                            fontWeight: 'bold',
+                                                            fontSize: '14px',
+                                                            lineHeight: '1.7rem',
+                                                            marginLeft: '2px',
+                                                            color: '#000'
+                                                          }}
+                                                        >
+                                                          {` ${parseFloat(name?.quantity) || 0}${
+                                                            name?.quantity_type === 'percentage' ? ' %' : ''
+                                                          }`}
+                                                        </Typography>
+                                                      </Box>
+                                                    ))}
+                                                  </Box>
+                                                )}
                                               </Box>
 
                                               {item?.recipe?.length > 0 && (
@@ -3318,7 +3418,18 @@ const StepPreviewDiet = ({
                                                 Offer minimum {item?.no_of_component_required} from the below items
                                               </Typography>
                                             )}
-
+                                            <Divider />
+                                            <Typography
+                                              sx={{
+                                                color: theme.palette.customColors.OnSurfaceVariant,
+                                                fontSize: '13px',
+                                                fontWeight: 400,
+                                                width: '100%',
+                                                mb: 0
+                                              }}
+                                            >
+                                              Ingredients using
+                                            </Typography>
                                             {item?.ingredientList?.length > 0 && (
                                               <Box
                                                 sx={{
@@ -3334,9 +3445,9 @@ const StepPreviewDiet = ({
                                                       key={index}
                                                       sx={{
                                                         height: '32px',
-                                                        borderRadius: '16px',
+                                                        borderRadius: '7px',
                                                         backgroundColor: '#1F415B1A',
-                                                        display: 'center',
+                                                        display: 'flex',
                                                         px: 2,
                                                         justifyContent: 'center',
                                                         alignItems: 'center'

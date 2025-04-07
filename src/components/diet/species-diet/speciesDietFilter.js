@@ -4,7 +4,7 @@ import { Box, Checkbox, debounce, Divider, Drawer, Grid, IconButton, TextField, 
 import React, { useState, useEffect, useContext, useCallback } from 'react'
 import Icon from 'src/@core/components/icon'
 
-import { getSpecieList, getZoosSectionListing } from 'src/lib/api/egg/egg/createAnimal'
+import { getZoosSectionListing } from 'src/lib/api/egg/egg/createAnimal'
 import { AuthContext } from 'src/context/AuthContext'
 
 const leftMenu = [
