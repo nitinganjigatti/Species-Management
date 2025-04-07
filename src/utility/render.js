@@ -123,6 +123,30 @@ export const getToolTipForText = text => {
   )
 }
 
+export const renderPrescriptionLabel = (condition, label) =>
+  condition ? (
+    <Typography
+      sx={{
+        height: '16px',
+        width: '18px',
+        // backgroundColor: 'success.main',
+        background: 'linear-gradient(116.5deg, #00D6C9 8.77%, #37BD69 101.99%)',
+        fontWeight: 'bold',
+        fontSize: '10px',
+        color: 'white',
+        padding: '2px',
+        borderRadius: '2px',
+        lineHeight: '12px',
+        textAlign: 'center',
+        mr: 1,
+        display: 'inline-block',
+        verticalAlign: 'middle'
+      }}
+    >
+      {label}
+    </Typography>
+  ) : null
+
 const RenderUtility = {
   getEllipsisStyleForText,
   renderControlLabel,
@@ -130,7 +154,8 @@ const RenderUtility = {
   renderUserAvatarDetails,
   getPriorityIcons,
   attachedFiles,
-  getToolTipForText
+  getToolTipForText,
+  renderPrescriptionLabel
 }
 
 export default RenderUtility
