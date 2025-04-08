@@ -491,7 +491,7 @@ const EggTableHeader = ({
               : tab_Value === 'eggs_discarded' && subTab_value === 'eggs_discarded_at_nursery'
               ? 'Total eggs discarded'
               : 'Total eggs'}{' '}
-            : <span style={{ fontWeight: 500, color: '#000000' }}>{totalCount}</span>
+            : <span style={{ fontWeight: 500, color: theme.palette.primary.deepDark }}>{totalCount}</span>
           </Typography>
         </Box>
         <Box sx={{ fontSize: '16px', display: 'flex', alignItems: 'center', gap: 4 }}>
@@ -499,7 +499,7 @@ const EggTableHeader = ({
             sx={{
               display: 'flex',
               alignItems: 'center',
-              border: '1px solid #C3CEC7',
+              border: `1px solid ${theme.palette.customColors.AntzOutlineVariant}`,
               borderRadius: '4px',
               padding: '0 8px',
               height: '40px'
@@ -597,15 +597,22 @@ const EggTableHeader = ({
                 gap: '6px',
                 p: '8px',
                 py: '2px',
-                bgcolor: '#EFF5F2',
+                bgcolor: theme?.palette.customColors.lightBg,
                 borderRadius: '8px'
               }}
             >
-              <Typography sx={{ fontSize: '14px', fontWeight: 'bold', color: '#000000', textTransform: 'capitalize' }}>
+              <Typography
+                sx={{
+                  fontSize: '14px',
+                  fontWeight: 'bold',
+                  color: theme.palette.primary.deepDark,
+                  textTransform: 'capitalize'
+                }}
+              >
                 {item?.name}
               </Typography>{' '}
               <IconButton onClick={() => handleRemoveFilter(item)}>
-                <Icon icon='mdi:close' fontSize={18} color={'#1F515B'} />
+                <Icon icon='mdi:close' fontSize={18} color={theme.palette.primary.light} />
               </IconButton>
             </Box>
           ))}

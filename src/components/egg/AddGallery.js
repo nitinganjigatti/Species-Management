@@ -54,7 +54,7 @@ const AddGallery = ({ galleryList }) => {
                   height: 30,
                   mr: 4,
                   borderRadius: '50%',
-                  background: '#E8F4F2',
+                  background: theme.palette.customColors.displaybgPrimary,
                   overflow: 'hidden'
                 }}
               >
@@ -109,7 +109,7 @@ const AddGallery = ({ galleryList }) => {
             bgcolor: 'white',
             mb: 4,
             border: 1,
-            borderColor: '#c3cec7'
+            borderColor: theme.palette.customColors.AntzOutlineVariant
           }}
         >
           <Box sx={{ width: '200px', height: '140px', borderRadius: '8px' }}>
@@ -129,7 +129,7 @@ const AddGallery = ({ galleryList }) => {
                 height: 30,
                 mr: 4,
                 borderRadius: '50%',
-                background: '#E8F4F2',
+                background: theme.palette.customColors.displaybgPrimary,
                 overflow: 'hidden'
               }}
             >

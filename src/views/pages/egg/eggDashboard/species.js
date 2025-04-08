@@ -774,8 +774,6 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
             }
           }}
         >
-          {console.log('params.row.send_to_nursery', params.row.send_to_nursery)}
-          {console.log('With in transfer request:', params.row.within_transfer_request)}
           <CustomTooltip
             disableHoverListener={params?.row?.send_to_nursery + params.row.within_transfer_request <= 0}
             title={[

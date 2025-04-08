@@ -42,24 +42,6 @@ import ProbableParent from './ProbableParent'
 import TransferEgg from './TransferEgg'
 import ReactApexcharts from 'src/@core/components/react-apexcharts'
 
-const CustomTableContainer = styled(TableContainer)({
-  '::-webkit-scrollbar': {
-    width: '4px',
-    height: '10px'
-  },
-  '::-webkit-scrollbar-track': {
-    // background: '#f1f1f1'
-    background: 'transparent'
-  },
-  '::-webkit-scrollbar-thumb': {
-    background: '#839D8D',
-    borderRadius: '10px'
-  },
-  '::-webkit-scrollbar-thumb:hover': {
-    background: '#555'
-  }
-})
-
 const EggSecondSecion = ({
   activtyLogData,
   setActivtyLogData,
@@ -70,7 +52,24 @@ const EggSecondSecion = ({
   defaultEggAssesment,
   getDetails
 }) => {
+  const theme = useTheme()
   const currentDate = moment().format('YYYY-MM-DD')
+  const CustomTableContainer = styled(TableContainer)({
+    '::-webkit-scrollbar': {
+      width: '4px',
+      height: '10px'
+    },
+    '::-webkit-scrollbar-track': {
+      background: 'transparent'
+    },
+    '::-webkit-scrollbar-thumb': {
+      background: theme.palette.customColors.Outline,
+      borderRadius: '10px'
+    },
+    '::-webkit-scrollbar-thumb:hover': {
+      background: theme.palette.customColors.neutralSecondary
+    }
+  })
 
   const historyData = {
     history1: {
@@ -111,7 +110,6 @@ const EggSecondSecion = ({
       // 'Collected By': 'Jordan Steveson'
     }
   }
-  const theme = useTheme()
 
   const headerAction = (
     <Icon
@@ -375,7 +373,7 @@ const EggSecondSecion = ({
           })
           setTotal(parseInt(res?.data?.total_count))
           setRows(loadServerRows(paginationModel.page, listWithId))
-          setRowsWeight(rowWeights)
+          setRowsWeight(rowWeights.reverse())
         } else {
           console.log('res', res.message)
         }
@@ -411,7 +409,6 @@ const EggSecondSecion = ({
     //   style: {
     //     fontSize: '16px',
     //     fontWeight: 'bold',
-    //     color: '#333'
     //   }
     // },
     stroke: {
@@ -449,7 +446,7 @@ const EggSecondSecion = ({
       position: 'top',
       horizontalAlign: 'center'
     },
-    colors: ['#00E396', '#008FFB'] // Colors for the lines (green and blue)
+    colors: [theme.palette.primary.main] // Colors for the lines (green and blue)
   }
 
   return (
@@ -534,7 +531,7 @@ const EggSecondSecion = ({
                       Transfer
                     </Typography>
                     <Icon
-                      color='#00AFD6'
+                      color={theme.palette.customColors.AntzAddPrimary}
                       style={{ cursor: 'pointer', color: theme.palette.primary.main, transform: 'rotateY(180deg)' }}
                       icon='akar-icons:arrow-repeat'
                       fontSize={24}
@@ -550,7 +547,11 @@ const EggSecondSecion = ({
                   // md={5.7}
                   // xl={5.8}
                   // xxl={5.8}
-                  sx={{ borderRadius: '8px', border: '1px solid #C3CEC7', padding: '16px' }}
+                  sx={{
+                    borderRadius: '8px',
+                    border: `1px solid ${theme.palette.customColors.AntzOutlineVariant}`,
+                    padding: '16px'
+                  }}
                 >
                   <Typography
                     sx={{
@@ -584,7 +585,11 @@ const EggSecondSecion = ({
                   // md={5.7}
                   // xl={5.8}
                   // xxl={5.8}
-                  sx={{ borderRadius: '8px', border: '1px solid #C3CEC7', padding: '16px' }}
+                  sx={{
+                    borderRadius: '8px',
+                    border: `1px solid ${theme.palette.customColors.AntzOutlineVariant}`,
+                    padding: '16px'
+                  }}
                 >
                   <Typography
                     sx={{
@@ -635,7 +640,7 @@ const EggSecondSecion = ({
         </Card>
       </Grid>
       <Grid item xs={12} md={8}>
-        <Card sx={{ border: 1, borderColor: '#c3cec7' }}>
+        <Card sx={{ border: 1, borderColor: theme.palette.customColors.AntzOutlineVariant }}>
           <CardHeader
             sx={{
               pb: 0,
@@ -747,7 +752,7 @@ const EggSecondSecion = ({
                               lineHeight: '16.94px',
                               color:
                                 key === 'Mother id' || key === 'Father id'
-                                  ? '#00AFD6'
+                                  ? theme.palette.customColors.AntzAddPrimary
                                   : theme.palette.customColors.OnSurfaceVariant
                             }}
                           >
@@ -796,8 +801,8 @@ const EggSecondSecion = ({
                     xl={3.72}
                     xxl={3.72}
                     sx={{
-                      borderRight: { xs: 'none', sm: '1px solid #006D354D' },
-                      borderBottom: { xs: '1px solid #006D354D', sm: 'none' },
+                      borderRight: { xs: 'none', sm: `1px solid ${theme.palette.customColors.InnerAlignment}` },
+                      borderBottom: { xs: `1px solid ${theme.palette.customColors.InnerAlignment}`, sm: 'none' },
                       pb: { xs: '10px', sm: 'none' }
                     }}
                   >
@@ -838,8 +843,8 @@ const EggSecondSecion = ({
                     xl={3.72}
                     xxl={3.72}
                     sx={{
-                      borderRight: { xs: 'none', sm: '1px solid #006D354D' },
-                      borderBottom: { xs: '1px solid #006D354D', sm: 'none' },
+                      borderRight: { xs: 'none', sm: `1px solid ${theme.palette.customColors.InnerAlignment}` },
+                      borderBottom: { xs: `1px solid ${theme.palette.customColors.InnerAlignment}`, sm: 'none' },
                       pb: { xs: '10px', sm: 'none' }
                     }}
                   >
@@ -908,7 +913,7 @@ const EggSecondSecion = ({
       </Grid>
 
       <Grid item xs={12} md={6} xl={8}>
-        <Card sx={{ border: 1, borderColor: '#c3cec7' }}>
+        <Card sx={{ border: 1, borderColor: theme.palette.customColors.AntzOutlineVariant }}>
           <CardContent>
             <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
               <Typography
@@ -923,7 +928,14 @@ const EggSecondSecion = ({
               </Typography>
               <Box sx={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
                 <Box sx={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
-                  <Box sx={{ backgroundColor: '#00AFD6', height: '10px', width: '10px', borderRadius: '10px' }}></Box>
+                  <Box
+                    sx={{
+                      backgroundColor: theme.palette.customColors.AntzAddPrimary,
+                      height: '10px',
+                      width: '10px',
+                      borderRadius: '10px'
+                    }}
+                  ></Box>
                   <Typography
                     sx={{
                       fontWeight: 400,
@@ -970,17 +982,17 @@ const EggSecondSecion = ({
           <CardContent style={{ paddingBottom: 0 }}>
             <CustomTableContainer
               // className={Styles.main}
-              style={{ border: '0.5px solid #C3CEC7', borderRadius: '8px' }}
+              style={{ border: `0.5px solid ${theme.palette.customColors.AntzOutlineVariant}`, borderRadius: '8px' }}
               component={Paper}
               sx={{ height: 175 }}
             >
               <Table stickyHeader sx={{ borderRadius: '8px' }} aria-label='sticky table'>
                 <TableHead>
                   <TableRow>
-                    <TableCell sx={{ backgroundColor: '#AFEFEBB3', py: 1 }}>DATE</TableCell>
-                    <TableCell sx={{ backgroundColor: '#AFEFEBB3', py: 1 }}>TIME</TableCell>
-                    <TableCell sx={{ backgroundColor: '#AFEFEBB3', py: 1 }}>ACTUAL</TableCell>
-                    <TableCell sx={{ backgroundColor: '#AFEFEBB3', py: 1 }}>EDIT</TableCell>
+                    <TableCell sx={{ backgroundColor: theme.palette.customColors.antzInfo70, py: 1 }}>DATE</TableCell>
+                    <TableCell sx={{ backgroundColor: theme.palette.customColors.antzInfo70, py: 1 }}>TIME</TableCell>
+                    <TableCell sx={{ backgroundColor: theme.palette.customColors.antzInfo70, py: 1 }}>ACTUAL</TableCell>
+                    <TableCell sx={{ backgroundColor: theme.palette.customColors.antzInfo70, py: 1 }}>EDIT</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -1229,7 +1241,7 @@ const EggSecondSecion = ({
                   position: 'fixed',
                   bottom: 0,
                   height: '80px',
-                  backgroundColor: '#fff',
+                  backgroundColor: theme.palette.primary.contrastText,
                   width: '500px',
                   px: 4,
                   display: 'flex',

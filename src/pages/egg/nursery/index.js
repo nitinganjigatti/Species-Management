@@ -273,7 +273,7 @@ const NurseryList = () => {
               width: 30,
               height: 30,
               borderRadius: '50%',
-              background: '#E8F4F2',
+              background: theme.palette.customColors.displaybgPrimary,
               overflow: 'hidden'
             }}
           >
@@ -365,7 +365,7 @@ const NurseryList = () => {
                   sx={{
                     display: 'flex',
                     alignItems: 'center',
-                    border: '1px solid #C3CEC7',
+                    border: `1px solid ${theme.palette.customColors.AntzOutlineVariant}`,
                     borderRadius: '4px',
                     padding: '0 8px',
                     height: '40px'
@@ -416,8 +416,8 @@ const NurseryList = () => {
                     renderInput={params => (
                       <TextField
                         sx={{
-                          backgroundColor: '#fff',
-                          borderColor: '1px solid #C3CEC7',
+                          backgroundColor: theme.palette.primary.contrastText,
+                          borderColor: `1px solid ${theme.palette.customColors.AntzOutlineVariant}`,
                           width: '100%',
                           '& .MuiOutlinedInput-root': {
                             height: 40,

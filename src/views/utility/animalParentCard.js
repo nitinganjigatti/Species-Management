@@ -35,6 +35,7 @@ const AnimalParentCard = ({ data, backgroundColor }) => {
                 '& > img': {
                   objectFit: data?.default_icon?.endsWith('.svg') ? 'contain' : 'cover'
                 },
+                padding: data?.default_icon.endsWith('.svg') ? 0.4 : 0,
                 width: 44,
                 height: 44,
                 border: '1px solid #C3CEC7'

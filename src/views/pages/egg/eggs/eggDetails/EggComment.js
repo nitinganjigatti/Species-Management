@@ -10,41 +10,41 @@ import FallbackSpinner from 'src/@core/components/spinner'
 import ConfirmationDialog from 'src/components/confirmation-dialog'
 import Utility from 'src/utility'
 
-const StyledTextField = styled(TextField)(({ theme }) => ({
-  '& .MuiOutlinedInput-root': {
-    paddingRight: '0 !important',
-    '& fieldset': {
-      borderColor: theme.palette.divider
-    },
-    '&:hover fieldset': {
-      borderColor: theme.palette.primary.main
-    },
-    '&.Mui-focused fieldset': {
-      borderColor: theme.palette.primary.main
-    }
-  }
-}))
-
-const CustomBox = styled(Box)({
-  '::-webkit-scrollbar': {
-    width: '5px',
-    height: '10px'
-  },
-  '::-webkit-scrollbar-track': {
-    // background: '#f1f1f1'
-    background: 'transparent'
-  },
-  '::-webkit-scrollbar-thumb': {
-    background: '#839D8D',
-    borderRadius: '10px'
-  },
-  '::-webkit-scrollbar-thumb:hover': {
-    background: '#555'
-  }
-})
-
 const EggComment = ({ eggDetails, eggId }) => {
   const theme = useTheme()
+
+  const StyledTextField = styled(TextField)(({ theme }) => ({
+    '& .MuiOutlinedInput-root': {
+      paddingRight: '0 !important',
+      '& fieldset': {
+        borderColor: theme.palette.divider
+      },
+      '&:hover fieldset': {
+        borderColor: theme.palette.primary.main
+      },
+      '&.Mui-focused fieldset': {
+        borderColor: theme.palette.primary.main
+      }
+    }
+  }))
+
+  const CustomBox = styled(Box)({
+    '::-webkit-scrollbar': {
+      width: '5px',
+      height: '10px'
+    },
+    '::-webkit-scrollbar-track': {
+      background: 'transparent'
+    },
+    '::-webkit-scrollbar-thumb': {
+      background: theme.palette.customColors.Outline,
+      borderRadius: '10px'
+    },
+    '::-webkit-scrollbar-thumb:hover': {
+      background: theme.palette.customColors.neutralSecondary
+    }
+  })
+
   const [limit, setLimit] = useState(10)
   const [reachedEnd, setReachedEnd] = useState(false)
   let [commentsPage, setCommentsPage] = useState(1)
@@ -252,7 +252,7 @@ const EggComment = ({ eggDetails, eggId }) => {
                   disabled={commentBtnLoader || commentText === ''}
                   onClick={() => addCommentForEgg()}
                 >
-                  <Icon icon={'fluent:send-16-filled'} fontSize='28px' color='#fff' />
+                  <Icon icon={'fluent:send-16-filled'} fontSize='28px' color={theme.palette.primary.contrastText} />
                 </Button>
               )
             }}
@@ -288,7 +288,10 @@ const EggComment = ({ eggDetails, eggId }) => {
                       flexDirection: 'column',
                       gap: '12px',
                       py: '24px',
-                      borderBottom: commentList?.length === index + 1 ? 'none' : '0.5px solid #C3CEC7'
+                      borderBottom:
+                        commentList?.length === index + 1
+                          ? 'none'
+                          : `0.5px solid ${theme.palette.customColors.AntzOutlineVariant}`
                     }}
                     key={index}
                   >
@@ -308,7 +311,7 @@ const EggComment = ({ eggDetails, eggId }) => {
                             height: 30,
                             mr: 4,
                             borderRadius: '50%',
-                            background: '#E8F4F2',
+                            background: theme.palette.customColors.displaybgPrimary,
                             overflow: 'hidden'
                           }}
                         >
@@ -408,7 +411,7 @@ const EggComment = ({ eggDetails, eggId }) => {
 
       <ConfirmationDialog
         icon={'mdi:delete'}
-        iconColor={'#ff3838'}
+        iconColor={theme.palette.customColors.AntzError}
         title={'Are you sure you want to delete this comment?'}
         dialogBoxStatus={deleteDialogBox}
         onClose={handleClosenew}

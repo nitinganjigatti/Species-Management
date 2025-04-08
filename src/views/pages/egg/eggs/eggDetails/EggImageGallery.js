@@ -54,7 +54,7 @@ const EggImageGallery = ({ galleryList }) => {
                           height: 30,
                           mr: 4,
                           borderRadius: '50%',
-                          background: '#E8F4F2',
+                          background: theme.palette.customColors.displaybgPrimary,
                           overflow: 'hidden'
                         }}
                       >

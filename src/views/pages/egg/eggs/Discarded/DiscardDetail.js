@@ -215,11 +215,11 @@ const DiscardDetail = ({ setDetailDrawer, detailDrawer, eggDiscardedId, fetchTab
                   sx={{
                     mt: 4,
                     p: '20px 16px 20px 16px',
-                    bgcolor: '#fff',
+                    bgcolor: theme.palette.primary.contrastText,
                     borderRadius: '8px',
                     gap: '24px',
                     border: 1,
-                    borderColor: '#c3cec7'
+                    borderColor: theme.palette.customColors.AntzOutlineVariant
                   }}
                 >
                   <Box sx={{ display: 'flex', alignItems: 'center', flexDirection: 'row', gap: '24px' }}>
@@ -233,7 +233,7 @@ const DiscardDetail = ({ setDetailDrawer, detailDrawer, eggDiscardedId, fetchTab
                     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, width: '340px' }}>
                       <Box
                         sx={{
-                          bgcolor: '#FFD3D3',
+                          bgcolor: theme.palette.customColors.AntzTertiary,
                           widows: '340px',
                           height: '60px',
                           px: '12px',
@@ -258,7 +258,7 @@ const DiscardDetail = ({ setDetailDrawer, detailDrawer, eggDiscardedId, fetchTab
                             sx={{
                               fontWeight: 500,
                               fontSize: '14px',
-                              color: '#44544A'
+                              color: theme.palette.customColors.OnSurfaceVariant
                             }}
                           >
                             Nursery
@@ -269,7 +269,7 @@ const DiscardDetail = ({ setDetailDrawer, detailDrawer, eggDiscardedId, fetchTab
                           sx={{
                             fontWeight: 500,
                             fontSize: '16px',
-                            color: '#44544A',
+                            color: theme.palette.customColors.OnSurfaceVariant,
                             ml: 7
                           }}
                         >
@@ -278,7 +278,7 @@ const DiscardDetail = ({ setDetailDrawer, detailDrawer, eggDiscardedId, fetchTab
                       </Box>
                       <Box
                         sx={{
-                          bgcolor: '#FFD3D3',
+                          bgcolor: theme.palette.customColors.AntzTertiary,
                           widows: '340px',
                           height: '60px',
                           px: '12px',
@@ -303,7 +303,7 @@ const DiscardDetail = ({ setDetailDrawer, detailDrawer, eggDiscardedId, fetchTab
                             sx={{
                               fontWeight: 500,
                               fontSize: '14px',
-                              color: '#44544A'
+                              color: theme.palette.customColors.OnSurfaceVariant
                             }}
                           >
                             Discard
@@ -314,7 +314,7 @@ const DiscardDetail = ({ setDetailDrawer, detailDrawer, eggDiscardedId, fetchTab
                           sx={{
                             fontWeight: 500,
                             fontSize: '16px',
-                            color: '#44544A',
+                            color: theme.palette.customColors.OnSurfaceVariant,
                             ml: 7
                           }}
                         >
@@ -330,7 +330,7 @@ const DiscardDetail = ({ setDetailDrawer, detailDrawer, eggDiscardedId, fetchTab
                       height: '64px',
                       borderRadius: '8px',
                       gap: '12px',
-                      bgcolor: '#FCF4AE',
+                      bgcolor: theme.palette.customColors.antzNotes,
                       mt: '20px',
                       p: '12px'
                     }}
@@ -339,7 +339,7 @@ const DiscardDetail = ({ setDetailDrawer, detailDrawer, eggDiscardedId, fetchTab
                       sx={{
                         fontWeight: 500,
                         fontSize: '14px',
-                        color: '#44544A'
+                        color: theme.palette.customColors.OnSurfaceVariant
                       }}
                     >
                       Notes
@@ -348,7 +348,7 @@ const DiscardDetail = ({ setDetailDrawer, detailDrawer, eggDiscardedId, fetchTab
                       sx={{
                         fontWeight: 500,
                         fontSize: '16px',
-                        color: '#44544A'
+                        color: theme.palette.customColors.OnSurfaceVariant
                       }}
                     >
                       {summary?.reason ? summary?.reason : '-'}
@@ -364,7 +364,7 @@ const DiscardDetail = ({ setDetailDrawer, detailDrawer, eggDiscardedId, fetchTab
                   fontWeight: 500,
                   fontFamily: 'Inter',
                   lineHeight: '24.2px',
-                  color: '#44544A'
+                  color: theme.palette.customColors.OnSurfaceVariant
                 }}
               >
                 Added Photos
@@ -422,7 +422,7 @@ const DiscardDetail = ({ setDetailDrawer, detailDrawer, eggDiscardedId, fetchTab
                       display: 'flex',
                       gap: '12px',
                       borderRadius: '8px',
-                      bgcolor: '#FFD3D3'
+                      bgcolor: theme.palette.customColors.AntzTertiary
                     }}
                   >
                     <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
@@ -434,7 +434,7 @@ const DiscardDetail = ({ setDetailDrawer, detailDrawer, eggDiscardedId, fetchTab
                           height: 30,
                           mr: 4,
                           borderRadius: '50%',
-                          background: '#E8F4F2',
+                          background: theme.palette.customColors.displaybgPrimary,
                           overflow: 'hidden'
                         }}
                       >
@@ -445,7 +445,7 @@ const DiscardDetail = ({ setDetailDrawer, detailDrawer, eggDiscardedId, fetchTab
                             alt='Profile'
                           />
                         ) : (
-                          <Icon icon='mdi:user' fontSize={25} color={'#FA6140'} />
+                          <Icon icon='mdi:user' fontSize={25} color={theme.palette.customColors.Tertiary} />
                         )}
                       </Avatar>
 
@@ -469,7 +469,9 @@ const DiscardDetail = ({ setDetailDrawer, detailDrawer, eggDiscardedId, fetchTab
                             {Utility.extractHoursAndMinutes(Utility.convertUTCToLocal(summary?.requested_on))}
                           </Typography>
                         </Box>
-                        <Typography sx={{ fontSize: '14px', fontWeight: 500, color: '#E93353' }}>
+                        <Typography
+                          sx={{ fontSize: '14px', fontWeight: 500, color: theme.palette.customColors.AntzError }}
+                        >
                           {summary?.comments ? summary?.comments : '-'}
                         </Typography>
                       </Stack>
@@ -523,7 +525,7 @@ const DiscardDetail = ({ setDetailDrawer, detailDrawer, eggDiscardedId, fetchTab
                         display: 'flex',
                         gap: '12px',
                         borderRadius: '8px',
-                        bgcolor: '#FFD3D3'
+                        bgcolor: theme.palette.customColors.AntzTertiary
                       }}
                     >
                       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
@@ -535,7 +537,7 @@ const DiscardDetail = ({ setDetailDrawer, detailDrawer, eggDiscardedId, fetchTab
                             height: 30,
                             mr: 4,
                             borderRadius: '50%',
-                            background: '#E8F4F2',
+                            background: theme.palette.customColors.tableHeaderBg,
                             overflow: 'hidden'
                           }}
                         >
@@ -546,7 +548,7 @@ const DiscardDetail = ({ setDetailDrawer, detailDrawer, eggDiscardedId, fetchTab
                               alt='Profile'
                             />
                           ) : (
-                            <Icon icon='mdi:user' fontSize={25} color={'#FA6140'} />
+                            <Icon icon='mdi:user' fontSize={25} color={theme.palette.customColors.Tertiary} />
                           )}
                         </Avatar>
 
@@ -574,7 +576,9 @@ const DiscardDetail = ({ setDetailDrawer, detailDrawer, eggDiscardedId, fetchTab
                                 : '-'}
                             </Typography>
                           </Box>
-                          <Typography sx={{ fontSize: '14px', fontWeight: 500, color: '#E93353' }}>
+                          <Typography
+                            sx={{ fontSize: '14px', fontWeight: 500, color: theme.palette.customColors.AntzError }}
+                          >
                             {summary?.comments ? summary?.comments : '-'}
                           </Typography>
                         </Stack>
@@ -594,7 +598,7 @@ const DiscardDetail = ({ setDetailDrawer, detailDrawer, eggDiscardedId, fetchTab
                             textTransform: 'uppercase',
                             fontSize: '15px',
                             fontWeight: 500,
-                            color: '#FA6140'
+                            color: theme.palette.customColors.Tertiary
                           }}
                         >
                           Canceled
