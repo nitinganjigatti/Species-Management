@@ -8,10 +8,11 @@ import Icon from 'src/@core/components/icon'
 
 // ** MUI Imports
 import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
-import { Card, CardHeader, Typography, Grid, TextField } from '@mui/material'
+import { Card, CardHeader, Typography, Grid, TextField, CardContent, InputAdornment, Tooltip } from '@mui/material'
 
 // ** Icon Imports
 import { Box } from '@mui/material'
+import { format, subDays, subMonths } from 'date-fns'
 
 import Router from 'next/router'
 import Error404 from 'src/pages/404'
@@ -28,6 +29,7 @@ import CommonTable from 'src/views/table/data-grid/CommonTable'
 import { AddButtonContained } from 'src/components/ButtonContained'
 import RenderUtility from 'src/utility/render'
 import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDateRangePickers'
+import { ExportButton } from 'src/views/utility/render-snippets'
 
 const ListOfPurchase = () => {
   const router = useRouter()
@@ -49,8 +51,12 @@ const ListOfPurchase = () => {
   const [sortColumn, setSortColumn] = useState(router.query.column || 'po_date')
 
   const [filterDates, setFilterDates] = useState({
-    startDate: router.query.startDate || '',
-    endDate: router.query.endDate || ''
+    startDate:
+      router.query.from_date === ''
+        ? ''
+        : router.query.from_date || Utility.formatDate(format(subMonths(new Date(), 1), 'dd MMM, yyyy')),
+    endDate:
+      router.query.to_date === '' ? '' : router.query.to_date || Utility.formatDate(format(new Date(), 'dd MMM, yyyy'))
   })
 
   const [paginationModel, setPaginationModel] = useState({
@@ -67,37 +73,54 @@ const ListOfPurchase = () => {
   const { selectedPharmacy } = usePharmacyContext()
 
   const fetchTableData = useCallback(
-    async ({ sort, q, column }) => {
+    async ({ sort, q, column, filterDates }) => {
       try {
         setLoading(true)
+
+        const isEmptyDates = filterDates?.startDate === '' && filterDates?.endDate === ''
 
         const params = {
           sort,
           q,
           column,
-          ...(filterDates?.startDate !== '' && { from_date: filterDates?.startDate }),
-          ...(filterDates?.endDate !== '' && { to_date: filterDates?.endDate }),
+          ...(isEmptyDates
+            ? { from_date: '', to_date: '' } // Explicitly send empty values
+            : filterDates?.startDate && filterDates?.endDate
+            ? { from_date: filterDates.startDate, to_date: filterDates.endDate }
+            : {}),
           page: paginationModel.page + 1,
           limit: paginationModel.pageSize
         }
 
-        await getPurchaseList({ params: params }).then(res => {
+        await getPurchaseList({ params }).then(res => {
           if (res?.success === true && res?.data?.length > 0) {
             console.log('RESPONSE >>', res?.data)
             setTotal(parseInt(res?.count))
             setRows(loadServerRows(paginationModel.page, res?.data))
-            updateUrlParams({
+
+            const urlParams = {
               sort,
-              q: q,
-              column: column,
+              q,
+              column,
               page: paginationModel?.page,
               limit: paginationModel?.pageSize
-            })
+            }
+
+            if (isEmptyDates) {
+              urlParams.from_date = ''
+              urlParams.to_date = ''
+            } else if (filterDates?.startDate && filterDates?.endDate) {
+              urlParams.from_date = filterDates.startDate
+              urlParams.to_date = filterDates.endDate
+            }
+
+            updateUrlParams(urlParams)
           } else {
             setTotal(0)
             setRows([])
           }
         })
+
         setLoading(false)
       } catch (error) {
         console.log('error', error)
@@ -109,15 +132,19 @@ const ListOfPurchase = () => {
     [paginationModel, filterDates]
   )
   useEffect(() => {
-    fetchTableData({ sort: sort, q: searchValue, column: sortColumn })
-    updateUrlParams({
-      sort,
-      q: searchValue,
-      column: sortColumn,
-      page: paginationModel?.page,
-      limit: paginationModel?.pageSize
-    })
+    if (filterDates?.startDate !== undefined && filterDates?.endDate !== undefined) {
+      fetchTableData({ sort, q: searchValue, column: sortColumn, filterDates })
 
+      updateUrlParams({
+        sort,
+        q: searchValue,
+        column: sortColumn,
+        page: paginationModel?.page,
+        limit: paginationModel?.pageSize,
+        from_date: filterDates?.startDate || '',
+        to_date: filterDates?.endDate || ''
+      })
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedPharmacy.id, paginationModel.page, paginationModel.pageSize, filterDates])
 
@@ -132,30 +159,34 @@ const ListOfPurchase = () => {
     if (newModel.length) {
       setSort(newModel[0].sort)
       setSortColumn(newModel[0].field)
-      fetchTableData({ sort: newModel[0].sort, q: searchValue, column: newModel[0].field })
+      fetchTableData({ sort: newModel[0].sort, q: searchValue, column: newModel[0].field, filterDates })
       updateUrlParams({
         sort: newModel[0].sort,
         q: searchValue,
         column: newModel[0].field,
         page: paginationModel?.page,
-        limit: paginationModel?.pageSize
+        limit: paginationModel?.pageSize,
+        ...(filterDates?.startDate !== '' && { from_date: filterDates?.startDate }),
+        ...(filterDates?.endDate !== '' && { to_date: filterDates?.endDate })
       })
     } else {
     }
   }
 
   const searchTableData = useCallback(
-    debounce(async (sort, q, column) => {
+    debounce(async (sort, q, column, filterDates) => {
       setSearchValue(q)
       setPaginationModel({ page: 0, pageSize: 10 })
       try {
-        await fetchTableData({ sort, q, column })
+        await fetchTableData({ sort, q, column, filterDates })
         updateUrlParams({
           sort: newModel[0].sort,
           q: q,
           column: newModel[0].field,
           page: paginationModel?.page,
-          limit: paginationModel?.pageSize
+          limit: paginationModel?.pageSize,
+          ...(filterDates?.startDate !== '' && { from_date: filterDates?.startDate }),
+          ...(filterDates?.endDate !== '' && { to_date: filterDates?.endDate })
         })
       } catch (error) {
         console.error(error)
@@ -173,7 +204,7 @@ const ListOfPurchase = () => {
 
   const handleSearch = value => {
     setSearchValue(value)
-    searchTableData(sort, value, sortColumn)
+    searchTableData(sort, value, sortColumn, filterDates)
   }
 
   const handleDateRangeChange = (startDate, endDate) => {
@@ -355,14 +386,28 @@ const ListOfPurchase = () => {
     }
   ]
 
-  const handleHeaderAction = () => {
-    console.log('Handle Header Action')
+  const handleHeaderAction = () => { 
+    console.log('Handle Header Action') 
   }
 
-  const getInventoryDataToExport = async () => {
+  const getInventoryDataToExport = async () => { 
     try {
       setExcelLoader(true)
-      const response = await getPurchaseList({ sort, q: searchValue, column: sortColumn, filterDates })
+
+      const now = new Date()
+
+      const timestamp = `${String(now.getDate()).padStart(2, '0')}-${String(now.getMonth() + 1).padStart(
+        2,
+        '0'
+      )}-${now.getFullYear()} ${String(now.getHours()).padStart(2, '0')}-${String(now.getMinutes()).padStart(2, '0')}`
+      const params = {
+        sort: sort,
+        q: searchValue,
+        column: sortColumn,
+        ...(filterDates?.startDate !== '' && { from_date: filterDates?.startDate }),
+        ...(filterDates?.endDate !== '' && { to_date: filterDates?.endDate })
+      }
+      const response = await getPurchaseList({ params })
       console.log('Response inventory>', response)
       setExcelLoader(false)
 
@@ -379,7 +424,7 @@ const ListOfPurchase = () => {
           ['Updated At']: Utility.formatDisplayDate(el?.updated_at) ? Utility.formatDisplayDate(el?.updated_at) : 'NA'
         }))
 
-        Utility.exportToCSV(data, 'Inventory_List')
+        Utility.exportToCSV(data, `Purchase_list ${timestamp}`)
       } else {
         console.log('No data available for export.')
       }
@@ -401,7 +446,7 @@ const ListOfPurchase = () => {
             whiteSpace: 'nowrap'
           }}
         >
-          <ExcelExportButton
+          {/* <ExcelExportButton
             disabled={total === 0}
             action={() => {
               getInventoryDataToExport()
@@ -409,7 +454,7 @@ const ListOfPurchase = () => {
             loader={excelLoader}
             title='Download'
             fullWidth='fullWidth'
-          />
+          /> */}
           <ExcelExportButton
             disabled={total === 0}
             action={() => {
@@ -486,126 +531,157 @@ const ListOfPurchase = () => {
                   alignItems: 'stretch', // Ensures full width in column mode
                   justifyContent: { xs: 'flex-start', sm: 'flex-end' }, // Left align in xs, right align in sm+
                   gap: 1,
-                  width: { xs: '100%', sm: 'auto' }, // Full width for small screens
-                  mt: { xs: 1, sm: 0 } // Add spacing between title and buttons in xs
+                  width: { xs: '100%', sm: 'auto' } // Full width for small screens
+                  // mt: { xs: 1, sm: 0 } // Add spacing between title and buttons in xs
                 }
               }}
               title={RenderUtility.pageTitle('Inventory List')}
               action={headerAction}
             />
 
-            {/* <Box
-              sx={{
-                display: 'flex',
-                flexDirection: { xs: 'column', sm: 'row' }, // Column for small screens, row for larger screens
-                justifyContent: 'space-between',
-                gap: { xs: 2, sm: 0 } // Adds spacing between elements on small screens
-              }}
-            >
-              {/* Left Box (Search Field) */}
-
-            <Box
-              sx={{
-                display: 'flex',
-                flexDirection: { xs: 'column', sm: 'row' }, // Stack on small screens, row on larger screens
-                justifyContent: 'space-between',
-                alignItems: { xs: 'stretch', sm: 'center' }, // Stretch items in column mode
-                gap: { xs: 2, sm: 0 }, // Add spacing for small screens
-                width: '100%' // Ensure full width
-              }}
-            >
-              {/* Left Box (Search Field) */}
-              <Grid
-                item
-                xs={12}
-                sm={8}
-                md={6}
-                lg={4}
+            {/* Left Box (Search Field) */}
+            <CardContent sx={{ paddingTop: '4px' }}>
+              <Box
                 sx={{
-                  mx: { xs: 3, sm: 4 },
-                  width: { xs: '91%', sm: 'auto' } // Full width on small screens
+                  display: 'flex',
+                  flexDirection: { xs: 'column', sm: 'row' }, // Stack on small screens, row on larger screens
+                  justifyContent: 'space-between',
+                  alignItems: { xs: 'stretch', sm: 'center' }, // Stretch items in column mode
+                  gap: { xs: 2, sm: 0 }, // Add spacing for small screens
+                  width: '100%' // Ensure full width
                 }}
               >
-                <Box
-                  sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-                    borderRadius: '8px',
-                    padding: '0 8px',
-                    width: '100%', // Ensure full width for input container
-                    height: '40px',
-                    mx: 1
-                  }}
+                <Grid
+                  container
+                  spacing={4}
+                  sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
                 >
-                  <Icon icon='mi:search' fontSize={20} color={theme.palette.customColors.neutralSecondary} />
-                  <TextField
-                    variant='outlined'
-                    placeholder='Search...'
-                    value={searchValue}
-                    onChange={e => handleSearch(e.target.value)}
-                    fullWidth
-                    sx={{
-                      '& .MuiOutlinedInput-root': {
-                        border: 'none',
-                        padding: '0',
-                        '& fieldset': {
-                          border: 'none'
-                        }
-                      }
-                    }}
-                  />
-                </Box>
-              </Grid>
+                  <Grid item xs={12} sm={6} md={5}>
+                    <CommonDateRangePickers onChange={handleDateRangeChange} filterDates={filterDates} />
+                  </Grid>
 
-              {/* Right Box (Date Range Picker) */}
+                  <Grid item sm={6} xs={12}>
+                    <Grid container spacing={2} justifyContent={{ xs: 'flex-end' }}>
+                      <Grid item xs={12} sm={8} sx={{ flex: 1 }}>
+                        <TextField
+                          variant='outlined'
+                          size='small'
+                          placeholder='Search...'
+                          value={searchValue}
+                          onChange={e => handleSearch(e.target.value)}
+                          fullWidth
+                          InputProps={{
+                            startAdornment: (
+                              <InputAdornment position='start'>
+                                <Icon
+                                  icon='mi:search'
+                                  fontSize={24}
+                                  color={theme.palette.customColors.neutralSecondary}
+                                />
+                              </InputAdornment>
+                            )
+                          }}
+                          sx={{
+                            borderRadius: '8px'
+                          }}
+                        />
+                      </Grid>
+
+                      <Grid
+                        item
+                        sx={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: 2,
+                          justifyContent: { sm: 'flex-end', xs: 'flex-end' }
+                        }}
+                      >
+                        <ExportButton
+                          loading={excelLoader}
+                          onClick={getInventoryDataToExport}
+                          disabled={total === 0 ? true : false}
+                        />
+                        {/* <Tooltip title='Export'>
+                          <>
+                            {excelLoader ? (
+                              <Box
+                                sx={{
+                                  display: 'flex',
+                                  justifyContent: 'center',
+                                  width: '40px',
+                                  height: '40px',
+                                  borderRadius: '4px',
+                                  bgcolor: theme?.palette.customColors?.lightBg,
+                                  alignItems: 'center',
+                                  cursor: 'pointer'
+                                }}
+                              >
+                                <CircularProgress color='success' size={30} />
+                              </Box>
+                            ) : (
+                              <Box
+                                sx={{
+                                  display: 'flex',
+                                  justifyContent: 'center',
+                                  width: '40px',
+                                  height: '40px',
+                                  borderRadius: '4px',
+                                  bgcolor: theme?.palette.customColors?.lightBg,
+                                  alignItems: 'center',
+                                  cursor: 'pointer'
+                                }}
+                                onClick={getInventoryDataToExport}
+                              >
+                                <Icon icon='ic:round-download' fontSize={20} />
+                              </Box>
+                            )}
+                          </>
+                        </Tooltip> */}
+                      </Grid>
+                    </Grid>
+                  </Grid>
+                </Grid>
+                {/* Left Box (Search Field) */}
+
+                {/* Right Box (Date Range Picker) */}
+              </Box>
+
               <Grid
-                item
-                xs={12}
-                sm='auto'
-                sx={{
-                  mx: { xs: 3, sm: 4 },
-                  mt: { xs: 2, sm: 2 },
-                  width: { xs: '92%', sm: 'auto' } // Full width on small screens
-                }}
+                sx={
+                  {
+                    // px: { xs: 2, sm: 4 },
+                    // py: { xs: 2, sm: 4 },
+                    // mx: { xs: 3, sm: 4 }
+                  }
+                }
               >
-                <CommonDateRangePickers onChange={handleDateRangeChange} filterDates={filterDates} />
+                <CommonTable
+                  onRowClick={onRowClick}
+                  indexedRows={indexedRows}
+                  total={total}
+                  columns={columns}
+                  paginationModel={paginationModel}
+                  onPaginationModelChange={model => {
+                    setPaginationModel(model) // Update page and pageSize in the state
+                    router.replace({
+                      pathname: router.pathname,
+                      query: {
+                        ...router.query,
+                        page: model.page + 1, // API uses 1-indexed pages
+                        pageSize: model.pageSize,
+                        searchValue,
+                        sort,
+                        sortColumn
+                      }
+                    })
+                  }}
+                  handleSortModel={handleSortModel}
+                  setPaginationModel={setPaginationModel}
+                  loading={loading}
+                  searchValue={searchValue}
+                />
               </Grid>
-            </Box>
-
-            <Grid
-              sx={{
-                // px: { xs: 2, sm: 4 },
-                // py: { xs: 2, sm: 4 },
-                mx: { xs: 3, sm: 4 }
-              }}
-            >
-              <CommonTable
-                onRowClick={onRowClick}
-                indexedRows={indexedRows}
-                total={total}
-                columns={columns}
-                paginationModel={paginationModel}
-                onPaginationModelChange={model => {
-                  setPaginationModel(model) // Update page and pageSize in the state
-                  router.replace({
-                    pathname: router.pathname,
-                    query: {
-                      ...router.query,
-                      page: model.page + 1, // API uses 1-indexed pages
-                      pageSize: model.pageSize,
-                      searchValue,
-                      sort,
-                      sortColumn
-                    }
-                  })
-                }}
-                handleSortModel={handleSortModel}
-                setPaginationModel={setPaginationModel}
-                loading={loading}
-                searchValue={searchValue}
-              />
-            </Grid>
+            </CardContent>
           </Card>
         )
       ) : null}

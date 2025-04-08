@@ -65,6 +65,7 @@ import RenderUtility from 'src/utility/render'
 import { alpha, Stack } from '@mui/system'
 import { AddButtonContained, ExcelExportButton } from 'src/components/ButtonContained'
 import TextEllipsisWithModal from 'src/components/TextEllipsisWithModal'
+import { ExportButton } from 'src/views/utility/render-snippets'
 
 const editParamsInitialState = {
   supplier_id: '',
@@ -623,12 +624,13 @@ const AddDiscardProducts = () => {
               }
               action={
                 <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-                  <ExcelExportButton
+                  <ExportButton loading={excelLoader} onClick={getAddDiscardData} disabled={''} />
+                  {/* <ExcelExportButton
                     action={() => getAddDiscardData()}
                     title='Download'
                     loader={excelLoader}
                     sx={{ minWidth: 120 }} // Consistent button size
-                  />
+                  /> */}
                 </Box>
               }
             />
