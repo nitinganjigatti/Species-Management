@@ -144,9 +144,9 @@ const SelectSectionList = ({
               Select a section from the list below
             </Typography>
           </Box>
-          <IconButton size='small' sx={{ color: 'text.primary' }} onClick={onClose}>
+          {/* <IconButton size='small' sx={{ color: 'text.primary' }} onClick={onClose}>
             <Icon icon='mdi:close' fontSize={24} />
-          </IconButton>
+          </IconButton> */}
         </Box>
 
         {/* Search */}
@@ -314,6 +314,7 @@ const SelectSectionList = ({
             fullWidth
             sx={{ bgcolor: '#28A745', color: '#FFF', p: 2, borderRadius: '8px', '&:hover': { bgcolor: '#218838' } }}
             onClick={() => onSelectSections(selectedSections)}
+            disabled={selectedSections.length <= 0}
           >
             CONTINUE
           </Button>

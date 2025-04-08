@@ -301,84 +301,90 @@ const DietDetailCard = ({
                     </Menu>
                   </div>
                 </Box>
-                {console.log(theme, 'them')}
                 {/* Species and Animals Details */}
                 <Grid container spacing={2}>
                   {/* Species Section */}
                   <Grid item xs={12}>
-                    <Box display='flex' justifyContent='space-between' alignItems='center'>
-                      {/* Label */}
-                      <Typography
-                        variant='body2'
-                        fontWeight='bold'
-                        sx={{ color: theme.palette.customColors.secondaryBg, fontSize: '16px' }}
-                      >
-                        Species
-                      </Typography>
-                      {/* Value and Primary */}
-                      <Box
-                        display='flex'
-                        alignItems='center'
-                        onClick={() => handleSpeciesClicknew('details', 'species')}
-                        sx={{ cursor: 'pointer' }}
-                      >
-                        <Typography variant='h6' color={theme.palette.primary.main}>
-                          {dietDetails.total_species}
-                        </Typography>
+                    {dietDetails?.total_species !== '0' ? (
+                      <Box display='flex' justifyContent='space-between' alignItems='center'>
+                        {/* Label */}
                         <Typography
-                          variant='caption'
-                          sx={{
-                            background: theme.palette.customColors.bodyBg,
-                            p: '5px',
-                            borderRadius: '3px',
-                            ml: 2,
-                            color: theme.palette.customColors.OnSurfaceVariant,
-                            fontWeight: '600'
-                          }}
+                          variant='body2'
+                          fontWeight='bold'
+                          sx={{ color: theme.palette.customColors.secondaryBg, fontSize: '16px' }}
                         >
-                          Primary {dietDetails.total_primary_species}
+                          Species
                         </Typography>
+                        <Box
+                          display='flex'
+                          alignItems='center'
+                          onClick={() => handleSpeciesClicknew('details', 'species')}
+                          sx={{ cursor: 'pointer' }}
+                        >
+                          <Typography variant='h6' color={theme.palette.primary.main}>
+                            {dietDetails.total_species}
+                          </Typography>
+                          <Typography
+                            variant='caption'
+                            sx={{
+                              background: theme.palette.customColors.bodyBg,
+                              p: '5px',
+                              borderRadius: '3px',
+                              ml: 2,
+                              color: theme.palette.customColors.OnSurfaceVariant,
+                              fontWeight: '600'
+                            }}
+                          >
+                            Primary {dietDetails.total_primary_species}
+                          </Typography>
+                        </Box>
                       </Box>
-                    </Box>
+                    ) : (
+                      ''
+                    )}
                   </Grid>
 
                   {/* Animals Section */}
                   <Grid item xs={12}>
-                    <Box
-                      display='flex'
-                      justifyContent='space-between'
-                      alignItems='center'
-                      sx={{ pb: 3, cursor: 'pointer' }}
-                      onClick={() => handleSpeciesClicknew('details', 'animals')}
-                    >
-                      {/* Label */}
-                      <Typography
-                        variant='body2'
-                        fontWeight='bold'
-                        sx={{ color: theme.palette.customColors.secondaryBg, fontSize: '16px' }}
+                    {dietDetails?.total_animals !== '0' ? (
+                      <Box
+                        display='flex'
+                        justifyContent='space-between'
+                        alignItems='center'
+                        sx={{ pb: 3, cursor: 'pointer' }}
+                        onClick={() => handleSpeciesClicknew('details', 'animals')}
                       >
-                        Animals
-                      </Typography>
-                      {/* Value and Primary */}
-                      <Box display='flex' alignItems='center'>
-                        <Typography variant='h6' color={theme.palette.primary.main}>
-                          {dietDetails.total_animals}
-                        </Typography>
+                        {/* Label */}
                         <Typography
-                          variant='caption'
-                          sx={{
-                            background: theme.palette.customColors.bodyBg,
-                            p: '5px',
-                            borderRadius: '3px',
-                            ml: 2,
-                            color: theme.palette.customColors.OnSurfaceVariant,
-                            fontWeight: '600'
-                          }}
+                          variant='body2'
+                          fontWeight='bold'
+                          sx={{ color: theme.palette.customColors.secondaryBg, fontSize: '16px' }}
                         >
-                          Primary {dietDetails.total_primary_animals}
+                          Animals
                         </Typography>
+                        {/* Value and Primary */}
+                        <Box display='flex' alignItems='center'>
+                          <Typography variant='h6' color={theme.palette.primary.main}>
+                            {dietDetails.total_animals}
+                          </Typography>
+                          <Typography
+                            variant='caption'
+                            sx={{
+                              background: theme.palette.customColors.bodyBg,
+                              p: '5px',
+                              borderRadius: '3px',
+                              ml: 2,
+                              color: theme.palette.customColors.OnSurfaceVariant,
+                              fontWeight: '600'
+                            }}
+                          >
+                            Primary {dietDetails.total_primary_animals}
+                          </Typography>
+                        </Box>
                       </Box>
-                    </Box>
+                    ) : (
+                      ''
+                    )}
                   </Grid>
                 </Grid>
               </Box>
