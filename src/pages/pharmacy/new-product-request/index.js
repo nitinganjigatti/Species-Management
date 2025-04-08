@@ -57,6 +57,7 @@ import RenderUtility from 'src/utility/render'
 import { AuthContext } from 'src/context/AuthContext'
 import { width } from '@mui/system'
 import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDateRangePickers'
+import { ExportButton } from 'src/views/utility/render-snippets'
 
 export default function NewProductList() {
   const theme = useTheme()
@@ -704,7 +705,7 @@ export default function NewProductList() {
                 onChange={e => handleSearch(e.target.value)}
                 sx={{
                   flex: 1,
-                  mr: { sm: 1 },
+                  mr: { sm: 2 },
                   borderRadius: '8px',
                   minWidth: 250
                   // mt: { xs: 3, sm: 0 }
@@ -773,7 +774,15 @@ export default function NewProductList() {
               </FormControl>
 
               {/* Download Button */}
-              <Tooltip title='Export'>
+              <Box sx={{ mt: { xs: 4, sm: 0 }, ml: { xs: 2 } }}>
+                <ExportButton
+                  loading={excelLoader}
+                  onClick={getProductRequestToExport}
+                  disabled={total === 0 ? true : false}
+                />
+              </Box>
+
+              {/* <Tooltip title='Export'>
                 <>
                   {excelLoader ? (
                     <Box
@@ -813,7 +822,7 @@ export default function NewProductList() {
                     </Box>
                   )}
                 </>
-              </Tooltip>
+              </Tooltip> */}
             </Box>
           </Box>
 
