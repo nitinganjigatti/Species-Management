@@ -28,6 +28,7 @@ import { debounce } from 'lodash'
 import ReturnReportDrawer from 'src/views/pages/pharmacy/reports/ReturnReportDrawer'
 import { format, subMonths } from 'date-fns'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
+import { ExportButton, FilterButton } from 'src/views/utility/render-snippets'
 
 const ReturnReport = () => {
   const router = useRouter()
@@ -327,6 +328,10 @@ const ReturnReport = () => {
                     {RenderUtility?.renderControlLabel(
                       !isNaN(params.row?.controlled_substance) && parseInt(params.row?.controlled_substance) === 1,
                       'CS'
+                    )}
+                    {RenderUtility?.renderControlLabel(
+                      !isNaN(params.row?.prescription_required) && parseInt(params.row?.prescription_required) === 1,
+                      'PR'
                     )}
                   </Typography>
                   <Typography
@@ -847,61 +852,8 @@ const ReturnReport = () => {
                       justifyContent: 'flex-end'
                     }}
                   >
-                    <Tooltip title='Export'>
-                      <>
-                        {loading || exportLoading ? (
-                          <Box
-                            sx={{
-                              display: 'flex',
-                              justifyContent: 'center',
-                              width: '40px',
-                              height: '40px',
-                              borderRadius: '4px',
-                              bgcolor: theme?.palette.customColors?.lightBg,
-                              alignItems: 'center',
-                              cursor: 'pointer'
-                            }}
-                          >
-                            <CircularProgress color='success' size={30} />
-                          </Box>
-                        ) : (
-                          <Box
-                            sx={{
-                              display: 'flex',
-                              justifyContent: 'center',
-                              width: '40px',
-                              height: '40px',
-                              borderRadius: '4px',
-                              bgcolor: theme?.palette.customColors?.lightBg,
-                              alignItems: 'center',
-                              cursor: 'pointer'
-                            }}
-                            onClick={handleExport}
-                          >
-                            <Icon icon='ic:round-download' fontSize={20} />
-                          </Box>
-                        )}
-                      </>
-                    </Tooltip>
-                    <Tooltip title='Filters'>
-                      <Box
-                        sx={{
-                          display: 'flex',
-                          justifyContent: 'center',
-                          width: '40px',
-                          height: '40px',
-                          borderRadius: '4px',
-                          bgcolor: theme?.palette.customColors?.lightBg,
-                          alignItems: 'center',
-                          cursor: 'pointer'
-                        }}
-                        onClick={() => setOpenFilterDrawer(true)}
-                      >
-                        <Badge badgeContent={appliedFiltersCount} color='primary'>
-                          <Icon icon='mage:filter' fontSize={24} />
-                        </Badge>
-                      </Box>
-                    </Tooltip>
+                    <ExportButton loading={loading || exportLoading} onClick={handleExport} />
+                    <FilterButton onClick={() => setOpenFilterDrawer(true)} appliedFiltersCount={appliedFiltersCount} />
                   </Grid>
                 </Grid>
               </Grid>
