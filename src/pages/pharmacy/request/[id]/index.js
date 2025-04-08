@@ -1491,7 +1491,7 @@ const IndividualRequest = () => {
                           requestItems?.status === 'request' &&
                           requestItems?.is_modified !== '1'
                         ) {
-                          Router.push('/pharmacy/request/request-list')
+                          Router.push('/pharmacy/request')
                         } else {
                           Router.back()
                         }
@@ -2729,7 +2729,7 @@ const IndividualRequest = () => {
               You don't have an access to view this request
               <Button
                 onClick={() => {
-                  router.push('/pharmacy/request/request-list/')
+                  router.push('/pharmacy/request')
                 }}
                 variant='contained'
                 size='small'

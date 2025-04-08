@@ -839,11 +839,10 @@ function OrderReceiveForm({ orderId, requestId, requestedFrom }) {
       return true
     }
     if (
-      requestedFrom === 'request' ||
-      (requestedFrom === 'directDispatch' &&
-        disputeItemDetails?.delivery_status !== 'Delivered' &&
-        selectedPharmacy.type === 'local' &&
-        disputeItemDetails?.dispute_status !== 'Dispute Pending')
+      (requestedFrom === 'request' || requestedFrom === 'directDispatch') &&
+      disputeItemDetails?.delivery_status !== 'Delivered' &&
+      selectedPharmacy.type === 'local' &&
+      disputeItemDetails?.dispute_status !== 'Dispute Pending'
     ) {
       return true
     }

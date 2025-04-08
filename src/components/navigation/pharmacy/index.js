@@ -83,7 +83,7 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
     title: 'All Requests',
 
     // icon: 'material-symbols:request-quote-outline',
-    path: '/pharmacy/request/request-list'
+    path: '/pharmacy/request'
   }
 
   const requestByStoreListing = {
