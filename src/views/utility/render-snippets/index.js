@@ -1,4 +1,4 @@
-import { Box, CircularProgress, Tooltip } from '@mui/material'
+import { Badge, Box, CircularProgress, Tooltip } from '@mui/material'
 import Icon from 'src/@core/components/icon'
 import { useTheme } from '@emotion/react'
 
@@ -29,6 +29,39 @@ export const ExportButton = ({
         onClick={disabled ? undefined : onClick}
       >
         {loading ? <CircularProgress color='success' size={30} /> : <Icon icon={icon} fontSize={iconSize} />}
+      </Box>
+    </Tooltip>
+  )
+}
+
+export const FilterButton = ({
+  tooltip = 'Filter',
+  onClick,
+  appliedFiltersCount,
+  iconSize = 24,
+  icon = 'mage:filter',
+  placement = 'bottom'
+}) => {
+  const theme = useTheme()
+
+  return (
+    <Tooltip placement={placement} title={tooltip}>
+      <Box
+        sx={{
+          display: 'flex',
+          justifyContent: 'center',
+          width: '40px',
+          height: '40px',
+          borderRadius: '4px',
+          bgcolor: theme?.palette.customColors?.lightBg,
+          alignItems: 'center',
+          cursor: 'pointer'
+        }}
+        onClick={onClick}
+      >
+        <Badge badgeContent={appliedFiltersCount} color='primary'>
+          <Icon icon={icon} fontSize={iconSize} />
+        </Badge>
       </Box>
     </Tooltip>
   )

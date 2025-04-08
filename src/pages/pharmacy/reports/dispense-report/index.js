@@ -29,6 +29,7 @@ import { getStoreList } from 'src/lib/api/pharmacy/getStoreList'
 import StyleWithIconCardComponent from 'src/views/utility/style-with-icon-card'
 import { getUserList } from 'src/lib/api/pharmacy/dispenseProduct'
 import { readAsync } from 'src/lib/windows/utils'
+import { ExportButton, FilterButton } from 'src/views/utility/render-snippets'
 
 const DispenseReport = () => {
   const router = useRouter()
@@ -45,7 +46,7 @@ const DispenseReport = () => {
   const [total, setTotal] = useState(0)
   const [loading, setLoading] = useState(false)
   const [sort, setSort] = useState(router.query.sort || 'desc')
-  const [sortColumn, setSortColumn] = useState(router.query.column || 'dispense_number')
+  const [sortColumn, setSortColumn] = useState(router.query.column || 'dispense_id')
   const [searchValue, setSearchValue] = useState(router.query.q || '')
   const [exportLoading, setExportLoading] = useState(false)
   const [openFilterDrawer, setOpenFilterDrawer] = useState(false)
@@ -261,7 +262,7 @@ const DispenseReport = () => {
     {
       minWidth: 20,
       width: 180,
-      field: 'dispense_number',
+      field: 'dispense_id',
       headerName: 'DISPENSE NUMBER',
       sortable: true,
       renderCell: params => (
@@ -334,6 +335,10 @@ const DispenseReport = () => {
                     {RenderUtility?.renderControlLabel(
                       !isNaN(params.row?.controlled_substance) && parseInt(params.row?.controlled_substance) === 1,
                       'CS'
+                    )}
+                    {RenderUtility?.renderControlLabel(
+                      !isNaN(params.row?.prescription_required) && parseInt(params.row?.prescription_required) === 1,
+                      'PR'
                     )}
                   </Typography>
                   <Typography
@@ -771,61 +776,8 @@ const DispenseReport = () => {
                       justifyContent: { sm: 'flex-end', xs: 'flex-end' }
                     }}
                   >
-                    <Tooltip title='Export'>
-                      <>
-                        {loading || exportLoading ? (
-                          <Box
-                            sx={{
-                              display: 'flex',
-                              justifyContent: 'center',
-                              width: '40px',
-                              height: '40px',
-                              borderRadius: '4px',
-                              bgcolor: theme?.palette.customColors?.lightBg,
-                              alignItems: 'center',
-                              cursor: 'pointer'
-                            }}
-                          >
-                            <CircularProgress color='success' size={30} />
-                          </Box>
-                        ) : (
-                          <Box
-                            sx={{
-                              display: 'flex',
-                              justifyContent: 'center',
-                              width: '40px',
-                              height: '40px',
-                              borderRadius: '4px',
-                              bgcolor: theme?.palette.customColors?.lightBg,
-                              alignItems: 'center',
-                              cursor: 'pointer'
-                            }}
-                            onClick={handleExport}
-                          >
-                            <Icon icon='ic:round-download' fontSize={20} />
-                          </Box>
-                        )}
-                      </>
-                    </Tooltip>
-                    <Tooltip title='Filters'>
-                      <Box
-                        sx={{
-                          display: 'flex',
-                          justifyContent: 'center',
-                          width: '40px',
-                          height: '40px',
-                          borderRadius: '4px',
-                          bgcolor: theme?.palette.customColors?.lightBg,
-                          alignItems: 'center',
-                          cursor: 'pointer'
-                        }}
-                        onClick={() => setOpenFilterDrawer(true)}
-                      >
-                        <Badge badgeContent={appliedFiltersCount} color='primary'>
-                          <Icon icon='mage:filter' fontSize={24} />
-                        </Badge>
-                      </Box>
-                    </Tooltip>
+                    <ExportButton loading={loading || exportLoading} onClick={handleExport} />
+                    <FilterButton onClick={() => setOpenFilterDrawer(true)} appliedFiltersCount={appliedFiltersCount} />
                   </Grid>
                 </Grid>
               </Grid>
