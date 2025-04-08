@@ -424,6 +424,7 @@ const ShipmentReport = () => {
       headerName: 'NET UNIT PRICE',
       sortable: true,
       align: 'right',
+      headerAlign: 'right',
       renderCell: params => (
         <Typography
           variant='body2'
@@ -445,6 +446,7 @@ const ShipmentReport = () => {
       headerName: 'TOTAL SHIPPING VALUE',
       sortable: true,
       align: 'right',
+      headerAlign: 'right',
       renderCell: params => (
         <Typography
           variant='body2'

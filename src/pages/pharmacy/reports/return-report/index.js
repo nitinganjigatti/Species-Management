@@ -434,6 +434,7 @@ const ReturnReport = () => {
       headerName: 'NET UNIT PRICE',
       sortable: true,
       align: 'right',
+      headerAlign: 'right',
       renderCell: params => (
         <Typography
           variant='body2'
@@ -454,6 +455,7 @@ const ReturnReport = () => {
       field: 'return_value',
       headerName: 'TOTAL RETURN VALUE',
       align: 'right',
+      headerAlign: 'right',
       sortable: true,
       renderCell: params => (
         <Typography

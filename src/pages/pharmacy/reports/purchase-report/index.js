@@ -396,6 +396,7 @@ const PurchaseReport = () => {
       sortable: false,
       align: 'right',
       headerName: 'NET UNIT PRICE',
+      headerAlign: 'right',
       renderCell: params => (
         <Typography
           variant='body2'
@@ -418,6 +419,7 @@ const PurchaseReport = () => {
       sortable: false,
       align: 'right',
       headerName: 'TOTAL PURCHASE AMOUNT',
+      headerAlign: 'right',
       renderCell: params => (
         <Typography
           variant='body2'
