@@ -68,6 +68,7 @@ const DietDetailCard = ({
     setConfirmDialogBox(false)
   }
   console.log(dietModulePermission, 'dietModulePermission')
+
   const handleSidebarClose = () => {
     setActivitySidebarOpen(false)
   }
@@ -217,6 +218,7 @@ const DietDetailCard = ({
                 border: '1px solid #d0d0d0',
                 borderRadius: 2,
                 overflow: 'hidden'
+
                 // boxShadow: 2
               }}
             >
@@ -226,7 +228,8 @@ const DietDetailCard = ({
                 alt={dietDetails?.image}
                 sx={{
                   width: '100%',
-                  height: '100%',
+                  height: '300px',
+
                   // height: '145px',
                   borderRadius: '8px',
                   '& img': {
