@@ -25,7 +25,7 @@ import { getStoreList } from 'src/lib/api/pharmacy/getStoreList'
 import ConsumptionReportDrawer from 'src/views/pages/pharmacy/reports/ConsumptionReportDrawer'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import { format, subMonths } from 'date-fns'
-import { ExportButton } from 'src/views/utility/render-snippets'
+import { ExportButton, FilterButton } from 'src/views/utility/render-snippets'
 import StyleWithIconCardComponent from 'src/views/utility/style-with-icon-card'
 
 const productTypes = [
@@ -267,6 +267,10 @@ const ConsumptionReport = () => {
                     {RenderUtility?.renderControlLabel(
                       !isNaN(params.row?.controlled_substance) && parseInt(params.row?.controlled_substance) === 1,
                       'CS'
+                    )}
+                    {RenderUtility?.renderControlLabel(
+                      !isNaN(params.row?.prescription_required) && parseInt(params.row?.prescription_required) === 1,
+                      'PR'
                     )}
                   </Typography>
                   <Typography
@@ -709,25 +713,7 @@ const ConsumptionReport = () => {
                     }}
                   >
                     <ExportButton loading={loading || exportLoading} onClick={handleExport} />
-                    <Tooltip title='Filters'>
-                      <Box
-                        sx={{
-                          display: 'flex',
-                          justifyContent: 'center',
-                          width: '40px',
-                          height: '40px',
-                          borderRadius: '4px',
-                          bgcolor: theme?.palette.customColors?.lightBg,
-                          alignItems: 'center',
-                          cursor: 'pointer'
-                        }}
-                        onClick={() => setOpenFilterDrawer(true)}
-                      >
-                        <Badge badgeContent={appliedFiltersCount} color='primary'>
-                          <Icon icon='mage:filter' fontSize={24} />
-                        </Badge>
-                      </Box>
-                    </Tooltip>
+                    <FilterButton onClick={() => setOpenFilterDrawer(true)} appliedFiltersCount={appliedFiltersCount} />
                   </Grid>
                 </Grid>
               </Grid>
