@@ -369,6 +369,7 @@ const ReturnSupplier = () => {
       field: 'unit_price',
       headerName: 'NET UNIT PRICE',
       sortable: true,
+      headerAlign: 'right',
       align: 'right',
       renderCell: params => (
         <Typography
@@ -391,6 +392,7 @@ const ReturnSupplier = () => {
       headerName: 'TOTAL VALUE',
       sortable: true,
       align: 'right',
+      headerAlign: 'right',
       renderCell: params => (
         <Typography
           variant='body2'
