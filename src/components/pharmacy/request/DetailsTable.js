@@ -60,7 +60,7 @@ export default function DetailsTable({ ...props }) {
               !isNaN(el?.control_substance) && parseInt(el?.control_substance) === 1,
               'CS'
             )}
-            {RenderUtility?.renderControlLabel(
+            {RenderUtility?.renderPrescriptionLabel(
               !isNaN(el?.prescription_required) && parseInt(el?.prescription_required) === 1,
               'PR'
             )}

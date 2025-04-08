@@ -847,10 +847,11 @@ const AddRequestForm = () => {
                         {/* {option.control_substance === true && (
                           <CustomChip label='CS' skin='light' color='success' size='small' />
                         )}{' '} */}
-                         {RenderUtility?.renderControlLabel(option.control_substance === true, 'CS')}
-                        {option.prescription_required === true && (
+                        {RenderUtility?.renderControlLabel(option.control_substance === true, 'CS')}
+                        {RenderUtility?.renderPrescriptionLabel(option.prescription_required === true, 'PR')}
+                        {/* {option.prescription_required === true && (
                           <CustomChip label='PR' skin='light' color='success' size='small' />
-                        )}
+                        )} */}
                         {/* <Typography
                           sx={{
                             color: 'customColors.OnSecondaryContainer',
@@ -2240,7 +2241,7 @@ const AddRequestForm = () => {
                           {/* Name and chips in a flex container */}
                           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
                             {RenderUtility?.renderControlLabel(el.control_substance === true, 'CS')}
-                            {RenderUtility?.renderControlLabel(el.prescription_required === true, 'PR')}
+                            {RenderUtility?.renderPrescriptionLabel(el.prescription_required === true, 'PR')}
                             {/* {el.control_substance ? (
                               <CustomChip
                                 label='CS'

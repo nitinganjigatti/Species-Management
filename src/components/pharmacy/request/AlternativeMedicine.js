@@ -374,9 +374,10 @@ function AlternativeMedicine({ parentId, updateRequestItems, existingListItems, 
                       <Typography variant='body2'>{option.package}</Typography>
                       <Typography variant='body2'>{option.manufacture}</Typography>
                       {RenderUtility?.renderControlLabel(option.control_substance === true, 'CS')}
-                      {option.prescription_required === true && (
+                      {RenderUtility?.renderPrescriptionLabel(option.prescription_required === true, 'PR')}
+                      {/* {option.prescription_required === true && (
                         <CustomChip label='PR' skin='light' color='success' size='small' />
-                      )}
+                      )} */}
                       {/* <Typography
                         sx={{
                           color: 'customColors.OnSecondaryContainer',
@@ -485,9 +486,10 @@ function AlternativeMedicine({ parentId, updateRequestItems, existingListItems, 
                         <CustomChip label='CS' skin='light' color='success' size='small' />
                       )} */}
                       {RenderUtility?.renderControlLabel(option.control_substance === true, 'CS')}
-                      {option.prescription_required === true && (
+                      {RenderUtility?.renderPrescriptionLabel(option.prescription_required === true, 'PR')}
+                      {/* {option.prescription_required === true && (
                         <CustomChip label='PR' skin='light' color='success' size='small' />
-                      )}
+                      )} */}
                       {/* <Typography
                         sx={{
                           color: 'customColors.OnSecondaryContainer',

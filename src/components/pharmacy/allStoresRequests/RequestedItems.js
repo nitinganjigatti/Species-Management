@@ -252,7 +252,7 @@ export default function RequestedItems({ selectedStoreDetails, setSelectedStoreD
                 !isNaN(params.row?.control_substance) && parseInt(params.row?.control_substance) === 1,
                 'CS'
               )}
-              {RenderUtility?.renderControlLabel(
+              {RenderUtility?.renderPrescriptionLabel(
                 !isNaN(params.row?.prescription_required) && parseInt(params.row?.prescription_required) === 1,
                 'PR'
               )}
