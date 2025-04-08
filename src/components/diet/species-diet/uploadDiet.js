@@ -34,7 +34,7 @@ const defaultValues = {
 }
 
 const schema = yup.object().shape({
-  dietitian_id: yup.string().trim().required('Dietitian id is required'),
+  dietitian_id: yup.string().trim().required('Dietitian name is required'),
   attachment: yup.string().required('Attachment is required')
 })
 
@@ -100,8 +100,7 @@ function UploadDiet({
 
     const allowedTypes = ['application/pdf']
     if (!file || !allowedTypes.includes(file.type)) {
-      Toaster({ type: 'error', message: 'Please select a valid file.' })
-
+      Toaster({ type: 'error', message: 'Only PDF files are supported. Please upload a PDF file.', ignoreCase: true })
       return
     }
     setSelectedFile(file)
@@ -111,7 +110,6 @@ function UploadDiet({
       clearErrors('attachment')
     }
   }
-
   ////////////////////////////////////////////////////////////
   const onSubmit = async ({ dietitian_id, notes }) => {
     setUploadingAttachment(true)
@@ -143,7 +141,10 @@ function UploadDiet({
     <Box
       sx={{
         position: 'fixed',
-        width: '560px',
+        width: {
+          xs: '100%', // 0px and up
+          sm: '560px'
+        },
         zIndex: 100,
         backgroundColor: '#fff',
         display: 'flex',
@@ -239,7 +240,7 @@ function UploadDiet({
         <Box
           sx={{
             backgroundColor: 'background.default',
-            height: '100%',
+            height: '100vh',
             pb: '132px',
             overflowY: 'auto',
             display: 'flex',
@@ -397,7 +398,7 @@ function UploadDiet({
                                     height: '48px'
                                   }}
                                 >
-                                  <Image alt={'filename'} src={'/icons/pdf_Icon2.svg'} width={48} height={48} />
+                                  <Image alt={'filename'} src={'/icons/pdf_icon2.svg'} width={48} height={48} />
                                   <Typography
                                     sx={{
                                       backgroundColor: theme.palette.customColors.Background,
@@ -449,7 +450,7 @@ function UploadDiet({
                                     color: theme.palette.customColors.OnSurfaceVariant60
                                   }}
                                 >
-                                  Drop your file here
+                                  Drop your image here
                                 </Typography>
                               </Box>
                             )}
@@ -472,7 +473,10 @@ function UploadDiet({
           sx={{
             height: '122px',
             width: '100%',
-            maxWidth: '562px',
+            width: {
+              xs: '100%', // 0px and up
+              sm: '560px'
+            },
             position: 'fixed',
             bottom: 0,
             bgcolor: 'white',
@@ -488,7 +492,7 @@ function UploadDiet({
             type='submit'
             variant='contained'
             size='large'
-            sx={{ height: '58px', width: '514px' }}
+            sx={{ height: '58px', width: '514px', mx: 4 }}
             // onClick={() => {
             //   handleSubmit()
             // }}

@@ -232,7 +232,7 @@ const LabTest = () => {
               height: 30,
               mr: 4,
               borderRadius: '50%',
-              background: '#E8F4F2',
+              background: theme.palette.customColors.displaybgPrimary,
               overflow: 'hidden'
             }}
           >
@@ -250,7 +250,11 @@ const LabTest = () => {
             <Typography noWrap variant='body2' sx={{ color: 'text.primary', fontSize: 14 }}>
               {params.row.created_by_user?.user_name ? params.row.created_by_user?.user_name : '-'}
             </Typography>
-            <Typography noWrap variant='body2' sx={{ color: '#44544a9c', fontSize: 12 }}>
+            <Typography
+              noWrap
+              variant='body2'
+              sx={{ color: theme.palette.customColors.neutralSecondary, fontSize: 12 }}
+            >
               {params.row.created_on ? moment(params.row.created_on).format('DD/MM/YYYY') : '-'}
             </Typography>
           </Box>

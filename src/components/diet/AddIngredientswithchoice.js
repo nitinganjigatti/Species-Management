@@ -309,7 +309,7 @@ const AddIngredientswithChoice = props => {
         setLoading(false)
       }
     }, 500),
-    []
+    [ingredientList]
   )
 
   const handleSearchChange = e => {
@@ -614,7 +614,7 @@ const AddIngredientswithChoice = props => {
           const matchedIngredientName = matchedIngredient.ingredientList.map(ingredient => ingredient.name).join(', ')
 
           toast.error(
-            `Ingredient(s) ${matchedIngredientName} already exist(s) with same preparation_type and days_of_week`
+            `Ingredient(s) ${matchedIngredientName} already exist(s) with same preparation type and days of the week`
           )
 
           return
@@ -855,7 +855,33 @@ const AddIngredientswithChoice = props => {
                       sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 2, mt: 1 }}
                     >
                       <Typography>Id - {item?.id}</Typography>
-                      <Typography>Feed Type - {item?.feed_type_label}</Typography>
+                      <Typography
+                        sx={{
+                          mr: 3,
+                          maxWidth: 150,
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap',
+                          display: 'flex',
+                          alignItems: 'center'
+                        }}
+                        noWrap
+                      >
+                        Feed Type -&nbsp;
+                        <Tooltip title={item?.feed_type_label || ''}>
+                          <span
+                            style={{
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                              whiteSpace: 'nowrap',
+                              display: 'inline-block',
+                              maxWidth: '100%'
+                            }}
+                          >
+                            {item?.feed_type_label}
+                          </span>
+                        </Tooltip>
+                      </Typography>
                     </Stack>
                     <Stack
                       direction='row'

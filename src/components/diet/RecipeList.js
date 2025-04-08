@@ -24,22 +24,23 @@ const RecipeList = props => {
     setAllRecipeSelectedValues,
     formData,
     fromrow,
-    recipeid
+    recipeid,
+    dietid
   } = props
   const theme = useTheme()
   const [rows, setRows] = useState([])
   const [searchValue, setSearchValue] = useState('')
   const [ingredientList, setIngredientList] = useState([])
   const [totalCount, setTotalCount] = useState('')
-
+  const [loading, setLoading] = useState(false)
   const [reachedEnd, setReachedEnd] = useState(false)
-  const [sort, setSort] = useState('desc')
+  const [sortBy, setsortBy] = useState('desc')
   let [ingredientPage, setIngredientPage] = useState(1)
 
   useEffect(() => {
     const getRecipeListData = async () => {
       setReachedEnd(true)
-      const params = { page: ingredientPage, q: searchValue, sort, status: 1, limit: 10, meal_type: 'recipe' }
+      const params = { page: ingredientPage, q: searchValue, sortBy, status: 1, limit: 10, meal_type: 'recipe' }
       const res = await getRecipeList({ params })
 
       if (res?.data?.result?.length > 0) {
@@ -60,7 +61,7 @@ const RecipeList = props => {
     }
 
     getRecipeListData()
-  }, [ingredientPage, sort])
+  }, [ingredientPage, sortBy])
 
   const handleScroll = async e => {
     const container = e.target
@@ -74,7 +75,7 @@ const RecipeList = props => {
         setReachedEnd(true) // Prevent multiple API calls
 
         try {
-          const params = { page: ingredientPage + 1, q: searchValue, sort, status: 1, limit: 10, meal_type: 'recipe' }
+          const params = { page: ingredientPage + 1, q: searchValue, sortBy, status: 1, limit: 10, meal_type: 'recipe' }
           const res = await getRecipeList({ params })
 
           if (res?.data?.result?.length > 0) {
@@ -104,11 +105,15 @@ const RecipeList = props => {
   const debouncedSearch = useCallback(
     debounce(async search => {
       try {
-        //setLoading(true)
-        const params = { page: 1, q: search, sort, status: 1, limit: 10, meal_type: 'recipe' }
+        setLoading(true)
+        const params = { page: 1, q: search, sortBy, status: 1, limit: 10, meal_type: 'recipe' }
         const res = await getRecipeList({ params })
         if (res?.data?.result.length > 0) {
-          setIngredientList(res.data.result)
+          // Merge new results with previous list, ensuring unique items
+          const newResults = res.data.result.filter(
+            item => !ingredientList.some(existingItem => existingItem.id === item.id)
+          )
+          setIngredientList(prevList => [...prevList, ...newResults])
           setIngredientPage(1)
           setTotalCount(res?.data?.total_count)
         } else {
@@ -117,10 +122,10 @@ const RecipeList = props => {
       } catch (error) {
         console.error(error)
       } finally {
-        //setLoading(false)
+        setLoading(false)
       }
     }, 500),
-    []
+    [ingredientList]
   )
 
   const handleSearchChange = e => {
@@ -144,11 +149,11 @@ const RecipeList = props => {
         position: 'relative',
         display: 'flex',
         flexDirection: 'column',
-        bgcolor: '#EFF5F2',
+        bgcolor: theme.palette.customColors.bodyBg,
         gap: '24px'
       }}
     >
-      <Box sx={{ position: 'fixed', top: 0, bgcolor: '#EFF5F2', zIndex: 10, width: '562px' }}>
+      <Box sx={{ position: 'fixed', top: 0, bgcolor: theme.palette.customColors.bodyBg, zIndex: 10, width: '562px' }}>
         <Box
           className='sidebar-header'
           sx={{
@@ -160,7 +165,7 @@ const RecipeList = props => {
         >
           <Box sx={{ gap: 2, display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
             <img src='/icons/Activity.svg' alt='Grocery Icon' width='35px' />
-            <Typography variant='h6' sx={{ color: '#44544A' }}>
+            <Typography variant='h6' sx={{ color: theme.palette.customColors.OnSurfaceVariant }}>
               Add Recipes
             </Typography>
           </Box>
@@ -171,7 +176,7 @@ const RecipeList = props => {
                 handleSidebarClose()
                 setSearchValue('')
               }}
-              sx={{ color: '#1F515B' }}
+              sx={{ color: theme.palette.primary.light }}
             >
               <Icon icon='mdi:close' fontSize={25} />
             </IconButton>
@@ -190,7 +195,12 @@ const RecipeList = props => {
               value={searchValue}
               fullWidth
               InputProps={{
-                startAdornment: <Icon style={{ marginRight: 10, color: '#44544A' }} icon={'ion:search-outline'} />,
+                startAdornment: (
+                  <Icon
+                    style={{ marginRight: 10, color: theme.palette.customColors.OnSurfaceVariant }}
+                    icon={'ion:search-outline'}
+                  />
+                ),
                 endAdornment: searchValue && (
                   <IconButton onClick={handleCancelClick} size='small' sx={{ padding: 0 }}>
                     <Icon icon={'ion:close-outline'} style={{ color: theme.palette.customColors.OnSurfaceVariant }} />
@@ -201,9 +211,9 @@ const RecipeList = props => {
               onChange={handleSearchChange}
               sx={{
                 '& .MuiOutlinedInput-root': {
-                  borderColor: '#839D8D',
+                  borderColor: theme.palette.customColors.Outline,
                   '& fieldset': {
-                    borderColor: '#839D8D'
+                    borderColor: theme.palette.customColors.Outline
                   }
                 }
               }}
@@ -215,7 +225,7 @@ const RecipeList = props => {
       {/* on scroll */}
       <Box
         className=''
-        sx={{ marginTop: 30, height: '70%', overflowY: 'auto', bgcolor: '#EFF5F2', p: 4 }}
+        sx={{ marginTop: 30, height: '70%', overflowY: 'auto', bgcolor: theme.palette.customColors.bodyBg, p: 4 }}
         onScroll={handleScroll}
       >
         <RecipeCard
@@ -233,6 +243,8 @@ const RecipeList = props => {
           setSearchValue={setSearchValue}
           fromrow={fromrow}
           recipeid={recipeid}
+          loading={loading}
+          dietid={dietid}
         />
 
         {/* End Card Section */}

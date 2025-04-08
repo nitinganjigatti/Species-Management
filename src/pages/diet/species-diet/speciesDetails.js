@@ -13,7 +13,7 @@ import {
   Typography
 } from '@mui/material'
 import { Box } from '@mui/system'
-import React, { useEffect, useRef, useState, useContext } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import Icon from 'src/@core/components/icon'
 import { useTheme } from '@mui/material/styles'
 import {
@@ -22,7 +22,6 @@ import {
   speciesAttachmentRemoveById,
   speciesAttachmentUpload
 } from 'src/lib/api/diet/speciesDiet'
-import { AuthContext } from 'src/context/AuthContext'
 import Toaster from 'src/components/Toaster'
 import Utility from 'src/utility'
 import moment from 'moment'
@@ -31,10 +30,6 @@ import UploadDiet from './uploadDiet'
 function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, speciesId, setspeciesId, fetchTableData }) {
   const theme = useTheme()
   const fileInputRef = useRef(null)
-
-  const authData = useContext(AuthContext)
-  const dietModule = authData?.userData?.roles?.settings?.diet_module
-  const dietModuleAccess = authData?.userData?.roles?.settings?.diet_module_access
 
   const [detailsLoader, setDetailsLoader] = useState(true)
   const [specieDetails, setSpecieDetails] = useState({})
@@ -479,17 +474,15 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
                 </Box>
               </Box>
             </Box>
-            {(dietModuleAccess === 'EDIT' || dietModuleAccess === 'DELETE') && (
-              <Box>
-                <Switch
-                  onClick={e => {
-                    e.stopPropagation()
-                    removeAttachment(speciesId, item?.attachment_id)
-                  }}
-                  defaultChecked
-                />
-              </Box>
-            )}
+            <Box>
+              <Switch
+                onClick={e => {
+                  e.stopPropagation()
+                  removeAttachment(speciesId, item?.attachment_id)
+                }}
+                defaultChecked
+              />
+            </Box>
           </Box>
         </Box>
         {/* <Typography sx={{ color: '#00000066', fontSize: '12px', fontWeight: '5040', lineHeight: '14.52px' }}>
@@ -691,23 +684,21 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
             </Box>
           </Box>
         </Box>
-        {(dietModuleAccess === 'EDIT' || dietModuleAccess === 'DELETE') && (
-          <Box>
-            <Switch
-              onClick={e => {
-                e.stopPropagation()
-                setDietAttachmentId(item.attachment_id)
+        <Box>
+          <Switch
+            onClick={e => {
+              e.stopPropagation()
+              setDietAttachmentId(item.attachment_id)
 
-                // if (Number(specieDetails.active_attachments_count) === 0) {
-                //   speciesAttachmentActiveFunc(speciesId, dietAttachmentId)
-                // } else {
-                //   setDietAttachmentActiveConfirm(true)
-                // }
-                speciesAttachmentActiveFunc(speciesId, dietAttachmentId)
-              }}
-            />
-          </Box>
-        )}
+              // if (Number(specieDetails.active_attachments_count) === 0) {
+              //   speciesAttachmentActiveFunc(speciesId, dietAttachmentId)
+              // } else {
+              //   setDietAttachmentActiveConfirm(true)
+              // }
+              speciesAttachmentActiveFunc(speciesId, dietAttachmentId)
+            }}
+          />
+        </Box>
       </Box>
     </Box>
   )
@@ -881,42 +872,40 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
         )}
       </Box>
       {/* bottom buttons */}
-      {(dietModuleAccess === 'ADD' || dietModuleAccess === 'EDIT' || dietModuleAccess === 'DELETE') && (
-        <Box
-          sx={{
-            height: '122px',
-            width: '100%',
-            maxWidth: '562px',
-            position: 'fixed',
-            bottom: 0,
-            bgcolor: 'white',
-            alignItems: 'center',
-            justifyContent: 'center',
-            display: 'flex',
-            boxShadow: '0px -4px 10px rgba(0, 0, 0, 0.2)',
-            zIndex: 123
+      <Box
+        sx={{
+          height: '122px',
+          width: '100%',
+          maxWidth: '562px',
+          position: 'fixed',
+          bottom: 0,
+          bgcolor: 'white',
+          alignItems: 'center',
+          justifyContent: 'center',
+          display: 'flex',
+          boxShadow: '0px -4px 10px rgba(0, 0, 0, 0.2)',
+          zIndex: 123
+        }}
+      >
+        <LoadingButton
+          fullWidth
+          variant='contained'
+          size='large'
+          sx={{ height: '58px', width: '514px' }}
+          onClick={() => {
+            const scientific_name = specieDetails.scientific_name
+            const common_name = specieDetails.common_name
+            const default_icon = specieDetails.default_icon
+            setSpeciesData({ default_icon, scientific_name, common_name })
+            setspeciesId(specieDetails.species_id)
+            setUploadDietDrawer(true)
           }}
+
+          // loading={loader}
         >
-          <LoadingButton
-            fullWidth
-            variant='contained'
-            size='large'
-            sx={{ height: '58px', width: '514px' }}
-            onClick={() => {
-              const scientific_name = specieDetails.scientific_name
-              const common_name = specieDetails.common_name
-              const default_icon = specieDetails.default_icon
-              setSpeciesData({ default_icon, scientific_name, common_name })
-              setspeciesId(specieDetails.species_id)
-              setUploadDietDrawer(true)
-            }}
-
-            // loading={loader}
-          >
-            UPLOAD NEW
-          </LoadingButton>
-
-          {/* <input
+          UPLOAD NEW
+        </LoadingButton>
+        {/* <input
           type='file'
           multiple
           accept='application/pdf, image/*, application/msword, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/vnd.ms-excel, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, text/csv'
@@ -926,20 +915,18 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
             handleFileUpload(e, speciesId)
           }}
         /> */}
-        </Box>
-      )}
-
-      <UploadDiet
-        fetchTableData={fetchTableData}
-        getSpecieDetail={getSpecieDetail}
-        speciesId={speciesId}
-        speciesData={speciesData}
-        setspeciesId={setspeciesId}
-        fileInputRef={fileInputRef}
-        uploadDietDrawer={uploadDietDrawer}
-        setUploadDietDrawer={setUploadDietDrawer}
-        speciesDetailsDrawer={speciesDetailsDrawer}
-      />
+        <UploadDiet
+          fetchTableData={fetchTableData}
+          getSpecieDetail={getSpecieDetail}
+          speciesId={speciesId}
+          speciesData={speciesData}
+          setspeciesId={setspeciesId}
+          fileInputRef={fileInputRef}
+          uploadDietDrawer={uploadDietDrawer}
+          setUploadDietDrawer={setUploadDietDrawer}
+          speciesDetailsDrawer={speciesDetailsDrawer}
+        />
+      </Box>
 
       {/* ///////////////////////////dietAttachmentActiveConfirm////////////////////////////////// */}
       {/* <Drawer

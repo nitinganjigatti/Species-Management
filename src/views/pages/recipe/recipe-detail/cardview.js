@@ -19,6 +19,7 @@ import { updateRecipeStatus } from 'src/lib/api/diet/recipe'
 import DeleteDialogConfirmation from 'src/components/utility/DeleteDialogConfirmation'
 import ToasterforSuccess from 'src/components/SuccessToaster'
 import Toaster from 'src/components/Toaster'
+import { auto } from '@popperjs/core'
 
 const RecipeDetailCardview = ({ IngredientsDetailsval, permission, getRecipeDetailval, isActive, setIsActive }) => {
   const router = useRouter()
@@ -58,7 +59,7 @@ const RecipeDetailCardview = ({ IngredientsDetailsval, permission, getRecipeDeta
   }
 
   return (
-    <Grid item xs={4}>
+    <Grid item md={4} xs={6.5} sx={{ marginLeft: 'auto', marginRight: 'auto', textAlign: 'center' }}>
       <Card sx={{ boxShadow: 'none', background: '#EFF5F2' }}>
         <div
           item

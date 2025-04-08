@@ -544,7 +544,9 @@ const StepBasicDetails = ({
 
       if (invalidIndexes.length > 0) {
         invalidIndexes.forEach(index => {
-          toast.error(`Meal ${index + 1} must contain at least one of Ingredient, Recipe, or Ingredients with choice.`)
+          toast.error(
+            `Meal ${index + 1} must contain at least one of ingredient, recipe, combo or ingredients with choice.`
+          )
         })
 
         return
@@ -757,6 +759,7 @@ const StepBasicDetails = ({
 
   const removeingClickCombo = (recipeIdToRemove, val) => {
     setComboChildStateValue(prevSelectedCard => {
+      console.log(prevSelectedCard, 'prevSelectedCard')
       const filteredChildStateValue = prevSelectedCard.filter(recipe => recipe.recipe_id !== recipeIdToRemove)
 
       setAllComboSelectedValues(prevAllSelectedValues => {
@@ -1174,7 +1177,8 @@ const StepBasicDetails = ({
                                     <Typography
                                       className='recipe_name'
                                       sx={{
-                                        pl: 3
+                                        pl: 3,
+                                        cursor: 'pointer'
                                       }}
                                       onClick={() => handleclickRecipeDetail(all.recipe_id)}
                                     >
@@ -1343,7 +1347,8 @@ const StepBasicDetails = ({
                                     <Typography
                                       className='recipe_name'
                                       sx={{
-                                        pl: 3
+                                        pl: 3,
+                                        cursor: 'pointer'
                                       }}
                                       onClick={() => handleclickComboDetail(all.recipe_id)}
                                     >
@@ -1523,7 +1528,7 @@ const StepBasicDetails = ({
                                             color: all.days_of_week?.includes(index + 1)
                                               ? theme.palette.secondary.dark
                                               : theme.palette.customColors.Outline,
-                                            marginRight: 4
+                                            marginRight: 3
                                           }}
                                         >
                                           {day}
@@ -1637,7 +1642,7 @@ const StepBasicDetails = ({
                                     </span>{' '}
                                   </Typography>
                                 </Grid>
-                                <Grid item xs={12} sm={2.3} sx={{ pl: 2 }}>
+                                <Grid item xs={12} sm={2.3} sx={{ pl: 1 }}>
                                   <Typography className='w_155'>
                                     <Tooltip
                                       title={all?.ingredientList.map(all => all.preparation_type).join(', ')}
@@ -1650,7 +1655,7 @@ const StepBasicDetails = ({
                                   </Typography>
                                 </Grid>
                                 <Grid item xs={12} sm={2.7}>
-                                  <Grid container spacing={1} sx={{ pl: 2 }}>
+                                  <Grid container spacing={1} sx={{ pl: 11 }}>
                                     {days.map((day, index) => (
                                       <Grid item key={day}>
                                         <Typography
@@ -1994,6 +1999,7 @@ const StepBasicDetails = ({
             setAllRecipeSelectedValues={setAllRecipeSelectedValues}
             formData={formData}
             onRemove={removeingClickRecipe}
+            dietid={id}
           />
           <ComboList
             recipeList={recipeList}
@@ -2010,6 +2016,7 @@ const StepBasicDetails = ({
             formData={formData}
             onRemove={removeingClickCombo}
             cutsizelist={cutsizelist}
+            dietid={id}
           />
         </form>
       )}

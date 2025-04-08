@@ -244,7 +244,7 @@ const IngredientDetail = () => {
                           getIngredientsDetailval={getIngredientsDetailval}
                         />
 
-                        <Grid item xs={8}>
+                        <Grid item md={8} xs={12}>
                           <TabContext value={value}>
                             <TabList onChange={handleChange} aria-label='customized tabs example'>
                               <Tab
@@ -262,7 +262,7 @@ const IngredientDetail = () => {
                                 style={{ borderTopLeftRadius: 0, borderBottomLeftRadius: 0 }}
                                 value='3'
                                 //label={'USED IN DIET' + ' -' + ' ' + dietListTotal}
-                                label={`USED IN DIET${dietListTotal > 0 ? ` - ${dietListTotal}` : ''}`}
+                                label={`USED IN DIET ${dietListTotal > 0 ? ` - ${dietListTotal}` : ''}`}
                               />
                             </TabList>
                             <TabPanel value='1'>

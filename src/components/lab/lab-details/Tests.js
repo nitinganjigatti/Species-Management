@@ -15,9 +15,11 @@ import { DataGrid } from '@mui/x-data-grid'
 import React, { useEffect, useState } from 'react'
 import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
 import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
+import { useTheme } from '@mui/material/styles'
 
 const Tests = ({ labTest }) => {
   console.log('labTest', labTest)
+  const theme = useTheme()
 
   const columns = [
     // {
@@ -146,11 +148,8 @@ const Tests = ({ labTest }) => {
                 <>
                   <Box
                     sx={{
-                      // border: '1px solid #e0e0e0',
-                      bgcolor: '#e8f4f2',
-
+                      bgcolor: theme.palette.customColors.displaybgPrimary,
                       borderRadius: '4px',
-
                       p: 1,
                       mb: 1
                     }}
@@ -193,7 +192,7 @@ const Tests = ({ labTest }) => {
                     defaultExpanded
                     disableGutters
                     sx={{
-                      bgcolor: '#e8f4f2',
+                      bgcolor: theme.palette.customColors.displaybgPrimary,
                       boxShadow: 'none',
                       border: 'none',
                       m: 0.5,
@@ -239,9 +238,7 @@ const Tests = ({ labTest }) => {
                 <>
                   <Box
                     sx={{
-                      // border: '1px solid #e0e0e0',
-                      bgcolor: '#e8f4f2',
-
+                      bgcolor: theme.palette.customColors.displaybgPrimary,
                       borderRadius: '4px',
                       p: 1,
                       mb: 1
