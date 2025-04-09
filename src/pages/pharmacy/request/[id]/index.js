@@ -1074,13 +1074,7 @@ const IndividualRequest = () => {
             }}
             disabled={selectedPharmacy?.permission.key === 'VIEW'}
           >
-            <Icon
-              // onClick={() => {
-              //   setDeleteDialog(true)
-              //   setDeleteFullFillId(params.row.dispatch_item_id)
-              // }}
-              icon='mdi:delete-outline'
-            />
+            <Icon icon='mdi:delete-outline' />
           </Button>
           {/* </Box> */}
         </Typography>
