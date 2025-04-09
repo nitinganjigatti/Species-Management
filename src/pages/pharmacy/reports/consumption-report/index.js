@@ -14,7 +14,7 @@ import {
 import { Box } from '@mui/system'
 import { debounce } from 'lodash'
 import { useRouter } from 'next/router'
-import React, { useCallback, useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDateRangePickers'
 import { getConsumptionReport } from 'src/lib/api/pharmacy/reports'
 import Utility from 'src/utility'
@@ -79,16 +79,36 @@ const ConsumptionReport = () => {
     endDate: router.query.endDate || Utility.formatDate(format(new Date(), 'dd MMM, yyyy'))
   })
 
-  useEffect(() => {
-    setSelectedOptions({
-      Pharmacy: [],
-      'Product Type': [],
-      'Drug Type': 'all'
-    })
+  const mountedRef = useRef(false)
 
-    setFilteredData({
-      pharmacy: []
-    })
+  // useEffect(() => {
+  //   setSelectedOptions({
+  //     Pharmacy: [],
+  //     'Product Type': [],
+  //     'Drug Type': 'all'
+  //   })
+
+  //   setFilteredData({
+  //     pharmacy: []
+  //   })
+  // }, [selectedPharmacy?.id])
+
+  useEffect(() => {
+    if (mountedRef.current) {
+      setSelectedOptions({
+        Pharmacy: [],
+        'Product Type': [],
+        'Drug Type': 'all'
+      })
+
+      setFilteredData({
+        pharmacy: []
+      })
+      setSelectAllPharmacy(false)
+      setSelectAllProductTypes(false)
+    } else {
+      mountedRef.current = true
+    }
   }, [selectedPharmacy?.id])
 
   useEffect(() => {
