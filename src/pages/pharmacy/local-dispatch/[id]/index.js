@@ -70,7 +70,14 @@ const TabLists = styled(MuiTabList)(({ theme }) => ({
 }))
 
 const TabBadge = ({ label, totalCount }) => (
-  <div style={{ display: 'flex', alignItems: 'center', justifyItems: 'center', justifyContent: 'space-between' }}>
+  <div
+    style={{
+      display: 'flex',
+      alignItems: 'center',
+      justifyItems: 'center',
+      justifyContent: 'space-between'
+    }}
+  >
     {label}
     {totalCount ? (
       <Chip sx={{ ml: '6px', fontSize: '12px' }} size='small' label={totalCount} color='secondary' />
@@ -380,6 +387,32 @@ const IndividualRequest = () => {
         </Box>
       )
     },
+    {
+      flex: 0.6,
+      minWidth: 20,
+      field: 'unit_price',
+      headerName: 'unit price',
+      type: 'number',
+      align: 'right',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {Utility.formatAmountToReadableDigit(params.row.unit_price)}
+        </Typography>
+      )
+    },
+    {
+      flex: 0.2,
+      minWidth: 20,
+      field: 'qty',
+      headerName: 'total value',
+      type: 'number',
+      align: 'right',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {Utility.formatAmountToReadableDigit(params.row.unit_price * params.row.qty)}
+        </Typography>
+      )
+    },
 
     {
       flex: 0.2,
@@ -463,6 +496,27 @@ const IndividualRequest = () => {
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {Utility.formatDisplayDate(dispatchedItems.dispatch_date)}
+        </Typography>
+      )
+    },
+    {
+      width: 140,
+      field: 'unit_price',
+      headerName: 'unit price',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {console.log(params, 'params')}
+          {params.row.unit_price}
+        </Typography>
+      )
+    },
+    {
+      width: 140,
+      field: 'qty',
+      headerName: 'total value',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {Utility.formatAmountToReadableDigit(params.row.unit_price * params.row.dispatch_qty)}
         </Typography>
       )
     },
@@ -867,7 +921,14 @@ const IndividualRequest = () => {
                     />
                   }
                 />
-                <Box sx={{ backgroundColor: 'customColors.Background', p: 4, m: 4, borderRadius: '8px' }}>
+                <Box
+                  sx={{
+                    backgroundColor: 'customColors.Background',
+                    p: 4,
+                    m: 4,
+                    borderRadius: '8px'
+                  }}
+                >
                   <Grid container spacing={2} sx={{ flexGrow: 1 }}>
                     <Grid item xs={3} sm={12 / 5} lg={12 / 5}>
                       <h5 style={{ marginBottom: '0px', marginTop: '0px' }}>Dispatched To</h5>
@@ -900,6 +961,24 @@ const IndividualRequest = () => {
                         </Box>
                       </Box>
                     </Grid>
+                    <>
+                      <Grid item xs={3} sm={12 / 5} lg={12 / 5}>
+                        <h5 style={{ marginBottom: '0px', marginTop: '0px' }}>Requested Amount</h5>
+                        <p style={{ marginBottom: '0' }}>{requestItems?.requested_amount}</p>
+                      </Grid>
+                      {shippedItems.length > 0 && (
+                        <>
+                          <Grid item xs={3} sm={12 / 5} lg={12 / 5}>
+                            <h5 style={{ marginBottom: '0px', marginTop: '0px' }}>Shipped Amount</h5>
+                            <p style={{ marginBottom: '0' }}>{requestItems?.shipped_amount}</p>
+                          </Grid>
+                          <Grid item xs={3} sm={12 / 5} lg={12 / 5}>
+                            <h5 style={{ marginBottom: '0px', marginTop: '0px' }}>Shipped Qty</h5>
+                            <p style={{ marginBottom: '0' }}>{requestItems?.shipped_qty}</p>
+                          </Grid>
+                        </>
+                      )}
+                    </>
                   </Grid>
                 </Box>
                 <Box>
@@ -970,7 +1049,12 @@ const IndividualRequest = () => {
                               onChange={(event, newValue) => {
                                 setShipmentTab(newValue)
                               }}
-                              sx={{ width: '100%', height: '56px', py: '8px', gap: '6px' }}
+                              sx={{
+                                width: '100%',
+                                height: '56px',
+                                py: '8px',
+                                gap: '6px'
+                              }}
                             >
                               <Tab
                                 value='Ready To Ship'
@@ -1002,7 +1086,14 @@ const IndividualRequest = () => {
                                       requestItems.status !== 'Cancelled' &&
                                       (selectedPharmacy.permission.key === 'ADD' ||
                                         selectedPharmacy.permission.key === 'allow_full_access') && (
-                                        <Grid item xs={6} style={{ display: 'flex', justifyContent: 'right' }}>
+                                        <Grid
+                                          item
+                                          xs={6}
+                                          style={{
+                                            display: 'flex',
+                                            justifyContent: 'right'
+                                          }}
+                                        >
                                           <Button size='big' variant='contained' onClick={handleNavigate}>
                                             Ship all items{' '}
                                           </Button>
@@ -1042,7 +1133,9 @@ const IndividualRequest = () => {
                                       setOrderId(e.id)
                                       Router.push({
                                         pathname: `/pharmacy/local-dispatch/${id}/shipment-details`,
-                                        query: { orderId: e.id }
+
+                                        // query: { orderId: e.id }
+                                        query: { orderId: e.id, requestId: id }
                                       })
                                     }}
                                   ></TableBasic>
