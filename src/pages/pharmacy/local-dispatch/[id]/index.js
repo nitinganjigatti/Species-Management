@@ -419,8 +419,8 @@ const IndividualRequest = () => {
       minWidth: 20,
       field: 'requested_qty',
       headerName: 'Dispatch QTY',
-      type: 'number',
-      align: 'right',
+      headerAlign: 'center',
+      align: 'center',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.requested_qty}
@@ -503,10 +503,11 @@ const IndividualRequest = () => {
       width: 140,
       field: 'unit_price',
       headerName: 'unit price',
+      headerAlign: 'right',
+      align: 'right',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {console.log(params, 'params')}
-          {params.row.unit_price}
+          {Utility.formatAmountToReadableDigit(params.row.unit_price)}
         </Typography>
       )
     },
@@ -514,6 +515,8 @@ const IndividualRequest = () => {
       width: 140,
       field: 'qty',
       headerName: 'total value',
+      headerAlign: 'right',
+      align: 'right',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {Utility.formatAmountToReadableDigit(params.row.unit_price * params.row.dispatch_qty)}
@@ -525,8 +528,8 @@ const IndividualRequest = () => {
       width: 140,
       field: 'dispatch_qty',
       headerName: 'Fulfilled QTY',
-      type: 'number',
-      align: 'right',
+      headerAlign: 'center',
+      align: 'center',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.dispatch_qty}

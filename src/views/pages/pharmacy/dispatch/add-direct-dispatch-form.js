@@ -279,6 +279,7 @@ export const AddItemsForm = ({
         variant_id,
         multiplier,
         unit_price
+
         // to_store_id: '14'
       },
       type
@@ -593,7 +594,10 @@ export const AddItemsForm = ({
                         color: 'customColors.OnPrimary'
                       }}
                     >
-                      Unit Price - {Utility.formatAmountToReadableDigit(watch('unit_price'))}
+                      Unit Price -{' '}
+                      {watch('unit_price') == null || watch('unit_price') == '0'
+                        ? Utility.formatAmountToReadableDigit('0')
+                        : Utility.formatAmountToReadableDigit(watch('unit_price'))}
                     </Typography>
                   </Box>
                   {/* <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>

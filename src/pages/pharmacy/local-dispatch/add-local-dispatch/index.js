@@ -914,9 +914,14 @@ const AddLocalDispatch = () => {
                   variant='body2'
                   sx={{ color: 'customColors.neutralSecondary', fontSize: '14px', fontWeight: 400 }}
                 >
-                  Total Dispatch Value:{' '}
+                  Total Dispatch Value: {console.log('totalDispatchValue', totalDispatchValue)}
                   <Typography component='span' variant='body2' sx={{ color: 'primary.light' }}>
-                    {Utility.formatAmountToReadableDigit(totalDispatchValue)}
+                    {totalDispatchValue == null ||
+                    totalDispatchValue == '0' ||
+                    totalDispatchValue == 0 ||
+                    isNaN(totalDispatchValue)
+                      ? Utility.formatAmountToReadableDigit(0)
+                      : Utility.formatAmountToReadableDigit(totalDispatchValue.toString())}
                   </Typography>
                 </Typography>
               </Stack>
@@ -998,7 +1003,9 @@ const AddLocalDispatch = () => {
 
                                 <TableCell>{el.request_item_qty}</TableCell>
                                 <TableCell sx={{ borderBottomColor: 'customColors.customTableBorderBg' }}>
-                                  {Utility.formatAmountToReadableDigit(el.unit_price)}
+                                  {el.unit_price == null || el.unit_price == '0'
+                                    ? Utility.formatAmountToReadableDigit('0')
+                                    : Utility.formatAmountToReadableDigit(el.unit_price)}
                                 </TableCell>
                                 <TableCell sx={{ borderBottomColor: 'customColors.customTableBorderBg' }}>
                                   {Utility.formatAmountToReadableDigit(el.request_item_qty * el.unit_price)}

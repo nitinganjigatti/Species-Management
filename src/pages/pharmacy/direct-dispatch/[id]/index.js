@@ -436,8 +436,10 @@ const IndividualRequest = () => {
       minWidth: 20,
       field: 'requested_qty',
       headerName: 'Dispatch QTY',
-      type: 'number',
-      align: 'right',
+      headerAlign: 'center',
+
+      // type: 'number',
+      align: 'center',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.requested_qty}
@@ -651,8 +653,8 @@ const IndividualRequest = () => {
       width: 140,
       field: 'dispatch_qty',
       headerName: 'Fulfilled QTY',
-      type: 'number',
-      align: 'right',
+      headerAlign: 'center',
+      align: 'center',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.dispatch_qty}

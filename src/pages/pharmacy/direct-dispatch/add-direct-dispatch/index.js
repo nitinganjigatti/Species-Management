@@ -1134,7 +1134,12 @@ const AddDirectDispatch = () => {
                                   {el.request_item_qty}
                                 </TableCell>
                                 <TableCell sx={{ borderBottomColor: 'customColors.customTableBorderBg' }}>
-                                  {Utility.formatAmountToReadableDigit(el.unit_price)}
+                                  {el.unit_price == null ||
+                                  el.unit_price == '0' ||
+                                  isNaN(el.unit_price) ||
+                                  el.unit_price == 0
+                                    ? Utility.formatAmountToReadableDigit('0')
+                                    : Utility.formatAmountToReadableDigit(el.unit_price)}
                                 </TableCell>
                                 <TableCell sx={{ borderBottomColor: 'customColors.customTableBorderBg' }}>
                                   {Utility.formatAmountToReadableDigit(el.request_item_qty * el.unit_price)}
