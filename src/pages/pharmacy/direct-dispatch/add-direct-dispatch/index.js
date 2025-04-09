@@ -1016,7 +1016,12 @@ const AddDirectDispatch = () => {
                 >
                   Total Dispatch Value:{' '}
                   <Typography component='span' variant='body2' sx={{ color: 'primary.light' }}>
-                    {Utility.formatAmountToReadableDigit(totalDispatchValue)}
+                    {totalDispatchValue == null ||
+                    totalDispatchValue == '0' ||
+                    isNaN(totalDispatchValue) ||
+                    totalDispatchValue == 0
+                      ? Utility.formatAmountToReadableDigit('0')
+                      : Utility.formatAmountToReadableDigit(totalDispatchValue)}
                   </Typography>
                 </Typography>
               </Stack>
