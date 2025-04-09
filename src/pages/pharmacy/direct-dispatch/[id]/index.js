@@ -1109,13 +1109,17 @@ const IndividualRequest = () => {
                     <>
                       <Grid item xs={3} sm={12 / 5} lg={12 / 5}>
                         <h5 style={{ marginBottom: '0px', marginTop: '0px' }}>Requested Amount</h5>
-                        <p style={{ marginBottom: '0' }}>{requestItems?.requested_amount}</p>
+                        <p style={{ marginBottom: '0' }}>
+                          {Utility.formatAmountToReadableDigit(requestItems?.requested_amount)}
+                        </p>
                       </Grid>
                       {shippedItems.length > 0 && (
                         <>
                           <Grid item xs={3} sm={12 / 5} lg={12 / 5}>
                             <h5 style={{ marginBottom: '0px', marginTop: '0px' }}>Shipped Amount</h5>
-                            <p style={{ marginBottom: '0' }}>{requestItems?.shipped_amount}</p>
+                            <p style={{ marginBottom: '0' }}>
+                              {Utility.formatAmountToReadableDigit(requestItems?.shipped_amount)}
+                            </p>
                           </Grid>
                           <Grid item xs={3} sm={12 / 5} lg={12 / 5}>
                             <h5 style={{ marginBottom: '0px', marginTop: '0px' }}>Shipped Qty</h5>
