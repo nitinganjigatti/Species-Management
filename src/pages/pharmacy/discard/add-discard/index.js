@@ -566,6 +566,7 @@ const AddDiscardProducts = () => {
       if (response?.success === true && response?.data?.item_details?.length > 0) {
         setExcelLoader(false)
         const supplierId = response?.data?.supplier_id || null
+
         const discardDate = response?.data?.discarded_date
           ? formatDate(response?.data?.discarded_date) // Ensure date is formatted
           : 'N/A'
@@ -815,7 +816,7 @@ const AddDiscardProducts = () => {
                     {totalQty ? totalQty : '0'}
                   </Typography>
                 </Typography>
-                <Typography
+                {/* <Typography
                   variant='body2'
                   sx={{ color: 'customColors.neutralSecondary', fontSize: '14px', fontWeight: 400 }}
                 >
@@ -823,7 +824,7 @@ const AddDiscardProducts = () => {
                   <Typography component='span' variant='body2' sx={{ color: 'primary.light' }}>
                     ₹0
                   </Typography>
-                </Typography>
+                </Typography> */}
               </Stack>
             </Box>
 
@@ -905,9 +906,15 @@ const AddDiscardProducts = () => {
                             </TableCell>
 
                             <TableCell>
-                              <Typography variant='body2' sx={{ color: 'text.primary' }}>
-                                {Utility.formatDisplayDate(el.expiry_date) === 'Invalid date' ? 'NA' : el.expiry_date}
-                              </Typography>
+                              {el.stock_type != 'non_medical' ? (
+                                <Typography variant='body2' sx={{ color: 'text.primary' }}>
+                                  {Utility.formatDisplayDate(el.expiry_date) === 'Invalid date' ? 'NA' : el.expiry_date}
+                                </Typography>
+                              ) : (
+                                <Typography variant='body2' sx={{ color: 'text.primary' }}>
+                                  NA
+                                </Typography>
+                              )}
                             </TableCell>
                             <TableCell>{el.quantity}</TableCell>
                             {/* <TableCell>{el.comments ? el.comments : 'NA'}</TableCell> */}
