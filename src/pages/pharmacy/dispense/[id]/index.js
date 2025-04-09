@@ -167,6 +167,7 @@ const IndividualDispense = () => {
     id: `${row.id}`,
     sl_no: index + 1
   }))
+
   const animalDispenseRows = dispenseData?.animal_details?.map((row, index) => ({
     ...row,
     id: `${row.animal_id}`,
@@ -303,9 +304,9 @@ const IndividualDispense = () => {
                       variant='body2'
                       sx={{ color: 'customColors.neutralSecondary', fontSize: '14px', fontWeight: 400 }}
                     >
-                      Total Dispense Quantity:{' '}
+                      Total Dispense Value:{' '}
                       <Typography component='span' variant='body2' sx={{ color: 'primary.light' }}>
-                        {totalDispenseQuantity ? totalDispenseQuantity : '0'}
+                        {totalDispenseQuantity ? Utility.formatAmountToReadableDigit(totalDispenseQuantity) : '0'}
                       </Typography>
                     </Typography>
                   </Stack>
