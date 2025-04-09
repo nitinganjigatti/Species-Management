@@ -194,6 +194,7 @@ const FeedOverview = ({ isActive, setIsActive, FeedDetailsValue, permission }) =
                   }
                   labelPlacement='start'
                   label={isActive === '1' ? 'Active' : 'InActive'}
+                  disabled={!permission}
                 />
               </Grid>
             </div>

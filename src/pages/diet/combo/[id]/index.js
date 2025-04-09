@@ -17,7 +17,8 @@ import {
   Breadcrumbs,
   Link,
   Divider,
-  IconButton
+  IconButton,
+  Avatar
 } from '@mui/material'
 import RecipeDetailCardview from 'src/views/pages/combo/combo-detail/cardview'
 import Router from 'next/router'
@@ -204,7 +205,7 @@ const RecipeDetail = () => {
                       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'end' }}>
                         <Tooltip title='Copy' placement='top'>
                           <Box sx={{ pr: 3 }}>
-                            <Icon
+                            {/* <Icon
                               icon='fluent:copy-32-regular'
                               style={{
                                 fontSize: 24,
@@ -213,15 +214,44 @@ const RecipeDetail = () => {
                                 marginLeft: '10px'
                               }}
                               onClick={handleRecipeClick}
+                            /> */}
+                            <Avatar
+                              sx={{
+                                width: '100%',
+                                height: '100%',
+                                borderRadius: '8px',
+                                cursor: 'pointer',
+                                marginLeft: '10px'
+                              }}
+                              src={'/icons/icon_copy.svg'}
+                              variant='square'
+                              onClick={handleRecipeClick}
                             />
                           </Box>
                         </Tooltip>
                         {(dietModuleAccess === 'EDIT' || dietModuleAccess === 'DELETE') && (
                           <Tooltip title='Edit' placement='top'>
                             <Box sx={{ pr: 3 }}>
-                              <Icon
+                              {/* <Icon
                                 icon='bx:pencil'
                                 style={{ cursor: 'pointer', marginLeft: '10px' }}
+                                onClick={() =>
+                                  Router.push({
+                                    pathname: '/diet/combo/add-combo',
+                                    query: { id: id, action: 'edit' }
+                                  })
+                                }
+                              /> */}
+                              <Avatar
+                                sx={{
+                                  width: '100%',
+                                  height: '100%',
+                                  borderRadius: '8px',
+                                  cursor: 'pointer',
+                                  marginLeft: '10px'
+                                }}
+                                src={'/icons/pencil_outlined.svg'}
+                                variant='square'
                                 onClick={() =>
                                   Router.push({
                                     pathname: '/diet/combo/add-combo',
@@ -236,9 +266,31 @@ const RecipeDetail = () => {
                         {dietModuleAccess === 'DELETE' && (
                           <Tooltip title='Delete' placement='top'>
                             <Box>
-                              <Icon
+                              {/* <Icon
                                 icon='material-symbols:delete-outline'
                                 style={{ cursor: 'pointer', marginLeft: '10px' }}
+                                onClick={() => {
+                                  if (
+                                    Number(IngredientsDetailsval?.total_ingredients) +
+                                      Number(IngredientsDetailsval?.diet_count) >
+                                    0
+                                  ) {
+                                    handleStatusClickOpen()
+                                  } else {
+                                    handleClickOpen()
+                                  }
+                                }}
+                              /> */}
+                              <Avatar
+                                sx={{
+                                  width: '100%',
+                                  height: '100%',
+                                  borderRadius: '8px',
+                                  cursor: 'pointer',
+                                  marginLeft: '10px'
+                                }}
+                                src={'/icons/delete_outlined.svg'}
+                                variant='square'
                                 onClick={() => {
                                   if (
                                     Number(IngredientsDetailsval?.total_ingredients) +
