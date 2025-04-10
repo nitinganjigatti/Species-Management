@@ -25,8 +25,10 @@ const RecipeDetailCardview = ({ IngredientsDetailsval, permission, getRecipeDeta
   const router = useRouter()
   const [deleteDialogBox, setDeleteDialogBox] = useState(false)
   const [activePayload, setActivePayload] = useState(IngredientsDetailsval?.active || false)
+
   const handleClosenew = () => {
     setDeleteDialogBox(false)
+
     //setIsActive(IngredientsDetailsval.active)
   }
 
@@ -43,6 +45,7 @@ const RecipeDetailCardview = ({ IngredientsDetailsval, permission, getRecipeDeta
   const confirmDeleteAction = async () => {
     try {
       setDeleteDialogBox(false)
+
       const response = await updateRecipeStatus(IngredientsDetailsval?.id, {
         status: activePayload,
         meal_type: 'recipe'
@@ -50,6 +53,7 @@ const RecipeDetailCardview = ({ IngredientsDetailsval, permission, getRecipeDeta
       if (response.success === true) {
         //Router.push(`/diet/recipe`)
         getRecipeDetailval(IngredientsDetailsval?.id)
+
         //return toast(t => <ToasterforSuccess isActive={isActive} type='Recipe' id={IngredientsDetailsval.id} t={t} />)
         return Toaster({ type: 'success', message: response?.message })
       } else {
@@ -125,6 +129,7 @@ const RecipeDetailCardview = ({ IngredientsDetailsval, permission, getRecipeDeta
                   }
                   labelPlacement='start'
                   label={isActive === '1' ? 'Active' : 'InActive'}
+                  disabled={!permission}
                 />
               </Grid>
             </Box>

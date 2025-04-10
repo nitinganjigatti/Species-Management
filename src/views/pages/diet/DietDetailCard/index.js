@@ -227,9 +227,10 @@ const DietDetailCard = ({
                 alt={dietDetails?.image}
                 sx={{
                   width: '100%',
-                  height: '300px',
 
-                  // height: '145px',
+                  // height: '300px',
+
+                  height: '145px',
                   borderRadius: '8px',
                   '& img': {
                     objectFit: isSmallDevice ? '' : 'cover',
@@ -436,7 +437,7 @@ const DietDetailCard = ({
                           checked={isActive === '1' ? true : false}
                           onChange={handleSwitchChange}
                           fontSize={2}
-                          disabled={!(dietModuleAccess === 'EDIT' || dietModuleAccess === 'DELETE')}
+                          disabled={dietModuleAccess !== 'EDIT' || dietModuleAccess !== 'DELETE'}
                           sx={{
                             '&.Mui-disabled': {
                               color: 'grey'
@@ -456,9 +457,15 @@ const DietDetailCard = ({
                   {(dietModuleAccess === 'ADD' || dietModuleAccess === 'EDIT' || dietModuleAccess === 'DELETE') && (
                     <Tooltip title='Copy' placement='top'>
                       <Box>
-                        <Icon
+                        {/* <Icon
                           icon='fluent:copy-32-regular'
                           style={{ fontSize: 24, transform: 'rotate(180deg)', cursor: 'pointer' }}
+                          onClick={handleDietClick}
+                        /> */}
+                        <Avatar
+                          sx={{ width: '100%', height: '100%', borderRadius: '8px', cursor: 'pointer', fontSize: 24 }}
+                          src={'/icons/icon_copy.svg'}
+                          variant='square'
                           onClick={handleDietClick}
                         />
                       </Box>
@@ -467,9 +474,17 @@ const DietDetailCard = ({
                   {(dietModuleAccess === 'EDIT' || dietModuleAccess === 'DELETE') && (
                     <Tooltip title='Edit' placement='top'>
                       <Box>
-                        <Icon
+                        {/* <Icon
                           icon='bx:pencil'
                           style={{ fontSize: 24, cursor: 'pointer' }}
+                          onClick={() =>
+                            Router.push({ pathname: '/diet/add-diet', query: { id: dietDetails.id, action: 'update' } })
+                          }
+                        /> */}
+                        <Avatar
+                          sx={{ width: '100%', height: '100%', cursor: 'pointer' }}
+                          src={'/icons/pencil_outlined.svg'}
+                          variant='square'
                           onClick={() =>
                             Router.push({ pathname: '/diet/add-diet', query: { id: dietDetails.id, action: 'update' } })
                           }
@@ -480,12 +495,20 @@ const DietDetailCard = ({
                   {dietModuleAccess === 'DELETE' && (
                     <Tooltip title='Delete' placement='top'>
                       <Box>
-                        <Icon
+                        {/* <Icon
                           onClick={() => {
                             handlelOpenDelete()
                           }}
                           icon='material-symbols:delete-outline'
                           style={{ fontSize: 24, cursor: 'pointer' }}
+                        /> */}
+                        <Avatar
+                          sx={{ width: '100%', height: '100%', borderRadius: '8px', cursor: 'pointer' }}
+                          src={'/icons/delete_outlined.svg'}
+                          variant='square'
+                          onClick={() => {
+                            handlelOpenDelete()
+                          }}
                         />
                       </Box>
                     </Tooltip>
