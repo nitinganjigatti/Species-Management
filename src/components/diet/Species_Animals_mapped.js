@@ -18,9 +18,11 @@ import {
 import { useTheme } from '@mui/material/styles'
 import { LoadingButton } from '@mui/lab'
 import Icon from 'src/@core/components/icon'
+import moment from 'moment'
 import { deleteSpeciesFromDiet } from 'src/lib/api/diet/dietList'
 import Toaster from 'src/components/Toaster'
 import { TabContext, TabList, TabPanel } from '@mui/lab'
+import Utility from 'src/utility'
 
 const SpeciesAnimalsMapped = ({
   setIsOpenTabs,
@@ -475,14 +477,14 @@ const SpeciesAnimalsMapped = ({
                                       variant='body2'
                                       sx={{ color: 'text.primary', fontSize: 12, fontWeight: 500 }}
                                     >
-                                      Nidhin Pratap
+                                      {species?.user_details?.created_by}
                                     </Typography>
                                     <Typography
                                       noWrap
                                       variant='body2'
                                       sx={{ color: theme.palette.customColors.secondaryBg, fontSize: 12 }}
                                     >
-                                      14 Apr 2024 12:35 PM
+                                      {Utility.convertUTCToLocalDateTime(species?.user_details?.created_at)}
                                     </Typography>
                                   </Box>
                                 </Box>
@@ -832,14 +834,14 @@ const SpeciesAnimalsMapped = ({
                                       variant='body2'
                                       sx={{ color: 'text.primary', fontSize: 12, fontWeight: 500 }}
                                     >
-                                      Nidhin Pratap
+                                      {species?.user_details?.created_by}
                                     </Typography>
                                     <Typography
                                       noWrap
                                       variant='body2'
                                       sx={{ color: theme.palette.customColors.secondaryBg, fontSize: 12 }}
                                     >
-                                      14 Apr 2024 12:35 PM
+                                      {Utility.convertUTCToLocalDateTime(species?.user_details?.created_at)}
                                     </Typography>
                                   </Box>
                                 </Box>

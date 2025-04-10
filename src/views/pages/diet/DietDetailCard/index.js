@@ -67,7 +67,6 @@ const DietDetailCard = ({
   const handleClosenew = () => {
     setConfirmDialogBox(false)
   }
-  console.log(dietModulePermission, 'dietModulePermission')
 
   const handleSidebarClose = () => {
     setActivitySidebarOpen(false)
@@ -437,7 +436,7 @@ const DietDetailCard = ({
                           checked={isActive === '1' ? true : false}
                           onChange={handleSwitchChange}
                           fontSize={2}
-                          disabled={dietModuleAccess !== 'EDIT'}
+                          disabled={!(dietModuleAccess === 'EDIT' || dietModuleAccess === 'DELETE')}
                           sx={{
                             '&.Mui-disabled': {
                               color: 'grey'
