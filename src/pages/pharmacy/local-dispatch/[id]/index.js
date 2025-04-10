@@ -337,8 +337,7 @@ const IndividualRequest = () => {
 
   const columns = [
     {
-      flex: 0.05,
-      Width: 40,
+      width: 40,
       field: 'sl_no',
       headerName: 'Sl',
       renderCell: (params, rowId) => (
@@ -348,8 +347,8 @@ const IndividualRequest = () => {
       )
     },
     {
-      flex: 0.2,
-      Width: 40,
+      width: 400,
+      minWidth: 400,
       field: 'stock_name',
       headerName: 'Product Name',
       renderCell: (params, rowId) => (
@@ -382,8 +381,48 @@ const IndividualRequest = () => {
     },
 
     {
-      flex: 0.2,
-      minWidth: 20,
+      width: 100,
+      minWidth: 100,
+      field: 'batch_no',
+      headerName: 'Batch No',
+
+      // align: 'right',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {params.row.batch_no}
+        </Typography>
+      )
+    },
+    {
+      width: 150,
+      minWidth: 150,
+      field: 'unit_price',
+      headerName: 'unit price',
+      type: 'number',
+      align: 'right',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {Utility.formatAmountToReadableDigit(params.row.unit_price)}
+        </Typography>
+      )
+    },
+    {
+      width: 150,
+      minWidth: 150,
+      field: 'qty',
+      headerName: 'total value',
+      type: 'number',
+      align: 'right',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {Utility.formatAmountToReadableDigit(params.row.unit_price * params.row.qty)}
+        </Typography>
+      )
+    },
+
+    {
+      width: 150,
+      minWidth: 150,
       field: 'requested_qty',
       headerName: 'Dispatch QTY',
       type: 'number',

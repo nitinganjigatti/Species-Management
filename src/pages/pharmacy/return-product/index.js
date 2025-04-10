@@ -382,7 +382,7 @@ const ReturnRequestList = () => {
             title='Add Return Request'
             action={() =>
               Router.push({
-                pathname: '/pharmacy/return-product/add-request/'
+                pathname: '/pharmacy/return-product/add-request'
               })
             }
           />

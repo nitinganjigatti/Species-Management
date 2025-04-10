@@ -1238,7 +1238,7 @@ const IndividualReturnRequest = () => {
               You don't have an access to view this request
               <Button
                 onClick={() => {
-                  router.push('/pharmacy/return-product/request-list/')
+                  router.push('/pharmacy/return-product')
                 }}
                 variant='contained'
                 size='small'

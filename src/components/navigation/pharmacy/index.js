@@ -27,7 +27,8 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
   const productsList = {
     title: 'Products',
     icon: 'material-symbols:inventory-2-outline',
-    path: '/pharmacy/medicine/product-list'
+    path: '/pharmacy/medicine',
+    activeWhen: ['/pharmacy/medicine', '/pharmacy/medicine/add-product']
   }
 
   const addProduct = {
@@ -104,7 +105,7 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
     title: 'Return',
     icon: 'material-symbols:assignment-returned-outline-sharp',
 
-    path: '/pharmacy/return-product/request-list',
+    path: '/pharmacy/return-product',
 
     children: []
   }
@@ -112,7 +113,9 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
   const returnListing = {
     title: 'Returns',
     icon: 'material-symbols:assignment-returned-outline-sharp',
-    path: '/pharmacy/return-product/request-list'
+    activeWhen: ['/pharmacy/return-product', '/pharmacy/return-product/add-request'],
+
+    path: '/pharmacy/return-product'
   }
 
   const addReturnRequest = {
@@ -279,6 +282,8 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
   const dispense = {
     title: 'Dispense',
     path: '/pharmacy/dispense',
+    activeWhen: ['/pharmacy/dispense', '/pharmacy/dispense/add-dispense'],
+
     icon: 'bi:boxes'
   }
 
