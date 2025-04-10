@@ -1,0 +1,258 @@
+import { useTheme } from '@mui/material/styles'
+import {
+  Box,
+  Typography,
+  TextField,
+  Button,
+  Drawer,
+  ListItem,
+  ListItemText,
+  ListItemAvatar,
+  Checkbox,
+  Avatar,
+  InputAdornment,
+  IconButton
+} from '@mui/material'
+import SearchIcon from '@mui/icons-material/Search'
+import React from 'react'
+import Icon from 'src/@core/components/icon'
+
+const SelectSiteList = ({
+  openSiteListDrawer,
+  setSiteListDrawer,
+  items,
+  setSearchTerm,
+  searchTerm,
+  tempSelectedItems,
+  setTempSelectedItems
+}) => {
+  const theme = useTheme()
+
+  const handleCloseDrawer = () => {
+    setSiteListDrawer(false)
+  }
+
+  const handleSiteCheckboxChange = site => {
+    const isSelected = tempSelectedItems.Site.includes(site.site_id)
+    const updatedSelection = isSelected
+      ? tempSelectedItems.Site.filter(id => id !== site.site_id)
+      : [...tempSelectedItems.Site, site.site_id]
+
+    setTempSelectedItems({
+      ...tempSelectedItems,
+      Site: updatedSelection
+    })
+  }
+
+  const handleSelectAllSites = () => {
+    const allSiteIds = items.Site.map(site => site.site_id)
+    setTempSelectedItems({
+      ...tempSelectedItems,
+      Site: tempSelectedItems?.Site?.length === allSiteIds?.length ? [] : allSiteIds
+    })
+  }
+
+  const filteredSites = items.Site.filter(site => site.site_name.toLowerCase().includes(searchTerm.toLowerCase()))
+
+  return (
+    <Drawer
+      anchor='right'
+      open={openSiteListDrawer}
+      sx={{
+        '& .MuiDrawer-paper': { width: ['100%', '562px'], height: '100vh' },
+        position: 'relative',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '24px',
+        backgroundColor: 'background.default'
+      }}
+    >
+      {/* header */}
+      <Box
+        sx={{
+          bgcolor: '#FFF',
+          borderRadius: '8px',
+          overflow: 'hidden',
+          width: '100%',
+          maxWidth: 522,
+          margin: '15px 20px 0px 20px'
+        }}
+      >
+        {/* Header */}
+        <Box sx={{ p: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <Box>
+            <Typography variant='h6' fontWeight='500' sx={{ color: '#1F515B' }}>
+              Choose Site
+            </Typography>
+            <Typography variant='body2' sx={{ color: '#44544A' }}>
+              Select a site from the list below
+            </Typography>
+          </Box>
+          {/* <IconButton size='small' sx={{ color: 'text.primary' }} onClick={handleCloseDrawer}>
+            <Icon icon='mdi:close' fontSize={24} />
+          </IconButton> */}
+        </Box>
+
+        {/* Search */}
+        <Box sx={{ p: 2, borderBottom: '1px solid #E0E0E0' }}>
+          <TextField
+            fullWidth
+            placeholder='Search'
+            variant='outlined'
+            size='small'
+            value={searchTerm}
+            onChange={e => setSearchTerm(e.target.value)}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position='start'>
+                  <SearchIcon sx={{ color: '#1F515B' }} />
+                </InputAdornment>
+              ),
+              endAdornment: searchTerm && (
+                <InputAdornment position='end'>
+                  <IconButton
+                    size='small'
+                    onClick={() => {
+                      setSearchTerm('')
+                      //fetchSections('')
+                    }}
+                  >
+                    <Icon icon='mdi:close' fontSize={20} />
+                  </IconButton>
+                </InputAdornment>
+              ),
+              style: { background: '#EFF5F2', borderRadius: '4px', padding: '4px 8px', color: '#1F515B' }
+            }}
+          />
+        </Box>
+
+        {/* Selected Count */}
+        <Box sx={{ p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Typography variant='body2' sx={{ color: '#44544A' }}>
+            Selected {tempSelectedItems?.Site?.length} / {items?.Site?.length}
+          </Typography>
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center'
+            }}
+          >
+            <Button
+              size='small'
+              sx={{
+                color: tempSelectedItems?.Site?.length === items?.Site?.length ? theme.palette.primary.main : '#44544A',
+                fontSize: '12px',
+                fontWeight: 600,
+                textTransform: 'none',
+                p: 0
+              }}
+              onClick={handleSelectAllSites}
+            >
+              {/* {tempSelectedSpecies?.length === speciesData.length ? 'Select all' : 'Select all'} */}
+              Select all
+            </Button>
+
+            <Checkbox
+              checked={tempSelectedItems?.Site?.length === items?.Site?.length}
+              onChange={handleSelectAllSites}
+              inputProps={{ 'aria-label': 'Select all species' }}
+              sx={{
+                '&.Mui-checked': {
+                  color: theme.palette.primary.main
+                },
+                '& .MuiSvgIcon-root': {
+                  width: '19px',
+                  height: '19px',
+                  border: '2px dotted'
+                  //   borderColor:
+                  //     tempSelectedSpecies?.length === speciesData.filter(species => !species.mapped_to_diet).length
+                  //       ? theme.palette.primary.main
+                  //       : '#44544A',
+                  //   color:
+                  //     tempSelectedSpecies?.length === speciesData.filter(species => !species.mapped_to_diet).length
+                  //       ? theme.palette.primary.main
+                  //       : '#44544A'
+                },
+                mr: 1
+              }}
+            />
+          </Box>
+        </Box>
+
+        {/* Sites List */}
+        <Box
+          className=''
+          sx={{
+            flex: 1,
+            overflowY: 'auto',
+            overflowX: 'hidden',
+            height: '60%',
+            p: 2,
+            '&::-webkit-scrollbar': {
+              width: '4px'
+            },
+            '&::-webkit-scrollbar-thumb': {
+              backgroundColor: theme.palette.grey[400],
+              borderRadius: '2px'
+            }
+          }}
+        >
+          {filteredSites.length > 0 ? (
+            filteredSites.map(site => (
+              <ListItem
+                key={site.site_id}
+                sx={{
+                  p: 1.5,
+                  mb: 2,
+                  border: '1px solid',
+                  borderColor: tempSelectedItems.Site.includes(site.site_id) ? '#80E0A3' : '#C3CEC7',
+                  borderRadius: '8px',
+                  bgcolor: tempSelectedItems.Site.includes(site.site_id) ? '#E1F9ED' : 'transparent'
+                }}
+              >
+                <ListItemAvatar>
+                  <Avatar src={site.image || '/default-site.jpg'} variant='rounded' />
+                </ListItemAvatar>
+                <ListItemText
+                  primary={site.site_name}
+                  secondary={site.location || '-'}
+                  primaryTypographyProps={{ fontWeight: 'bold', color: '#1F515B' }}
+                  secondaryTypographyProps={{ color: '#44544A' }}
+                />
+                <Checkbox
+                  checked={tempSelectedItems.Site.includes(site.site_id)}
+                  onChange={() => handleSiteCheckboxChange(site)}
+                />
+              </ListItem>
+            ))
+          ) : (
+            <Typography sx={{ textAlign: 'center', mt: 15 }}>No Site's found</Typography>
+          )}
+        </Box>
+
+        {/* Footer Button */}
+        <Box sx={{ p: 2, textAlign: 'center' }}>
+          <Button
+            variant='contained'
+            fullWidth
+            sx={{
+              bgcolor: '#28A745',
+              color: '#FFF',
+              p: 3,
+              borderRadius: '8px',
+              '&:hover': {
+                bgcolor: '#218838'
+              }
+            }}
+            onClick={handleCloseDrawer}
+            disabled={!tempSelectedItems?.Site || tempSelectedItems.Site.length === 0}
+          >
+            CONTINUE
+          </Button>
+        </Box>
+      </Box>
+    </Drawer>
+  )
+}
+
+export default SelectSiteList

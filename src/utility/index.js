@@ -115,6 +115,13 @@ function convertUTCToLocal(date) {
   return local
 }
 
+function convertUTCToLocalDateTime(date) {
+  var stillUtc = moment.utc(date).toDate()
+  var local = moment(stillUtc).local(true).format('DD MMM YYYY hh:mm A')
+
+  return local
+}
+
 function convertUTCToLocalDate(date) {
   var stillUtc = moment.utc(date).toDate()
   var local = moment(stillUtc).local(true).format('YYYY-MM-DD')
@@ -174,14 +181,13 @@ function formatAmountToReadableDigit(value) {
   // return '0'
 }
 
-const downloadFileFromURL = async (fileUrl, title = '') => {
+const downloadFileFromURL = async (fileUrl, title = 'report') => {
   if (!fileUrl) {
     console.error('No file URL provided')
 
     return
   }
   try {
-    const fileType = fileUrl.split('.').pop()
     const fileExtension = fileUrl.split('/')
     const fetchResponse = await fetch(fileUrl)
     if (!fetchResponse.ok) {
@@ -189,12 +195,7 @@ const downloadFileFromURL = async (fileUrl, title = '') => {
     }
     const blob = await fetchResponse.blob()
     const url = window.URL.createObjectURL(blob)
-
-    const fileName = `${
-      title !== ''
-        ? `${title.toLowerCase().replace(/\s+/g, '-')}-report.${fileType}`
-        : fileExtension[fileExtension.length - 1]
-    }`
+    const fileName = `${fileExtension[fileExtension.length - 1]}`
     const link = document.createElement('a')
     link.href = url
     link.download = fileName
@@ -236,7 +237,6 @@ function formatAmountCompactDisplay(value) {
       compactDisplay: 'short'
     })
   }
-
   return `${Number(roundedNum)}`
 }
 
@@ -253,6 +253,7 @@ const Utility = {
   convertUTCToLocal,
   convertUTCToLocalDate,
   convertUTCToLocaltime,
+  convertUTCToLocalDateTime,
   extractHoursAndMinutes,
   formatNumberToDisplay,
   formatAmountToReadableDigit,

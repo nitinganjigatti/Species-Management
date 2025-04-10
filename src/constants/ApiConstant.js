@@ -144,6 +144,8 @@ export const BATCH_LIST = 'batch-details'
 
 export const ANIMAL_LIST = 'v1/collection/animal/list'
 
+export const ANIMAL_LISTS = 'animal-list'
+
 export const SUBMIT_DISPENSE = 'dispense-item'
 
 export const DASHBOARD_REPORT = 'reports'
@@ -246,20 +248,6 @@ export const PRODUCT_PURCHASE = 'v1/pharma/stock/purchase-details'
 
 export const PRODUCT_PURCHASE_BATCH_LIST = 'purchase'
 
-export const CONSUMPTION_REPORT = 'consumption-report'
-
-export const REQUESTED_ITEMS_REPORT = 'requested-items'
-
-export const DISPENSE_REPORT = 'dispense-report'
-
-export const PURCHASE_REPORT = 'purchase-report'
-
-export const RETURN_REPORT = 'return-report'
-
-export const SHIPMENT_REPORT = 'shipment-report'
-
-export const RETURN_TO_SUPPLIER = 'return-supplier-report'
-
 export const FEED_DETAILS = 'details'
 
 export const FEED = 'feed'
@@ -275,6 +263,8 @@ export const UPDATE_FEED_TYPE = 'diet/feed/update'
 export const INGREDIENT_LIST = 'ingredient-list'
 
 export const LIST = 'list'
+
+export const ANIMAL = 'animal'
 
 export const INGREDIENTS = 'ingredients'
 
@@ -412,6 +402,10 @@ export const SPECIES = 'species'
 
 export const ASSIGN_TO_SPECIES = 'assign-to-species'
 
+export const ASSIGN_TO_ANIMALS = 'assign-to-animal'
+
+export const ASSIGN_EDIT = 'assign-edit'
+
 export const DELETE_SPECIES = 'delete-species'
 
 export const USERS_REPORT = '/user/report'
@@ -437,3 +431,9 @@ export const DELETE_ATTACHMENT_FOR_ANIMAL = 'v1/parivesh/species/site/deleteatta
 export const DOWNLOAD_CSV_FOR_BATCH_DATA = 'v1/parivesh/animal/site/downloadcsvforbatchdata'
 
 export const SPECIES_LIST = 'species-list-egg-wise'
+
+export const GET_SECTIONS = 'master/zoos/getsections'
+
+export const GET_ENCLOSURES = 'master/enclosure/details'
+
+export const GET_TAXONOMYLIST = 'v1/taxonomyunits'

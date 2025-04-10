@@ -44,7 +44,10 @@ const AddIngredientswithChoice = props => {
     setingType,
     ingredientChoiceIndex,
     uom,
-    feedType
+    feedType,
+    fromrow,
+    ingredientwithChoiceId,
+    ingredientwithChoiceName
   } = props
   const theme = useTheme()
   const [feed, setFeed] = React.useState('')
@@ -96,7 +99,7 @@ const AddIngredientswithChoice = props => {
     setSearchValue('')
     parentHandleSidebarClose()
     setFeed('')
-    debouncedSearch('')
+    //debouncedSearch('')
   }
 
   const handleChangeTopFeed = async event => {
@@ -261,33 +264,103 @@ const AddIngredientswithChoice = props => {
     }
   }
 
+  // useEffect(() => {
+  //   // getUnitsList()
+  //   setReachedEnd(true)
+
+  //   try {
+  //     const params = { page: ingredientPage, q: searchValue, sort, limit: 20, status: 1 }
+  //     getIngredientList({ params }).then(res => {
+  //       if (res?.data?.result?.length > 0) {
+  //         const newResults = res.data.result.filter(
+  //           item => !ingredientList.some(existingItem => existingItem.id === item.id)
+  //         )
+
+  //         // Combine previous and new results, ensuring unique IDs
+  //         const combinedList = [...ingredientList, ...newResults]
+  //         const uniqueList = Array.from(new Map(combinedList.map(item => [item.id, item])).values())
+
+  //         setIngredientList(uniqueList)
+  //         setTotalCount(res?.data?.total_count)
+  //         setReachedEnd(false)
+  //       } else {
+  //         setReachedEnd(false)
+  //       }
+  //     })
+  //   } catch (error) {
+  //     console.error(error)
+  //   }
+  // }, [ingredientwithChoiceId])
+
   useEffect(() => {
-    // getUnitsList()
     setReachedEnd(true)
 
-    try {
-      const params = { page: ingredientPage, q: searchValue, sort, limit: 20, status: 1 }
-      getIngredientList({ params }).then(res => {
-        if (res?.data?.result?.length > 0) {
-          const newResults = res.data.result.filter(
-            item => !ingredientList.some(existingItem => existingItem.id === item.id)
-          )
+    const fetchIngredients = async () => {
+      try {
+        // If ingredientwithChoiceName is an array, process each item
+        if (fromrow === 'rowedit_ingredientwithchoice' && Array.isArray(ingredientwithChoiceName)) {
+          let allResults = []
 
-          // Combine previous and new results, ensuring unique IDs
-          const combinedList = [...ingredientList, ...newResults]
+          for (const name of ingredientwithChoiceName) {
+            const params = {
+              page: ingredientPage,
+              q: name,
+              sort,
+              limit: 20,
+              status: 1
+            }
+
+            const res = await getIngredientList({ params })
+
+            if (res?.data?.result?.length > 0) {
+              // Filter out duplicates from previous fetches
+              const newResults = res.data.result.filter(
+                item => !allResults.some(existingItem => existingItem.id === item.id)
+              )
+
+              allResults = [...allResults, ...newResults]
+            }
+          }
+
+          // Combine with existing ingredientList and remove duplicates
+          const combinedList = [...ingredientList, ...allResults]
           const uniqueList = Array.from(new Map(combinedList.map(item => [item.id, item])).values())
 
           setIngredientList(uniqueList)
-          setTotalCount(res?.data?.total_count)
           setReachedEnd(false)
         } else {
+          // Original logic for non-array case
+          const params = {
+            page: ingredientPage,
+            q: searchValue,
+            sort,
+            limit: 20,
+            status: 1
+          }
+
+          const res = await getIngredientList({ params })
+
+          if (res?.data?.result?.length > 0) {
+            const newResults = res.data.result.filter(
+              item => !ingredientList.some(existingItem => existingItem.id === item.id)
+            )
+
+            const combinedList = [...ingredientList, ...newResults]
+            const uniqueList = Array.from(new Map(combinedList.map(item => [item.id, item])).values())
+
+            setIngredientList(uniqueList)
+            setTotalCount(res?.data?.total_count)
+          }
           setReachedEnd(false)
         }
-      })
-    } catch (error) {
-      console.error(error)
+      } catch (error) {
+        console.error(error)
+        setReachedEnd(false)
+      }
     }
-  }, [])
+
+    fetchIngredients()
+  }, [ingredientwithChoiceId])
 
   // Debounced search function
   const debouncedSearch = useCallback(
@@ -309,7 +382,7 @@ const AddIngredientswithChoice = props => {
         setLoading(false)
       }
     }, 500),
-    []
+    [ingredientList]
   )
 
   const handleSearchChange = e => {
@@ -322,39 +395,6 @@ const AddIngredientswithChoice = props => {
     setSearchValue('')
     debouncedSearch('')
   }
-
-  // Top Feed Type
-  // const fetchData = async () => {
-  //   const params = { page: 1, limit: 50, status: 1 }
-  //   try {
-  //     const response = await getFeedTypeList(params)
-
-  //     setFeedType(response?.data?.result)
-  //   } catch (error) {
-  //     console.log('error', error)
-  //   }
-  // }
-
-  // useEffect(() => {
-  //   fetchData()
-  // }, [])
-
-  // uom
-
-  // const getUnitsList = async () => {
-  //   try {
-  //     const params = {
-  //       //type: ['length', 'weight'],
-  //       page: 1,
-  //       limit: 50
-  //     }
-  //     await getCutsizeList(params).then(res => {
-  //       setUom(res?.data?.result)
-  //     })
-  //   } catch (e) {
-  //     console.log(e)
-  //   }
-  // }
 
   const handleScroll = async e => {
     const container = e.target
@@ -614,7 +654,7 @@ const AddIngredientswithChoice = props => {
           const matchedIngredientName = matchedIngredient.ingredientList.map(ingredient => ingredient.name).join(', ')
 
           toast.error(
-            `Ingredient(s) ${matchedIngredientName} already exist(s) with same preparation_type and days_of_week`
+            `Ingredient(s) ${matchedIngredientName} already exist(s) with same preparation type and days of the week`
           )
 
           return
@@ -636,8 +676,13 @@ const AddIngredientswithChoice = props => {
     }
   }
 
-  const sortedIngredientList = [...ingredientList]?.sort((a, b) => a.ingredient_name.localeCompare(b.ingredient_name))
-  console.log(theme, 'theme')
+  let sortedIngredientList = [...ingredientList]?.sort((a, b) => a.ingredient_name.localeCompare(b.ingredient_name))
+
+  if (fromrow !== '' && fromrow === 'rowedit_ingredientwithchoice') {
+    sortedIngredientList = sortedIngredientList.filter(
+      item => ingredientwithChoiceId.includes(item.id) && ingredientwithChoiceName.includes(item.ingredient_name)
+    )
+  }
 
   return (
     <>
@@ -763,7 +808,8 @@ const AddIngredientswithChoice = props => {
         <Box
           key={feed}
           sx={{ marginTop: 35, height: '65%', overflowY: 'auto', bgcolor: theme.palette.customColors.bodyBg }}
-          onScroll={handleScroll}
+          //onScroll={handleScroll}
+          onScroll={fromrow !== 'rowedit_ingredientwithchoice' ? handleScroll : undefined}
         >
           {loading ? (
             <Box sx={{ display: 'flex', justifyContent: 'center', mt: 20 }}>
@@ -855,7 +901,33 @@ const AddIngredientswithChoice = props => {
                       sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 2, mt: 1 }}
                     >
                       <Typography>Id - {item?.id}</Typography>
-                      <Typography>Feed Type - {item?.feed_type_label}</Typography>
+                      <Typography
+                        sx={{
+                          mr: 3,
+                          maxWidth: 150,
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap',
+                          display: 'flex',
+                          alignItems: 'center'
+                        }}
+                        noWrap
+                      >
+                        Feed Type -&nbsp;
+                        <Tooltip title={item?.feed_type_label || ''}>
+                          <span
+                            style={{
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                              whiteSpace: 'nowrap',
+                              display: 'inline-block',
+                              maxWidth: '100%'
+                            }}
+                          >
+                            {item?.feed_type_label}
+                          </span>
+                        </Tooltip>
+                      </Typography>
                     </Stack>
                     <Stack
                       direction='row'
