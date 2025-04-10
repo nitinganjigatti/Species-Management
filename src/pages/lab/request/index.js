@@ -38,6 +38,7 @@ import moment from 'moment'
 const ListOfRequest = () => {
   const theme = useTheme()
   const router = useRouter()
+
   const [loader, setLoader] = useState(false)
   const [selectLoader, setSelectLoader] = useState(false)
   const [labSelected, setLabSelected] = useState()
@@ -54,7 +55,12 @@ const ListOfRequest = () => {
     const id = params.row.lab_test_id
     router.push({
       pathname: `/lab/request/${id}`,
-      query: { lab_id: params.row.lab_id }
+      query: {
+        lab_id: params.row.lab_id,
+        page: router.query?.page,
+        pageSize: router.query?.pageSize,
+        q: router.query.q
+      }
     })
   }
 
@@ -233,9 +239,12 @@ const ListOfRequest = () => {
   const [total, setTotal] = useState(0)
   const [sort, setSort] = useState('asc')
   const [rows, setRows] = useState([])
-  const [searchValue, setSearchValue] = useState('')
+  const [searchValue, setSearchValue] = useState(router.query.q || '')
   const [sortColumn, setSortColumn] = useState('name')
-  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
+  const [paginationModel, setPaginationModel] = useState({
+    page: router?.query?.page ? parseInt(router?.query?.page) : 0,
+    pageSize: router?.query?.pageSize ? parseInt(router?.query?.pageSize) : 10
+  })
   const [loading, setLoading] = useState(false)
 
   function loadServerRows(currentPage, data) {
@@ -246,7 +255,14 @@ const ListOfRequest = () => {
     debounce(async ({ sort, q, column, lab_id }) => {
       setSearchValue(q)
       try {
-        await fetchData({ sort, q, column, lab_id })
+        await fetchData({
+          sort,
+          q,
+          column,
+          lab_id,
+          page: paginationModel.page + 1,
+          pageSize: paginationModel.pageSize
+        })
       } catch (error) {
         console.error(error)
       }
@@ -373,6 +389,11 @@ const ListOfRequest = () => {
     } else {
       setSelectedLab(value)
     }
+    // updateUrlParams({
+    //   q: searchValue,
+    //   page: paginationModel.page + 1,
+    //   pageSize: paginationModel.pageSize
+    // })
 
     const params = {
       sort,
@@ -397,6 +418,11 @@ const ListOfRequest = () => {
       limit: data.pageSize,
       lab_id: selectedLab
     }
+    updateUrlParams({
+      q: searchValue,
+      page: data.page,
+      pageSize: data.pageSize
+    })
 
     setPaginationModel(data)
 
@@ -409,6 +435,12 @@ const ListOfRequest = () => {
 
   const handleSearch = async value => {
     setSearchValue(value)
+    updateUrlParams({
+      page: 0,
+      pageSize: 10,
+      q: value
+    })
+    setPaginationModel({ page: 0, pageSize: 10 })
     await searchTableData({ sort, q: value, column: sortColumn, lab_id: selectedLab })
   }
 
@@ -432,6 +464,11 @@ const ListOfRequest = () => {
     ...row,
     sl_no: getSlNo(index)
   }))
+
+  const updateUrlParams = params => {
+    const query = { ...router.query, ...params }
+    router.replace({ pathname: router.pathname, query }, undefined, { shallow: true })
+  }
 
   useEffect(() => {
     oldstoredData()
