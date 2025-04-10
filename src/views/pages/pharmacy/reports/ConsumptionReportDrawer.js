@@ -68,7 +68,11 @@ const ConsumptionReportDrawer = ({
   }
 
   const handleClearAll = () => {
-    setSelectedOptions({})
+    setSelectedOptions({
+      Pharmacy: [],
+      'Product Type': [],
+      'Drug Type': 'all'
+    })
   }
 
   const handleCheckbox = useCallback(

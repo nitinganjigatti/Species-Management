@@ -379,6 +379,32 @@ const IndividualRequest = () => {
         </Box>
       )
     },
+    {
+      flex: 0.6,
+      minWidth: 20,
+      field: 'unit_price',
+      headerName: 'unit price',
+      type: 'number',
+      align: 'right',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {Utility.formatAmountToReadableDigit(params.row.unit_price)}
+        </Typography>
+      )
+    },
+    {
+      flex: 0.2,
+      minWidth: 20,
+      field: 'qty',
+      headerName: 'total value',
+      type: 'number',
+      align: 'right',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {Utility.formatAmountToReadableDigit(params.row.unit_price * params.row.qty)}
+        </Typography>
+      )
+    },
 
     {
       width: 100,
@@ -502,6 +528,27 @@ const IndividualRequest = () => {
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {Utility.formatDisplayDate(dispatchedItems.dispatch_date)}
+        </Typography>
+      )
+    },
+    {
+      width: 140,
+      field: 'unit_price',
+      headerName: 'unit price',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {console.log(params, 'params')}
+          {params.row.unit_price}
+        </Typography>
+      )
+    },
+    {
+      width: 140,
+      field: 'qty',
+      headerName: 'total value',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {Utility.formatAmountToReadableDigit(params.row.unit_price * params.row.dispatch_qty)}
         </Typography>
       )
     },
@@ -939,6 +986,28 @@ const IndividualRequest = () => {
                         </Box>
                       </Box>
                     </Grid>
+                    <>
+                      <Grid item xs={3} sm={12 / 5} lg={12 / 5}>
+                        <h5 style={{ marginBottom: '0px', marginTop: '0px' }}>Requested Amount</h5>
+                        <p style={{ marginBottom: '0' }}>
+                          {Utility.formatAmountToReadableDigit(requestItems?.requested_amount)}
+                        </p>
+                      </Grid>
+                      {shippedItems.length > 0 && (
+                        <>
+                          <Grid item xs={3} sm={12 / 5} lg={12 / 5}>
+                            <h5 style={{ marginBottom: '0px', marginTop: '0px' }}>Shipped Amount</h5>
+                            <p style={{ marginBottom: '0' }}>
+                              {Utility.formatAmountToReadableDigit(requestItems?.shipped_amount)}
+                            </p>
+                          </Grid>
+                          <Grid item xs={3} sm={12 / 5} lg={12 / 5}>
+                            <h5 style={{ marginBottom: '0px', marginTop: '0px' }}>Shipped Qty</h5>
+                            <p style={{ marginBottom: '0' }}>{requestItems?.shipped_qty}</p>
+                          </Grid>
+                        </>
+                      )}
+                    </>
                   </Grid>
                 </Box>
                 <Box>
