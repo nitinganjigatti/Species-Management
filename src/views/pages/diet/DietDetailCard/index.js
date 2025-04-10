@@ -271,7 +271,7 @@ const DietDetailCard = ({
                       anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
                       transformOrigin={{ vertical: 'top', horizontal: 'left' }}
                       // disablePortal // Prevents rendering in a separate portal
-                      disableScrollLock // Prevents background scrolling from being locked
+                      //disableScrollLock // Prevents background scrolling from being locked
                       sx={{
                         '& .MuiPaper-root': {
                           boxShadow: 'none',
