@@ -437,7 +437,7 @@ const DietDetailCard = ({
                           checked={isActive === '1' ? true : false}
                           onChange={handleSwitchChange}
                           fontSize={2}
-                          disabled={dietModuleAccess !== 'EDIT' || dietModuleAccess !== 'DELETE'}
+                          disabled={!(dietModuleAccess === 'EDIT' || dietModuleAccess === 'DELETE')}
                           sx={{
                             '&.Mui-disabled': {
                               color: 'grey'
