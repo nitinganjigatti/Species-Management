@@ -14,7 +14,7 @@ import { useTheme } from '@mui/material/styles'
 import Icon from 'src/@core/components/icon'
 import { Box, Badge, Breadcrumbs, Tooltip } from '@mui/material'
 import IconButton from '@mui/material/IconButton'
-import Router from 'next/router'
+import Router, { useRouter } from 'next/router'
 import CommonDialogBox from 'src/components/CommonDialogBox'
 import MedicineConfigure from 'src/components/pharmacy/medicine/MedicineConfigure'
 import { AuthContext } from 'src/context/AuthContext'
@@ -22,6 +22,8 @@ import ErrorScreen from 'src/pages/Error'
 
 const ListOfLab = () => {
   const theme = useTheme()
+  const router = useRouter()
+
   const [loader, setLoader] = useState(false)
   const [show, setShow] = useState(false)
   const [configureMedId, setConfigureMedId] = useState('')
@@ -46,7 +48,13 @@ const ListOfLab = () => {
 
     Router.push({
       pathname: '/lab/lab-list/add-Lab',
-      query: { id: params.row.id, action: 'edit' }
+      query: {
+        id: params.row.id,
+        action: 'edit',
+        page: router.query?.page,
+        pageSize: router.query?.pageSize,
+        q: router.query.q
+      }
     })
   }
 
@@ -152,9 +160,12 @@ const ListOfLab = () => {
   const [sort, setSort] = useState('ASC')
   const [rows, setRows] = useState([])
 
-  const [searchValue, setSearchValue] = useState('')
+  const [searchValue, setSearchValue] = useState(router.query.q || '')
   const [sortColumn, setSortColumn] = useState('name')
-  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
+  const [paginationModel, setPaginationModel] = useState({
+    page: router?.query?.page ? parseInt(router?.query?.page) : 0,
+    pageSize: router?.query?.pageSize ? parseInt(router?.query?.pageSize) : 10
+  })
   const [loading, setLoading] = useState(false)
   function loadServerRows(currentPage, data) {
     return data
@@ -186,9 +197,25 @@ const ListOfLab = () => {
     [paginationModel]
   )
 
+  const handlePaginationModelChange = async data => {
+    updateUrlParams({
+      q: searchValue,
+      page: data.page,
+      pageSize: data.pageSize
+    })
+
+    setPaginationModel(data)
+  }
+
   const searchTableData = useCallback(
     debounce(async ({ sort, q, column }) => {
       setSearchValue(q)
+      updateUrlParams({
+        page: 0,
+        pageSize: 10,
+        q: q
+      })
+      setPaginationModel({ page: 0, pageSize: 10 })
       try {
         await fetchTableData({ sort, q, column })
       } catch (error) {
@@ -211,6 +238,12 @@ const ListOfLab = () => {
 
   const handleSearch = async value => {
     setSearchValue(value)
+    updateUrlParams({
+      page: 0,
+      pageSize: 10,
+      q: value
+    })
+    setPaginationModel({ page: 0, pageSize: 10 })
     await searchTableData({ sort, q: value, column: sortColumn })
   }
 
@@ -222,7 +255,10 @@ const ListOfLab = () => {
             size='big'
             variant='outlined'
             onClick={() => {
-              Router.push('/lab/lab-list/add-Lab')
+              Router.push({
+                pathname: '/lab/lab-list/add-Lab',
+                query: { id: data?.id, page: router.query?.page, pageSize: router.query?.pageSize, q: searchValue }
+              })
             }}
           >
             Add Lab
@@ -244,8 +280,13 @@ const ListOfLab = () => {
 
     Router.push({
       pathname: '/lab/lab-list/lab-details',
-      query: { id: data?.id }
+      query: { id: data?.id, page: router.query?.page, pageSize: router.query?.pageSize, q: searchValue }
     })
+  }
+
+  const updateUrlParams = params => {
+    const query = { ...router.query, ...params }
+    router.replace({ pathname: router.pathname, query }, undefined, { shallow: true })
   }
 
   return (
@@ -281,7 +322,7 @@ const ListOfLab = () => {
                   paginationModel={paginationModel}
                   onSortModelChange={handleSortModel}
                   slots={{ toolbar: ServerSideToolbar }}
-                  onPaginationModelChange={setPaginationModel}
+                  onPaginationModelChange={handlePaginationModelChange}
                   loading={loading}
                   onCellClick={onCellClick}
                   slotProps={{

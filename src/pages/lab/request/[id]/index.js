@@ -84,7 +84,7 @@ const RequestDetails = () => {
   const [testDoc, setTestDoc] = useState()
   const [transferStatus, setTransferStatus] = useState('')
 
-  const { id, lab_id } = Router.query
+  const { id, lab_id, page, q, pageSize } = Router.query
 
   const searchParams = useSearchParams()
   const Selectedlab_id = searchParams.get('lab_id')
@@ -331,8 +331,6 @@ const RequestDetails = () => {
     setAnchorEl(null)
   }
 
-  const openPopover = Boolean(anchorEl)
-
   const handleOpenUploader = (e, params) => {
     setOpenUploader(true)
     setTestId(params?.row?.id)
@@ -344,15 +342,6 @@ const RequestDetails = () => {
     setTestImage(params?.row?.attachments?.images)
     setTestDoc(params?.row?.attachments?.docs)
   }
-
-  // const filteredStatusData =
-  //   permissions?.allow_full_access || permissions?.allow_upload_reports // Full access  || Performtest + upload Report > All status should list
-  //     ? statusList
-  //     : statusList.filter(
-  //         // Perform test > status > pending and in progress
-  //         item => ['pending', 'inprogress'].includes(item.key)
-  //         // item => ['awaiting_sample', 'sample_received', 'sample_rejected', 'inprogress'].includes(item.id)
-  //       )
 
   const shouldShowDropdown =
     permissions?.allow_full_access ||
@@ -847,17 +836,6 @@ const RequestDetails = () => {
     } catch (error) {}
   }
 
-  const openFileInNewTab = imageUrl => {
-    window.open(imageUrl, '_blank')
-  }
-
-  // const handleCloseSnackBar = (event, reason) => {
-  //   if (reason === 'clickaway') {
-  //     return
-  //   }
-  //   setOpenSnackbar(false)
-  // }
-
   const handleRowSelection = (rowSelectionModel, details) => {
     setSelectedRow(rowSelectionModel)
 
@@ -869,7 +847,6 @@ const RequestDetails = () => {
   const postMultipleStatus = async (testIds, status) => {
     try {
       // Make your API call here
-
       const params = {
         status: status || headerStatus,
         lab_request: id,
@@ -910,18 +887,6 @@ const RequestDetails = () => {
     }
   }
 
-  function extractHoursAndMinutes(date) {
-    //9:21 PM
-    return moment(date).format('hh:mm A')
-  }
-
-  function convertUTCToLocal(date) {
-    var stillUtc = moment.utc(date).toDate()
-    var local = moment(stillUtc).local(true).format('YYYY-MM-DD HH:mm:ss')
-
-    return local
-  }
-
   return (
     <>
       {loader ? (
@@ -937,7 +902,8 @@ const RequestDetails = () => {
               color='inherit'
               onClick={() =>
                 router.push({
-                  pathname: '/lab/request'
+                  pathname: '/lab/request',
+                  query: { page, pageSize, q }
                 })
               }
             >
