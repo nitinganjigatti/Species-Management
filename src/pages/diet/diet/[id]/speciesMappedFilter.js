@@ -206,10 +206,6 @@ const SpeciesMappedtoDietFilter = ({
     return itemName.toLowerCase().includes(searchTerm.toLowerCase())
   })
 
-  const handlesiteClick = () => {
-    setSiteListDrawer(true)
-  }
-
   const handleRemove = siteId => {
     setTempSelectedItems(prev => ({
       ...prev,
@@ -443,37 +439,26 @@ const SpeciesMappedtoDietFilter = ({
                   </>
                 ) : activeTab === 'Site' ? (
                   <>
-                    {/* <Box
-                      sx={{
-                        borderRadius: '4px',
-                        width: '100%',
-                        bgcolor: '#F2FFF8',
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'space-between',
-                        padding: '12px', // Same as p: 4
-                        color: '#1F515B',
-                        mb: 4,
-                        cursor: 'pointer'
-                      }}
-                      onClick={handlesiteClick}
-                    >
-                      <Typography sx={{ fontWeight: 500, fontSize: '16px' }}>Select site</Typography>
-                      <Icon icon='mdi:chevron-down' fontSize='24px' style={{ color: '#1F515B' }} />
-                    </Box> */}
-
                     <Card sx={{ border: '1px solid #C3CEC7', boxShadow: 'none' }}>
                       <CardHeader
                         title='Select Site'
+                        onClick={() => {
+                          if (tempSelectedItems?.Section?.length === 0) {
+                            //setCollapsed(!collapsed)
+                            setSiteListDrawer(true)
+                          }
+                        }}
+                        disabled={tempSelectedItems?.Section?.length > 0}
                         sx={{
-                          background: '#d1e6e3',
+                          background: tempSelectedItems?.Section?.length > 0 ? '#0000000D' : '#E8F4F2',
                           p: 2,
                           pl: 4,
                           pr: 2,
                           '.MuiCardHeader-title': {
                             fontWeight: '500',
                             fontSize: '16px',
-                            color: '#1F515B'
+                            color: tempSelectedItems?.Section?.length > 0 ? '#44544A' : '#1F515B',
+                            cursor: tempSelectedItems?.Section?.length > 0 ? '' : 'pointer'
                           }
                         }}
                         action={
@@ -483,13 +468,7 @@ const SpeciesMappedtoDietFilter = ({
                             sx={{
                               color: '#44544A'
                             }}
-                            onClick={() => {
-                              if (tempSelectedItems?.Section?.length === 0) {
-                                //setCollapsed(!collapsed)
-                                setSiteListDrawer(true)
-                              }
-                            }}
-                            disabled={tempSelectedItems?.Section?.length > 0} // Disable if sites are selected
+                            disabled={tempSelectedItems?.Section?.length > 0}
                           >
                             <Icon
                               fontSize={20}
@@ -541,15 +520,22 @@ const SpeciesMappedtoDietFilter = ({
                       <Card sx={{ border: '1px solid #C3CEC7', boxShadow: 'none', mt: '6%' }}>
                         <CardHeader
                           title='Select Sections'
+                          onClick={() => {
+                            if (tempSelectedItems?.Enclosure?.length === 0) {
+                              setOpenSectionListDrawer(true)
+                            }
+                          }}
+                          disabled={tempSelectedItems?.Enclosure?.length > 0}
                           sx={{
-                            background: '#d1e6e3',
+                            background: tempSelectedItems?.Enclosure?.length > 0 ? '#0000000D' : '#E8F4F2',
                             p: 2,
                             pl: 4,
                             pr: 2,
                             '.MuiCardHeader-title': {
                               fontWeight: '500',
                               fontSize: '16px',
-                              color: '#1F515B'
+                              color: tempSelectedItems?.Enclosure?.length > 0 ? '#44544A' : '#1F515B',
+                              cursor: tempSelectedItems?.Enclosure?.length > 0 ? '' : 'pointer'
                             }
                           }}
                           action={
@@ -557,12 +543,7 @@ const SpeciesMappedtoDietFilter = ({
                               size='small'
                               aria-label='collapse'
                               sx={{ color: '#44544A' }}
-                              onClick={() => {
-                                if (tempSelectedItems?.Enclosure?.length === 0) {
-                                  setOpenSectionListDrawer(true)
-                                }
-                              }}
-                              disabled={tempSelectedItems?.Enclosure?.length > 0} /// Disable if sections are selected
+                              disabled={tempSelectedItems?.Enclosure?.length > 0}
                             >
                               <Icon
                                 fontSize={20}
@@ -580,7 +561,7 @@ const SpeciesMappedtoDietFilter = ({
                         {tempSelectedItems?.Section?.length > 0 && (
                           <CardContent sx={{ pl: 4, pr: 4, pt: 2, pb: 2 }}>
                             {sectionsData
-                              .filter(section => tempSelectedItems?.Section?.includes(section.section_id)) // Filter only selected sections
+                              .filter(section => tempSelectedItems?.Section?.includes(section.section_id))
                               .map(section => (
                                 <Box
                                   key={section.section_id}
@@ -614,15 +595,17 @@ const SpeciesMappedtoDietFilter = ({
                       <Card sx={{ border: '1px solid #C3CEC7', boxShadow: 'none', mt: '6%', mb: 4 }}>
                         <CardHeader
                           title='Select Enclosures'
+                          onClick={() => setOpenEnclosureListDrawer(true)}
                           sx={{
-                            background: '#d1e6e3',
+                            background: '#E8F4F2',
                             p: 2,
                             pl: 4,
                             pr: 2,
                             '.MuiCardHeader-title': {
                               fontWeight: '500',
                               fontSize: '16px',
-                              color: '#1F515B'
+                              color: tempSelectedItems?.Section?.length > 0 ? '#44544A' : '#1F515B',
+                              cursor: 'pointer'
                             }
                           }}
                           action={
@@ -630,7 +613,6 @@ const SpeciesMappedtoDietFilter = ({
                               size='small'
                               aria-label='collapse'
                               sx={{ color: '#44544A' }}
-                              onClick={() => setOpenEnclosureListDrawer(true)}
                               //disabled={tempSelectedItems.Enclosure?.length > 0} // Disable if enclosures are selected
                             >
                               <Icon fontSize={20} icon={collapsed ? 'mdi:chevron-down' : 'mdi:chevron-up'} />
@@ -783,7 +765,19 @@ const SpeciesMappedtoDietFilter = ({
           <LoadingButton fullWidth variant='outlined' size='large' onClick={handleCancelAll}>
             CANCEL ALL
           </LoadingButton>
-          <LoadingButton fullWidth variant='contained' size='large' onClick={handleApplyFilter}>
+          <LoadingButton
+            fullWidth
+            variant='contained'
+            size='large'
+            onClick={handleApplyFilter}
+            disabled={
+              !(
+                Object.values(tempSelectedItems).some(array => array.length > 0) ||
+                selectedSpeciesIds?.length > 0 ||
+                selectedTaxonomyIds?.length > 0
+              )
+            }
+          >
             APPLY FILTER
           </LoadingButton>
         </Box>

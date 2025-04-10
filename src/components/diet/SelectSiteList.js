@@ -88,9 +88,9 @@ const SelectSiteList = ({
               Select a site from the list below
             </Typography>
           </Box>
-          <IconButton size='small' sx={{ color: 'text.primary' }} onClick={handleCloseDrawer}>
+          {/* <IconButton size='small' sx={{ color: 'text.primary' }} onClick={handleCloseDrawer}>
             <Icon icon='mdi:close' fontSize={24} />
-          </IconButton>
+          </IconButton> */}
         </Box>
 
         {/* Search */}
@@ -140,10 +140,7 @@ const SelectSiteList = ({
             <Button
               size='small'
               sx={{
-                // color:
-                //   tempSelectedSpecies?.length === speciesData.filter(species => !species.mapped_to_diet).length
-                //     ? theme.palette.primary.main
-                //     : '#44544A',
+                color: tempSelectedItems?.Site?.length === items?.Site?.length ? theme.palette.primary.main : '#44544A',
                 fontSize: '12px',
                 fontWeight: 600,
                 textTransform: 'none',
@@ -200,33 +197,37 @@ const SelectSiteList = ({
             }
           }}
         >
-          {filteredSites.map(site => (
-            <ListItem
-              key={site.site_id}
-              sx={{
-                p: 1.5,
-                mb: 2,
-                border: '1px solid',
-                borderColor: tempSelectedItems.Site.includes(site.site_id) ? '#80E0A3' : '#C3CEC7',
-                borderRadius: '8px',
-                bgcolor: tempSelectedItems.Site.includes(site.site_id) ? '#E1F9ED' : 'transparent'
-              }}
-            >
-              <ListItemAvatar>
-                <Avatar src={site.image || '/default-site.jpg'} variant='rounded' />
-              </ListItemAvatar>
-              <ListItemText
-                primary={site.site_name}
-                secondary={site.location || '-'}
-                primaryTypographyProps={{ fontWeight: 'bold', color: '#1F515B' }}
-                secondaryTypographyProps={{ color: '#44544A' }}
-              />
-              <Checkbox
-                checked={tempSelectedItems.Site.includes(site.site_id)}
-                onChange={() => handleSiteCheckboxChange(site)}
-              />
-            </ListItem>
-          ))}
+          {filteredSites.length > 0 ? (
+            filteredSites.map(site => (
+              <ListItem
+                key={site.site_id}
+                sx={{
+                  p: 1.5,
+                  mb: 2,
+                  border: '1px solid',
+                  borderColor: tempSelectedItems.Site.includes(site.site_id) ? '#80E0A3' : '#C3CEC7',
+                  borderRadius: '8px',
+                  bgcolor: tempSelectedItems.Site.includes(site.site_id) ? '#E1F9ED' : 'transparent'
+                }}
+              >
+                <ListItemAvatar>
+                  <Avatar src={site.image || '/default-site.jpg'} variant='rounded' />
+                </ListItemAvatar>
+                <ListItemText
+                  primary={site.site_name}
+                  secondary={site.location || '-'}
+                  primaryTypographyProps={{ fontWeight: 'bold', color: '#1F515B' }}
+                  secondaryTypographyProps={{ color: '#44544A' }}
+                />
+                <Checkbox
+                  checked={tempSelectedItems.Site.includes(site.site_id)}
+                  onChange={() => handleSiteCheckboxChange(site)}
+                />
+              </ListItem>
+            ))
+          ) : (
+            <Typography sx={{ textAlign: 'center', mt: 15 }}>No Site's found</Typography>
+          )}
         </Box>
 
         {/* Footer Button */}
@@ -244,6 +245,7 @@ const SelectSiteList = ({
               }
             }}
             onClick={handleCloseDrawer}
+            disabled={!tempSelectedItems?.Site || tempSelectedItems.Site.length === 0}
           >
             CONTINUE
           </Button>

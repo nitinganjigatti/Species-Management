@@ -401,8 +401,7 @@ const ListOfSpeciesMapped = ({
                           display: 'flex',
                           justifyContent: 'space-between',
                           alignItems: 'center',
-                          p: 2,
-                          mb: 2,
+                          p: 3,
                           borderRadius: '5px'
                         }}
                       >
@@ -452,9 +451,16 @@ const ListOfSpeciesMapped = ({
                               display: 'flex',
                               alignItems: 'center',
                               justifyContent: 'space-between',
-                              borderBottom: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+                              borderBottom:
+                                mappedSpecies.length > 1
+                                  ? `1px solid ${theme.palette.customColors.OutlineVariant}`
+                                  : '',
                               px: 2,
-                              py: 1.5
+                              py: 1.5,
+                              height: '70px',
+                              borderRadius: mappedSpecies.length > 1 ? '' : '5px',
+                              borderTopRightRadius: mappedSpecies.length > 1 ? '0px' : '0px',
+                              borderTopLeftRadius: mappedSpecies.length > 1 ? '0px' : '0px'
                             }}
                           >
                             {/* Species Image and Name */}
@@ -469,7 +475,10 @@ const ListOfSpeciesMapped = ({
                                       ? 'unset'
                                       : species?.default_icon
                                       ? '50%'
-                                      : 'unset'
+                                      : 'unset',
+                                  height: '44px',
+                                  width: '44px',
+                                  mr: 2
                                 }}
                               />
                               <ListItemText
@@ -478,7 +487,8 @@ const ListOfSpeciesMapped = ({
                                   sx: {
                                     color: theme.palette.customColors.OnSurfaceVariant,
                                     fontSize: '16px',
-                                    fontWeight: 600
+                                    fontWeight: 600,
+                                    lineHeight: 1.2
                                   }
                                 }}
                                 secondary={
@@ -488,7 +498,8 @@ const ListOfSpeciesMapped = ({
                                       color: theme.palette.customColors.OnSurfaceVariant,
                                       fontSize: '14px',
                                       fontWeight: 400,
-                                      fontStyle: 'italic'
+                                      fontStyle: 'italic',
+                                      lineHeight: 1.6
                                     }}
                                   >
                                     {species.common_name ? species.common_name : '-'}

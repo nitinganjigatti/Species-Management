@@ -26,6 +26,7 @@ const RecipeCard = ({
   setSearchValue,
   fromrow,
   recipeid,
+  recipeName,
   loading,
   dietid
 }) => {
@@ -435,7 +436,7 @@ const RecipeCard = ({
 
   // Filter sortedRecipeList based on remarks and fromrow condition
   if (fromrow !== '' && fromrow === 'rowedit_recipe') {
-    sortedRecipeList = sortedRecipeList.filter(item => item.id === recipeid) // Compare with recipeid state
+    sortedRecipeList = sortedRecipeList.filter(item => item.id === recipeid && item.recipe_name === recipeName) // Compare with recipeid state
   }
 
   const calculateTotalQuantity = ingredients => {
@@ -465,11 +466,19 @@ const RecipeCard = ({
                   boxShadow: 0,
                   mt: 4,
                   borderRadius: '10px',
-                  cursor: 'pointer'
+                  cursor: 'pointer',
+                  mb: fromrow === 'rowedit_recipe' ? '40px' : '0px'
                 }}
               >
                 <Box
-                  sx={{ display: 'flex', m: 1, cursor: 'pointer', padding: '16px', pb: '10px', pt: '10px' }}
+                  sx={{
+                    display: 'flex',
+                    m: 1,
+                    cursor: 'pointer',
+                    padding: '16px',
+                    pb: '10px',
+                    pt: '10px'
+                  }}
                   onClick={() => {
                     handleCardClick(item, index)
                   }}

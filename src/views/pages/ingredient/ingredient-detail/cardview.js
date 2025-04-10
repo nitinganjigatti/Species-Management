@@ -130,6 +130,7 @@ const IngredientDetailCardview = ({
               }
               labelPlacement='start'
               label={isActive === '1' ? 'Active' : 'InActive'}
+              disabled={!permission}
             />
           </Grid>
         </div>

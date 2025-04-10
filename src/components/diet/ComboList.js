@@ -26,7 +26,8 @@ const ComboList = props => {
     fromrow,
     comboid,
     cutsizelist,
-    dietid
+    dietid,
+    comboName
   } = props
   const theme = useTheme()
   const [rows, setRows] = useState([])
@@ -41,7 +42,14 @@ const ComboList = props => {
   useEffect(() => {
     const getRecipeListData = async () => {
       setReachedEnd(true)
-      const params = { page: ingredientPage, q: searchValue, sortBy, status: 1, limit: 10, meal_type: 'combo' }
+      const params = {
+        page: ingredientPage,
+        q: fromrow !== 'rowedit_combo' ? searchValue : comboName,
+        sortBy,
+        status: 1,
+        limit: 10,
+        meal_type: 'combo'
+      }
       const res = await getRecipeList({ params })
 
       if (res?.data?.result?.length > 0) {
@@ -62,7 +70,7 @@ const ComboList = props => {
     }
 
     getRecipeListData()
-  }, [ingredientPage, sortBy])
+  }, [ingredientPage, sortBy, comboid])
 
   function loadServerRows(currentPage, data) {
     return data
@@ -187,50 +195,61 @@ const ComboList = props => {
             </IconButton>
           </Box>
         </Box>
-        <Box
-          sx={{
-            alignItems: 'center',
-            p: 2,
-            px: '16px'
-          }}
-        >
-          <Box>
-            <TextField
-              value={searchValue}
-              fullWidth
-              InputProps={{
-                startAdornment: (
-                  <Icon
-                    style={{ marginRight: 10, color: theme.palette.customColors.OnSurfaceVariant }}
-                    icon={'ion:search-outline'}
-                  />
-                ),
-                endAdornment: searchValue && (
-                  <IconButton onClick={handleCancelClick} size='small' sx={{ padding: 0 }}>
-                    <Icon icon={'ion:close-outline'} style={{ color: theme.palette.customColors.OnSurfaceVariant }} />
-                  </IconButton>
-                )
-              }}
-              placeholder='Search combo'
-              onChange={handleSearchChange}
-              sx={{
-                '& .MuiOutlinedInput-root': {
-                  borderColor: theme.palette.customColors.Outline,
-                  '& fieldset': {
-                    borderColor: theme.palette.customColors.Outline
+        {fromrow !== 'rowedit_combo' ? (
+          <Box
+            sx={{
+              alignItems: 'center',
+              p: 2,
+              px: '16px'
+            }}
+          >
+            <Box>
+              <TextField
+                value={searchValue}
+                fullWidth
+                InputProps={{
+                  startAdornment: (
+                    <Icon
+                      style={{ marginRight: 10, color: theme.palette.customColors.OnSurfaceVariant }}
+                      icon={'ion:search-outline'}
+                    />
+                  ),
+                  endAdornment: searchValue && (
+                    <IconButton onClick={handleCancelClick} size='small' sx={{ padding: 0 }}>
+                      <Icon icon={'ion:close-outline'} style={{ color: theme.palette.customColors.OnSurfaceVariant }} />
+                    </IconButton>
+                  )
+                }}
+                placeholder='Search combo'
+                onChange={handleSearchChange}
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    borderColor: theme.palette.customColors.Outline,
+                    '& fieldset': {
+                      borderColor: theme.palette.customColors.Outline
+                    }
                   }
-                }
-              }}
-            />
+                }}
+              />
+            </Box>
           </Box>
-        </Box>
+        ) : (
+          ''
+        )}
       </Box>
 
       {/* on scroll */}
       <Box
         className=''
-        sx={{ marginTop: 30, height: '70%', overflowY: 'auto', bgcolor: theme.palette.customColors.bodyBg, p: 4 }}
-        onScroll={handleScroll}
+        sx={{
+          marginTop: fromrow !== 'rowedit_combo' ? 30 : 12,
+          height: fromrow !== 'rowedit_combo' ? '70%' : '80%',
+          overflowY: 'auto',
+          bgcolor: theme.palette.customColors.bodyBg,
+          p: 4
+        }}
+        //onScroll={handleScroll}
+        onScroll={fromrow !== 'rowedit_combo' ? handleScroll : undefined}
       >
         <ComboCard
           rows={ingredientList}
@@ -250,6 +269,7 @@ const ComboList = props => {
           cutsizelist={cutsizelist}
           dietid={dietid}
           loading={loading}
+          comboName={comboName}
         />
 
         {/* End Card Section */}

@@ -18,9 +18,11 @@ import {
 import { useTheme } from '@mui/material/styles'
 import { LoadingButton } from '@mui/lab'
 import Icon from 'src/@core/components/icon'
+import moment from 'moment'
 import { deleteSpeciesFromDiet } from 'src/lib/api/diet/dietList'
 import Toaster from 'src/components/Toaster'
 import { TabContext, TabList, TabPanel } from '@mui/lab'
+import Utility from 'src/utility'
 
 const SpeciesAnimalsMapped = ({
   setIsOpenTabs,
@@ -63,6 +65,7 @@ const SpeciesAnimalsMapped = ({
   const handleChange = (event, newValue) => {
     setSelectionType(newValue)
     setapplyfilterCheck(false)
+    setSelectedItems([])
   }
 
   useEffect(() => {
@@ -202,11 +205,12 @@ const SpeciesAnimalsMapped = ({
                         border: '1px solid #C3CEC7',
                         borderRadius: '7px',
                         padding: '0 8px',
-                        height: '50px',
+                        height: '45px',
                         mb: 0,
                         width: '77%',
                         mr: '17px',
                         ml: '13px',
+                        mt: '10px',
                         backgroundColor: theme.palette.background.paper
                       }}
                     >
@@ -241,32 +245,52 @@ const SpeciesAnimalsMapped = ({
                       size='medium'
                       variant={
                         selectedItems && Object.values(selectedItems).some(array => array.length > 0)
-                          ? theme.palette.primary.dark
-                          : 'outlined'
+                          ? 'outlined'
+                          : theme.palette.primary.dark
                       }
-                      startIcon={<Icon icon='bi:filter' />}
-                      sx={{
-                        lineHeight: '2',
-                        backgroundColor:
-                          selectedItems && Object.values(selectedItems).some(array => array.length > 0)
-                            ? theme.palette.primary.dark
-                            : '',
-                        color:
-                          selectedItems && Object.values(selectedItems).some(array => array.length > 0)
-                            ? '#fff'
-                            : theme.palette.customColors.OnSurfaceVariant,
-                        '&:hover': {
-                          backgroundColor:
-                            selectedItems && Object.values(selectedItems).some(array => array.length > 0)
-                              ? theme.palette.primary.main
-                              : ''
-                        }
-                      }}
+                      startIcon={<Icon icon='mage:filter' style={{ fontSize: '30px' }} />}
                       onClick={() => handleFilter('species')}
+                      sx={{
+                        position: 'relative',
+                        height: '45px',
+                        pr: '6px',
+                        mt: '10px',
+                        // lineHeight: '2.2',
+                        border:
+                          selectedItems && Object.values(selectedItems).some(array => array.length > 0)
+                            ? `1px solid ${theme.palette.primary.main}`
+                            : '1px solid #C3CEC7',
+                        mr: '10px'
+                      }}
                     >
-                      {selectedItems && Object.values(selectedItems).some(array => array.length > 0)
-                        ? Object.values(selectedItems).reduce((total, array) => total + array.length, 0)
-                        : '0'}
+                      {/* Conditional rendering of count */}
+                      {selectedItems && Object.values(selectedItems).some(array => array.length > 0) && (
+                        <span
+                          style={{
+                            position: 'absolute',
+                            top: '-7px',
+                            right: '-5px',
+                            backgroundColor: '#FA6140',
+                            color: 'white',
+                            borderRadius: '50%',
+                            width: '20px',
+                            height: '20px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontSize: '12px',
+                            fontWeight: 'bold'
+                          }}
+                        >
+                          {(() => {
+                            const siteCount = selectedItems.Site?.length || 0
+                            const speciesCount = selectedItems.Species?.length || 0
+                            const taxonomyCount = selectedItems.Taxonomy?.length || 0
+
+                            return speciesCount > 0 ? siteCount + speciesCount : siteCount + taxonomyCount
+                          })()}
+                        </span>
+                      )}
                     </LoadingButton>
                   </>
                 </Box>
@@ -453,14 +477,14 @@ const SpeciesAnimalsMapped = ({
                                       variant='body2'
                                       sx={{ color: 'text.primary', fontSize: 12, fontWeight: 500 }}
                                     >
-                                      Nidhin Pratap
+                                      {species?.user_details?.created_by}
                                     </Typography>
                                     <Typography
                                       noWrap
                                       variant='body2'
                                       sx={{ color: theme.palette.customColors.secondaryBg, fontSize: 12 }}
                                     >
-                                      14 Apr 2024 12:35 PM
+                                      {Utility.convertUTCToLocalDateTime(species?.user_details?.created_at)}
                                     </Typography>
                                   </Box>
                                 </Box>
@@ -516,11 +540,12 @@ const SpeciesAnimalsMapped = ({
                         border: '1px solid #C3CEC7',
                         borderRadius: '7px',
                         padding: '0 8px',
-                        height: '50px',
+                        height: '45px',
                         mb: 0,
                         width: '77%',
                         mr: '17px',
                         ml: '13px',
+                        mt: '10px',
                         backgroundColor: theme.palette.background.paper
                       }}
                     >
@@ -555,32 +580,50 @@ const SpeciesAnimalsMapped = ({
                       size='medium'
                       variant={
                         selectedItems && Object.values(selectedItems).some(array => array.length > 0)
-                          ? theme.palette.primary.dark
-                          : 'outlined'
+                          ? 'outlined'
+                          : theme.palette.primary.dark
                       }
-                      startIcon={<Icon icon='bi:filter' />}
-                      sx={{
-                        lineHeight: '2',
-                        backgroundColor:
-                          selectedItems && Object.values(selectedItems).some(array => array.length > 0)
-                            ? theme.palette.primary.dark
-                            : '',
-                        color:
-                          selectedItems && Object.values(selectedItems).some(array => array.length > 0)
-                            ? '#fff'
-                            : theme.palette.customColors.OnSurfaceVariant,
-                        '&:hover': {
-                          backgroundColor:
-                            selectedItems && Object.values(selectedItems).some(array => array.length > 0)
-                              ? theme.palette.primary.main
-                              : ''
-                        }
-                      }}
+                      startIcon={<Icon icon='mage:filter' style={{ fontSize: '30px' }} />}
                       onClick={() => handleFilter('animals')}
+                      sx={{
+                        position: 'relative',
+                        height: '45px',
+                        pr: '6px',
+                        mt: '10px',
+                        border:
+                          selectedItems && Object.values(selectedItems).some(array => array.length > 0)
+                            ? `1px solid ${theme.palette.primary.main}`
+                            : '1px solid #C3CEC7',
+                        mr: '10px'
+                      }}
                     >
-                      {selectedItems && Object.values(selectedItems).some(array => array.length > 0)
-                        ? Object.values(selectedItems).reduce((total, array) => total + array.length, 0)
-                        : '0'}
+                      {selectedItems && Object.values(selectedItems).some(array => array.length > 0) && (
+                        <span
+                          style={{
+                            position: 'absolute',
+                            top: '-7px',
+                            right: '-5px',
+                            backgroundColor: '#FA6140',
+                            color: 'white',
+                            borderRadius: '50%',
+                            width: '20px',
+                            height: '20px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontSize: '12px',
+                            fontWeight: 'bold'
+                          }}
+                        >
+                          {(() => {
+                            const siteCount = selectedItems.Site?.length || 0
+                            const speciesCount = selectedItems.Species?.length || 0
+                            const taxonomyCount = selectedItems.Taxonomy?.length || 0
+
+                            return speciesCount > 0 ? siteCount + speciesCount : siteCount + taxonomyCount
+                          })()}
+                        </span>
+                      )}
                     </LoadingButton>
                   </>
                 </Box>
@@ -791,14 +834,14 @@ const SpeciesAnimalsMapped = ({
                                       variant='body2'
                                       sx={{ color: 'text.primary', fontSize: 12, fontWeight: 500 }}
                                     >
-                                      Nidhin Pratap
+                                      {species?.user_details?.created_by}
                                     </Typography>
                                     <Typography
                                       noWrap
                                       variant='body2'
                                       sx={{ color: theme.palette.customColors.secondaryBg, fontSize: 12 }}
                                     >
-                                      14 Apr 2024 12:35 PM
+                                      {Utility.convertUTCToLocalDateTime(species?.user_details?.created_at)}
                                     </Typography>
                                   </Box>
                                 </Box>

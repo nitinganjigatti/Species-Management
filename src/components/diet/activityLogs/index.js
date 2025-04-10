@@ -312,6 +312,7 @@ const ActivityLogs = ({
                                   >
                                     {item.user_name}
                                   </Typography>
+
                                   <Typography
                                     variant='body2'
                                     sx={{
@@ -321,8 +322,11 @@ const ActivityLogs = ({
                                       color: theme.palette.customColors.neutralSecondary
                                     }}
                                   >
-                                    {item.action.charAt(0).toUpperCase() + item.action.slice(1) + ' '}
-                                    {activity_type.charAt(0).toUpperCase() + activity_type.slice(1)}
+                                    {item.action === 'diet_assign'
+                                      ? Utility.convertUTCToLocalDateTime(item.activity_time)
+                                      : `${item.action.charAt(0).toUpperCase() + item.action.slice(1) + ' '} ${
+                                          activity_type.charAt(0).toUpperCase() + activity_type.slice(1)
+                                        }`}
                                   </Typography>
                                 </Box>
                               </Box>
