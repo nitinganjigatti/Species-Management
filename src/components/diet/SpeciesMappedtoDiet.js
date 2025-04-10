@@ -52,7 +52,9 @@ const SpeciesMappedtoDiet = ({
   setActiveTab,
   applyfilterCheck,
   setSelectedSections,
-  setSelectedEnclosures
+  setSelectedEnclosures,
+  setSelectedSpeciesIds,
+  setSelectedTaxonomyIds
 }) => {
   const listInnerRef = useRef(null)
   const theme = useTheme()
@@ -93,6 +95,8 @@ const SpeciesMappedtoDiet = ({
     setSelectedItems([])
     setSelectedSections([])
     setSelectedEnclosures([])
+    setSelectedSpeciesIds([])
+    setSelectedTaxonomyIds([])
   }
 
   const handleSelectedclick = val => {
@@ -209,7 +213,7 @@ const SpeciesMappedtoDiet = ({
             bgcolor: theme.palette.background.paper,
             p: '16px',
             borderRadius: '8px',
-            width: '575px',
+            width: '562px',
             overflowY: 'auto',
             '&::-webkit-scrollbar': { width: 0, height: 0 },
             '-ms-overflow-style': 'none',
@@ -233,11 +237,12 @@ const SpeciesMappedtoDiet = ({
                   border: '1px solid #C3CEC7',
                   borderRadius: '4px',
                   padding: '0 8px',
-                  height: '40px',
+                  height: '44px',
                   mb: 0,
                   backgroundColor: theme.palette.background.paper,
-                  width: '100%',
-                  mr: 5
+                  width: '80%',
+                  mr: 5,
+                  ml: 2
                 }}
               >
                 <Icon icon='mi:search' />
@@ -261,48 +266,56 @@ const SpeciesMappedtoDiet = ({
                     }
                   }}
                 />
-                {searchQuery ? <Icon icon='mdi:close' onClick={searchClose} /> : ''}
+                {searchQuery ? <Icon icon='mdi:close' onClick={searchClose} style={{ cursor: 'pointer' }} /> : ''}
               </Box>
               <LoadingButton
                 size='medium'
                 variant={
                   selectedItems && Object.values(selectedItems).some(array => array.length > 0)
-                    ? theme.palette.primary.dark
-                    : 'outlined'
+                    ? 'outlined'
+                    : theme.palette.primary.dark
                 }
-                startIcon={<Icon icon='bi:filter' />}
-                //onClick={handlefilterButton}
-                sx={{
-                  lineHeight: '2',
-                  backgroundColor:
-                    selectedItems && Object.values(selectedItems).some(array => array.length > 0)
-                      ? theme.palette.primary.dark
-                      : '',
-                  color:
-                    selectedItems && Object.values(selectedItems).some(array => array.length > 0)
-                      ? '#fff'
-                      : theme.palette.customColors.OnSurfaceVariant,
-                  '&:hover': {
-                    backgroundColor:
-                      selectedItems && Object.values(selectedItems).some(array => array.length > 0)
-                        ? theme.palette.primary.main
-                        : ''
-                  }
-                }}
+                startIcon={<Icon icon='mage:filter' style={{ fontSize: '30px' }} />}
                 onClick={handleFilter}
+                sx={{
+                  position: 'relative',
+                  height: '45px',
+                  pr: '6px',
+
+                  border:
+                    selectedItems && Object.values(selectedItems).some(array => array.length > 0)
+                      ? `1px solid ${theme.palette.primary.main}`
+                      : '1px solid #C3CEC7',
+                  mr: '10px'
+                }}
               >
-                {/* {selectedItems && Object.values(selectedItems).some(array => array.length > 0)
-                  ? Object.values(selectedItems).reduce((total, array) => total + array.length, 0)
-                  : '0'} */}
-                {selectedItems
-                  ? (() => {
+                {selectedItems && Object.values(selectedItems).some(array => array.length > 0) && (
+                  <span
+                    style={{
+                      position: 'absolute',
+                      top: '-7px',
+                      right: '-5px',
+                      backgroundColor: '#FA6140',
+                      color: 'white',
+                      borderRadius: '50%',
+                      width: '20px',
+                      height: '20px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: '12px',
+                      fontWeight: 'bold'
+                    }}
+                  >
+                    {(() => {
                       const siteCount = selectedItems.Site?.length || 0
                       const speciesCount = selectedItems.Species?.length || 0
                       const taxonomyCount = selectedItems.Taxonomy?.length || 0
 
                       return speciesCount > 0 ? siteCount + speciesCount : siteCount + taxonomyCount
-                    })()
-                  : '0'}
+                    })()}
+                  </span>
+                )}
               </LoadingButton>
             </Box>
           </>

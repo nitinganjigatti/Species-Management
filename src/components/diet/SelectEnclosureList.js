@@ -153,9 +153,9 @@ const SelectEnclosureList = ({
               Select a enclosure from the list below
             </Typography>
           </Box>
-          <IconButton size='small' sx={{ color: 'text.primary' }} onClick={onClose}>
+          {/* <IconButton size='small' sx={{ color: 'text.primary' }} onClick={onClose}>
             <Icon icon='mdi:close' fontSize={24} />
-          </IconButton>
+          </IconButton> */}
         </Box>
 
         {/* Search */}
@@ -323,6 +323,7 @@ const SelectEnclosureList = ({
             fullWidth
             sx={{ bgcolor: '#28A745', color: '#FFF', p: 2, borderRadius: '8px', '&:hover': { bgcolor: '#218838' } }}
             onClick={() => onSelectEnclosures(selectedEnclosures)}
+            disabled={selectedEnclosures.length <= 0}
           >
             CONTINUE
           </Button>

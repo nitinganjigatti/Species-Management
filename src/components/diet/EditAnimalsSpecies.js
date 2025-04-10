@@ -25,6 +25,7 @@ import Toaster from 'src/components/Toaster'
 import { useMediaQuery } from '@mui/material'
 import { editAssigntoDiet } from 'src/lib/api/diet/dietList'
 import { TabContext, TabList, TabPanel } from '@mui/lab'
+import { right } from '@popperjs/core'
 
 const EditAnimalSpeciesMapped = ({
   setIsOpenTabs,
@@ -310,7 +311,9 @@ const EditAnimalSpeciesMapped = ({
                       padding: '0 8px',
                       height: '50px',
                       mb: 0,
-                      backgroundColor: theme.palette.background.paper
+                      backgroundColor: theme.palette.background.paper,
+                      ml: '10px',
+                      mr: '5px'
                     }}
                   >
                     <Icon icon='mi:search' />
@@ -463,8 +466,7 @@ const EditAnimalSpeciesMapped = ({
                                 display: 'flex',
                                 justifyContent: 'space-between',
                                 alignItems: 'center',
-                                p: 2,
-                                mb: 2,
+                                p: 3,
                                 borderRadius: '5px'
                               }}
                             >
@@ -513,9 +515,16 @@ const EditAnimalSpeciesMapped = ({
                                   display: 'flex',
                                   alignItems: 'center',
                                   justifyContent: 'space-between',
-                                  borderBottom: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+                                  borderBottom:
+                                    mappedSpecies.length > 1
+                                      ? `1px solid ${theme.palette.customColors.OutlineVariant}`
+                                      : '',
                                   px: 2,
-                                  py: 1.5
+                                  py: 1.5,
+                                  height: '70px',
+                                  borderRadius: mappedSpecies.length > 1 ? '' : '5px',
+                                  borderTopRightRadius: mappedSpecies.length > 1 ? '0px' : '0px',
+                                  borderTopLeftRadius: mappedSpecies.length > 1 ? '0px' : '0px'
                                 }}
                               >
                                 {/* Species Image and Name */}
@@ -530,7 +539,10 @@ const EditAnimalSpeciesMapped = ({
                                           ? 'unset'
                                           : species?.default_icon
                                           ? '50%'
-                                          : 'unset'
+                                          : 'unset',
+                                      height: '44px',
+                                      width: '44px',
+                                      mr: 2
                                     }}
                                   />
                                   <ListItemText
@@ -539,7 +551,8 @@ const EditAnimalSpeciesMapped = ({
                                       sx: {
                                         color: theme.palette.customColors.OnSurfaceVariant,
                                         fontSize: '16px',
-                                        fontWeight: 600
+                                        fontWeight: 600,
+                                        lineHeight: 1.2
                                       }
                                     }}
                                     secondary={
@@ -549,7 +562,8 @@ const EditAnimalSpeciesMapped = ({
                                           color: theme.palette.customColors.OnSurfaceVariant,
                                           fontSize: '14px',
                                           fontWeight: 400,
-                                          fontStyle: 'italic'
+                                          fontStyle: 'italic',
+                                          lineHeight: 1.6
                                         }}
                                       >
                                         {species.common_name ? species.common_name : '-'}
@@ -743,9 +757,15 @@ const EditAnimalSpeciesMapped = ({
                                   display: 'flex',
                                   alignItems: 'center',
                                   justifyContent: 'space-between',
-                                  borderBottom: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+                                  borderBottom:
+                                    mappedSpecies.length > 1
+                                      ? `1px solid ${theme.palette.customColors.OutlineVariant}`
+                                      : '',
                                   px: 2,
-                                  py: 1.5
+                                  py: 1.5,
+                                  borderRadius: mappedSpecies.length > 1 ? '' : '5px',
+                                  borderTopRightRadius: mappedSpecies.length > 1 ? '0px' : '0px',
+                                  borderTopLeftRadius: mappedSpecies.length > 1 ? '0px' : '0px'
                                 }}
                               >
                                 {/* Species Image and Name */}
@@ -760,7 +780,10 @@ const EditAnimalSpeciesMapped = ({
                                           ? 'unset'
                                           : species?.default_icon
                                           ? '50%'
-                                          : 'unset'
+                                          : 'unset',
+                                      height: '44px',
+                                      width: '44px',
+                                      mr: 2
                                     }}
                                   />
                                   <ListItemText

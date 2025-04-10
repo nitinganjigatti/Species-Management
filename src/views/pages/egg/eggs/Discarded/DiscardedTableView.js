@@ -171,7 +171,15 @@ const DiscardedTableView = ({
       headerName: 'Request ID & Eggs',
       renderCell: params => (
         <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-          <Box sx={{ p: '6px', height: '40px', width: '40px', borderRadius: '4px', bgcolor: '#EFF5F2' }}>
+          <Box
+            sx={{
+              p: '6px',
+              height: '40px',
+              width: '40px',
+              borderRadius: '4px',
+              bgcolor: theme.palette.customColors.lightBg
+            }}
+          >
             <img style={{ width: '100%', height: '100%' }} src={'/icons/redEgg.png'} alt='Egg' />
           </Box>
 
@@ -194,7 +202,7 @@ const DiscardedTableView = ({
             </Tooltip>
             <Typography
               sx={{
-                color: '#E93353',
+                color: theme.palette.customColors.AntzError,
                 fontSize: '15px',
                 fontWeight: '500',
                 lineHeight: '16.94px',
@@ -292,7 +300,7 @@ const DiscardedTableView = ({
                 height: 30,
                 mr: 4,
                 borderRadius: '50%',
-                background: '#E8F4F2',
+                background: theme.palette.customColors.displaybgPrimary,
                 overflow: 'hidden'
               }}
             >
@@ -384,7 +392,7 @@ const DiscardedTableView = ({
                 <Typography
                   noWrap
                   sx={{
-                    color: '#FA6140',
+                    color: theme.palette.customColors.Tertiary,
                     fontSize: '16px',
                     fontWeight: '500',
                     ml: 0.5
@@ -424,7 +432,7 @@ const DiscardedTableView = ({
                     <Typography
                       noWrap
                       sx={{
-                        color: '#FA6140',
+                        color: theme.palette.customColors.tertiary,
                         fontSize: '16px',
                         fontWeight: '500',
                         lineHeight: '16.94px',

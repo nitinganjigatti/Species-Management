@@ -67,7 +67,7 @@ const DietDetailCard = ({
   const handleClosenew = () => {
     setConfirmDialogBox(false)
   }
-  console.log(dietModulePermission, 'dietModulePermission')
+
   const handleSidebarClose = () => {
     setActivitySidebarOpen(false)
   }
@@ -217,6 +217,7 @@ const DietDetailCard = ({
                 border: '1px solid #d0d0d0',
                 borderRadius: 2,
                 overflow: 'hidden'
+
                 // boxShadow: 2
               }}
             >
@@ -226,8 +227,10 @@ const DietDetailCard = ({
                 alt={dietDetails?.image}
                 sx={{
                   width: '100%',
-                  height: '100%',
-                  // height: '145px',
+
+                  // height: '300px',
+
+                  height: '145px',
                   borderRadius: '8px',
                   '& img': {
                     objectFit: isSmallDevice ? '' : 'cover',
@@ -268,7 +271,7 @@ const DietDetailCard = ({
                       anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
                       transformOrigin={{ vertical: 'top', horizontal: 'left' }}
                       // disablePortal // Prevents rendering in a separate portal
-                      disableScrollLock // Prevents background scrolling from being locked
+                      //disableScrollLock // Prevents background scrolling from being locked
                       sx={{
                         '& .MuiPaper-root': {
                           boxShadow: 'none',
@@ -301,84 +304,90 @@ const DietDetailCard = ({
                     </Menu>
                   </div>
                 </Box>
-                {console.log(theme, 'them')}
                 {/* Species and Animals Details */}
                 <Grid container spacing={2}>
                   {/* Species Section */}
                   <Grid item xs={12}>
-                    <Box display='flex' justifyContent='space-between' alignItems='center'>
-                      {/* Label */}
-                      <Typography
-                        variant='body2'
-                        fontWeight='bold'
-                        sx={{ color: theme.palette.customColors.secondaryBg, fontSize: '16px' }}
-                      >
-                        Species
-                      </Typography>
-                      {/* Value and Primary */}
-                      <Box
-                        display='flex'
-                        alignItems='center'
-                        onClick={() => handleSpeciesClicknew('details', 'species')}
-                        sx={{ cursor: 'pointer' }}
-                      >
-                        <Typography variant='h6' color={theme.palette.primary.main}>
-                          {dietDetails.total_species}
-                        </Typography>
+                    {dietDetails?.total_species !== '0' ? (
+                      <Box display='flex' justifyContent='space-between' alignItems='center'>
+                        {/* Label */}
                         <Typography
-                          variant='caption'
-                          sx={{
-                            background: theme.palette.customColors.bodyBg,
-                            p: '5px',
-                            borderRadius: '3px',
-                            ml: 2,
-                            color: theme.palette.customColors.OnSurfaceVariant,
-                            fontWeight: '600'
-                          }}
+                          variant='body2'
+                          fontWeight='bold'
+                          sx={{ color: theme.palette.customColors.secondaryBg, fontSize: '16px' }}
                         >
-                          Primary {dietDetails.total_primary_species}
+                          Species
                         </Typography>
+                        <Box
+                          display='flex'
+                          alignItems='center'
+                          onClick={() => handleSpeciesClicknew('details', 'species')}
+                          sx={{ cursor: 'pointer' }}
+                        >
+                          <Typography variant='h6' color={theme.palette.primary.main}>
+                            {dietDetails.total_species}
+                          </Typography>
+                          <Typography
+                            variant='caption'
+                            sx={{
+                              background: theme.palette.customColors.bodyBg,
+                              p: '5px',
+                              borderRadius: '3px',
+                              ml: 2,
+                              color: theme.palette.customColors.OnSurfaceVariant,
+                              fontWeight: '600'
+                            }}
+                          >
+                            Primary {dietDetails.total_primary_species}
+                          </Typography>
+                        </Box>
                       </Box>
-                    </Box>
+                    ) : (
+                      ''
+                    )}
                   </Grid>
 
                   {/* Animals Section */}
                   <Grid item xs={12}>
-                    <Box
-                      display='flex'
-                      justifyContent='space-between'
-                      alignItems='center'
-                      sx={{ pb: 3, cursor: 'pointer' }}
-                      onClick={() => handleSpeciesClicknew('details', 'animals')}
-                    >
-                      {/* Label */}
-                      <Typography
-                        variant='body2'
-                        fontWeight='bold'
-                        sx={{ color: theme.palette.customColors.secondaryBg, fontSize: '16px' }}
+                    {dietDetails?.total_animals !== '0' ? (
+                      <Box
+                        display='flex'
+                        justifyContent='space-between'
+                        alignItems='center'
+                        sx={{ pb: 3, cursor: 'pointer' }}
+                        onClick={() => handleSpeciesClicknew('details', 'animals')}
                       >
-                        Animals
-                      </Typography>
-                      {/* Value and Primary */}
-                      <Box display='flex' alignItems='center'>
-                        <Typography variant='h6' color={theme.palette.primary.main}>
-                          {dietDetails.total_animals}
-                        </Typography>
+                        {/* Label */}
                         <Typography
-                          variant='caption'
-                          sx={{
-                            background: theme.palette.customColors.bodyBg,
-                            p: '5px',
-                            borderRadius: '3px',
-                            ml: 2,
-                            color: theme.palette.customColors.OnSurfaceVariant,
-                            fontWeight: '600'
-                          }}
+                          variant='body2'
+                          fontWeight='bold'
+                          sx={{ color: theme.palette.customColors.secondaryBg, fontSize: '16px' }}
                         >
-                          Primary {dietDetails.total_primary_animals}
+                          Animals
                         </Typography>
+                        {/* Value and Primary */}
+                        <Box display='flex' alignItems='center'>
+                          <Typography variant='h6' color={theme.palette.primary.main}>
+                            {dietDetails.total_animals}
+                          </Typography>
+                          <Typography
+                            variant='caption'
+                            sx={{
+                              background: theme.palette.customColors.bodyBg,
+                              p: '5px',
+                              borderRadius: '3px',
+                              ml: 2,
+                              color: theme.palette.customColors.OnSurfaceVariant,
+                              fontWeight: '600'
+                            }}
+                          >
+                            Primary {dietDetails.total_primary_animals}
+                          </Typography>
+                        </Box>
                       </Box>
-                    </Box>
+                    ) : (
+                      ''
+                    )}
                   </Grid>
                 </Grid>
               </Box>
@@ -428,7 +437,7 @@ const DietDetailCard = ({
                           checked={isActive === '1' ? true : false}
                           onChange={handleSwitchChange}
                           fontSize={2}
-                          disabled={dietModuleAccess !== 'EDIT'}
+                          disabled={!(dietModuleAccess === 'EDIT' || dietModuleAccess === 'DELETE')}
                           sx={{
                             '&.Mui-disabled': {
                               color: 'grey'
@@ -448,9 +457,15 @@ const DietDetailCard = ({
                   {(dietModuleAccess === 'ADD' || dietModuleAccess === 'EDIT' || dietModuleAccess === 'DELETE') && (
                     <Tooltip title='Copy' placement='top'>
                       <Box>
-                        <Icon
+                        {/* <Icon
                           icon='fluent:copy-32-regular'
                           style={{ fontSize: 24, transform: 'rotate(180deg)', cursor: 'pointer' }}
+                          onClick={handleDietClick}
+                        /> */}
+                        <Avatar
+                          sx={{ width: '100%', height: '100%', borderRadius: '8px', cursor: 'pointer', fontSize: 24 }}
+                          src={'/icons/icon_copy.svg'}
+                          variant='square'
                           onClick={handleDietClick}
                         />
                       </Box>
@@ -459,9 +474,17 @@ const DietDetailCard = ({
                   {(dietModuleAccess === 'EDIT' || dietModuleAccess === 'DELETE') && (
                     <Tooltip title='Edit' placement='top'>
                       <Box>
-                        <Icon
+                        {/* <Icon
                           icon='bx:pencil'
                           style={{ fontSize: 24, cursor: 'pointer' }}
+                          onClick={() =>
+                            Router.push({ pathname: '/diet/add-diet', query: { id: dietDetails.id, action: 'update' } })
+                          }
+                        /> */}
+                        <Avatar
+                          sx={{ width: '100%', height: '100%', cursor: 'pointer' }}
+                          src={'/icons/pencil_outlined.svg'}
+                          variant='square'
                           onClick={() =>
                             Router.push({ pathname: '/diet/add-diet', query: { id: dietDetails.id, action: 'update' } })
                           }
@@ -472,12 +495,20 @@ const DietDetailCard = ({
                   {dietModuleAccess === 'DELETE' && (
                     <Tooltip title='Delete' placement='top'>
                       <Box>
-                        <Icon
+                        {/* <Icon
                           onClick={() => {
                             handlelOpenDelete()
                           }}
                           icon='material-symbols:delete-outline'
                           style={{ fontSize: 24, cursor: 'pointer' }}
+                        /> */}
+                        <Avatar
+                          sx={{ width: '100%', height: '100%', borderRadius: '8px', cursor: 'pointer' }}
+                          src={'/icons/delete_outlined.svg'}
+                          variant='square'
+                          onClick={() => {
+                            handlelOpenDelete()
+                          }}
                         />
                       </Box>
                     </Tooltip>

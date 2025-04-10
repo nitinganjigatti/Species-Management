@@ -73,13 +73,22 @@ const UserThemeOptions = () => {
 
         // *** name required
 
-        atnzS: '#7A8684',
+        secondaryBg: '#7A8684',
+        secondaryBg70: '#dae7df',
         mdAntzNeutral: '#0000000D',
+        antzNotes: '#FCF4AE',
+        antzNotesLight: '#FCF4AEB2',
+        antzNotes80: '#FFE86E',
+        antzNotes40: '#fdfad7',
         OnSurfaceVariant: '#44544A',
         OnSurfaceVariant60: '#44544A99',
         neutralSecondary: '#7A8684',
         antzNeturalBg: '#6F7F75',
         textLabel: '#00ABAB',
+
+        // **
+        OnSurfaceVariant: '#44544A',
+        LightTypographyBody1: '#44544A61',
 
         // *** name required
         customTableCellBg: '#FCF4AE33',
@@ -89,6 +98,11 @@ const UserThemeOptions = () => {
         customCardBorder: '#00ABAB',
         OnSecondaryContainer: '#1F415B',
         neutralSecondary: '#7A8684',
+        neutralTeritary: '#00000033',
+        antzInfoLight: '#AFEFEB4D',
+        antzInfoText: '#32bfdd',
+        antzInfo70: '#AFEFEBB2',
+        antzInfo60: '#32bfdd',
         customHeadingTextColor: '#44544A',
         customTextColorGray2: '#44544ADE',
 
@@ -150,6 +164,7 @@ const UserThemeOptions = () => {
         // light: '#20DE67',
         light: '#1F515B',
         main: '#37BD69',
+        deepDark: '#000000',
         dark: '#006D35',
         OnSurface: '#006D35',
         contrastText: '#FFF'

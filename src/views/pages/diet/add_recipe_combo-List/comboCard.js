@@ -28,6 +28,7 @@ const ComboCard = ({
   setSearchValue,
   fromrow,
   comboid,
+  comboName,
   cutsizelist,
   dietid,
   loading
@@ -485,7 +486,7 @@ const ComboCard = ({
 
   // Filter sortedRecipeList based on remarks and fromrow condition
   if (fromrow !== '' && fromrow === 'rowedit_combo') {
-    sortedRecipeList = sortedRecipeList.filter(item => item.id === comboid) // Compare with comboid state
+    sortedRecipeList = sortedRecipeList.filter(item => item.id === comboid && item.recipe_name === comboName) // Compare with comboid state
   }
 
   const handleChangeSize = (event, item, ingredient) => {
@@ -534,7 +535,8 @@ const ComboCard = ({
                   boxShadow: 0,
                   mt: 4,
                   borderRadius: '10px',
-                  cursor: 'pointer'
+                  cursor: 'pointer',
+                  mb: fromrow === 'rowedit_combo' ? '40px' : '0px'
                 }}
               >
                 <Box

@@ -302,7 +302,7 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi, allocationVal
                   backgroundColor: 'background.default',
                   height: '120%',
                   overflowY: 'scroll',
-                  border: '1px solid #ccc'
+                  border: `1px solid ${theme.palette.customColors.AntzOutlineVariant}`
                 }
               : {
                   backgroundColor: 'background.default',
@@ -320,10 +320,10 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi, allocationVal
                 sx={{
                   mt: 3,
                   px: 0.5,
-                  bgcolor: '#fff',
+                  bgcolor: theme.palette.primary.contrastText,
                   borderRadius: '8px',
                   padding: '20px, 16px, 20px, 16px',
-                  border: '1px solid #C3CEC7'
+                  border: `1px solid ${theme.palette.customColors.AntzOutlineVariant}`
                 }}
               >
                 <FormControl fullWidth sx={{ width: '95%', ml: 3, mt: 2 }}>
@@ -574,7 +574,13 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi, allocationVal
             ) : (
               <Card
                 fullWidth
-                sx={{ mt: 2, mx: 4, marginBottom: '122px', boxShadow: 'none', border: '1px solid #C3CEC7' }}
+                sx={{
+                  mt: 2,
+                  mx: 4,
+                  marginBottom: '122px',
+                  boxShadow: 'none',
+                  border: `1px solid ${theme.palette.customColors.AntzOutlineVariant}`
+                }}
               >
                 <CardContent sx={{ mt: '-1px' }}>
                   {fields.map((measurement, index) => (
