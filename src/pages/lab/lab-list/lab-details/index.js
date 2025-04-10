@@ -13,7 +13,7 @@ import FallbackSpinner from 'src/@core/components/spinner/index'
 const LabDetails = () => {
   const theme = useTheme()
   const router = useRouter()
-  const { id } = router.query
+  const { id, page, q, pageSize } = router.query
 
   const [loader, setLoader] = useState(false)
   const [status, setStatus] = useState('site')
@@ -57,7 +57,8 @@ const LabDetails = () => {
               color='inherit'
               onClick={() =>
                 router.push({
-                  pathname: '/lab/lab-list'
+                  pathname: '/lab/lab-list',
+                  query: { page, q, pageSize }
                 })
               }
             >
