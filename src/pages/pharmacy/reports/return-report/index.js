@@ -516,9 +516,9 @@ const ReturnReport = () => {
     {
       minWidth: 20,
       width: 160,
-      field: 'from_store',
+      field: `${selectedPharmacy?.type === 'central' ? 'from_store' : 'to_store'}`,
       sortable: true,
-      headerName: 'FROM STORE',
+      headerName: `${selectedPharmacy?.type === 'central' ? 'FROM STORE' : 'TO STORE'}`,
       renderCell: params => (
         <Typography
           variant='body2'
@@ -529,7 +529,7 @@ const ReturnReport = () => {
             fontFamily: 'Inter'
           }}
         >
-          {params.row.from_store}
+          {selectedPharmacy?.type === 'central' ? params.row.from_store : params.row.to_store}
         </Typography>
       )
     },
@@ -591,6 +591,8 @@ const ReturnReport = () => {
       )
     }
   ]
+
+  console.log(indexedRows)
 
   const handleSwitchChange = event => {
     setExpired(event.target.checked)
