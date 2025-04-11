@@ -22,14 +22,8 @@ import Icon from 'src/@core/components/icon'
 import { getEnclosureList } from 'src/lib/api/diet/dietList'
 
 const SelectEnclosureList = ({
-  openSiteListDrawer,
-  openEnclosureListDrawer,
-  setSiteListDrawer,
-  items,
   tempSelectedItems,
   enclosuresData,
-  setEnclosureListDrawer,
-  setTempSelectedItems,
   open,
   onClose,
   sectionId,
@@ -71,6 +65,12 @@ const SelectEnclosureList = ({
       prev.includes(enclosureId) ? prev.filter(id => id !== enclosureId) : [...prev, enclosureId]
     )
   }
+
+  useEffect(() => {
+    if (open && tempSelectedItems?.Enclosure) {
+      setSelectedEnclosures(tempSelectedItems.Enclosure)
+    }
+  }, [open])
 
   const fetchEnclosures = async (searchQuery = searchTerm) => {
     if (!sectionId) return
@@ -153,9 +153,9 @@ const SelectEnclosureList = ({
               Select a enclosure from the list below
             </Typography>
           </Box>
-          {/* <IconButton size='small' sx={{ color: 'text.primary' }} onClick={onClose}>
+          <IconButton size='small' sx={{ color: 'text.primary' }} onClick={onClose}>
             <Icon icon='mdi:close' fontSize={24} />
-          </IconButton> */}
+          </IconButton>
         </Box>
 
         {/* Search */}
@@ -194,7 +194,7 @@ const SelectEnclosureList = ({
         {/* Selected Count */}
         <Box sx={{ p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <Typography variant='body2' sx={{ color: '#44544A' }}>
-            Selected {selectedEnclosures.length} / {enclosuresData.length}
+            {loading ? '' : `Selected ${selectedEnclosures.length}/${enclosuresData.length}`}
           </Typography>
           <Box
             sx={{
@@ -272,8 +272,10 @@ const SelectEnclosureList = ({
                 <ListItem
                   key={enclosure.enclosure_id}
                   sx={{
-                    p: 1.5,
-                    mb: 2,
+                    pr: 1.5,
+                    pl: 3,
+                    mb: 4,
+                    height: '70px',
                     border: '1px solid',
                     borderColor: selectedEnclosures.includes(enclosure.enclosure_id) ? '#80E0A3' : '#C3CEC7',
                     borderRadius: '8px',
@@ -285,7 +287,7 @@ const SelectEnclosureList = ({
                   </ListItemAvatar>
                   <ListItemText
                     primary={enclosure.user_enclosure_name}
-                    secondary={enclosure.location || '-'}
+                    //secondary={enclosure.location || '-'}
                     primaryTypographyProps={{ fontWeight: 'bold', color: '#1F515B' }}
                     secondaryTypographyProps={{ color: '#44544A' }}
                   />
