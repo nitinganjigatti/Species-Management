@@ -642,7 +642,7 @@ const AddPurchaseForm = () => {
           if (navigatedFrom === 'stockReport') {
             Router.push('/pharmacy/stocks/stocksReport/')
           } else {
-            Router.push('/pharmacy/purchase/purchase-list/')
+            Router.push('/pharmacy/purchase/')
           }
         } else {
           setSubmitLoader(false)
@@ -667,7 +667,7 @@ const AddPurchaseForm = () => {
           toast.success(response.message)
           setEditParams(editParamsInitialState)
           setSubmitLoader(false)
-          Router.push('/pharmacy/purchase/purchase-list/')
+          Router.push('/pharmacy/purchase/')
         } else {
           setSubmitLoader(false)
           if (response.data?.po_no) {
@@ -1115,7 +1115,7 @@ const AddPurchaseForm = () => {
         toast.success(response.message)
         setSubmitLoader(false)
         getListOfItemsById(id)
-        Router.push('/pharmacy/purchase/purchase-list/')
+        Router.push('/pharmacy/purchase/')
       } else {
         setSubmitLoader(false)
         toast.error(response.message)
@@ -1126,7 +1126,7 @@ const AddPurchaseForm = () => {
         toast.success(response.message)
         setEditParams(editParamsInitialState)
         setSubmitLoader(false)
-        Router.push('/pharmacy/purchase/purchase-list/')
+        Router.push('/pharmacy/purchase/')
       } else {
         setSubmitLoader(false)
         if (response.data?.po_no) {

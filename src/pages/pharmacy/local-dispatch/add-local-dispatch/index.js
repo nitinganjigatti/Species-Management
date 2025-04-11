@@ -662,7 +662,7 @@ const AddLocalDispatch = () => {
         console.log('cancelRequest result', result)
         if (result?.data?.success === true) {
           toast.success(result?.data?.data)
-          Router.replace(`/pharmacy/local-dispatch/local-dispatch-list/`)
+          Router.replace(`/pharmacy/local-dispatch/`)
         } else {
           toast.error(result?.data?.data)
           setDeleteDialog(false)
