@@ -46,7 +46,7 @@ const ListOfPurchase = () => {
 
   const updateUrlParams = params => {
     const query = { ...router.query, ...params }
-    router.push({ pathname: router.pathname, query }, undefined, { shallow: true })
+    router.replace({ pathname: router.pathname, query }, undefined, { shallow: true })
   }
 
   /***** Server side pagination */
@@ -60,8 +60,12 @@ const ListOfPurchase = () => {
   const [sortColumn, setSortColumn] = useState(router.query.column || 'po_date')
 
   const [filterDates, setFilterDates] = useState({
-    startDate: router.query.startDate || Utility.formatDate(format(subMonths(new Date(), 1), 'dd MMM, yyyy')),
-    endDate: router.query.endDate || Utility.formatDate(format(new Date(), 'dd MMM, yyyy'))
+    startDate:
+      router.query.from_date === ''
+        ? ''
+        : router.query.from_date || Utility.formatDate(format(subMonths(new Date(), 1), 'dd MMM, yyyy')),
+    endDate:
+      router.query.to_date === '' ? '' : router.query.to_date || Utility.formatDate(format(new Date(), 'dd MMM, yyyy'))
   })
 
   const [paginationModel, setPaginationModel] = useState({
@@ -78,37 +82,54 @@ const ListOfPurchase = () => {
   const { selectedPharmacy } = usePharmacyContext()
 
   const fetchTableData = useCallback(
-    async ({ sort, q, column }) => {
+    async ({ sort, q, column, filterDates }) => {
       try {
         setLoading(true)
+
+        const isEmptyDates = filterDates?.startDate === '' && filterDates?.endDate === ''
 
         const params = {
           sort,
           q,
           column,
-          ...(filterDates?.startDate !== '' && { from_date: filterDates?.startDate }),
-          ...(filterDates?.endDate !== '' && { to_date: filterDates?.endDate }),
+          ...(isEmptyDates
+            ? { from_date: '', to_date: '' } // Explicitly send empty values
+            : filterDates?.startDate && filterDates?.endDate
+            ? { from_date: filterDates.startDate, to_date: filterDates.endDate }
+            : {}),
           page: paginationModel.page + 1,
           limit: paginationModel.pageSize
         }
 
-        await getPurchaseList({ params: params }).then(res => {
+        await getPurchaseList({ params }).then(res => {
           if (res?.success === true && res?.data?.length > 0) {
             console.log('RESPONSE >>', res?.data)
             setTotal(parseInt(res?.count))
             setRows(loadServerRows(paginationModel.page, res?.data))
-            updateUrlParams({
+
+            const urlParams = {
               sort,
-              q: q,
-              column: column,
+              q,
+              column,
               page: paginationModel?.page,
               limit: paginationModel?.pageSize
-            })
+            }
+
+            if (isEmptyDates) {
+              urlParams.from_date = ''
+              urlParams.to_date = ''
+            } else if (filterDates?.startDate && filterDates?.endDate) {
+              urlParams.from_date = filterDates.startDate
+              urlParams.to_date = filterDates.endDate
+            }
+
+            updateUrlParams(urlParams)
           } else {
             setTotal(0)
             setRows([])
           }
         })
+
         setLoading(false)
       } catch (error) {
         console.log('error', error)
@@ -119,16 +140,21 @@ const ListOfPurchase = () => {
     },
     [paginationModel, filterDates]
   )
-  useEffect(() => {
-    fetchTableData({ sort: sort, q: searchValue, column: sortColumn })
-    updateUrlParams({
-      sort,
-      q: searchValue,
-      column: sortColumn,
-      page: paginationModel?.page,
-      limit: paginationModel?.pageSize
-    })
 
+  useEffect(() => {
+    if (filterDates?.startDate !== undefined && filterDates?.endDate !== undefined) {
+      fetchTableData({ sort, q: searchValue, column: sortColumn, filterDates })
+
+      updateUrlParams({
+        sort,
+        q: searchValue,
+        column: sortColumn,
+        page: paginationModel?.page,
+        limit: paginationModel?.pageSize,
+        from_date: filterDates?.startDate || '',
+        to_date: filterDates?.endDate || ''
+      })
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedPharmacy.id, paginationModel.page, paginationModel.pageSize, filterDates])
 
@@ -143,13 +169,15 @@ const ListOfPurchase = () => {
     if (newModel.length) {
       setSort(newModel[0].sort)
       setSortColumn(newModel[0].field)
-      fetchTableData({ sort: newModel[0].sort, q: searchValue, column: newModel[0].field })
+      fetchTableData({ sort: newModel[0].sort, q: searchValue, column: newModel[0].field, filterDates })
       updateUrlParams({
         sort: newModel[0].sort,
         q: searchValue,
         column: newModel[0].field,
         page: paginationModel?.page,
-        limit: paginationModel?.pageSize
+        limit: paginationModel?.pageSize,
+        ...(filterDates?.startDate !== '' && { from_date: filterDates?.startDate }),
+        ...(filterDates?.endDate !== '' && { to_date: filterDates?.endDate })
       })
     } else {
     }
@@ -160,7 +188,7 @@ const ListOfPurchase = () => {
       setSearchValue(q)
       setPaginationModel({ page: 0, pageSize: 10 })
       try {
-        await fetchTableData({ sort, q, column })
+        await fetchTableData({ sort, q, column, filterDates })
         updateUrlParams({
           sort: newModel[0].sort,
           q: q,
@@ -382,6 +410,7 @@ const ListOfPurchase = () => {
         2,
         '0'
       )}-${now.getFullYear()} ${String(now.getHours()).padStart(2, '0')}-${String(now.getMinutes()).padStart(2, '0')}`
+
       const params = {
         sort: sort,
         q: searchValue,

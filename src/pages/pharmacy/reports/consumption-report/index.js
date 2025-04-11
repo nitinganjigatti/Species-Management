@@ -2,6 +2,7 @@ import { useTheme } from '@emotion/react'
 import {
   Badge,
   Card,
+  CardContent,
   CardHeader,
   CircularProgress,
   Grid,
@@ -13,8 +14,7 @@ import {
 import { Box } from '@mui/system'
 import { debounce } from 'lodash'
 import { useRouter } from 'next/router'
-import React, { useCallback, useEffect, useState } from 'react'
-import { format, subDays, subMonths } from 'date-fns'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDateRangePickers'
 import { getConsumptionReport } from 'src/lib/api/pharmacy/reports'
 import Utility from 'src/utility'
@@ -22,8 +22,19 @@ import Icon from 'src/@core/components/icon'
 import RenderUtility from 'src/utility/render'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import { getStoreList } from 'src/lib/api/pharmacy/getStoreList'
-import ConsumptionReportDrawer from 'src/views/pages/pharmacy/reports/consumptionReportDrawer'
+import ConsumptionReportDrawer from 'src/views/pages/pharmacy/reports/ConsumptionReportDrawer'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
+import { format, subMonths } from 'date-fns'
+import { ExportButton, FilterButton } from 'src/views/utility/render-snippets'
+import StyleWithIconCardComponent from 'src/views/utility/style-with-icon-card'
+
+const productTypes = [
+  { id: 'allopathy', name: 'Allopathy' },
+  { id: 'ayurveda', name: 'Ayurveda' },
+  { id: 'unani', name: 'Unani' },
+  { id: 'homeopathy', name: 'Homeopathy' },
+  { id: 'non_medical', name: 'Non Medical' }
+]
 
 const ConsumptionReport = () => {
   const router = useRouter()
@@ -33,17 +44,19 @@ const ConsumptionReport = () => {
 
   const updateUrlParams = params => {
     const query = { ...router.query, ...params }
-    router.push({ pathname: router.pathname, query }, undefined, { shallow: true })
+    router.replace({ pathname: router.pathname, query }, undefined, { shallow: true })
   }
 
   const [rows, setRows] = useState([])
   const [total, setTotal] = useState(0)
   const [loading, setLoading] = useState(false)
-  const [sort, setSort] = useState(router.query.sort || 'desc')
-  const [sortColumn, setSortColumn] = useState(router.query.column || 'total_consumption_cost')
+  const [sort, setSort] = useState(router.query.sort || 'asc')
+  const [sortColumn, setSortColumn] = useState(router.query.column || 'stock_name')
   const [searchValue, setSearchValue] = useState(router.query.q || '')
   const [exportLoading, setExportLoading] = useState(false)
   const [openFilterDrawer, setOpenFilterDrawer] = useState(false)
+  const [selectAllPharmacy, setSelectAllPharmacy] = useState(false)
+  const [selectAllProductTypes, setSelectAllProductTypes] = useState(false)
 
   const [filteredData, setFilteredData] = useState({
     pharmacy: []
@@ -51,26 +64,32 @@ const ConsumptionReport = () => {
   const [pharmacyList, setPharmacyList] = useState([])
 
   const [selectedOptions, setSelectedOptions] = useState({
-    Pharmacy: []
+    Pharmacy: [],
+    'Product Type': [],
+    'Drug Type': 'all'
   })
 
   const [paginationModel, setPaginationModel] = useState({
     page: parseInt(router.query.page) || 0,
-    pageSize: parseInt(router.query.limit) || 10
+    pageSize: parseInt(router.query.limit) || 50
   })
-
-  // const [filterDates, setFilterDates] = useState({
-  //   startDate: router.query.startDate || '',
-  //   endDate: router.query.endDate || ''
-  // })
 
   const [filterDates, setFilterDates] = useState({
     startDate: router.query.startDate || Utility.formatDate(format(subMonths(new Date(), 1), 'dd MMM, yyyy')),
     endDate: router.query.endDate || Utility.formatDate(format(new Date(), 'dd MMM, yyyy'))
   })
 
-  // debugger
-  // console.log(format(new Date(), 'dd MMM, yyyy'))
+  useEffect(() => {
+    setFilteredData({
+      pharmacy: []
+    })
+
+    setSelectedOptions({
+      Pharmacy: [],
+      'Product Type': [],
+      'Drug Type': 'all'
+    })
+  }, [selectedPharmacy?.id])
 
   useEffect(() => {
     const pharmacyList = async () => {
@@ -84,7 +103,8 @@ const ConsumptionReport = () => {
         if (response?.success) {
           let pharmacies = result?.list_items.map(({ id, name }) => ({ id, name })) || []
 
-          pharmacies = pharmacies.filter(pharmacy => pharmacy.id !== selectedPharmacy.id)
+          pharmacies = pharmacies.filter(pharmacy => pharmacy.id !== selectedPharmacy?.id)
+
           setPharmacyList(pharmacies)
         }
       } catch (error) {
@@ -92,7 +112,37 @@ const ConsumptionReport = () => {
       }
     }
     pharmacyList()
-  }, [])
+  }, [selectedPharmacy?.id])
+
+  const handleSelectAllPharmacy = () => {
+    setSelectAllPharmacy(!selectAllPharmacy)
+    if (!selectAllPharmacy) {
+      setSelectedOptions({
+        ...selectedOptions,
+        Pharmacy: pharmacyList.map(p => p.id)
+      })
+    } else {
+      setSelectedOptions({
+        ...selectedOptions,
+        Pharmacy: []
+      })
+    }
+  }
+
+  const handleSelectAllProductTypes = () => {
+    setSelectAllProductTypes(!selectAllProductTypes)
+    if (!selectAllProductTypes) {
+      setSelectedOptions({
+        ...selectedOptions,
+        'Product Type': productTypes.map(pr => pr.id)
+      })
+    } else {
+      setSelectedOptions({
+        ...selectedOptions,
+        'Product Type': []
+      })
+    }
+  }
 
   function loadServerRows(currentPage, data) {
     return data
@@ -114,7 +164,12 @@ const ConsumptionReport = () => {
           ...(filterDates?.endDate !== '' && { to_date: filterDates?.endDate }),
           ...(filteredData &&
             filteredData.pharmacy &&
-            filteredData.pharmacy.length > 0 && { store_id: filteredData.pharmacy.join(',') })
+            filteredData.pharmacy.length > 0 && { store_id: filteredData.pharmacy.join(',') }),
+          ...(filteredData &&
+            filteredData.productType &&
+            filteredData.productType.length > 0 && { product_type: filteredData.productType.join(',') }),
+          ...(filteredData && filteredData.controlled && { controlled: filteredData.controlled }),
+          ...(filteredData && filteredData.prescription && { prescription: filteredData.prescription })
         }
 
         await getConsumptionReport({ params: params }).then(res => {
@@ -132,7 +187,7 @@ const ConsumptionReport = () => {
         setLoading(false)
       }
     },
-    [paginationModel, filterDates]
+    [paginationModel, filterDates, filteredData]
   )
 
   useEffect(() => {
@@ -141,8 +196,7 @@ const ConsumptionReport = () => {
       q: searchValue,
       column: sortColumn,
       page: paginationModel?.page,
-      limit: paginationModel?.pageSize,
-      filteredData: filteredData
+      limit: paginationModel?.pageSize
     })
     updateUrlParams({
       sort,
@@ -153,7 +207,7 @@ const ConsumptionReport = () => {
       startDate: filterDates?.startDate,
       endDate: filterDates?.endDate
     })
-  }, [paginationModel.page, paginationModel.pageSize, sort, sortColumn, filterDates, filteredData, selectedPharmacy.id])
+  }, [paginationModel.page, paginationModel.pageSize, sort, sortColumn, filterDates, selectedPharmacy?.id])
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
@@ -185,23 +239,60 @@ const ConsumptionReport = () => {
       headerName: 'PRODUCT NAME',
       sortable: true,
       renderCell: params => (
-        <Tooltip title={params.row.stock_name}>
-          <Typography
-            variant='body2'
-            sx={{
-              color: theme.palette.customColors.customHeadingTextColor,
+        <>
+          <StyleWithIconCardComponent
+            value={
+              <Box>
+                <Typography sx={{ display: 'flex', alignItems: 'center' }}>
+                  <Typography
+                    sx={{
+                      color: 'customColors.OnSecondaryContainer',
+                      display: 'flex',
+
+                      alignItems: 'center',
+                      fontWeight: 500,
+                      fontSize: '14px',
+                      ...RenderUtility?.getEllipsisStyleForText()
+                    }}
+                  >
+                    {RenderUtility?.renderControlLabel(
+                      !isNaN(params.row?.controlled_substance) && parseInt(params.row?.controlled_substance) === 1,
+                      'CS'
+                    )}
+                    {RenderUtility?.renderControlLabel(
+                      !isNaN(params.row?.prescription_required) && parseInt(params.row?.prescription_required) === 1,
+                      'PR'
+                    )}
+                  </Typography>
+                  <Typography
+                    sx={{
+                      color: 'customColors.customHeadingTextColor',
+                      fontWeight: 500,
+                      fontSize: '14px',
+                      overflow: 'hidden',
+                      whiteSpace: 'nowrap',
+                      textOverflow: 'ellipsis',
+                      maxWidth: 250
+                    }}
+                  >
+                    {params.row.stock_name}
+                  </Typography>
+                </Typography>
+              </Box>
+            }
+            icon={params.row.image ? `${params.row.image}` : '/images/Medicine_Icon.png'}
+            showIcon={false}
+            customCss={{
+              p: '0px',
+              width: '100%',
+              height: '100%',
               fontSize: '14px',
-              fontWeight: 400,
-              fontFamily: 'Inter',
-              overflow: 'hidden',
-              whiteSpace: 'nowrap',
-              textOverflow: 'ellipsis',
-              maxWidth: 200
+              avtBorderRadius: '10px',
+              iconWidth: '44px',
+              iconHeight: '44px'
             }}
-          >
-            <span alt={params.row.stock_name}> {params.row.stock_name}</span>
-          </Typography>
-        </Tooltip>
+          />
+        </>
       )
     },
     {
@@ -225,17 +316,33 @@ const ConsumptionReport = () => {
               maxWidth: 200
             }}
           >
-            <span alt={params.row.generic_name}> {params.row.generic_name}</span>
+            {params.row.generic_name ? <span alt={params.row.generic_name}> {params.row.generic_name}</span> : 'NA'}
           </Typography>
         </Tooltip>
       )
     },
     {
       minWidth: 20,
-      width: 190,
+      width: 160,
       field: 'total_consumption_quantity',
-      headerName: 'CONSUMPTION QUANTITY',
+      headerName: '',
       sortable: true,
+      align: 'center',
+      renderHeader: () => (
+        <div
+          style={{
+            whiteSpace: 'normal',
+            lineHeight: '1.3',
+            textAlign: 'center',
+            fontSize: '12px',
+            fontWeight: 450
+          }}
+        >
+          CONSUMPTION
+          <br />
+          QUANTITY
+        </div>
+      ),
       renderCell: params => (
         <Typography
           variant='body2'
@@ -246,16 +353,32 @@ const ConsumptionReport = () => {
             fontFamily: 'Inter'
           }}
         >
-          {Utility.formatNumber(params.row.total_consumption_quantity)}
+          {params.row.total_consumption_quantity ? Utility.formatNumber(params.row.total_consumption_quantity) : 0}
         </Typography>
       )
     },
     {
       minWidth: 20,
-      width: 190,
+      width: 160,
       field: 'total_consumption_cost',
-      headerName: 'CONSUMPTION COST',
+      headerName: '',
       sortable: true,
+      align: 'right',
+      renderHeader: () => (
+        <div
+          style={{
+            whiteSpace: 'normal',
+            lineHeight: '1.3',
+            textAlign: 'center',
+            fontSize: '12px',
+            fontWeight: 450
+          }}
+        >
+          CONSUMPTION
+          <br />
+          VALUE
+        </div>
+      ),
       renderCell: params => (
         <Typography
           variant='body2'
@@ -272,10 +395,26 @@ const ConsumptionReport = () => {
     },
     {
       minWidth: 20,
-      width: 190,
+      width: 170,
       field: 'available_qty',
-      headerName: 'AVAILABLE QUANTITY',
+      headerName: '',
       sortable: true,
+      align: 'center',
+      renderHeader: () => (
+        <div
+          style={{
+            whiteSpace: 'normal',
+            lineHeight: '1.3',
+            textAlign: 'center',
+            fontSize: '12px',
+            fontWeight: 450
+          }}
+        >
+          CURRENT STOCK
+          <br />
+          AVAILABLE
+        </div>
+      ),
       renderCell: params => (
         <Typography
           variant='body2'
@@ -315,19 +454,51 @@ const ConsumptionReport = () => {
           </Typography>
         </Tooltip>
       )
+    },
+    {
+      minWidth: 20,
+      width: 200,
+      field: 'package',
+      headerName: 'PACKAGE',
+      sortable: false,
+      renderCell: params => (
+        <Tooltip
+          title={`${params.row.package} of ${Utility.formatNumber(params.row.package_qty)}
+                ${params.row.package_uom_label} ${params.row.product_form_label}`}
+        >
+          <Typography
+            variant='body2'
+            sx={{
+              color: theme.palette.customColors.customHeadingTextColor,
+              fontSize: '14px',
+              fontWeight: 400,
+              fontFamily: 'Inter',
+              overflow: 'hidden',
+              whiteSpace: 'nowrap',
+              textOverflow: 'ellipsis',
+              maxWidth: 240
+            }}
+          >
+            {`${params.row.package} of ${Utility.formatNumber(params.row.package_qty)}
+                ${params.row.package_uom_label} ${params.row.product_form_label}`}
+          </Typography>
+        </Tooltip>
+      )
     }
   ]
 
   const handleDateRangeChange = (startDate, endDate) => {
     if (startDate && endDate) {
+      const formattedStartDate = Utility.formatDate(startDate)
+      const formattedEndDate = Utility.formatDate(endDate)
       setFilterDates({
-        startDate: Utility.formatDate(startDate),
-        endDate: Utility.formatDate(endDate)
+        startDate: formattedStartDate,
+        endDate: formattedEndDate
       })
 
       updateUrlParams({
-        startDate: filterDates?.startDate,
-        endDate: filterDates?.endDate
+        startDate: formattedStartDate,
+        endDate: formattedEndDate
       })
 
       console.log('Date range selected:', { startDate, endDate })
@@ -350,13 +521,15 @@ const ConsumptionReport = () => {
     if (newModel.length) {
       setSort(newModel[0].sort)
       setSortColumn(newModel[0].field)
-      fetchTableData({
-        sort: newModel[0].sort,
-        q: searchValue,
-        column: newModel[0].field,
-        page: paginationModel?.page,
-        limit: paginationModel?.pageSize
-      })
+
+      // fetchTableData({
+      //   sort: newModel[0].sort,
+      //   q: searchValue,
+      //   column: newModel[0].field,
+      //   page: paginationModel?.page,
+      //   limit: paginationModel?.pageSize,
+      //   filteredData: filteredData
+      // })
       updateUrlParams({
         sort: newModel[0].sort,
         q: searchValue,
@@ -380,7 +553,8 @@ const ConsumptionReport = () => {
           q: q,
           column: column,
           page: page,
-          limit: limit
+          limit: limit,
+          filteredData: filteredData
         })
 
         updateUrlParams({
@@ -396,7 +570,7 @@ const ConsumptionReport = () => {
         console.error(error)
       }
     }, 1000),
-    []
+    [filterDates, filteredData]
   )
 
   const handleSearch = value => {
@@ -427,6 +601,11 @@ const ConsumptionReport = () => {
         ...(filteredData &&
           filteredData.pharmacy &&
           filteredData.pharmacy.length > 0 && { store_id: filteredData.pharmacy.join(',') }),
+        ...(filteredData &&
+          filteredData.productType &&
+          filteredData.productType.length > 0 && { product_type: filteredData.productType.join(',') }),
+        ...(filteredData && filteredData.controlled && { controlled: filteredData.controlled }),
+        ...(filteredData && filteredData.prescription && { prescription: filteredData.prescription }),
         response_type: 'csv'
       }
       const response = await getConsumptionReport({ params })
@@ -440,10 +619,30 @@ const ConsumptionReport = () => {
     }
   }
 
+  const handleFilter = async filterList => {
+    setFilteredData(filterList)
+    await fetchTableData({
+      sort: sort,
+      q: searchValue,
+      column: sortColumn,
+      page: paginationModel?.page,
+      limit: paginationModel?.pageSize,
+      filteredData: filterList
+    })
+  }
+
   const calculateAppliedFiltersCount = () => {
     let count = 0
 
     if (filteredData && filteredData.pharmacy && filteredData.pharmacy.length > 0) {
+      count++
+    }
+
+    if (filteredData && filteredData.productType && filteredData.productType.length > 0) {
+      count++
+    }
+
+    if (filteredData && (filteredData.controlled || filteredData.prescription)) {
       count++
     }
 
@@ -469,140 +668,100 @@ const ConsumptionReport = () => {
           }}
           title={RenderUtility.pageTitle('Consumption Report')}
         />
-        <Box sx={{ marginLeft: 4, marginRight: 4 }}>
-          <Grid container spacing={2} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-            <Grid item xs={12} sm={6} md='auto'>
-              <CommonDateRangePickers onChange={handleDateRangeChange} filterDates={filterDates} />
-            </Grid>
-            <Grid item xs={12} md='auto'>
-              <Grid container spacing={2} alignItems='center' justifyContent={{ xs: 'flex-start', md: 'flex-end' }}>
-                <Grid item xs={12} sm={8} md='auto'>
-                  <TextField
-                    variant='outlined'
-                    size='small'
-                    placeholder='Search...'
-                    value={searchValue}
-                    onChange={e => handleSearch(e.target.value)}
-                    fullWidth
-                    InputProps={{
-                      startAdornment: (
-                        <InputAdornment position='start'>
-                          <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
-                        </InputAdornment>
-                      )
-                    }}
-                    sx={{
-                      borderRadius: '8px'
-                    }}
-                  />
-                </Grid>
-                <Grid
-                  item
-                  xs={12}
-                  sm={4}
-                  md='auto'
-                  sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 2,
-                    justifyContent: { sm: 'flex-end', xs: 'flex-end' }
-                  }}
-                >
-                  <Tooltip title='Export'>
-                    <>
-                      {loading || exportLoading ? (
-                        <Box
-                          sx={{
-                            display: 'flex',
-                            justifyContent: 'center',
-                            width: '40px',
-                            height: '40px',
-                            borderRadius: '4px',
-                            bgcolor: theme?.palette.customColors?.lightBg,
-                            alignItems: 'center',
-                            cursor: 'pointer'
-                          }}
-                        >
-                          <CircularProgress color='success' size={30} />
-                        </Box>
-                      ) : (
-                        <Box
-                          sx={{
-                            display: 'flex',
-                            justifyContent: 'center',
-                            width: '40px',
-                            height: '40px',
-                            borderRadius: '4px',
-                            bgcolor: theme?.palette.customColors?.lightBg,
-                            alignItems: 'center',
-                            cursor: 'pointer'
-                          }}
-                          onClick={handleExport}
-                        >
-                          <Icon icon='ic:round-download' fontSize={20} />
-                        </Box>
-                      )}
-                    </>
-                  </Tooltip>
-                  <Tooltip title='Filters'>
-                    <Box
-                      sx={{
-                        display: 'flex',
-                        justifyContent: 'center',
-                        width: '40px',
-                        height: '40px',
-                        borderRadius: '4px',
-                        bgcolor: theme?.palette.customColors?.lightBg,
-                        alignItems: 'center',
-                        cursor: 'pointer'
+        <CardContent sx={{ paddingTop: '4px' }}>
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: { xs: 'column', sm: 'row' },
+              justifyContent: 'space-between',
+              alignItems: { xs: 'stretch', sm: 'center' },
+              gap: { xs: 2, sm: 0 },
+              width: '100%'
+            }}
+          >
+            <Grid container spacing={4} sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+              <Grid item xs={12} sm={5} md={5}>
+                <CommonDateRangePickers onChange={handleDateRangeChange} filterDates={filterDates} />
+              </Grid>
+
+              <Grid item sm={7} xs={12}>
+                <Grid container spacing={2} justifyContent={{ xs: 'flex-end' }}>
+                  <Grid item xs={12} sm={8} sx={{ flex: 1 }}>
+                    <TextField
+                      variant='outlined'
+                      size='small'
+                      placeholder='Search...'
+                      value={searchValue}
+                      onChange={e => handleSearch(e.target.value)}
+                      fullWidth
+                      InputProps={{
+                        startAdornment: (
+                          <InputAdornment position='start'>
+                            <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
+                          </InputAdornment>
+                        )
                       }}
-                      onClick={() => setOpenFilterDrawer(true)}
-                    >
-                      <Badge badgeContent={appliedFiltersCount} color='primary'>
-                        <Icon icon='mage:filter' fontSize={24} />
-                      </Badge>
-                    </Box>
-                  </Tooltip>
+                      sx={{
+                        borderRadius: '8px'
+                      }}
+                    />
+                  </Grid>
+
+                  <Grid
+                    item
+                    sx={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: 2,
+                      justifyContent: { sm: 'flex-end', xs: 'flex-end' }
+                    }}
+                  >
+                    <ExportButton loading={loading || exportLoading} onClick={handleExport} />
+                    <FilterButton onClick={() => setOpenFilterDrawer(true)} appliedFiltersCount={appliedFiltersCount} />
+                  </Grid>
                 </Grid>
               </Grid>
             </Grid>
+          </Box>
+          <Grid>
+            <CommonTable
+              columns={columns}
+              indexedRows={indexedRows}
+              total={total}
+              paginationModel={paginationModel}
+              loading={loading}
+              setPaginationModel={setPaginationModel}
+              searchValue={searchValue}
+              onPaginationModelChange={model => {
+                setPaginationModel(model)
+                router.replace({
+                  pathname: router.pathname,
+                  query: {
+                    ...router.query,
+                    page: model.page + 1,
+                    pageSize: model.pageSize,
+                    searchValue,
+                    sort,
+                    sortColumn
+                  }
+                })
+              }}
+              handleSortModel={handleSortModel}
+            />
           </Grid>
-        </Box>
-        <Grid sx={{ mx: { xs: 3, sm: 4 } }}>
-          <CommonTable
-            columns={columns}
-            indexedRows={indexedRows}
-            total={total}
-            paginationModel={paginationModel}
-            loading={loading}
-            setPaginationModel={setPaginationModel}
-            searchValue={searchValue}
-            onPaginationModelChange={model => {
-              setPaginationModel(model)
-              router.replace({
-                pathname: router.pathname,
-                query: {
-                  ...router.query,
-                  page: model.page + 1,
-                  pageSize: model.pageSize,
-                  searchValue,
-                  sort,
-                  sortColumn
-                }
-              })
-            }}
-            handleSortModel={handleSortModel}
-          />
-        </Grid>
+        </CardContent>
       </Card>
       {openFilterDrawer && (
         <ConsumptionReportDrawer
           setOpenFilterDrawer={setOpenFilterDrawer}
           openFilterDrawer={openFilterDrawer}
-          onApplyFilter={filterList => setFilteredData(filterList)}
+          onApplyFilter={handleFilter}
           selectedOptions={selectedOptions}
           setSelectedOptions={setSelectedOptions}
           pharmacyList={pharmacyList}
+          productTypes={productTypes}
+          handleSelectAllPharmacy={handleSelectAllPharmacy}
+          handleSelectAllProductTypes={handleSelectAllProductTypes}
         />
       )}
     </>

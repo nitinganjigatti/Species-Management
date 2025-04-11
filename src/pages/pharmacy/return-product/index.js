@@ -382,7 +382,7 @@ const ReturnRequestList = () => {
             title='Add Return Request'
             action={() =>
               Router.push({
-                pathname: '/pharmacy/return-product/add-request/'
+                pathname: '/pharmacy/return-product/add-request'
               })
             }
           />
@@ -817,7 +817,7 @@ const ReturnRequestList = () => {
   return (
     <Grid>
       <TabContext value={status}>
-        <TabList onChange={handleChange}>
+        <TabList variant='scrollable' allowScrollButtonsMobile onChange={handleChange}>
           {selectedPharmacy.type === 'local' && (
             <Tab
               value='pending'

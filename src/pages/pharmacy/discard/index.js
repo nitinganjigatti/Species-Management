@@ -4,10 +4,11 @@ import FallbackSpinner from 'src/@core/components/spinner/index'
 import { DataGrid } from '@mui/x-data-grid'
 import { debounce } from 'lodash'
 import { getDiscardList } from 'src/lib/api/pharmacy/discard'
+import { format, subDays, subMonths } from 'date-fns'
 
 // ** MUI Imports
 import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
-import { Card, CardHeader, Typography, Grid, TextField, InputAdornment, Tooltip, CircularProgress } from '@mui/material'
+import { Card, CardHeader, Typography, Grid, TextField, InputAdornment, Tooltip } from '@mui/material'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
@@ -15,7 +16,6 @@ import { Box } from '@mui/material'
 
 import Router, { useRouter } from 'next/router'
 import Error404 from 'src/pages/404'
-import { format, subDays, subMonths } from 'date-fns'
 
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import { AddButton, ExcelExportButton } from 'src/components/Buttons'
@@ -25,6 +25,7 @@ import CommonTable from 'src/views/table/data-grid/CommonTable'
 import { AddButtonContained } from 'src/components/ButtonContained'
 import RenderUtility from 'src/utility/render'
 import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDateRangePickers'
+import { ExportButton } from 'src/views/utility/render-snippets'
 
 const ListOfDiscardProducts = () => {
   const theme = useTheme()
@@ -43,9 +44,14 @@ const ListOfDiscardProducts = () => {
   const [searchValue, setSearchValue] = useState(router.query.q || '')
   const [sortColumn, setSortColumn] = useState(router.query.column || 'created_at')
   const [excelLoader, setExcelLoader] = useState(false)
+
   const [filterDates, setFilterDates] = useState({
-    startDate: router.query.startDate || Utility.formatDate(format(subMonths(new Date(), 1), 'dd MMM, yyyy')),
-    endDate: router.query.endDate || Utility.formatDate(format(new Date(), 'dd MMM, yyyy'))
+    startDate:
+      router.query.from_date === ''
+        ? ''
+        : router.query.from_date || Utility.formatDate(format(subMonths(new Date(), 1), 'dd MMM, yyyy')),
+    endDate:
+      router.query.to_date === '' ? '' : router.query.to_date || Utility.formatDate(format(new Date(), 'dd MMM, yyyy'))
   })
 
   const [paginationModel, setPaginationModel] = useState({
@@ -60,7 +66,7 @@ const ListOfDiscardProducts = () => {
   const { selectedPharmacy } = usePharmacyContext()
 
   const fetchTableData = useCallback(
-    async ({ sort, q, column, page, limit }) => {
+    async ({ sort, q, column, page, limit, filterDates }) => {
       console.log(page, 'page')
 
       try {
@@ -81,6 +87,24 @@ const ListOfDiscardProducts = () => {
           if (res?.success === true && res?.data?.list_items?.length > 0) {
             setTotal(parseInt(res?.data?.total_count))
             setRows(loadServerRows(paginationModel.page, res?.data?.list_items))
+
+            const urlParams = {
+              sort,
+              q,
+              column,
+              page: paginationModel?.page,
+              limit: paginationModel?.pageSize
+            }
+
+            if (isEmptyDates) {
+              urlParams.from_date = ''
+              urlParams.to_date = ''
+            } else if (filterDates?.startDate && filterDates?.endDate) {
+              urlParams.from_date = filterDates.startDate
+              urlParams.to_date = filterDates.endDate
+            }
+
+            updateUrlParams(urlParams)
           } else {
             setTotal(0)
             setRows([])
@@ -101,7 +125,8 @@ const ListOfDiscardProducts = () => {
       q: searchValue,
       column: sortColumn,
       page: paginationModel.page,
-      limit: paginationModel.pageSize
+      limit: paginationModel.pageSize,
+      filterDates
     })
 
     updateUrlParams({
@@ -109,7 +134,9 @@ const ListOfDiscardProducts = () => {
       q: searchValue,
       column: sortColumn,
       page: paginationModel.page,
-      limit: paginationModel.pageSize
+      limit: paginationModel.pageSize,
+      from_date: filterDates?.startDate || '',
+      to_date: filterDates?.endDate || ''
     })
   }, [paginationModel.page, paginationModel.pageSize, selectedPharmacy, filterDates])
 
@@ -131,14 +158,17 @@ const ListOfDiscardProducts = () => {
         q: searchValue,
         column: field,
         page: paginationModel.page,
-        limit: paginationModel.pageSize
+        limit: paginationModel.pageSize,
+        filterDates
       })
       updateUrlParams({
         sort,
         q: searchValue,
         column: sortColumn,
         page: paginationModel.page,
-        limit: paginationModel.pageSize
+        limit: paginationModel.pageSize,
+        ...(filterDates?.startDate !== '' && { from_date: filterDates?.startDate }),
+        ...(filterDates?.endDate !== '' && { to_date: filterDates?.endDate })
       })
     }
   }
@@ -155,7 +185,8 @@ const ListOfDiscardProducts = () => {
           q,
           column,
           page: paginationModel.page,
-          limit: paginationModel.pageSize
+          limit: paginationModel.pageSize,
+          filterDates
         })
         updateUrlParams({
           sort,
@@ -260,30 +291,30 @@ const ListOfDiscardProducts = () => {
       )
     },
 
-    // {
-    //   flex: 0.2,
-    //   minWidth: 20,
-    //   field: 'discarded_date',
-    //   headerName: 'Discarded Date',
-    //   type: 'number',
-    //   headerAlign: 'left',
-    //   align: 'left',
-    //   renderCell: params => (
-    //     <Typography
-    //       variant='body2'
-    //       sx={{
-    //         color: theme.palette.customColors.customHeadingTextColor,
-    //         fontSize: '14px',
-    //         fontWeight: 500,
-    //         fontFamily: 'Inter'
-    //       }}
-    //     >
-    //       {Utility.formatDisplayDate(params.row.discarded_date) === 'Invalid date'
-    //         ? 'NA'
-    //         : Utility.formatDisplayDate(params.row.discarded_date)}
-    //     </Typography>
-    //   )
-    // },
+    {
+      flex: 0.2,
+      minWidth: 20,
+      field: 'discarded_date',
+      headerName: 'Discarded Date',
+      type: 'number',
+      headerAlign: 'left',
+      align: 'left',
+      renderCell: params => (
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
+          {Utility.formatDisplayDate(params.row.discarded_date) === 'Invalid date'
+            ? 'NA'
+            : Utility.formatDisplayDate(params.row.discarded_date)}
+        </Typography>
+      )
+    },
     {
       flex: 0.2,
       Width: 20,
@@ -358,6 +389,7 @@ const ListOfDiscardProducts = () => {
   const handleHeaderAction = () => {
     console.log('Handle Header Action')
   }
+
   // const headerAction = (
   //   <Grid
   //     sx={{
@@ -402,7 +434,7 @@ const ListOfDiscardProducts = () => {
         width: '100%' // Ensure full width
       }}
     >
-      {/* <ExcelExportButton 
+      {/* <ExcelExportButton
         disabled={total === 0}
         action={() => {
           getSupplierDataToExport()
@@ -484,58 +516,58 @@ const ListOfDiscardProducts = () => {
               >
                 {/* Left Box (Search Field) */}
                 {/* <Grid item xs={8}>
-                  <Box
-                    sx={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      border: '1px solid #C3CEC7',
-                      borderRadius: '8px',
-                      padding: '0 8px',
-                      ml: 5,
-                      height: '40px',
-                      width: '250px' // Set a fixed width for all status
-                    }}
-                  >
-                    <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
-                    <TextField
-                      variant='outlined'
-                      placeholder='Search...'
-                      value={searchValue}
-                      onChange={e => handleSearch(e.target.value)}
-                      fullWidth
-                      sx={{
-                        '& .MuiOutlinedInput-root': {
-                          border: 'none',
-                          padding: '0',
-                          '& fieldset': {
-                            border: 'none'
-                          }
-                        }
-                      }}
-                    />
-                       </Box>
-                       </Grid> */}
+                            <Box
+                              sx={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                border: '1px solid #C3CEC7',
+                                borderRadius: '8px',
+                                padding: '0 8px',
+                                ml: 5,
+                                height: '40px',
+                                width: '250px' // Set a fixed width for all status
+                              }}
+                            >
+                              <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
+                              <TextField
+                                variant='outlined'
+                                placeholder='Search...'
+                                value={searchValue}
+                                onChange={e => handleSearch(e.target.value)}
+                                fullWidth
+                                sx={{
+                                  '& .MuiOutlinedInput-root': {
+                                    border: 'none',
+                                    padding: '0',
+                                    '& fieldset': {
+                                      border: 'none'
+                                    }
+                                  }
+                                }}
+                              />
+                                 </Box>
+                                 </Grid> */}
 
                 {/* <Grid item xs={12} sm={7} md={7} sx={{ float: 'right', mr: 1 }}>
-                   {status === 'all' || status === 'completed' ? (
-                      <Box sx={{ float: 'right', mt: 1 }}>
-                  <FormControlLabel
-                    control={<Switch defaultChecked={filterSwitch} onChange={handleSwitchChange} />}
-                    label='Completed'
-                    labelPlacement='end'
-                  />
-                    </Box>
-                     ) : null}
-                       </Grid> */}
+                             {status === 'all' || status === 'completed' ? (
+                                <Box sx={{ float: 'right', mt: 1 }}>
+                            <FormControlLabel
+                              control={<Switch defaultChecked={filterSwitch} onChange={handleSwitchChange} />}
+                              label='Completed'
+                              labelPlacement='end'
+                            />
+                              </Box>
+                               ) : null}
+                                 </Grid> */}
               </Box>
               {/* <Grid
-                sx={{
-                  display: 'flex',
-                  flexDirection: { xs: 'column', sm: 'row' },
-                  justifyContent: 'flex-start', // Align content to the left
-                  alignItems: 'flex-start' // Align items to the top left
-                }}
-              /> */}
+                          sx={{
+                            display: 'flex',
+                            flexDirection: { xs: 'column', sm: 'row' },
+                            justifyContent: 'flex-start', // Align content to the left
+                            alignItems: 'flex-start' // Align items to the top left
+                          }}
+                        /> */}
               <Box
                 sx={{
                   display: 'flex',
@@ -591,7 +623,12 @@ const ListOfDiscardProducts = () => {
                           justifyContent: { sm: 'flex-end', xs: 'flex-end' }
                         }}
                       >
-                        <Tooltip title='Export'>
+                        <ExportButton
+                          loading={excelLoader}
+                          onClick={getSupplierDataToExport}
+                          disabled={total === 0 ? true : false}
+                        />
+                        {/* <Tooltip title='Export'>
                           <>
                             {excelLoader ? (
                               <Box
@@ -626,23 +663,23 @@ const ListOfDiscardProducts = () => {
                               </Box>
                             )}
                           </>
-                        </Tooltip>
+                        </Tooltip> */}
                       </Grid>
                     </Grid>
                   </Grid>
                 </Grid>
                 {/* <Grid
-                  item
-                  xs={12}
-                  sm='auto'
-                  sx={{
-                    mx: { xs: 0, sm: 1 },
-                    mt: { xs: 3, sm: 2 },
-                    width: { xs: '100%', sm: 'auto' } // Full width on small screens
-                  }}
-                >
-                  <CommonDateRangePickers onChange={handleDateRangeChange} filterDates={filterDates} />
-                </Grid> */}
+                            item
+                            xs={12}
+                            sm='auto'
+                            sx={{
+                              mx: { xs: 0, sm: 1 },
+                              mt: { xs: 3, sm: 2 },
+                              width: { xs: '100%', sm: 'auto' } // Full width on small screens
+                            }}
+                          >
+                            <CommonDateRangePickers onChange={handleDateRangeChange} filterDates={filterDates} />
+                          </Grid> */}
               </Box>
               <Grid
                 sx={{

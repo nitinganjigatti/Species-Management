@@ -30,7 +30,10 @@ function SelectPharmacy() {
 
   const getStoreData = async () => {
     const pharmacy = authData?.userData?.modules?.pharmacy_data?.pharmacy[0]
-    const options = authData?.userData?.modules?.pharmacy_data?.pharmacy
+
+    const options = authData?.userData?.modules?.pharmacy_data?.pharmacy?.sort((a, b) =>
+      a?.name?.localeCompare(b?.name)
+    )
 
     setOptions(options)
     const storedPharmacy = await readAsync('selectedStore')

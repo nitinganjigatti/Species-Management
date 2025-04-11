@@ -755,9 +755,6 @@ export const AddItemsForm = ({
                     label='Select reason'
                     error={Boolean(errors.reason)}
                   >
-                    <MenuItem value=''>
-                      <em>None</em>
-                    </MenuItem>
                     {reasonsOptions.length > 0 &&
                       reasonsOptions.map((el, index) => (
                         <MenuItem

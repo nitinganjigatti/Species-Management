@@ -22,10 +22,14 @@ import {
   RadioGroup,
   Snackbar,
   Typography,
-  debounce
+  debounce,
+  Paper,
+  CircularProgress
 } from '@mui/material'
 import { getAnimalList } from 'src/lib/api/pharmacy/dispenseProduct'
 import { useTheme } from '@mui/material/styles'
+import SearchIcon from '@mui/icons-material/Search'
+import TuneIcon from '@mui/icons-material/Tune'
 
 const AddAnimals = ({ drawerWidth, animals_s, setAnimals_s, user, addEventSidebarOpen, handleSidebarClose }) => {
   const [searchValue, setSearchValue] = useState('')
@@ -46,6 +50,7 @@ const AddAnimals = ({ drawerWidth, animals_s, setAnimals_s, user, addEventSideba
   const [showFilterDialog, setShowFilterDialog] = useState(false)
   const [animalFilterValue, setAnimalFilterValue] = useState('')
   let [animalPage, setAnimalPage] = useState(1)
+  const [isSearching, setIsSearching] = useState(false)
   const animalFilterValueRef = useRef(animalFilterValue)
   useEffect(() => {
     animalFilterValueRef.current = animalFilterValue
@@ -147,6 +152,7 @@ const AddAnimals = ({ drawerWidth, animals_s, setAnimals_s, user, addEventSideba
   const searchAnimalData = useCallback(
     debounce(async search => {
       if (searchValue != ' ') {
+        setIsSearching(true)
         try {
           const currentAnimalFilterValue = animalFilterValueRef.current
           await getAnimalList(
@@ -164,10 +170,12 @@ const AddAnimals = ({ drawerWidth, animals_s, setAnimals_s, user, addEventSideba
               setAnimalList(res?.data?.animals)
               setAnimalPage(1)
             }
+            setIsSearching(false)
           })
         } catch (error) {
           // console.error(error)
           setAnimalPage(1)
+          setIsSearching(false)
         }
       }
     }, 500),
@@ -240,7 +248,7 @@ const AddAnimals = ({ drawerWidth, animals_s, setAnimals_s, user, addEventSideba
       anchor='right'
       open={addEventSidebarOpen}
       ModalProps={{ keepMounted: true }}
-      sx={{ '& .MuiDrawer-paper': { width: ['100%', 400] }, height: '100vh' }}
+      sx={{ '& .MuiDrawer-paper': { width: ['100%', 500] }, height: '100vh' }}
     >
       <Snackbar open={open} autoHideDuration={6000} onClose={handleClose} message='All animals Found' action={action} />
 
@@ -282,12 +290,15 @@ const AddAnimals = ({ drawerWidth, animals_s, setAnimals_s, user, addEventSideba
             display: 'flex',
             width: '100%',
             justifyContent: 'space-between',
-            backgroundColor: 'background.default',
-            p: theme => theme.spacing(3, 3.255, 3, 5.255),
-            paddingX: 2
+            backgroundColor: 'customColors.OnPrimary',
+            p: theme => theme.spacing(3, 3.255, 3, 5.255)
+
+            // paddingX: 2
           }}
         >
-          <Typography variant='h6'>Add Animals</Typography>
+          <Typography sx={{ color: 'customColors.OnSurfaceVariant', fontWeight: 500, fontSize: '24px' }}>
+            Select the Animals
+          </Typography>
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
             {/* <IconButton
               size='small'
@@ -314,7 +325,7 @@ const AddAnimals = ({ drawerWidth, animals_s, setAnimals_s, user, addEventSideba
             </IconButton>
           </Box>
         </Box>
-        <TextField
+        {/* <TextField
           fullWidth
           sx={{ p: 2, borderBottom: 0, backgroundColor: 'white', zIndex: 10 }}
           variant='standard'
@@ -333,23 +344,108 @@ const AddAnimals = ({ drawerWidth, animals_s, setAnimals_s, user, addEventSideba
               </InputAdornment>
             )
           }}
-        />
+        /> */}
+        <Box sx={{ display: 'flex', gap: 2, width: '100%', maxWidth: '800px', px: 5 }}>
+          {/* Search Field */}
+          <Box
+            sx={{
+              flex: 1,
+              border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+              borderRadius: '8px',
+              backgroundColor: 'white',
+              display: 'flex',
+              alignItems: 'center',
+              overflow: 'hidden',
+              height: '56px'
+            }}
+          >
+            <TextField
+              fullWidth
+              sx={{
+                p: 0.5,
+                backgroundColor: 'white',
+                '& .MuiInputBase-root': {
+                  border: 'none',
+                  boxShadow: 'none',
+                  px: 3
+                },
+                '& .MuiInput-underline:before': { display: 'none' },
+                '& .MuiInput-underline:after': { display: 'none' }
+              }}
+              variant='standard'
+              placeholder='Search Animals'
+              value={searchValue}
+              onChange={e => setSearchValue(e.target.value)}
+              onKeyUp={() => searchAnimalData(searchValue)}
+              InputProps={{
+                startAdornment: (
+                  <InputAdornment position='start' sx={{ ml: 1 }}>
+                    <SearchIcon color='action' />
+                  </InputAdornment>
+                ),
+
+                endAdornment: (
+                  <InputAdornment position='end'>
+                    {isSearching ? (
+                      <CircularProgress size={20} color='primary' />
+                    ) : searchValue ? (
+                      <IconButton edge='end' onClick={handleClear} size='small'>
+                        &#10005;
+                      </IconButton>
+                    ) : null}
+                  </InputAdornment>
+                ),
+                disableUnderline: true
+              }}
+            />
+          </Box>
+
+          {/* Filter Button */}
+          {/* <Box
+            sx={{
+              width: '56px',
+              height: '56px',
+              border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+              borderRadius: '8px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              backgroundColor: 'white'
+            }}
+          >
+            <IconButton>
+              <TuneIcon
+                sx={{
+                  color: 'primary.main',
+                  transform: 'rotate(90deg)'
+                }}
+              />
+            </IconButton>
+          </Box> */}
+        </Box>
       </Box>
 
-      <Box sx={{ height: '90%', overflowY: 'auto', mt: '100px' }} onScroll={handleScroll}>
+      <Box
+        sx={{ height: '90%', overflowY: 'auto', mt: '130px', p: 5, backgroundColor: 'customColors.bodyBg' }}
+        onScroll={handleScroll}
+      >
+        <Typography sx={{ fontSize: '16px', fontWeight: 600, color: 'customColors.OnSurfaceVariant', mb: 4 }}>
+          All Animals
+        </Typography>
         {animalList.length > 0 &&
           animalList?.map((item, index) => (
-            <Box key={index}>
+            <Card key={index} sx={{ mb: 3 }}>
               <Box
                 sx={{
-                  p: 4,
+                  p: 0,
                   display: 'flex',
                   justifyContent: 'space-between',
-                  borderBottom: 2,
+
+                  // borderBottom: 2,
                   borderColor: '#dddddd'
                 }}
               >
-                <Box sx={{ display: 'flex', gap: 3 }}>
+                <Box sx={{ display: 'flex', gap: 3, p: 4 }}>
                   <Box
                     sx={{
                       display: 'flex',
@@ -386,7 +482,7 @@ const AddAnimals = ({ drawerWidth, animals_s, setAnimals_s, user, addEventSideba
                     <Typography sx={{ fontWeight: 400 }}>Sec: {item?.section_name}</Typography>
                   </Box>
                 </Box>
-                <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', bgcolor: '#F2FFF8' }}>
                   <Checkbox
                     defaultChecked={animals_s?.some(i => i.animal_id === item?.animal_id)}
                     onChange={e => {
@@ -395,7 +491,7 @@ const AddAnimals = ({ drawerWidth, animals_s, setAnimals_s, user, addEventSideba
                   />
                 </Box>
               </Box>
-            </Box>
+            </Card>
           ))}
       </Box>
       {reachedEnd ? <LinearProgress /> : null}

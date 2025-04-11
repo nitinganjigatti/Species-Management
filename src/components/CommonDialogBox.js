@@ -21,12 +21,12 @@ const Transition = forwardRef(function Transition(props, ref) {
   return <Fade ref={ref} {...props} />
 })
 
-const CommonDialogBox = ({ title, dialogBoxStatus, formComponent, close, noWidth, style }) => {
+const CommonDialogBox = ({ title, dialogBoxStatus, formComponent, close, noWidth, style, dialogWithMaxWidth }) => {
   return (
     <Dialog
       fullWidth={noWidth ? false : true}
       open={dialogBoxStatus}
-      maxWidth='md'
+      maxWidth={dialogWithMaxWidth ? 'lg' : 'md'}
       height='auto'
       scroll='body'
       // eslint-disable-next-line lines-around-comment

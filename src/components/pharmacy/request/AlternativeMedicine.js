@@ -374,12 +374,11 @@ function AlternativeMedicine({ parentId, updateRequestItems, existingListItems, 
                       <Typography>{option.name}</Typography>
                       <Typography variant='body2'>{option.package}</Typography>
                       <Typography variant='body2'>{option.manufacture}</Typography>
-                      {option.control_substance === true && (
-                        <CustomChip label='CS' skin='light' color='success' size='small' />
-                      )}{' '}
-                      {option.prescription_required === true && (
+                      {RenderUtility?.renderControlLabel(option.control_substance === true, 'CS')}
+                      {RenderUtility?.renderPrescriptionLabel(option.prescription_required === true, 'PR')}
+                      {/* {option.prescription_required === true && (
                         <CustomChip label='PR' skin='light' color='success' size='small' />
-                      )}
+                      )} */}
                       {/* <Typography
                         sx={{
                           color: 'customColors.OnSecondaryContainer',
@@ -484,12 +483,14 @@ function AlternativeMedicine({ parentId, updateRequestItems, existingListItems, 
                       <Typography variant='body2'>{`Product - ${option.name}`}</Typography>
                       <Typography variant='body2'>{option.package}</Typography>
                       <Typography variant='body2'>{option.manufacture}</Typography>
-                      {option.control_substance === true && (
+                      {/* {option.control_substance === true && (
                         <CustomChip label='CS' skin='light' color='success' size='small' />
-                      )}
-                      {option.prescription_required === true && (
+                      )} */}
+                      {RenderUtility?.renderControlLabel(option.control_substance === true, 'CS')}
+                      {RenderUtility?.renderPrescriptionLabel(option.prescription_required === true, 'PR')}
+                      {/* {option.prescription_required === true && (
                         <CustomChip label='PR' skin='light' color='success' size='small' />
-                      )}
+                      )} */}
                       {/* <Typography
                         sx={{
                           color: 'customColors.OnSecondaryContainer',
@@ -621,6 +622,7 @@ function AlternativeMedicine({ parentId, updateRequestItems, existingListItems, 
               value={nestedRowMedicine.request_item_qty}
               error={Boolean(itemErrors.request_item_qty)}
               label='Quantity*'
+              onWheel={event => event.target.blur()}
               onChange={event => {
                 setNestedRowMedicine({ ...nestedRowMedicine, request_item_qty: event.target.value })
                 setItemErrors({})
@@ -675,7 +677,7 @@ function AlternativeMedicine({ parentId, updateRequestItems, existingListItems, 
               type='text'
               value={nestedRowMedicine.alternate_comments}
               error={Boolean(itemErrors.alternate_comments)}
-              label='Alternate comments'
+              label='Comments'
               onChange={event => {
                 setNestedRowMedicine({ ...nestedRowMedicine, alternate_comments: event.target.value })
                 setItemErrors({})
