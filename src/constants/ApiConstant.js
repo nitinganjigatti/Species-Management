@@ -438,6 +438,8 @@ export const DOWNLOAD_CSV_FOR_BATCH_DATA = 'v1/parivesh/animal/site/downloadcsvf
 
 export const SPECIES_LIST = 'species-list-egg-wise'
 
+export const ANIMAL = 'animal'
+
 export const ANIMAL_LISTS = 'animal-list'
 
 export const ASSIGN_TO_ANIMALS = 'assign-to-animal'
