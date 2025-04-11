@@ -21,16 +21,30 @@ import { useTheme } from '@emotion/react'
 import { useRouter } from 'next/router'
 import CustomDateRangePicker from './CustomDateRangePicker'
 
-const CommonDateRangePickers = ({ onChange, filterDates, showFutureDates = false, showAllTime = false }) => {
+const CommonDateRangePickers = ({
+  onChange,
+  filterDates,
+  showFutureDates = false,
+  showAllTime = false,
+  useCustomText = false,
+  customText = ''
+}) => {
   const theme = useTheme()
   const router = useRouter()
   const today = new Date()
   const [anchorEl, setAnchorEl] = useState(null)
   const [customDialogOpen, setCustomDialogOpen] = useState(false)
 
-  const initialSelectedRange = showFutureDates
-    ? `All time - From - ${format(today, 'dd MMM, yyyy')}`
-    : `All time - Upto - ${format(today, 'dd MMM, yyyy')}`
+  const initialSelectedRange = () => {
+    if (useCustomText) {
+      return customText
+    } else if (showFutureDates) {
+      return `All time - From - ${format(today, 'dd MMM, yyyy')}`
+    } else {
+      return `All time - Upto - ${format(today, 'dd MMM, yyyy')}`
+    }
+  }
+
   const [selectedRange, setSelectedRange] = useState(initialSelectedRange)
   const [tempRange, setTempRange] = useState({})
   const open = Boolean(anchorEl)
@@ -92,28 +106,9 @@ const CommonDateRangePickers = ({ onChange, filterDates, showFutureDates = false
       }
     ]
 
-    const allTimeLabel = showFutureDates
-      ? `From - ${format(today, 'dd MMM, yyyy')}`
-      : `Upto - ${format(today, 'dd MMM, yyyy')}`
-
-    const baseRanges = [
-      {
-        label: 'Today',
-        subLabel: format(today, 'dd MMM, yyyy'),
-        startDate: today,
-        endDate: today
-      },
-      ...(showFutureDates ? futureDateRanges : pastDateRanges),
-      {
-        label: 'Custom range',
-        subLabel: 'Select a custom range',
-        hasChevron: true
-      }
-    ]
-
-    return showAllTime
-      ? baseRanges
-      : [{ label: 'All time', subLabel: allTimeLabel, startDate: null, endDate: null }, ...baseRanges]
+    // const allTimeLabel = showFutureDates
+    //   ? `From - ${format(today, 'dd MMM, yyyy')}`
+    //   : `Upto - ${format(today, 'dd MMM, yyyy')}`
 
     // return [
     //   {
@@ -135,74 +130,217 @@ const CommonDateRangePickers = ({ onChange, filterDates, showFutureDates = false
     //     hasChevron: true
     //   }
     // ]
+
+    const initialRanges = []
+
+    if (useCustomText) {
+      initialRanges.push({
+        label: customText,
+        subLabel: '',
+        startDate: null,
+        endDate: null
+      })
+    } else {
+      const allTimeLabel = showFutureDates
+        ? `From - ${format(today, 'dd MMM, yyyy')}`
+        : `Upto - ${format(today, 'dd MMM, yyyy')}`
+
+      initialRanges.push({
+        label: 'All time',
+        subLabel: allTimeLabel,
+        startDate: null,
+        endDate: null
+      })
+    }
+
+    return [
+      ...initialRanges,
+      {
+        label: 'Today',
+        subLabel: format(today, 'dd MMM, yyyy'),
+        startDate: today,
+        endDate: today
+      },
+      ...(showFutureDates ? futureDateRanges : pastDateRanges),
+      {
+        label: 'Custom range',
+        subLabel: 'Select a custom range',
+        hasChevron: true
+      }
+    ]
   }
 
   const [dateRanges, setDateRanges] = useState(getDateRanges(showFutureDates))
 
   useEffect(() => {
     setDateRanges(getDateRanges(showFutureDates))
-  }, [showFutureDates])
+  }, [showFutureDates, useCustomText, customText])
 
   useEffect(() => {
-    if (!filterDates) return
-    const { startDate: startDateProp, endDate: endDateProp } = filterDates
-
-    // Handle All time case (no dates)
-    if (!startDateProp && !endDateProp) {
-      const allTimeLabel = showFutureDates
-        ? `All time - From - ${format(today, 'dd MMM, yyyy')}`
-        : `All time - Upto - ${format(today, 'dd MMM, yyyy')}`
-      setSelectedRange(` ${allTimeLabel}`)
-
-      return
-    }
-
-    // Proceed if dates are present
-    if (startDateProp && endDateProp) {
-      const startDate = startDateProp instanceof Date ? startDateProp : new Date(startDateProp)
-      const endDate = endDateProp instanceof Date ? endDateProp : new Date(endDateProp)
-
-      // Check predefined ranges except All time and Custom
-      const predefinedRanges = dateRanges.slice(1, -1)
-      let matchedRange = null
-
-      for (const range of predefinedRanges) {
-        const rangeStart = range.startDate
-        const rangeEnd = range.endDate
-
-        if (
-          rangeStart &&
-          rangeEnd &&
-          startDate.toDateString() === rangeStart.toDateString() &&
-          endDate.toDateString() === rangeEnd.toDateString()
-        ) {
-          matchedRange = range
-          break
-        }
-      }
-
-      if (matchedRange) {
-        setSelectedRange(`${matchedRange.label} - ${matchedRange.subLabel}`)
+    // Use a function to determine the initial range
+    const getInitialRange = () => {
+      if (useCustomText) {
+        return customText
       } else {
-        // Check if it's a single day
-        if (startDate.toDateString() === endDate.toDateString()) {
-          // Check if it's today
-          if (startDate.toDateString() === today.toDateString()) {
-            setSelectedRange(`Today - ${format(today, 'dd MMM, yyyy')}`)
-          } else {
-            // Single day, not today
-            const formattedDate = format(startDate, 'dd MMM, yyyy')
-            setSelectedRange(`Custom Range - ${formattedDate} - ${formattedDate}`)
+        return `All time - ${showFutureDates ? 'From' : 'Upto'} - ${format(today, 'dd MMM, yyyy')}`
+      }
+    }
+
+    if (!filterDates || (!filterDates.startDate && !filterDates.endDate)) {
+      // When filterDates is cleared or is All time
+      setSelectedRange(getInitialRange())
+    } else {
+      // Proceed if dates are present
+      const { startDate: startDateProp, endDate: endDateProp } = filterDates
+
+      if (startDateProp && endDateProp) {
+        const startDate = startDateProp instanceof Date ? startDateProp : new Date(startDateProp)
+        const endDate = endDateProp instanceof Date ? endDateProp : new Date(endDateProp)
+
+        // Check predefined ranges except All time and Custom
+        const predefinedRanges = dateRanges.slice(1, -1)
+        let matchedRange = null
+
+        for (const range of predefinedRanges) {
+          const rangeStart = range.startDate
+          const rangeEnd = range.endDate
+
+          if (
+            rangeStart &&
+            rangeEnd &&
+            startDate.toDateString() === rangeStart.toDateString() &&
+            endDate.toDateString() === rangeEnd.toDateString()
+          ) {
+            matchedRange = range
+            break
           }
+        }
+
+        if (matchedRange) {
+          setSelectedRange(`${matchedRange.label} - ${matchedRange.subLabel}`)
         } else {
-          // Custom range
-          const formattedStart = format(startDate, 'dd MMM, yyyy')
-          const formattedEnd = format(endDate, 'dd MMM, yyyy')
-          setSelectedRange(`Custom Range - ${formattedStart} - ${formattedEnd}`)
+          // Check if it's a single day
+          if (startDate.toDateString() === endDate.toDateString()) {
+            // Check if it's today
+            if (startDate.toDateString() === today.toDateString()) {
+              setSelectedRange(`Today - ${format(today, 'dd MMM, yyyy')}`)
+            } else {
+              // Single day, not today
+              const formattedDate = format(startDate, 'dd MMM, yyyy')
+              setSelectedRange(`Custom Range - ${formattedDate} - ${formattedDate}`)
+            }
+          } else {
+            // Custom range
+            const formattedStart = format(startDate, 'dd MMM, yyyy')
+            const formattedEnd = format(endDate, 'dd MMM, yyyy')
+            setSelectedRange(`Custom Range - ${formattedStart} - ${formattedEnd}`)
+          }
         }
       }
     }
-  }, [filterDates, showFutureDates])
+  }, [filterDates, showFutureDates, useCustomText, customText, today, dateRanges])
+
+  // useEffect(() => {
+  //   if (!filterDates) return
+  //   const { startDate: startDateProp, endDate: endDateProp } = filterDates
+
+  //   // Handle All time case (no dates)
+  //   if (!startDateProp && !endDateProp) {
+  //     if (useCustomText) {
+  //       setSelectedRange(customText)
+  //     } else {
+  //       const allTimeLabel = showFutureDates
+  //         ? `All time - From - ${format(today, 'dd MMM, yyyy')}`
+  //         : `All time - Upto - ${format(today, 'dd MMM, yyyy')}`
+  //       setSelectedRange(allTimeLabel)
+  //     }
+
+  //     return
+  //   }
+
+  //   // Proceed if dates are present
+  //   if (startDateProp && endDateProp) {
+  //     const startDate = startDateProp instanceof Date ? startDateProp : new Date(startDateProp)
+  //     const endDate = endDateProp instanceof Date ? endDateProp : new Date(endDateProp)
+
+  //     // Check predefined ranges except All time and Custom
+  //     const predefinedRanges = dateRanges.slice(1, -1)
+  //     let matchedRange = null
+
+  //     for (const range of predefinedRanges) {
+  //       const rangeStart = range.startDate
+  //       const rangeEnd = range.endDate
+
+  //       if (
+  //         rangeStart &&
+  //         rangeEnd &&
+  //         startDate.toDateString() === rangeStart.toDateString() &&
+  //         endDate.toDateString() === rangeEnd.toDateString()
+  //       ) {
+  //         matchedRange = range
+  //         break
+  //       }
+  //     }
+
+  //     if (matchedRange) {
+  //       setSelectedRange(`${matchedRange.label} - ${matchedRange.subLabel}`)
+  //     } else {
+  //       // Check if it's a single day
+  //       if (startDate.toDateString() === endDate.toDateString()) {
+  //         // Check if it's today
+  //         if (startDate.toDateString() === today.toDateString()) {
+  //           setSelectedRange(`Today - ${format(today, 'dd MMM, yyyy')}`)
+  //         } else {
+  //           // Single day, not today
+  //           const formattedDate = format(startDate, 'dd MMM, yyyy')
+  //           setSelectedRange(`Custom Range - ${formattedDate} - ${formattedDate}`)
+  //         }
+  //       } else {
+  //         // Custom range
+  //         const formattedStart = format(startDate, 'dd MMM, yyyy')
+  //         const formattedEnd = format(endDate, 'dd MMM, yyyy')
+  //         setSelectedRange(`Custom Range - ${formattedStart} - ${formattedEnd}`)
+  //       }
+  //     }
+  //   }
+  // }, [filterDates, showFutureDates, useCustomText, customText])
+
+  // useEffect(() => {
+  //   const { from_date, to_date } = router.query
+
+  //   if (from_date && to_date) {
+  //     const fromDate = new Date(from_date)
+  //     const toDate = new Date(to_date)
+
+  //     // Check if from_date and to_date are the same
+  //     if (fromDate.toDateString() === toDate.toDateString()) {
+  //       setSelectedRange(`Today - ${format(today, 'dd MMM, yyyy')}`)
+  //       onChange?.(fromDate, toDate)
+  //     } else {
+  //       // Find the matching range in dateRanges
+  //       const matchingRange = dateRanges.find(
+  //         range =>
+  //           range.startDate &&
+  //           range.endDate &&
+  //           range.startDate.toDateString() === fromDate.toDateString() &&
+  //           range.endDate.toDateString() === toDate.toDateString()
+  //       )
+
+  //       if (matchingRange) {
+  //         // If a predefined range matches, use its label and subLabel
+  //         setSelectedRange(`${matchingRange.label} - ${matchingRange.subLabel}`)
+  //       } else {
+  //         // set a custom range
+  //         const customRangeLabel = `Custom Range - ${format(fromDate, 'dd MMM, yyyy')} - ${format(
+  //           toDate,
+  //           'dd MMM, yyyy'
+  //         )}`
+  //         setSelectedRange(customRangeLabel)
+  //       }
+  //       onChange?.(fromDate, toDate)
+  //     }
+  //   }
+  // }, [router.query.tab])
 
   const handleClick = event => {
     setAnchorEl(event.currentTarget)
@@ -215,12 +353,14 @@ const CommonDateRangePickers = ({ onChange, filterDates, showFutureDates = false
   const handleSelect = range => {
     if (range.label === 'Custom range') {
       setCustomDialogOpen(true)
-    } else if (range.label === 'All time') {
+    } else if (useCustomText && range.label === customText) {
+      setSelectedRange(customText)
+      onChange?.('', '')
+    } else if (!useCustomText && range.label === 'All time') {
       const allTimeLabel = showFutureDates
         ? `All time - From - ${format(today, 'dd MMM, yyyy')}`
         : `All time - Upto - ${format(today, 'dd MMM, yyyy')}`
-
-      setSelectedRange(`All time - ${allTimeLabel}`)
+      setSelectedRange(allTimeLabel)
       onChange?.('', '')
     } else if (range.startDate && range.endDate) {
       setSelectedRange(`${range.label} - ${range.subLabel}`)

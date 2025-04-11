@@ -13,7 +13,7 @@ import CardContent from '@mui/material/CardContent'
 import { styled, useTheme } from '@mui/material/styles'
 import TableContainer from '@mui/material/TableContainer'
 import TableCell from '@mui/material/TableCell'
-import { Button, CardHeader, InputAdornment } from '@mui/material'
+import { Button, CardHeader, InputAdornment, alpha } from '@mui/material'
 import IconButton from '@mui/material/IconButton'
 import FormHelperText from '@mui/material/FormHelperText'
 import TextField from '@mui/material/TextField'
@@ -66,7 +66,7 @@ import UploadIcon from 'public/images/upload_invoice_icon.png'
 import TotalAmountIcon from 'public/images/amount_summary.png'
 import { borderRadius, getValue } from '@mui/system'
 import { getVariantFOrProduct } from 'src/lib/api/pharmacy/variant'
-// import PurchaseInvoiceUpload from './PurchaseInvoiceUpload'
+import PurchaseInvoiceUpload from './PurchaseInvoiceUpload'
 import { v4 as uuidv4 } from 'uuid'
 
 const CalcWrapper = styled(Box)(({ theme }) => ({
@@ -99,7 +99,8 @@ const editParamsInitialState = {
   freight_gst: '',
   freight_total_charges: '',
   additional_charges: '',
-  round_off: ''
+  round_off: '',
+  purchase_created_by: 'manually'
 }
 
 const initialNestedRowMedicine = {
@@ -125,7 +126,9 @@ const initialNestedRowMedicine = {
   purchase_variant_id: '',
   purchase_unit_qty: '',
   purchase_variant_ratio: '',
-  isVariantIdPresent: false
+  isVariantIdPresent: false,
+  purchase_created_by: 'form',
+  medicine_name_by_ml: ''
 }
 
 const CustomInput = forwardRef(({ ...props }, ref) => {
@@ -194,7 +197,7 @@ const AddPurchaseForm = () => {
   const [inputValue, setInputValue] = useState('')
   const [isError, setIsError] = useState(false)
   const [invoiceUploadDialog, setInvoiceUploadDialog] = useState(false)
-  const [itemIdIdErrors, setItemIdErrors] = useState({})
+  const [showAmount, setShowAmount] = useState(false)
 
   const schema = yup.object().shape({
     // product: yup.string().required('Product name is required'),
@@ -241,7 +244,9 @@ const AddPurchaseForm = () => {
   const showDialog = () => {
     setShow(true)
   }
-
+  useEffect(() => {
+    console.log('edit params', editParams)
+  }, [editParams])
   // const getStoreType = id => {
   //   const foundOStores = stores.find(item => item.id === id)
   //   if (foundOStores) {
@@ -288,7 +293,9 @@ const AddPurchaseForm = () => {
     const totalFreight = parseFloat(totalFreightCharges) || 0
     const additional = parseFloat(additionalCharges) || 0
     const totalItems = parseFloat(totalLineItemsPurchase) || 0
-
+    console.log('additional', additional)
+    console.log('totalItems', totalItems)
+    console.log('totalFreight', totalFreight)
     const result = totalItems + totalFreight + additional + roundUp
 
     return result
@@ -634,7 +641,7 @@ const AddPurchaseForm = () => {
           if (navigatedFrom === 'stockReport') {
             Router.push('/pharmacy/stocks/stocksReport/')
           } else {
-            Router.push('/pharmacy/purchase/purchase-list/')
+            Router.push('/pharmacy/purchase/')
           }
         } else {
           setSubmitLoader(false)
@@ -643,11 +650,23 @@ const AddPurchaseForm = () => {
         }
       } else {
         const response = await addPurchase(postData)
+        if (postData?.purchase_created_by === 'invoice_upload') {
+          const suggestionData = postData?.purchase_details?.map(el => {
+            return {
+              medicine_name_by_ml: el?.medicine_name_by_ml,
+              medicine_name_in_db: el?.medicine_name,
+              purchase_unit_id: el?.purchase_unit_id
+            }
+          })
+
+          console.log('ml trained triggered')
+          console.log('suggestionData', suggestionData)
+        }
         if (response?.success) {
           toast.success(response.message)
           setEditParams(editParamsInitialState)
           setSubmitLoader(false)
-          Router.push('/pharmacy/purchase/purchase-list/')
+          Router.push('/pharmacy/purchase/')
         } else {
           setSubmitLoader(false)
           if (response.data?.po_no) {
@@ -995,7 +1014,9 @@ const AddPurchaseForm = () => {
         purchase_variant_id: getItems[0]?.purchase_variant_id,
         purchase_unit_qty: getItems[0]?.purchase_unit_qty,
         purchase_variant_ratio: getItems[0]?.purchase_variant_ratio,
-        isVariantIdPresent: getItems[0]?.isVariantIdPresent
+        isVariantIdPresent: getItems[0]?.isVariantIdPresent,
+        purchase_created_by: getItems[0]?.purchase_created_by,
+        medicine_name_by_ml: getItems[0]?.medicine_name_by_ml
 
         // purchase_gst_type: getItems[0].purchase_gst_type,
         // purchase_tax_amount: getItems[0].purchase_tax_amount
@@ -1055,7 +1076,9 @@ const AddPurchaseForm = () => {
         purchase_variant_id: getItems[0]?.purchase_variant_id,
         purchase_unit_qty: getItems[0]?.purchase_unit_qty,
         purchase_variant_ratio: getItems[0]?.purchase_variant_ratio,
-        isVariantIdPresent: getItems[0]?.isVariantIdPresent
+        isVariantIdPresent: getItems[0]?.isVariantIdPresent,
+        purchase_created_by: getItems[0]?.purchase_created_by,
+        medicine_name_by_ml: getItems[0]?.medicine_name_by_ml
       })
     }
   }
@@ -1091,7 +1114,7 @@ const AddPurchaseForm = () => {
         toast.success(response.message)
         setSubmitLoader(false)
         getListOfItemsById(id)
-        Router.push('/pharmacy/purchase/purchase-list/')
+        Router.push('/pharmacy/purchase/')
       } else {
         setSubmitLoader(false)
         toast.error(response.message)
@@ -1102,7 +1125,7 @@ const AddPurchaseForm = () => {
         toast.success(response.message)
         setEditParams(editParamsInitialState)
         setSubmitLoader(false)
-        Router.push('/pharmacy/purchase/purchase-list/')
+        Router.push('/pharmacy/purchase/')
       } else {
         setSubmitLoader(false)
         if (response.data?.po_no) {
@@ -1359,7 +1382,7 @@ const AddPurchaseForm = () => {
   // ---------------
 
   useEffect(() => {
-    if (Number(inputValue) !== Number(grandTotalAmount)) {
+    if (Number(inputValue).toFixed(2) !== Number(grandTotalAmount).toFixed(2)) {
       setIsError(true)
     } else {
       setIsError(false)
@@ -1383,33 +1406,36 @@ const AddPurchaseForm = () => {
     getSuppliersLists()
   }, [])
 
-  // removed initially updating the total input value
   // useEffect(() => {
   //   if (grandTotalAmount && id) {
   //     setInputValue(Number(grandTotalAmount).toFixed(2))
   //   }
   // }, [grandTotalAmount])
 
-  const validateErrorForItemId = (index, el) => {
-    setItemIdErrors(prevErrors => {
-      const newErrors = { ...prevErrors }
+  const validateErrorForItemId = () => {
+    const error = editParams.purchase_details.some(
+      el => el?.purchase_stock_item_id === '' || el?.purchase_stock_item_id === null
+    )
+    console.log('error', error)
 
-      if (!el?.purchase_stock_item_id) {
-        newErrors[index] = 'Product Information not found, please update the details'
-      } else {
-        delete newErrors[index] // Remove error if the issue is resolved
-      }
-
-      return newErrors
-    })
+    return error
   }
-  useEffect(() => {
-    if (editParams.purchase_details) {
-      editParams.purchase_details.forEach((el, index) => {
-        validateErrorForItemId(index, el)
-      })
+
+  const validateAndShowAmount = () => {
+    const numericInputValue = parseFloat(inputValue)
+    const numericGrandTotal = parseFloat(grandTotalAmount)
+
+    if (isNaN(numericInputValue) || isNaN(numericGrandTotal)) {
+      setShowAmount(false)
+
+      return
     }
-  }, [editParams.purchase_details])
+    if (numericInputValue > numericGrandTotal * 0.5) {
+      setShowAmount(true)
+    } else {
+      setShowAmount(false)
+    }
+  }
 
   return (
     <Card>
@@ -2088,7 +2114,6 @@ const AddPurchaseForm = () => {
           </Grid>
         </CardContent>
         <Divider sx={{ mx: '20px' }} />
-
         <CardContent>
           <Grid container>
             <Grid
@@ -2256,7 +2281,8 @@ const AddPurchaseForm = () => {
                             <Typography variant='body2'>{el?.manufacture}</Typography>
                             {!el?.purchase_stock_item_id && (
                               <Typography sx={{ color: 'error.main', fontSize: '12px' }}>
-                                {itemIdIdErrors[index]}
+                                {/* {itemIdIdErrors[index]} */}
+                                Product Information not found, please update the details
                               </Typography>
                             )}
                           </TableCell>
@@ -2666,7 +2692,9 @@ const AddPurchaseForm = () => {
                         }}
                       >
                         {/* {totalLineItemsPurchase?.toFixed(2)} */}
-                        {grandTotalAmount ? grandTotalAmount?.toFixed(2) : 0.0}
+                        {/* {grandTotalAmount ? grandTotalAmount?.toFixed(2) : 0.0} */}
+                        {showAmount && grandTotalAmount?.toFixed(2)}
+                        {console.log('grandTotalAmount', grandTotalAmount)}
                       </Typography>
                       {/* {/* Input Box with Icon */}
 
@@ -2739,6 +2767,7 @@ const AddPurchaseForm = () => {
                         size='small'
                         placeholder='Enter value'
                         value={inputValue}
+                        onBlur={validateAndShowAmount}
                         onChange={e => {
                           // Restrict non-numeric inputs and update value
                           const value = e.target.value
@@ -2794,15 +2823,13 @@ const AddPurchaseForm = () => {
           </Grid>
           {/* // ) : null} */}
         </Grid>
+
         <Grid item xs={12}>
           <Box sx={{ float: 'right', my: 4, mx: 6 }}>
             <LoadingButton
               // disabled={editParams.purchase_details.length > 0 && inputValue ? false : true}
               disabled={
-                editParams.purchase_details.length > 0 &&
-                inputValue &&
-                !isError &&
-                !Object.keys(itemIdIdErrors)?.length > 0
+                editParams.purchase_details.length > 0 && inputValue && !isError && !validateErrorForItemId()
                   ? false
                   : true
               }
@@ -2877,8 +2904,8 @@ const AddPurchaseForm = () => {
           deleteLoader={deleteLoader}
         />
       )}
-      {/* <CommonDialogBox
-        noWidth={800}
+      <CommonDialogBox
+        dialogWithMaxWidth={true}
         title={
           <Box
             sx={{
@@ -2889,10 +2916,13 @@ const AddPurchaseForm = () => {
               color: 'customColors.OnSurfaceVariant',
               display: 'flex',
               gap: 2,
-              alignItems: 'center'
+              alignItems: 'center',
+              py: 2,
+              borderBottom: '1px solid',
+              borderColor: theme => alpha(theme.palette.customColors.neutral05, 0.05)
             }}
           >
-            Upload Invoice
+            Attach Invoice
           </Box>
         }
         dialogBoxStatus={invoiceUploadDialog}
@@ -2912,7 +2942,7 @@ const AddPurchaseForm = () => {
         show={() => {
           setInvoiceUploadDialog(true)
         }}
-      /> */}
+      />
     </Card>
   )
 }

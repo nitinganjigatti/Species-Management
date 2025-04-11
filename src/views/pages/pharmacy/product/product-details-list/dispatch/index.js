@@ -179,6 +179,7 @@ function Dispatch({ tabValue, updateUrlParams }) {
         </Typography>
       )
     },
+
     // {
     //   minWidth: 190,
     //   field: 'price',

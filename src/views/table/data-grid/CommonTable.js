@@ -17,7 +17,8 @@ const CommonTable = ({
   checkBoxOption,
   onRowSelectionModelChange,
   selectedRows,
-  disablePagination = false // New prop to control pagination
+  disablePagination = false, // New prop to control pagination
+  maxHeight
 }) => {
   const theme = useTheme()
 
@@ -38,7 +39,8 @@ const CommonTable = ({
         },
         '.MuiDataGrid-virtualScroller': {
           // overflow: 'hidden',
-          overflowX: 'auto'
+          overflowX: 'auto',
+          ...(maxHeight && { maxHeight: maxHeight, overflowY: 'auto !important' })
         },
         '.MuiDataGrid-main': {
           // margin: '2px',

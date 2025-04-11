@@ -349,6 +349,7 @@ const ListOfStockAdjusted = () => {
             params?.row?.adjusted_at
           )}
         </>
+
         // <Box sx={{ display: 'flex', alignItems: 'center' }}>
         //   {Utility.renderUserAvatar(params.row.user_profile_pic)}
         //   <Box sx={{ display: 'flex', flexDirection: 'column' }}>

@@ -99,7 +99,6 @@ import dashboardNavigation from 'src/components/navigation/dashboard'
 //       }
 //     ]
 //   },
-
 //   // {
 //   //   title: 'Supplier',
 //   //   path: '/pharmacy/supplier',

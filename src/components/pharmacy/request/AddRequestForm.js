@@ -752,7 +752,7 @@ const AddRequestForm = () => {
         if (result?.data?.success === true) {
           closeCancelDialog()
           toast.success(result?.data?.data)
-          Router.push(`/pharmacy/request/request-list/`)
+          Router.push(`/pharmacy/request/`)
         } else {
           closeCancelDialog()
           toast.error(result?.data?.data)
@@ -844,12 +844,14 @@ const AddRequestForm = () => {
                         <Typography>{option.name}</Typography>
                         <Typography variant='body2'>{option.package}</Typography>
                         <Typography variant='body2'>{option.manufacture}</Typography>
-                        {option.control_substance === true && (
+                        {/* {option.control_substance === true && (
                           <CustomChip label='CS' skin='light' color='success' size='small' />
-                        )}{' '}
-                        {option.prescription_required === true && (
+                        )}{' '} */}
+                        {RenderUtility?.renderControlLabel(option.control_substance === true, 'CS')}
+                        {RenderUtility?.renderPrescriptionLabel(option.prescription_required === true, 'PR')}
+                        {/* {option.prescription_required === true && (
                           <CustomChip label='PR' skin='light' color='success' size='small' />
-                        )}
+                        )} */}
                         {/* <Typography
                           sx={{
                             color: 'customColors.OnSecondaryContainer',
@@ -1139,6 +1141,7 @@ const AddRequestForm = () => {
             <FormControl fullWidth>
               <TextField
                 type='number'
+                onWheel={event => event.target.blur()}
                 value={nestedRowMedicine.request_item_qty}
                 error={Boolean(itemErrors.request_item_qty)}
                 label='Quantity*'
@@ -1430,11 +1433,11 @@ const AddRequestForm = () => {
                       color: 'primary.main'
                     }
                   }}
-                  checked={nestedRowMedicine.priority_item === 'high'}
+                  checked={nestedRowMedicine?.priority_item === 'high'}
                   onChange={event => {
                     setNestedRowMedicine({
                       ...nestedRowMedicine,
-                      priority_item: event.target.checked ? 'high' : ''
+                      priority_item: event?.target.checked ? 'high' : 'low'
                     })
                   }}
                 />
@@ -1942,7 +1945,7 @@ const AddRequestForm = () => {
             <Icon
               style={{ cursor: 'pointer' }}
               onClick={() => {
-                Router.push('/pharmacy/request/request-list/')
+                Router.push('/pharmacy/request/')
               }}
               icon='ep:back'
             />
@@ -1953,7 +1956,7 @@ const AddRequestForm = () => {
       <CardContent>
         <Grid container>
           <CommonDialogBox
-            title={'Add Request Item'}
+            title={'Add Request Item '}
             dialogBoxStatus={show}
             formComponent={createForm()}
             close={closeDialog}
@@ -2238,7 +2241,7 @@ const AddRequestForm = () => {
                           {/* Name and chips in a flex container */}
                           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
                             {RenderUtility?.renderControlLabel(el.control_substance === true, 'CS')}
-                            {RenderUtility?.renderControlLabel(el.prescription_required === true, 'PR')}
+                            {RenderUtility?.renderPrescriptionLabel(el.prescription_required === true, 'PR')}
                             {/* {el.control_substance ? (
                               <CustomChip
                                 label='CS'

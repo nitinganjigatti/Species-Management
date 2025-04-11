@@ -286,6 +286,7 @@ export default function AddProduct() {
         const toastMessage = id ? 'Product Updated Successfully' : 'New Product Created Successfully'
         toast.success(toastMessage)
         router.back()
+
         // router.push('/pharmacy/new-product-request/')
       } else {
         setSubmitLoader(false)
@@ -305,6 +306,7 @@ export default function AddProduct() {
       setConfirmationBox(true)
     } else {
       router.back()
+
       // router.push('/pharmacy/new-product-request/')
     }
   }
@@ -436,6 +438,7 @@ export default function AddProduct() {
       handleCancelDialogBox()
     } else {
       router.back()
+
       // router.push('/pharmacy/new-product-request/')
     }
   }
@@ -454,6 +457,7 @@ export default function AddProduct() {
                     style={{ cursor: 'pointer' }}
                     onClick={() => {
                       isDirty || imgSrcChange || previousPrescriptionLength ? handleCancelDialogBox() : router.back()
+
                       // router.push('/pharmacy/new-product-request/')
                     }}
                     icon='ep:back'
@@ -529,6 +533,7 @@ export default function AddProduct() {
                               <MenuItem value='allopathy'>Allopathy</MenuItem>
                               <MenuItem value='ayurveda'>Ayurveda</MenuItem>
                               <MenuItem value='unani'>Unani</MenuItem>
+                              <MenuItem value='homeopathy'>Homeopathy</MenuItem>
                               <MenuItem value='non_medical'>Non Medical</MenuItem>
                             </Select>
                           )}

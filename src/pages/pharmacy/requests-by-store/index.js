@@ -6,6 +6,7 @@ import { usePharmacyContext } from 'src/context/PharmacyContext'
 export default function StoresRequestList() {
   const router = useRouter()
   const { selectedPharmacy } = usePharmacyContext()
+
   const navigateToLocalStore = useCallback(() => {
     if (selectedPharmacy?.type === 'local' && router.pathname !== '/pharmacy/requests-by-product') {
       // debugger
@@ -15,5 +16,6 @@ export default function StoresRequestList() {
       })
     }
   }, [selectedPharmacy?.id])
+
   return <div>{selectedPharmacy.type === 'local' ? <>{navigateToLocalStore()}</> : <AllStoresRequestList />}</div>
 }

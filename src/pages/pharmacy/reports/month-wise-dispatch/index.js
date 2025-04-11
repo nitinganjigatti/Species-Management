@@ -33,6 +33,7 @@ const dropdownOptions = [
   { value: 'weekly', label: 'Weekly' },
   { value: 'monthly', label: 'Monthly' },
   { value: 'yearly', label: 'Yearly' }
+
   // { value: 'custom', label: 'Custom Range' }
 ]
 
@@ -649,10 +650,10 @@ const MonthWiseDispatch = () => {
         Medicine: 'Total Dispatch Value'
       }
       listItem.columnData.forEach(column => {
-        const formattedPurchaseValue = column.total_purchase_value.toLocaleString('en-IN', {
-          maximumFractionDigits: 0
-        })
-        totalPurchaseRow[`${column.title} (${column.sub_title})`] = `${formattedPurchaseValue}`
+        // const formattedPurchaseValue = column.total_purchase_value.toLocaleString('en-IN', {
+        //   maximumFractionDigits: 0
+        // })
+        totalPurchaseRow[`${column.title} (${column.sub_title})`] = `${column.total_purchase_value}`
       })
 
       const finalRows = [totalPurchaseRow, ...rows]
