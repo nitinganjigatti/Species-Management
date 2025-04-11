@@ -73,7 +73,7 @@ const AllStoresRequestList = () => {
       )
     },
     {
-      width: 400,
+      width: 250,
       field: 'store_name',
       headerName: 'Store Name',
       renderCell: params => (
@@ -91,8 +91,7 @@ const AllStoresRequestList = () => {
     },
 
     {
-      width: 300,
-
+      width: 200,
       field: 'pending_items',
       headerName: 'Total Pending Items',
       renderCell: params => (
@@ -108,8 +107,9 @@ const AllStoresRequestList = () => {
         </Typography>
       )
     },
+
     {
-      width: 300,
+      width: 200,
       field: 'emergency_items',
       headerName: 'Emergency Items',
       renderCell: params => (
@@ -124,6 +124,40 @@ const AllStoresRequestList = () => {
           {params.row.emergency_items}
         </Typography>
       )
+    },
+    {
+      width: 200,
+      field: 'available_product_count',
+      headerName: 'available product',
+      renderCell: params => (
+        <Typography
+          sx={{
+            color: theme.palette.customColors.OnSurfaceVariant,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
+          {params?.row?.available_product_count}
+        </Typography>
+      )
+    },
+    {
+      width: 200,
+      field: 'not_available_product_count',
+      headerName: 'not available product',
+      renderCell: params => (
+        <Typography
+          sx={{
+            color: theme.palette.customColors.OnSurfaceVariant,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
+          {params?.row?.not_available_product_count}
+        </Typography>
+      )
     }
   ]
 
@@ -131,14 +165,14 @@ const AllStoresRequestList = () => {
 
   const [total, setTotal] = useState(0)
 
-  const [sort, setSort] = useState(router.query.sort || 'asc')
+  const [sort, setSort] = useState(router.query.sort || 'desc')
   const [rows, setRows] = useState([])
   const [searchValue, setSearchValue] = useState(router.query.q || '')
   const [sortColumn, setSortColumn] = useState(router.query.column || 'name')
 
   const [paginationModel, setPaginationModel] = useState({
     page: parseInt(router.query.page) || 0,
-    pageSize: parseInt(router.query.limit) || 10
+    pageSize: parseInt(router.query.limit) || 50
   })
 
   const [loading, setLoading] = useState(false)
@@ -153,7 +187,7 @@ const AllStoresRequestList = () => {
   const [uniquePendingData, setUniquePendingData] = useState([])
   const [totalUniqueItems, setTotalUniqueItems] = useState(0)
   const [noMoreData, setNoMoreData] = useState(false)
-
+  const [drawerSearchValue, setDrawerSearchValue] = useState('')
   function loadServerRows(currentPage, data) {
     return data
   }
@@ -252,6 +286,7 @@ const AllStoresRequestList = () => {
   const handleDrawerClose = () => {
     setIsDrawerOpen(false)
     setActiveTab('1')
+    setDrawerSearchValue('')
 
     // Resetting page and data when drawer is closed
     setPage(1)
@@ -274,7 +309,7 @@ const AllStoresRequestList = () => {
   }, [])
 
   const fetchUniquePendingData = useCallback(
-    async ({ stock_status, page, limit }) => {
+    async ({ stock_status, page, limit, q }) => {
       // Prevent API calls there's no data
       if (isLoadingMore || noDataRef.current) return
 
@@ -285,16 +320,21 @@ const AllStoresRequestList = () => {
           sort: 'asc',
           column: 'stock_name',
           page,
-          limit
+          limit,
+          q
         }
         const res = await getAllUniquePendingList({ params })
+        console.log(res, 'res')
 
         if (res?.success && res?.data?.list_items?.length > 0) {
           const transformedData = res?.data?.list_items.map(item => ({
             name: item.stock_name,
             description: item.manufacturer,
             pending: item.total_pending_qty,
-            icon: item.image
+            icon: item.image,
+            control_substance: item.control_substance,
+            controlled_substance: item.controlled_substance,
+            prescription_required: item.prescription_required
           }))
 
           setUniquePendingData(prevMedicines => {
@@ -340,10 +380,26 @@ const AllStoresRequestList = () => {
     [uniquePendingData, isLoadingMore]
   )
 
+  const searchDrawerData = useCallback(
+    debounce(async ({ stock_status, q }) => {
+      // Reset states but keep search value
+      resetStates()
+
+      fetchUniquePendingData({
+        stock_status,
+        page: 1,
+        limit: 10,
+        q
+      })
+    }, 500), // 500ms debounce time
+    [resetStates, fetchUniquePendingData]
+  )
+
   const handleChange = useCallback(
     (event, newValue) => {
       resetStates()
       setActiveTab(newValue)
+      setDrawerSearchValue('')
 
       let stockStatus = ''
       switch (newValue) {
@@ -495,44 +551,92 @@ const AllStoresRequestList = () => {
 
   // Render content
   const renderContent = title => {
-    if (isLoadingMore && isInitialLoadRef.current) {
-      return (
-        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
-          <CircularProgress size={24} />
-        </Box>
-      )
-    }
+    // if (isLoadingMore && isInitialLoadRef.current) {
+    //   return (
+    //     <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
+    //       <CircularProgress size={24} />
+    //     </Box>
+    //   )
+    // }
 
     return (
       <>
         {renderHeader(title)}
-        <Box sx={{ flexGrow: 1 }}>
-          <Grid container direction='column' gap={1}>
-            {uniquePendingData.map((med, index) => (
-              <Grid item xs={12} key={index} sx={{ padding: 0, margin: 0 }}>
-                <MedicineCard
-                  {...med}
-                  pendingColor={activeTab === '2' ? 'customColors.Error' : 'customColors.Tertiary'}
-                />
-              </Grid>
-            ))}
-          </Grid>
-          {isLoadingMore && !isInitialLoadRef.current && (
-            <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
-              <CircularProgress size={24} />
-            </Box>
-          )}
-          {noMoreData && uniquePendingData.length > 0 && (
-            <Typography sx={{ textAlign: 'center', mt: 2, color: 'customColors.neutralSecondary' }}>
-              No more data to load
-            </Typography>
-          )}
-          {noDataRef.current && (
-            <Typography sx={{ textAlign: 'center', mt: 2, color: 'customColors.neutralSecondary' }}>
-              No data available
-            </Typography>
-          )}
+        <Box sx={{ mb: 4, display: 'flex', justifyContent: 'end' }}>
+          <TextField
+            variant='outlined'
+            size='small'
+            placeholder='Search...'
+            value={drawerSearchValue}
+            onChange={e => {
+              const value = e.target.value
+              setDrawerSearchValue(value)
+
+              // Get stock status based on active tab
+              let stockStatus = ''
+              switch (activeTab) {
+                case '2':
+                  stockStatus = 'Available'
+                  break
+                case '3':
+                  stockStatus = 'NotAvailable'
+                  break
+                default:
+                  stockStatus = ''
+              }
+
+              // Use the debounced search function
+              searchDrawerData({
+                stock_status: stockStatus,
+                q: value
+              })
+            }}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position='start'>
+                  <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
+                </InputAdornment>
+              )
+            }}
+            sx={{
+              borderRadius: '8px'
+            }}
+          />
         </Box>
+
+        {isLoadingMore && isInitialLoadRef.current ? (
+          <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
+            <CircularProgress size={24} />
+          </Box>
+        ) : (
+          <Box sx={{ flexGrow: 1 }}>
+            <Grid container direction='column' gap={1}>
+              {uniquePendingData.map((med, index) => (
+                <Grid item xs={12} key={index} sx={{ padding: 0, margin: 0 }}>
+                  <MedicineCard
+                    {...med}
+                    pendingColor={activeTab === '2' ? 'customColors.Error' : 'customColors.Tertiary'}
+                  />
+                </Grid>
+              ))}
+            </Grid>
+            {isLoadingMore && !isInitialLoadRef.current && (
+              <Box sx={{ display: 'flex', justifyContent: 'center', mt: 2 }}>
+                <CircularProgress size={24} />
+              </Box>
+            )}
+            {noMoreData && uniquePendingData.length > 0 && (
+              <Typography sx={{ textAlign: 'center', mt: 2, color: 'customColors.neutralSecondary' }}>
+                No more data to load
+              </Typography>
+            )}
+            {noDataRef.current && (
+              <Typography sx={{ textAlign: 'center', mt: 2, color: 'customColors.neutralSecondary' }}>
+                No data available
+              </Typography>
+            )}
+          </Box>
+        )}
       </>
     )
   }
@@ -611,6 +715,7 @@ const AllStoresRequestList = () => {
               setPaginationModel={setPaginationModel}
               loading={loading}
               searchValue={searchValue}
+              maxHeight='60vh'
             />
           </Grid>
 
@@ -671,8 +776,9 @@ const AllStoresRequestList = () => {
               {/* Wrap TabContext here */}
               <TabContext value={activeTab}>
                 <TabList
+                  variant='scrollable'
+                  allowScrollButtonsMobile
                   onChange={handleChange}
-                  aria-label='simple tabs example'
                   sx={{
                     backgroundColor: 'customColors.OnPrimary',
                     color: 'customColors.neutralSecondary',

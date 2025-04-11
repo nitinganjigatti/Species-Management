@@ -141,20 +141,6 @@ const ListOfPurchase = () => {
     [paginationModel, filterDates]
   )
 
-  // useEffect(() => {
-  //   fetchTableData({ sort: sort, q: searchValue, column: sortColumn, filterDates })
-  //   updateUrlParams({
-  //     sort,
-  //     q: searchValue,
-  //     column: sortColumn,
-  //     page: paginationModel?.page,
-  //     limit: paginationModel?.pageSize,
-  //     filterDates
-  //   })
-
-  //   // eslint-disable-next-line react-hooks/exhaustive-deps
-  // }, [selectedPharmacy.id, paginationModel.page, paginationModel.pageSize, filterDates])
-
   useEffect(() => {
     if (filterDates?.startDate !== undefined && filterDates?.endDate !== undefined) {
       fetchTableData({ sort, q: searchValue, column: sortColumn, filterDates })
@@ -183,13 +169,15 @@ const ListOfPurchase = () => {
     if (newModel.length) {
       setSort(newModel[0].sort)
       setSortColumn(newModel[0].field)
-      fetchTableData({ sort: newModel[0].sort, q: searchValue, column: newModel[0].field })
+      fetchTableData({ sort: newModel[0].sort, q: searchValue, column: newModel[0].field, filterDates })
       updateUrlParams({
         sort: newModel[0].sort,
         q: searchValue,
         column: newModel[0].field,
         page: paginationModel?.page,
-        limit: paginationModel?.pageSize
+        limit: paginationModel?.pageSize,
+        ...(filterDates?.startDate !== '' && { from_date: filterDates?.startDate }),
+        ...(filterDates?.endDate !== '' && { to_date: filterDates?.endDate })
       })
     } else {
     }
@@ -448,6 +436,7 @@ const ListOfPurchase = () => {
         2,
         '0'
       )}-${now.getFullYear()} ${String(now.getHours()).padStart(2, '0')}-${String(now.getMinutes()).padStart(2, '0')}`
+
       const params = {
         sort: sort,
         q: searchValue,

@@ -182,13 +182,14 @@ function formatAmountToReadableDigit(value) {
   // return '0'
 }
 
-const downloadFileFromURL = async (fileUrl, title = 'report') => {
+const downloadFileFromURL = async (fileUrl, title = '') => {
   if (!fileUrl) {
     console.error('No file URL provided')
 
     return
   }
   try {
+    const fileType = fileUrl.split('.').pop()
     const fileExtension = fileUrl.split('/')
     const fetchResponse = await fetch(fileUrl)
     if (!fetchResponse.ok) {
@@ -196,7 +197,12 @@ const downloadFileFromURL = async (fileUrl, title = 'report') => {
     }
     const blob = await fetchResponse.blob()
     const url = window.URL.createObjectURL(blob)
-    const fileName = `${fileExtension[fileExtension.length - 1]}`
+
+    const fileName = `${
+      title !== ''
+        ? `${title.toLowerCase().replace(/\s+/g, '-')}-report.${fileType}`
+        : fileExtension[fileExtension.length - 1]
+    }`
     const link = document.createElement('a')
     link.href = url
     link.download = fileName

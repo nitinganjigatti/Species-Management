@@ -626,7 +626,7 @@ const AddReturnRequest = () => {
         const result = await cancelReturnItemsRequest(id)
         if (result?.data?.success === true) {
           toast.success(result?.data?.data)
-          Router.replace(`/pharmacy/return-product/request-list/`)
+          Router.replace(`/pharmacy/return-product/`)
         } else {
           toast.error(result.data)
         }

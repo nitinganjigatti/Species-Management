@@ -167,6 +167,7 @@ const Overview = props => {
     const totalLocalQty = Array.isArray(data?.local)
       ? data.local.reduce((sum, store) => sum + Number(store.total_qty), 0)
       : 0
+
     return (
       <>
         {isLoading ? (
@@ -320,6 +321,7 @@ const Overview = props => {
                 ) : (
                   data.map((row, index) => {
                     const value = (parseFloat(row.qty) * parseFloat(row.unit_price)).toFixed(2)
+
                     const formattedValue = Number(value).toLocaleString('en-IN', {
                       minimumFractionDigits: 2,
                       maximumFractionDigits: 2
@@ -342,7 +344,8 @@ const Overview = props => {
                           {Utility.formatDisplayDate(Utility.convertUTCToLocal(row.expiry_date))}
                         </TableCell>
                         <TableCell>{row.qty}</TableCell>
-                        <TableCell>₹{row.unit_price}</TableCell>
+                        <TableCell>{Utility.formatAmountToReadableDigit(row.unit_price)}</TableCell>
+                        {/* <TableCell>₹{row.unit_price}</TableCell> */}
                         {/* <TableCell>₹{formattedValue}</TableCell> */}
                         <TableCell>{Utility.formatAmountToReadableDigit(newValue)}</TableCell>
                         <TableCell sx={{ color: 'customColors.Tertiary' }}>{row.days_left} Days</TableCell>
@@ -357,6 +360,7 @@ const Overview = props => {
       )}
     </>
   )
+
   const ExpiredBatchesContent = ({ data, isLoading }) => (
     <>
       {isLoading ? (
@@ -397,11 +401,13 @@ const Overview = props => {
                 ) : (
                   data.map((item, index) => {
                     const value = (parseFloat(item.qty) * parseFloat(item.unit_price)).toFixed(2)
+
                     const formattedValue = Number(value).toLocaleString('en-IN', {
                       minimumFractionDigits: 2,
                       maximumFractionDigits: 2
                     })
                     const newValue = parseInt(item.qty) * parseInt(item.unit_price)
+
                     return (
                       <TableRow
                         key={index}
@@ -412,14 +418,10 @@ const Overview = props => {
                         }}
                       >
                         <TableCell>{item.batch_no}</TableCell>
-                        <TableCell>
-                          {
-                            // new Date(item.expiry_date).toLocaleDateString()
-                            Utility.formatDisplayDate(Utility.convertUTCToLocal(item.expiry_date))
-                          }
-                        </TableCell>
+                        <TableCell>{Utility.formatDisplayDate(Utility.convertUTCToLocal(item.expiry_date))}</TableCell>
                         <TableCell>{item.qty}</TableCell>
-                        <TableCell>₹{item.unit_price}</TableCell>
+                        <TableCell>{Utility.formatAmountToReadableDigit(item.unit_price)}</TableCell>
+                        {/* <TableCell>₹{item.unit_price}</TableCell> */}
                         {/* <TableCell>₹{formattedValue}</TableCell> */}
                         <TableCell>{Utility.formatAmountToReadableDigit(newValue)}</TableCell>
                         <TableCell sx={{ color: 'customColors.Error' }}>{item.days_overdue} Days</TableCell>
@@ -438,6 +440,7 @@ const Overview = props => {
   const [activeDrawer, setActiveDrawer] = useState(null)
   const [drawerDataArray, setDrawerDataArray] = useState([])
   const [isLoading, setIsLoading] = useState(false)
+
   const [totalValue, setTotalValue] = useState({
     totalValue: 0,
     totalBatches: 0,
@@ -472,6 +475,7 @@ const Overview = props => {
       name: 'expiredBatches',
       title: 'Expired Batches',
       style: 'customColors.Background',
+
       // bgColor: '#E933531A',
       bgColor: theme => alpha(theme.palette.customColors.Error, 0.1),
       icon: '/images/Incubator_ICON.svg',
@@ -499,6 +503,7 @@ const Overview = props => {
     try {
       setIsLoading(true)
       let result
+
       // Fetch data based on selected drawer ID
       if (name === 'aboutToExpire') {
         result = await getProductAboutToExpireList(id)
@@ -706,8 +711,8 @@ const Overview = props => {
               lineColor={'#37BD69'}
               seriesBarName='Dispatch Value'
               seriesLineName='Dispatch Count'
-              countLabel='Show Dispatch Count'
-              valueLabel='Show Dispatch Value'
+              barLabel='Show Dispatch Value'
+              lineLabel='Show Dispatch Count'
             />
           </Card>
         </Grid>
@@ -722,8 +727,8 @@ const Overview = props => {
               lineColor={'#AFEFEB'}
               seriesBarName='Purchase Value'
               seriesLineName='Purchase Count'
-              countLabel='Show Purchase Count'
-              valueLabel='Show Purchase Value'
+              barLabel='Show Purchase Value'
+              lineLabel='Show Purchase Count'
             />
           </Card>
         </Grid>

@@ -1097,7 +1097,9 @@ const IndividualReturnRequest = () => {
                                   // showOrderFormDialog()
                                   Router.push({
                                     pathname: `/pharmacy/return-product/${id}/shipment-details`,
-                                    query: { orderId: e.id }
+
+                                    // query: { orderId: e.id }
+                                    query: { orderId: e.id, requestId: id }
                                   })
                                 }}
                               ></TableBasic>
@@ -1236,7 +1238,7 @@ const IndividualReturnRequest = () => {
               You don't have an access to view this request
               <Button
                 onClick={() => {
-                  router.push('/pharmacy/return-product/request-list/')
+                  router.push('/pharmacy/return-product')
                 }}
                 variant='contained'
                 size='small'

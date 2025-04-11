@@ -27,6 +27,7 @@ import { Icon } from '@iconify/react'
 import { useTheme } from '@emotion/react'
 import { AddButtonContained } from 'src/components/ButtonContained'
 import RenderUtility from 'src/utility/render'
+import CustomAvatar from 'src/@core/components/mui/avatar'
 
 function Dispense() {
   const router = useRouter()
@@ -87,65 +88,66 @@ function Dispense() {
         </Typography>
       )
     },
-    {
-      flex: 0.2,
-      minWidth: 20,
-      field: 'user_name',
-      headerName: 'User Name',
-      renderCell: params => (
-        <>
-         {/* {RenderUtility?.renderUserAvatarDetails(
-            params?.row?.profile_pic, 
-            params?.row?.user_name,
-           
-          )} */}
-          <Avatar
-            sx={{
-              '& > img': {
-                objectFit: 'contain'
-              },
-              width: 30,
-              height: 30,
-              mr: 4
-            }}
-            variant='circular'
-            alt={params?.row?.profile_pic}
-            src={params?.row?.profile_pic}
-          />
-          <Typography
-            variant='body2'
-            sx={{
-              color: theme.palette.customColors.customHeadingTextColor,
-              fontSize: '14px',
-              fontWeight: 500,
-              fontFamily: 'Inter'
-            }}
-          >
-            {params.row.user_name}
-          </Typography>
-        </>
-      )
-    },
-    {
-      flex: 0.2,
-      minWidth: 20,
-      field: 'created_at',
-      headerName: 'created At',
-      renderCell: params => (
-        <Typography
-          variant='body2'
-          sx={{
-            color: theme.palette.customColors.customHeadingTextColor,
-            fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
-          }}
-        >
-          {Utility.formatDisplayDate(Utility.convertUTCToLocal(params.row.created_at))} -{' '}
-          {Utility.extractHoursAndMinutes(Utility.convertUTCToLocal(params.row.created_at))}
-        </Typography>
-      )
-    },
+
+    // {
+    //   flex: 0.2,
+    //   minWidth: 20,
+    //   field: 'user_name',
+    //   headerName: 'User Name',
+    //   renderCell: params => (
+    //     <>
+    //       {/* {RenderUtility?.renderUserAvatarDetails(
+    //         params?.row?.profile_pic,
+    //         params?.row?.user_name,
+
+    //       )} */}
+    //       <Avatar
+    //         sx={{
+    //           '& > img': {
+    //             objectFit: 'contain'
+    //           },
+    //           width: 30,
+    //           height: 30,
+    //           mr: 4
+    //         }}
+    //         variant='circular'
+    //         alt={params?.row?.profile_pic}
+    //         src={params?.row?.profile_pic}
+    //       />
+    //       <Typography
+    //         variant='body2'
+    //         sx={{
+    //           color: theme.palette.customColors.customHeadingTextColor,
+    //           fontSize: '14px',
+    //           fontWeight: 500,
+    //           fontFamily: 'Inter'
+    //         }}
+    //       >
+    //         {params.row.user_name}
+    //       </Typography>
+    //     </>
+    //   )
+    // },
+    // {
+    //   flex: 0.2,
+    //   minWidth: 20,
+    //   field: 'created_at',
+    //   headerName: 'created At',
+    //   renderCell: params => (
+    //     <Typography
+    //       variant='body2'
+    //       sx={{
+    //         color: theme.palette.customColors.customHeadingTextColor,
+    //         fontSize: '14px',
+    //         fontWeight: 500,
+    //         fontFamily: 'Inter'
+    //       }}
+    //     >
+    //       {Utility.formatDisplayDate(Utility.convertUTCToLocal(params.row.created_at))} -{' '}
+    //       {Utility.extractHoursAndMinutes(Utility.convertUTCToLocal(params.row.created_at))}
+    //     </Typography>
+    //   )
+    // },
     {
       flex: 0.2,
       minWidth: 20,
@@ -166,6 +168,61 @@ function Dispense() {
         >
           {params.row.animal_count ? params.row.animal_count : 0}
         </Typography>
+      )
+    },
+    {
+      flex: 0.2,
+      minWidth: 30,
+      field: 'created_at',
+      headerName: 'Dispensed Date',
+      renderCell: params => (
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
+          {Utility.formatDisplayDate(Utility.convertUTCToLocal(params.row.created_at))} -{' '}
+          {Utility.extractHoursAndMinutes(Utility.convertUTCToLocal(params.row.created_at))}
+        </Typography>
+      )
+    },
+    {
+      minWidth: 220,
+      field: 'user_name',
+      headerName: 'Dispensed to',
+      renderCell: params => (
+        <>
+          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+            {params?.row?.profile_pic ? (
+              <CustomAvatar src={params?.row?.profile_pic} sx={{ mr: '16px', width: '40px', height: '40px' }} />
+            ) : (
+              <CustomAvatar sx={{ mr: '16px', width: '40px', height: '40px', fontSize: '.8rem' }}></CustomAvatar>
+            )}
+            <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+              <Typography variant='subtitle2' sx={{ color: 'text.primary' }}>
+                {`${params?.row?.user_name} ${params?.row?.user_last_name}` || 'NA'}
+              </Typography>
+            </Box>
+          </Box>
+        </>
+      )
+    },
+    {
+      minWidth: 200,
+      field: 'created_by',
+      headerName: 'Created by ',
+      renderCell: params => (
+        <>
+          {RenderUtility?.renderUserAvatarDetails(
+            params?.row?.user_created_profile_pic,
+            params?.row?.created_by_user_name,
+            params?.row?.created_at
+          )}
+        </>
       )
     }
   ]

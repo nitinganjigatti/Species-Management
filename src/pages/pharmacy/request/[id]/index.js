@@ -1074,13 +1074,7 @@ const IndividualRequest = () => {
             }}
             disabled={selectedPharmacy?.permission.key === 'VIEW'}
           >
-            <Icon
-              // onClick={() => {
-              //   setDeleteDialog(true)
-              //   setDeleteFullFillId(params.row.dispatch_item_id)
-              // }}
-              icon='mdi:delete-outline'
-            />
+            <Icon icon='mdi:delete-outline' />
           </Button>
           {/* </Box> */}
         </Typography>
@@ -1491,7 +1485,7 @@ const IndividualRequest = () => {
                           requestItems?.status === 'request' &&
                           requestItems?.is_modified !== '1'
                         ) {
-                          Router.push('/pharmacy/request/request-list')
+                          Router.push('/pharmacy/request')
                         } else {
                           Router.back()
                         }
@@ -1675,23 +1669,25 @@ const IndividualRequest = () => {
                           }}
                         >
                           Total Requested Value:
-                          <Box
-                            component='span'
-                            sx={{
-                              fontWeight: '500',
-                              fontSize: '16px',
-                              color: 'primary.light',
-                              lineHeight: '19.36px',
-                              mx: 2,
-                              ...RenderUtility?.getEllipsisStyleForText('100')
-                            }}
-                          >
-                            {Utility.formatAmountToReadableDigit(requestItems?.requested_amount)}
-                            {/* ₹
-                            {RenderUtility?.getToolTipForText(
-                              Utility.formatNumberToDisplay(requestItems?.requested_amount)
-                            )} */}
-                          </Box>
+                          <Tooltip title={Utility.formatAmountToReadableDigit(requestItems?.requested_amount)}>
+                            <Box
+                              component='span'
+                              sx={{
+                                fontWeight: '500',
+                                fontSize: '16px',
+                                color: 'primary.light',
+                                lineHeight: '19.36px',
+                                mx: 2,
+                                ...RenderUtility?.getEllipsisStyleForText('100')
+                              }}
+                            >
+                              {Utility.formatAmountToReadableDigit(requestItems?.requested_amount)}
+                              {/* ₹
+                              {RenderUtility?.getToolTipForText(
+                                Utility.formatNumberToDisplay(requestItems?.requested_amount)
+                              )} */}
+                            </Box>
+                          </Tooltip>
                         </Typography>
 
                         {/* <Typography
@@ -1773,18 +1769,20 @@ const IndividualRequest = () => {
                           }}
                         >
                           Shipped Value:
-                          <Box
-                            component='span'
-                            sx={{
-                              fontWeight: '500',
-                              fontSize: '16px',
-                              color: 'primary.main',
-                              lineHeight: '19.36px',
-                              mx: 2
-                            }}
-                          >
-                            ₹{Utility.formatNumberToDisplay(requestItems?.shipped_amount)}
-                          </Box>
+                          <Tooltip title={`₹${Utility.formatNumberToDisplay(requestItems?.shipped_amount)}`}>
+                            <Box
+                              component='span'
+                              sx={{
+                                fontWeight: '500',
+                                fontSize: '16px',
+                                color: 'primary.main',
+                                lineHeight: '19.36px',
+                                mx: 2
+                              }}
+                            >
+                              ₹{Utility.formatNumberToDisplay(requestItems?.shipped_amount)}
+                            </Box>
+                          </Tooltip>
                         </Typography>
                       </Grid>
 
@@ -2725,7 +2723,7 @@ const IndividualRequest = () => {
               You don't have an access to view this request
               <Button
                 onClick={() => {
-                  router.push('/pharmacy/request/request-list/')
+                  router.push('/pharmacy/request')
                 }}
                 variant='contained'
                 size='small'

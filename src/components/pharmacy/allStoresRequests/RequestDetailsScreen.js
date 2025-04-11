@@ -86,6 +86,8 @@ const RequestDetailsScreen = () => {
         >
           <TabContext value={detailsTab}>
             <TabList
+              variant='scrollable'
+              allowScrollButtonsMobile
               sx={{ borderBottom: `1px solid ${theme.palette.customColors.neutral05} !important` }}
               onChange={(event, newValue) => {
                 console.log('new tab value: ', newValue)

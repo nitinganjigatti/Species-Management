@@ -255,10 +255,11 @@ export default function ShippedItems({ updateUrlParams, setTotalShippedCounts })
   }, [fetchTableData])
 
   const handleRowClick = params => {
-    console.log('paramsa.handleRowClick', params.row)
+    // console.log('paramsa.handleRowClick', params.row)
 
     router.push({
       pathname: `/pharmacy/requests-by-store/${params.row.id}/shipment-details`,
+
       query: { shipmentId: params.row.id }
     })
   }

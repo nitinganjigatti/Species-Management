@@ -69,6 +69,7 @@ const StockReportDetails = props => {
             top: 0,
             zIndex: 1,
             backgroundColor: 'background.default'
+
             // borderBottom: '1px solid',
             // borderColor: 'divider'
           }}

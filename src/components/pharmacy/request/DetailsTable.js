@@ -60,7 +60,7 @@ export default function DetailsTable({ ...props }) {
               !isNaN(el?.control_substance) && parseInt(el?.control_substance) === 1,
               'CS'
             )}
-            {RenderUtility?.renderControlLabel(
+            {RenderUtility?.renderPrescriptionLabel(
               !isNaN(el?.prescription_required) && parseInt(el?.prescription_required) === 1,
               'PR'
             )}
@@ -462,15 +462,6 @@ export default function DetailsTable({ ...props }) {
                                   width: 100,
                                   ...props?.strikeOutTextStyle(el.request_status)
                                 }}
-                                // disabled={
-                                //   parseInt(el.requested_qty) - parseInt(el.dispatch_qty) >= 1 &&
-                                //   props?.requestItems.status !== 'Cancelled' &&
-                                //   el.request_status !== 'Alternate' &&
-                                //   el.request_status !== 'Not Available' &&
-                                //   el.request_status !== 'Rejected'
-                                //     ? false
-                                //     : true
-                                // }
                                 disabled={
                                   props?.selectedPharmacy?.permission?.key === 'VIEW' ||
                                   (parseInt(el.requested_qty) - parseInt(el.dispatch_qty) >= 1 &&

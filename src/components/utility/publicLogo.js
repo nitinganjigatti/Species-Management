@@ -1,6 +1,6 @@
 import Image from 'next/image'
 
-import logo from 'public/images/branding/Antz_logo_h_color.svg'
+import logo from 'public/images/branding/antz/Antz_logo_h_color.svg'
 
 const PublicLogo = () => {
   return (

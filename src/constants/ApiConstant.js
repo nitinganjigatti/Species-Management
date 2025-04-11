@@ -248,7 +248,19 @@ export const PRODUCT_PURCHASE = 'v1/pharma/stock/purchase-details'
 
 export const PRODUCT_PURCHASE_BATCH_LIST = 'purchase'
 
+export const PURCHASE_REPORT = 'purchase-report'
+
+export const RETURN_REPORT = 'return-report'
+
+export const SHIPMENT_REPORT = 'shipment-report'
+
 export const CONSUMPTION_REPORT = 'consumption-report'
+
+export const REQUESTED_ITEMS_REPORT = 'requested-items'
+
+export const DISPENSE_REPORT = 'dispense-report'
+
+export const RETURN_TO_SUPPLIER = 'return-supplier-report'
 
 export const FEED_DETAILS = 'details'
 

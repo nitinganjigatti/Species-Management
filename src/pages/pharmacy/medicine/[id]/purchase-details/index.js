@@ -239,6 +239,7 @@ function PurchaseDetails() {
       })
     }
   }
+
   // const onRowClick = params => {
   //   var data = params.row
   //   console.log(data, 'data')
@@ -326,12 +327,8 @@ function PurchaseDetails() {
             onRowClick={onRowClick}
             indexedRows={indexedRows}
             total={total}
-            // handleSortModel={handleSortModel}
             columns={columns}
-            // paginationModel={paginationModel}
-            // setPaginationModel={setPaginationModel}
             loading={loading}
-            // searchValue={searchValue}
             disablePagination={true}
           />
         </Grid>

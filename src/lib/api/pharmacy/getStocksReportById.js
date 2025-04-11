@@ -39,8 +39,10 @@ export async function getExpiredMedicine({ params }) {
   return response.data.data
 }
 
-export async function aboutExpiringProduct(id, params) {
-  let response = await axiosGet({ url: `${STOCK_BY_BATCH}/${id}`, params, pharmacy: true })
+export async function aboutExpiringProduct({ params }) {
+  // export async function aboutExpiringProduct(id, params) {
+  // removed id from the url to get response based on store id oldUrl: `${STOCK_BY_BATCH}/${id}`
+  let response = await axiosGet({ url: `${STOCK_BY_BATCH}`, params, pharmacy: true })
 
   return response.data
 }
