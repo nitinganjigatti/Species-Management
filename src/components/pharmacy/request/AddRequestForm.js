@@ -752,7 +752,7 @@ const AddRequestForm = () => {
         if (result?.data?.success === true) {
           closeCancelDialog()
           toast.success(result?.data?.data)
-          Router.push(`/pharmacy/request/request-list/`)
+          Router.push(`/pharmacy/request/`)
         } else {
           closeCancelDialog()
           toast.error(result?.data?.data)
@@ -1945,7 +1945,7 @@ const AddRequestForm = () => {
             <Icon
               style={{ cursor: 'pointer' }}
               onClick={() => {
-                Router.push('/pharmacy/request/request-list/')
+                Router.push('/pharmacy/request/')
               }}
               icon='ep:back'
             />

@@ -380,6 +380,19 @@ const IndividualRequest = () => {
       )
     },
     {
+      width: 100,
+      minWidth: 100,
+      field: 'batch_no',
+      headerName: 'Batch No',
+
+      // align: 'right',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {params.row.batch_no}
+        </Typography>
+      )
+    },
+    {
       flex: 0.6,
       minWidth: 20,
       field: 'unit_price',
@@ -416,32 +429,6 @@ const IndividualRequest = () => {
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.batch_no}
-        </Typography>
-      )
-    },
-    {
-      width: 150,
-      minWidth: 150,
-      field: 'unit_price',
-      headerName: 'unit price',
-      type: 'number',
-      align: 'right',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {Utility.formatAmountToReadableDigit(params.row.unit_price)}
-        </Typography>
-      )
-    },
-    {
-      width: 150,
-      minWidth: 150,
-      field: 'qty',
-      headerName: 'total value',
-      type: 'number',
-      align: 'right',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {Utility.formatAmountToReadableDigit(params.row.unit_price * params.row.qty)}
         </Typography>
       )
     },
@@ -1243,7 +1230,7 @@ const IndividualRequest = () => {
               You don't have an access to view this request
               <Button
                 onClick={() => {
-                  router.push('/pharmacy/local-dispatch/local-dispatch-list/')
+                  router.push('/pharmacy/local-dispatch/')
                 }}
                 variant='contained'
                 size='small'

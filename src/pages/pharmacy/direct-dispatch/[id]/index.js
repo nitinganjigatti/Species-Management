@@ -1370,7 +1370,7 @@ const IndividualRequest = () => {
               You don't have an access to view this request
               <Button
                 onClick={() => {
-                  router.push('/pharmacy/direct-dispatch/direct-dispatch-list/')
+                  router.push('/pharmacy/direct-dispatch/')
                 }}
                 variant='contained'
                 size='small'

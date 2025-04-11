@@ -10,17 +10,15 @@ const RequestByProduct = () => {
 
   const navigateToCentralStore = useCallback(() => {
     // debugger
-    if (
-      selectedPharmacy?.type === 'central' &&
-      router.pathname !== '/pharmacy/requests-by-store/all-stores-request-list'
-    ) {
+    if (selectedPharmacy?.type === 'central' && router.pathname !== '/pharmacy/requests-by-store') {
       // debugger
       router.push({
-        pathname: `/pharmacy/requests-by-store/all-stores-request-list`,
+        pathname: `/pharmacy/requests-by-store`,
         query: selectedPharmacy?.id
       })
     }
   }, [selectedPharmacy.type])
+
   return (
     <>
       {selectedPharmacy?.type === 'local' ? (

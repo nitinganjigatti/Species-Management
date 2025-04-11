@@ -555,7 +555,7 @@ const AddStockAdjustment = () => {
             <Icon
               style={{ cursor: 'pointer' }}
               onClick={() => {
-                Router.push('/pharmacy/stocks-adjustments/stock-adjustment-list/')
+                Router.push('/pharmacy/stocks-adjustments/')
               }}
               icon='ep:back'
             />

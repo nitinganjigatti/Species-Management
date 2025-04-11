@@ -40,25 +40,30 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
     title: 'Purchase',
     path: '/pharmacy/purchase',
     icon: 'raphael:cart',
+    activeWhen: ['/pharmacy/purchase', '/pharmacy/purchase/add-purchase'],
+
     children: []
   }
 
   const purchaseList = {
     title: 'Inventory',
     icon: 'raphael:cart',
-    path: '/pharmacy/purchase/purchase-list'
+    path: '/pharmacy/purchase',
+    activeWhen: ['/pharmacy/purchase', '/pharmacy/purchase/add-purchase']
   }
 
   const existingPurchase = {
     title: 'Add Existing Inventory',
     icon: 'raphael:cart',
+    activeWhen: ['/pharmacy/purchase/add-purchase/existing-purchases'],
     path: '/pharmacy/purchase/add-purchase/existing-purchases'
   }
 
   const stocksAdjustment = {
     title: 'Stocks Adjustment',
     icon: 'material-symbols:rule-settings',
-    path: '/pharmacy/stocks-adjustments/stock-adjustment-list'
+    activeWhen: ['/pharmacy/stocks-adjustments', '/pharmacy/stocks-adjustments/add-stock-adjustment'],
+    path: '/pharmacy/stocks-adjustments'
   }
 
   const report = {
@@ -84,14 +89,16 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
     title: 'All Requests',
 
     // icon: 'material-symbols:request-quote-outline',
-    path: '/pharmacy/request'
+    path: '/pharmacy/request',
+    activeWhen: ['/pharmacy/request/', '/pharmacy/request/add-request']
   }
 
   const requestByStoreListing = {
     title: 'Requests By Store',
 
     // icon: 'material-symbols:request-quote-outline',
-    path: '/pharmacy/requests-by-store/all-stores-request-list'
+    path: '/pharmacy/requests-by-store/',
+    activeWhen: ['/pharmacy/requests-by-store/']
   }
 
   const requestByProductListing = {
@@ -126,9 +133,8 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
   const directDispatchParent = {
     // title: 'Direct Dispatch',
     title: 'Dispatch without request',
-
     path: '/pharmacy/direct-dispatch',
-
+    activeWhen: ['/pharmacy/direct-dispatch', '/pharmacy/direct-dispatch/add-direct-dispatch'],
     icon: 'iconamoon:delivery-light',
     children: []
   }
@@ -136,19 +142,22 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
   const directDispatchList = {
     title: `Dispatch without request`,
     icon: 'iconamoon:delivery-light',
-
-    path: '/pharmacy/direct-dispatch/direct-dispatch-list'
+    activeWhen: ['/pharmacy/direct-dispatch', '/pharmacy/direct-dispatch/add-direct-dispatch'],
+    path: '/pharmacy/direct-dispatch'
   }
 
   const directDispatchListForLocal = {
     title: 'Received',
     icon: 'iconamoon:delivery-light',
-    path: '/pharmacy/direct-dispatch/direct-dispatch-list'
+    activeWhen: ['/pharmacy/direct-dispatch', '/pharmacy/direct-dispatch/add-direct-dispatch'],
+    path: '/pharmacy/direct-dispatch'
   }
 
   const localDispatchParent = {
     title: 'Local Dispatch',
     path: '/pharmacy/local-dispatch',
+    activeWhen: ['/pharmacy/local-dispatch', '/pharmacy/local-dispatch/add-local-dispatch'],
+
     icon: 'iconamoon:delivery-light',
     children: []
   }
@@ -156,7 +165,9 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
   const localDispatchList = {
     title: 'Direct Dispatch Local',
     icon: 'iconamoon:delivery-light',
-    path: '/pharmacy/local-dispatch/local-dispatch-list'
+    activeWhen: ['/pharmacy/local-dispatch', '/pharmacy/local-dispatch/add-local-dispatch'],
+
+    path: '/pharmacy/local-dispatch'
   }
 
   const stockParent = {
@@ -296,7 +307,8 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
     title: 'New Product Requests',
 
     // icon: 'tabler:report-medical',
-    path: '/pharmacy/new-product-request'
+    path: '/pharmacy/new-product-request',
+    activeWhen: ['/pharmacy/new-product-request', '/pharmacy/new-product-request/request-product']
   }
 
   const mastersParent = {
@@ -309,7 +321,8 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
   const discard = {
     icon: 'tabler:truck-return',
     title: 'Return To Supplier',
-    path: '/pharmacy/discard/discard-list'
+    path: '/pharmacy/discard',
+    activeWhen: ['/pharmacy/discard', '/pharmacy/discard/add-discard']
   }
 
   const reportsParent = {

@@ -499,7 +499,7 @@ const AddDiscardProducts = () => {
     //       toast.success(response?.msg)
     //       setSubmitLoader(false)
     //       getListOfItemsById(id)
-    //       Router.push(`/pharmacy/discard/discard-list`)
+    //       Router.push(`/pharmacy/discard/`)
     //     } else {
     //       setSubmitLoader(false)
     //       toast.error(response?.msg)
@@ -514,7 +514,7 @@ const AddDiscardProducts = () => {
         toast.success(response?.msg)
         setEditParams(editParamsInitialState)
         setSubmitLoader(false)
-        Router.push(`/pharmacy/discard/discard-list`)
+        Router.push(`/pharmacy/discard/`)
       } else {
         setSubmitLoader(false)
         toast.error(response?.message)
@@ -565,6 +565,7 @@ const AddDiscardProducts = () => {
       if (response?.success === true && response?.data?.item_details?.length > 0) {
         setExcelLoader(false)
         const supplierId = response?.data?.supplier_id || null
+
         const discardDate = response?.data?.discarded_date
           ? formatDate(response?.data?.discarded_date) // Ensure date is formatted
           : 'N/A'
