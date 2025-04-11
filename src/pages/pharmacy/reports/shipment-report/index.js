@@ -51,7 +51,6 @@ const ShipmentReport = () => {
   const [selectAllPharmacy, setSelectAllPharmacy] = useState(false)
 
   const [selectedOptions, setSelectedOptions] = useState({
-    'Batch Number': [],
     Pharmacy: [],
     'Drug Type': 'all'
   })
@@ -68,7 +67,6 @@ const ShipmentReport = () => {
 
   useEffect(() => {
     setSelectedOptions({
-      'Batch Number': [],
       Pharmacy: [],
       'Drug Type': 'all'
     })
@@ -97,7 +95,7 @@ const ShipmentReport = () => {
       }
     }
     pharmacyList()
-  }, [selectedPharmacy])
+  }, [selectedPharmacy?.id])
 
   const handleSelectAllPharmacy = () => {
     setSelectAllPharmacy(!selectAllPharmacy)
@@ -156,7 +154,7 @@ const ShipmentReport = () => {
         setLoading(false)
       }
     },
-    [paginationModel, filterDates]
+    [paginationModel, filterDates, filteredData]
   )
 
   useEffect(() => {
@@ -164,9 +162,10 @@ const ShipmentReport = () => {
       sort: sort,
       q: searchValue,
       column: sortColumn,
-      filteredData: filteredData,
       page: paginationModel?.page,
       limit: paginationModel?.pageSize
+
+      // filteredData: filteredData,
     })
     updateUrlParams({
       sort,
@@ -177,15 +176,7 @@ const ShipmentReport = () => {
       startDate: filterDates?.startDate,
       endDate: filterDates?.endDate
     })
-  }, [
-    paginationModel.page,
-    paginationModel.pageSize,
-    filterDates,
-    filteredData,
-    sort,
-    sortColumn,
-    selectedPharmacy?.id
-  ])
+  }, [paginationModel.page, paginationModel.pageSize, filterDates, sort, sortColumn, selectedPharmacy?.id])
 
   //   console.log('rows data :', rows)
 
@@ -720,14 +711,15 @@ const ShipmentReport = () => {
     if (newModel.length) {
       setSort(newModel[0].sort)
       setSortColumn(newModel[0].field)
-      fetchTableData({
-        sort: newModel[0].sort,
-        q: searchValue,
-        column: newModel[0].field,
-        filteredData: filteredData,
-        page: paginationModel?.page,
-        limit: paginationModel?.pageSize
-      })
+
+      // fetchTableData({
+      //   sort: newModel[0].sort,
+      //   q: searchValue,
+      //   column: newModel[0].field,
+      //   filteredData: filteredData,
+      //   page: paginationModel?.page,
+      //   limit: paginationModel?.pageSize
+      // })
       updateUrlParams({
         sort: newModel[0].sort,
         q: searchValue,
@@ -808,6 +800,18 @@ const ShipmentReport = () => {
     } finally {
       setExportLoading(false)
     }
+  }
+
+  const handleFilter = async filterList => {
+    setFilteredData(filterList)
+    await fetchTableData({
+      sort: sort,
+      q: searchValue,
+      column: sortColumn,
+      filteredData: filterList,
+      page: paginationModel?.page,
+      limit: paginationModel?.pageSize
+    })
   }
 
   const calculateAppliedFiltersCount = () => {
@@ -932,7 +936,7 @@ const ShipmentReport = () => {
         <ShipmentFilterDrawer
           setOpenFilterDrawer={setOpenFilterDrawer}
           openFilterDrawer={openFilterDrawer}
-          onApplyFilter={filterList => setFilteredData(filterList)}
+          onApplyFilter={handleFilter}
           selectedOptions={selectedOptions}
           setSelectedOptions={setSelectedOptions}
           pharmacyList={pharmacyList}

@@ -190,7 +190,7 @@ const ReturnSupplier = () => {
         setLoading(false)
       }
     },
-    [paginationModel, filterDates]
+    [paginationModel, filterDates, filteredData]
   )
 
   useEffect(() => {
@@ -199,8 +199,9 @@ const ReturnSupplier = () => {
       q: searchValue,
       column: sortColumn,
       page: paginationModel?.page,
-      limit: paginationModel?.pageSize,
-      filteredData: filteredData
+      limit: paginationModel?.pageSize
+
+      // filteredData: filteredData
     })
 
     updateUrlParams({
@@ -212,7 +213,7 @@ const ReturnSupplier = () => {
       startDate: filterDates?.startDate,
       endDate: filterDates?.endDate
     })
-  }, [paginationModel.page, paginationModel.pageSize, sort, sortColumn, filterDates, filteredData])
+  }, [paginationModel.page, paginationModel.pageSize, sort, sortColumn, filterDates])
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
@@ -587,14 +588,15 @@ const ReturnSupplier = () => {
     if (newModel.length) {
       setSort(newModel[0].sort)
       setSortColumn(newModel[0].field)
-      fetchTableData({
-        sort: newModel[0].sort,
-        q: searchValue,
-        column: newModel[0].field,
-        page: paginationModel?.page,
-        limit: paginationModel?.pageSize,
-        filteredData: filteredData
-      })
+
+      // fetchTableData({
+      //   sort: newModel[0].sort,
+      //   q: searchValue,
+      //   column: newModel[0].field,
+      //   page: paginationModel?.page,
+      //   limit: paginationModel?.pageSize,
+      //   filteredData: filteredData
+      // })
       updateUrlParams({
         sort: newModel[0].sort,
         q: searchValue,
@@ -686,6 +688,18 @@ const ReturnSupplier = () => {
     } finally {
       setExportLoading(false)
     }
+  }
+
+  const handleFilter = async filterList => {
+    setFilteredData(filterList)
+    await fetchTableData({
+      sort: sort,
+      q: searchValue,
+      column: sortColumn,
+      page: paginationModel?.page,
+      limit: paginationModel?.pageSize,
+      filteredData: filterList
+    })
   }
 
   const calculateAppliedFiltersCount = () => {
@@ -828,7 +842,7 @@ const ReturnSupplier = () => {
             <ReturnToSupplierFilter
               setOpenFilterDrawer={setOpenFilterDrawer}
               openFilterDrawer={openFilterDrawer}
-              onApplyFilter={filterList => setFilteredData(filterList)}
+              onApplyFilter={handleFilter}
               selectedOptions={selectedOptions}
               setSelectedOptions={setSelectedOptions}
               supplierData={supplierData}
