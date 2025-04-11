@@ -484,7 +484,7 @@ const SpeciesMappedtoDietFilter = ({
                         }
                       />
                       {tempSelectedItems?.Site.length > 0 && (
-                        <CardContent sx={{ pl: 4, pr: 4, pt: 2, pb: 2 }}>
+                        <CardContent sx={{ pl: 4, pr: 4, pt: 2, pb: '4px !important' }}>
                           {items.Site?.filter(site => tempSelectedItems?.Site?.includes(site.site_id)).map(site => (
                             <Box
                               key={site.site_id}
@@ -559,7 +559,7 @@ const SpeciesMappedtoDietFilter = ({
                           }
                         />
                         {tempSelectedItems?.Section?.length > 0 && (
-                          <CardContent sx={{ pl: 4, pr: 4, pt: 2, pb: 2 }}>
+                          <CardContent sx={{ pl: 4, pr: 4, pt: 2, pb: '4px !important' }}>
                             {sectionsData
                               .filter(section => tempSelectedItems?.Section?.includes(section.section_id))
                               .map(section => (
@@ -620,7 +620,7 @@ const SpeciesMappedtoDietFilter = ({
                           }
                         />
                         {tempSelectedItems?.Enclosure?.length > 0 && (
-                          <CardContent sx={{ pl: 4, pr: 4, pt: 2, pb: 2 }}>
+                          <CardContent sx={{ pl: 4, pr: 4, pt: 2, pb: '4px !important' }}>
                             {enclosuresData
                               .filter(enclosure => tempSelectedItems?.Enclosure?.includes(enclosure.enclosure_id))
                               .map(enclosure => (
@@ -657,7 +657,7 @@ const SpeciesMappedtoDietFilter = ({
                         width: '100%',
                         '& .MuiDrawer-paper': { width: ['100%', '562px'] },
                         overflowY: 'auto',
-                        height: 'calc(100vh - 50vh)'
+                        height: '100%'
                       }}
                       onScroll={handleScrollforFilter}
                     >
@@ -703,7 +703,7 @@ const SpeciesMappedtoDietFilter = ({
                         '& .MuiDrawer-paper': { width: ['100%', '562px'] },
                         // backgroundColor: 'background.default',
                         overflowY: 'auto',
-                        height: 'calc(100vh - 50vh)'
+                        height: '100%'
                       }}
                       onScroll={handleScrollforTaxonomy}
                     >
@@ -796,8 +796,6 @@ const SpeciesMappedtoDietFilter = ({
         filteredItems={filteredItems}
         tempSelectedItems={tempSelectedItems}
         setTempSelectedItems={setTempSelectedItems}
-        sectionsData={sectionsData}
-        setSectionsData={setSectionsData}
       />
       <SelectSectionList
         open={openSectionListDrawer}
@@ -806,9 +804,10 @@ const SpeciesMappedtoDietFilter = ({
         searchTerm={searchTerm}
         setSearchTerm={setSearchTerm}
         onClose={() => setOpenSectionListDrawer(false)}
-        siteId={tempSelectedItems.Site[0]} // Pass the single selected site
+        siteId={tempSelectedItems?.Site[0]} // Pass the single selected site
         setSelectedSections={setSelectedSections}
         selectedSections={selectedSections}
+        tempSelectedItems={tempSelectedItems}
         onSelectSections={selectedSections => {
           setTempSelectedItems(prev => ({
             ...prev,
@@ -824,9 +823,10 @@ const SpeciesMappedtoDietFilter = ({
         onClose={() => setOpenEnclosureListDrawer(false)}
         searchTerm={searchTerm}
         setSearchTerm={setSearchTerm}
-        sectionId={tempSelectedItems.Section[0]} // Pass the single selected section
+        sectionId={tempSelectedItems?.Section[0]} // Pass the single selected section
         setSelectedEnclosures={setSelectedEnclosures}
         selectedEnclosures={selectedEnclosures}
+        tempSelectedItems={tempSelectedItems}
         onSelectEnclosures={selectedEnclosures => {
           setTempSelectedItems(prev => ({
             ...prev,

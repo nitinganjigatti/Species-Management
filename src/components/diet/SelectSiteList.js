@@ -14,7 +14,7 @@ import {
   IconButton
 } from '@mui/material'
 import SearchIcon from '@mui/icons-material/Search'
-import React from 'react'
+import React, { useState, useEffect } from 'react'
 import Icon from 'src/@core/components/icon'
 
 const SelectSiteList = ({
@@ -27,28 +27,39 @@ const SelectSiteList = ({
   setTempSelectedItems
 }) => {
   const theme = useTheme()
-
+  const [pendingSelections, setPendingSelections] = useState({ Site: [] })
   const handleCloseDrawer = () => {
+    setSiteListDrawer(false)
+    setTempSelectedItems(pendingSelections)
+  }
+
+  const handleCloseDrawericon = () => {
     setSiteListDrawer(false)
   }
 
   const handleSiteCheckboxChange = site => {
-    const isSelected = tempSelectedItems.Site.includes(site.site_id)
+    const isSelected = pendingSelections.Site.includes(site.site_id)
     const updatedSelection = isSelected
-      ? tempSelectedItems.Site.filter(id => id !== site.site_id)
-      : [...tempSelectedItems.Site, site.site_id]
+      ? pendingSelections.Site.filter(id => id !== site.site_id)
+      : [...pendingSelections.Site, site.site_id]
 
-    setTempSelectedItems({
-      ...tempSelectedItems,
+    setPendingSelections({
+      ...pendingSelections,
       Site: updatedSelection
     })
   }
 
+  useEffect(() => {
+    if (openSiteListDrawer) {
+      setPendingSelections(tempSelectedItems)
+    }
+  }, [openSiteListDrawer])
+
   const handleSelectAllSites = () => {
     const allSiteIds = items.Site.map(site => site.site_id)
-    setTempSelectedItems({
-      ...tempSelectedItems,
-      Site: tempSelectedItems?.Site?.length === allSiteIds?.length ? [] : allSiteIds
+    setPendingSelections({
+      ...pendingSelections,
+      Site: pendingSelections?.Site?.length === allSiteIds?.length ? [] : allSiteIds
     })
   }
 
@@ -88,9 +99,9 @@ const SelectSiteList = ({
               Select a site from the list below
             </Typography>
           </Box>
-          {/* <IconButton size='small' sx={{ color: 'text.primary' }} onClick={handleCloseDrawer}>
+          <IconButton size='small' sx={{ color: 'text.primary' }} onClick={handleCloseDrawericon}>
             <Icon icon='mdi:close' fontSize={24} />
-          </IconButton> */}
+          </IconButton>
         </Box>
 
         {/* Search */}
@@ -129,7 +140,7 @@ const SelectSiteList = ({
         {/* Selected Count */}
         <Box sx={{ p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <Typography variant='body2' sx={{ color: '#44544A' }}>
-            Selected {tempSelectedItems?.Site?.length} / {items?.Site?.length}
+            Selected {pendingSelections?.Site?.length} / {items?.Site?.length}
           </Typography>
           <Box
             sx={{
@@ -140,7 +151,7 @@ const SelectSiteList = ({
             <Button
               size='small'
               sx={{
-                color: tempSelectedItems?.Site?.length === items?.Site?.length ? theme.palette.primary.main : '#44544A',
+                color: pendingSelections?.Site?.length === items?.Site?.length ? theme.palette.primary.main : '#44544A',
                 fontSize: '12px',
                 fontWeight: 600,
                 textTransform: 'none',
@@ -153,7 +164,7 @@ const SelectSiteList = ({
             </Button>
 
             <Checkbox
-              checked={tempSelectedItems?.Site?.length === items?.Site?.length}
+              checked={pendingSelections?.Site?.length === items?.Site?.length}
               onChange={handleSelectAllSites}
               inputProps={{ 'aria-label': 'Select all species' }}
               sx={{
@@ -202,12 +213,14 @@ const SelectSiteList = ({
               <ListItem
                 key={site.site_id}
                 sx={{
-                  p: 1.5,
-                  mb: 2,
+                  pr: 1.5,
+                  pl: 3,
+                  mb: 4,
                   border: '1px solid',
-                  borderColor: tempSelectedItems.Site.includes(site.site_id) ? '#80E0A3' : '#C3CEC7',
+                  borderColor: pendingSelections.Site.includes(site.site_id) ? '#80E0A3' : '#C3CEC7',
                   borderRadius: '8px',
-                  bgcolor: tempSelectedItems.Site.includes(site.site_id) ? '#E1F9ED' : 'transparent'
+                  bgcolor: pendingSelections.Site.includes(site.site_id) ? '#E1F9ED' : 'transparent',
+                  height: '70px'
                 }}
               >
                 <ListItemAvatar>
@@ -215,12 +228,12 @@ const SelectSiteList = ({
                 </ListItemAvatar>
                 <ListItemText
                   primary={site.site_name}
-                  secondary={site.location || '-'}
+                  //secondary={site.location || '-'}
                   primaryTypographyProps={{ fontWeight: 'bold', color: '#1F515B' }}
                   secondaryTypographyProps={{ color: '#44544A' }}
                 />
                 <Checkbox
-                  checked={tempSelectedItems.Site.includes(site.site_id)}
+                  checked={pendingSelections.Site.includes(site.site_id)}
                   onChange={() => handleSiteCheckboxChange(site)}
                 />
               </ListItem>
@@ -245,7 +258,7 @@ const SelectSiteList = ({
               }
             }}
             onClick={handleCloseDrawer}
-            disabled={!tempSelectedItems?.Site || tempSelectedItems.Site.length === 0}
+            disabled={pendingSelections.Site.length === 0}
           >
             CONTINUE
           </Button>
