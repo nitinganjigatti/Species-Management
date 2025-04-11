@@ -179,7 +179,7 @@ const ReturnReport = () => {
         setLoading(false)
       }
     },
-    [paginationModel, filterDates]
+    [paginationModel, filterDates, filteredData]
   )
 
   useEffect(() => {
@@ -187,10 +187,11 @@ const ReturnReport = () => {
       sort: sort,
       q: searchValue,
       column: sortColumn,
-      filteredData: filteredData,
       expired: expired,
       page: paginationModel?.page,
       limit: paginationModel?.pageSize
+
+      // filteredData: filteredData,
     })
     updateUrlParams({
       sort,
@@ -201,7 +202,7 @@ const ReturnReport = () => {
       startDate: filterDates?.startDate,
       endDate: filterDates?.endDate
     })
-  }, [paginationModel.page, paginationModel.pageSize, filterDates, filteredData, expired, selectedPharmacy?.id])
+  }, [paginationModel.page, paginationModel.pageSize, filterDates, expired, selectedPharmacy?.id])
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
@@ -631,15 +632,16 @@ const ReturnReport = () => {
     if (newModel.length) {
       setSort(newModel[0].sort)
       setSortColumn(newModel[0].field)
-      fetchReturnReport({
-        sort: newModel[0].sort,
-        q: searchValue,
-        column: newModel[0].field,
-        filteredData: filteredData,
-        expired: expired,
-        page: paginationModel?.page,
-        limit: paginationModel?.pageSize
-      })
+
+      // fetchReturnReport({
+      //   sort: newModel[0].sort,
+      //   q: searchValue,
+      //   column: newModel[0].field,
+      //   filteredData: filteredData,
+      //   expired: expired,
+      //   page: paginationModel?.page,
+      //   limit: paginationModel?.pageSize
+      // })
       updateUrlParams({
         sort: newModel[0].sort,
         q: searchValue,
@@ -747,6 +749,19 @@ const ReturnReport = () => {
     } finally {
       setExportLoading(false)
     }
+  }
+
+  const handleFilter = async filterList => {
+    setFilteredData(filterList)
+    await fetchReturnReport({
+      sort: sort,
+      q: searchValue,
+      column: sortColumn,
+      expired: expired,
+      page: paginationModel?.page,
+      limit: paginationModel?.pageSize,
+      filteredData: filterList
+    })
   }
 
   const calculateAppliedFiltersCount = () => {
@@ -883,7 +898,7 @@ const ReturnReport = () => {
         <ReturnReportDrawer
           setOpenFilterDrawer={setOpenFilterDrawer}
           openFilterDrawer={openFilterDrawer}
-          onApplyFilter={filterList => setFilteredData(filterList)}
+          onApplyFilter={handleFilter}
           selectedOptions={selectedOptions}
           setSelectedOptions={setSelectedOptions}
           expiryFilterDates={expiryFilterDates}

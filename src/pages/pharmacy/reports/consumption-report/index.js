@@ -79,36 +79,16 @@ const ConsumptionReport = () => {
     endDate: router.query.endDate || Utility.formatDate(format(new Date(), 'dd MMM, yyyy'))
   })
 
-  const mountedRef = useRef(false)
-
-  // useEffect(() => {
-  //   setSelectedOptions({
-  //     Pharmacy: [],
-  //     'Product Type': [],
-  //     'Drug Type': 'all'
-  //   })
-
-  //   setFilteredData({
-  //     pharmacy: []
-  //   })
-  // }, [selectedPharmacy?.id])
-
   useEffect(() => {
-    if (mountedRef.current) {
-      setSelectedOptions({
-        Pharmacy: [],
-        'Product Type': [],
-        'Drug Type': 'all'
-      })
+    setFilteredData({
+      pharmacy: []
+    })
 
-      setFilteredData({
-        pharmacy: []
-      })
-      setSelectAllPharmacy(false)
-      setSelectAllProductTypes(false)
-    } else {
-      mountedRef.current = true
-    }
+    setSelectedOptions({
+      Pharmacy: [],
+      'Product Type': [],
+      'Drug Type': 'all'
+    })
   }, [selectedPharmacy?.id])
 
   useEffect(() => {
@@ -207,7 +187,7 @@ const ConsumptionReport = () => {
         setLoading(false)
       }
     },
-    [paginationModel, filterDates]
+    [paginationModel, filterDates, filteredData]
   )
 
   useEffect(() => {
@@ -216,8 +196,7 @@ const ConsumptionReport = () => {
       q: searchValue,
       column: sortColumn,
       page: paginationModel?.page,
-      limit: paginationModel?.pageSize,
-      filteredData: filteredData
+      limit: paginationModel?.pageSize
     })
     updateUrlParams({
       sort,
@@ -228,15 +207,7 @@ const ConsumptionReport = () => {
       startDate: filterDates?.startDate,
       endDate: filterDates?.endDate
     })
-  }, [
-    paginationModel.page,
-    paginationModel.pageSize,
-    sort,
-    sortColumn,
-    filterDates,
-    filteredData,
-    selectedPharmacy?.id
-  ])
+  }, [paginationModel.page, paginationModel.pageSize, sort, sortColumn, filterDates, selectedPharmacy?.id])
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
@@ -550,14 +521,15 @@ const ConsumptionReport = () => {
     if (newModel.length) {
       setSort(newModel[0].sort)
       setSortColumn(newModel[0].field)
-      fetchTableData({
-        sort: newModel[0].sort,
-        q: searchValue,
-        column: newModel[0].field,
-        page: paginationModel?.page,
-        limit: paginationModel?.pageSize,
-        filteredData: filteredData
-      })
+
+      // fetchTableData({
+      //   sort: newModel[0].sort,
+      //   q: searchValue,
+      //   column: newModel[0].field,
+      //   page: paginationModel?.page,
+      //   limit: paginationModel?.pageSize,
+      //   filteredData: filteredData
+      // })
       updateUrlParams({
         sort: newModel[0].sort,
         q: searchValue,
@@ -645,6 +617,18 @@ const ConsumptionReport = () => {
     } finally {
       setExportLoading(false)
     }
+  }
+
+  const handleFilter = async filterList => {
+    setFilteredData(filterList)
+    await fetchTableData({
+      sort: sort,
+      q: searchValue,
+      column: sortColumn,
+      page: paginationModel?.page,
+      limit: paginationModel?.pageSize,
+      filteredData: filterList
+    })
   }
 
   const calculateAppliedFiltersCount = () => {
@@ -771,7 +755,7 @@ const ConsumptionReport = () => {
         <ConsumptionReportDrawer
           setOpenFilterDrawer={setOpenFilterDrawer}
           openFilterDrawer={openFilterDrawer}
-          onApplyFilter={filterList => setFilteredData(filterList)}
+          onApplyFilter={handleFilter}
           selectedOptions={selectedOptions}
           setSelectedOptions={setSelectedOptions}
           pharmacyList={pharmacyList}
