@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect } from 'react'
 import {
   Box,
   Drawer,
@@ -23,6 +23,8 @@ import { deleteSpeciesFromDiet } from 'src/lib/api/diet/dietList'
 import Toaster from 'src/components/Toaster'
 import { TabContext, TabList, TabPanel } from '@mui/lab'
 import Utility from 'src/utility'
+import SpeciesCardItem from 'src/views/utility/SpeciesCardItem'
+import AnimalCardItem from 'src/views/utility/AnimalsCardItem'
 
 const SpeciesAnimalsMapped = ({
   setIsOpenTabs,
@@ -365,133 +367,14 @@ const SpeciesAnimalsMapped = ({
                       </CardContent>
                     ) : (
                       mappedSpecies.map(species => (
-                        <ListItem
+                        <SpeciesCardItem
                           key={species.id}
-                          sx={{
-                            backgroundColor: theme.palette.background.paper,
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            mb: 3,
-                            borderRadius: '8px'
-                          }}
-                        >
-                          <ListItemAvatar>
-                            <Avatar
-                              src={species.default_icon ? species.default_icon : '/icons/species.svg'}
-                              alt={species.scientific_name}
-                              sx={{
-                                '& img': {
-                                  objectFit: 'inherit'
-                                },
-                                borderRadius:
-                                  species?.default_icon && species.default_icon.includes('.svg')
-                                    ? 'unset'
-                                    : species?.default_icon
-                                    ? '50%'
-                                    : 'unset'
-                              }}
-                            />
-                          </ListItemAvatar>
-                          <ListItemText
-                            primary={
-                              <>
-                                {species.is_primary === '1' ? (
-                                  <Typography
-                                    variant='body2'
-                                    sx={{
-                                      color: theme.palette.customColors.OnSurfaceVariant,
-                                      fontSize: '14px',
-                                      fontWeight: 400,
-                                      background: '#37bd6924',
-                                      width: '22%',
-                                      pl: '5px',
-                                      py: '1px',
-                                      borderRadius: '4px',
-                                      mb: '2px'
-                                    }}
-                                  >
-                                    Primary Diet
-                                  </Typography>
-                                ) : (
-                                  ''
-                                )}
-                                <Typography
-                                  variant='body1'
-                                  sx={{
-                                    color: theme.palette.customColors.OnSurfaceVariant,
-                                    fontSize: '16px',
-                                    fontWeight: 600
-                                  }}
-                                >
-                                  {species.scientific_name ? species.scientific_name : '-'}
-                                </Typography>
-                              </>
-                            }
-                            primaryTypographyProps={{
-                              sx: {
-                                color: theme.palette.customColors.OnSurfaceVariant,
-                                fontSize: '16px',
-                                fontWeight: 600
-                              }
-                            }}
-                            secondary={
-                              <>
-                                <Typography
-                                  variant='body2'
-                                  sx={{
-                                    color: theme.palette.customColors.OnSurfaceVariant,
-                                    fontSize: '16px',
-                                    fontWeight: 400,
-                                    fontStyle: 'italic'
-                                  }}
-                                >
-                                  {species.common_name ? species.common_name : '-'}
-                                </Typography>
-                                <Box sx={{ display: 'flex', alignItems: 'center', pt: 1 }}>
-                                  <Avatar
-                                    variant='square'
-                                    alt='Medicine Image'
-                                    sx={{
-                                      width: 25,
-                                      height: 25,
-                                      mr: 4,
-                                      borderRadius: '50%',
-                                      background: theme.palette.customColors.tableHeaderBg,
-                                      overflow: 'hidden'
-                                    }}
-                                  >
-                                    {species?.profile_pic ? (
-                                      <img
-                                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                                        src={species?.profile_pic}
-                                        alt='Profile'
-                                      />
-                                    ) : (
-                                      <Icon icon='mdi:user' />
-                                    )}
-                                  </Avatar>
-                                  <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-                                    <Typography
-                                      noWrap
-                                      variant='body2'
-                                      sx={{ color: 'text.primary', fontSize: 12, fontWeight: 500 }}
-                                    >
-                                      {species?.user_details?.created_by}
-                                    </Typography>
-                                    <Typography
-                                      noWrap
-                                      variant='body2'
-                                      sx={{ color: theme.palette.customColors.secondaryBg, fontSize: 12 }}
-                                    >
-                                      {Utility.convertUTCToLocalDateTime(species?.user_details?.created_at)}
-                                    </Typography>
-                                  </Box>
-                                </Box>
-                              </>
-                            }
-                          />
-                        </ListItem>
+                          species={species}
+                          theme={theme}
+                          tempSelectedSpecies={tempSelectedSpecies}
+                          selectionType={selectionType}
+                          speciesview={speciesview}
+                        />
                       ))
                     )}
                     {isLoadingMore && (
@@ -699,156 +582,13 @@ const SpeciesAnimalsMapped = ({
                       </CardContent>
                     ) : (
                       mappedSpecies.map(species => (
-                        <ListItem
-                          key={species.animal_id}
-                          sx={{
-                            backgroundColor: theme.palette.background.paper,
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            mb: 3,
-                            borderRadius: '8px'
-                          }}
-                        >
-                          <ListItemAvatar>
-                            <Avatar
-                              src={species.default_icon ? species.default_icon : '/icons/species.svg'}
-                              alt={species.scientific_name}
-                              sx={{
-                                '& img': {
-                                  objectFit: 'inherit'
-                                },
-                                borderRadius:
-                                  species?.default_icon && species.default_icon.includes('.svg')
-                                    ? 'unset'
-                                    : species?.default_icon
-                                    ? '50%'
-                                    : 'unset'
-                              }}
-                            />
-                          </ListItemAvatar>
-
-                          <ListItemText
-                            primary={
-                              <>
-                                <Typography
-                                  variant='body2'
-                                  sx={{
-                                    color: theme.palette.customColors.OnSurfaceVariant,
-                                    fontSize: '14px',
-                                    fontWeight: 600,
-                                    display: 'flex'
-                                  }}
-                                >
-                                  {species.animal_id ? `AID: ${species.animal_id}` : 'AID: -'}
-                                  {species.is_primary === '1' ? (
-                                    <Typography
-                                      variant='body2'
-                                      sx={{
-                                        color: theme.palette.customColors.OnSurfaceVariant,
-                                        fontSize: '14px',
-                                        fontWeight: 400,
-                                        background: '#37bd6924',
-                                        width: '22%',
-                                        pl: '5px',
-                                        py: '1px',
-                                        borderRadius: '4px',
-                                        mb: '2px',
-                                        ml: '10px'
-                                      }}
-                                    >
-                                      Primary Diet
-                                    </Typography>
-                                  ) : (
-                                    ''
-                                  )}
-                                </Typography>
-                                <Typography
-                                  variant='body1'
-                                  sx={{
-                                    color: theme.palette.customColors.OnSurfaceVariant,
-                                    fontSize: '16px',
-                                    fontWeight: 600
-                                  }}
-                                >
-                                  {species.scientific_name ? species.scientific_name : '-'}
-                                </Typography>
-                              </>
-                            }
-                            primaryTypographyProps={{
-                              sx: {
-                                color: theme.palette.customColors.OnSurfaceVariant,
-                                fontSize: '16px',
-                                fontWeight: 600
-                              }
-                            }}
-                            secondary={
-                              <>
-                                <Typography
-                                  variant='body2'
-                                  sx={{
-                                    color: theme.palette.customColors.OnSurfaceVariant,
-                                    fontSize: '16px',
-                                    fontWeight: 400,
-                                    fontStyle: 'italic'
-                                  }}
-                                >
-                                  {species.default_common_name ? species.default_common_name : '-'}
-                                </Typography>
-                                <Typography
-                                  variant='body2'
-                                  sx={{
-                                    color: theme.palette.customColors.secondaryBg,
-                                    fontSize: '14px',
-                                    fontWeight: 500
-                                  }}
-                                >
-                                  Site: {species.site_name ? species.site_name : '-'}
-                                </Typography>
-                                <Box sx={{ display: 'flex', alignItems: 'center', pt: 1 }}>
-                                  <Avatar
-                                    variant='square'
-                                    alt='Medicine Image'
-                                    sx={{
-                                      width: 25,
-                                      height: 25,
-                                      mr: 4,
-                                      borderRadius: '50%',
-                                      background: theme.palette.customColors.tableHeaderBg,
-                                      overflow: 'hidden'
-                                    }}
-                                  >
-                                    {species?.profile_pic ? (
-                                      <img
-                                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                                        src={species?.profile_pic}
-                                        alt='Profile'
-                                      />
-                                    ) : (
-                                      <Icon icon='mdi:user' />
-                                    )}
-                                  </Avatar>
-                                  <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-                                    <Typography
-                                      noWrap
-                                      variant='body2'
-                                      sx={{ color: 'text.primary', fontSize: 12, fontWeight: 500 }}
-                                    >
-                                      {species?.user_details?.created_by}
-                                    </Typography>
-                                    <Typography
-                                      noWrap
-                                      variant='body2'
-                                      sx={{ color: theme.palette.customColors.secondaryBg, fontSize: 12 }}
-                                    >
-                                      {Utility.convertUTCToLocalDateTime(species?.user_details?.created_at)}
-                                    </Typography>
-                                  </Box>
-                                </Box>
-                              </>
-                            }
-                          />
-                        </ListItem>
+                        <AnimalCardItem
+                          species={species}
+                          theme={theme}
+                          tempSelectedSpecies={tempSelectedSpecies}
+                          selectionType={selectionType}
+                          speciesview={speciesview}
+                        />
                       ))
                     )}
                     {isLoadingMore && (

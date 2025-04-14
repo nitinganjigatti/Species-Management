@@ -268,8 +268,14 @@ const RecipeList = () => {
               <Typography
                 noWrap
                 variant='body2'
-                className='recipe_name'
-                sx={{ color: 'text.primary', fontSize: '14px', fontWeight: '500', width: '200px' }}
+                sx={{
+                  color: 'text.primary',
+                  fontSize: '14px',
+                  fontWeight: '500',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis',
+                  maxWidth: '200px'
+                }}
               >
                 {params.row.recipe_name ? params.row.recipe_name : '-'}
               </Typography>

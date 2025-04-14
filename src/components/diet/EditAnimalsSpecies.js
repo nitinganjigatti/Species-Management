@@ -546,16 +546,7 @@ const EditAnimalSpeciesMapped = ({
                                     }}
                                   />
                                   <ListItemText
-                                    primary={species.scientific_name ? species.scientific_name : '-'}
-                                    primaryTypographyProps={{
-                                      sx: {
-                                        color: theme.palette.customColors.OnSurfaceVariant,
-                                        fontSize: '16px',
-                                        fontWeight: 600,
-                                        lineHeight: 1.2
-                                      }
-                                    }}
-                                    secondary={
+                                    primary={
                                       <Typography
                                         variant='body2'
                                         sx={{
@@ -569,6 +560,15 @@ const EditAnimalSpeciesMapped = ({
                                         {species.common_name ? species.common_name : '-'}
                                       </Typography>
                                     }
+                                    secondary={species.scientific_name ? species.scientific_name : '-'}
+                                    secondaryTypographyProps={{
+                                      sx: {
+                                        color: theme.palette.customColors.OnSurfaceVariant,
+                                        fontSize: '16px',
+                                        fontWeight: 600,
+                                        lineHeight: 1.2
+                                      }
+                                    }}
                                   />
                                 </Box>
 
@@ -797,17 +797,23 @@ const EditAnimalSpeciesMapped = ({
                                             fontWeight: 600
                                           }}
                                         >
-                                          {species.animal_id ? `AID: ${species.animal_id}` : 'AID: -'}
+                                          {/* {species.animal_id ? `AID: ${species.animal_id}` : 'AID: -'} */}
+                                          {species.primary_identifier_type && species.identifier
+                                            ? `${species.primary_identifier_type}: ${species.identifier}`
+                                            : species.animal_id
+                                            ? `AID: ${species.animal_id}`
+                                            : 'AID: -'}
                                         </Typography>
                                         <Typography
-                                          variant='body1'
+                                          variant='body2'
                                           sx={{
                                             color: theme.palette.customColors.OnSurfaceVariant,
-                                            fontSize: '16px',
-                                            fontWeight: 600
+                                            fontSize: '14px',
+                                            fontWeight: 400,
+                                            fontStyle: 'italic'
                                           }}
                                         >
-                                          {species.scientific_name ? species.scientific_name : '-'}
+                                          {species.default_common_name ? species.default_common_name : '-'}
                                         </Typography>
                                       </>
                                     }
@@ -821,16 +827,16 @@ const EditAnimalSpeciesMapped = ({
                                     secondary={
                                       <>
                                         <Typography
-                                          variant='body2'
+                                          variant='body1'
                                           sx={{
                                             color: theme.palette.customColors.OnSurfaceVariant,
-                                            fontSize: '14px',
-                                            fontWeight: 400,
-                                            fontStyle: 'italic'
+                                            fontSize: '16px',
+                                            fontWeight: 600
                                           }}
                                         >
-                                          {species.default_common_name ? species.default_common_name : '-'}
+                                          {species.scientific_name ? species.scientific_name : '-'}
                                         </Typography>
+
                                         <Typography
                                           variant='body2'
                                           sx={{
