@@ -364,8 +364,9 @@ const ReturnRequestList = () => {
     filterDates,
     selectedPharmacy.id,
     paginationModel.page,
-    paginationModel.pageSize,
-    router.query.status
+    paginationModel.pageSize
+
+    // router.query.status
   ])
 
   const onRowClick = params => {

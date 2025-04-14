@@ -1478,29 +1478,28 @@ const AddPurchaseForm = () => {
             title={id ? 'Edit Inventory List' : 'Add Inventory'}
             action={
               <Box
-                sx={
-                  {
-                    // display: 'flex',
-                    // flexDirection: { lg: 'row', md: 'row', xl: 'row', sm: 'row', xs: 'column' },
-                    // justifyContent: 'space-between',
-                    // alignItems: { lg: 'center', md: 'center', xl: 'center', sm: 'center', xs: 'center' },
-                    // mr: 5,
-                    // mx: 6,
-                    // gap: 2
-                  }
-                }
-              >
-                {/* {authData?.userData?.roles?.settings?.add_pharmacy && (
-              <AddButton
-                // sx={{ mx: 24 }}
-                title='Upload Invoice '
-                action={() => {
-                  setInvoiceUploadDialog(true)
+                sx={{
+                  display: 'flex',
+                  flexDirection: { lg: 'row', md: 'row', xl: 'row', sm: 'row', xs: 'column' },
+                  justifyContent: 'space-between',
+                  alignItems: { lg: 'center', md: 'center', xl: 'center', sm: 'center', xs: 'center' }
+                  // mr: 5,
+                  // mx: 6,
+                  // gap: 2
                 }}
-              />
-            )} */}
+              >
+                {authData?.userData?.roles?.settings?.add_pharmacy && !id && (
+                  <AddButton
+                    // sx={{ mx: 24 }}
+                    title='Upload Invoice '
+                    action={() => {
+                      setInvoiceUploadDialog(true)
+                    }}
+                  />
+                )}
                 {authData?.userData?.roles?.settings?.add_pharmacy && (
                   <AddButton
+                    // sx={{ mx: 24 }}
                     title='Add Supplier'
                     action={() => {
                       setSupplierDialog(true)
