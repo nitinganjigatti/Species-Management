@@ -1,6 +1,10 @@
+import React, { useEffect, useRef, useState } from 'react'
+
+import Image from 'next/image'
+import imageUploader from 'public/images/imageUploader/imageUploader.png'
+
 import {
   Box,
-  Card,
   Drawer,
   FormControl,
   FormControlLabel,
@@ -13,19 +17,18 @@ import {
   TextField,
   Typography
 } from '@mui/material'
-import React, { useEffect, useRef, useState } from 'react'
-import { useTheme } from '@mui/material/styles'
-import Icon from 'src/@core/components/icon'
-import { yupResolver } from '@hookform/resolvers/yup'
-import * as yup from 'yup'
-import { useDropzone } from 'react-dropzone'
-import Image from 'next/image'
-import imageUploader from 'public/images/imageUploader/imageUploader.png'
-
-import { Controller, useForm } from 'react-hook-form'
 import { LoadingButton } from '@mui/lab'
-import { GetEggMaster, AddEggStatusAndCondition } from 'src/lib/api/egg/egg'
+import { useTheme } from '@mui/material/styles'
+
+import * as yup from 'yup'
+import { yupResolver } from '@hookform/resolvers/yup'
+import { Controller, useForm } from 'react-hook-form'
+
+import { useDropzone } from 'react-dropzone'
 import Toaster from 'src/components/Toaster'
+
+import Icon from 'src/@core/components/icon'
+import { GetEggMaster, AddEggStatusAndCondition } from 'src/lib/api/egg/egg'
 
 const DiscardForm = ({ isOpen, setIsOpen, eggID, callApi, getDetails, GetGalleryImgList }) => {
   const theme = useTheme()

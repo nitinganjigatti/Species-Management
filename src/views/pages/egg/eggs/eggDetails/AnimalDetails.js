@@ -1,9 +1,18 @@
-import { Avatar, Button, Card, CardContent, CardHeader, Grid, Tooltip, Typography } from '@mui/material'
+import React from 'react'
+import { Avatar, Card, CardContent, CardHeader, Grid, Tooltip, Typography } from '@mui/material'
 import { Box } from '@mui/system'
 import { useTheme } from '@mui/material/styles'
-import React from 'react'
 
 const AnimalDetails = ({ eggDetails }) => {
+  const theme = useTheme()
+
+  const animalData = [
+    { key: 'Animal Id', value: eggDetails?.animal_data?.animal_id },
+    { key: 'Site', value: eggDetails?.animal_data?.site_name },
+    { key: 'Section', value: eggDetails?.animal_data?.section_name },
+    { key: 'Enclosure', value: eggDetails?.animal_data?.user_enclosure_name }
+  ]
+
   const headerAction = (
     <Typography
       sx={{
@@ -18,14 +27,6 @@ const AnimalDetails = ({ eggDetails }) => {
     </Typography>
   )
 
-  const animalData = [
-    { key: 'Animal Id', value: eggDetails?.animal_data?.animal_id },
-    { key: 'Site', value: eggDetails?.animal_data?.site_name },
-    { key: 'Section', value: eggDetails?.animal_data?.section_name },
-    { key: 'Enclosure', value: eggDetails?.animal_data?.user_enclosure_name }
-  ]
-
-  const theme = useTheme()
   return (
     <Card sx={{ backgroundColor: theme.palette.primary.contrastText }}>
       <CardHeader
@@ -64,14 +65,14 @@ const AnimalDetails = ({ eggDetails }) => {
                       lineHeight: '19.36px',
                       overflow: 'hidden',
                       textOverflow: 'ellipsis',
-                      whiteSpace: 'nowrap',
-                      whiteSpace: 'normal', // Change this to allow wrapping
+                      // whiteSpace: 'nowrap',
+                      // whiteSpace: 'normal', // Change this to allow wrapping
                       wordWrap: 'break-word',
                       wordBreak: 'break-word', // Change this to 'break-word'
                       width: '100%'
                     }}
                   >
-                    {eggDetails?.animal_data?.common_name || '-'}
+                    {eggDetails?.animal_data?.common_name || '-'} sb sdsdnja dha s
                   </Typography>
                   <Typography
                     sx={{
