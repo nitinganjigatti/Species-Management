@@ -576,8 +576,11 @@ const DirectDispatchList = () => {
         <TabPanel value='shipped'>{tableData()}</TabPanel>
         <TabPanel value='disputed'>{tableData()}</TabPanel>
         <TabPanel value='cancel'>{tableData()}</TabPanel>
-        {status === 'all' && <TabPanel value='all'>{tableData()}</TabPanel>}
-        {status === 'completed' && <TabPanel value='completed'>{tableData()}</TabPanel>}
+        {status === 'all' ? (
+          <TabPanel value='all'>{tableData()}</TabPanel>
+        ) : (
+          <TabPanel value='completed'>{tableData()}</TabPanel>
+        )}
       </TabContext>
     </Grid>
   )
