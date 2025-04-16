@@ -257,7 +257,8 @@ const ListOfLab = () => {
             onClick={() => {
               Router.push({
                 pathname: '/lab/lab-list/add-Lab',
-                query: { id: data?.id, page: router.query?.page, pageSize: router.query?.pageSize, q: searchValue }
+                // query: { id: data?.id, page: router.query?.page, pageSize: router.query?.pageSize, q: searchValue }
+                query: { page: router.query?.page, pageSize: router.query?.pageSize, q: searchValue }
               })
             }}
           >
