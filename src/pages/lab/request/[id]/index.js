@@ -1,30 +1,8 @@
 import React, { useState, useEffect, useCallback, useContext } from 'react'
-
-import {
-  GetRequestDetails,
-  GetRequestPopUp,
-  DeleteLAbRequestAttachment,
-  GetLabListByTestId,
-  postBulkStatus,
-  postBulkTransfer,
-  getLabListByMultipleIds
-} from 'src/lib/api/lab/getLabRequest'
-
-import FallbackSpinner from 'src/@core/components/spinner/index'
-import * as yup from 'yup'
-import { yupResolver } from '@hookform/resolvers/yup'
-import { useForm, Controller } from 'react-hook-form'
+import Router from 'next/router'
+import { useRouter, useSearchParams } from 'next/navigation'
 
 // ** MUI Imports
-import { LoadingButton } from '@mui/lab'
-import Typography from '@mui/material/Typography'
-import { DataGrid } from '@mui/x-data-grid'
-import Card from '@mui/material/Card'
-import { debounce } from 'lodash'
-import { useTheme } from '@mui/material/styles'
-
-// ** Icon Imports
-import Icon from 'src/@core/components/icon'
 import {
   Button,
   Box,
@@ -47,25 +25,48 @@ import {
   Breadcrumbs,
   Divider,
   Tooltip,
-  DialogContent
+  DialogContent,
+  IconButton,
+  Typography,
+  Card
 } from '@mui/material'
-import IconButton from '@mui/material/IconButton'
-import Router from 'next/router'
-import Utility from 'src/utility'
-import UploadReports from 'src/components/lab/request/UploadReports'
-import { useRouter } from 'next/navigation'
-import { useSearchParams } from 'next/navigation'
+import { useTheme } from '@mui/material/styles'
+import { LoadingButton } from '@mui/lab'
+import { DataGrid } from '@mui/x-data-grid'
 
-// import UserSnackbar from 'src/components/utility/snackbar'
+import * as yup from 'yup'
+import { yupResolver } from '@hookform/resolvers/yup'
+import { useForm, Controller } from 'react-hook-form'
+
 import moment from 'moment'
-import CommonMediaView from 'src/components/lab/CommonMediaView'
+import { debounce } from 'lodash'
+
+import Utility from 'src/utility'
 import { AuthContext } from 'src/context/AuthContext'
+
+import Icon from 'src/@core/components/icon'
+import FallbackSpinner from 'src/@core/components/spinner/index'
+import ScrollToTop from 'src/@core/components/scroll-to-top'
+
 import Toaster from 'src/components/Toaster'
+import CommonMediaView from 'src/components/lab/CommonMediaView'
+import MedicalRecordNotes from 'src/components/lab/request/MedicalRecordNotes'
+import UploadReports from 'src/components/lab/request/UploadReports'
+
 import AnimalParentCard from 'src/views/utility/animalParentCard'
 import AnimalSideSheet from 'src/views/pages/lab/AnimalSideSheet'
 import CommentSideSheet from 'src/views/pages/lab/CommentSideSheet'
-import MedicalRecordNotes from 'src/components/lab/request/MedicalRecordNotes'
-import ScrollToTop from 'src/@core/components/scroll-to-top'
+
+// APIs
+import {
+  GetRequestDetails,
+  GetRequestPopUp,
+  DeleteLAbRequestAttachment,
+  GetLabListByTestId,
+  postBulkStatus,
+  postBulkTransfer,
+  getLabListByMultipleIds
+} from 'src/lib/api/lab/getLabRequest'
 
 const RequestDetails = () => {
   const theme = useTheme()
@@ -147,6 +148,7 @@ const RequestDetails = () => {
 
   const [statusList, setStatusList] = useState([])
   const [filteredStatusData, setFilteredStatusData] = useState([])
+  const [shouldShowBulkStatus, setShouldShowBulkStatus] = useState(false)
 
   useEffect(() => {
     const labObject = localLabData?.find(item => item?.lab_id === lab_id)
@@ -204,8 +206,14 @@ const RequestDetails = () => {
         ? statusList
         : permissions?.perform_tests
         ? statusList?.filter(item => ['pending', 'inprogress'].includes(item.status))
+        : permissions?.transfer_tests && permissions?.perform_tests
+        ? [
+            ...statusList?.filter(item => ['pending', 'inprogress'].includes(item.status)),
+            ...statusList?.filter(item =>
+              ['sample_clotted', 'sample_haemolysed', 'completed_insufficient_samples'].includes(item.key)
+            )
+          ]
         : null
-
     if (filteredStatusBlockData) {
       setFilteredStatusData(filteredStatusBlockData)
     }
@@ -432,6 +440,9 @@ const RequestDetails = () => {
                       params.row.status === 'pending' ||
                       params.row.status === 'transferred' ||
                       params.row.status === 'awaiting_sample' ||
+                      params.row.status === 'sample_clotted' ||
+                      params.row.status === 'completed_insufficient_samples' ||
+                      params.row.status === 'sample_haemolysed' ||
                       params.row.status === 'sample_rejected'
                         ? 'rgba(255, 0, 0, 0.1)' // light red background for pending
                         : params.row.status === 'completed'
@@ -446,6 +457,9 @@ const RequestDetails = () => {
                       params.row.status === 'pending' ||
                       params.row.status === 'transferred' ||
                       params.row.status === 'awaiting_sample' ||
+                      params.row.status === 'sample_clotted' ||
+                      params.row.status === 'completed_insufficient_samples' ||
+                      params.row.status === 'sample_haemolysed' ||
                       params.row.status === 'sample_rejected'
                         ? theme.palette.customColors.customDropdownColor
                         : params.row.status === 'completed'
@@ -462,6 +476,9 @@ const RequestDetails = () => {
                         params.row.status === 'pending' ||
                         params.row.status === 'transferred' ||
                         params.row.status === 'awaiting_sample' ||
+                        params.row.status === 'sample_clotted' ||
+                        params.row.status === 'completed_insufficient_samples' ||
+                        params.row.status === 'sample_haemolysed' ||
                         params.row.status === 'sample_rejected'
                           ? theme.palette.customColors.customDropdownColor
                           : params.row.status === 'completed'
@@ -511,6 +528,9 @@ const RequestDetails = () => {
                       params.row.status === 'pending' ||
                       params.row.status === 'transferred' ||
                       params.row.status === 'awaiting_sample' ||
+                      params.row.status === 'sample_clotted' ||
+                      params.row.status === 'completed_insufficient_samples' ||
+                      params.row.status === 'sample_haemolysed' ||
                       params.row.status === 'sample_rejected'
                         ? theme.palette.customColors.customDropdownColor
                         : params.row.status === 'completed'
@@ -522,27 +542,7 @@ const RequestDetails = () => {
                         : theme.palette.primary.main
                   }}
                 >
-                  {params.row.status === 'awaiting_sample'
-                    ? 'Awaiting sample'
-                    : params.row.status === 'sample_received'
-                    ? 'Sample received'
-                    : params.row.status === 'sample_rejected'
-                    ? 'sample rejected'
-                    : params.row.status === 'completed_positive'
-                    ? 'completed positive'
-                    : params.row.status === 'completed_negative'
-                    ? 'completed negative'
-                    : params.row.status === 'completed_detected'
-                    ? 'completed detected'
-                    : params.row.status === 'completed_not_detected'
-                    ? 'completed not detected'
-                    : params.row.status === 'completed_inconclusive'
-                    ? 'completed inconclusive'
-                    : params.row.status === 'completed'
-                    ? 'Completed'
-                    : params.row.status === 'completed_insufficient_samples'
-                    ? 'Completed - Insufficient Samples'
-                    : 'In Progress'}
+                  {params.row.status_label}
                 </span>
               </Typography>
             )}
@@ -841,6 +841,7 @@ const RequestDetails = () => {
 
     // Retrieve the complete row data based on selected row IDs
     const selectedRowData = rows.filter(row => rowSelectionModel.includes(row.id))
+    setShouldShowBulkStatus(!selectedRowData.some(item => item.status.startsWith('completed')))
     setSelectedRowData(selectedRowData)
   }
 
@@ -1071,7 +1072,7 @@ const RequestDetails = () => {
                   )}
 
                   <Box>
-                    {(permissions?.allow_full_access || permissions?.perform_tests) && (
+                    {(permissions?.allow_full_access || permissions?.perform_tests) && shouldShowBulkStatus && (
                       <FormControl fullWidth variant='outlined'>
                         <Select
                           size='small'
@@ -1087,6 +1088,9 @@ const RequestDetails = () => {
                               headerStatus === 'pending' ||
                               headerStatus === 'transferred' ||
                               headerStatus === 'awaiting_sample' ||
+                              headerStatus === 'sample_clotted' ||
+                              headerStatus === 'completed_insufficient_samples' ||
+                              headerStatus === 'sample_haemolysed' ||
                               headerStatus === 'sample_rejected'
                                 ? 'rgba(255, 0, 0, 0.1)' // light red background for pending
                                 : headerStatus === 'completed'
@@ -1101,6 +1105,9 @@ const RequestDetails = () => {
                               headerStatus === 'pending' ||
                               headerStatus === 'transferred' ||
                               headerStatus === 'awaiting_sample' ||
+                              headerStatus === 'sample_clotted' ||
+                              headerStatus === 'completed_insufficient_samples' ||
+                              headerStatus === 'sample_haemolysed' ||
                               headerStatus === 'sample_rejected'
                                 ? theme.palette.customColors.customDropdownColor
                                 : headerStatus === 'completed'
@@ -1118,6 +1125,9 @@ const RequestDetails = () => {
                                 headerStatus === 'pending' ||
                                 headerStatus === 'transferred' ||
                                 headerStatus === 'awaiting_sample' ||
+                                headerStatus === 'sample_clotted' ||
+                                headerStatus === 'completed_insufficient_samples' ||
+                                headerStatus === 'sample_haemolysed' ||
                                 headerStatus === 'sample_rejected'
                                   ? theme.palette.customColors.customDropdownColor
                                   : headerStatus === 'completed'
@@ -1136,6 +1146,9 @@ const RequestDetails = () => {
                                 headerStatus === 'transferred' ||
                                 headerStatus === 'awaiting_sample' ||
                                 headerStatus === 'sample_rejected' ||
+                                headerStatus === 'sample_clotted' ||
+                                headerStatus === 'completed_insufficient_samples' ||
+                                headerStatus === 'sample_haemolysed' ||
                                 headerStatus === 'sample_received'
                                   ? theme.palette.customColors.customDropdownColor // Custom red border for these statuses
                                   : headerStatus === 'completed'
