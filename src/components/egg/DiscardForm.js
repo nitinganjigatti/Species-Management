@@ -340,8 +340,6 @@ const DiscardForm = ({ isOpen, setIsOpen, eggID, callApi, getDetails, GetGallery
                     borderColor: theme.palette.customColors.OutlineVariant,
                     p: 2,
                     borderRadius: '5px'
-
-                    // opacity: 0.6
                   }}
                 >
                   <Typography>{item?.egg_state}</Typography>
