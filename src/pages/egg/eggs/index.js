@@ -271,7 +271,7 @@ const EggList = () => {
                   : params.row.egg_condition === 'Thin-Shelled'
                   ? theme.palette.primary.light
                   : params.row.egg_condition === 'Broken'
-                  ? theme.palette.customColors.AntzError
+                  ? theme.palette.customColors.Error
                   : params.row.egg_condition === 'Rotten'
                   ? theme.palette.customColors.Tertiary
                   : params.row.egg_condition === 'Cracked'
@@ -1238,7 +1238,7 @@ const EggList = () => {
     //             : params.row.egg_condition === 'Thin-Shelled'
     //             ? theme.palette.primary.light
     //             : params.row.egg_condition === 'Broken'
-    //             ? theme.palette.customColors.AntzError
+    //             ? theme.palette.customColors.Error
     //             : params.row.egg_condition === 'Rotten'
     //             ? theme.palette.customColors.Tertiary
     //             : params.row.egg_condition === 'Cracked'
@@ -1350,7 +1350,7 @@ const EggList = () => {
             calculatePercentageChange(params.row.initial_weight, params.row.current_weight) !== '0' && (
               <span
                 style={{
-                  borderLeft: `1px solid ${theme.palette.customColors.AntzOutlineVariant}`,
+                  borderLeft: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                   paddingLeft: 4,
                   color:
                     calculatePercentageChange(params.row.initial_weight, params.row.current_weight) > 0
@@ -1829,7 +1829,7 @@ const EggList = () => {
             </Typography>
           ) : params.row.is_necropsy_needed === '1' ? (
             <Button
-              sx={{ color: theme.palette.customColors.AntzAddPrimary, ml: -3 }}
+              sx={{ color: theme.palette.customColors.addPrimary, ml: -3 }}
               onClick={e => handleOpenNecropsy(e, params)}
             >
               Attach File
@@ -2972,7 +2972,7 @@ const EggList = () => {
                         zIndex: 1,
                         backgroundColor: theme.palette.background.default,
                         borderRight: 1,
-                        borderColor: theme.palette.customColors.AntzOutlineVariant
+                        borderColor: theme.palette.customColors.OutlineVariant
                       },
                       '& .MuiDataGrid-root': {
                         overflowX: 'auto'

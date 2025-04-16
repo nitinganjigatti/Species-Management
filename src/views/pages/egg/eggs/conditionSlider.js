@@ -660,7 +660,7 @@ const ConditionSlider = ({
                     background: theme.palette.primary.contrastText,
                     borderRadius: '8px',
                     border: 1,
-                    borderColor: theme.palette.customColors.AntzOutlineVariant,
+                    borderColor: theme.palette.customColors.OutlineVariant,
                     py: '20px',
                     px: '16px'
                   }}
@@ -868,7 +868,7 @@ const ConditionSlider = ({
                     background: theme.palette.primary.contrastText,
                     borderRadius: '8px',
                     border: 1,
-                    borderColor: theme.palette.customColors.AntzOutlineVariant,
+                    borderColor: theme.palette.customColors.OutlineVariant,
                     py: '20px',
                     px: '16px'
                   }}
@@ -1004,7 +1004,7 @@ const ConditionSlider = ({
                       bgcolor: theme.palette.primary.contrastText,
                       borderRadius: '8px',
                       border: 1,
-                      borderColor: theme.palette.customColors.AntzOutlineVariant
+                      borderColor: theme.palette.customColors.OutlineVariant
                     }}
                   >
                     <Typography variant='h6'>Necropsy Needed ?</Typography>
@@ -1032,7 +1032,7 @@ const ConditionSlider = ({
                                   flexGrow: 1,
                                   gap: 2,
                                   border: 1,
-                                  borderColor: theme.palette.customColors.AntzOutlineVariant,
+                                  borderColor: theme.palette.customColors.OutlineVariant,
                                   p: 2,
                                   borderRadius: '5px',
                                   justifyContent: 'space-between'
@@ -1049,7 +1049,7 @@ const ConditionSlider = ({
                                   flexGrow: 1,
                                   gap: 2,
                                   border: 1,
-                                  borderColor: theme.palette.customColors.AntzOutlineVariant,
+                                  borderColor: theme.palette.customColors.OutlineVariant,
                                   p: 2,
                                   borderRadius: '5px',
                                   justifyContent: 'space-between'
@@ -1076,7 +1076,7 @@ const ConditionSlider = ({
                         background: theme.palette.primary.contrastText,
                         borderRadius: '8px',
                         border: 1,
-                        borderColor: theme.palette.customColors.AntzOutlineVariant,
+                        borderColor: theme.palette.customColors.OutlineVariant,
                         py: '20px',
                         px: '16px'
                       }}

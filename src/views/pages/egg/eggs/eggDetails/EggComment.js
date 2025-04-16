@@ -277,7 +277,7 @@ const EggComment = ({ eggDetails, eggId }) => {
                       borderBottom:
                         commentList?.length === index + 1
                           ? 'none'
-                          : `0.5px solid ${theme.palette.customColors.AntzOutlineVariant}`
+                          : `0.5px solid ${theme.palette.customColors.OutlineVariant}`
                     }}
                     key={index}
                   >
@@ -391,7 +391,7 @@ const EggComment = ({ eggDetails, eggId }) => {
 
       <ConfirmationDialog
         icon={'mdi:delete'}
-        iconColor={theme.palette.customColors.AntzError}
+        iconColor={theme.palette.customColors.Error}
         title={'Are you sure you want to delete this comment?'}
         dialogBoxStatus={deleteDialogBox}
         onClose={handleClosenew}

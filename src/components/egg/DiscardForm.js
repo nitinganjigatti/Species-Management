@@ -326,7 +326,7 @@ const DiscardForm = ({ isOpen, setIsOpen, eggID, callApi, getDetails, GetGallery
                 bgcolor: theme.palette.primary.contrastText,
                 borderRadius: '8px',
                 border: 1,
-                borderColor: theme.palette.customColors.AntzOutlineVariant
+                borderColor: theme.palette.customColors.OutlineVariant
               }}
             >
               {discardReason?.map(item => (
@@ -337,7 +337,7 @@ const DiscardForm = ({ isOpen, setIsOpen, eggID, callApi, getDetails, GetGallery
                     justifyContent: 'space-between',
                     alignItems: 'center',
                     border: 1,
-                    borderColor: theme.palette.customColors.AntzOutlineVariant,
+                    borderColor: theme.palette.customColors.OutlineVariant,
                     p: 2,
                     borderRadius: '5px'
 
@@ -375,7 +375,7 @@ const DiscardForm = ({ isOpen, setIsOpen, eggID, callApi, getDetails, GetGallery
                 bgcolor: theme.palette.primary.contrastText,
                 borderRadius: '8px',
                 border: 1,
-                borderColor: theme.palette.customColors.AntzOutlineVariant
+                borderColor: theme.palette.customColors.OutlineVariant
               }}
             >
               <FormControl fullWidth>
@@ -420,7 +420,7 @@ const DiscardForm = ({ isOpen, setIsOpen, eggID, callApi, getDetails, GetGallery
                       gap: 7,
                       height: 70,
 
-                      border: `1px dashed ${theme.palette.customColors.AntzOutlineVariant}`,
+                      border: `1px dashed ${theme.palette.customColors.OutlineVariant}`,
                       borderRadius: 1,
 
                       padding: 3
@@ -495,7 +495,7 @@ const DiscardForm = ({ isOpen, setIsOpen, eggID, callApi, getDetails, GetGallery
                 bgcolor: theme.palette.primary.contrastText,
                 borderRadius: '8px',
                 border: 1,
-                borderColor: theme.palette.customColors.AntzOutlineVariant
+                borderColor: theme.palette.customColors.OutlineVariant
               }}
             >
               <Typography variant='h6'>Necropsy Needed ?</Typography>
@@ -523,7 +523,7 @@ const DiscardForm = ({ isOpen, setIsOpen, eggID, callApi, getDetails, GetGallery
 
                             gap: 2,
                             border: 1,
-                            borderColor: theme.palette.customColors.AntzOutlineVariant,
+                            borderColor: theme.palette.customColors.OutlineVariant,
                             p: 2,
                             borderRadius: '5px',
 
@@ -542,7 +542,7 @@ const DiscardForm = ({ isOpen, setIsOpen, eggID, callApi, getDetails, GetGallery
                             flexGrow: 1,
                             gap: 2,
                             border: 1,
-                            borderColor: theme.palette.customColors.AntzOutlineVariant,
+                            borderColor: theme.palette.customColors.OutlineVariant,
                             p: 2,
                             borderRadius: '5px',
 

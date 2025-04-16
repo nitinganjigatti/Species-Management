@@ -432,7 +432,7 @@ const SpeciesDetail = () => {
           //       sx={{
           //         color: theme.palette.primary.main,
           //         fontSize: '13px',
-          //         background: theme.palette.customColors.AntzOnBackground,
+          //         background: theme.palette.customColors.OnBackground,
           //         borderRadius: '3px',
           //         fontWeight: 600,
           //         mt: 1,

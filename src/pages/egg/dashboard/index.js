@@ -108,7 +108,7 @@ const Dashboard = () => {
                       borderRadius: '4px'
                     },
                     '& .css-1lqkpd-MuiFormLabel-root-MuiInputLabel-root': { top: '-7px' },
-                    '& .css-1d3z3hw-MuiOutlinedInput-notchedOutline': { border: `1px solid ${theme.palette.customColors.AntzOutlineVariant}` }
+                    '& .css-1d3z3hw-MuiOutlinedInput-notchedOutline': { border: `1px solid ${theme.palette.customColors.OutlineVariant}` }
                   }}
                   value={fromDate}
                   onChange={newDate => setFromDate(newDate)}
@@ -137,7 +137,7 @@ const Dashboard = () => {
                       borderRadius: '4px'
                     },
                     '& .css-1lqkpd-MuiFormLabel-root-MuiInputLabel-root': { top: '-7px' },
-                    '& .css-1d3z3hw-MuiOutlinedInput-notchedOutline': { border: `1px solid ${theme.palette.customColors.AntzOutlineVariant}` }
+                    '& .css-1d3z3hw-MuiOutlinedInput-notchedOutline': { border: `1px solid ${theme.palette.customColors.OutlineVariant}` }
                   }}
                   value={tillDate}
                   onChange={newDate => setTilDate(newDate)}

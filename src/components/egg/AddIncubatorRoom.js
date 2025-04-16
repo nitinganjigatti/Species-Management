@@ -249,7 +249,7 @@ const AddIncubatorRoom = ({ isOpen, setIsOpen, editParams, callApi, isPreFilled,
                 bgcolor: theme.palette.primary.contrastText,
                 borderRadius: '8px',
                 border: 1,
-                borderColor: theme.palette.customColors.AntzOutlineVariant
+                borderColor: theme.palette.customColors.OutlineVariant
               }}
             >
               <FormControl fullWidth>

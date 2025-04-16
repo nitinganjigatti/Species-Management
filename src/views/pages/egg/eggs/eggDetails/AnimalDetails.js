@@ -16,7 +16,7 @@ const AnimalDetails = ({ eggDetails }) => {
   const headerAction = (
     <Typography
       sx={{
-        color: theme.palette.customColors.AntzAddPrimary,
+        color: theme.palette.customColors.addPrimary,
         fontSize: '14px',
         lineHeight: '16.94px',
         fontWeight: 600,

@@ -278,10 +278,10 @@ const EggHeroSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGaller
         height: '88px',
         backgroundColor:
           eggDetails?.egg_status === ('Fresh' || 'Fertile' || 'Hatched')
-            ? theme.palette.customColors.AntzLight10
+            ? theme.palette.customColors.Primary10
             : eggDetails?.egg_status === 'Discard'
-            ? theme.palette.customColors.AntzTertiary30
-            : theme.palette.customColors.AntzLight10,
+            ? theme.palette.customColors.Tertiary30
+            : theme.palette.customColors.Primary10,
 
         p: '12px',
         borderRadius: '8px',
@@ -359,7 +359,7 @@ const EggHeroSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGaller
               Number(eggDetails?.action_to_be_taken) === 5 ||
               (Number(eggDetails?.action_to_be_taken) === 6 && Number(eggDetails?.discard_status) !== 2) ||
               (Number(eggDetails?.action_to_be_taken) === 7 && eggDetails?.animal_data === null)
-                ? theme.palette.customColors.AntzAddPrimary
+                ? theme.palette.customColors.addPrimary
                 : theme.palette.customColors.neutralSecondary
             }
             icon='fontisto:angle-right'

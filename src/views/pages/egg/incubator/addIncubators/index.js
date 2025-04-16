@@ -237,7 +237,7 @@ const AddIncubators = ({
                 border: 1,
                 px: '16px',
                 py: '24px',
-                borderColor: theme.palette.customColors.AntzOutlineVariant,
+                borderColor: theme.palette.customColors.OutlineVariant,
                 borderRadius: '8px',
                 backgroundColor: theme.palette.primary.contrastText,
                 display: 'flex',

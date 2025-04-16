@@ -681,7 +681,7 @@ const EggSecondSecion = ({
                       Transfer
                     </Typography>
                     <Icon
-                      color={theme.palette.customColors.AntzAddPrimary}
+                      color={theme.palette.customColors.addPrimary}
                       style={{ cursor: 'pointer', color: theme.palette.primary.main, transform: 'rotateY(180deg)' }}
                       icon='akar-icons:arrow-repeat'
                       fontSize={24}
@@ -695,7 +695,7 @@ const EggSecondSecion = ({
                   xs={12}
                   sx={{
                     borderRadius: '8px',
-                    border: `1px solid ${theme.palette.customColors.AntzOutlineVariant}`,
+                    border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                     padding: '16px'
                   }}
                 >
@@ -729,7 +729,7 @@ const EggSecondSecion = ({
                   xs={12}
                   sx={{
                     borderRadius: '8px',
-                    border: `1px solid ${theme.palette.customColors.AntzOutlineVariant}`,
+                    border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                     padding: '16px'
                   }}
                 >
@@ -764,7 +764,7 @@ const EggSecondSecion = ({
         </Card>
       </Grid>
       <Grid item xs={12} md={8}>
-        <Card sx={{ border: 1, borderColor: theme.palette.customColors.AntzOutlineVariant }}>
+        <Card sx={{ border: 1, borderColor: theme.palette.customColors.OutlineVariant }}>
           <CardHeader
             sx={{
               pb: 0,
@@ -874,7 +874,7 @@ const EggSecondSecion = ({
                               lineHeight: '16.94px',
                               color:
                                 key === 'Mother id' || key === 'Father id'
-                                  ? theme.palette.customColors.AntzAddPrimary
+                                  ? theme.palette.customColors.addPrimary
                                   : theme.palette.customColors.OnSurfaceVariant
                             }}
                           >
@@ -1035,7 +1035,7 @@ const EggSecondSecion = ({
       </Grid>
 
       <Grid item xs={12} md={6} xl={8}>
-        <Card sx={{ border: 1, borderColor: theme.palette.customColors.AntzOutlineVariant }}>
+        <Card sx={{ border: 1, borderColor: theme.palette.customColors.OutlineVariant }}>
           <CardContent>
             <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
               <Typography
@@ -1052,7 +1052,7 @@ const EggSecondSecion = ({
                 <Box sx={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
                   <Box
                     sx={{
-                      backgroundColor: theme.palette.customColors.AntzAddPrimary,
+                      backgroundColor: theme.palette.customColors.addPrimary,
                       height: '10px',
                       width: '10px',
                       borderRadius: '10px'
@@ -1103,7 +1103,7 @@ const EggSecondSecion = ({
           <CardHeader sx={{ pb: 0, pl: 6 }} title='Weights (Grams)' action={weightHeaderAction} />
           <CardContent style={{ paddingBottom: 0 }}>
             <CustomTableContainer
-              style={{ border: `0.5px solid ${theme.palette.customColors.AntzOutlineVariant}`, borderRadius: '8px' }}
+              style={{ border: `0.5px solid ${theme.palette.customColors.OutlineVariant}`, borderRadius: '8px' }}
               component={Paper}
               sx={{ height: 175 }}
             >
