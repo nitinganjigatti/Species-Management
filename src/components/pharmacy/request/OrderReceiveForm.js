@@ -1620,23 +1620,151 @@ function OrderReceiveForm({ orderId, requestId }) {
 
     printWindow.focus()
     printWindow.document.close()
-
-    printWindow.onload = () => {
-      printWindow.print()
-      printWindow.onafterprint = () => {
-        printWindow.close()
+    setTimeout(() => {
+      try {
+        // printWindow.focus()
+        printWindow.print()
+      } catch (error) {
+        console.error('Print error:', error)
+        // Fallback for browsers that don't support print()
+        const printButton = printWindow.document.createElement('button')
+        printButton.textContent = 'Print'
+        printButton.onclick = () => printWindow.print()
+        printWindow.document.body.appendChild(printButton)
       }
+    }, 1000)
+
+    // Close the window after print
+    printWindow.onafterprint = () => {
+      // debugger
+      setTimeout(() => {
+        if (!printWindow.closed) {
+          printWindow.close()
+        }
+      }, 10)
     }
+    // printWindow.document.close()
 
-    const interval = setInterval(() => {
-      if (printWindow.closed) {
-        clearInterval(interval)
-      } else {
-        printWindow.close()
-        clearInterval(interval)
-      }
-    }, 500)
+    // printWindow.onload = () => {
+    //   printWindow.print()
+    //   printWindow.onafterprint = () => {
+    //     printWindow.close()
+    //   }
+    // }
+
+    // const interval = setInterval(() => {
+    //   if (printWindow.closed) {
+    //     clearInterval(interval)
+    //   } else {
+    //     printWindow.close()
+    //     clearInterval(interval)
+    //   }
+    // }, 500)
   }
+
+  // const handlePrint = () => {
+  //   // Create the window first
+  //   const printWindow = window.open('', '_blank')
+
+  //   if (!printWindow) {
+  //     alert('Please allow popups for this website')
+  //     return
+  //   }
+
+  //   const printContents = printRef.current.innerHTML
+
+  //   // Get styles
+  //   const styles = Array.from(document.styleSheets)
+  //     .map(sheet => {
+  //       try {
+  //         return Array.from(sheet.cssRules)
+  //           .map(rule => rule.cssText)
+  //           .join('\n')
+  //       } catch (e) {
+  //         console.warn('Error accessing stylesheet:', e)
+  //         return ''
+  //       }
+  //     })
+  //     .join('\n')
+
+  //   // Write content to the new window
+  //   printWindow.document.open()
+  //   printWindow.document.write(`
+  //     <html>
+  //       <head>
+  //         <title>${`Shipment Details - ${orderData?.shipment_id || ''}`}</title>
+  //         <style>
+  //           /* Include global styles */
+  //           ${styles}
+  //           /* You can add specific print styles here */
+  //           @media print {
+  //             body {
+  //               margin: 0;
+  //               padding: 0;
+  //             }
+  //             .printable-container {
+  //               background-color: ${theme.palette.customColors.lightBg};
+  //               padding: 16px;
+  //               border-radius: 8px;
+  //               border: 1px solid ${theme.palette.customColors.neutral05};
+  //               margin-top: 16px;
+  //             }
+  //             .MuiDataGrid-footerContainer {
+  //               display: none !important;
+  //               opacity: 0;
+  //             }
+  //             .print-title {
+  //               position: absolute;
+  //               top: 20px;
+  //               left: 50%;
+  //               transform: translateX(-50%);
+  //               font-size: 24px;
+  //               font-weight: bold;
+  //               margin-top: 10px;
+  //             }
+  //             .footer {
+  //               text-align: center;
+  //               font-size: 16px;
+  //               position: absolute;
+  //               bottom: 16px;
+  //               width: 100%;
+  //             }
+  //           }
+  //         </style>
+  //       </head>
+  //       <body>
+  //         <div>${printContents}</div>
+  //         <div class="footer">Antz Systems</div>
+  //       </body>
+  //     </html>
+  //   `)
+  //   printWindow.document.close()
+
+  //   // Safari-specific handling
+  //   setTimeout(() => {
+  //     try {
+  //       printWindow.focus()
+  //       printWindow.print()
+
+  //       // Handle closing of the window
+  //       const checkClosed = () => {
+  //         if (printWindow.closed) {
+  //           clearInterval(closeInterval)
+  //         }
+  //       }
+  //       const closeInterval = setInterval(checkClosed, 500)
+
+  //       // Fallback for Safari
+  //       setTimeout(() => {
+  //         if (!printWindow.closed) {
+  //           clearInterval(closeInterval)
+  //         }
+  //       }, 10000) // 10 second fallback
+  //     } catch (e) {
+  //       console.error('Print error:', e)
+  //     }
+  //   }, 500) // Give Safari time to properly render the content
+  // }
 
   console.log(disputeItemDetails?.item_details, 'disputeItemDetails')
 
