@@ -86,6 +86,7 @@ const SpeciesAnimalsMapped = ({
   const handleEditclick = () => {
     setIsOpenTabsEdit(true)
     setPrimaryStatus({})
+
     //setspeciesview('')
   }
 
@@ -107,6 +108,7 @@ const SpeciesAnimalsMapped = ({
       })
       setSelectedItems({ Site: [], Section: [], Enclosure: [], Taxonomy: [], Species: [] })
     }
+
     //setItems({ Site: [], Section: [], Enclosure: [], Taxonomy: [], Species: [] })
     if (val === 'animals') {
       setFilterState('species')
@@ -255,6 +257,7 @@ const SpeciesAnimalsMapped = ({
                         height: '45px',
                         pr: '6px',
                         mt: '10px',
+
                         // lineHeight: '2.2',
                         border:
                           selectedItems && Object.values(selectedItems).some(array => array.length > 0)
@@ -740,7 +743,12 @@ const SpeciesAnimalsMapped = ({
                                     display: 'flex'
                                   }}
                                 >
-                                  {species.animal_id ? `AID: ${species.animal_id}` : 'AID: -'}
+                                  {species.primary_identifier_type && species.identifier
+                                    ? `${species.primary_identifier_type}: ${species.identifier}`
+                                    : species.animal_id
+                                    ? `AID: ${species.animal_id}`
+                                    : 'AID: -'}
+
                                   {species.is_primary === '1' ? (
                                     <Typography
                                       variant='body2'

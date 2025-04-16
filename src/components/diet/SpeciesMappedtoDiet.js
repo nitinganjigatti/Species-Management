@@ -126,9 +126,11 @@ const SpeciesMappedtoDiet = ({
       })
       setSelectedItems({ Site: [], Section: [], Enclosure: [], Taxonomy: [], Species: [] })
     }
+
     //setItems({ Site: [], Section: [], Enclosure: [], Taxonomy: [], Species: [] })
     if (selectionType === 'animals') {
       setFilterState('species')
+
       // refreshSpeciesData('')
       setPageNo(1)
     } else {
@@ -646,7 +648,11 @@ const SpeciesMappedtoDiet = ({
                             fontWeight: 600
                           }}
                         >
-                          {species.animal_id ? `AID: ${species.animal_id}` : 'AID: -'}
+                          {species.primary_identifier_type && species.identifier
+                            ? `${species.primary_identifier_type}: ${species.identifier}`
+                            : species.animal_id
+                            ? `AID: ${species.animal_id}`
+                            : 'AID: -'}
                         </Typography>
                         <Typography
                           variant='body1'

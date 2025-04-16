@@ -98,6 +98,7 @@ const EditAnimalSpeciesMapped = ({
     setPrimaryStatus(prev => {
       const newStatus = { ...prev }
       delete newStatus[id]
+
       return newStatus
     })
 
@@ -158,14 +159,17 @@ const EditAnimalSpeciesMapped = ({
 
   const hasChanges = () => {
     const editData = getChangedRecords()
+
     return editData.length > 0 || removedIds.length > 0
   }
 
   const handleAdd = async () => {
     const editData = getChangedRecords()
+
     // Convert string IDs to numbers
     const numericRemovedIds = removedIds.map(id => Number(id))
     console.log(numericRemovedIds, 'numericRemovedIds')
+
     const payload = {
       edit_data: JSON.stringify(editData),
       remove_ids: JSON.stringify(numericRemovedIds)
@@ -203,6 +207,7 @@ const EditAnimalSpeciesMapped = ({
   const handelClose = () => {
     setIsOpenTabsEdit(false)
     refreshDietDetails()
+
     //setspeciesview('')
     setSearchQuery('')
   }
@@ -797,7 +802,11 @@ const EditAnimalSpeciesMapped = ({
                                             fontWeight: 600
                                           }}
                                         >
-                                          {species.animal_id ? `AID: ${species.animal_id}` : 'AID: -'}
+                                          {species.primary_identifier_type && species.identifier
+                                            ? `${species.primary_identifier_type}: ${species.identifier}`
+                                            : species.animal_id
+                                            ? `AID: ${species.animal_id}`
+                                            : 'AID: -'}
                                         </Typography>
                                         <Typography
                                           variant='body1'
