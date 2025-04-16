@@ -1440,24 +1440,50 @@ function OrderReceiveForm({ orderId, requestId }) {
       </html>
     `)
 
-    printWindow.document.close()
     printWindow.focus()
-
-    printWindow.onload = () => {
-      printWindow.print()
-      printWindow.onafterprint = () => {
-        printWindow.close()
+    printWindow.document.close()
+    setTimeout(() => {
+      try {
+        // printWindow.focus()
+        printWindow.print()
+      } catch (error) {
+        console.error('Print error:', error)
+        // Fallback for browsers that don't support print()
+        const printButton = printWindow.document.createElement('button')
+        printButton.textContent = 'Print'
+        printButton.onclick = () => printWindow.print()
+        printWindow.document.body.appendChild(printButton)
       }
+    }, 1000)
+
+    // Close the window after print
+    printWindow.onafterprint = () => {
+      // debugger
+      setTimeout(() => {
+        if (!printWindow.closed) {
+          printWindow.close()
+        }
+      }, 10)
     }
 
-    const interval = setInterval(() => {
-      if (printWindow.closed) {
-        clearInterval(interval)
-      } else {
-        printWindow.close()
-        clearInterval(interval)
-      }
-    }, 500)
+    // printWindow.document.close()
+    // printWindow.focus()
+
+    // printWindow.onload = () => {
+    //   printWindow.print()
+    //   printWindow.onafterprint = () => {
+    //     printWindow.close()
+    //   }
+    // }
+
+    // const interval = setInterval(() => {
+    //   if (printWindow.closed) {
+    //     clearInterval(interval)
+    //   } else {
+    //     printWindow.close()
+    //     clearInterval(interval)
+    //   }
+    // }, 500)
   }
 
   return (
