@@ -566,7 +566,7 @@ const DirectDispatchList = () => {
           />
           <Tab value='cancel' label={<TabBadge label='Cancelled' totalCount={status === 'cancel' ? total : null} />} />
           <Tab
-            value={['all', 'completed'].includes(status) ? 'all' : 'completed'}
+            value='all'
             label={<TabBadge label='All' totalCount={['all', 'completed'].includes(status) ? total : null} />}
           />
         </TabList>
