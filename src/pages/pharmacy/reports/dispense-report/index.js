@@ -442,17 +442,23 @@ const DispenseReport = () => {
       sortable: true,
       headerName: 'FROM STORE',
       renderCell: params => (
-        <Typography
-          variant='body2'
-          sx={{
-            color: theme.palette.customColors.customHeadingTextColor,
-            fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
-          }}
-        >
-          {params.row.from_store}
-        </Typography>
+        <Tooltip title={params.row.from_store}>
+          <Typography
+            variant='body2'
+            sx={{
+              color: theme.palette.customColors.customHeadingTextColor,
+              fontSize: '14px',
+              fontWeight: 400,
+              fontFamily: 'Inter',
+              overflow: 'hidden',
+              whiteSpace: 'nowrap',
+              textOverflow: 'ellipsis',
+              maxWidth: 200
+            }}
+          >
+            <span alt={params.row.from_store}> {params.row.from_store}</span>
+          </Typography>
+        </Tooltip>
       )
     },
     {
