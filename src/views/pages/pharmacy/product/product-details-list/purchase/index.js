@@ -238,7 +238,7 @@ function Purchase({ tabValue, updateUrlParams }) {
     {
       width: 200,
       field: 'supplier_name',
-      headerName: 'VENDOR NAME',
+      headerName: 'SUPPLIER NAME',
       renderCell: params => (
         <>
           {/* <Avatar

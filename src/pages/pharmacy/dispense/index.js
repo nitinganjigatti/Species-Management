@@ -59,8 +59,8 @@ function Dispense() {
 
   const columns = [
     {
-      flex: 0.1,
-      Width: 40,
+      // flex: 0.1,
+      Width: 100,
       field: 'sl',
       headerName: 'S.NO',
       renderCell: params => (
@@ -70,7 +70,7 @@ function Dispense() {
       )
     },
     {
-      flex: 0.2,
+      width: 180,
       minWidth: 20,
       field: 'dispense_id',
       headerName: 'Dispense Id',
@@ -149,7 +149,7 @@ function Dispense() {
     //   )
     // },
     {
-      flex: 0.2,
+      width: 180,
       minWidth: 20,
       field: 'animal_count',
       type: 'number',
@@ -171,7 +171,7 @@ function Dispense() {
       )
     },
     {
-      flex: 0.2,
+      width: 270,
       minWidth: 30,
       field: 'created_at',
       headerName: 'Dispensed Date',
@@ -191,6 +191,7 @@ function Dispense() {
       )
     },
     {
+      width: 220,
       minWidth: 220,
       field: 'user_name',
       headerName: 'Dispensed to',
@@ -212,7 +213,8 @@ function Dispense() {
       )
     },
     {
-      minWidth: 200,
+      width: 220,
+      minWidth: 100,
       field: 'created_by',
       headerName: 'Created by ',
       renderCell: params => (
