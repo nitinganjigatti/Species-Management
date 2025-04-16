@@ -437,3 +437,23 @@ export const GET_SECTIONS = 'master/zoos/getsections'
 export const GET_ENCLOSURES = 'master/enclosure/details'
 
 export const GET_TAXONOMYLIST = 'v1/taxonomyunits'
+
+export const GET_ENCLOSURELIST = '/diet/get-enclosure-list-for-diet'
+
+export const CREATE_GROUP = '/diet/create-meal-group'
+
+export const GET_GROUPLIST = '/diet/get-meal-group-list'
+
+export const REMOVE_MEAL_GROUP = '/diet/remove-meal-group'
+
+export const GET_ENCLOSURE_LIST = '/diet/get-enclosure-list-for-diet'
+
+export const ADD_ENCLOSURE = '/diet/add-enclosure-to-meal-group'
+
+export const UPDATE_GROUP = '/diet/edit-meal-group'
+
+export const GET_STATS = '/diet/get-meal-group-site-wise-stats'
+
+export const GET_SECTION = '/master/zoos/getsections'
+
+export const GET_SPECIES = '/diet/species'

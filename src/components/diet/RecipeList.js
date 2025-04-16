@@ -25,7 +25,8 @@ const RecipeList = props => {
     formData,
     fromrow,
     recipeid,
-    dietid
+    dietid,
+    recipeName
   } = props
   const theme = useTheme()
   const [rows, setRows] = useState([])
@@ -40,7 +41,14 @@ const RecipeList = props => {
   useEffect(() => {
     const getRecipeListData = async () => {
       setReachedEnd(true)
-      const params = { page: ingredientPage, q: searchValue, sortBy, status: 1, limit: 10, meal_type: 'recipe' }
+      const params = {
+        page: ingredientPage,
+        q: fromrow !== 'rowedit_recipe' ? searchValue : recipeName,
+        sortBy,
+        status: 1,
+        limit: 10,
+        meal_type: 'recipe'
+      }
       const res = await getRecipeList({ params })
 
       if (res?.data?.result?.length > 0) {
@@ -61,7 +69,7 @@ const RecipeList = props => {
     }
 
     getRecipeListData()
-  }, [ingredientPage, sortBy])
+  }, [ingredientPage, sortBy, recipeid])
 
   const handleScroll = async e => {
     const container = e.target
@@ -182,51 +190,62 @@ const RecipeList = props => {
             </IconButton>
           </Box>
         </Box>
-        <Box
-          sx={{
-            alignItems: 'center',
+        {fromrow !== 'rowedit_recipe' ? (
+          <Box
+            sx={{
+              alignItems: 'center',
 
-            p: 2,
-            px: '16px'
-          }}
-        >
-          <Box>
-            <TextField
-              value={searchValue}
-              fullWidth
-              InputProps={{
-                startAdornment: (
-                  <Icon
-                    style={{ marginRight: 10, color: theme.palette.customColors.OnSurfaceVariant }}
-                    icon={'ion:search-outline'}
-                  />
-                ),
-                endAdornment: searchValue && (
-                  <IconButton onClick={handleCancelClick} size='small' sx={{ padding: 0 }}>
-                    <Icon icon={'ion:close-outline'} style={{ color: theme.palette.customColors.OnSurfaceVariant }} />
-                  </IconButton>
-                )
-              }}
-              placeholder='Search recipe'
-              onChange={handleSearchChange}
-              sx={{
-                '& .MuiOutlinedInput-root': {
-                  borderColor: theme.palette.customColors.Outline,
-                  '& fieldset': {
-                    borderColor: theme.palette.customColors.Outline
+              p: 2,
+              px: '16px'
+            }}
+          >
+            <Box>
+              <TextField
+                value={searchValue}
+                fullWidth
+                InputProps={{
+                  startAdornment: (
+                    <Icon
+                      style={{ marginRight: 10, color: theme.palette.customColors.OnSurfaceVariant }}
+                      icon={'ion:search-outline'}
+                    />
+                  ),
+                  endAdornment: searchValue && (
+                    <IconButton onClick={handleCancelClick} size='small' sx={{ padding: 0 }}>
+                      <Icon icon={'ion:close-outline'} style={{ color: theme.palette.customColors.OnSurfaceVariant }} />
+                    </IconButton>
+                  )
+                }}
+                placeholder='Search recipe'
+                onChange={handleSearchChange}
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    borderColor: theme.palette.customColors.Outline,
+                    '& fieldset': {
+                      borderColor: theme.palette.customColors.Outline
+                    }
                   }
-                }
-              }}
-            />
+                }}
+              />
+            </Box>
           </Box>
-        </Box>
+        ) : (
+          ''
+        )}
       </Box>
 
       {/* on scroll */}
       <Box
         className=''
-        sx={{ marginTop: 30, height: '70%', overflowY: 'auto', bgcolor: theme.palette.customColors.bodyBg, p: 4 }}
-        onScroll={handleScroll}
+        sx={{
+          marginTop: fromrow !== 'rowedit_recipe' ? 30 : 12,
+          height: fromrow !== 'rowedit_recipe' ? '70%' : '80%',
+          overflowY: 'auto',
+          bgcolor: theme.palette.customColors.bodyBg,
+          p: 4
+        }}
+        //onScroll={handleScroll}
+        onScroll={fromrow !== 'rowedit_recipe' ? handleScroll : undefined}
       >
         <RecipeCard
           rows={ingredientList}
@@ -245,6 +264,7 @@ const RecipeList = props => {
           recipeid={recipeid}
           loading={loading}
           dietid={dietid}
+          recipeName={recipeName}
         />
 
         {/* End Card Section */}

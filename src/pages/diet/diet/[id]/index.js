@@ -25,14 +25,7 @@ import Tab from '@mui/material/Tab'
 import TabList from '@mui/lab/TabList'
 import TabPanel from '@mui/lab/TabPanel'
 import TabContext from '@mui/lab/TabContext'
-import {
-  getDietDetails,
-  getSpeciesList,
-  getAnimalsList,
-  getSectionsList,
-  getEnclosureList,
-  getTaxonomyList
-} from 'src/lib/api/diet/dietList'
+import { getDietDetails, getSpeciesList, getAnimalsList, getTaxonomyList } from 'src/lib/api/diet/dietList'
 import moment from 'moment'
 import { AuthContext } from 'src/context/AuthContext'
 import Error404 from 'src/pages/404'
@@ -72,7 +65,7 @@ const DietDetail = () => {
   const [isLoadingMore, setIsLoadingMore] = useState(false)
   const [speciestotalcount, setspeciestotalcount] = useState('')
   const [tempSelectedSpecies, setTempSelectedSpecies] = useState([])
-  const [selectionType, setSelectionType] = useState('species')
+  const [selectionType, setSelectionType] = useState('')
   const [primaryStatus, setPrimaryStatus] = useState({})
   const [allFetchedData, setAllFetchedData] = useState([])
   const [hasMoreData, setHasMoreData] = useState(true)
@@ -407,19 +400,23 @@ const DietDetail = () => {
       setPageNoTaxonomy(1)
       fetchTaxonomyList(searchQuery)
     }, 500),
-    []
+    [selectionType, pageNoTaxonomy]
   )
 
   useEffect(() => {
-    fetchTaxonomyList()
-  }, [pageNoTaxonomy, selectionType === 'species'])
+    if (activeTab === 'Taxonomy') {
+      fetchTaxonomyList()
+    }
+  }, [pageNoTaxonomy, selectionType === 'species', activeTab === 'Taxonomy'])
 
   useEffect(() => {
     siteList()
   }, [openFilterDrawer])
 
   useEffect(() => {
-    debouncedFetchTaxonomyList(taxonomySearchQuery)
+    if (isOpen || isOpentab) {
+      debouncedFetchTaxonomyList(taxonomySearchQuery)
+    }
   }, [taxonomySearchQuery])
 
   useEffect(() => {
@@ -453,7 +450,7 @@ const DietDetail = () => {
         fetchList(query)
       }
     }, 500),
-    [selectionType, pageNo, id, speciesData]
+    [selectionType, pageNo, speciesData]
   )
 
   useEffect(() => {
@@ -3699,6 +3696,8 @@ const DietDetail = () => {
             selectedEnclosures={selectedEnclosures}
             setSelectedSections={setSelectedSections}
             selectedSections={selectedSections}
+            setSelectedSpeciesIds={setSelectedSpeciesIds}
+            setSelectedTaxonomyIds={setSelectedTaxonomyIds}
           />
           <ListOfSpeciesMapped
             isOpennew={isOpennew}

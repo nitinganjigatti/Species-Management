@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect } from 'react'
 import {
   Box,
   Drawer,
@@ -18,9 +18,13 @@ import {
 import { useTheme } from '@mui/material/styles'
 import { LoadingButton } from '@mui/lab'
 import Icon from 'src/@core/components/icon'
+import moment from 'moment'
 import { deleteSpeciesFromDiet } from 'src/lib/api/diet/dietList'
 import Toaster from 'src/components/Toaster'
 import { TabContext, TabList, TabPanel } from '@mui/lab'
+import Utility from 'src/utility'
+import SpeciesCardItem from 'src/views/utility/SpeciesCardItem'
+import AnimalCardItem from 'src/views/utility/AnimalsCardItem'
 
 const SpeciesAnimalsMapped = ({
   setIsOpenTabs,
@@ -63,6 +67,7 @@ const SpeciesAnimalsMapped = ({
   const handleChange = (event, newValue) => {
     setSelectionType(newValue)
     setapplyfilterCheck(false)
+    setSelectedItems([])
   }
 
   useEffect(() => {
@@ -202,11 +207,12 @@ const SpeciesAnimalsMapped = ({
                         border: '1px solid #C3CEC7',
                         borderRadius: '7px',
                         padding: '0 8px',
-                        height: '50px',
+                        height: '45px',
                         mb: 0,
                         width: '77%',
                         mr: '17px',
                         ml: '13px',
+                        mt: '10px',
                         backgroundColor: theme.palette.background.paper
                       }}
                     >
@@ -241,32 +247,52 @@ const SpeciesAnimalsMapped = ({
                       size='medium'
                       variant={
                         selectedItems && Object.values(selectedItems).some(array => array.length > 0)
-                          ? theme.palette.primary.dark
-                          : 'outlined'
+                          ? 'outlined'
+                          : theme.palette.primary.dark
                       }
-                      startIcon={<Icon icon='bi:filter' />}
-                      sx={{
-                        lineHeight: '2',
-                        backgroundColor:
-                          selectedItems && Object.values(selectedItems).some(array => array.length > 0)
-                            ? theme.palette.primary.dark
-                            : '',
-                        color:
-                          selectedItems && Object.values(selectedItems).some(array => array.length > 0)
-                            ? '#fff'
-                            : theme.palette.customColors.OnSurfaceVariant,
-                        '&:hover': {
-                          backgroundColor:
-                            selectedItems && Object.values(selectedItems).some(array => array.length > 0)
-                              ? theme.palette.primary.main
-                              : ''
-                        }
-                      }}
+                      startIcon={<Icon icon='mage:filter' style={{ fontSize: '30px' }} />}
                       onClick={() => handleFilter('species')}
+                      sx={{
+                        position: 'relative',
+                        height: '45px',
+                        pr: '6px',
+                        mt: '10px',
+                        // lineHeight: '2.2',
+                        border:
+                          selectedItems && Object.values(selectedItems).some(array => array.length > 0)
+                            ? `1px solid ${theme.palette.primary.main}`
+                            : '1px solid #C3CEC7',
+                        mr: '10px'
+                      }}
                     >
-                      {selectedItems && Object.values(selectedItems).some(array => array.length > 0)
-                        ? Object.values(selectedItems).reduce((total, array) => total + array.length, 0)
-                        : '0'}
+                      {/* Conditional rendering of count */}
+                      {selectedItems && Object.values(selectedItems).some(array => array.length > 0) && (
+                        <span
+                          style={{
+                            position: 'absolute',
+                            top: '-7px',
+                            right: '-5px',
+                            backgroundColor: '#FA6140',
+                            color: 'white',
+                            borderRadius: '50%',
+                            width: '20px',
+                            height: '20px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontSize: '12px',
+                            fontWeight: 'bold'
+                          }}
+                        >
+                          {(() => {
+                            const siteCount = selectedItems.Site?.length || 0
+                            const speciesCount = selectedItems.Species?.length || 0
+                            const taxonomyCount = selectedItems.Taxonomy?.length || 0
+
+                            return speciesCount > 0 ? siteCount + speciesCount : siteCount + taxonomyCount
+                          })()}
+                        </span>
+                      )}
                     </LoadingButton>
                   </>
                 </Box>
@@ -341,133 +367,14 @@ const SpeciesAnimalsMapped = ({
                       </CardContent>
                     ) : (
                       mappedSpecies.map(species => (
-                        <ListItem
+                        <SpeciesCardItem
                           key={species.id}
-                          sx={{
-                            backgroundColor: theme.palette.background.paper,
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            mb: 3,
-                            borderRadius: '8px'
-                          }}
-                        >
-                          <ListItemAvatar>
-                            <Avatar
-                              src={species.default_icon ? species.default_icon : '/icons/species.svg'}
-                              alt={species.scientific_name}
-                              sx={{
-                                '& img': {
-                                  objectFit: 'inherit'
-                                },
-                                borderRadius:
-                                  species?.default_icon && species.default_icon.includes('.svg')
-                                    ? 'unset'
-                                    : species?.default_icon
-                                    ? '50%'
-                                    : 'unset'
-                              }}
-                            />
-                          </ListItemAvatar>
-                          <ListItemText
-                            primary={
-                              <>
-                                {species.is_primary === '1' ? (
-                                  <Typography
-                                    variant='body2'
-                                    sx={{
-                                      color: theme.palette.customColors.OnSurfaceVariant,
-                                      fontSize: '14px',
-                                      fontWeight: 400,
-                                      background: '#37bd6924',
-                                      width: '22%',
-                                      pl: '5px',
-                                      py: '1px',
-                                      borderRadius: '4px',
-                                      mb: '2px'
-                                    }}
-                                  >
-                                    Primary Diet
-                                  </Typography>
-                                ) : (
-                                  ''
-                                )}
-                                <Typography
-                                  variant='body1'
-                                  sx={{
-                                    color: theme.palette.customColors.OnSurfaceVariant,
-                                    fontSize: '16px',
-                                    fontWeight: 600
-                                  }}
-                                >
-                                  {species.scientific_name ? species.scientific_name : '-'}
-                                </Typography>
-                              </>
-                            }
-                            primaryTypographyProps={{
-                              sx: {
-                                color: theme.palette.customColors.OnSurfaceVariant,
-                                fontSize: '16px',
-                                fontWeight: 600
-                              }
-                            }}
-                            secondary={
-                              <>
-                                <Typography
-                                  variant='body2'
-                                  sx={{
-                                    color: theme.palette.customColors.OnSurfaceVariant,
-                                    fontSize: '16px',
-                                    fontWeight: 400,
-                                    fontStyle: 'italic'
-                                  }}
-                                >
-                                  {species.common_name ? species.common_name : '-'}
-                                </Typography>
-                                <Box sx={{ display: 'flex', alignItems: 'center', pt: 1 }}>
-                                  <Avatar
-                                    variant='square'
-                                    alt='Medicine Image'
-                                    sx={{
-                                      width: 25,
-                                      height: 25,
-                                      mr: 4,
-                                      borderRadius: '50%',
-                                      background: theme.palette.customColors.tableHeaderBg,
-                                      overflow: 'hidden'
-                                    }}
-                                  >
-                                    {species?.profile_pic ? (
-                                      <img
-                                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                                        src={species?.profile_pic}
-                                        alt='Profile'
-                                      />
-                                    ) : (
-                                      <Icon icon='mdi:user' />
-                                    )}
-                                  </Avatar>
-                                  <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-                                    <Typography
-                                      noWrap
-                                      variant='body2'
-                                      sx={{ color: 'text.primary', fontSize: 12, fontWeight: 500 }}
-                                    >
-                                      Nidhin Pratap
-                                    </Typography>
-                                    <Typography
-                                      noWrap
-                                      variant='body2'
-                                      sx={{ color: theme.palette.customColors.secondaryBg, fontSize: 12 }}
-                                    >
-                                      14 Apr 2024 12:35 PM
-                                    </Typography>
-                                  </Box>
-                                </Box>
-                              </>
-                            }
-                          />
-                        </ListItem>
+                          species={species}
+                          theme={theme}
+                          tempSelectedSpecies={tempSelectedSpecies}
+                          selectionType={selectionType}
+                          speciesview={speciesview}
+                        />
                       ))
                     )}
                     {isLoadingMore && (
@@ -516,11 +423,12 @@ const SpeciesAnimalsMapped = ({
                         border: '1px solid #C3CEC7',
                         borderRadius: '7px',
                         padding: '0 8px',
-                        height: '50px',
+                        height: '45px',
                         mb: 0,
                         width: '77%',
                         mr: '17px',
                         ml: '13px',
+                        mt: '10px',
                         backgroundColor: theme.palette.background.paper
                       }}
                     >
@@ -555,32 +463,50 @@ const SpeciesAnimalsMapped = ({
                       size='medium'
                       variant={
                         selectedItems && Object.values(selectedItems).some(array => array.length > 0)
-                          ? theme.palette.primary.dark
-                          : 'outlined'
+                          ? 'outlined'
+                          : theme.palette.primary.dark
                       }
-                      startIcon={<Icon icon='bi:filter' />}
-                      sx={{
-                        lineHeight: '2',
-                        backgroundColor:
-                          selectedItems && Object.values(selectedItems).some(array => array.length > 0)
-                            ? theme.palette.primary.dark
-                            : '',
-                        color:
-                          selectedItems && Object.values(selectedItems).some(array => array.length > 0)
-                            ? '#fff'
-                            : theme.palette.customColors.OnSurfaceVariant,
-                        '&:hover': {
-                          backgroundColor:
-                            selectedItems && Object.values(selectedItems).some(array => array.length > 0)
-                              ? theme.palette.primary.main
-                              : ''
-                        }
-                      }}
+                      startIcon={<Icon icon='mage:filter' style={{ fontSize: '30px' }} />}
                       onClick={() => handleFilter('animals')}
+                      sx={{
+                        position: 'relative',
+                        height: '45px',
+                        pr: '6px',
+                        mt: '10px',
+                        border:
+                          selectedItems && Object.values(selectedItems).some(array => array.length > 0)
+                            ? `1px solid ${theme.palette.primary.main}`
+                            : '1px solid #C3CEC7',
+                        mr: '10px'
+                      }}
                     >
-                      {selectedItems && Object.values(selectedItems).some(array => array.length > 0)
-                        ? Object.values(selectedItems).reduce((total, array) => total + array.length, 0)
-                        : '0'}
+                      {selectedItems && Object.values(selectedItems).some(array => array.length > 0) && (
+                        <span
+                          style={{
+                            position: 'absolute',
+                            top: '-7px',
+                            right: '-5px',
+                            backgroundColor: '#FA6140',
+                            color: 'white',
+                            borderRadius: '50%',
+                            width: '20px',
+                            height: '20px',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontSize: '12px',
+                            fontWeight: 'bold'
+                          }}
+                        >
+                          {(() => {
+                            const siteCount = selectedItems.Site?.length || 0
+                            const speciesCount = selectedItems.Species?.length || 0
+                            const taxonomyCount = selectedItems.Taxonomy?.length || 0
+
+                            return speciesCount > 0 ? siteCount + speciesCount : siteCount + taxonomyCount
+                          })()}
+                        </span>
+                      )}
                     </LoadingButton>
                   </>
                 </Box>
@@ -656,156 +582,13 @@ const SpeciesAnimalsMapped = ({
                       </CardContent>
                     ) : (
                       mappedSpecies.map(species => (
-                        <ListItem
-                          key={species.animal_id}
-                          sx={{
-                            backgroundColor: theme.palette.background.paper,
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            mb: 3,
-                            borderRadius: '8px'
-                          }}
-                        >
-                          <ListItemAvatar>
-                            <Avatar
-                              src={species.default_icon ? species.default_icon : '/icons/species.svg'}
-                              alt={species.scientific_name}
-                              sx={{
-                                '& img': {
-                                  objectFit: 'inherit'
-                                },
-                                borderRadius:
-                                  species?.default_icon && species.default_icon.includes('.svg')
-                                    ? 'unset'
-                                    : species?.default_icon
-                                    ? '50%'
-                                    : 'unset'
-                              }}
-                            />
-                          </ListItemAvatar>
-
-                          <ListItemText
-                            primary={
-                              <>
-                                <Typography
-                                  variant='body2'
-                                  sx={{
-                                    color: theme.palette.customColors.OnSurfaceVariant,
-                                    fontSize: '14px',
-                                    fontWeight: 600,
-                                    display: 'flex'
-                                  }}
-                                >
-                                  {species.animal_id ? `AID: ${species.animal_id}` : 'AID: -'}
-                                  {species.is_primary === '1' ? (
-                                    <Typography
-                                      variant='body2'
-                                      sx={{
-                                        color: theme.palette.customColors.OnSurfaceVariant,
-                                        fontSize: '14px',
-                                        fontWeight: 400,
-                                        background: '#37bd6924',
-                                        width: '22%',
-                                        pl: '5px',
-                                        py: '1px',
-                                        borderRadius: '4px',
-                                        mb: '2px',
-                                        ml: '10px'
-                                      }}
-                                    >
-                                      Primary Diet
-                                    </Typography>
-                                  ) : (
-                                    ''
-                                  )}
-                                </Typography>
-                                <Typography
-                                  variant='body1'
-                                  sx={{
-                                    color: theme.palette.customColors.OnSurfaceVariant,
-                                    fontSize: '16px',
-                                    fontWeight: 600
-                                  }}
-                                >
-                                  {species.scientific_name ? species.scientific_name : '-'}
-                                </Typography>
-                              </>
-                            }
-                            primaryTypographyProps={{
-                              sx: {
-                                color: theme.palette.customColors.OnSurfaceVariant,
-                                fontSize: '16px',
-                                fontWeight: 600
-                              }
-                            }}
-                            secondary={
-                              <>
-                                <Typography
-                                  variant='body2'
-                                  sx={{
-                                    color: theme.palette.customColors.OnSurfaceVariant,
-                                    fontSize: '16px',
-                                    fontWeight: 400,
-                                    fontStyle: 'italic'
-                                  }}
-                                >
-                                  {species.default_common_name ? species.default_common_name : '-'}
-                                </Typography>
-                                <Typography
-                                  variant='body2'
-                                  sx={{
-                                    color: theme.palette.customColors.secondaryBg,
-                                    fontSize: '14px',
-                                    fontWeight: 500
-                                  }}
-                                >
-                                  Site: {species.site_name ? species.site_name : '-'}
-                                </Typography>
-                                <Box sx={{ display: 'flex', alignItems: 'center', pt: 1 }}>
-                                  <Avatar
-                                    variant='square'
-                                    alt='Medicine Image'
-                                    sx={{
-                                      width: 25,
-                                      height: 25,
-                                      mr: 4,
-                                      borderRadius: '50%',
-                                      background: theme.palette.customColors.tableHeaderBg,
-                                      overflow: 'hidden'
-                                    }}
-                                  >
-                                    {species?.profile_pic ? (
-                                      <img
-                                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                                        src={species?.profile_pic}
-                                        alt='Profile'
-                                      />
-                                    ) : (
-                                      <Icon icon='mdi:user' />
-                                    )}
-                                  </Avatar>
-                                  <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-                                    <Typography
-                                      noWrap
-                                      variant='body2'
-                                      sx={{ color: 'text.primary', fontSize: 12, fontWeight: 500 }}
-                                    >
-                                      Nidhin Pratap
-                                    </Typography>
-                                    <Typography
-                                      noWrap
-                                      variant='body2'
-                                      sx={{ color: theme.palette.customColors.secondaryBg, fontSize: 12 }}
-                                    >
-                                      14 Apr 2024 12:35 PM
-                                    </Typography>
-                                  </Box>
-                                </Box>
-                              </>
-                            }
-                          />
-                        </ListItem>
+                        <AnimalCardItem
+                          species={species}
+                          theme={theme}
+                          tempSelectedSpecies={tempSelectedSpecies}
+                          selectionType={selectionType}
+                          speciesview={speciesview}
+                        />
                       ))
                     )}
                     {isLoadingMore && (

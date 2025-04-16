@@ -401,8 +401,7 @@ const ListOfSpeciesMapped = ({
                           display: 'flex',
                           justifyContent: 'space-between',
                           alignItems: 'center',
-                          p: 2,
-                          mb: 2,
+                          p: 3,
                           borderRadius: '5px'
                         }}
                       >
@@ -452,9 +451,16 @@ const ListOfSpeciesMapped = ({
                               display: 'flex',
                               alignItems: 'center',
                               justifyContent: 'space-between',
-                              borderBottom: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+                              borderBottom:
+                                mappedSpecies.length > 1
+                                  ? `1px solid ${theme.palette.customColors.OutlineVariant}`
+                                  : '',
                               px: 2,
-                              py: 1.5
+                              py: 1.5,
+                              height: '70px',
+                              borderRadius: mappedSpecies.length > 1 ? '' : '5px',
+                              borderTopRightRadius: mappedSpecies.length > 1 ? '0px' : '0px',
+                              borderTopLeftRadius: mappedSpecies.length > 1 ? '0px' : '0px'
                             }}
                           >
                             {/* Species Image and Name */}
@@ -469,31 +475,36 @@ const ListOfSpeciesMapped = ({
                                       ? 'unset'
                                       : species?.default_icon
                                       ? '50%'
-                                      : 'unset'
+                                      : 'unset',
+                                  height: '44px',
+                                  width: '44px',
+                                  mr: 2
                                 }}
                               />
                               <ListItemText
-                                primary={species.scientific_name ? species.scientific_name : '-'}
-                                primaryTypographyProps={{
-                                  sx: {
-                                    color: theme.palette.customColors.OnSurfaceVariant,
-                                    fontSize: '16px',
-                                    fontWeight: 600
-                                  }
-                                }}
-                                secondary={
+                                primary={
                                   <Typography
                                     variant='body2'
                                     sx={{
                                       color: theme.palette.customColors.OnSurfaceVariant,
                                       fontSize: '14px',
                                       fontWeight: 400,
-                                      fontStyle: 'italic'
+                                      fontStyle: 'italic',
+                                      lineHeight: 1.6
                                     }}
                                   >
                                     {species.common_name ? species.common_name : '-'}
                                   </Typography>
                                 }
+                                secondary={species.scientific_name ? species.scientific_name : '-'}
+                                secondaryTypographyProps={{
+                                  sx: {
+                                    color: theme.palette.customColors.OnSurfaceVariant,
+                                    fontSize: '16px',
+                                    fontWeight: 600,
+                                    lineHeight: 1.2
+                                  }
+                                }}
                               />
                             </Box>
 
@@ -565,17 +576,23 @@ const ListOfSpeciesMapped = ({
                                         fontWeight: 600
                                       }}
                                     >
-                                      {species.animal_id ? `AID: ${species.animal_id}` : 'AID: -'}
+                                      {/* {species.animal_id ? `AID: ${species.animal_id}` : 'AID: -'} */}
+                                      {species.primary_identifier_type && species.identifier
+                                        ? `${species.primary_identifier_type}: ${species.identifier}`
+                                        : species.animal_id
+                                        ? `AID: ${species.animal_id}`
+                                        : 'AID: -'}
                                     </Typography>
                                     <Typography
-                                      variant='body1'
+                                      variant='body2'
                                       sx={{
                                         color: theme.palette.customColors.OnSurfaceVariant,
-                                        fontSize: '16px',
-                                        fontWeight: 600
+                                        fontSize: '14px',
+                                        fontWeight: 400,
+                                        fontStyle: 'italic'
                                       }}
                                     >
-                                      {species.scientific_name ? species.scientific_name : '-'}
+                                      {species.default_common_name ? species.default_common_name : '-'}
                                     </Typography>
                                   </>
                                 }
@@ -589,15 +606,14 @@ const ListOfSpeciesMapped = ({
                                 secondary={
                                   <>
                                     <Typography
-                                      variant='body2'
+                                      variant='body1'
                                       sx={{
                                         color: theme.palette.customColors.OnSurfaceVariant,
-                                        fontSize: '14px',
-                                        fontWeight: 400,
-                                        fontStyle: 'italic'
+                                        fontSize: '16px',
+                                        fontWeight: 600
                                       }}
                                     >
-                                      {species.default_common_name ? species.default_common_name : '-'}
+                                      {species.scientific_name ? species.scientific_name : '-'}
                                     </Typography>
                                     <Typography
                                       variant='body2'

@@ -313,7 +313,7 @@ const ListOfDiscardProducts = () => {
         }}
         title='Import Inventory'
       /> */}
-    {selectedPharmacy.type === 'central' &&
+      {selectedPharmacy.type === 'central' &&
       (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') ? (
         <AddButtonContained
           title='Return to Supplier'

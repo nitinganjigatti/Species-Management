@@ -29,7 +29,8 @@ const SelectSectionList = ({
   setSectionsData,
   sectionsData,
   setSelectedSections,
-  selectedSections
+  selectedSections,
+  tempSelectedItems
 }) => {
   const theme = useTheme()
   const [loading, setLoading] = useState(false)
@@ -70,6 +71,12 @@ const SelectSectionList = ({
       fetchSections()
     }
   }, [open, siteId, pageNo])
+
+  useEffect(() => {
+    if (open && tempSelectedItems?.Section) {
+      setSelectedSections(tempSelectedItems.Section)
+    }
+  }, [open])
 
   const fetchSections = async (searchQuery = searchTerm) => {
     if (!siteId) return
@@ -185,7 +192,7 @@ const SelectSectionList = ({
         {/* Selected Count */}
         <Box sx={{ p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
           <Typography variant='body2' sx={{ color: '#44544A' }}>
-            Selected {selectedSections.length} / {sectionsData.length}
+            {loading ? '' : `Selected ${selectedSections.length}/${sectionsData.length}`}
           </Typography>
           <Box
             sx={{
@@ -263,8 +270,10 @@ const SelectSectionList = ({
                 <ListItem
                   key={section.section_id}
                   sx={{
-                    p: 1.5,
-                    mb: 2,
+                    pr: 1.5,
+                    pl: 3,
+                    mb: 4,
+                    height: '70px',
                     border: '1px solid',
                     borderColor: selectedSections.includes(section.section_id) ? '#80E0A3' : '#C3CEC7',
                     borderRadius: '8px',
@@ -276,7 +285,7 @@ const SelectSectionList = ({
                   </ListItemAvatar>
                   <ListItemText
                     primary={section.section_name}
-                    secondary={section.location || '-'}
+                    // secondary={section.location || '-'}
                     primaryTypographyProps={{ fontWeight: 'bold', color: '#1F515B' }}
                     secondaryTypographyProps={{ color: '#44544A' }}
                   />
@@ -314,6 +323,7 @@ const SelectSectionList = ({
             fullWidth
             sx={{ bgcolor: '#28A745', color: '#FFF', p: 2, borderRadius: '8px', '&:hover': { bgcolor: '#218838' } }}
             onClick={() => onSelectSections(selectedSections)}
+            disabled={selectedSections.length <= 0}
           >
             CONTINUE
           </Button>
