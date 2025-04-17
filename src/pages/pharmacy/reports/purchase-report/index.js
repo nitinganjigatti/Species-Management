@@ -303,8 +303,9 @@ const PurchaseReport = () => {
 
                       alignItems: 'center',
                       fontWeight: 500,
-                      fontSize: '14px',
-                      ...RenderUtility?.getEllipsisStyleForText()
+                      fontSize: '14px'
+
+                      // ...RenderUtility?.getEllipsisStyleForText()
                     }}
                   >
                     {RenderUtility?.renderControlLabel(
@@ -350,6 +351,46 @@ const PurchaseReport = () => {
     },
     {
       minWidth: 20,
+      width: 160,
+      field: 'batch_no',
+      sortable: false,
+      headerName: 'BATCH NUMBER',
+      renderCell: params => (
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
+          {params.row.batch_no}
+        </Typography>
+      )
+    },
+    {
+      minWidth: 20,
+      width: 180,
+      field: 'expiry_date',
+      headerName: 'EXPIRY DATE',
+      sortable: false,
+      renderCell: params => (
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
+          {Utility.formatDisplayDate(params.row.expiry_date)}
+        </Typography>
+      )
+    },
+    {
+      minWidth: 20,
       width: 180,
       field: 'purchase_date',
       headerName: 'PURCHASE DATE',
@@ -370,9 +411,9 @@ const PurchaseReport = () => {
     },
     {
       minWidth: 20,
-      width: 150,
+      width: 180,
       field: 'qty',
-      sortable: false,
+      sortable: true,
       align: 'center',
       headerName: 'PURCHASE QUANTITY',
       renderCell: params => (
@@ -393,7 +434,7 @@ const PurchaseReport = () => {
       minWidth: 20,
       width: 150,
       field: 'net_unit_price',
-      sortable: false,
+      sortable: true,
       align: 'right',
       headerName: 'NET UNIT PRICE',
       headerAlign: 'right',
@@ -416,7 +457,7 @@ const PurchaseReport = () => {
       minWidth: 20,
       width: 200,
       field: 'purchase_value',
-      sortable: false,
+      sortable: true,
       align: 'right',
       headerName: 'TOTAL PURCHASE AMOUNT',
       headerAlign: 'right',
@@ -436,7 +477,7 @@ const PurchaseReport = () => {
     },
     {
       minWidth: 20,
-      width: 180,
+      width: 200,
       field: 'supplier_name',
       sortable: true,
       headerName: 'SUPPLIER NAME',
@@ -452,7 +493,7 @@ const PurchaseReport = () => {
               overflow: 'hidden',
               whiteSpace: 'nowrap',
               textOverflow: 'ellipsis',
-              maxWidth: 200
+              maxWidth: 180
             }}
           >
             <span alt={params.row.supplier_name}> {params.row.supplier_name}</span>
@@ -486,27 +527,6 @@ const PurchaseReport = () => {
         </Tooltip>
       )
     },
-    {
-      minWidth: 20,
-      width: 160,
-      field: 'batch_no',
-      sortable: false,
-      headerName: 'BATCH NUMBER',
-      renderCell: params => (
-        <Typography
-          variant='body2'
-          sx={{
-            color: theme.palette.customColors.customHeadingTextColor,
-            fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
-          }}
-        >
-          {params.row.batch_no}
-        </Typography>
-      )
-    },
-
     {
       minWidth: 20,
       width: 180,
@@ -556,26 +576,6 @@ const PurchaseReport = () => {
             ${params.row.package_uom_label} ${params.row.product_form_label}`}
           </Typography>
         </Tooltip>
-      )
-    },
-    {
-      minWidth: 20,
-      width: 180,
-      field: 'expiry_date',
-      headerName: 'EXPIRY DATE',
-      sortable: false,
-      renderCell: params => (
-        <Typography
-          variant='body2'
-          sx={{
-            color: theme.palette.customColors.customHeadingTextColor,
-            fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
-          }}
-        >
-          {Utility.formatDisplayDate(params.row.expiry_date)}
-        </Typography>
       )
     },
     {
