@@ -629,8 +629,20 @@ const RecipeCard = ({
                             padding: '8px',
                             borderRadius: '4px'
                           }}
-                          src={ingredient?.image ? ingredient?.image : '/icons/icon_ingredient.svg'}
-                        ></Avatar>
+                        >
+                          <img
+                            src={ingredient?.ingredient_image || '/icons/icon_ingredient.svg'}
+                            alt={ingredient.ingredient_name}
+                            style={{
+                              width: '100%',
+                              height: '100%',
+                              objectFit: 'cover'
+                            }}
+                            onError={e => {
+                              e.target.src = '/icons/icon_ingredient.svg' // Fallback to default icon
+                            }}
+                          />
+                        </Avatar>
 
                         {/* Ingredient Details */}
 

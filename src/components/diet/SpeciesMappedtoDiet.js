@@ -404,6 +404,7 @@ const SpeciesMappedtoDiet = ({
               size='small'
               sx={{
                 color:
+                  !loading &&
                   tempSelectedSpecies?.length === speciesData.filter(species => !species.mapped_to_diet).length
                     ? theme.palette.primary.main
                     : '#44544A',
@@ -419,7 +420,10 @@ const SpeciesMappedtoDiet = ({
 
             <Checkbox
               //disabled={tempSelectedSpecies?.length === speciesData.filter(species => !species.mapped_to_diet).length}
-              checked={tempSelectedSpecies?.length === speciesData.filter(species => !species.mapped_to_diet).length}
+              checked={
+                !loading &&
+                tempSelectedSpecies?.length === speciesData.filter(species => !species.mapped_to_diet).length
+              }
               onChange={handleSelectAll}
               inputProps={{ 'aria-label': 'Select all species' }}
               sx={{
@@ -431,10 +435,12 @@ const SpeciesMappedtoDiet = ({
                   height: '19px',
                   border: '2px dotted',
                   borderColor:
+                    !loading &&
                     tempSelectedSpecies?.length === speciesData.filter(species => !species.mapped_to_diet).length
                       ? theme.palette.primary.main
                       : '#44544A',
                   color:
+                    !loading &&
                     tempSelectedSpecies?.length === speciesData.filter(species => !species.mapped_to_diet).length
                       ? theme.palette.primary.main
                       : '#44544A'

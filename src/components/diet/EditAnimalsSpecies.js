@@ -184,7 +184,8 @@ const EditAnimalSpeciesMapped = ({
         refreshDietDetails()
         Toaster({
           type: 'success',
-          message: response.message
+          message: 'Primary diet successfully updated'
+          //message: response.message
         })
       } else {
         Toaster({
