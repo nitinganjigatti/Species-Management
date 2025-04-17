@@ -77,6 +77,7 @@ const ListOfSpeciesMapped = ({
     } else {
       const speciesIds = [species.species_id]
       setLoading(true)
+
       const payload = {
         diet_id: dietId,
         species_ids: JSON.stringify(speciesIds)
@@ -110,6 +111,7 @@ const ListOfSpeciesMapped = ({
     refreshDietDetails()
     setspeciesview('')
     setSearchQuery('')
+
     // setPrimaryStatus({}) // Reset primary status when closing
   }
 
@@ -136,6 +138,7 @@ const ListOfSpeciesMapped = ({
 
     setLoader(true)
     setapplyfilterCheck(false)
+
     const payload = {
       diet_id: dietId,
       [selectionType === 'species' ? 'species_ids' : 'animal_ids']: JSON.stringify(payloadData)
@@ -576,7 +579,6 @@ const ListOfSpeciesMapped = ({
                                         fontWeight: 600
                                       }}
                                     >
-                                      {/* {species.animal_id ? `AID: ${species.animal_id}` : 'AID: -'} */}
                                       {species.primary_identifier_type && species.identifier
                                         ? `${species.primary_identifier_type}: ${species.identifier}`
                                         : species.animal_id

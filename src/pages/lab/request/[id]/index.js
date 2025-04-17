@@ -1,35 +1,8 @@
 import React, { useState, useEffect, useCallback, useContext } from 'react'
-
-import {
-  GetRequestDetails,
-  GetRequestPopUp,
-  transferLab,
-  getNoOfLab,
-  UpdateStatus,
-  DeleteLAbRequestAttachment,
-  GetLabListByTestId,
-  postBulkStatus,
-  postBulkTransfer,
-  getLabListByMultipleIds
-} from 'src/lib/api/lab/getLabRequest'
-
-import FallbackSpinner from 'src/@core/components/spinner/index'
-import * as yup from 'yup'
-import { yupResolver } from '@hookform/resolvers/yup'
-import { useForm, Controller } from 'react-hook-form'
+import Router from 'next/router'
+import { useRouter, useSearchParams } from 'next/navigation'
 
 // ** MUI Imports
-import { LoadingButton } from '@mui/lab'
-import Typography from '@mui/material/Typography'
-import CardHeader from '@mui/material/CardHeader'
-import { DataGrid } from '@mui/x-data-grid'
-import Card from '@mui/material/Card'
-import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
-import { debounce } from 'lodash'
-import { useTheme } from '@mui/material/styles'
-
-// ** Icon Imports
-import Icon from 'src/@core/components/icon'
 import {
   Button,
   Box,
@@ -49,47 +22,51 @@ import {
   Select,
   MenuItem,
   FormHelperText,
-  Popover,
   Breadcrumbs,
   Divider,
   Tooltip,
   DialogContent,
-  Toolbar,
-  Avatar
+  IconButton,
+  Typography,
+  Card
 } from '@mui/material'
-import IconButton from '@mui/material/IconButton'
-import Router from 'next/router'
-import Utility from 'src/utility'
-import FileUploaderSingle from 'src/views/forms/form-elements/file-uploader/FileUploaderSingle'
-import UploadReports from 'src/components/lab/request/UploadReports'
-import { useRouter } from 'next/navigation'
-import { useSearchParams } from 'next/navigation'
+import { useTheme } from '@mui/material/styles'
+import { LoadingButton } from '@mui/lab'
+import { DataGrid } from '@mui/x-data-grid'
 
-// import UserSnackbar from 'src/components/utility/snackbar'
+import * as yup from 'yup'
+import { yupResolver } from '@hookform/resolvers/yup'
+import { useForm, Controller } from 'react-hook-form'
+
 import moment from 'moment'
-import CommonMediaView from 'src/components/lab/CommonMediaView'
+import { debounce } from 'lodash'
+
+import Utility from 'src/utility'
 import { AuthContext } from 'src/context/AuthContext'
+
+import Icon from 'src/@core/components/icon'
+import FallbackSpinner from 'src/@core/components/spinner/index'
+import ScrollToTop from 'src/@core/components/scroll-to-top'
+
 import Toaster from 'src/components/Toaster'
-import AnimalCard from 'src/views/pages/lab/AnimalCard'
-import { borderColor, width } from '@mui/system'
+import CommonMediaView from 'src/components/lab/CommonMediaView'
+import MedicalRecordNotes from 'src/components/lab/request/MedicalRecordNotes'
+import UploadReports from 'src/components/lab/request/UploadReports'
+
 import AnimalParentCard from 'src/views/utility/animalParentCard'
 import AnimalSideSheet from 'src/views/pages/lab/AnimalSideSheet'
 import CommentSideSheet from 'src/views/pages/lab/CommentSideSheet'
-import MedicalRecordNotes from 'src/components/lab/request/MedicalRecordNotes'
 
-const statusData = [
-  { id: 'awaiting_sample', name: 'Awaiting Sample' },
-  { id: 'sample_received', name: 'Sample Received' },
-  { id: 'sample_rejected', name: 'Sample Rejected' },
-  { id: 'inprogress', name: 'In Progress' },
-  { id: 'completed', name: 'Completed' },
-  { id: 'completed_insufficient_samples', name: 'Completed - Insufficient Samples' },
-  { id: 'completed_positive', name: 'Completed - Positive' },
-  { id: 'completed_negative', name: 'Completed - Negative' },
-  { id: 'completed_detected', name: 'Completed - Detected' },
-  { id: 'completed_not_detected', name: 'Completed - Not Detected' },
-  { id: 'completed_inconclusive', name: 'Completed - Inconclusive' }
-]
+// APIs
+import {
+  GetRequestDetails,
+  GetRequestPopUp,
+  DeleteLAbRequestAttachment,
+  GetLabListByTestId,
+  postBulkStatus,
+  postBulkTransfer,
+  getLabListByMultipleIds
+} from 'src/lib/api/lab/getLabRequest'
 
 const RequestDetails = () => {
   const theme = useTheme()
@@ -99,7 +76,6 @@ const RequestDetails = () => {
   const [fileViews, setFileViews] = useState(authData?.userData?.settings?.DEFAULT_IMAGE_MASTER)
 
   const [loader, setLoader] = useState(false)
-  const [selectedLab, setSelectedLab] = useState()
   const [image, setImage] = useState()
   const [document, setDocument] = useState()
   const [medicalImage, setMedicalImage] = useState()
@@ -107,10 +83,9 @@ const RequestDetails = () => {
   const [testImage, setTestImage] = useState()
 
   const [testDoc, setTestDoc] = useState()
-  const [popUpRow, setPopUpRow] = useState([])
   const [transferStatus, setTransferStatus] = useState('')
 
-  const { id, lab_id } = Router.query
+  const { id, lab_id, page, q, pageSize } = Router.query
 
   const searchParams = useSearchParams()
   const Selectedlab_id = searchParams.get('lab_id')
@@ -128,9 +103,6 @@ const RequestDetails = () => {
   const [requestById, setRequestById] = useState()
 
   const [permissions, setPermissions] = useState(null)
-  // console.log('permissions', permissions)
-
-  // const storedData = JSON.parse(localStorage.getItem('userDetails'))
 
   const [status, setStatus] = React.useState('awaiting_sample')
 
@@ -157,7 +129,6 @@ const RequestDetails = () => {
   const [fileId, setFileId] = useState()
 
   const [testName, setTestName] = useState()
-
   const [testSampleName, setTestSampleName] = useState('')
 
   const [showTestFile, setShowTestFile] = useState(false)
@@ -175,7 +146,9 @@ const RequestDetails = () => {
   const [CommentData, setCommentData] = useState({})
   const [medicalRecordNotes, setMedicalRecordNotes] = useState([])
 
-  // console.log('CommentData', CommentData)
+  const [statusList, setStatusList] = useState([])
+  const [filteredStatusData, setFilteredStatusData] = useState([])
+  const [shouldShowBulkStatus, setShouldShowBulkStatus] = useState(false)
 
   useEffect(() => {
     const labObject = localLabData?.find(item => item?.lab_id === lab_id)
@@ -208,23 +181,6 @@ const RequestDetails = () => {
     let testIds = [params?.id] // Single ID ko array me store karna
 
     postMultipleStatus(testIds, value)
-
-    // const id = params
-
-    // const payload = {
-    //   status: event.target.value
-    // }
-
-    // const response = await UpdateStatus(id, payload)
-    // if (response?.success) {
-    //   Toaster({ type: 'success', message: response.message })
-
-    //   fetchRequestDetails()
-    // } else {
-    //   fetchRequestDetails()
-    //   setStatus(params?.row?.status)
-    //   Toaster({ type: 'error', message: response.message })
-    // }
   }
 
   const handleClickOpen = async item => {
@@ -244,36 +200,24 @@ const RequestDetails = () => {
     setOpen(false)
   }
 
-  // const fetchRequestDetails = useCallback(async (sort, q) => {
-  //   try {
-  //     setLoading(true)
-
-  //     const params = {
-  //       lab_id: Selectedlab_id,
-  //       q,
-  //       sort
-  //     }
-
-  //     const response = await GetRequestDetails(id, { params })
-
-  //     setLab_id(response?.data.result[0]?.lab_id)
-  //     setAnimalId(response?.data?.result[0]?.animal_details?.animal_id)
-  //     setLabRequestId(response?.data?.result[0]?.request_id)
-  //     setMedicineId(response?.data?.result[0]?.medical_record_id)
-  //     setRequest(response?.data?.result)
-  //     setRequestId(response?.data?.result[0]?.id)
-  //     setRows(loadServerRows(paginationModel.page, response?.data?.result[0].test_reports))
-  //     setTotal(parseInt(response?.data?.total_count))
-  //     setImage(response?.data?.result[0]?.files?.images)
-  //     setDocument(response?.data?.result[0]?.files?.files)
-  //     setMedicalDocument(response?.data?.result[0]?.medical_attachements?.files)
-  //     setMedicalImage(response?.data?.result[0]?.medical_attachements?.images)
-  //   } catch (error) {
-  //     console.error('Error fetching data:', error)
-  //   } finally {
-  //     setLoading(false)
-  //   }
-  // }, [])
+  useEffect(() => {
+    const filteredStatusBlockData =
+      permissions?.allow_full_access || (permissions?.allow_upload_reports && permissions?.perform_tests)
+        ? statusList
+        : permissions?.perform_tests
+        ? statusList?.filter(item => ['pending', 'inprogress'].includes(item.status))
+        : permissions?.transfer_tests && permissions?.perform_tests
+        ? [
+            ...statusList?.filter(item => ['pending', 'inprogress'].includes(item.status)),
+            ...statusList?.filter(item =>
+              ['sample_clotted', 'sample_haemolysed', 'completed_insufficient_samples'].includes(item.key)
+            )
+          ]
+        : null
+    if (filteredStatusBlockData) {
+      setFilteredStatusData(filteredStatusBlockData)
+    }
+  }, [statusList])
 
   const fetchRequestDetails = useCallback(async (sort, q) => {
     try {
@@ -286,10 +230,10 @@ const RequestDetails = () => {
       }
 
       const response = await GetRequestDetails(id, { params })
-
       const requestData = response?.data?.result || []
       const testReports = requestData[0]?.test_reports || []
 
+      setStatusList(response?.data?.lab_test_status_master)
       setLab_id(requestData[0]?.lab_id)
       setAnimalId(requestData[0]?.animal_details?.animal_id)
       setLabRequestId(requestData[0]?.request_id)
@@ -334,47 +278,31 @@ const RequestDetails = () => {
   const handleOpenTransfer = async params => {
     // console.log('params', params?.row)
     const hasCompleted = selectedRowData.some(item => item.status.startsWith('completed'))
-    if (hasCompleted) {
+    if (hasCompleted && !params) {
       setHasCompletedStatus(true)
     } else {
       setHasCompletedStatus(false)
     }
     setOpenTransfer(true)
-
     const labTestId = [params?.row?.id]
     if (params?.row) {
       setFromParam(true)
       setTestName(params?.row?.test_name)
       setTestSampleName(params?.row?.sample_name)
+      setTestId([params?.row?.id])
+      await getAccessLabs(LabRequestId, labTestId)
+      // console.log('first', params?.row?.id)
     } else {
       setFromParam(false)
-      setTestId([params?.row?.id])
       setTransferStatus(params?.row?.status)
       if (selectedRow?.length === 1) {
         setTestName(selectedRowData[0]?.test_name)
         setTestSampleName(selectedRowData[0]?.sample_name)
       }
-    }
-
-    if (selectedRow.length >= 1) {
       await getAccessLabs(LabRequestId, selectedRow)
-    } else {
-      await getAccessLabs(LabRequestId, labTestId)
     }
-
-    // if()
-
-    // if (permissions?.transfer_tests === true || permissions?.allow_full_access === true) {
-    //   setOpenTransfer(true)
-
-    //   // setSelectedLab(params.row)
-
-    //   const params = {
-    //     test_id: transferTestId || transferId,
-    //     lab_id: labId,
-    //     show_external_labs: 1
-    //   }
-    //   await getLabList(params)
+    // if (selectedRow.length >= 1) {
+    // } else {
     // }
   }
 
@@ -411,41 +339,44 @@ const RequestDetails = () => {
     setAnchorEl(null)
   }
 
-  const openPopover = Boolean(anchorEl)
-
   const handleOpenUploader = (e, params) => {
     setOpenUploader(true)
     setTestId(params?.row?.id)
   }
 
   const handleOpenShowFile = (e, params) => {
-    setShowTestFile(true)
+    // setShowTestFile(true)
 
     setTestImage(params?.row?.attachments?.images)
     setTestDoc(params?.row?.attachments?.docs)
   }
 
-  const filteredStatusData =
-    permissions?.allow_full_access || permissions?.allow_upload_reports
-      ? statusData
-      : statusData.filter(item =>
-          ['awaiting_sample', 'sample_received', 'sample_rejected', 'inprogress'].includes(item.id)
-        )
-
   const shouldShowDropdown =
     permissions?.allow_full_access ||
     (permissions?.perform_tests && permissions?.allow_upload_reports) ||
     (permissions?.perform_tests && !permissions?.allow_upload_reports)
-  // && params.row.status.split(' ')[0] !== 'completed')
-
-  // console.log('shouldShowDropdown', shouldShowDropdown)
 
   const handleOpenCommentSheet = (e, params) => {
-    console.log('params', params)
+    // console.log('params', params)
     setOpenCommentSheet(true)
     setCommentData(params)
   }
 
+  const handleRowPermission = ({ params }) => {
+    const st = statusList.filter(status => status.key === params.row.status)
+    if (
+      permissions?.perform_tests &&
+      !permissions?.allow_upload_reports &&
+      !permissions?.allow_full_access &&
+      st[0].status != 'completed'
+    ) {
+      return true
+    } else if ((permissions?.perform_tests && permissions?.allow_upload_reports) || permissions?.allow_full_access) {
+      return true
+    } else {
+      return false
+    }
+  }
   const columns = [
     // {
     //   flex: 0.05,
@@ -493,7 +424,7 @@ const RequestDetails = () => {
       renderCell: params => (
         <>
           <Box sx={{ minWidth: 260 }}>
-            {shouldShowDropdown ? (
+            {shouldShowDropdown && handleRowPermission({ params }) ? (
               <FormControl fullWidth variant='outlined'>
                 <Select
                   size='small'
@@ -509,6 +440,9 @@ const RequestDetails = () => {
                       params.row.status === 'pending' ||
                       params.row.status === 'transferred' ||
                       params.row.status === 'awaiting_sample' ||
+                      params.row.status === 'sample_clotted' ||
+                      params.row.status === 'completed_insufficient_samples' ||
+                      params.row.status === 'sample_haemolysed' ||
                       params.row.status === 'sample_rejected'
                         ? 'rgba(255, 0, 0, 0.1)' // light red background for pending
                         : params.row.status === 'completed'
@@ -523,15 +457,18 @@ const RequestDetails = () => {
                       params.row.status === 'pending' ||
                       params.row.status === 'transferred' ||
                       params.row.status === 'awaiting_sample' ||
+                      params.row.status === 'sample_clotted' ||
+                      params.row.status === 'completed_insufficient_samples' ||
+                      params.row.status === 'sample_haemolysed' ||
                       params.row.status === 'sample_rejected'
-                        ? '#FA6140'
+                        ? theme.palette.customColors.customDropdownColor
                         : params.row.status === 'completed'
-                        ? '#37BD69'
+                        ? theme.palette.primary.main
                         : params.row.status === 'inprogress'
-                        ? '#E4B819 '
+                        ? theme.palette.customColors.moderateSecondary
                         : params.row.status === 'sample_received'
-                        ? '#37BD69'
-                        : '#37BD69',
+                        ? theme.palette.primary.main
+                        : theme.palette.primary.main,
 
                     borderRadius: '8px',
                     '& .MuiSelect-icon': {
@@ -539,15 +476,18 @@ const RequestDetails = () => {
                         params.row.status === 'pending' ||
                         params.row.status === 'transferred' ||
                         params.row.status === 'awaiting_sample' ||
+                        params.row.status === 'sample_clotted' ||
+                        params.row.status === 'completed_insufficient_samples' ||
+                        params.row.status === 'sample_haemolysed' ||
                         params.row.status === 'sample_rejected'
-                          ? '#FA6140'
+                          ? theme.palette.customColors.customDropdownColor
                           : params.row.status === 'completed'
-                          ? '#37BD69'
+                          ? theme.palette.primary.main
                           : params.row.status === 'inprogress'
-                          ? '#E4B819'
+                          ? theme.palette.customColors.moderateSecondary
                           : params.row.status === 'sample_received'
-                          ? '#37BD69'
-                          : '#37BD69'
+                          ? theme.palette.primary.main
+                          : theme.palette.primary.main
                     },
 
                     '&:hover .MuiOutlinedInput-notchedOutline': {
@@ -559,12 +499,12 @@ const RequestDetails = () => {
                       //   params.row.status === 'awaiting_sample' ||
                       //   params.row.status === 'sample_rejected' ||
                       //   params.row.status === 'sample_received'
-                      //     ? '#FA6140' // Custom red border for these statuses
+                      //     ? theme.palette.customColors.customDropdownColor // Custom red border for these statuses
                       //     : params.row.status === 'completed'
-                      //     ? '#37BD69' // Custom green border for completed
+                      //     ? theme.palette.primary.main // Custom green border for completed
                       //     : params.row.status === 'inprogress'
-                      //     ? '#E4B819' // Custom yellow border for in progress
-                      //     : '#37BD69' // Default green border
+                      //     ? theme.palette.customColors.moderateSecondary // Custom yellow border for in progress
+                      //     : theme.palette.primary.main // Default green border
                     },
 
                     '& .MuiOutlinedInput-notchedOutline': {
@@ -573,8 +513,8 @@ const RequestDetails = () => {
                   }}
                 >
                   {filteredStatusData?.map((item, index) => (
-                    <MenuItem key={index} value={item?.id}>
-                      {item?.name}
+                    <MenuItem key={index} value={item?.key}>
+                      {item?.value}
                     </MenuItem>
                   ))}
                 </Select>
@@ -588,38 +528,21 @@ const RequestDetails = () => {
                       params.row.status === 'pending' ||
                       params.row.status === 'transferred' ||
                       params.row.status === 'awaiting_sample' ||
+                      params.row.status === 'sample_clotted' ||
+                      params.row.status === 'completed_insufficient_samples' ||
+                      params.row.status === 'sample_haemolysed' ||
                       params.row.status === 'sample_rejected'
-                        ? '#FA6140'
+                        ? theme.palette.customColors.customDropdownColor
                         : params.row.status === 'completed'
-                        ? '#37BD69'
+                        ? theme.palette.primary.main
                         : params.row.status === 'inprogress'
-                        ? '#E4B819 '
+                        ? theme.palette.customColors.moderateSecondary
                         : params.row.status === 'sample_received'
-                        ? '#37BD69'
-                        : '#37BD69'
+                        ? theme.palette.primary.main
+                        : theme.palette.primary.main
                   }}
                 >
-                  {params.row.status === 'awaiting_sample'
-                    ? 'Awaiting sample'
-                    : params.row.status === 'sample_received'
-                    ? 'Sample received'
-                    : params.row.status === 'sample_rejected'
-                    ? 'sample rejected'
-                    : params.row.status === 'completed_positive'
-                    ? 'completed positive'
-                    : params.row.status === 'completed_negative'
-                    ? 'completed negative'
-                    : params.row.status === 'completed_detected'
-                    ? 'completed detected'
-                    : params.row.status === 'completed_not_detected'
-                    ? 'completed not detected'
-                    : params.row.status === 'completed_inconclusive'
-                    ? 'completed inconclusive'
-                    : params.row.status === 'completed'
-                    ? 'Completed'
-                    : params.row.status === 'completed_insufficient_samples'
-                    ? 'Completed - Insufficient Samples'
-                    : 'In Progress'}
+                  {params.row.status_label}
                 </span>
               </Typography>
             )}
@@ -775,41 +698,6 @@ const RequestDetails = () => {
         ]
       : []),
 
-    // {
-    //   flex: 0.2,
-    //   minWidth: 10,
-    //   sortable: false,
-
-    //   // field: 'Action',
-    //   // headerName: 'Action',
-
-    //   renderCell: params => (
-    //     <>
-    //       {params?.row?.attachments?.images?.length > 0 || params?.row?.attachments?.docs?.length > 0 ? (
-    //         <Box sx={{ display: 'flex', alignItems: 'center' }}>
-    //           <IconButton onClick={e => handleOpenShowFile(e, params)}>
-    //             <Icon icon='et:attachments' fontSize={15} />
-    //           </IconButton>
-
-    //           <Typography variant='body2' sx={{ color: 'text.primary' }}>
-    //             {
-    //               params?.row?.attachments?.images?.length > 0 && params?.row?.attachments?.docs?.length > 0
-    //                 ? params.row.attachments.images.length + params.row.attachments.docs.length
-    //                 : params?.row?.attachments?.images?.length > 0
-    //                 ? params.row.attachments.images.length
-    //                 : params?.row?.attachments?.docs
-    //                 ? params.row.attachments.docs.length
-    //                 : null
-
-    //               // params?.row?.attachments?.docs?.length
-    //             }
-    //           </Typography>
-    //         </Box>
-    //       ) : null}
-    //     </>
-    //   )
-    // }
-
     ,
   ]
 
@@ -829,6 +717,7 @@ const RequestDetails = () => {
     reset()
     setOpenTransfer(false)
     handleClosePopover()
+    setTestId([])
   }
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
@@ -839,7 +728,6 @@ const RequestDetails = () => {
   }))
 
   // form
-
   const defaultValues = {
     lab_name: request?.lab_id,
     replaced_lab_id: '',
@@ -874,13 +762,11 @@ const RequestDetails = () => {
       if (errors) {
         handleSubmit(onSubmit)
       } else {
-        scrollToTop()
+        ScrollToTop()
       }
     } catch (error) {
       console.error(error)
     }
-
-    // handleSubmit(onSubmit)()
   }
 
   const onSubmit = async params => {
@@ -888,17 +774,25 @@ const RequestDetails = () => {
       ...params
     }
 
-    // setSubmitLoader(true)
-
-    // if (transferStatus !== 'completed') {
-
-    if (selectedRow?.length > 1) {
-      const params = {
+    // console.log('selectedRowData', selectedRowData)
+    // console.log('selectedRow', selectedRow)
+    if (selectedRowData.some(item => item?.status === 'completed')) {
+      Toaster({ type: 'error', message: "A test with status 'completed' was found!" })
+      setOpenTransfer(false)
+    } else {
+      // if (selectedRow?.length > 1) {
+      const payloadMulti = {
         test_ids: selectedRow,
         replaced_lab_id,
         transfer_reason
       }
-      const res = await postBulkTransfer({ params })
+      const payloadSingle = {
+        test_ids: testId,
+        replaced_lab_id,
+        transfer_reason
+      }
+      // console.log('params1', params)
+      const res = await postBulkTransfer({ params: testId.length ? payloadSingle : payloadMulti })
       if (res?.success) {
         handleCloseTransfer()
         Toaster({ type: 'success', message: res.message })
@@ -915,53 +809,7 @@ const RequestDetails = () => {
         })
         Toaster({ type: 'error', message: res.message })
       }
-    } else {
-      const { lab_name, replaced_lab_id, transfer_reason } = {
-        ...params
-      }
-      const id = testId
-
-      const payload = {
-        replaced_lab_id,
-        transfer_reason
-      }
-
-      const payloadData = {
-        test_ids: selectedRow,
-        replaced_lab_id,
-        transfer_reason
-      }
-      // const response = await transferLab(id, payload)
-      const response = await postBulkTransfer({ params: payloadData })
-      if (response?.success) {
-        handleCloseTransfer()
-
-        Toaster({ type: 'success', message: response.message })
-
-        reset({
-          replaced_lab_id: '',
-          transfer_reason: ''
-        })
-
-        fetchRequestDetails()
-      } else {
-        handleCloseTransfer()
-        reset({
-          replaced_lab_id: '',
-          transfer_reason: ''
-        })
-        Toaster({ type: 'error', message: response.message })
-      }
     }
-
-    // }
-    //  else {
-    //   handleCloseTransfer()
-    //   reset()
-    //   Toaster({ type: 'error', message: 'Completed test can not be transferred' })
-    // }
-
-    // // setSubmitLoader(false)
   }
 
   const handleDeleteImg = async (e, item) => {
@@ -988,29 +836,18 @@ const RequestDetails = () => {
     } catch (error) {}
   }
 
-  const openFileInNewTab = imageUrl => {
-    window.open(imageUrl, '_blank')
-  }
-
-  // const handleCloseSnackBar = (event, reason) => {
-  //   if (reason === 'clickaway') {
-  //     return
-  //   }
-  //   setOpenSnackbar(false)
-  // }
-
   const handleRowSelection = (rowSelectionModel, details) => {
     setSelectedRow(rowSelectionModel)
 
     // Retrieve the complete row data based on selected row IDs
     const selectedRowData = rows.filter(row => rowSelectionModel.includes(row.id))
+    setShouldShowBulkStatus(!selectedRowData.some(item => item.status.startsWith('completed')))
     setSelectedRowData(selectedRowData)
   }
 
   const postMultipleStatus = async (testIds, status) => {
     try {
       // Make your API call here
-
       const params = {
         status: status || headerStatus,
         lab_request: id,
@@ -1051,18 +888,6 @@ const RequestDetails = () => {
     }
   }
 
-  function extractHoursAndMinutes(date) {
-    //9:21 PM
-    return moment(date).format('hh:mm A')
-  }
-
-  function convertUTCToLocal(date) {
-    var stillUtc = moment.utc(date).toDate()
-    var local = moment(stillUtc).local(true).format('YYYY-MM-DD HH:mm:ss')
-
-    return local
-  }
-
   return (
     <>
       {loader ? (
@@ -1078,7 +903,8 @@ const RequestDetails = () => {
               color='inherit'
               onClick={() =>
                 router.push({
-                  pathname: '/lab/request'
+                  pathname: '/lab/request',
+                  query: { page, pageSize, q }
                 })
               }
             >
@@ -1110,7 +936,12 @@ const RequestDetails = () => {
                         Request ID -{' '}
                         <span
                           onClick={() => handleClickOpen(item)}
-                          style={{ fontSize: '20px', fontWeight: 'bold', cursor: 'pointer', color: '#37BD69' }}
+                          style={{
+                            fontSize: '20px',
+                            fontWeight: 'bold',
+                            cursor: 'pointer',
+                            color: theme.palette.primary.main
+                          }}
                         >
                           {item?.request_id}
                         </span>
@@ -1119,7 +950,13 @@ const RequestDetails = () => {
                     <Box sx={{ display: 'flex', flexDirection: 'column', flexWrap: 'wrap' }}>
                       <Typography>
                         Medical Record :{' '}
-                        <span style={{ fontSize: '15px', fontWeight: 'bold', color: '#7A8684' }}>
+                        <span
+                          style={{
+                            fontSize: '15px',
+                            fontWeight: 'bold',
+                            color: theme.palette.customColors.secondaryBg
+                          }}
+                        >
                           {item?.medical_record_code}
                         </span>
                       </Typography>
@@ -1127,7 +964,13 @@ const RequestDetails = () => {
                     <Box sx={{ display: 'flex', flexDirection: 'column', flexWrap: 'wrap' }}>
                       <Typography>
                         Requested By :{' '}
-                        <span style={{ fontSize: '15px', fontWeight: 'bold', color: '#7A8684' }}>
+                        <span
+                          style={{
+                            fontSize: '15px',
+                            fontWeight: 'bold',
+                            color: theme.palette.customColors.secondaryBg
+                          }}
+                        >
                           {item?.created_by}
                         </span>
                       </Typography>
@@ -1135,7 +978,11 @@ const RequestDetails = () => {
                     <Typography> {moment(item?.created_at).format('DD MMM YYYY')}</Typography>
                     <Typography>
                       Site :{' '}
-                      <span style={{ fontSize: '15px', fontWeight: 'bold', color: '#7A8684' }}>{item?.site_name}</span>
+                      <span
+                        style={{ fontSize: '15px', fontWeight: 'bold', color: theme.palette.customColors.secondaryBg }}
+                      >
+                        {item?.site_name}
+                      </span>
                     </Typography>
                     <Typography>
                       No. of Tests : <span style={{ fontSize: '15px', fontWeight: 'bold' }}>{item?.total_no_test}</span>
@@ -1148,22 +995,22 @@ const RequestDetails = () => {
                       display: 'flex',
                       flexDirection: 'row',
                       justifyContent: 'center',
-                      backgroundColor: '#f2f2f2',
+                      backgroundColor: theme.palette.customColors.cardHeaderBg,
                       borderRadius: '8px',
 
                       alignItems: 'center'
                     }}
                   >
-                    <AnimalParentCard data={item?.animal_details[0]} backgroundColor={'#f2f2f2'} />
+                    <AnimalParentCard
+                      data={item?.animal_details[0]}
+                      backgroundColor={theme.palette.customColors.cardHeaderBg}
+                    />
                     {item?.animal_details?.length > 1 && (
                       <Box
                         onClick={() => setOpenAnimalSheet(true)}
                         sx={{
                           display: 'flex',
                           gap: 2,
-
-                          // mt: 2,
-
                           bgcolor: 'rgba(0, 128, 0, 0.1)',
                           cursor: 'pointer',
                           borderRadius: '50%',
@@ -1172,7 +1019,7 @@ const RequestDetails = () => {
                           display: 'flex',
                           justifyContent: 'center',
                           alignItems: 'center',
-                          color: '#37BD69',
+                          color: theme.palette.primary.main,
                           m: 3,
                           p: 3,
                           width: '50px',
@@ -1206,7 +1053,7 @@ const RequestDetails = () => {
                   <Box
                     sx={{
                       p: 2,
-                      bgcolor: '#0000000D',
+                      bgcolor: theme.palette.customColors.mdAntzNeutral,
                       width: '35px',
                       height: '35px',
                       display: 'flex',
@@ -1225,7 +1072,7 @@ const RequestDetails = () => {
                   )}
 
                   <Box>
-                    {(permissions?.allow_full_access || permissions?.perform_tests) && (
+                    {(permissions?.allow_full_access || permissions?.perform_tests) && shouldShowBulkStatus && (
                       <FormControl fullWidth variant='outlined'>
                         <Select
                           size='small'
@@ -1237,13 +1084,13 @@ const RequestDetails = () => {
                           sx={{
                             width: 237,
                             fontSize: '14px',
-
-                            // border: '1px solid red',
-
                             backgroundColor:
                               headerStatus === 'pending' ||
                               headerStatus === 'transferred' ||
                               headerStatus === 'awaiting_sample' ||
+                              headerStatus === 'sample_clotted' ||
+                              headerStatus === 'completed_insufficient_samples' ||
+                              headerStatus === 'sample_haemolysed' ||
                               headerStatus === 'sample_rejected'
                                 ? 'rgba(255, 0, 0, 0.1)' // light red background for pending
                                 : headerStatus === 'completed'
@@ -1258,15 +1105,18 @@ const RequestDetails = () => {
                               headerStatus === 'pending' ||
                               headerStatus === 'transferred' ||
                               headerStatus === 'awaiting_sample' ||
+                              headerStatus === 'sample_clotted' ||
+                              headerStatus === 'completed_insufficient_samples' ||
+                              headerStatus === 'sample_haemolysed' ||
                               headerStatus === 'sample_rejected'
-                                ? '#FA6140'
+                                ? theme.palette.customColors.customDropdownColor
                                 : headerStatus === 'completed'
-                                ? '#37BD69'
+                                ? theme.palette.primary.main
                                 : headerStatus === 'inprogress'
-                                ? '#E4B819 '
+                                ? theme.palette.customColors.moderateSecondary
                                 : headerStatus === 'sample_received'
-                                ? '#37BD69'
-                                : '#37BD69',
+                                ? theme.palette.primary.main
+                                : theme.palette.primary.main,
 
                             borderRadius: '8px',
 
@@ -1275,42 +1125,46 @@ const RequestDetails = () => {
                                 headerStatus === 'pending' ||
                                 headerStatus === 'transferred' ||
                                 headerStatus === 'awaiting_sample' ||
+                                headerStatus === 'sample_clotted' ||
+                                headerStatus === 'completed_insufficient_samples' ||
+                                headerStatus === 'sample_haemolysed' ||
                                 headerStatus === 'sample_rejected'
-                                  ? '#FA6140'
+                                  ? theme.palette.customColors.customDropdownColor
                                   : headerStatus === 'completed'
-                                  ? '#37BD69'
+                                  ? theme.palette.primary.main
                                   : headerStatus === 'inprogress'
-                                  ? '#E4B819'
+                                  ? theme.palette.customColors.moderateSecondary
                                   : headerStatus === 'sample_received'
-                                  ? '#37BD69'
-                                  : '#37BD69'
+                                  ? theme.palette.primary.main
+                                  : theme.palette.primary.main
                             },
 
                             '&:hover .MuiOutlinedInput-notchedOutline': {
                               border: '0',
-
                               borderColor:
                                 headerStatus === 'pending' ||
                                 headerStatus === 'transferred' ||
                                 headerStatus === 'awaiting_sample' ||
                                 headerStatus === 'sample_rejected' ||
+                                headerStatus === 'sample_clotted' ||
+                                headerStatus === 'completed_insufficient_samples' ||
+                                headerStatus === 'sample_haemolysed' ||
                                 headerStatus === 'sample_received'
-                                  ? '#FA6140' // Custom red border for these statuses
+                                  ? theme.palette.customColors.customDropdownColor // Custom red border for these statuses
                                   : headerStatus === 'completed'
-                                  ? '#37BD69' // Custom green border for completed
+                                  ? theme.palette.primary.main // Custom green border for completed
                                   : headerStatus === 'inprogress'
-                                  ? '#E4B819' // Custom yellow border for in progress
-                                  : '#37BD69' // Default green border
+                                  ? theme.palette.customColors.moderateSecondary // Custom yellow border for in progress
+                                  : theme.palette.primary.main // Default green border
                             },
-
                             '& .MuiOutlinedInput-notchedOutline': {
                               border: '0'
                             }
                           }}
                         >
                           {filteredStatusData?.map((item, index) => (
-                            <MenuItem key={index} value={item?.id}>
-                              {item?.name}
+                            <MenuItem key={index} value={item?.key}>
+                              {item?.value}
                             </MenuItem>
                           ))}
                         </Select>
@@ -1326,6 +1180,28 @@ const RequestDetails = () => {
                 permissions?.perform_tests || permissions?.allow_full_access || permissions?.transfer_tests
               }
               onRowSelectionModelChange={handleRowSelection}
+              isRowSelectable={params => {
+                if (
+                  (permissions?.view &&
+                    permissions?.transfer_tests === false &&
+                    permissions?.perform_tests === false &&
+                    permissions?.allow_upload_reports === false &&
+                    permissions?.allow_full_access === false) ||
+                  (permissions?.perform_tests === true &&
+                    permissions?.allow_upload_reports === false &&
+                    permissions?.allow_full_access === false &&
+                    params.row.status.includes('completed')) ||
+                  (permissions?.perform_tests === false &&
+                    permissions?.transfer_tests === true &&
+                    permissions?.allow_upload_reports === false &&
+                    permissions?.allow_full_access === false &&
+                    params.row.status.includes('completed'))
+                ) {
+                  return false
+                } else {
+                  return true
+                }
+              }}
               sx={{
                 '& .MuiDataGrid-row:hover .customButton': {
                   display: 'block'
@@ -1346,13 +1222,11 @@ const RequestDetails = () => {
                 baseButton: {
                   variant: 'outlined'
                 }
-
                 // toolbar: {
                 //   value: searchValue,
                 //   clearSearch: () => handleSearch(''),
                 //   onChange: event => {
                 //     setSearchValue(event.target.value)
-
                 //     return handleSearch(event.target.value)
                 //   }
                 // }
@@ -1365,7 +1239,7 @@ const RequestDetails = () => {
           image?.length > 0 ||
           document?.length > 0 ? (
             <Card sx={{ mt: 5 }}>
-              <Box sx={{ py: 5, px: 8 }}>
+              <Box sx={{ py: 5, px: 5 }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: '4px', mb: 3 }}>
                   <img src='/images/attach_file_icon.png' alt='default icon' style={{ width: 12 }} />
                   <Typography sx={{ fontSize: 20, fontWeight: 500 }}>Lab Attachments</Typography>
@@ -1373,7 +1247,7 @@ const RequestDetails = () => {
 
                 <Divider />
               </Box>
-              <Box sx={{ mb: '20px', px: 4 }}>
+              <Box sx={{ mb: '20px', px: 0 }}>
                 {permissions?.allow_upload_reports || permissions?.allow_full_access ? (
                   <UploadReports
                     animalID={animanlId}
@@ -1385,13 +1259,14 @@ const RequestDetails = () => {
                     handleClosePopover={handleClosePopover}
                     fetchRequestDetails={fetchRequestDetails}
                     buttonText='Submit Reports'
+                    restrictExecutiveFiles={true}
                   />
                 ) : null}
               </Box>
 
               {/* image or Doc View */}
               {image?.length > 0 || document?.length > 0 ? (
-                <Box sx={{ px: 8, mb: 8 }}>
+                <Box sx={{ px: 5, mb: 8 }}>
                   <Box sx={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', gap: 4 }}>
                     {image && (
                       <CommonMediaView
@@ -1453,7 +1328,6 @@ const RequestDetails = () => {
                     )}
                   </Box>
                 </>
-
                 <></>
               </Box>
             </Card>
@@ -1462,14 +1336,13 @@ const RequestDetails = () => {
       )}
 
       <Card sx={{ mt: 5 }}>
-        <Box sx={{ py: 5, px: 7 }}>
+        <Box sx={{ py: 5, px: 5 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: '4px', mb: 3 }}>
             <Icon icon='gg:notes' width='24' height='24' />
             <Typography sx={{ fontSize: 20, fontWeight: 500 }}>Medical Record Notes</Typography>
           </Box>
 
           <Divider />
-
           <MedicalRecordNotes notes={medicalRecordNotes} />
         </Box>
       </Card>
@@ -1477,7 +1350,15 @@ const RequestDetails = () => {
       <>
         {/* Open PopUp On Clicking Request Id */}
         <Dialog open={open} onClose={handleClose} maxWidth='md' fullWidth>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', px: 2, py: 3, bgcolor: '#e8f4f2' }}>
+          <Box
+            sx={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              px: 2,
+              py: 3,
+              bgcolor: theme.palette.customColors.displaybgPrimary
+            }}
+          >
             <Typography variant='h6' sx={{ ml: 3 }}>
               Tests list
             </Typography>
@@ -1489,7 +1370,8 @@ const RequestDetails = () => {
             <Box key={index} sx={{ p: 2, minWidth: 600, m: 4 }}>
               <Box ml={3}>
                 <Typography variant='h6'>
-                  Request - <span style={{ color: '#37BD69', fontWeight: 'bold' }}>{item.request_id}</span>
+                  Request -{' '}
+                  <span style={{ color: theme.palette.primary.main, fontWeight: 'bold' }}>{item.request_id}</span>
                 </Typography>
                 <Typography>{Utility.formatDate(item.created_at)}</Typography>
                 <Typography>
@@ -1514,7 +1396,7 @@ const RequestDetails = () => {
                 <TableContainer component={Paper} style={{ maxHeight: 400, overflow: 'auto' }}>
                   <Table>
                     <TableHead>
-                      <TableRow sx={{ bgcolor: '#e8f4f2' }}>
+                      <TableRow sx={{ bgcolor: theme.palette.customColors.displaybgPrimary }}>
                         <TableCell>Test Name</TableCell>
                         <TableCell>Lab Name</TableCell>
                         <TableCell>Status</TableCell>
@@ -1526,21 +1408,6 @@ const RequestDetails = () => {
                           <TableCell sx={{ textTransform: 'capitalize' }}>{data?.test_name}</TableCell>
                           <TableCell sx={{ textTransform: 'capitalize' }}>{data?.lab_name}</TableCell>
                           <TableCell>
-                            {' '}
-                            {/* <span
-                              style={{
-                                color:
-                                  data?.status === 'transferred' || data?.status === 'pending'
-                                    ? 'red'
-                                    : data?.status === 'completed'
-                                    ? '#2a9d0d'
-                                    : '#00aea4',
-                                textTransform: 'capitalize',
-                                fontSize: '15px'
-                              }}
-                            >
-                              {data?.status === 'transferred' ? 'pending' : data?.status}
-                            </span>{' '} */}
                             <Typography variant='body2' sx={{ color: 'text.primary', textTransform: 'capitalize' }}>
                               <span
                                 alt={data?.status}
@@ -1550,14 +1417,14 @@ const RequestDetails = () => {
                                     data?.status === 'transferred' ||
                                     data?.status === 'awaiting_sample' ||
                                     data?.status === 'sample_rejected'
-                                      ? '#FA6140'
+                                      ? theme.palette.customColors.customDropdownColor
                                       : data?.status === 'completed'
-                                      ? '#37BD69'
+                                      ? theme.palette.primary.main
                                       : data?.status === 'inprogress'
-                                      ? '#E4B819 '
+                                      ? theme.palette.customColors.moderateSecondary
                                       : data?.status === 'sample_received'
-                                      ? '#37BD69'
-                                      : '#37BD69'
+                                      ? theme.palette.primary.main
+                                      : theme.palette.primary.main
                                 }}
                               >
                                 {data?.status === 'awaiting_sample'
@@ -1596,8 +1463,14 @@ const RequestDetails = () => {
       </>
 
       <>
-        <Dialog open={openTransfer} onClose={handleCloseTransfer} maxWidth='md' fullWidth sx={{ bgColor: '#FFFFFF' }}>
-          <DialogContent sx={{ bgcolor: '#ffffff' }}>
+        <Dialog
+          open={openTransfer}
+          onClose={handleCloseTransfer}
+          maxWidth='md'
+          fullWidth
+          sx={{ bgColor: theme.palette.primary.contrastText }}
+        >
+          <DialogContent sx={{ bgcolor: theme.palette.primary.contrastText }}>
             <Box
               sx={{
                 display: 'flex',
@@ -1607,11 +1480,20 @@ const RequestDetails = () => {
               }}
             >
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
-                <Icon icon='mingcute:transfer-3-line' width='24' height='24' color='#44544A' />
-                <Typography sx={{ fontSize: '20px', color: '#44544A', fontWeight: 500 }}>Lab Test Transfer</Typography>
+                <Icon
+                  icon='mingcute:transfer-3-line'
+                  width='24'
+                  height='24'
+                  color={theme.palette.customColors.OnSurfaceVariant}
+                />
+                <Typography
+                  sx={{ fontSize: '20px', color: theme.palette.customColors.OnSurfaceVariant, fontWeight: 500 }}
+                >
+                  Lab Test Transfer
+                </Typography>
               </Box>
               <IconButton onClick={handleCloseTransfer}>
-                <Icon icon='ic:baseline-close' fontSize={24} color={'#44544A'} />
+                <Icon icon='ic:baseline-close' fontSize={24} color={theme.palette.customColors.OnSurfaceVariant} />
               </IconButton>
             </Box>
             <Divider />
@@ -1646,9 +1528,20 @@ const RequestDetails = () => {
 
                     <Tooltip
                       title={
-                        <Box>
+                        <Box
+                          sx={{
+                            maxHeight: '250px',
+                            overflowY: 'auto',
+                            borderRadius: '4px',
+                            '&::-webkit-scrollbar': { display: 'none' },
+                            scrollbarWidth: 'none'
+                          }}
+                        >
                           {selectedRowData.map(name => (
-                            <Typography key={name?.id} sx={{ fontSize: '15px', color: '#fff' }}>
+                            <Typography
+                              key={name?.id}
+                              sx={{ fontSize: '15px', color: theme.palette.primary.contrastText }}
+                            >
                               {name?.test_name}
                             </Typography>
                           ))}
@@ -1662,7 +1555,7 @@ const RequestDetails = () => {
                           alignItems: 'center',
                           width: '30px',
                           height: '30px',
-                          border: '1px solid #C3CEC7',
+                          border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                           borderRadius: '8px',
                           fontSize: '15px'
                         }}
@@ -1695,9 +1588,20 @@ const RequestDetails = () => {
 
                     <Tooltip
                       title={
-                        <Box>
+                        <Box
+                          sx={{
+                            maxHeight: '250px',
+                            overflowY: 'auto',
+                            borderRadius: '4px',
+                            '&::-webkit-scrollbar': { display: 'none' },
+                            scrollbarWidth: 'none'
+                          }}
+                        >
                           {selectedRowData.map(name => (
-                            <Typography key={name?.id} sx={{ fontSize: '15px', color: '#fff' }}>
+                            <Typography
+                              key={name?.id}
+                              sx={{ fontSize: '15px', color: theme.palette.primary.contrastText }}
+                            >
                               {name?.sample_name}
                             </Typography>
                           ))}
@@ -1712,7 +1616,7 @@ const RequestDetails = () => {
                           width: '30px',
                           height: '30px',
 
-                          border: '1px solid #C3CEC7',
+                          border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                           borderRadius: '8px',
                           fontSize: '15px'
                         }}
@@ -1856,7 +1760,13 @@ const RequestDetails = () => {
                     Cancel
                   </LoadingButton>
 
-                  <LoadingButton onClick={handleSubmitData} type='submit' variant='contained' size='large'>
+                  <LoadingButton
+                    disabled={hasCompletedStatus}
+                    onClick={handleSubmitData}
+                    type='submit'
+                    variant='contained'
+                    size='large'
+                  >
                     CONFIRM
                   </LoadingButton>
                 </Box>
@@ -1877,15 +1787,15 @@ const RequestDetails = () => {
             }
           }}
         >
-          <DialogContent sx={{ bgcolor: '#ffffff' }}>
+          <DialogContent sx={{ bgcolor: theme.palette.primary.contrastText }}>
             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', px: 5, mb: 2 }}>
               <Box sx={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
-                <Icon icon='lucide:upload' fontSize={25} color={'#44544A'} />
+                <Icon icon='lucide:upload' fontSize={25} color={theme.palette.customColors.OnSurfaceVariant} />
                 <Typography sx={{ fontSize: '20px', fontWeight: 500 }}>Upload</Typography>
               </Box>
 
               <IconButton onClick={() => setOpenUploader(false)} sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-                <Icon icon='ic:baseline-close' fontSize={25} color={'#44544A'} />
+                <Icon icon='ic:baseline-close' fontSize={25} color={theme.palette.customColors.OnSurfaceVariant} />
               </IconButton>
             </Box>
             <Divider sx={{ mx: 5 }} />
@@ -1912,7 +1822,7 @@ const RequestDetails = () => {
               py: 3,
               justifyContent: 'space-between',
               alignItems: 'center',
-              bgcolor: '#e8f4f2'
+              bgcolor: theme.palette.customColors.displaybgPrimary
             }}
           >
             <Typography sx={{ fontSize: '20px', fontWeight: 'bold' }}>Reports</Typography>

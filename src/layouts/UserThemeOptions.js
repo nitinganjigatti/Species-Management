@@ -66,14 +66,17 @@ const UserThemeOptions = () => {
 
         displaybgPrimary: '#E8F4F2',
         tableHeaderBg: '#E8F4F2',
+        cardHeaderBg: '#F2F2F2',
         Secondary: '#00D6C9',
         Surface: '#F2FFF8',
         Outline: '#839D8D',
 
         // *** name required
 
+        atnzS: '#7A8684',
         secondaryBg: '#7A8684',
         mdAntzNeutral: '#0000000D',
+        antzNeturalBg: '#6F7F75',
         OnSurfaceVariant: '#44544A',
         OnSurfaceVariant60: '#44544A99',
         textLabel: '#00ABAB',
@@ -99,6 +102,26 @@ const UserThemeOptions = () => {
 
         // **
         moderateSecondary: '#E4B819',
+
+        antzNotesLight: '#FCF4AEB2',
+        antzNotes80: '#FFE86E',
+        antzNotes40: '#fdfad7',
+
+        neutralTeritary: '#00000033',
+        antzInfoLight: '#AFEFEB4D',
+        antzInfoText: '#32bfdd',
+        antzInfo70: '#AFEFEBB2',
+
+        AntzTertiaryLight: '#FFD3D399',
+        AntzTertiary30: '#FFBDA84D',
+        AntzOnBackground: '#E1F9ED',
+        AntzBgTeritary: '#ffebe5',
+        AntzLight10: '#37BD691A',
+
+        // border
+        InnerAlignment: '#006D354D',
+
+        deepDark: '#000000',
         neutral_50: '#00000066',
         Tertiary: '#FA6140',
         neutralPrimary: '#000000',
@@ -116,7 +139,9 @@ const UserThemeOptions = () => {
         displaybgSecondary: '#DDEBE9',
         SurfaceVariant: '#DAE7DF',
         OnPrimary: '#FFFFFF',
-        statusText: '#7A7A7A'
+        statusText: '#7A7A7A',
+        mainBg: '#20DE67',
+        antzSecondaryBg: '#dff9f7'
       },
       primary: {
         // light: '#20DE67',
