@@ -21,6 +21,8 @@ import { LoadingButton } from '@mui/lab'
 import Toaster from 'src/components/Toaster'
 import Icon from 'src/@core/components/icon'
 import { useMediaQuery } from '@mui/material'
+import SpeciesCardItem from 'src/views/utility/SpeciesCardItem'
+import AnimalCardItem from 'src/views/utility/AnimalsCardItem'
 
 const SpeciesMappedtoDiet = ({
   isOpen,
@@ -54,7 +56,8 @@ const SpeciesMappedtoDiet = ({
   setSelectedSections,
   setSelectedEnclosures,
   setSelectedSpeciesIds,
-  setSelectedTaxonomyIds
+  setSelectedTaxonomyIds,
+  speciesview
 }) => {
   const listInnerRef = useRef(null)
   const theme = useTheme()
@@ -452,97 +455,35 @@ const SpeciesMappedtoDiet = ({
           <List>
             {speciesData.length > 0 ? (
               speciesData.map(species => (
-                <ListItem
-                  key={species.id}
-                  secondaryAction={
-                    <Box
-                      sx={{
-                        backgroundColor: species.mapped_to_diet ? '' : '#F2FFF8',
-                        pl: 3,
-                        pr: 4,
-                        py: 4.3,
-                        borderTopRightRadius: 8,
-                        borderBottomRightRadius: 8,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center'
-                      }}
-                    >
-                      <Checkbox
-                        disabled={species.mapped_to_diet}
-                        edge='end'
-                        checked={
-                          selectionType === 'species'
-                            ? tempSelectedSpecies.includes(species.species_id) || species.mapped_to_diet
-                            : tempSelectedSpecies.includes(species.animal_id) || species.mapped_to_diet
-                        }
-                        onChange={() => handleToggle(species)}
-                        sx={{
-                          '&.Mui-checked': {
-                            color: theme.palette.primary.main
-                          },
-                          '& .MuiSvgIcon-root': {
-                            borderRadius: '4px',
-                            width: '22px',
-                            height: '22px',
-                            color: species.mapped_to_diet ? '#7A8684' : theme.palette.primary.main
-                          }
-                        }}
-                      />
-                    </Box>
-                  }
-                  sx={{
-                    background: species.mapped_to_diet ? '#DAE7DF' : theme.palette.background.paper,
-                    borderRadius: '8px',
-                    border: tempSelectedSpecies.includes(species.species_id)
-                      ? '1px solid' + theme.palette.primary.main
-                      : '',
-                    mb: 3,
-
-                    '& .MuiListItemSecondaryAction-root': {
-                      right: 0
-                    }
-                  }}
+                <SpeciesCardItem
+                  species={species}
+                  theme={theme}
+                  tempSelectedSpecies={tempSelectedSpecies}
+                  selectionType={selectionType}
+                  speciesview={speciesview}
                 >
-                  <ListItemAvatar>
-                    <Avatar
-                      sx={{
-                        '& img': {
-                          objectFit: 'inherit'
-                        },
-                        borderRadius:
-                          species?.default_icon && species.default_icon.includes('.svg')
-                            ? 'unset'
-                            : species?.default_icon
-                            ? '50%'
-                            : 'unset'
-                      }}
-                      src={species.default_icon ? species.default_icon : '/icons/species.svg'}
-                      alt={species.scientific_name}
-                    />
-                  </ListItemAvatar>
-                  <ListItemText
-                    primary={species.scientific_name ? species.scientific_name : '-'}
-                    primaryTypographyProps={{
-                      sx: { color: theme.palette.customColors.OnSurfaceVariant, fontSize: '16px', fontWeight: 600 }
-                    }}
-                    secondary={
-                      <>
-                        <Typography
-                          variant='body2'
-                          sx={{
-                            color: theme.palette.customColors.OnSurfaceVariant,
-                            fontSize: '16px',
-                            fontWeight: 400,
-                            fontStyle: 'italic'
-                          }}
-                        >
-                          {species.common_name ? species.common_name : '-'}
-                        </Typography>
-                      </>
+                  <Checkbox
+                    disabled={species.mapped_to_diet}
+                    edge='end'
+                    checked={
+                      selectionType === 'species'
+                        ? tempSelectedSpecies.includes(species.species_id) || species.mapped_to_diet
+                        : tempSelectedSpecies.includes(species.animal_id) || species.mapped_to_diet
                     }
+                    onChange={() => handleToggle(species)}
+                    sx={{
+                      '&.Mui-checked': {
+                        color: theme.palette.primary.main
+                      },
+                      '& .MuiSvgIcon-root': {
+                        borderRadius: '4px',
+                        width: '22px',
+                        height: '22px',
+                        color: species.mapped_to_diet ? '#7A8684' : theme.palette.primary.main
+                      }
+                    }}
                   />
-                </ListItem>
+                </SpeciesCardItem>
               ))
             ) : (
               <Typography sx={{ textAlign: 'center', mt: 10, fontWeight: '500' }}>No Species Found</Typography>
@@ -566,130 +507,34 @@ const SpeciesMappedtoDiet = ({
           <List>
             {speciesData.length > 0 ? (
               speciesData.map(species => (
-                <ListItem
-                  key={species.id}
-                  secondaryAction={
-                    <Box
-                      sx={{
-                        backgroundColor: species.mapped_to_diet ? '' : '#F2FFF8',
-                        pl: 3,
-                        pr: 4,
-                        py: 9.4,
-                        borderTopRightRadius: 8,
-                        borderBottomRightRadius: 8,
-                        display: 'flex',
-                        alignItems: 'center',
-                        justifyContent: 'center'
-                      }}
-                    >
-                      <Checkbox
-                        disabled={species.mapped_to_diet}
-                        edge='end'
-                        checked={
-                          selectionType === 'species'
-                            ? tempSelectedSpecies.includes(species.species_id) || species.mapped_to_diet
-                            : tempSelectedSpecies.includes(species.animal_id) || species.mapped_to_diet
-                        }
-                        onChange={() => handleToggle(species)}
-                        sx={{
-                          '&.Mui-checked': {
-                            color: theme.palette.primary.main
-                          },
-                          '& .MuiSvgIcon-root': {
-                            borderRadius: '4px',
-                            width: '22px',
-                            height: '22px',
-                            color: species.mapped_to_diet ? '#7A8684' : theme.palette.primary.main
-                          }
-                        }}
-                      />
-                    </Box>
-                  }
-                  sx={{
-                    background: species.mapped_to_diet ? '#DAE7DF' : theme.palette.background.paper,
-                    borderRadius: '8px',
-                    border: tempSelectedSpecies.includes(species.species_id)
-                      ? '1px solid' + theme.palette.primary.main
-                      : '',
-                    mb: 3,
-
-                    '& .MuiListItemSecondaryAction-root': {
-                      right: 0
-                    }
-                  }}
+                <AnimalCardItem
+                  species={species}
+                  theme={theme}
+                  tempSelectedSpecies={tempSelectedSpecies}
+                  selectionType={selectionType}
                 >
-                  <ListItemAvatar>
-                    <Avatar
-                      sx={{
-                        '& img': {
-                          objectFit: 'inherit'
-                        },
-                        borderRadius:
-                          species?.default_icon && species.default_icon.includes('.svg')
-                            ? 'unset'
-                            : species?.default_icon
-                            ? '50%'
-                            : 'unset'
-                      }}
-                      src={species.default_icon ? species.default_icon : '/icons/species.svg'}
-                      alt={species.scientific_name}
-                    />
-                  </ListItemAvatar>
-                  <ListItemText
-                    primary={
-                      <>
-                        <Typography
-                          variant='body2'
-                          sx={{
-                            color: theme.palette.customColors.OnSurfaceVariant,
-                            fontSize: '14px',
-                            fontWeight: 600
-                          }}
-                        >
-                          {species.animal_id ? `AID: ${species.animal_id}` : 'AID: -'}
-                        </Typography>
-                        <Typography
-                          variant='body1'
-                          sx={{
-                            color: theme.palette.customColors.OnSurfaceVariant,
-                            fontSize: '16px',
-                            fontWeight: 600
-                          }}
-                        >
-                          {species.scientific_name ? species.scientific_name : '-'}
-                        </Typography>
-                      </>
+                  <Checkbox
+                    disabled={species.mapped_to_diet}
+                    edge='end'
+                    checked={
+                      selectionType === 'species'
+                        ? tempSelectedSpecies.includes(species.species_id) || species.mapped_to_diet
+                        : tempSelectedSpecies.includes(species.animal_id) || species.mapped_to_diet
                     }
-                    primaryTypographyProps={{
-                      sx: { color: theme.palette.customColors.OnSurfaceVariant, fontSize: '16px', fontWeight: 600 }
+                    onChange={() => handleToggle(species)}
+                    sx={{
+                      '&.Mui-checked': {
+                        color: theme.palette.primary.main
+                      },
+                      '& .MuiSvgIcon-root': {
+                        borderRadius: '4px',
+                        width: '22px',
+                        height: '22px',
+                        color: species.mapped_to_diet ? '#7A8684' : theme.palette.primary.main
+                      }
                     }}
-                    secondary={
-                      <>
-                        <Typography
-                          variant='body2'
-                          sx={{
-                            color: theme.palette.customColors.OnSurfaceVariant,
-                            fontSize: '16px',
-                            fontWeight: 400,
-                            fontStyle: 'italic'
-                          }}
-                        >
-                          {species.default_common_name ? species.default_common_name : '-'}
-                        </Typography>
-                        <Typography
-                          variant='body2'
-                          sx={{
-                            color: theme.palette.customColors.secondaryBg,
-                            fontSize: '14px',
-                            fontWeight: 500
-                          }}
-                        >
-                          Site: {species.site_name ? species.site_name : '-'}
-                        </Typography>
-                      </>
-                    }
                   />
-                </ListItem>
+                </AnimalCardItem>
               ))
             ) : (
               <Typography sx={{ textAlign: 'center', mt: 10, fontWeight: '500' }}>No Animals Found</Typography>
