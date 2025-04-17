@@ -252,34 +252,6 @@ const ShipmentReport = () => {
         </Typography>
       )
     },
-
-    // {
-    //   width: 5,
-    //   field: 'label',
-    //   headerName: '',
-    //   sortable: false,
-    //   renderCell: params => (
-    //     <Typography
-    //       sx={{
-    //         color: 'customColors.OnSecondaryContainer',
-    //         display: 'flex',
-    //         alignItems: 'center',
-    //         fontWeight: 500,
-    //         fontSize: '14px',
-    //         ...RenderUtility?.getEllipsisStyleForText()
-    //       }}
-    //     >
-    //       {RenderUtility?.renderControlLabel(
-    //         !isNaN(params.row?.controlled_substance) && parseInt(params.row?.controlled_substance) === 1,
-    //         'CS'
-    //       )}
-    //       {RenderUtility?.renderControlLabel(
-    //         !isNaN(params.row?.prescription_required) && parseInt(params.row?.prescription_required) === 1,
-    //         'PR'
-    //       )}
-    //     </Typography>
-    //   )
-    // },
     {
       width: 250,
       minWidth: 20,
@@ -301,8 +273,9 @@ const ShipmentReport = () => {
 
                       alignItems: 'center',
                       fontWeight: 500,
-                      fontSize: '14px',
-                      ...RenderUtility?.getEllipsisStyleForText()
+                      fontSize: '14px'
+
+                      // ...RenderUtility?.getEllipsisStyleForText()
                     }}
                   >
                     {RenderUtility?.renderControlLabel(
@@ -348,37 +321,47 @@ const ShipmentReport = () => {
     },
     {
       minWidth: 20,
-      width: 200,
-      field: 'package',
-      headerName: 'PACKAGE',
+      width: 160,
+      field: 'batch',
       sortable: false,
+      headerName: 'BATCH NUMBER',
       renderCell: params => (
-        <Tooltip
-          title={`${params.row.package} of ${Utility.formatNumber(params.row.package_qty)}
-          ${params.row.package_uom_label} ${params.row.product_form_label}`}
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
         >
-          <Typography
-            variant='body2'
-            sx={{
-              color: theme.palette.customColors.customHeadingTextColor,
-              fontSize: '14px',
-              fontWeight: 400,
-              fontFamily: 'Inter',
-              overflow: 'hidden',
-              whiteSpace: 'nowrap',
-              textOverflow: 'ellipsis',
-              maxWidth: 240
-            }}
-          >
-            {`${params.row.package} of ${Utility.formatNumber(params.row.package_qty)}
-          ${params.row.package_uom_label} ${params.row.product_form_label}`}
-          </Typography>
-        </Tooltip>
+          {params.row.batch}
+        </Typography>
       )
     },
     {
       minWidth: 20,
       width: 180,
+      field: 'expiry_date',
+      headerName: 'EXPIRY DATE',
+      sortable: true,
+      renderCell: params => (
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
+          {Utility.formatDisplayDate(params.row.expiry_date)}
+        </Typography>
+      )
+    },
+    {
+      minWidth: 20,
+      width: 160,
       field: 'shipment_date',
       headerName: 'SHIPMENT DATE',
       sortable: true,
@@ -419,7 +402,7 @@ const ShipmentReport = () => {
     },
     {
       minWidth: 20,
-      width: 180,
+      width: 160,
       field: 'net_unit_price',
       headerName: 'NET UNIT PRICE',
       sortable: true,
@@ -461,29 +444,10 @@ const ShipmentReport = () => {
         </Typography>
       )
     },
+
     {
       minWidth: 20,
-      width: 200,
-      field: 'batch',
-      sortable: false,
-      headerName: 'BATCH NUMBER',
-      renderCell: params => (
-        <Typography
-          variant='body2'
-          sx={{
-            color: theme.palette.customColors.customHeadingTextColor,
-            fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
-          }}
-        >
-          {params.row.batch}
-        </Typography>
-      )
-    },
-    {
-      minWidth: 20,
-      width: 250,
+      width: 220,
       field: 'manufacturer_name',
       headerName: 'MANUFACTURER NAME',
       sortable: true,
@@ -499,7 +463,7 @@ const ShipmentReport = () => {
               overflow: 'hidden',
               whiteSpace: 'nowrap',
               textOverflow: 'ellipsis',
-              maxWidth: 200
+              maxWidth: 220
             }}
           >
             <span alt={params.row.manufacturer_name}> {params.row.manufacturer_name}</span>
@@ -509,27 +473,63 @@ const ShipmentReport = () => {
     },
     {
       minWidth: 20,
-      width: 160,
-      field: 'to_store',
-      headerName: 'TO STORE',
-      sortable: true,
+      width: 220,
+      field: 'package',
+      headerName: 'PACKAGE',
+      sortable: false,
       renderCell: params => (
-        <Typography
-          variant='body2'
-          sx={{
-            color: theme.palette.customColors.customHeadingTextColor,
-            fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
-          }}
+        <Tooltip
+          title={`${params.row.package} of ${Utility.formatNumber(params.row.package_qty)}
+          ${params.row.package_uom_label} ${params.row.product_form_label}`}
         >
-          {params.row.to_store}
-        </Typography>
+          <Typography
+            variant='body2'
+            sx={{
+              color: theme.palette.customColors.customHeadingTextColor,
+              fontSize: '14px',
+              fontWeight: 400,
+              fontFamily: 'Inter',
+              overflow: 'hidden',
+              whiteSpace: 'nowrap',
+              textOverflow: 'ellipsis',
+              maxWidth: 220
+            }}
+          >
+            {`${params.row.package} of ${Utility.formatNumber(params.row.package_qty)}
+          ${params.row.package_uom_label} ${params.row.product_form_label}`}
+          </Typography>
+        </Tooltip>
       )
     },
     {
       minWidth: 20,
       width: 180,
+      field: 'to_store',
+      headerName: 'TO STORE',
+      sortable: true,
+      renderCell: params => (
+        <Tooltip title={params.row.to_store}>
+          <Typography
+            variant='body2'
+            sx={{
+              color: theme.palette.customColors.customHeadingTextColor,
+              fontSize: '14px',
+              fontWeight: 400,
+              fontFamily: 'Inter',
+              overflow: 'hidden',
+              whiteSpace: 'nowrap',
+              textOverflow: 'ellipsis',
+              maxWidth: 220
+            }}
+          >
+            {params.row.to_store}
+          </Typography>
+        </Tooltip>
+      )
+    },
+    {
+      minWidth: 20,
+      width: 160,
       field: 'shipment_status',
       sortable: false,
       headerName: 'SHIPMENT TYPE',
@@ -603,7 +603,7 @@ const ShipmentReport = () => {
             fontFamily: 'Inter'
           }}
         >
-          {params.row.phone_number ? params.row.phone_number : '-'}
+          {params.row.phone_number}
         </Typography>
       )
     },
@@ -623,37 +623,10 @@ const ShipmentReport = () => {
             fontFamily: 'Inter'
           }}
         >
-          {params.row.shipment_status === 'PickedUp' ? params.row.receiver_name : '-'}
+          {params.row.receiver_name ? params.row.receiver_name : '-'}
         </Typography>
       )
     },
-
-    // {
-    //   minWidth: 20,
-    //   width: 200,
-    //   field: 'comments',
-    //   sortable: false,
-    //   headerName: 'COMMENTS',
-    //   renderCell: params => (
-    //     <Tooltip title={params.row.comments}>
-    //       <Typography
-    //         variant='body2'
-    //         sx={{
-    //           color: theme.palette.customColors.customHeadingTextColor,
-    //           fontSize: '14px',
-    //           fontWeight: 400,
-    //           fontFamily: 'Inter',
-    //           overflow: 'hidden',
-    //           whiteSpace: 'nowrap',
-    //           textOverflow: 'ellipsis',
-    //           maxWidth: 200
-    //         }}
-    //       >
-    //         <span alt={params.row.comments}> {params.row.comments}</span>
-    //       </Typography>
-    //     </Tooltip>
-    //   )
-    // },
     {
       minWidth: 200,
       field: 'shipment_created_at',

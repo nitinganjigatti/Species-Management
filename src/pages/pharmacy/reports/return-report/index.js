@@ -321,8 +321,9 @@ const ReturnReport = () => {
 
                       alignItems: 'center',
                       fontWeight: 500,
-                      fontSize: '14px',
-                      ...RenderUtility?.getEllipsisStyleForText()
+                      fontSize: '14px'
+
+                      // ...RenderUtility?.getEllipsisStyleForText()
                     }}
                   >
                     {RenderUtility?.renderControlLabel(
@@ -368,37 +369,27 @@ const ReturnReport = () => {
     },
     {
       minWidth: 20,
-      width: 200,
-      field: 'package',
-      headerName: 'PACKAGE',
+      width: 160,
+      field: 'batch_no',
       sortable: false,
+      headerName: 'BATCH NUMBER',
       renderCell: params => (
-        <Tooltip
-          title={`${params.row.package} of ${Utility.formatNumber(params.row.package_qty)}
-              ${params.row.package_uom_label} ${params.row.product_form_label}`}
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
         >
-          <Typography
-            variant='body2'
-            sx={{
-              color: theme.palette.customColors.customHeadingTextColor,
-              fontSize: '14px',
-              fontWeight: 400,
-              fontFamily: 'Inter',
-              overflow: 'hidden',
-              whiteSpace: 'nowrap',
-              textOverflow: 'ellipsis',
-              maxWidth: 240
-            }}
-          >
-            {`${params.row.package} of ${Utility.formatNumber(params.row.package_qty)}
-              ${params.row.package_uom_label} ${params.row.product_form_label}`}
-          </Typography>
-        </Tooltip>
+          {params.row.batch_no}
+        </Typography>
       )
     },
     {
       minWidth: 20,
-      width: 180,
+      width: 160,
       field: 'expiry_date',
       headerName: 'EXPIRY DATE',
       sortable: true,
@@ -419,6 +410,26 @@ const ReturnReport = () => {
     {
       minWidth: 20,
       width: 180,
+      field: 'return_date',
+      headerName: 'RETURN DATE',
+      sortable: true,
+      renderCell: params => (
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
+          {Utility.formatDisplayDate(params.row.return_date)}
+        </Typography>
+      )
+    },
+    {
+      minWidth: 20,
+      width: 200,
       field: 'return_qty',
       headerName: 'TOTAL RETURN QUANTITY',
       sortable: true,
@@ -439,7 +450,7 @@ const ReturnReport = () => {
     },
     {
       minWidth: 20,
-      width: 180,
+      width: 160,
       field: 'net_unit_price',
       headerName: 'NET UNIT PRICE',
       sortable: true,
@@ -465,8 +476,8 @@ const ReturnReport = () => {
       field: 'return_value',
       headerName: 'TOTAL RETURN VALUE',
       align: 'right',
-      sortable: true,
       headerAlign: 'right',
+      sortable: true,
       renderCell: params => (
         <Typography
           variant='body2'
@@ -483,51 +494,10 @@ const ReturnReport = () => {
     },
     {
       minWidth: 20,
-      width: 180,
-      field: 'return_date',
-      headerName: 'RETURN DATE',
-      sortable: true,
-      renderCell: params => (
-        <Typography
-          variant='body2'
-          sx={{
-            color: theme.palette.customColors.customHeadingTextColor,
-            fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
-          }}
-        >
-          {Utility.formatDisplayDate(params.row.return_date)}
-        </Typography>
-      )
-    },
-
-    {
-      minWidth: 20,
       width: 160,
-      field: 'batch_no',
-      sortable: false,
-      headerName: 'BATCH NUMBER',
-      renderCell: params => (
-        <Typography
-          variant='body2'
-          sx={{
-            color: theme.palette.customColors.customHeadingTextColor,
-            fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
-          }}
-        >
-          {params.row.batch_no}
-        </Typography>
-      )
-    },
-    {
-      minWidth: 20,
-      width: 160,
-      field: 'from_store',
+      field: `${selectedPharmacy?.type === 'central' ? 'from_store' : 'to_store'}`,
       sortable: true,
-      headerName: 'FROM STORE',
+      headerName: `${selectedPharmacy?.type === 'central' ? 'FROM STORE' : 'TO STORE'}`,
       renderCell: params => (
         <Typography
           variant='body2'
@@ -538,13 +508,13 @@ const ReturnReport = () => {
             fontFamily: 'Inter'
           }}
         >
-          {params.row.from_store}
+          {selectedPharmacy?.type === 'central' ? params.row.from_store : params.row.to_store}
         </Typography>
       )
     },
     {
       minWidth: 20,
-      width: 250,
+      width: 200,
       field: 'manufacturer_name',
       sortable: false,
       headerName: 'MANUFACTURER NAME',
@@ -564,6 +534,36 @@ const ReturnReport = () => {
             }}
           >
             <span alt={params.row.manufacturer_name}> {params.row.manufacturer_name}</span>
+          </Typography>
+        </Tooltip>
+      )
+    },
+    {
+      minWidth: 20,
+      width: 200,
+      field: 'package',
+      headerName: 'PACKAGE',
+      sortable: false,
+      renderCell: params => (
+        <Tooltip
+          title={`${params.row.package} of ${Utility.formatNumber(params.row.package_qty)}
+              ${params.row.package_uom_label} ${params.row.product_form_label}`}
+        >
+          <Typography
+            variant='body2'
+            sx={{
+              color: theme.palette.customColors.customHeadingTextColor,
+              fontSize: '14px',
+              fontWeight: 400,
+              fontFamily: 'Inter',
+              overflow: 'hidden',
+              whiteSpace: 'nowrap',
+              textOverflow: 'ellipsis',
+              maxWidth: 240
+            }}
+          >
+            {`${params.row.package} of ${Utility.formatNumber(params.row.package_qty)}
+              ${params.row.package_uom_label} ${params.row.product_form_label}`}
           </Typography>
         </Tooltip>
       )
