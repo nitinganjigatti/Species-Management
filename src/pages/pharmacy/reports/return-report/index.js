@@ -635,15 +635,15 @@ const ReturnReport = () => {
       setSort(newModel[0].sort)
       setSortColumn(newModel[0].field)
 
-      // fetchReturnReport({
-      //   sort: newModel[0].sort,
-      //   q: searchValue,
-      //   column: newModel[0].field,
-      //   filteredData: filteredData,
-      //   expired: expired,
-      //   page: paginationModel?.page,
-      //   limit: paginationModel?.pageSize
-      // })
+      fetchReturnReport({
+        sort: newModel[0].sort,
+        q: searchValue,
+        column: newModel[0].field,
+        filteredData: filteredData,
+        expired: expired,
+        page: paginationModel?.page,
+        limit: paginationModel?.pageSize
+      })
       updateUrlParams({
         sort: newModel[0].sort,
         q: searchValue,

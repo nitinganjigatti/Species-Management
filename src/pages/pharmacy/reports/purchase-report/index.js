@@ -371,6 +371,26 @@ const PurchaseReport = () => {
     },
     {
       minWidth: 20,
+      width: 160,
+      field: 'expiry_date',
+      headerName: 'EXPIRY DATE',
+      sortable: true,
+      renderCell: params => (
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
+          {Utility.formatDisplayDate(params.row.expiry_date)}
+        </Typography>
+      )
+    },
+    {
+      minWidth: 20,
       width: 180,
       field: 'purchase_date',
       headerName: 'PURCHASE DATE',
@@ -560,26 +580,6 @@ const PurchaseReport = () => {
     },
     {
       minWidth: 20,
-      width: 180,
-      field: 'expiry_date',
-      headerName: 'EXPIRY DATE',
-      sortable: false,
-      renderCell: params => (
-        <Typography
-          variant='body2'
-          sx={{
-            color: theme.palette.customColors.customHeadingTextColor,
-            fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
-          }}
-        >
-          {Utility.formatDisplayDate(params.row.expiry_date)}
-        </Typography>
-      )
-    },
-    {
-      minWidth: 20,
       width: 200,
       field: 'comment',
       sortable: false,
@@ -671,14 +671,15 @@ const PurchaseReport = () => {
     if (newModel.length) {
       setSort(newModel[0].sort)
       setSortColumn(newModel[0].field)
-      fetchTableData({
-        sort: newModel[0].sort,
-        q: searchValue,
-        column: newModel[0].field,
-        filteredData: filteredData,
-        page: paginationModel?.page,
-        limit: paginationModel?.pageSize
-      })
+
+      // fetchTableData({
+      //   sort: newModel[0].sort,
+      //   q: searchValue,
+      //   column: newModel[0].field,
+      //   filteredData: filteredData,
+      //   page: paginationModel?.page,
+      //   limit: paginationModel?.pageSize
+      // })
       updateUrlParams({
         sort: newModel[0].sort,
         q: searchValue,

@@ -528,14 +528,15 @@ const RequestReport = () => {
     if (newModel.length) {
       setSort(newModel[0].sort)
       setSortColumn(newModel[0].field)
-      fetchTableData({
-        sort: newModel[0].sort,
-        q: searchValue,
-        column: newModel[0].field,
-        page: paginationModel?.page,
-        limit: paginationModel?.pageSize,
-        filteredData: filteredData
-      })
+
+      // fetchTableData({
+      //   sort: newModel[0].sort,
+      //   q: searchValue,
+      //   column: newModel[0].field,
+      //   page: paginationModel?.page,
+      //   limit: paginationModel?.pageSize,
+      //   filteredData: filteredData
+      // })
       updateUrlParams({
         sort: newModel[0].sort,
         q: searchValue,
