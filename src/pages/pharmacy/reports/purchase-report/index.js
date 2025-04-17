@@ -303,15 +303,16 @@ const PurchaseReport = () => {
 
                       alignItems: 'center',
                       fontWeight: 500,
-                      fontSize: '14px',
-                      ...RenderUtility?.getEllipsisStyleForText()
+                      fontSize: '14px'
+
+                      // ...RenderUtility?.getEllipsisStyleForText()
                     }}
                   >
                     {RenderUtility?.renderControlLabel(
                       !isNaN(params.row?.controlled_substance) && parseInt(params.row?.controlled_substance) === 1,
                       'CS'
                     )}
-                    {RenderUtility?.renderControlLabel(
+                    {RenderUtility?.renderPrescriptionLabel(
                       !isNaN(params.row?.prescription_required) && parseInt(params.row?.prescription_required) === 1,
                       'PR'
                     )}
@@ -350,6 +351,26 @@ const PurchaseReport = () => {
     },
     {
       minWidth: 20,
+      width: 160,
+      field: 'batch_no',
+      sortable: false,
+      headerName: 'BATCH NUMBER',
+      renderCell: params => (
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
+          {params.row.batch_no}
+        </Typography>
+      )
+    },
+    {
+      minWidth: 20,
       width: 180,
       field: 'purchase_date',
       headerName: 'PURCHASE DATE',
@@ -370,9 +391,9 @@ const PurchaseReport = () => {
     },
     {
       minWidth: 20,
-      width: 150,
+      width: 180,
       field: 'qty',
-      sortable: false,
+      sortable: true,
       align: 'center',
       headerName: 'PURCHASE QUANTITY',
       renderCell: params => (
@@ -393,7 +414,7 @@ const PurchaseReport = () => {
       minWidth: 20,
       width: 150,
       field: 'net_unit_price',
-      sortable: false,
+      sortable: true,
       align: 'right',
       headerName: 'NET UNIT PRICE',
       headerAlign: 'right',
@@ -416,7 +437,7 @@ const PurchaseReport = () => {
       minWidth: 20,
       width: 200,
       field: 'purchase_value',
-      sortable: false,
+      sortable: true,
       align: 'right',
       headerName: 'TOTAL PURCHASE AMOUNT',
       headerAlign: 'right',
@@ -436,7 +457,7 @@ const PurchaseReport = () => {
     },
     {
       minWidth: 20,
-      width: 180,
+      width: 200,
       field: 'supplier_name',
       sortable: true,
       headerName: 'SUPPLIER NAME',
@@ -452,7 +473,7 @@ const PurchaseReport = () => {
               overflow: 'hidden',
               whiteSpace: 'nowrap',
               textOverflow: 'ellipsis',
-              maxWidth: 200
+              maxWidth: 180
             }}
           >
             <span alt={params.row.supplier_name}> {params.row.supplier_name}</span>
@@ -486,27 +507,6 @@ const PurchaseReport = () => {
         </Tooltip>
       )
     },
-    {
-      minWidth: 20,
-      width: 160,
-      field: 'batch_no',
-      sortable: false,
-      headerName: 'BATCH NUMBER',
-      renderCell: params => (
-        <Typography
-          variant='body2'
-          sx={{
-            color: theme.palette.customColors.customHeadingTextColor,
-            fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
-          }}
-        >
-          {params.row.batch_no}
-        </Typography>
-      )
-    },
-
     {
       minWidth: 20,
       width: 180,

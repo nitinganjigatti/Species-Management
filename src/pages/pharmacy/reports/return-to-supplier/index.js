@@ -260,7 +260,7 @@ const ReturnSupplier = () => {
     },
     {
       minWidth: 20,
-      width: 180,
+      width: 160,
       field: 'discarded_date',
       headerName: 'RETURN DATE',
       sortable: true,
@@ -299,15 +299,16 @@ const ReturnSupplier = () => {
 
                       alignItems: 'center',
                       fontWeight: 500,
-                      fontSize: '14px',
-                      ...RenderUtility?.getEllipsisStyleForText()
+                      fontSize: '14px'
+
+                      // ...RenderUtility?.getEllipsisStyleForText()
                     }}
                   >
                     {RenderUtility?.renderControlLabel(
                       !isNaN(params.row?.controlled_substance) && parseInt(params.row?.controlled_substance) === 1,
                       'CS'
                     )}
-                    {RenderUtility?.renderControlLabel(
+                    {RenderUtility?.renderPrescriptionLabel(
                       !isNaN(params.row?.prescription_required) && parseInt(params.row?.prescription_required) === 1,
                       'PR'
                     )}
@@ -366,7 +367,7 @@ const ReturnSupplier = () => {
     },
     {
       minWidth: 20,
-      width: 180,
+      width: 160,
       field: 'unit_price',
       headerName: 'NET UNIT PRICE',
       sortable: true,
@@ -388,7 +389,7 @@ const ReturnSupplier = () => {
     },
     {
       minWidth: 20,
-      width: 180,
+      width: 160,
       field: 'discarded_value',
       headerName: 'TOTAL VALUE',
       sortable: true,

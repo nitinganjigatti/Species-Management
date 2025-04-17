@@ -310,15 +310,16 @@ const RequestReport = () => {
 
                       alignItems: 'center',
                       fontWeight: 500,
-                      fontSize: '14px',
-                      ...RenderUtility?.getEllipsisStyleForText()
+                      fontSize: '14px'
+
+                      // ...RenderUtility?.getEllipsisStyleForText()
                     }}
                   >
                     {RenderUtility?.renderControlLabel(
                       !isNaN(params.row?.controlled_substance) && parseInt(params.row?.controlled_substance) === 1,
                       'CS'
                     )}
-                    {RenderUtility?.renderControlLabel(
+                    {RenderUtility?.renderPrescriptionLabel(
                       !isNaN(params.row?.prescription_required) && parseInt(params.row?.prescription_required) === 1,
                       'PR'
                     )}
@@ -353,32 +354,6 @@ const RequestReport = () => {
             }}
           />
         </Box>
-      )
-    },
-    {
-      minWidth: 20,
-      width: 250,
-      field: 'manufacturer_name',
-      headerName: 'MANUFACTURER NAME',
-      sortable: true,
-      renderCell: params => (
-        <Tooltip title={params.row.manufacturer_name}>
-          <Typography
-            variant='body2'
-            sx={{
-              color: theme.palette.customColors.customHeadingTextColor,
-              fontSize: '14px',
-              fontWeight: 400,
-              fontFamily: 'Inter',
-              overflow: 'hidden',
-              whiteSpace: 'nowrap',
-              textOverflow: 'ellipsis',
-              maxWidth: 200
-            }}
-          >
-            <span alt={params.row.manufacturer_name}> {params.row.manufacturer_name}</span>
-          </Typography>
-        </Tooltip>
       )
     },
     {
@@ -425,22 +400,54 @@ const RequestReport = () => {
     },
     {
       minWidth: 20,
-      width: 160,
+      width: 220,
+      field: 'manufacturer_name',
+      headerName: 'MANUFACTURER NAME',
+      sortable: true,
+      renderCell: params => (
+        <Tooltip title={params.row.manufacturer_name}>
+          <Typography
+            variant='body2'
+            sx={{
+              color: theme.palette.customColors.customHeadingTextColor,
+              fontSize: '14px',
+              fontWeight: 400,
+              fontFamily: 'Inter',
+              overflow: 'hidden',
+              whiteSpace: 'nowrap',
+              textOverflow: 'ellipsis',
+              maxWidth: 220
+            }}
+          >
+            <span alt={params.row.manufacturer_name}> {params.row.manufacturer_name}</span>
+          </Typography>
+        </Tooltip>
+      )
+    },
+    {
+      minWidth: 20,
+      width: 180,
       field: 'request_from',
       headerName: 'REQUESTED FROM',
       sortable: true,
       renderCell: params => (
-        <Typography
-          variant='body2'
-          sx={{
-            color: theme.palette.customColors.customHeadingTextColor,
-            fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
-          }}
-        >
-          {params.row.request_from}
-        </Typography>
+        <Tooltip title={params.row.request_from}>
+          <Typography
+            variant='body2'
+            sx={{
+              color: theme.palette.customColors.customHeadingTextColor,
+              fontSize: '14px',
+              fontWeight: 400,
+              fontFamily: 'Inter',
+              overflow: 'hidden',
+              whiteSpace: 'nowrap',
+              textOverflow: 'ellipsis',
+              maxWidth: 180
+            }}
+          >
+            <span alt={params.row.request_from}> {params.row.request_from}</span>
+          </Typography>
+        </Tooltip>
       )
     },
     {
