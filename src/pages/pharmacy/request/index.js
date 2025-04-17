@@ -394,7 +394,7 @@ const RequestList = () => {
     {
       width: 80,
       field: 'sl_no',
-      headerName: 'S.NO',
+      headerName: 'SL.NO',
       renderCell: params => (
         <Box sx={{ display: 'flex' }}>
           <Typography variant='body2' sx={{ color: 'text.primary' }}>
@@ -405,12 +405,12 @@ const RequestList = () => {
     },
 
     {
-      width: 5,
+      width: 90,
       field: 'priority',
-      headerName: '',
-      headerAlign: 'left',
+      headerName: 'Priority',
+      headerAlign: 'center',
       textAlign: 'center',
-      renderCell: params => <Box>{RenderUtility.getPriorityIcons(params.row.priority)}</Box>
+      renderCell: params => <Box>{RenderUtility.getPriorityIcons(params?.row?.priority)}</Box>
     },
 
     // {

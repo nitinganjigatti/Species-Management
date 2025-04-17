@@ -348,7 +348,7 @@ const ShipRequest = ({ dispatchedItems, storeDetails, resetForm }) => {
       headerName: 'Request Id',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.ro_no}
+          {params?.row?.request_id}
         </Typography>
       )
     },
