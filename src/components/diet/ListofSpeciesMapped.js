@@ -108,10 +108,9 @@ const ListOfSpeciesMapped = ({
 
   const handelClose = () => {
     setIsOpennew(false)
-    refreshDietDetails()
+    //refreshDietDetails()
     setspeciesview('')
-    setSearchQuery('')
-
+    //setSearchQuery('')
     // setPrimaryStatus({}) // Reset primary status when closing
   }
 
