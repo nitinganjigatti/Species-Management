@@ -222,7 +222,7 @@ const DietDetail = () => {
         const totalCount = res?.data?.count
 
         if (resultData) {
-          if (pageNo === 1) {
+          if (pageNo === 1 && tempSelectedSpecies.length <= 0) {
             setspeciesData(resultData)
             setAllFetchedData(resultData)
             if (filterState === 'species') {
@@ -318,37 +318,38 @@ const DietDetail = () => {
           const totalCount = res?.data?.count
 
           if (resultData) {
-            if (pageNo === 1) {
-              setspeciesData(resultData)
-              setAllFetchedData(resultData)
-            } else {
-              setspeciesData(prevData => {
-                const combinedData = [...prevData, ...resultData]
+            // if (pageNo === 1) {
+            //   setspeciesData(resultData)
+            //   setAllFetchedData(resultData)
+            // }
 
-                const uniqueData = combinedData.filter(
-                  (item, index, self) =>
-                    index ===
-                    self.findIndex(t =>
-                      selectionType === 'species' ? t.species_id === item.species_id : t.animal_id === item.animal_id
-                    )
-                )
+            setspeciesData(prevData => {
+              const combinedData = [...prevData, ...resultData]
 
-                return uniqueData
-              })
-              setAllFetchedData(prevData => {
-                const combinedData = [...prevData, ...resultData]
+              const uniqueData = combinedData.filter(
+                (item, index, self) =>
+                  index ===
+                  self.findIndex(t =>
+                    selectionType === 'species' ? t.species_id === item.species_id : t.animal_id === item.animal_id
+                  )
+              )
 
-                const uniqueData = combinedData.filter(
-                  (item, index, self) =>
-                    index ===
-                    self.findIndex(t =>
-                      selectionType === 'species' ? t.species_id === item.species_id : t.animal_id === item.animal_id
-                    )
-                )
+              return uniqueData
+            })
+            setAllFetchedData(prevData => {
+              const combinedData = [...prevData, ...resultData]
 
-                return uniqueData
-              })
-            }
+              const uniqueData = combinedData.filter(
+                (item, index, self) =>
+                  index ===
+                  self.findIndex(t =>
+                    selectionType === 'species' ? t.species_id === item.species_id : t.animal_id === item.animal_id
+                  )
+              )
+
+              return uniqueData
+            })
+
             setspeciestotalcount(totalCount)
             // Check if we've reached the end of available data
             if (resultData.length === 0 || resultData.length < pageSize) {
@@ -370,7 +371,6 @@ const DietDetail = () => {
 
   // Callback to trigger fetchList
   const refreshSpeciesData = async (searchQuery = '') => {
-    console.log(searchQuery, 'searchQuery')
     if (speciesview !== '' && speciesview !== 'select') {
       return fetchList(searchQuery, 'mapped')
     } else {
@@ -386,7 +386,6 @@ const DietDetail = () => {
         setTaxonomyList(prev => (pageNoTaxonomy === 1 ? response.data.result : [...prev, ...response.data.result]))
         setTaxonomyCount(response.data.total_count)
       } else {
-        console.warn('Unexpected response format:', response)
         setTaxonomyList([])
         setTaxonomyCount('')
       }
@@ -444,8 +443,6 @@ const DietDetail = () => {
   const debouncedFetchList = useCallback(
     debounce(query => {
       setPageNo(1)
-      setspeciesData([])
-      console.log(speciesview, 'speciesview')
       if (speciesview !== '' && speciesview !== 'select') {
         fetchList(query, 'mapped')
       } else {
@@ -459,7 +456,7 @@ const DietDetail = () => {
     if (searchQuery) {
       debouncedFetchList(searchQuery)
     }
-  }, [searchQuery, speciesview])
+  }, [searchQuery])
 
   useEffect(() => {
     if (dietModule) {
@@ -679,7 +676,6 @@ const DietDetail = () => {
                                     maxWidth: '100%'
                                   }}
                                 >
-                                  {console.log(dietDetails, 'dietDetails')}
                                   <Table aria-label='simple table' style={{ tableLayout: 'fixed' }}>
                                     {dietDetails?.meal_data?.every(
                                       all =>
