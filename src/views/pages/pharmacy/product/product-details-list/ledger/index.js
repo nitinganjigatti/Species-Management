@@ -10,7 +10,8 @@ import {
   Checkbox,
   CircularProgress,
   InputAdornment,
-  IconButton
+  IconButton,
+  Tooltip
 } from '@mui/material'
 import { useRouter } from 'next/router'
 import React, { useCallback, useEffect, useState } from 'react'
@@ -305,17 +306,23 @@ function Ledger({ tabValue, updateUrlParams }) {
       field: 'receiving_pharmacy',
       headerName: 'DISPATCH TO',
       renderCell: params => (
-        <Typography
-          variant='body2'
-          sx={{
-            color: theme.palette.customColors.customHeadingTextColor,
-            fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
-          }}
-        >
-          {params.row.receiving_pharmacy || 'NA'}
-        </Typography>
+        <Tooltip title={params.row.receiving_pharmacy}>
+          <Typography
+            variant='body2'
+            sx={{
+              color: theme.palette.customColors.customHeadingTextColor,
+              fontSize: '14px',
+              fontWeight: 500,
+              fontFamily: 'Inter',
+              overflow: 'hidden',
+              whiteSpace: 'nowrap',
+              textOverflow: 'ellipsis',
+              maxWidth: 200
+            }}
+          >
+            <span alt={params.row.receiving_pharmacy}> {params.row.receiving_pharmacy}</span>
+          </Typography>
+        </Tooltip>
       )
     },
     {
@@ -323,17 +330,23 @@ function Ledger({ tabValue, updateUrlParams }) {
       field: 'dispatched_pharmacy',
       headerName: 'DISPATCHED BY',
       renderCell: params => (
-        <Typography
-          variant='body2'
-          sx={{
-            color: theme.palette.customColors.customHeadingTextColor,
-            fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
-          }}
-        >
-          {params.row.dispatched_pharmacy || 'NA'}
-        </Typography>
+        <Tooltip title={params.row.dispatched_pharmacy}>
+          <Typography
+            variant='body2'
+            sx={{
+              color: theme.palette.customColors.customHeadingTextColor,
+              fontSize: '14px',
+              fontWeight: 500,
+              fontFamily: 'Inter',
+              overflow: 'hidden',
+              whiteSpace: 'nowrap',
+              textOverflow: 'ellipsis',
+              maxWidth: 200
+            }}
+          >
+            <span alt={params.row.dispatched_pharmacy}> {params.row.dispatched_pharmacy}</span>
+          </Typography>
+        </Tooltip>
       )
     },
     {

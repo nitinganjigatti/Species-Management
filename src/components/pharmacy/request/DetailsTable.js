@@ -145,9 +145,9 @@ export default function DetailsTable({ ...props }) {
                   fontWeight: 600
                 }}
               >
-                S.NO
+                SL.NO
               </TableCell>
-              <TableCell></TableCell>
+              <TableCell>Priority</TableCell>
               <TableCell>PRODUCT NAME</TableCell>
 
               <TableCell>QUANTITY</TableCell>
@@ -182,7 +182,7 @@ export default function DetailsTable({ ...props }) {
                             flexDirection: 'column',
                             justifyContent: 'center',
                             alignContent: 'top',
-                            alignItems: 'center'
+                            alignItems: 'start'
                           }}
                         >
                           {/* {el.sl_no}. */}

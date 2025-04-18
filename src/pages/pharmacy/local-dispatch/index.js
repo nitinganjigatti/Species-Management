@@ -566,7 +566,7 @@ const DirectDispatchList = () => {
           />
           <Tab value='cancel' label={<TabBadge label='Cancelled' totalCount={status === 'cancel' ? total : null} />} />
           <Tab
-            value={['all', 'completed'].includes(status) ? 'all' : 'completed'}
+            value='all'
             label={<TabBadge label='All' totalCount={['all', 'completed'].includes(status) ? total : null} />}
           />
         </TabList>
@@ -576,8 +576,11 @@ const DirectDispatchList = () => {
         <TabPanel value='shipped'>{tableData()}</TabPanel>
         <TabPanel value='disputed'>{tableData()}</TabPanel>
         <TabPanel value='cancel'>{tableData()}</TabPanel>
-        {status === 'all' && <TabPanel value='all'>{tableData()}</TabPanel>}
-        {status === 'completed' && <TabPanel value='completed'>{tableData()}</TabPanel>}
+        {status === 'all' ? (
+          <TabPanel value='all'>{tableData()}</TabPanel>
+        ) : (
+          <TabPanel value='completed'>{tableData()}</TabPanel>
+        )}
       </TabContext>
     </Grid>
   )

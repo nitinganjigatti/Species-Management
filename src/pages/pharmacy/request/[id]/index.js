@@ -1577,7 +1577,9 @@ const IndividualRequest = () => {
                               color: 'customColors.OnSurfaceVariant',
                               lineHeight: '19.36px',
                               mx: 2,
-                              ...RenderUtility?.getEllipsisStyleForText('100')
+                              [theme.breakpoints.up('lg')]: {
+                                ...RenderUtility?.getEllipsisStyleForText('140')
+                              }
                             }}
                           >
                             {RenderUtility?.getToolTipForText(requestItems?.to_store)}
@@ -1600,7 +1602,9 @@ const IndividualRequest = () => {
                               color: 'customColors.OnSurfaceVariant',
                               lineHeight: '19.36px',
                               mx: 2,
-                              ...RenderUtility?.getEllipsisStyleForText('100')
+                              [theme.breakpoints.up('lg')]: {
+                                ...RenderUtility?.getEllipsisStyleForText('140')
+                              }
                             }}
                           >
                             {RenderUtility?.getToolTipForText(requestItems?.request_number)}
@@ -1678,7 +1682,9 @@ const IndividualRequest = () => {
                                 color: 'primary.light',
                                 lineHeight: '19.36px',
                                 mx: 2,
-                                ...RenderUtility?.getEllipsisStyleForText('100')
+                                [theme.breakpoints.up('lg')]: {
+                                  ...RenderUtility?.getEllipsisStyleForText('140')
+                                }
                               }}
                             >
                               {Utility.formatAmountToReadableDigit(requestItems?.requested_amount)}

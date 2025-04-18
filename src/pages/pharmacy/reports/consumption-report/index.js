@@ -22,7 +22,7 @@ import Icon from 'src/@core/components/icon'
 import RenderUtility from 'src/utility/render'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import { getStoreList } from 'src/lib/api/pharmacy/getStoreList'
-import ConsumptionReportDrawer from 'src/views/pages/pharmacy/reports/ConsumptionReportDrawer'
+import ConsumptionReportDrawer from 'src/views/pages/pharmacy/reports/consumptionReportDrawer'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import { format, subMonths } from 'date-fns'
 import { ExportButton, FilterButton } from 'src/views/utility/render-snippets'
@@ -251,15 +251,16 @@ const ConsumptionReport = () => {
 
                       alignItems: 'center',
                       fontWeight: 500,
-                      fontSize: '14px',
-                      ...RenderUtility?.getEllipsisStyleForText()
+                      fontSize: '14px'
+
+                      // ...RenderUtility?.getEllipsisStyleForText()
                     }}
                   >
                     {RenderUtility?.renderControlLabel(
                       !isNaN(params.row?.controlled_substance) && parseInt(params.row?.controlled_substance) === 1,
                       'CS'
                     )}
-                    {RenderUtility?.renderControlLabel(
+                    {RenderUtility?.renderPrescriptionLabel(
                       !isNaN(params.row?.prescription_required) && parseInt(params.row?.prescription_required) === 1,
                       'PR'
                     )}

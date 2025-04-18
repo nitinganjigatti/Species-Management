@@ -329,31 +329,33 @@ const ReturnRequestList = () => {
   // }, [selectedPharmacy.id])
 
   useEffect(() => {
-    if (router.query.status === status) {
-      const currentStatus = filterSwitch === true ? 'completed' : status
-      const tabStatus = status === 'all' ? currentStatus : status
-      fetchTableData(
-        sort,
-        searchValue,
-        sortColumn,
-        tabStatus,
-        filterDates.startDate,
-        filterDates.endDate,
-        filterByStoreId
-      )
-      updateUrlParams({
-        sort,
-        q: searchValue,
-        column: sortColumn,
-        status: tabStatus,
-        page: paginationModel.page,
-        startDate: filterDates.startDate,
-        endDate: filterDates.endDate,
-        limit: paginationModel.pageSize,
-        filterSwitch,
-        store: filterByStoreId
-      })
-    }
+    // debugger
+    // if (router.query.status === status) {
+    const currentStatus = filterSwitch === true ? 'completed' : status
+    const tabStatus = status === 'all' ? currentStatus : status
+    fetchTableData(
+      sort,
+      searchValue,
+      sortColumn,
+      tabStatus,
+      filterDates.startDate,
+      filterDates.endDate,
+      filterByStoreId
+    )
+    updateUrlParams({
+      sort,
+      q: searchValue,
+      column: sortColumn,
+      status: tabStatus,
+      page: paginationModel.page,
+      startDate: filterDates.startDate,
+      endDate: filterDates.endDate,
+      limit: paginationModel.pageSize,
+      filterSwitch,
+      store: filterByStoreId
+    })
+
+    // }
 
     // }
     // eslint-disable-next-line react-hooks/exhaustive-deps
