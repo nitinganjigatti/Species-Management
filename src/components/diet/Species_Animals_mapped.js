@@ -81,6 +81,13 @@ const SpeciesAnimalsMapped = ({
     setSearchQuery('')
     setPrimaryStatus({})
     setSelectedItems([])
+    setTempSelectedItems({
+      Site: [],
+      Section: [],
+      Enclosure: [],
+      Taxonomy: [],
+      Species: []
+    })
     setSelectedSections([])
     setSelectedEnclosures([])
   }
