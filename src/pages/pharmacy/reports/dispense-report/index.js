@@ -328,8 +328,9 @@ const DispenseReport = () => {
 
                       alignItems: 'center',
                       fontWeight: 500,
-                      fontSize: '14px',
-                      ...RenderUtility?.getEllipsisStyleForText()
+                      fontSize: '14px'
+
+                      // ...RenderUtility?.getEllipsisStyleForText()
                     }}
                   >
                     {RenderUtility?.renderControlLabel(
@@ -395,6 +396,26 @@ const DispenseReport = () => {
     },
     {
       minWidth: 20,
+      width: 160,
+      field: 'expiry_date',
+      headerName: 'EXPIRY DATE',
+      sortable: true,
+      renderCell: params => (
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
+          {Utility.formatDisplayDate(params.row.expiry_date)}
+        </Typography>
+      )
+    },
+    {
+      minWidth: 20,
       width: 170,
       field: 'dispense_qty',
       headerName: 'DISPENSE QUANTITY',
@@ -416,7 +437,7 @@ const DispenseReport = () => {
     },
     {
       minWidth: 20,
-      width: 180,
+      width: 170,
       field: 'net_unit_price',
       headerName: 'NET UNIT PRICE',
       sortable: true,
@@ -491,17 +512,23 @@ const DispenseReport = () => {
       sortable: true,
       headerName: 'FROM STORE',
       renderCell: params => (
-        <Typography
-          variant='body2'
-          sx={{
-            color: theme.palette.customColors.customHeadingTextColor,
-            fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
-          }}
-        >
-          {params.row.from_store}
-        </Typography>
+        <Tooltip title={params.row.from_store}>
+          <Typography
+            variant='body2'
+            sx={{
+              color: theme.palette.customColors.customHeadingTextColor,
+              fontSize: '14px',
+              fontWeight: 400,
+              fontFamily: 'Inter',
+              overflow: 'hidden',
+              whiteSpace: 'nowrap',
+              textOverflow: 'ellipsis',
+              maxWidth: 200
+            }}
+          >
+            <span alt={params.row.from_store}> {params.row.from_store}</span>
+          </Typography>
+        </Tooltip>
       )
     },
     {

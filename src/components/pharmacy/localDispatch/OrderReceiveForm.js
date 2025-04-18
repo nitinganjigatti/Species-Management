@@ -187,7 +187,7 @@ const DisputeItemDetails = React.forwardRef((props, ref) => {
                   ) : null}
                 </Box>
                 <Grid md={12} sm={12} xs={12} sx={{ my: 2 }}>
-                  <Box sx={{ width: '100%', overflow: 'auto' }}>
+                  <Box>
                     <TableBasic
                       columns={columns}
                       rows={disputeItemDetails?.item_details}
@@ -705,6 +705,8 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
       Width: 40,
       field: 'uid`',
       headerName: 'S.NO',
+      align: 'center',
+      headerAlign: 'center',
       renderCell: params => {
         return (
           <Typography variant='body2' sx={{ color: 'text.primary' }}>
@@ -714,7 +716,7 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
       }
     },
     {
-      flex: 0.2,
+      flex: 0.4,
       Width: 40,
       field: 'stock_name',
       headerName: 'Product Name',
@@ -745,6 +747,8 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
       minWidth: 20,
       field: 'count',
       headerName: 'qty',
+      align: 'center',
+      headerAlign: 'center',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.count}
@@ -1334,24 +1338,30 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
             /* Include global styles */
             ${styles}
             /* You can add specific print styles here */
-            @media print {
-              body {
-                margin: 0;
-                padding: 0;
-              }
-                .printable-container {
-              background-color: ${theme.palette.customColors.lightBg};
-              padding: 16px;
-              border-radius: 8px;
-              border: 1px solid ${theme.palette.customColors.neutral05};
-              margin-top: 16px;
-
+            @page {
+              margin: 20px;
+              size: auto;
             }
-              .MuiDataGrid-footerContainer{
+            body {
+              margin: 0;
+              padding: 20px;
+            }
+            .printable-container {
+              background-color: ${theme.palette.customColors.lightBg};
+              padding: 24px;
+              border-radius: 8px;
+              border: 2px solid rgba(233, 233, 236, 1);
+              margin: 20px 0;
+            }
+
+            .MuiDataGrid-footerContainer{
               display:none!important;
               opacity: 0;
             }
-               .print-title {
+              .MuiDataGrid-cell{
+              border-bottom: 0px!important
+            }
+            .print-title {
               position: absolute;
               top: 20px;
               left: 50%;
@@ -1360,15 +1370,35 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
               font-weight: bold;
               margin-top: 10px;
             }
-         .footer {
-            text-align: center;
-            font-size: 16px;
-            position: absolute;
-            bottom: 16px;
-            width: calc(100%);
-          }
-              /* Add more print-specific styles if needed */
+            .footer {
+              text-align: center;
+              font-size: 16px;
+              position: absolute;
+              bottom: 16px;
+              width: calc(100% - 40px);
+              padding: 0 20px;
             }
+            .MuiDataGrid-root {
+              width: 100% !important;
+              overflow: visible !important;
+              border: 1px solid rgba(233, 233, 236, 1);
+
+            }
+            .MuiDataGrid-main {
+              width: 100% !important;
+              overflow: visible !important;
+            }
+            .MuiDataGrid-virtualScroller {
+              width: 100% !important;
+              overflow: visible !important;
+            }
+            .MuiDataGrid-virtualScrollerContent {
+              width: 100% !important;
+              overflow: hidden !important;
+            }
+            -webkit-print-color-adjust: exact !important;
+            print-color-adjust: exact !important;
+            color-adjust: exact !important;
           </style>
         </head>
         <body>
@@ -1383,7 +1413,7 @@ function OrderReceiveForm({ orderId, requestId, closeOrderFormDialog }) {
     printWindow.document.close()
     setTimeout(() => {
       try {
-        // printWindow.focus()
+        printWindow.focus()
         printWindow.print()
       } catch (error) {
         console.error('Print error:', error)
