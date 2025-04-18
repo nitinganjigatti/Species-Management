@@ -246,7 +246,7 @@ const Diet = () => {
       flex: 0.3,
       minWidth: 10,
       field: 'no_meals',
-      headerName: 'No meals',
+      headerName: 'Meals',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary', pl: 3 }}>
           {params.row.num_meals ? params.row.num_meals : '-'}
@@ -257,7 +257,7 @@ const Diet = () => {
       flex: 0.3,
       minWidth: 10,
       field: 'no_recipe',
-      headerName: 'No Recipe',
+      headerName: 'Recipe',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary', pl: 3 }}>
           {params.row.recipe ? params.row.recipe : '-'}
