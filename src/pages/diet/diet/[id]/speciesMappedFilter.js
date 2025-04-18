@@ -97,6 +97,7 @@ const SpeciesMappedtoDietFilter = ({
     if (selectionType === 'animals') {
       setspeciesData([])
       setPageNo(1)
+      setFilterState('')
     }
   }
 

@@ -151,11 +151,9 @@ const DietDetail = () => {
   useEffect(() => {
     // Check if Site has values
     if (selectedItems.Site && selectedItems.Site.length > 0) {
-      const sectionIds = items.Section.map(section => section.section_id)
+      const sectionIds = tempSelectedItems.Section.map(section_id => section_id)
 
-      const enclosureIds = items.Enclosure.filter(enclosure => sectionIds.includes(enclosure.section_id)).map(
-        enclosure => enclosure.enclosure_id
-      )
+      const enclosureIds = tempSelectedItems.Enclosure.map(enclosure_id => enclosure_id)
 
       setSelectedItems(prev => ({
         ...prev,
@@ -193,7 +191,11 @@ const DietDetail = () => {
       let res
       if (selectionType === 'animals' && filterState === 'species') {
         const params = {
-          ...commonParams,
+          page_no: pageNo,
+          limit: 10,
+          diet_id: id,
+          ...(searchQuery && { q: searchQuery }),
+          ...(type && { type }),
           ...(selectedItems?.Taxonomy?.length > 0 && { species_ids: `[${selectedItems?.Taxonomy.join(',')}]` })
         }
         res = await getSpeciesList(params)

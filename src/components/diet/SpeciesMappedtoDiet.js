@@ -129,11 +129,9 @@ const SpeciesMappedtoDiet = ({
       })
       setSelectedItems({ Site: [], Section: [], Enclosure: [], Taxonomy: [], Species: [] })
     }
-
     //setItems({ Site: [], Section: [], Enclosure: [], Taxonomy: [], Species: [] })
     if (selectionType === 'animals') {
       setFilterState('species')
-
       // refreshSpeciesData('')
       setPageNo(1)
     } else {
@@ -147,21 +145,23 @@ const SpeciesMappedtoDiet = ({
   }
 
   const handleRemove = siteId => {
-    setTempSelectedItems(prev => ({
-      ...prev,
-      Site: prev.Site.filter(id => id !== siteId),
-      Section: [],
-      Enclosure: []
-    }))
-    setSelectedItems(prev => ({
-      ...prev,
-      Site: prev.Site.filter(id => id !== siteId),
-      Section: [],
-      Enclosure: []
-    }))
+    if (siteId) {
+      setTempSelectedItems(prev => ({
+        ...prev,
+        Site: prev.Site.filter(id => id !== siteId),
+        Section: [],
+        Enclosure: []
+      }))
+      setSelectedItems(prev => ({
+        ...prev,
+        Site: prev.Site.filter(id => id !== siteId),
+        Section: [],
+        Enclosure: []
+      }))
+    }
     setSelectedEnclosures([])
     setSelectedSections([])
-    refreshSpeciesData('')
+    //refreshSpeciesData('')
   }
 
   return (
@@ -390,67 +390,71 @@ const SpeciesMappedtoDiet = ({
               fontWeight: 600
             }}
           >
-            {tempSelectedSpecies.length > 0
+            {tempSelectedSpecies.length > 0 && speciesData.length > 0
               ? `Selected ${tempSelectedSpecies.length} / ${speciestotalcount}`
               : selectionType === 'species'
               ? `All species${!loading && speciestotalcount ? ` (${speciestotalcount})` : ''}`
               : `All animals${!loading && speciestotalcount ? ` (${speciestotalcount})` : ''}`}
           </Typography>
-          <Box
-            sx={{
-              display: 'flex',
-              alignItems: 'center'
-            }}
-          >
-            <Button
-              size='small'
+          {speciesData?.length ? (
+            <Box
               sx={{
-                color:
-                  !loading &&
-                  tempSelectedSpecies?.length === speciesData.filter(species => !species.mapped_to_diet).length
-                    ? theme.palette.primary.main
-                    : '#44544A',
-                fontSize: '12px',
-                fontWeight: 600,
-                textTransform: 'none',
-                p: 0
+                display: 'flex',
+                alignItems: 'center'
               }}
-              onClick={handleSelectAll}
             >
-              {tempSelectedSpecies?.length === speciesData.length ? 'Select all' : 'Select all'}
-            </Button>
-
-            <Checkbox
-              //disabled={tempSelectedSpecies?.length === speciesData.filter(species => !species.mapped_to_diet).length}
-              checked={
-                !loading &&
-                tempSelectedSpecies?.length === speciesData.filter(species => !species.mapped_to_diet).length
-              }
-              onChange={handleSelectAll}
-              inputProps={{ 'aria-label': 'Select all species' }}
-              sx={{
-                '&.Mui-checked': {
-                  color: theme.palette.primary.main
-                },
-                '& .MuiSvgIcon-root': {
-                  width: '19px',
-                  height: '19px',
-                  border: '2px dotted',
-                  borderColor:
-                    !loading &&
-                    tempSelectedSpecies?.length === speciesData.filter(species => !species.mapped_to_diet).length
-                      ? theme.palette.primary.main
-                      : '#44544A',
+              <Button
+                size='small'
+                sx={{
                   color:
                     !loading &&
                     tempSelectedSpecies?.length === speciesData.filter(species => !species.mapped_to_diet).length
                       ? theme.palette.primary.main
-                      : '#44544A'
-                },
-                mr: 1
-              }}
-            />
-          </Box>
+                      : '#44544A',
+                  fontSize: '12px',
+                  fontWeight: 600,
+                  textTransform: 'none',
+                  p: 0
+                }}
+                onClick={handleSelectAll}
+              >
+                {tempSelectedSpecies?.length === speciesData.length ? 'Select all' : 'Select all'}
+              </Button>
+
+              <Checkbox
+                //disabled={tempSelectedSpecies?.length === speciesData.filter(species => !species.mapped_to_diet).length}
+                checked={
+                  !loading &&
+                  tempSelectedSpecies?.length === speciesData.filter(species => !species.mapped_to_diet).length
+                }
+                onChange={handleSelectAll}
+                inputProps={{ 'aria-label': 'Select all species' }}
+                sx={{
+                  '&.Mui-checked': {
+                    color: theme.palette.primary.main
+                  },
+                  '& .MuiSvgIcon-root': {
+                    width: '19px',
+                    height: '19px',
+                    border: '2px dotted',
+                    borderColor:
+                      !loading &&
+                      tempSelectedSpecies?.length === speciesData.filter(species => !species.mapped_to_diet).length
+                        ? theme.palette.primary.main
+                        : '#44544A',
+                    color:
+                      !loading &&
+                      tempSelectedSpecies?.length === speciesData.filter(species => !species.mapped_to_diet).length
+                        ? theme.palette.primary.main
+                        : '#44544A'
+                  },
+                  mr: 1
+                }}
+              />
+            </Box>
+          ) : (
+            ''
+          )}
         </Box>
 
         {loading && pageNo === 1 ? (
@@ -589,7 +593,7 @@ const SpeciesMappedtoDiet = ({
           fullWidth
           variant='contained'
           size='large'
-          disabled={tempSelectedSpecies?.length === 0}
+          disabled={tempSelectedSpecies?.length === 0 || speciesData?.length === 0}
           onClick={() => handleSelectedclick('select')}
           sx={{ height: '45px' }}
         >
