@@ -13,9 +13,9 @@ import {
 import { axiosGet, axiosPost } from '../utility' 
 
 export async function getEnclosureList(params) {
-  const response = await axiosGet({ url: `${GET_ENCLOSURELIST}`, params })
+  const response = await axiosGet({ url: `${GET_ENCLOSURELIST}`, params }) 
 
-  return response.data
+  return response.data 
 }
 
 export async function createMealGroup(payload) {
@@ -25,7 +25,7 @@ export async function createMealGroup(payload) {
 }
 
 export async function updateMealGroup(payload) {
-  debugger
+
   const response = await axiosPost({ url: `${UPDATE_GROUP}`, body: payload })
 
   return response.data
@@ -38,14 +38,14 @@ export async function getMealGroupStats(params) {
 }
 
 export async function getSectionList(params) {
-  debugger
+
   const response = await axiosPost({ url: `${GET_SECTION}`, body: params })
 
   return response.data
 }
 
 export async function getSpeciesList(params) {
-  debugger
+
   const response = await axiosGet({ url: `${GET_SPECIES}`, params })
 
   return response.data
