@@ -32,7 +32,8 @@ import {
   getMealGroupStats,
   getSectionList,
   getSpeciesList,
-  removeMealGroup
+  removeMealGroup,
+  updateMealGroup
 } from 'src/lib/api/diet/mealgroup'
 import { useTheme } from '@emotion/react'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
@@ -41,6 +42,7 @@ import CreateMealGroup from 'src/views/pages/diet/mealGroup/creategroup'
 import toast from 'react-hot-toast'
 import CreateEnclosure from 'src/views/pages/diet/mealGroup/createEnclosure'
 import { debounce } from 'lodash'
+import select from 'src/@core/theme/overrides/select'
 
 const MealGroup = () => {
   const router = useRouter()
@@ -83,6 +85,9 @@ const MealGroup = () => {
   const [selectedGroup, setSelectedGroup] = useState('all')
   const [editParam, setEditParam] = useState({})
   const [searchValue, setSearchValue] = useState('')
+  const [editSearchValue, setEditSearchValue] = useState('')
+  const [selectedForDrawer, setSelectedForDrawer] = useState([])
+  const [mealId, setMealId] = useState(null)
 
   console.log('Group >>', groupList)
 
@@ -132,63 +137,11 @@ const MealGroup = () => {
     }
   }
 
-  // const fetchEnclosure = async () => {
-  //   if (!selectedOption) return
-
-  //   setLoading(true)
-
-  //   if (status === '') {
-  //     const groupparams = {
-  //       site_id: selectedOption,
-  //       page_no: paginationModel.page + 1
-  //     }
-
-  //     try {
-  //       const response = await getMealGroupList(groupparams)
-  //       if (response.success) {
-  //         setMenuGroupList(loadServerRows(paginationModel.page, response?.data?.result))
-  //         setTotal(response?.data?.count)
-  //       } else {
-  //         console.error('Failed to fetch meal groups:', response?.message || 'Unknown error')
-  //       }
-  //     } catch (error) {
-  //       console.error('Error fetching meal groups:', error)
-  //     } finally {
-  //       setLoading(false)
-  //     }
-
-  //     return
-  //   }
-
-  //   const params = {
-  //     type: status,
-  //     // section_ids: JSON.stringify([selectedSection]),
-  //     // species_ids: JSON.stringify(selectedSpecies),
-  //     site_id: selectedOption,
-  //     page_no: paginationModel.page + 1,
-  //     limit: paginationModel.pageSize
-  //   }
-
-  //   try {
-  //     const response = await getEnclosureList(params)
-  //     if (response.success) {
-  //       setEnclosureList(loadServerRows(paginationModel.page, response?.data?.result))
-  //       setTotal(response?.data?.count)
-  //     } else {
-  //       console.error('Failed to fetch enclosures:', response?.message || 'Unknown error')
-  //     }
-  //   } catch (error) {
-  //     console.error('Error fetching enclosures:', error)
-  //   } finally {
-  //     setLoading(false)
-  //   }
-  // }
-
-  const fetchEnclosure = async q => {
-    debugger
+  const fetchEnclosure = async () => {
     if (!selectedOption) return
 
     setLoading(true)
+    debugger
 
     if (status === '') {
       const groupparams = {
@@ -216,7 +169,7 @@ const MealGroup = () => {
     // Build params conditionally
     const params = {
       type: status,
-      q,
+      q: searchValue,
       site_id: selectedOption,
       page_no: paginationModel.page + 1,
       limit: paginationModel.pageSize
@@ -254,26 +207,86 @@ const MealGroup = () => {
   }
   const debouncedSearch = useCallback(
     debounce(async q => {
-      debugger
       setSearchValue(q)
       setPaginationModel({ page: 0, pageSize: 10 })
+
       try {
         await fetchEnclosure({
-          q: q,
-          page_no: paginationModel.page, // reset page to 0 explicitly here
-          limit: paginationModel.pageSize // reset limit explicitly here
+          q,
+          site_id: selectedOption,
+          page_no: 1,
+          limit: 10
         })
       } catch (err) {
         console.log(err)
       }
     }, 1000),
-    [] // add dependencies you want to track here
+    [selectedOption] // track selectedOption in dependencies
   )
 
+  const debouncedEnclosureSearch = useCallback(
+    debounce(async q => {
+      debugger
+      setSearchValue(q)
+      setPaginationModel({ page: 0, pageSize: 10 })
+
+      try {
+        const res = await getEnclosureListByGroup({
+          q,
+          type: 'unmapped',
+          site_id: selectedOption
+        })
+
+        if (res) {
+          setSelectedItems(res?.data?.result)
+        }
+      } catch (err) {
+        console.log(err)
+      }
+    }, 1000),
+    [selectedOption] // ✅ dependency added here to track selectedOption changes
+  )
+
+  const debouncedEditEnclosureSearch = useCallback(
+    debounce(async (q, id) => {
+      debugger
+      console.log('Edit >', editeditems)
+  
+      setEditSearchValue(q)
+      setPaginationModel({ page: 0, pageSize: 10 })
+  
+      try {
+        const res = await getEnclosureListByGroup({
+          q,
+          type: 'mapped',
+          site_id: selectedOption, // ✅ this will now be up-to-date
+          meal_group_ids: JSON.stringify([id]) // Send as array
+        })
+  
+        if (res) {
+          setEditItems(res?.data?.result)
+        }
+      } catch (err) {
+        console.log(err)
+      }
+    }, 1000),
+    [selectedOption] // ✅ make sure to track this
+  )
+  
+
   const handleSearch = value => {
-    debugger
     setSearchValue(value)
     debouncedSearch(value)
+  }
+
+  const handleEnclosureSearch = value => {
+    setSearchValue(value)
+    debouncedEnclosureSearch(value)
+  }
+
+  const handleEditSearch = (value, mealId) => {
+    setEditSearchValue(value)
+    debouncedEditEnclosureSearch(value, mealId)
   }
 
   const fetchSiteStats = async () => {
@@ -292,7 +305,6 @@ const MealGroup = () => {
   }
 
   const fetchSectionList = async () => {
-    debugger
     if (!selectedOption) return
     try {
       const response = await getSectionList({
@@ -327,7 +339,6 @@ const MealGroup = () => {
   }
 
   const fetchMealGroupNames = async () => {
-    debugger
     const groupparams = {
       site_id: selectedOption,
       page_no: paginationModel.page + 1
@@ -345,78 +356,28 @@ const MealGroup = () => {
   }
 
   useEffect(() => {
+    setSelectedItems([])
+  }, [status])
+
+  // useEffect(() => {
+  //   fetchEnclosure()
+  // }, [selectedOption])
+
+  useEffect(() => {
     fetchEnclosure()
     fetchSiteStats()
     fetchSectionList()
     fetchSpeciesList()
     fetchMealGroupNames()
-  }, [selectedOption, status, selectedSection, selectedSpecies, selectedGroup])
-
-  // useEffect(() => {
-  //   const fetchEnclosure = async () => {
-  //     if (!selectedOption) return
-
-  //     setLoading(true)
-
-  //     if (status === '') {
-  //       // If status is empty string, call the group list API
-  //       const groupparams = {
-  //         site_id: selectedOption,
-  //         page_no: paginationModel.page + 1 // make it consistent with below
-  //       }
-
-  //       try {
-  //         const response = await getMealGroupList(groupparams)
-  //         if (response.success) {
-  //           debugger
-  //           setMenuGroupList(loadServerRows(paginationModel.page, response?.data?.result))
-  //           setTotal(response?.data?.count)
-  //         } else {
-  //           console.error('Failed to fetch meal groups:', response?.message || 'Unknown error')
-  //         }
-  //       } catch (error) {
-  //         console.error('Error fetching meal groups:', error)
-  //       } finally {
-  //         setLoading(false)
-  //       }
-
-  //       return
-  //     }
-
-  //     // If status is not empty string, call the enclosure list API
-  //     const params = {
-  //       type: status,
-  //       site_id: selectedOption,
-  //       page_no: paginationModel.page + 1,
-  //       limit: paginationModel.pageSize
-  //     }
-
-  //     try {
-  //       const response = await getEnclosureList(params)
-  //       if (response.success) {
-  //         console.log('Enclosure list response >', response?.data?.result)
-  //         setEnclosureList(loadServerRows(paginationModel.page, response?.data?.result))
-  //         setTotal(response?.data?.count)
-  //       } else {
-  //         console.error('Failed to fetch enclosures:', response?.message || 'Unknown error')
-  //       }
-  //     } catch (error) {
-  //       console.error('Error fetching enclosures:', error)
-  //     } finally {
-  //       setLoading(false)
-  //     }
-  //   }
-
-  //   fetchEnclosure()
-  // }, [selectedOption, paginationModel, status])
+  }, [selectedOption, status, paginationModel, selectedSection, selectedSpecies, selectedGroup])
 
   const StatCard = ({ value, label, bgColor, textColor }) => (
     <Card
       sx={{
         backgroundColor: bgColor,
         color: textColor || '#000',
-        width: '154px',
-        height: '56px',
+        width: { xs: '100%', sm: '140px', md: '154px' },
+        height: { xs: 'auto', sm: '56px' },
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
@@ -425,16 +386,34 @@ const MealGroup = () => {
         py: 1
       }}
     >
-      <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+      <Box
+        sx={{
+          display: 'flex',
+          flexDirection: { xs: 'column', sm: 'row' },
+          alignItems: { xs: 'flex-start', sm: 'center' },
+          gap: { xs: 0.5, sm: 1 },
+          textAlign: { xs: 'left', sm: 'center' }
+        }}
+      >
         <Typography
           variant='subtitle1'
-          sx={{ fontWeight: 600, fontFamily: 'Inter', fontSize: '16px', color: textColor }}
+          sx={{
+            fontWeight: 600,
+            fontFamily: 'Inter',
+            fontSize: { xs: '16px', sm: '16px' },
+            color: textColor || '#000'
+          }}
         >
           {value}
         </Typography>
         <Typography
           variant='caption'
-          sx={{ mt: 0.5, fontSize: '14px', fontFamily: 'Inter', fontWeight: 500, color: '#44544A' }}
+          sx={{
+            fontSize: { xs: '13px', sm: '14px' },
+            fontFamily: 'Inter',
+            fontWeight: 500,
+            color: '#44544A'
+          }}
         >
           {label}
         </Typography>
@@ -444,54 +423,56 @@ const MealGroup = () => {
 
   const FooterCard = ({ count }) => {
     return (
-      <Box
-        sx={{
-          display: 'flex',
-          alignItems: 'center',
-          px: 3,
-          py: 2,
-          backgroundColor: '#fff'
-        }}
-      >
-        <Typography
+      <>
+        <Box
           sx={{
-            fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter',
-            color: '#44544A',
-            mr: 1
-          }}
-        >
-          Selected:
-        </Typography>
-
-        <Card
-          sx={{
-            width: '158px',
-            ml: 4,
-            height: '48px',
-            backgroundColor: '#E8F4F2',
-            borderRadius: '4px',
-            boxShadow: 'none',
-            // px: 2,
-            // py: 0.5,
-            display: 'inline-flex',
+            display: 'flex',
             alignItems: 'center',
-            justifyContent: 'center'
+            px: 3,
+            py: 2,
+            backgroundColor: '#fff'
           }}
         >
           <Typography
             sx={{
               fontSize: '14px',
-              fontWeight: 600,
-              color: '#2B7350',
-              fontFamily: 'Inter'
+              fontWeight: 500,
+              fontFamily: 'Inter',
+              color: '#44544A',
+              mr: 1
             }}
           >
-            Enclosures - {count}
+            Selected:
           </Typography>
-        </Card>
-      </Box>
+
+          <Card
+            sx={{
+              width: '158px',
+              ml: 4,
+              height: '48px',
+              backgroundColor: '#E8F4F2',
+              borderRadius: '4px',
+              boxShadow: 'none',
+              // px: 2,
+              // py: 0.5,
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center'
+            }}
+          >
+            <Typography
+              sx={{
+                fontSize: '14px',
+                fontWeight: 600,
+                color: '#2B7350',
+                fontFamily: 'Inter'
+              }}
+            >
+              Enclosures - {count}
+            </Typography>
+          </Card>
+        </Box>
+      </>
     )
   }
 
@@ -510,16 +491,20 @@ const MealGroup = () => {
     setSelectedGroup('all')
     setSelectedSpecies('all')
     setCheckedRows([])
+    setEditItems([])
+    setEditParam({})
   }
 
   const handleEnclosureEvent = async id => {
-    debugger
     try {
+      debugger
       setEnclosureDrawer(true)
       setLoader(true)
       setGroupId(id)
+      setCheckedRows([])
 
       const params = {
+        q: searchValue,
         type: 'unmapped',
         site_id: selectedOption
         // meal_group_ids: JSON.stringify([id]) // Send as array
@@ -541,7 +526,6 @@ const MealGroup = () => {
   }
 
   const handleRemove = id => {
-    debugger
     setDeleteId(id)
     setOpenDeleteDialog(true)
   }
@@ -575,7 +559,8 @@ const MealGroup = () => {
   const handleEdit = async row => {
     console.log('Row Detail >', row)
     try {
-      setEditParam(row) // 👈 set the full row object
+      setEditParam(row)
+      setMealId(row.id)
       setOpenDrawer(true) // 👈 open the drawer
       const params = {
         type: 'mapped',
@@ -597,14 +582,71 @@ const MealGroup = () => {
     }
   }
 
+  const removeEnclosure = async () => {
+    console.log('removed Ids >>', selectedItems, selectedOption)
+
+    const removedEnclosureIds = selectedItems?.map(item => item.enclosure_id)
+
+    // Since API expects a single integer, we pick the first group_id
+    const removeGroupId = parseInt(selectedItems?.[0]?.group_id)
+
+    const groupNames = Array.from(new Set(selectedItems?.map(item => item.group_name))).join(', ')
+
+    const params = {
+      site_id: selectedOption,
+      group_name: groupNames,
+      meal_group_id: removeGroupId, // pass as single integer
+      remove_enclosure_ids: JSON.stringify(removedEnclosureIds)
+    }
+
+    const response = await updateMealGroup(params)
+
+    if (response) {
+      handleCloseSideBar()
+      setCheckedRows([])
+      toast.success(`Enclosure Removed from Group successfully`)
+      fetchEnclosure()
+      fetchSiteStats()
+    } else {
+      toast.error('Something went wrong')
+    }
+  }
+
+  const addEnclosure = async () => {
+    try {
+      setEnclosureDrawer(true)
+      setLoader(true)
+      setGroupId('')
+
+      const params = {
+        type: 'unmapped',
+        site_id: selectedOption
+        // meal_group_ids: JSON.stringify([id]) // Send as array
+      }
+
+      const response = await getEnclosureListByGroup(params)
+
+      if (response.success) {
+        setLoader(false)
+        console.log('Enclosure list by group:', response.data.result)
+        setSelectedItems(response?.data?.result)
+      } else {
+        setLoader(true)
+        console.error('Failed to fetch enclosure list:', response.message || 'Unknown error')
+      }
+    } catch (error) {
+      console.error('Error fetching enclosure list by group:', error)
+    }
+  }
+
   const groupcolumns = [
     {
-      flex: 0.2,
-      width: 20,
+      flex: 0.3,
+      width: 30,
       field: 'group_name',
       headerName: 'Meal Group Name ',
-      headerAlign: 'center',
-      align: 'center',
+      headerAlign: 'left',
+      align: 'left',
       renderHeader: () => (
         <Box display='flex' alignItems='center' justifyContent='start' gap={1}>
           <Typography
@@ -646,7 +688,7 @@ const MealGroup = () => {
       headerAlign: 'center',
       align: 'center',
       renderHeader: () => (
-        <Box display='flex' alignItems='center' justifyContent='start' gap={1}>
+        <Box display='flex' alignItems='center' justifyContent='start' gap={3}>
           <Typography
             variant='subtitle2'
             sx={{
@@ -678,8 +720,8 @@ const MealGroup = () => {
       )
     },
     {
-      flex: 0.2,
-      width: 20,
+      flex: 0.15,
+      width: 10,
       field: 'species_count',
       type: 'number',
       headerName: 'Species',
@@ -718,7 +760,7 @@ const MealGroup = () => {
       )
     },
     {
-      flex: 0.2,
+      flex: 0.15,
       width: 20,
       field: 'animal_count',
       headerName: 'Animals',
@@ -757,52 +799,74 @@ const MealGroup = () => {
       )
     },
     {
-      flex: 0.2,
-      width: 20,
-      field: 'actions', // Give a unique field name
+      flex: 0.35, // increased flex
+      minWidth: 200, // minimum width for small screens
+      field: 'actions',
       headerAlign: 'center',
       align: 'center',
-      renderHeader: () => <></>, // No header
-      renderCell: params => (
-        console.log('Params ', params),
-        (
-          <Box display='flex'>
-            <Button
-              sx={{ borderColor: '#37BD69 ', color: '#37BD69', borderRadius: '4px', mr: 2 }}
-              variant='outlined'
-              onClick={() => handleEnclosureEvent(params.row.id)}
+      renderHeader: () => (
+        <>
+          <Box display='flex' alignItems='center' justifyContent='start' gap={1}>
+            <Typography
+              variant='subtitle2'
+              sx={{
+                fontWeight: 600,
+                fontSize: '12px',
+                fontFamily: 'Inter',
+                color: '#44544A',
+                textTransform: 'uppercase'
+              }}
             >
-              Add Enclosure
-            </Button>
-            <IconButton
-              onClick={() => handleEdit(params.row)}
-              size='small'
-              sx={{ color: theme.palette.primary.light, mr: 3 }}
-            >
-              <Icon icon='mdi:pencil-outline' fontSize={24} />
-            </IconButton>
-            <IconButton
-              onClick={() => handleRemove(params.row.id)} // ✅ correc
-              size='small'
-              sx={{ color: theme.palette.primary.light, mr: 4 }}
-              t
-            >
-              <Icon icon='mdi:close' fontSize={24} />
-            </IconButton>
+              Actions
+            </Typography>
           </Box>
-        )
+        </>
+      ),
+      renderCell: params => (
+        <Box
+          display='flex'
+          // flexWrap='wrap' // allow wrapping on smaller screens
+          gap={1}
+          justifyContent='center'
+          width='100%'
+        >
+          <Button
+            sx={{
+              borderColor: '#37BD69',
+              color: '#37BD69',
+              borderRadius: '4px',
+              // minWidth: '120px',
+              height: '36px',
+              fontSize: '12px'
+            }}
+            variant='outlined'
+            onClick={() => handleEnclosureEvent(params.row.id)}
+          >
+            Add Enclosure
+          </Button>
+          <IconButton onClick={() => handleEdit(params.row)} size='small' sx={{ color: theme.palette.primary.light }}>
+            <Icon icon='mdi:pencil-outline' fontSize={20} />
+          </IconButton>
+          <IconButton
+            onClick={() => handleRemove(params.row.id)}
+            size='small'
+            sx={{ color: theme.palette.primary.light }}
+          >
+            <Icon icon='mdi:close' fontSize={20} />
+          </IconButton>
+        </Box>
       )
     }
   ]
 
   const columns = [
     {
-      flex: 0.2,
-      width: 150,
       field: 'user_enclosure_name',
       headerName: 'Enclosure Name',
       headerAlign: 'left',
       align: 'left',
+      flex: 1,
+      minWidth: 180,
       renderHeader: () => (
         <Box display='flex' alignItems='center' justifyContent='start' gap={1}>
           <Checkbox
@@ -826,20 +890,21 @@ const MealGroup = () => {
         </Box>
       ),
       renderCell: params => (
-        <Box sx={{ ml: 2 }} display='flex' alignItems='center' justifyContent='start' gap={1} width='100%'>
+        <Box sx={{ ml: 2 }} display='flex' alignItems='center' gap={1} width='100%'>
           <Checkbox
             size='small'
             checked={checkedRows.includes(params.row.enclosure_id)}
             onChange={e => handleCheckboxChange(e, params.row)}
           />
           <Typography
+            noWrap
             variant='body2'
             sx={{
               fontSize: '16px',
               fontFamily: 'Inter',
               fontWeight: 500,
               color: '#44544A',
-              whiteSpace: 'nowrap',
+              maxWidth: '100%',
               overflow: 'hidden',
               textOverflow: 'ellipsis'
             }}
@@ -849,14 +914,13 @@ const MealGroup = () => {
         </Box>
       )
     },
-
     {
-      flex: 0.2,
-      width: 20,
       field: 'section_name',
-      headerName: 'Section ',
-      headerAlign: 'center',
-      align: 'center',
+      headerName: 'Section',
+      headerAlign: 'left',
+      align: 'left',
+      flex: 0.5,
+      minWidth: 60,
       renderHeader: () => (
         <Box display='flex' alignItems='center' justifyContent='start' gap={1}>
           <Typography
@@ -866,6 +930,7 @@ const MealGroup = () => {
               fontSize: '12px',
               fontFamily: 'Inter',
               color: '#44544A',
+              transform: 'elipses',
               textTransform: 'uppercase'
             }}
           >
@@ -878,11 +943,13 @@ const MealGroup = () => {
           variant='body2'
           textAlign='center'
           sx={{
-            color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '16px',
             fontWeight: 400,
             color: '#44544A',
-            fontFamily: 'Inter'
+            fontFamily: 'Inter',
+            maxWidth: '100%',
+            overflow: 'hidden',
+            textOverflow: 'ellipsis'
           }}
         >
           {params.row.section_name}
@@ -890,13 +957,13 @@ const MealGroup = () => {
       )
     },
     {
-      flex: 0.2,
-      width: 20,
       field: 'species_count',
-      type: 'number',
       headerName: 'Species',
+      type: 'number',
       headerAlign: 'center',
       align: 'center',
+      flex: 0.4,
+      minWidth: 80,
       renderHeader: () => (
         <Box display='flex' alignItems='center' justifyContent='start' gap={1}>
           <Typography
@@ -909,7 +976,7 @@ const MealGroup = () => {
               textTransform: 'uppercase'
             }}
           >
-            SPECIES
+            Species
           </Typography>
         </Box>
       ),
@@ -917,25 +984,19 @@ const MealGroup = () => {
         <Typography
           variant='body2'
           textAlign='center'
-          sx={{
-            color: theme.palette.customColors.customHeadingTextColor,
-            fontSize: '16px',
-            color: '#44544A',
-            fontWeight: 400,
-            fontFamily: 'Inter'
-          }}
+          sx={{ fontSize: '16px', fontWeight: 400, color: '#44544A', fontFamily: 'Inter' }}
         >
           {params.row.species_count ?? 0}
         </Typography>
       )
     },
     {
-      flex: 0.2,
-      width: 20,
       field: 'animal_count',
       headerName: 'Animals',
       headerAlign: 'center',
       align: 'center',
+      flex: 0.4,
+      minWidth: 80,
       renderHeader: () => (
         <Box display='flex' alignItems='center' justifyContent='start' gap={1}>
           <Typography
@@ -956,25 +1017,19 @@ const MealGroup = () => {
         <Typography
           variant='body2'
           textAlign='center'
-          sx={{
-            color: theme.palette.customColors.customHeadingTextColor,
-            fontSize: '16px',
-            fontWeight: 400,
-            color: '#44544A',
-            fontFamily: 'Inter'
-          }}
+          sx={{ fontSize: '16px', fontWeight: 400, color: '#44544A', fontFamily: 'Inter' }}
         >
           {params.row.animal_count ?? 0}
         </Typography>
       )
     },
     {
-      flex: 0.2,
-      width: 20,
       field: 'group_name',
       headerName: 'Meal Group Name',
       headerAlign: 'center',
       align: 'center',
+      flex: 0.6,
+      minWidth: 150,
       renderHeader: () => (
         <Box display='flex' alignItems='center' justifyContent='start' gap={1}>
           <Typography
@@ -987,7 +1042,7 @@ const MealGroup = () => {
               textTransform: 'uppercase'
             }}
           >
-            MEAL Group Name
+            Meal Group Name
           </Typography>
         </Box>
       ),
@@ -996,32 +1051,14 @@ const MealGroup = () => {
           variant='body2'
           textAlign='center'
           sx={{
-            color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '14px',
             fontWeight: 500,
-            fontFamily: 'Inter'
+            fontFamily: 'Inter',
+            color: params.row.group_name ? '#44544A' : '#FA6140'
           }}
         >
-          {params.row.group_name ? (
-            params.row.group_name
-          ) : (
-            <Typography sx={{ fontSize: '16px', fontFamily: 'Inter', fontWeight: 500, color: '#FA6140' }}>
-              Not assigned
-            </Typography>
-          )}
+          {params.row.group_name || 'Not assigned'}
         </Typography>
-      )
-    },
-
-    {
-      flex: 0.2,
-      width: 20,
-      field: 'actions', // Give a unique field name
-      headerAlign: 'center',
-      align: 'center',
-      renderHeader: () => <></>, // No header
-      renderCell: params => (
-        <img src='/images/Vector.png' alt='action-icon' width={22} height={14} style={{ color: '#7A8684' }} />
       )
     }
   ]
@@ -1044,18 +1081,22 @@ const MealGroup = () => {
   console.log('Indexed >', indexedRows)
 
   const handleSiteChange = site => {
+    debugger
     if (!site) {
       setDefaultSite(null)
       setSelectedOption(null) // or pass null if your API handles it
     } else {
       setDefaultSite(site)
       setSelectedOption(site.site_id)
+      setEditItems([])
     }
   }
 
   const addEventSidebarOpen = () => {
     console.log('Edit >>', editParam)
     setEditParam({})
+    setEditItems([])
+    // setSelectedItems([])
     setOpenDrawer(true)
   }
 
@@ -1072,70 +1113,93 @@ const MealGroup = () => {
         </Typography>
       </Breadcrumbs>
       {/* Header Card */}
-      <Card sx={{ p: 3, boxShadow: 'none' }}>
+      <Card sx={{ p: { xs: 0, sm: 3 }, boxShadow: 'none' }}>
         <Box
           sx={{
             display: 'flex',
+            flexDirection: { xs: 'column', md: 'row' },
             justifyContent: 'space-between',
-            alignItems: 'center',
+            alignItems: { xs: 'stretch', md: 'center' },
             borderRadius: 2,
-            padding: 2,
+            p: { xs: 2, sm: 3 },
             gap: 2
           }}
         >
-          <Box>
-            <Box sx={{ display: 'flex' }}>
-              <Box>
-                <Typography
-                  variant='body1'
-                  sx={{ fontWeight: 500, mt: 2, fontSize: '24px', fontFamily: 'Inter', color: '#44544A' }}
-                >
-                  Meal group for the site -
-                </Typography>
-              </Box>
-              <Box sx={{ ml: 4 }}>
-                <Autocomplete
-                  sx={{
-                    width: '276px',
-                    height: '50px',
-                    borderRadius: '8px',
-                    mt: 0,
-                    '& .MuiInputBase-input': {
-                      color: '#fff' // White text inside the input
-                    },
-                    '& .MuiAutocomplete-listbox': {
-                      color: '#fff' // White text in dropdown options
-                    }
-                  }}
-                  name='site_id'
-                  value={defaultSite}
-                  disablePortal
-                  id='site_id'
-                  options={authData?.userData?.user?.zoos?.[0]?.sites || []}
-                  getOptionLabel={option => option?.site_name || ''}
-                  isOptionEqualToValue={(option, value) => option?.site_id === value?.site_id}
-                  onChange={(e, val) => handleSiteChange(val)}
-                  renderInput={params => (
-                    <TextField
-                      {...params}
-                      label='' // Remove label at the top
-                      placeholder='Search & Select'
-                      sx={{
-                        backgroundColor: '#59b66f',
-                        borderRadius: '8px',
-                        '& .MuiInputBase-input': {
-                          color: '#fff' // White text in input
-                        }
-                      }}
-                      InputLabelProps={{ shrink: false }} // Prevent label from floating
-                    />
-                  )}
-                />
-              </Box>
+          {/* Left side: Title + Autocomplete */}
+          <Box sx={{ width: '100%' }}>
+            <Box
+              sx={{
+                display: 'flex',
+                flexDirection: { xs: 'column', sm: 'row' },
+                alignItems: { xs: 'stretch', sm: 'center' },
+                gap: { xs: 2, sm: 4 }
+              }}
+            >
+              <Typography
+                variant='body1'
+                sx={{
+                  fontWeight: 500,
+                  fontSize: { xs: '18px', sm: '20px', md: '24px' },
+                  fontFamily: 'Inter',
+                  color: '#44544A'
+                }}
+              >
+                Meal group for the site -
+              </Typography>
+
+              <Autocomplete
+                sx={{
+                  width: '100%',
+                  maxWidth: { sm: '276px' },
+                  borderRadius: '8px',
+                  '& .MuiInputBase-input': {
+                    color: '#fff'
+                  },
+                  '& .MuiAutocomplete-listbox': {
+                    color: '#fff'
+                  }
+                }}
+                name='site_id'
+                value={defaultSite}
+                disablePortal
+                id='site_id'
+                options={authData?.userData?.user?.zoos?.[0]?.sites || []}
+                getOptionLabel={option => option?.site_name || ''}
+                isOptionEqualToValue={(option, value) => option?.site_id === value?.site_id}
+                onChange={(e, val) => handleSiteChange(val)}
+                renderInput={params => (
+                  <TextField
+                    {...params}
+                    placeholder='Search & Select'
+                    sx={{
+                      backgroundColor: '#59b66f',
+                      borderRadius: '8px',
+                      '& .MuiInputBase-input': {
+                        color: '#fff'
+                      }
+                    }}
+                    InputLabelProps={{ shrink: false }}
+                  />
+                )}
+              />
             </Box>
           </Box>
 
-          <Box sx={{ display: 'flex', justifyContent: 'flex-end', gap: 3 }}>
+          {/* Right side: Stats */}
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: 'row',
+              justifyContent: { md: 'flex-end' },
+              px: 2,
+              py: 1,
+              alignItems: 'center',
+              gap: 2,
+              flexWrap: { sm: 'nowrap' },
+              width: { xs: '100%', md: 'auto' },
+              mt: { xs: 2, md: 0 }
+            }}
+          >
             <StatCard value={siteStats?.total_enclosures} label='Enclosures' bgColor='#EFF5F2' />
             <StatCard value={siteStats?.total_species} label='Species' bgColor='#E1F9ED' />
             <StatCard value={siteStats?.total_animals} label='Animals' bgColor='#FFBDA84D' textColor='#FA6140' />
@@ -1144,32 +1208,33 @@ const MealGroup = () => {
       </Card>
 
       {/* Main Card */}
-      <Card sx={{ mt: 5, p: 4, boxShadow: 'none' }}>
+      <Card sx={{ mt: 5, p: { xs: 2, md: 4 }, boxShadow: 'none' }}>
         <Grid>
           <TabContext value={status}>
             <Box>
-              <TabList onChange={handleChange}>
+              <TabList onChange={handleChange} variant='scrollable' scrollButtons='auto'>
                 <Tab
                   value='unmapped'
                   label={<TabBadge label={`Enclosures not mapped - ${siteStats?.unmapped_enclosures}`} />}
                 />
-                <Tab value='mapped' label={<TabBadge label={`Enclosures mapped -${siteStats?.mapped_enclosures}`} />} />
-                <Tab value='' label={<TabBadge label={`Meal group -${siteStats?.meal_groups_count}`} />} />
+                <Tab
+                  value='mapped'
+                  label={<TabBadge label={`Enclosures mapped - ${siteStats?.mapped_enclosures}`} />}
+                />
+                <Tab value='' label={<TabBadge label={`Meal group - ${siteStats?.meal_groups_count}`} />} />
               </TabList>
 
-              {/* Divider only below TabList, not full width */}
+              {/* Divider only below TabList, responsive width */}
               <Divider
                 sx={{
-                  width: '680px', // Or fixed width like '300px'
+                  width: { xs: '100%', sm: '610px' },
                   borderBottomWidth: '3px',
                   mt: -0.5,
-                  // marginTop: '1px',
-                  ml: 1 // Optional: aligns with tabs
+                  ml: 1
                 }}
               />
             </Box>
 
-            {/* Uncomment if needed */}
             <TabPanel value='unmapped'>{''}</TabPanel>
             <TabPanel value='mapped'>{''}</TabPanel>
             <TabPanel value=''>{''}</TabPanel>
@@ -1181,11 +1246,12 @@ const MealGroup = () => {
             sx={{
               mt: 4,
               display: 'flex',
-              gap: 4,
+              gap: 2,
               padding: 2,
               borderRadius: 2,
               alignItems: 'center',
-              flexWrap: 'wrap'
+              flexWrap: 'wrap',
+              justifyContent: { xs: 'space-between', sm: 'flex-start' }
             }}
           >
             {/* Search Input */}
@@ -1203,26 +1269,30 @@ const MealGroup = () => {
                 )
               }}
               sx={{
-                width: '445px',
+                flexGrow: 1,
+                minWidth: { xs: '100%', sm: '200px', md: '300px' },
                 height: '40px',
                 backgroundColor: 'white'
               }}
             />
-            {/* Dropdowns */}
 
+            {/* Section Dropdown */}
             <Select
               value={selectedSection}
               onChange={handleSectionChange}
               displayEmpty
               renderValue={selected => {
-                if (selected === 'all') {
-                  return <Typography>All Sections</Typography>
-                }
+                if (selected === 'all') return <Typography>All Sections</Typography>
                 const selectedItem = sectionList.find(item => item.section_id === selected)
                 return selectedItem?.section_name || ''
               }}
               size='small'
-              sx={{ backgroundColor: 'white', width: '280px', borderRadius: '4px' }}
+              sx={{
+                flexGrow: 1,
+                minWidth: { xs: '100%', sm: '200px', md: '240px' },
+                backgroundColor: 'white',
+                borderRadius: '4px'
+              }}
             >
               <MenuItem value='all'>
                 <Typography>All Sections</Typography>
@@ -1234,55 +1304,51 @@ const MealGroup = () => {
               ))}
             </Select>
 
+            {/* Species Dropdown */}
             <Select
               value={selectedSpecies}
               onChange={handleSpeciesChange}
               displayEmpty
               renderValue={selected => {
-                if (selected === 'all') {
-                  return <Typography>All Species</Typography>
-                }
+                if (selected === 'all') return <Typography>All Species</Typography>
                 const selectedItem = speciesList.find(item => item.species_id === selected)
-                return `${selectedItem.common_name}(${selectedItem.scientific_name})` || ''
+                return `${selectedItem?.common_name} (${selectedItem?.scientific_name})` || ''
               }}
               size='small'
-              sx={{ backgroundColor: 'white', width: '280px', borderRadius: '4px' }}
+              sx={{
+                flexGrow: 1,
+                minWidth: { xs: '100%', sm: '200px', md: '240px' },
+                backgroundColor: 'white',
+                borderRadius: '4px'
+              }}
             >
               <MenuItem value='all'>
                 <Typography>All Species</Typography>
               </MenuItem>
               {speciesList.map(item => (
                 <MenuItem key={item.species_id} value={item.species_id}>
-                  {`${item.common_name}(${item.scientific_name})`}
+                  {`${item.common_name} (${item.scientific_name})`}
                 </MenuItem>
               ))}
             </Select>
-            {/* 
-            <Select
-              value={''}
-              onChange={''}
-              displayEmpty
-              size='small'
-              sx={{ backgroundColor: 'white', minWidth: '280px', borderRadius: '4px' }}
-            >
-              <MenuItem value=''>All Meal groups</MenuItem>
-              <MenuItem value='R & R'>R & R</MenuItem>
-              <MenuItem value='Herbivores'>Herbivores</MenuItem>
-            </Select> */}
 
+            {/* Meal Group Dropdown */}
             <Select
               value={selectedGroup}
               onChange={handleGroupChange}
               displayEmpty
               renderValue={selected => {
-                if (selected === 'all') {
-                  return <Typography>All Meal groups</Typography>
-                }
+                if (selected === 'all') return <Typography>All Meal groups</Typography>
                 const selectedItem = groupList.find(item => item.id === selected)
                 return selectedItem?.group_name || ''
               }}
               size='small'
-              sx={{ backgroundColor: 'white', width: '280px', borderRadius: '4px' }}
+              sx={{
+                flexGrow: 1,
+                minWidth: { xs: '70%', sm: '20px', md: '20px' },
+                backgroundColor: 'white',
+                borderRadius: '4px'
+              }}
             >
               <MenuItem value='all'>
                 <Typography>All Meal groups</Typography>
@@ -1296,24 +1362,20 @@ const MealGroup = () => {
           </Box>
         )}
 
-        {status === '' ? (
-          <Grid
-            sx={{
-              mx: { xs: 3, md: 2 }
-              // mt: { xs:3 }
-            }}
-          >
-            <CommonTable
-              onRowClick={''}
-              indexedRows={GroupindexedRows}
-              total={total}
-              handleSortModel={''}
-              columns={groupcolumns}
-              paginationModel={paginationModel}
-              setPaginationModel={setPaginationModel}
-              loading={loading}
-              searchValue={''}
-            />
+        <Grid sx={{ mx: { xs: 1, sm: 3, md: 2, overflowX: 'auto' } }}>
+          <CommonTable
+            onRowClick={''}
+            indexedRows={status === '' ? GroupindexedRows : indexedRows}
+            total={total}
+            handleSortModel={''}
+            columns={status === '' ? groupcolumns : columns}
+            paginationModel={paginationModel}
+            setPaginationModel={setPaginationModel}
+            loading={loading}
+            searchValue={''}
+          />
+
+          {status === '' && (
             <Dialog open={openDeleteDialog} onClose={handleCloseDialog}>
               <DialogTitle>Confirm Deletion</DialogTitle>
               <DialogContent>Are you sure you want to delete this group?</DialogContent>
@@ -1326,96 +1388,85 @@ const MealGroup = () => {
                 </Button>
               </DialogActions>
             </Dialog>
-          </Grid>
-        ) : (
-          <Grid
-            sx={{
-              mx: { xs: 3, md: 2 }
-              // mt: { xs:3 }
-            }}
-          >
-            <CommonTable
-              onRowClick={''}
-              indexedRows={indexedRows}
-              total={total}
-              handleSortModel={''}
-              columns={columns}
-              paginationModel={paginationModel}
-              setPaginationModel={setPaginationModel}
-              loading={loading}
-              searchValue={''}
-            />
-          </Grid>
-        )}
+          )}
+        </Grid>
       </Card>
 
       {/* Footer Card */}
+      {status !== '' && (
+        <Box
+          sx={{
+            // position: 'fixed',
+            mt: 3,
+            bottom: 0,
+            width: '100%',
+            maxWidth: '1393px', // Max width for large screens
+            borderRadius: '4px',
+            backgroundColor: 'white',
+            zIndex: 900, // stays above most content
+            p: { xs: 2, sm: 4 }, // Add padding for responsiveness
+            boxSizing: 'border-box'
+          }}
+        >
+          <Box display='flex' justifyContent='space-between' alignItems='center' mx='auto' flexWrap='wrap'>
+            {checkedRows?.length > 0 ? <FooterCard count={checkedRows.length} /> : <Box />}
 
-      <Box
-        sx={{
-          position: 'fixed',
-          bottom: 0,
-          width: '1393px',
-          borderRadius: '4px',
-          backgroundColor: 'white',
-          zIndex: 900, // stays above most content
-          p: 4
-        }}
-      >
-        <Box display='flex' justifyContent='space-between' alignItems='center' mx='auto'>
-          <FooterCard count={checkedRows.length} />
+            <Box display='flex' gap={3} sx={{ mr: 2, justifyContent: { xs: 'center', sm: 'flex-end' } }}>
+              <Button
+                disabled={checkedRows?.length <= 0}
+                onClick={() => setCheckedRows([])}
+                sx={{
+                  width: { xs: '100%', sm: '160px' },
+                  height: '56px',
+                  borderRadius: '4px',
+                  color: '#44544A', // Text color
+                  borderColor: '#839D8D', // Outline border color
+                  '&:hover': {
+                    borderColor: '#839D8D', // Maintain border color on hover
+                    backgroundColor: 'transparent' // Optional: keep hover bg clean
+                  }
+                }}
+                variant='outlined'
+              >
+                Cancel
+              </Button>
+              <Button
+                disabled={checkedRows?.length <= 0}
+                onClick={status === 'mapped' ? removeEnclosure : addEnclosure}
+                sx={{
+                  width: { xs: '100%', sm: status === 'mapped' ? '220px' : '160px' },
+                  borderRadius: '4px',
+                  height: '56px',
+                  color: '#37BD69', // Text color
+                  borderColor: '#37BD69' // Outline border color
+                }}
+                variant='outlined'
+              >
+                {status === 'mapped' ? 'Remove From Group' : 'Add to Group'}
+              </Button>
 
-          <Box display='flex' gap={3} sx={{ mr: 2 }}>
-            <Button
-              disabled={checkedRows?.length <= 0}
-              sx={{
-                width: '160px',
-                height: '56px',
-                borderRadius: '4px',
-                color: '#44544A', // Text color
-                borderColor: '#839D8D', // Outline border color
-                '&:hover': {
-                  borderColor: '#839D8D', // Maintain border color on hover
-                  backgroundColor: 'transparent' // Optional: keep hover bg clean
-                }
-              }}
-              variant='outlined'
-            >
-              Cancel
-            </Button>
-            <Button
-              disabled={checkedRows?.length <= 0}
-              sx={{
-                width: status === 'mapped' ? '220px' : '170px',
-                borderRadius: '4px',
-                height: '56px',
-                color: '#37BD69', // Text color
-                borderColor: '#37BD69' // Outline border color
-              }}
-              variant='outlined'
-            >
-              {status === 'mapped' ? 'Remove From Group' : 'Add to Group'}
-            </Button>
-            <Button
-              disabled={checkedRows?.length <= 0}
-              onClick={() => addEventSidebarOpen()}
-              variant='contained'
-              // disabled={!checkedRows.length > 0}
-              sx={{
-                backgroundColor: '#37BD69',
-                borderRadius: '4px',
-                width: '160px',
-                height: '56px',
-                '&:hover': {
-                  borderColor: '#37BD69' // Maintain border color on hover
-                }
-              }}
-            >
-              {status === 'mapped' ? 'Add to Group' : 'Create New'}
-            </Button>
+              {status === 'unmapped' && (
+                <Button
+                  disabled={checkedRows?.length <= 0}
+                  onClick={addEventSidebarOpen}
+                  variant='contained'
+                  sx={{
+                    backgroundColor: '#37BD69',
+                    borderRadius: '4px',
+                    width: { xs: '100%', sm: '160px' },
+                    height: '56px',
+                    '&:hover': {
+                      borderColor: '#37BD69' // Maintain border color on hover
+                    }
+                  }}
+                >
+                  Create New
+                </Button>
+              )}
+            </Box>
           </Box>
         </Box>
-      </Box>
+      )}
 
       {openDrawer && (
         <CreateMealGroup
@@ -1430,18 +1481,31 @@ const MealGroup = () => {
           editeditems={editeditems}
           fetchEnclosure={fetchEnclosure}
           siteStats={siteStats}
+          setStatus={setStatus}
+          searchValue={searchValue}
+          groupId={groupId}
+          mealId={mealId}
+          handleEditSearch={handleEditSearch}
         />
       )}
       {enclosureDrawer && (
         <CreateEnclosure
           enclosureDrawer={enclosureDrawer}
-          selectedItems={selectedItems}
           setSelectedItems={setSelectedItems}
+          selectedItems={selectedItems}
           setEnclosureDrawer={setEnclosureDrawer}
           selectedOption={selectedOption}
           groupId={groupId}
+          setGroupId={setGroupId}
           loader={Loader}
+          selectedForDrawer={selectedForDrawer}
           fetchEnclosure={fetchEnclosure}
+          checkedRows={checkedRows}
+          setCheckedRows={setCheckedRows}
+          fetchSiteStats={fetchSiteStats}
+          setEditItems={setEditItems}
+          editSearchValue={editSearchValue}
+          handleEnclosureSearch={handleEnclosureSearch}
         />
       )}
     </React.Fragment>

@@ -13,9 +13,10 @@ import {
 import { useTheme } from '@emotion/react'
 import Icon from 'src/@core/components/icon'
 import { LoadingButton } from '@mui/lab'
-import { useEffect, useRef, useState } from 'react'
-import { createMealGroup, updateMealGroup } from 'src/lib/api/diet/mealgroup'
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { createMealGroup, getEnclosureListByGroup, updateMealGroup } from 'src/lib/api/diet/mealgroup'
 import toast from 'react-hot-toast'
+import { debounce } from 'lodash'
 
 const CreateMealGroup = ({
   openDrawer,
@@ -28,13 +29,18 @@ const CreateMealGroup = ({
   editParam,
   editeditems,
   fetchEnclosure,
-  siteStats
+  siteStats,
+  setStatus,
+  editSearchValue,
+  groupId,
+  mealId,
+  handleEditSearch
 }) => {
-  console.log('editeditems >', editeditems)
+  console.log('editeditems >', editeditems, selectedItems)
 
   const [groupName, setGroupName] = useState(editParam?.group_name || '')
   const [groupNameError, setGroupNameError] = useState(false)
-  const [searchValue, setSearchValue] = useState('')
+  const [searchTerm, setSearchTerm] = useState('')
 
   const handleRemove = index => {
     const itemToRemove = selectedItems[index] // Get the item being removed
@@ -70,6 +76,7 @@ const CreateMealGroup = ({
       if (response) {
         handleCloseSideBar()
         toast.success('Meal Group created Successfully')
+        setStatus('')
       } else {
         toast.error('Something went wrong')
       }
@@ -77,6 +84,31 @@ const CreateMealGroup = ({
       toast.error('Server error. Please try again.')
       console.error('Create Meal Group Error:', error)
     }
+  }
+
+  const debouncedSearch = useCallback(
+    debounce(async q => {
+      setSearchTerm(q)
+      try {
+        const res = await getEnclosureListByGroup({
+          q,
+          type: 'unmapped',
+          site_id: selectedOption // ✅ this will now be up-to-date
+        })
+
+        if (res) {
+          setSelectedItems(res?.data?.result)
+        }
+      } catch (err) {
+        console.log(err)
+      }
+    }, 1000),
+    [selectedOption] // ✅ track the selected site
+  )
+
+  const handleCreateSearch = value => {
+    setSearchTerm(value)
+    debouncedSearch(value)
   }
 
   const handleUpdateGroup = async () => {
@@ -109,7 +141,6 @@ const CreateMealGroup = ({
   }
 
   const handleEnclosureRemove = async index => {
-    debugger
     console.log('index >', index)
     const selectedObj = editeditems[index]
     console.log('selected obj>', selectedObj)
@@ -135,11 +166,6 @@ const CreateMealGroup = ({
     }
   }
 
-  const handleSearch = (e)=>{
-     setSearchValue(e.target.value)
-     
-  }
-
   const theme = useTheme()
 
   const RenderSidebarFooter = () => {
@@ -148,7 +174,7 @@ const CreateMealGroup = ({
         sx={{
           position: 'relative',
           right: 0,
-          height: '122px',
+          height: '80px',
           width: '100%',
           maxWidth: '562px',
           position: 'fixed',
@@ -193,7 +219,23 @@ const CreateMealGroup = ({
           gap: '24px'
         }}
       >
-        <Box sx={{ position: 'fixed', top: 0, bgcolor: theme.palette.customColors.bodyBg, zIndex: 10, width: '562px' }}>
+        <Box
+          sx={{
+            position: 'fixed',
+            top: 0,
+            bgcolor: theme.palette.customColors.bodyBg,
+            zIndex: 10,
+
+            width: {
+              xs: '100%', // full width on small screens
+              sm: '74%',
+              md: '500px',
+              lg: '562px'
+            },
+            maxHeight: '100vh'
+            // overflow: 'auto'
+          }}
+        >
           <Box
             className='sidebar-header'
             sx={{
@@ -235,16 +277,24 @@ const CreateMealGroup = ({
           <Box>
             <Card
               sx={{
-                p: 5,
-                width: '514px',
-                height: Object.keys(editParam).length > 0 ? '130px' : '190px',
+                p: { xs: 2, sm: 5 },
+                width: { xs: '95vw', sm: '514px', md: '524px' },
+                height: Object.keys(editParam).length > 0 ? 'auto' : { xs: 'auto', sm: '190px' },
                 boxShadow: 'none',
-                m: 3,
+                m: { xs: 6, sm: 3, md: 5 },
                 mt: 2,
-                ml: 6
+                ml: { xs: 2, sm: 6 }
               }}
             >
-              <Typography sx={{ fontWeight: 500, color: '#44544A', mb: 1, fontSize: '20px', fontFamily: 'Inter' }}>
+              <Typography
+                sx={{
+                  fontWeight: 500,
+                  color: '#44544A',
+                  mb: 1,
+                  fontSize: '20px',
+                  fontFamily: 'Inter'
+                }}
+              >
                 Enter group name
               </Typography>
 
@@ -258,7 +308,7 @@ const CreateMealGroup = ({
                   helperText={groupNameError ? 'Group name is required' : ''}
                   onChange={e => {
                     setGroupName(e.target.value)
-                    setGroupNameError(false) // clear error on typing
+                    setGroupNameError(false)
                   }}
                   sx={{
                     mb: 2,
@@ -277,13 +327,15 @@ const CreateMealGroup = ({
                 <Box
                   sx={{
                     display: 'flex',
-                    width: '474px',
-                    height: '44px',
+                    flexWrap: 'wrap',
+                    width: '100%',
                     borderRadius: '8px',
                     justifyContent: 'space-between',
                     backgroundColor: '#E1F9ED',
                     mt: groupNameError ? 1 : 2,
-                    p: 3
+                    px: 2,
+                    py: 1.5,
+                    gap: 2
                   }}
                 >
                   <Typography>
@@ -300,13 +352,14 @@ const CreateMealGroup = ({
                       Enclosures
                     </Box>
                   </Typography>
+
                   <Typography>
                     <Box
                       component='span'
-                      sx={{ fontWeight: 600, fontSize: '16px', fontFamily: 'Inter', color: '#44544A' }}
+                      sx={{ fontWeight: 600, fontSize: '16px', fontFamily: 'Inter', mr: 1, color: '#44544A' }}
                     >
                       {siteStats?.total_species}
-                    </Box>{' '}
+                    </Box>
                     <Box
                       component='span'
                       sx={{ fontWeight: 500, fontSize: '14px', fontFamily: 'Inter', color: '#44544A' }}
@@ -314,13 +367,14 @@ const CreateMealGroup = ({
                       Species
                     </Box>
                   </Typography>
+
                   <Typography>
                     <Box
                       component='span'
-                      sx={{ fontWeight: 600, fontSize: '16px', fontFamily: 'Inter', color: '#44544A' }}
+                      sx={{ fontWeight: 600, fontSize: '16px', fontFamily: 'Inter', mr: 1, color: '#44544A' }}
                     >
                       {siteStats?.total_animals}
-                    </Box>{' '}
+                    </Box>
                     <Box
                       component='span'
                       sx={{ fontWeight: 500, fontSize: '14px', fontFamily: 'Inter', color: '#44544A' }}
@@ -333,17 +387,23 @@ const CreateMealGroup = ({
             </Card>
           </Box>
           <Box sx={{ p: 3, backgroundColor: '#EEF5F1', borderRadius: '8px' }}>
-            <Typography sx={{ fontFamily: 'Inter', fontSize: '20px', fontWeight: 500, color: '#44544A', ml: 3 }}>
+            <Typography sx={{ fontFamily: 'Inter', fontSize: '20px', fontWeight: 500, color: '#44544A', ml: 2 }}>
               Selected enclosures
             </Typography>
 
-            <Box display='flex' gap={1} mt={2}>
+            <Box display='flex' gap={1} mt={2} flexDirection={{ xs: 'column', sm: 'row' }}>
               <TextField
                 placeholder='Search...'
-                value={searchValue}
+                value={editeditems.length > 0 ? editSearchValue : searchTerm}
                 variant='outlined'
                 size='small'
-                onChange={e => handleSearch(e.target.value)}
+                onChange={e => {
+                  if (editeditems.length > 0) {
+                    handleEditSearch(e.target.value, mealId)
+                  } else {
+                    handleCreateSearch(e.target.value)
+                  }
+                }}
                 InputProps={{
                   startAdornment: (
                     <InputAdornment position='start'>
@@ -353,134 +413,107 @@ const CreateMealGroup = ({
                   sx: {
                     backgroundColor: 'white',
                     borderRadius: '8px',
-                    ml: 2,
-                    width: '520px',
+                    m: { md: 5 },
+                    mt: { md: 0 },
+                    ml: { xs: 0, sm: 2, md: 1 },
+                    width: { xs: '100%', sm: '520px', md: '524px' },
                     height: '48px',
-                    input: { color: '#839D8D', padding: '10px 0' }
+                    input: {
+                      color: '#839D8D',
+                      padding: '10px 0'
+                    }
                   }
                 }}
               />
             </Box>
+
             <Card
               sx={{
-                p: 5,
-                mt: 4,
-                width: '520px',
-                height: '700px',
-                ml: 2,
+                p: { xs: 2, sm: 5 },
+                // mt: 4,
+                width: { xs: '93vw', sm: '514px', md: '524px' },
+                height: '400px',
+                // ml: 2,
+                m: { xs: 2, sm: 3, md: 2 },
+                mt: { xs: 3, sm: 4, md: 0 },
+                ml: { xs: 0, sm: 2.5, md: 1 },
+                // mr:{xs:3},
                 boxShadow: 'none',
                 display: 'flex',
                 flexDirection: 'column',
-                justifyContent: 'flex-start' // 👈 brings children to the top
+                justifyContent: 'flex-start'
               }}
             >
+              {/* Make this Box scrollable */}
               <Box
                 sx={{
                   display: 'flex',
                   flexDirection: 'column',
-                  gap: 4 // 👈 adds space between the inner cards
+                  gap: 3,
+                  overflowY: 'auto',
+                  overflowX: 'hidden',
+                  pr: 1, // Optional: adds some padding to the right to prevent content cutoff
+                  height: '400px' // Makes sure the Box respects the Card height
                 }}
               >
-                {Object.keys(editParam).length > 0
-                  ? // Render edited items here
-                    editeditems.map((item, index) => (
-                      <Card
-                        key={index}
-                        sx={{
-                          p: 5,
-                          width: '482px',
-                          height: '80px',
-                          backgroundColor: '#E8F3EE',
-                          borderRadius: '12px',
-                          display: 'flex',
-                          boxShadow: 'none',
-                          justifyContent: 'space-between',
-                          alignItems: 'center'
-                        }}
-                      >
-                        <Box>
-                          <Typography sx={{ fontWeight: 500, fontSize: '16px', fontFamily: 'Inter', color: '#44544A' }}>
-                            {item.user_enclosure_name}
-                          </Typography>
-                          <Typography sx={{ fontWeight: 400, fontSize: '14px', fontFamily: 'Inter', color: '#44544A' }}>
-                            {item.section_name}
-                          </Typography>
-                        </Box>
+                {(Object.keys(editParam).length > 0 ? editeditems : selectedItems).map((item, index) => (
+                  <Card
+                    key={index}
+                    sx={{
+                      p: 5,
+                      width: { xs: '90vw', sm: '475px', md: '485px' },
+                      // width: '482px',
+                      height: '80px',
+                      m: { xs: 0, sm: 0, md: 0 },
+                      mt: { xs: 2, sm: 2, md: 0 },
+                      ml: { xs: 0, sm: 0, md: 0 },
+                      backgroundColor: '#E8F3EE',
 
-                        <Box
-                          sx={{
-                            display: 'flex',
-                            flexDirection: 'column',
-                            width: '100px',
-                            alignItems: 'flex-start',
-                            ml: 'auto'
-                          }}
-                        >
-                          <Typography sx={{ fontFamily: 'Inter', fontSize: '14px', fontWeight: 400, color: '#44544A' }}>
-                            Species : {item.species_count}
-                          </Typography>
-                          <Typography sx={{ fontFamily: 'Inter', fontSize: '14px', fontWeight: 400, color: '#44544A' }}>
-                            Animals : {item.animal_count}
-                          </Typography>
-                        </Box>
+                      borderRadius: '16px',
+                      display: 'flex',
+                      boxShadow: 'none',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      flexShrink: 0 // Prevents child cards from shrinking when scrolling
+                    }}
+                  >
+                    <Box>
+                      <Typography sx={{ fontWeight: 500, fontSize: '16px', fontFamily: 'Inter', color: '#44544A' }}>
+                        {item.user_enclosure_name}
+                      </Typography>
+                      <Typography sx={{ fontWeight: 400, fontSize: '14px', fontFamily: 'Inter', color: '#44544A' }}>
+                        {item.section_name}
+                      </Typography>
+                    </Box>
 
-                        <IconButton
-                          size='medium'
-                          sx={{ color: 'text.primary' }}
-                          onClick={() =>
-                            Object.keys(editParam).length > 0 ? handleEnclosureRemove(index) : handleRemove(index)
-                          }
-                        >
-                          <Icon icon='mdi:close' fontSize={30} />
-                        </IconButton>
-                      </Card>
-                    ))
-                  : selectedItems.map((item, index) => (
-                      <Card
-                        key={index}
-                        sx={{
-                          p: 5,
-                          width: '482px',
-                          height: '80px',
-                          backgroundColor: '#E8F3EE',
-                          borderRadius: '12px',
-                          display: 'flex',
-                          boxShadow: 'none',
-                          justifyContent: 'space-between',
-                          alignItems: 'center'
-                        }}
-                      >
-                        <Box>
-                          <Typography sx={{ fontWeight: 500, fontSize: '16px', fontFamily: 'Inter', color: '#44544A' }}>
-                            {item.user_enclosure_name}
-                          </Typography>
-                          <Typography sx={{ fontWeight: 400, fontSize: '14px', fontFamily: 'Inter', color: '#44544A' }}>
-                            {item.section_name}
-                          </Typography>
-                        </Box>
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        flexDirection: 'column',
+                        width: '100px',
+                        alignItems: 'flex-start',
+                        ml: 'auto'
+                      }}
+                    >
+                      <Typography sx={{ fontFamily: 'Inter', fontSize: '14px', fontWeight: 400, color: '#44544A' }}>
+                        Species : {item.species_count}
+                      </Typography>
+                      <Typography sx={{ fontFamily: 'Inter', fontSize: '14px', fontWeight: 400, color: '#44544A' }}>
+                        Animals : {item.animal_count}
+                      </Typography>
+                    </Box>
 
-                        <Box
-                          sx={{
-                            display: 'flex',
-                            flexDirection: 'column',
-                            width: '100px',
-                            alignItems: 'flex-start',
-                            ml: 'auto'
-                          }}
-                        >
-                          <Typography sx={{ fontFamily: 'Inter', fontSize: '14px', fontWeight: 400, color: '#44544A' }}>
-                            Species : {item.species_count}
-                          </Typography>
-                          <Typography sx={{ fontFamily: 'Inter', fontSize: '14px', fontWeight: 400, color: '#44544A' }}>
-                            Animals : {item.animal_count}
-                          </Typography>
-                        </Box>
-
-                        <IconButton size='medium' sx={{ color: 'text.primary' }} onClick={() => handleRemove(index)}>
-                          <Icon icon='mdi:close' fontSize={30} />
-                        </IconButton>
-                      </Card>
-                    ))}
+                    <IconButton
+                      size='medium'
+                      sx={{ color: 'text.primary' }}
+                      onClick={() =>
+                        Object.keys(editParam).length > 0 ? handleEnclosureRemove(index) : handleRemove(index)
+                      }
+                    >
+                      <Icon icon='mdi:close' fontSize={24} />
+                    </IconButton>
+                  </Card>
+                ))}
               </Box>
             </Card>
           </Box>

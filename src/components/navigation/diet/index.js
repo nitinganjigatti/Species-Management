@@ -53,7 +53,7 @@ const composeDietNavigation = () => {
   }
 
   const settingsParent = {
-    title: 'Setting',
+    title: 'Settings',
     path: '/diet/settings',
     icon: 'uil:setting',
     children: []
