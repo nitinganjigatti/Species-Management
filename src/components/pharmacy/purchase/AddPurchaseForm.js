@@ -200,6 +200,7 @@ const AddPurchaseForm = () => {
   const [isError, setIsError] = useState(false)
   const [invoiceUploadDialog, setInvoiceUploadDialog] = useState(false)
   const [showAmount, setShowAmount] = useState(false)
+  const [invoiceSubmitLoader, setInvoiceSubmitLoader] = useState(false)
 
   const schema = yup.object().shape({
     // product: yup.string().required('Product name is required'),
@@ -2945,9 +2946,10 @@ const AddPurchaseForm = () => {
         />
       )}
       <CommonDialogBox
+        loader={invoiceSubmitLoader}
         dialogWithMaxWidth={true}
         title={
-          <Box
+          <Typography
             sx={{
               fontWeight: 500,
               fontSize: '20px',
@@ -2963,7 +2965,7 @@ const AddPurchaseForm = () => {
             }}
           >
             Attach Invoice
-          </Box>
+          </Typography>
         }
         dialogBoxStatus={invoiceUploadDialog}
         formComponent={
@@ -2974,6 +2976,8 @@ const AddPurchaseForm = () => {
               setInvoiceUploadDialog(false)
             }}
             handleInputImageChange={handleInputImageChange}
+            invoiceSubmitLoader={invoiceSubmitLoader}
+            setInvoiceSubmitLoader={setInvoiceSubmitLoader}
           />
         }
         close={() => {
