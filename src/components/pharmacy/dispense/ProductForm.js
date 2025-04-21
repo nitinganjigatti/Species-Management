@@ -881,7 +881,7 @@ function ProductForm({
         {!editMode ? (
           <FormGroup sx={{ bgcolor: '#0000000D', padding: 2, borderRadius: 1 }}>
             {fields.map((field, index) => (
-              <Grid container gap={3} key={field?.id} sx={{ mb: 2, mt: 2 }}>
+              <Grid container spacing={2} key={field?.id} sx={{ mb: 2, mt: 2 }}>
                 <Grid item xs={12} sm={3}>
                   <FormControl fullWidth>
                     <Controller
@@ -1061,10 +1061,11 @@ function ProductForm({
 
                 <Grid
                   item
-                  xs={2.46}
+                  xs={12}
+                  sm={3}
                   sx={{
                     display: 'flex',
-                    justifyContent: 'flex-end',
+                    justifyContent: { xs: 'flex-start', sm: 'flex-end' },
                     alignItems: 'center'
                   }}
                 >
@@ -1074,7 +1075,13 @@ function ProductForm({
             ))}
           </FormGroup>
         ) : (
-          <Grid container mb={3} rowSpacing={4} columnSpacing={2}>
+          <Grid
+            container
+            mb={3}
+            rowSpacing={4}
+            columnSpacing={2}
+            sx={{ bgcolor: '#0000000D', padding: 2, pl: 0, borderRadius: 1 }}
+          >
             <Grid item xs={12} sm={4} md={4}>
               <FormControl fullWidth>
                 <Controller
