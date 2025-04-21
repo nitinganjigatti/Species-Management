@@ -17,6 +17,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { createMealGroup, getEnclosureListByGroup, updateMealGroup } from 'src/lib/api/diet/mealgroup'
 import toast from 'react-hot-toast'
 import { debounce } from 'lodash'
+import { fontSize } from '@mui/system'
 
 const CreateMealGroup = ({
   openDrawer,
@@ -33,6 +34,7 @@ const CreateMealGroup = ({
   setStatus,
   editSearchValue,
   groupId,
+  mealId,
   handleEditSearch
 }) => {
   console.log('editeditems >', editeditems, selectedItems)
@@ -88,14 +90,22 @@ const CreateMealGroup = ({
   const debouncedSearch = useCallback(
     debounce(async q => {
       setSearchTerm(q)
-      // setPaginationModel({ page: 0, pageSize: 10 })
+      if (q.trim() === '') {
+        // Search field is cleared — restore from unmapped list using checkedRows
+        const data = [...selectedItems] // your original full unmapped list (store this when fetching the full list)
+        const filteredData = data.filter(item => checkedRows.includes(item.id)) // adjust key if needed
+        setSelectedItems(filteredData)
+        return
+      }
+
+      // Perform API call for non-empty search
       try {
         const res = await getEnclosureListByGroup({
-          q: q,
+          q,
           type: 'unmapped',
           site_id: selectedOption
-          // meal_group_ids: JSON.stringify([groupId]) // Send as array
         })
+
         if (res) {
           setSelectedItems(res?.data?.result)
         }
@@ -103,7 +113,7 @@ const CreateMealGroup = ({
         console.log(err)
       }
     }, 1000),
-    [] // add dependencies you want to track here
+    [selectedOption, checkedRows] // 👈 now includes these dependencies
   )
 
   const handleCreateSearch = value => {
@@ -399,7 +409,7 @@ const CreateMealGroup = ({
                 size='small'
                 onChange={e => {
                   if (editeditems.length > 0) {
-                    handleEditSearch(e.target.value, groupId)
+                    handleEditSearch(e.target.value, mealId)
                   } else {
                     handleCreateSearch(e.target.value)
                   }
@@ -432,7 +442,7 @@ const CreateMealGroup = ({
                 p: { xs: 2, sm: 5 },
                 // mt: 4,
                 width: { xs: '93vw', sm: '514px', md: '524px' },
-                height: '400px',
+                height: '280px',
                 // ml: 2,
                 m: { xs: 2, sm: 3, md: 2 },
                 mt: { xs: 3, sm: 4, md: 0 },
@@ -453,7 +463,7 @@ const CreateMealGroup = ({
                   overflowY: 'auto',
                   overflowX: 'hidden',
                   pr: 1, // Optional: adds some padding to the right to prevent content cutoff
-                  height: '400px' // Makes sure the Box respects the Card height
+                  height: '300px' // Makes sure the Box respects the Card height
                 }}
               >
                 {(Object.keys(editParam).length > 0 ? editeditems : selectedItems).map((item, index) => (
@@ -510,7 +520,7 @@ const CreateMealGroup = ({
                         Object.keys(editParam).length > 0 ? handleEnclosureRemove(index) : handleRemove(index)
                       }
                     >
-                      <Icon icon='mdi:close' fontSize={24} />
+                      <Icon icon='mdi:close' sx={{ fontSize: '24px' }} />
                     </IconButton>
                   </Card>
                 ))}
