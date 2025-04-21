@@ -339,12 +339,12 @@ const PurchaseInvoiceUpload = ({ setPurchaseItems, reset, closeDialog, handleInp
                 purchase_expiry_date: el?.purchase_expiry_date,
 
                 // variant id hardcodedd for demoprepose
-                // purchase_variant_id: el?.purchase_variant_id,
-                // purchase_variant_ratio: el?.unit_multiplier ? el?.unit_multiplier : 1,
+                purchase_variant_id: el?.purchase_variant_id,
+                purchase_variant_ratio: el?.unit_multiplier ? el?.unit_multiplier : 1,
 
-                purchase_variant_id: 1,
-                purchase_variant_ratio: 1,
-                purchase_unit_qty: el?.purchase_qty * 1,
+                // purchase_variant_id: 1,
+                // purchase_variant_ratio: 1,
+                // purchase_unit_qty: el?.purchase_qty * 1,
 
                 ///********** */
                 purchase_qty: el?.purchase_qty,
