@@ -840,11 +840,11 @@ export default function RequestedItems({ selectedStoreDetails, setSelectedStoreD
           mt: 5
         }}
       >
-        {selectedPharmacy?.type === 'central' && <Tab value='Available' label={'Available'} />}
-        {selectedPharmacy?.type === 'central' && <Tab value='NotAvailable' label={'NotAvailable'} />}
-        <Tab value='all' label={'All'} />
+        {/* {selectedPharmacy?.type === 'central' && <Tab value='Available' label={'Available'} />}
+        {selectedPharmacy?.type === 'central' && <Tab value='NotAvailable' label={'NotAvailable'} />} */}
         {selectedPharmacy.type === 'central' && <Tab value='Available' label={'Stock Available'} />}
         {selectedPharmacy.type === 'central' && <Tab value='NotAvailable' label={'Not Available'} />}
+        <Tab value='all' label={'All'} />
       </TabLists>
 
       {selectedPharmacy.type === 'central' && (
