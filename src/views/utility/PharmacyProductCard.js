@@ -1,7 +1,18 @@
 import React from 'react'
 import { Box, Grid, Typography, Avatar, Tooltip } from '@mui/material'
+import RenderUtility from 'src/utility/render'
 
-const PharmacyProductCard = ({ title, subTitle, icon, bgColor, onClick, rowWidth = 250, heoImageDimension = 44 }) => {
+const PharmacyProductCard = ({
+  title,
+  subTitle,
+  icon,
+  bgColor,
+  onClick,
+  rowWidth = 250,
+  heoImageDimension = 44,
+  controlSubstance = false,
+  prescriptionRequired = false
+}) => {
   // 1 unit is equal to 4px
 
   const marginLeft = 2
@@ -37,7 +48,7 @@ const PharmacyProductCard = ({ title, subTitle, icon, bgColor, onClick, rowWidth
         backgroundColor: bgColor ? bgColor : null,
         borderRadius: '8px',
         p: 0,
-        m:0,
+        m: 0,
         cursor: 'pointer'
       }}
       onClick={onClick ? onClick : null}
@@ -78,7 +89,8 @@ const PharmacyProductCard = ({ title, subTitle, icon, bgColor, onClick, rowWidth
                 width: `${rowWidth - (marginLeft * 4 + 44 + 8)}px`
               }}
             >
-              {title ? title : ''}
+              {RenderUtility?.renderControlLabel(controlSubstance, 'CS')}
+              {RenderUtility?.renderPrescriptionLabel(prescriptionRequired, 'PR')} {title ? title : ''}
             </Typography>
           </ToolTip>
         )}

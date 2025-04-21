@@ -129,7 +129,13 @@ const ListOfMedicine = () => {
               iconHeight: '44px'
             }}
           /> */}
-          <PharmacyProductCard title={params.row.name} subTitle={params.row.generic_name} icon={params.row.image} />
+          <PharmacyProductCard
+            title={params?.row?.name}
+            subTitle={params?.row?.generic_name}
+            icon={params?.row?.image}
+            controlSubstance={params?.row?.controlled_substance === '1' && true}
+            prescriptionRequired={params?.row?.prescription_required === '1' && true}
+          />
         </Box>
       )
     },

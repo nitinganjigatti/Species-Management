@@ -257,3 +257,5 @@ export const REQUESTED_ITEMS_REPORT = 'requested-items'
 export const DISPENSE_REPORT = 'dispense-report'
 
 export const RETURN_TO_SUPPLIER = 'return-supplier-report'
+
+export const PRODUCT_MAPPING_FOR_ML = 'v1/public/pharmacy/ml/product-mapping/bulkInsert'

@@ -590,8 +590,11 @@ const PurchaseItemForm = props => {
           </Typography>
           {!getValues('product')?.value && getValues('product')?.label && (
             <Typography sx={{ fontSize: '12px', color: 'error.main' }}>
-              The product <span style={{ color: '#D32F2F', fontWeight: 'bold' }}>{getValues('product')?.label}</span>{' '}
-              you entered is not available, please search and select.
+              {/* The product <span style={{ color: '#D32F2F', fontWeight: 'bold' }}>{getValues('product')?.label}</span>{' '}
+              you entered is not available, please search and select.  */}
+              The product <span style={{ color: '#D32F2F', fontWeight: 'bold' }}>{getValues('product')?.label} </span>
+              you entered is either not available or not selected from the dropdown.
+              <br /> Please search and select it to continue.
             </Typography>
           )}
         </Grid>

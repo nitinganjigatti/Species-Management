@@ -10,6 +10,7 @@ import { TabContext, TabList, TabPanel } from '@mui/lab'
 import { v4 as uuidv4 } from 'uuid'
 import { useTheme } from '@emotion/react'
 import { useDropzone } from 'react-dropzone'
+import toast from 'react-hot-toast'
 
 const PurchaseInvoiceUpload = ({ setPurchaseItems, reset, closeDialog, handleInputImageChange }) => {
   const theme = useTheme()
@@ -446,11 +447,14 @@ const PurchaseInvoiceUpload = ({ setPurchaseItems, reset, closeDialog, handleInp
               purchase_created_by: 'invoice_upload'
             })
             handleInputImageChange(file)
+            toast.success('Invoice processed successfully')
           }
         })
       console.log('Upload success:', response.data)
     } catch (error) {
       console.error('Error uploading images:', error)
+
+      // toast.error('Invoice processed failed try again')
     } finally {
       setSubmitLoader(false)
     }
