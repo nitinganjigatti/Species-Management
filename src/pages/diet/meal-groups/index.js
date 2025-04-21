@@ -43,6 +43,7 @@ import toast from 'react-hot-toast'
 import CreateEnclosure from 'src/views/pages/diet/mealGroup/createEnclosure'
 import { debounce } from 'lodash'
 import select from 'src/@core/theme/overrides/select'
+import FixedFooterWrapper from 'src/components/diet/FixedFooterWrapper'
 
 const MealGroup = () => {
   const router = useRouter()
@@ -66,6 +67,7 @@ const MealGroup = () => {
     page: 0,
     pageSize: 10
   })
+  const [originalItems, setOriginalItems] = useState([])
   const [selectedItems, setSelectedItems] = useState([])
   const [enclosureDrawer, setEnclosureDrawer] = useState(false)
   const [editeditems, setEditItems] = useState([])
@@ -251,10 +253,10 @@ const MealGroup = () => {
     debounce(async (q, id) => {
       debugger
       console.log('Edit >', editeditems)
-  
+
       setEditSearchValue(q)
       setPaginationModel({ page: 0, pageSize: 10 })
-  
+
       try {
         const res = await getEnclosureListByGroup({
           q,
@@ -262,7 +264,7 @@ const MealGroup = () => {
           site_id: selectedOption, // ✅ this will now be up-to-date
           meal_group_ids: JSON.stringify([id]) // Send as array
         })
-  
+
         if (res) {
           setEditItems(res?.data?.result)
         }
@@ -272,7 +274,6 @@ const MealGroup = () => {
     }, 1000),
     [selectedOption] // ✅ make sure to track this
   )
-  
 
   const handleSearch = value => {
     setSearchValue(value)
@@ -1089,6 +1090,7 @@ const MealGroup = () => {
       setDefaultSite(site)
       setSelectedOption(site.site_id)
       setEditItems([])
+      setCheckedRows([])
     }
   }
 
@@ -1362,7 +1364,14 @@ const MealGroup = () => {
           </Box>
         )}
 
-        <Grid sx={{ mx: { xs: 1, sm: 3, md: 2, overflowX: 'auto' } }}>
+        <Grid
+          sx={{
+            // height: '800px',
+            mx: { xs: 1, sm: 3, md: 2 },
+            mb: 5,
+            pb: { xs: 0, sm: 5 } // 👈 padding bottom to create space
+          }}
+        >
           <CommonTable
             onRowClick={''}
             indexedRows={status === '' ? GroupindexedRows : indexedRows}
@@ -1394,78 +1403,74 @@ const MealGroup = () => {
 
       {/* Footer Card */}
       {status !== '' && (
-        <Box
-          sx={{
-            // position: 'fixed',
-            mt: 3,
-            bottom: 0,
-            width: '100%',
-            maxWidth: '1393px', // Max width for large screens
-            borderRadius: '4px',
-            backgroundColor: 'white',
-            zIndex: 900, // stays above most content
-            p: { xs: 2, sm: 4 }, // Add padding for responsiveness
-            boxSizing: 'border-box'
-          }}
-        >
-          <Box display='flex' justifyContent='space-between' alignItems='center' mx='auto' flexWrap='wrap'>
-            {checkedRows?.length > 0 ? <FooterCard count={checkedRows.length} /> : <Box />}
+        <FixedFooterWrapper>
+          <Box
+            sx={{
+              mt: 3,
 
-            <Box display='flex' gap={3} sx={{ mr: 2, justifyContent: { xs: 'center', sm: 'flex-end' } }}>
-              <Button
-                disabled={checkedRows?.length <= 0}
-                onClick={() => setCheckedRows([])}
-                sx={{
-                  width: { xs: '100%', sm: '160px' },
-                  height: '56px',
-                  borderRadius: '4px',
-                  color: '#44544A', // Text color
-                  borderColor: '#839D8D', // Outline border color
-                  '&:hover': {
-                    borderColor: '#839D8D', // Maintain border color on hover
-                    backgroundColor: 'transparent' // Optional: keep hover bg clean
-                  }
-                }}
-                variant='outlined'
-              >
-                Cancel
-              </Button>
-              <Button
-                disabled={checkedRows?.length <= 0}
-                onClick={status === 'mapped' ? removeEnclosure : addEnclosure}
-                sx={{
-                  width: { xs: '100%', sm: status === 'mapped' ? '220px' : '160px' },
-                  borderRadius: '4px',
-                  height: '56px',
-                  color: '#37BD69', // Text color
-                  borderColor: '#37BD69' // Outline border color
-                }}
-                variant='outlined'
-              >
-                {status === 'mapped' ? 'Remove From Group' : 'Add to Group'}
-              </Button>
+              p: { xs: 2, sm: 4 }
+            }}
+          >
+            <Box display='flex' justifyContent='space-between' alignItems='center' mx='auto' flexWrap='wrap'>
+              {checkedRows?.length > 0 ? <FooterCard count={checkedRows.length} /> : <Box />}
 
-              {status === 'unmapped' && (
+              <Box display='flex' gap={3} sx={{ mr: 2, justifyContent: { xs: 'center', sm: 'flex-end' } }}>
                 <Button
                   disabled={checkedRows?.length <= 0}
-                  onClick={addEventSidebarOpen}
-                  variant='contained'
+                  onClick={() => setCheckedRows([])}
                   sx={{
-                    backgroundColor: '#37BD69',
-                    borderRadius: '4px',
                     width: { xs: '100%', sm: '160px' },
                     height: '56px',
+                    borderRadius: '4px',
+                    color: '#44544A',
+                    borderColor: '#839D8D',
                     '&:hover': {
-                      borderColor: '#37BD69' // Maintain border color on hover
+                      borderColor: '#839D8D',
+                      backgroundColor: 'transparent'
                     }
                   }}
+                  variant='outlined'
                 >
-                  Create New
+                  Cancel
                 </Button>
-              )}
+
+                <Button
+                  disabled={checkedRows?.length <= 0}
+                  onClick={status === 'mapped' ? removeEnclosure : addEnclosure}
+                  sx={{
+                    width: { xs: '100%', sm: status === 'mapped' ? '220px' : '160px' },
+                    borderRadius: '4px',
+                    height: '56px',
+                    color: '#37BD69',
+                    borderColor: '#37BD69'
+                  }}
+                  variant='outlined'
+                >
+                  {status === 'mapped' ? 'Remove From Group' : 'Add to Group'}
+                </Button>
+
+                {status === 'unmapped' && (
+                  <Button
+                    disabled={checkedRows?.length <= 0}
+                    onClick={addEventSidebarOpen}
+                    variant='contained'
+                    sx={{
+                      backgroundColor: '#37BD69',
+                      borderRadius: '4px',
+                      width: { xs: '100%', sm: '160px' },
+                      height: '56px',
+                      '&:hover': {
+                        borderColor: '#37BD69'
+                      }
+                    }}
+                  >
+                    Create New
+                  </Button>
+                )}
+              </Box>
             </Box>
           </Box>
-        </Box>
+        </FixedFooterWrapper>
       )}
 
       {openDrawer && (
@@ -1474,11 +1479,14 @@ const MealGroup = () => {
           handleCloseSideBar={handleCloseSideBar}
           selectedItems={selectedItems}
           setSelectedItems={setSelectedItems}
+          originalItems={originalItems}
+          setOriginalItems={setOriginalItems}
           checkedRows={checkedRows}
           setCheckedRows={setCheckedRows}
           selectedOption={selectedOption}
           editParam={editParam}
           editeditems={editeditems}
+          setEditItems={setEditItems}
           fetchEnclosure={fetchEnclosure}
           siteStats={siteStats}
           setStatus={setStatus}
