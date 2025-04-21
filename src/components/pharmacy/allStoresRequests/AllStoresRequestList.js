@@ -94,6 +94,8 @@ const AllStoresRequestList = () => {
       width: 200,
       field: 'pending_items',
       headerName: 'Total Pending Items',
+      align: 'center',
+      headerAlign: 'center',
       renderCell: params => (
         <Typography
           sx={{
@@ -112,6 +114,8 @@ const AllStoresRequestList = () => {
       width: 200,
       field: 'emergency_items',
       headerName: 'Emergency Items',
+      align: 'center',
+      headerAlign: 'center',
       renderCell: params => (
         <Typography
           sx={{
@@ -129,6 +133,8 @@ const AllStoresRequestList = () => {
       width: 200,
       field: 'available_product_count',
       headerName: 'available product',
+      align: 'center',
+      headerAlign: 'center',
       renderCell: params => (
         <Typography
           sx={{
@@ -146,6 +152,8 @@ const AllStoresRequestList = () => {
       width: 200,
       field: 'not_available_product_count',
       headerName: 'not available product',
+      align: 'center',
+      headerAlign: 'center',
       renderCell: params => (
         <Typography
           sx={{
@@ -168,7 +176,7 @@ const AllStoresRequestList = () => {
   const [sort, setSort] = useState(router.query.sort || 'desc')
   const [rows, setRows] = useState([])
   const [searchValue, setSearchValue] = useState(router.query.q || '')
-  const [sortColumn, setSortColumn] = useState(router.query.column || 'name')
+  const [sortColumn, setSortColumn] = useState(router.query.column || 'pending_items')
 
   const [paginationModel, setPaginationModel] = useState({
     page: parseInt(router.query.page) || 0,
@@ -200,7 +208,7 @@ const AllStoresRequestList = () => {
         const params = {
           q,
           sort,
-          column: 'store_name',
+          column,
           page: paginationModel?.page + 1,
           limit: paginationModel?.pageSize
         }
