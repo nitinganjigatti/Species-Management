@@ -658,7 +658,7 @@ const AddPurchaseForm = () => {
         if (response?.success) {
           toast.success(response.message)
           if (postData?.purchase_created_by === 'invoice_upload') {
-            debugger
+            // debugger
 
             const suggestionData = postData?.purchase_details?.map(el => {
               return {
@@ -1480,22 +1480,8 @@ const AddPurchaseForm = () => {
 
   return (
     <Card>
-      <Grid container spacing={6}>
-        <Grid
-          item
-          sm={12}
-          xs={12}
-          sx={{
-            // display: 'flex',
-            // flexDirection: { lg: 'row', md: 'row', xl: 'row', sm: 'column', xs: 'column' },
-            // justifyContent: 'space-between',
-            // alignItems: { lg: 'center', md: 'center', xl: 'center', sm: 'start', xs: 'start' },
-            // mr: 5
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center'
-          }}
-        >
+      <Grid container sx={{ display: 'flex', justifyContent: 'space-between' }}>
+        <Grid item sm={4} xs={12}>
           <CardHeader
             sx={{
               display: 'flex',
@@ -1517,39 +1503,40 @@ const AddPurchaseForm = () => {
               />
             }
             title={id ? 'Edit Inventory List' : 'Add Inventory'}
-            action={
-              <Box
-                sx={{
-                  display: 'flex',
-                  flexDirection: { lg: 'row', md: 'row', xl: 'row', sm: 'row', xs: 'column' },
-                  justifyContent: 'space-between',
-                  alignItems: { lg: 'center', md: 'center', xl: 'center', sm: 'center', xs: 'center' }
-                  // mr: 5,
-                  // mx: 6,
-                  // gap: 2
-                }}
-              >
-                {authData?.userData?.roles?.settings?.add_pharmacy && !id && (
-                  <AddButton
-                    // sx={{ mx: 24 }}
-                    title='Upload Invoice '
-                    action={() => {
-                      setInvoiceUploadDialog(true)
-                    }}
-                  />
-                )}
-                {authData?.userData?.roles?.settings?.add_pharmacy && (
-                  <AddButton
-                    // sx={{ mx: 24 }}
-                    title='Add Supplier'
-                    action={() => {
-                      setSupplierDialog(true)
-                    }}
-                  />
-                )}
-              </Box>
-            }
           />
+        </Grid>
+        <Grid
+          item
+          sm={7}
+          xs={12}
+          sx={{
+            display: 'flex',
+            flexDirection: { lg: 'row', md: 'row', xl: 'row', sm: 'row', xs: 'column' },
+            justifyContent: 'flex-end',
+            alignItems: { lg: 'center', md: 'center', xl: 'center', sm: 'center', xs: 'start' },
+            columnGap: 2,
+            mx: { xs: 2, lg: 3, md: 3, xl: 3, sm: 3 },
+            mb: { xs: 2, lg: 0, md: 0, xl: 0, sm: 0 },
+            mr: 2,
+            rowGap: { xs: 3, lg: 0, md: 0, xl: 0, sm: 0 }
+          }}
+        >
+          {authData?.userData?.roles?.settings?.add_pharmacy && !id && (
+            <AddButton
+              title='Upload Invoice '
+              action={() => {
+                setInvoiceUploadDialog(true)
+              }}
+            />
+          )}
+          {authData?.userData?.roles?.settings?.add_pharmacy && (
+            <AddButton
+              title='Add Supplier'
+              action={() => {
+                setSupplierDialog(true)
+              }}
+            />
+          )}
         </Grid>
       </Grid>
 
