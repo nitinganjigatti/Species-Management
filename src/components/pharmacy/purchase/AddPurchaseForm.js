@@ -161,6 +161,7 @@ const AddPurchaseForm = () => {
   const [nestedRowMedicine, setNestedRowMedicine] = useState(initialNestedRowMedicine)
 
   const [supplierDialog, setSupplierDialog] = useState(false)
+
   const [productVariantOptions, setProductVariantOptions] = useState([])
 
   const [validatePurchaseDialog, setValidatePurchaseDialog] = useState(false)
@@ -834,18 +835,30 @@ const AddPurchaseForm = () => {
 
   const getProductVariantByproductId = async productId => {
     const productVariant = await getVariantFOrProduct(productId)
-    if (productVariant?.success && productVariant?.data?.length > 0) {
-      const data = productVariant?.data?.map(el => {
-        return {
-          value: Number(el?.variant_id),
-          label: el?.unit_multiplier,
-          description: el?.description,
-          is_default: el?.is_default
-          // variantId: el?.variant_id
-        }
-      })
-      // console.log('data', data)
-      setProductVariantOptions(data)
+    debugger
+
+    if (editParams.purchase_created_by === 'invoice_upload') {
+      const data = {
+        value: 1,
+        label: 1,
+        description: '',
+        is_default: ''
+      }
+      setProductVariantOptions([data])
+    } else {
+      if (productVariant?.success && productVariant?.data?.length > 0) {
+        const data = productVariant?.data?.map(el => {
+          return {
+            value: Number(el?.variant_id),
+            label: el?.unit_multiplier,
+            description: el?.description,
+            is_default: el?.is_default
+            // variantId: el?.variant_id
+          }
+        })
+        // console.log('data', data)
+        setProductVariantOptions(data)
+      }
     }
   }
 
