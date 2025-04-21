@@ -874,7 +874,7 @@ const PurchaseInvoiceUpload = ({ setPurchaseItems, reset, closeDialog, handleInp
                         display: 'flex'
                       }}
                     >
-                      Supported formats JPEG, PNG, PDF
+                      Supported formats JPEG, PNG
                     </Typography>
                   </Box>
                 </Box>
