@@ -205,7 +205,7 @@ function Dispense() {
             )}
             <Box sx={{ display: 'flex', flexDirection: 'column' }}>
               <Typography variant='subtitle2' sx={{ color: 'text.primary' }}>
-                {`${params?.row?.user_name} ${params?.row?.user_last_name}` || 'NA'}
+                {`${params?.row?.user_first_name} ${params?.row?.user_last_name}` || 'NA'}
               </Typography>
             </Box>
           </Box>
