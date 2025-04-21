@@ -87,6 +87,7 @@ const MealGroup = () => {
   const [searchValue, setSearchValue] = useState('')
   const [editSearchValue, setEditSearchValue] = useState('')
   const [selectedForDrawer, setSelectedForDrawer] = useState([])
+  const [mealId, setMealId] = useState(null)
 
   console.log('Group >>', groupList)
 
@@ -136,62 +137,11 @@ const MealGroup = () => {
     }
   }
 
-  // const fetchEnclosure = async () => {
-  //   if (!selectedOption) return
-
-  //   setLoading(true)
-
-  //   if (status === '') {
-  //     const groupparams = {
-  //       site_id: selectedOption,
-  //       page_no: paginationModel.page + 1
-  //     }
-
-  //     try {
-  //       const response = await getMealGroupList(groupparams)
-  //       if (response.success) {
-  //         setMenuGroupList(loadServerRows(paginationModel.page, response?.data?.result))
-  //         setTotal(response?.data?.count)
-  //       } else {
-  //         console.error('Failed to fetch meal groups:', response?.message || 'Unknown error')
-  //       }
-  //     } catch (error) {
-  //       console.error('Error fetching meal groups:', error)
-  //     } finally {
-  //       setLoading(false)
-  //     }
-
-  //     return
-  //   }
-
-  //   const params = {
-  //     type: status,
-  //     // section_ids: JSON.stringify([selectedSection]),
-  //     // species_ids: JSON.stringify(selectedSpecies),
-  //     site_id: selectedOption,
-  //     page_no: paginationModel.page + 1,
-  //     limit: paginationModel.pageSize
-  //   }
-
-  //   try {
-  //     const response = await getEnclosureList(params)
-  //     if (response.success) {
-  //       setEnclosureList(loadServerRows(paginationModel.page, response?.data?.result))
-  //       setTotal(response?.data?.count)
-  //     } else {
-  //       console.error('Failed to fetch enclosures:', response?.message || 'Unknown error')
-  //     }
-  //   } catch (error) {
-  //     console.error('Error fetching enclosures:', error)
-  //   } finally {
-  //     setLoading(false)
-  //   }
-  // }
-
   const fetchEnclosure = async () => {
     if (!selectedOption) return
 
     setLoading(true)
+    debugger
 
     if (status === '') {
       const groupparams = {
@@ -259,17 +209,19 @@ const MealGroup = () => {
     debounce(async q => {
       setSearchValue(q)
       setPaginationModel({ page: 0, pageSize: 10 })
+
       try {
         await fetchEnclosure({
-          q: q,
-          page_no: paginationModel.page, // reset page to 0 explicitly here
-          limit: paginationModel.pageSize // reset limit explicitly here
+          q,
+          site_id: selectedOption,
+          page_no: 1,
+          limit: 10
         })
       } catch (err) {
         console.log(err)
       }
     }, 1000),
-    [] // add dependencies you want to track here
+    [selectedOption] // track selectedOption in dependencies
   )
 
   const debouncedEnclosureSearch = useCallback(
@@ -277,12 +229,14 @@ const MealGroup = () => {
       debugger
       setSearchValue(q)
       setPaginationModel({ page: 0, pageSize: 10 })
+
       try {
         const res = await getEnclosureListByGroup({
-          q: q,
+          q,
           type: 'unmapped',
           site_id: selectedOption
         })
+
         if (res) {
           setSelectedItems(res?.data?.result)
         }
@@ -290,25 +244,25 @@ const MealGroup = () => {
         console.log(err)
       }
     }, 1000),
-    [] // add dependencies you want to track here
+    [selectedOption] // ✅ dependency added here to track selectedOption changes
   )
 
   const debouncedEditEnclosureSearch = useCallback(
     debounce(async (q, id) => {
       debugger
       console.log('Edit >', editeditems)
-      const selectedGroup = editeditems?.map(item => item?.group_id)
-
+  
       setEditSearchValue(q)
-      debugger
       setPaginationModel({ page: 0, pageSize: 10 })
+  
       try {
         const res = await getEnclosureListByGroup({
-          q: q,
+          q,
           type: 'mapped',
-          site_id: selectedOption,
+          site_id: selectedOption, // ✅ this will now be up-to-date
           meal_group_ids: JSON.stringify([id]) // Send as array
         })
+  
         if (res) {
           setEditItems(res?.data?.result)
         }
@@ -316,8 +270,9 @@ const MealGroup = () => {
         console.log(err)
       }
     }, 1000),
-    [] // add dependencies you want to track here
+    [selectedOption] // ✅ make sure to track this
   )
+  
 
   const handleSearch = value => {
     setSearchValue(value)
@@ -329,9 +284,9 @@ const MealGroup = () => {
     debouncedEnclosureSearch(value)
   }
 
-  const handleEditSearch = (value, groupId) => {
+  const handleEditSearch = (value, mealId) => {
     setEditSearchValue(value)
-    debouncedEditEnclosureSearch(value, groupId)
+    debouncedEditEnclosureSearch(value, mealId)
   }
 
   const fetchSiteStats = async () => {
@@ -404,6 +359,10 @@ const MealGroup = () => {
     setSelectedItems([])
   }, [status])
 
+  // useEffect(() => {
+  //   fetchEnclosure()
+  // }, [selectedOption])
+
   useEffect(() => {
     fetchEnclosure()
     fetchSiteStats()
@@ -411,64 +370,6 @@ const MealGroup = () => {
     fetchSpeciesList()
     fetchMealGroupNames()
   }, [selectedOption, status, paginationModel, selectedSection, selectedSpecies, selectedGroup])
-
-  // useEffect(() => {
-  //   const fetchEnclosure = async () => {
-  //     if (!selectedOption) return
-
-  //     setLoading(true)
-
-  //     if (status === '') {
-  //       // If status is empty string, call the group list API
-  //       const groupparams = {
-  //         site_id: selectedOption,
-  //         page_no: paginationModel.page + 1 // make it consistent with below
-  //       }
-
-  //       try {
-  //         const response = await getMealGroupList(groupparams)
-  //         if (response.success) {
-  //           debugger
-  //           setMenuGroupList(loadServerRows(paginationModel.page, response?.data?.result))
-  //           setTotal(response?.data?.count)
-  //         } else {
-  //           console.error('Failed to fetch meal groups:', response?.message || 'Unknown error')
-  //         }
-  //       } catch (error) {
-  //         console.error('Error fetching meal groups:', error)
-  //       } finally {
-  //         setLoading(false)
-  //       }
-
-  //       return
-  //     }
-
-  //     // If status is not empty string, call the enclosure list API
-  //     const params = {
-  //       type: status,
-  //       site_id: selectedOption,
-  //       page_no: paginationModel.page + 1,
-  //       limit: paginationModel.pageSize
-  //     }
-
-  //     try {
-  //       const response = await getEnclosureList(params)
-  //       if (response.success) {
-  //         console.log('Enclosure list response >', response?.data?.result)
-  //         setEnclosureList(loadServerRows(paginationModel.page, response?.data?.result))
-  //         setTotal(response?.data?.count)
-  //       } else {
-  //         console.error('Failed to fetch enclosures:', response?.message || 'Unknown error')
-  //       }
-  //     } catch (error) {
-  //       console.error('Error fetching enclosures:', error)
-  //     } finally {
-  //       setLoading(false)
-  //     }
-  //   }
-
-  //   fetchEnclosure()
-  // }, [selectedOption, paginationModel, status])
 
   const StatCard = ({ value, label, bgColor, textColor }) => (
     <Card
@@ -658,7 +559,8 @@ const MealGroup = () => {
   const handleEdit = async row => {
     console.log('Row Detail >', row)
     try {
-      setEditParam(row) // 👈 set the full row object
+      setEditParam(row)
+      setMealId(row.id)
       setOpenDrawer(true) // 👈 open the drawer
       const params = {
         type: 'mapped',
@@ -1179,6 +1081,7 @@ const MealGroup = () => {
   console.log('Indexed >', indexedRows)
 
   const handleSiteChange = site => {
+    debugger
     if (!site) {
       setDefaultSite(null)
       setSelectedOption(null) // or pass null if your API handles it
@@ -1581,6 +1484,7 @@ const MealGroup = () => {
           setStatus={setStatus}
           searchValue={searchValue}
           groupId={groupId}
+          mealId={mealId}
           handleEditSearch={handleEditSearch}
         />
       )}

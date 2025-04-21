@@ -33,6 +33,7 @@ const CreateMealGroup = ({
   setStatus,
   editSearchValue,
   groupId,
+  mealId,
   handleEditSearch
 }) => {
   console.log('editeditems >', editeditems, selectedItems)
@@ -88,14 +89,13 @@ const CreateMealGroup = ({
   const debouncedSearch = useCallback(
     debounce(async q => {
       setSearchTerm(q)
-      // setPaginationModel({ page: 0, pageSize: 10 })
       try {
         const res = await getEnclosureListByGroup({
-          q: q,
+          q,
           type: 'unmapped',
-          site_id: selectedOption
-          // meal_group_ids: JSON.stringify([groupId]) // Send as array
+          site_id: selectedOption // ✅ this will now be up-to-date
         })
+
         if (res) {
           setSelectedItems(res?.data?.result)
         }
@@ -103,7 +103,7 @@ const CreateMealGroup = ({
         console.log(err)
       }
     }, 1000),
-    [] // add dependencies you want to track here
+    [selectedOption] // ✅ track the selected site
   )
 
   const handleCreateSearch = value => {
@@ -399,7 +399,7 @@ const CreateMealGroup = ({
                 size='small'
                 onChange={e => {
                   if (editeditems.length > 0) {
-                    handleEditSearch(e.target.value, groupId)
+                    handleEditSearch(e.target.value, mealId)
                   } else {
                     handleCreateSearch(e.target.value)
                   }
