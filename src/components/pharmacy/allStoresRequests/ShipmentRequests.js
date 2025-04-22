@@ -111,7 +111,7 @@ export default function ShipmentRequests({ updateUrlParams }) {
     {
       width: 80,
       field: 'id',
-      headerName: 'Sl No',
+      headerName: 'SL.NO',
       renderCell: params => (
         <Typography
           sx={{

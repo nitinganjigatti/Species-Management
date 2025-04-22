@@ -58,7 +58,7 @@ const AllStoresRequestList = () => {
     {
       width: 100,
       field: 'id',
-      headerName: 'SL NO ',
+      headerName: 'SL.NO',
       renderCell: params => (
         <Typography
           sx={{

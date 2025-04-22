@@ -10,12 +10,20 @@ import { TabContext, TabList, TabPanel } from '@mui/lab'
 import { v4 as uuidv4 } from 'uuid'
 import { useTheme } from '@emotion/react'
 import { useDropzone } from 'react-dropzone'
+import toast from 'react-hot-toast'
 
-const PurchaseInvoiceUpload = ({ setPurchaseItems, reset, closeDialog, handleInputImageChange }) => {
+const PurchaseInvoiceUpload = ({
+  setPurchaseItems,
+  reset,
+  closeDialog,
+  handleInputImageChange,
+  invoiceSubmitLoader,
+  setInvoiceSubmitLoader
+}) => {
   const theme = useTheme()
   const [cameras, setCameras] = useState([])
   const [loading, setLoading] = useState(false)
-  const [submitLoader, setSubmitLoader] = useState(false)
+
   const [currentCamera, setCurrentCamera] = useState(null)
   const [capturedImage, setCapturedImage] = useState(null)
   const [permissionDenied, setPermissionDenied] = useState(false)
@@ -35,10 +43,10 @@ const PurchaseInvoiceUpload = ({ setPurchaseItems, reset, closeDialog, handleInp
   }
 
   const formatInvoiceDate = dateStr => {
-    let normalizedDateStr = dateStr.replace(/-/g, '/')
-    let parts = normalizedDateStr.split('/').map(part => part.padStart(2, '0')) // Ensure 2-digit day/month
+    let normalizedDateStr = dateStr?.replace(/-/g, '/')
+    let parts = normalizedDateStr?.split('/').map(part => part?.padStart(2, '0'))
 
-    if (parts.length === 3) {
+    if (parts?.length === 3) {
       let [day, month, year] = parts
 
       return `${year}-${month}-${day}` // Convert to YYYY-MM-DD
@@ -267,7 +275,7 @@ const PurchaseInvoiceUpload = ({ setPurchaseItems, reset, closeDialog, handleInp
       return
     }
 
-    setSubmitLoader(true)
+    setInvoiceSubmitLoader(true)
 
     const promises = Array.from(file).map(file => {
       return new Promise((resolve, reject) => {
@@ -302,7 +310,7 @@ const PurchaseInvoiceUpload = ({ setPurchaseItems, reset, closeDialog, handleInp
           }
         )
         .then(data => {
-          setSubmitLoader(false)
+          setInvoiceSubmitLoader(false)
           closeDialog()
           console.log(data.data.data)
           const responseData = data.data.data
@@ -446,13 +454,16 @@ const PurchaseInvoiceUpload = ({ setPurchaseItems, reset, closeDialog, handleInp
               purchase_created_by: 'invoice_upload'
             })
             handleInputImageChange(file)
+            toast.success('Invoice processed successfully')
           }
         })
       console.log('Upload success:', response.data)
     } catch (error) {
       console.error('Error uploading images:', error)
+
+      // toast.error('Invoice processed failed try again')
     } finally {
-      setSubmitLoader(false)
+      setInvoiceSubmitLoader(false)
     }
   }
 
@@ -489,7 +500,7 @@ const PurchaseInvoiceUpload = ({ setPurchaseItems, reset, closeDialog, handleInp
           />
 
           <Icon
-            disabled={submitLoader}
+            disabled={invoiceSubmitLoader}
             onClick={() => {
               handleDeleteFile(index)
               if (browseButtonRef.current) browseButtonRef.current.value = ''
@@ -500,7 +511,7 @@ const PurchaseInvoiceUpload = ({ setPurchaseItems, reset, closeDialog, handleInp
               top: '0px',
               right: '0px',
               cursor: 'pointer',
-              pointerEvents: submitLoader ? 'none' : 'auto'
+              pointerEvents: invoiceSubmitLoader ? 'none' : 'auto'
             }}
             width='24'
             height='24'
@@ -737,7 +748,7 @@ const PurchaseInvoiceUpload = ({ setPurchaseItems, reset, closeDialog, handleInp
                                 variant='contained'
                                 size='small'
                                 sx={{
-                                  pointerEvents: submitLoader ? 'none !important' : 'auto'
+                                  pointerEvents: invoiceSubmitLoader ? 'none !important' : 'auto'
                                 }}
                                 color='error'
                                 onClick={stopCamera}
@@ -752,7 +763,7 @@ const PurchaseInvoiceUpload = ({ setPurchaseItems, reset, closeDialog, handleInp
                                   '&:hover': {
                                     backgroundColor: 'customColors.addPrimary'
                                   },
-                                  pointerEvents: submitLoader ? 'none !important' : 'auto'
+                                  pointerEvents: invoiceSubmitLoader ? 'none !important' : 'auto'
                                 }}
                                 onClick={takePicture}
                               >
@@ -832,7 +843,7 @@ const PurchaseInvoiceUpload = ({ setPurchaseItems, reset, closeDialog, handleInp
                     alignItems: 'center',
                     minHeight: '115px',
                     maxHeight: '115px',
-                    pointerEvents: submitLoader ? 'none !important' : ''
+                    pointerEvents: invoiceSubmitLoader ? 'none !important' : ''
                   }}
                 >
                   <Box
@@ -942,7 +953,7 @@ const PurchaseInvoiceUpload = ({ setPurchaseItems, reset, closeDialog, handleInp
                             top: '0px',
                             right: '0px',
                             cursor: 'pointer',
-                            pointerEvents: submitLoader ? 'none' : 'auto'
+                            pointerEvents: invoiceSubmitLoader ? 'none' : 'auto'
                           }}
                           width='24'
                           height='24'
@@ -970,7 +981,7 @@ const PurchaseInvoiceUpload = ({ setPurchaseItems, reset, closeDialog, handleInp
         <LoadingButton
           disabled={file?.length > 0 ? false : true}
           size='large'
-          loading={submitLoader}
+          loading={invoiceSubmitLoader}
           variant='outlined'
           onClick={() => {
             closeDialog()
@@ -980,7 +991,7 @@ const PurchaseInvoiceUpload = ({ setPurchaseItems, reset, closeDialog, handleInp
           Cancel
         </LoadingButton>
         <LoadingButton
-          loading={submitLoader}
+          loading={invoiceSubmitLoader}
           disabled={file?.length > 0 ? false : true}
           size='large'
           variant='contained'

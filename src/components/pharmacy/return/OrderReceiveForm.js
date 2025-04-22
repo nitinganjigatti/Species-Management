@@ -708,7 +708,7 @@ function OrderReceiveForm({ orderId, requestId }) {
     {
       Width: 40,
       field: 'uid`',
-      headerName: 'S.NO',
+      headerName: 'SL.NO',
       renderCell: params => {
         return (
           <Typography variant='body2' sx={{ color: 'text.primary' }}>

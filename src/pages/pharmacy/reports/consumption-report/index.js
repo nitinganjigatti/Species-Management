@@ -27,6 +27,7 @@ import { usePharmacyContext } from 'src/context/PharmacyContext'
 import { format, subMonths } from 'date-fns'
 import { ExportButton, FilterButton } from 'src/views/utility/render-snippets'
 import StyleWithIconCardComponent from 'src/views/utility/style-with-icon-card'
+import PharmacyProductCard from 'src/views/utility/PharmacyProductCard'
 
 const productTypes = [
   { id: 'allopathy', name: 'Allopathy' },
@@ -222,7 +223,7 @@ const ConsumptionReport = () => {
       minWidth: 20,
       field: 'id',
       sortable: false,
-      headerName: 'SL NO',
+      headerName: 'SL.NO',
 
       renderCell: params => (
         <Box sx={{ minWidth: 40 }}>
@@ -234,64 +235,17 @@ const ConsumptionReport = () => {
     },
     {
       minWidth: 20,
-      width: 200,
+      width: 260,
       field: 'stock_name',
       headerName: 'PRODUCT NAME',
       sortable: true,
       renderCell: params => (
         <>
-          <StyleWithIconCardComponent
-            value={
-              <Box>
-                <Typography sx={{ display: 'flex', alignItems: 'center' }}>
-                  <Typography
-                    sx={{
-                      color: 'customColors.OnSecondaryContainer',
-                      display: 'flex',
-
-                      alignItems: 'center',
-                      fontWeight: 500,
-                      fontSize: '14px'
-
-                      // ...RenderUtility?.getEllipsisStyleForText()
-                    }}
-                  >
-                    {RenderUtility?.renderControlLabel(
-                      !isNaN(params.row?.controlled_substance) && parseInt(params.row?.controlled_substance) === 1,
-                      'CS'
-                    )}
-                    {RenderUtility?.renderPrescriptionLabel(
-                      !isNaN(params.row?.prescription_required) && parseInt(params.row?.prescription_required) === 1,
-                      'PR'
-                    )}
-                  </Typography>
-                  <Typography
-                    sx={{
-                      color: 'customColors.customHeadingTextColor',
-                      fontWeight: 500,
-                      fontSize: '14px',
-                      overflow: 'hidden',
-                      whiteSpace: 'nowrap',
-                      textOverflow: 'ellipsis',
-                      maxWidth: 250
-                    }}
-                  >
-                    {params.row.stock_name}
-                  </Typography>
-                </Typography>
-              </Box>
-            }
-            icon={params.row.image ? `${params.row.image}` : '/images/Medicine_Icon.png'}
-            showIcon={false}
-            customCss={{
-              p: '0px',
-              width: '100%',
-              height: '100%',
-              fontSize: '14px',
-              avtBorderRadius: '10px',
-              iconWidth: '44px',
-              iconHeight: '44px'
-            }}
+          <PharmacyProductCard
+            title={params?.row?.stock_name}
+            icon={params?.row?.image}
+            controlSubstance={params?.row?.controlled_substance === '1' && true}
+            prescriptionRequired={params?.row?.prescription_required === '1' && true}
           />
         </>
       )
