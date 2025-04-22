@@ -200,7 +200,7 @@ const DispenseReport = () => {
       minWidth: 20,
       field: 'id',
       sortable: false,
-      headerName: 'SL NO',
+      headerName: 'SL.NO',
 
       renderCell: params => (
         <Box sx={{ minWidth: 40 }}>

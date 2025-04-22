@@ -121,7 +121,7 @@ export default function DetailsTable({ ...props }) {
     >
       <TableContainer
         sx={{
-          border: `0.5px solid ${theme.palette.customColors.OutlineVariant} !important`,
+          border: `0.5px solid ${theme?.palette?.customColors?.OutlineVariant} !important`,
 
           // border: `0.5px solid ${theme.palette.customColors.OnSurfaceVariant}`,
           borderRadius: '10px !important'

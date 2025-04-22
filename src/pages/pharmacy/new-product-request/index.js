@@ -154,7 +154,7 @@ export default function NewProductList() {
       width: 80,
       minWidth: 80,
       field: 'id',
-      headerName: 'S.NO',
+      headerName: 'SL.NO',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {parseInt(params.row.sl_no) + '.'}
@@ -1104,7 +1104,7 @@ export default function NewProductList() {
 //       width: 80,
 //       minWidth: 80,
 //       field: 'id',
-//       headerName: 'S.NO',
+//       headerName:'SL.NO',
 //       renderCell: params => (
 //         <Typography variant='body2' sx={{ color: 'text.primary' }}>
 //           {parseInt(params.row.sl_no) + '.'}

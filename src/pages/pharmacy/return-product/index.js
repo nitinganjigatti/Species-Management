@@ -406,7 +406,7 @@ const ReturnRequestList = () => {
     {
       width: 80,
       field: 'sl_no',
-      headerName: 'S.NO',
+      headerName: 'SL.NO',
       renderCell: params => (
         <Typography
           variant='body2'

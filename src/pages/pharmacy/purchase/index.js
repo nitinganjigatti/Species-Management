@@ -230,7 +230,7 @@ const ListOfPurchase = () => {
     {
       width: 80,
       field: 'sl',
-      headerName: 'SL NO',
+      headerName: 'SL.NO',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.sl + '.'}

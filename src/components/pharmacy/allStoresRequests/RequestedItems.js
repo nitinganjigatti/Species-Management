@@ -209,7 +209,7 @@ export default function RequestedItems({ selectedStoreDetails, setSelectedStoreD
     {
       width: 80,
       field: 'id',
-      headerName: 'SL NO ',
+      headerName: 'SL.NO',
       renderCell: params => (
         <Typography
           sx={{
