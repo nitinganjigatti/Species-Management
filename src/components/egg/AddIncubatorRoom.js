@@ -1,3 +1,4 @@
+import React, { useCallback, useContext, useEffect, useState } from 'react'
 import {
   Autocomplete,
   Box,
@@ -12,17 +13,18 @@ import {
   Typography,
   debounce
 } from '@mui/material'
-import React, { useCallback, useContext, useEffect, useState } from 'react'
+import { LoadingButton } from '@mui/lab'
+import { useTheme } from '@mui/material/styles'
+
 import { Controller, useForm } from 'react-hook-form'
-import Icon from 'src/@core/components/icon'
 import { yupResolver } from '@hookform/resolvers/yup'
 import * as yup from 'yup'
+
+import Icon from 'src/@core/components/icon'
+import Toaster from 'src/components/Toaster'
 import { AuthContext } from 'src/context/AuthContext'
-import { LoadingButton } from '@mui/lab'
 import { AddRoom, EditRoom, GetRoomDetails } from 'src/lib/api/egg/room/getRoom'
 import { GetNurseryList } from 'src/lib/api/egg/nursery'
-import { useTheme } from '@mui/material/styles'
-import Toaster from 'src/components/Toaster'
 
 const AddIncubatorRoom = ({ isOpen, setIsOpen, editParams, callApi, isPreFilled, callTableApi }) => {
   const theme = useTheme()
@@ -120,14 +122,6 @@ const AddIncubatorRoom = ({ isOpen, setIsOpen, editParams, callApi, isPreFilled,
       }
 
       if (editParams?.nursery_id) {
-        // const payload2 = {
-        //   room_name: values?.room_name,
-        //   site_id: values?.site_id,
-
-        //   nursery_id: values?.nursery_id
-        // }
-        // console.log('payload2 :>> ', payload2)
-
         const response = await EditRoom(id, payload)
 
         if (response.success) {
@@ -249,7 +243,7 @@ const AddIncubatorRoom = ({ isOpen, setIsOpen, editParams, callApi, isPreFilled,
                 bgcolor: theme.palette.primary.contrastText,
                 borderRadius: '8px',
                 border: 1,
-                borderColor: theme.palette.customColors.AntzOutlineVariant
+                borderColor: theme.palette.customColors.OutlineVariant
               }}
             >
               <FormControl fullWidth>

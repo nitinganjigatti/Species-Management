@@ -248,7 +248,7 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
                 height: '36px',
                 border: 1,
                 borderRadius: '6px',
-                borderColor: theme.palette.customColors.AntzOutlineVariant,
+                borderColor: theme.palette.customColors.OutlineVariant,
 
                 bgcolor: isSearchOpen ? theme?.palette.primary.dark : null,
 
@@ -295,7 +295,7 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
                 height: '36px',
                 border: 1,
                 borderRadius: '6px',
-                borderColor: theme.palette.customColors.AntzOutlineVariant,
+                borderColor: theme.palette.customColors.OutlineVariant,
                 bgcolor: filterList?.length > 0 ? theme?.palette.primary.dark : null,
                 alignItems: 'center',
                 cursor: 'pointer'
@@ -323,7 +323,7 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
                 sx={{
                   display: 'flex',
                   alignItems: 'center',
-                  border: `1px solid ${theme.palette.customColors.AntzOutlineVariant}`,
+                  border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
 
                   borderRadius: '4px',
                   bgcolor: theme.palette.customColors.Surface,
@@ -373,7 +373,7 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
                           gap: '6px',
                           px: '8px',
                           py: '12px',
-                          bgcolor: theme.palette.customColors.secondaryBg70,
+                          bgcolor: theme.palette.customColors.customTableBorderBg,
                           borderRadius: '8px',
                           height: '35px'
                         }}
@@ -417,7 +417,7 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
               px: '20px',
               py: '16px',
               borderRadius: '8px',
-              border: `1px solid ${theme.palette.customColors.AntzOutlineVariant}`
+              border: `1px solid ${theme.palette.customColors.OutlineVariant}`
             }}
           >
             <Box sx={{ display: 'flex', gap: 4, mb: 4, mb: 4, alignItems: 'center' }}>
@@ -483,7 +483,7 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
                               ? theme.palette.customColors.displaybgPrimary
                               : list?.egg_condition === 'Fertile'
                               ? theme.palette.customColors.displaybgPrimary
-                              : theme.palette.customColors.AntzOnBackground
+                              : theme.palette.customColors.OnBackground
                         }}
                       >
                         <Typography

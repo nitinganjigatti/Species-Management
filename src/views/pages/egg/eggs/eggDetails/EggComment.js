@@ -1,32 +1,18 @@
+import React, { useEffect, useState } from 'react'
 import { Avatar, Button, Card, CardContent, LinearProgress, TextField, Typography } from '@mui/material'
-import { styled } from '@mui/material/styles'
 import { Box } from '@mui/system'
-import React, { useEffect, useRef, useState } from 'react'
+import { styled } from '@mui/material/styles'
 import { useTheme } from '@mui/material/styles'
-import Icon from 'src/@core/components/icon'
-import { addEggComment, deleteEggComments, getEggComments } from 'src/lib/api/egg/egg'
+
 import moment from 'moment'
+import Utility from 'src/utility'
+import Icon from 'src/@core/components/icon'
 import FallbackSpinner from 'src/@core/components/spinner'
 import ConfirmationDialog from 'src/components/confirmation-dialog'
-import Utility from 'src/utility'
+import { addEggComment, deleteEggComments, getEggComments } from 'src/lib/api/egg/egg'
 
 const EggComment = ({ eggDetails, eggId }) => {
   const theme = useTheme()
-
-  const StyledTextField = styled(TextField)(({ theme }) => ({
-    '& .MuiOutlinedInput-root': {
-      paddingRight: '0 !important',
-      '& fieldset': {
-        borderColor: theme.palette.divider
-      },
-      '&:hover fieldset': {
-        borderColor: theme.palette.primary.main
-      },
-      '&.Mui-focused fieldset': {
-        borderColor: theme.palette.primary.main
-      }
-    }
-  }))
 
   const CustomBox = styled(Box)({
     '::-webkit-scrollbar': {
@@ -48,11 +34,6 @@ const EggComment = ({ eggDetails, eggId }) => {
   const [limit, setLimit] = useState(10)
   const [reachedEnd, setReachedEnd] = useState(false)
   let [commentsPage, setCommentsPage] = useState(1)
-  // const [commentsFilterValue, setCommentsFilterValue] = useState('')
-  // const commentsFilterValueRef = useRef(commentsFilterValue)
-  // useEffect(() => {
-  //   commentsFilterValueRef.current = commentsFilterValue
-  // }, [commentsFilterValue])
   const [commentList, setCommentList] = useState([])
   const [commentLoader, setCommentLoader] = useState(false)
   const [commentText, setCommentText] = useState('')
@@ -68,7 +49,6 @@ const EggComment = ({ eggDetails, eggId }) => {
       limit
     }
     try {
-      // setCommentLoader(true)
       getEggComments(params).then(res => {
         if (res.success) {
           setCommentLoader(false)
@@ -76,9 +56,6 @@ const EggComment = ({ eggDetails, eggId }) => {
             setCommentList(prevArray => [...prevArray, ...res?.data?.result])
             setReachedEnd(false)
           } else {
-            // setShouldCallList(false)
-            // setReachedEnd(false)
-            // setCommentLoader(false)  // we can open this comment if we face loader and should call issue
           }
         } else {
           setCommentList(prevArray => [...prevArray])
@@ -105,7 +82,6 @@ const EggComment = ({ eggDetails, eggId }) => {
       setCommentsPage(++commentsPage)
       setReachedEnd(true)
       try {
-        // const currentCommentsFilterValue = commentsFilterValueRef.current
         getEggCommentsFunc()
       } catch (error) {
         setReachedEnd(false)
@@ -116,8 +92,6 @@ const EggComment = ({ eggDetails, eggId }) => {
 
   function formatDate(dateString) {
     const now = moment()
-
-    // const date = moment(moment.utc(dateString).toDate().toLocaleString())
     const date = Utility.convertUTCToLocal(dateString)
 
     const diffInSeconds = now.diff(date, 'seconds')
@@ -127,8 +101,6 @@ const EggComment = ({ eggDetails, eggId }) => {
     if (now.isSame(date, 'day')) {
       if (diffInSeconds < 60) {
         return `Just now`
-        // } else if (diffInSeconds < 60) {
-        //   return `${diffInSeconds} Second${diffInSeconds !== 1 ? 's' : ''} ago`
       } else if (diffInMinutes < 60) {
         return `${diffInMinutes} Min${diffInMinutes !== 1 ? 's' : ''} ago`
       } else {
@@ -207,7 +179,6 @@ const EggComment = ({ eggDetails, eggId }) => {
             setCommentLoader(false)
           }
         })
-        // return toast()
       } else {
         setCommentLoader(false)
       }
@@ -231,18 +202,33 @@ const EggComment = ({ eggDetails, eggId }) => {
           >
             Add Comment
           </Typography>
-          <StyledTextField
+          <TextField
+            sx={{
+              '& .MuiOutlinedInput-root': {
+                paddingRight: '0 !important',
+                '& fieldset': {
+                  borderColor: theme.palette.divider
+                },
+                '&:hover fieldset': {
+                  borderColor: theme.palette.primary.main
+                },
+                '&.Mui-focused fieldset': {
+                  borderColor: theme.palette.primary.main
+                }
+              }
+            }}
             fullWidth
             variant='outlined'
             placeholder='Enter your comments'
             value={commentText}
-            onChange={e => setCommentText(e.target.value)}
+            onChange={e => {
+              setCommentText(e.target.value)
+            }}
             onKeyDown={event => {
               if (event.key === 'Enter') {
                 addCommentForEgg()
               }
             }}
-            // disabled={commentBtnLoader}
             InputProps={{
               endAdornment: (
                 <Button
@@ -291,7 +277,7 @@ const EggComment = ({ eggDetails, eggId }) => {
                       borderBottom:
                         commentList?.length === index + 1
                           ? 'none'
-                          : `0.5px solid ${theme.palette.customColors.AntzOutlineVariant}`
+                          : `0.5px solid ${theme.palette.customColors.OutlineVariant}`
                     }}
                     key={index}
                   >
@@ -360,12 +346,6 @@ const EggComment = ({ eggDetails, eggId }) => {
                         )}
                       </Box>
                       <Box sx={{ display: 'flex', gap: '12px', justifyContent: { xs: 'end' } }}>
-                        {/* <Icon
-                        color={theme.palette.customColors.secondaryBg}
-                        icon='mdi:pencil'
-                        fontSize={20}
-                        style={{ cursor: 'pointer' }}
-                      /> */}
                         <Icon
                           color={theme.palette.customColors.secondaryBg}
                           icon='material-symbols:delete-outline'
@@ -411,7 +391,7 @@ const EggComment = ({ eggDetails, eggId }) => {
 
       <ConfirmationDialog
         icon={'mdi:delete'}
-        iconColor={theme.palette.customColors.AntzError}
+        iconColor={theme.palette.customColors.Error}
         title={'Are you sure you want to delete this comment?'}
         dialogBoxStatus={deleteDialogBox}
         onClose={handleClosenew}

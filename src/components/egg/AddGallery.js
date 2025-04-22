@@ -109,7 +109,7 @@ const AddGallery = ({ galleryList }) => {
             bgcolor: 'white',
             mb: 4,
             border: 1,
-            borderColor: theme.palette.customColors.AntzOutlineVariant
+            borderColor: theme.palette.customColors.OutlineVariant
           }}
         >
           <Box sx={{ width: '200px', height: '140px', borderRadius: '8px' }}>

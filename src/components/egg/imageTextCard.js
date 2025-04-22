@@ -23,7 +23,7 @@ const SpeciesImageCard = ({ imgURl, eggCondition, egg_status, eggCode, defaultNa
               : egg_status === 'Hatched'
               ? theme.palette.primary.main
               : eggCondition === 'Broken'
-              ? theme.palette.customColors.AntzError
+              ? theme.palette.customColors.Error
               : eggCondition === 'Rotten'
               ? theme.palette.customColors.Tertiary
               : eggCondition === 'Cracked'
@@ -33,7 +33,7 @@ const SpeciesImageCard = ({ imgURl, eggCondition, egg_status, eggCode, defaultNa
               : egg_status === 'Fertile'
               ? theme.palette.primary.light
               : egg_status === 'Discard'
-              ? theme.palette.customColors.AntzError
+              ? theme.palette.customColors.Error
               : theme.palette.primary.dark,
           alignItems: 'center',
           borderRadius: '50px'
@@ -43,7 +43,7 @@ const SpeciesImageCard = ({ imgURl, eggCondition, egg_status, eggCode, defaultNa
           sx={{
             display: 'flex',
             alignItems: 'center',
-            border: `solid 1px ${theme.palette.customColors.AntzOutlineVariant}`,
+            border: `solid 1px ${theme.palette.customColors.OutlineVariant}`,
             width: '35px',
             height: '35px',
             borderRadius: '50%',
@@ -178,16 +178,16 @@ const TextCard = ({ egg_status }) => {
 
         backgroundColor:
           egg_status === 'Rotten'
-            ? theme.palette.customColors.AntzBgTeritary
+            ? theme.palette.customColors.BgTeritary
             : egg_status === 'Cracked'
             ? theme.palette.customColors.antzNotes40
             : egg_status === 'Discard'
-            ? theme.palette.customColors.AntzBgTeritary
+            ? theme.palette.customColors.BgTeritary
             : egg_status === 'Thin-Shelled'
             ? theme.palette.customColors.displaybgPrimary
             : egg_status === 'Fertile'
             ? theme.palette.customColors.displaybgPrimary
-            : theme.palette.customColors.AntzOnBackground
+            : theme.palette.customColors.OnBackground
       }}
     >
       <Typography
@@ -202,7 +202,7 @@ const TextCard = ({ egg_status }) => {
               : egg_status === 'Discard'
               ? theme.palette.customColors.Tertiary
               : egg_status === 'Hatched'
-              ? theme.palette.customColors.antzInfoText
+              ? theme.palette.customColors.antzInfo60
               : egg_status === 'Thin-Shelled'
               ? theme.palette.primary.light
               : theme.palette.primary.dark,

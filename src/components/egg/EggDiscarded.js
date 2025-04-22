@@ -92,7 +92,7 @@ const EggDisCarded = ({ eggList, getEggListSummary, fetchTableData, setDetailDra
             justifyContent: 'center',
             py: '20px',
             border: 1,
-            borderColor: theme.palette.customColors.AntzOutlineVariant
+            borderColor: theme.palette.customColors.OutlineVariant
           }}
 
           // onScroll={handleScroll}
@@ -195,7 +195,7 @@ const EggDisCarded = ({ eggList, getEggListSummary, fetchTableData, setDetailDra
                               textOverflow: 'ellipsis',
                               overflow: 'hidden',
                               whiteSpace: 'nowrap',
-                              color: theme.palette.customColors.AntzError,
+                              color: theme.palette.customColors.Error,
                               maxWidth: 100
                             }}
                           >
@@ -227,7 +227,7 @@ const EggDisCarded = ({ eggList, getEggListSummary, fetchTableData, setDetailDra
                           textOverflow: 'ellipsis',
                           overflow: 'hidden',
                           whiteSpace: 'nowrap',
-                          color: theme.palette.customColors.AntzError,
+                          color: theme.palette.customColors.Error,
                           maxWidth: 100
                         }}
                       >
@@ -284,13 +284,13 @@ const EggDisCarded = ({ eggList, getEggListSummary, fetchTableData, setDetailDra
         >
           <Box
             sx={{
-              bgcolor: theme.palette.customColors.AntzTertiaryLight,
+              bgcolor: theme.palette.customColors.TertiaryLight,
               p: '16px',
               borderRadius: '12px',
               mt: 10
             }}
           >
-            <Icon icon='tdesign:error-triangle' fontSize={'48px'} color={theme.palette.customColors.AntzError} />
+            <Icon icon='tdesign:error-triangle' fontSize={'48px'} color={theme.palette.customColors.Error} />
           </Box>
           <Box>
             <Typography sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontSize: '24px', fontWeight: 600 }}>
