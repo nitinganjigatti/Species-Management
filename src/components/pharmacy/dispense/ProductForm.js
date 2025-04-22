@@ -26,6 +26,8 @@ import { usePharmacyContext } from 'src/context/PharmacyContext'
 
 import { useContext } from 'react'
 import { AuthContext } from 'src/context/AuthContext'
+import Spacing from 'src/@core/theme/spacing'
+import { da } from 'date-fns/locale'
 import Utility from 'src/utility'
 import { useTheme } from '@emotion/react'
 import RenderUtility from 'src/utility/render'
@@ -119,12 +121,14 @@ function ProductForm({
                   const duplicate = productArray.some(
                     item => item.batch_no === value && item?.stock_id === watch('stock_id')?.value
                   )
+
                   return !duplicate
                 })
                 .test('unique-batch-no', 'Batch number is already selected', function (value) {
                   const { product_batches } = this.options.from[2].value
                   const allBatchNumbers = product_batches?.map(batch => batch.batch_no)
                   const selectedBatchCount = allBatchNumbers?.filter(batchNo => batchNo?.value === value).length
+
                   return (selectedBatchCount === undefined ? 0 : selectedBatchCount) === 1
                 })
             }),
@@ -139,11 +143,13 @@ function ProductForm({
                 const isValid = product_batches?.every(item => {
                   const batchQty = parseFloat(item?.batch_no?.qty)
                   const inputQty = parseFloat(item?.qty)
+
                   return inputQty <= batchQty
                 })
                 if (!isValid) {
                   return this.createError({ message: 'Quantity cannot be more than total available quantity' })
                 }
+
                 return isValid
               })
               .required('Quantity is required')
@@ -220,45 +226,152 @@ function ProductForm({
     }
   }
 
+  // const addSaltButton = () => {
+  //   return (
+  //     <Button
+  //       variant='outlined'
+  //       onClick={() => {
+  //         append({
+  //           batch_no: '',
+  //           qty: ''
+  //         })
+  //       }}
+  //       sx={{ marginRight: '4px', borderRadius: 6 }}
+  //     >
+  //       Add Another
+  //     </Button>
+  //   )
+  // }
+
+  // const removeSaltButton = index => {
+  //   return (
+  //     <Box>
+  //       <Icon
+  //         onClick={() => {
+  //           remove(index)
+  //         }}
+  //         icon='material-symbols-light:close'
+  //       />
+  //     </Box>
+  //   )
+  // }
+
+  // const clearSaltFields = index => {
+  //   return (
+  //     <Box>
+  //       <Icon
+  //         onClick={() => {
+  //           remove(index)
+  //           insert(index, {})
+  //         }}
+  //         icon='material-symbols-light:close'
+  //       />
+  //     </Box>
+  //   )
+  // }
+
   const addSaltButton = () => {
     return (
-      <Button
-        variant='outlined'
-        onClick={() => {
-          append({
-            batch_no: '',
-            qty: ''
-          })
+      <Box
+        sx={{
+          display: 'flex',
+          justifyItems: 'center',
+          alignItems: 'center'
         }}
-        sx={{ marginRight: '4px', borderRadius: 6 }}
       >
-        Add Another
-      </Button>
-    )
-  }
-
-  const removeSaltButton = index => {
-    return (
-      <Box>
         <Icon
-          onClick={() => {
-            remove(index)
+          style={{
+            backgroundColor: '#F2FFF8',
+            color: '#37BD69',
+            height: '42px',
+            width: '42px',
+
+            border: '1px solid #37BD69',
+            borderRadius: '8px',
+            cursor: 'pointer'
           }}
-          icon='material-symbols-light:close'
+          onClick={() => {
+            append({
+              batch_no: '',
+              qty: ''
+            })
+          }}
+          icon='si:add-duotone'
         />
       </Box>
     )
   }
 
+  const removeSaltButton = index => {
+    return (
+      <Box
+        sx={{
+          display: 'flex',
+          justifyItems: 'center',
+
+          alignItems: 'center'
+        }}
+      >
+        <Icon
+          style={{
+            backgroundColor: '#FFD3D333',
+            color: '#E93353',
+            height: '42px',
+            width: '42px',
+            border: '1px solid #E93353',
+            borderRadius: '8px',
+            cursor: 'pointer',
+            marginLeft: '10px'
+          }}
+          onClick={() => {
+            remove(index)
+          }}
+          icon='material-symbols-light:close-small'
+        />
+      </Box>
+
+      // <Button
+      //   variant='outlined'
+      //   color='error'
+      //   startIcon={<Icon icon='material-symbols-light:close' />}
+      //   onClick={() => {
+      //     var tempDefaultSalts = defaultSalts
+      //     tempDefaultSalts.splice(index, 1)
+      //     setDefaultSalts(tempDefaultSalts)
+      //     remove(index)
+      //   }}
+      // >
+      //   {/* Remove */}
+      // </Button>
+    )
+  }
+
   const clearSaltFields = index => {
     return (
-      <Box>
+      <Box
+        sx={{
+          display: 'flex',
+          justifyItems: 'center',
+          alignItems: 'center'
+        }}
+      >
         <Icon
+          style={{
+            backgroundColor: '#FFD3D333',
+            color: '#E93353',
+            height: '42px',
+            width: '42px',
+
+            border: '1px solid #E93353',
+            borderRadius: '8px',
+            cursor: 'pointer',
+            marginLeft: '10px'
+          }}
           onClick={() => {
             remove(index)
             insert(index, {})
           }}
-          icon='material-symbols-light:close'
+          icon='material-symbols-light:close-small'
         />
       </Box>
     )
@@ -587,9 +700,7 @@ function ProductForm({
                   <>
                     <Autocomplete
                       forcePopupIcon={false}
-                      // ListboxProps={{ style: { maxHeight: 130 } }}
                       inputProps={{ tabIndex: '6' }}
-                      // disablePortal
                       noOptionsText='Type to search'
                       id='autocomplete-controlled'
                       options={products}
@@ -624,9 +735,7 @@ function ProductForm({
                             <Typography variant='body2'>{option.packageDetails}</Typography>
                             <Typography variant='body2'>{option.manufacture}</Typography>
                             {RenderUtility?.renderControlLabel(option.control_substance === true, 'CS')}
-                            {option.prescription_required === true && (
-                              <CustomChip label='PR' skin='light' color='success' size='small' />
-                            )}
+                            {RenderUtility?.renderPrescriptionLabel(option.prescription_required === true, 'PR')}
                           </Box>
                         </li>
                       )}
@@ -750,12 +859,7 @@ function ProductForm({
           </Typography>
 
           {/* {totalQuantity > 0 && ( */}
-          <Stack
-            direction='row'
-            spacing={3}
-            // divider={<Divider orientation='vertical' flexItem />}
-            sx={{ textAlign: 'center' }}
-          >
+          <Stack direction='row' spacing={3} sx={{ textAlign: 'center' }}>
             <Typography
               variant='body2'
               sx={{ color: 'customColors.neutralSecondary', fontSize: '14px', fontWeight: 400 }}
@@ -773,7 +877,7 @@ function ProductForm({
         {!editMode ? (
           <FormGroup sx={{ bgcolor: '#0000000D', padding: 2, borderRadius: 1 }}>
             {fields.map((field, index) => (
-              <Grid container gap={3} key={field?.id} sx={{ mb: 2, mt: 2 }}>
+              <Grid container spacing={2} key={field?.id} sx={{ mb: 2, mt: 2 }}>
                 <Grid item xs={12} sm={3}>
                   <FormControl fullWidth>
                     <Controller
@@ -782,10 +886,8 @@ function ProductForm({
                       render={({ field }) => (
                         <>
                           <Autocomplete
-                            // ListboxProps={{ style: { maxHeight: 100 } }}
                             forcePopupIcon={false}
                             inputProps={{ tabIndex: '6' }}
-                            // disablePortal
                             id={`product_batches[${index}].batch_no`}
                             options={batches}
                             getOptionLabel={option => option?.label || ''}
@@ -809,6 +911,7 @@ function ProductForm({
                                 label='Batch No.*'
                                 placeholder='Search'
                                 error={Boolean(errors?.product_batches?.[index]?.batch_no)}
+                                sx={{ backgroundColor: 'white', borderRadius: 1 }}
                               />
                             )}
                             renderOption={(props, option) => (
@@ -903,6 +1006,7 @@ function ProductForm({
                               })
                             }
                           }}
+                          sx={{ backgroundColor: 'white', borderRadius: 1 }}
                         />
                       )}
                     ></Controller>
@@ -929,6 +1033,7 @@ function ProductForm({
                                 })
                               }
                             }}
+                            sx={{ backgroundColor: 'white', borderRadius: 1 }}
                           />
                         </>
                       )}
@@ -950,10 +1055,11 @@ function ProductForm({
 
                 <Grid
                   item
-                  alignSelf='center'
+                  xs={12}
+                  sm={3}
                   sx={{
                     display: 'flex',
-                    justifyItems: 'center',
+                    justifyContent: { xs: 'flex-start', sm: 'flex-end' },
                     alignItems: 'center'
                   }}
                 >
@@ -963,7 +1069,13 @@ function ProductForm({
             ))}
           </FormGroup>
         ) : (
-          <Grid container mb={3} rowSpacing={4} columnSpacing={2}>
+          <Grid
+            container
+            mb={3}
+            rowSpacing={4}
+            columnSpacing={2}
+            sx={{ bgcolor: '#0000000D', padding: 2, pl: 0, borderRadius: 1 }}
+          >
             <Grid item xs={12} sm={4} md={4}>
               <FormControl fullWidth>
                 <Controller
@@ -980,7 +1092,12 @@ function ProductForm({
                         options={batches}
                         getOptionLabel={option => option?.label || ''}
                         renderInput={params => (
-                          <TextField {...params} label='Batches*' error={Boolean(errors.batch_no)} />
+                          <TextField
+                            {...params}
+                            label='Batches*'
+                            error={Boolean(errors.batch_no)}
+                            sx={{ backgroundColor: 'white', borderRadius: 1 }}
+                          />
                         )}
                         onChange={(event, newValue) => {
                           field.onChange(newValue)
@@ -1025,6 +1142,7 @@ function ProductForm({
                       name='multiplier'
                       error={Boolean(errors.multiplier)}
                       onChange={onChange}
+                      sx={{ backgroundColor: 'white', borderRadius: 1 }}
                     />
                   )}
                 >
@@ -1050,6 +1168,7 @@ function ProductForm({
                         onChange={e => {
                           field.onChange(e.target.value)
                         }}
+                        sx={{ backgroundColor: 'white', borderRadius: 1 }}
                       />
                       {errors?.qty && (
                         <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>

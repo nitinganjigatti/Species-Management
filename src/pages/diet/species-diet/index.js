@@ -617,7 +617,13 @@ const SpeciesDietList = () => {
                   setUploadDietDrawer(true)
                   // fileInputRef.current.click()
                 }}
-                sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px' }}
+                sx={{
+                  width: '80px',
+                  display: 'flex',
+                  justifyContent: 'end',
+                  alignItems: 'center',
+                  gap: '8px'
+                }}
               >
                 <Typography
                   sx={{
@@ -643,10 +649,6 @@ const SpeciesDietList = () => {
         </>
       )
     }
-
-    ///////////////////////Code-For-Show-Rsponsive-Multiple-Attachment////////////////////////////
-
-    ////////////////////////////////////////////////////////////////////////////////
   ]
 
   const handleExport = async () => {

@@ -711,8 +711,10 @@ const StepBasicDetails = ({
 
       // Update fieldsIngredients by filtering out ingredients based on ingredientIdToRemove
       const updatedFieldsIngredients = fieldsIngredients.map(field => {
-        field.ingredient = field.ingredient?.filter(ing => String(ing.ingredient_id) !== ingredientIdToRemove)
-
+        if (field?.mealid === val) {
+          // Remove ingredient only if mealid matches
+          field.ingredient = field.ingredient?.filter(ing => String(ing.ingredient_id) !== ingredientIdToRemove)
+        }
         return field
       })
 
@@ -765,8 +767,9 @@ const StepBasicDetails = ({
 
       // Update fieldsIngredients by filtering out ingredients based on recipeIdToRemove
       const updatedFieldsIngredients = fieldsIngredients.map(field => {
-        field.recipe = field.recipe?.filter(ing => String(ing.recipe_id) !== recipeIdToRemove)
-
+        if (field?.mealid === val) {
+          field.recipe = field.recipe?.filter(ing => String(ing.recipe_id) !== recipeIdToRemove)
+        }
         return field
       })
 
@@ -791,8 +794,9 @@ const StepBasicDetails = ({
 
       // Update fieldsIngredients by filtering out ingredients based on recipeIdToRemove
       const updatedFieldsIngredients = fieldsIngredients.map(field => {
-        field.combo = field.combo?.filter(ing => String(ing.recipe_id) !== recipeIdToRemove)
-
+        if (field?.mealid === val) {
+          field.combo = field.combo?.filter(ing => String(ing.recipe_id) !== recipeIdToRemove)
+        }
         return field
       })
 

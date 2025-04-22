@@ -31,6 +31,7 @@ import { fontSize, height, width } from '@mui/system'
 import StyleWithIconCardComponent from 'src/views/utility/style-with-icon-card'
 import { right } from '@popperjs/core'
 import { TabContext, TabList, TabPanel } from '@mui/lab'
+import PharmacyProductCard from 'src/views/utility/PharmacyProductCard'
 
 const ListOfMedicine = () => {
   const theme = useTheme()
@@ -84,7 +85,7 @@ const ListOfMedicine = () => {
       // flex: 0.15,
       width: 80,
       field: 'id',
-      headerName: 'S.NO',
+      headerName: 'SL.NO',
       renderCell: params => (
         <Box sx={{ minWidth: 40 }}>
           <Typography sx={{ color: 'text.primary', fontSize: '14px', fontWeight: '400px' }}>
@@ -113,7 +114,7 @@ const ListOfMedicine = () => {
           >
             {params.row.name}
           </Typography> */}
-          <StyleWithIconCardComponent
+          {/* <StyleWithIconCardComponent
             value={params.row.name}
             description={params.row.generic_name}
             icon={params.row.image ? `${params.row.image}` : '/images/Medicine_Icon.png'}
@@ -127,6 +128,13 @@ const ListOfMedicine = () => {
               iconWidth: '44px',
               iconHeight: '44px'
             }}
+          /> */}
+          <PharmacyProductCard
+            title={params?.row?.name}
+            subTitle={params?.row?.generic_name}
+            icon={params?.row?.image}
+            controlSubstance={params?.row?.controlled_substance === '1' && true}
+            prescriptionRequired={params?.row?.prescription_required === '1' && true}
           />
         </Box>
       )
@@ -394,9 +402,7 @@ const ListOfMedicine = () => {
   // const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [loading, setLoading] = useState(false)
 
-  // const [statusFilter, setStatusFilter] = useState(router.query.status || true)
-  const [statusFilter, setStatusFilter] = useState(router.query.status || 'all')
-
+  const [statusFilter, setStatusFilter] = useState(router.query.status || true)
   function loadServerRows(currentPage, data) {
     return data
   }
@@ -499,20 +505,20 @@ const ListOfMedicine = () => {
     await searchTableData({ sort, q: value, column: sortColumn, status: statusFilter })
   }
 
-  // const handleStatusFilterChange = newFilter => {
-  //   setSearchValue('')
-  //   setStatusFilter(newFilter)
+  const handleStatusFilterChange = newFilter => {
+    setSearchValue('')
+    setStatusFilter(newFilter)
 
-  //   // updateUrlParams({
-  //   //   sort,
-  //   //   q: '',
-  //   //   column: sortColumn,
-  //   //   status: newFilter,
-  //   //   page: paginationModel?.page,
-  //   //   limit: paginationModel?.pageSize
-  //   // })
-  //   fetchTableData({ sort, q: '', column: sortColumn, status: newFilter })
-  // }
+    // updateUrlParams({
+    //   sort,
+    //   q: '',
+    //   column: sortColumn,
+    //   status: newFilter,
+    //   page: paginationModel?.page,
+    //   limit: paginationModel?.pageSize
+    // })
+    fetchTableData({ sort, q: '', column: sortColumn, status: newFilter })
+  }
 
   const headerAction = (
     <div>
@@ -535,11 +541,11 @@ const ListOfMedicine = () => {
     ...row,
     sl_no: getSlNo(index)
   }))
-
-  // const [tabValue, setTabValue] = useState(router.query.status || 'all')
+  const [tabValue, setTabValue] = useState(router.query.status || 'all')
 
   const handleTabChange = (event, newValue) => {
-    // setTabValue(newValue)
+    setTabValue(newValue)
+    setPaginationModel({ page: 0, pageSize: 10 })
     setSearchValue('')
     setStatusFilter(newValue)
   }
@@ -668,7 +674,7 @@ const ListOfMedicine = () => {
                   </Grid> */}
                 {/* </Box> */}
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2, mx: 6 }}>
-                  <TabContext value={statusFilter}>
+                  <TabContext value={tabValue}>
                     <TabList onChange={handleTabChange} aria-label='lab API tabs example'>
                       <Tab label='All' value='all' />
                       <Tab label='Active' value='true' />
@@ -710,7 +716,7 @@ const ListOfMedicine = () => {
                   {/* Tabs */}
                 </Box>
 
-                <TabContext value={statusFilter}>
+                <TabContext value={tabValue}>
                   {/* Tab Panels */}
                   <TabPanel value='all' sx={{ p: 0 }}>
                     {RenderTable()}

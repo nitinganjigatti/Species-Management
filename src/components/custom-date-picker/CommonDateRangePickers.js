@@ -25,6 +25,7 @@ const CommonDateRangePickers = ({
   onChange,
   filterDates,
   showFutureDates = false,
+  showAllTime = false,
   useCustomText = false,
   customText = ''
 }) => {
@@ -245,10 +246,14 @@ const CommonDateRangePickers = ({
 
   //   // Handle All time case (no dates)
   //   if (!startDateProp && !endDateProp) {
-  //     const allTimeLabel = showFutureDates
-  //       ? `All time - From - ${format(today, 'dd MMM, yyyy')}`
-  //       : `All time - Upto - ${format(today, 'dd MMM, yyyy')}`
-  //     setSelectedRange(` ${allTimeLabel}`)
+  //     if (useCustomText) {
+  //       setSelectedRange(customText)
+  //     } else {
+  //       const allTimeLabel = showFutureDates
+  //         ? `All time - From - ${format(today, 'dd MMM, yyyy')}`
+  //         : `All time - Upto - ${format(today, 'dd MMM, yyyy')}`
+  //       setSelectedRange(allTimeLabel)
+  //     }
 
   //     return
   //   }
@@ -298,7 +303,44 @@ const CommonDateRangePickers = ({
   //       }
   //     }
   //   }
-  // }, [filterDates, showFutureDates])
+  // }, [filterDates, showFutureDates, useCustomText, customText])
+
+  // useEffect(() => {
+  //   const { from_date, to_date } = router.query
+
+  //   if (from_date && to_date) {
+  //     const fromDate = new Date(from_date)
+  //     const toDate = new Date(to_date)
+
+  //     // Check if from_date and to_date are the same
+  //     if (fromDate.toDateString() === toDate.toDateString()) {
+  //       setSelectedRange(`Today - ${format(today, 'dd MMM, yyyy')}`)
+  //       onChange?.(fromDate, toDate)
+  //     } else {
+  //       // Find the matching range in dateRanges
+  //       const matchingRange = dateRanges.find(
+  //         range =>
+  //           range.startDate &&
+  //           range.endDate &&
+  //           range.startDate.toDateString() === fromDate.toDateString() &&
+  //           range.endDate.toDateString() === toDate.toDateString()
+  //       )
+
+  //       if (matchingRange) {
+  //         // If a predefined range matches, use its label and subLabel
+  //         setSelectedRange(`${matchingRange.label} - ${matchingRange.subLabel}`)
+  //       } else {
+  //         // set a custom range
+  //         const customRangeLabel = `Custom Range - ${format(fromDate, 'dd MMM, yyyy')} - ${format(
+  //           toDate,
+  //           'dd MMM, yyyy'
+  //         )}`
+  //         setSelectedRange(customRangeLabel)
+  //       }
+  //       onChange?.(fromDate, toDate)
+  //     }
+  //   }
+  // }, [router.query.tab])
 
   const handleClick = event => {
     setAnchorEl(event.currentTarget)

@@ -1,8 +1,10 @@
 import React from 'react'
 import { Card, Typography, Box, Avatar, alpha } from '@mui/material'
 import { useTheme } from '@emotion/react'
+import RenderUtility from 'src/utility/render'
+import CustomChip from 'src/@core/components/mui/chip'
 
-const MedicineCard = ({ name, description, pending, icon, pendingColor }) => {
+const MedicineCard = ({ name, description, pending, icon, pendingColor, control_substance, prescription_required }) => {
   const theme = useTheme()
 
   return (
@@ -28,12 +30,19 @@ const MedicineCard = ({ name, description, pending, icon, pendingColor }) => {
         }}
       >
         {/* Avatar for Medicine Icon */}
-        <Avatar variant='square' src={icon} alt={name} sx={{ width: 32, height: 32 }} />
+        <Avatar
+          variant='square'
+          src={icon?.trim() ? icon : '/images/Medicine_Icon.png'}
+          alt={name}
+          sx={{ width: 32, height: 32 }}
+        />
       </Box>
 
       <Box sx={{ flexGrow: 1 }}>
         <Typography sx={{ fontSize: '14px', fontWeight: 600, color: 'customColors.OnSurfaceVariant' }}>
-          {name}
+          {RenderUtility?.renderControlLabel(control_substance === '1', 'CS')}{' '}
+          {/* {prescription_required === '1' && <CustomChip label='PR' skin='light' color='success' size='small' />} */}
+          {RenderUtility?.renderPrescriptionLabel(prescription_required === '1', 'PR')} {name}
         </Typography>
         <Typography variant='body2' sx={{ fontSize: '14px', fontWeight: 400, color: 'customColors.neutralSecondary' }}>
           {description}

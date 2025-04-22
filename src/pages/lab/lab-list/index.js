@@ -63,7 +63,7 @@ const ListOfLab = () => {
     //   flex: 0.05,
     //   Width: 40,
     //   field: 'id',
-    //   headerName: 'SL ',
+    //    headerName:'SL.NO',
     //   renderCell: params => (
     //     <Typography variant='body2' sx={{ color: 'text.primary' }}>
     //       {parseInt(params.row.sl_no)}
@@ -257,7 +257,8 @@ const ListOfLab = () => {
             onClick={() => {
               Router.push({
                 pathname: '/lab/lab-list/add-Lab',
-                query: { id: data?.id, page: router.query?.page, pageSize: router.query?.pageSize, q: searchValue }
+                // query: { id: data?.id, page: router.query?.page, pageSize: router.query?.pageSize, q: searchValue }
+                query: { page: router.query?.page, pageSize: router.query?.pageSize, q: searchValue }
               })
             }}
           >

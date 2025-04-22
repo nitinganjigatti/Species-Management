@@ -718,7 +718,7 @@ const AddDirectDispatch = () => {
         const result = await cancelDirectDispatchItems(id)
         if (result?.data?.success === true) {
           toast.success(result?.data?.data)
-          Router.replace(`/pharmacy/direct-dispatch/direct-dispatch-list/`)
+          Router.replace(`/pharmacy/direct-dispatch/`)
         } else {
           toast.error(result?.data?.data)
           setDeleteDialog(false)
@@ -739,7 +739,7 @@ const AddDirectDispatch = () => {
   //       console.log('cancelRequest result', result)
   //       if (result?.data?.success === true) {
   //         toast.success(result?.data?.data)
-  //         Router.push(`/pharmacy/direct-dispatch/direct-dispatch-list/`)
+  //         Router.push(`/pharmacy/direct-dispatch/`)
   //       } else {
   //         toast.error(result.data)
   //       }
@@ -776,7 +776,7 @@ const AddDirectDispatch = () => {
                 <Icon
                   style={{ cursor: 'pointer' }}
                   onClick={() => {
-                    Router.back('/pharmacy/direct-dispatch/direct-dispatch-list/')
+                    Router.back('/pharmacy/direct-dispatch/')
                   }}
                   icon='ep:back'
                 />

@@ -800,7 +800,7 @@ function OrderReceiveForm({ shipmentId }) {
     {
       Width: 40,
       field: 'uid`',
-      headerName: 'S.NO',
+      headerName: 'SL.NO',
       renderCell: params => {
         return (
           <Typography variant='body2' sx={{ color: 'text.primary' }}>
@@ -898,7 +898,7 @@ function OrderReceiveForm({ shipmentId }) {
 
     {
       flex: 0.4,
-      minWidth: 200,
+      minWidth: 300,
       field: 'status',
       // headerName: 'Status',
       headerName: selectedPharmacy?.type === 'central' ? 'Actions' : 'Status',

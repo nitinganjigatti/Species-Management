@@ -45,8 +45,15 @@ const composeDietNavigation = () => {
     activeIcon: <img src='/icons/icon_recipe_white.png' alt='Grocery Icon' />
   }
 
+  const mealGroups = {
+    title: 'Meal Groups',
+    path: '/diet/meal-groups',
+    icon: <img src='/icons/icon_diet_black.png' alt='Grocery Icon' />,
+    activeIcon: <img src='/icons/icon_diet_white.png' alt='Grocery Icon' />
+  }
+
   const settingsParent = {
-    title: 'Setting',
+    title: 'Settings',
     path: '/diet/settings',
     icon: 'uil:setting',
     children: []
@@ -72,6 +79,7 @@ const composeDietNavigation = () => {
     dietList,
     recipeList,
     comboList,
+    mealGroups,
     settingsParent
   ]
 

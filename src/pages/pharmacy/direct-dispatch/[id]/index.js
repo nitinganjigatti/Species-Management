@@ -50,7 +50,7 @@ import { styled } from '@mui/material/styles'
 import MuiTabList from '@mui/lab/TabList'
 import RenderUtility from 'src/utility/render'
 import EmptyStateBox from 'src/components/EmptyStateBox'
-import { width } from '@mui/system'
+import { minWidth, width } from '@mui/system'
 
 const Transition = forwardRef(function Transition(props, ref) {
   return <Fade ref={ref} {...props} />
@@ -344,8 +344,7 @@ const IndividualRequest = () => {
 
   const columns = [
     {
-      flex: 0.05,
-      Width: 40,
+      width: 40,
       field: 'sl_no',
       headerName: 'Sl',
       renderCell: (params, rowId) => (
@@ -355,8 +354,8 @@ const IndividualRequest = () => {
       )
     },
     {
-      flex: 0.2,
-      Width: 40,
+      width: 400,
+      minWidth: 400,
       field: 'stock_name',
       headerName: 'Product Name',
       renderCell: (params, rowId) => (
@@ -403,10 +402,22 @@ const IndividualRequest = () => {
     //     </Typography>
     //   )
     // },
-
     {
-      flex: 0.6,
-      minWidth: 20,
+      width: 100,
+      minWidth: 100,
+      field: 'batch_no',
+      headerName: 'Batch No',
+
+      // align: 'right',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {params.row.batch_no}
+        </Typography>
+      )
+    },
+    {
+      width: 150,
+      minWidth: 150,
       field: 'unit_price',
       headerName: 'unit price',
       type: 'number',
@@ -418,8 +429,8 @@ const IndividualRequest = () => {
       )
     },
     {
-      flex: 0.2,
-      minWidth: 20,
+      width: 150,
+      minWidth: 150,
       field: 'qty',
       headerName: 'total value',
       type: 'number',
@@ -432,8 +443,8 @@ const IndividualRequest = () => {
     },
 
     {
-      flex: 0.2,
-      minWidth: 20,
+      width: 150,
+      minWidth: 150,
       field: 'requested_qty',
       headerName: 'Dispatch QTY',
       type: 'number',
@@ -1105,17 +1116,20 @@ const IndividualRequest = () => {
                         </Box>
                       </Box>
                     </Grid>
-
                     <>
                       <Grid item xs={3} sm={12 / 5} lg={12 / 5}>
                         <h5 style={{ marginBottom: '0px', marginTop: '0px' }}>Requested Amount</h5>
-                        <p style={{ marginBottom: '0' }}>{requestItems?.requested_amount}</p>
+                        <p style={{ marginBottom: '0' }}>
+                          {Utility.formatAmountToReadableDigit(requestItems?.requested_amount)}
+                        </p>
                       </Grid>
                       {shippedItems.length > 0 && (
                         <>
                           <Grid item xs={3} sm={12 / 5} lg={12 / 5}>
                             <h5 style={{ marginBottom: '0px', marginTop: '0px' }}>Shipped Amount</h5>
-                            <p style={{ marginBottom: '0' }}>{requestItems?.shipped_amount}</p>
+                            <p style={{ marginBottom: '0' }}>
+                              {Utility.formatAmountToReadableDigit(requestItems?.shipped_amount)}
+                            </p>
                           </Grid>
                           <Grid item xs={3} sm={12 / 5} lg={12 / 5}>
                             <h5 style={{ marginBottom: '0px', marginTop: '0px' }}>Shipped Qty</h5>
@@ -1261,11 +1275,11 @@ const IndividualRequest = () => {
                                     onRowClick={e => {
                                       setOrderId(e.id)
 
-                                      // showOrderFormDialog()
-                                      setOrderId(e.id)
                                       Router.push({
                                         pathname: `/pharmacy/direct-dispatch/${id}/shipment-details`,
-                                        query: { orderId: e.id }
+
+                                        // query: { orderId: e.id }
+                                        query: { orderId: e.id, requestId: id }
                                       })
                                     }}
                                   ></TableBasic>
@@ -1356,7 +1370,7 @@ const IndividualRequest = () => {
               You don't have an access to view this request
               <Button
                 onClick={() => {
-                  router.push('/pharmacy/direct-dispatch/direct-dispatch-list/')
+                  router.push('/pharmacy/direct-dispatch/')
                 }}
                 variant='contained'
                 size='small'

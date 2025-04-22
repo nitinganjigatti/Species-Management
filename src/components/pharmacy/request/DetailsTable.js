@@ -60,7 +60,7 @@ export default function DetailsTable({ ...props }) {
               !isNaN(el?.control_substance) && parseInt(el?.control_substance) === 1,
               'CS'
             )}
-            {RenderUtility?.renderControlLabel(
+            {RenderUtility?.renderPrescriptionLabel(
               !isNaN(el?.prescription_required) && parseInt(el?.prescription_required) === 1,
               'PR'
             )}
@@ -121,7 +121,7 @@ export default function DetailsTable({ ...props }) {
     >
       <TableContainer
         sx={{
-          border: `0.5px solid ${theme.palette.customColors.OutlineVariant} !important`,
+          border: `0.5px solid ${theme?.palette?.customColors?.OutlineVariant} !important`,
 
           // border: `0.5px solid ${theme.palette.customColors.OnSurfaceVariant}`,
           borderRadius: '10px !important'
@@ -145,9 +145,9 @@ export default function DetailsTable({ ...props }) {
                   fontWeight: 600
                 }}
               >
-                S.NO
+                SL.NO
               </TableCell>
-              <TableCell></TableCell>
+              <TableCell>Priority</TableCell>
               <TableCell>PRODUCT NAME</TableCell>
 
               <TableCell>QUANTITY</TableCell>
@@ -182,7 +182,7 @@ export default function DetailsTable({ ...props }) {
                             flexDirection: 'column',
                             justifyContent: 'center',
                             alignContent: 'top',
-                            alignItems: 'center'
+                            alignItems: 'start'
                           }}
                         >
                           {/* {el.sl_no}. */}
@@ -462,15 +462,6 @@ export default function DetailsTable({ ...props }) {
                                   width: 100,
                                   ...props?.strikeOutTextStyle(el.request_status)
                                 }}
-                                // disabled={
-                                //   parseInt(el.requested_qty) - parseInt(el.dispatch_qty) >= 1 &&
-                                //   props?.requestItems.status !== 'Cancelled' &&
-                                //   el.request_status !== 'Alternate' &&
-                                //   el.request_status !== 'Not Available' &&
-                                //   el.request_status !== 'Rejected'
-                                //     ? false
-                                //     : true
-                                // }
                                 disabled={
                                   props?.selectedPharmacy?.permission?.key === 'VIEW' ||
                                   (parseInt(el.requested_qty) - parseInt(el.dispatch_qty) >= 1 &&

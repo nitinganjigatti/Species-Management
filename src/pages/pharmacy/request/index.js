@@ -1,72 +1,59 @@
 import React, { useState, useEffect, useCallback } from 'react'
-import { getRequestReturnList } from 'src/lib/api/pharmacy/returnRequest'
+
+import { getRequestItemsList } from 'src/lib/api/pharmacy/getRequestItemsList'
+
 import FallbackSpinner from 'src/@core/components/spinner/index'
 import CardHeader from '@mui/material/CardHeader'
+import { DataGrid } from '@mui/x-data-grid'
+import { debounce } from 'lodash'
+
 import Tab from '@mui/material/Tab'
 import TabPanel from '@mui/lab/TabPanel'
 import TabContext from '@mui/lab/TabContext'
 import TabList from '@mui/lab/TabList'
-import { DataGrid } from '@mui/x-data-grid'
-import { debounce } from 'lodash'
-import Chip from '@mui/material/Chip'
-import Grid from '@mui/material/Grid'
 
 // ** MUI Imports
 import Card from '@mui/material/Card'
 import Typography from '@mui/material/Typography'
-import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
-import Router from 'next/router'
-import {
-  Switch,
-  FormControlLabel,
-  TextField,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
-  InputAdornment
-} from '@mui/material'
-import { useTheme } from '@emotion/react'
-import useMediaQuery from '@mui/material/useMediaQuery'
+import Chip from '@mui/material/Chip'
+import Grid from '@mui/material/Grid'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
-import { Box } from '@mui/material'
-
+import { Box, TextField, Tooltip } from '@mui/material'
+import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
+import Router from 'next/router'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import { AddButton } from 'src/components/Buttons'
 import Utility from 'src/utility'
-import { useRouter } from 'next/router'
+import { Switch, FormControlLabel, FormControl, InputLabel, Select, MenuItem, InputAdornment } from '@mui/material'
 import { getStoreList } from 'src/lib/api/pharmacy/getStoreList'
+import { useRouter } from 'next/router'
+import { useTheme } from '@emotion/react'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import { AddButtonContained } from 'src/components/ButtonContained'
+import { margin, textAlign } from '@mui/system'
 import RenderUtility from 'src/utility/render'
 
-const ReturnRequestList = () => {
+const RequestList = () => {
   const theme = useTheme()
-  const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm')) // Detect small screens
+  const [loader, setLoader] = useState(false)
 
   const { selectedPharmacy } = usePharmacyContext()
 
-  const [loader, setLoader] = useState(false)
-
-  /***** Server side pagination */
-
-  // const [total, setTotal] = useState(0)
-  // const [sort, setSort] = useState('desc')
-  // const [rows, setRows] = useState([])
-  // const [searchValue, setSearchValue] = useState('')
-  // const [sortColumn, setSortColumn] = useState('label')
-  // const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
-  // const [loading, setLoading] = useState(false)
-  // const [status, setStatus] = useState('pending')
-  // const [filterSwitch, setFilterSwitch] = useState(false)
+  const handleEdit = id => {
+    Router.push({
+      pathname: '/pharmacy/request/add-request/',
+      query: { id: id, action: 'edit' }
+    })
+  }
   const router = useRouter()
 
   const updateUrlParams = params => {
     const query = { ...router.query, ...params }
     router.replace({ pathname: router.pathname, query }, undefined, { shallow: true })
   }
+
   const [total, setTotal] = useState(0)
   const [sort, setSort] = useState(router.query.sort || 'desc')
   const [rows, setRows] = useState([])
@@ -79,10 +66,8 @@ const ReturnRequestList = () => {
   })
   const [loading, setLoading] = useState(false)
   const [stores, setStores] = useState([])
-
-  const [status, setStatus] = useState(selectedPharmacy.type === 'local' ? 'pending' : 'shipped')
+  const [status, setStatus] = useState(router.query.status || 'pending')
   const [filterByStoreId, setFilterByStoreId] = useState(router.query.store || 'all')
-
   const [filterSwitch, setFilterSwitch] = useState(router.query.filterSwitch === 'true' ? true : false)
   const [selectDays, setSelectDays] = useState(router.query.days || 'all')
 
@@ -95,9 +80,16 @@ const ReturnRequestList = () => {
     return data
   }
 
-  useEffect(() => {
-    getStoresLists()
-  }, [])
+  const handleChange = (event, newValue) => {
+    setTotal(0)
+    setFilterSwitch(false)
+    setFilterByStoreId('all')
+    setPaginationModel({ page: 0, pageSize: 10 })
+    setFilterDates({ startDate: '', endDate: '' })
+    setSelectDays('all')
+    setSearchValue('')
+    setStatus(newValue)
+  }
 
   const getStoresLists = async () => {
     try {
@@ -117,79 +109,25 @@ const ReturnRequestList = () => {
     }
   }
 
-  useEffect(() => {
-    if (!router.query.status) {
-      if (selectedPharmacy.type === 'central') {
-        setStatus('shipped')
-      } else if (selectedPharmacy.type === 'local') {
-        setStatus('pending')
-      }
-    } else {
-      setStatus(
-        selectedPharmacy.type === 'local' && router.query.status === 'pending'
-          ? 'pending'
-          : selectedPharmacy.type === 'central' && router.query.status === 'pending'
-          ? 'shipped'
-          : router.query.status
-      )
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedPharmacy.type])
-
-  useEffect(() => {
-    if (router.query.status !== status) {
-      // debugger
-      setPaginationModel({ page: 0, pageSize: 10 })
-      updateUrlParams({
-        status: status,
-        page: 0,
-        limit: 10,
-        q: '',
-        sort: sort,
-        column: sortColumn,
-        startDate: '',
-        endDate: '',
-        store: filterByStoreId,
-        filterSwitch: false
-      })
-    }
-  }, [router.query.status])
-
-  const handleChange = (event, newValue) => {
-    setTotal(0)
-    setFilterSwitch(false)
-    setPaginationModel({ page: 0, pageSize: 10 })
-    setSearchValue('')
-    setFilterDates({ startDate: '', endDate: '' })
-    setSelectDays('all')
-    setStatus(newValue)
-    updateUrlParams({
-      status: newValue,
-      page: 0,
-      limit: 10,
-      q: '',
-      sort: sort,
-      column: sortColumn,
-      startDate: '',
-      endDate: '',
-      store: filterByStoreId,
-      filterSwitch: false
-    })
-  }
-
   const fetchTableData = useCallback(
     async (sort, q, column, status, startDate, endDate, filterByStoreId, page, limit) => {
+      var params = {}
+
       try {
         setLoading(true)
 
-        // Declare params object
-        let params = {}
+        // if (
+        //   ((startDate !== '' || startDate !== undefined) && (endDate !== '' || endDate !== undefined)) ||
+        //   ((filterDates?.startDate !== '' || filterDates?.startDate !== undefined) &&
+        //     (filterDates?.endDate !== '' || filterDates?.endDate !== undefined))
+        // )
 
         if (
           startDate ||
           endDate // Checks if startDate and endDate are truthy (not empty or undefined)
         ) {
           params = {
+            type: 'request',
             sort,
             q,
             column,
@@ -202,17 +140,18 @@ const ReturnRequestList = () => {
           }
         } else {
           params = {
+            type: 'request',
             sort,
             q,
             column,
-            page: page ? page : paginationModel.page + 1,
-            limit: limit ? limit : paginationModel.pageSize,
-            status: filterSwitch === true && status === 'all' ? 'completed' : status,
+            page: paginationModel.page + 1,
+            limit: paginationModel.pageSize,
+            status: filterSwitch === true ? 'completed' : status,
             search_store: filterByStoreId === 'all' ? '' : filterByStoreId
           }
         }
 
-        await getRequestReturnList({ params: params }).then(res => {
+        await getRequestItemsList({ params: params }).then(res => {
           if (res?.success === true && res?.data.list_items?.length > 0) {
             setTotal(parseInt(res?.data?.total_count))
             setRows(loadServerRows(paginationModel.page, res?.data?.list_items))
@@ -221,17 +160,54 @@ const ReturnRequestList = () => {
             setRows([])
           }
         })
-
         setLoading(false)
       } catch (e) {
-        console.log(e)
         setTotal(0)
         setRows([])
+        console.log(e)
         setLoading(false)
       }
     },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     [paginationModel]
   )
+  useEffect(() => {
+    const currentStatus = filterSwitch === true ? 'completed' : status
+
+    fetchTableData(
+      sort,
+      searchValue,
+      sortColumn,
+      currentStatus,
+      filterDates.startDate,
+      filterDates.endDate,
+      filterByStoreId
+    )
+
+    updateUrlParams({
+      sort,
+      q: searchValue,
+      column: sortColumn,
+      status: currentStatus,
+      startDate: filterDates.startDate,
+      endDate: filterDates.endDate,
+      store: filterByStoreId,
+      page: paginationModel.page,
+      limit: paginationModel.pageSize,
+      filterSwitch,
+      days: selectDays
+    })
+
+    // }
+  }, [
+    status,
+    selectedPharmacy.id,
+    filterSwitch,
+    filterByStoreId,
+    filterDates,
+    paginationModel.page,
+    paginationModel.pageSize
+  ])
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
@@ -242,31 +218,36 @@ const ReturnRequestList = () => {
 
   const handleSortModel = newModel => {
     if (newModel.length) {
-      const currentStatus = filterSwitch === true ? 'completed' : status
-      setSort(newModel[0].sort)
-      setSortColumn(newModel[0].field)
-      setSearchValue('')
+      const newSort = newModel[0].sort // 'asc' or 'desc'
+      const newColumn = newModel[0].field // Column to sort by
+
+      // Update state for sort and column
+      setSort(newSort)
+      setSortColumn(newColumn)
+
+      // Update the router query with the current sort and column
+      router.replace(
+        {
+          pathname: router.pathname,
+          query: {
+            ...router.query,
+            sort: newSort,
+            column: newColumn
+          }
+        },
+        undefined,
+        { shallow: true }
+      )
 
       fetchTableData(
-        newModel[0].sort,
+        newSort,
         searchValue,
-        newModel[0].field,
-        currentStatus,
+        newColumn,
+        status,
         filterDates.startDate,
         filterDates.endDate,
         filterByStoreId
       )
-      updateUrlParams({
-        sort: newModel[0].sort,
-        q: searchValue,
-        column: newModel[0].field,
-        status: status,
-        startDate: filterDates.startDate,
-        endDate: filterDates.endDate,
-        store: filterByStoreId,
-        page: paginationModel.page,
-        limit: paginationModel.pageSize
-      })
     }
   }
 
@@ -275,25 +256,20 @@ const ReturnRequestList = () => {
       setTotal(0)
       setPaginationModel({ page: 0, pageSize: 10 })
       setSearchValue(q)
-      const currentStatus = filterSwitch === true ? 'completed' : status
       try {
-        await fetchTableData(
-          sort,
-          q,
-          column,
-          currentStatus,
-          filterDates.startDate,
-          filterDates.endDate,
-          filterByStoreId
-        )
+        await fetchTableData(sort, q, column, status, filterDates.startDate, filterDates.endDate, filterByStoreId)
         updateUrlParams({
           sort,
-          q: q,
+          q: searchValue,
           column: sortColumn,
-          status: status,
+          status: currentStatus,
           startDate: filterDates.startDate,
           endDate: filterDates.endDate,
-          store: filterByStoreId
+          store: filterByStoreId,
+          page: paginationModel.page,
+          limit: paginationModel.pageSize,
+          filterSwitch,
+          days: selectDays
         })
       } catch (error) {
         console.error(error)
@@ -302,90 +278,31 @@ const ReturnRequestList = () => {
     []
   )
 
-  const handleSwitchChange = event => {
-    setTotal(0)
-    setPaginationModel({ page: 0, pageSize: 10 })
-    setFilterSwitch(prev => event.target.checked)
-    if (event.target.checked === false) {
-      setStatus(prev => 'all')
-    }
-    setSearchValue('')
-    updateUrlParams({
-      sort,
-      q: searchValue,
-      column: sortColumn,
-      status: status,
-      startDate: filterDates.startDate,
-      endDate: filterDates.endDate,
-      store: filterByStoreId,
-      page: 0,
-      limit: 10
-    })
-  }
-
-  // useEffect(() => {
-  //   setStatus(selectedPharmacy?.type === 'local' ? 'pending' : 'shipped')
-  //   setPaginationModel({ page: 0, pageSize: 10 })
-  // }, [selectedPharmacy.id])
-
-  useEffect(() => {
-    if (router.query.status === status) {
-      const currentStatus = filterSwitch === true ? 'completed' : status
-      const tabStatus = status === 'all' ? currentStatus : status
-      fetchTableData(
-        sort,
-        searchValue,
-        sortColumn,
-        tabStatus,
-        filterDates.startDate,
-        filterDates.endDate,
-        filterByStoreId
-      )
-      updateUrlParams({
-        sort,
-        q: searchValue,
-        column: sortColumn,
-        status: tabStatus,
-        page: paginationModel.page,
-        startDate: filterDates.startDate,
-        endDate: filterDates.endDate,
-        limit: paginationModel.pageSize,
-        filterSwitch,
-        store: filterByStoreId
-      })
-    }
-
-    // }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    status,
-    filterSwitch,
-    filterByStoreId,
-    filterDates,
-    selectedPharmacy.id,
-    paginationModel.page,
-    paginationModel.pageSize,
-    router.query.status
-  ])
-
   const onRowClick = params => {
     Router.push({
-      pathname: `/pharmacy/return-product/${params.row?.id}`
+      pathname: `/pharmacy/request/${params.row?.id}`
     })
   }
 
   const headerAction = (
     <div>
-      {selectedPharmacy?.type === 'local' &&
-        (selectedPharmacy.permission.key === 'ADD' || selectedPharmacy.permission.key === 'allow_full_access') && (
-          <AddButtonContained
-            title='Add Return Request'
-            action={() =>
-              Router.push({
-                pathname: '/pharmacy/return-product/add-request/'
-              })
-            }
-          />
+      {selectedPharmacy.type === 'local' &&
+        (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') && (
+          <>
+            <AddButtonContained
+              title='Add Request'
+              action={() =>
+                Router.push({
+                  pathname: '/pharmacy/request/add-request/'
+                })
+              }
+
+              // sx={{
+              //   mt: { xs: 2, sm: 0 }, // Add top margin on small screens
+              //   alignSelf: { xs: 'flex-start', sm: 'center' } // Align to the left on small screens
+              // }}
+            />
+          </>
         )}
     </div>
   )
@@ -396,203 +313,35 @@ const ReturnRequestList = () => {
   }
 
   const getRequestedText = () => {
-    return selectedPharmacy?.type === 'central' ? 'Returned By' : 'Returned To'
+    return selectedPharmacy.type === 'central' ? 'Requested From' : 'Requested To'
   }
 
-  const columns = [
-    {
-      width: 80,
-      field: 'sl_no',
-      headerName: 'S.NO',
-      renderCell: params => (
-        <Typography
-          variant='body2'
-          sx={{
-            color: theme.palette.customColors.customHeadingTextColor,
-            fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
-          }}
-        >
-          {parseInt(params.row.sl_no) + '.'}
-        </Typography>
-      )
-    },
+  const handleSwitchChange = event => {
+    console.log('event', event.target.checked)
+    setTotal(0)
+    setSearchValue('')
+    setPaginationModel({ page: 0, pageSize: 10 })
+    setFilterSwitch(prev => event.target.checked)
 
-    {
-      width: 160,
-      field: 'request_number',
-      headerName: 'Request Number',
-      headerClassName: 'custom-header',
-      renderCell: params => (
-        <Typography
-          variant='body2'
-          sx={{
-            color: theme.palette.customColors.customHeadingTextColor,
-            fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
-          }}
-        >
-          {params.row.request_number}
-        </Typography>
-      )
-    },
-    {
-      minWidth: 200,
-      field: 'from_store',
-      headerName: getRequestedText(),
-      renderCell: params => (
-        <Typography
-          variant='body2'
-          sx={{
-            color: theme.palette.customColors.customHeadingTextColor,
-            fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
-          }}
-        >
-          {selectedPharmacy?.type === 'central' ? params.row.from_store : params?.row?.to_store}
-        </Typography>
-      )
-    },
-
-    // {
-    //   flex: 0.2,
-    //   minWidth: 20,
-    //   field: 'request_date',
-    //   headerName: 'Returned On',
-    //   renderCell: params => (
-    //     <Typography
-    //       variant='body2'
-    //       sx={{
-    //         color: theme.palette.customColors.customHeadingTextColor,
-    //         fontSize: '14px',
-    //         fontWeight: 500,
-    //         fontFamily: 'Inter'
-    //       }}
-    //     >
-    //       {Utility.formatDisplayDate(params.row.request_date)}
-    //     </Typography>
-    //   )
-    // },
-    {
-      minWidth: 160,
-      field: 'last_shipping_date',
-      headerName: 'Recent shipping',
-      renderCell: params => (
-        <Typography
-          variant='body2'
-          sx={{
-            color: theme.palette.customColors.customHeadingTextColor,
-            fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
-          }}
-        >
-          {params.row.last_shipping_date ? Utility.formatDisplayDate(params.row.last_shipping_date) : 'NA'}
-        </Typography>
-      )
-    },
-    ,
-    {
-      minWidth: 140,
-      field: 'total_qty',
-      headerName: 'Total Quantity',
-      type: 'number',
-      headerAlign: 'left',
-      align: 'left',
-      renderCell: params => (
-        <Typography
-          variant='body2'
-          sx={{
-            color: theme.palette.customColors.customHeadingTextColor,
-            fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
-          }}
-        >
-          {params.row.total_qty}
-        </Typography>
-      )
-    },
-    ,
-    {
-      minWidth: 160,
-      field: 'shipping_status',
-      headerName: 'Status',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          <div style={{ display: 'flex', alignItems: 'center' }}>
-            {params?.row?.shipping_status === 'Fully Shipped' && (
-              <Box sx={{ color: 'success.main', mr: 2 }}>
-                <Icon icon={'material-symbols:local-shipping'} style={{ color: 'secondary.main' }}></Icon>
-              </Box>
-            )}
-            {params?.row?.shipping_status === 'Partially Shipped' && (
-              <>
-                <Box sx={{ color: 'warning.main', mr: 2 }}>
-                  <Icon icon={'material-symbols:local-shipping'} style={{ color: 'primary.warning' }}></Icon>
-                </Box>
-                <Box sx={{ color: 'warning.main', mr: 2 }}>
-                  {/* added for partial shipping */}
-                  <Icon icon={'ion:checkmark-circle'} style={{ color: 'primary.warning' }}></Icon>
-                </Box>
-              </>
-            )}
-            {params?.row?.dispute_status === 'Dispute Pending' && (
-              <Box sx={{ color: 'error.main', mr: 2 }}>
-                <Icon icon='fluent:warning-20-filled' style={{ color: 'primary.error' }} />
-              </Box>
-            )}
-            {params?.row?.dispute_status === 'Dispute Resolved' && (
-              <Box sx={{ color: 'success.main', mr: 2 }}>
-                <Icon icon='fluent:warning-20-filled' style={{ color: 'primary.error' }} />
-              </Box>
-            )}
-            {params?.row?.delivery_status === 'Delivered' && (
-              <Box sx={{ color: 'success.main', mr: 2 }}>
-                <Icon icon='ion:checkmark-circle' style={{ color: 'primary.success' }} />
-              </Box>
-            )}
-          </div>
-          {params?.row?.status === 'Cancelled' ? params?.row?.status : null}
-        </Typography>
-      )
-    },
-    {
-      minWidth: 220,
-      field: 'created_by_user_name',
-      headerName: 'Returned by ',
-      headerAlign: 'left',
-      renderCell: params => (
-        <>
-          {RenderUtility?.renderUserAvatarDetails(
-            params?.row?.user_created_profile_pic,
-            params?.row?.created_by_user_name,
-            params?.row?.created_at
-          )}
-        </>
-      )
+    if (event.target.checked === false) {
+      setStatus(prev => 'all')
     }
-  ]
-
-  const handleRowClick = params => {
-    console.log(params)
+    updateUrlParams({
+      sort,
+      q: searchValue,
+      column: sortColumn,
+      status: status,
+      startDate: filterDates.startDate,
+      endDate: filterDates.endDate,
+      store: filterByStoreId,
+      page: 0,
+      limit: 10,
+      days: selectDays
+    })
   }
-
-  const TabBadge = ({ label, totalCount }) => (
-    <div style={{ display: 'flex', alignItems: 'center', justifyItems: 'center', justifyContent: 'space-between' }}>
-      {label}
-      {totalCount ? (
-        <Chip sx={{ ml: '6px', fontSize: '12px' }} size='small' label={totalCount} color='secondary' />
-      ) : null}
-    </div>
-  )
 
   const filterByDays = days => {
     setSearchValue('')
-
     if (days !== 'all') {
       setTotal(0)
       setPaginationModel({ page: 0, pageSize: 10 })
@@ -630,11 +379,306 @@ const ReturnRequestList = () => {
           break
       }
     } else {
-      // setFilterDates({ sta })
+      // setFilterDates({sta})
+
       setFilterDates({ startDate: '', endDate: '' })
       fetchTableData(sort, searchValue, sortColumn, status)
     }
   }
+
+  useEffect(() => {
+    getStoresLists()
+  }, [])
+
+  const columns = [
+    {
+      width: 80,
+      field: 'sl_no',
+      headerName: 'SL.NO',
+      renderCell: params => (
+        <Box sx={{ display: 'flex' }}>
+          <Typography variant='body2' sx={{ color: 'text.primary' }}>
+            {parseInt(params.row.sl_no) + '.'}
+          </Typography>
+        </Box>
+      )
+    },
+
+    {
+      width: 90,
+      field: 'priority',
+      headerName: 'Priority',
+      headerAlign: 'center',
+      textAlign: 'center',
+      renderCell: params => <Box>{RenderUtility.getPriorityIcons(params?.row?.priority)}</Box>
+    },
+
+    // {
+    //   width: 4,
+    //   field: 'priority',
+    //   headerName: '',
+    //   headerAlign: 'left',
+    //   textAlign: 'center',
+    //   renderCell: params => (
+    //     <Box>
+    //       {params.row.priority !== null && (
+    //         <span
+    //           style={{
+    //             width: '10px',
+    //             height: '10px',
+    //             borderRadius: '100%',
+    //             background: theme.palette.customColors.Error,
+    //             display: 'inline-block'
+    //           }}
+    //         ></span>
+    //       )}
+    //     </Box>
+    //   )
+    // },
+
+    {
+      width: 120,
+      field: 'request_number',
+      headerName: 'REQUEST ID',
+      hide: true,
+      renderCell: params => (
+        <>
+          <Typography
+            variant='body2'
+            sx={{
+              color: theme.palette.customColors.customHeadingTextColor,
+              fontSize: '14px',
+              fontWeight: 500,
+              fontFamily: 'Inter'
+            }}
+          >
+            {params.row.request_number}
+          </Typography>
+        </>
+      )
+    },
+    {
+      minWidth: 200,
+      field: 'from_store',
+      headerName: getRequestedText(),
+      renderCell: params => (
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
+          {selectedPharmacy?.type === 'central' ? params.row.to_store : params.row.from_store}
+        </Typography>
+      )
+    },
+    {
+      minWidth: 100,
+      field: 'created_at',
+      headerName: 'Days',
+      renderCell: params => (
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
+          {Utility.daysFromToday(params.row.created_at)}
+        </Typography>
+      )
+    },
+
+    // {
+    //   flex: 0.35,
+    //   minWidth: 20,
+    //   field: 'request_date',
+    //   headerName: 'Request Date',
+    //   renderCell: params => (
+    //     <Typography
+    //       variant='body2'
+    //       sx={{
+    //         color: theme.palette.customColors.customHeadingTextColor,
+    //         fontSize: '14px',
+    //         fontWeight: 500,
+    //         fontFamily: 'Inter'
+    //       }}
+    //     >
+    //       {Utility.formatDisplayDate(params.row.request_date)}
+    //     </Typography>
+    //   )
+    // },
+
+    // {
+    //   flex: 0.2,
+    //   minWidth: 20,
+    //   field: 'last_shipping_date',
+    //   headerName: 'Recent shipping',
+    //   renderCell: params => (
+    //     <Typography
+    //       variant='body2'
+    //       sx={{
+    //         color: theme.palette.customColors.customHeadingTextColor,
+    //         fontSize: '14px',
+    //         fontWeight: 500,
+    //         fontFamily: 'Inter'
+    //       }}
+    //     >
+    //       {params.row.last_shipping_date ? Utility.formatDisplayDate(params.row.last_shipping_date) : 'NA'}
+    //     </Typography>
+    //   )
+    // },
+
+    {
+      minWidth: 120,
+      field: 'product_count',
+      headerName: 'TOTAL ITEMS',
+      type: 'number',
+      align: 'left',
+      headerAlign: 'left',
+      renderCell: params => (
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
+          {params.row?.product_count}
+        </Typography>
+      )
+    },
+
+    {
+      minWidth: 160,
+      field: 'pending_count',
+      headerName: 'PENDING ITEMS',
+      headerAlign: 'left',
+      type: 'number',
+      align: 'left',
+      renderCell: params => (
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
+          {params.row?.pending_count}
+        </Typography>
+      )
+    },
+
+    // {
+    //   flex: 0.2,
+    //   minWidth: 20,
+    //   field: 'fulfilled_qty',
+
+    //   headerName: 'Balance',
+    //   type: 'number',
+    //   align: 'right',
+    //   renderCell: params => (
+    //     <Typography variant='body2' sx={{ color: 'text.primary' }}>
+    //       {parseInt(params.row.total_qty) - parseInt(params.row.fulfilled_qty)}
+    //     </Typography>
+    //   )
+    // },
+    {
+      minWidth: 160,
+      field: 'shipping_status',
+      headerName: 'STATUS',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          <div style={{ display: 'flex', alignItems: 'center' }}>
+            {params.row.shipping_status === 'Fully Shipped' && (
+              <Box sx={{ color: 'success.main', mr: 2 }}>
+                <Icon icon={'material-symbols:local-shipping'} style={{ color: 'secondary.main' }}></Icon>
+              </Box>
+            )}
+            {params.row.shipping_status === 'Partially Shipped' && (
+              <>
+                <Box sx={{ color: 'warning.main', mr: 2 }}>
+                  <Icon icon={'material-symbols:local-shipping'} style={{ color: 'primary.warning' }}></Icon>
+                </Box>
+                {params.row.request_status === 'Received' ||
+                params.row.request_status === 'Missing - Accepted' ||
+                params.row.request_status === 'Broken' ||
+                params.row.request_status === 'Wrong Count - Accepted' ? (
+                  <Box sx={{ color: 'success.main', mr: 2 }}>
+                    <Icon icon={'ion:checkmark-circle'} style={{ color: 'primary.success' }}></Icon>
+                  </Box>
+                ) : (
+                  <Box sx={{ color: 'warning.main', mr: 2 }}>
+                    <Icon icon={'ion:checkmark-circle'} style={{ color: 'primary.warning' }}></Icon>
+                  </Box>
+                )}
+              </>
+            )}
+            {params.row.dispute_status === 'Dispute Pending' && (
+              <Box sx={{ color: 'error.main', mr: 2 }}>
+                <Icon icon='fluent:warning-20-filled' style={{ color: 'primary.error' }} />
+              </Box>
+            )}
+            {params.row.dispute_status === 'Dispute Resolved' && (
+              <Box sx={{ color: 'success.main', mr: 2 }}>
+                <Icon icon='fluent:warning-20-filled' style={{ color: 'primary.error' }} />
+              </Box>
+            )}
+            {params.row.delivery_status === 'Delivered' && (
+              <Box sx={{ color: 'success.main', mr: 2 }}>
+                <Icon icon='ion:checkmark-circle' style={{ color: 'primary.success' }} />
+              </Box>
+            )}
+
+            {params?.row?.delivery_status === 'Not Delivered' &&
+              (params?.row?.request_status === '' || !params?.row?.request_status) &&
+              params?.row?.shipping_status === 'Fully Shipped' && (
+                <Box sx={{ color: 'warning.main', mr: 2 }}>
+                  <Icon icon={'ion:checkmark-circle'} style={{ color: 'primary.warning' }}></Icon>
+                </Box>
+              )}
+          </div>
+          {params.row.status === 'Cancelled' ? params.row.status : null}
+        </Typography>
+      )
+    },
+    {
+      minWidth: 220,
+      field: 'created_by_user_name',
+      headerName: 'Requested by ',
+      renderCell: params => (
+        <>
+          {RenderUtility?.renderUserAvatarDetails(
+            params?.row?.user_created_profile_pic,
+            params?.row?.created_by_user_name,
+            params?.row?.created_at
+          )}
+        </>
+      )
+    }
+  ]
+
+  const handleHeaderAction = () => {
+    console.log('Handle Header Action')
+  }
+
+  const TabBadge = ({ label, totalCount }) => (
+    <div style={{ display: 'flex', alignItems: 'center', justifyItems: 'center', justifyContent: 'space-between' }}>
+      {label}
+      {totalCount ? (
+        <Chip sx={{ ml: '6px', fontSize: '12px' }} size='small' label={totalCount} color='secondary' />
+      ) : null}
+    </div>
+  )
 
   const tableData = () => {
     return (
@@ -646,15 +690,16 @@ const ReturnRequestList = () => {
             <CardHeader
               sx={{
                 display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: { xs: 'start', sm: 'center', md: 'center' },
-                flexDirection: { xs: 'column', sm: 'row', md: 'row' },
-                mx: { xs: 2, sm: 0, md: 0 },
-                gap: { xs: 2, sm: 0, md: 0 }
+                justifyContent: 'space-between', // Space between title and button
+                alignItems: 'center'
+
+                // px: { xs: 2, md: 5 }, // Responsive padding
+                // py: 2
               }}
-              title={RenderUtility.pageTitle('Product Return Requests')}
+              title={RenderUtility.pageTitle('Request List')}
               action={headerAction}
             />
+
             <Box
               sx={{
                 display: 'flex',
@@ -662,12 +707,27 @@ const ReturnRequestList = () => {
                 justifyContent: { xs: 'center', md: 'space-between' },
                 alignItems: 'center',
 
+                // padding: '2px',
                 margin:
                   selectedPharmacy?.type === 'local' ? '1rem 1.375rem 0px 1.375rem' : '0rem 1.375rem 0px 1.375rem',
                 gap: { xs: 2, md: 3 }
               }}
             >
-              {/* <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} /> */}
+              {/* <Box
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+                  borderRadius: '8px',
+                  padding: '0 8px',
+                  height: '40px',
+
+                  // ml: { sm: 4.5},
+                  width: { xs: '100%', md: '290px' },
+                  marginBottom: { xs: 2, md: 0 }
+                }}
+              >
+                <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} /> */}
               <TextField
                 variant='outlined'
                 size='small'
@@ -687,6 +747,7 @@ const ReturnRequestList = () => {
                   width: { xs: '100%', md: '290px' }
                 }}
               />
+              {/* </Box> */}
 
               {/* Filters */}
               <Grid
@@ -697,6 +758,8 @@ const ReturnRequestList = () => {
                   flexWrap: { xs: 'wrap', md: 'nowrap' },
                   justifyContent: { xs: 'center', md: 'flex-end' },
                   alignItems: 'center'
+
+                  // width: '100%'
                 }}
               >
                 {/* Filter by Stores */}
@@ -815,38 +878,52 @@ const ReturnRequestList = () => {
   }
 
   return (
-    <Grid>
-      <TabContext value={status}>
-        <TabList onChange={handleChange}>
-          {selectedPharmacy.type === 'local' && (
+    <>
+      <Grid>
+        <TabContext value={status}>
+          <TabList onChange={handleChange} variant='scrollable' allowScrollButtonsMobile>
             <Tab
+              sx={{ ml: 3 }}
               value='pending'
-              label={<TabBadge label='Pending' totalCount={status === 'pending' ? total : null} />}
+              label={<TabBadge label='Pending ' totalCount={status === 'pending' ? total : null} />}
             />
+            {/* <Tab
+              value='completed'
+              label={<TabBadge label='Completed' totalCount={status === 'completed' ? total : null} />}
+            /> */}
+            <Tab
+              value='shipped'
+              label={<TabBadge label='Shipped' totalCount={status === 'shipped' ? total : null} />}
+            />
+
+            <Tab
+              value='disputed'
+              label={<TabBadge label='Disputes' totalCount={status === 'disputed' ? total : null} />}
+            />
+            <Tab
+              value='cancel'
+              label={<TabBadge label='Cancelled' totalCount={status === 'cancel' ? total : null} />}
+            />
+            <Tab
+              value={'all' ? 'all' : 'completed'}
+              label={<TabBadge label='All' totalCount={['all', 'completed'].includes(status) ? total : null} />}
+            />
+          </TabList>
+          <TabPanel value='pending'>{tableData()}</TabPanel>
+          {/* <TabPanel value='completed'>{tableData()}</TabPanel> */}
+          <TabPanel value='shipped'>{tableData()}</TabPanel>
+
+          <TabPanel value='disputed'>{tableData()}</TabPanel>
+          <TabPanel value='cancel'>{tableData()}</TabPanel>
+          {status === 'all' ? (
+            <TabPanel value='all'>{tableData()}</TabPanel>
+          ) : (
+            <TabPanel value='completed'>{tableData()}</TabPanel>
           )}
-          <Tab value='shipped' label={<TabBadge label='Shipped' totalCount={status === 'shipped' ? total : null} />} />
-          <Tab
-            value='disputed'
-            label={<TabBadge label='Disputes' totalCount={status === 'disputed' ? total : null} />}
-          />
-          <Tab value='cancel' label={<TabBadge label='Cancelled' totalCount={status === 'cancel' ? total : null} />} />
-          <Tab
-            value={'all' ? 'all' : 'completed'}
-            label={<TabBadge label='All' totalCount={['all', 'completed'].includes(status) ? total : null} />}
-          />
-        </TabList>
-        {selectedPharmacy.type === 'local' && <TabPanel value='pending'>{tableData()}</TabPanel>}
-        <TabPanel value='shipped'>{tableData()}</TabPanel>
-        <TabPanel value='disputed'>{tableData()}</TabPanel>
-        <TabPanel value='cancel'>{tableData()}</TabPanel>
-        {status === 'all' ? (
-          <TabPanel value='all'>{tableData()}</TabPanel>
-        ) : (
-          <TabPanel value='completed'>{tableData()}</TabPanel>
-        )}
-      </TabContext>
-    </Grid>
+        </TabContext>
+      </Grid>
+    </>
   )
 }
 
-export default ReturnRequestList
+export default RequestList

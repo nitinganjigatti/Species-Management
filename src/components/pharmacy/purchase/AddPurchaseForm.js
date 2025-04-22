@@ -13,7 +13,7 @@ import CardContent from '@mui/material/CardContent'
 import { styled, useTheme } from '@mui/material/styles'
 import TableContainer from '@mui/material/TableContainer'
 import TableCell from '@mui/material/TableCell'
-import { Button, CardHeader, InputAdornment } from '@mui/material'
+import { Button, CardHeader, InputAdornment, alpha } from '@mui/material'
 import IconButton from '@mui/material/IconButton'
 import FormHelperText from '@mui/material/FormHelperText'
 import TextField from '@mui/material/TextField'
@@ -47,7 +47,8 @@ import {
   updatePurchasePrice,
   getBatchExpiry,
   validatePurchaseProducts,
-  postDeleteInvoiceById
+  postDeleteInvoiceById,
+  productMappingForMlTraining
 } from 'src/lib/api/pharmacy/getPurchaseList'
 import CommonDialogBox from 'src/components/CommonDialogBox'
 import SingleDatePicker from '../../SingleDatePicker'
@@ -66,7 +67,7 @@ import UploadIcon from 'public/images/upload_invoice_icon.png'
 import TotalAmountIcon from 'public/images/amount_summary.png'
 import { borderRadius, getValue } from '@mui/system'
 import { getVariantFOrProduct } from 'src/lib/api/pharmacy/variant'
-// import PurchaseInvoiceUpload from './PurchaseInvoiceUpload'
+import PurchaseInvoiceUpload from './PurchaseInvoiceUpload'
 import { v4 as uuidv4 } from 'uuid'
 
 const CalcWrapper = styled(Box)(({ theme }) => ({
@@ -99,7 +100,8 @@ const editParamsInitialState = {
   freight_gst: '',
   freight_total_charges: '',
   additional_charges: '',
-  round_off: ''
+  round_off: '',
+  purchase_created_by: 'manually'
 }
 
 const initialNestedRowMedicine = {
@@ -125,7 +127,9 @@ const initialNestedRowMedicine = {
   purchase_variant_id: '',
   purchase_unit_qty: '',
   purchase_variant_ratio: '',
-  isVariantIdPresent: false
+  isVariantIdPresent: false,
+  purchase_created_by: 'form',
+  medicine_name_by_ml: ''
 }
 
 const CustomInput = forwardRef(({ ...props }, ref) => {
@@ -158,6 +162,7 @@ const AddPurchaseForm = () => {
   const [nestedRowMedicine, setNestedRowMedicine] = useState(initialNestedRowMedicine)
 
   const [supplierDialog, setSupplierDialog] = useState(false)
+
   const [productVariantOptions, setProductVariantOptions] = useState([])
 
   const [validatePurchaseDialog, setValidatePurchaseDialog] = useState(false)
@@ -194,7 +199,8 @@ const AddPurchaseForm = () => {
   const [inputValue, setInputValue] = useState('')
   const [isError, setIsError] = useState(false)
   const [invoiceUploadDialog, setInvoiceUploadDialog] = useState(false)
-  const [itemIdIdErrors, setItemIdErrors] = useState({})
+  const [showAmount, setShowAmount] = useState(false)
+  const [invoiceSubmitLoader, setInvoiceSubmitLoader] = useState(false)
 
   const schema = yup.object().shape({
     // product: yup.string().required('Product name is required'),
@@ -241,7 +247,9 @@ const AddPurchaseForm = () => {
   const showDialog = () => {
     setShow(true)
   }
-
+  useEffect(() => {
+    console.log('edit params', editParams)
+  }, [editParams])
   // const getStoreType = id => {
   //   const foundOStores = stores.find(item => item.id === id)
   //   if (foundOStores) {
@@ -288,7 +296,9 @@ const AddPurchaseForm = () => {
     const totalFreight = parseFloat(totalFreightCharges) || 0
     const additional = parseFloat(additionalCharges) || 0
     const totalItems = parseFloat(totalLineItemsPurchase) || 0
-
+    console.log('additional', additional)
+    console.log('totalItems', totalItems)
+    console.log('totalFreight', totalFreight)
     const result = totalItems + totalFreight + additional + roundUp
 
     return result
@@ -620,6 +630,7 @@ const AddPurchaseForm = () => {
     postData.net_amount = grandTotalAmount
     // added grand total amount
     console.log('postData', postData)
+    // debugger
     try {
       if (id) {
         postData.antz_pharmacy_purchase_id = id
@@ -634,7 +645,7 @@ const AddPurchaseForm = () => {
           if (navigatedFrom === 'stockReport') {
             Router.push('/pharmacy/stocks/stocksReport/')
           } else {
-            Router.push('/pharmacy/purchase/purchase-list/')
+            Router.push('/pharmacy/purchase/')
           }
         } else {
           setSubmitLoader(false)
@@ -643,11 +654,43 @@ const AddPurchaseForm = () => {
         }
       } else {
         const response = await addPurchase(postData)
+
         if (response?.success) {
           toast.success(response.message)
-          setEditParams(editParamsInitialState)
-          setSubmitLoader(false)
-          Router.push('/pharmacy/purchase/purchase-list/')
+          if (postData?.purchase_created_by === 'invoice_upload') {
+            // debugger
+
+            const suggestionData = postData?.purchase_details?.map(el => {
+              return {
+                ml_product_name: el?.medicine_name_by_ml,
+                stock_name: el?.medicine_name,
+                stock_id: el?.purchase_stock_item_id
+              }
+            })
+
+            console.log('ml trained triggered')
+            console.log('suggestionData', suggestionData)
+
+            try {
+              const mlResult = await productMappingForMlTraining(suggestionData)
+              console.log('ML training completed successfully', mlResult)
+              toast.success(mlResult?.data)
+
+              setEditParams(editParamsInitialState)
+              setSubmitLoader(false)
+              Router.push('/pharmacy/purchase/')
+            } catch (error) {
+              console.error('ML training error:', error)
+              toast.success('ML not trained successfully')
+              setEditParams(editParamsInitialState)
+              setSubmitLoader(false)
+              Router.push('/pharmacy/purchase/')
+            }
+          } else {
+            setEditParams(editParamsInitialState)
+            setSubmitLoader(false)
+            Router.push('/pharmacy/purchase/')
+          }
         } else {
           setSubmitLoader(false)
           if (response.data?.po_no) {
@@ -815,6 +858,17 @@ const AddPurchaseForm = () => {
 
   const getProductVariantByproductId = async productId => {
     const productVariant = await getVariantFOrProduct(productId)
+    // debugger
+
+    // if (editParams.purchase_created_by === 'invoice_upload') {
+    //   const data = {
+    //     value: 1,
+    //     label: 1,
+    //     description: '',
+    //     is_default: ''
+    //   }
+    //   setProductVariantOptions([data])
+    // } else {
     if (productVariant?.success && productVariant?.data?.length > 0) {
       const data = productVariant?.data?.map(el => {
         return {
@@ -828,6 +882,7 @@ const AddPurchaseForm = () => {
       // console.log('data', data)
       setProductVariantOptions(data)
     }
+    // }
   }
 
   const getListOfItemsById = async id => {
@@ -995,7 +1050,9 @@ const AddPurchaseForm = () => {
         purchase_variant_id: getItems[0]?.purchase_variant_id,
         purchase_unit_qty: getItems[0]?.purchase_unit_qty,
         purchase_variant_ratio: getItems[0]?.purchase_variant_ratio,
-        isVariantIdPresent: getItems[0]?.isVariantIdPresent
+        isVariantIdPresent: getItems[0]?.isVariantIdPresent,
+        purchase_created_by: getItems[0]?.purchase_created_by,
+        medicine_name_by_ml: getItems[0]?.medicine_name_by_ml
 
         // purchase_gst_type: getItems[0].purchase_gst_type,
         // purchase_tax_amount: getItems[0].purchase_tax_amount
@@ -1055,7 +1112,9 @@ const AddPurchaseForm = () => {
         purchase_variant_id: getItems[0]?.purchase_variant_id,
         purchase_unit_qty: getItems[0]?.purchase_unit_qty,
         purchase_variant_ratio: getItems[0]?.purchase_variant_ratio,
-        isVariantIdPresent: getItems[0]?.isVariantIdPresent
+        isVariantIdPresent: getItems[0]?.isVariantIdPresent,
+        purchase_created_by: getItems[0]?.purchase_created_by,
+        medicine_name_by_ml: getItems[0]?.medicine_name_by_ml
       })
     }
   }
@@ -1091,7 +1150,7 @@ const AddPurchaseForm = () => {
         toast.success(response.message)
         setSubmitLoader(false)
         getListOfItemsById(id)
-        Router.push('/pharmacy/purchase/purchase-list/')
+        Router.push('/pharmacy/purchase/')
       } else {
         setSubmitLoader(false)
         toast.error(response.message)
@@ -1102,7 +1161,7 @@ const AddPurchaseForm = () => {
         toast.success(response.message)
         setEditParams(editParamsInitialState)
         setSubmitLoader(false)
-        Router.push('/pharmacy/purchase/purchase-list/')
+        Router.push('/pharmacy/purchase/')
       } else {
         setSubmitLoader(false)
         if (response.data?.po_no) {
@@ -1383,52 +1442,46 @@ const AddPurchaseForm = () => {
     getSuppliersLists()
   }, [])
 
-  // removed initially updating the total input value
   // useEffect(() => {
   //   if (grandTotalAmount && id) {
   //     setInputValue(Number(grandTotalAmount).toFixed(2))
   //   }
   // }, [grandTotalAmount])
 
-  const validateErrorForItemId = (index, el) => {
-    setItemIdErrors(prevErrors => {
-      const newErrors = { ...prevErrors }
+  const validateErrorForItemId = () => {
+    const error = editParams.purchase_details.some(
+      el =>
+        el?.purchase_stock_item_id === '' ||
+        el?.purchase_stock_item_id === null ||
+        el?.purchase_unit_id === '' ||
+        el?.purchase_unit_id === null ||
+        !el?.purchase_unit_id
+    )
+    console.log('error', error)
 
-      if (!el?.purchase_stock_item_id) {
-        newErrors[index] = 'Product Information not found, please update the details'
-      } else {
-        delete newErrors[index] // Remove error if the issue is resolved
-      }
-
-      return newErrors
-    })
+    return error
   }
-  useEffect(() => {
-    if (editParams.purchase_details) {
-      editParams.purchase_details.forEach((el, index) => {
-        validateErrorForItemId(index, el)
-      })
+
+  const validateAndShowAmount = () => {
+    const numericInputValue = parseFloat(inputValue)
+    const numericGrandTotal = parseFloat(grandTotalAmount)
+
+    if (isNaN(numericInputValue) || isNaN(numericGrandTotal)) {
+      setShowAmount(false)
+
+      return
     }
-  }, [editParams.purchase_details])
+    if (numericInputValue > numericGrandTotal * 0.5) {
+      setShowAmount(true)
+    } else {
+      setShowAmount(false)
+    }
+  }
 
   return (
     <Card>
-      <Grid container spacing={6}>
-        <Grid
-          item
-          sm={12}
-          xs={12}
-          sx={{
-            // display: 'flex',
-            // flexDirection: { lg: 'row', md: 'row', xl: 'row', sm: 'column', xs: 'column' },
-            // justifyContent: 'space-between',
-            // alignItems: { lg: 'center', md: 'center', xl: 'center', sm: 'start', xs: 'start' },
-            // mr: 5
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center'
-          }}
-        >
+      <Grid container sx={{ display: 'flex', justifyContent: 'space-between' }}>
+        <Grid item sm={4} xs={12}>
           <CardHeader
             sx={{
               display: 'flex',
@@ -1450,40 +1503,40 @@ const AddPurchaseForm = () => {
               />
             }
             title={id ? 'Edit Inventory List' : 'Add Inventory'}
-            action={
-              <Box
-                sx={
-                  {
-                    // display: 'flex',
-                    // flexDirection: { lg: 'row', md: 'row', xl: 'row', sm: 'row', xs: 'column' },
-                    // justifyContent: 'space-between',
-                    // alignItems: { lg: 'center', md: 'center', xl: 'center', sm: 'center', xs: 'center' },
-                    // mr: 5,
-                    // mx: 6,
-                    // gap: 2
-                  }
-                }
-              >
-                {/* {authData?.userData?.roles?.settings?.add_pharmacy && (
-              <AddButton
-                // sx={{ mx: 24 }}
-                title='Upload Invoice '
-                action={() => {
-                  setInvoiceUploadDialog(true)
-                }}
-              />
-            )} */}
-                {authData?.userData?.roles?.settings?.add_pharmacy && (
-                  <AddButton
-                    title='Add Supplier'
-                    action={() => {
-                      setSupplierDialog(true)
-                    }}
-                  />
-                )}
-              </Box>
-            }
           />
+        </Grid>
+        <Grid
+          item
+          sm={7}
+          xs={12}
+          sx={{
+            display: 'flex',
+            flexDirection: { lg: 'row', md: 'row', xl: 'row', sm: 'row', xs: 'column' },
+            justifyContent: 'flex-end',
+            alignItems: { lg: 'center', md: 'center', xl: 'center', sm: 'center', xs: 'start' },
+            columnGap: 2,
+            mx: { xs: 2, lg: 3, md: 3, xl: 3, sm: 3 },
+            mb: { xs: 2, lg: 0, md: 0, xl: 0, sm: 0 },
+            mr: 2,
+            rowGap: { xs: 3, lg: 0, md: 0, xl: 0, sm: 0 }
+          }}
+        >
+          {authData?.userData?.roles?.settings?.add_pharmacy && !id && (
+            <AddButton
+              title='Upload Invoice '
+              action={() => {
+                setInvoiceUploadDialog(true)
+              }}
+            />
+          )}
+          {authData?.userData?.roles?.settings?.add_pharmacy && (
+            <AddButton
+              title='Add Supplier'
+              action={() => {
+                setSupplierDialog(true)
+              }}
+            />
+          )}
         </Grid>
       </Grid>
 
@@ -2088,7 +2141,6 @@ const AddPurchaseForm = () => {
           </Grid>
         </CardContent>
         <Divider sx={{ mx: '20px' }} />
-
         <CardContent>
           <Grid container>
             <Grid
@@ -2239,6 +2291,7 @@ const AddPurchaseForm = () => {
                   <TableCell align='right'>Action</TableCell>
                 </TableRow>
               </TableHead>
+              {console.log('editParams?.purchase_details', editParams?.purchase_details)}
               <TableBody>
                 {editParams?.purchase_details
                   ? editParams?.purchase_details.map((el, index) => {
@@ -2254,11 +2307,12 @@ const AddPurchaseForm = () => {
 
                             <Typography variant='body2'>{el?.package_details}</Typography>
                             <Typography variant='body2'>{el?.manufacture}</Typography>
-                            {!el?.purchase_stock_item_id && (
+                            {!el?.purchase_stock_item_id || !el?.medicine_name || !el?.purchase_unit_id ? (
                               <Typography sx={{ color: 'error.main', fontSize: '12px' }}>
-                                {itemIdIdErrors[index]}
+                                {/* {itemIdIdErrors[index]} */}
+                                Some product information appears to be missing. Kindly update the details.
                               </Typography>
-                            )}
+                            ) : null}
                           </TableCell>
                           <TableCell>{el?.purchase_batch_no}</TableCell>
                           <TableCell>
@@ -2666,7 +2720,9 @@ const AddPurchaseForm = () => {
                         }}
                       >
                         {/* {totalLineItemsPurchase?.toFixed(2)} */}
-                        {grandTotalAmount ? grandTotalAmount?.toFixed(2) : 0.0}
+                        {/* {grandTotalAmount ? grandTotalAmount?.toFixed(2) : 0.0} */}
+                        {showAmount && grandTotalAmount?.toFixed(2)}
+                        {console.log('grandTotalAmount', grandTotalAmount)}
                       </Typography>
                       {/* {/* Input Box with Icon */}
 
@@ -2739,6 +2795,7 @@ const AddPurchaseForm = () => {
                         size='small'
                         placeholder='Enter value'
                         value={inputValue}
+                        onBlur={validateAndShowAmount}
                         onChange={e => {
                           // Restrict non-numeric inputs and update value
                           const value = e.target.value
@@ -2794,15 +2851,13 @@ const AddPurchaseForm = () => {
           </Grid>
           {/* // ) : null} */}
         </Grid>
+
         <Grid item xs={12}>
           <Box sx={{ float: 'right', my: 4, mx: 6 }}>
             <LoadingButton
               // disabled={editParams.purchase_details.length > 0 && inputValue ? false : true}
               disabled={
-                editParams.purchase_details.length > 0 &&
-                inputValue &&
-                !isError &&
-                !Object.keys(itemIdIdErrors)?.length > 0
+                editParams?.purchase_details?.length > 0 && inputValue && !isError && !validateErrorForItemId()
                   ? false
                   : true
               }
@@ -2877,10 +2932,11 @@ const AddPurchaseForm = () => {
           deleteLoader={deleteLoader}
         />
       )}
-      {/* <CommonDialogBox
-        noWidth={800}
+      <CommonDialogBox
+        loader={invoiceSubmitLoader}
+        dialogWithMaxWidth={true}
         title={
-          <Box
+          <Typography
             sx={{
               fontWeight: 500,
               fontSize: '20px',
@@ -2889,11 +2945,14 @@ const AddPurchaseForm = () => {
               color: 'customColors.OnSurfaceVariant',
               display: 'flex',
               gap: 2,
-              alignItems: 'center'
+              alignItems: 'center',
+              py: 2,
+              borderBottom: '1px solid',
+              borderColor: theme => alpha(theme.palette.customColors.neutral05, 0.05)
             }}
           >
-            Upload Invoice
-          </Box>
+            Attach Invoice
+          </Typography>
         }
         dialogBoxStatus={invoiceUploadDialog}
         formComponent={
@@ -2904,6 +2963,8 @@ const AddPurchaseForm = () => {
               setInvoiceUploadDialog(false)
             }}
             handleInputImageChange={handleInputImageChange}
+            invoiceSubmitLoader={invoiceSubmitLoader}
+            setInvoiceSubmitLoader={setInvoiceSubmitLoader}
           />
         }
         close={() => {
@@ -2912,7 +2973,7 @@ const AddPurchaseForm = () => {
         show={() => {
           setInvoiceUploadDialog(true)
         }}
-      /> */}
+      />
     </Card>
   )
 }

@@ -73,13 +73,21 @@ const VerticalNavLink = ({
   const { navCollapsed } = settings
   const icon = parent && !item.icon ? themeConfig.navSubItemIcon : item.icon
 
+  // const isNavLinkActive = () => {
+  //   if (router.pathname === item.path || handleURLQueries(router, item.path)) {
+  //     return true
+  //   } else {
+  //     return false
+  //   }
+  // }
   const isNavLinkActive = () => {
-    // if (router.pathname === item.path || handleURLQueries(router, item.path) || router.pathname.includes(item.path)) {
-    if (router.pathname === item.path || handleURLQueries(router, item.path) || router.pathname.includes(item.path)) {
-      return true
-    } else {
-      return false
+    // Check activeWhen array first if it exists
+    if (item.activeWhen && Array.isArray(item.activeWhen)) {
+      return item.activeWhen.some(path => router.pathname === path || handleURLQueries(router, path))
     }
+
+    // Fall back to default behavior
+    return router.pathname === item.path || handleURLQueries(router, item.path)
   }
 
   return (

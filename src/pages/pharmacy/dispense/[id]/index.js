@@ -167,6 +167,7 @@ const IndividualDispense = () => {
     id: `${row.id}`,
     sl_no: index + 1
   }))
+
   const animalDispenseRows = dispenseData?.animal_details?.map((row, index) => ({
     ...row,
     id: `${row.animal_id}`,
@@ -293,12 +294,7 @@ const IndividualDispense = () => {
                     Dispense List
                   </Typography>
 
-                  <Stack
-                    direction='row'
-                    spacing={2}
-                    // divider={<Divider orientation='vertical' flexItem />}
-                    sx={{ textAlign: 'center' }}
-                  >
+                  <Stack direction='row' spacing={2} sx={{ textAlign: 'center' }}>
                     <Typography
                       variant='body2'
                       sx={{ color: 'customColors.neutralSecondary', fontSize: '14px', fontWeight: 400 }}

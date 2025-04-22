@@ -79,10 +79,6 @@ const ReturnReportDrawer = ({
   const isAllPharmaciesSelected =
     pharmacyList?.length > 0 && selectedOptions['Pharmacy']?.length === pharmacyList?.length
 
-  const MEDICINE_ALL = 'all'
-  const MEDICINE_CONTROLLED = 'controlled'
-  const MEDICINE_PRESCRIPTION = 'prescription'
-
   const handleCloseDrawer = () => {
     setOpenFilterDrawer(false)
   }
@@ -309,7 +305,7 @@ const ReturnReportDrawer = ({
                 p: '16px',
                 borderRadius: '8px',
                 width: '345px',
-                height: 'calc(100vh - 185px)',
+                height: 'calc(100dvh - 190px)',
                 overflowY: 'auto',
                 '&::-webkit-scrollbar': {
                   width: 0,

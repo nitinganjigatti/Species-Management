@@ -64,11 +64,7 @@ const ShipmentFilterDrawer = ({
   }
 
   const handleClearAll = () => {
-    setSelectedOptions({
-      'Batch Number': [],
-      Pharmacy: [],
-      'Drug Type': 'all'
-    })
+    setSelectedOptions({})
   }
 
   const handleDrugTypeChange = event => {
@@ -211,7 +207,7 @@ const ShipmentFilterDrawer = ({
                 p: '16px',
                 borderRadius: '8px',
                 width: '345px',
-                height: 'calc(100vh - 185px)',
+                height: 'calc(100dvh - 190px)',
                 overflowY: 'auto',
                 '&::-webkit-scrollbar': {
                   width: 0,

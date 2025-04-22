@@ -13,6 +13,7 @@ import toast from 'react-hot-toast'
 import { Tooltip, Select, MenuItem, CircularProgress } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import SizeSelector from 'src/components/SelectCutsize'
+import Utility from 'src/utility'
 
 const ComboCard = ({
   rows,
@@ -692,8 +693,20 @@ const ComboCard = ({
                             padding: '8px',
                             borderRadius: '4px'
                           }}
-                          src={ingredient?.image ? ingredient?.image : '/icons/icon_ingredient.svg'}
-                        ></Avatar>
+                        >
+                          <img
+                            src={ingredient?.ingredient_image || '/icons/icon_ingredient.svg'}
+                            alt={ingredient.ingredient_name}
+                            style={{
+                              width: '100%',
+                              height: '100%',
+                              objectFit: 'cover'
+                            }}
+                            onError={e => {
+                              e.target.src = '/icons/icon_ingredient.svg' // Fallback to default icon
+                            }}
+                          />
+                        </Avatar>
 
                         {/* Ingredient Details */}
 
@@ -733,7 +746,8 @@ const ComboCard = ({
                                   flexShrink: 0
                                 }}
                               >
-                                {ingredient.quantity} {ingredient.quantity_type === 'percentage' ? '%' : ''}
+                                {Utility.formatNumber(ingredient.quantity)}
+                                {ingredient.quantity_type === 'percentage' ? '%' : ''}
                               </Typography>
                             </Box>
                           </Tooltip>

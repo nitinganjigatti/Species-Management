@@ -119,20 +119,20 @@ const UserThemeOptions = () => {
         // **
         moderateSecondary: '#E4B819',
 
-        antzNotesLight: '#FCF4AEB2',
-        antzNotes80: '#FFE86E',
-        antzNotes40: '#fdfad7',
+        // antzNotesLight: '#FCF4AEB2',
+        // antzNotes80: '#FFE86E',
+        // antzNotes40: '#fdfad7',
 
-        neutralTeritary: '#00000033',
-        antzInfoLight: '#AFEFEB4D',
-        antzInfoText: '#32bfdd',
-        antzInfo70: '#AFEFEBB2',
+        // neutralTeritary: '#00000033',
+        // antzInfoLight: '#AFEFEB4D',
+        // antzInfoText: '#32bfdd',
+        // antzInfo70: '#AFEFEBB2',
 
-        AntzTertiaryLight: '#FFD3D399',
-        AntzTertiary30: '#FFBDA84D',
-        AntzOnBackground: '#E1F9ED',
-        AntzBgTeritary: '#ffebe5',
-        AntzLight10: '#37BD691A',
+        TertiaryLight: '#FFD3D399',
+        Tertiary30: '#FFBDA84D',
+        OnBackground: '#E1F9ED',
+        BgTeritary: '#ffebe5',
+        Primary10: '#37BD691A',
 
         // border
         InnerAlignment: '#006D354D',

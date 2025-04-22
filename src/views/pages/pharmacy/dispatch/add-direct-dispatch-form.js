@@ -279,6 +279,7 @@ export const AddItemsForm = ({
         variant_id,
         multiplier,
         unit_price
+
         // to_store_id: '14'
       },
       type
@@ -455,9 +456,10 @@ export const AddItemsForm = ({
                           {/* <Typography>{option.label}</Typography> */}
                           <Typography variant='body2'>{option.packageDetails}</Typography>
                           <Typography variant='body2'>{option.manufacture}</Typography>
-                          {option.control_substance === true && (
+                          {RenderUtility?.renderControlLabel(option.control_substance === true, 'CS')}
+                          {/* {option.control_substance === true && (
                             <CustomChip label='CS' skin='light' color='success' size='small' />
-                          )}{' '}
+                          )}{' '} */}
                           {option.prescription_required === true && (
                             <CustomChip label='PR' skin='light' color='success' size='small' />
                           )}
@@ -574,7 +576,6 @@ export const AddItemsForm = ({
                       {batchLoading ? <LoaderIcon /> : `${totalAvailableCount}`}
                     </Typography>
                   </Box>
-
                   <Box
                     sx={{
                       backgroundColor: 'customColors.OnPrimaryContainer',
@@ -596,6 +597,7 @@ export const AddItemsForm = ({
                       Unit Price - {Utility.formatAmountToReadableDigit(watch('unit_price'))}
                     </Typography>
                   </Box>
+
                   {/* <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
                     <Typography
                       color='customColors.neutralSecondary'
