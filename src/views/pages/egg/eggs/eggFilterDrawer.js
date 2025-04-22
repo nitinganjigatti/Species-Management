@@ -718,6 +718,7 @@ const EggFilterDrawer = ({
                       <DatePicker
                         sx={{ width: '100%', '& .MuiIconButton-edgeEnd': { display: 'block' } }}
                         maxDate={dayjs()}
+                        format='DD/MM/YYYY'
                         value={
                           selectedOptions?.collected_date
                             ? selectedOptions?.collected_date

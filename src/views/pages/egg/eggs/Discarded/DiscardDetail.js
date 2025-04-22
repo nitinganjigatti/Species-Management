@@ -96,16 +96,12 @@ const DiscardDetail = ({ setDetailDrawer, detailDrawer, eggDiscardedId, fetchTab
   }
 
   useEffect(() => {
-    if (eggDiscardedId) {
+    if (eggDiscardedId && detailDrawer) {
       if (status === 'Overview') {
         getSummary(eggDiscardedId)
         GetGalleryImgListFunc(eggDiscardedId)
         getEggListSummary(eggDiscardedId)
       }
-
-      //  else {
-
-      // }
     }
   }, [detailDrawer, status])
 

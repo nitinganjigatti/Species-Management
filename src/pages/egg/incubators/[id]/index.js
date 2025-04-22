@@ -142,7 +142,10 @@ const IncubatorDetails = () => {
         status: active ? 'deactivate' : 'activate'
       }).then(response => {
         if (response.success) {
-          Toaster({ type: 'success', message: response.message })
+          Toaster({
+            type: 'success',
+            message: active ? 'Incubator Deactivated Successfully' : 'Incubator Activated Successfully'
+          })
           setOpenStatusDialog(false)
           setStatusLoading(false)
           setActive(!active)
