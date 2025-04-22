@@ -433,7 +433,7 @@ const RequestedProductDetails = props => {
                     <Avatar
                       variant='square'
                       src={requestedProducts?.image || 'images/square'}
-                      alt='Medicine Image'
+                      alt={requestedProducts?.stock_name || 'Medicine Image'}
                       sx={{ width: '52px', height: '52px', borderRadius: '2px', p: 0 }}
                     />
                   </Box>
