@@ -486,7 +486,7 @@ const RequestedProductDetails = props => {
                         >
                           {requestedProducts?.total_available_quantity
                             ? requestedProducts?.total_available_quantity
-                            : 'NA'}
+                            : '0'}
                         </Typography>
                       </Typography>
                     )}
@@ -530,7 +530,7 @@ const RequestedProductDetails = props => {
                       }}
                     >
                       {' '}
-                      {requestedProducts?.total_pending_items ? requestedProducts?.total_pending_items : 'NA'}
+                      {requestedProducts?.total_pending_items ? requestedProducts?.total_pending_items : '0'}
                     </Typography>
                   </Typography>
                 </Grid>
@@ -569,7 +569,7 @@ const RequestedProductDetails = props => {
                   }}
                 >
                   Pending Requests - {''}
-                  {requestedProducts?.total_pending_requests ? requestedProducts?.total_pending_requests : 'NA'}
+                  {requestedProducts?.total_pending_requests ? requestedProducts?.total_pending_requests : '0'}
                 </Typography>
               </Grid>
 
