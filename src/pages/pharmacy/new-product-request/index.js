@@ -152,9 +152,9 @@ export default function NewProductList() {
   const columns = [
     {
       width: 80,
-      minWidth: 80,
+      minWidth: 100,
       field: 'id',
-      headerName: 'S.NO',
+      headerName: 'SL.NO',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {parseInt(params.row.sl_no) + '.'}
@@ -184,7 +184,7 @@ export default function NewProductList() {
     },
     selectedPharmacy?.type === 'central' && {
       width: 150,
-      minWidth: 150,
+      minWidth: 180,
       field: 'to_store_name',
       headerName: 'From Store',
       renderCell: (params, rowId) => (
@@ -205,7 +205,7 @@ export default function NewProductList() {
     },
     {
       flex: 0.3,
-      minWidth: 40,
+      minWidth: 180,
       field: 'product_name',
       headerName: 'Product Name',
       renderCell: params => (
@@ -229,7 +229,7 @@ export default function NewProductList() {
 
     {
       flex: 0.2,
-      minWidth: 40,
+      minWidth: 150,
       field: 'priority',
       headerName: 'Priority',
       renderCell: params => (
@@ -248,7 +248,7 @@ export default function NewProductList() {
     },
     selectedPharmacy?.type === 'central' && {
       flex: 0.3,
-      minWidth: 40,
+      minWidth: 150,
       field: 'requested_by',
       headerName: 'Requested User',
       renderCell: params => (
@@ -267,7 +267,7 @@ export default function NewProductList() {
     },
     {
       flex: selectedPharmacy.type === 'central' ? 0.2 : 0.3,
-      minWidth: 40,
+      minWidth: 150,
       field: 'quantity',
       headerName: 'Quantity',
       type: 'number',
@@ -294,7 +294,7 @@ export default function NewProductList() {
 
     {
       flex: 0.3,
-      minWidth: 20,
+      minWidth: 150,
       field: 'created_at',
       headerName: 'CREATED Date',
       renderCell: params => (
@@ -313,7 +313,7 @@ export default function NewProductList() {
     },
     {
       flex: 0.3,
-      minWidth: 20,
+      minWidth: 150,
       field: 'status',
       headerName: 'Status',
       renderCell: params => (
@@ -581,7 +581,6 @@ export default function NewProductList() {
 
   const getProductRequestToExport = async () => {
     try {
-      debugger
       setExcelLoader(true)
 
       const params = {
@@ -1104,7 +1103,7 @@ export default function NewProductList() {
 //       width: 80,
 //       minWidth: 80,
 //       field: 'id',
-//       headerName: 'S.NO',
+//       headerName:'SL.NO',
 //       renderCell: params => (
 //         <Typography variant='body2' sx={{ color: 'text.primary' }}>
 //           {parseInt(params.row.sl_no) + '.'}

@@ -1,137 +1,121 @@
 import React from 'react'
-import { Box, Grid, Typography, Avatar, Tooltip, Hidden } from '@mui/material'
-import Icon from 'src/@core/components/icon'
+import { Box, Grid, Typography, Avatar, Tooltip } from '@mui/material'
+import RenderUtility from 'src/utility/render'
 
-const StyleWithIconCardComponent = ({
-  value,
-  description,
+const PharmacyProductCard = ({
+  title,
+  subTitle,
   icon,
   bgColor,
   onClick,
-  showIcon,
-  customCss,
   rowWidth = 250,
-  heoImageDimention = 60
+  heoImageDimension = 44,
+  controlSubstance = false,
+  prescriptionRequired = false
 }) => {
-  console.log('customCss', customCss)
-
   // 1 unit is equal to 4px
 
   const marginLeft = 2
 
+  const ToolTip = ({ title, children }) => {
+    return (
+      <Tooltip
+        title={title}
+        componentsProps={{
+          tooltip: {
+            sx: {
+              backgroundColor: '#ededed',
+              color: '#000',
+              fontSize: '14px',
+              fontWeight: '500',
+              borderRadius: '4px',
+              boxShadow: 2
+            }
+          }
+        }}
+      >
+        {children}
+      </Tooltip>
+    )
+  }
+
   return (
-    <Grid item>
+    <Grid
+      sx={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        backgroundColor: bgColor ? bgColor : null,
+        borderRadius: '8px',
+        p: 0,
+        m: 0,
+        cursor: 'pointer'
+      }}
+      onClick={onClick ? onClick : null}
+    >
       <Box
         sx={{
           display: 'flex',
           alignItems: 'center',
-          justifyContent: 'space-between',
-          bgcolor: bgColor ? bgColor : null,
+          padding: 0,
           borderRadius: '8px',
-
-          // p: customCss?.p ? customCss?.p : 4,
-          p: 0,
-          cursor: 'pointer'
+          width: '100%',
+          height: '100%',
+          justifyContent: 'center'
         }}
-        onClick={onClick ? onClick : null}
       >
-        <Box
+        <Avatar
+          variant='square'
+          alt=''
+          src={icon ? icon : '/images/Medicine_Icon.png'}
           sx={{
-            display: 'flex',
-            alignItems: 'center',
-
-            // padding: customCss?.p ? customCss?.p : 2,
-            padding: 0,
-            borderRadius: '8px',
-            backgroundColor: '#FFFFFF80',
-
-            width: '100%',
-            height: '100%',
-
-            justifyContent: 'center'
+            width: `${heoImageDimension}px`,
+            height: `${heoImageDimension}px`,
+            borderRadius: '10px'
           }}
-        >
-          <Avatar
-            variant='square'
-            alt=''
-            src={icon ? icon : null}
-            sx={{
-              width: `${heoImageDimention}px`,
-              height: `${heoImageDimention}px`,
-              borderRadius: customCss?.avtBorderRadius ? customCss?.avtBorderRadius : '0px'
-            }}
-          />
-        </Box>
-        <Box
-          flex='1'
-          ml={marginLeft}
-
-          // sx={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', width: '190px' }}
-        >
-          {value && (
-            <Tooltip
-              title={value}
-              componentsProps={{
-                tooltip: {
-                  sx: {
-                    bgcolor: '#ededed', // Background color
-                    color: '#000', // Text color
-                    fontSize: '14px',
-                    fontWeight: '500',
-                    borderRadius: '4px', // Optional: Rounded corners
-                    boxShadow: 2 // Optional: Adds a subtle shadow
-                  }
-                }
+        />
+      </Box>
+      <Box flex='1' ml={marginLeft}>
+        {title && (
+          <ToolTip title={title}>
+            <Typography
+              sx={{
+                color: 'customColors.OnSurfaceVariant',
+                fontWeight: 500,
+                fontSize: '14px',
+                overflow: 'hidden', // Hide overflowing text
+                whiteSpace: 'nowrap', // Prevent wrapping to the next line
+                textOverflow: 'ellipsis', // Add ellipsis when text overflows
+                width: `${rowWidth - (marginLeft * 4 + 44 + 8)}px`
               }}
             >
-              <Typography
-                variant='body1'
-                sx={{
-                  color: 'customColors.customHeadingTextColor',
-                  fontWeight: 500,
-                  fontSize: customCss?.fontSize ? customCss?.fontSize : '20px',
-                  overflow: 'hidden', // Hide overflowing text
-                  whiteSpace: 'nowrap', // Prevent wrapping to the next line
-                  textOverflow: 'ellipsis', // Add ellipsis when text overflows
-                  // maxWidth: 250
-                  width: `${rowWidth - (marginLeft * 4 + 44 + 8)}px`
+              {RenderUtility?.renderControlLabel(controlSubstance, 'CS')}
+              {RenderUtility?.renderPrescriptionLabel(prescriptionRequired, 'PR')} {title ? title : ''}
+            </Typography>
+          </ToolTip>
+        )}
 
-                  // maxWidth: 250
-                }}
-              >
-                {value ? value : 0}
-              </Typography>
-            </Tooltip>
-          )}
-
-          {description && (
-            <Tooltip title={description}>
-              <Typography
-                variant='body2'
-                sx={{
-                  color: 'customColors.neutralSecondary',
-                  fontWeight: 400,
-                  fontSize: '14px',
-                  overflow: 'hidden', // Hide overflowing text
-                  whiteSpace: 'nowrap', // Prevent wrapping to the next line
-                  textOverflow: 'ellipsis', // Add ellipsis when text overflows
-                  // maxWidth: 250
-                  width: '190px'
-                }}
-              >
-                <span>{description ? description : null}</span>
-              </Typography>
-            </Tooltip>
-          )}
-        </Box>
-        {showIcon && (
-          <Typography variant='body2' color='customColors.customHeadingTextColor'>
-            <Icon icon='weui:arrow-filled' />
-          </Typography>
+        {subTitle && (
+          <ToolTip title={subTitle}>
+            <Typography
+              sx={{
+                color: 'customColors.neutralSecondary',
+                fontWeight: 400,
+                fontSize: '14px',
+                overflow: 'hidden', // Hide overflowing text
+                whiteSpace: 'nowrap', // Prevent wrapping to the next line
+                textOverflow: 'ellipsis', // Add ellipsis when text overflows
+                // maxWidth: 250
+                width: `${rowWidth - (marginLeft * 4 + 44 + 8)}px`
+              }}
+            >
+              <span>{subTitle ? subTitle : null}</span>
+            </Typography>
+          </ToolTip>
         )}
       </Box>
     </Grid>
   )
 }
 
-export default StyleWithIconCardComponent
+export default PharmacyProductCard

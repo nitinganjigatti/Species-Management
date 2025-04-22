@@ -198,7 +198,7 @@ function Ledger({ tabValue, updateUrlParams }) {
     {
       width: 70,
       field: 'sl_no',
-      headerName: 'S.NO',
+      headerName: 'SL.NO',
       sortable: false,
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>

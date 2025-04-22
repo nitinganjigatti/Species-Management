@@ -577,7 +577,13 @@ const ExpiringMedicine = () => {
                     my: { xs: 2, md: 0, lg: 0 }
                   }}
                 >
-                  <CommonDateRangePickers onChange={handleDateRangeChange} filterDates={filterDates} />
+                  <CommonDateRangePickers
+                    onChange={handleDateRangeChange}
+                    filterDates={filterDates}
+                    showFutureDates={true}
+                    useCustomText={true}
+                    customText='Select Near Expiry'
+                  />
                   <ExportButton loading={excelLoader} onClick={getDataToExport} disabled={total === 0 ? true : false} />
                 </Grid>
               </Grid>

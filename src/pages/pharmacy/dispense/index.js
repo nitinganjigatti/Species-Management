@@ -62,7 +62,7 @@ function Dispense() {
       // flex: 0.1,
       Width: 100,
       field: 'sl',
-      headerName: 'S.NO',
+      headerName: 'SL.NO',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.sl_no + '.'}
@@ -205,7 +205,7 @@ function Dispense() {
             )}
             <Box sx={{ display: 'flex', flexDirection: 'column' }}>
               <Typography variant='subtitle2' sx={{ color: 'text.primary' }}>
-                {`${params?.row?.user_name} ${params?.row?.user_last_name}` || 'NA'}
+                {`${params?.row?.user_first_name} ${params?.row?.user_last_name}` || 'NA'}
               </Typography>
             </Box>
           </Box>

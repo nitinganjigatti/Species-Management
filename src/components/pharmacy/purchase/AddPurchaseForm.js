@@ -47,7 +47,8 @@ import {
   updatePurchasePrice,
   getBatchExpiry,
   validatePurchaseProducts,
-  postDeleteInvoiceById
+  postDeleteInvoiceById,
+  productMappingForMlTraining
 } from 'src/lib/api/pharmacy/getPurchaseList'
 import CommonDialogBox from 'src/components/CommonDialogBox'
 import SingleDatePicker from '../../SingleDatePicker'
@@ -161,6 +162,7 @@ const AddPurchaseForm = () => {
   const [nestedRowMedicine, setNestedRowMedicine] = useState(initialNestedRowMedicine)
 
   const [supplierDialog, setSupplierDialog] = useState(false)
+
   const [productVariantOptions, setProductVariantOptions] = useState([])
 
   const [validatePurchaseDialog, setValidatePurchaseDialog] = useState(false)
@@ -198,6 +200,7 @@ const AddPurchaseForm = () => {
   const [isError, setIsError] = useState(false)
   const [invoiceUploadDialog, setInvoiceUploadDialog] = useState(false)
   const [showAmount, setShowAmount] = useState(false)
+  const [invoiceSubmitLoader, setInvoiceSubmitLoader] = useState(false)
 
   const schema = yup.object().shape({
     // product: yup.string().required('Product name is required'),
@@ -627,6 +630,7 @@ const AddPurchaseForm = () => {
     postData.net_amount = grandTotalAmount
     // added grand total amount
     console.log('postData', postData)
+    // debugger
     try {
       if (id) {
         postData.antz_pharmacy_purchase_id = id
@@ -650,23 +654,43 @@ const AddPurchaseForm = () => {
         }
       } else {
         const response = await addPurchase(postData)
-        if (postData?.purchase_created_by === 'invoice_upload') {
-          const suggestionData = postData?.purchase_details?.map(el => {
-            return {
-              medicine_name_by_ml: el?.medicine_name_by_ml,
-              medicine_name_in_db: el?.medicine_name,
-              purchase_unit_id: el?.purchase_unit_id
-            }
-          })
 
-          console.log('ml trained triggered')
-          console.log('suggestionData', suggestionData)
-        }
         if (response?.success) {
           toast.success(response.message)
-          setEditParams(editParamsInitialState)
-          setSubmitLoader(false)
-          Router.push('/pharmacy/purchase/')
+          if (postData?.purchase_created_by === 'invoice_upload') {
+            // debugger
+
+            const suggestionData = postData?.purchase_details?.map(el => {
+              return {
+                ml_product_name: el?.medicine_name_by_ml,
+                stock_name: el?.medicine_name,
+                stock_id: el?.purchase_stock_item_id
+              }
+            })
+
+            console.log('ml trained triggered')
+            console.log('suggestionData', suggestionData)
+
+            try {
+              const mlResult = await productMappingForMlTraining(suggestionData)
+              console.log('ML training completed successfully', mlResult)
+              toast.success(mlResult?.data)
+
+              setEditParams(editParamsInitialState)
+              setSubmitLoader(false)
+              Router.push('/pharmacy/purchase/')
+            } catch (error) {
+              console.error('ML training error:', error)
+              toast.success('ML not trained successfully')
+              setEditParams(editParamsInitialState)
+              setSubmitLoader(false)
+              Router.push('/pharmacy/purchase/')
+            }
+          } else {
+            setEditParams(editParamsInitialState)
+            setSubmitLoader(false)
+            Router.push('/pharmacy/purchase/')
+          }
         } else {
           setSubmitLoader(false)
           if (response.data?.po_no) {
@@ -834,6 +858,17 @@ const AddPurchaseForm = () => {
 
   const getProductVariantByproductId = async productId => {
     const productVariant = await getVariantFOrProduct(productId)
+    // debugger
+
+    // if (editParams.purchase_created_by === 'invoice_upload') {
+    //   const data = {
+    //     value: 1,
+    //     label: 1,
+    //     description: '',
+    //     is_default: ''
+    //   }
+    //   setProductVariantOptions([data])
+    // } else {
     if (productVariant?.success && productVariant?.data?.length > 0) {
       const data = productVariant?.data?.map(el => {
         return {
@@ -847,6 +882,7 @@ const AddPurchaseForm = () => {
       // console.log('data', data)
       setProductVariantOptions(data)
     }
+    // }
   }
 
   const getListOfItemsById = async id => {
@@ -1414,7 +1450,12 @@ const AddPurchaseForm = () => {
 
   const validateErrorForItemId = () => {
     const error = editParams.purchase_details.some(
-      el => el?.purchase_stock_item_id === '' || el?.purchase_stock_item_id === null
+      el =>
+        el?.purchase_stock_item_id === '' ||
+        el?.purchase_stock_item_id === null ||
+        el?.purchase_unit_id === '' ||
+        el?.purchase_unit_id === null ||
+        !el?.purchase_unit_id
     )
     console.log('error', error)
 
@@ -1439,22 +1480,8 @@ const AddPurchaseForm = () => {
 
   return (
     <Card>
-      <Grid container spacing={6}>
-        <Grid
-          item
-          sm={12}
-          xs={12}
-          sx={{
-            // display: 'flex',
-            // flexDirection: { lg: 'row', md: 'row', xl: 'row', sm: 'column', xs: 'column' },
-            // justifyContent: 'space-between',
-            // alignItems: { lg: 'center', md: 'center', xl: 'center', sm: 'start', xs: 'start' },
-            // mr: 5
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center'
-          }}
-        >
+      <Grid container sx={{ display: 'flex', justifyContent: 'space-between' }}>
+        <Grid item sm={4} xs={12}>
           <CardHeader
             sx={{
               display: 'flex',
@@ -1476,39 +1503,40 @@ const AddPurchaseForm = () => {
               />
             }
             title={id ? 'Edit Inventory List' : 'Add Inventory'}
-            action={
-              <Box
-                sx={{
-                  display: 'flex',
-                  flexDirection: { lg: 'row', md: 'row', xl: 'row', sm: 'row', xs: 'column' },
-                  justifyContent: 'space-between',
-                  alignItems: { lg: 'center', md: 'center', xl: 'center', sm: 'center', xs: 'center' }
-                  // mr: 5,
-                  // mx: 6,
-                  // gap: 2
-                }}
-              >
-                {authData?.userData?.roles?.settings?.add_pharmacy && !id && (
-                  <AddButton
-                    // sx={{ mx: 24 }}
-                    title='Upload Invoice '
-                    action={() => {
-                      setInvoiceUploadDialog(true)
-                    }}
-                  />
-                )}
-                {authData?.userData?.roles?.settings?.add_pharmacy && (
-                  <AddButton
-                    // sx={{ mx: 24 }}
-                    title='Add Supplier'
-                    action={() => {
-                      setSupplierDialog(true)
-                    }}
-                  />
-                )}
-              </Box>
-            }
           />
+        </Grid>
+        <Grid
+          item
+          sm={7}
+          xs={12}
+          sx={{
+            display: 'flex',
+            flexDirection: { lg: 'row', md: 'row', xl: 'row', sm: 'row', xs: 'column' },
+            justifyContent: 'flex-end',
+            alignItems: { lg: 'center', md: 'center', xl: 'center', sm: 'center', xs: 'start' },
+            columnGap: 2,
+            mx: { xs: 2, lg: 3, md: 3, xl: 3, sm: 3 },
+            mb: { xs: 2, lg: 0, md: 0, xl: 0, sm: 0 },
+            mr: 2,
+            rowGap: { xs: 3, lg: 0, md: 0, xl: 0, sm: 0 }
+          }}
+        >
+          {authData?.userData?.roles?.settings?.add_pharmacy && !id && (
+            <AddButton
+              title='Upload Invoice '
+              action={() => {
+                setInvoiceUploadDialog(true)
+              }}
+            />
+          )}
+          {authData?.userData?.roles?.settings?.add_pharmacy && (
+            <AddButton
+              title='Add Supplier'
+              action={() => {
+                setSupplierDialog(true)
+              }}
+            />
+          )}
         </Grid>
       </Grid>
 
@@ -2263,6 +2291,7 @@ const AddPurchaseForm = () => {
                   <TableCell align='right'>Action</TableCell>
                 </TableRow>
               </TableHead>
+              {console.log('editParams?.purchase_details', editParams?.purchase_details)}
               <TableBody>
                 {editParams?.purchase_details
                   ? editParams?.purchase_details.map((el, index) => {
@@ -2278,12 +2307,12 @@ const AddPurchaseForm = () => {
 
                             <Typography variant='body2'>{el?.package_details}</Typography>
                             <Typography variant='body2'>{el?.manufacture}</Typography>
-                            {!el?.purchase_stock_item_id && (
+                            {!el?.purchase_stock_item_id || !el?.medicine_name || !el?.purchase_unit_id ? (
                               <Typography sx={{ color: 'error.main', fontSize: '12px' }}>
                                 {/* {itemIdIdErrors[index]} */}
-                                Product Information not found, please update the details
+                                Some product information appears to be missing. Kindly update the details.
                               </Typography>
-                            )}
+                            ) : null}
                           </TableCell>
                           <TableCell>{el?.purchase_batch_no}</TableCell>
                           <TableCell>
@@ -2828,7 +2857,7 @@ const AddPurchaseForm = () => {
             <LoadingButton
               // disabled={editParams.purchase_details.length > 0 && inputValue ? false : true}
               disabled={
-                editParams.purchase_details.length > 0 && inputValue && !isError && !validateErrorForItemId()
+                editParams?.purchase_details?.length > 0 && inputValue && !isError && !validateErrorForItemId()
                   ? false
                   : true
               }
@@ -2904,9 +2933,10 @@ const AddPurchaseForm = () => {
         />
       )}
       <CommonDialogBox
+        loader={invoiceSubmitLoader}
         dialogWithMaxWidth={true}
         title={
-          <Box
+          <Typography
             sx={{
               fontWeight: 500,
               fontSize: '20px',
@@ -2922,7 +2952,7 @@ const AddPurchaseForm = () => {
             }}
           >
             Attach Invoice
-          </Box>
+          </Typography>
         }
         dialogBoxStatus={invoiceUploadDialog}
         formComponent={
@@ -2933,6 +2963,8 @@ const AddPurchaseForm = () => {
               setInvoiceUploadDialog(false)
             }}
             handleInputImageChange={handleInputImageChange}
+            invoiceSubmitLoader={invoiceSubmitLoader}
+            setInvoiceSubmitLoader={setInvoiceSubmitLoader}
           />
         }
         close={() => {

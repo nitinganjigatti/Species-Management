@@ -63,7 +63,7 @@ const ListOfLab = () => {
     //   flex: 0.05,
     //   Width: 40,
     //   field: 'id',
-    //   headerName: 'SL ',
+    //    headerName:'SL.NO',
     //   renderCell: params => (
     //     <Typography variant='body2' sx={{ color: 'text.primary' }}>
     //       {parseInt(params.row.sl_no)}

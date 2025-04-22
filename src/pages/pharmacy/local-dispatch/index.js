@@ -231,7 +231,7 @@ const DirectDispatchList = () => {
     {
       width: 80,
       field: 'id',
-      headerName: 'SL No',
+      headerName: 'SL.NO',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {parseInt(params.row.sl_no)}

@@ -262,6 +262,8 @@ export const DISPENSE_REPORT = 'dispense-report'
 
 export const RETURN_TO_SUPPLIER = 'return-supplier-report'
 
+export const PRODUCT_MAPPING_FOR_ML = 'v1/public/pharmacy/ml/product-mapping/bulkInsert'
+
 export const FEED_DETAILS = 'details'
 
 export const FEED = 'feed'

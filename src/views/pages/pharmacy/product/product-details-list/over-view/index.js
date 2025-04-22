@@ -51,6 +51,7 @@ import {
 import FallbackSpinner from 'src/@core/components/spinner'
 import Utility from 'src/utility'
 import MonthlyChart from 'src/views/utility/monthlychart'
+import { usePharmacyContext } from 'src/context/PharmacyContext'
 
 const validationSchema = yup.object().shape({
   alternatives: yup.array().of(
@@ -71,12 +72,15 @@ const Overview = props => {
 
   const router = useRouter()
   const { id } = router.query
+  const { selectedPharmacy } = usePharmacyContext()
 
   // const [productDashboardData, setProductDashboardData] = useState()
   // const [purchaseData, setPurchaseData] = useState({ dispatch_count: [], dispatch_value: [] })
   // const [dispatchData, setDispatchData] = useState({ dispatch_count: [], dispatch_value: [] })
   const [isAlternativeMedicinesDrawerOpen, setAlternativeMedicinesDrawerOpen] = useState(false)
   const [addMedicinesDrawerOpen, setAddMedicinesDrawerOpen] = useState(false)
+
+  console.log(selectedPharmacy, 'selectedPharmacy')
 
   useEffect(() => {
     if (router.query.tab !== tabValue) {
@@ -187,7 +191,8 @@ const Overview = props => {
                 variant='subtitle1'
                 sx={{ color: 'customColors.customHeadingTextColor', fontWeight: 600, fontSize: '16px' }}
               >
-                Central Pharmacy
+                {selectedPharmacy.name}
+                {/* Central Pharmacy */}
               </Typography>
               <Typography variant='body1' component='div'>
                 <Typography

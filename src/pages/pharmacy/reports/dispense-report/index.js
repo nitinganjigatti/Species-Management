@@ -26,10 +26,10 @@ import CommonTable from 'src/views/table/data-grid/CommonTable'
 import Icon from 'src/@core/components/icon'
 import DispenseReportFilterDrawer from 'src/views/pages/pharmacy/reports/DispenseReportFilterDrawer'
 import { getStoreList } from 'src/lib/api/pharmacy/getStoreList'
-import StyleWithIconCardComponent from 'src/views/utility/style-with-icon-card'
 import { getUserList } from 'src/lib/api/pharmacy/dispenseProduct'
 import { readAsync } from 'src/lib/windows/utils'
 import { ExportButton, FilterButton } from 'src/views/utility/render-snippets'
+import PharmacyProductCard from 'src/views/utility/PharmacyProductCard'
 
 const DispenseReport = () => {
   const router = useRouter()
@@ -200,7 +200,7 @@ const DispenseReport = () => {
       minWidth: 20,
       field: 'id',
       sortable: false,
-      headerName: 'SL NO',
+      headerName: 'SL.NO',
 
       renderCell: params => (
         <Box sx={{ minWidth: 40 }}>
@@ -230,36 +230,8 @@ const DispenseReport = () => {
         </Typography>
       )
     },
-
-    // {
-    //   width: 5,
-    //   field: 'label',
-    //   headerName: '',
-    //   sortable: false,
-    //   renderCell: params => (
-    //     <Typography
-    //       sx={{
-    //         color: 'customColors.OnSecondaryContainer',
-    //         display: 'flex',
-    //         alignItems: 'center',
-    //         fontWeight: 500,
-    //         fontSize: '14px',
-    //         ...RenderUtility?.getEllipsisStyleForText()
-    //       }}
-    //     >
-    //       {RenderUtility?.renderControlLabel(
-    //         !isNaN(params.row?.controlled_substance) && parseInt(params.row?.controlled_substance) === 1,
-    //         'CS'
-    //       )}
-    //       {RenderUtility?.renderControlLabel(
-    //         !isNaN(params.row?.prescription_required) && parseInt(params.row?.prescription_required) === 1,
-    //         'PR'
-    //       )}
-    //     </Typography>
-    //   )
-    // },
     {
-      width: 250,
+      width: 260,
       minWidth: 20,
       field: 'stock_name',
       align: 'left',
@@ -268,59 +240,12 @@ const DispenseReport = () => {
 
       renderCell: params => (
         <Box>
-          <StyleWithIconCardComponent
-            value={
-              <>
-                <Typography sx={{ display: 'flex', alignItems: 'center' }}>
-                  <Typography
-                    sx={{
-                      color: 'customColors.OnSecondaryContainer',
-                      display: 'flex',
-
-                      alignItems: 'center',
-                      fontWeight: 500,
-                      fontSize: '14px'
-
-                      // ...RenderUtility?.getEllipsisStyleForText()
-                    }}
-                  >
-                    {RenderUtility?.renderControlLabel(
-                      !isNaN(params.row?.controlled_substance) && parseInt(params.row?.controlled_substance) === 1,
-                      'CS'
-                    )}
-                    {RenderUtility?.renderPrescriptionLabel(
-                      !isNaN(params.row?.prescription_required) && parseInt(params.row?.prescription_required) === 1,
-                      'PR'
-                    )}
-                  </Typography>
-                  <Typography
-                    sx={{
-                      color: 'customColors.customHeadingTextColor',
-                      fontWeight: 500,
-                      fontSize: '14px',
-                      overflow: 'hidden',
-                      whiteSpace: 'nowrap',
-                      textOverflow: 'ellipsis',
-                      maxWidth: 250
-                    }}
-                  >
-                    {params.row.stock_name}
-                  </Typography>
-                </Typography>
-              </>
-            }
-            description={params.row.generic_name ? params.row.generic_name : 'NA'}
-            icon={params.row.image ? `${params.row.image}` : '/images/Medicine_Icon.png'}
-            showIcon={false}
-            customCss={{
-              p: '0px',
-              width: '100%',
-              height: '100%',
-              fontSize: '14px',
-              avtBorderRadius: '10px',
-              iconWidth: '44px',
-              iconHeight: '44px'
-            }}
+          <PharmacyProductCard
+            title={params?.row?.stock_name}
+            subTitle={params?.row?.generic_name ? params?.row?.generic_name : 'NA'}
+            icon={params?.row?.image}
+            controlSubstance={params?.row?.controlled_substance === '1' && true}
+            prescriptionRequired={params?.row?.prescription_required === '1' && true}
           />
         </Box>
       )

@@ -30,6 +30,7 @@ import { getSuppliers } from 'src/lib/api/pharmacy/getSupplierList'
 import { readAsync } from 'src/lib/windows/utils'
 import { getUserList } from 'src/lib/api/pharmacy/dispenseProduct'
 import { ExportButton, FilterButton } from 'src/views/utility/render-snippets'
+import PharmacyProductCard from 'src/views/utility/PharmacyProductCard'
 
 const ReturnSupplier = () => {
   const router = useRouter()
@@ -228,7 +229,7 @@ const ReturnSupplier = () => {
       minWidth: 20,
       field: 'id',
       sortable: false,
-      headerName: 'SL NO',
+      headerName: 'SL.NO',
 
       renderCell: params => (
         <Box sx={{ minWidth: 40 }}>
@@ -279,7 +280,7 @@ const ReturnSupplier = () => {
       )
     },
     {
-      width: 250,
+      width: 260,
       minWidth: 20,
       field: 'stock_name',
       align: 'left',
@@ -288,7 +289,7 @@ const ReturnSupplier = () => {
 
       renderCell: params => (
         <Box>
-          <StyleWithIconCardComponent
+          {/* <StyleWithIconCardComponent
             value={
               <>
                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
@@ -341,6 +342,13 @@ const ReturnSupplier = () => {
               iconWidth: '44px',
               iconHeight: '44px'
             }}
+          /> */}
+          <PharmacyProductCard
+            title={params?.row?.stock_name}
+            subTitle={params?.row?.generic_name ? params?.row?.generic_name : 'NA'}
+            icon={params?.row?.image}
+            controlSubstance={params?.row?.controlled_substance === '1' && true}
+            prescriptionRequired={params?.row?.prescription_required === '1' && true}
           />
         </Box>
       )

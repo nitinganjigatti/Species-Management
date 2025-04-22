@@ -1,3 +1,4 @@
+/* eslint-disable lines-around-comment */
 import React, { useEffect, useState } from 'react'
 import {
   FormControl,
@@ -590,8 +591,11 @@ const PurchaseItemForm = props => {
           </Typography>
           {!getValues('product')?.value && getValues('product')?.label && (
             <Typography sx={{ fontSize: '12px', color: 'error.main' }}>
-              The product <span style={{ color: '#D32F2F', fontWeight: 'bold' }}>{getValues('product')?.label}</span>{' '}
-              you entered is not available, please search and select.
+              {/* The product <span style={{ color: '#D32F2F', fontWeight: 'bold' }}>{getValues('product')?.label}</span>{' '}
+              you entered is not available, please search and select.  */}
+              The product <span style={{ color: '#D32F2F', fontWeight: 'bold' }}>{getValues('product')?.label} </span>
+              you entered is either not available or not selected from the dropdown.
+              <br /> Please search and select it to continue.
             </Typography>
           )}
         </Grid>
@@ -766,7 +770,8 @@ const PurchaseItemForm = props => {
                 render={({ field: { value, onChange } }) => (
                   <LocalizationProvider dateAdapter={AdapterDayjs}>
                     <DesktopDatePicker
-                      disabled={nestedRowMedicine?.id ? true : false}
+                      // eslint-disable-next-line lines-around-comment
+                      // disabled={nestedRowMedicine?.id ? true : false}
                       label='Expiry Date*'
                       inputFormat='MM/DD/YYYY'
                       value={value}
@@ -910,7 +915,7 @@ const PurchaseItemForm = props => {
               render={({ field: { onChange, value, ...rest } }) => (
                 <Select
                   {...rest}
-                  disabled={watch('isVariantIdPresent') === true || nestedRowMedicine?.id ? true : false}
+                  // disabled={watch('isVariantIdPresent') === true || nestedRowMedicine?.id ? true : false}
                   value={value}
                   onChange={(e, val) => {
                     setValue('purchase_variant_ratio', Number(val?.props?.children))
@@ -952,7 +957,7 @@ const PurchaseItemForm = props => {
                 <TextField
                   {...field}
                   label='Purchase Quantity*'
-                  disabled={nestedRowMedicine?.id ? true : false}
+                  // disabled={nestedRowMedicine?.id ? true : false}
                   onKeyUp={e => {
                     calculateStuff()
                   }}

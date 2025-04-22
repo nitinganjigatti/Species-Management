@@ -31,6 +31,7 @@ import { fontSize, height, width } from '@mui/system'
 import StyleWithIconCardComponent from 'src/views/utility/style-with-icon-card'
 import { right } from '@popperjs/core'
 import { TabContext, TabList, TabPanel } from '@mui/lab'
+import PharmacyProductCard from 'src/views/utility/PharmacyProductCard'
 
 const ListOfMedicine = () => {
   const theme = useTheme()
@@ -84,7 +85,7 @@ const ListOfMedicine = () => {
       // flex: 0.15,
       width: 80,
       field: 'id',
-      headerName: 'S.NO',
+      headerName: 'SL.NO',
       renderCell: params => (
         <Box sx={{ minWidth: 40 }}>
           <Typography sx={{ color: 'text.primary', fontSize: '14px', fontWeight: '400px' }}>
@@ -113,7 +114,7 @@ const ListOfMedicine = () => {
           >
             {params.row.name}
           </Typography> */}
-          <StyleWithIconCardComponent
+          {/* <StyleWithIconCardComponent
             value={params.row.name}
             description={params.row.generic_name}
             icon={params.row.image ? `${params.row.image}` : '/images/Medicine_Icon.png'}
@@ -127,6 +128,13 @@ const ListOfMedicine = () => {
               iconWidth: '44px',
               iconHeight: '44px'
             }}
+          /> */}
+          <PharmacyProductCard
+            title={params?.row?.name}
+            subTitle={params?.row?.generic_name}
+            icon={params?.row?.image}
+            controlSubstance={params?.row?.controlled_substance === '1' && true}
+            prescriptionRequired={params?.row?.prescription_required === '1' && true}
           />
         </Box>
       )

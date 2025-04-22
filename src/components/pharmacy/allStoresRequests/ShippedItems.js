@@ -37,7 +37,7 @@ export default function ShippedItems({ updateUrlParams, setTotalShippedCounts })
     {
       width: 80,
       field: 'id',
-      headerName: 'Sl No',
+      headerName: 'SL.NO',
       renderCell: (params, rowId) => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.sl_no}

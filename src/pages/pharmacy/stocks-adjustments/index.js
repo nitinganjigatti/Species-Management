@@ -195,205 +195,89 @@ const ListOfStockAdjusted = () => {
 
   const columns = [
     {
-      flex: 0.2,
-      minWidth: 40,
+      flex: 0.05,
+      minWidth: 70,
       field: 'sl',
-      headerName: 'S.NO ',
+      headerName: 'S.NO',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.sl + '.'}
-        </Typography>
-      )
-    },
-
-    {
-      flex: 0.25,
-      minWidth: 40,
-      field: 'stock_name',
-      headerName: 'Product Name',
-      renderCell: params => (
-        <Typography
-          variant='body2'
-          sx={{
-            color: theme.palette.customColors.customHeadingTextColor,
-            fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
-          }}
-        >
-          {params.row.stock_name}
-        </Typography>
-      )
-    },
-    {
-      flex: 0.25,
-      minWidth: 40,
-      field: 'batch_no',
-      headerName: 'Batch number ',
-      renderCell: params => (
-        <Typography
-          variant='body2'
-          sx={{
-            color: theme.palette.customColors.customHeadingTextColor,
-            fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
-          }}
-        >
-          {params.row.batch_no}
-        </Typography>
-      )
-    },
-
-    {
-      flex: 0.35,
-      minWidth: 20,
-      align: 'left',
-      field: 'adjustment_quantity',
-      headerName: 'Adjustment quantity',
-      renderCell: params => (
-        <Typography
-          variant='body2'
-          sx={{
-            color: theme.palette.customColors.customHeadingTextColor,
-            fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
-          }}
-        >
-          {params.row.adjustment_quantity}
-        </Typography>
+        <Typography variant='body2'>{params.row.sl + '.'}</Typography>
       )
     },
     {
       flex: 0.2,
-      minWidth: 20,
+      minWidth: 140,
+      field: 'stock_name',
+      headerName: 'Product',
+      renderCell: params => (
+        <Typography noWrap>{params.row.stock_name}</Typography>
+      )
+    },
+    {
+      flex: 0.1,
+      minWidth: 100,
+      field: 'batch_no',
+      headerName: 'Batch No.',
+      renderCell: params => (
+        <Typography noWrap>{params.row.batch_no}</Typography>
+      )
+    },
+    {
+      flex: 0.1,
+      minWidth: 100,
+      field: 'adjustment_quantity',
+      headerName: 'Qty',
+      renderCell: params => (
+        <Typography noWrap>{params.row.adjustment_quantity}</Typography>
+      )
+    },
+    {
+      flex: 0.15,
+      minWidth: 140,
       field: 'reason_name',
       headerName: 'Reason',
       renderCell: params => (
         <Tooltip title={params.row.reason_name}>
-          <Typography
-            variant='body2'
-            sx={{
-              color: theme.palette.customColors.customHeadingTextColor,
-              fontSize: '14px',
-              fontWeight: 400,
-              fontFamily: 'Inter',
-              overflow: 'hidden',
-              whiteSpace: 'nowrap',
-              textOverflow: 'ellipsis',
-              maxWidth: 200
-            }}
-          >
-            <span alt={params.row.reason_name}> {params.row.reason_name}</span>
-          </Typography>
+          <Typography noWrap>{params.row.reason_name}</Typography>
         </Tooltip>
       )
     },
     {
-      flex: 0.2,
-      minWidth: 20,
+      flex: 0.15,
+      minWidth: 140,
       field: 'comments',
       headerName: 'Comments',
-      renderCell: params => (
-        <>
-          {params.row?.comments ? (
-            <TextEllipsisWithModal
-              text={params?.row?.comments}
-              style={{
-                color: theme.palette.customColors.customHeadingTextColor,
-                fontSize: '14px',
-                fontWeight: 500,
-                fontFamily: 'Inter'
-              }}
-            />
-          ) : (
-            <Typography
-              sx={{
-                color: theme.palette.customColors.customHeadingTextColor,
-                fontSize: '14px',
-                fontWeight: 500,
-                fontFamily: 'Inter'
-              }}
-            >
-              NA
-            </Typography>
-          )}
-        </>
-      )
+      renderCell: params =>
+        params.row?.comments ? (
+          <TextEllipsisWithModal text={params.row.comments} />
+        ) : (
+          <Typography noWrap>NA</Typography>
+        )
     },
     {
-      flex: 0.25,
-      minWidth: 20,
+      flex: 0.15,
+      minWidth: 110,
       field: 'expiry_date',
-      headerName: 'Expiry  Date',
+      headerName: 'Expiry',
       renderCell: params => (
-        <Typography
-          variant='body2'
-          sx={{
-            color: theme.palette.customColors.customHeadingTextColor,
-            fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
-          }}
-        >
+        <Typography noWrap>
           {params.row.expiry_date ? Utility.formatDisplayDate(params.row.expiry_date) : 'NA'}
         </Typography>
       )
     },
-
     {
-      flex: 0.3,
-      Width: 40,
+      flex: 0.2,
+      minWidth: 160,
       field: 'created_by_user_name',
-      headerName: 'Requested by ',
-      renderCell: params => (
-        <>
-          {RenderUtility?.renderUserAvatarDetails(
-            params?.row?.user_profile_pic,
-            params?.row?.created_by_user_name,
-            params?.row?.adjusted_at
-          )}
-        </>
-
-        // <Box sx={{ display: 'flex', alignItems: 'center' }}>
-        //   {Utility.renderUserAvatar(params.row.user_profile_pic)}
-        //   <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-        //     <Typography variant='subtitle2' sx={{ color: 'text.primary' }}>
-        //       {params?.row?.created_by_user_name ? params?.row?.created_by_user_name : 'NA'}
-        //     </Typography>
-        //     <Typography variant='caption' sx={{ lineHeight: 1.6667 }}>
-        //       {params.row.adjusted_at ? Utility.formatDisplayDate(params.row.adjusted_at) : 'NA'}
-        //     </Typography>
-        //   </Box>
-        // </Box>
-      )
+      headerName: 'Requested By',
+      renderCell: params =>
+        RenderUtility.renderUserAvatarDetails(
+          params?.row?.user_profile_pic,
+          params?.row?.created_by_user_name,
+          params?.row?.adjusted_at
+        )
     }
-
-    // {
-    //   flex: 0.2,
-    //   minWidth: 20,
-    //   field: 'created_by_user_name',
-    //   headerName: 'Adjusted By',
-    //   renderCell: params => (
-    //     <Typography variant='body2' sx={{ color: 'text.primary' }}>
-    //       {params?.row?.created_by_user_name ? params?.row?.created_by_user_name : 'NA'}
-    //     </Typography>
-    //   )
-    // },
-
-    //   {
-    //     flex: 0.2,
-    //     minWidth: 20,
-    //     field: 'adjusted_at',
-    //     headerName: 'Date of Adjustment',
-    //     renderCell: params => (
-    //       <Typography variant='body2' sx={{ color: 'text.primary' }}>
-    //         {Utility.formatDisplayDate(params.row.adjusted_at)}
-    //       </Typography>
-    //     )
-    //   }
   ]
+  
 
   const headerAction = (
     <AddButtonContained
