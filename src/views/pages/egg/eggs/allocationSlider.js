@@ -16,7 +16,8 @@ import {
   Select,
   TextField,
   Typography,
-  debounce
+  debounce,
+  useTheme
 } from '@mui/material'
 import React, { useCallback, useEffect, useState } from 'react'
 
@@ -30,6 +31,7 @@ import { GetRoomList } from 'src/lib/api/egg/room/getRoom'
 import * as yup from 'yup'
 
 const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi, allocationValues, getDetails }) => {
+  const theme = useTheme()
   // const [nurseryName, setNurseryName] = useState([])
   // const [roomName, setRoomName] = useState([])
   const [incubatorList, setIncubatorList] = useState([])

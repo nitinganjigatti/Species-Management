@@ -13,23 +13,33 @@ function SpeciesIllustrationCard({ eggDetails, theme }) {
         borderRadius: '8px'
       }}
     >
-      <img
-        style={{
+      <Box
+        sx={{
+          borderRadius: '8px',
           width: '100%',
           height: '100%',
           objectFit: eggDetails?.default_icon?.endsWith('svg') ? 'contain' : 'cover'
         }}
-        srcSet={eggDetails?.default_icon}
-        src={eggDetails?.default_icon}
-        alt='default_icon'
-        loading='lazy'
-      />
+      >
+        <img
+          style={{
+            width: '100%',
+            height: '100%',
+            borderRadius: '8px',
+            objectFit: eggDetails?.default_icon?.endsWith('svg') ? 'contain' : 'cover'
+          }}
+          srcSet={eggDetails?.default_icon}
+          src={eggDetails?.default_icon}
+          alt='default_icon'
+          loading='lazy'
+        />
+      </Box>
       <Box
         sx={{
           borderBottomRightRadius: '8px',
           borderBottomLeftRadius: '8px',
           position: 'relative',
-          top: '-64px',
+          bottom: '57px',
           backgroundColor: theme.palette.customColors.neutralTeritary,
           py: '8px',
           px: '12px',

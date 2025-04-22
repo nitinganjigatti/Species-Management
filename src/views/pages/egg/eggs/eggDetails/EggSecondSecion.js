@@ -137,13 +137,15 @@ const EggSecondSecion = ({
 
   const weightHeaderAction = (
     <>
-      <Button
-        onClick={() => setaddWeightSidebar(true)}
-        sx={{ fontWeight: 500, fontSize: '14px', lineHeight: '24px' }}
-        startIcon={<Icon icon='mdi:add' fontSize={20} />}
-      >
-        ADD NEW
-      </Button>
+      {!(eggDetails?.egg_status === 'Discard') && (
+        <Button
+          onClick={() => setaddWeightSidebar(true)}
+          sx={{ fontWeight: 500, fontSize: '14px', lineHeight: '24px' }}
+          startIcon={<Icon icon='mdi:add' fontSize={20} />}
+        >
+          ADD NEW
+        </Button>
+      )}
     </>
   )
 
