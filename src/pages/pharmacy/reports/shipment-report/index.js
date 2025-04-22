@@ -720,14 +720,14 @@ const ShipmentReport = () => {
       setSort(newModel[0].sort)
       setSortColumn(newModel[0].field)
 
-      fetchTableData({
-        sort: newModel[0].sort,
-        q: searchValue,
-        column: newModel[0].field,
-        filteredData: filteredData,
-        page: paginationModel?.page,
-        limit: paginationModel?.pageSize
-      })
+      // fetchTableData({
+      //   sort: newModel[0].sort,
+      //   q: searchValue,
+      //   column: newModel[0].field,
+      //   filteredData: filteredData,
+      //   page: paginationModel?.page,
+      //   limit: paginationModel?.pageSize
+      // })
       updateUrlParams({
         sort: newModel[0].sort,
         q: searchValue,
