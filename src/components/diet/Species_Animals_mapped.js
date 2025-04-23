@@ -68,6 +68,7 @@ const SpeciesAnimalsMapped = ({
     setSelectionType(newValue)
     setapplyfilterCheck(false)
     setSelectedItems([])
+    setPageNo(1)
   }
 
   useEffect(() => {
@@ -245,7 +246,11 @@ const SpeciesAnimalsMapped = ({
                         }}
                       />
                       {searchQuery ? (
-                        <Icon style={{ marginRight: '14px' }} icon='mdi:close' onClick={searchClose} />
+                        <Icon
+                          style={{ marginRight: '14px', cursor: 'pointer' }}
+                          icon='mdi:close'
+                          onClick={searchClose}
+                        />
                       ) : (
                         ''
                       )}
@@ -384,7 +389,7 @@ const SpeciesAnimalsMapped = ({
                         />
                       ))
                     )}
-                    {isLoadingMore && (
+                    {!loading && isLoadingMore && (
                       <Box
                         sx={{
                           position: 'fixed',
@@ -461,7 +466,11 @@ const SpeciesAnimalsMapped = ({
                         }}
                       />
                       {searchQuery ? (
-                        <Icon style={{ marginRight: '14px' }} icon='mdi:close' onClick={searchClose} />
+                        <Icon
+                          style={{ marginRight: '14px', cursor: 'pointer' }}
+                          icon='mdi:close'
+                          onClick={searchClose}
+                        />
                       ) : (
                         ''
                       )}
@@ -598,7 +607,7 @@ const SpeciesAnimalsMapped = ({
                         />
                       ))
                     )}
-                    {isLoadingMore && (
+                    {!loading && isLoadingMore && (
                       <Box
                         sx={{
                           position: 'fixed',

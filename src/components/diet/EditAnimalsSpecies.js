@@ -607,7 +607,7 @@ const EditAnimalSpeciesMapped = ({
                         )}
                       </Box>
                     )}
-                    {isLoadingMore && (
+                    {!loading && isLoadingMore && (
                       <Box
                         sx={{
                           position: 'fixed',
@@ -887,7 +887,7 @@ const EditAnimalSpeciesMapped = ({
                         )}
                       </Box>
                     )}
-                    {isLoadingMore && (
+                    {!loading && isLoadingMore && (
                       <Box
                         sx={{
                           position: 'fixed',
