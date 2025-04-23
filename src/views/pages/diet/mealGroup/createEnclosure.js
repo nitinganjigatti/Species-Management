@@ -30,6 +30,7 @@ const CreateEnclosure = ({
   selectedForDrawer,
   fetchEnclosure,
   checkedRows,
+  setStatus,
   setCheckedRows,
   fetchSiteStats,
   setEditItems,
@@ -96,6 +97,7 @@ const CreateEnclosure = ({
 
       if (response.success) {
         toast.success('Enclosure(s) added successfully')
+        setStatus('')
         setEnclosureDrawer(false)
         setCheckedRows([])
         fetchEnclosure()
@@ -305,7 +307,6 @@ const CreateEnclosure = ({
                 <Select
                   value={groupId}
                   error={mealGroupError}
-                
                   onChange={handleGroupChange}
                   displayEmpty
                   renderValue={selected => {
