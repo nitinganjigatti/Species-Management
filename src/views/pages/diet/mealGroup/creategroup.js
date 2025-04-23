@@ -294,6 +294,7 @@ const CreateMealGroup = ({
                 width: { xs: '95vw', sm: '514px', md: '524px' },
                 height: Object.keys(editParam).length > 0 ? 'auto' : { xs: 'auto', sm: '190px' },
                 boxShadow: 'none',
+
                 m: { xs: 6, sm: 3, md: 5 },
                 mt: 2,
                 ml: { xs: 2, sm: 6 }
@@ -342,8 +343,10 @@ const CreateMealGroup = ({
                     display: 'flex',
                     flexWrap: 'wrap',
                     width: '100%',
+                    height: '44px',
                     borderRadius: '8px',
                     justifyContent: 'space-between',
+                    alignItems:"center",
                     backgroundColor: '#E1F9ED',
                     mt: groupNameError ? 1 : 2,
                     px: 2,
@@ -446,8 +449,10 @@ const CreateMealGroup = ({
                 p: { xs: 2, sm: 5 },
                 // mt: 4,
                 width: { xs: '93vw', sm: '514px', md: '524px' },
-                height: 'calc(100dvh - 500px)',
+                //  width: '100%',
+                height: { xs: '100vh ', sx: 'calc(100dvh - 200px)', md: 'calc(100dvh - 200px)' },
                 // ml: 2,
+                mb: 10,
                 m: { xs: 2, sm: 3, md: 2 },
                 mt: { xs: 3, sm: 4, md: 0 },
                 ml: { xs: 0, sm: 2.5, md: 1 },
@@ -463,11 +468,11 @@ const CreateMealGroup = ({
                 sx={{
                   display: 'flex',
                   flexDirection: 'column',
-                  gap: 3,
+                  gap: 2,
                   overflowY: 'auto',
                   overflowX: 'hidden',
                   pr: 1, // Optional: adds some padding to the right to prevent content cutoff
-                  height: '300px' // Makes sure the Box respects the Card height
+                  height: '80vh' // Makes sure the Box respects the Card height
                 }}
               >
                 {loader ? (
