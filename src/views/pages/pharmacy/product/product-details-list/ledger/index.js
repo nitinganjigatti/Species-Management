@@ -399,7 +399,7 @@ function Ledger({ tabValue, updateUrlParams }) {
             fontFamily: 'Inter'
           }}
         >
-          {params.row.batch_balance || 'NA'}
+          {params.row.batch_balance || '0'}
         </Typography>
       )
     },
@@ -417,7 +417,7 @@ function Ledger({ tabValue, updateUrlParams }) {
             fontFamily: 'Inter'
           }}
         >
-          {params.row.balance || 'NA'}
+          {params.row.balance || '0'}
         </Typography>
       )
     },
