@@ -2,6 +2,7 @@ import {
   Box,
   Button,
   Card,
+  CircularProgress,
   Drawer,
   FormControl,
   IconButton,
@@ -34,6 +35,7 @@ const CreateMealGroup = ({
   setStatus,
   editSearchValue,
   groupId,
+  loader,
   mealId,
   handleEditSearch
 }) => {
@@ -182,15 +184,15 @@ const CreateMealGroup = ({
     return (
       <Box
         sx={{
-          position: 'relative',
+          position: 'fixed',
           right: 0,
           height: '80px',
           width: '100%',
           maxWidth: '562px',
           position: 'fixed',
           bottom: 0,
-          px: 4,
-          py: '24px',
+          right: 0,
+          px: { xs: 2, sm: 3, md: 4 },
           bgcolor: 'white',
           alignItems: 'center',
           justifyContent: 'center',
@@ -235,13 +237,14 @@ const CreateMealGroup = ({
             top: 0,
             bgcolor: theme.palette.customColors.bodyBg,
             zIndex: 10,
+            overflowY: 'scroll',
 
-            width: {
-              xs: '100%', // full width on small screens
-              sm: '74%',
-              md: '500px',
-              lg: '562px'
-            },
+            // width: {
+            //   xs: '100%', // full width on small screens
+            //   sm: '74%',
+            //   md: '500px',
+            //   lg: '562px'
+            // },
             maxHeight: '100vh'
             // overflow: 'auto'
           }}
@@ -396,6 +399,7 @@ const CreateMealGroup = ({
               )}
             </Card>
           </Box>
+
           <Box sx={{ p: 3, backgroundColor: '#EEF5F1', borderRadius: '8px' }}>
             <Typography sx={{ fontFamily: 'Inter', fontSize: '20px', fontWeight: 500, color: '#44544A', ml: 2 }}>
               Selected enclosures
@@ -426,7 +430,7 @@ const CreateMealGroup = ({
                     m: { md: 5 },
                     mt: { md: 0 },
                     ml: { xs: 0, sm: 2, md: 1 },
-                    width: { xs: '100%', sm: '520px', md: '524px' },
+                    width: { xs: '96%', sm: '520px', md: '524px' },
                     height: '48px',
                     input: {
                       color: '#839D8D',
@@ -442,7 +446,7 @@ const CreateMealGroup = ({
                 p: { xs: 2, sm: 5 },
                 // mt: 4,
                 width: { xs: '93vw', sm: '514px', md: '524px' },
-                height: '280px',
+                height: 'calc(100dvh - 500px)',
                 // ml: 2,
                 m: { xs: 2, sm: 3, md: 2 },
                 mt: { xs: 3, sm: 4, md: 0 },
@@ -466,64 +470,77 @@ const CreateMealGroup = ({
                   height: '300px' // Makes sure the Box respects the Card height
                 }}
               >
-                {(Object.keys(editParam).length > 0 ? editeditems : selectedItems).map((item, index) => (
-                  <Card
-                    key={index}
+                {loader ? (
+                  <Box
                     sx={{
-                      p: 5,
-                      width: { xs: '90vw', sm: '475px', md: '485px' },
-                      // width: '482px',
-                      height: '80px',
-                      m: { xs: 0, sm: 0, md: 0 },
-                      mt: { xs: 2, sm: 2, md: 0 },
-                      ml: { xs: 0, sm: 0, md: 0 },
-                      backgroundColor: '#E8F3EE',
-
-                      borderRadius: '16px',
+                      height: '100%',
                       display: 'flex',
-                      boxShadow: 'none',
-                      justifyContent: 'space-between',
-                      alignItems: 'center',
-                      flexShrink: 0 // Prevents child cards from shrinking when scrolling
+                      justifyContent: 'center',
+                      alignItems: 'center'
                     }}
                   >
-                    <Box>
-                      <Typography sx={{ fontWeight: 500, fontSize: '16px', fontFamily: 'Inter', color: '#44544A' }}>
-                        {item.user_enclosure_name}
-                      </Typography>
-                      <Typography sx={{ fontWeight: 400, fontSize: '14px', fontFamily: 'Inter', color: '#44544A' }}>
-                        {item.section_name}
-                      </Typography>
-                    </Box>
-
-                    <Box
+                    <CircularProgress size={40} />
+                  </Box>
+                ) : (
+                  (Object.keys(editParam).length > 0 ? editeditems : selectedItems).map((item, index) => (
+                    <Card
+                      key={index}
                       sx={{
+                        p: 5,
+                        width: { xs: '90vw', sm: '475px', md: '485px' },
+                        // width: '482px',
+                        height: '80px',
+                        m: { xs: 0, sm: 0, md: 0 },
+                        mt: { xs: 2, sm: 2, md: 0 },
+                        ml: { xs: 0, sm: 0, md: 0 },
+                        backgroundColor: '#E8F3EE',
+
+                        borderRadius: '16px',
                         display: 'flex',
-                        flexDirection: 'column',
-                        width: '100px',
-                        alignItems: 'flex-start',
-                        ml: 'auto'
+                        boxShadow: 'none',
+                        justifyContent: 'space-between',
+                        alignItems: 'center',
+                        flexShrink: 0 // Prevents child cards from shrinking when scrolling
                       }}
                     >
-                      <Typography sx={{ fontFamily: 'Inter', fontSize: '14px', fontWeight: 400, color: '#44544A' }}>
-                        Species : {item.species_count}
-                      </Typography>
-                      <Typography sx={{ fontFamily: 'Inter', fontSize: '14px', fontWeight: 400, color: '#44544A' }}>
-                        Animals : {item.animal_count}
-                      </Typography>
-                    </Box>
+                      <Box>
+                        <Typography sx={{ fontWeight: 500, fontSize: '16px', fontFamily: 'Inter', color: '#44544A' }}>
+                          {item.user_enclosure_name}
+                        </Typography>
+                        <Typography sx={{ fontWeight: 400, fontSize: '14px', fontFamily: 'Inter', color: '#44544A' }}>
+                          {item.section_name}
+                        </Typography>
+                      </Box>
 
-                    <IconButton
-                      size='medium'
-                      sx={{ color: 'text.primary' }}
-                      onClick={() =>
-                        Object.keys(editParam).length > 0 ? handleEnclosureRemove(index) : handleRemove(index)
-                      }
-                    >
-                      <Icon icon='mdi:close' sx={{ fontSize: '24px' }} />
-                    </IconButton>
-                  </Card>
-                ))}
+                      <Box
+                        sx={{
+                          display: 'flex',
+                          flexDirection: 'column',
+                          width: '100px',
+                          alignItems: 'flex-start',
+                          ml: 'auto'
+                        }}
+                      >
+                        <Typography sx={{ fontFamily: 'Inter', fontSize: '14px', fontWeight: 400, color: '#44544A' }}>
+                          Species : {item.species_count}
+                        </Typography>
+                        <Typography sx={{ fontFamily: 'Inter', fontSize: '14px', fontWeight: 400, color: '#44544A' }}>
+                          Animals : {item.animal_count}
+                        </Typography>
+                      </Box>
+
+                      <IconButton
+                        size='medium'
+                        sx={{ color: 'text.primary' }}
+                        onClick={() =>
+                          Object.keys(editParam).length > 0 ? handleEnclosureRemove(index) : handleRemove(index)
+                        }
+                      >
+                        <Icon icon='mdi:close' sx={{ fontSize: '24px' }} />
+                      </IconButton>
+                    </Card>
+                  ))
+                )}
               </Box>
             </Card>
           </Box>
