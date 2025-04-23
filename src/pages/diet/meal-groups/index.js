@@ -561,6 +561,7 @@ const MealGroup = () => {
     console.log('Row Detail >', row)
     try {
       setEditParam(row)
+      setLoader(true)
       setMealId(row.id)
       setOpenDrawer(true) // 👈 open the drawer
       const params = {
@@ -1210,7 +1211,7 @@ const MealGroup = () => {
       </Card>
 
       {/* Main Card */}
-      <Card sx={{ mt: 5, p: { xs: 2, md: 4 }, boxShadow: 'none' }}>
+      <Card sx={{ mt: 5, p: { xs: 2, md: 4 }, boxShadow: 'none', mb: 20 }}>
         <Grid>
           <TabContext value={status}>
             <Box>
@@ -1229,7 +1230,7 @@ const MealGroup = () => {
               {/* Divider only below TabList, responsive width */}
               <Divider
                 sx={{
-                  width: { xs: '100%', sm: '610px' },
+                  width: { xs: '100%', sm: '630px' },
                   borderBottomWidth: '3px',
                   mt: -0.5,
                   ml: 1
@@ -1367,6 +1368,7 @@ const MealGroup = () => {
         <Grid
           sx={{
             // height: '800px',
+            // overflowY: 'scroll',
             mx: { xs: 1, sm: 3, md: 2 },
             mb: 5,
             pb: { xs: 0, sm: 5 } // 👈 padding bottom to create space
@@ -1406,8 +1408,6 @@ const MealGroup = () => {
         <FixedFooterWrapper>
           <Box
             sx={{
-              mt: 3,
-
               p: { xs: 2, sm: 4 }
             }}
           >
@@ -1487,6 +1487,7 @@ const MealGroup = () => {
           editParam={editParam}
           editeditems={editeditems}
           setEditItems={setEditItems}
+          loader={Loader}
           fetchEnclosure={fetchEnclosure}
           siteStats={siteStats}
           setStatus={setStatus}
