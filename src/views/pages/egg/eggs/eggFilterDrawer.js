@@ -617,7 +617,7 @@ const EggFilterDrawer = ({
                     sx={{
                       display: 'flex',
                       alignItems: 'center',
-                      border: `1px solid ${theme.palette.customColors.AntzOutlineVariant}`,
+                      border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                       borderRadius: '4px',
                       padding: '0 8px',
                       height: '40px',
@@ -718,6 +718,7 @@ const EggFilterDrawer = ({
                       <DatePicker
                         sx={{ width: '100%', '& .MuiIconButton-edgeEnd': { display: 'block' } }}
                         maxDate={dayjs()}
+                        format='DD/MM/YYYY'
                         value={
                           selectedOptions?.collected_date
                             ? selectedOptions?.collected_date

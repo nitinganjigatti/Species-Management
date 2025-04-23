@@ -240,16 +240,16 @@ const EggActivityLogs = ({
                           (showCommentIndex === index && item.status === 'Rotten')
                             ? theme.palette.formContent.tertiary
                             : item.status === 'Necropsy' || item.status === 'Discard' || item.status === 'Rotten'
-                            ? theme.palette.customColors.AntzTertiary30
+                            ? theme.palette.customColors.Tertiary30
                             : showCommentIndex === index
                             ? theme.palette.primary.light
-                            : theme.palette.customColors.AntzOnBackground,
+                            : theme.palette.customColors.OnBackground,
                         // backgroundColor:
                         //   showCommentIndex === index
                         //     ? theme.palette.primary.light
                         //     : item.status === 'Necropsy' || item.status === 'Discard' || item.status === 'Rotten'
-                        //     ? theme.palette.customColors.AntzTertiary30
-                        //     : theme.palette.customColors.AntzOnBackground,
+                        //     ? theme.palette.customColors.Tertiary30
+                        //     : theme.palette.customColors.OnBackground,
                         p: '16px',
                         transition: '0.4s ease-in-out',
                         display: 'flex',

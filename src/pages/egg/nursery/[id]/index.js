@@ -547,7 +547,7 @@ const NurseryDetails = () => {
                     sx={{
                       display: 'flex',
                       alignItems: 'center',
-                      border: `1px solid ${theme.palette.customColors.AntzOutlineVariant}`,
+                      border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                       borderRadius: '4px',
                       padding: '0 8px',
                       height: '40px'
@@ -600,7 +600,7 @@ const NurseryDetails = () => {
                         <TextField
                           sx={{
                             backgroundColor: theme.palette.primary.contrastText,
-                            borderColor: `1px solid ${theme.palette.customColors.AntzOutlineVariant}`,
+                            borderColor: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                             width: '100%',
                             '& .MuiOutlinedInput-root': {
                               height: 40,

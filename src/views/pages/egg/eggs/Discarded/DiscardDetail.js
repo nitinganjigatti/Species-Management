@@ -96,16 +96,12 @@ const DiscardDetail = ({ setDetailDrawer, detailDrawer, eggDiscardedId, fetchTab
   }
 
   useEffect(() => {
-    if (eggDiscardedId) {
+    if (eggDiscardedId && detailDrawer) {
       if (status === 'Overview') {
         getSummary(eggDiscardedId)
         GetGalleryImgListFunc(eggDiscardedId)
         getEggListSummary(eggDiscardedId)
       }
-
-      //  else {
-
-      // }
     }
   }, [detailDrawer, status])
 
@@ -219,7 +215,7 @@ const DiscardDetail = ({ setDetailDrawer, detailDrawer, eggDiscardedId, fetchTab
                     borderRadius: '8px',
                     gap: '24px',
                     border: 1,
-                    borderColor: theme.palette.customColors.AntzOutlineVariant
+                    borderColor: theme.palette.customColors.OutlineVariant
                   }}
                 >
                   <Box sx={{ display: 'flex', alignItems: 'center', flexDirection: 'row', gap: '24px' }}>
@@ -469,9 +465,7 @@ const DiscardDetail = ({ setDetailDrawer, detailDrawer, eggDiscardedId, fetchTab
                             {Utility.extractHoursAndMinutes(Utility.convertUTCToLocal(summary?.requested_on))}
                           </Typography>
                         </Box>
-                        <Typography
-                          sx={{ fontSize: '14px', fontWeight: 500, color: theme.palette.customColors.AntzError }}
-                        >
+                        <Typography sx={{ fontSize: '14px', fontWeight: 500, color: theme.palette.customColors.Error }}>
                           {summary?.comments ? summary?.comments : '-'}
                         </Typography>
                       </Stack>
@@ -577,7 +571,7 @@ const DiscardDetail = ({ setDetailDrawer, detailDrawer, eggDiscardedId, fetchTab
                             </Typography>
                           </Box>
                           <Typography
-                            sx={{ fontSize: '14px', fontWeight: 500, color: theme.palette.customColors.AntzError }}
+                            sx={{ fontSize: '14px', fontWeight: 500, color: theme.palette.customColors.Error }}
                           >
                             {summary?.comments ? summary?.comments : '-'}
                           </Typography>

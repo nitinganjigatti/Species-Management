@@ -250,31 +250,58 @@ const ConditionSlider = ({
     }
   }, [statusID, eggMaster])
 
-  const { getRootProps, getInputProps } = useDropzone({
-    multiple: false,
-    accept: {
-      'image/*': ['.png', '.jpg', '.jpeg', '.gif']
-    },
-    onDrop: acceptedFiles => {
-      const reader = new FileReader()
-      const files = acceptedFiles
-      if (files && files.length !== 0) {
-        reader.onload = () => {
-          setImgSrc(pre => [...pre, reader?.result])
-        }
-        setDisplayFile(files[0]?.name)
-        reader?.readAsDataURL(files[0])
-        setImgArr(pre => [...pre, files[0]])
-        setValue('image', files)
+  // const { getRootProps, getInputProps } = useDropzone({
+  //   multiple: false,
+  //   accept: {
+  //     'image/*': ['.png', '.jpg', '.jpeg', '.gif']
+  //   },
+  //   onDrop: acceptedFiles => {
+  //     const reader = new FileReader()
+  //     const files = acceptedFiles
+  //     if (files && files.length !== 0) {
+  //       reader.onload = () => {
+  //         setImgSrc(pre => [...pre, reader?.result])
+  //       }
+  //       setDisplayFile(files[0]?.name)
+  //       reader?.readAsDataURL(files[0])
+  //       setImgArr(pre => [...pre, files[0]])
+  //       setValue('image', files)
 
-        clearErrors('image')
-      }
-    }
-  })
+  //       clearErrors('image')
+  //     }
+  //   }
+  // })
 
   // if (watch('accessionType') != '2') {
   //   clearErrors('institution')
   // }
+  const { getRootProps, getInputProps } = useDropzone({
+    multiple: true, // changed to true for multiple files
+    accept: {
+      'image/*': ['.png', '.jpg', '.jpeg', '.gif']
+    },
+    onDrop: acceptedFiles => {
+      acceptedFiles.forEach(file => {
+        const reader = new FileReader()
+
+        reader.onload = () => {
+          setImgSrc(prev => [...prev, reader.result])
+        }
+
+        reader.readAsDataURL(file)
+      })
+
+      // Update filenames as comma-separated string
+      const fileNames = acceptedFiles.map(file => file.name).join(', ')
+      setDisplayFile(fileNames)
+
+      // Add all files to imgArr state
+      setImgArr(prev => [...prev, ...acceptedFiles])
+
+      setValue('image', acceptedFiles)
+      clearErrors('image')
+    }
+  })
 
   const onError = errors => {
     console.log('Form errros', errors)
@@ -284,25 +311,75 @@ const ConditionSlider = ({
     fileInputRef?.current?.click()
   }
 
+  // const handleInputImageChange = file => {
+  //   const reader = new FileReader()
+  //   const { files } = file.target
+  //   // console.log('files :>> ', files)
+  //   if (files && files.length !== 0) {
+  //     reader.onload = () => {
+  //       setImgSrc(pre => [...pre, reader?.result])
+  //     }
+  //     console.log('files', files)
+  //     setDisplayFile(files[0]?.name)
+  //     reader?.readAsDataURL(files[0])
+  //     setImgArr(pre => [...pre, files[0]])
+  //     setValue('image', files)
+  //     clearErrors('image')
+  //   }
+  // }
+
   const handleInputImageChange = file => {
-    const reader = new FileReader()
     const { files } = file.target
-    // console.log('files :>> ', files)
+
     if (files && files.length !== 0) {
-      reader.onload = () => {
-        setImgSrc(pre => [...pre, reader?.result])
-      }
-      setDisplayFile(files[0]?.name)
-      reader?.readAsDataURL(files[0])
-      setImgArr(pre => [...pre, files[0]])
+      Array.from(files).forEach(fileItem => {
+        const reader = new FileReader()
+
+        reader.onload = () => {
+          setImgSrc(prev => [...prev, reader.result])
+        }
+
+        reader.readAsDataURL(fileItem)
+
+        setImgArr(prev => [...prev, fileItem])
+      })
+
+      // Display filenames as comma-separated string
+      const fileNames = Array.from(files)
+        .map(f => f.name)
+        .join(', ')
+      setDisplayFile(fileNames)
+
       setValue('image', files)
       clearErrors('image')
     }
   }
 
+  // const removeSelectedImage = index => {
+  //   setImgSrc(prevImages => prevImages.filter((_, i) => i !== index))
+  //   setValue('image', '')
+  // }
+
   const removeSelectedImage = index => {
     setImgSrc(prevImages => prevImages.filter((_, i) => i !== index))
-    setValue('image', '')
+    setImgArr(prevArr => prevArr.filter((_, i) => i !== index))
+
+    // Update the form value accordingly
+    setValue(
+      'image',
+      imgArr.filter((_, i) => i !== index)
+    )
+
+    // If no images left, optionally reset display filename
+    if (imgArr.length === 1) {
+      setDisplayFile('')
+      setValue('image', '')
+    } else {
+      setDisplayFile(prev => {
+        const updatedFiles = prev.split(', ').filter((_, i) => i !== index)
+        return updatedFiles.join(', ')
+      })
+    }
   }
 
   const onSubmit = values => {
@@ -660,7 +737,7 @@ const ConditionSlider = ({
                     background: theme.palette.primary.contrastText,
                     borderRadius: '8px',
                     border: 1,
-                    borderColor: theme.palette.customColors.AntzOutlineVariant,
+                    borderColor: theme.palette.customColors.OutlineVariant,
                     py: '20px',
                     px: '16px'
                   }}
@@ -868,7 +945,7 @@ const ConditionSlider = ({
                     background: theme.palette.primary.contrastText,
                     borderRadius: '8px',
                     border: 1,
-                    borderColor: theme.palette.customColors.AntzOutlineVariant,
+                    borderColor: theme.palette.customColors.OutlineVariant,
                     py: '20px',
                     px: '16px'
                   }}
@@ -901,6 +978,7 @@ const ConditionSlider = ({
                     <Grid item md={12} sm={12} xs={12}>
                       <input
                         type='file'
+                        multiple
                         accept='image/*'
                         onChange={e => handleInputImageChange(e)}
                         style={{ display: 'none' }}
@@ -916,7 +994,6 @@ const ConditionSlider = ({
                           alignItems: 'center',
                           gap: 7,
                           height: 70,
-
                           border: `2px solid ${theme.palette.customColors.trackBg}`,
                           borderRadius: 1,
                           padding: 3
@@ -1004,7 +1081,7 @@ const ConditionSlider = ({
                       bgcolor: theme.palette.primary.contrastText,
                       borderRadius: '8px',
                       border: 1,
-                      borderColor: theme.palette.customColors.AntzOutlineVariant
+                      borderColor: theme.palette.customColors.OutlineVariant
                     }}
                   >
                     <Typography variant='h6'>Necropsy Needed ?</Typography>
@@ -1032,7 +1109,7 @@ const ConditionSlider = ({
                                   flexGrow: 1,
                                   gap: 2,
                                   border: 1,
-                                  borderColor: theme.palette.customColors.AntzOutlineVariant,
+                                  borderColor: theme.palette.customColors.OutlineVariant,
                                   p: 2,
                                   borderRadius: '5px',
                                   justifyContent: 'space-between'
@@ -1049,7 +1126,7 @@ const ConditionSlider = ({
                                   flexGrow: 1,
                                   gap: 2,
                                   border: 1,
-                                  borderColor: theme.palette.customColors.AntzOutlineVariant,
+                                  borderColor: theme.palette.customColors.OutlineVariant,
                                   p: 2,
                                   borderRadius: '5px',
                                   justifyContent: 'space-between'
@@ -1076,7 +1153,7 @@ const ConditionSlider = ({
                         background: theme.palette.primary.contrastText,
                         borderRadius: '8px',
                         border: 1,
-                        borderColor: theme.palette.customColors.AntzOutlineVariant,
+                        borderColor: theme.palette.customColors.OutlineVariant,
                         py: '20px',
                         px: '16px'
                       }}

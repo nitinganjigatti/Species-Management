@@ -202,7 +202,7 @@ const DiscardedTableView = ({
             </Tooltip>
             <Typography
               sx={{
-                color: theme.palette.customColors.AntzError,
+                color: theme.palette.customColors.Error,
                 fontSize: '15px',
                 fontWeight: '500',
                 lineHeight: '16.94px',
