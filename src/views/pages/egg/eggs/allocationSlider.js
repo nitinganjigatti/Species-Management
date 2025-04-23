@@ -597,8 +597,8 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi, allocationVal
                                 <TextField
                                   sx={{ borderRadius: '4px' }}
                                   label={`${
-                                    measurement.assessment_type_string_id.charAt(0).toUpperCase() +
-                                    measurement.assessment_type_string_id.slice(1)
+                                    measurement?.assessment_type_string_id?.charAt(0)?.toUpperCase() +
+                                    measurement?.assessment_type_string_id?.slice(1)
                                   }*`}
                                   value={value}
                                   onChange={e => {
@@ -639,7 +639,7 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi, allocationVal
                       <Grid item xs={6}>
                         <FormControl fullWidth sx={{ mt: 3 }}>
                           <InputLabel error={Boolean(errors?.site_id)} id={`unit_label_${index}`}>
-                            {measurement?.unit_name.charAt(0).toUpperCase() + measurement?.unit_name.slice(1)}
+                            {measurement?.unit_name?.charAt(0)?.toUpperCase() + measurement?.unit_name.slice(1)}
                           </InputLabel>
 
                           <Controller
