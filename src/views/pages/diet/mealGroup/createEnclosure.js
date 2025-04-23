@@ -24,7 +24,7 @@ const CreateEnclosure = ({
   setSelectedItems,
   setEnclosureDrawer,
   selectedOption,
-  Loader,
+  loader,
   groupId,
   setGroupId,
   selectedForDrawer,
@@ -40,6 +40,7 @@ const CreateEnclosure = ({
 
   const [selectedEnclosureIds, setSelectedEnclosureIds] = useState([])
   const [groupList, setGroupList] = useState([])
+  const [mealGroupError, setMealGroupError] = useState(false)
 
   // const [selectedGroup, setSelectedGroup] = useState('all')
 
@@ -75,6 +76,13 @@ const CreateEnclosure = ({
   }
 
   const handleAddEnclosure = async () => {
+    if (!groupId.trim()) {
+      setMealGroupError(true)
+      return
+    }
+
+    setMealGroupError(false)
+
     try {
       console.log('Selected Enclosure <>', selectedEnclosureIds, selectedOption, groupId)
 
@@ -108,11 +116,13 @@ const CreateEnclosure = ({
           position: 'fixed',
           bottom: 0,
           right: 0,
-          width: { xs: '100%', sm: '73%', md: '562px' },
-          height: { md: '130px' }, // match height
+          width: '100%',
+          maxWidth: '562px',
+          // width: { xs: '100%', sm: '73%', md: '562px' },
+          height: '106px',
           bgcolor: 'white',
           px: { xs: 2, sm: 3, md: 4 },
-          py: { xs: 2, sm: 2, md: '22px' }, // match padding
+          // py: { xs: 2, sm: 2, md: '22px' }, // match padding
           display: 'flex',
           flexDirection: { xs: 'column', sm: 'row' },
           alignItems: 'center',
@@ -198,8 +208,10 @@ const CreateEnclosure = ({
         open={enclosureDrawer}
         ModalProps={{ keepMounted: true }}
         sx={{
-          '& .MuiDrawer-paper': { width: ['100%', '562px'] },
+          '& .MuiDrawer-paper': { width: '100%', maxWidth: '562px' },
+          // position: 'fixed',
           position: 'relative',
+          top: 0,
           display: 'flex',
           flexDirection: 'column',
           bgcolor: theme.palette.customColors.bodyBg,
@@ -208,18 +220,21 @@ const CreateEnclosure = ({
       >
         <Box
           sx={{
-            position: 'fixed',
-            top: 0,
+            // position: 'fixed',
+            // top: 0,
             bgcolor: theme.palette.customColors.bodyBg,
             zIndex: 10,
-            width: {
-              xs: '100%', // full width on small screens
-              sm: '74%',
-              md: '500px',
-              lg: '562px'
-            },
-            maxHeight: '100vh',
-            overflow: 'auto'
+            // width: {
+            //   xs: '100%', // full width on small screens
+            //   sm: '74%',
+            //   md: '500px',
+            //   lg: '562px'
+            // },
+            // width: '100%',
+            // maxWidth: '562px',
+            // maxHeight: '100dvh',
+            height: 'calc(100dvh - 106px)'
+            // overflow: 'auto'
           }}
         >
           {/* Header */}
@@ -256,7 +271,7 @@ const CreateEnclosure = ({
           </Box>
 
           {/* Body */}
-          <Box sx={{ p: 3 }}>
+          <Box sx={{ overflowY: 'scroll', height: 'calc(100dvh - 157px)' }}>
             {' '}
             {/* Outer wrapper with padding from all sides */}
             <Box sx={{ p: 2, backgroundColor: '#EEF5F1', borderRadius: '8px' }}>
@@ -289,6 +304,8 @@ const CreateEnclosure = ({
               {checkedRows.length > 0 && (
                 <Select
                   value={groupId}
+                  error={mealGroupError}
+                
                   onChange={handleGroupChange}
                   displayEmpty
                   renderValue={selected => {
@@ -330,8 +347,17 @@ const CreateEnclosure = ({
                   }}
                 >
                   <Box sx={{ flex: 1, overflowY: 'auto', height: '60vh', px: 2, pt: 2 }}>
-                    {Loader ? (
-                      <CircularProgress sx={{ width: 20, height: 20, mb: 7 }} />
+                    {loader ? (
+                      <Box
+                        sx={{
+                          height: '100%',
+                          display: 'flex',
+                          justifyContent: 'center',
+                          alignItems: 'center'
+                        }}
+                      >
+                        <CircularProgress size={40} />
+                      </Box>
                     ) : (
                       selectedItems.map((item, index) => (
                         <Box sx={{ m: 3 }}>
@@ -407,7 +433,6 @@ const CreateEnclosure = ({
             </Box>
           </Box>
         </Box>
-
         <RenderSidebarFooter />
       </Drawer>
     </>

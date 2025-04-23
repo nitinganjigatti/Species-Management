@@ -25,7 +25,7 @@ const AddGallery = ({ galleryList }) => {
           sx={{
             width: '224px',
             height: '212px',
-            border: '1px',
+            border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
             p: '12px',
             gap: '12px',
             display: 'inline-block',
