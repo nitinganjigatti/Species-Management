@@ -97,6 +97,7 @@ const SpeciesMappedtoDietFilter = ({
     if (selectionType === 'animals') {
       setspeciesData([])
       setPageNo(1)
+      setFilterState('')
     }
   }
 
@@ -166,6 +167,13 @@ const SpeciesMappedtoDietFilter = ({
     setTempSelectedItems(clearedTempSelectedItems)
     setSelectedItems(clearedSelectedItems)
     setOpenFilterDrawer(false)
+
+    setFilterState('')
+    setSelectedSpeciesIds([])
+    setSelectedTaxonomyIds([])
+    setSearchQuery('')
+    setItems({ Site: [], Section: [], Enclosure: [], Taxonomy: [], Species: [] })
+    setEnclosuresData([])
   }
 
   const handleSelectAll = () => {
