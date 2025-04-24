@@ -450,7 +450,7 @@ const CreateMealGroup = ({
                 // mt: 4,
                 width: { xs: '93vw', sm: '514px', md: '524px' },
                 //  width: '100%',
-                height: { xs: '100vh ', sx: 'calc(100dvh - 200px)', md: 'calc(100dvh - 200px)' },
+                height: { xs: '100vh ', sx: 'calc(100dvh - 200px)', md: 'calc(100dvh - 100px)' },
                 // ml: 2,
                 mb: 10,
                 m: { xs: 2, sm: 3, md: 2 },
