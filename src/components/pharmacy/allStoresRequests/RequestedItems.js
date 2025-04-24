@@ -224,12 +224,12 @@ export default function RequestedItems({ selectedStoreDetails, setSelectedStoreD
       )
     },
     {
-      width: 5,
+      width: 100,
       field: 'priority',
-      headerName: '',
-      headerAlign: 'left',
+      headerName: 'Priority',
+      headerAlign: 'center',
       textAlign: 'center',
-      renderCell: params => <Box>{RenderUtility.getPriorityIcons(params.row?.priority)}</Box>
+      renderCell: params => <Box>{RenderUtility.getPriorityIcons(params?.row?.priority)}</Box>
     },
     {
       width: 300,
@@ -399,8 +399,7 @@ export default function RequestedItems({ selectedStoreDetails, setSelectedStoreD
         } else {
           setRequestedProducts([])
           setDrawerLoader(false)
-
-          // closeDrawer()
+          closeDrawer()
         }
       })
     } catch (e) {
@@ -744,7 +743,6 @@ export default function RequestedItems({ selectedStoreDetails, setSelectedStoreD
               closeFulfillDialog()
               fetchRequestedItemsById(sideDrawerItemDetails?.selectedStoreId, sideDrawerItemDetails?.selectedItemId)
             }}
-            reqColor
           />
         </Dialog>
         <Grid container sx>

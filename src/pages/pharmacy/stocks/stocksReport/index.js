@@ -560,7 +560,7 @@ const ListOfStocks = () => {
       align: 'right',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.total_cost.toLocaleString()}
+          {Utility.formatAmountToReadableDigit(params.row.total_cost)}
         </Typography>
       )
     },
@@ -574,11 +574,12 @@ const ListOfStocks = () => {
       align: 'right',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {Number.isInteger(params.row.total_cost / params.row.stock_qty)
+          {/* {Number.isInteger(params.row.total_cost / params.row.stock_qty)
             ? params.row.total_cost / params.row.stock_qty
-            : parseFloat(params.row.total_cost / params.row.stock_qty).toFixed(2)}
+            : parseFloat(params.row.total_cost / params.row.stock_qty).toFixed(2)} */}
           {/* {parseFloat(params.row.total_cost / params.row.stock_qty).toPrecision(2)} */}
           {/* {params.row.total_cost / params.row.stock_qty} */}
+          {Utility.formatAmountToReadableDigit(params.row.total_cost / params.row.stock_qty)}
         </Typography>
       )
     },
@@ -696,7 +697,7 @@ const ListOfStocks = () => {
       align: 'right',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {parseInt(params.row.unit_price) > 0 ? params.row.unit_price : 0}
+          {Utility.formatAmountToReadableDigit(params?.row?.unit_price)}
         </Typography>
       )
     },
@@ -710,7 +711,8 @@ const ListOfStocks = () => {
       align: 'right',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {parseInt(params.row.total_cost) > 0 ? params.row.total_cost : 0}
+          {/* {parseInt(params.row.total_cost) > 0 ? params.row.total_cost : 0} */}
+          {Utility.formatAmountToReadableDigit(params?.row?.total_cost)}
         </Typography>
       )
     },

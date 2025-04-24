@@ -803,8 +803,9 @@ const AddPurchaseForm = () => {
   const getMedicineExpiryDate = async (product_id, batch) => {
     try {
       setExpiryDateLoader(true)
-      setProductExpiryDate('')
+      // setProductExpiryDate('')
       const response = await getBatchExpiry({ batch: batch, stock_id: product_id })
+
       if (response?.success && response?.data !== null) {
         setNestedRowMedicine(prevState => ({
           ...prevState,
@@ -815,15 +816,16 @@ const AddPurchaseForm = () => {
         }))
 
         setProductExpiryDate(response.data.expiry_date)
-      } else {
-        setNestedRowMedicine(prevState => ({
-          ...prevState,
-          purchase_expiry_date: '',
-          purchase_variant_id: '',
-          purchase_variant_ratio: ''
-        }))
-        setProductExpiryDate('')
       }
+      //  else {
+      //   setNestedRowMedicine(prevState => ({
+      //     ...prevState,
+      //     purchase_expiry_date: '',
+      //     purchase_variant_id: '',
+      //     purchase_variant_ratio: ''
+      //   }))
+      //   setProductExpiryDate('')
+      // }
     } catch (error) {
       console.log('supplier error', error)
     } finally {
@@ -1675,7 +1677,7 @@ const AddPurchaseForm = () => {
                       {...field}
                       type='text'
                       name='purchase_order_no'
-                      disabled={id ? true : false}
+                      // disabled={id ? true : false}
                       error={Boolean(errors.purchase_order_no)}
                       label='Purchase order number'
                     />

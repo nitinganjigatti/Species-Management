@@ -1078,7 +1078,6 @@ const AddDirectDispatch = () => {
                         <TableCell>Product Name</TableCell>
                         <TableCell>Batch No</TableCell>
                         <TableCell>Expiry Date</TableCell>
-                        <TableCell>Priority</TableCell>
                         <TableCell>Quantity</TableCell>
                         <TableCell>Unit Price</TableCell>
                         <TableCell>Total Value</TableCell>
@@ -1124,9 +1123,6 @@ const AddDirectDispatch = () => {
                                       ? 'NA'
                                       : Utility?.formatDisplayDate(el?.expiry_date)}
                                   </Typography>
-                                </TableCell>
-                                <TableCell sx={{ borderBottomColor: 'customColors.customTableBorderBg' }}>
-                                  {el.priority_item}
                                 </TableCell>
 
                                 <TableCell sx={{ borderBottomColor: 'customColors.customTableBorderBg' }}>
