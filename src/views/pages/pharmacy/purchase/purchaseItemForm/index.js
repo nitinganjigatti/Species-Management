@@ -498,10 +498,10 @@ const PurchaseItemForm = props => {
       setValue('purchase_created_by', nestedRowMedicine?.purchase_created_by)
       setValue('medicine_name_by_ml', nestedRowMedicine?.medicine_name_by_ml)
     } else {
-      setValue('purchase_expiry_date', '')
-      setValue('purchase_variant_id', '')
-      setValue('purchase_variant_ratio', '')
-      setValue('isVariantIdPresent', false)
+      // setValue('purchase_expiry_date', '')
+      // setValue('purchase_variant_id', '')
+      // setValue('purchase_variant_ratio', '')
+      // setValue('isVariantIdPresent', false)
 
       setValue('purchase_unit_qty', nestedRowMedicine?.purchase_qty)
     }
@@ -675,11 +675,7 @@ const PurchaseItemForm = props => {
                     if (!nonMedicalProduct) {
                       const product = getValues()
 
-                      // console.log('product', product)
-
-                      // debugger
                       if (product?.purchase_created_by !== 'invoice_upload') {
-                        debugger
                         if (product?.product?.value && product?.purchase_batch_no) {
                           // setValue('medicine_name_by_ml', nestedRowMedicine?.medicine_name_by_ml
                           checkMedicineExpiryDate(product?.product?.value, product?.purchase_batch_no)

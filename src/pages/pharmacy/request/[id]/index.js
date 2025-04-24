@@ -214,14 +214,13 @@ const IndividualRequest = () => {
   const getRequestItemLists = async id => {
     setLoader(true)
     const response = await getRequestItemsListById(id)
-    if (response.success) {
-      const responseData = response.data
+    if (response?.success) {
+      const responseData = response?.data
 
       const mappedWithUid = response?.data?.request_item_details?.map((item, index) => ({
         ...item,
         sl_no: index + 1
       }))
-
       responseData['request_item_details'] = mappedWithUid
 
       // setRequestItems(response.data)
