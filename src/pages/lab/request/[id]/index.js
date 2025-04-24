@@ -320,7 +320,6 @@ const RequestDetails = () => {
       setTestSampleName(params?.row?.sample_name)
       setTestId([params?.row?.id])
       await getAccessLabs(LabRequestId, labTestId)
-
       // console.log('first', params?.row?.id)
     } else {
       setFromParam(false)
@@ -331,7 +330,6 @@ const RequestDetails = () => {
       }
       await getAccessLabs(LabRequestId, selectedRow)
     }
-
     // if (selectedRow.length >= 1) {
     // } else {
     // }
@@ -396,7 +394,7 @@ const RequestDetails = () => {
 
   // need to discuss about efefct on dropdown of status value
   const handleRowPermission = ({ params }) => {
-    const st = statusList?.filter(status => status.key === params.row.status)
+    const st = statusList.filter(status => status.key === params.row.status)
     if (
       (permissions?.perform_tests &&
         !permissions?.allow_upload_reports &&
@@ -416,7 +414,6 @@ const RequestDetails = () => {
       return false
     }
   }
-
   const columns = [
     // {
     //   flex: 0.05,
@@ -817,13 +814,11 @@ const RequestDetails = () => {
         replaced_lab_id,
         transfer_reason
       }
-
       const payloadSingle = {
         test_ids: testId,
         replaced_lab_id,
         transfer_reason
       }
-
       // console.log('params1', params)
       const res = await postBulkTransfer({ params: testId.length ? payloadSingle : payloadMulti })
       if (res?.success) {
@@ -873,7 +868,6 @@ const RequestDetails = () => {
     setSelectedRow(rowSelectionModel)
 
     // Retrieve the complete row data based on selected row IDs
-<<<<<<< HEAD
     const selectedRowData = rows.filter(row => rowSelectionModel.includes(row.id))
     // setShouldShowBulkStatus(!selectedRowData.some(item => item.status.startsWith('completed')))
     setShouldShowBulkStatus(
@@ -889,10 +883,6 @@ const RequestDetails = () => {
         ].includes(item?.key)
       )
     )
-=======
-    const selectedRowData = rows?.filter(row => rowSelectionModel.includes(row.id))
-    setShouldShowBulkStatus(!selectedRowData.some(item => item.status.startsWith('completed')))
->>>>>>> b2c4bd1ca463d76e1e53b3cce76a0f195ee41ae5
     setSelectedRowData(selectedRowData)
   }
 
@@ -1285,7 +1275,6 @@ const RequestDetails = () => {
                 baseButton: {
                   variant: 'outlined'
                 }
-
                 // toolbar: {
                 //   value: searchValue,
                 //   clearSearch: () => handleSearch(''),
