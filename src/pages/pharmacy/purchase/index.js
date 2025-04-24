@@ -316,6 +316,7 @@ const ListOfPurchase = () => {
       headerName: 'Purchase Amount',
       type: 'number',
       align: 'right',
+      headerAlign: 'right',
       renderCell: params => (
         <Typography
           variant='body2'
@@ -326,7 +327,7 @@ const ListOfPurchase = () => {
             fontFamily: 'Inter'
           }}
         >
-          {Number(params?.row?.net_amount).toFixed(2)}
+          {Utility.formatAmountToReadableDigit(params?.row?.net_amount)}
         </Typography>
       )
     },

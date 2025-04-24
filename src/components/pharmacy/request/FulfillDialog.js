@@ -1162,10 +1162,12 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
                                 disabled
                                 value={value}
                                 label='Variant'
+                                type='text'
                                 onChange={onChange}
                                 sx={{ backgroundColor: 'white', borderRadius: 1 }}
                                 error={Boolean(errors?.product_batches?.[index]?.multiplier)}
                                 name={`product_batches[${index}].multiplier`}
+                                InputLabelProps={{ shrink: true }}
                               />
                             )}
                           />
