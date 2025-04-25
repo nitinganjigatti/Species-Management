@@ -141,6 +141,7 @@ const RequestDetails = () => {
 
   const [lab, setLab] = React.useState([])
   const [parentLab, setParentLab] = useState(null)
+
   /***** Serverside pagination */
   const [total, setTotal] = useState(0)
 
@@ -305,7 +306,8 @@ const RequestDetails = () => {
       setMedicalRecordNotes(requestData[0]?.medical_attachements?.notes)
 
       // ✅ API call ke baad `allCompleted` ko update karein
-      setAllCompleted(testReports.every(row => row.status.startsWith('completed')))
+      // setAllCompleted(testReports.every(row => row.status.startsWith('completed')))
+      setAllCompleted(testReports.some(row => row.status.startsWith('completed')))
     } catch (error) {
       console.error('Error fetching data:', error)
     } finally {
@@ -432,6 +434,7 @@ const RequestDetails = () => {
     permissions?.allow_full_access ||
     (permissions?.perform_tests && permissions?.allow_upload_reports) ||
     (permissions?.perform_tests && !permissions?.allow_upload_reports)
+
   // &&
   // params.row.status.split(' ')[0] !== 'completed'
 
@@ -1006,6 +1009,7 @@ const RequestDetails = () => {
 
   const handleRowSelection = (rowSelectionModel, details) => {
     setSelectedRow(rowSelectionModel)
+
     // Retrieve the complete row data based on selected row IDs
     const selectedRowData = rows.filter(row => rowSelectionModel.includes(row.id))
 
