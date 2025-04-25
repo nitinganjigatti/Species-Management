@@ -97,6 +97,7 @@ const DietDetail = () => {
   const [sepeciescountforFilter, setsepeciescountforFilter] = useState('')
   const [filteredTaxonomyList, setFilteredTaxonomyList] = useState([])
   const [taxonomySearchQuery, setTaxonomySearchQuery] = useState('')
+  const [speciesSearchQuery, setSpeciesSearchQuery] = useState('')
   const [applyfilterCheck, setapplyfilterCheck] = useState(false)
   const [selectedEnclosures, setSelectedEnclosures] = useState([])
   const [selectedSections, setSelectedSections] = useState([])
@@ -179,7 +180,7 @@ const DietDetail = () => {
 
       const commonParams = {
         page_no: pageNo,
-        limit: 10,
+        limit: 15,
         diet_id: id,
         ...(searchQuery && { q: searchQuery }),
         ...(type && { type }),
@@ -192,10 +193,9 @@ const DietDetail = () => {
       if (selectionType === 'animals' && filterState === 'species') {
         const params = {
           page_no: pageNo,
-          limit: 10,
+          limit: 15,
           diet_id: id,
           ...(searchQuery && { q: searchQuery }),
-          ...(type && { type }),
           ...(selectedItems?.Taxonomy?.length > 0 && { species_ids: `[${selectedItems?.Taxonomy.join(',')}]` })
         }
         res = await getSpeciesList(params)
@@ -271,6 +271,7 @@ const DietDetail = () => {
               return uniqueData
             })
             setsepeciescountforFilter(totalCount)
+            setspeciesData([])
           }
           setspeciestotalcount(totalCount)
 
@@ -301,13 +302,17 @@ const DietDetail = () => {
         }
 
         let res
-        if (selectionType === 'species') {
+        if (selectionType === 'animals' && filterState === 'species') {
+          // Params for animals list
+          const params = { page_no: pageNo, q: search, diet_id: id, limit: 15 }
+          res = await getSpeciesList(params)
+        } else if (selectionType === 'species') {
           // Params for species list
-          const params = { q: search, page_no: pageNo, limit: 10, diet_id: id, ...(type && { type }) }
+          const params = { q: search, page_no: pageNo, limit: 15, diet_id: id, ...(type && { type }) }
           res = await getSpeciesList(params)
         } else if (selectionType === 'animals') {
           // Params for animals list
-          const params = { page_no: pageNo, q: search, diet_id: id, limit: 10, ...(type && { type }) }
+          const params = { page_no: pageNo, q: search, diet_id: id, limit: 15, ...(type && { type }) }
           res = await getAnimalsList(params)
         }
 
@@ -604,6 +609,7 @@ const DietDetail = () => {
 
   return (
     <>
+      {console.log(authData, 'authData')}
       {dietModule ? (
         <>
           {loader ? (
@@ -630,6 +636,7 @@ const DietDetail = () => {
                   handleSpeciesClick={handleSpeciesClick}
                   handleSpeciesClicknew={handleSpeciesClicknew}
                   setapplyfilterCheck={setapplyfilterCheck}
+                  authData={authData}
                 />
                 <Card sx={{ p: '24px', display: 'flex', flexDirection: 'column', mt: 2 }}>
                   <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 5 }}>
@@ -3775,6 +3782,8 @@ const DietDetail = () => {
             setapplyfilterCheck={setapplyfilterCheck}
             setSelectedSections={setSelectedSections}
             setSelectedEnclosures={setSelectedEnclosures}
+            setspeciesData={setspeciesData}
+            authData={authData}
           />
           <EditAnimalSpeciesMapped
             isOpennew={isOpennew}
@@ -3859,6 +3868,8 @@ const DietDetail = () => {
             setFilteredTaxonomyList={setFilteredTaxonomyList}
             filteredTaxonomyList={filteredTaxonomyList}
             setTaxonomySearchQuery={setTaxonomySearchQuery}
+            setSpeciesSearchQuery={setSpeciesSearchQuery}
+            speciesSearchQuery={speciesSearchQuery}
             taxonomySearchQuery={taxonomySearchQuery}
             setItems={setItems}
             debouncedFetchTaxonomyList={debouncedFetchTaxonomyList}

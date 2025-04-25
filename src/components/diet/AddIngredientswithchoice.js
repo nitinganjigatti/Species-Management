@@ -904,7 +904,7 @@ const AddIngredientswithChoice = props => {
                       <Typography
                         sx={{
                           mr: 3,
-                          maxWidth: 150,
+                          maxWidth: 180,
                           overflow: 'hidden',
                           textOverflow: 'ellipsis',
                           whiteSpace: 'nowrap',

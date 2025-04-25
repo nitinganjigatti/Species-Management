@@ -32,7 +32,8 @@ const DietDetailCard = ({
   refreshDietDetails,
   handleSpeciesClick,
   handleSpeciesClicknew,
-  setapplyfilterCheck
+  setapplyfilterCheck,
+  authData
 }) => {
   const router = useRouter()
   const { source, recipeId, ingId } = router.query
@@ -242,68 +243,72 @@ const DietDetailCard = ({
 
               {/* Details Section */}
               <Box sx={{ p: 3, pt: 5 }}>
-                <Box display='flex' justifyContent='space-between' alignItems='center' mb={2}>
-                  <Typography fontWeight='400' sx={{ color: theme.palette.customColors.secondaryBg }}>
-                    Assigned to
-                  </Typography>
-                  <div>
-                    <Button
-                      variant='outlined'
-                      size='small'
-                      onClick={handleClick}
-                      sx={{
-                        textTransform: 'none',
-                        fontWeight: 'bold',
-                        fontSize: '14px',
-                        color: theme.palette.primary.dark,
-                        pl: 4,
-                        pr: 4,
-                        pt: 2,
-                        pb: 2
-                      }}
-                    >
-                      + Assign
-                    </Button>
-                    <Menu
-                      anchorEl={anchorEl}
-                      open={open}
-                      onClose={handleClose}
-                      anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
-                      transformOrigin={{ vertical: 'top', horizontal: 'left' }}
-                      // disablePortal // Prevents rendering in a separate portal
-                      //disableScrollLock // Prevents background scrolling from being locked
-                      sx={{
-                        '& .MuiPaper-root': {
-                          boxShadow: 'none',
-                          minWidth: 150,
-                          position: 'absolute',
-                          left: '484px !important'
-                        }
-                      }} // Removes shadow for a cleaner look
-                    >
-                      <MenuItem
-                        onClick={() => {
-                          handleSpeciesClick('species')
-                          handleClose()
-                          setapplyfilterCheck(false)
+                {authData?.userData?.roles?.settings?.assign_diet === true ? (
+                  <Box display='flex' justifyContent='space-between' alignItems='center' mb={2}>
+                    <Typography fontWeight='400' sx={{ color: theme.palette.customColors.secondaryBg }}>
+                      Assigned to
+                    </Typography>
+                    <div>
+                      <Button
+                        variant='outlined'
+                        size='small'
+                        onClick={handleClick}
+                        sx={{
+                          textTransform: 'none',
+                          fontWeight: 'bold',
+                          fontSize: '14px',
+                          color: theme.palette.primary.dark,
+                          pl: 4,
+                          pr: 4,
+                          pt: 2,
+                          pb: 2
                         }}
-                        sx={{ fontSize: '14px' }}
                       >
-                        Assign to Species
-                      </MenuItem>
-                      <MenuItem
-                        onClick={() => {
-                          handleSpeciesClick('animals')
-                          handleClose()
-                          setapplyfilterCheck(false)
-                        }}
-                        sx={{ fontSize: '14px' }}
+                        + Assign
+                      </Button>
+                      <Menu
+                        anchorEl={anchorEl}
+                        open={open}
+                        onClose={handleClose}
+                        anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
+                        transformOrigin={{ vertical: 'top', horizontal: 'left' }}
+                        // disablePortal // Prevents rendering in a separate portal
+                        //disableScrollLock // Prevents background scrolling from being locked
+                        sx={{
+                          '& .MuiPaper-root': {
+                            boxShadow: 'none',
+                            minWidth: 150,
+                            position: 'absolute',
+                            left: '484px !important'
+                          }
+                        }} // Removes shadow for a cleaner look
                       >
-                        Assign to Animals
-                      </MenuItem>
-                    </Menu>
-                  </div>
-                </Box>
+                        <MenuItem
+                          onClick={() => {
+                            handleSpeciesClick('species')
+                            handleClose()
+                            setapplyfilterCheck(false)
+                          }}
+                          sx={{ fontSize: '14px' }}
+                        >
+                          Assign to Species
+                        </MenuItem>
+                        <MenuItem
+                          onClick={() => {
+                            handleSpeciesClick('animals')
+                            handleClose()
+                            setapplyfilterCheck(false)
+                          }}
+                          sx={{ fontSize: '14px' }}
+                        >
+                          Assign to Animals
+                        </MenuItem>
+                      </Menu>
+                    </div>
+                  </Box>
+                ) : (
+                  ''
+                )}
                 {/* Species and Animals Details */}
                 <Grid container spacing={2}>
                   {/* Species Section */}

@@ -30,7 +30,8 @@ const SelectSectionList = ({
   sectionsData,
   setSelectedSections,
   selectedSections,
-  tempSelectedItems
+  tempSelectedItems,
+  openFilterDrawer
 }) => {
   const theme = useTheme()
   const [loading, setLoading] = useState(false)
@@ -70,7 +71,10 @@ const SelectSectionList = ({
     if (open && siteId) {
       fetchSections()
     }
-  }, [open, siteId, pageNo])
+    if (!open && siteId && openFilterDrawer) {
+      fetchSections()
+    }
+  }, [open, siteId, openFilterDrawer, pageNo])
 
   useEffect(() => {
     if (open && tempSelectedItems?.Section) {
@@ -101,7 +105,6 @@ const SelectSectionList = ({
     }
   }
 
-  // Handle scroll for infinite loading
   const handleScroll = e => {
     const { scrollTop, clientHeight, scrollHeight } = e.currentTarget
     const threshold = 50
@@ -138,7 +141,11 @@ const SelectSectionList = ({
           overflow: 'hidden',
           width: '100%',
           maxWidth: 522,
-          margin: '15px 20px 0px 20px'
+          margin: '15px 20px 0px 20px',
+          display: 'flex',
+          flexDirection: 'column',
+          flex: 1,
+          minHeight: 0
         }}
       >
         {/* Header */}
@@ -252,7 +259,7 @@ const SelectSectionList = ({
             flex: 1,
             overflowY: 'auto',
             overflowX: 'hidden',
-            height: '60%',
+            //height: '60%',
             p: 2,
             '&::-webkit-scrollbar': {
               width: '4px'
@@ -310,12 +317,12 @@ const SelectSectionList = ({
         {/* Footer Button */}
         <Box
           sx={{
-            position: 'absolute',
-            bottom: 0,
-            width: '100%',
             p: 2,
-            height: '64px',
-            width: '93%'
+            pt: 4,
+            position: 'sticky',
+            bottom: 0,
+            background: '#FFF',
+            zIndex: 1
           }}
         >
           <Button

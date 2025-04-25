@@ -56,7 +56,10 @@ const SpeciesAnimalsMapped = ({
   setSelectedItems,
   setapplyfilterCheck,
   setSelectedSections,
-  setSelectedEnclosures
+  setSelectedEnclosures,
+  setspeciesData,
+  authData,
+  dietDetails
 }) => {
   const theme = useTheme()
 
@@ -68,6 +71,8 @@ const SpeciesAnimalsMapped = ({
     setSelectionType(newValue)
     setapplyfilterCheck(false)
     setSelectedItems([])
+    setPageNo(1)
+    setspeciesData([])
   }
 
   useEffect(() => {
@@ -164,9 +169,13 @@ const SpeciesAnimalsMapped = ({
         </Box>
 
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', mr: '14px', mt: '4px' }}>
-          <IconButton size='small' sx={{ color: theme.palette.primary.light, mr: 5 }}>
-            <Icon icon='mdi:pencil-outline' fontSize={24} onClick={handleEditclick} />
-          </IconButton>
+          {authData?.userData?.roles?.settings?.assign_diet === true ? (
+            <IconButton size='small' sx={{ color: theme.palette.primary.light, mr: 5 }}>
+              <Icon icon='mdi:pencil-outline' fontSize={24} onClick={handleEditclick} />
+            </IconButton>
+          ) : (
+            ''
+          )}
           <IconButton size='small' sx={{ color: theme.palette.primary.light }} onClick={handelClose}>
             <Icon icon='mdi:close' fontSize={24} />
           </IconButton>
@@ -175,18 +184,23 @@ const SpeciesAnimalsMapped = ({
 
       <Grid item md={8} xs={12}>
         <TabContext value={selectionType}>
-          <TabList onChange={handleChange} aria-label='customized tabs example' sx={{ background: '#fff' }}>
-            <Tab
-              style={{ borderTopRightRadius: 0, borderBottomRightRadius: 0, width: '50%', fontWeight: '600' }}
-              value='species'
-              label={`SPECIES  ${selectionType === 'species' && !loading ? ' - ' + speciestotalcount || ' ' : ' '}`}
-            />
-            <Tab
-              style={{ borderRadius: 0, width: '50%', fontWeight: '600' }}
-              value='animals'
-              label={`ANIMALS  ${selectionType === 'animals' && !loading ? ' - ' + speciestotalcount || ' ' : ' '}`}
-            />
-          </TabList>
+          {dietDetails?.total_animals !== '0' && dietDetails?.total_species !== '0' ? (
+            <TabList onChange={handleChange} aria-label='customized tabs example' sx={{ background: '#fff' }}>
+              <Tab
+                style={{ borderTopRightRadius: 0, borderBottomRightRadius: 0, width: '50%', fontWeight: '600' }}
+                value='species'
+                label={`SPECIES  ${selectionType === 'species' && !loading ? ' - ' + speciestotalcount || ' ' : ' '}`}
+              />
+
+              <Tab
+                style={{ borderRadius: 0, width: '50%', fontWeight: '600' }}
+                value='animals'
+                label={`ANIMALS  ${selectionType === 'animals' && !loading ? ' - ' + speciestotalcount || ' ' : ' '}`}
+              />
+            </TabList>
+          ) : (
+            ''
+          )}
 
           <TabPanel value='species' sx={{ background: theme.palette.customColors.tableHeaderBg }}>
             {speciesview === 'details' ? (
@@ -245,7 +259,11 @@ const SpeciesAnimalsMapped = ({
                         }}
                       />
                       {searchQuery ? (
-                        <Icon style={{ marginRight: '14px' }} icon='mdi:close' onClick={searchClose} />
+                        <Icon
+                          style={{ marginRight: '14px', cursor: 'pointer' }}
+                          icon='mdi:close'
+                          onClick={searchClose}
+                        />
                       ) : (
                         ''
                       )}
@@ -312,14 +330,14 @@ const SpeciesAnimalsMapped = ({
               sx={{
                 backgroundColor: theme.palette.background.default,
                 overflowY: 'auto',
-                height: 'calc(100vh - 195px)',
+                height: 'calc(100vh - 162px)',
                 px: 4,
                 py: 3,
                 mt: 4
               }}
               onScroll={handleScroll}
             >
-              {!loading && speciesData?.length === 0 ? (
+              {!loading && speciesData?.length === 0 && searchQuery !== '' ? (
                 <Typography
                   variant='body2'
                   sx={{
@@ -384,7 +402,7 @@ const SpeciesAnimalsMapped = ({
                         />
                       ))
                     )}
-                    {isLoadingMore && (
+                    {!loading && isLoadingMore && (
                       <Box
                         sx={{
                           position: 'fixed',
@@ -461,7 +479,11 @@ const SpeciesAnimalsMapped = ({
                         }}
                       />
                       {searchQuery ? (
-                        <Icon style={{ marginRight: '14px' }} icon='mdi:close' onClick={searchClose} />
+                        <Icon
+                          style={{ marginRight: '14px', cursor: 'pointer' }}
+                          icon='mdi:close'
+                          onClick={searchClose}
+                        />
                       ) : (
                         ''
                       )}
@@ -526,14 +548,14 @@ const SpeciesAnimalsMapped = ({
               sx={{
                 backgroundColor: theme.palette.background.default,
                 overflowY: 'auto',
-                height: 'calc(100vh - 195px)',
+                height: 'calc(100vh - 162px)',
                 px: 4,
                 py: 3,
                 mt: 4
               }}
               onScroll={handleScroll}
             >
-              {!loading && speciesData?.length === 0 ? (
+              {!loading && speciesData?.length === 0 && searchQuery !== '' ? (
                 <Typography
                   variant='body2'
                   sx={{
@@ -598,7 +620,7 @@ const SpeciesAnimalsMapped = ({
                         />
                       ))
                     )}
-                    {isLoadingMore && (
+                    {!loading && isLoadingMore && (
                       <Box
                         sx={{
                           position: 'fixed',
