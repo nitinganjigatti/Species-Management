@@ -152,6 +152,7 @@ const RequestDetails = () => {
 
   useEffect(() => {
     const labObject = localLabData?.find(item => item?.lab_id === lab_id)
+    console.log('labObject', labObject)
 
     if (labObject && labObject.permission) {
       setPermissions(labObject.permission)
@@ -201,19 +202,47 @@ const RequestDetails = () => {
   }
 
   useEffect(() => {
+    // const filteredStatusBlockData =
+    //   permissions?.allow_full_access || (permissions?.allow_upload_reports && permissions?.perform_tests)
+    //     ? statusList
+    //     : permissions?.perform_tests
+    //     ? statusList?.filter(item => ['pending', 'inprogress'].includes(item.status))
+    //     : permissions?.transfer_tests && permissions?.perform_tests
+    //     ? [
+    //         ...statusList?.filter(item => ['pending', 'inprogress'].includes(item.status)),
+    //         ...statusList?.filter(item =>
+    //           ['sample_clotted', 'sample_haemolysed', 'completed_insufficient_samples'].includes(item.key)
+    //         )
+    //       ]
+    //     : null
     const filteredStatusBlockData =
       permissions?.allow_full_access || (permissions?.allow_upload_reports && permissions?.perform_tests)
         ? statusList
+        : permissions?.allow_upload_reports && permissions?.perform_tests
+        ? statusList
         : permissions?.perform_tests
-        ? statusList?.filter(item => ['pending', 'inprogress'].includes(item.status))
-        : permissions?.transfer_tests && permissions?.perform_tests
-        ? [
-            ...statusList?.filter(item => ['pending', 'inprogress'].includes(item.status)),
-            ...statusList?.filter(item =>
-              ['sample_clotted', 'sample_haemolysed', 'completed_insufficient_samples'].includes(item.key)
-            )
-          ]
-        : null
+        ? // ? statusList?.filter(item => ['pending', 'inprogress'].includes(item.status)) // commneted cause of getting completed on status value so we are taking keys instead of status
+          statusList?.filter(item =>
+            [
+              'awaiting_sample',
+              'sample_received',
+              'sample_rejected',
+              'sample_clotted',
+              'sample_haemolysed',
+              'completed_insufficient_samples',
+              'inprogress'
+            ].includes(item.key)
+          )
+        : // : permissions?.transfer_tests && permissions?.perform_tests
+          // ? [
+          //     ...statusList?.filter(item => ['pending', 'inprogress'].includes(item.status)),
+          //     ...statusList?.filter(item =>
+          //       ['sample_clotted', 'sample_haemolysed', 'completed_insufficient_samples'].includes(item.key)
+          //     )
+          //   ]
+          // https://antzsystems.atlassian.net/browse/WD-1784?linkSource=email
+          // need to discuss commented ones in ticket they are asking for it
+          null
     if (filteredStatusBlockData) {
       setFilteredStatusData(filteredStatusBlockData)
     }
@@ -353,6 +382,7 @@ const RequestDetails = () => {
 
   const shouldShowDropdown =
     permissions?.allow_full_access ||
+    permissions?.perform_tests ||
     (permissions?.perform_tests && permissions?.allow_upload_reports) ||
     (permissions?.perform_tests && !permissions?.allow_upload_reports)
 
@@ -362,13 +392,20 @@ const RequestDetails = () => {
     setCommentData(params)
   }
 
+  // need to discuss about efefct on dropdown of status value
   const handleRowPermission = ({ params }) => {
     const st = statusList.filter(status => status.key === params.row.status)
     if (
-      permissions?.perform_tests &&
-      !permissions?.allow_upload_reports &&
-      !permissions?.allow_full_access &&
-      st[0].status != 'completed'
+      (permissions?.perform_tests &&
+        !permissions?.allow_upload_reports &&
+        !permissions?.allow_full_access &&
+        st[0].key != 'awaiting_sample') ||
+      st[0].key != 'sample_received' ||
+      st[0].key != 'sample_rejected' ||
+      st[0].key != 'sample_clotted' ||
+      st[0].key != 'sample_haemolysed' ||
+      st[0].key != 'completed_insufficient_samples' ||
+      st[0].key != 'inprogress'
     ) {
       return true
     } else if ((permissions?.perform_tests && permissions?.allow_upload_reports) || permissions?.allow_full_access) {
@@ -492,19 +529,6 @@ const RequestDetails = () => {
 
                     '&:hover .MuiOutlinedInput-notchedOutline': {
                       border: '0'
-
-                      // borderColor:
-                      //   params.row.status === 'pending' ||
-                      //   params.row.status === 'transferred' ||
-                      //   params.row.status === 'awaiting_sample' ||
-                      //   params.row.status === 'sample_rejected' ||
-                      //   params.row.status === 'sample_received'
-                      //     ? theme.palette.customColors.customDropdownColor // Custom red border for these statuses
-                      //     : params.row.status === 'completed'
-                      //     ? theme.palette.primary.main // Custom green border for completed
-                      //     : params.row.status === 'inprogress'
-                      //     ? theme.palette.customColors.moderateSecondary // Custom yellow border for in progress
-                      //     : theme.palette.primary.main // Default green border
                     },
 
                     '& .MuiOutlinedInput-notchedOutline': {
@@ -550,7 +574,10 @@ const RequestDetails = () => {
         </>
       )
     },
-    ...(permissions?.allow_full_access || permissions?.transfer_tests || permissions?.perform_tests
+    ...(permissions?.allow_full_access ||
+    permissions?.transfer_tests ||
+    permissions?.perform_tests ||
+    permissions?.allow_upload_reports
       ? [
           {
             // flex: 0.2,
@@ -718,6 +745,7 @@ const RequestDetails = () => {
     setOpenTransfer(false)
     handleClosePopover()
     setTestId([])
+    setLab([])
   }
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
@@ -841,7 +869,20 @@ const RequestDetails = () => {
 
     // Retrieve the complete row data based on selected row IDs
     const selectedRowData = rows.filter(row => rowSelectionModel.includes(row.id))
-    setShouldShowBulkStatus(!selectedRowData.some(item => item.status.startsWith('completed')))
+    // setShouldShowBulkStatus(!selectedRowData.some(item => item.status.startsWith('completed')))
+    setShouldShowBulkStatus(
+      selectedRowData?.filter(item =>
+        [
+          'awaiting_sample',
+          'sample_received',
+          'sample_rejected',
+          'sample_clotted',
+          'sample_haemolysed',
+          'completed_insufficient_samples',
+          'inprogress'
+        ].includes(item?.key)
+      )
+    )
     setSelectedRowData(selectedRowData)
   }
 
@@ -861,7 +902,7 @@ const RequestDetails = () => {
         fetchRequestDetails()
       }
     } catch (error) {
-      console.error('Error fetching data:', error)
+      // console.error('Error fetching data:', error)
       Toaster({ type: 'error', message: res.message })
     }
   }
@@ -1175,6 +1216,7 @@ const RequestDetails = () => {
               )}
             </Box>
 
+            {/* {JSON.stringify(statusList)} */}
             <DataGrid
               checkboxSelection={
                 permissions?.perform_tests || permissions?.allow_full_access || permissions?.transfer_tests
@@ -1190,7 +1232,18 @@ const RequestDetails = () => {
                   (permissions?.perform_tests === true &&
                     permissions?.allow_upload_reports === false &&
                     permissions?.allow_full_access === false &&
-                    params.row.status.includes('completed')) ||
+                    !statusList?.filter(item =>
+                      [
+                        'awaiting_sample',
+                        'sample_received',
+                        'sample_rejected',
+                        'sample_clotted',
+                        'sample_haemolysed',
+                        'completed_insufficient_samples',
+                        'inprogress'
+                      ].includes(item.key)
+                    )) ||
+                  // params.row.status.includes('completed'))
                   (permissions?.perform_tests === false &&
                     permissions?.transfer_tests === true &&
                     permissions?.allow_upload_reports === false &&
@@ -1755,7 +1808,7 @@ const RequestDetails = () => {
                     onClick={handleCloseTransfer}
                     variant='outlined'
                     size='large'
-                    disabled={permissions?.allow_full_access !== true || permissions?.transfer_tests !== true}
+                    // disabled={permissions?.allow_full_access !== true || permissions?.transfer_tests !== true}
                   >
                     Cancel
                   </LoadingButton>
