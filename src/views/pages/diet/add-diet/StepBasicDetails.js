@@ -209,20 +209,54 @@ const StepBasicDetails = ({
 
     const uniqueValues = value.filter(
       (val, index, self) =>
-        index === self.findIndex(v => v.ingredient_id === val.ingredient_id && v.mealid === val.mealid)
+        index ===
+        self.findIndex(
+          v => String(v?.ingredient_id) === String(val?.ingredient_id) && String(v?.mealid) === String(val?.mealid)
+        )
     )
+
     setAllSelectedValues(prevState => {
       const filteredPrevState = prevState.filter(
         prevVal =>
           !uniqueValues.some(
-            uniqueVal => uniqueVal.ingredient_id === prevVal?.ingredient_id && uniqueVal.mealid === prevVal?.mealid
+            uniqueVal =>
+              String(uniqueVal?.ingredient_id) === String(prevVal?.ingredient_id) &&
+              String(uniqueVal?.mealid) === String(prevVal?.mealid)
           )
       )
-      const updatedValues = [...filteredPrevState, ...uniqueValues]
+
+      const updatedValues = [...filteredPrevState, ...uniqueValues].map(uniqueVal => {
+        // Find the matching meal data
+        const matchedMealData = formData.meal_data.find(
+          mealData =>
+            Array.isArray(mealData.ingredient) &&
+            mealData.ingredient.some(
+              ingredient =>
+                String(ingredient?.ingredient_id) === String(uniqueVal?.ingredient_id) &&
+                String(ingredient?.mealid) === String(uniqueVal?.mealid)
+            )
+        )
+
+        if (matchedMealData) {
+          // Append the meal_type from the matched ingredient
+          const matchedIngredient = matchedMealData.ingredient.find(
+            ingredient =>
+              String(ingredient?.ingredient_id) === String(uniqueVal?.ingredient_id) &&
+              String(ingredient?.mealid) === String(uniqueVal?.mealid)
+          )
+
+          return {
+            ...uniqueVal,
+            meal_type: matchedIngredient?.meal_type || []
+          }
+        }
+
+        return uniqueVal
+      })
 
       for (let i = 0; i < fieldsIngredients.length; i++) {
         const field = fieldsIngredients[i]
-        field.ingredient = updatedValues.filter(up => up?.mealid === field.mealid)
+        field.ingredient = updatedValues.filter(up => String(up?.mealid) === String(field?.mealid))
       }
 
       return updatedValues
@@ -233,8 +267,13 @@ const StepBasicDetails = ({
 
   const handleRecipeStateChange = value => {
     setRecipeChildStateValue(value)
+
     const uniqueValues = value.filter(
-      (val, index, self) => index === self.findIndex(v => v.recipe_id === val.recipe_id && v.mealid === val.mealid)
+      (val, index, self) =>
+        index ===
+        self.findIndex(
+          v => String(v?.recipe_id) === String(val?.recipe_id) && String(v?.mealid) === String(val?.mealid)
+        )
     )
 
     setAllRecipeSelectedValues(prevState => {
@@ -242,17 +281,47 @@ const StepBasicDetails = ({
       const filteredPrevState = prevState.filter(
         prevVal =>
           !uniqueValues.some(
-            uniqueVal => uniqueVal.recipe_id === prevVal?.recipe_id && uniqueVal.mealid === prevVal?.mealid
+            uniqueVal =>
+              String(uniqueVal?.recipe_id) === String(prevVal?.recipe_id) &&
+              String(uniqueVal?.mealid) === String(prevVal?.mealid)
           )
       )
-      const updatedValues = [...filteredPrevState, ...uniqueValues]
+
+      const updatedValues = [...filteredPrevState, ...uniqueValues].map(uniqueVal => {
+        // Find the matching meal data
+        console.log(uniqueVal, 'uniqueVal')
+        const matchedMealData = formData.meal_data.find(
+          mealData =>
+            Array.isArray(mealData.recipe) &&
+            mealData.recipe.some(
+              recipe =>
+                String(recipe?.recipe_id) === String(uniqueVal?.recipe_id) &&
+                String(recipe?.mealid) === String(uniqueVal?.mealid)
+            )
+        )
+
+        if (matchedMealData) {
+          // Append the meal_type from the matched recipe
+          const matchedRecipe = matchedMealData.recipe.find(
+            recipe =>
+              String(recipe?.recipe_id) === String(uniqueVal?.recipe_id) &&
+              String(recipe?.mealid) === String(uniqueVal?.mealid)
+          )
+
+          return {
+            ...uniqueVal,
+            meal_type: matchedRecipe?.meal_type || []
+          }
+        }
+
+        return uniqueVal
+      })
 
       for (let i = 0; i < fieldsIngredients.length; i++) {
         const field = fieldsIngredients[i]
-        field.recipe = updatedValues.filter(up => up?.mealid === field.mealid)
+        field.recipe = updatedValues.filter(up => String(up?.mealid) === String(field?.mealid))
       }
-      console.log(updatedValues, 'updatedValues')
-      // Return the updated values to setAllSelectedValues
+
       return updatedValues
     })
 
@@ -262,8 +331,13 @@ const StepBasicDetails = ({
   const handleComboStateChange = value => {
     console.log('Received value:', value)
     setComboChildStateValue(value)
+
     const uniqueValues = value.filter(
-      (val, index, self) => index === self.findIndex(v => v?.recipe_id === val?.recipe_id && v?.mealid === val?.mealid)
+      (val, index, self) =>
+        index ===
+        self.findIndex(
+          v => String(v?.recipe_id) === String(val?.recipe_id) && String(v?.mealid) === String(val?.mealid)
+        )
     )
 
     setAllComboSelectedValues(prevState => {
@@ -271,17 +345,47 @@ const StepBasicDetails = ({
       const filteredPrevState = prevState.filter(
         prevVal =>
           !uniqueValues.some(
-            uniqueVal => uniqueVal?.recipe_id === prevVal?.recipe_id && uniqueVal?.mealid === prevVal?.mealid
+            uniqueVal =>
+              String(uniqueVal?.recipe_id) === String(prevVal?.recipe_id) &&
+              String(uniqueVal?.mealid) === String(prevVal?.mealid)
           )
       )
-      const updatedValues = [...filteredPrevState, ...uniqueValues]
+
+      const updatedValues = [...filteredPrevState, ...uniqueValues].map(uniqueVal => {
+        // Find the matching meal data
+        const matchedMealData = formData.meal_data.find(
+          mealData =>
+            Array.isArray(mealData.combo) &&
+            mealData.combo?.some(
+              combo =>
+                String(combo?.recipe_id) === String(uniqueVal?.recipe_id) &&
+                String(combo?.mealid) === String(uniqueVal?.mealid)
+            )
+        )
+
+        if (matchedMealData) {
+          // Append the meal_type from the matched combo
+          const matchedCombo = matchedMealData.combo?.find(
+            combo =>
+              String(combo?.recipe_id) === String(uniqueVal?.recipe_id) &&
+              String(combo?.mealid) === String(uniqueVal?.mealid)
+          )
+
+          return {
+            ...uniqueVal,
+            meal_type: matchedCombo?.meal_type || []
+          }
+        }
+
+        return uniqueVal
+      })
 
       for (let i = 0; i < fieldsIngredients.length; i++) {
         const field = fieldsIngredients[i]
-        field.combo = updatedValues.filter(up => up?.mealid === field.mealid)
+        field.combo = updatedValues.filter(up => String(up?.mealid) === String(field?.mealid))
       }
+
       console.log(updatedValues, 'updatedValues')
-      // Return the updated values to setAllSelectedValues
       return updatedValues
     })
 

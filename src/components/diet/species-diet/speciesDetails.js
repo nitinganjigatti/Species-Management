@@ -81,6 +81,42 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
       }
     }
   }
+  const DietitianAvatar = ({ item }) => {
+    const [imgError, setImgError] = useState(false)
+
+    const imageUrl = item?.dietitian_by_profile
+
+    return imageUrl && !imgError ? (
+      <Avatar
+        variant='rounded'
+        alt='Profile'
+        sx={{
+          width: 24,
+          height: 24,
+          borderRadius: '50%',
+          background: theme.palette.customColors.displaybgPrimary,
+          overflow: 'hidden'
+        }}
+      >
+        <img src={imageUrl} alt='Profile' style={{ width: '100%', height: '100%' }} onError={() => setImgError(true)} />
+      </Avatar>
+    ) : (
+      <Avatar
+        variant='rounded'
+        sx={{
+          width: 24,
+          height: 24,
+          borderRadius: '50%',
+          background: theme.palette.customColors.displaybgPrimary,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center'
+        }}
+      >
+        <Icon icon='mdi:user' />
+      </Avatar>
+    )
+  }
 
   //////////////////-Cards-//////////////////////////////////////////
 
@@ -233,23 +269,7 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
                   />
                 </Box>
                 <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <Avatar
-                    variant='rounded'
-                    alt='dietitian_by_profile'
-                    sx={{
-                      width: 24,
-                      height: 24,
-                      borderRadius: '50%',
-                      background: theme.palette.customColors.displaybgPrimary,
-                      overflow: 'hidden'
-                    }}
-                  >
-                    {item?.dietitian_by_profile ? (
-                      <img style={{ width: '100%', height: '100%' }} src={item?.dietitian_by_profile} alt='Profile' />
-                    ) : (
-                      <Icon icon='mdi:user' />
-                    )}
-                  </Avatar>
+                  <DietitianAvatar item={item} />
 
                   <Tooltip title={item?.dietitian_name ? item?.dietitian_name : '-'}>
                     <Typography

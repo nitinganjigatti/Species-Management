@@ -30,7 +30,8 @@ const SelectEnclosureList = ({
   onSelectEnclosures,
   setEnclosuresData,
   selectedEnclosures,
-  setSelectedEnclosures
+  setSelectedEnclosures,
+  openFilterDrawer
 }) => {
   const theme = useTheme()
   const [loading, setLoading] = useState(false)
@@ -58,7 +59,10 @@ const SelectEnclosureList = ({
     if (open && sectionId) {
       fetchEnclosures()
     }
-  }, [open, sectionId, pageNo])
+    if (!open && sectionId && openFilterDrawer) {
+      fetchEnclosures()
+    }
+  }, [open, sectionId, openFilterDrawer, pageNo])
 
   const handleSiteCheckboxChange = enclosureId => {
     setSelectedEnclosures(prev =>
@@ -95,7 +99,6 @@ const SelectEnclosureList = ({
     }
   }
 
-  // Handle scroll for infinite loading
   const handleScroll = e => {
     const { scrollTop, clientHeight, scrollHeight } = e.currentTarget
     const threshold = 50
@@ -140,7 +143,11 @@ const SelectEnclosureList = ({
           overflow: 'hidden',
           width: '100%',
           maxWidth: 522,
-          margin: '15px 20px 0px 20px'
+          margin: '15px 20px 0px 20px',
+          display: 'flex',
+          flexDirection: 'column',
+          flex: 1,
+          minHeight: 0
         }}
       >
         {/* Header */}
@@ -254,7 +261,7 @@ const SelectEnclosureList = ({
             flex: 1,
             overflowY: 'auto',
             overflowX: 'hidden',
-            height: '60%',
+            //height: '60%',
             p: 2,
             '&::-webkit-scrollbar': {
               width: '4px'
@@ -312,12 +319,12 @@ const SelectEnclosureList = ({
         {/* Footer Button */}
         <Box
           sx={{
-            position: 'absolute',
-            bottom: 0,
-            width: '100%',
             p: 2,
-            height: '64px',
-            width: '93%'
+            pt: 4,
+            position: 'sticky',
+            bottom: 0,
+            background: '#FFF',
+            zIndex: 1
           }}
         >
           <Button

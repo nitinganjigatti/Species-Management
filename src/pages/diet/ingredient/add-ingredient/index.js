@@ -343,8 +343,8 @@ const AddIngredient = () => {
           if (res?.success) {
             Toaster({ type: 'success', message: 'Ingredients' + ' ' + res?.message })
 
-            // Router.push('/diet/ingredient')
-            Router.push({ pathname: `/diet/ingredient/${res?.data?.ingredient_id}` })
+            Router.push({ pathname: `/diet/ingredient` })
+            //Router.push({ pathname: `/diet/ingredient/${res?.data?.ingredient_id}` })
           } else {
             Toaster({
               type: 'error',
@@ -364,7 +364,8 @@ const AddIngredient = () => {
             setSubmitLoader(false)
             Toaster({ type: 'success', message: 'Ingredients' + ' ' + res?.message })
 
-            Router.push({ pathname: `/diet/ingredient/${res?.data?.ingredient_id}` })
+            //Router.push({ pathname: `/diet/ingredient/${res?.data?.ingredient_id}` })
+            Router.push({ pathname: `/diet/ingredient` })
             reset()
           } else {
             setSubmitLoader(false)
