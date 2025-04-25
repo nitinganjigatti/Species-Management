@@ -53,7 +53,7 @@ const DietReportDrawer = ({
   handleSelectedAllSites
 }) => {
   const theme = useTheme()
-  debugger
+
   const [selectedMenu, setSelectedMenu] = useState(leftMenu[0])
   const [searchQuery, setSearchQuery] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
