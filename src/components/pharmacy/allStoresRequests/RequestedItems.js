@@ -163,17 +163,24 @@ export default function RequestedItems({ selectedStoreDetails, setSelectedStoreD
   const closeDrawer = () => {
     setShowDrawer(false)
     setRequestedProducts([])
-    setSideDrawerItemDetails({
-      selectedStoreId: '',
+
+    // setSideDrawerItemDetails({
+    //   selectedStoreId: '',
+    //   selectedItemId: ''
+    // })
+    setSideDrawerItemDetails(prev => ({
+      ...prev,
       selectedItemId: ''
-    })
+    }))
   }
 
   const handleRowClick = params => {
-    setSideDrawerItemDetails({
+    setSideDrawerItemDetails(prev => ({
+      ...prev,
       selectedStoreId: selectedStoreDetails?.storeId,
       selectedItemId: params?.row?.stock_item_id
-    })
+    }))
+
     fetchRequestedItemsById(selectedStoreDetails?.storeId, params?.row?.stock_item_id)
 
     // openDrawer()

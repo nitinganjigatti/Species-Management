@@ -338,7 +338,13 @@ const ProductDetailsList = () => {
                       variant='square'
                       src={uploadedImage}
                       alt='Medicine Image'
-                      sx={{ objectFit: 'contain', width: 'auto', height: 'auto', borderRadius: 2 }}
+                      sx={{
+                        objectFit: 'contain',
+                        width: 'auto',
+                        height: 'auto',
+                        maxHeight: 200,
+                        borderRadius: 2
+                      }}
                     />
                   </Grid>
 
