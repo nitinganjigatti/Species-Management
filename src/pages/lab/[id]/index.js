@@ -293,8 +293,18 @@ const RequestDetails = () => {
       setMedicalDocument(requestData[0]?.medical_attachements?.files)
       setMedicalImage(requestData[0]?.medical_attachements?.images)
 
+      const allowedStatuses = [
+        'completed',
+        'completed_positive',
+        'completed_negative',
+        'completed_detected',
+        'completed_not_detected',
+        'completed_inconclusive',
+        'completed'
+      ]
+
       // ✅ API call ke baad `allCompleted` ko update karein
-      setAllCompleted(testReports.every(row => row.status.startsWith('completed')))
+      setAllCompleted(testReports.some(row => row.status && allowedStatuses.includes(row.status)))
     } catch (error) {
       console.error('Error fetching data:', error)
     } finally {
