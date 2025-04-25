@@ -199,36 +199,28 @@ const ListOfStockAdjusted = () => {
       minWidth: 70,
       field: 'sl',
       headerName: 'S.NO',
-      renderCell: params => (
-        <Typography variant='body2'>{params.row.sl + '.'}</Typography>
-      )
+      renderCell: params => <Typography variant='body2'>{params.row.sl + '.'}</Typography>
     },
     {
       flex: 0.2,
       minWidth: 140,
       field: 'stock_name',
       headerName: 'Product',
-      renderCell: params => (
-        <Typography noWrap>{params.row.stock_name}</Typography>
-      )
+      renderCell: params => <Typography noWrap>{params.row.stock_name}</Typography>
     },
     {
       flex: 0.1,
       minWidth: 100,
       field: 'batch_no',
       headerName: 'Batch No.',
-      renderCell: params => (
-        <Typography noWrap>{params.row.batch_no}</Typography>
-      )
+      renderCell: params => <Typography noWrap>{params.row.batch_no}</Typography>
     },
     {
       flex: 0.1,
       minWidth: 100,
       field: 'adjustment_quantity',
       headerName: 'Qty',
-      renderCell: params => (
-        <Typography noWrap>{params.row.adjustment_quantity}</Typography>
-      )
+      renderCell: params => <Typography noWrap>{params.row.adjustment_quantity}</Typography>
     },
     {
       flex: 0.15,
@@ -247,11 +239,7 @@ const ListOfStockAdjusted = () => {
       field: 'comments',
       headerName: 'Comments',
       renderCell: params =>
-        params.row?.comments ? (
-          <TextEllipsisWithModal text={params.row.comments} />
-        ) : (
-          <Typography noWrap>NA</Typography>
-        )
+        params.row?.comments ? <TextEllipsisWithModal text={params.row.comments} /> : <Typography noWrap>NA</Typography>
     },
     {
       flex: 0.15,
@@ -277,7 +265,6 @@ const ListOfStockAdjusted = () => {
         )
     }
   ]
-  
 
   const headerAction = (
     <AddButtonContained
