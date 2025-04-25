@@ -277,8 +277,18 @@ const RequestDetails = () => {
       setMedicalImage(requestData[0]?.medical_attachements?.images)
       setMedicalRecordNotes(requestData[0]?.medical_attachements?.notes)
 
+      const allowedStatuses = [
+        'completed',
+        'completed_positive',
+        'completed_negative',
+        'completed_detected',
+        'completed_not_detected',
+        'completed_inconclusive',
+        'completed'
+      ]
+
       // ✅ API call ke baad `allCompleted` ko update karein
-      setAllCompleted(testReports.every(row => row.status.startsWith('completed')))
+      setAllCompleted(testReports.some(row => row.status && allowedStatuses.includes(row.status)))
     } catch (error) {
       console.error('Error fetching data:', error)
     } finally {
@@ -320,6 +330,7 @@ const RequestDetails = () => {
       setTestSampleName(params?.row?.sample_name)
       setTestId([params?.row?.id])
       await getAccessLabs(LabRequestId, labTestId)
+
       // console.log('first', params?.row?.id)
     } else {
       setFromParam(false)
@@ -330,6 +341,7 @@ const RequestDetails = () => {
       }
       await getAccessLabs(LabRequestId, selectedRow)
     }
+
     // if (selectedRow.length >= 1) {
     // } else {
     // }
@@ -419,6 +431,7 @@ const RequestDetails = () => {
       return false
     }
   }
+
   const columns = [
     // {
     //   flex: 0.05,
@@ -819,11 +832,13 @@ const RequestDetails = () => {
         replaced_lab_id,
         transfer_reason
       }
+
       const payloadSingle = {
         test_ids: testId,
         replaced_lab_id,
         transfer_reason
       }
+
       // console.log('params1', params)
       const res = await postBulkTransfer({ params: testId.length ? payloadSingle : payloadMulti })
       if (res?.success) {
@@ -874,6 +889,7 @@ const RequestDetails = () => {
 
     // Retrieve the complete row data based on selected row IDs
     const selectedRowData = rows.filter(row => rowSelectionModel.includes(row.id))
+
     // setShouldShowBulkStatus(!selectedRowData.some(item => item.status.startsWith('completed')))
     setShouldShowBulkStatus(
       selectedRowData?.filter(item =>
@@ -1279,6 +1295,7 @@ const RequestDetails = () => {
                 baseButton: {
                   variant: 'outlined'
                 }
+
                 // toolbar: {
                 //   value: searchValue,
                 //   clearSearch: () => handleSearch(''),
@@ -1812,6 +1829,7 @@ const RequestDetails = () => {
                     onClick={handleCloseTransfer}
                     variant='outlined'
                     size='large'
+
                     // disabled={permissions?.allow_full_access !== true || permissions?.transfer_tests !== true}
                   >
                     Cancel
