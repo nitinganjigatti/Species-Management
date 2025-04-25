@@ -93,6 +93,43 @@ const MealGroup = () => {
 
   console.log('Group >>', groupList)
 
+  useEffect(() => {
+    debugger
+    const siteIdFromQuery = router.query.site_id
+    const allSites = authData?.userData?.user?.zoos || []
+
+    // Only run if authData is loaded
+    if (allSites.length > 0) {
+      debugger
+      if (siteIdFromQuery) {
+        console.log('All Sites >', allSites[0])
+
+        const matchedSite = allSites[0].sites.find(site => site.site_id == siteIdFromQuery)
+        if (matchedSite) {
+          setDefaultSite(matchedSite)
+          setSelectedOption(matchedSite.site_id)
+          return
+        }
+      }
+
+      // If no site_id in query or no match, fallback to first site
+      const first = authData?.userData?.user?.zoos[0]?.sites?.[0] || null
+      if (first) {
+        debugger
+        setDefaultSite(first)
+        setSelectedOption(first.site_id)
+        router.replace(
+          {
+            pathname: router.pathname,
+            query: { ...router.query, site_id: first.site_id }
+          },
+          undefined,
+          { shallow: true }
+        )
+      }
+    }
+  }, [router.query.site_id])
+
   function loadServerRows(currentPage, data) {
     return data
   }
@@ -210,11 +247,13 @@ const MealGroup = () => {
   const debouncedSearch = useCallback(
     debounce(async q => {
       setSearchValue(q)
+      debugger
       setPaginationModel({ page: 0, pageSize: 10 })
 
       try {
         await fetchEnclosure({
           q,
+          type: status,
           site_id: selectedOption,
           page_no: 1,
           limit: 10
@@ -223,7 +262,7 @@ const MealGroup = () => {
         console.log(err)
       }
     }, 1000),
-    [selectedOption] // track selectedOption in dependencies
+    [selectedOption, status] // track selectedOption in dependencies
   )
 
   const debouncedEnclosureSearch = useCallback(
@@ -429,7 +468,7 @@ const MealGroup = () => {
           sx={{
             display: 'flex',
             alignItems: 'center',
-            px: 3,
+            px: { xs: '50px', sm: '205px', md: 3 },
             py: 2,
             backgroundColor: '#fff'
           }}
@@ -492,6 +531,7 @@ const MealGroup = () => {
     setSelectedGroup('all')
     setSelectedSpecies('all')
     setCheckedRows([])
+    setSearchValue('')
     setEditItems([])
     setEditParam({})
   }
@@ -561,6 +601,7 @@ const MealGroup = () => {
     console.log('Row Detail >', row)
     try {
       setEditParam(row)
+      setLoader(true)
       setMealId(row.id)
       setOpenDrawer(true) // 👈 open the drawer
       const params = {
@@ -1082,15 +1123,30 @@ const MealGroup = () => {
   console.log('Indexed >', indexedRows)
 
   const handleSiteChange = site => {
-    debugger
     if (!site) {
       setDefaultSite(null)
-      setSelectedOption(null) // or pass null if your API handles it
+      setSelectedOption(null)
+      router.replace(
+        {
+          pathname: router.pathname,
+          query: { ...router.query, site_id: undefined }
+        },
+        undefined,
+        { shallow: true }
+      )
     } else {
       setDefaultSite(site)
       setSelectedOption(site.site_id)
       setEditItems([])
       setCheckedRows([])
+      router.replace(
+        {
+          pathname: router.pathname,
+          query: { ...router.query, site_id: site.site_id }
+        },
+        undefined,
+        { shallow: true }
+      )
     }
   }
 
@@ -1210,7 +1266,7 @@ const MealGroup = () => {
       </Card>
 
       {/* Main Card */}
-      <Card sx={{ mt: 5, p: { xs: 2, md: 4 }, boxShadow: 'none' }}>
+      <Card sx={{ mt: 5, p: { xs: 2, md: 4 }, boxShadow: 'none', mb: 20 }}>
         <Grid>
           <TabContext value={status}>
             <Box>
@@ -1229,7 +1285,7 @@ const MealGroup = () => {
               {/* Divider only below TabList, responsive width */}
               <Divider
                 sx={{
-                  width: { xs: '100%', sm: '610px' },
+                  width: { xs: '100%', sm: '630px' },
                   borderBottomWidth: '3px',
                   mt: -0.5,
                   ml: 1
@@ -1367,6 +1423,7 @@ const MealGroup = () => {
         <Grid
           sx={{
             // height: '800px',
+            // overflowY: 'scroll',
             mx: { xs: 1, sm: 3, md: 2 },
             mb: 5,
             pb: { xs: 0, sm: 5 } // 👈 padding bottom to create space
@@ -1406,15 +1463,21 @@ const MealGroup = () => {
         <FixedFooterWrapper>
           <Box
             sx={{
-              mt: 3,
-
               p: { xs: 2, sm: 4 }
             }}
           >
             <Box display='flex' justifyContent='space-between' alignItems='center' mx='auto' flexWrap='wrap'>
               {checkedRows?.length > 0 ? <FooterCard count={checkedRows.length} /> : <Box />}
 
-              <Box display='flex' gap={3} sx={{ mr: 2, justifyContent: { xs: 'center', sm: 'flex-end' } }}>
+              <Box
+                display='flex'
+                gap={3}
+                sx={{
+                  ml: { xs: 0, sm: 25 },
+                  mr: { xs: 10, sm: 0 },
+                  justifyContent: { xs: 'center', sm: 'center', md: 'flex-end' }
+                }}
+              >
                 <Button
                   disabled={checkedRows?.length <= 0}
                   onClick={() => setCheckedRows([])}
@@ -1487,6 +1550,7 @@ const MealGroup = () => {
           editParam={editParam}
           editeditems={editeditems}
           setEditItems={setEditItems}
+          loader={Loader}
           fetchEnclosure={fetchEnclosure}
           siteStats={siteStats}
           setStatus={setStatus}
@@ -1509,6 +1573,7 @@ const MealGroup = () => {
           selectedForDrawer={selectedForDrawer}
           fetchEnclosure={fetchEnclosure}
           checkedRows={checkedRows}
+          setStatus={setStatus}
           setCheckedRows={setCheckedRows}
           fetchSiteStats={fetchSiteStats}
           setEditItems={setEditItems}
