@@ -41,15 +41,21 @@ const CommonMediaView = ({ type, image, document, handleDeleteImg, fileViews, pe
     let attachments = image !== undefined ? image : document !== undefined ? document : []
     setSelectedItem(item)
     if (image?.length === 1) {
-      setUploadAnotherDialog(true)
+      setOpenConfirmDialog(true)
+      if (allCompleted) {
+        setError(true)
+
+        return
+      }
     } else {
       setOpenConfirmDialog(true)
 
       // Check if total rows are equal to total attachments
-      if (allCompleted) {
-        setError(true)
-        return
-      }
+      // if (allCompleted && ) {
+      //   setError(true)
+
+      //   return
+      // }
     }
   }
 
@@ -302,25 +308,18 @@ const CommonMediaView = ({ type, image, document, handleDeleteImg, fileViews, pe
             Delete File!
           </Typography>
         </DialogTitle>
-        <DialogContent>
-          {error ? (
-            <DialogContentText>
-              <Typography>
-                Either upload the new report or change the test status to pending to delete this report.
-              </Typography>
-            </DialogContentText>
-          ) : (
-            <DialogContentText>
-              Are you sure you want to delete{' '}
-              <Typography component='span' sx={{ color: theme.palette.customColors.Error, fontWeight: 'bold' }}>
-                {selectedItem?.file_original_name}
-              </Typography>
-              &nbsp;?
-            </DialogContentText>
-          )}
-        </DialogContent>
-        <DialogActions>
-          <Button
+
+        {error ? (
+          <>
+            <DialogContent>
+              <DialogContentText>
+                <Typography>
+                  Either upload the new report or change the test status to pending to delete this report.
+                </Typography>
+              </DialogContentText>
+            </DialogContent>
+            <DialogActions>
+              {/* <Button
             onClick={() => {
               setOpenConfirmDialog(false)
               setError(false)
@@ -329,14 +328,47 @@ const CommonMediaView = ({ type, image, document, handleDeleteImg, fileViews, pe
           >
             CANCEL
           </Button>
-          {!error && !allCompleted && (
-            <Button onClick={handleDelete} variant='contained' color='error'>
-              DELETE
-            </Button>
-          )}
-        </DialogActions>
+          */}
+              <Button
+                sx={{ backgroundColor: theme.palette.primary.main }}
+                onClick={() => setOpenConfirmDialog(false)}
+                variant='contained'
+              >
+                OK
+              </Button>
+            </DialogActions>
+          </>
+        ) : (
+          <>
+            <DialogContent>
+              <DialogContentText>
+                Are you sure you want to delete{' '}
+                <Typography component='span' sx={{ color: theme.palette.customColors.Error, fontWeight: 'bold' }}>
+                  {selectedItem?.file_original_name}
+                </Typography>
+                &nbsp;?
+              </DialogContentText>
+            </DialogContent>
+            <DialogActions>
+              <Button
+                onClick={() => {
+                  setOpenConfirmDialog(false)
+                  setError(false)
+                }}
+                variant='outlined'
+              >
+                CANCEL
+              </Button>
+              {/* {!error && !allCompleted && ( */}
+              <Button onClick={handleDelete} variant='contained' color='error'>
+                DELETE
+              </Button>
+              {/* )} */}
+            </DialogActions>
+          </>
+        )}
       </Dialog>
-      <Dialog open={uploadAnotherDialog} onClose={() => setUploadAnotherDialog(false)} fullWidth>
+      {/* <Dialog open={uploadAnotherDialog} onClose={() => setUploadAnotherDialog(false)} fullWidth>
         <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
           <Icon icon='fluent:warning-20-filled' width='24' height='24' color={theme.palette.customColors.Error} />
           <Typography variant='h6' fontWeight='bold'>
@@ -353,16 +385,8 @@ const CommonMediaView = ({ type, image, document, handleDeleteImg, fileViews, pe
           </DialogContentText>
         </DialogContent>
         <DialogActions>
-          {/* <Button
-            onClick={() => {
-              setOpenConfirmDialog(false)
-              setError(false)
-            }}
-            variant='outlined'
-          >
-            CANCEL
-          </Button>
-          */}
+
+
           <Button
             sx={{ backgroundColor: theme.palette.primary.main }}
             onClick={() => setUploadAnotherDialog(false)}
@@ -371,7 +395,7 @@ const CommonMediaView = ({ type, image, document, handleDeleteImg, fileViews, pe
             OK
           </Button>
         </DialogActions>
-      </Dialog>
+      </Dialog> */}
     </>
   )
 }
