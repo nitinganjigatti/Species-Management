@@ -32,6 +32,8 @@ import CommonTable from 'src/views/table/data-grid/CommonTable'
 import { AddButtonContained } from 'src/components/ButtonContained'
 import RenderUtility from 'src/utility/render'
 import TextEllipsisWithModal from 'src/components/TextEllipsisWithModal'
+import { STOCK_ADJUSTMENT_REASON_TYPES } from 'src/constants/PharmacyConstants'
+import StockAdjustmentReasonDetails from 'src/views/pages/pharmacy/stock/StockAdjustmentReasonDetails'
 
 const ListOfStockAdjusted = () => {
   const theme = useTheme()
@@ -223,24 +225,31 @@ const ListOfStockAdjusted = () => {
       headerName: 'Qty',
       renderCell: params => <Typography noWrap>{params.row.adjustment_quantity}</Typography>
     },
+
     {
       flex: 0.15,
       minWidth: 140,
       field: 'reason_name',
       headerName: 'Reason',
-      renderCell: params => (
-        <Tooltip title={params.row.reason_name}>
-          <Typography noWrap>{params.row.reason_name}</Typography>
-        </Tooltip>
-      )
-    },
-    {
-      flex: 0.15,
-      minWidth: 140,
-      field: 'comments',
-      headerName: 'Comments',
-      renderCell: params =>
-        params.row?.comments ? <TextEllipsisWithModal text={params.row.comments} /> : <Typography noWrap>NA</Typography>
+      renderCell: params => {
+        const { MISSED, EXPIRED } = STOCK_ADJUSTMENT_REASON_TYPES
+
+        const reasonTextColor =
+          params?.row?.reason === MISSED
+            ? theme.palette.customColors.Error
+            : params?.row?.reason === EXPIRED
+            ? theme.palette.customColors.Antz_Body_Medium
+            : theme.palette.customColors.Tertiary
+
+        return (
+          <StockAdjustmentReasonDetails
+            reason={params?.row?.reason_name}
+            comment={params?.row?.comments}
+            reasonTextColor={reasonTextColor}
+            commentTextColor={theme.palette.customColors.neutral_50}
+          />
+        )
+      }
     },
     {
       flex: 0.15,
