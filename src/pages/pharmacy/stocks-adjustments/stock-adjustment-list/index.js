@@ -292,7 +292,7 @@ const ListOfStockAdjusted = () => {
       renderCell: params => (
         <>
           {params.row?.comments ? (
-            <TextEllipsisWithModal
+            <TextEllipsisWithModal  
               text={params?.row?.comments}
               style={{
                 color: theme.palette.customColors.customHeadingTextColor,

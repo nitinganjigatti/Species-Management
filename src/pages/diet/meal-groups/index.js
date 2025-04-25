@@ -22,7 +22,7 @@ import {
   DialogContent
 } from '@mui/material'
 import { fontSize, fontWeight, textAlign } from '@mui/system'
-import React, { useCallback, useContext, useEffect, useMemo, useState } from 'react'
+import React, { useCallback, useContext, useEffect, useState } from 'react'
 import Icon from 'src/@core/components/icon'
 import { AuthContext } from 'src/context/AuthContext'
 import {
@@ -44,6 +44,7 @@ import CreateEnclosure from 'src/views/pages/diet/mealGroup/createEnclosure'
 import { debounce } from 'lodash'
 import select from 'src/@core/theme/overrides/select'
 import FixedFooterWrapper from 'src/components/diet/FixedFooterWrapper'
+import TextEllipsisWithModal from 'src/components/TextEllipsisWithModal'
 
 const MealGroup = () => {
   const router = useRouter()
@@ -399,10 +400,6 @@ const MealGroup = () => {
     setSelectedItems([])
   }, [status])
 
-  // useEffect(() => {
-  //   fetchEnclosure()
-  // }, [selectedOption])
-
   useEffect(() => {
     fetchEnclosure()
     fetchSiteStats()
@@ -706,19 +703,34 @@ const MealGroup = () => {
         </Box>
       ),
       renderCell: params => (
-        <Typography
-          variant='body2'
-          textAlign='center'
-          sx={{
-            color: theme.palette.customColors.customHeadingTextColor,
-            fontSize: '16px',
-            fontWeight: 500,
-            color: '#44544A',
-            fontFamily: 'Inter'
-          }}
-        >
-          {params.row.group_name}
-        </Typography>
+        <>
+          {params?.row?.group_name ? (
+            <TextEllipsisWithModal
+              text={params.row.group_name}
+              style={{
+                color: theme.palette.customColors.customHeadingTextColor,
+                fontSize: '16px',
+                fontWeight: 500,
+                color: '#44544A',
+                fontFamily: 'Inter'
+              }}
+            />
+          ) : (
+            <Typography
+              variant='body2'
+              textAlign='center'
+              sx={{
+                color: theme.palette.customColors.customHeadingTextColor,
+                fontSize: '16px',
+                fontWeight: 500,
+                color: '#44544A',
+                fontFamily: 'Inter'
+              }}
+            >
+              NA
+            </Typography>
+          )}
+        </>
       )
     },
     {
@@ -1333,7 +1345,6 @@ const MealGroup = () => {
                 backgroundColor: 'white'
               }}
             />
-
             {/* Section Dropdown */}
             <Select
               value={selectedSection}
@@ -1361,9 +1372,8 @@ const MealGroup = () => {
                 </MenuItem>
               ))}
             </Select>
-
             {/* Species Dropdown */}
-            <Select
+            {/* <Select
               value={selectedSpecies}
               onChange={handleSpeciesChange}
               displayEmpty
@@ -1388,8 +1398,45 @@ const MealGroup = () => {
                   {`${item.common_name} (${item.scientific_name})`}
                 </MenuItem>
               ))}
-            </Select>
+            </Select> */}
 
+            <Autocomplete
+              options={[{ species_id: 'all', common_name: 'All Species', scientific_name: '' }, ...speciesList]}
+              getOptionLabel={option =>
+                option.species_id === 'all' ? 'All Species' : `${option.common_name} (${option.scientific_name})`
+              }
+              value={
+                selectedSpecies === 'all'
+                  ? { species_id: 'all', common_name: 'All Species', scientific_name: '' }
+                  : speciesList.find(item => item.species_id === selectedSpecies) || null
+              }
+              onChange={(event, newValue) => {
+                handleSpeciesChange({
+                  target: { value: newValue?.species_id || 'all' }
+                })
+              }}
+              size='small'
+              isOptionEqualToValue={(option, value) => option.species_id === value.species_id}
+              renderInput={params => (
+                <TextField
+                  {...params}
+                  placeholder='Select Species'
+                  variant='outlined'
+                  fullWidth
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      borderRadius: '4px'
+                    }
+                  }}
+                />
+              )}
+              sx={{
+                flexGrow: 1,
+                minWidth: { xs: '100%', sm: '200px', md: '240px' },
+                backgroundColor: 'white'
+                // borderRadius: '4px'
+              }}
+            />
             {/* Meal Group Dropdown */}
             <Select
               value={selectedGroup}
