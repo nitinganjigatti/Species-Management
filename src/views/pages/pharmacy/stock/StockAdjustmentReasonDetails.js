@@ -19,9 +19,9 @@ const StockAdjustmentReasonDetails = ({ reason, comment, reasonTextColor, commen
             width: '100%'
           }}
         >
-          {comment}
+          {reason}
         </Typography>
-        <TextEllipsisWithModal icon={'mdi:file-document-outline'} text={reason} iconColor={commentTextColor} />
+        <TextEllipsisWithModal icon={'mdi:file-document-outline'} text={comment} iconColor={commentTextColor} />
       </Box>
     </Tooltip>
   )

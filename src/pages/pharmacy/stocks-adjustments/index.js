@@ -239,11 +239,18 @@ const ListOfStockAdjusted = () => {
             ? theme.palette.customColors.Error
             : params?.row?.reason === EXPIRED
             ? theme.palette.customColors.Antz_Body_Medium
-            : theme.palette.customColors.Tertiary
+              : theme.palette.customColors.Tertiary
+        
+        const reason =
+          params?.row?.reason === MISSED
+            ? "Missing"
+            : params?.row?.reason === EXPIRED
+            ? "Expired"
+            : "Damaged"
 
         return (
           <StockAdjustmentReasonDetails
-            reason={params?.row?.reason_name}
+            reason={reason}
             comment={params?.row?.comments}
             reasonTextColor={reasonTextColor}
             commentTextColor={theme.palette.customColors.neutral_50}
