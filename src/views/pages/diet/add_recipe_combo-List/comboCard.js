@@ -124,17 +124,20 @@ const ComboCard = ({
       allComboSelectedValues.some(item => item?.mealid === checkid) &&
       !dietid
     ) {
-      const cardIds = selectedValuesWithCheckId.map(item => item.recipe_id)
-      const days = selectedValuesWithCheckId.map(item => item.days_of_week)
       const updatedRemarks = { ...remarks }
 
-      // Update selectedDays state with the extracted values
       const updatedSelectedDays = rows.map(row => {
-        const previousDay = previousSelectedDays.find(prev => prev.cardId === row.id)
+        const selectedItem = selectedValuesWithCheckId.find(item => item.recipe_id === row.id)
 
-        if (previousDay) {
-          // If the card has previously selected days, retain them
-          return previousDay
+        if (selectedItem) {
+          return {
+            cardId: row.id,
+            days: Day.map(day => ({
+              id: day.id,
+              name: day.name,
+              isActive: selectedItem.days_of_week?.includes(day.id) || false
+            }))
+          }
         } else {
           return {
             cardId: row.id,

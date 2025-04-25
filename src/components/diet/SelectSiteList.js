@@ -86,7 +86,11 @@ const SelectSiteList = ({
           overflow: 'hidden',
           width: '100%',
           maxWidth: 522,
-          margin: '15px 20px 0px 20px'
+          margin: '15px 20px 0px 20px',
+          display: 'flex',
+          flexDirection: 'column',
+          flex: 1,
+          minHeight: 0
         }}
       >
         {/* Header */}
@@ -197,7 +201,7 @@ const SelectSiteList = ({
             flex: 1,
             overflowY: 'auto',
             overflowX: 'hidden',
-            height: '60%',
+            // height: '60%',
             p: 2,
             '&::-webkit-scrollbar': {
               width: '4px'
@@ -244,19 +248,20 @@ const SelectSiteList = ({
         </Box>
 
         {/* Footer Button */}
-        <Box sx={{ p: 2, textAlign: 'center' }}>
+        <Box
+          sx={{
+            p: 2,
+            pt: 4,
+            position: 'sticky',
+            bottom: 0,
+            background: '#FFF',
+            zIndex: 1
+          }}
+        >
           <Button
             variant='contained'
             fullWidth
-            sx={{
-              bgcolor: '#28A745',
-              color: '#FFF',
-              p: 3,
-              borderRadius: '8px',
-              '&:hover': {
-                bgcolor: '#218838'
-              }
-            }}
+            sx={{ bgcolor: '#28A745', color: '#FFF', p: 2, borderRadius: '8px', '&:hover': { bgcolor: '#218838' } }}
             onClick={handleCloseDrawer}
             disabled={pendingSelections.Site.length === 0}
           >
