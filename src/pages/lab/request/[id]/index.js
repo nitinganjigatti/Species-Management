@@ -167,9 +167,9 @@ const RequestDetails = () => {
         value === 'completed_negative' ||
         value === 'completed_detected' ||
         value === 'completed_not_detected' ||
+        // value === 'completed_insufficient_samples'||
         value === 'completed_inconclusive' ||
-        value === 'completed' ||
-        value === 'completed_insufficient_samples') &&
+        value === 'completed') &&
       !(image || document) // Ensuring at least one attachment is present
     ) {
       Toaster({ type: 'error', message: 'Attach the report before completing the test' })
@@ -395,7 +395,12 @@ const RequestDetails = () => {
   // need to discuss about efefct on dropdown of status value
   const handleRowPermission = ({ params }) => {
     const st = statusList.filter(status => status.key === params.row.status)
-    if (
+    const st1 = filteredStatusData.filter(status => status.key === params.row.status)
+    console.log('statusList', statusList)
+    console.log('st', st)
+    if (st1?.length === 0) {
+      return false
+    } else if (
       (permissions?.perform_tests &&
         !permissions?.allow_upload_reports &&
         !permissions?.allow_full_access &&
@@ -916,8 +921,8 @@ const RequestDetails = () => {
         value === 'completed_detected' ||
         value === 'completed_not_detected' ||
         value === 'completed_inconclusive' ||
-        value === 'completed' ||
-        value === 'completed_insufficient_samples') &&
+        // value === 'completed_insufficient_samples' ||
+        value === 'completed') &&
       !(image || document)
     ) {
       setHeaderStatus('awaiting_sample')
@@ -1038,7 +1043,6 @@ const RequestDetails = () => {
                       justifyContent: 'center',
                       backgroundColor: theme.palette.customColors.cardHeaderBg,
                       borderRadius: '8px',
-
                       alignItems: 'center'
                     }}
                   >
