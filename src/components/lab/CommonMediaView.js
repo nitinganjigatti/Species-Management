@@ -1,3 +1,4 @@
+import React, { useState } from 'react'
 import {
   Avatar,
   Box,
@@ -12,20 +13,18 @@ import {
   Tooltip,
   Typography
 } from '@mui/material'
-import Icon from 'src/@core/components/icon'
 import { useTheme } from '@mui/material/styles'
-import React, { useState } from 'react'
+import Icon from 'src/@core/components/icon'
 import moment from 'moment'
 
 const CommonMediaView = ({ type, image, document, handleDeleteImg, fileViews, permissions, allCompleted }) => {
   const theme = useTheme()
   const [openConfirmDialog, setOpenConfirmDialog] = useState(false)
+  const [uploadAnotherDialog, setUploadAnotherDialog] = useState(false)
   const [selectedItem, setSelectedItem] = useState(null)
   const [error, setError] = useState(false)
-  // console.log('allCompleted', allCompleted)
 
   function extractHoursAndMinutes(date) {
-    //9:21 PM
     return moment(date).format('hh:mm A')
   }
 
@@ -37,29 +36,20 @@ const CommonMediaView = ({ type, image, document, handleDeleteImg, fileViews, pe
   }
 
   const handleConfirmDialog = (e, item) => {
-    let attachments = image !== undefined ? image : document !== undefined ? document : []
     e.preventDefault()
     e.stopPropagation()
+    let attachments = image !== undefined ? image : document !== undefined ? document : []
     setSelectedItem(item)
-    setOpenConfirmDialog(true)
+    if (image?.length === 1) {
+      setUploadAnotherDialog(true)
+    } else {
+      setOpenConfirmDialog(true)
 
-    // Check if all statuses start with "completed"
-
-    // const totalAttachments = attachments.flat().length // Merge image & document arrays into one
-
-    // console.log('Total Attachments:', totalAttachments)
-
-    // if (individual && attachments.length === 1) {
-    //   setError(true)
-
-    //   return
-    // }
-
-    // Check if total rows are equal to total attachments
-    if (allCompleted) {
-      setError(true)
-
-      return
+      // Check if total rows are equal to total attachments
+      if (allCompleted) {
+        setError(true)
+        return
+      }
     }
   }
 
@@ -108,6 +98,7 @@ const CommonMediaView = ({ type, image, document, handleDeleteImg, fileViews, pe
                         fontWeight: '400',
                         lineHeight: '19.36px',
                         overflow: 'hidden',
+                        whiteSpace: 'nowrap',
                         textOverflow: 'ellipsis',
                         p: 2
                       }}
@@ -343,6 +334,42 @@ const CommonMediaView = ({ type, image, document, handleDeleteImg, fileViews, pe
               DELETE
             </Button>
           )}
+        </DialogActions>
+      </Dialog>
+      <Dialog open={uploadAnotherDialog} onClose={() => setUploadAnotherDialog(false)} fullWidth>
+        <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+          <Icon icon='fluent:warning-20-filled' width='24' height='24' color={theme.palette.customColors.Error} />
+          <Typography variant='h6' fontWeight='bold'>
+            Delete File!
+          </Typography>
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText>
+            One or more tests have been marked as completed. Please upload the new report to delete the existing report{' '}
+            <Typography component='span' sx={{ color: theme.palette.customColors.Error, fontWeight: 'bold' }}>
+              {selectedItem?.file_original_name}
+            </Typography>
+            .
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          {/* <Button
+            onClick={() => {
+              setOpenConfirmDialog(false)
+              setError(false)
+            }}
+            variant='outlined'
+          >
+            CANCEL
+          </Button>
+          */}
+          <Button
+            sx={{ backgroundColor: theme.palette.primary.main }}
+            onClick={() => setUploadAnotherDialog(false)}
+            variant='contained'
+          >
+            OK
+          </Button>
         </DialogActions>
       </Dialog>
     </>
