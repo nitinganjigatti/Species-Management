@@ -351,7 +351,7 @@ const EditAnimalSpeciesMapped = ({
               sx={{
                 backgroundColor: theme.palette.background.default,
                 overflowY: 'auto',
-                height: 'calc(100vh - 54vh)',
+                height: 'calc(100vh - 23rem)',
                 px: 4,
                 pb: 4
               }}
@@ -632,7 +632,7 @@ const EditAnimalSpeciesMapped = ({
               sx={{
                 backgroundColor: theme.palette.background.default,
                 overflowY: 'auto',
-                height: 'calc(100vh - 54vh)',
+                height: 'calc(100vh - 23rem)',
                 px: 4,
                 pb: 4
               }}
