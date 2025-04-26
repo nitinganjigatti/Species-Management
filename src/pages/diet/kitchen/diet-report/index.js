@@ -27,6 +27,7 @@ import {
 import { getTaxonomyList } from 'src/lib/api/diet/dietList'
 import Utility from 'src/utility'
 import CustomOptionDateRangePickers from 'src/components/custom-date-picker/CustomOptionDateRangePickers'
+import { minWidth, width } from '@mui/system'
 
 const DietReportPage = () => {
   const initialRows = [
@@ -218,13 +219,14 @@ const DietReportPage = () => {
   // ** Column Definitions
   const columns = [
     {
-      flex: 0.1,
+      width: 40,
       field: 'id',
       headerName: 'ID',
       renderCell: params => params.value
     },
     {
-      flex: 0.7,
+      flex: 1,
+      minWidth: 300,
       field: 'reportName',
       headerName: 'Report Name',
       renderCell: params => (
@@ -246,7 +248,7 @@ const DietReportPage = () => {
       )
     },
     {
-      flex: 0.2,
+      width: 200,
       field: 'download',
       headerName: 'Download',
       renderCell: params => (
@@ -352,7 +354,7 @@ const DietReportPage = () => {
                 spacing={4}
                 sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
               >
-                <Grid item xs={12} sm={5} md={5}>
+                <Grid item xs={8} sm={5} md={5}>
                   <CustomOptionDateRangePickers
                     onChange={handleDateRangeChange}
                     filterDates={{ startDate: filterDates.from_date, endDate: filterDates.to_date }}
@@ -360,7 +362,7 @@ const DietReportPage = () => {
                   />
                 </Grid>
 
-                <Grid item sm={7} xs={12}>
+                <Grid item sm={4} xs={4}>
                   <Grid container spacing={2} justifyContent={{ xs: 'flex-end' }}>
                     <Grid
                       item
