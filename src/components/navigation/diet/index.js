@@ -61,6 +61,20 @@ const composeDietNavigation = () => {
     path: '/diet/settings/cut-sizes'
   }
 
+  const kitchenParent = {
+    title: 'Kitchen',
+    path: '/diet/kitchen/diet-report',
+    icon: 'uil:box',
+    children: []
+  }
+
+  const dietReport = {
+    title: 'Diet Report',
+    path: '/diet/kitchen/diet-report'
+  }
+
+  kitchenParent.children.push(dietReport)
+
   settingsParent.children.push(preparationTypes, cutSize)
 
   const dietNavigation = [
@@ -71,6 +85,7 @@ const composeDietNavigation = () => {
     dietList,
     recipeList,
     comboList,
+    kitchenParent,
     settingsParent
   ]
 
