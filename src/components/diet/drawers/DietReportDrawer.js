@@ -3,6 +3,7 @@ import { LoadingButton } from '@mui/lab'
 import {
   Badge,
   Checkbox,
+  CircularProgress,
   Divider,
   Drawer,
   FormControl,
@@ -18,13 +19,8 @@ import React, { useCallback, useEffect, useState } from 'react'
 import Icon from 'src/@core/components/icon'
 
 const leftMenu = [
-  // { id: 1, name: 'Pharmacy' },
-  // { id: 2, name: 'Product Type' },
-  // { id: 3, name: 'Drug Type' }
-
-  { id: 1, name: 'Sites' }
-
-  // { id: 2, name: 'Species' }
+  { id: 1, name: 'Sites' },
+  { id: 2, name: 'Species' }
 ]
 
 const drugTypeOptions = [
@@ -47,19 +43,31 @@ const DietReportDrawer = ({
   setSelectedOptions,
   sites,
   productTypes,
-  siteList,
   speciesList,
   handleSelectedSpecies,
-  handleSelectedAllSites
+  handleSelectedAllSites,
+  taxonomyListCallback,
+  handleScrollforTaxonomy,
+  taxonomyLoading,
+  handleTaxonomySearch,
+  searchTaxonomyQuery
 }) => {
   const theme = useTheme()
 
   const [selectedMenu, setSelectedMenu] = useState(leftMenu[0])
   const [searchQuery, setSearchQuery] = useState('')
+
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  const isAllProductTypesSelected =
-    productTypes?.length > 0 && selectedOptions['Product Type']?.length === productTypes?.length
+  const [paginationModel, setPaginationModel] = useState({
+    page: 0,
+    pageSize: 50
+  })
+
+  // const isAllProductTypesSelected =
+  // speciesList?.length > 0 && selectedOptions['Species']?.length === productTypes?.length
+
+  const isAllSpeciesSelected = speciesList?.length > 0 && selectedOptions['Species']?.length === speciesList?.length
 
   const isAllSitesSelected = sites?.length > 0 && selectedOptions['Sites']?.length === sites?.length
 
@@ -107,6 +115,14 @@ const DietReportDrawer = ({
     setSearchQuery(event.target.value)
   }, [])
 
+  // const handleTaxonomySearch = useCallback(event => {
+  //   debugger
+
+  //   console.log(event.target.value)
+
+  //   //handleTaxonomySearch()
+  // }, [])
+
   const applyFilters = useCallback(() => {
     if (isSubmitting) return
     setIsSubmitting(true)
@@ -117,8 +133,8 @@ const DietReportDrawer = ({
       filterData.Sites = selectedOptions['Sites']
     }
 
-    if (selectedOptions['Product Type'] && selectedOptions['Product Type'].length > 0) {
-      filterData.productType = selectedOptions['Product Type']
+    if (selectedOptions['Species'] && selectedOptions['Species'].length > 0) {
+      filterData.Species = selectedOptions['Species']
     }
 
     if (selectedOptions['Drug Type'] && selectedOptions['Drug Type'] !== 'all') {
@@ -144,8 +160,8 @@ const DietReportDrawer = ({
     handleSelectedAllSites()
   }
 
-  const handleProductTypeSelectAll = () => {
-    handleSelectAllProductTypes()
+  const handleSpeciesSelectAll = () => {
+    handleSelectedSpecies()
   }
 
   return (
@@ -221,7 +237,7 @@ const DietReportDrawer = ({
             ))}
           </Grid>
           <Grid item md={8} sm={8} xs={8}>
-            <Box
+            {/* <Box
               sx={{
                 bgcolor: '#FFFFFF',
                 p: '16px',
@@ -236,118 +252,204 @@ const DietReportDrawer = ({
                 '-ms-overflow-style': 'none',
                 scrollbarWidth: 'none'
               }}
-            >
-              {selectedMenu.name === 'Sites' ? (
-                <>
-                  <Box
+            > */}
+            {selectedMenu.name === 'Sites' ? (
+              <Box
+                sx={{
+                  bgcolor: '#FFFFFF',
+                  p: '16px',
+                  borderRadius: '8px',
+                  width: '345px',
+                  height: 'calc(100dvh - 190px)',
+                  overflowY: 'auto',
+                  '&::-webkit-scrollbar': {
+                    width: 0,
+                    height: 0
+                  },
+                  '-ms-overflow-style': 'none',
+                  scrollbarWidth: 'none'
+                }}
+              >
+                <Box
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    border: '1px solid #C3CEC7',
+                    borderRadius: '4px',
+                    padding: '0 8px',
+                    height: '40px',
+                    mb: 4
+                  }}
+                >
+                  <Icon icon='mi:search' color={theme.palette.customColors.OnSurfaceVariant} />
+                  <TextField
+                    variant='outlined'
+                    placeholder='Search'
+                    value={searchQuery}
+                    onChange={handleSearch}
+                    InputProps={{
+                      disableUnderline: false
+                    }}
                     sx={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      border: '1px solid #C3CEC7',
-                      borderRadius: '4px',
-                      padding: '0 8px',
-                      height: '40px',
-                      mb: 4
+                      '& .MuiOutlinedInput-root': {
+                        border: 'none',
+                        padding: '0',
+                        '& fieldset': {
+                          border: 'none'
+                        }
+                      }
+                    }}
+                  />
+                </Box>
+                <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
+                  <Checkbox
+                    checked={isAllSitesSelected}
+                    indeterminate={selectedOptions['Sites']?.length > 0 && !isAllSitesSelected}
+                    inputProps={{ 'aria-label': 'controlled' }}
+                    onChange={handleSiteSelectAll}
+                  />
+                  <Typography sx={{ fontSize: '16px', fontWeight: 400, color: '#839D8D' }}>Select All</Typography>
+                </Box>
+                <Divider sx={{ mb: 3 }} />
+                {filteredSitesList?.map(site => (
+                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }} key={site?.site_id}>
+                    <Checkbox
+                      inputProps={{ 'aria-label': 'controlled' }}
+                      checked={selectedOptions['Sites']?.includes(site?.site_id)}
+                      onChange={() => handleCheckbox(site?.site_id, 'Sites')}
+                    />
+                    <Typography sx={{ fontSize: '16px', fontWeight: 400, color: '#839D8D' }}>
+                      {site?.site_name}
+                    </Typography>
+                  </Box>
+                ))}
+              </Box>
+            ) : selectedMenu.name === 'Species' ? (
+              <Box
+                sx={{
+                  bgcolor: '#FFFFFF',
+                  p: '16px',
+                  borderRadius: '8px',
+                  width: '345px',
+                  height: 'calc(100dvh - 190px)',
+                  overflowY: 'auto',
+                  '&::-webkit-scrollbar': {
+                    width: 0,
+                    height: 0
+                  },
+                  '-ms-overflow-style': 'none',
+                  scrollbarWidth: 'none'
+                }}
+                onScroll={handleScrollforTaxonomy}
+              >
+                <Box
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    border: '1px solid #C3CEC7',
+                    borderRadius: '4px',
+                    padding: '0 8px',
+                    height: '40px',
+                    mb: 4
+                  }}
+                >
+                  <Icon icon='mi:search' color={theme.palette.customColors.OnSurfaceVariant} />
+                  <TextField
+                    variant='outlined'
+                    placeholder='Search'
+                    value={searchTaxonomyQuery}
+                    onChange={event => {
+                      handleTaxonomySearch(event.target.value)
+                    }}
+                    InputProps={{
+                      disableUnderline: false
+                    }}
+                    sx={{
+                      '& .MuiOutlinedInput-root': {
+                        border: 'none',
+                        padding: '0',
+                        '& fieldset': {
+                          border: 'none'
+                        }
+                      }
+                    }}
+                  />
+                </Box>
+                <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
+                  <Checkbox
+                    checked={isAllSpeciesSelected}
+                    indeterminate={selectedOptions['Species']?.length > 0 && !isAllSpeciesSelected}
+                    inputProps={{ 'aria-label': 'controlled' }}
+                    onChange={handleSpeciesSelectAll}
+                  />
+                  <Typography sx={{ fontSize: '16px', fontWeight: 400, color: '#839D8D' }}>Select All</Typography>
+                </Box>
+                <Divider sx={{ mb: 3 }} />
+                {speciesList?.map(type => (
+                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }} key={type?.id}>
+                    <Checkbox
+                      inputProps={{ 'aria-label': 'controlled' }}
+                      checked={selectedOptions['Species']?.includes(type?.tsn)}
+                      onChange={() => handleCheckbox(type?.tsn, 'Species')}
+                    />
+                    <Typography sx={{ fontSize: '16px', fontWeight: 400, color: '#839D8D' }}>
+                      {type?.scientific_name}
+                    </Typography>
+                  </Box>
+                ))}
+                {taxonomyLoading && (
+                  <Box sx={{ display: 'flex', alignItems: 'center' }}>
+                    <CircularProgress color='success' size={20} sx={{ margin: '0 auto' }} />
+                  </Box>
+                )}
+              </Box>
+            ) : selectedMenu.name === 'Drug Type' ? (
+              <Box
+                sx={{
+                  bgcolor: '#FFFFFF',
+                  p: '16px',
+                  borderRadius: '8px',
+                  width: '345px',
+                  height: 'calc(100dvh - 190px)',
+                  overflowY: 'auto',
+                  '&::-webkit-scrollbar': {
+                    width: 0,
+                    height: 0
+                  },
+                  '-ms-overflow-style': 'none',
+                  scrollbarWidth: 'none'
+                }}
+              >
+                <FormControl fullWidth>
+                  <Select
+                    value={selectedOptions['Drug Type'] || 'all'}
+                    onChange={handleDrugTypeChange}
+                    sx={{
+                      '& .MuiSelect-select': {
+                        fontSize: '16px',
+                        fontWeight: 400,
+                        color: '#839D8D'
+                      }
                     }}
                   >
-                    <Icon icon='mi:search' color={theme.palette.customColors.OnSurfaceVariant} />
-                    <TextField
-                      variant='outlined'
-                      placeholder='Search'
-                      value={searchQuery}
-                      onChange={handleSearch}
-                      InputProps={{
-                        disableUnderline: false
-                      }}
-                      sx={{
-                        '& .MuiOutlinedInput-root': {
-                          border: 'none',
-                          padding: '0',
-                          '& fieldset': {
-                            border: 'none'
-                          }
-                        }
-                      }}
-                    />
-                  </Box>
-                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-                    <Checkbox
-                      checked={isAllSitesSelected}
-                      indeterminate={selectedOptions['Sites']?.length > 0 && !isAllSitesSelected}
-                      inputProps={{ 'aria-label': 'controlled' }}
-                      onChange={handleSiteSelectAll}
-                    />
-                    <Typography sx={{ fontSize: '16px', fontWeight: 400, color: '#839D8D' }}>Select All</Typography>
-                  </Box>
-                  <Divider sx={{ mb: 3 }} />
-                  {filteredSitesList?.map(site => (
-                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }} key={site?.site_id}>
-                      <Checkbox
-                        inputProps={{ 'aria-label': 'controlled' }}
-                        checked={selectedOptions['Sites']?.includes(site?.site_id)}
-                        onChange={() => handleCheckbox(site?.site_id, 'Sites')}
-                      />
-                      <Typography sx={{ fontSize: '16px', fontWeight: 400, color: '#839D8D' }}>
-                        {site?.site_name}
-                      </Typography>
-                    </Box>
-                  ))}
-                </>
-              ) : selectedMenu.name === 'Product Type' ? (
-                <>
-                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-                    <Checkbox
-                      checked={isAllProductTypesSelected}
-                      indeterminate={selectedOptions['Product Type']?.length > 0 && !isAllProductTypesSelected}
-                      inputProps={{ 'aria-label': 'controlled' }}
-                      onChange={handleProductTypeSelectAll}
-                    />
-                    <Typography sx={{ fontSize: '16px', fontWeight: 400, color: '#839D8D' }}>Select All</Typography>
-                  </Box>
-                  <Divider sx={{ mb: 3 }} />
-                  {productTypes?.map(type => (
-                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }} key={type?.id}>
-                      <Checkbox
-                        inputProps={{ 'aria-label': 'controlled' }}
-                        checked={selectedOptions['Product Type']?.includes(type?.id)}
-                        onChange={() => handleCheckbox(type?.id, 'Product Type')}
-                      />
-                      <Typography sx={{ fontSize: '16px', fontWeight: 400, color: '#839D8D' }}>{type?.name}</Typography>
-                    </Box>
-                  ))}
-                </>
-              ) : selectedMenu.name === 'Drug Type' ? (
-                <>
-                  <FormControl fullWidth>
-                    <Select
-                      value={selectedOptions['Drug Type'] || 'all'}
-                      onChange={handleDrugTypeChange}
-                      sx={{
-                        '& .MuiSelect-select': {
+                    {drugTypeOptions.map(option => (
+                      <MenuItem
+                        key={option.id}
+                        value={option.id}
+                        sx={{
                           fontSize: '16px',
                           fontWeight: 400,
                           color: '#839D8D'
-                        }
-                      }}
-                    >
-                      {drugTypeOptions.map(option => (
-                        <MenuItem
-                          key={option.id}
-                          value={option.id}
-                          sx={{
-                            fontSize: '16px',
-                            fontWeight: 400,
-                            color: '#839D8D'
-                          }}
-                        >
-                          {option.name}
-                        </MenuItem>
-                      ))}
-                    </Select>
-                  </FormControl>
-                </>
-              ) : null}
-            </Box>
+                        }}
+                      >
+                        {option.name}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Box>
+            ) : null}
+            {/* </Box> */}
           </Grid>
         </Grid>
       </Box>
