@@ -62,37 +62,37 @@ const CustomOptionDateRangePickers = ({
       },
       {
         label: 'Next 2 days',
-        subLabel: `${format(today, 'dd MMM yyyy')} - ${format(addDays(today, 2), 'dd MMM yyyy')}`,
+        subLabel: `${format(addDays(today, 1), 'dd MMM yyyy')} - ${format(addDays(today, 2), 'dd MMM yyyy')}`,
         startDate: addDays(today, 1),
         endDate: addDays(today, 2)
       },
       {
         label: 'Next 3 days',
-        subLabel: `${format(today, 'dd MMM yyyy')} - ${format(addDays(today, 3), 'dd MMM yyyy')}`,
+        subLabel: `${format(addDays(today, 1), 'dd MMM yyyy')} - ${format(addDays(today, 3), 'dd MMM yyyy')}`,
         startDate: addDays(today, 1),
         endDate: addDays(today, 3)
       },
       {
         label: 'Next 4 days',
-        subLabel: `${format(today, 'dd MMM yyyy')} - ${format(addDays(today, 4), 'dd MMM yyyy')}`,
+        subLabel: `${format(addDays(today, 1), 'dd MMM yyyy')} - ${format(addDays(today, 4), 'dd MMM yyyy')}`,
         startDate: addDays(today, 1),
         endDate: addDays(today, 4)
       },
       {
         label: 'Next 5 days',
-        subLabel: `${format(today, 'dd MMM yyyy')} - ${format(addDays(today, 5), 'dd MMM yyyy')}`,
+        subLabel: `${format(addDays(today, 1), 'dd MMM yyyy')} - ${format(addDays(today, 5), 'dd MMM yyyy')}`,
         startDate: addDays(today, 1),
         endDate: addDays(today, 5)
       },
       {
         label: 'Next 6 days',
-        subLabel: `${format(today, 'dd MMM yyyy')} - ${format(addDays(today, 6), 'dd MMM yyyy')}`,
+        subLabel: `${format(addDays(today, 1), 'dd MMM yyyy')} - ${format(addDays(today, 6), 'dd MMM yyyy')}`,
         startDate: addDays(today, 1),
         endDate: addDays(today, 6)
       },
       {
         label: 'Next 7 days',
-        subLabel: `${format(today, 'dd MMM yyyy')} - ${format(addDays(today, 7), 'dd MMM yyyy')}`,
+        subLabel: `${format(addDays(today, 1), 'dd MMM yyyy')} - ${format(addDays(today, 7), 'dd MMM yyyy')}`,
         startDate: addDays(today, 1),
         endDate: addDays(today, 7)
       }
@@ -212,7 +212,7 @@ const CustomOptionDateRangePickers = ({
     } else {
       // Proceed if dates are present
       const { startDate: startDateProp, endDate: endDateProp } = filterDates
-
+      debugger
       if (startDateProp && endDateProp) {
         const startDate = startDateProp instanceof Date ? startDateProp : new Date(startDateProp)
         const endDate = endDateProp instanceof Date ? endDateProp : new Date(endDateProp)
