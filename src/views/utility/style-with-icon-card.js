@@ -3,8 +3,6 @@ import { Box, Grid, Typography, Avatar, Tooltip } from '@mui/material'
 import Icon from 'src/@core/components/icon'
 
 const StyleWithIconCardComponent = ({ value, description, icon, bgColor, onClick, showIcon, customCss }) => {
-  console.log('customCss', customCss)
-
   return (
     <Grid item xs={12} sm={6} md={4}>
       <Box

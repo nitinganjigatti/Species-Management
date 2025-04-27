@@ -22,11 +22,12 @@ import Icon from 'src/@core/components/icon'
 import RenderUtility from 'src/utility/render'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import { getStoreList } from 'src/lib/api/pharmacy/getStoreList'
-import { ConsumptionReportDrawer } from 'src/views/pages/pharmacy/reports/ConsumptionReportDrawer'
+
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import { format, subMonths } from 'date-fns'
 import StyleWithIconCardComponent from 'src/views/utility/style-with-icon-card'
 import { ExportButton, FilterButton } from 'src/views/utility/render-snippets'
+import ConsumptionReportDrawer from 'src/views/pages/pharmacy/reports/ConsumptionReportDrawer'
 
 const productTypes = [
   { id: 'allopathy', name: 'Allopathy' },
