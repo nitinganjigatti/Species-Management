@@ -244,20 +244,20 @@ const Diet = () => {
     },
     {
       //flex: 0.3,
-      width: 100,
+      width: 130,
       field: 'no_meals',
-      headerName: 'No meals',
+      headerName: 'No of combos',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary', pl: 3 }}>
-          {params.row.num_meals ? params.row.num_meals : '-'}
+          {params.row.combo ? params.row.combo : '-'}
         </Typography>
       )
     },
     {
       //flex: 0.3,
-      width: 100,
+      width: 120,
       field: 'no_recipe',
-      headerName: 'No Recipe',
+      headerName: 'No of Recipes',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary', pl: 3 }}>
           {params.row.recipe ? params.row.recipe : '-'}
