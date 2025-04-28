@@ -35,14 +35,28 @@ const RequestDetailsScreen = () => {
     [router]
   )
 
+  // useEffect(() => {
+  //   if (detailsTab !== router.query.mainTab) {
+  //     // debugger
+  //     updateUrlParams({
+  //       mainTab: detailsTab
+  //     })
+  //   }
+  // }, [detailsTab])
+
   useEffect(() => {
-    if (detailsTab !== router.query.mainTab) {
-      // debugger
-      updateUrlParams({
-        mainTab: detailsTab
-      })
+    if (router.isReady) {
+      if (router.query.mainTab && typeof router.query.mainTab === 'string') {
+        setDetailsTab(router.query.mainTab)
+      }
     }
-  }, [detailsTab])
+  }, [router.isReady])
+
+  useEffect(() => {
+    if (detailsTab && detailsTab !== router.query.mainTab) {
+      updateUrlParams({ mainTab: detailsTab })
+    }
+  }, [updateUrlParams, detailsTab])
 
   const TabBadge = ({ label, totalCount }) => (
     <div style={{ display: 'flex', alignItems: 'center', justifyItems: 'center', justifyContent: 'space-between' }}>
@@ -97,9 +111,9 @@ const RequestDetailsScreen = () => {
               onChange={(event, newValue) => {
                 console.log('new tab value: ', newValue)
                 setDetailsTab(newValue)
-                updateUrlParams({
-                  mainTab: newValue
-                })
+                // updateUrlParams({
+                //   mainTab: newValue
+                // })
               }}
             >
               <Tab
