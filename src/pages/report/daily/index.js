@@ -16,7 +16,14 @@ import {
 import { DataGrid } from '@mui/x-data-grid'
 import { forwardRef, useState, useRef } from 'react'
 import SingleDatePicker from 'src/components/SingleDatePicker'
-import { getAnimalReport, getReportTitle, getUserReport, getMedicalReport } from 'src/lib/api/report'
+import {
+  getAnimalReport,
+  getReportTitle,
+  getUserReport,
+  getMedicalReport,
+  getAnimalAssessment,
+  getEnclosureAssessment
+} from 'src/lib/api/report'
 import { AuthContext } from 'src/context/AuthContext'
 import Error404 from 'src/pages/404'
 
@@ -132,6 +139,10 @@ const Animal = () => {
         response = await getUserReport(params)
       } else if (type === 'medical_report') {
         response = await getMedicalReport(params)
+      } else if (type === 'animal_assessment') {
+        response = await getAnimalAssessment(params)
+      } else if (type === 'enclosure_assessment') {
+        response = await getEnclosureAssessment(params)
       } else {
         response = await getAnimalReport(params)
       }
