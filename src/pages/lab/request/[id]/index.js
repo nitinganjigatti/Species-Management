@@ -311,9 +311,12 @@ const RequestDetails = () => {
     const params = {
       test_ids: labId
     }
+    const requestData = request
     await getLabListByMultipleIds(id, params).then(res => {
-      // console.log('res', res?.data)
-      setLab(res?.data)
+      const labList = res?.data?.filter(labListItem => {
+        return labListItem.lab_id != requestData[0]?.lab_id
+      })
+      setLab(labList)
     })
   }
 
@@ -788,7 +791,7 @@ const RequestDetails = () => {
   const schema = yup.object().shape({
     lab_name: yup.string(),
     replaced_lab_id: yup.string().required('Transfer to is required'),
-    transfer_reason: yup.string().required('Transfer reason is required')
+    transfer_reason: yup.string().trim().required('Transfer reason is required')
   })
 
   const {
@@ -848,6 +851,7 @@ const RequestDetails = () => {
       const res = await postBulkTransfer({ params: testId.length ? payloadSingle : payloadMulti })
       if (res?.success) {
         handleCloseTransfer()
+
         Toaster({ type: 'success', message: res.message })
         reset({
           replaced_lab_id: '',
@@ -860,7 +864,7 @@ const RequestDetails = () => {
           replaced_lab_id: '',
           transfer_reason: ''
         })
-        Toaster({ type: 'error', message: res.message })
+        Toaster({ type: 'error', message: res.message.transfer_reason })
       }
     }
   }
