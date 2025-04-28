@@ -106,7 +106,9 @@ const IncubatorDetails = () => {
 
   // Utility Functions
   const calculatePercentageChange = (value1, value2) => {
+    // initial_weight
     const numValue1 = parseFloat(value1)
+    // current_weight
     const numValue2 = parseFloat(value2)
 
     const difference = numValue2 - numValue1
@@ -326,21 +328,24 @@ const IncubatorDetails = () => {
           }}
         >
           {params.row.current_weight ? params.row.current_weight : '-'}{' '}
-          {calculatePercentageChange(params.row.initial_weight, params.row.current_weight) != 0 && (
+          {params.row.initial_weight && params.row.current_weight ? (
             <span
               style={{
                 borderLeft: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                 paddingLeft: 4,
                 color:
-                  calculatePercentageChange(params.row.initial_weight, params.row.current_weight) > 0
+                  calculatePercentageChange(Number(params.row.initial_weight), Number(params.row.current_weight)) > 0
                     ? theme.palette.primary.main
-                    : calculatePercentageChange(params.row.initial_weight, params.row.current_weight) < 0
+                    : calculatePercentageChange(Number(params.row.initial_weight), Number(params.row.current_weight)) <
+                      0
                     ? theme.palette.formContent.tertiary
                     : theme.palette.customColors.neutralSecondary
               }}
             >
-              {calculatePercentageChange(params.row.initial_weight, params.row.current_weight)}%
+              {calculatePercentageChange(Number(params.row.initial_weight), Number(params.row.current_weight))}%
             </span>
+          ) : (
+            '-'
           )}
         </Typography>
       )
