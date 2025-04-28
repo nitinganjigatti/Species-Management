@@ -16,8 +16,10 @@ import { AuthContext } from 'src/context/AuthContext'
 import Error404 from 'src/pages/404'
 import AddMortalityReasons from 'src/views/pages/lab/mortality-reason'
 import TableWithFilter from 'src/components/TableWithFilter'
+import { useTheme } from '@mui/material/styles'
 
 const MortalityReason = () => {
+  const theme = useTheme()
   const authData = useContext(AuthContext)
   const [openDrawer, setOpenDrawer] = useState(false)
   const [rows, setRows] = useState([])
@@ -163,7 +165,7 @@ const MortalityReason = () => {
     //           height: 30,
     //           mr: 4,
     //           borderRadius: '50%',
-    //           background: '#E8F4F2',
+    //           background: theme.palette.customColors.displaybgPrimary,
     //           overflow: 'hidden'
     //         }}
     //       >
@@ -181,7 +183,7 @@ const MortalityReason = () => {
     //         <Typography noWrap variant='body2' sx={{ color: 'text.primary', fontSize: 14 }}>
     //           {params.row.created_by_user?.user_name ? params.row.created_by_user?.user_name : '-'}
     //         </Typography>
-    //         <Typography noWrap variant='body2' sx={{ color: '#44544a9c', fontSize: 12 }}>
+    //         <Typography noWrap variant='body2' sx={{ color:  theme.palette.customColors.neutralSecondary, fontSize: 12 }}>
     //           {params.row.created_at ? moment(params.row.created_at).format('DD/MM/YYYY') : '-'}
     //         </Typography>
     //       </Box>

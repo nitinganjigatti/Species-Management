@@ -17,8 +17,8 @@ const ProductsChart = ({
   lineColor,
   seriesBarName,
   seriesLineName,
-  countLabel,
-  valueLabel
+  barLabel,
+  lineLabel
 }) => {
   const theme = useTheme()
 
@@ -55,9 +55,11 @@ const ProductsChart = ({
   const barData = monthsFromApi?.map(
     month => parseFloat(data?.[seriesBarName?.toLowerCase()?.replace(' ', '_')][0][month]) / 100000 || 0
   )
+
   const lineData = monthsFromApi?.map(
     month => parseInt(data?.[seriesLineName?.toLowerCase().replace(' ', '_')][0][month]) || 0
   )
+
   // Convert full month names to short month names for the x-axis labels
   const shortMonths = monthsFromApi?.map(month => {
     const [monthName, year] = month?.split(' ')
@@ -97,13 +99,16 @@ const ProductsChart = ({
           if (series[seriesIndex]?.name === seriesLineName) {
             return value.toFixed(0)
           }
+
           return `₹${value.toFixed(2)} lac`
         }
       }
     },
+
     // dataLabels: { enabled: false },
     stroke: {
-      width: [0, 3],
+      // width: [0, 3],
+      width: series.map(s => (s.type === 'line' ? 3 : 0)),
       curve: 'smooth',
       colors: [barColor, lineColor]
     },
@@ -111,10 +116,14 @@ const ProductsChart = ({
       show: true,
       padding: { left: 24, top: -4, right: 4 }
     },
+
     // fill: {
     //   type: 'solid',
     //   colors: ['#FA6140']
     // },
+    dataLabels: {
+      enabled: false
+    },
     xaxis: { categories: shortMonths, labels: { rotate: -45, show: true } },
     yaxis: [
       showBar
@@ -207,8 +216,6 @@ const ProductsChart = ({
           <FormControlLabel
             control={
               <Checkbox
-                // checked={showDispatchCount}
-                // onChange={() => setShowDispatchCount(prev => !prev)}
                 checked={showBar}
                 onChange={() => setShowBar(!showBar)}
                 color='primary'
@@ -218,13 +225,11 @@ const ProductsChart = ({
                 }}
               />
             }
-            label={<span style={{ fontSize: '12px' }}>{countLabel}</span>}
+            label={<span style={{ fontSize: '12px' }}>{barLabel}</span>}
           />
           <FormControlLabel
             control={
               <Checkbox
-                // checked={showDispatchValue}
-                // onChange={() => setShowDispatchValue(prev => !prev)}
                 checked={showLine}
                 onChange={() => setShowLine(!showLine)}
                 color='primary'
@@ -234,7 +239,7 @@ const ProductsChart = ({
                 }}
               />
             }
-            label={<span style={{ fontSize: '12px' }}>{valueLabel}</span>}
+            label={<span style={{ fontSize: '12px' }}>{lineLabel}</span>}
           />
         </Box>
         {/* <ReactApexcharts

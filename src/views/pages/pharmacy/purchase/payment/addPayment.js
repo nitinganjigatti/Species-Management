@@ -341,11 +341,30 @@ const AddPayment = props => {
 
   const schema = yup.object().shape({
     supplier_id: yup.string().required('Supplier name is required'),
-    date: yup.string().required('Date required'),
-    total_due_amount: yup.string().required('Total due amount is required'),
-    amount: yup.string().required('Amount is required'),
+    date: yup
+      .string()
+      .required('Date required')
+      .test('is-valid-date', 'Invalid date format', value => {
+        return !isNaN(Date.parse(value)) // Basic date validation
+      }),
+    total_due_amount: yup
+      .number()
+      .typeError('Total due amount must be a number')
+      .required('Total due amount is required')
+      .positive('Amount must be positive'),
+    amount: yup
+      .number()
+      .typeError('Amount must be a number')
+      .required('Amount is required')
+      .positive('Amount must be positive'),
     payment_mode: yup.string().required('Payment method is required'),
-    txn_no: values.payment_mode === 'online' ? yup.required('Payment id is required') : yup.string().nullable()
+    txn_no: yup
+      .string()
+      .nullable()
+      .when('payment_mode', {
+        is: 'online',
+        then: schema => schema.required('Payment id is required')
+      })
   })
 
   const {

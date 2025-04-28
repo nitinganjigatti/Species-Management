@@ -142,7 +142,10 @@ const IncubatorDetails = () => {
         status: active ? 'deactivate' : 'activate'
       }).then(response => {
         if (response.success) {
-          Toaster({ type: 'success', message: response.message })
+          Toaster({
+            type: 'success',
+            message: active ? 'Incubator Deactivated Successfully' : 'Incubator Activated Successfully'
+          })
           setOpenStatusDialog(false)
           setStatusLoading(false)
           setActive(!active)
@@ -244,7 +247,7 @@ const IncubatorDetails = () => {
                   params.row.egg_status === 'Fresh' || params.row.egg_status === 'Fertile'
                     ? theme.palette.primary.dark
                     : params.row.egg_status === 'Discard'
-                    ? '#fa6140'
+                    ? theme.palette.customColors.Tertiary
                     : params.row.egg_status === 'Hatched'
                     ? theme.palette.primary.main
                     : null,
@@ -253,12 +256,12 @@ const IncubatorDetails = () => {
                 px: 3,
                 backgroundColor:
                   params.row.egg_status === 'Discard'
-                    ? '#FFD3D3'
+                    ? theme.palette.customColors.AntzTertiary
                     : params.row.egg_status === 'Fresh' ||
                       params.row.egg_status === 'Fertile' ||
                       params.row.egg_status === 'Hatched'
-                    ? '#EFF5F2'
-                    : '#EFF5F2',
+                    ? theme.palette.customColors.lightBg
+                    : theme.palette.customColors.lightBg,
 
                 // textAlign: 'center',
                 borderRadius: '4px',
@@ -326,7 +329,7 @@ const IncubatorDetails = () => {
           {calculatePercentageChange(params.row.initial_weight, params.row.current_weight) != 0 && (
             <span
               style={{
-                borderLeft: `1px solid #bdc7c0`,
+                borderLeft: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                 paddingLeft: 4,
                 color:
                   calculatePercentageChange(params.row.initial_weight, params.row.current_weight) > 0
@@ -523,7 +526,7 @@ const IncubatorDetails = () => {
                 width: 30,
                 height: 30,
                 borderRadius: '50%',
-                background: '#E8F4F2',
+                background: theme.palette.customColors.displaybgPrimary,
                 overflow: 'hidden'
               }}
             >
@@ -796,7 +799,7 @@ const IncubatorDetails = () => {
                       Transfer
                     </Typography>
                     <Icon
-                      color='#00AFD6'
+                      color={theme.palette.customColors.addPrimary}
                       style={{ cursor: 'pointer', color: theme.palette.primary.main, transform: 'rotateY(180deg)' }}
                       icon='akar-icons:arrow-repeat'
                       fontSize={24}
@@ -826,7 +829,7 @@ const IncubatorDetails = () => {
                         height: 30,
                         mr: 4,
                         borderRadius: '50%',
-                        background: '#E8F4F2',
+                        background: theme.palette.customColors.displaybgPrimary,
                         overflow: 'hidden'
                       }}
                     ></Avatar>
@@ -879,7 +882,7 @@ const IncubatorDetails = () => {
                     sx={{
                       display: 'flex',
                       alignItems: 'center',
-                      border: '1px solid #C3CEC7',
+                      border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                       borderRadius: '4px',
                       padding: '0 8px',
                       height: '40px'
@@ -909,8 +912,8 @@ const IncubatorDetails = () => {
                     <LocalizationProvider dateAdapter={AdapterDayjs}>
                       <DatePicker
                         sx={{
-                          backgroundColor: '#fff',
-                          borderColor: '1px solid #C3CEC7',
+                          backgroundColor: theme.palette.primary.contrastText,
+                          borderColor: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                           width: '100%',
                           '& .MuiOutlinedInput-root': {
                             height: 40,
@@ -973,7 +976,7 @@ const IncubatorDetails = () => {
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
-                          backgroundColor: '#fff',
+                          backgroundColor: theme.palette.primary.contrastText,
                           cursor: 'pointer',
                           width: '36px',
                           height: '36px',
@@ -992,8 +995,8 @@ const IncubatorDetails = () => {
                     <LocalizationProvider dateAdapter={AdapterDayjs}>
                       <DatePicker
                         sx={{
-                          backgroundColor: '#fff',
-                          borderColor: '1px solid #C3CEC7',
+                          backgroundColor: theme.palette.primary.contrastText,
+                          borderColor: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                           width: '100%',
                           '& .MuiOutlinedInput-root': {
                             height: 40,
@@ -1058,7 +1061,7 @@ const IncubatorDetails = () => {
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
-                          backgroundColor: '#fff',
+                          backgroundColor: theme.palette.primary.contrastText,
                           cursor: 'pointer',
                           width: '36px',
                           height: '36px',
@@ -1095,8 +1098,8 @@ const IncubatorDetails = () => {
                       renderInput={params => (
                         <TextField
                           sx={{
-                            backgroundColor: '#fff',
-                            borderColor: '1px solid #C3CEC7',
+                            backgroundColor: theme.palette.primary.contrastText,
+                            borderColor: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                             width: '100%',
                             '& .MuiOutlinedInput-root': {
                               height: 40,

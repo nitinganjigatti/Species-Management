@@ -24,8 +24,8 @@ const EditRedirectionDialog = ({
           gap: '24px'
         }}
       >
-        <Box sx={{ bgcolor: '#ffe5e5', p: '16px', borderRadius: '12px', mt: 10 }}>
-          <Icon icon='tdesign:error-triangle' fontSize={'48px'} color={'#E93353'} />
+        <Box sx={{ bgcolor: theme.palette.customColors.TertiaryLight, p: '16px', borderRadius: '12px', mt: 10 }}>
+          <Icon icon='tdesign:error-triangle' fontSize={'48px'} color={theme.palette.customColors.Error} />
         </Box>
 
         <Box>

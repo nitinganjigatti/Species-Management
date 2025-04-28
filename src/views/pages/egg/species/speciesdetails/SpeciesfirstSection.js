@@ -27,10 +27,17 @@ const SpeciesfirstSection = ({ eggDetails }) => {
           >
             Species Egg Module
           </Typography>
-          <Box sx={{ backgroundColor: '#F2FFF8', borderRadius: '8px' }}>
+          <Box sx={{ backgroundColor: theme.palette.customColors.Surface, borderRadius: '8px' }}>
             <CardContent sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <Box sx={{ display: 'flex', gap: '12px' }}>
-                <Box sx={{ height: '64px', width: '64px', borderRadius: '8px', bgcolor: '#FFE86E' }}>
+                <Box
+                  sx={{
+                    height: '64px',
+                    width: '64px',
+                    borderRadius: '8px',
+                    bgcolor: theme.palette.customColors.antzNotes80
+                  }}
+                >
                   <img src='/icons/Incubator_CON.png' alt='incubator' style={{ height: '100%', width: '100%' }} />
                 </Box>
                 <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
@@ -71,7 +78,7 @@ const SpeciesfirstSection = ({ eggDetails }) => {
                 </Typography>
                 <Typography
                   sx={{
-                    color: '#006D35',
+                    color: theme.palette.primary.dark,
                     fontWeight: 500,
                     fontSize: '16px',
                     lineHeight: '19.36px'
@@ -94,7 +101,7 @@ const SpeciesfirstSection = ({ eggDetails }) => {
                 </Typography>
                 <Typography
                   sx={{
-                    color: '#006D35',
+                    color: theme.palette.primary.dark,
                     fontWeight: 500,
                     fontSize: '16px',
                     lineHeight: '19.36px'
@@ -117,7 +124,7 @@ const SpeciesfirstSection = ({ eggDetails }) => {
                 </Typography>
                 <Typography
                   sx={{
-                    color: '#006D35',
+                    color: theme.palette.primary.dark,
                     fontWeight: 500,
                     fontSize: '16px',
                     lineHeight: '19.36px'
@@ -140,7 +147,7 @@ const SpeciesfirstSection = ({ eggDetails }) => {
                 </Typography>
                 <Typography
                   sx={{
-                    color: '#006D35',
+                    color: theme.palette.primary.dark,
                     fontWeight: 500,
                     fontSize: '16px',
                     lineHeight: '19.36px'
@@ -163,7 +170,7 @@ const SpeciesfirstSection = ({ eggDetails }) => {
                 </Typography>
                 <Typography
                   sx={{
-                    color: '#37BD69',
+                    color: theme.palette.primary.main,
                     fontWeight: 500,
                     fontSize: '16px',
                     lineHeight: '19.36px'
@@ -186,7 +193,7 @@ const SpeciesfirstSection = ({ eggDetails }) => {
                 </Typography>
                 <Typography
                   sx={{
-                    color: '#FA6140',
+                    color: theme.palette.customColors.Tertiary,
                     fontWeight: 500,
                     fontSize: '16px',
                     lineHeight: '19.36px'

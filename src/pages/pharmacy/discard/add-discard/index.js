@@ -10,10 +10,10 @@ import TableBody from '@mui/material/TableBody'
 import Typography from '@mui/material/Typography'
 import Box from '@mui/material/Box'
 import CardContent from '@mui/material/CardContent'
-import { styled, useTheme } from '@mui/material/styles'
+import { styled } from '@mui/material/styles'
 import TableContainer from '@mui/material/TableContainer'
 import TableCell from '@mui/material/TableCell'
-import { Button, CardHeader, Drawer } from '@mui/material'
+import { Button, CardHeader, CircularProgress, Drawer, Tooltip } from '@mui/material'
 import IconButton from '@mui/material/IconButton'
 import FormHelperText from '@mui/material/FormHelperText'
 import TextField from '@mui/material/TextField'
@@ -21,6 +21,7 @@ import FormControl from '@mui/material/FormControl'
 import InputLabel from '@mui/material/InputLabel'
 import Select from '@mui/material/Select'
 import MenuItem from '@mui/material/MenuItem'
+import { useTheme } from '@emotion/react'
 
 import Router from 'next/router'
 import { useRouter } from 'next/router'
@@ -63,8 +64,9 @@ import Icon from 'src/@core/components/icon'
 import { AddButton, RequestCancelButton } from 'src/components/Buttons'
 import RenderUtility from 'src/utility/render'
 import { alpha, Stack } from '@mui/system'
-import { AddButtonContained } from 'src/components/ButtonContained'
+import { AddButtonContained, ExcelExportButton } from 'src/components/ButtonContained'
 import TextEllipsisWithModal from 'src/components/TextEllipsisWithModal'
+import { ExportButton } from 'src/views/utility/render-snippets'
 
 const editParamsInitialState = {
   supplier_id: '',
@@ -104,6 +106,7 @@ const AddDiscardProducts = () => {
   const [submitLoader, setSubmitLoader] = useState(false)
   const [duplicateMedError, setDuplicateMedError] = useState(false)
   const [supplierList, setSupplierList] = useState([])
+  const [excelLoader, setExcelLoader] = useState(false)
 
   const [nestedRowMedicine, setNestedRowMedicine] = useState(initialNestedRowMedicine)
   const [visibleExpiryField, setVisibleExpiryField] = useState(false)
@@ -113,6 +116,7 @@ const AddDiscardProducts = () => {
 
   const router = useRouter()
   const { id, action } = router.query
+  const theme = useTheme()
 
   const { selectedPharmacy } = usePharmacyContext()
 
@@ -497,7 +501,7 @@ const AddDiscardProducts = () => {
     //       toast.success(response?.msg)
     //       setSubmitLoader(false)
     //       getListOfItemsById(id)
-    //       Router.push(`/pharmacy/discard/discard-list`)
+    //       Router.push(`/pharmacy/discard/`)
     //     } else {
     //       setSubmitLoader(false)
     //       toast.error(response?.msg)
@@ -512,7 +516,7 @@ const AddDiscardProducts = () => {
         toast.success(response?.msg)
         setEditParams(editParamsInitialState)
         setSubmitLoader(false)
-        Router.push(`/pharmacy/discard/discard-list`)
+        Router.push(`/pharmacy/discard/`)
       } else {
         setSubmitLoader(false)
         toast.error(response?.message)
@@ -540,6 +544,58 @@ const AddDiscardProducts = () => {
 
   console.log(selectedComment)
 
+  // const headerAction = (
+  //   <ExcelExportButton
+  //     disabled={total === 0}
+  //     action={() => {
+  //       getAddDiscardData()
+  //     }}
+  //     loader={excelLoader}
+  //     title='Download'
+  //     fullWidth='fullWidth'
+  //   />
+  // )
+
+  console.log('Supplier >>', supplierList)
+
+  const getAddDiscardData = async () => {
+    try {
+      setExcelLoader(true)
+      const response = await getDiscardItemsListById(id)
+      console.log('Response inventory>', response)
+
+      if (response?.success === true && response?.data?.item_details?.length > 0) {
+        setExcelLoader(false)
+        const supplierId = response?.data?.supplier_id || null
+
+        const discardDate = response?.data?.discarded_date
+          ? formatDate(response?.data?.discarded_date) // Ensure date is formatted
+          : 'N/A'
+
+        // Find Supplier Name from supplierList using supplier_id
+        const supplierName = supplierList.find(supplier => supplier.id === supplierId)?.company_name || 'N/A'
+
+        const data = response?.data?.item_details.map(el => ({
+          ['Stock Name']: el?.stock_name,
+          ['Manufacture Name']: el?.manufacturer_name,
+          ['Batch No']: el?.batch_no,
+          ['Expiry Date']: el?.expiry_date,
+          ['Quantity']: el?.quantity,
+          ['Supplier Name']: supplierName, // Attach the found Supplier Name
+          ['Discard Date']: discardDate, // Attach formatted Discard Date
+          ['Reason']: el?.reason,
+          ['Stock Type']: el?.stock_type
+        }))
+
+        Utility.exportToCSV(data, 'Discarditems')
+      } else {
+        console.log('No data available for export.')
+      }
+    } catch (error) {
+      console.log('Error >>', error)
+    }
+  }
+
   return (
     <>
       {selectedPharmacy.type === 'central' &&
@@ -547,26 +603,39 @@ const AddDiscardProducts = () => {
         <Card>
           <Grid
             container
-            sm={12}
-            xs={12}
             sx={{
               display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center'
+              alignItems: 'center',
+              justifyContent: 'space-between'
             }}
           >
             <CardHeader
-              avatar={
-                <Icon
-                  style={{ cursor: 'pointer' }}
-                  onClick={() => {
-                    // Router.push('/pharmacy/discard/discard-list')
-                    Router.back()
-                  }}
-                  icon='ep:back'
-                />
+              sx={{
+                width: '100%', // Ensures full width
+                display: 'flex',
+                flexDirection: 'row',
+                alignItems: 'center',
+                padding: '16px'
+              }}
+              avatar={<Icon style={{ cursor: 'pointer' }} onClick={() => Router.back()} icon='ep:back' />}
+              title={
+                <Box>
+                  {' '}
+                  {/* Title takes full available space */}
+                  Return To Supplier
+                </Box>
               }
-              title='Return To Supplier'
+              action={
+                <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+                  <ExportButton loading={excelLoader} onClick={getAddDiscardData} disabled={''} />
+                  {/* <ExcelExportButton
+                    action={() => getAddDiscardData()}
+                    title='Download'
+                    loader={excelLoader}
+                    sx={{ minWidth: 120 }} // Consistent button size
+                  /> */}
+                </Box>
+              }
             />
           </Grid>
 

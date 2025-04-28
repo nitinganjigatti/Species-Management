@@ -27,16 +27,26 @@ const RequestDetailsScreen = () => {
     storeName: ''
   })
 
-  const updateUrlParams = useCallback(params => {
-    // debugger
-    const newQuery = { ...router.query, ...params }
-    router.replace({ pathname: router.pathname, query: newQuery }, undefined)
-  }, [])
+  const updateUrlParams = useCallback(
+    params => {
+      const newQuery = { ...router.query, ...params }
+      router.replace({ pathname: router.pathname, query: newQuery }, undefined, { shallow: true })
+    },
+    [router]
+  )
 
   useEffect(() => {
-    updateUrlParams({
-      mainTab: detailsTab
-    })
+    if (router.query.mainTab && router.query.mainTab !== detailsTab) {
+      setDetailsTab(router.query.mainTab)
+    }
+  }, [router.query.mainTab])
+
+  useEffect(() => {
+    if (detailsTab !== router.query.mainTab) {
+      updateUrlParams({
+        mainTab: detailsTab
+      })
+    }
   }, [detailsTab])
 
   const TabBadge = ({ label, totalCount }) => (
@@ -86,6 +96,8 @@ const RequestDetailsScreen = () => {
         >
           <TabContext value={detailsTab}>
             <TabList
+              variant='scrollable'
+              allowScrollButtonsMobile
               sx={{ borderBottom: `1px solid ${theme.palette.customColors.neutral05} !important` }}
               onChange={(event, newValue) => {
                 console.log('new tab value: ', newValue)

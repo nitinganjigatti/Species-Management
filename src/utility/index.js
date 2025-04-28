@@ -3,6 +3,7 @@ import toast from 'react-hot-toast'
 import FileSaver from 'file-saver'
 import * as XLSX from 'xlsx'
 import CustomAvatar from 'src/@core/components/mui/avatar'
+import CryptoJS from 'crypto-js'
 
 const formatDate = dateString => {
   if (dateString !== null) {
@@ -181,13 +182,14 @@ function formatAmountToReadableDigit(value) {
   // return '0'
 }
 
-const downloadFileFromURL = async (fileUrl, title = 'report') => {
+const downloadFileFromURL = async (fileUrl, title = '') => {
   if (!fileUrl) {
     console.error('No file URL provided')
 
     return
   }
   try {
+    const fileType = fileUrl.split('.').pop()
     const fileExtension = fileUrl.split('/')
     const fetchResponse = await fetch(fileUrl)
     if (!fetchResponse.ok) {
@@ -195,7 +197,12 @@ const downloadFileFromURL = async (fileUrl, title = 'report') => {
     }
     const blob = await fetchResponse.blob()
     const url = window.URL.createObjectURL(blob)
-    const fileName = `${fileExtension[fileExtension.length - 1]}`
+
+    const fileName = `${
+      title !== ''
+        ? `${title.toLowerCase().replace(/\s+/g, '-')}-report.${fileType}`
+        : fileExtension[fileExtension.length - 1]
+    }`
     const link = document.createElement('a')
     link.href = url
     link.download = fileName
@@ -240,6 +247,17 @@ function formatAmountCompactDisplay(value) {
   return `${Number(roundedNum)}`
 }
 
+const SECRET_KEY = 'Antz-Vantara'
+
+const encryptData = data => {
+  return CryptoJS.AES.encrypt(JSON.stringify(data), SECRET_KEY).toString()
+}
+
+const decryptData = cipherText => {
+  const bytes = CryptoJS.AES.decrypt(cipherText, SECRET_KEY)
+  return JSON.parse(bytes.toString(CryptoJS.enc.Utf8))
+}
+
 const Utility = {
   formatDate,
   formatNumber,
@@ -261,7 +279,9 @@ const Utility = {
   formatText,
   toPascalSentenceCase,
   renderUserAvatar,
-  formatAmountCompactDisplay
+  formatAmountCompactDisplay,
+  encryptData,
+  decryptData
 }
 
 export default Utility

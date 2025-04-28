@@ -372,7 +372,7 @@ const SpeciesDetail = () => {
                 height: 30,
                 mr: 4,
                 borderRadius: '50%',
-                background: '#E8F4F2',
+                background: theme.palette.customColors.displaybgPrimary,
                 overflow: 'hidden'
               }}
             >
@@ -391,7 +391,11 @@ const SpeciesDetail = () => {
                 {params.row.user_full_name}
               </Typography>
               {console.log(params, 'params')}
-              <Typography noWrap variant='body2' sx={{ color: '#44544a9c', fontSize: 12 }}>
+              <Typography
+                noWrap
+                variant='body2'
+                sx={{ color: theme.palette.customColors.neutralSecondary, fontSize: 12 }}
+              >
                 Created on {moment(params.row.created_at).format('D MMM YYYY')}
               </Typography>
             </Box>
@@ -399,7 +403,7 @@ const SpeciesDetail = () => {
         )
       }
 
-      console.log(columns, 'columns')
+      // console.log(columns, 'columns')
 
       // Adding custom renderCell for "Egg Number" column to display EggNumber and egg_status
       const eggnumberByColumn = columns.find(column => column.field === 'egg_code')
@@ -409,7 +413,7 @@ const SpeciesDetail = () => {
           //   <Avatar
           //     variant='square'
           //     alt='Medicine Image'
-          //     sx={{ width: 40, height: 40, mr: 4, background: '#E8F4F2', borderRadius: '4px' }}
+          //     sx={{ width: 40, height: 40, mr: 4, background: theme.palette.customColors.displaybgPrimary, borderRadius: '4px' }}
           //     src={params.row.image ? params.row.image : '/icons/Egg_icon.png'}
           //   >
           //     {params.row.image ? null : <Icon icon='healthicons:fruits-outline' />}
@@ -418,7 +422,7 @@ const SpeciesDetail = () => {
           //     <Typography
           //       noWrap
           //       variant='body2'
-          //       sx={{ color: 'text.primary', fontSize: '14px', fontWeight: '500', color: '#006D35' }}
+          //       sx={{ color: 'text.primary', fontSize: '14px', fontWeight: '500', color: theme.palette.primary.dark }}
           //     >
           //       {params.row.egg_code}
           //     </Typography>
@@ -426,9 +430,9 @@ const SpeciesDetail = () => {
           //       noWrap
           //       variant='body2'
           //       sx={{
-          //         color: '#37BD69',
+          //         color: theme.palette.primary.main,
           //         fontSize: '13px',
-          //         background: '#E1F9ED',
+          //         background: theme.palette.customColors.OnBackground,
           //         borderRadius: '3px',
           //         fontWeight: 600,
           //         mt: 1,
@@ -456,7 +460,7 @@ const SpeciesDetail = () => {
       const stageColumn = columns.find(column => column.field === 'Stage')
       if (stageColumn) {
         stageColumn.renderCell = params => (
-          <Typography noWrap variant='body2' sx={{ color: '#006D35', fontSize: 14, fontWeight: 500 }}>
+          <Typography noWrap variant='body2' sx={{ color: theme.palette.primary.dark, fontSize: 14, fontWeight: 500 }}>
             {params.row.egg_status ? params.row.egg_status : '-'}
           </Typography>
         )
@@ -466,7 +470,7 @@ const SpeciesDetail = () => {
       const conditionColumn = columns.find(column => column.field === 'egg_condition')
       if (conditionColumn) {
         conditionColumn.renderCell = params => (
-          <Typography noWrap variant='body2' sx={{ color: '#006D35', fontSize: 14, fontWeight: 500 }}>
+          <Typography noWrap variant='body2' sx={{ color: theme.palette.primary.dark, fontSize: 14, fontWeight: 500 }}>
             {params.row.egg_condition ? params.row.egg_condition : '-'}
           </Typography>
         )
@@ -476,9 +480,9 @@ const SpeciesDetail = () => {
       const currentweightColumn = columns.find(column => column.field === 'current_weight')
       if (currentweightColumn) {
         currentweightColumn.renderCell = params => (
-          <Typography noWrap variant='body2' sx={{ color: '#1F415B' }}>
+          <Typography noWrap variant='body2' sx={{ color: theme.palette.customColors.OnSecondaryContainer }}>
             {params.row.current_weight ? params.row.current_weight : '-'}
-            {/* |{' '}<span style={{ color: '#37BD69', fontSize: 14, fontWeight: 600 }}>-5%</span> */}
+            {/* |{' '}<span style={{ color: theme.palette.primary.main, fontSize: 14, fontWeight: 600 }}>-5%</span> */}
           </Typography>
         )
       }
@@ -487,7 +491,7 @@ const SpeciesDetail = () => {
       const EnclosureColumn = columns.find(column => column.field === 'enclosure_code')
       if (EnclosureColumn) {
         EnclosureColumn.renderCell = params => (
-          <Typography noWrap variant='body2' sx={{ color: '#006D35', fontSize: 14, fontWeight: 500 }}>
+          <Typography noWrap variant='body2' sx={{ color: theme.palette.primary.dark, fontSize: 14, fontWeight: 500 }}>
             {params.row.enclosure_code}
           </Typography>
         )

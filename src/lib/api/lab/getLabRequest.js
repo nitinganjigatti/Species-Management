@@ -141,3 +141,9 @@ export async function postBulkTransfer({ params }) {
 
   return response.data
 }
+
+export async function postComment(id, params) {
+  const response = await axiosPost({ url: `/medical/update-notes/${id}`, body: params })
+
+  return response.data
+}

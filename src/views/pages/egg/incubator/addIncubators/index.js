@@ -13,6 +13,7 @@ import { Autocomplete, FormControl, FormHelperText, Typography, debounce } from 
 import * as yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
 import { Controller, useForm } from 'react-hook-form'
+import { useTheme } from '@mui/material/styles'
 
 import { GetNurseryList } from 'src/lib/api/egg/nursery'
 import { GetRoomList } from 'src/lib/api/egg/room/getRoom'
@@ -29,6 +30,7 @@ const AddIncubators = ({
   handleSidebarClose,
   detailsApi
 }) => {
+  const theme = useTheme()
   const router = useRouter()
   const { id } = router.query
 
@@ -235,9 +237,9 @@ const AddIncubators = ({
                 border: 1,
                 px: '16px',
                 py: '24px',
-                borderColor: '#C3CEC7',
+                borderColor: theme.palette.customColors.OutlineVariant,
                 borderRadius: '8px',
-                backgroundColor: '#fff',
+                backgroundColor: theme.palette.primary.contrastText,
                 display: 'flex',
                 flexDirection: 'column',
                 gap: '24px'

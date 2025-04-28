@@ -250,31 +250,58 @@ const ConditionSlider = ({
     }
   }, [statusID, eggMaster])
 
-  const { getRootProps, getInputProps } = useDropzone({
-    multiple: false,
-    accept: {
-      'image/*': ['.png', '.jpg', '.jpeg', '.gif']
-    },
-    onDrop: acceptedFiles => {
-      const reader = new FileReader()
-      const files = acceptedFiles
-      if (files && files.length !== 0) {
-        reader.onload = () => {
-          setImgSrc(pre => [...pre, reader?.result])
-        }
-        setDisplayFile(files[0]?.name)
-        reader?.readAsDataURL(files[0])
-        setImgArr(pre => [...pre, files[0]])
-        setValue('image', files)
+  // const { getRootProps, getInputProps } = useDropzone({
+  //   multiple: false,
+  //   accept: {
+  //     'image/*': ['.png', '.jpg', '.jpeg', '.gif']
+  //   },
+  //   onDrop: acceptedFiles => {
+  //     const reader = new FileReader()
+  //     const files = acceptedFiles
+  //     if (files && files.length !== 0) {
+  //       reader.onload = () => {
+  //         setImgSrc(pre => [...pre, reader?.result])
+  //       }
+  //       setDisplayFile(files[0]?.name)
+  //       reader?.readAsDataURL(files[0])
+  //       setImgArr(pre => [...pre, files[0]])
+  //       setValue('image', files)
 
-        clearErrors('image')
-      }
-    }
-  })
+  //       clearErrors('image')
+  //     }
+  //   }
+  // })
 
   // if (watch('accessionType') != '2') {
   //   clearErrors('institution')
   // }
+  const { getRootProps, getInputProps } = useDropzone({
+    multiple: true, // changed to true for multiple files
+    accept: {
+      'image/*': ['.png', '.jpg', '.jpeg', '.gif']
+    },
+    onDrop: acceptedFiles => {
+      acceptedFiles.forEach(file => {
+        const reader = new FileReader()
+
+        reader.onload = () => {
+          setImgSrc(prev => [...prev, reader.result])
+        }
+
+        reader.readAsDataURL(file)
+      })
+
+      // Update filenames as comma-separated string
+      const fileNames = acceptedFiles.map(file => file.name).join(', ')
+      setDisplayFile(fileNames)
+
+      // Add all files to imgArr state
+      setImgArr(prev => [...prev, ...acceptedFiles])
+
+      setValue('image', acceptedFiles)
+      clearErrors('image')
+    }
+  })
 
   const onError = errors => {
     console.log('Form errros', errors)
@@ -284,25 +311,75 @@ const ConditionSlider = ({
     fileInputRef?.current?.click()
   }
 
+  // const handleInputImageChange = file => {
+  //   const reader = new FileReader()
+  //   const { files } = file.target
+  //   // console.log('files :>> ', files)
+  //   if (files && files.length !== 0) {
+  //     reader.onload = () => {
+  //       setImgSrc(pre => [...pre, reader?.result])
+  //     }
+  //     console.log('files', files)
+  //     setDisplayFile(files[0]?.name)
+  //     reader?.readAsDataURL(files[0])
+  //     setImgArr(pre => [...pre, files[0]])
+  //     setValue('image', files)
+  //     clearErrors('image')
+  //   }
+  // }
+
   const handleInputImageChange = file => {
-    const reader = new FileReader()
     const { files } = file.target
-    // console.log('files :>> ', files)
+
     if (files && files.length !== 0) {
-      reader.onload = () => {
-        setImgSrc(pre => [...pre, reader?.result])
-      }
-      setDisplayFile(files[0]?.name)
-      reader?.readAsDataURL(files[0])
-      setImgArr(pre => [...pre, files[0]])
+      Array.from(files).forEach(fileItem => {
+        const reader = new FileReader()
+
+        reader.onload = () => {
+          setImgSrc(prev => [...prev, reader.result])
+        }
+
+        reader.readAsDataURL(fileItem)
+
+        setImgArr(prev => [...prev, fileItem])
+      })
+
+      // Display filenames as comma-separated string
+      const fileNames = Array.from(files)
+        .map(f => f.name)
+        .join(', ')
+      setDisplayFile(fileNames)
+
       setValue('image', files)
       clearErrors('image')
     }
   }
 
+  // const removeSelectedImage = index => {
+  //   setImgSrc(prevImages => prevImages.filter((_, i) => i !== index))
+  //   setValue('image', '')
+  // }
+
   const removeSelectedImage = index => {
     setImgSrc(prevImages => prevImages.filter((_, i) => i !== index))
-    setValue('image', '')
+    setImgArr(prevArr => prevArr.filter((_, i) => i !== index))
+
+    // Update the form value accordingly
+    setValue(
+      'image',
+      imgArr.filter((_, i) => i !== index)
+    )
+
+    // If no images left, optionally reset display filename
+    if (imgArr.length === 1) {
+      setDisplayFile('')
+      setValue('image', '')
+    } else {
+      setDisplayFile(prev => {
+        const updatedFiles = prev.split(', ').filter((_, i) => i !== index)
+        return updatedFiles.join(', ')
+      })
+    }
   }
 
   const onSubmit = values => {
@@ -657,10 +734,10 @@ const ConditionSlider = ({
               <Box className='sidebar-body' sx={{ px: '24px', overflowY: 'auto' }}>
                 <Box
                   sx={{
-                    background: '#fff',
+                    background: theme.palette.primary.contrastText,
                     borderRadius: '8px',
                     border: 1,
-                    borderColor: '#c3cec7',
+                    borderColor: theme.palette.customColors.OutlineVariant,
                     py: '20px',
                     px: '16px'
                   }}
@@ -865,10 +942,10 @@ const ConditionSlider = ({
                   sx={{
                     mt: 6,
                     mb: isAnimal || statusID === '3' ? 3 : 35,
-                    background: '#fff',
+                    background: theme.palette.primary.contrastText,
                     borderRadius: '8px',
                     border: 1,
-                    borderColor: '#c3cec7',
+                    borderColor: theme.palette.customColors.OutlineVariant,
                     py: '20px',
                     px: '16px'
                   }}
@@ -901,6 +978,7 @@ const ConditionSlider = ({
                     <Grid item md={12} sm={12} xs={12}>
                       <input
                         type='file'
+                        multiple
                         accept='image/*'
                         onChange={e => handleInputImageChange(e)}
                         style={{ display: 'none' }}
@@ -916,7 +994,6 @@ const ConditionSlider = ({
                           alignItems: 'center',
                           gap: 7,
                           height: 70,
-
                           border: `2px solid ${theme.palette.customColors.trackBg}`,
                           borderRadius: 1,
                           padding: 3
@@ -966,7 +1043,7 @@ const ConditionSlider = ({
                                 >
                                   <Icon
                                     icon='material-symbols-light:close'
-                                    color='#fff'
+                                    color={theme.palette.primary.contrastText}
                                     onClick={() => removeSelectedImage(index)}
                                   >
                                     {' '}
@@ -978,7 +1055,7 @@ const ConditionSlider = ({
                       </Stack>
                     </Grid>
                   </Grid>
-                  {console.log('permission check', checkAddPermission())}
+                  {/* {console.log('permission check', checkAddPermission())} */}
                   {statusID === '4' && checkAddPermission() && (
                     <Box sx={{ mt: 3, p: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <Typography sx={{ fontWeight: 500 }}>Add this as an animal</Typography>
@@ -1001,10 +1078,10 @@ const ConditionSlider = ({
                       flexDirection: 'column',
                       gap: 3,
                       mb: 35,
-                      bgcolor: '#fff',
+                      bgcolor: theme.palette.primary.contrastText,
                       borderRadius: '8px',
                       border: 1,
-                      borderColor: '#c3cec7'
+                      borderColor: theme.palette.customColors.OutlineVariant
                     }}
                   >
                     <Typography variant='h6'>Necropsy Needed ?</Typography>
@@ -1032,7 +1109,7 @@ const ConditionSlider = ({
                                   flexGrow: 1,
                                   gap: 2,
                                   border: 1,
-                                  borderColor: '#c5c6cd',
+                                  borderColor: theme.palette.customColors.OutlineVariant,
                                   p: 2,
                                   borderRadius: '5px',
                                   justifyContent: 'space-between'
@@ -1049,7 +1126,7 @@ const ConditionSlider = ({
                                   flexGrow: 1,
                                   gap: 2,
                                   border: 1,
-                                  borderColor: '#c5c6cd',
+                                  borderColor: theme.palette.customColors.OutlineVariant,
                                   p: 2,
                                   borderRadius: '5px',
                                   justifyContent: 'space-between'
@@ -1073,10 +1150,10 @@ const ConditionSlider = ({
                     <Box
                       fullWidth
                       sx={{
-                        background: '#fff',
+                        background: theme.palette.primary.contrastText,
                         borderRadius: '8px',
                         border: 1,
-                        borderColor: '#c3cec7',
+                        borderColor: theme.palette.customColors.OutlineVariant,
                         py: '20px',
                         px: '16px'
                       }}
@@ -1282,7 +1359,7 @@ const ConditionSlider = ({
                                       <InputAdornment position='end'>
                                         <Icon
                                           icon={'material-symbols:add-circle-outline'}
-                                          style={{ color: '#37BD69' }}
+                                          style={{ color: theme.palette.primary.main }}
                                         ></Icon>
                                       </InputAdornment>
                                     )

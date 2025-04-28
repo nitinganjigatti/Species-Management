@@ -201,7 +201,7 @@ const ListOfRacks = () => {
       flex: 0.1,
       Width: 40,
       field: 'uid',
-      headerName: 'S.NO ',
+      headerName: 'SL.NO',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.uid + '.'}
@@ -301,7 +301,9 @@ const ListOfRacks = () => {
             fontFamily: 'Inter'
           }}
         >
-          {params.row.status}
+          {params.row.status
+            ? params.row.status.charAt(0).toUpperCase() + params.row.status.slice(1).toLowerCase()
+            : ''}
         </Typography>
       )
     },

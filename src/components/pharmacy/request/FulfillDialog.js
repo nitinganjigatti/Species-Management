@@ -45,7 +45,7 @@ import { useRouter } from 'next/router'
 import { border, color, width } from '@mui/system'
 import { he } from 'date-fns/locale'
 
-const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDetails }) => {
+const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDetails, reqColor }) => {
   const defaultValues = {
     product_batches: [
       {
@@ -1065,7 +1065,7 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
                                             fontSize: '12px',
                                             fontWeight: '400',
                                             lineHeight: '14.52px',
-                                            color: 'error.main'
+                                            color: reqColor ? 'primary.main' : 'error.main'
                                           }}
                                         >
                                           Availability:
@@ -1075,7 +1075,7 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
                                               fontSize: '12px',
 
                                               fontWeight: '600',
-                                              color: 'error.main',
+                                              color: reqColor ? 'primary.main' : 'error.main',
                                               lineHeight: '14.52px'
                                             }}
                                           >
@@ -1162,10 +1162,12 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
                                 disabled
                                 value={value}
                                 label='Variant'
+                                type='text'
                                 onChange={onChange}
                                 sx={{ backgroundColor: 'white', borderRadius: 1 }}
                                 error={Boolean(errors?.product_batches?.[index]?.multiplier)}
                                 name={`product_batches[${index}].multiplier`}
+                                InputLabelProps={{ shrink: true }}
                               />
                             )}
                           />
