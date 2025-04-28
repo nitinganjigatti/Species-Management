@@ -4,7 +4,6 @@ import {
   GetRequestDetails,
   GetRequestPopUp,
   transferLab,
-  getNoOfLab,
   UpdateStatus,
   DeleteLAbRequestAttachment,
   GetLabListByTestId,
@@ -54,7 +53,9 @@ import {
   Divider,
   Tooltip,
   DialogContent,
-  Toolbar
+  Toolbar,
+  Avatar,
+  GridRowParams
 } from '@mui/material'
 import IconButton from '@mui/material/IconButton'
 import Router from 'next/router'
@@ -73,6 +74,8 @@ import AnimalCard from 'src/views/pages/lab/AnimalCard'
 import { borderColor, width } from '@mui/system'
 import AnimalParentCard from 'src/views/utility/animalParentCard'
 import AnimalSideSheet from 'src/views/pages/lab/AnimalSideSheet'
+import CommentSideSheet from 'src/views/pages/lab/CommentSideSheet'
+import MedicalRecordNotes from 'src/components/lab/request/MedicalRecordNotes'
 
 const statusData = [
   { id: 'awaiting_sample', name: 'Awaiting Sample' },
@@ -126,6 +129,8 @@ const RequestDetails = () => {
 
   const [permissions, setPermissions] = useState(null)
 
+  // console.log('permissions', permissions)
+
   // const storedData = JSON.parse(localStorage.getItem('userDetails'))
 
   const [status, setStatus] = React.useState('awaiting_sample')
@@ -135,6 +140,7 @@ const RequestDetails = () => {
   const PrvLabId = request[0]?.lab_id
 
   const [lab, setLab] = React.useState([])
+  const [parentLab, setParentLab] = useState(null)
 
   /***** Serverside pagination */
   const [total, setTotal] = useState(0)
@@ -151,13 +157,13 @@ const RequestDetails = () => {
   const [labId, setLab_id] = useState('')
 
   const [fileId, setFileId] = useState()
-  const [file, setFile] = useState([])
+
   const [testName, setTestName] = useState()
 
   const [testSampleName, setTestSampleName] = useState('')
 
   const [showTestFile, setShowTestFile] = useState(false)
-  const [transferTestId, setTransferTestId] = useState('')
+
   const [headerStatus, setHeaderStatus] = useState('awaiting_sample')
 
   const [selectedRow, setSelectedRow] = useState([])
@@ -166,6 +172,11 @@ const RequestDetails = () => {
   const [hasCompletedStatus, setHasCompletedStatus] = useState(true)
   const [allCompleted, setAllCompleted] = useState(false)
   const [openAnimalSheet, setOpenAnimalSheet] = useState(false)
+  const [openCommentSheet, setOpenCommentSheet] = useState(false)
+  const [CommentData, setCommentData] = useState({})
+  const [medicalRecordNotes, setMedicalRecordNotes] = useState([])
+
+  // console.log('CommentData', CommentData)
 
   useEffect(() => {
     const labObject = localLabData?.find(item => item?.lab_id === lab_id)
@@ -279,7 +290,7 @@ const RequestDetails = () => {
 
       const requestData = response?.data?.result || []
       const testReports = requestData[0]?.test_reports || []
-
+      setParentLab(response?.data?.result[0]?.lab_id)
       setLab_id(requestData[0]?.lab_id)
       setAnimalId(requestData[0]?.animal_details?.animal_id)
       setLabRequestId(requestData[0]?.request_id)
@@ -292,9 +303,10 @@ const RequestDetails = () => {
       setDocument(requestData[0]?.files?.files)
       setMedicalDocument(requestData[0]?.medical_attachements?.files)
       setMedicalImage(requestData[0]?.medical_attachements?.images)
+      setMedicalRecordNotes(requestData[0]?.medical_attachements?.notes)
 
       // ✅ API call ke baad `allCompleted` ko update karein
-      setAllCompleted(testReports.every(row => row.status.startsWith('completed')))
+      setAllCompleted(testReports.some(row => row.status.startsWith('completed')))
     } catch (error) {
       console.error('Error fetching data:', error)
     } finally {
@@ -312,7 +324,8 @@ const RequestDetails = () => {
 
   const getAccessLabs = async (id, labId) => {
     const params = {
-      test_ids: labId
+      test_ids: labId,
+      lab_id: parentLab
     }
     await getLabListByMultipleIds(id, params).then(res => {
       // console.log('res', res?.data)
@@ -330,8 +343,6 @@ const RequestDetails = () => {
 
     setOpenTransfer(true)
     setTestId([params?.row?.id])
-
-    setTransferTestId(params?.row?.test_id)
     const labTestId = [params?.row?.id]
     setTransferStatus(params?.row?.status)
     if (selectedRow?.length === 1) {
@@ -389,7 +400,6 @@ const RequestDetails = () => {
   const handleOpenPopOver = (event, params) => {
     setAnchorEl(event.currentTarget)
     setTestId(params?.row?.id)
-    setTransferTestId(params?.row?.test_id)
     setTransferStatus(params?.row?.status)
     setTestName(params?.row?.test_name)
   }
@@ -419,12 +429,43 @@ const RequestDetails = () => {
           ['awaiting_sample', 'sample_received', 'sample_rejected', 'inprogress'].includes(item.id)
         )
 
+  const shouldShowDropdown =
+    permissions?.allow_full_access ||
+    (permissions?.perform_tests && permissions?.allow_upload_reports) ||
+    (permissions?.perform_tests && !permissions?.allow_upload_reports)
+
+  // &&
+  // params.row.status.split(' ')[0] !== 'completed'
+
+  console.log('shouldShowDropdown', shouldShowDropdown)
+
+  const handleOpenCommentSheet = (e, params) => {
+    console.log('params', params)
+    setOpenCommentSheet(true)
+    setCommentData(params)
+  }
+
+  const handleRowPermission = ({ params }) => {
+    if (
+      permissions?.perform_tests &&
+      !permissions?.allow_upload_reports &&
+      !permissions?.allow_full_access &&
+      !params.row.status.includes('completed')
+    ) {
+      return true
+    } else if ((permissions?.perform_tests && permissions?.allow_upload_reports) || permissions?.allow_full_access) {
+      return true
+    } else {
+      return false
+    }
+  }
+
   const columns = [
     // {
     //   flex: 0.05,
     //   Width: 40,
     //   field: 'id',
-    //   headerName: 'SL ',
+    //    headerName:'SL.NO',
     //   renderCell: params => (
     //     <Typography variant='body2' sx={{ color: 'text.primary' }}>
     //       {parseInt(params.row.sl_no)}
@@ -466,7 +507,7 @@ const RequestDetails = () => {
       renderCell: params => (
         <>
           <Box sx={{ minWidth: 260 }}>
-            {permissions?.allow_full_access || permissions?.perform_tests ? (
+            {shouldShowDropdown && handleRowPermission({ params }) ? (
               <FormControl fullWidth variant='outlined'>
                 <Select
                   size='small'
@@ -497,14 +538,14 @@ const RequestDetails = () => {
                       params.row.status === 'transferred' ||
                       params.row.status === 'awaiting_sample' ||
                       params.row.status === 'sample_rejected'
-                        ? '#FA6140'
+                        ? theme.palette.formContent.tertiary
                         : params.row.status === 'completed'
-                        ? '#37BD69'
+                        ? theme.palette.primary.main
                         : params.row.status === 'inprogress'
-                        ? '#E4B819 '
+                        ? theme.palette.customColors.moderateSecondary
                         : params.row.status === 'sample_received'
-                        ? '#37BD69'
-                        : '#37BD69',
+                        ? theme.palette.primary.main
+                        : theme.palette.primary.main,
 
                     borderRadius: '8px',
                     '& .MuiSelect-icon': {
@@ -513,14 +554,14 @@ const RequestDetails = () => {
                         params.row.status === 'transferred' ||
                         params.row.status === 'awaiting_sample' ||
                         params.row.status === 'sample_rejected'
-                          ? '#FA6140'
+                          ? theme.palette.formContent.tertiary
                           : params.row.status === 'completed'
-                          ? '#37BD69'
+                          ? theme.palette.primary.main
                           : params.row.status === 'inprogress'
-                          ? '#E4B819'
+                          ? theme.palette.customColors.moderateSecondary
                           : params.row.status === 'sample_received'
-                          ? '#37BD69'
-                          : '#37BD69'
+                          ? theme.palette.primary.main
+                          : theme.palette.primary.main
                     },
 
                     '&:hover .MuiOutlinedInput-notchedOutline': {
@@ -532,12 +573,12 @@ const RequestDetails = () => {
                       //   params.row.status === 'awaiting_sample' ||
                       //   params.row.status === 'sample_rejected' ||
                       //   params.row.status === 'sample_received'
-                      //     ? '#FA6140' // Custom red border for these statuses
+                      //     ? theme.palette.formContent.tertiary // Custom red border for these statuses
                       //     : params.row.status === 'completed'
-                      //     ? '#37BD69' // Custom green border for completed
+                      //     ? theme.palette.primary.main // Custom green border for completed
                       //     : params.row.status === 'inprogress'
-                      //     ? '#E4B819' // Custom yellow border for in progress
-                      //     : '#37BD69' // Default green border
+                      //     ? theme.palette.customColors.moderateSecondary // Custom yellow border for in progress
+                      //     : theme.palette.primary.main // Default green border
                     },
 
                     '& .MuiOutlinedInput-notchedOutline': {
@@ -562,14 +603,14 @@ const RequestDetails = () => {
                       params.row.status === 'transferred' ||
                       params.row.status === 'awaiting_sample' ||
                       params.row.status === 'sample_rejected'
-                        ? '#FA6140'
+                        ? theme.palette.formContent.tertiary
                         : params.row.status === 'completed'
-                        ? '#37BD69'
+                        ? theme.palette.primary.main
                         : params.row.status === 'inprogress'
-                        ? '#E4B819 '
+                        ? theme.palette.customColors.moderateSecondary
                         : params.row.status === 'sample_received'
-                        ? '#37BD69'
-                        : '#37BD69'
+                        ? theme.palette.primary.main
+                        : theme.palette.primary.main
                   }}
                 >
                   {params.row.status === 'awaiting_sample'
@@ -687,31 +728,59 @@ const RequestDetails = () => {
                       )}
                     </>
                     <>
-                      {(permissions?.allow_full_access || permissions?.transfer_tests) && (
-                        <Tooltip title='Transfer' arrow placement='top-start'>
-                          <IconButton
-                            variant='outlined'
-                            size='small'
-                            sx={{
-                              p: 2,
-                              '&:hover': {
-                                backgroundColor: 'rgba(68, 84, 74, 0.1)' // Change background color on hover
-                              }
-                            }}
-                            onClick={e => {
-                              e.stopPropagation(), handleOpenTransfer(params)
-                            }}
-                          >
-                            <Icon
-                              icon='mingcute:transfer-3-line'
-                              width='24'
-                              height='24'
-                              color={'rgba(68, 84, 74, 1)'}
-                            />
-                          </IconButton>
-                        </Tooltip>
-                      )}
+                      {(permissions?.allow_full_access || permissions?.transfer_tests) &&
+                        params.row.status.split(' ')[0] !== 'completed' && (
+                          <Tooltip title='Transfer' arrow placement='top-start'>
+                            <IconButton
+                              variant='outlined'
+                              size='small'
+                              sx={{
+                                p: 2,
+                                '&:hover': {
+                                  backgroundColor: 'rgba(68, 84, 74, 0.1)' // Change background color on hover
+                                }
+                              }}
+                              onClick={e => {
+                                e.stopPropagation(), handleOpenTransfer(params)
+                              }}
+                            >
+                              <Icon
+                                icon='mingcute:transfer-3-line'
+                                width='24'
+                                height='24'
+                                color={'rgba(68, 84, 74, 1)'}
+                              />
+                            </IconButton>
+                          </Tooltip>
+                        )}
                     </>
+
+                    {(permissions?.allow_full_access ||
+                      permissions?.perform_tests ||
+                      permissions?.allow_upload_reports) && (
+                      <Tooltip title='Notes' arrow placement='top-start'>
+                        <IconButton
+                          variant='outlined'
+                          size='small'
+                          sx={{
+                            p: 2,
+                            '&:hover': {
+                              backgroundColor: 'rgba(68, 84, 74, 0.1)' // Change background color on hover
+                            }
+                          }}
+                          onClick={e => {
+                            e.stopPropagation(), handleOpenCommentSheet(e, params?.row)
+                          }}
+                        >
+                          <Icon
+                            icon='fluent:comment-note-24-regular'
+                            width='28'
+                            height='28'
+                            color={'rgba(68, 84, 74, 1)'}
+                          />
+                        </IconButton>
+                      </Tooltip>
+                    )}
                   </Stack>
                 </Box>
               </>
@@ -942,6 +1011,7 @@ const RequestDetails = () => {
 
     // Retrieve the complete row data based on selected row IDs
     const selectedRowData = rows.filter(row => rowSelectionModel.includes(row.id))
+
     setSelectedRowData(selectedRowData)
   }
 
@@ -987,6 +1057,18 @@ const RequestDetails = () => {
       setHeaderStatus(value)
       postMultipleStatus(selectedRow, value)
     }
+  }
+
+  function extractHoursAndMinutes(date) {
+    //9:21 PM
+    return moment(date).format('hh:mm A')
+  }
+
+  function convertUTCToLocal(date) {
+    var stillUtc = moment.utc(date).toDate()
+    var local = moment(stillUtc).local(true).format('YYYY-MM-DD HH:mm:ss')
+
+    return local
   }
 
   return (
@@ -1036,7 +1118,12 @@ const RequestDetails = () => {
                         Request ID -{' '}
                         <span
                           onClick={() => handleClickOpen(item)}
-                          style={{ fontSize: '20px', fontWeight: 'bold', cursor: 'pointer', color: '#37BD69' }}
+                          style={{
+                            fontSize: '20px',
+                            fontWeight: 'bold',
+                            cursor: 'pointer',
+                            color: theme.palette.primary.main
+                          }}
                         >
                           {item?.request_id}
                         </span>
@@ -1045,7 +1132,13 @@ const RequestDetails = () => {
                     <Box sx={{ display: 'flex', flexDirection: 'column', flexWrap: 'wrap' }}>
                       <Typography>
                         Medical Record :{' '}
-                        <span style={{ fontSize: '15px', fontWeight: 'bold', color: '#7A8684' }}>
+                        <span
+                          style={{
+                            fontSize: '15px',
+                            fontWeight: 'bold',
+                            color: theme.palette.customColors.secondaryBg
+                          }}
+                        >
                           {item?.medical_record_code}
                         </span>
                       </Typography>
@@ -1053,7 +1146,13 @@ const RequestDetails = () => {
                     <Box sx={{ display: 'flex', flexDirection: 'column', flexWrap: 'wrap' }}>
                       <Typography>
                         Requested By :{' '}
-                        <span style={{ fontSize: '15px', fontWeight: 'bold', color: '#7A8684' }}>
+                        <span
+                          style={{
+                            fontSize: '15px',
+                            fontWeight: 'bold',
+                            color: theme.palette.customColors.secondaryBg
+                          }}
+                        >
                           {item?.created_by}
                         </span>
                       </Typography>
@@ -1061,7 +1160,11 @@ const RequestDetails = () => {
                     <Typography> {moment(item?.created_at).format('DD MMM YYYY')}</Typography>
                     <Typography>
                       Site :{' '}
-                      <span style={{ fontSize: '15px', fontWeight: 'bold', color: '#7A8684' }}>{item?.site_name}</span>
+                      <span
+                        style={{ fontSize: '15px', fontWeight: 'bold', color: theme.palette.customColors.secondaryBg }}
+                      >
+                        {item?.site_name}
+                      </span>
                     </Typography>
                     <Typography>
                       No. of Tests : <span style={{ fontSize: '15px', fontWeight: 'bold' }}>{item?.total_no_test}</span>
@@ -1074,13 +1177,16 @@ const RequestDetails = () => {
                       display: 'flex',
                       flexDirection: 'row',
                       justifyContent: 'center',
-                      backgroundColor: '#f2f2f2',
+                      backgroundColor: theme.palette.customColors.cardHeaderBg,
                       borderRadius: '8px',
 
                       alignItems: 'center'
                     }}
                   >
-                    <AnimalParentCard data={item?.animal_details[0]} backgroundColor={'#f2f2f2'} />
+                    <AnimalParentCard
+                      data={item?.animal_details[0]}
+                      backgroundColor={theme.palette.customColors.cardHeaderBg}
+                    />
                     {item?.animal_details?.length > 1 && (
                       <Box
                         onClick={() => setOpenAnimalSheet(true)}
@@ -1098,7 +1204,7 @@ const RequestDetails = () => {
                           display: 'flex',
                           justifyContent: 'center',
                           alignItems: 'center',
-                          color: '#37BD69',
+                          color: theme.palette.primary.main,
                           m: 3,
                           p: 3,
                           width: '50px',
@@ -1127,124 +1233,128 @@ const RequestDetails = () => {
               }}
             >
               <Typography sx={{ fontSize: '20px', fontWeight: 500 }}>Lab Tests </Typography>
-              {selectedRow?.length > 0 && (
-                <Box sx={{ display: 'flex', gap: 4, alignItems: 'center' }}>
-                  <Box
-                    sx={{
-                      p: 2,
-                      bgcolor: '#0000000D',
-                      width: '35px',
-                      height: '35px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      borderRadius: '8px'
-                    }}
-                  >
-                    <Typography sx={{ fontSize: '15px', fontWeight: 400 }}>{selectedRow?.length}</Typography>
-                  </Box>
+              {(permissions?.transfer_tests === true ||
+                permissions?.perform_tests === true ||
+                permissions?.allow_upload_reports === true ||
+                permissions?.allow_full_access === true) &&
+                selectedRow?.length > 0 && (
+                  <Box sx={{ display: 'flex', gap: 4, alignItems: 'center' }}>
+                    <Box
+                      sx={{
+                        p: 2,
+                        bgcolor: theme.palette.customColors.mdAntzNeutral,
+                        width: '35px',
+                        height: '35px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        borderRadius: '8px'
+                      }}
+                    >
+                      <Typography sx={{ fontSize: '15px', fontWeight: 400 }}>{selectedRow?.length}</Typography>
+                    </Box>
 
-                  {(permissions?.transfer_tests === true || permissions?.allow_full_access === true) && (
-                    <Button variant='contained' sx={{ display: 'flex', gap: 2 }} onClick={() => handleOpenTransfer()}>
-                      <Icon icon='mingcute:transfer-3-line' width='24px' height='24px' /> Transfer
-                    </Button>
-                  )}
+                    {(permissions?.transfer_tests === true || permissions?.allow_full_access === true) && (
+                      <Button variant='contained' sx={{ display: 'flex', gap: 2 }} onClick={() => handleOpenTransfer()}>
+                        <Icon icon='mingcute:transfer-3-line' width='24px' height='24px' /> Transfer
+                      </Button>
+                    )}
 
-                  <Box>
-                    {(permissions?.allow_full_access || permissions?.perform_tests) && (
-                      <FormControl fullWidth variant='outlined'>
-                        <Select
-                          size='small'
-                          labelId='demo-simple-select-label'
-                          id='demo-simple-select'
-                          // defaultValue={'awaiting_sample'}
-                          value={headerStatus}
-                          onChange={e => handleHeaderDropdown(e)}
-                          sx={{
-                            width: 237,
-                            fontSize: '14px',
+                    <Box>
+                      {(permissions?.allow_full_access || permissions?.perform_tests) && (
+                        <FormControl fullWidth variant='outlined'>
+                          <Select
+                            size='small'
+                            labelId='demo-simple-select-label'
+                            id='demo-simple-select'
+                            // defaultValue={'awaiting_sample'}
+                            value={headerStatus}
+                            onChange={e => handleHeaderDropdown(e)}
+                            sx={{
+                              width: 237,
+                              fontSize: '14px',
 
-                            // border: '1px solid red',
+                              // border: '1px solid red',
 
-                            backgroundColor:
-                              headerStatus === 'pending' ||
-                              headerStatus === 'transferred' ||
-                              headerStatus === 'awaiting_sample' ||
-                              headerStatus === 'sample_rejected'
-                                ? 'rgba(255, 0, 0, 0.1)' // light red background for pending
-                                : headerStatus === 'completed'
-                                ? 'rgba(0, 128, 0, 0.1)' // light green background for completed
-                                : headerStatus === 'inprogress'
-                                ? 'rgba(228, 184, 25, 0.1)'
-                                : headerStatus === 'sample_received'
-                                ? 'rgba(0, 128, 0, 0.1)'
-                                : 'rgba(0, 128, 0, 0.1)',
+                              backgroundColor:
+                                headerStatus === 'pending' ||
+                                headerStatus === 'transferred' ||
+                                headerStatus === 'awaiting_sample' ||
+                                headerStatus === 'sample_rejected'
+                                  ? 'rgba(255, 0, 0, 0.1)' // light red background for pending
+                                  : headerStatus === 'completed'
+                                  ? 'rgba(0, 128, 0, 0.1)' // light green background for completed
+                                  : headerStatus === 'inprogress'
+                                  ? 'rgba(228, 184, 25, 0.1)'
+                                  : headerStatus === 'sample_received'
+                                  ? 'rgba(0, 128, 0, 0.1)'
+                                  : 'rgba(0, 128, 0, 0.1)',
 
-                            color:
-                              headerStatus === 'pending' ||
-                              headerStatus === 'transferred' ||
-                              headerStatus === 'awaiting_sample' ||
-                              headerStatus === 'sample_rejected'
-                                ? '#FA6140'
-                                : headerStatus === 'completed'
-                                ? '#37BD69'
-                                : headerStatus === 'inprogress'
-                                ? '#E4B819 '
-                                : headerStatus === 'sample_received'
-                                ? '#37BD69'
-                                : '#37BD69',
-
-                            borderRadius: '8px',
-
-                            '& .MuiSelect-icon': {
                               color:
                                 headerStatus === 'pending' ||
                                 headerStatus === 'transferred' ||
                                 headerStatus === 'awaiting_sample' ||
                                 headerStatus === 'sample_rejected'
-                                  ? '#FA6140'
+                                  ? theme.palette.formContent.tertiary
                                   : headerStatus === 'completed'
-                                  ? '#37BD69'
+                                  ? theme.palette.primary.main
                                   : headerStatus === 'inprogress'
-                                  ? '#E4B819'
+                                  ? theme.palette.customColors.moderateSecondary
                                   : headerStatus === 'sample_received'
-                                  ? '#37BD69'
-                                  : '#37BD69'
-                            },
+                                  ? theme.palette.primary.main
+                                  : theme.palette.primary.main,
 
-                            '&:hover .MuiOutlinedInput-notchedOutline': {
-                              border: '0',
+                              borderRadius: '8px',
 
-                              borderColor:
-                                headerStatus === 'pending' ||
-                                headerStatus === 'transferred' ||
-                                headerStatus === 'awaiting_sample' ||
-                                headerStatus === 'sample_rejected' ||
-                                headerStatus === 'sample_received'
-                                  ? '#FA6140' // Custom red border for these statuses
-                                  : headerStatus === 'completed'
-                                  ? '#37BD69' // Custom green border for completed
-                                  : headerStatus === 'inprogress'
-                                  ? '#E4B819' // Custom yellow border for in progress
-                                  : '#37BD69' // Default green border
-                            },
+                              '& .MuiSelect-icon': {
+                                color:
+                                  headerStatus === 'pending' ||
+                                  headerStatus === 'transferred' ||
+                                  headerStatus === 'awaiting_sample' ||
+                                  headerStatus === 'sample_rejected'
+                                    ? theme.palette.formContent.tertiary
+                                    : headerStatus === 'completed'
+                                    ? theme.palette.primary.main
+                                    : headerStatus === 'inprogress'
+                                    ? theme.palette.customColors.moderateSecondary
+                                    : headerStatus === 'sample_received'
+                                    ? theme.palette.primary.main
+                                    : theme.palette.primary.main
+                              },
 
-                            '& .MuiOutlinedInput-notchedOutline': {
-                              border: '0'
-                            }
-                          }}
-                        >
-                          {filteredStatusData?.map((item, index) => (
-                            <MenuItem key={index} value={item?.id}>
-                              {item?.name}
-                            </MenuItem>
-                          ))}
-                        </Select>
-                      </FormControl>
-                    )}
+                              '&:hover .MuiOutlinedInput-notchedOutline': {
+                                border: '0',
+
+                                borderColor:
+                                  headerStatus === 'pending' ||
+                                  headerStatus === 'transferred' ||
+                                  headerStatus === 'awaiting_sample' ||
+                                  headerStatus === 'sample_rejected' ||
+                                  headerStatus === 'sample_received'
+                                    ? theme.palette.formContent.tertiary // Custom red border for these statuses
+                                    : headerStatus === 'completed'
+                                    ? theme.palette.primary.main // Custom green border for completed
+                                    : headerStatus === 'inprogress'
+                                    ? theme.palette.customColors.moderateSecondary // Custom yellow border for in progress
+                                    : theme.palette.primary.main // Default green border
+                              },
+
+                              '& .MuiOutlinedInput-notchedOutline': {
+                                border: '0'
+                              }
+                            }}
+                          >
+                            {filteredStatusData?.map((item, index) => (
+                              <MenuItem key={index} value={item?.id}>
+                                {item?.name}
+                              </MenuItem>
+                            ))}
+                          </Select>
+                        </FormControl>
+                      )}
+                    </Box>
                   </Box>
-                </Box>
-              )}
+                )}
             </Box>
 
             <DataGrid
@@ -1252,6 +1362,28 @@ const RequestDetails = () => {
                 permissions?.perform_tests || permissions?.allow_full_access || permissions?.transfer_tests
               }
               onRowSelectionModelChange={handleRowSelection}
+              isRowSelectable={params => {
+                if (
+                  (permissions?.view &&
+                    permissions?.transfer_tests === false &&
+                    permissions?.perform_tests === false &&
+                    permissions?.allow_upload_reports === false &&
+                    permissions?.allow_full_access === false) ||
+                  (permissions?.perform_tests === true &&
+                    permissions?.allow_upload_reports === false &&
+                    permissions?.allow_full_access === false &&
+                    params.row.status.includes('completed')) ||
+                  (permissions?.perform_tests === false &&
+                    permissions?.transfer_tests === true &&
+                    permissions?.allow_upload_reports === false &&
+                    permissions?.allow_full_access === false &&
+                    params.row.status.includes('completed'))
+                ) {
+                  return false
+                } else {
+                  return true
+                }
+              }}
               sx={{
                 '& .MuiDataGrid-row:hover .customButton': {
                   display: 'block'
@@ -1387,10 +1519,31 @@ const RequestDetails = () => {
         </>
       )}
 
+      <Card sx={{ mt: 5 }}>
+        <Box sx={{ py: 5, px: 7 }}>
+          <Box sx={{ display: 'flex', alignItems: 'center', gap: '4px', mb: 3 }}>
+            <Icon icon='gg:notes' width='24' height='24' />
+            <Typography sx={{ fontSize: 20, fontWeight: 500 }}>Medical Record Notes</Typography>
+          </Box>
+
+          <Divider />
+
+          <MedicalRecordNotes notes={medicalRecordNotes} />
+        </Box>
+      </Card>
+
       <>
         {/* Open PopUp On Clicking Request Id */}
         <Dialog open={open} onClose={handleClose} maxWidth='md' fullWidth>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', px: 2, py: 3, bgcolor: '#e8f4f2' }}>
+          <Box
+            sx={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              px: 2,
+              py: 3,
+              bgcolor: theme.palette.customColors.displaybgPrimary
+            }}
+          >
             <Typography variant='h6' sx={{ ml: 3 }}>
               Tests list
             </Typography>
@@ -1402,7 +1555,8 @@ const RequestDetails = () => {
             <Box key={index} sx={{ p: 2, minWidth: 600, m: 4 }}>
               <Box ml={3}>
                 <Typography variant='h6'>
-                  Request - <span style={{ color: '#37BD69', fontWeight: 'bold' }}>{item.request_id}</span>
+                  Request -{' '}
+                  <span style={{ color: theme.palette.primary.main, fontWeight: 'bold' }}>{item.request_id}</span>
                 </Typography>
                 <Typography>{Utility.formatDate(item.created_at)}</Typography>
                 <Typography>
@@ -1427,7 +1581,7 @@ const RequestDetails = () => {
                 <TableContainer component={Paper} style={{ maxHeight: 400, overflow: 'auto' }}>
                   <Table>
                     <TableHead>
-                      <TableRow sx={{ bgcolor: '#e8f4f2' }}>
+                      <TableRow sx={{ bgcolor: theme.palette.customColors.displaybgPrimary }}>
                         <TableCell>Test Name</TableCell>
                         <TableCell>Lab Name</TableCell>
                         <TableCell>Status</TableCell>
@@ -1439,21 +1593,6 @@ const RequestDetails = () => {
                           <TableCell sx={{ textTransform: 'capitalize' }}>{data?.test_name}</TableCell>
                           <TableCell sx={{ textTransform: 'capitalize' }}>{data?.lab_name}</TableCell>
                           <TableCell>
-                            {' '}
-                            {/* <span
-                              style={{
-                                color:
-                                  data?.status === 'transferred' || data?.status === 'pending'
-                                    ? 'red'
-                                    : data?.status === 'completed'
-                                    ? '#2a9d0d'
-                                    : '#00aea4',
-                                textTransform: 'capitalize',
-                                fontSize: '15px'
-                              }}
-                            >
-                              {data?.status === 'transferred' ? 'pending' : data?.status}
-                            </span>{' '} */}
                             <Typography variant='body2' sx={{ color: 'text.primary', textTransform: 'capitalize' }}>
                               <span
                                 alt={data?.status}
@@ -1463,14 +1602,14 @@ const RequestDetails = () => {
                                     data?.status === 'transferred' ||
                                     data?.status === 'awaiting_sample' ||
                                     data?.status === 'sample_rejected'
-                                      ? '#FA6140'
+                                      ? theme.palette.formContent.tertiary
                                       : data?.status === 'completed'
-                                      ? '#37BD69'
+                                      ? theme.palette.primary.main
                                       : data?.status === 'inprogress'
-                                      ? '#E4B819 '
+                                      ? theme.palette.customColors.moderateSecondary
                                       : data?.status === 'sample_received'
-                                      ? '#37BD69'
-                                      : '#37BD69'
+                                      ? theme.palette.primary.main
+                                      : theme.palette.primary.main
                                 }}
                               >
                                 {data?.status === 'awaiting_sample'
@@ -1509,8 +1648,14 @@ const RequestDetails = () => {
       </>
 
       <>
-        <Dialog open={openTransfer} onClose={handleCloseTransfer} maxWidth='md' fullWidth sx={{ bgColor: '#FFFFFF' }}>
-          <DialogContent sx={{ bgcolor: '#ffffff' }}>
+        <Dialog
+          open={openTransfer}
+          onClose={handleCloseTransfer}
+          maxWidth='md'
+          fullWidth
+          sx={{ bgColor: theme.palette.primary.contrastText }}
+        >
+          <DialogContent sx={{ bgcolor: theme.palette.primary.contrastText }}>
             <Box
               sx={{
                 display: 'flex',
@@ -1520,11 +1665,20 @@ const RequestDetails = () => {
               }}
             >
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
-                <Icon icon='mingcute:transfer-3-line' width='24' height='24' color='#44544A' />
-                <Typography sx={{ fontSize: '20px', color: '#44544A', fontWeight: 500 }}>Lab Test Transfer</Typography>
+                <Icon
+                  icon='mingcute:transfer-3-line'
+                  width='24'
+                  height='24'
+                  color={theme.palette.customColors.OnSurfaceVariant}
+                />
+                <Typography
+                  sx={{ fontSize: '20px', color: theme.palette.customColors.OnSurfaceVariant, fontWeight: 500 }}
+                >
+                  Lab Test Transfer
+                </Typography>
               </Box>
               <IconButton onClick={handleCloseTransfer}>
-                <Icon icon='ic:baseline-close' fontSize={24} color={'#44544A'} />
+                <Icon icon='ic:baseline-close' fontSize={24} color={theme.palette.customColors.OnSurfaceVariant} />
               </IconButton>
             </Box>
             <Divider />
@@ -1561,7 +1715,10 @@ const RequestDetails = () => {
                       title={
                         <Box>
                           {selectedRowData.map(name => (
-                            <Typography key={name?.id} sx={{ fontSize: '15px', color: '#fff' }}>
+                            <Typography
+                              key={name?.id}
+                              sx={{ fontSize: '15px', color: theme.palette.primary.contrastText }}
+                            >
                               {name?.test_name}
                             </Typography>
                           ))}
@@ -1575,7 +1732,7 @@ const RequestDetails = () => {
                           alignItems: 'center',
                           width: '30px',
                           height: '30px',
-                          border: '1px solid #C3CEC7',
+                          border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                           borderRadius: '8px',
                           fontSize: '15px'
                         }}
@@ -1610,7 +1767,10 @@ const RequestDetails = () => {
                       title={
                         <Box>
                           {selectedRowData.map(name => (
-                            <Typography key={name?.id} sx={{ fontSize: '15px', color: '#fff' }}>
+                            <Typography
+                              key={name?.id}
+                              sx={{ fontSize: '15px', color: theme.palette.primary.contrastText }}
+                            >
                               {name?.sample_name}
                             </Typography>
                           ))}
@@ -1625,7 +1785,7 @@ const RequestDetails = () => {
                           width: '30px',
                           height: '30px',
 
-                          border: '1px solid #C3CEC7',
+                          border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                           borderRadius: '8px',
                           fontSize: '15px'
                         }}
@@ -1769,17 +1929,7 @@ const RequestDetails = () => {
                     Cancel
                   </LoadingButton>
 
-                  <LoadingButton
-                    onClick={handleSubmitData}
-                    type='submit'
-                    variant='contained'
-                    size='large'
-                    disabled={
-                      permissions?.allow_full_access !== true ||
-                      permissions?.transfer_tests !== true ||
-                      hasCompletedStatus
-                    }
-                  >
+                  <LoadingButton onClick={handleSubmitData} type='submit' variant='contained' size='large'>
                     CONFIRM
                   </LoadingButton>
                 </Box>
@@ -1800,15 +1950,15 @@ const RequestDetails = () => {
             }
           }}
         >
-          <DialogContent sx={{ bgcolor: '#ffffff' }}>
+          <DialogContent sx={{ bgcolor: theme.palette.primary.contrastText }}>
             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', px: 5, mb: 2 }}>
               <Box sx={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
-                <Icon icon='lucide:upload' fontSize={25} color={'#44544A'} />
+                <Icon icon='lucide:upload' fontSize={25} color={theme.palette.customColors.OnSurfaceVariant} />
                 <Typography sx={{ fontSize: '20px', fontWeight: 500 }}>Upload</Typography>
               </Box>
 
               <IconButton onClick={() => setOpenUploader(false)} sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-                <Icon icon='ic:baseline-close' fontSize={25} color={'#44544A'} />
+                <Icon icon='ic:baseline-close' fontSize={25} color={theme.palette.customColors.OnSurfaceVariant} />
               </IconButton>
             </Box>
             <Divider sx={{ mx: 5 }} />
@@ -1835,7 +1985,7 @@ const RequestDetails = () => {
               py: 3,
               justifyContent: 'space-between',
               alignItems: 'center',
-              bgcolor: '#e8f4f2'
+              bgcolor: theme.palette.customColors.displaybgPrimary
             }}
           >
             <Typography sx={{ fontSize: '20px', fontWeight: 'bold' }}>Reports</Typography>
@@ -1899,6 +2049,16 @@ const RequestDetails = () => {
             openAnimalSheet={openAnimalSheet}
             setOpenAnimalSheet={setOpenAnimalSheet}
             request={request}
+          />
+        )}
+      </>
+      <>
+        {openCommentSheet && (
+          <CommentSideSheet
+            openCommentSheet={openCommentSheet}
+            setOpenCommentSheet={setOpenCommentSheet}
+            CommentData={CommentData}
+            api={() => fetchRequestDetails()}
           />
         )}
       </>

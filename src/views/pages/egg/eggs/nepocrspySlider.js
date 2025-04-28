@@ -224,12 +224,12 @@ const NecropsySlider = ({ eggID, setOpenNecropsy, openNecropsy, fetchTableData }
               <Box
                 sx={{
                   m: 4,
-                  bgcolor: '#fff',
+                  bgcolor: theme.palette.primary.contrastText,
                   borderRadius: '8px',
                   border: 1,
                   borderRadius: '8px',
                   border: 1,
-                  borderColor: fileError ? 'red' : '#c3cec7',
+                  borderColor: fileError ? 'red' : theme.palette.customColors.OutlineVariant,
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'space-between',
@@ -255,12 +255,12 @@ const NecropsySlider = ({ eggID, setOpenNecropsy, openNecropsy, fetchTableData }
               <Box
                 sx={{
                   m: 4,
-                  bgcolor: '#fff',
+                  bgcolor: theme.palette.primary.contrastText,
                   borderRadius: '8px',
                   border: 1,
                   borderRadius: '8px',
                   border: 1,
-                  borderColor: '#c3cec7',
+                  borderColor: theme.palette.customColors.OutlineVariant,
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'space-between',

@@ -37,7 +37,7 @@ export default function ShippedItems({ updateUrlParams, setTotalShippedCounts })
     {
       width: 80,
       field: 'id',
-      headerName: 'Sl No',
+      headerName: 'SL.NO',
       renderCell: (params, rowId) => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.sl_no}
@@ -255,10 +255,11 @@ export default function ShippedItems({ updateUrlParams, setTotalShippedCounts })
   }, [fetchTableData])
 
   const handleRowClick = params => {
-    console.log('paramsa.handleRowClick', params.row)
+    // console.log('paramsa.handleRowClick', params.row)
 
     router.push({
       pathname: `/pharmacy/requests-by-store/${params.row.id}/shipment-details`,
+
       query: { shipmentId: params.row.id }
     })
   }

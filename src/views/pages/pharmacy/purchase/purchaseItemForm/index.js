@@ -1,3 +1,4 @@
+/* eslint-disable lines-around-comment */
 import React, { useEffect, useState } from 'react'
 import {
   FormControl,
@@ -64,7 +65,9 @@ const defaultValues = {
   purchase_variant_id: '',
   purchase_unit_qty: 0,
   purchase_variant_ratio: '',
-  isVariantIdPresent: false
+  isVariantIdPresent: false,
+  purchase_created_by: '',
+  medicine_name_by_ml: ''
 }
 
 const PurchaseItemForm = props => {
@@ -280,7 +283,9 @@ const PurchaseItemForm = props => {
       purchase_variant_id,
       purchase_unit_qty,
       purchase_variant_ratio,
-      isVariantIdPresent
+      isVariantIdPresent,
+      purchase_created_by,
+      medicine_name_by_ml
 
       // purchase_purchase_price,
     } = params
@@ -317,7 +322,9 @@ const PurchaseItemForm = props => {
       purchase_variant_id,
       purchase_unit_qty,
       purchase_variant_ratio,
-      isVariantIdPresent
+      isVariantIdPresent,
+      purchase_created_by,
+      medicine_name_by_ml
     }
     if (priceValidationError === true) {
       setValidatePurchaseDialog(true)
@@ -488,11 +495,13 @@ const PurchaseItemForm = props => {
       const totalUnitQty = checkNumber(nestedRowMedicine?.purchase_variant_ratio * nestedRowMedicine?.purchase_qty)
       setValue('isVariantIdPresent', true)
       setValue('purchase_unit_qty', totalUnitQty)
+      setValue('purchase_created_by', nestedRowMedicine?.purchase_created_by)
+      setValue('medicine_name_by_ml', nestedRowMedicine?.medicine_name_by_ml)
     } else {
-      setValue('purchase_expiry_date', '')
-      setValue('purchase_variant_id', '')
-      setValue('purchase_variant_ratio', '')
-      setValue('isVariantIdPresent', false)
+      // setValue('purchase_expiry_date', '')
+      // setValue('purchase_variant_id', '')
+      // setValue('purchase_variant_ratio', '')
+      // setValue('isVariantIdPresent', false)
 
       setValue('purchase_unit_qty', nestedRowMedicine?.purchase_qty)
     }
@@ -524,6 +533,8 @@ const PurchaseItemForm = props => {
       setValue('purchase_variant_id', nestedRowMedicine?.purchase_variant_id)
       setValue('purchase_variant_ratio', nestedRowMedicine?.purchase_variant_ratio)
       setValue('isVariantIdPresent', nestedRowMedicine?.isVariantIdPresent)
+      setValue('purchase_created_by', nestedRowMedicine?.purchase_created_by)
+      setValue('medicine_name_by_ml', nestedRowMedicine?.medicine_name_by_ml)
 
       if (nestedRowMedicine.stock_type === 'non_medical') {
         setNonMedicalProduct(true)
@@ -536,6 +547,10 @@ const PurchaseItemForm = props => {
         setValue('purchase_variant_id', ''),
         setValue('isVariantIdPresent', false)
       setValue('purchase_variant_ratio', '')
+
+      // setValue('purchase_created_by', '')
+      // setValue('medicine_name_by_ml', '')
+
       searchMedicineData('')
     }
   }, [])
@@ -576,8 +591,11 @@ const PurchaseItemForm = props => {
           </Typography>
           {!getValues('product')?.value && getValues('product')?.label && (
             <Typography sx={{ fontSize: '12px', color: 'error.main' }}>
-              The product <span style={{ color: '#D32F2F', fontWeight: 'bold' }}>{getValues('product')?.label}</span>{' '}
-              you entered is not available, please search and select.
+              {/* The product <span style={{ color: '#D32F2F', fontWeight: 'bold' }}>{getValues('product')?.label}</span>{' '}
+              you entered is not available, please search and select.  */}
+              The product <span style={{ color: '#D32F2F', fontWeight: 'bold' }}>{getValues('product')?.label} </span>
+              you entered is either not available or not selected from the dropdown.
+              <br /> Please search and select it to continue.
             </Typography>
           )}
         </Grid>
@@ -598,7 +616,7 @@ const PurchaseItemForm = props => {
                       style={{ opacity: option.status ? 1 : 0.5, pointerEvents: option.status ? 'auto' : 'none' }}
                     >
                       <Box>
-                        <Typography>{option.label}</Typography>
+                        <Typography>{option?.value ? option?.label : ''}</Typography>
                         <Typography variant='body2'>{option.package_details}</Typography>
                         <Typography variant='body2'>{option.manufacture}</Typography>
                       </Box>
@@ -657,8 +675,11 @@ const PurchaseItemForm = props => {
                     if (!nonMedicalProduct) {
                       const product = getValues()
 
-                      if (product?.product?.value !== '' && product?.purchase_batch_no !== '') {
-                        checkMedicineExpiryDate(product?.product?.value, product?.purchase_batch_no)
+                      if (product?.purchase_created_by !== 'invoice_upload') {
+                        if (product?.product?.value && product?.purchase_batch_no) {
+                          // setValue('medicine_name_by_ml', nestedRowMedicine?.medicine_name_by_ml
+                          checkMedicineExpiryDate(product?.product?.value, product?.purchase_batch_no)
+                        }
                       }
                     }
                   }}
@@ -745,7 +766,8 @@ const PurchaseItemForm = props => {
                 render={({ field: { value, onChange } }) => (
                   <LocalizationProvider dateAdapter={AdapterDayjs}>
                     <DesktopDatePicker
-                      disabled={nestedRowMedicine?.id ? true : false}
+                      // eslint-disable-next-line lines-around-comment
+                      // disabled={nestedRowMedicine?.id ? true : false}
                       label='Expiry Date*'
                       inputFormat='MM/DD/YYYY'
                       value={value}
@@ -774,6 +796,8 @@ const PurchaseItemForm = props => {
                 <TextField
                   {...field}
                   onKeyUp={e => {
+                    // setValue('purchase_unit_qty', '')
+                    // setValue('purchase_qty', '')
                     calculateStuff()
 
                     const productData = {
@@ -887,12 +911,19 @@ const PurchaseItemForm = props => {
               render={({ field: { onChange, value, ...rest } }) => (
                 <Select
                   {...rest}
-                  disabled={watch('isVariantIdPresent') === true || nestedRowMedicine?.id ? true : false}
+                  // disabled={watch('isVariantIdPresent') === true || nestedRowMedicine?.id ? true : false}
                   value={value}
                   onChange={(e, val) => {
                     setValue('purchase_variant_ratio', Number(val?.props?.children))
-                    setValue('purchase_unit_qty', '')
-                    setValue('purchase_qty', '')
+                    console.log('variant ratio', Number(val?.props?.children))
+                    const purchaseQty = watch('purchase_qty')
+
+                    const totalUnitQty = purchaseQty
+                      ? purchaseQty * Number(val?.props?.children)
+                      : Number(val?.props?.children) * 1
+                    setValue('purchase_unit_qty', totalUnitQty)
+
+                    // setValue('purchase_qty', '')
                     onChange(e)
                   }}
                   label='Product Variant*'
@@ -922,7 +953,7 @@ const PurchaseItemForm = props => {
                 <TextField
                   {...field}
                   label='Purchase Quantity*'
-                  disabled={nestedRowMedicine?.id ? true : false}
+                  // disabled={nestedRowMedicine?.id ? true : false}
                   onKeyUp={e => {
                     calculateStuff()
                   }}

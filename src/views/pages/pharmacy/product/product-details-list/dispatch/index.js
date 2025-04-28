@@ -98,7 +98,7 @@ function Dispatch({ tabValue, updateUrlParams }) {
     {
       Width: 60,
       field: 'sl_no',
-      headerName: 'S.NO',
+      headerName: 'SL.NO',
       sortable: false,
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
@@ -179,6 +179,7 @@ function Dispatch({ tabValue, updateUrlParams }) {
         </Typography>
       )
     },
+
     // {
     //   minWidth: 190,
     //   field: 'price',

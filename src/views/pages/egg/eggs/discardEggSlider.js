@@ -222,11 +222,12 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
 
   const TabHeader = () => {
     return (
-      <Box sx={{ bgcolor: '#fff' }}>
+      <Box sx={{ bgcolor: theme.palette.primary.contrastText }}>
         <Stack
           direction='row'
           sx={{
-            width: filterList?.length ? '545px' : '562px',
+            // width: filterList?.length ? '545px' : '562px',
+            width: '100%',
             height: '60px',
             display: 'flex',
             justifyContent: 'space-between',
@@ -235,7 +236,7 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
           }}
         >
           <Box>
-            <Typography sx={{ fontSize: 16, fontWeight: 600, color: '#44544A' }}>
+            <Typography sx={{ fontSize: 16, fontWeight: 600, color: theme.palette.customColors.OnSurfaceVariant }}>
               Discarded eggs {listCount && <span>({listCount})</span>}
             </Typography>
           </Box>
@@ -248,7 +249,7 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
                 height: '36px',
                 border: 1,
                 borderRadius: '6px',
-                borderColor: '#c3cec7',
+                borderColor: theme.palette.customColors.OutlineVariant,
 
                 bgcolor: isSearchOpen ? theme?.palette.primary.dark : null,
 
@@ -263,7 +264,11 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
                 setIsSearchOpen(!isSearchOpen)
               }}
             >
-              <Icon icon='bitcoin-icons:search-filled' fontSize={18} color={isSearchOpen ? '#fff' : 'Black'} />
+              <Icon
+                icon='bitcoin-icons:search-filled'
+                fontSize={18}
+                color={isSearchOpen ? theme.palette.primary.contrastText : 'Black'}
+              />
             </Box>
             <FormControl variant='outlined' sx={{ height: '36px' }}>
               <Select
@@ -291,17 +296,23 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
                 height: '36px',
                 border: 1,
                 borderRadius: '6px',
-                borderColor: '#c3cec7',
+                borderColor: theme.palette.customColors.OutlineVariant,
                 bgcolor: filterList?.length > 0 ? theme?.palette.primary.dark : null,
                 alignItems: 'center',
                 cursor: 'pointer'
               }}
               onClick={() => setIsFilterOpen(true)}
             >
-              <Icon icon='fluent:filter-16-filled' fontSize={20} color={filterList?.length > 0 ? '#fff' : 'Black'} />
+              <Icon
+                icon='fluent:filter-16-filled'
+                fontSize={20}
+                color={filterList?.length > 0 ? theme.palette.primary.contrastText : 'Black'}
+              />
 
               {filterList?.length > 0 && (
-                <Typography sx={{ color: '#fff', fontSize: '14px', fontWeight: 400 }}>{filterList?.length}</Typography>
+                <Typography sx={{ color: theme.palette.primary.contrastText, fontSize: '14px', fontWeight: 400 }}>
+                  {filterList?.length}
+                </Typography>
               )}
             </Box>
           </Box>
@@ -313,10 +324,10 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
                 sx={{
                   display: 'flex',
                   alignItems: 'center',
-                  border: '1px solid #C3CEC7',
+                  border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
 
                   borderRadius: '4px',
-                  bgcolor: '#f2fff8',
+                  bgcolor: theme.palette.customColors.Surface,
                   padding: '0 8px',
                   height: '56px',
                   mb: 3
@@ -363,7 +374,7 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
                           gap: '6px',
                           px: '8px',
                           py: '12px',
-                          bgcolor: '#dae7df',
+                          bgcolor: theme.palette.customColors.customTableBorderBg,
                           borderRadius: '8px',
                           height: '35px'
                         }}
@@ -372,7 +383,7 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
                           sx={{
                             fontSize: '14px',
                             fontWeight: 'bold',
-                            color: '#000000',
+                            color: theme.palette.primary.deepDark,
                             textTransform: 'capitalize',
                             whiteSpace: 'nowrap'
                           }}
@@ -380,7 +391,7 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
                           {item?.name}
                         </Typography>{' '}
                         <IconButton onClick={() => handleRemoveFilter(item)}>
-                          <Icon icon='mdi:close' fontSize={18} color={'#1F515B'} />
+                          <Icon icon='mdi:close' fontSize={18} color={theme.palette.primary.light} />
                         </IconButton>
                       </Box>
                     ))}
@@ -407,7 +418,7 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
               px: '20px',
               py: '16px',
               borderRadius: '8px',
-              border: '1px solid #C3CEC7'
+              border: `1px solid ${theme.palette.customColors.OutlineVariant}`
             }}
           >
             <Box sx={{ display: 'flex', gap: 4, mb: 4, mb: 4, alignItems: 'center' }}>
@@ -420,7 +431,7 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
                     height: 35,
                     mr: 4,
                     borderRadius: '50%',
-                    background: '#E8F4F2',
+                    background: theme.palette.customColors.displaybgPrimary,
                     overflow: 'hidden'
                   }}
                 >
@@ -435,7 +446,7 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
                   <Box sx={{ display: 'flex', width: 250, gap: 4 }}>
                     <Typography
                       sx={{
-                        color: '#000000',
+                        color: theme.palette.primary.deepDark,
                         fontSize: '16px',
                         fontWeight: '500',
                         lineHeight: '19.36px',
@@ -462,38 +473,38 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
 
                           backgroundColor:
                             list?.egg_condition === 'Rotten'
-                              ? '#FFD3D3'
+                              ? theme.palette.customColors.AntzTertiary
                               : list?.egg_condition === 'Broken'
-                              ? '#FFD3D3'
+                              ? theme.palette.customColors.AntzTertiary
                               : list?.egg_condition === 'Cracked'
-                              ? '#fdfad7'
+                              ? theme.palette.customColors.AntzTertiary
                               : list?.egg_condition === 'Discard'
-                              ? '#FFD3D3'
+                              ? theme.palette.customColors.AntzTertiary
                               : list?.egg_condition === 'Thin-Shelled'
-                              ? '#E8F4F2'
+                              ? theme.palette.customColors.displaybgPrimary
                               : list?.egg_condition === 'Fertile'
-                              ? '#E8F4F2'
-                              : '#E1F9ED'
+                              ? theme.palette.customColors.displaybgPrimary
+                              : theme.palette.customColors.OnBackground
                         }}
                       >
                         <Typography
                           sx={{
                             color:
                               list?.egg_condition === 'Fresh'
-                                ? '#006D35'
+                                ? theme.palette.primary.dark
                                 : list?.egg_condition === 'Rotten'
-                                ? '#FA6140'
+                                ? theme.palette.customColors.Tertiary
                                 : list?.egg_condition === 'Broken'
-                                ? '#FA6140'
+                                ? theme.palette.customColors.Tertiary
                                 : list?.egg_condition === 'Cracked'
-                                ? '#E4B819'
+                                ? theme.palette.customColors.moderateSecondary
                                 : list?.egg_condition === 'Discard'
-                                ? '#fa6140'
+                                ? theme.palette.customColors.Tertiary
                                 : list?.egg_condition === 'Hatched'
-                                ? '#32bfdd'
+                                ? theme.palette.customColors.antzInfo60
                                 : list?.egg_condition === 'Thin-Shelled'
-                                ? '#1F515B'
-                                : '#006D35',
+                                ? theme.palette.primary.light
+                                : theme.palette.primary.dark,
                             fontSize: '14px',
                             fontWeight: '500'
                           }}
@@ -511,7 +522,7 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
                   >
                     <Typography
                       sx={{
-                        color: '#1F415B',
+                        color: theme.palette.customColors.OnSecondaryContainer,
                         fontSize: '16px',
                         fontWeight: 500,
                         lineHeight: '16.94px',
@@ -528,7 +539,9 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
               </Box>
               <Box>
                 {list?.activity_status === 'COMPLETED' ? (
-                  <Typography sx={{ fontSize: '13px', fontWeight: 600, textAlign: 'center', color: '#1F515B' }}>
+                  <Typography
+                    sx={{ fontSize: '13px', fontWeight: 600, textAlign: 'center', color: theme.palette.primary.light }}
+                  >
                     Security checked
                   </Typography>
                 ) : (
@@ -539,10 +552,19 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
             <Divider />
             <Stack sx={{ mt: 4 }}>
               <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                <Typography sx={{ width: 120, fontWeight: 400, fontSize: '14px', color: '#1F415B' }}>
+                <Typography
+                  sx={{
+                    width: 120,
+                    fontWeight: 400,
+                    fontSize: '14px',
+                    color: theme.palette.customColors.OnSecondaryContainer
+                  }}
+                >
                   Discarded On
                 </Typography>
-                <Typography sx={{ fontWeight: 400, fontSize: '14px', color: '#1F415B' }}>
+                <Typography
+                  sx={{ fontWeight: 400, fontSize: '14px', color: theme.palette.customColors.OnSecondaryContainer }}
+                >
                   :&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                   {list?.discarded_date
                     ? Utility.formatDisplayDate(Utility.convertUTCToLocal(list?.discarded_date))
@@ -550,34 +572,87 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
                 </Typography>
               </Box>
               <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                <Typography sx={{ width: 120, fontWeight: 400, fontSize: '14px', color: '#1F415B' }}>Batch</Typography>
-                <Typography sx={{ fontWeight: 400, fontSize: '14px', color: '#1F415B' }}>
+                <Typography
+                  sx={{
+                    width: 120,
+                    fontWeight: 400,
+                    fontSize: '14px',
+                    color: theme.palette.customColors.OnSecondaryContainer
+                  }}
+                >
+                  Batch
+                </Typography>
+                <Typography
+                  sx={{ fontWeight: 400, fontSize: '14px', color: theme.palette.customColors.OnSecondaryContainer }}
+                >
                   : &nbsp;&nbsp;&nbsp; {list?.request_id ? list?.request_id : '-'}
                 </Typography>
               </Box>{' '}
               <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                <Typography sx={{ width: 120, fontWeight: 400, fontSize: '14px', color: '#1F415B' }}>AID</Typography>
-                <Typography sx={{ fontWeight: 400, fontSize: '14px', color: '#1F415B' }}>
+                <Typography
+                  sx={{
+                    width: 120,
+                    fontWeight: 400,
+                    fontSize: '14px',
+                    color: theme.palette.customColors.OnSecondaryContainer
+                  }}
+                >
+                  AID
+                </Typography>
+                <Typography
+                  sx={{ fontWeight: 400, fontSize: '14px', color: theme.palette.customColors.OnSecondaryContainer }}
+                >
                   : &nbsp;&nbsp;&nbsp; {list?.egg_code ? list?.egg_code : '-'}
                 </Typography>
               </Box>{' '}
               <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                <Typography sx={{ width: 120, fontWeight: 400, fontSize: '14px', color: '#1F415B' }}>EID</Typography>
-                <Typography sx={{ fontWeight: 400, fontSize: '14px', color: '#1F415B' }}>
+                <Typography
+                  sx={{
+                    width: 120,
+                    fontWeight: 400,
+                    fontSize: '14px',
+                    color: theme.palette.customColors.OnSecondaryContainer
+                  }}
+                >
+                  EID
+                </Typography>
+                <Typography
+                  sx={{ fontWeight: 400, fontSize: '14px', color: theme.palette.customColors.OnSecondaryContainer }}
+                >
                   : &nbsp;&nbsp;&nbsp; {list?.egg_number ? list?.egg_number : '-'}
                 </Typography>
               </Box>{' '}
               <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                <Typography sx={{ width: 120, fontWeight: 400, fontSize: '14px', color: '#1F415B' }}>
+                <Typography
+                  sx={{
+                    width: 120,
+                    fontWeight: 400,
+                    fontSize: '14px',
+                    color: theme.palette.customColors.OnSecondaryContainer
+                  }}
+                >
                   {tabStatus === 'site' ? 'Site' : 'Nursery'}
                 </Typography>
-                <Typography sx={{ fontWeight: 400, fontSize: '14px', color: '#1F415B' }}>
+                <Typography
+                  sx={{ fontWeight: 400, fontSize: '14px', color: theme.palette.customColors.OnSecondaryContainer }}
+                >
                   : &nbsp;&nbsp;&nbsp; {tabStatus === 'site' ? list?.site_name : list?.nursery_name}
                 </Typography>
               </Box>{' '}
               <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                <Typography sx={{ width: 120, fontWeight: 400, fontSize: '14px', color: '#1F415B' }}>Reason</Typography>
-                <Typography sx={{ fontWeight: 400, fontSize: '14px', color: '#1F415B' }}>
+                <Typography
+                  sx={{
+                    width: 120,
+                    fontWeight: 400,
+                    fontSize: '14px',
+                    color: theme.palette.customColors.OnSecondaryContainer
+                  }}
+                >
+                  Reason
+                </Typography>
+                <Typography
+                  sx={{ fontWeight: 400, fontSize: '14px', color: theme.palette.customColors.OnSecondaryContainer }}
+                >
                   : &nbsp;&nbsp;&nbsp; {list?.egg_state ? list?.egg_state : '-'}
                 </Typography>
               </Box>
@@ -739,154 +814,151 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
           position: 'relative',
           display: 'flex',
           flexDirection: 'column',
-          borderRadius: '8px',
-
           gap: '24px'
         }}
       >
-        {/* Header  */}
-        <Box
-          className='sidebar-header'
-          sx={{
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            backgroundColor: '#EFF5F2',
-            height: '80px',
-            p: theme => theme.spacing(3, 3.255, 3, 5.255)
-          }}
-        >
-          <Box sx={{ display: 'flex', flexDirection: 'row', gap: 2 }}>
-            <img src='/icons/egg_dashboard/discard.png' alt='icon' width='32' height='32' />
+        <Box sx={{ bgcolor: theme.palette.customColors.lightBg, width: '100%', height: '100%', overflowY: 'auto' }}>
+          {/* Header  */}
+          <Box
+            className='sidebar-header'
+            sx={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              p: theme => theme.spacing(3, 3.255, 3, 5.255),
+              px: '24px',
+              bgcolor: theme.palette.customColors.lightBg
+            }}
+          >
+            <Box sx={{ display: 'flex', flexDirection: 'row', gap: 2, alignItems: 'center' }}>
+              <img src='/icons/egg_dashboard/discard.png' alt='icon' width='32' height='32' />
 
-            <Typography variant='h6'>Discard Details</Typography>
+              <Typography variant='h6'>Discard Details</Typography>
+            </Box>
+
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
+              <IconButton size='small' sx={{ color: 'text.primary' }}>
+                <Icon icon='mdi:close' fontSize={20} onClick={() => handelOnclose()} />
+              </IconButton>
+            </Box>
           </Box>
 
-          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
-            <IconButton size='small' sx={{ color: 'text.primary' }}>
-              <Icon icon='mdi:close' fontSize={20} onClick={() => handelOnclose()} />
-            </IconButton>
+          {/* Tabs */}
+          <Box sx={{ backgroundColor: theme.palette.primary.contrastText }}>
+            <TabContext value={tabStatus}>
+              <TabList onChange={handleTabChange}>
+                <Tab
+                  sx={{ width: '280px', fontWeight: 600, fontSize: '14px' }}
+                  value='site'
+                  label={<TabBadge label='SITE WISE ' />}
+                />
+                <Tab
+                  sx={{ width: '280px', fontWeight: 600, fontSize: '14px' }}
+                  value='nursery'
+                  label={<TabBadge label='NURSERY WISE ' />}
+                />
+              </TabList>
+              <TabPanel value='site' sx={{ p: 0 }}>
+                {' '}
+                <Divider />
+                {TabHeader()}
+                <Box
+                  onScroll={e => {
+                    debouncedHandleScroll(e)
+                  }}
+                  sx={{
+                    bgcolor: theme.palette.customColors.lightBg,
+                    py: 2,
+                    pb: 20,
+                    height: '100vh',
+                    overflowY: 'auto',
+                    scrollbarWidth: 'none'
+                  }}
+                >
+                  {discardList?.map((item, index) => (
+                    <Card key={index} list={item} />
+                  ))}
+
+                  {listCount == 0 && !loader && (
+                    <Typography
+                      sx={{
+                        color: theme.palette.primary.deepDark,
+                        fontSize: '16px',
+                        fontWeight: '500',
+                        lineHeight: '19.36px',
+                        overflow: 'hidden',
+                        textAlign: 'center',
+                        mt: 5,
+
+                        // textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
+                        boxSizing: 'border-box'
+                      }}
+                    >
+                      No records
+                    </Typography>
+                  )}
+
+                  {loader && (
+                    <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                      <CircularProgress />
+                    </Box>
+                  )}
+                </Box>
+              </TabPanel>
+              <TabPanel value='nursery' sx={{ p: 0 }}>
+                {' '}
+                <Divider />
+                {TabHeader()}
+                <Box
+                  onScroll={e => {
+                    debouncedHandleScroll(e)
+                  }}
+                  sx={{
+                    bgcolor: theme.palette.customColors.lightBg,
+                    py: 2,
+                    pb: 20,
+                    height: '100vh',
+                    overflowY: 'auto',
+                    scrollbarWidth: 'none'
+                  }}
+                >
+                  {discardList?.map((item, index) => (
+                    <Card key={index} list={item} />
+                  ))}
+
+                  {listCount == 0 && !loader && (
+                    <Typography
+                      sx={{
+                        color: theme.palette.primary.deepDark,
+                        fontSize: '16px',
+                        fontWeight: '500',
+                        lineHeight: '19.36px',
+                        overflow: 'hidden',
+                        textAlign: 'center',
+                        mt: 5,
+
+                        // textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
+                        boxSizing: 'border-box'
+                      }}
+                    >
+                      No records
+                    </Typography>
+                  )}
+
+                  {loader && (
+                    <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                      {console.log('loader when scroll', loader)}
+                      <CircularProgress />
+                    </Box>
+                  )}
+                </Box>
+              </TabPanel>
+            </TabContext>
           </Box>
-        </Box>
 
-        {/* Tabs */}
-        <Box sx={{ backgroundColor: '#FFFF', height: '100vh' }}>
-          <TabContext value={tabStatus}>
-            <TabList onChange={handleTabChange}>
-              <Tab
-                sx={{ width: '280px', fontWeight: 600, fontSize: '14px' }}
-                value='site'
-                label={<TabBadge label='SITE WISE ' />}
-              />
-              <Tab
-                sx={{ width: '280px', fontWeight: 600, fontSize: '14px' }}
-                value='nursery'
-                label={<TabBadge label='NURSERY WISE ' />}
-              />
-            </TabList>
-            <TabPanel value='site' sx={{ p: 0 }}>
-              {' '}
-              <Divider />
-              {TabHeader()}
-              <Box
-                onScroll={e => {
-                  debouncedHandleScroll(e)
-                }}
-                sx={{
-                  bgcolor: '#eff5f2',
-                  py: 2,
-                  pb: 20,
-                  height: '100vh',
-                  overflowY: 'auto',
-                  scrollbarWidth: 'none'
-                }}
-              >
-                {discardList?.map((item, index) => (
-                  <Card key={index} list={item} />
-                ))}
-
-                {listCount == 0 && !loader && (
-                  <Typography
-                    sx={{
-                      color: '#000000',
-                      fontSize: '16px',
-                      fontWeight: '500',
-                      lineHeight: '19.36px',
-                      overflow: 'hidden',
-                      textAlign: 'center',
-                      mt: 5,
-
-                      // textOverflow: 'ellipsis',
-                      whiteSpace: 'nowrap',
-                      boxSizing: 'border-box'
-                    }}
-                  >
-                    No records
-                  </Typography>
-                )}
-
-                {loader && (
-                  <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                    {/* {console.log('loader when scroll', loader)} */}
-                    <CircularProgress />
-                  </Box>
-                )}
-              </Box>
-            </TabPanel>
-            <TabPanel value='nursery' sx={{ p: 0 }}>
-              {' '}
-              <Divider />
-              {TabHeader()}
-              <Box
-                onScroll={e => {
-                  debouncedHandleScroll(e)
-                }}
-                sx={{
-                  bgcolor: '#eff5f2',
-                  py: 2,
-                  pb: 20,
-                  height: '100vh',
-                  overflowY: 'auto',
-                  scrollbarWidth: 'none'
-                }}
-              >
-                {discardList?.map((item, index) => (
-                  <Card key={index} list={item} />
-                ))}
-
-                {listCount == 0 && !loader && (
-                  <Typography
-                    sx={{
-                      color: '#000000',
-                      fontSize: '16px',
-                      fontWeight: '500',
-                      lineHeight: '19.36px',
-                      overflow: 'hidden',
-                      textAlign: 'center',
-                      mt: 5,
-
-                      // textOverflow: 'ellipsis',
-                      whiteSpace: 'nowrap',
-                      boxSizing: 'border-box'
-                    }}
-                  >
-                    No records
-                  </Typography>
-                )}
-
-                {loader && (
-                  <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
-                    {console.log('loader when scroll', loader)}
-                    <CircularProgress />
-                  </Box>
-                )}
-              </Box>
-            </TabPanel>
-          </TabContext>
-        </Box>
-
-        {/* bottom buttons */}
-        {/* <Box
+          {/* bottom buttons */}
+          {/* <Box
           sx={{
             height: '122px',
             width: '100%',
@@ -915,6 +987,7 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
             VIEW DETAILS
           </LoadingButton>
         </Box> */}
+        </Box>
       </Drawer>
       {isFilterOpen && (
         <DashboardFilter

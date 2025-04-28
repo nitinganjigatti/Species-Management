@@ -77,6 +77,7 @@ export default function RequestedItems({ selectedStoreDetails, setSelectedStoreD
   const [sort, setSort] = useState(router.query.sort || 'asc')
   const [rows, setRows] = useState([])
   const [searchValue, setSearchValue] = useState(router.query.q || '')
+
   const [sortColumn, setSortColumn] = useState(
     selectedPharmacy.type === 'local' ? 'priority' : router.query.column || 'priority'
   )
@@ -112,7 +113,7 @@ export default function RequestedItems({ selectedStoreDetails, setSelectedStoreD
   const [requestItems, setRequestItems] = useState([])
   const [fulfillMedicine, setFulfillMedicine] = useState(false)
   const [show, setShow] = useState(false)
-  const [requestedItemsSubTab, setRequestedItemsSubTab] = useState(router.query.requestedItemsSubTab || 'all')
+  const [requestedItemsSubTab, setRequestedItemsSubTab] = useState(router.query.requestedItemsSubTab || 'Available')
 
   const showDialog = () => {
     setShow(true)
@@ -208,7 +209,7 @@ export default function RequestedItems({ selectedStoreDetails, setSelectedStoreD
     {
       width: 80,
       field: 'id',
-      headerName: 'SL NO ',
+      headerName: 'SL.NO',
       renderCell: params => (
         <Typography
           sx={{
@@ -223,12 +224,12 @@ export default function RequestedItems({ selectedStoreDetails, setSelectedStoreD
       )
     },
     {
-      width: 5,
+      width: 100,
       field: 'priority',
-      headerName: '',
-      headerAlign: 'left',
+      headerName: 'Priority',
+      headerAlign: 'center',
       textAlign: 'center',
-      renderCell: params => <Box>{RenderUtility.getPriorityIcons(params.row?.priority)}</Box>
+      renderCell: params => <Box>{RenderUtility.getPriorityIcons(params?.row?.priority)}</Box>
     },
     {
       width: 300,
@@ -251,7 +252,7 @@ export default function RequestedItems({ selectedStoreDetails, setSelectedStoreD
                 !isNaN(params.row?.control_substance) && parseInt(params.row?.control_substance) === 1,
                 'CS'
               )}
-              {RenderUtility?.renderControlLabel(
+              {RenderUtility?.renderPrescriptionLabel(
                 !isNaN(params.row?.prescription_required) && parseInt(params.row?.prescription_required) === 1,
                 'PR'
               )}
@@ -402,8 +403,9 @@ export default function RequestedItems({ selectedStoreDetails, setSelectedStoreD
         }
       })
     } catch (e) {
-      console.log(e)
+      console.error(e)
       setDrawerLoader(false)
+      closeDrawer()
     }
   }
 
@@ -644,7 +646,7 @@ export default function RequestedItems({ selectedStoreDetails, setSelectedStoreD
                   }}
                 >
                   <MenuItem value='all'>All</MenuItem>
-                  <MenuItem value='1'>Controlled Drug</MenuItem>
+                  <MenuItem value='1'>Controlled Substance</MenuItem>
                 </Select>
               </FormControl>
             </Grid>
@@ -815,8 +817,10 @@ export default function RequestedItems({ selectedStoreDetails, setSelectedStoreD
   }, [selectedPharmacy.type === 'local'])
 
   return (
-    <TabContext value={requestedItemsSubTab}>
+    <TabContext sx={{ border: '1px solid red' }} value={requestedItemsSubTab}>
       <TabLists
+        variant='scrollable'
+        allowScrollButtonsMobile
         container
         onChange={(event, newValue) => {
           setRequestedItemsSubTab(newValue)
@@ -826,26 +830,21 @@ export default function RequestedItems({ selectedStoreDetails, setSelectedStoreD
         }}
         sx={{
           height: 'auto',
-          display: 'flex',
-          flexDirection: { xs: 'column', md: 'row' },
-          alignItems: 'center',
-          justifyContent: 'space-between',
+
+          // display: 'flex',
+          // flexDirection: { xs: 'column', md: 'row' },
+          // alignItems: 'center',
+          // justifyContent: 'space-between',
           mt: 5
         }}
       >
+        {/* {selectedPharmacy?.type === 'central' && <Tab value='Available' label={'Available'} />}
+        {selectedPharmacy?.type === 'central' && <Tab value='NotAvailable' label={'NotAvailable'} />} */}
+        {selectedPharmacy.type === 'central' && <Tab value='Available' label={'Stock Available'} />}
+        {selectedPharmacy.type === 'central' && <Tab value='NotAvailable' label={'Not Available'} />}
         <Tab value='all' label={'All'} />
-        {selectedPharmacy.type === 'central' && <Tab value='Available' label={'Available'} />}
-        {selectedPharmacy.type === 'central' && <Tab value='NotAvailable' label={'NotAvailable'} />}
       </TabLists>
 
-      <TabPanel
-        value='all'
-        sx={{
-          padding: '0px !important'
-        }}
-      >
-        {pageContent()}
-      </TabPanel>
       {selectedPharmacy.type === 'central' && (
         <TabPanel
           value='Available'
@@ -866,6 +865,14 @@ export default function RequestedItems({ selectedStoreDetails, setSelectedStoreD
           {pageContent()}
         </TabPanel>
       )}
+      <TabPanel
+        value='all'
+        sx={{
+          padding: '0px !important'
+        }}
+      >
+        {pageContent()}
+      </TabPanel>
     </TabContext>
   )
 }

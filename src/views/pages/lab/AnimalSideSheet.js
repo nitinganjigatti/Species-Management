@@ -1,10 +1,19 @@
 import { Drawer, IconButton, Typography } from '@mui/material'
 import { Box } from '@mui/system'
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 import Icon from 'src/@core/components/icon'
 import AnimalParentCard from 'src/views/utility/animalParentCard'
 
 const AnimalSideSheet = ({ openAnimalSheet, setOpenAnimalSheet, request }) => {
+  const [first, setfirst] = useState(0)
+  useEffect(() => {
+    request?.map(item => {
+      item?.animal_details?.map(() => {
+        setfirst(prev => prev + 1)
+      })
+    })
+  }, [])
+
   return (
     <Drawer
       anchor='right'
@@ -31,7 +40,7 @@ const AnimalSideSheet = ({ openAnimalSheet, setOpenAnimalSheet, request }) => {
         <Box sx={{ mt: 2, display: 'flex', flexDirection: 'row', gap: 2 }}>
           <img src='/icons/activity_icon.png' alt='Grocery Icon' width='30px' />
 
-          <Typography variant='h6'>Animal List</Typography>
+          <Typography variant='h6'>Total animals - {first}</Typography>
         </Box>
 
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>

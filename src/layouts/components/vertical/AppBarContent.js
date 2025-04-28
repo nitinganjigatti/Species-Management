@@ -46,7 +46,7 @@ const AppBarContent = props => {
         {moduleName === 'parivesh' && !router?.pathname.startsWith('/parivesh/species') && <SelectParivesh />}
       </Box>
       {router?.asPath?.includes('pharmacy') && (
-        <Typography variant='h6' sx={{ ml: 'auto', mr: 4 }}>
+        <Typography variant='h6' sx={{ ml: 'auto', mr: 4, display: { xs: 'none', sm: 'none', md: 'block' } }}>
           {selectedPharmacy?.name}
         </Typography>
       )}
