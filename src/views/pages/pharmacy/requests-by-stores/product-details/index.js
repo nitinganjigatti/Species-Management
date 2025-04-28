@@ -213,7 +213,7 @@ const RequestedProductDetails = props => {
                                 color: theme.palette.customColors.OnSurfaceVariant,
                                 fontSize: '12px',
                                 fontWeight: 400,
-                                maxWidth: '50%'
+                                maxWidth: '70%'
                               }}
                               limit='150'
                               iconColor={theme.palette.customColors.moderateSecondary}

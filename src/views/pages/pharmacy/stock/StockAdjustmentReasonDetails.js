@@ -4,7 +4,7 @@ import TextEllipsisWithModal from 'src/components/TextEllipsisWithModal'
 
 const StockAdjustmentReasonDetails = ({ reason, comment, reasonTextColor, commentTextColor }) => {
   return (
-    <Tooltip title={reason}>
+    <Tooltip title={reason || ''}>
       <Box sx={{ maxWidth: '100%', display: 'flex', flexDirection: 'column' }}>
         <Typography
           variant='p'
@@ -19,9 +19,11 @@ const StockAdjustmentReasonDetails = ({ reason, comment, reasonTextColor, commen
             width: '100%'
           }}
         >
-          {reason}
+          {reason && reason}
         </Typography>
-        <TextEllipsisWithModal icon={'mdi:file-document-outline'} text={comment} iconColor={commentTextColor} />
+        {comment && (
+          <TextEllipsisWithModal icon={'mdi:file-document-outline'} text={comment} iconColor={commentTextColor} />
+        )}
       </Box>
     </Tooltip>
   )

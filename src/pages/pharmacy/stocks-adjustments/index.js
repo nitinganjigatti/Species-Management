@@ -187,6 +187,21 @@ const ListOfStockAdjusted = () => {
     searchTableData(sort, value, sortColumn, status)
   }
 
+  const getLabelColor = params => {
+    const { MISSED, EXPIRED } = STOCK_ADJUSTMENT_REASON_TYPES
+
+    const reasonTextColor =
+      params?.row?.reason === MISSED
+        ? theme.palette.customColors.Error
+        : params?.row?.reason === EXPIRED
+        ? theme.palette.customColors.Antz_Body_Medium
+        : theme.palette.customColors.Tertiary
+
+    const reason = params?.row?.reason === MISSED ? 'Missing' : params?.row?.reason === EXPIRED ? 'Expired' : 'Damaged'
+
+    return { reason, reasonTextColor }
+  }
+
   const renderUserAvatar = row => {
     if (row.user_profile_pic) {
       return <CustomAvatar src={row?.user_profile_pic} sx={{ mr: 3, width: 34, height: 34 }} />
@@ -232,21 +247,20 @@ const ListOfStockAdjusted = () => {
       field: 'reason_name',
       headerName: 'Reason',
       renderCell: params => {
-        const { MISSED, EXPIRED } = STOCK_ADJUSTMENT_REASON_TYPES
+        // const { MISSED, EXPIRED } = STOCK_ADJUSTMENT_REASON_TYPES
+        const { reason, reasonTextColor } = getLabelColor(params)
 
-        const reasonTextColor =
-          params?.row?.reason === MISSED
-            ? theme.palette.customColors.Error
-            : params?.row?.reason === EXPIRED
-            ? theme.palette.customColors.Antz_Body_Medium
-              : theme.palette.customColors.Tertiary
-        
-        const reason =
-          params?.row?.reason === MISSED
-            ? "Missing"
-            : params?.row?.reason === EXPIRED
-            ? "Expired"
-            : "Damaged"
+        // debugger
+
+        // const reasonTextColor =
+        //   params?.row?.reason === MISSED
+        //     ? theme.palette.customColors.Error
+        //     : params?.row?.reason === EXPIRED
+        //     ? theme.palette.customColors.Antz_Body_Medium
+        //     : theme.palette.customColors.Tertiary
+
+        // const reason =
+        //   params?.row?.reason === MISSED ? 'Missing' : params?.row?.reason === EXPIRED ? 'Expired' : 'Damaged'
 
         return (
           <StockAdjustmentReasonDetails
