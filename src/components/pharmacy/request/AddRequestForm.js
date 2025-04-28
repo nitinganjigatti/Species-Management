@@ -1160,7 +1160,9 @@ const AddRequestForm = () => {
               {nestedRowMedicine?.unit_price > 0 ? (
                 <Box sx={{ mx: 1, my: 2, display: 'flex' }}>
                   <Chip
-                    label={`Unit Price - ${nestedRowMedicine?.unit_price}`}
+                    label={`Unit Price - ${Utility?.formatAmountToReadableDigit(
+                      Number(nestedRowMedicine?.unit_price)
+                    )}`}
                     variant='outlined'
                     size='sm'
                     sx={{
@@ -1177,7 +1179,9 @@ const AddRequestForm = () => {
                     }}
                   />
                   <Chip
-                    label={`Total QTY Price - ${nestedRowMedicine?.unit_price * nestedRowMedicine?.request_item_qty}`}
+                    label={`Total QTY Price - ${Utility?.formatAmountToReadableDigit(
+                      Number(nestedRowMedicine?.unit_price * nestedRowMedicine?.request_item_qty)
+                    )}`}
                     variant='outlined'
                     size='sm'
                     sx={{

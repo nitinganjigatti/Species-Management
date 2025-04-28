@@ -33,6 +33,7 @@ import CustomChip from 'src/@core/components/mui/chip'
 import RenderUtility from 'src/utility/render'
 import IconButton from '@mui/material/IconButton'
 import { useTheme } from '@emotion/react'
+import Utility from 'src/utility'
 
 function AlternativeMedicine({ parentId, updateRequestItems, existingListItems, closeAlternativeMedicineDialog }) {
   const initialNestedRowMedicine = {
@@ -619,33 +620,39 @@ function AlternativeMedicine({ parentId, updateRequestItems, existingListItems, 
               </FormHelperText>
             )}
 
-            {nestedRowMedicine.unit_price > 0 ? (
-              <Box sx={{ mx: 1, my: 2, display: 'flex', gap: 2 }}>
+            {nestedRowMedicine?.unit_price > 0 ? (
+              <Box sx={{ mx: 1, my: 2, display: 'flex' }}>
                 <Chip
-                  label={`Unit Price - ${nestedRowMedicine.unit_price}`}
+                  label={`Unit Price - ${Utility?.formatAmountToReadableDigit(Number(nestedRowMedicine?.unit_price))}`}
                   variant='outlined'
                   size='sm'
                   sx={{
                     mr: 2,
-                    fontSize: 12,
+                    fontSize: '13px',
                     height: '32px',
-                    borderRadius: '16px',
+                    fontWeight: 400,
+                    verticalAlign: 'middle',
                     backgroundColor: 'customColors.Surface',
                     color: 'customColors.OnSurfaceVariant',
                     border: `0.5px solid ${theme.palette.primary.main} !important`
+
+                    // border: '0.5px solid #37BD69 !important'
                   }}
                 />
                 <Chip
-                  label={`Total Quantity Price - ${nestedRowMedicine.unit_price * nestedRowMedicine.request_item_qty}`}
+                  label={`Total QTY Price - ${Utility?.formatAmountToReadableDigit(
+                    Number(nestedRowMedicine?.unit_price * nestedRowMedicine?.request_item_qty)
+                  )}`}
                   variant='outlined'
                   size='sm'
                   sx={{
-                    mr: 2,
-                    fontSize: 12,
+                    fontSize: '13px',
                     height: '32px',
-                    borderRadius: '16px',
+                    fontWeight: 400,
+                    verticalAlign: 'middle',
                     backgroundColor: 'customColors.Surface',
                     color: 'customColors.OnSurfaceVariant',
+
                     border: `0.5px solid ${theme.palette.primary.main} !important`
                   }}
                 />
