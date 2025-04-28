@@ -37,7 +37,7 @@ const RequestDetailsScreen = () => {
 
   useEffect(() => {
     if (detailsTab !== router.query.mainTab) {
-      debugger
+      // debugger
       updateUrlParams({
         mainTab: detailsTab
       })
