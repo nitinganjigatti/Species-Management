@@ -17,6 +17,7 @@ import {
 import { Box, styled } from '@mui/system'
 import React, { useCallback, useEffect, useState } from 'react'
 import Icon from 'src/@core/components/icon'
+import SpeciesCard from 'src/views/utility/SpeciesCard'
 
 const leftMenu = [
   { id: 1, name: 'Sites' },
@@ -392,9 +393,11 @@ const DietReportDrawer = ({
                       checked={selectedOptions['Species']?.includes(type?.tsn)}
                       onChange={() => handleCheckbox(type?.tsn, 'Species')}
                     />
-                    <Typography sx={{ fontSize: '16px', fontWeight: 400, color: '#839D8D' }}>
+
+                    <SpeciesCard species={{ common_name: type?.common_name, scientific_name: type?.scientific_name }} />
+                    {/* <Typography sx={{ fontSize: '16px', fontWeight: 400, color: '#839D8D' }}>
                       {type?.scientific_name}
-                    </Typography>
+                    </Typography> */}
                   </Box>
                 ))}
                 {taxonomyLoading && (

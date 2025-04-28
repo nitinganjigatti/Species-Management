@@ -33,14 +33,14 @@ const DietReportPage = () => {
   const initialRows = [
     {
       id: 1,
-      reportName: 'Active Diet by Species',
+      reportName: 'Species wise Diet & Quantity Report',
       reportTitle: 'Current diet plan for each species',
       reportAlias: 'species_diet_report',
       downloadStatus: false
     },
     {
       id: 2,
-      reportName: 'Species Inventory Estimate',
+      reportName: 'Site & Species wise Diet & Quantity Report',
       reportTitle: 'Estimated inventory needs per species',
       reportAlias: 'species_inventory_planning',
       downloadStatus: false
@@ -199,7 +199,9 @@ const DietReportPage = () => {
       if (reportAlias === 'species_diet_report') {
         data = await getGeneralSpeciesWiseReport({ params })
       } else if (reportAlias === 'species_inventory_planning') {
-        data = await getSpeciesWiseReport({ params })
+        const newParams = params
+        newParams.group_by_site = true
+        data = await getSpeciesWiseReport({ params: newParams })
       } else if (reportAlias === 'animal_wise_inventory_planning') {
         data = await getAnimalWiseInventoryPlanning({ params })
       } else if (reportAlias === 'ingredient_wise_inventory_planning') {
