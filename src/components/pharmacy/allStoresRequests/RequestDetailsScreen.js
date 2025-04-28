@@ -166,4 +166,4 @@ const RequestDetailsScreen = () => {
   )
 }
 
-export default RequestDetailsScreen
+export default React.memo(RequestDetailsScreen)
