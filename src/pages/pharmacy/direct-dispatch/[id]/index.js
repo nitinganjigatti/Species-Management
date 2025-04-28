@@ -201,8 +201,6 @@ const IndividualRequest = () => {
       setLoader(true)
       const response = await getShippedItemsByRequestId(id)
 
-      console.log(response, 'res1234')
-
       if (response.success) {
         const mappedWithUid = response?.data?.map((item, index) => ({
           ...item,
@@ -344,12 +342,11 @@ const IndividualRequest = () => {
 
   const columns = [
     {
-      width: 40,
-      field: 'sl_no',
-      headerName: 'Sl',
-      renderCell: (params, rowId) => (
+      width: 80,
+      headerName: 'SL.NO',
+      renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.uid}
+          {params.row.sl_no + '.'}
         </Typography>
       )
     },
@@ -403,15 +400,29 @@ const IndividualRequest = () => {
     //   )
     // },
     {
-      width: 100,
-      minWidth: 100,
+      width: 150,
+      minWidth: 150,
       field: 'batch_no',
       headerName: 'Batch No',
-
-      // align: 'right',
+      align: 'center',
+      headerAlign: 'center',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.batch_no}
+        </Typography>
+      )
+    },
+
+    {
+      width: 120,
+      field: 'expiry_date',
+      headerName: 'Expiry Date',
+      align: 'center',
+      headerAlign: 'center',
+
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {Utility.formatDisplayDate(params?.row?.expiry_date)}
         </Typography>
       )
     },
@@ -419,7 +430,7 @@ const IndividualRequest = () => {
       width: 150,
       minWidth: 150,
       field: 'unit_price',
-      headerName: 'unit price',
+      headerName: 'unit price(₹)',
       type: 'number',
       align: 'right',
       renderCell: params => (
@@ -432,9 +443,9 @@ const IndividualRequest = () => {
       width: 150,
       minWidth: 150,
       field: 'qty',
-      headerName: 'total value',
+      headerName: 'total value(₹)',
       type: 'number',
-      align: 'right',
+      headerAlign: 'right',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {Utility.formatAmountToReadableDigit(params.row.unit_price * params.row.qty)}
@@ -448,7 +459,8 @@ const IndividualRequest = () => {
       field: 'requested_qty',
       headerName: 'Dispatch QTY',
       type: 'number',
-      align: 'right',
+      align: 'center',
+      headerAlign: 'center',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.requested_qty}
@@ -569,12 +581,11 @@ const IndividualRequest = () => {
 
   const fulfillColumns = [
     {
-      Width: 40,
-      field: 'sl_no',
-      headerName: 'Id',
+      width: 80,
+      headerName: 'SL.NO',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.id}
+          {params.row.sl_no + '.'}
         </Typography>
       )
     },
@@ -606,9 +617,11 @@ const IndividualRequest = () => {
     },
 
     {
-      width: 160,
+      width: 150,
       field: 'batch_no',
       headerName: 'Batch No',
+      align: 'center',
+      headerAlign: 'center',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.batch_no}
@@ -619,6 +632,9 @@ const IndividualRequest = () => {
       width: 120,
       field: 'expiry_date',
       headerName: 'Expiry Date',
+      align: 'center',
+      headerAlign: 'center',
+
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {Utility.formatDisplayDate(params.row.expiry_date) === 'Invalid date'
@@ -631,6 +647,9 @@ const IndividualRequest = () => {
       width: 140,
       field: 'fulfilledDate',
       headerName: 'Fulfilled Date',
+      align: 'center',
+      headerAlign: 'center',
+
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {Utility.formatDisplayDate(dispatchedItems.dispatch_date)}
@@ -640,18 +659,22 @@ const IndividualRequest = () => {
     {
       width: 140,
       field: 'unit_price',
-      headerName: 'unit price',
+      headerName: 'unit price(₹)',
+      align: 'right',
+      headerAlign: 'right',
+
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {console.log(params, 'params')}
-          {params.row.unit_price}
+          {Utility?.formatAmountToReadableDigit(params?.row?.unit_price)}
         </Typography>
       )
     },
     {
       width: 140,
       field: 'qty',
-      headerName: 'total value',
+      headerName: 'total value(₹)',
+      align: 'right',
+      headerAlign: 'right',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {Utility.formatAmountToReadableDigit(params.row.unit_price * params.row.dispatch_qty)}
@@ -663,7 +686,8 @@ const IndividualRequest = () => {
       field: 'dispatch_qty',
       headerName: 'Fulfilled QTY',
       type: 'number',
-      align: 'right',
+      align: 'center',
+      headerAlign: 'center',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.dispatch_qty}
@@ -674,12 +698,11 @@ const IndividualRequest = () => {
 
   const shippedColumns = [
     {
-      width: 40,
-      field: 'sl_no',
-      headerName: 'Sl',
-      renderCell: (params, rowId) => (
+      width: 80,
+      headerName: 'SL.NO',
+      renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.uid}
+          {params.row.sl_no + '.'}
         </Typography>
       )
     },
@@ -687,6 +710,8 @@ const IndividualRequest = () => {
       width: 200,
       field: 'shipment_id',
       headerName: 'Shipment Id',
+      align: 'center',
+      headerAlign: 'center',
       renderCell: (params, rowId) => (
         <div>
           <Typography variant='body2' sx={{ color: 'text.primary' }}>
@@ -700,6 +725,8 @@ const IndividualRequest = () => {
       width: 120,
       field: 'shipment_date',
       headerName: 'Date',
+      align: 'center',
+      headerAlign: 'center',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {Utility.formatDisplayDate(params.row.shipment_date)}
@@ -710,6 +737,8 @@ const IndividualRequest = () => {
       width: 120,
       field: 'vehicle_no',
       headerName: 'Vehicle No',
+      align: 'center',
+      headerAlign: 'center',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.vehicle_no ? params.row.vehicle_no : 'NA'}
@@ -720,6 +749,8 @@ const IndividualRequest = () => {
       width: 140,
       field: 'person_shipping',
       headerName: 'Driver Name',
+      align: 'center',
+      headerAlign: 'center',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.person_shipping ? params.row.person_shipping : params.row.receiver_name}
@@ -730,6 +761,8 @@ const IndividualRequest = () => {
       width: 160,
       field: 'phone_number',
       headerName: 'Driver Number',
+      align: 'center',
+      headerAlign: 'center',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.phone_number ? params.row.phone_number : 'NA'}
@@ -1042,8 +1075,6 @@ const IndividualRequest = () => {
       query: { tab: value }
     })
   }
-
-  console.log(shippedItems, 'shippedItems')
 
   return (
     <>
