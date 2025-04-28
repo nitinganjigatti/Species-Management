@@ -33,14 +33,14 @@ const DietReportPage = () => {
   const initialRows = [
     {
       id: 1,
-      reportName: 'Active Diet by Species',
+      reportName: 'Species wise Diet & Quantity Report',
       reportTitle: 'Current diet plan for each species',
       reportAlias: 'species_diet_report',
       downloadStatus: false
     },
     {
       id: 2,
-      reportName: 'Species Inventory Estimate',
+      reportName: 'Site & Species wise Diet & Quantity Report',
       reportTitle: 'Estimated inventory needs per species',
       reportAlias: 'species_inventory_planning',
       downloadStatus: false
