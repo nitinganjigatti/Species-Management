@@ -435,7 +435,7 @@ export const AddItemsForm = ({
                 </FormHelperText>
               )}
 
-             
+              
             </FormControl>
             {/* {watch('packageDetails') && (
               <Typography sx={{ color: 'primary.main', fontSize: 14, mx: 2 }}>
@@ -615,13 +615,9 @@ export const AddItemsForm = ({
                   />
                 )}
               />
-              {(errors?.batch_no?.value?.message ||
-                errors?.batch_no?.label?.message ||
-                errors?.batch_no?.message) && (
+              {(errors?.batch_no?.value?.message || errors?.batch_no?.label?.message || errors?.batch_no?.message) && (
                 <FormHelperText sx={{ color: 'error.main' }}>
-                  {errors?.batch_no?.value?.message ||
-                    errors?.batch_no?.label?.message ||
-                    errors?.batch_no?.message}
+                  {errors?.batch_no?.value?.message || errors?.batch_no?.label?.message || errors?.batch_no?.message}
                 </FormHelperText>
               )}
               {/* {getValues('available_item_qty') ? (
@@ -749,7 +745,17 @@ export const AddItemsForm = ({
               {errors.reason && <FormHelperText sx={{ color: 'error.main' }}>{errors?.reason?.message}</FormHelperText>}
             </FormControl> */}
             <FormControl fullWidth>
-              <InputLabel id='demo-simple-select-helper-label'>Select reason</InputLabel>
+              <InputLabel
+                id='demo-simple-select-helper-label'
+                sx={{
+                  color: errors.reason ? 'error.main' : 'text.primary',
+                  '&.Mui-focused': {
+                    color: errors.reason ? 'error.main' : 'primary.main'
+                  }
+                }}
+              >
+                Select reason*
+              </InputLabel>
               <Controller
                 name='reason'
                 control={control}
