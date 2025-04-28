@@ -229,7 +229,6 @@ const ListOfPurchase = () => {
   const columns = [
     {
       width: 80,
-      field: 'sl',
       headerName: 'SL.NO',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
@@ -313,7 +312,7 @@ const ListOfPurchase = () => {
     {
       minWidth: 180,
       field: 'net_amount',
-      headerName: 'Purchase Amount',
+      headerName: 'Purchase Amount(₹)',
       type: 'number',
       align: 'right',
       headerAlign: 'right',

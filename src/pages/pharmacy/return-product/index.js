@@ -405,7 +405,8 @@ const ReturnRequestList = () => {
   const columns = [
     {
       width: 80,
-      field: 'sl_no',
+
+      // field: 'sl_no',
       headerName: 'SL.NO',
       renderCell: params => (
         <Typography
@@ -417,7 +418,7 @@ const ReturnRequestList = () => {
             fontFamily: 'Inter'
           }}
         >
-          {parseInt(params.row.sl_no) + '.'}
+          {Number(params.row.sl_no) + '.'}
         </Typography>
       )
     },
