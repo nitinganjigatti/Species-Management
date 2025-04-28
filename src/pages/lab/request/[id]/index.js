@@ -67,6 +67,7 @@ import {
   postBulkTransfer,
   getLabListByMultipleIds
 } from 'src/lib/api/lab/getLabRequest'
+import AttachmentSheet from 'src/views/pages/lab/AttachmentSheet'
 
 const RequestDetails = () => {
   const theme = useTheme()
@@ -143,7 +144,9 @@ const RequestDetails = () => {
   const [allCompleted, setAllCompleted] = useState(false)
   const [openAnimalSheet, setOpenAnimalSheet] = useState(false)
   const [openCommentSheet, setOpenCommentSheet] = useState(false)
+  const [openAttachmentSheet, setOpenAttachmentSheet] = useState(false)
   const [CommentData, setCommentData] = useState({})
+  // const [attachmentData, setAttachmentCommentData] = useState({})
   const [medicalRecordNotes, setMedicalRecordNotes] = useState([])
 
   const [statusList, setStatusList] = useState([])
@@ -152,7 +155,7 @@ const RequestDetails = () => {
 
   useEffect(() => {
     const labObject = localLabData?.find(item => item?.lab_id === lab_id)
-    console.log('labObject', labObject)
+    // console.log('labObject', labObject)
 
     if (labObject && labObject.permission) {
       setPermissions(labObject.permission)
@@ -308,9 +311,12 @@ const RequestDetails = () => {
     const params = {
       test_ids: labId
     }
+    const requestData = request
     await getLabListByMultipleIds(id, params).then(res => {
-      // console.log('res', res?.data)
-      setLab(res?.data)
+      const labList = res?.data?.filter(labListItem => {
+        return labListItem.lab_id != requestData[0]?.lab_id
+      })
+      setLab(labList)
     })
   }
 
@@ -387,6 +393,8 @@ const RequestDetails = () => {
 
   const handleOpenShowFile = (e, params) => {
     // setShowTestFile(true)
+    setOpenAttachmentSheet(true)
+    // setAttachmentCommentData(params?.row?.attachments?.images)
 
     setTestImage(params?.row?.attachments?.images)
     setTestDoc(params?.row?.attachments?.docs)
@@ -408,8 +416,8 @@ const RequestDetails = () => {
   const handleRowPermission = ({ params }) => {
     const st = statusList.filter(status => status.key === params.row.status)
     const st1 = filteredStatusData.filter(status => status.key === params.row.status)
-    console.log('statusList', statusList)
-    console.log('st', st)
+    // console.log('statusList', statusList)
+    // console.log('st', st)
     if (st1?.length === 0) {
       return false
     } else if (
@@ -783,7 +791,7 @@ const RequestDetails = () => {
   const schema = yup.object().shape({
     lab_name: yup.string(),
     replaced_lab_id: yup.string().required('Transfer to is required'),
-    transfer_reason: yup.string().required('Transfer reason is required')
+    transfer_reason: yup.string().trim().required('Transfer reason is required')
   })
 
   const {
@@ -843,6 +851,7 @@ const RequestDetails = () => {
       const res = await postBulkTransfer({ params: testId.length ? payloadSingle : payloadMulti })
       if (res?.success) {
         handleCloseTransfer()
+
         Toaster({ type: 'success', message: res.message })
         reset({
           replaced_lab_id: '',
@@ -855,7 +864,7 @@ const RequestDetails = () => {
           replaced_lab_id: '',
           transfer_reason: ''
         })
-        Toaster({ type: 'error', message: res.message })
+        Toaster({ type: 'error', message: res.message.transfer_reason })
       }
     }
   }
@@ -1971,6 +1980,16 @@ const RequestDetails = () => {
             setOpenCommentSheet={setOpenCommentSheet}
             CommentData={CommentData}
             api={() => fetchRequestDetails()}
+          />
+        )}
+      </>
+      <>
+        {openAttachmentSheet && (
+          <AttachmentSheet
+            fileViews={fileViews}
+            openAttachmentSheet={openAttachmentSheet}
+            setOpenAttachmentSheet={setOpenAttachmentSheet}
+            attachmentData={[...testImage, ...testDoc]}
           />
         )}
       </>
