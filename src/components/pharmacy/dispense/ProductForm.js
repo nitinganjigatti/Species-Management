@@ -775,7 +775,7 @@ function ProductForm({
                       color='customColors.neutralSecondary'
                       sx={{ fontWeight: 400, fontFamily: 'Inter', fontSize: '12px' }}
                     >
-                      Available Packing:
+                      Package:
                     </Typography>
                     <Typography
                       color='primary.light'

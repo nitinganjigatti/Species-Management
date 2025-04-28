@@ -80,11 +80,13 @@ const defaultValues = {
 //   expiry_date: yup.string().required('Expiry Date is required')
 // })
 const schema = yup.object().shape({
-  request_item: yup.object().shape({
-    label: yup.string().required('Product Name is required'),
-    value: yup.string().required('Product Name is required')
-  })
-  .required('Product Name is required'),
+  request_item: yup
+    .object()
+    .shape({
+      label: yup.string().required('Product Name is required'),
+      value: yup.string().required('Product Name is required')
+    })
+    .required('Product Name is required'),
 
   batch_no: yup
     .object()
@@ -92,24 +94,18 @@ const schema = yup.object().shape({
     .nullable()
     .required('Batch number is required')
     .test('is-valid-object', 'Batch number is required', value => {
-      return (
-        value !== null &&
-        typeof value === 'object' &&
-        value.label &&
-        value.value &&
-        value.expiry_date
-      );
+      return value !== null && typeof value === 'object' && value.label && value.value && value.expiry_date
     }),
 
   quantity: yup
-  .number()
-  .transform((value, originalValue) => {
-    return originalValue === '' ? undefined : value
-  })
-  .required('Quantity is required')
-  .typeError('Quantity must be a number')
-  .positive('Quantity must be a positive number')
-  .integer('Quantity must be an integer'),
+    .number()
+    .transform((value, originalValue) => {
+      return originalValue === '' ? undefined : value
+    })
+    .required('Quantity is required')
+    .typeError('Quantity must be a number')
+    .positive('Quantity must be a positive number')
+    .integer('Quantity must be an integer'),
 
   expiry_date: yup.string().required('Expiry Date is required'),
 
@@ -434,8 +430,6 @@ export const AddItemsForm = ({
                     errors?.request_item?.message}
                 </FormHelperText>
               )}
-
-              
             </FormControl>
             {/* {watch('packageDetails') && (
               <Typography sx={{ color: 'primary.main', fontSize: 14, mx: 2 }}>
@@ -462,7 +456,7 @@ export const AddItemsForm = ({
                       color='customColors.neutralSecondary'
                       sx={{ fontWeight: 400, fontFamily: 'Inter', fontSize: '12px', mb: 1 }}
                     >
-                      Available Packing:
+                      Package:
                     </Typography>
                     <Typography
                       color='primary.light'

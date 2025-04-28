@@ -578,7 +578,7 @@ function AlternativeMedicine({ parentId, updateRequestItems, existingListItems, 
             }}
           >
             <Typography sx={{ fontWeight: 400, fontFamily: 'Inter', fontSize: '12px', mb: 1 }}>
-              Available Packing:{' '}
+              Package:{' '}
               <span style={{ fontWeight: 400, fontSize: '12px', color: 'primary.light' }}>
                 {nestedRowMedicine?.package}
               </span>

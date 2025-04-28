@@ -1079,7 +1079,7 @@ const AddRequestForm = () => {
               }}
             >
               <Typography sx={{ fontWeight: 400, fontFamily: 'Inter', fontSize: '12px', mb: 1 }}>
-                Available Packing:{' '}
+                Package:{' '}
                 <span style={{ fontWeight: 400, fontSize: '12px', color: 'customColors.OnPrimaryContainer' }}>
                   {nestedRowMedicine?.package}
                 </span>
