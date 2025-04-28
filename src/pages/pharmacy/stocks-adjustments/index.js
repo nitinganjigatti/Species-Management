@@ -33,7 +33,7 @@ import { AddButtonContained } from 'src/components/ButtonContained'
 import RenderUtility from 'src/utility/render'
 import TextEllipsisWithModal from 'src/components/TextEllipsisWithModal'
 import { STOCK_ADJUSTMENT_REASON_TYPES } from 'src/constants/PharmacyConstants'
-import StockAdjustmentReasonDetails from 'src/views/pages/pharmacy/stock/StockAdjustmentReasonDetails'
+import LabelAndDescriptionWithElipsisModal from 'src/views/utility/LabelAndDescriptionWithElipsisModal'
 
 const ListOfStockAdjusted = () => {
   const theme = useTheme()
@@ -247,23 +247,10 @@ const ListOfStockAdjusted = () => {
       field: 'reason_name',
       headerName: 'Reason',
       renderCell: params => {
-        // const { MISSED, EXPIRED } = STOCK_ADJUSTMENT_REASON_TYPES
         const { reason, reasonTextColor } = getLabelColor(params)
 
-        // debugger
-
-        // const reasonTextColor =
-        //   params?.row?.reason === MISSED
-        //     ? theme.palette.customColors.Error
-        //     : params?.row?.reason === EXPIRED
-        //     ? theme.palette.customColors.Antz_Body_Medium
-        //     : theme.palette.customColors.Tertiary
-
-        // const reason =
-        //   params?.row?.reason === MISSED ? 'Missing' : params?.row?.reason === EXPIRED ? 'Expired' : 'Damaged'
-
         return (
-          <StockAdjustmentReasonDetails
+          <LabelAndDescriptionWithElipsisModal
             reason={reason}
             comment={params?.row?.comments}
             reasonTextColor={reasonTextColor}

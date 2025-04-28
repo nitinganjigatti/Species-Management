@@ -2,7 +2,7 @@ import React from 'react'
 import { Box, Tooltip, Typography } from '@mui/material'
 import TextEllipsisWithModal from 'src/components/TextEllipsisWithModal'
 
-const StockAdjustmentReasonDetails = ({ reason, comment, reasonTextColor, commentTextColor }) => {
+const LabelAndDescriptionWithElipsisModal = ({ reason, comment, reasonTextColor, commentTextColor }) => {
   return (
     <Tooltip title={reason || ''}>
       <Box sx={{ maxWidth: '100%', display: 'flex', flexDirection: 'column' }}>
@@ -29,4 +29,4 @@ const StockAdjustmentReasonDetails = ({ reason, comment, reasonTextColor, commen
   )
 }
 
-export default React.memo(StockAdjustmentReasonDetails)
+export default React.memo(LabelAndDescriptionWithElipsisModal)
