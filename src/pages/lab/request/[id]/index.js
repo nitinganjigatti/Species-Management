@@ -322,8 +322,23 @@ const RequestDetails = () => {
 
   const handleOpenTransfer = async params => {
     // console.log('params', params?.row)
-    const hasCompleted = selectedRowData.some(item => item.status.startsWith('completed'))
-    if (hasCompleted && !params) {
+    // const hasCompleted = selectedRowData.some(item => item.status.startsWith('completed'))
+
+    const hasCompleted = selectedRowData?.filter(item =>
+      [
+        'completed',
+        'completed_positive',
+        'completed_negative',
+        'completed_detected',
+        'completed_not_detected',
+        'completed_inconclusive',
+        'inprogress'
+      ].includes(item?.key)
+    )
+
+    debugger
+
+    if (hasCompleted?.length > 0 && !params) {
       setHasCompletedStatus(true)
     } else {
       setHasCompletedStatus(false)
