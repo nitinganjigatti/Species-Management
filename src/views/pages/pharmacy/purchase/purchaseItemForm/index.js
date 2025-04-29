@@ -100,11 +100,14 @@ const PurchaseItemForm = props => {
   const [defaultProduct, setDefaultProduct] = useState({ label: '', value: '', stock_type: '' })
 
   const schema = yup.object().shape({
-    product: yup.object().shape({
-      value: yup.string().required('Product name is required'),
-      label: yup.string().required('Product name is required'),
-      stock_type: yup.string().nullable()
-    }).required('Product name is required'),
+    product: yup
+      .object()
+      .shape({
+        value: yup.string().required('Product name is required'),
+        label: yup.string().required('Product name is required'),
+        stock_type: yup.string().nullable()
+      })
+      .required('Product name is required'),
 
     purchase_expiry_date: yup.string().when('product.stock_type', (stockType, schema) => {
       if (stockType[0] === 'non_medical') {
@@ -225,7 +228,10 @@ const PurchaseItemForm = props => {
       .typeError('Net amount must be a number')
 
       .required('Net amount is required'),
-    purchase_variant_id: yup.string().transform(value => (value === '' ? null : value)).required('Product variant is required')
+    purchase_variant_id: yup
+      .string()
+      .transform(value => (value === '' ? null : value))
+      .required('Product variant is required')
   })
 
   const {
@@ -464,7 +470,8 @@ const PurchaseItemForm = props => {
     )
     setValue(
       'purchase_gross_amount',
-      checkFloatValue(grossAmount), { shouldValidate: true }
+      checkFloatValue(grossAmount),
+      { shouldValidate: true }
 
       // grossAmount >= 0.01 ? parseFloat(grossAmount).toFixed(2) : parseFloat(grossAmount).toFixed(5)
     )
@@ -490,10 +497,9 @@ const PurchaseItemForm = props => {
   useEffect(() => {
     if (productExpiryDate !== '') {
       setValue('purchase_expiry_date', dayjs(productExpiryDate), { shouldValidate: true })
-      if(nestedRowMedicine?.purchase_variant_id != 0)
+      if (nestedRowMedicine?.purchase_variant_id != 0)
         setValue('purchase_variant_id', nestedRowMedicine?.purchase_variant_id, { shouldValidate: true })
-      else
-        setValue('purchase_variant_id', nestedRowMedicine?.purchase_variant_id)
+      else setValue('purchase_variant_id', nestedRowMedicine?.purchase_variant_id)
       setValue('purchase_variant_ratio', nestedRowMedicine?.purchase_variant_ratio)
       const totalUnitQty = checkNumber(nestedRowMedicine?.purchase_variant_ratio * nestedRowMedicine?.purchase_qty)
       setValue('isVariantIdPresent', true)
@@ -779,16 +785,9 @@ const PurchaseItemForm = props => {
                       value={value}
                       onChange={onChange}
                       renderInput={params => <TextField {...params} error={Boolean(errors.purchase_expiry_date)} />}
-                      sx={{
-                        '& .MuiFormLabel-root': {
-                          color: theme =>
-                            Boolean(errors.purchase_expiry_date) ? theme.palette.error.main : theme.palette.text.primary
-                        },
-                        '& .MuiOutlinedInput-root': {
-                          '& fieldset': {
-                            borderColor: theme =>
-                              Boolean(errors.purchase_expiry_date) ? theme.palette.error.main : theme.palette.divider
-                          }
+                      slotProps={{
+                        textField: {
+                          error: Boolean(errors.purchase_expiry_date)
                         }
                       }}
                       error={Boolean(errors.purchase_expiry_date)}
