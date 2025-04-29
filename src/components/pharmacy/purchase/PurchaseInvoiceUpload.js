@@ -1,3 +1,4 @@
+/* eslint-disable lines-around-comment */
 import { useState, useEffect, useRef, useCallback } from 'react'
 import axios from 'axios'
 import { Typography, Grid, Box, Button, FormControl, TextField, FormHelperText, Card, Tab, alpha } from '@mui/material'
@@ -12,6 +13,23 @@ import { useTheme } from '@emotion/react'
 import { useDropzone } from 'react-dropzone'
 import toast from 'react-hot-toast'
 import ImagePreview from 'src/views/utility/ImagePreview'
+
+const customScrollbar = {
+  overflowX: 'auto',
+  '&::-webkit-scrollbar': {
+    height: '6px',
+    width: '6px'
+  },
+  '&::-webkit-scrollbar-track': {
+    backgroundColor: 'transparent'
+  },
+  '&::-webkit-scrollbar-thumb': {
+    backgroundColor: '#ccc',
+    borderRadius: '4px'
+  },
+  scrollbarWidth: 'thin',
+  scrollbarColor: '#ccc transparent'
+}
 
 const PurchaseInvoiceUpload = ({
   setPurchaseItems,
@@ -734,12 +752,18 @@ const PurchaseInvoiceUpload = ({
                           </Box>
                         )}
                       </Grid>
-                      <Grid item xs={12} sm={3} sx={{ overflowY: 'auto', overflowX: 'hidden', height: 400 }}>
+                      <Grid
+                        item
+                        xs={12}
+                        sm={3}
+                        sx={{ overflowY: 'auto', overflowX: 'hidden', height: 400, ...customScrollbar }}
+                      >
                         {Array.isArray(file) && file?.length > 0 && (
                           <>
                             {file?.map((el, index) => {
                               return (
                                 <ImagePreview
+                                  // imageDetails={el}
                                   loader={invoiceSubmitLoader}
                                   onClose={() => {
                                     handleDeleteFile(index)
@@ -885,7 +909,8 @@ const PurchaseInvoiceUpload = ({
               sm={12}
               sx={{
                 display: 'flex',
-                overflowX: 'auto'
+                overflowX: 'auto',
+                ...customScrollbar
               }}
             >
               {file &&
@@ -893,6 +918,7 @@ const PurchaseInvoiceUpload = ({
                 file.map((el, index) => {
                   return (
                     <ImagePreview
+                      // imageDetails={el}
                       loader={invoiceSubmitLoader}
                       key={index}
                       onClose={() => {
