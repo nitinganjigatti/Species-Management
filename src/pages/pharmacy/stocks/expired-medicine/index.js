@@ -24,8 +24,10 @@ import {
   Select,
   InputLabel,
   FormHelperText,
-  InputAdornment
+  InputAdornment,
+  Box
 } from '@mui/material'
+import PharmacyProductCard from 'src/views/utility/PharmacyProductCard'
 
 const ExpiredMedicine = () => {
   const theme = useTheme()
@@ -172,19 +174,15 @@ const ExpiredMedicine = () => {
       field: 'stock_item_name',
       headerName: 'Product Name',
       renderCell: params => (
-        <Tooltip title={params.row.stock_item_name} placement='top'>
-          <Typography
-            variant='body2'
-            sx={{
-              color: theme.palette.customColors.customHeadingTextColor,
-              fontSize: '14px',
-              fontWeight: 500,
-              fontFamily: 'Inter'
-            }}
-          >
-            {params.row.stock_item_name}
-          </Typography>
-        </Tooltip>
+        <Box>
+          <PharmacyProductCard
+            title={params?.row?.stock_item_name}
+            subTitle={params?.row?.generic_name}
+            icon={params?.row?.image}
+            controlSubstance={params?.row?.controlled_substance === '1' && true}
+            prescriptionRequired={params?.row?.prescription_required === '1' && true}
+          />
+        </Box>
       )
     },
     {

@@ -18,7 +18,6 @@ import RenderUtility from 'src/utility/render'
 
 function Escrow({ value }) {
   const router = useRouter()
-  console.log('Value >>', value)
 
   const theme = useTheme()
 
