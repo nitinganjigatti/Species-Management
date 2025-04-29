@@ -12,6 +12,7 @@ import Utility from 'src/utility'
 import EggTableHeader from '../EggTableHeader'
 import dayjs from 'dayjs'
 import { useRouter } from 'next/router'
+import CommonTable from 'src/views/table/data-grid/CommonTable'
 
 const DiscardedTableView = ({
   tabValue,
@@ -493,57 +494,18 @@ const DiscardedTableView = ({
         tableSearch={searchValue}
         filterByNurseryId={filterByNurseryId}
       />
-      <DataGrid
-        sx={{
-          '.MuiDataGrid-cell:focus': {
-            outline: 'none'
-          },
-          '& .MuiDataGrid-row:hover': {
-            cursor: 'pointer'
-          },
-          '& .MuiDataGrid-row:hover .customButton': {
-            display: 'block'
-          },
-          '& .MuiDataGrid-row:hover .hideField': {
-            display: 'none'
-          },
-          '& .MuiDataGrid-row .customButton': {
-            display: 'none'
-          },
-          '& .MuiDataGrid-row .hideField': {
-            display: 'block'
-          }
-        }}
-        columnVisibilityModel={{
-          sl_no: false
-        }}
-        hideFooterSelectedRowCount
-        disableColumnSelector={true}
-        autoHeight
-        pagination
-        rows={indexedRows === undefined ? [] : indexedRows}
-        rowCount={totalpage}
-        columns={columns}
-        sortingMode='server'
-        paginationMode='server'
-        pageSizeOptions={[7, 10, 25, 50]}
-        paginationModel={paginationModel}
-        onSortModelChange={handleSortModel}
-        // slots={{ toolbar: ServerSideToolbarWithFilter }}
+      <CommonTable
         rowHeight={72}
-        onPaginationModelChange={setPaginationModel}
         onCellClick={onCellClick}
+        indexedRows={indexedRows || []}
+        total={totalpage}
+        columns={columns || []}
+        paginationModel={paginationModel}
+        handleSortModel={handleSortModel}
+        setPaginationModel={setPaginationModel}
         loading={loading}
-        slotProps={{
-          baseButton: {
-            variant: 'outlined'
-          },
-          toolbar: {
-            value: searchValue,
-            clearSearch: () => handleSearch(''),
-            onChange: event => handleSearch(event.target.value)
-          }
-        }}
+        searchValue={searchValue}
+        maxHeight='70vh'
       />
       <DiscardDetail
         setDetailDrawer={setDetailDrawer}

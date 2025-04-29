@@ -80,26 +80,32 @@ const defaultValues = {
 //   expiry_date: yup.string().required('Expiry Date is required')
 // })
 const schema = yup.object().shape({
-  request_item: yup.object().shape({
-    label: yup.string().required('Product Name is required'),
-    value: yup.string().required('Product Name is required')
-  }),
+  request_item: yup
+    .object()
+    .shape({
+      label: yup.string().required('Product Name is required'),
+      value: yup.string().required('Product Name is required')
+    })
+    .required('Product Name is required'),
 
   batch_no: yup
-    .mixed()
+    .object()
+    .transform((value, originalValue) => (originalValue === '' ? null : value))
+    .nullable()
     .required('Batch number is required')
     .test('is-valid-object', 'Batch number is required', value => {
-      return (
-        value !== null && typeof value === 'object' && 'label' in value && 'value' in value && 'expiry_date' in value
-      )
+      return value !== null && typeof value === 'object' && value.label && value.value && value.expiry_date
     }),
 
   quantity: yup
     .number()
-    .typeError('Quantity must be a positive number')
+    .transform((value, originalValue) => {
+      return originalValue === '' ? undefined : value
+    })
+    .required('Quantity is required')
+    .typeError('Quantity must be a number')
     .positive('Quantity must be a positive number')
-    .integer('Quantity must be an integer')
-    .required('Quantity is required'),
+    .integer('Quantity must be an integer'),
 
   expiry_date: yup.string().required('Expiry Date is required'),
 
@@ -350,10 +356,11 @@ export const AddItemsForm = ({
                       searchMedicineData(e.target.value)
                     }}
                     onChange={(e, value) => {
-                      setValue('request_item', value)
-                      setValue('batch_no', '')
-                      setValue('expiry_date', '')
-                      setValue('available_item_qty', '')
+                      setValue('request_item', value, { shouldValidate: true })
+                      setValue('batch_no', '', { shouldValidate: true })
+                      setValue('expiry_date', '', { shouldValidate: true })
+                      setValue('available_item_qty', '', { shouldValidate: true })
+                      setValue('reason', '', { shouldValidate: true })
                       setValue('stock_type', '')
                       setValue('packageDetails', '')
                       setValue('manufacture', '')
@@ -414,27 +421,15 @@ export const AddItemsForm = ({
                   />
                 )}
               />
-              {errors?.request_item && (
-                <FormHelperText sx={{ color: 'error.main' }}>{errors?.request_item?.message}</FormHelperText>
+              {(errors?.request_item?.value?.message ||
+                errors?.request_item?.label?.message ||
+                errors?.request_item?.message) && (
+                <FormHelperText sx={{ color: 'error.main' }}>
+                  {errors?.request_item?.value?.message ||
+                    errors?.request_item?.label?.message ||
+                    errors?.request_item?.message}
+                </FormHelperText>
               )}
-              {/* {watch('packageDetails') && (
-                <Box sx={{ mx: 1, my: 2, display: 'flex' }}>
-                  <Chip
-                    label={watch('packageDetails')}
-                    color='primary'
-                    variant='outlined'
-                    size='sm'
-                    sx={{ mr: 2, fontSize: 11, height: '22px' }}
-                  />
-                  <Chip
-                    label={watch('manufacture')}
-                    color='primary'
-                    variant='outlined'
-                    size='sm'
-                    sx={{ fontSize: 11, height: '22px' }}
-                  />
-                </Box>
-              )} */}
             </FormControl>
             {/* {watch('packageDetails') && (
               <Typography sx={{ color: 'primary.main', fontSize: 14, mx: 2 }}>
@@ -461,7 +456,7 @@ export const AddItemsForm = ({
                       color='customColors.neutralSecondary'
                       sx={{ fontWeight: 400, fontFamily: 'Inter', fontSize: '12px', mb: 1 }}
                     >
-                      Available Packing:
+                      Package:
                     </Typography>
                     <Typography
                       color='primary.light'
@@ -515,7 +510,7 @@ export const AddItemsForm = ({
           </Grid>
 
           <Grid item xs={12} sm={getValues('stock_type') === 'non_medical' ? 6 : 4}>
-            <FormControl fullWidth>
+            <FormControl fullWidth error={Boolean(errors.batch_no)}>
               <Controller
                 name='batch_no'
                 control={control}
@@ -531,13 +526,13 @@ export const AddItemsForm = ({
                     onChange={(e, value) => {
                       const isExpired = dayjs(value?.expiry_date, 'YYYY-MM-DD').isBefore(dayjs())
                       if (isExpired) {
-                        setValue('reason', 'Expired')
+                        setValue('reason', 'Expired', { shouldValidate: true })
                       } else {
-                        setValue('reason', '')
+                        setValue('reason', '', { shouldValidate: true })
                       }
                       console.log('value', value)
-                      setValue('batch_no', value)
-                      setValue('expiry_date', value?.expiry_date)
+                      setValue('batch_no', value, { shouldValidate: true })
+                      setValue('expiry_date', value?.expiry_date, { shouldValidate: true })
                       setValue('available_item_qty', value?.available_item_qty)
                       setValue('multiplier', value?.multiplier)
                       setValue('variant_id', value?.variant_id)
@@ -614,8 +609,10 @@ export const AddItemsForm = ({
                   />
                 )}
               />
-              {errors?.batch_no && (
-                <FormHelperText sx={{ color: 'error.main' }}>{errors?.batch_no?.message}</FormHelperText>
+              {(errors?.batch_no?.value?.message || errors?.batch_no?.label?.message || errors?.batch_no?.message) && (
+                <FormHelperText sx={{ color: 'error.main' }}>
+                  {errors?.batch_no?.value?.message || errors?.batch_no?.label?.message || errors?.batch_no?.message}
+                </FormHelperText>
               )}
               {/* {getValues('available_item_qty') ? (
                 <Typography sx={{ color: 'primary.main', fontSize: 14, mx: 2 }}>
@@ -650,7 +647,7 @@ export const AddItemsForm = ({
           </Grid>
           {getValues('stock_type') === 'non_medical' ? null : (
             <Grid item xs={12} sm={4}>
-              <FormControl fullWidth>
+              <FormControl fullWidth error={Boolean(errors.expiry_date)}>
                 <Controller
                   name='expiry_date'
                   control={control}
@@ -663,13 +660,21 @@ export const AddItemsForm = ({
                       error={Boolean(errors.expiry_date)}
                       onChange={onChange}
                       disabled
+                      sx={{
+                        '& .MuiOutlinedInput-root.Mui-disabled': {
+                          borderColor: theme => Boolean(errors.expiry_date) && theme.palette.error.main,
+                          '& fieldset': {
+                            borderColor: theme =>
+                              Boolean(errors.expiry_date) ? theme.palette.error.main : theme.palette.action.disabled
+                          }
+                        }
+                      }}
                     />
                   )}
-                >
-                  {errors.expiry_date && (
-                    <FormHelperText sx={{ color: 'error.main' }}>{errors?.expiry_date?.message}</FormHelperText>
-                  )}
-                </Controller>
+                />
+                {errors.expiry_date && (
+                  <FormHelperText sx={{ color: 'error.main' }}>{errors?.expiry_date?.message}</FormHelperText>
+                )}
               </FormControl>
             </Grid>
           )}
@@ -683,13 +688,13 @@ export const AddItemsForm = ({
             </Typography>
           </Grid>
           <Grid item xs={12} sm={12}>
-            <FormControl fullWidth>
+            <FormControl fullWidth error={Boolean(errors.quantity)}>
               <Controller
                 name='quantity'
                 control={control}
-                rules={{ required: true }}
                 render={({ field: { value, onChange } }) => (
                   <TextField
+                    type='number'
                     value={value}
                     label='Quantity*'
                     name='quantity'
@@ -698,13 +703,13 @@ export const AddItemsForm = ({
                     onKeyDown={checkTotalCount}
                     onPaste={checkTotalCount}
                     onInput={checkTotalCount}
+                    inputProps={{ min: 0 }}
                   />
                 )}
-              >
-                {errors.quantity && (
-                  <FormHelperText sx={{ color: 'error.main' }}>{errors?.quantity?.message}</FormHelperText>
-                )}
-              </Controller>
+              />
+              {errors.quantity && (
+                <FormHelperText sx={{ color: 'error.main' }}>{errors?.quantity?.message}</FormHelperText>
+              )}
             </FormControl>
           </Grid>
           <Grid item xs={12} sm={12}>
@@ -743,7 +748,17 @@ export const AddItemsForm = ({
               {errors.reason && <FormHelperText sx={{ color: 'error.main' }}>{errors?.reason?.message}</FormHelperText>}
             </FormControl> */}
             <FormControl fullWidth>
-              <InputLabel id='demo-simple-select-helper-label'>Select reason</InputLabel>
+              <InputLabel
+                id='demo-simple-select-helper-label'
+                sx={{
+                  color: errors.reason ? 'error.main' : 'text.primary',
+                  '&.Mui-focused': {
+                    color: errors.reason ? 'error.main' : 'primary.main'
+                  }
+                }}
+              >
+                Select reason*
+              </InputLabel>
               <Controller
                 name='reason'
                 control={control}

@@ -398,10 +398,12 @@ const AddIngredientswithChoice = props => {
 
   const handleScroll = async e => {
     const container = e.target
-
+    const threshold = 20
     // Check if the user has reached the bottom
     if (totalCount > ingredientList.length) {
-      if (container.scrollHeight - Math.round(container.scrollTop) === container.clientHeight) {
+      const isNearBottom =
+        container.scrollHeight - Math.round(container.scrollTop) <= container.clientHeight + threshold
+      if (isNearBottom) {
         // User has reached the bottom, perform your action here
 
         setIngredientPage(++ingredientPage)
@@ -807,7 +809,12 @@ const AddIngredientswithChoice = props => {
 
         <Box
           key={feed}
-          sx={{ marginTop: 35, height: '65%', overflowY: 'auto', bgcolor: theme.palette.customColors.bodyBg }}
+          sx={{
+            marginTop: 35,
+            height: 'calc(100vh - 245px)',
+            overflowY: 'auto',
+            bgcolor: theme.palette.customColors.bodyBg
+          }}
           //onScroll={handleScroll}
           onScroll={fromrow !== 'rowedit_ingredientwithchoice' ? handleScroll : undefined}
         >

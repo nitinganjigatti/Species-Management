@@ -45,6 +45,7 @@ import EggTableHeader from 'src/views/pages/egg/eggs/EggTableHeader'
 import dayjs from 'dayjs'
 import ExcelExportButton from 'src/views/pages/egg/eggs/exportEggListExcel'
 import { readAsync, write, remove, read } from 'src/lib/windows/utils'
+import CommonTable from 'src/views/table/data-grid/CommonTable'
 
 const EggList = () => {
   const theme = useTheme()
@@ -2680,7 +2681,7 @@ const EggList = () => {
                   filterByNurseryId={filterByNurseryId}
                   tableSearch={searchValue}
                 />
-                <DataGrid
+                {/* <DataGrid
                   sx={{
                     '.MuiDataGrid-cell:focus': {
                       outline: 'none'
@@ -2731,6 +2732,39 @@ const EggList = () => {
                     }
                   }}
                   onCellClick={onCellClick}
+                /> */}
+                <CommonTable
+                  externalTableStyle={{
+                    '.MuiDataGrid-cell:focus': {
+                      outline: 'none'
+                    },
+                    '& .MuiDataGrid-row:hover': {
+                      cursor: 'pointer'
+                    },
+                    '& .MuiDataGrid-row:hover .customButton': {
+                      display: 'block'
+                    },
+                    '& .MuiDataGrid-row:hover .hideField': {
+                      display: 'none'
+                    },
+                    '& .MuiDataGrid-row .customButton': {
+                      display: 'none'
+                    },
+                    '& .MuiDataGrid-row .hideField': {
+                      display: 'block'
+                    }
+                  }}
+                  rowHeight={72}
+                  onCellClick={onCellClick}
+                  indexedRows={indexedRows === undefined ? [] : indexedRows}
+                  total={total}
+                  columns={status === 'eggs_hatched' ? hatchedColumn : status === 'eggs_received' ? received : columns}
+                  paginationModel={paginationModel}
+                  handleSortModel={handleSortModel}
+                  setPaginationModel={setPaginationModel}
+                  loading={loading}
+                  searchValue={searchValue}
+                  maxHeight='70vh'
                 />
               </>
             ) : (
@@ -2753,58 +2787,20 @@ const EggList = () => {
                     tableSearch={searchValue}
                   />
 
-                  <DataGrid
-                    sx={{
-                      '.MuiDataGrid-cell:focus': {
-                        outline: 'none'
-                      },
-                      '& .MuiDataGrid-row:hover': {
-                        cursor: 'pointer'
-                      },
-                      '& .MuiDataGrid-row:hover .customButton': {
-                        display: 'block'
-                      },
-                      '& .MuiDataGrid-row:hover .hideField': {
-                        display: 'none'
-                      },
-                      '& .MuiDataGrid-row .customButton': {
-                        display: 'none'
-                      },
-                      '& .MuiDataGrid-row .hideField': {
-                        display: 'block'
-                      }
-                    }}
-                    columnVisibilityModel={{
-                      sl_no: false
-                    }}
-                    hideFooterSelectedRowCount
-                    disableColumnSelector={true}
-                    autoHeight
-                    pagination
-                    rows={indexedRows === undefined ? [] : indexedRows}
-                    rowCount={total}
-                    columns={ready_to_discard}
-                    sortingMode='server'
-                    paginationMode='server'
-                    pageSizeOptions={[7, 10, 25, 50]}
+                  <CommonTable
+                    indexedRows={indexedRows || []}
+                    total={total}
+                    columns={ready_to_discard || []}
                     paginationModel={paginationModel}
-                    onSortModelChange={handleSortModel}
-                    // slots={{ toolbar: ServerSideToolbarWithFilter }}
-                    onPaginationModelChange={setPaginationModel}
-                    loading={loading}
+                    handleSortModel={handleSortModel}
+                    setPaginationModel={setPaginationModel}
                     rowHeight={72}
-                    slotProps={{
-                      baseButton: {
-                        variant: 'outlined'
-                      },
-                      toolbar: {
-                        value: searchValue,
-                        clearSearch: () => handleSearch(''),
-                        onChange: event => handleSearch(event.target.value)
-                      }
-                    }}
+                    loading={loading}
+                    searchValue={searchValue}
+                    maxHeight='70vh'
                     onCellClick={onCellClick}
-                    checkboxSelection
+                    checkBoxOption={true}
+                    selectedRows={selectionEggModel}
                     onRowSelectionModelChange={handleSelectionModelChange}
                   />
                 </Box>
@@ -2928,7 +2924,7 @@ const EggList = () => {
                     tableSearch={searchValue}
                   />
 
-                  <DataGrid
+                  {/* <DataGrid
                     sx={{
                       '.MuiDataGrid-cell:focus': {
                         outline: 'none'
@@ -3009,6 +3005,19 @@ const EggList = () => {
                       }
                     }}
                     onCellClick={onCellClick}
+                  /> */}
+                  <CommonTable
+                    onCellClick={onCellClick}
+                    indexedRows={indexedRows || []}
+                    total={total}
+                    columns={incubationColumns || []}
+                    rowHeight={72}
+                    paginationModel={paginationModel}
+                    handleSortModel={handleSortModel}
+                    setPaginationModel={setPaginationModel}
+                    loading={loading}
+                    searchValue={searchValue}
+                    maxHeight='70vh'
                   />
                 </Box>
               </TabPanel>
@@ -3143,7 +3152,7 @@ const EggList = () => {
                         tableSearch={searchValue}
                       />
 
-                      <DataGrid
+                      {/* <DataGrid
                         sx={{
                           '.MuiDataGrid-cell:focus': {
                             outline: 'none'
@@ -3194,6 +3203,39 @@ const EggList = () => {
                           }
                         }}
                         onCellClick={onCellClick}
+                      /> */}
+                      <CommonTable
+                        // sx={{
+                        //   '.MuiDataGrid-cell:focus': {
+                        //     outline: 'none'
+                        //   },
+                        //   '& .MuiDataGrid-row:hover': {
+                        //     cursor: 'pointer'
+                        //   },
+                        //   '& .MuiDataGrid-row:hover .customButton': {
+                        //     display: 'block'
+                        //   },
+                        //   '& .MuiDataGrid-row:hover .hideField': {
+                        //     display: 'none'
+                        //   },
+                        //   '& .MuiDataGrid-row .customButton': {
+                        //     display: 'none'
+                        //   },
+                        //   '& .MuiDataGrid-row .hideField': {
+                        //     display: 'block'
+                        //   }
+                        // }}
+                        indexedRows={indexedRows || []}
+                        total={total}
+                        columns={discarded_Egg_Columns || []}
+                        paginationModel={paginationModel}
+                        handleSortModel={handleSortModel}
+                        setPaginationModel={setPaginationModel}
+                        loading={loading}
+                        rowHeight={72}
+                        onCellClick={onCellClick}
+                        searchValue={searchValue}
+                        maxHeight='70vh'
                       />
                     </>
                   </TabPanel>

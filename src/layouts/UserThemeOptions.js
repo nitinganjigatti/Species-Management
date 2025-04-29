@@ -158,7 +158,8 @@ const UserThemeOptions = () => {
         OnPrimary: '#FFFFFF',
         mainBg: '#20DE67',
         antzSecondaryBg: '#dff9f7',
-        statusText: '#7A7A7A'
+        statusText: '#7A7A7A',
+        Antz_Body_Medium: '#FFC300'
       },
       primary: {
         // light: '#20DE67',
