@@ -116,6 +116,7 @@ function ProductForm({
           Yup.object().shape({
             batch_no: Yup.object({
               value: Yup.string()
+                .transform(value => (value === '' ? null : value))
                 .required('Batch number is required')
                 .test('uniqueBatchNo', 'Batch number already exists for this product', function (value) {
                   const duplicate = productArray.some(
@@ -143,6 +144,8 @@ function ProductForm({
                 const isValid = product_batches?.every(item => {
                   const batchQty = parseFloat(item?.batch_no?.qty)
                   const inputQty = parseFloat(item?.qty)
+                  
+                  if (isNaN(batchQty) || isNaN(inputQty)) return true
 
                   return inputQty <= batchQty
                 })
@@ -775,7 +778,7 @@ function ProductForm({
                       color='customColors.neutralSecondary'
                       sx={{ fontWeight: 400, fontFamily: 'Inter', fontSize: '12px' }}
                     >
-                      Available Packing:
+                      Package:
                     </Typography>
                     <Typography
                       color='primary.light'
@@ -969,7 +972,7 @@ function ProductForm({
                               {errors?.product_batches?.[index]?.batch_no?.message?.includes('cannot be null') ||
                               errors?.product_batches?.[index]?.batch_no?.message?.includes('must be a `object` type')
                                 ? 'Batch No. is required'
-                                : errors?.product_batches?.[index]?.batch_no?.message ||
+                                : errors?.product_batches?.[index]?.batch_no?.value?.message ||
                                   'Batch number already exists for this product' ||
                                   'Batch No. is required'}
                               {/* {errors?.product_batches?.[index]?.batch_no?.message ===
@@ -995,7 +998,8 @@ function ProductForm({
                         <TextField
                           disabled
                           type='text'
-                          value={value}
+                          value={value || ""}
+                          InputLabelProps={{ shrink: true }}
                           label='Product Variant'
                           error={Boolean(errors?.product_batches?.[index]?.multiplier)}
                           name={`product_batches[${index}].multiplier`}

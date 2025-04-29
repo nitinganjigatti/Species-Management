@@ -555,7 +555,7 @@ const ListOfStocks = () => {
       // flex: 0.2,
       minWidth: 160,
       field: 'total_cost',
-      headerName: 'Value',
+      headerName: 'Value(₹)',
       type: 'number',
       align: 'right',
       renderCell: params => (
@@ -569,7 +569,7 @@ const ListOfStocks = () => {
       // flex: 0.2,
       minWidth: 160,
       field: 'stock_item_id',
-      headerName: 'Average Price',
+      headerName: 'Average Price(₹)',
       type: 'number',
       align: 'right',
       renderCell: params => (
@@ -589,9 +589,9 @@ const ListOfStocks = () => {
       field: 'package',
       headerName: 'PACKAGE',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {`${params.row.package} of ${Utility.formatNumber(params.row.package_qty)}
-        ${params.row.package_uom_label} ${params.row.product_form_label}`}
+        <Typography variant='body2' sx={{ color: 'text.primary', ...RenderUtility.getEllipsisStyleForText('260') }}>
+          {RenderUtility.getToolTipForText(`${params.row.package} of ${Utility.formatNumber(params.row.package_qty)}
+        ${params.row.package_uom_label} ${params.row.product_form_label}`)}
         </Typography>
       )
     }
@@ -692,7 +692,7 @@ const ListOfStocks = () => {
       // flex: 0.2,
       minWidth: 160,
       field: 'unit_price',
-      headerName: 'Unit Price',
+      headerName: 'Unit Price(₹)',
       type: 'number',
       align: 'right',
       renderCell: params => (
@@ -706,7 +706,7 @@ const ListOfStocks = () => {
       // flex: 0.2,
       minWidth: 160,
       field: 'total_cost',
-      headerName: 'Value',
+      headerName: 'Value(₹)',
       type: 'number',
       align: 'right',
       renderCell: params => (
@@ -747,9 +747,9 @@ const ListOfStocks = () => {
       field: 'package',
       headerName: 'PACKAGE',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {`${params.row.package} of ${Utility.formatNumber(params.row.package_qty)}
-        ${params.row.package_uom_label} ${params.row.product_form_label}`}
+        <Typography variant='body2' sx={{ color: 'text.primary', ...RenderUtility.getEllipsisStyleForText('260') }}>
+          {RenderUtility.getToolTipForText(`${params.row.package} of ${Utility.formatNumber(params.row.package_qty)}
+        ${params.row.package_uom_label} ${params.row.product_form_label}`)}
         </Typography>
       )
     }
