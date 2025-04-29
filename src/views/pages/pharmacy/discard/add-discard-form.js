@@ -659,16 +659,7 @@ export const AddItemsForm = ({
                       name='expiry_date'
                       error={Boolean(errors.expiry_date)}
                       onChange={onChange}
-                      disabled
-                      sx={{
-                        '& .MuiOutlinedInput-root.Mui-disabled': {
-                          borderColor: theme => Boolean(errors.expiry_date) && theme.palette.error.main,
-                          '& fieldset': {
-                            borderColor: theme =>
-                              Boolean(errors.expiry_date) ? theme.palette.error.main : theme.palette.action.disabled
-                          }
-                        }
-                      }}
+                      InputProps={{ readOnly: true }}
                     />
                   )}
                 />
