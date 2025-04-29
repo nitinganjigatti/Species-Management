@@ -18,7 +18,9 @@ const CommonTable = ({
   onRowSelectionModelChange,
   selectedRows,
   disablePagination = false, // New prop to control pagination
-  maxHeight
+  maxHeight,
+  rowHeight,
+  externalTableStyle
 }) => {
   const theme = useTheme()
 
@@ -59,7 +61,8 @@ const CommonTable = ({
 
         '& .MuiDataGrid-row:last-of-type .MuiDataGrid-cell': {
           borderBottom: 'none' // Make sure no extra bottom border is applie
-        }
+        },
+        ...(externalTableStyle || {})
       }}
       columnVisibilityModel={columnVisibilityModel ? columnVisibilityModel : {}}
       hideFooterSelectedRowCount
@@ -72,6 +75,7 @@ const CommonTable = ({
       rowCount={disablePagination ? undefined : total}
       columns={columns}
       sortingMode='server'
+      rowHeight={rowHeight}
       // paginationMode='server'
       // pageSizeOptions={[7, 10, 25, 50]}
       paginationMode={disablePagination ? undefined : 'server'}
