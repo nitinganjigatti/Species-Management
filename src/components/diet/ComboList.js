@@ -243,7 +243,8 @@ const ComboList = props => {
         className=''
         sx={{
           marginTop: fromrow !== 'rowedit_combo' ? 30 : 12,
-          height: fromrow !== 'rowedit_combo' ? '70%' : '80%',
+          //height: fromrow !== 'rowedit_combo' ? '70%' : '80%',
+          height: fromrow !== 'rowedit_combo' ? 'calc(100vh - 220px)' : '80%',
           overflowY: 'auto',
           bgcolor: theme.palette.customColors.bodyBg,
           p: 4

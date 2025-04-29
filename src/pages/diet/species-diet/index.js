@@ -597,7 +597,8 @@ const SpeciesDietList = () => {
       minWidth: 100,
       sortable: false,
       field: 'diet_attachment_upload',
-      headerName: '',
+      headerName: 'Action',
+      headerAlign: 'right',
       renderCell: params => (
         <>
           {(dietModuleAccess === 'ADD' || dietModuleAccess === 'EDIT' || dietModuleAccess === 'DELETE') && (

@@ -238,7 +238,7 @@ const DietDetailCard = ({
                     objectPosition: isSmallDevice ? 'left' : 'center'
                   }
                 }}
-                src={dietDetails?.image ? dietDetails?.image : '/icons/icon_diet_fill.png'}
+                src={dietDetails?.image ? dietDetails?.image : '/images/diet_default.svg'}
               ></Avatar>
 
               {/* Details Section */}
@@ -278,8 +278,8 @@ const DietDetailCard = ({
                           '& .MuiPaper-root': {
                             boxShadow: 'none',
                             minWidth: 150,
-                            position: 'absolute',
-                            left: '484px !important'
+                            position: 'absolute'
+                            // left: '484px !important'
                           }
                         }} // Removes shadow for a cleaner look
                       >
