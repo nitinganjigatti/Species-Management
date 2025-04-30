@@ -60,8 +60,8 @@ const ForgotPassword = () => {
       .string()
       .test(
         'username-or-email',
-        'Enter a valid username (min 3 chars) or email',
-        value => /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/.test(value) || /^[A-Za-z0-9]{3,}$/.test(value)
+        'Enter a valid username (min 1 chars) or email',
+        value => /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}$/.test(value) || /^[A-Za-z0-9]{1,}$/.test(value)
       )
       .required('Username or Email is required')
   })
