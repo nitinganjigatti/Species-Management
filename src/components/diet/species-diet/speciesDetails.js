@@ -227,7 +227,7 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
                 <img style={{ width: '100%', height: '100%' }} src={'/icons/pdf_icon2.svg'} alt='pdf' />
               </Avatar>
 
-              <Box sx={{ width: '100%', display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <Box sx={{ flexGrow: 1, display: 'inline-grid' }}>
                 <Box
                   sx={{
                     width: '100%',
@@ -268,7 +268,16 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
                     defaultChecked={type === 'attach' ? true : false}
                   />
                 </Box>
-                <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <Box
+                  sx={{
+                    width: '100%',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '8px',
+                    mb: '6px',
+                    maxWidth: '400px'
+                  }}
+                >
                   <DietitianAvatar item={item} />
 
                   <Tooltip title={item?.dietitian_name ? item?.dietitian_name : '-'}>
@@ -281,8 +290,8 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
                         letterSpacing: '0.1px',
                         overflow: 'hidden',
                         textOverflow: 'ellipsis',
-                        whiteSpace: 'nowrap',
-                        maxWidth: 100
+                        whiteSpace: 'nowrap'
+                        // maxWidth: 100
                       }}
                     >
                       {item?.dietitian_name ? item?.dietitian_name : '-'}
@@ -295,10 +304,11 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
                       fontSize: '14px',
                       fontWeight: '500',
                       lineHeight: '100%',
-                      letterSpacing: '0.1px'
+                      letterSpacing: '0.1px',
+                      display: 'flex'
                     }}
                   >
-                    &#8226; Dietitian
+                    <span style={{ margin: '0px 6px' }}>&#8226;</span> <span>Dietitian</span>
                   </Typography>
                 </Box>
                 {item?.notes && (
@@ -310,7 +320,8 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
                       fontWeight: '400',
                       lineHeight: '20px',
                       letterSpacing: '0%',
-                      textAlign: 'justify'
+                      textAlign: 'justify',
+                      mb: '6px'
                     }}
                   >
                     {item?.notes}
@@ -450,7 +461,8 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
           overflowY: 'auto',
           display: 'flex',
           flexDirection: 'column',
-          gap: 6
+          gap: 6,
+          maxWidth: '562px'
         }}
       >
         {!!detailsLoader ? (
