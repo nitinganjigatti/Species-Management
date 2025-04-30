@@ -569,25 +569,13 @@ const ExistingPurchaseForm = props => {
                       inputFormat='MM/DD/YYYY'
                       value={value}
                       onChange={onChange}
-                      renderInput={params => (
-                        <TextField
-                          {...params}
-                          error={Boolean(errors.purchase_expiry_date)}
-                          helperText={errors.purchase_expiry_date?.message}
-                        />
-                      )}
-                      sx={{
-                        '& .MuiFormLabel-root': {
-                          color: theme =>
-                            Boolean(errors.purchase_expiry_date) ? theme.palette.error.main : theme.palette.text.primary
-                        },
-                        '& .MuiOutlinedInput-root': {
-                          '& fieldset': {
-                            borderColor: theme =>
-                              Boolean(errors.purchase_expiry_date) ? theme.palette.error.main : theme.palette.divider
-                          }
+                      renderInput={params => <TextField {...params} error={Boolean(errors.purchase_expiry_date)} />}
+                      slotProps={{
+                        textField: {
+                          error: Boolean(errors.purchase_expiry_date)
                         }
                       }}
+                      error={Boolean(errors.purchase_expiry_date)}
                     />
                   </LocalizationProvider>
                 )}
