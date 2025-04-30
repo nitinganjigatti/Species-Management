@@ -300,6 +300,7 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
             gap: 1,
             cursor: 'pointer',
             padding: '20px 16px'
+            // maxWidth: '562px'
           }}
           onClick={() => {
             window.open(item.file, '_blank')
@@ -323,7 +324,17 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
                 <img style={{ width: '100%', height: '100%' }} src={'/icons/pdf_Icon2.svg'} alt='Profile' />
               </Avatar>
 
-              <Box sx={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <Box
+                sx={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '8px',
+                  // maxWidth: { xs: '240px', sm: '418px', md: '418px' },
+                  flex: 1,
+                  width: '100%',
+                  minWidth: 0
+                }}
+              >
                 <Box sx={{ display: 'flex', flexDirection: 'row', gap: '8px' }}>
                   <Tooltip title={item?.file_original_name ? item?.file_original_name : '-'}>
                     <Typography
@@ -335,7 +346,9 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
                         overflow: 'hidden',
                         textOverflow: 'ellipsis',
                         whiteSpace: 'nowrap',
-                        width: 240
+                        alignSelf: 'center',
+                        flex: 1
+                        // width: 240
                       }}
                     >
                       {item?.file_original_name}
@@ -351,6 +364,19 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
                         : (item?.file_size / 1024).toFixed(2) + ' KB'}
                     </Typography>
                   </Box> */}
+
+                  {(dietModuleAccess === 'EDIT' || dietModuleAccess === 'DELETE') && (
+                    <Box>
+                      <Switch
+                        onClick={e => {
+                          e.stopPropagation()
+                          removeAttachment(speciesId, item?.attachment_id)
+                        }}
+                        defaultChecked
+                        small
+                      />
+                    </Box>
+                  )}
                 </Box>
                 <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <Avatar
@@ -381,8 +407,8 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
                         letterSpacing: '0.1px',
                         overflow: 'hidden',
                         textOverflow: 'ellipsis',
-                        whiteSpace: 'nowrap',
-                        maxWidth: 100
+                        whiteSpace: 'nowrap'
+                        // maxWidth: 100
                       }}
                     >
                       {item?.dietitian_name ? item?.dietitian_name : '-'}
@@ -396,15 +422,15 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
                       fontSize: '14px',
                       fontWeight: '500',
                       lineHeight: '100%',
-                      letterSpacing: '0.1px'
-
+                      letterSpacing: '0.1px',
+                      display: 'flex'
                       // overflow: 'hidden',
                       // textOverflow: 'ellipsis',
                       // whiteSpace: 'nowrap',
                       // maxWidth: 100
                     }}
                   >
-                    &#8226; Dietitian
+                    <span style={{ margin: '0px 6px' }}>&#8226;</span> <span>Dietitian</span>
                   </Typography>
                   {/* </Tooltip> */}
                 </Box>
@@ -479,17 +505,6 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
                 </Box>
               </Box>
             </Box>
-            {(dietModuleAccess === 'EDIT' || dietModuleAccess === 'DELETE') && (
-              <Box>
-                <Switch
-                  onClick={e => {
-                    e.stopPropagation()
-                    removeAttachment(speciesId, item?.attachment_id)
-                  }}
-                  defaultChecked
-                />
-              </Box>
-            )}
           </Box>
         </Box>
         {/* <Typography sx={{ color: '#00000066', fontSize: '12px', fontWeight: '5040', lineHeight: '14.52px' }}>
@@ -535,7 +550,7 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
             <img style={{ width: '100%', height: '100%' }} src={'/icons/pdf_Icon2.svg'} alt='Profile' />
           </Avatar>
 
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: '8px', flex: 1, width: '100%', minWidth: 0 }}>
             <Box sx={{ display: 'flex', flexDirection: 'row', gap: '8px' }}>
               <Tooltip title={item?.file_original_name ? item?.file_original_name : '-'}>
                 <Typography
@@ -547,7 +562,9 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
                     overflow: 'hidden',
                     textOverflow: 'ellipsis',
                     whiteSpace: 'nowrap',
-                    width: 240
+                    // width: 240
+                    alignSelf: 'center',
+                    flex: 1
                   }}
                 >
                   {item?.file_original_name}
@@ -563,6 +580,24 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
                         : (item?.file_size / 1024).toFixed(2) + ' KB'}
                     </Typography>
                   </Box> */}
+              {(dietModuleAccess === 'EDIT' || dietModuleAccess === 'DELETE') && (
+                <Box>
+                  <Switch
+                    onClick={e => {
+                      e.stopPropagation()
+                      setDietAttachmentId(item.attachment_id)
+
+                      // if (Number(specieDetails.active_attachments_count) === 0) {
+                      //   speciesAttachmentActiveFunc(speciesId, dietAttachmentId)
+                      // } else {
+                      //   setDietAttachmentActiveConfirm(true)
+                      // }
+                      speciesAttachmentActiveFunc(speciesId, dietAttachmentId)
+                      small
+                    }}
+                  />
+                </Box>
+              )}
             </Box>
             <Box sx={{ width: '100%', display: 'flex', alignItems: 'center', gap: '8px' }}>
               <Avatar
@@ -593,8 +628,7 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
                     letterSpacing: '0.1px',
                     overflow: 'hidden',
                     textOverflow: 'ellipsis',
-                    whiteSpace: 'nowrap',
-                    maxWidth: 100
+                    whiteSpace: 'nowrap'
                   }}
                 >
                   {item?.dietitian_name ? item?.dietitian_name : '-'}
@@ -608,15 +642,15 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
                   fontSize: '14px',
                   fontWeight: '500',
                   lineHeight: '100%',
-                  letterSpacing: '0.1px'
-
+                  letterSpacing: '0.1px',
+                  display: 'flex'
                   // overflow: 'hidden',
                   // textOverflow: 'ellipsis',
                   // whiteSpace: 'nowrap',
                   // maxWidth: 100
                 }}
               >
-                &#8226; Dietitian
+                <span style={{ margin: '0px 6px' }}>&#8226;</span> <span>Dietitian</span>
               </Typography>
               {/* </Tooltip> */}
             </Box>
@@ -691,23 +725,6 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
             </Box>
           </Box>
         </Box>
-        {(dietModuleAccess === 'EDIT' || dietModuleAccess === 'DELETE') && (
-          <Box>
-            <Switch
-              onClick={e => {
-                e.stopPropagation()
-                setDietAttachmentId(item.attachment_id)
-
-                // if (Number(specieDetails.active_attachments_count) === 0) {
-                //   speciesAttachmentActiveFunc(speciesId, dietAttachmentId)
-                // } else {
-                //   setDietAttachmentActiveConfirm(true)
-                // }
-                speciesAttachmentActiveFunc(speciesId, dietAttachmentId)
-              }}
-            />
-          </Box>
-        )}
       </Box>
     </Box>
   )

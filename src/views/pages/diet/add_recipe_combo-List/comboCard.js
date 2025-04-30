@@ -424,6 +424,12 @@ const ComboCard = ({
         ingredient_cut_size_id: size[item.id]?.[ingredient.ingredient_id]?.id || null
       }))
 
+      item.ingredients = item.ingredients.map(ingredient => ({
+        ...ingredient,
+        cut_size: size[item.id]?.[ingredient.ingredient_id]?.name || null,
+        cut_size_id: size[item.id]?.[ingredient.ingredient_id]?.id || null
+      }))
+
       // Find the existing card in selectedCardCombo to preserve previous data
       const existingCard = selectedCardCombo.find(card => card.id === item.id)
 
