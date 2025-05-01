@@ -673,7 +673,7 @@ const EditAnimalSpeciesMapped = ({
                           pb: 1
                         }}
                       >
-                        {speciestotalcount || ''} Species
+                        {speciestotalcount || ''} Animals
                       </Typography>
                     )
                   ) : (
@@ -723,7 +723,7 @@ const EditAnimalSpeciesMapped = ({
                                   pl: 3
                                 }}
                               >
-                                Species
+                                Animals
                               </Typography>
                               <Typography
                                 variant='body1'
