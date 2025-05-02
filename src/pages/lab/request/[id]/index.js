@@ -1071,7 +1071,7 @@ const RequestDetails = () => {
                         </span>
                       </Typography>
                     </Box>
-                    <Typography> {moment(item?.created_at).format('DD MMM YYYY')}</Typography>
+                    <Typography>Requested On : {moment(item?.created_at).format('DD MMM YYYY')}</Typography>
                     <Typography>
                       Site :{' '}
                       <span
