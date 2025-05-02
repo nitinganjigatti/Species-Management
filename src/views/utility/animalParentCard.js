@@ -116,32 +116,6 @@ const AnimalParentCard = ({ data, backgroundColor }) => {
               AID : {data?.animal_id}
               {/* {Utility?.toPascalSentenceCase(data?.common_name)} */}
             </Typography>
-            {data?.breed_name && (
-              <Typography
-                sx={{
-                  fontSize: '16px',
-                  fontWeight: 600,
-                  lineHeight: '19.36px',
-                  color: theme.palette.customColors.OnSurfaceVariant
-                }}
-              >
-                Breed : {data?.breed_name}
-                {/* {Utility?.toPascalSentenceCase(data?.common_name)} */}
-              </Typography>
-            )}
-            {data?.morph_name && (
-              <Typography
-                sx={{
-                  fontSize: '16px',
-                  fontWeight: 600,
-                  lineHeight: '19.36px',
-                  color: theme.palette.customColors.OnSurfaceVariant
-                }}
-              >
-                Morph : {data?.morph_name}
-                {/* {Utility?.toPascalSentenceCase(data?.common_name)} */}
-              </Typography>
-            )}
             <Typography
               sx={{
                 fontSize: '16px',
@@ -164,6 +138,34 @@ const AnimalParentCard = ({ data, backgroundColor }) => {
               {data?.scientific_name}
               {/* {Utility?.toPascalSentenceCase(data?.scientific_name)} */}
             </Typography>
+            {/* {data?.breed_name && ( */}
+            <Typography
+              sx={{
+                fontSize: '14px',
+                fontWeight: 600,
+                lineHeight: '19.36px',
+                color: theme.palette.customColors.OnSurfaceVariant
+              }}
+            >
+              <span style={{ fontWeight: 400 }}>Breed: </span>
+              {data?.breed_name ? data?.breed_name : '-'}
+              {/* {Utility?.toPascalSentenceCase(data?.common_name)} */}
+            </Typography>
+            {/* )} */}
+            {/* {data?.morph_name && ( */}
+            <Typography
+              sx={{
+                fontSize: '14px',
+                fontWeight: 600,
+                lineHeight: '19.36px',
+                color: theme.palette.customColors.OnSurfaceVariant
+              }}
+            >
+              <span style={{ fontWeight: 400 }}>Morph: </span>
+              {data?.morph_name ? data?.morph_name : '-'}
+              {/* {Utility?.toPascalSentenceCase(data?.common_name)} */}
+            </Typography>
+            {/* )} */}
             {data?.type === 'group' && (
               <Typography
                 sx={{
@@ -178,7 +180,8 @@ const AnimalParentCard = ({ data, backgroundColor }) => {
                   color: 'black'
                 }}
               >
-                Count {data?.total_animal}
+                <span style={{ fontWeight: 400 }}>Count: </span>
+                {data?.total_animal}
               </Typography>
             )}
             <Typography
