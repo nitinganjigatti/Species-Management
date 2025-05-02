@@ -328,7 +328,7 @@ const IncubatorDetails = () => {
           }}
         >
           {params.row.current_weight ? params.row.current_weight : '-'}{' '}
-          {params.row.initial_weight && params.row.current_weight ? (
+          {params.row.initial_weight && params.row.current_weight && (
             <span
               style={{
                 borderLeft: `1px solid ${theme.palette.customColors.OutlineVariant}`,
@@ -344,8 +344,6 @@ const IncubatorDetails = () => {
             >
               {calculatePercentageChange(Number(params.row.initial_weight), Number(params.row.current_weight))}%
             </span>
-          ) : (
-            '-'
           )}
         </Typography>
       )
@@ -925,11 +923,11 @@ const IncubatorDetails = () => {
                             borderRadius: '4px'
                           },
                           '& .MuiInputLabel-root': {
-                            top: -7
+                            top: allocationDate ? -0 : -7
                           },
                           '& input': {
-                            position: 'relative',
-                            top: -7
+                            // position: 'relative'
+                            // top: -7
                           }
                         }}
                         value={allocationDate}
@@ -1008,11 +1006,11 @@ const IncubatorDetails = () => {
                             borderRadius: '4px'
                           },
                           '& .MuiInputLabel-root': {
-                            top: -7
+                            top: collectedDate ? -0 : -7
                           },
                           '& input': {
-                            position: 'relative',
-                            top: -7
+                            // position: 'relative'
+                            // top: -7
                           }
                         }}
                         format='DD/MM/YYYY'

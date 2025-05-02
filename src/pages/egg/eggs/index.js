@@ -2504,6 +2504,8 @@ const EggList = () => {
     [paginationModel]
   )
 
+  console.log('tab_Value', tab_Value)
+  console.log('subTab_value', subTab_value)
   useEffect(() => {
     // debugger
     if (egg_collection_permission) {

@@ -141,7 +141,7 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
   const handleSearch = value => {
     setSearch(value)
     setPage(1)
-    debouncedSearchData(value)
+    searchData(value)
   }
 
   const handleRemoveFilter = item => {
@@ -179,16 +179,30 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
 
   const debouncedHandleScroll = debounce(handleScroll, 1000)
 
+  // const searchData = debounce(async searchVal => {
+  //   console.log('first', isSearchOpen)
+  //   if (isSearchOpen === true) {
+  //     console.log('first', isSearchOpen)
+  //     setDiscardList([])
+  //     setListCount('0')
+  //     await DiscardList(searchVal, date?.to_date, date?.from_date)
+  //   }
+  // })
+
   const searchData = useCallback(
     debounce(async searchVal => {
-      setDiscardList([])
-      setListCount('0')
-      await DiscardList(searchVal, date?.to_date, date?.from_date)
+      // console.log('first', isSearchOpen)
+      if (isSearchOpen === true) {
+        console.log('first', isSearchOpen)
+        setDiscardList([])
+        setListCount('0')
+        await DiscardList(searchVal, date?.to_date, date?.from_date)
+      }
     }, 1000),
-    [date, tabStatus, applyFilters]
+    [date, tabStatus, applyFilters, isSearchOpen]
   )
 
-  const debouncedSearchData = searchData
+  // const debouncedSearchData = searchData
 
   const handelOnclose = () => {
     setOpenDiscard(false)
@@ -247,16 +261,16 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
                 border: 1,
                 borderRadius: '6px',
                 borderColor: theme.palette.customColors.OutlineVariant,
-
                 bgcolor: isSearchOpen ? theme?.palette.primary.dark : null,
-
                 alignItems: 'center',
                 cursor: 'pointer'
               }}
               onClick={() => {
                 if (isSearchOpen) {
                   setSearch('')
-                  handleSearch('')
+                  if (search != '') {
+                    handleSearch('')
+                  }
                 }
                 setIsSearchOpen(!isSearchOpen)
               }}
@@ -322,7 +336,6 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
                   display: 'flex',
                   alignItems: 'center',
                   border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-
                   borderRadius: '4px',
                   bgcolor: theme.palette.customColors.Surface,
                   padding: '0 8px',
