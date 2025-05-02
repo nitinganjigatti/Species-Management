@@ -80,7 +80,7 @@ const DiscardDialogBox = ({ openDiscardDialog, setOpenDiscardDialog, selectionEg
           <TextField
             multiline
             rows={2}
-            label='Add Comments*'
+            label='Add Comments'
             variant='outlined'
             fullWidth
             value={comments} // Bind the value to state

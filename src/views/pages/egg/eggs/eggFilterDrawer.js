@@ -38,7 +38,7 @@ const EggFilterDrawer = ({
   selectedDate,
   setSelectedDate
 }) => {
-  console.log('selectedOptions :>> ', selectedOptions)
+  // console.log('selectedOptions :>> ', selectedOptions)
   const theme = useTheme()
   const router = useRouter()
 
@@ -689,7 +689,7 @@ const EggFilterDrawer = ({
                       All
                     </MenuItem>
                     {eggMaster?.egg_status
-                      .filter(item => tab_Value !== 'eggs_incubation' || ['1', '2'].includes(item.id))
+                      // .filter(item => tab_Value !== 'eggs_incubation' || ['1', '2'].includes(item.id))
                       .map(item => (
                         <MenuItem key={item.id} value={item.id}>
                           {item.egg_status}
@@ -754,7 +754,7 @@ const EggFilterDrawer = ({
         }}
       >
         <LoadingButton fullWidth variant='outlined' size='large' onClick={handleCloseDrawer}>
-          CANCEL ALL
+          Clear ALL
         </LoadingButton>
         <LoadingButton fullWidth variant='contained' size='large' onClick={handleApplyFilter}>
           APPLY FILTER

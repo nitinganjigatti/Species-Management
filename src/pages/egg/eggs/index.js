@@ -1,3 +1,7 @@
+import React, { useCallback, useEffect, useState, useContext } from 'react'
+import Router from 'next/router'
+import { useRouter } from 'next/router'
+
 import { TabContext, TabList, TabPanel } from '@mui/lab'
 import {
   Autocomplete,
@@ -5,7 +9,6 @@ import {
   Breadcrumbs,
   Button,
   Card,
-  CardContent,
   CardHeader,
   Chip,
   Divider,
@@ -16,36 +19,34 @@ import {
   Typography,
   debounce
 } from '@mui/material'
-import { DataGrid } from '@mui/x-data-grid'
-import Icon from 'src/@core/components/icon'
-import React, { useCallback, useEffect, useState, useContext } from 'react'
-import FallbackSpinner from 'src/@core/components/spinner'
-import ServerSideToolbarWithFilter from 'src/views/table/data-grid/ServerSideToolbarWithFilter'
 import { Box } from '@mui/system'
 import { useTheme } from '@mui/material/styles'
-import moment from 'moment'
-import Router from 'next/router'
-import AllocationSlider from 'src/views/pages/egg/eggs/allocationSlider'
-import DiscardStatusCell from 'src/components/egg/DiscardStatusCell'
-import { GetEggList, GetEggMaster } from 'src/lib/api/egg/egg'
+
+import dayjs from 'dayjs'
+
+import Icon from 'src/@core/components/icon'
+import FallbackSpinner from 'src/@core/components/spinner'
+
 import DiscardForm from 'src/components/egg/DiscardForm'
+import { SpeciesImageCard, TextCard } from 'src/components/egg/imageTextCard'
+import DiscardStatusCell from 'src/components/egg/DiscardStatusCell'
+
 import NecropsySlider from 'src/views/pages/egg/eggs/nepocrspySlider'
-import DiscardDetail from 'src/views/pages/egg/eggs/Discarded/DiscardDetail'
 import DiscardDialogBox from 'src/views/pages/egg/eggs/Discarded/DiscardDialogBox'
-import { GetNurseryList } from 'src/lib/api/egg/nursery'
 import DiscardedTableView from 'src/views/pages/egg/eggs/Discarded/DiscardedTableView'
+import AllocationSlider from 'src/views/pages/egg/eggs/allocationSlider'
 import CreateAnimalSlider from 'src/views/pages/egg/eggs/eggDetails/CreateAnimal'
+import EggTableHeader from 'src/views/pages/egg/eggs/EggTableHeader'
+import CommonTable from 'src/views/table/data-grid/CommonTable'
+import ErrorScreen from 'src/pages/Error'
+
 import { useEggContext } from 'src/context/EggContext'
 import { AuthContext } from 'src/context/AuthContext'
-import ErrorScreen from 'src/pages/Error'
 import Utility from 'src/utility'
-import { useRouter } from 'next/router'
-import { SpeciesImageCard, TextCard } from 'src/components/egg/imageTextCard'
-import EggTableHeader from 'src/views/pages/egg/eggs/EggTableHeader'
-import dayjs from 'dayjs'
-import ExcelExportButton from 'src/views/pages/egg/eggs/exportEggListExcel'
-import { readAsync, write, remove, read } from 'src/lib/windows/utils'
-import CommonTable from 'src/views/table/data-grid/CommonTable'
+
+import { GetEggList } from 'src/lib/api/egg/egg'
+import { GetNurseryList } from 'src/lib/api/egg/nursery'
+import { write, read } from 'src/lib/windows/utils'
 
 const EggList = () => {
   const theme = useTheme()
@@ -61,9 +62,6 @@ const EggList = () => {
     selected_filters_options
   } = router.query
 
-  // console.log('tab_Value', tab_Value)
-  // console.log('subTab_value', subTab_value)
-
   const { selectedEggTab, setSelectedEggTab, subTab, setSubTab } = useEggContext()
 
   const [loader, setLoader] = useState(false)
@@ -71,12 +69,9 @@ const EggList = () => {
   const [sort, setSort] = useState('desc')
   const [rows, setRows] = useState([])
 
-  // console.log('rows :>> ', rows)
   const [searchValue, setSearchValue] = useState()
-  const [detailDrawer, setDetailDrawer] = useState(false)
   const [openCreate, setOpenCreate] = useState(false)
 
-  // const [sortColumning, setsortColumning] = useState('ingredient_name')
   const [paginationModel, setPaginationModel] = useState({ page: page_value ? Number(page_value) : 0, pageSize: 50 })
 
   const [loading, setLoading] = useState(false)
@@ -90,7 +85,6 @@ const EggList = () => {
   const [eggID, setEggId] = useState('')
   const [searchQuery, setSearchQuery] = useState(search_value || '')
 
-  // const [allocateEggId, setAllocateEggId] = useState(null)
   const [openDrawer, setOpenDrawer] = useState(false)
   const [openNecropsy, setOpenNecropsy] = useState(false)
   const [openDiscardDialog, setOpenDiscardDialog] = useState(false)
@@ -119,10 +113,9 @@ const EggList = () => {
   const [defaultNursery, setDefaultNursery] = useState(null)
   const [filterByNurseryId, setFilterByNurseryId] = useState('')
 
-  // console.log('filterByNurseryId :>> ', filterByNurseryId)
-
   useEffect(() => {
     if (filter_list) {
+      console.log('filter_list', filter_list)
       setFilterList(JSON.parse(filter_list))
     }
     if (selected_options) {
@@ -303,17 +296,22 @@ const EggList = () => {
       field: 'site',
       headerName: 'SITE NAME',
       renderCell: params => (
-        <Typography
-          sx={{
-            color: theme.palette.customColors.OnSurfaceVariant,
-            fontSize: '16px',
-            fontWeight: '400',
-            lineHeight: '19.36px',
-            ml: 3
-          }}
-        >
-          {params.row.site_name ? params.row.site_name : '-'}
-        </Typography>
+        <Tooltip title={params.row.site_name ? params.row.site_name : '-'}>
+          <Typography
+            sx={{
+              color: theme.palette.customColors.OnSurfaceVariant,
+              ml: 3,
+              fontSize: '16px',
+              fontWeight: '400',
+              lineHeight: '19.36px',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap'
+            }}
+          >
+            {params.row.site_name ? params.row.site_name : '-'}
+          </Typography>
+        </Tooltip>
       )
     },
     {
@@ -322,17 +320,23 @@ const EggList = () => {
       field: 'nursery_name',
       headerName: 'Nursery',
       renderCell: params => (
-        <Typography
-          sx={{
-            color: theme.palette.customColors.OnSurfaceVariant,
-            fontSize: '16px',
-            fontWeight: '400',
-            lineHeight: '19.36px',
-            textTransform: 'capitalize'
-          }}
-        >
-          {params.row.nursery_name ? params.row.nursery_name : '-'}
-        </Typography>
+        <Tooltip title={params.row.nursery_name ? params.row.nursery_name : '-'}>
+          <Typography
+            sx={{
+              textTransform: 'capitalize',
+              color: theme.palette.customColors.OnSurfaceVariant,
+              fontSize: '16px',
+              fontWeight: '400',
+              lineHeight: '19.36px',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+              ml: 3
+            }}
+          >
+            {params.row.nursery_name ? params.row.nursery_name : '-'}
+          </Typography>
+        </Tooltip>
       )
     },
     {
@@ -537,17 +541,21 @@ const EggList = () => {
       field: 'site',
       headerName: 'SITE NAME',
       renderCell: params => (
-        <Typography
-          sx={{
-            color: theme.palette.customColors.OnSurfaceVariant,
-            fontSize: '16px',
-            fontWeight: '400',
-            lineHeight: '19.36px',
-            ml: 3
-          }}
-        >
-          {params.row.site_name ? params.row.site_name : '-'}
-        </Typography>
+        <Tooltip title={params.row.site_name ? params.row.site_name : '-'}>
+          <Typography
+            sx={{
+              color: theme.palette.customColors.OnSurfaceVariant,
+              fontSize: '16px',
+              fontWeight: '400',
+              lineHeight: '19.36px',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap'
+            }}
+          >
+            {params.row.site_name ? params.row.site_name : '-'}
+          </Typography>
+        </Tooltip>
       )
     },
 
@@ -576,17 +584,23 @@ const EggList = () => {
       field: 'nursery_name',
       headerName: 'Nursery',
       renderCell: params => (
-        <Typography
-          sx={{
-            color: theme.palette.customColors.OnSurfaceVariant,
-            fontSize: '16px',
-            fontWeight: '400',
-            lineHeight: '19.36px',
-            textTransform: 'capitalize'
-          }}
-        >
-          {params.row.nursery_name ? params.row.nursery_name : '-'}
-        </Typography>
+        <Tooltip title={params.row.nursery_name ? params.row.nursery_name : '-'}>
+          <Typography
+            sx={{
+              color: theme.palette.customColors.OnSurfaceVariant,
+              fontSize: '16px',
+              fontWeight: '400',
+              lineHeight: '19.36px',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+              textTransform: 'capitalize',
+              ml: 3
+            }}
+          >
+            {params.row.nursery_name ? params.row.nursery_name : '-'}
+          </Typography>
+        </Tooltip>
       )
     },
 
@@ -1067,10 +1081,6 @@ const EggList = () => {
       headerName: 'NO',
       align: 'center',
       sortable: false,
-
-      // cellClassName: 'sticky-cell-first',
-      // headerClassName: 'sticky-header-first',
-
       renderCell: params => (
         <Typography
           sx={{
@@ -1086,8 +1096,6 @@ const EggList = () => {
     },
     {
       width: 250,
-
-      // minWidth: 60,
       sortable: false,
       field: 'species',
       headerName: 'SPECIES',
@@ -1105,7 +1113,6 @@ const EggList = () => {
         </Stack>
       )
     },
-
     {
       width: 200,
       sortable: false,
@@ -1142,19 +1149,15 @@ const EggList = () => {
       )
     },
     {
-      // flex: 0.15,
       width: 200,
       sortable: false,
       field: 'stage_state',
       headerName: 'STATE & STAGE',
-
-      // align: 'center',
       renderCell: params => (
         <Stack direction='column' spacing={1}>
           <Box sx={{ width: 'fit-content', maxWidth: '100%' }}>
             <TextCard egg_status={params.row.egg_status} />
           </Box>
-
           {params.row.egg_status !== 'Fresh' && (
             <Tooltip title={params.row?.egg_state ? params.row?.egg_state : '-'}>
               <Typography
@@ -1166,8 +1169,6 @@ const EggList = () => {
                   textOverflow: 'ellipsis',
                   whiteSpace: 'nowrap',
                   width: 170
-
-                  // Ensures Typography doesn't exceed container width
                 }}
               >
                 {params.row.egg_state ? params.row.egg_state : '-'}
@@ -1178,7 +1179,6 @@ const EggList = () => {
       )
     },
     {
-      // flex: 0.15,
       width: 110,
       sortable: false,
       field: 'days_in_incubation',
@@ -1457,7 +1457,6 @@ const EggList = () => {
       sortable: false,
       field: 'clutch_id',
       headerName: 'Clutch Id',
-
       renderCell: params => (
         <Typography
           sx={{
@@ -1479,71 +1478,77 @@ const EggList = () => {
       sortable: false,
       field: 'enclosure_name',
       headerName: 'Enclosure',
-
       renderCell: params => (
-        <Typography
-          sx={{
-            color: theme.palette.customColors.OnSurfaceVariant,
-            fontSize: '16px',
-            fontWeight: '400',
-            lineHeight: '19.36px',
-            ml: 3
-          }}
-        >
-          {params.row.enclosure_name ? params.row.enclosure_name : '-'}
-        </Typography>
+        <Tooltip title={params.row.enclosure_name ? params.row.enclosure_name : '-'}>
+          <Typography
+            sx={{
+              color: theme.palette.customColors.OnSurfaceVariant,
+              fontSize: '16px',
+              fontWeight: '400',
+              lineHeight: '19.36px',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap'
+            }}
+          >
+            {params.row.enclosure_name ? params.row.enclosure_name : '-'}
+          </Typography>
+        </Tooltip>
       )
     },
 
     {
-      // flex: 0.15,
       width: 150,
       sortable: false,
       field: 'site',
       headerName: 'SITE NAME',
-
       renderCell: params => (
-        <Typography
-          sx={{
-            color: theme.palette.customColors.OnSurfaceVariant,
-            fontSize: '16px',
-            fontWeight: '400',
-            lineHeight: '19.36px',
-            ml: 3
-          }}
-        >
-          {params.row.site_name ? params.row.site_name : '-'}
-        </Typography>
+        <Tooltip title={params.row.site_name ? params.row.site_name : '-'}>
+          <Typography
+            sx={{
+              color: theme.palette.customColors.OnSurfaceVariant,
+              fontSize: '16px',
+              fontWeight: '400',
+              lineHeight: '19.36px',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap'
+            }}
+          >
+            {params.row.site_name ? params.row.site_name : '-'}
+          </Typography>
+        </Tooltip>
       )
     },
     {
-      // flex: 0.15,
       width: 150,
       sortable: false,
       field: 'nursery_name',
       headerName: 'Nursery NAME',
       renderCell: params => (
-        <Typography
-          sx={{
-            color: theme.palette.customColors.OnSurfaceVariant,
-            fontSize: '16px',
-            fontWeight: '400',
-            lineHeight: '19.36px',
-            ml: 3
-          }}
-        >
-          {params.row.nursery_name ? params.row.nursery_name : '-'}
-        </Typography>
+        <Tooltip title={params.row.nursery_name ? params.row.nursery_name : '-'}>
+          <Typography
+            sx={{
+              color: theme.palette.customColors.OnSurfaceVariant,
+              fontSize: '16px',
+              fontWeight: '400',
+              lineHeight: '19.36px',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              whiteSpace: 'nowrap',
+              ml: 3
+            }}
+          >
+            {params.row.nursery_name ? params.row.nursery_name : '-'}
+          </Typography>
+        </Tooltip>
       )
     },
-
     {
-      // flex: 0.16,
       width: 130,
       sortable: false,
       field: 'collected_on',
       headerName: 'COLLECTED ON',
-
       renderCell: params => (
         <Typography
           sx={{
@@ -2323,8 +2328,6 @@ const EggList = () => {
         selected_filters_options: JSON.stringify(selectedFiltersOptions)
       }
 
-      // console.log('values :>> ', values)
-
       Router.push({
         pathname: `/egg/eggs/${data?.id}`,
 
@@ -2475,8 +2478,6 @@ const EggList = () => {
               : statusRecived
         }
 
-        // console.log('params table data :>> ', isDiscarded)
-        // console.log('params table data :>> ', status)
         if (
           (status === 'eggs_discarded' && isDiscarded === 'eggs_discarded_at_nursery') ||
           status === 'eggs_received' ||
@@ -2504,8 +2505,8 @@ const EggList = () => {
     [paginationModel]
   )
 
-  console.log('tab_Value', tab_Value)
-  console.log('subTab_value', subTab_value)
+  // console.log('tab_Value', tab_Value)
+  // console.log('subTab_value', subTab_value)
   useEffect(() => {
     // debugger
     if (egg_collection_permission) {
@@ -2638,8 +2639,6 @@ const EggList = () => {
     setEggId(params?.row?.egg_id)
     setOpenNecropsy(true)
   }
-
-  // const selectedRows = indexedRows?.filter(row => selectionModel.includes(row.id))
 
   useEffect(() => {
     setSelectedOptions({
@@ -2821,18 +2820,6 @@ const EggList = () => {
       </>
     )
   }
-
-  // const headerAction = (
-  //   <>
-  //     <div>
-  //       <ExcelExportButton
-  //         tab_Value={tab_Value}
-  //         subTab_value={subTab_value}
-  //         data={tab_Value === 'eggs_discarded' && subTab_value === 'eggs_discarded' ? batchList : rows}
-  //       />
-  //     </div>
-  //   </>
-  // )
 
   return (
     <>
@@ -3135,7 +3122,6 @@ const EggList = () => {
                       />
                     }
                   >
-                    {/* {tableData()} */}
                     <>
                       <EggTableHeader
                         totalCount={total}
@@ -3249,7 +3235,6 @@ const EggList = () => {
                 {tableData()}
               </TabPanel>
             </TabContext>
-            {/* </CardContent> */}
           </Card>
 
           {openCreate && (

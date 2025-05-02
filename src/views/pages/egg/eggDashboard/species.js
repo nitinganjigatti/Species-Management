@@ -171,27 +171,26 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
   )
 
   const columnSpecies = [
-    // {
-    //   width: 60,
-    //   field: 'uid',
-    //   headerName: 'NO',
-    //   disableColumnMenu: true,
-    //   sortable: false,
-    //   align: 'center',
-    //   renderCell: params => (
-    //     <Typography
-    //       sx={{
-    //         color: theme.palette.customColors.OnSurfaceVariant,
-    //         fontSize: '12px',
-    //         fontWeight: '400',
-    //         lineHeight: '14.52px'
-    //       }}
-    //     >
-    //       {params.row.sl_no}
-    //     </Typography>
-    //   )
-    // },
-
+    {
+      width: 60,
+      field: 'uid',
+      headerName: 'SL',
+      disableColumnMenu: true,
+      sortable: false,
+      align: 'center',
+      renderCell: params => (
+        <Typography
+          sx={{
+            color: theme.palette.customColors.OnSurfaceVariant,
+            fontSize: '12px',
+            fontWeight: '400',
+            lineHeight: '14.52px'
+          }}
+        >
+          {params.row.sl_no}
+        </Typography>
+      )
+    },
     {
       width: 280,
       sortable: true,
@@ -799,6 +798,26 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
 
   const columnSites = [
     {
+      width: 60,
+      field: 'uid',
+      headerName: 'SL',
+      disableColumnMenu: true,
+      sortable: false,
+      align: 'center',
+      renderCell: params => (
+        <Typography
+          sx={{
+            color: theme.palette.customColors.OnSurfaceVariant,
+            fontSize: '12px',
+            fontWeight: '400',
+            lineHeight: '14.52px'
+          }}
+        >
+          {params.row.sl_no}
+        </Typography>
+      )
+    },
+    {
       width: 320,
       sortable: true,
       disableColumnMenu: true,
@@ -1382,6 +1401,26 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
   ]
 
   const columnNurseries = [
+    {
+      width: 60,
+      field: 'uid',
+      headerName: 'SL',
+      disableColumnMenu: true,
+      sortable: false,
+      align: 'center',
+      renderCell: params => (
+        <Typography
+          sx={{
+            color: theme.palette.customColors.OnSurfaceVariant,
+            fontSize: '12px',
+            fontWeight: '400',
+            lineHeight: '14.52px'
+          }}
+        >
+          {params.row.sl_no}
+        </Typography>
+      )
+    },
     {
       width: 340,
       sortable: true,
