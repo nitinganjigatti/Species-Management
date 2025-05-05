@@ -17,6 +17,7 @@ import { useTheme } from '@emotion/react'
 import { useEffect, useState } from 'react'
 import toast from 'react-hot-toast'
 import { AddEnclosureToExistng, getMealGroupList } from 'src/lib/api/diet/mealgroup'
+import SelectedEnclosure from './selectedEnclosure'
 
 const CreateEnclosure = ({
   enclosureDrawer,
@@ -42,6 +43,7 @@ const CreateEnclosure = ({
   const [selectedEnclosureIds, setSelectedEnclosureIds] = useState([])
   const [groupList, setGroupList] = useState([])
   const [mealGroupError, setMealGroupError] = useState(false)
+  const [selectedEnclosureDrawer, setSelectedEnclosureDrawer] = useState(false)
 
   // const [selectedGroup, setSelectedGroup] = useState('all')
 
@@ -77,6 +79,7 @@ const CreateEnclosure = ({
   }
 
   const handleAddEnclosure = async () => {
+    debugger
     if (!groupId.trim()) {
       setMealGroupError(true)
       return
@@ -97,7 +100,7 @@ const CreateEnclosure = ({
 
       if (response.success) {
         toast.success('Enclosure(s) added successfully')
-        setStatus('')
+        setStatus('mealgroup')
         setEnclosureDrawer(false)
         setCheckedRows([])
         fetchEnclosure()
@@ -109,6 +112,10 @@ const CreateEnclosure = ({
       console.error('Error adding enclosures:', error)
       toast.error('An unexpected error occurred')
     }
+  }
+
+  const handleSelected = () => {
+    setSelectedEnclosureDrawer(true)
   }
 
   const RenderSidebarFooter = () => {
@@ -124,7 +131,7 @@ const CreateEnclosure = ({
           height: '106px',
           bgcolor: 'white',
           px: { xs: 2, sm: 3, md: 4 },
-          // py: { xs: 2, sm: 2, md: '22px' }, // match padding
+          py: { xs: 2, sm: 2, md: '22px' }, // match padding
           display: 'flex',
           flexDirection: { xs: 'column', sm: 'row' },
           alignItems: 'center',
@@ -150,7 +157,7 @@ const CreateEnclosure = ({
           >
             {selectedEnclosureIds.length} Selected
           </Typography>
-          <IconButton size='small' sx={{ color: '#37BD69', ml: 1 }}>
+          <IconButton size='small' sx={{ color: '#37BD69', ml: 1 }} onClick={handleSelected}>
             <Icon icon='mdi:chevron-down' />
           </IconButton>
         </Box>
@@ -235,7 +242,7 @@ const CreateEnclosure = ({
             // width: '100%',
             // maxWidth: '562px',
             // maxHeight: '100dvh',
-            height: 'calc(100dvh - 106px)'
+            height: 'calc(100dvh - 10px)'
             // overflow: 'auto'
           }}
         >
@@ -273,10 +280,10 @@ const CreateEnclosure = ({
           </Box>
 
           {/* Body */}
-          <Box sx={{ overflowY: 'scroll', height: 'calc(100dvh - 157px)' }}>
+          <Box sx={{ overflowY: 'auto' }}>
             {' '}
             {/* Outer wrapper with padding from all sides */}
-            <Box sx={{ p: 2, backgroundColor: '#EEF5F1', borderRadius: '8px' }}>
+            <Box sx={{ p: 2, backgroundColor: '#EEF5F1', borderRadius: '8px', mt: 3 }}>
               {/* Search */}
               <Box display='flex' gap={1} mb={6}>
                 <TextField
@@ -336,14 +343,14 @@ const CreateEnclosure = ({
               )}
 
               {/* Card List */}
-              <Box sx={{ mb: 1 }}>
+              <Box sx={{}}>
                 <Card
                   sx={{
                     borderRadius: '8px',
                     boxShadow: 'none',
                     display: 'flex',
                     flexDirection: 'column',
-                    height: '60vh',
+                    height: '70vh',
                     width: '100%'
                   }}
                 >
@@ -394,8 +401,8 @@ const CreateEnclosure = ({
                                   fontSize: '14px',
                                   color: '#44544A',
                                   maxWidth: '100px',
-                                  overflow: 'hidden',
-                                  textOverflow: 'ellipsis',
+                                  // overflow: 'hidden',
+                                  // textOverflow: 'ellipsis',
                                   whiteSpace: 'nowrap'
                                 }}
                               >
@@ -436,6 +443,19 @@ const CreateEnclosure = ({
         </Box>
         <RenderSidebarFooter />
       </Drawer>
+      {selectedEnclosureDrawer && (
+        <SelectedEnclosure
+          selectedEnclosureDrawer={selectedEnclosureDrawer}
+          setSelectedEnclosureDrawer={setSelectedEnclosureDrawer}
+          selectEnclosures={selectedItems.filter(item => selectedEnclosureIds.includes(item.enclosure_id))}
+          selectedEnclosureIds={selectedEnclosureIds}
+          setSelectedEnclosureIds={setSelectedEnclosureIds}
+          selectedItems={selectedItems}
+          checkedRows={checkedRows}
+          setSelectedItems={setSelectedItems}
+          setCheckedRows={setCheckedRows}
+        />
+      )}
     </>
   )
 }

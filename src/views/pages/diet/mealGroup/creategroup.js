@@ -19,6 +19,7 @@ import { createMealGroup, getEnclosureListByGroup, updateMealGroup } from 'src/l
 import toast from 'react-hot-toast'
 import { debounce } from 'lodash'
 import { fontSize } from '@mui/system'
+import { object } from 'yup'
 
 const CreateMealGroup = ({
   openDrawer,
@@ -30,20 +31,23 @@ const CreateMealGroup = ({
   selectedOption,
   editParam,
   editeditems,
+  setEditItems,
   fetchEnclosure,
   siteStats,
   setStatus,
   editSearchValue,
   groupId,
+  mealType,
   loader,
   mealId,
   handleEditSearch
 }) => {
-  console.log('editeditems >', editeditems, selectedItems)
+  console.log('editeditems >', editeditems, selectedItems, mealType)
 
   const [groupName, setGroupName] = useState(editParam?.group_name || '')
   const [groupNameError, setGroupNameError] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
+  const [removedEnclosures, setRemovedEnclosures] = useState([])
 
   const handleRemove = index => {
     const itemToRemove = selectedItems[index] // Get the item being removed
@@ -79,7 +83,7 @@ const CreateMealGroup = ({
       if (response) {
         handleCloseSideBar()
         toast.success('Meal Group created Successfully')
-        setStatus('')
+        setStatus('mealgroup')
       } else {
         toast.error('Something went wrong')
       }
@@ -124,6 +128,9 @@ const CreateMealGroup = ({
   }
 
   const handleUpdateGroup = async () => {
+    debugger
+    console.log('EditItems >', editeditems, removedEnclosures)
+    const updatedEnclosure = editeditems?.map(item => item?.enclosure_id)
     if (!groupName.trim()) {
       setGroupNameError(true)
       return
@@ -133,7 +140,9 @@ const CreateMealGroup = ({
       const params = {
         site_id: selectedOption,
         meal_group_id: editParam?.id,
-        group_name: groupName
+        group_name: groupName,
+        add_enclosure_ids: JSON.stringify(updatedEnclosure),
+        remove_enclosure_ids: JSON.stringify(removedEnclosures)
       }
       setGroupNameError(false)
 
@@ -154,29 +163,43 @@ const CreateMealGroup = ({
 
   const handleEnclosureRemove = async index => {
     console.log('index >', index)
-    const selectedObj = editeditems[index]
-    console.log('selected obj>', selectedObj)
+    debugger
 
-    try {
-      const params = {
-        site_id: selectedOption,
-        meal_group_id: selectedObj?.group_id,
-        group_name: selectedObj?.group_name,
-        remove_enclosure_ids: JSON.stringify([selectedObj?.enclosure_id])
-      }
-      const response = await updateMealGroup(params)
-      if (response) {
-        handleCloseSideBar()
-        fetchEnclosure()
-        toast.success('Enclosure Removed from Group Successfully')
-      } else {
-        toast.error('Something went wrong')
-      }
-    } catch (error) {
-      toast.error('Server error. Please try again.')
-      console.error('Create Meal Group Error:', error)
-    }
+    const itemToRemove = editeditems[index] // Get the item being removed
+
+    const updatedEditedEnclosures = editeditems.filter((_, i) => i !== index)
+    const updatedChecked = checkedRows.filter(id => id !== itemToRemove.enclosure_id)
+
+    // Add the removed item to removedEnclosures
+    setRemovedEnclosures([...removedEnclosures, itemToRemove?.enclosure_id])
+
+    setEditItems(updatedEditedEnclosures)
+    setCheckedRows(updatedChecked) // or setSelectedCheckboxes
   }
+
+  // const selectedObj = editeditems[index]
+  // console.log('selected obj>', selectedObj)
+
+  // try {
+  //   const params = {
+  //     site_id: selectedOption,
+  //     meal_group_id: selectedObj?.group_id,
+  //     group_name: selectedObj?.group_name,
+  //     remove_enclosure_ids: JSON.stringify([selectedObj?.enclosure_id])
+  //   }
+  //   const response = await updateMealGroup(params)
+  //   if (response) {
+  //     handleCloseSideBar()
+  //     fetchEnclosure()
+  //     toast.success('Enclosure Removed from Group Successfully')
+  //   } else {
+  //     toast.error('Something went wrong')
+  //   }
+  // } catch (error) {
+  //   toast.error('Server error. Please try again.')
+  //   console.error('Create Meal Group Error:', error)
+  // }
+  // }
 
   const theme = useTheme()
 
@@ -260,19 +283,15 @@ const CreateMealGroup = ({
           >
             <Box sx={{ gap: 2, display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
               <img src='/icons/Activity.svg' alt='Grocery Icon' width='35px' />
-              {Object.keys(editParam).length > 0 ? (
-                <Typography
-                  sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontSize: '24px', fontWeight: 500 }}
-                >
-                  Edit Meal Group
-                </Typography>
-              ) : (
-                <Typography
-                  sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontSize: '24px', fontWeight: 500 }}
-                >
-                  Create new group
-                </Typography>
-              )}
+              <Typography
+                sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontSize: '24px', fontWeight: 500 }}
+              >
+                {mealType.type === 'view'
+                  ? 'Meal Group'
+                  : Object.keys(editParam).length > 0
+                  ? 'Edit Meal Group'
+                  : 'Create new group'}
+              </Typography>
             </Box>
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
               <IconButton
@@ -315,6 +334,7 @@ const CreateMealGroup = ({
               <FormControl fullWidth>
                 <TextField
                   fullWidth
+                  disabled={mealType.type === 'view'}
                   placeholder='Enter name'
                   variant='outlined'
                   value={groupName}
@@ -346,7 +366,7 @@ const CreateMealGroup = ({
                     height: '44px',
                     borderRadius: '8px',
                     justifyContent: 'space-between',
-                    alignItems:"center",
+                    alignItems: 'center',
                     backgroundColor: '#E1F9ED',
                     mt: groupNameError ? 1 : 2,
                     px: 2,
@@ -404,45 +424,55 @@ const CreateMealGroup = ({
           </Box>
 
           <Box sx={{ p: 3, backgroundColor: '#EEF5F1', borderRadius: '8px' }}>
-            <Typography sx={{ fontFamily: 'Inter', fontSize: '20px', fontWeight: 500, color: '#44544A', ml: 2 }}>
+            <Typography
+              sx={{
+                fontFamily: 'Inter',
+                fontSize: '20px',
+                fontWeight: 500,
+                color: '#44544A',
+                ml: 2,
+                mb: mealType.type === 'view' && 4
+              }}
+            >
               Selected enclosures
             </Typography>
-
-            <Box display='flex' gap={1} mt={2} flexDirection={{ xs: 'column', sm: 'row' }}>
-              <TextField
-                placeholder='Search...'
-                value={editeditems.length > 0 ? editSearchValue : searchTerm}
-                variant='outlined'
-                size='small'
-                onChange={e => {
-                  if (editeditems.length > 0) {
-                    handleEditSearch(e.target.value, mealId)
-                  } else {
-                    handleCreateSearch(e.target.value)
-                  }
-                }}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position='start'>
-                      <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
-                    </InputAdornment>
-                  ),
-                  sx: {
-                    backgroundColor: 'white',
-                    borderRadius: '8px',
-                    m: { md: 5 },
-                    mt: { md: 0 },
-                    ml: { xs: 0, sm: 2, md: 1 },
-                    width: { xs: '96%', sm: '520px', md: '524px' },
-                    height: '48px',
-                    input: {
-                      color: '#839D8D',
-                      padding: '10px 0'
+            {mealType.type !== 'view' && (
+              <Box display='flex' gap={1} mt={2} flexDirection={{ xs: 'column', sm: 'row' }}>
+                <TextField
+                  placeholder='Search...'
+                  value={editeditems.length > 0 ? editSearchValue : searchTerm}
+                  variant='outlined'
+                  size='small'
+                  onChange={e => {
+                    if (editeditems.length > 0) {
+                      handleEditSearch(e.target.value, mealId)
+                    } else {
+                      handleCreateSearch(e.target.value)
                     }
-                  }
-                }}
-              />
-            </Box>
+                  }}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position='start'>
+                        <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
+                      </InputAdornment>
+                    ),
+                    sx: {
+                      backgroundColor: 'white',
+                      borderRadius: '8px',
+                      m: { md: 5 },
+                      mt: { md: 0 },
+                      ml: { xs: 0, sm: 2, md: 1 },
+                      width: { xs: '96%', sm: '520px', md: '524px' },
+                      height: '48px',
+                      input: {
+                        color: '#839D8D',
+                        padding: '10px 0'
+                      }
+                    }
+                  }}
+                />
+              </Box>
+            )}
 
             <Card
               sx={{
@@ -484,28 +514,26 @@ const CreateMealGroup = ({
                       alignItems: 'center'
                     }}
                   >
-                    <CircularProgress size={40} />
+                    <CircularProgress size={40} sx={{ mb: 100 }} />
                   </Box>
-                ) : (
+                ) : (Object.keys(editParam).length > 0 ? editeditems : selectedItems).length > 0 ? (
                   (Object.keys(editParam).length > 0 ? editeditems : selectedItems).map((item, index) => (
                     <Card
                       key={index}
                       sx={{
                         p: 5,
                         width: { xs: '90vw', sm: '475px', md: '485px' },
-                        // width: '482px',
                         height: '80px',
                         m: { xs: 0, sm: 0, md: 0 },
                         mt: { xs: 2, sm: 2, md: 0 },
                         ml: { xs: 0, sm: 0, md: 0 },
                         backgroundColor: '#E8F3EE',
-
                         borderRadius: '16px',
                         display: 'flex',
                         boxShadow: 'none',
                         justifyContent: 'space-between',
                         alignItems: 'center',
-                        flexShrink: 0 // Prevents child cards from shrinking when scrolling
+                        flexShrink: 0
                       }}
                     >
                       <Box>
@@ -545,13 +573,24 @@ const CreateMealGroup = ({
                       </IconButton>
                     </Card>
                   ))
+                ) : (
+                  <Box
+                    sx={{
+                      height: '50%',
+                      display: 'flex',
+                      justifyContent: 'center',
+                      alignItems: 'center'
+                    }}
+                  >
+                    <Typography sx={{ fontSize: '16px', fontWeight: 500, color: '#888' }}>No Data Found</Typography>
+                  </Box>
                 )}
               </Box>
             </Card>
           </Box>
         </Box>
 
-        <RenderSidebarFooter />
+        {mealType.type !== 'view' && <RenderSidebarFooter />}
       </Drawer>
     </>
   )

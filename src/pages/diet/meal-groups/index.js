@@ -52,9 +52,16 @@ const MealGroup = () => {
   const theme = useTheme()
   const firstSite = authData?.userData?.user?.zoos[0]?.sites?.[0] || null
 
+  const updateUrlParams = params => {
+    const query = { ...router.query, ...params }
+    router.push({ pathname: router.pathname, query }, undefined, { shallow: true })
+  }
+
   const [defaultSite, setDefaultSite] = useState(firstSite)
-  const [selectedOption, setSelectedOption] = useState(firstSite?.site_id || '')
-  const [status, setStatus] = useState('unmapped')
+  const [selectedOption, setSelectedOption] = useState(
+    router.query.site_id ? router.query.site_id : firstSite?.site_id || ''
+  )
+  const [status, setStatus] = useState(router.query.status || 'unmapped')
   const [openDrawer, setOpenDrawer] = useState(false)
   const [enclosureList, setEnclosureList] = useState([])
   const [menuGroupList, setMenuGroupList] = useState([])
@@ -65,8 +72,8 @@ const MealGroup = () => {
   const [loading, setLoading] = useState(false)
   const [Loader, setLoader] = useState(false)
   const [paginationModel, setPaginationModel] = useState({
-    page: 0,
-    pageSize: 10
+    page: parseInt(router.query.page) || 0,
+    pageSize: parseInt(router.query.limit) || 10
   })
   const [originalItems, setOriginalItems] = useState([])
   const [selectedItems, setSelectedItems] = useState([])
@@ -91,6 +98,9 @@ const MealGroup = () => {
   const [editSearchValue, setEditSearchValue] = useState('')
   const [selectedForDrawer, setSelectedForDrawer] = useState([])
   const [mealId, setMealId] = useState(null)
+  const [mealType, setmealType] = useState({
+    type: 'view'
+  })
 
   console.log('Group >>', groupList)
 
@@ -142,16 +152,19 @@ const MealGroup = () => {
   const handleSectionChange = event => {
     const value = event.target.value
     setSelectedSection(value) // value is string
+    setCheckedRows([])
   }
 
   const handleSpeciesChange = event => {
     const value = event.target.value
     setSelectedSpecies(value) // value is string
+    setCheckedRows([])
   }
 
   const handleGroupChange = event => {
     const value = event.target.value
     setSelectedGroup(value) // value is string
+    setCheckedRows([])
   }
 
   const handleCheckboxChange = (e, row) => {
@@ -183,7 +196,7 @@ const MealGroup = () => {
     setLoading(true)
     debugger
 
-    if (status === '') {
+    if (status === 'mealgroup') {
       const groupparams = {
         site_id: selectedOption,
         page_no: paginationModel.page + 1
@@ -263,13 +276,14 @@ const MealGroup = () => {
         console.log(err)
       }
     }, 1000),
-    [selectedOption, status] // track selectedOption in dependencies
+    [selectedOption] // track selectedOption in dependencies
   )
 
   const debouncedEnclosureSearch = useCallback(
     debounce(async q => {
       debugger
       setSearchValue(q)
+      setLoader(true)
       setPaginationModel({ page: 0, pageSize: 10 })
 
       try {
@@ -281,6 +295,7 @@ const MealGroup = () => {
 
         if (res) {
           setSelectedItems(res?.data?.result)
+          setLoader(false)
         }
       } catch (err) {
         console.log(err)
@@ -344,7 +359,6 @@ const MealGroup = () => {
       console.error('Error fetching site stats:', error)
     }
   }
-
   const fetchSectionList = async () => {
     if (!selectedOption) return
     try {
@@ -397,16 +411,26 @@ const MealGroup = () => {
   }
 
   useEffect(() => {
-    setSelectedItems([])
-  }, [status])
-
-  useEffect(() => {
     fetchEnclosure()
     fetchSiteStats()
     fetchSectionList()
     fetchSpeciesList()
     fetchMealGroupNames()
-  }, [selectedOption, status, paginationModel, selectedSection, selectedSpecies, selectedGroup])
+    updateUrlParams({
+      status: status,
+      site_id: selectedOption,
+      page: paginationModel.page,
+      limit: paginationModel.pageSize
+    })
+  }, [
+    selectedOption,
+    status,
+    paginationModel.page,
+    paginationModel.pageSize,
+    selectedSection,
+    selectedSpecies,
+    selectedGroup
+  ])
 
   const StatCard = ({ value, label, bgColor, textColor }) => (
     <Card
@@ -523,6 +547,7 @@ const MealGroup = () => {
   )
 
   const handleChange = (event, newValue) => {
+    debugger
     setStatus(newValue)
     setSelectedSection('all')
     setSelectedGroup('all')
@@ -530,10 +555,13 @@ const MealGroup = () => {
     setCheckedRows([])
     setSearchValue('')
     setEditItems([])
+    setSelectedItems([])
+    setPaginationModel({ page: 0, pageSize: 10 })
     setEditParam({})
   }
 
-  const handleEnclosureEvent = async id => {
+  const handleEnclosureEvent = async (event, id) => {
+    event.stopPropagation()
     try {
       debugger
       setEnclosureDrawer(true)
@@ -563,7 +591,8 @@ const MealGroup = () => {
     }
   }
 
-  const handleRemove = id => {
+  const handleRemove = (event, id) => {
+    event.stopPropagation()
     setDeleteId(id)
     setOpenDeleteDialog(true)
   }
@@ -594,10 +623,13 @@ const MealGroup = () => {
     }
   }
 
-  const handleEdit = async row => {
+  const handleEdit = async (event, row) => {
     console.log('Row Detail >', row)
+    event.stopPropagation()
+    debugger
     try {
       setEditParam(row)
+      setmealType({ type: 'edit' })
       setLoader(true)
       setMealId(row.id)
       setOpenDrawer(true) // 👈 open the drawer
@@ -680,8 +712,9 @@ const MealGroup = () => {
 
   const groupcolumns = [
     {
-      flex: 0.3,
-      width: 30,
+      flex: 0.4,
+      width: 40,
+      sortable: false,
       field: 'group_name',
       headerName: 'Meal Group Name ',
       headerAlign: 'left',
@@ -704,32 +737,19 @@ const MealGroup = () => {
       ),
       renderCell: params => (
         <>
-          {params?.row?.group_name ? (
-            <TextEllipsisWithModal
-              text={params.row.group_name}
-              style={{
-                color: theme.palette.customColors.customHeadingTextColor,
-                fontSize: '16px',
-                fontWeight: 500,
-                color: '#44544A',
-                fontFamily: 'Inter'
-              }}
-            />
-          ) : (
-            <Typography
-              variant='body2'
-              textAlign='center'
-              sx={{
-                color: theme.palette.customColors.customHeadingTextColor,
-                fontSize: '16px',
-                fontWeight: 500,
-                color: '#44544A',
-                fontFamily: 'Inter'
-              }}
-            >
-              NA
-            </Typography>
-          )}
+          <Typography
+            variant='body2'
+            textAlign='center'
+            sx={{
+              color: theme.palette.customColors.customHeadingTextColor,
+              fontSize: '16px',
+              fontWeight: 500,
+              color: '#44544A',
+              fontFamily: 'Inter'
+            }}
+          >
+            {params?.row.group_name}
+          </Typography>
         </>
       )
     },
@@ -738,6 +758,7 @@ const MealGroup = () => {
       width: 20,
       field: 'enclosure_count',
       type: 'number',
+      sortable: false,
       headerName: 'Enclosures',
       headerAlign: 'center',
       align: 'center',
@@ -777,6 +798,7 @@ const MealGroup = () => {
       flex: 0.15,
       width: 10,
       field: 'species_count',
+      sortable: false,
       type: 'number',
       headerName: 'Species',
       headerAlign: 'center',
@@ -818,6 +840,7 @@ const MealGroup = () => {
       width: 20,
       field: 'animal_count',
       headerName: 'Animals',
+      sortable: false,
       headerAlign: 'center',
       align: 'center',
       renderHeader: () => (
@@ -856,6 +879,7 @@ const MealGroup = () => {
       flex: 0.35, // increased flex
       minWidth: 200, // minimum width for small screens
       field: 'actions',
+      sortable: false,
       headerAlign: 'center',
       align: 'center',
       renderHeader: () => (
@@ -894,15 +918,15 @@ const MealGroup = () => {
               fontSize: '12px'
             }}
             variant='outlined'
-            onClick={() => handleEnclosureEvent(params.row.id)}
+            onClick={e => handleEnclosureEvent(e, params.row.id)}
           >
             Add Enclosure
           </Button>
-          <IconButton onClick={() => handleEdit(params.row)} size='small' sx={{ color: theme.palette.primary.light }}>
+          <IconButton onClick={e => handleEdit(e, params.row)} size='small' sx={{ color: theme.palette.primary.light }}>
             <Icon icon='mdi:pencil-outline' fontSize={20} />
           </IconButton>
           <IconButton
-            onClick={() => handleRemove(params.row.id)}
+            onClick={e => handleRemove(e, params.row.id)}
             size='small'
             sx={{ color: theme.palette.primary.light }}
           >
@@ -919,6 +943,7 @@ const MealGroup = () => {
       headerName: 'Enclosure Name',
       headerAlign: 'left',
       align: 'left',
+      sortable: false,
       flex: 1,
       minWidth: 180,
       renderHeader: () => (
@@ -972,6 +997,7 @@ const MealGroup = () => {
       field: 'section_name',
       headerName: 'Section',
       headerAlign: 'left',
+      sortable: false,
       align: 'left',
       flex: 0.5,
       minWidth: 60,
@@ -1014,6 +1040,7 @@ const MealGroup = () => {
       field: 'species_count',
       headerName: 'Species',
       type: 'number',
+      sortable: false,
       headerAlign: 'center',
       align: 'center',
       flex: 0.4,
@@ -1047,6 +1074,7 @@ const MealGroup = () => {
     {
       field: 'animal_count',
       headerName: 'Animals',
+      sortable: false,
       headerAlign: 'center',
       align: 'center',
       flex: 0.4,
@@ -1080,6 +1108,7 @@ const MealGroup = () => {
     {
       field: 'group_name',
       headerName: 'Meal Group Name',
+      sortable: false,
       headerAlign: 'center',
       align: 'center',
       flex: 0.6,
@@ -1135,6 +1164,7 @@ const MealGroup = () => {
   console.log('Indexed >', indexedRows)
 
   const handleSiteChange = site => {
+    debugger
     if (!site) {
       setDefaultSite(null)
       setSelectedOption(null)
@@ -1151,27 +1181,50 @@ const MealGroup = () => {
       setSelectedOption(site.site_id)
       setEditItems([])
       setCheckedRows([])
-      router.replace(
-        {
-          pathname: router.pathname,
-          query: { ...router.query, site_id: site.site_id }
-        },
-        undefined,
-        { shallow: true }
-      )
+      updateUrlParams({
+        status: status,
+        site_id: site.site_id,
+        page: paginationModel.page,
+        limit: paginationModel.pageSize
+      })
     }
   }
 
-  const addEventSidebarOpen = () => {
+  const addEventSidebarOpen = event => {
     console.log('Edit >>', editParam)
+    event.stopPropagation()
     setEditParam({})
     setEditItems([])
+    setmealType({ type: 'edit' })
     // setSelectedItems([])
     setOpenDrawer(true)
   }
 
   const handleCloseSideBar = () => {
     setOpenDrawer(false)
+  }
+
+  const handleView = async parm => {
+    debugger
+    setOpenDrawer(true)
+    setEditParam(parm.row)
+    setmealType({ type: 'view' })
+    console.log('params >', parm)
+    const params = {
+      type: 'mapped',
+      site_id: selectedOption,
+      meal_group_ids: JSON.stringify([parm.row.id]) // Send as array
+    }
+    const response = await getEnclosureListByGroup(params)
+
+    if (response.success) {
+      setLoader(false)
+      console.log('Enclosure list by group:', response.data.result)
+      setEditItems(response?.data?.result)
+    } else {
+      setLoader(true)
+      console.error('Failed to fetch enclosure list:', response.message || 'Unknown error')
+    }
   }
 
   return (
@@ -1233,6 +1286,8 @@ const MealGroup = () => {
                 value={defaultSite}
                 disablePortal
                 id='site_id'
+                // clearIcon={firstSite?.site_id ? true: false}
+                disableClearable={defaultSite?.site_id === firstSite?.site_id}
                 options={authData?.userData?.user?.zoos?.[0]?.sites || []}
                 getOptionLabel={option => option?.site_name || ''}
                 isOptionEqualToValue={(option, value) => option?.site_id === value?.site_id}
@@ -1291,7 +1346,7 @@ const MealGroup = () => {
                   value='mapped'
                   label={<TabBadge label={`Enclosures mapped - ${siteStats?.mapped_enclosures}`} />}
                 />
-                <Tab value='' label={<TabBadge label={`Meal group - ${siteStats?.meal_groups_count}`} />} />
+                <Tab value='mealgroup' label={<TabBadge label={`Meal group - ${siteStats?.meal_groups_count}`} />} />
               </TabList>
 
               {/* Divider only below TabList, responsive width */}
@@ -1311,7 +1366,7 @@ const MealGroup = () => {
           </TabContext>
         </Grid>
 
-        {status !== '' && (
+        {status !== 'mealgroup' && (
           <Box
             sx={{
               mt: 4,
@@ -1402,17 +1457,29 @@ const MealGroup = () => {
 
             <Autocomplete
               options={[{ species_id: 'all', common_name: 'All Species', scientific_name: '' }, ...speciesList]}
-              getOptionLabel={option =>
-                option.species_id === 'all' ? 'All Species' : `${option.common_name} (${option.scientific_name})`
-              }
+              getOptionLabel={option => {
+                if (option.species_id === 'all') return 'All Species'
+
+                if (!option.common_name) return ` NA (${option.scientific_name})` || ''
+
+                return `${option.common_name} (${option.scientific_name})`
+              }}
               value={
                 selectedSpecies === 'all'
                   ? { species_id: 'all', common_name: 'All Species', scientific_name: '' }
                   : speciesList.find(item => item.species_id === selectedSpecies) || null
               }
+              onBlur={event => {
+                if (!selectedSpecies) {
+                  // if nothing is selected, default to "All Species"
+                  handleSpeciesChange({
+                    target: { value: 'all' }
+                  })
+                }
+              }}
               onChange={(event, newValue) => {
                 handleSpeciesChange({
-                  target: { value: newValue?.species_id || 'all' }
+                  target: { value: newValue?.species_id || '' }
                 })
               }}
               size='small'
@@ -1420,7 +1487,8 @@ const MealGroup = () => {
               renderInput={params => (
                 <TextField
                   {...params}
-                  placeholder='Select Species'
+                  label='search and select'
+                  placeholder='Search and select'
                   variant='outlined'
                   fullWidth
                   sx={{
@@ -1438,39 +1506,42 @@ const MealGroup = () => {
               }}
             />
             {/* Meal Group Dropdown */}
-            <Select
-              value={selectedGroup}
-              onChange={handleGroupChange}
-              displayEmpty
-              renderValue={selected => {
-                if (selected === 'all') return <Typography>All Meal groups</Typography>
-                const selectedItem = groupList.find(item => item.id === selected)
-                return selectedItem?.group_name || ''
-              }}
-              size='small'
-              sx={{
-                flexGrow: 1,
-                minWidth: { xs: '70%', sm: '20px', md: '20px' },
-                backgroundColor: 'white',
-                borderRadius: '4px'
-              }}
-            >
-              <MenuItem value='all'>
-                <Typography>All Meal groups</Typography>
-              </MenuItem>
-              {groupList.map(item => (
-                <MenuItem key={item.id} value={item.id}>
-                  {item.group_name}
+            {status !== 'unmapped' && (
+              <Select
+                value={selectedGroup}
+                onChange={handleGroupChange}
+                displayEmpty
+                renderValue={selected => {
+                  if (selected === 'all') return <Typography>All Meal groups</Typography>
+                  const selectedItem = groupList.find(item => item.id === selected)
+                  return selectedItem?.group_name || ''
+                }}
+                size='small'
+                sx={{
+                  flexGrow: 1,
+                  minWidth: { xs: '70%', sm: '20px', md: '20px' },
+                  backgroundColor: 'white',
+                  borderRadius: '4px'
+                }}
+              >
+                <MenuItem value='all'>
+                  <Typography>All Meal groups</Typography>
                 </MenuItem>
-              ))}
-            </Select>
+                {groupList.map(item => (
+                  <MenuItem key={item.id} value={item.id}>
+                    {item.group_name}
+                  </MenuItem>
+                ))}
+              </Select>
+            )}
           </Box>
         )}
 
-        <Grid
+        {/* <Grid
           sx={{
             // height: '800px',
             // overflowY: 'scroll',
+
             mx: { xs: 1, sm: 3, md: 2 },
             mb: 5,
             pb: { xs: 0, sm: 5 } // 👈 padding bottom to create space
@@ -1502,11 +1573,61 @@ const MealGroup = () => {
               </DialogActions>
             </Dialog>
           )}
-        </Grid>
+        </Grid> */}
+
+        {enclosureList.length > 0 ? (
+          <Grid
+            sx={{
+              mx: { xs: 1, sm: 3, md: 2 },
+              mb: 5,
+              pb: { xs: 0, sm: 5 }
+            }}
+          >
+            {' '}
+            {/* 👈 wrap CommonTable */}
+            <CommonTable
+              onRowClick={status === 'mealgroup' ? handleView : undefined}
+              indexedRows={status === 'mealgroup' ? GroupindexedRows : indexedRows}
+              total={total}
+              handleSortModel={''}
+              columns={status === 'mealgroup' ? groupcolumns : columns}
+              paginationModel={paginationModel}
+              setPaginationModel={setPaginationModel}
+              loading={loading}
+              searchValue={''}
+            />
+            {status === 'mealgroup' && (
+              <Dialog open={openDeleteDialog} onClose={handleCloseDialog}>
+                <DialogTitle>Confirm Deletion</DialogTitle>
+                <DialogContent>Are you sure you want to delete this group?</DialogContent>
+                <DialogActions>
+                  <Button onClick={handleCloseDialog} color='primary'>
+                    Cancel
+                  </Button>
+                  <Button onClick={handleConfirmDelete} color='error' variant='contained'>
+                    Delete
+                  </Button>
+                </DialogActions>
+              </Dialog>
+            )}
+          </Grid>
+        ) : (
+          <Box
+            sx={{
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              height: '300px', // adjust as needed
+              width: '100%'
+            }}
+          >
+            <Typography sx={{ fontSize: '16px', color: '#888' }}>No record found</Typography>
+          </Box>
+        )}
       </Card>
 
       {/* Footer Card */}
-      {status !== '' && (
+      {status !== 'mealgroup' && (
         <FixedFooterWrapper>
           <Box
             sx={{
@@ -1562,7 +1683,7 @@ const MealGroup = () => {
                 {status === 'unmapped' && (
                   <Button
                     disabled={checkedRows?.length <= 0}
-                    onClick={addEventSidebarOpen}
+                    onClick={e => addEventSidebarOpen(e)}
                     variant='contained'
                     sx={{
                       backgroundColor: '#37BD69',
@@ -1593,6 +1714,7 @@ const MealGroup = () => {
           setOriginalItems={setOriginalItems}
           checkedRows={checkedRows}
           setCheckedRows={setCheckedRows}
+          mealType={mealType}
           selectedOption={selectedOption}
           editParam={editParam}
           editeditems={editeditems}

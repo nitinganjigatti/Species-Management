@@ -41,7 +41,7 @@ export async function getSectionList(params) {
 
   const response = await axiosPost({ url: `${GET_SECTION}`, body: params })
 
-  return response.data
+  return response.data 
 }
 
 export async function getSpeciesList(params) {

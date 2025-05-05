@@ -41,7 +41,7 @@ const CommonTable = ({
         },
         '.MuiDataGrid-virtualScroller': {
           // overflow: 'hidden',
-          overflowX: 'auto',
+
           ...(maxHeight && { maxHeight: maxHeight, overflowY: 'auto !important' })
         },
         '.MuiDataGrid-main': {
