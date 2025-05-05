@@ -334,19 +334,22 @@ const UploadReports = ({
                     <Image alt={'filename'} src={imageUploader} width={32} height={32} />
                     <Typography>Drop your lab files here</Typography>
                   </Box>
-
-                  {imgArr?.length > 0 && (
-                    <Box sx={{ marginLeft: 'auto', paddingRight: 2 }}>
-                      <LoadingButton loading={submitting} onClick={handleSubmitData} type='submit' variant='contained'>
-                        {buttonText || 'Upload'}
-                      </LoadingButton>
-                    </Box>
-                  )}
                 </Box>
               </Grid>
               {/* )} */}
               <Grid item md={12} sm={12} xs={12} sx={{ display: 'flex', justifyContent: 'flex-start' }}>
-                <Stack direction='row' sx={{ px: 2, display: 'flex', flexWrap: 'wrap', gap: 3 }}>
+                <Stack
+                  direction='row'
+                  sx={{
+                    width: '100%',
+                    px: 2,
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'flex-end',
+                    flexWrap: 'wrap',
+                    gap: 3
+                  }}
+                >
                   {imgSrc?.length > 0 &&
                     imgSrc?.map((img, index) => (
                       <Box key={index} sx={{ display: 'flex', mt: 3 }}>
@@ -393,6 +396,13 @@ const UploadReports = ({
                         </Box>
                       </Box>
                     ))}
+                  {imgArr?.length > 0 && (
+                    <Box sx={{ marginLeft: 'auto', paddingRight: 2 }}>
+                      <LoadingButton loading={submitting} onClick={handleSubmitData} type='submit' variant='contained'>
+                        {buttonText || 'Upload'}
+                      </LoadingButton>
+                    </Box>
+                  )}
                 </Stack>
               </Grid>
             </Grid>

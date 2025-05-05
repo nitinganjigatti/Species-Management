@@ -1093,7 +1093,7 @@ const RequestDetails = () => {
                       justifyContent: 'center',
                       backgroundColor: theme.palette.customColors.cardHeaderBg,
                       borderRadius: '8px',
-                      alignItems: 'center'
+                      alignItems: ''
                     }}
                   >
                     <AnimalParentCard
