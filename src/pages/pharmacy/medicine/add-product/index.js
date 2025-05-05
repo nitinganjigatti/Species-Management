@@ -172,7 +172,6 @@ const AddMedicine = () => {
     getValues
   } = useForm({
     defaultValues,
-
     resolver: yupResolver(schema),
     shouldUnregister: false,
     mode: 'onChange',
@@ -1689,6 +1688,7 @@ const AddMedicine = () => {
                           </Grid>
 
                           <Grid item xs={12} sm={6}>
+                            {console.log('errors', errors)}
                             <FormControl fullWidth>
                               <InputLabel error={Boolean(errors?.controlled_substance)} id='controlled_substance'>
                                 Controlled Substances
@@ -1703,12 +1703,16 @@ const AddMedicine = () => {
                                     value={value}
                                     label='Controlled substances'
                                     onChange={e => {
+                                      // console.log('e.target.value', e.target.value)
                                       onChange(e)
-                                      if (e.target.value === '1') {
+
+                                      if (e.target === '1') {
                                         setValue('prescription_required', '1')
                                       } else {
                                         setValue('prescription_required', '0')
+                                        setError('prescription_required', '')
                                       }
+
                                       setError('prescription_required', '')
                                     }}
                                     error={Boolean(errors?.controlled_substance)}

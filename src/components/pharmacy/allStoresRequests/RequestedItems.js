@@ -752,7 +752,7 @@ export default function RequestedItems({ selectedStoreDetails, setSelectedStoreD
             }}
           />
         </Dialog>
-        <Grid container sx>
+        <Grid container>
           <CommonDialogBox
             noWidth={'noWidth'}
             title={'Add Alternative Supply'}
@@ -824,15 +824,22 @@ export default function RequestedItems({ selectedStoreDetails, setSelectedStoreD
   }, [selectedPharmacy.type === 'local'])
 
   return (
-    <TabContext sx={{ border: '1px solid red' }} value={requestedItemsSubTab}>
+    <TabContext value={requestedItemsSubTab}>
       <TabLists
         variant='scrollable'
         allowScrollButtonsMobile
         container
         onChange={(event, newValue) => {
           setRequestedItemsSubTab(newValue)
+          setPaginationModel({
+            page: 0,
+            pageSize: 10
+          })
+
           updateUrlParams({
-            requestedItemsSubTab: newValue
+            requestedItemsSubTab: newValue,
+            page: 0,
+            limit: 10
           })
         }}
         sx={{

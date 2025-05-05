@@ -6,6 +6,7 @@ import { AuthContext } from 'src/context/AuthContext'
 import Utility from 'src/utility'
 import { useRouter } from 'next/router'
 import { LoadingButton } from '@mui/lab'
+import CloseIcon from '@mui/icons-material/Close'
 
 const PurchaseDocsDrawer = ({
   openDocsDrawer,
@@ -20,6 +21,19 @@ const PurchaseDocsDrawer = ({
   confirmDeleteDialog,
   setConfirmDeleteDialog
 }) => {
+  const commonIconButtonStyle = {
+    width: 25,
+    height: 25,
+    position: 'absolute',
+    backgroundColor: 'white',
+    borderRadius: 0,
+    padding: 0,
+    cursor: 'pointer',
+    '&:hover': {
+      backgroundColor: 'error.main',
+      cursor: 'pointer'
+    }
+  }
   const [openDialog, setOpenDialog] = useState(false)
   const authData = useContext(AuthContext)
   const [defaultIcon, setDefaultIcon] = useState(authData?.userData?.settings?.DEFAULT_IMAGE_MASTER)
@@ -60,6 +74,21 @@ const PurchaseDocsDrawer = ({
     } else {
       removeSelectedImage(e, '', index)
     }
+  }
+
+  const closeButton = (index, doc) => {
+    return (
+      <>
+        <IconButton
+          onClick={e => {
+            handleDelete(e, index, doc)
+          }}
+          sx={{ ...commonIconButtonStyle, top: 2, right: 2, borderRadius: 0, padding: 0 }}
+        >
+          <CloseIcon sx={{ fontSize: 20, borderRadius: 'none !important' }} />
+        </IconButton>
+      </>
+    )
   }
 
   return (
@@ -157,23 +186,8 @@ const PurchaseDocsDrawer = ({
                     }}
                   >
                     {/* Close Button */}
-                    <Box
-                      size='small'
-                      onClick={e => {
-                        // Call your remove function
-                        handleDelete(e, index, doc)
-                      }}
-                      sx={{
-                        position: 'absolute',
-                        top: 0,
-                        right: 0,
-                        zIndex: 1
 
-                        // borderColor: '#7A8684'
-                      }}
-                    >
-                      <Icon icon='solar:close-square-bold' width='24' height='24' color={'#7A8684'} />
-                    </Box>
+                    {closeButton(index, doc)}
 
                     {/* Icon */}
                     {isPDF(doc.title || fileArr[index]?.name) ? (
@@ -266,10 +280,6 @@ const PurchaseDocsDrawer = ({
               position: 'absolute', // Position it absolutely within the parent container
               top: '10px', // Adjust top position
               right: '10px', // Adjust right position
-              // backgroundColor: 'rgba(255, 255, 255, 0.8)', // Optional: Background for better visibility
-              // '&:hover': {
-              //   backgroundColor: 'rgba(255, 255, 255, 1)'
-              // },
               zIndex: 2 // Ensure it appears above the image
             }}
           >
@@ -289,7 +299,6 @@ const PurchaseDocsDrawer = ({
           />
         </Box>
       </Dialog>
-
       <Dialog open={confirmDeleteDialog} onClose={() => setConfirmDeleteDialog(false)} fullWidth maxWidth='sm'>
         <Box sx={{ p: '24px', display: 'flex', flexDirection: 'column', gap: '24px' }}>
           <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>

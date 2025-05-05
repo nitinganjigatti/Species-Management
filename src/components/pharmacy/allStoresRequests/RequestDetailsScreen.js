@@ -94,7 +94,6 @@ const RequestDetailsScreen = () => {
         )}
 
         <Grid
-          spacing={2}
           sx={{
             px: 6,
             display: 'flex',
@@ -111,6 +110,7 @@ const RequestDetailsScreen = () => {
               onChange={(event, newValue) => {
                 console.log('new tab value: ', newValue)
                 setDetailsTab(newValue)
+
                 // updateUrlParams({
                 //   mainTab: newValue
                 // })

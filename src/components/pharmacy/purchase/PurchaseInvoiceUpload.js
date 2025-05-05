@@ -298,7 +298,7 @@ const PurchaseInvoiceUpload = ({
     }
 
     // Stop the camera before submitting
-    // stopCamera()
+    stopCamera()
     setInvoiceSubmitLoader(true)
 
     const promises = Array.from(file).map(file => {
@@ -335,6 +335,7 @@ const PurchaseInvoiceUpload = ({
         )
         .then(data => {
           setInvoiceSubmitLoader(false)
+
           closeDialog()
           console.log(data.data.data)
           const responseData = data.data.data
@@ -660,6 +661,7 @@ const PurchaseInvoiceUpload = ({
                               fontSize: '14px',
                               backgroundColor: 'customColors.bodyBg',
                               cursor: 'pointer',
+                              my: 1,
                               borderColor: theme => alpha(theme.palette.customColors.neutral05, 0.05)
                             }}
                             onClick={() => startCamera(camera.deviceId)}
@@ -951,6 +953,7 @@ const PurchaseInvoiceUpload = ({
           variant='outlined'
           onClick={() => {
             closeDialog()
+            stopCamera()
           }}
           sx={{ mr: 2 }}
         >
