@@ -6,16 +6,10 @@ import { DataGrid } from '@mui/x-data-grid'
 import { debounce } from 'lodash'
 import {
   Avatar,
-  Button,
   Tooltip,
   Box,
   Breadcrumbs,
   TextField,
-  LinearProgress,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
   Grid,
   FormControl,
   InputLabel,
@@ -34,11 +28,9 @@ import { useTheme } from '@mui/material/styles'
 
 import { AuthContext } from 'src/context/AuthContext'
 import Utility from 'src/utility'
-import ErrorScreen from 'src/pages/Error'
 import SpeciesDetails from '../../../components/diet/species-diet/speciesDetails'
 import UploadDiet from '../../../components/diet/species-diet/uploadDiet'
 import { getSpeciesList, speciesAttachmentUpload } from 'src/lib/api/diet/speciesDiet'
-import Toaster from 'src/components/Toaster'
 import Error404 from 'src/pages/404'
 
 const SpeciesDietList = () => {
@@ -47,7 +39,7 @@ const SpeciesDietList = () => {
   const [total, setTotal] = useState(0)
   const [rows, setRows] = useState([])
   const [searchValue, setSearchValue] = useState('')
-  // const [sortColumning, setsortColumning] = useState('ingredient_name')
+  const [sortModel, setSortModel] = useState([{ field: 'scientific_name', sort: 'asc' }])
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [loading, setLoading] = useState(false)
 
@@ -124,7 +116,7 @@ const SpeciesDietList = () => {
   }
 
   const fetchTableData = useCallback(
-    async q => {
+    async (q, newModel) => {
       try {
         ///////////////////////Filter-Code////////////////////////////
         // console.log('applyFilters', applyFilters)
@@ -141,7 +133,9 @@ const SpeciesDietList = () => {
           q: q?.q ? q?.q : searchValue,
           page_no: paginationModel.page + 1,
           limit: paginationModel.pageSize,
-          with_diet: filterByDiet
+          with_diet: filterByDiet,
+          sort_order: newModel.sort.toUpperCase(),
+          sort_by: newModel.field
         }
         await getSpeciesList(params).then(res => {
           // Generate uid field based on the index
@@ -174,7 +168,10 @@ const SpeciesDietList = () => {
     sl_no: getSlNo(index)
   }))
 
-  const handleSortModel = newModel => {}
+  const handleSortModel = newModel => {
+    setSortModel(newModel)
+    fetchTableData(searchValue, newModel[0])
+  }
 
   const searchTableData = useCallback(
     debounce(async q => {
@@ -223,7 +220,8 @@ const SpeciesDietList = () => {
     {
       width: colWidths[1],
       sortable: false,
-      field: 'species',
+      field: 'scientific_name',
+      sortable: true,
       headerName: 'SPECIES',
       renderCell: params => (
         <Box onClick={() => setSpeciesDetailsDrawer(true)} sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -310,12 +308,12 @@ const SpeciesDietList = () => {
     },
     {
       width: colWidths[2],
-      // flex: 1,
       sortable: false,
-      field: 'inactive_attachment_count',
-      headerName: 'INACTIVE DIETS',
+      field: 'genus_name',
+      sortable: true,
+      headerName: 'Genus',
       renderCell: params => (
-        <Tooltip title={params.row.inactive_attachment_count ? params.row.inactive_attachment_count : 0}>
+        <Tooltip title={params.row.genus_name ? params.row.genus_name : ''}>
           <Typography
             noWrap
             sx={{
@@ -328,11 +326,36 @@ const SpeciesDietList = () => {
               ml: 2
             }}
           >
-            {params.row.inactive_attachment_count ? params.row.inactive_attachment_count : 0}
+            {params.row.genus_name ? params.row.genus_name : ''}
           </Typography>
         </Tooltip>
       )
     },
+    // {
+    //   width: colWidths[2],
+    //   // flex: 1,
+    //   sortable: false,
+    //   field: 'inactive_attachment_count',
+    //   headerName: 'INACTIVE DIETS',
+    //   renderCell: params => (
+    //     <Tooltip title={params.row.inactive_attachment_count ? params.row.inactive_attachment_count : 0}>
+    //       <Typography
+    //         noWrap
+    //         sx={{
+    //           color: theme.palette.customColors.OnSurfaceVariant,
+    //           fontSize: '16px',
+    //           fontWeight: '400',
+    //           lineHeight: '19.36px',
+    //           overflow: 'hidden',
+    //           textOverflow: 'ellipsis',
+    //           ml: 2
+    //         }}
+    //       >
+    //         {params.row.inactive_attachment_count ? params.row.inactive_attachment_count : 0}
+    //       </Typography>
+    //     </Tooltip>
+    //   )
+    // },
 
     // {
     //   // flex: '8',
@@ -921,6 +944,7 @@ const SpeciesDietList = () => {
               pageSizeOptions={[7, 10, 25, 50]}
               paginationModel={paginationModel}
               onSortModelChange={handleSortModel}
+              sortModel={sortModel}
               onPaginationModelChange={setPaginationModel}
               loading={loading}
               // onRowClick={() => setSpeciesDetailsDrawer(true)}
