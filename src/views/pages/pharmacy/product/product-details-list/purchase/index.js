@@ -140,7 +140,7 @@ function Purchase({ tabValue, updateUrlParams }) {
     },
     {
       width: 130,
-      field: 'net_unit_price',
+      field: 'unit_price',
       headerName: 'UNIT PRICE (₹)',
       renderCell: params => (
         <Typography
@@ -198,8 +198,6 @@ function Purchase({ tabValue, updateUrlParams }) {
       field: 'net_amount',
       headerName: 'TOTAL VALUE (₹)',
       renderCell: params => {
-        const totalValue = params.row.qty * params.row.net_unit_price
-
         return (
           <Typography
             variant='body2'
@@ -210,7 +208,7 @@ function Purchase({ tabValue, updateUrlParams }) {
               fontFamily: 'Inter'
             }}
           >
-            {Utility.formatAmountToReadableDigit(totalValue)}
+            {Utility.formatAmountToReadableDigit(params.row.net_amount)}
           </Typography>
         )
       }

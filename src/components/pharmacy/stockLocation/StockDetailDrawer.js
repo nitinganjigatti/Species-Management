@@ -16,7 +16,7 @@ import {
 import { Box } from '@mui/system'
 import React from 'react'
 import Icon from 'src/@core/components/icon'
-import StyleWithIconCardComponent from 'src/views/utility/style-with-icon-card'
+import PharmacyProductCard from 'src/views/utility/PharmacyProductCard'
 
 const StockDetailDrawer = ({ openDrawer, setOpenDrawer, stockDetail }) => {
   const theme = useTheme()
@@ -69,7 +69,7 @@ const StockDetailDrawer = ({ openDrawer, setOpenDrawer, stockDetail }) => {
       >
         <Box display='flex' justifyContent='space-between' alignItems='center'>
           <Typography variant='h6' fontWeight='bold'>
-            {stockDetail?.stock_name}
+            Rack and Shelves
           </Typography>
           <IconButton onClick={() => setOpenDrawer(false)}>
             <Icon icon='mdi:close' />
@@ -82,18 +82,18 @@ const StockDetailDrawer = ({ openDrawer, setOpenDrawer, stockDetail }) => {
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
-            padding: '6px',
+            padding: '20px',
             borderRadius: '8px',
             mt: 2,
             backgroundColor: 'customColors.neutral05'
           }}
         >
-          <StyleWithIconCardComponent
-            value={stockDetail?.stock_name}
-            description={stockDetail?.generic_name ? stockDetail?.generic_name : 'NA'}
-            icon={stockDetail?.image ? stockDetail?.image : '/images/Medicine_Icon.png'}
+          <PharmacyProductCard
+            title={stockDetail?.stock_name}
+            subTitle={stockDetail?.generic_name ? stockDetail?.generic_name : 'NA'}
+            icon={stockDetail?.image}
           />
-          <Typography sx={{ fontSize: '14px', mr: 5 }}>
+          <Typography sx={{ fontSize: '14px' }}>
             Reorder-Level: <strong>{stockDetail?.min_qty ? stockDetail?.min_qty : 0}</strong>
           </Typography>
         </Box>
