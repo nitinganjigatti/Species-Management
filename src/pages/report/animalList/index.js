@@ -29,6 +29,7 @@ import Error404 from 'src/pages/404'
 import Icon from 'src/@core/components/icon'
 import Tooltip from '@mui/material/Tooltip'
 import StickyTable from 'src/views/table/sticky-table'
+import moment from 'moment'
 
 const AnimalList = () => {
   const router = useRouter()
@@ -594,7 +595,12 @@ const AnimalList = () => {
       disableColumnMenu: true,
       textAlign: 'center',
       renderCell: params => {
-        const truncatedValue = params?.row[header.key] ? truncateText(params?.row[header.key], 20) : ''
+        let truncatedValue
+        truncatedValue = params?.row[header?.key]
+          ? String(header?.key) === 'accession_date'
+            ? moment(params?.row[header?.key]).format('DD-MMM-YYYY').toLocaleLowerCase()
+            : truncateText(params?.row[header?.key], 20)
+          : ''
 
         const showTooltip = params?.value?.length > 20
 
