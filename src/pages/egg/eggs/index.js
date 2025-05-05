@@ -179,8 +179,6 @@ const EggList = () => {
     },
     {
       width: 250,
-
-      // minWidth: 60,
       sortable: false,
       field: 'species',
       headerName: 'SPECIES',
@@ -232,27 +230,11 @@ const EggList = () => {
       )
     },
 
-    // {
-    //   width: 160,
-    //   field: 'state',
-    //   sortable: false,
-    //   headerName: 'STATE',
-
-    //   // align: 'center',
-    //   renderCell: params => (
-    //     <Box>
-    //       <TextCard egg_status={params.row.egg_status} />
-    //     </Box>
-    //   )
-    // },
-
     {
       width: 160,
       field: 'condition',
       sortable: false,
       headerName: 'Condition',
-
-      // align: 'center',
       renderCell: params => (
         <Box sx={{ gap: 2 }}>
           <Typography
@@ -381,7 +363,6 @@ const EggList = () => {
                   handleAction={handleAction}
                   setAllocationValues={setAllocationValues}
                   condition={params.row.egg_condition}
-
                   // hover={hover} setHover={setHover}
                 />
               </div>
@@ -395,7 +376,6 @@ const EggList = () => {
                 sx={{
                   width: 30,
                   height: 30,
-
                   borderRadius: '50%',
                   background: theme.palette.customColors.displaybgPrimary,
                   overflow: 'hidden'
@@ -469,8 +449,6 @@ const EggList = () => {
     },
     {
       width: 250,
-
-      // minWidth: 60,
       sortable: false,
       field: 'species',
       headerName: 'SPECIES',
@@ -526,8 +504,6 @@ const EggList = () => {
       field: 'state',
       sortable: false,
       headerName: 'STATE',
-
-      // align: 'center',
       renderCell: params => (
         <Box>
           <TextCard egg_status={params.row.egg_status} />
@@ -559,25 +535,6 @@ const EggList = () => {
       )
     },
 
-    // {
-    //   width: 140,
-    //   sortable: false,
-    //   field: 'batch_no',
-    //   headerName: 'Batch NO',
-    //   renderCell: params => (
-    //     <Typography
-    //       sx={{
-    //         color: theme.palette.customColors.OnSurfaceVariant,
-    //         fontSize: '16px',
-    //         fontWeight: '400',
-    //         lineHeight: '19.36px'
-    //       }}
-    //     >
-    //       {params.row.batch_no ? params.row.batch_no : '-'}
-    //     </Typography>
-    //   )
-    // },
-
     {
       width: 160,
       sortable: false,
@@ -604,25 +561,6 @@ const EggList = () => {
       )
     },
 
-    // {
-    //  width: 140,
-    //   sortable: false,
-    //   field: 'discard_status',
-    //   headerName: 'DISCARD STATUS',
-    //   renderCell: params => (
-    //     <Typography
-    //       sx={{
-    //         color: theme.palette.customColors.OnSurfaceVariant,
-    //         fontSize: '16px',
-    //         fontWeight: '400',
-    //         lineHeight: '19.36px'
-    //       }}
-    //     >
-    //       {params.row.discard_status ? (params.row.discard_status === '1' ? 'To Be Discard' : 'Discarded') : '-'}
-    //     </Typography>
-    //   )
-    // },
-
     {
       width: 150,
       sortable: false,
@@ -645,25 +583,6 @@ const EggList = () => {
       )
     },
 
-    // {
-    //   width: 140,
-    //   sortable: false,
-    //   field: 'batch_no',
-    //   headerName: 'BATCH NO',
-    //   renderCell: params => (
-    //     <Typography
-    //       sx={{
-    //         color: theme.palette.customColors.OnSurfaceVariant,
-    //         fontSize: '16px',
-    //         fontWeight: '400',
-    //         lineHeight: '19.36px'
-    //       }}
-    //     >
-    //       {params.row.batch_no ? params.row.batch_no : '-'}
-    //     </Typography>
-    //   )
-    // },
-
     {
       width: 270,
       sortable: false,
@@ -671,11 +590,6 @@ const EggList = () => {
       headerName: 'COLLECTED BY',
       renderCell: params => (
         <>
-          {/* {status === 'eggs_received' && (
-            <Button className='customButton' variant='contained' onClick={e => handleAction(e, params.row.id)}>
-              Allocate{' '}
-            </Button>
-          )} */}
           {status === 'eggs_received' ? (
             <>
               <div>
@@ -688,7 +602,6 @@ const EggList = () => {
                   setEggId={setEggId}
                   handleAction={handleAction}
                   setAllocationValues={setAllocationValues}
-
                   // hover={hover} setHover={setHover}
                 />
               </div>
@@ -777,8 +690,6 @@ const EggList = () => {
     },
     {
       width: 250,
-
-      // minWidth: 60,
       sortable: false,
       field: 'species',
       headerName: 'SPECIES',
@@ -795,27 +706,6 @@ const EggList = () => {
         />
       )
     },
-
-    // {
-    //   width: 150,
-    //   sortable: false,
-    //   field: 'hatch_no',
-    //   headerName: 'Hatch NO',
-
-    //   renderCell: params => (
-    //     <Typography
-    //       sx={{
-    //         color: theme.palette.customColors.OnSurfaceVariant,
-    //         fontSize: '16px',
-    //         fontWeight: '400',
-    //         lineHeight: '19.36px',
-    //         ml: 3
-    //       }}
-    //     >
-    //       {params.row.hatch_no ? params.row.hatch_no : '-'}
-    //     </Typography>
-    //   )
-    // },
 
     {
       width: 200,
@@ -889,8 +779,6 @@ const EggList = () => {
                 color: theme.palette.customColors.OnSurfaceVariant,
                 fontSize: '16px',
                 fontWeight: '600'
-
-                // lineHeight: '19.36px'
               }}
             >
               AAID : {params.row.animal_id ? params.row.animal_id : '-'}
@@ -901,8 +789,6 @@ const EggList = () => {
                 color: theme.palette?.primary?.main,
                 fontSize: '16px',
                 fontWeight: '500'
-
-                // lineHeight: '19.36px'
               }}
               onClick={e => {
                 setEggId(params.row.egg_id)
@@ -916,8 +802,6 @@ const EggList = () => {
             <Typography
               style={{
                 textAlign: 'center'
-
-                // lineHeight: '19.36px'
               }}
             >
               -
@@ -927,45 +811,6 @@ const EggList = () => {
       )
     },
 
-    // {
-    //   width: 200,
-    //   sortable: false,
-    //   field: 'lay_date',
-    //   headerName: 'Lay Date',
-
-    //   renderCell: params => (
-    //     <Typography
-    //       sx={{
-    //         color: theme.palette.customColors.OnSurfaceVariant,
-    //         fontSize: '16px',
-    //         fontWeight: '400',
-    //         lineHeight: '19.36px',
-    //         ml: 3
-    //       }}
-    //     >
-    //       {params.row.lay_date ? Utility.formatDisplayDate(Utility.convertUTCToLocal(params.row.lay_date)) : '-'}
-    //     </Typography>
-    //   )
-    // },
-
-    // {
-    //   width: 170,
-    //   sortable: false,
-    //   field: 'nursery_name',
-    //   headerName: 'Nursery',
-    //   renderCell: params => (
-    //     <Typography
-    //       sx={{
-    //         color: theme.palette.customColors.OnSurfaceVariant,
-    //         fontSize: '16px',
-    //         fontWeight: '400',
-    //         lineHeight: '19.36px'
-    //       }}
-    //     >
-    //       {params.row.nursery_name ? params.row.nursery_name : '-'}
-    //     </Typography>
-    //   )
-    // },
     {
       width: 200,
       sortable: false,
@@ -988,70 +833,6 @@ const EggList = () => {
       )
     },
 
-    // {
-    //   width: 200,
-    //   sortable: false,
-    //   field: 'collected_by',
-    //   headerName: 'Collected By',
-    //   renderCell: params => (
-    //     <>
-    //       <Box sx={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-    //         <Avatar
-    //           variant='square'
-    //           alt='Medicine Image'
-    //           className={status === 'eggs_received' ? 'hideField' : ''}
-    //           sx={{
-    //             width: 30,
-    //             height: 30,
-
-    //             borderRadius: '50%',
-    //             background: theme.palette.customColors.displaybgPrimary,
-    //             overflow: 'hidden'
-    //           }}
-    //         >
-    //           {params.row.user_profile_pic ? (
-    //             <img
-    //               style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-    //               src={params.row.user_profile_pic}
-    //               alt='Profile'
-    //             />
-    //           ) : (
-    //             <Icon icon='mdi:user' fontSize={30} />
-    //           )}
-    //         </Avatar>
-    //         <Box
-    //           sx={{ display: 'flex', flexDirection: 'column' }}
-    //           className={status === 'eggs_received' ? 'hideField' : ''}
-    //         >
-    //           <Typography
-    //             noWrap
-    //             sx={{
-    //               color: theme.palette.customColors.OnSurfaceVariant,
-    //               fontSize: '14px',
-    //               fontWeight: '500',
-    //               lineHeight: '16.94px'
-    //             }}
-    //           >
-    //             {params.row.user_full_name ? params.row.user_full_name : '-'}
-    //           </Typography>
-    //           <Typography
-    //             noWrap
-    //             sx={{
-    //               color: theme.palette.customColors.neutralSecondary,
-    //               fontSize: '12px',
-    //               fontWeight: '400',
-    //               lineHeight: '14.52px'
-    //             }}
-    //           >
-    //             {params.row.created_at
-    //               ? Utility.formatDisplayDate(Utility.convertUTCToLocal(params.row.created_at))
-    //               : '-'}
-    //           </Typography>
-    //         </Box>
-    //       </Box>
-    //     </>
-    //   )
-    // }
     {
       width: 170,
       sortable: false,
@@ -1222,45 +1003,7 @@ const EggList = () => {
       )
     },
 
-    // {
-    //   // flex: 0.15,
-    //   width: 130,
-    //   sortable: false,
-    //   field: 'condition',
-    //   headerName: 'condition',
-    //   align: 'center',
-
-    //   renderCell: params => (
-    //     <Typography
-    //       sx={{
-    //         color:
-    //           params.row.egg_condition === 'Intact'
-    //             ? theme.palette.primary.dark
-    //             : params.row.egg_condition === 'Thin-Shelled'
-    //             ? theme.palette.primary.light
-    //             : params.row.egg_condition === 'Broken'
-    //             ? theme.palette.customColors.Error
-    //             : params.row.egg_condition === 'Rotten'
-    //             ? theme.palette.customColors.Tertiary
-    //             : params.row.egg_condition === 'Cracked'
-    //             ? theme.palette.customColors.moderateSecondary
-    //             : theme.palette.primary.dark,
-    //         fontSize: '16px',
-    //         fontWeight: 500,
-    //         lineHeight: '19.36px',
-    //         overflow: 'hidden',
-    //         textOverflow: 'ellipsis',
-    //         whiteSpace: 'nowrap',
-    //         textTransform: 'capitalize'
-    //       }}
-    //     >
-    //       {params.row.egg_condition ? params.row.egg_condition : '-'}
-    //     </Typography>
-    //   )
-    // },
-
     {
-      // flex: 0.15,
       width: 150,
       sortable: false,
       field: 'initial_weight',
@@ -1305,7 +1048,6 @@ const EggList = () => {
       )
     },
     {
-      // flex: 0.15,
       width: 150,
       sortable: false,
       field: 'current_weight',
@@ -1365,9 +1107,7 @@ const EggList = () => {
         </Typography>
       )
     },
-
     {
-      // flex: 0.15,
       width: 130,
       sortable: false,
       field: 'initial_length',
@@ -1387,7 +1127,6 @@ const EggList = () => {
       )
     },
     {
-      // flex: 0.15,
       width: 130,
       sortable: false,
       field: 'initial_width',
@@ -1406,9 +1145,7 @@ const EggList = () => {
         </Typography>
       )
     },
-
     {
-      // flex: 0.15,
       width: 130,
       sortable: false,
       field: 'no_of_eggs_in_clutch',
@@ -1452,7 +1189,6 @@ const EggList = () => {
       )
     },
     {
-      // flex: 0.15,
       width: 130,
       sortable: false,
       field: 'clutch_id',
@@ -1471,9 +1207,7 @@ const EggList = () => {
         </Typography>
       )
     },
-
     {
-      // flex: 0.15,
       width: 130,
       sortable: false,
       field: 'enclosure_name',
@@ -1496,7 +1230,6 @@ const EggList = () => {
         </Tooltip>
       )
     },
-
     {
       width: 150,
       sortable: false,
@@ -1565,30 +1298,7 @@ const EggList = () => {
         </Typography>
       )
     },
-
-    // {
-    //   width: 150,
-    //   sortable: false,
-    //   field: 'lay_date',
-    //   headerName: 'Lay Date',
-
-    //   renderCell: params => (
-    //     <Typography
-    //       sx={{
-    //         color: theme.palette.customColors.OnSurfaceVariant,
-    //         fontSize: '16px',
-    //         fontWeight: '400',
-    //         lineHeight: '19.36px',
-    //         ml: 3
-    //       }}
-    //     >
-    //       {params.row.lay_date ? Utility.formatDisplayDate(Utility.convertUTCToLocal(params.row.lay_date)) : '-'}
-    //     </Typography>
-    //   )
-    // },
-
     {
-      // flex: 0.3,
       width: 200,
       sortable: false,
       field: 'allocated_by',
@@ -1676,8 +1386,6 @@ const EggList = () => {
     },
     {
       width: 300,
-
-      // minWidth: 60,
       sortable: false,
       field: 'species',
       headerName: 'SPECIES',
@@ -1733,8 +1441,6 @@ const EggList = () => {
       field: 'reason',
       sortable: false,
       headerName: 'Reason',
-
-      // align: 'center',
       renderCell: params => (
         <Box
           sx={{
@@ -1767,7 +1473,6 @@ const EggList = () => {
         </Box>
       )
     },
-    ,
     {
       width: 160,
       sortable: false,
@@ -1787,7 +1492,6 @@ const EggList = () => {
         </Typography>
       )
     },
-
     {
       width: 140,
       sortable: false,
@@ -1855,7 +1559,6 @@ const EggList = () => {
         </>
       )
     },
-
     {
       width: 200,
       sortable: false,
@@ -1943,8 +1646,6 @@ const EggList = () => {
     },
     {
       width: 300,
-
-      // minWidth: 60,
       sortable: false,
       field: 'species',
       headerName: 'SPECIES',
@@ -2072,64 +1773,6 @@ const EggList = () => {
         </Typography>
       )
     },
-
-    // {
-    //   width: 140,
-    //   sortable: false,
-    //   field: 'batch_no',
-    //   headerName: 'Batch NO',
-    //   renderCell: params => (
-    //     <Typography
-    //       sx={{
-    //         color: theme.palette.customColors.OnSurfaceVariant,
-    //         fontSize: '16px',
-    //         fontWeight: '400',
-    //         lineHeight: '19.36px'
-    //       }}
-    //     >
-    //       {params.row.batch_no ? params.row.batch_no : '-'}
-    //     </Typography>
-    //   )
-    // },
-
-    // {
-    //   width: 160,
-    //   sortable: false,
-    //   field: 'nursery_name',
-    //   headerName: 'Nursery',
-    //   renderCell: params => (
-    //     <Typography
-    //       sx={{
-    //         color: theme.palette.customColors.OnSurfaceVariant,
-    //         fontSize: '16px',
-    //         fontWeight: '400',
-    //         lineHeight: '19.36px'
-    //       }}
-    //     >
-    //       {params.row.nursery_name ? params.row.nursery_name : '-'}
-    //     </Typography>
-    //   )
-    // },
-
-    // {
-    //  width: 140,
-    //   sortable: false,
-    //   field: 'discard_status',
-    //   headerName: 'DISCARD STATUS',
-    //   renderCell: params => (
-    //     <Typography
-    //       sx={{
-    //         color: theme.palette.customColors.OnSurfaceVariant,
-    //         fontSize: '16px',
-    //         fontWeight: '400',
-    //         lineHeight: '19.36px'
-    //       }}
-    //     >
-    //       {params.row.discard_status ? (params.row.discard_status === '1' ? 'To Be Discard' : 'Discarded') : '-'}
-    //     </Typography>
-    //   )
-    // },
-
     {
       width: 200,
       sortable: false,
@@ -2193,114 +1836,6 @@ const EggList = () => {
         </>
       )
     }
-
-    // {
-    //   width: 140,
-    //   sortable: false,
-    //   field: 'batch_no',
-    //   headerName: 'BATCH NO',
-    //   renderCell: params => (
-    //     <Typography
-    //       sx={{
-    //         color: theme.palette.customColors.OnSurfaceVariant,
-    //         fontSize: '16px',
-    //         fontWeight: '400',
-    //         lineHeight: '19.36px'
-    //       }}
-    //     >
-    //       {params.row.batch_no ? params.row.batch_no : '-'}
-    //     </Typography>
-    //   )
-    // },
-
-    // {
-    //   width: 270,
-    //   sortable: false,
-    //   field: 'collected_by',
-    //   headerName: 'COLLECTED BY',
-    //   renderCell: params => (
-    //     <>
-    //       {/* {status === 'eggs_received' && (
-    //         <Button className='customButton' variant='contained' onClick={e => handleAction(e, params.row.id)}>
-    //           Allocate{' '}
-    //         </Button>
-    //       )} */}
-    //       {status === 'eggs_received' ? (
-    //         <>
-    //           <div>
-    //             <DiscardStatusCell
-    //               customButton={status === 'eggs_received' ? 'customButton' : null}
-    //               hideField='hideField'
-    //               params={params}
-    //               setIsOpen={setIsOpen}
-    //               handleDiscard={handleDiscard}
-    //               setEggId={setEggId}
-    //               handleAction={handleAction}
-    //               setAllocationValues={setAllocationValues}
-
-    //               // hover={hover} setHover={setHover}
-    //             />
-    //           </div>
-    //         </>
-    //       ) : (
-    //         <Box sx={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-    //           <Avatar
-    //             variant='square'
-    //             alt='Medicine Image'
-    //             className={status === 'eggs_received' ? 'hideField' : ''}
-    //             sx={{
-    //               width: 30,
-    //               height: 30,
-
-    //               borderRadius: '50%',
-    //               background: theme.palette.customColors.displaybgPrimary,
-    //               overflow: 'hidden'
-    //             }}
-    //           >
-    //             {params.row.user_profile_pic ? (
-    //               <img
-    //                 style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-    //                 src={params.row.user_profile_pic}
-    //                 alt='Profile'
-    //               />
-    //             ) : (
-    //               <Icon icon='mdi:user' fontSize={30} />
-    //             )}
-    //           </Avatar>
-    //           <Box
-    //             sx={{ display: 'flex', flexDirection: 'column' }}
-    //             className={status === 'eggs_received' ? 'hideField' : ''}
-    //           >
-    //             <Typography
-    //               noWrap
-    //               sx={{
-    //                 color: theme.palette.customColors.OnSurfaceVariant,
-    //                 fontSize: '14px',
-    //                 fontWeight: '500',
-    //                 lineHeight: '16.94px'
-    //               }}
-    //             >
-    //               {params.row.user_full_name ? params.row.user_full_name : '-'}
-    //             </Typography>
-    //             <Typography
-    //               noWrap
-    //               sx={{
-    //                 color: theme.palette.customColors.neutralSecondary,
-    //                 fontSize: '12px',
-    //                 fontWeight: '400',
-    //                 lineHeight: '14.52px'
-    //               }}
-    //             >
-    //               {params.row.created_at
-    //                 ? Utility.formatDisplayDate(Utility.convertUTCToLocal(params.row.created_at))
-    //                 : '-'}
-    //             </Typography>
-    //           </Box>
-    //         </Box>
-    //       )}
-    //     </>
-    //   )
-    // }
   ]
 
   const handleAction = (event, params) => {
@@ -2330,7 +1865,6 @@ const EggList = () => {
 
       Router.push({
         pathname: `/egg/eggs/${data?.id}`,
-
         query: {
           ...values
         }
@@ -2415,10 +1949,8 @@ const EggList = () => {
   const fetchTableData = useCallback(
     async (sort, search, statusRecived, discardedTab, selectedFiltersOptions = {}, filterByNurseryId) => {
       // debugger
-
       try {
         setLoading(true)
-
         // Extracting IDs from selectedFiltersOptions
         // const nurseryIds = selectedFiltersOptions.Nursery?.map(option => option.id) || []
         const eggStateIds = selectedFiltersOptions.Stage?.map(option => option.id) || []
@@ -2438,6 +1970,8 @@ const EggList = () => {
           ? dayjs(selectedFiltersOptions.collected_date).format('YYYY-MM-DD')
           : ''
 
+        // console.log('status', status)
+        // console.log('isDiscarded', isDiscarded)
         const params = {
           sort,
           q: search ? search : '',
@@ -2459,12 +1993,14 @@ const EggList = () => {
             }
           })(),
 
-          // egg_status_id: eggStateIds?.length > 0 ? (statusId ? statusId : '') : '',
-
-          // egg_status_id: statusId ? statusId : '',
-          ...(tab_Value === 'eggs_ready_to_be_discarded_at_nursery'
+          // ...(tab_Value === 'eggs_ready_to_be_discarded_at_nursery'
+          //   ? { discarded_date: collectedDate || '' }
+          //   : subTab_value === 'eggs_discarded_at_nursery'
+          //   ? { discarded_date: collectedDate || '' }
+          //   : { collected_date: collectedDate || '' }),
+          ...(status === 'eggs_ready_to_be_discarded_at_nursery'
             ? { discarded_date: collectedDate || '' }
-            : subTab_value === 'eggs_discarded_at_nursery'
+            : isDiscarded === 'eggs_discarded_at_nursery'
             ? { discarded_date: collectedDate || '' }
             : { collected_date: collectedDate || '' }),
 
@@ -2505,8 +2041,6 @@ const EggList = () => {
     [paginationModel]
   )
 
-  // console.log('tab_Value', tab_Value)
-  // console.log('subTab_value', subTab_value)
   useEffect(() => {
     // debugger
     if (egg_collection_permission) {
@@ -2525,10 +2059,6 @@ const EggList = () => {
   const handleSortModel = newModel => {
     if (newModel.length) {
       setSort(newModel[0].sort)
-
-      // setsortColumning(newModel[0].field)
-
-      // fetchTableData(newModel[0].sort, searchValue, newModel[0].field, status)
     } else {
     }
   }
@@ -2579,7 +2109,6 @@ const EggList = () => {
 
   useEffect(() => {
     readNursery()
-
     NurseryList()
   }, [])
 
@@ -2682,58 +2211,7 @@ const EggList = () => {
                   filterByNurseryId={filterByNurseryId}
                   tableSearch={searchValue}
                 />
-                {/* <DataGrid
-                  sx={{
-                    '.MuiDataGrid-cell:focus': {
-                      outline: 'none'
-                    },
-                    '& .MuiDataGrid-row:hover': {
-                      cursor: 'pointer'
-                    },
-                    '& .MuiDataGrid-row:hover .customButton': {
-                      display: 'block'
-                    },
-                    '& .MuiDataGrid-row:hover .hideField': {
-                      display: 'none'
-                    },
-                    '& .MuiDataGrid-row .customButton': {
-                      display: 'none'
-                    },
-                    '& .MuiDataGrid-row .hideField': {
-                      display: 'block'
-                    }
-                  }}
-                  columnVisibilityModel={{
-                    sl_no: false
-                  }}
-                  hideFooterSelectedRowCount
-                  disableColumnSelector={true}
-                  autoHeight
-                  pagination
-                  rows={indexedRows === undefined ? [] : indexedRows}
-                  rowCount={total}
-                  columns={status === 'eggs_hatched' ? hatchedColumn : status === 'eggs_received' ? received : columns}
-                  sortingMode='server'
-                  paginationMode='server'
-                  pageSizeOptions={[7, 10, 25, 50]}
-                  paginationModel={paginationModel}
-                  onSortModelChange={handleSortModel}
-                  // slots={{ toolbar: ServerSideToolbarWithFilter }}
-                  onPaginationModelChange={setPaginationModel}
-                  loading={loading}
-                  rowHeight={72}
-                  slotProps={{
-                    baseButton: {
-                      variant: 'outlined'
-                    },
-                    toolbar: {
-                      value: searchValue,
-                      clearSearch: () => handleSearch(''),
-                      onChange: event => handleSearch(event.target.value)
-                    }
-                  }}
-                  onCellClick={onCellClick}
-                /> */}
+
                 <CommonTable
                   externalTableStyle={{
                     '.MuiDataGrid-cell:focus': {
@@ -2840,51 +2318,12 @@ const EggList = () => {
             {/* <CardContent> */}
             <TabContext value={status}>
               <TabList onChange={handleChange} sx={{ px: 2 }}>
-                <Tab
-                  value='eggs_received'
-                  label='Received'
-
-                  // label={<TabBadge label='Received' totalCount={status === 'eggs_received' ? total : null} />}
-                />
-                <Tab
-                  value='eggs_incubation'
-                  label='Incubation'
-
-                  // label={<TabBadge label='Incubation' totalCount={status === 'eggs_incubation' ? total : null} />}
-                />
-                <Tab
-                  value='eggs_hatched'
-                  label='Hatched'
-
-                  // label={<TabBadge label='Hatched' totalCount={status === 'eggs_hatched' ? total : null} />}
-                />
-                <Tab
-                  value='eggs_ready_to_be_discarded_at_nursery'
-                  label={
-                    <TabBadge
-                      label='To Be Discarded'
-
-                      // totalCount={status === 'eggs_ready_to_be_discarded_at_nursery' ? total : null}
-                    />
-                  }
-                ></Tab>
-                <Tab
-                  value='eggs_discarded'
-                  label='Discarded'
-
-                  // label={
-                  //   <TabBadge
-                  //     label='Discarded'
-                  //     totalCount={status === 'eggs_ready_to_be_discarded_at_nursery' ? total : null}
-                  //   />
-                  // }
-                />
-                <Tab
-                  value='all'
-                  label='All'
-
-                  //  label={<TabBadge label='All' totalCount={status === 'all' ? total : null} />}
-                />
+                <Tab value='eggs_received' label='Received' />
+                <Tab value='eggs_incubation' label='Incubation' />
+                <Tab value='eggs_hatched' label='Hatched' />
+                <Tab value='eggs_ready_to_be_discarded_at_nursery' label={<TabBadge label='To Be Discarded' />}></Tab>
+                <Tab value='eggs_discarded' label='Discarded' />
+                <Tab value='all' label='All' />
               </TabList>
               <TabPanel value='eggs_received' sx={{ p: 0 }}>
                 {' '}
@@ -2894,7 +2333,6 @@ const EggList = () => {
               <TabPanel value='eggs_incubation' sx={{ p: 0 }}>
                 {' '}
                 <Divider />
-                {/* {tableData()} */}
                 <Box sx={{ width: '100%', overflowX: 'auto' }}>
                   <EggTableHeader
                     totalCount={total}
@@ -2912,89 +2350,6 @@ const EggList = () => {
                     filterByNurseryId={filterByNurseryId}
                     tableSearch={searchValue}
                   />
-
-                  {/* <DataGrid
-                    sx={{
-                      '.MuiDataGrid-cell:focus': {
-                        outline: 'none'
-                      },
-                      '& .MuiDataGrid-row:hover': {
-                        cursor: 'pointer'
-                      },
-                      '& .MuiDataGrid-row:hover .customButton': {
-                        display: 'block'
-                      },
-                      '& .MuiDataGrid-row:hover .hideField': {
-                        display: 'none'
-                      },
-                      '& .MuiDataGrid-row .customButton': {
-                        display: 'none'
-                      },
-                      '& .MuiDataGrid-row .hideField': {
-                        display: 'block'
-                      },
-                      '.sticky-header-first': {
-                        position: 'sticky',
-                        left: 0,
-                        zIndex: 2,
-                        backgroundColor: theme.palette.background.default
-                      },
-                      '.sticky-cell-first': {
-                        position: 'sticky',
-                        left: 0,
-                        zIndex: 1,
-                        backgroundColor: theme.palette.background.default
-                      },
-                      '.sticky-header-second': {
-                        position: 'sticky',
-                        left: 60,
-                        zIndex: 2,
-                        backgroundColor: theme.palette.background.default
-                      },
-                      '.sticky-cell-second': {
-                        position: 'sticky',
-                        left: 60,
-                        zIndex: 1,
-                        backgroundColor: theme.palette.background.default,
-                        borderRight: 1,
-                        borderColor: theme.palette.customColors.OutlineVariant
-                      },
-                      '& .MuiDataGrid-root': {
-                        overflowX: 'auto'
-                      }
-                    }}
-                    columnVisibilityModel={{
-                      sl_no: true
-                    }}
-                    hideFooterSelectedRowCount
-                    autoHeight
-                    pagination
-                    rows={indexedRows === undefined ? [] : indexedRows}
-                    rowCount={total}
-                    columns={incubationColumns}
-                    disableColumnSelector={true}
-                    disableColumnMenu
-                    rowHeight={72}
-                    sortingMode='server'
-                    paginationMode='server'
-                    pageSizeOptions={[7, 10, 25, 50]}
-                    paginationModel={paginationModel}
-                    onSortModelChange={handleSortModel}
-                    // slots={{ toolbar: ServerSideToolbarWithFilter }}
-                    onPaginationModelChange={setPaginationModel}
-                    loading={loading}
-                    slotProps={{
-                      baseButton: {
-                        variant: 'outlined'
-                      },
-                      toolbar: {
-                        value: searchValue,
-                        clearSearch: () => handleSearch(''),
-                        onChange: event => handleSearch(event.target.value)
-                      }
-                    }}
-                    onCellClick={onCellClick}
-                  /> */}
                   <CommonTable
                     onCellClick={onCellClick}
                     indexedRows={indexedRows || []}
@@ -3035,69 +2390,15 @@ const EggList = () => {
               </TabPanel>
               <TabPanel value='eggs_discarded' sx={{ p: 0 }}>
                 <Divider sx={{ mb: 3 }} />
-
-                {/* <Box sx={{ display: 'flex', justifyContent: 'space-between', width: '100%', alignItems: 'center' }}> */}
-
-                {/* </Box> */}
                 <TabContext value={isDiscarded}>
                   <TabList onChange={handleTabs} sx={{ px: 2 }}>
-                    {/* <Tab
-                      value='eggs_ready_to_be_discarded_at_nursery'
-                      label={
-                        <TabBadge
-                          label='Ready to Discard'
-                          totalCount={isDiscarded === 'eggs_ready_to_be_discarded_at_nursery' ? total : null}
-                        />
-                      }
-                    ></Tab> */}
-                    <Tab
-                      value='eggs_discarded'
-                      label={
-                        <TabBadge
-                          label='Batch Discarded '
-
-                          // totalCount={isDiscarded === 'eggs_discarded' ? total : null}
-                        />
-                      }
-                    />
-                    <Tab
-                      value='eggs_discarded_at_nursery'
-                      label={
-                        <TabBadge
-                          label='Discarded'
-
-                          // totalCount={isDiscarded === 'eggs_discarded_at_nursery' ? total : null}
-                        />
-                      }
-                    />
+                    <Tab value='eggs_discarded' label={<TabBadge label='Batch Discarded ' />} />
+                    <Tab value='eggs_discarded_at_nursery' label={<TabBadge label='Discarded' />} />
                   </TabList>
-                  {/* <TabPanel value='eggs_ready_to_be_discarded_at_nursery' sx={{ p: 0 }}>
-                    {selectionEggModel?.length > 0 && (
-                      <Box sx={{ display: 'flex', height: '32px', justifyContent: 'flex-end', mx: 5, mt: -10, mb: 2 }}>
-                        <Button
-                          sx={{ p: 5 }}
-                          size='medium'
-                          variant='contained'
-                          onClick={() => setOpenDiscardDialog(true)}
-                        >
-                          &nbsp;{selectionEggModel?.length}&nbsp;Discard
-                        </Button>
-                      </Box>
-                    )}
-                    {tableData()}
-                  </TabPanel> */}
+
                   <TabPanel value='eggs_discarded' sx={{ p: 0 }}>
                     {' '}
                     <>
-                      {/* <EggTableHeader
-                        tabValue={status}
-                        totalCount={total}
-                        setFilterList={setFilterList}
-                        filterList={filterList}
-                        handleSearch={handleSearch}
-                        setSelectedFiltersOptions={setSelectedFiltersOptions}
-                        selectedFiltersOptions={selectedFiltersOptions}
-                      /> */}
                       <DiscardedTableView
                         tabValue={status}
                         setFilterList={setFilterList}
@@ -3140,79 +2441,7 @@ const EggList = () => {
                         tableSearch={searchValue}
                       />
 
-                      {/* <DataGrid
-                        sx={{
-                          '.MuiDataGrid-cell:focus': {
-                            outline: 'none'
-                          },
-                          '& .MuiDataGrid-row:hover': {
-                            cursor: 'pointer'
-                          },
-                          '& .MuiDataGrid-row:hover .customButton': {
-                            display: 'block'
-                          },
-                          '& .MuiDataGrid-row:hover .hideField': {
-                            display: 'none'
-                          },
-                          '& .MuiDataGrid-row .customButton': {
-                            display: 'none'
-                          },
-                          '& .MuiDataGrid-row .hideField': {
-                            display: 'block'
-                          }
-                        }}
-                        columnVisibilityModel={{
-                          sl_no: false
-                        }}
-                        hideFooterSelectedRowCount
-                        disableColumnSelector={true}
-                        autoHeight
-                        pagination
-                        rows={indexedRows === undefined ? [] : indexedRows}
-                        rowCount={total}
-                        columns={discarded_Egg_Columns}
-                        sortingMode='server'
-                        paginationMode='server'
-                        pageSizeOptions={[7, 10, 25, 50]}
-                        paginationModel={paginationModel}
-                        onSortModelChange={handleSortModel}
-                        // slots={{ toolbar: ServerSideToolbarWithFilter }}
-                        onPaginationModelChange={setPaginationModel}
-                        loading={loading}
-                        rowHeight={72}
-                        slotProps={{
-                          baseButton: {
-                            variant: 'outlined'
-                          },
-                          toolbar: {
-                            value: searchValue,
-                            clearSearch: () => handleSearch(''),
-                            onChange: event => handleSearch(event.target.value)
-                          }
-                        }}
-                        onCellClick={onCellClick}
-                      /> */}
                       <CommonTable
-                        // sx={{
-                        //   '.MuiDataGrid-cell:focus': {
-                        //     outline: 'none'
-                        //   },
-                        //   '& .MuiDataGrid-row:hover': {
-                        //     cursor: 'pointer'
-                        //   },
-                        //   '& .MuiDataGrid-row:hover .customButton': {
-                        //     display: 'block'
-                        //   },
-                        //   '& .MuiDataGrid-row:hover .hideField': {
-                        //     display: 'none'
-                        //   },
-                        //   '& .MuiDataGrid-row .customButton': {
-                        //     display: 'none'
-                        //   },
-                        //   '& .MuiDataGrid-row .hideField': {
-                        //     display: 'block'
-                        //   }
-                        // }}
                         indexedRows={indexedRows || []}
                         total={total}
                         columns={discarded_Egg_Columns || []}
@@ -3268,3 +2497,474 @@ const EggList = () => {
 }
 
 export default EggList
+// label={<TabBadge label='Hatched' totalCount={status === 'eggs_hatched' ? total : null} />}
+
+{
+  /* <DataGrid
+                        sx={{
+                          '.MuiDataGrid-cell:focus': {
+                            outline: 'none'
+                          },
+                          '& .MuiDataGrid-row:hover': {
+                            cursor: 'pointer'
+                          },
+                          '& .MuiDataGrid-row:hover .customButton': {
+                            display: 'block'
+                          },
+                          '& .MuiDataGrid-row:hover .hideField': {
+                            display: 'none'
+                          },
+                          '& .MuiDataGrid-row .customButton': {
+                            display: 'none'
+                          },
+                          '& .MuiDataGrid-row .hideField': {
+                            display: 'block'
+                          }
+                        }}
+                        columnVisibilityModel={{
+                          sl_no: false
+                        }}
+                        hideFooterSelectedRowCount
+                        disableColumnSelector={true}
+                        autoHeight
+                        pagination
+                        rows={indexedRows === undefined ? [] : indexedRows}
+                        rowCount={total}
+                        columns={discarded_Egg_Columns}
+                        sortingMode='server'
+                        paginationMode='server'
+                        pageSizeOptions={[7, 10, 25, 50]}
+                        paginationModel={paginationModel}
+                        onSortModelChange={handleSortModel}
+                        // slots={{ toolbar: ServerSideToolbarWithFilter }}
+                        onPaginationModelChange={setPaginationModel}
+                        loading={loading}
+                        rowHeight={72}
+                        slotProps={{
+                          baseButton: {
+                            variant: 'outlined'
+                          },
+                          toolbar: {
+                            value: searchValue,
+                            clearSearch: () => handleSearch(''),
+                            onChange: event => handleSearch(event.target.value)
+                          }
+                        }}
+                        onCellClick={onCellClick}
+                      /> */
+}
+
+// {
+//   width: 160,
+//   field: 'state',
+//   sortable: false,
+//   headerName: 'STATE',
+
+//   // align: 'center',
+//   renderCell: params => (
+//     <Box>
+//       <TextCard egg_status={params.row.egg_status} />
+//     </Box>
+//   )
+// },
+
+// {
+//   width: 160,
+//   field: 'state',
+//   sortable: false,
+//   headerName: 'STATE',
+
+//   // align: 'center',
+//   renderCell: params => (
+//     <Box>
+//       <TextCard egg_status={params.row.egg_status} />
+//     </Box>
+//   )
+// },
+
+// {
+//  width: 140,
+//   sortable: false,
+//   field: 'discard_status',
+//   headerName: 'DISCARD STATUS',
+//   renderCell: params => (
+//     <Typography
+//       sx={{
+//         color: theme.palette.customColors.OnSurfaceVariant,
+//         fontSize: '16px',
+//         fontWeight: '400',
+//         lineHeight: '19.36px'
+//       }}
+//     >
+//       {params.row.discard_status ? (params.row.discard_status === '1' ? 'To Be Discard' : 'Discarded') : '-'}
+//     </Typography>
+//   )
+// },
+
+// {
+//   width: 140,
+//   sortable: false,
+//   field: 'batch_no',
+//   headerName: 'BATCH NO',
+//   renderCell: params => (
+//     <Typography
+//       sx={{
+//         color: theme.palette.customColors.OnSurfaceVariant,
+//         fontSize: '16px',
+//         fontWeight: '400',
+//         lineHeight: '19.36px'
+//       }}
+//     >
+//       {params.row.batch_no ? params.row.batch_no : '-'}
+//     </Typography>
+//   )
+// },
+
+// {
+//   width: 150,
+//   sortable: false,
+//   field: 'hatch_no',
+//   headerName: 'Hatch NO',
+
+//   renderCell: params => (
+//     <Typography
+//       sx={{
+//         color: theme.palette.customColors.OnSurfaceVariant,
+//         fontSize: '16px',
+//         fontWeight: '400',
+//         lineHeight: '19.36px',
+//         ml: 3
+//       }}
+//     >
+//       {params.row.hatch_no ? params.row.hatch_no : '-'}
+//     </Typography>
+//   )
+// },
+
+// {
+//   width: 200,
+//   sortable: false,
+//   field: 'lay_date',
+//   headerName: 'Lay Date',
+
+//   renderCell: params => (
+//     <Typography
+//       sx={{
+//         color: theme.palette.customColors.OnSurfaceVariant,
+//         fontSize: '16px',
+//         fontWeight: '400',
+//         lineHeight: '19.36px',
+//         ml: 3
+//       }}
+//     >
+//       {params.row.lay_date ? Utility.formatDisplayDate(Utility.convertUTCToLocal(params.row.lay_date)) : '-'}
+//     </Typography>
+//   )
+// },
+
+// {
+//   width: 170,
+//   sortable: false,
+//   field: 'nursery_name',
+//   headerName: 'Nursery',
+//   renderCell: params => (
+//     <Typography
+//       sx={{
+//         color: theme.palette.customColors.OnSurfaceVariant,
+//         fontSize: '16px',
+//         fontWeight: '400',
+//         lineHeight: '19.36px'
+//       }}
+//     >
+//       {params.row.nursery_name ? params.row.nursery_name : '-'}
+//     </Typography>
+//   )
+// },
+
+// {
+//   width: 200,
+//   sortable: false,
+//   field: 'collected_by',
+//   headerName: 'Collected By',
+//   renderCell: params => (
+//     <>
+//       <Box sx={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+//         <Avatar
+//           variant='square'
+//           alt='Medicine Image'
+//           className={status === 'eggs_received' ? 'hideField' : ''}
+//           sx={{
+//             width: 30,
+//             height: 30,
+
+//             borderRadius: '50%',
+//             background: theme.palette.customColors.displaybgPrimary,
+//             overflow: 'hidden'
+//           }}
+//         >
+//           {params.row.user_profile_pic ? (
+//             <img
+//               style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+//               src={params.row.user_profile_pic}
+//               alt='Profile'
+//             />
+//           ) : (
+//             <Icon icon='mdi:user' fontSize={30} />
+//           )}
+//         </Avatar>
+//         <Box
+//           sx={{ display: 'flex', flexDirection: 'column' }}
+//           className={status === 'eggs_received' ? 'hideField' : ''}
+//         >
+//           <Typography
+//             noWrap
+//             sx={{
+//               color: theme.palette.customColors.OnSurfaceVariant,
+//               fontSize: '14px',
+//               fontWeight: '500',
+//               lineHeight: '16.94px'
+//             }}
+//           >
+//             {params.row.user_full_name ? params.row.user_full_name : '-'}
+//           </Typography>
+//           <Typography
+//             noWrap
+//             sx={{
+//               color: theme.palette.customColors.neutralSecondary,
+//               fontSize: '12px',
+//               fontWeight: '400',
+//               lineHeight: '14.52px'
+//             }}
+//           >
+//             {params.row.created_at
+//               ? Utility.formatDisplayDate(Utility.convertUTCToLocal(params.row.created_at))
+//               : '-'}
+//           </Typography>
+//         </Box>
+//       </Box>
+//     </>
+//   )
+// }
+
+// {
+//   // flex: 0.15,
+//   width: 130,
+//   sortable: false,
+//   field: 'condition',
+//   headerName: 'condition',
+//   align: 'center',
+
+//   renderCell: params => (
+//     <Typography
+//       sx={{
+//         color:
+//           params.row.egg_condition === 'Intact'
+//             ? theme.palette.primary.dark
+//             : params.row.egg_condition === 'Thin-Shelled'
+//             ? theme.palette.primary.light
+//             : params.row.egg_condition === 'Broken'
+//             ? theme.palette.customColors.Error
+//             : params.row.egg_condition === 'Rotten'
+//             ? theme.palette.customColors.Tertiary
+//             : params.row.egg_condition === 'Cracked'
+//             ? theme.palette.customColors.moderateSecondary
+//             : theme.palette.primary.dark,
+//         fontSize: '16px',
+//         fontWeight: 500,
+//         lineHeight: '19.36px',
+//         overflow: 'hidden',
+//         textOverflow: 'ellipsis',
+//         whiteSpace: 'nowrap',
+//         textTransform: 'capitalize'
+//       }}
+//     >
+//       {params.row.egg_condition ? params.row.egg_condition : '-'}
+//     </Typography>
+//   )
+// },
+
+// {
+//   width: 150,
+//   sortable: false,
+//   field: 'lay_date',
+//   headerName: 'Lay Date',
+
+//   renderCell: params => (
+//     <Typography
+//       sx={{
+//         color: theme.palette.customColors.OnSurfaceVariant,
+//         fontSize: '16px',
+//         fontWeight: '400',
+//         lineHeight: '19.36px',
+//         ml: 3
+//       }}
+//     >
+//       {params.row.lay_date ? Utility.formatDisplayDate(Utility.convertUTCToLocal(params.row.lay_date)) : '-'}
+//     </Typography>
+//   )
+// },
+
+// {
+//   width: 140,
+//   sortable: false,
+//   field: 'batch_no',
+//   headerName: 'Batch NO',
+//   renderCell: params => (
+//     <Typography
+//       sx={{
+//         color: theme.palette.customColors.OnSurfaceVariant,
+//         fontSize: '16px',
+//         fontWeight: '400',
+//         lineHeight: '19.36px'
+//       }}
+//     >
+//       {params.row.batch_no ? params.row.batch_no : '-'}
+//     </Typography>
+//   )
+// },
+
+// {
+//   width: 160,
+//   sortable: false,
+//   field: 'nursery_name',
+//   headerName: 'Nursery',
+//   renderCell: params => (
+//     <Typography
+//       sx={{
+//         color: theme.palette.customColors.OnSurfaceVariant,
+//         fontSize: '16px',
+//         fontWeight: '400',
+//         lineHeight: '19.36px'
+//       }}
+//     >
+//       {params.row.nursery_name ? params.row.nursery_name : '-'}
+//     </Typography>
+//   )
+// },
+
+// {
+//  width: 140,
+//   sortable: false,
+//   field: 'discard_status',
+//   headerName: 'DISCARD STATUS',
+//   renderCell: params => (
+//     <Typography
+//       sx={{
+//         color: theme.palette.customColors.OnSurfaceVariant,
+//         fontSize: '16px',
+//         fontWeight: '400',
+//         lineHeight: '19.36px'
+//       }}
+//     >
+//       {params.row.discard_status ? (params.row.discard_status === '1' ? 'To Be Discard' : 'Discarded') : '-'}
+//     </Typography>
+//   )
+// },
+
+// {
+//   width: 140,
+//   sortable: false,
+//   field: 'batch_no',
+//   headerName: 'BATCH NO',
+//   renderCell: params => (
+//     <Typography
+//       sx={{
+//         color: theme.palette.customColors.OnSurfaceVariant,
+//         fontSize: '16px',
+//         fontWeight: '400',
+//         lineHeight: '19.36px'
+//       }}
+//     >
+//       {params.row.batch_no ? params.row.batch_no : '-'}
+//     </Typography>
+//   )
+// },
+
+// {
+//   width: 270,
+//   sortable: false,
+//   field: 'collected_by',
+//   headerName: 'COLLECTED BY',
+//   renderCell: params => (
+//     <>
+//       {/* {status === 'eggs_received' && (
+//         <Button className='customButton' variant='contained' onClick={e => handleAction(e, params.row.id)}>
+//           Allocate{' '}
+//         </Button>
+//       )} */}
+//       {status === 'eggs_received' ? (
+//         <>
+//           <div>
+//             <DiscardStatusCell
+//               customButton={status === 'eggs_received' ? 'customButton' : null}
+//               hideField='hideField'
+//               params={params}
+//               setIsOpen={setIsOpen}
+//               handleDiscard={handleDiscard}
+//               setEggId={setEggId}
+//               handleAction={handleAction}
+//               setAllocationValues={setAllocationValues}
+
+//               // hover={hover} setHover={setHover}
+//             />
+//           </div>
+//         </>
+//       ) : (
+//         <Box sx={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+//           <Avatar
+//             variant='square'
+//             alt='Medicine Image'
+//             className={status === 'eggs_received' ? 'hideField' : ''}
+//             sx={{
+//               width: 30,
+//               height: 30,
+
+//               borderRadius: '50%',
+//               background: theme.palette.customColors.displaybgPrimary,
+//               overflow: 'hidden'
+//             }}
+//           >
+//             {params.row.user_profile_pic ? (
+//               <img
+//                 style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+//                 src={params.row.user_profile_pic}
+//                 alt='Profile'
+//               />
+//             ) : (
+//               <Icon icon='mdi:user' fontSize={30} />
+//             )}
+//           </Avatar>
+//           <Box
+//             sx={{ display: 'flex', flexDirection: 'column' }}
+//             className={status === 'eggs_received' ? 'hideField' : ''}
+//           >
+//             <Typography
+//               noWrap
+//               sx={{
+//                 color: theme.palette.customColors.OnSurfaceVariant,
+//                 fontSize: '14px',
+//                 fontWeight: '500',
+//                 lineHeight: '16.94px'
+//               }}
+//             >
+//               {params.row.user_full_name ? params.row.user_full_name : '-'}
+//             </Typography>
+//             <Typography
+//               noWrap
+//               sx={{
+//                 color: theme.palette.customColors.neutralSecondary,
+//                 fontSize: '12px',
+//                 fontWeight: '400',
+//                 lineHeight: '14.52px'
+//               }}
+//             >
+//               {params.row.created_at
+//                 ? Utility.formatDisplayDate(Utility.convertUTCToLocal(params.row.created_at))
+//                 : '-'}
+//             </Typography>
+//           </Box>
+//         </Box>
+//       )}
+//     </>
+//   )
+// }
