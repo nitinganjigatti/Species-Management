@@ -418,6 +418,14 @@ export const UPDATE_CUT_SIZE = 'diet/recipes/master/cutsizeupdate'
 
 export const GET_CUT_SIZEBY_ID = 'diet/recipes/master/cutsizeList'
 
+export const DIET_CATEGORIES_LIST = 'v1/diet/dietcategories/list'
+
+export const ADD_DIET_CATEGORY = 'v1/diet/dietcategories'
+
+export const UPDATE_DIET_CATEGORY = 'v1/diet/dietcategories'
+
+export const GET_DIET_CATEGORY_BY_ID = 'v1/diet/dietcategories'
+
 export const RECIPE_PARTOF_DIET_LIST = 'recipe_ingredient_part_of_diet_list'
 
 export const SPECIES = 'species'
