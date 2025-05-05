@@ -11,7 +11,8 @@ import {
   CircularProgress,
   InputAdornment,
   IconButton,
-  Tooltip
+  Tooltip,
+  Badge
 } from '@mui/material'
 import { useRouter } from 'next/router'
 import React, { useCallback, useEffect, useState } from 'react'
@@ -922,6 +923,19 @@ function Ledger({ tabValue, updateUrlParams }) {
     getUserLists()
   }, [])
 
+  const getFilterCount = () => {
+    let count = 0
+
+    if (selectedBatches && selectedBatches.length > 0) count++
+    if (selectedDispatchedTo && selectedDispatchedTo.length > 0) count++
+    if (selectedCreateBy && selectedCreateBy.length > 0) count++
+    if (filterDates && (filterDates.startDate || filterDates.endDate)) count++
+
+    return count
+  }
+
+  const filterCount = getFilterCount()
+
   return (
     <>
       <Grid
@@ -1022,6 +1036,9 @@ function Ledger({ tabValue, updateUrlParams }) {
             <Button
               variant='outlined'
               startIcon={<FilterListIcon />}
+              endIcon={
+                <Badge badgeContent={filterCount} color='primary' invisible={filterCount === 0} sx={{ ml: 2 }} />
+              }
               sx={{
                 border: theme => `1px solid ${theme.palette.customColors.OutlineVariant}`,
                 borderRadius: '8px',

@@ -40,9 +40,9 @@ const schema = yup.object().shape({
 })
 
 const defaultValues = {
-  name: ' ',
-  position: ' ',
-  store_id: ' ',
+  name: '',
+  position: '',
+  store_id: '',
   shelf: '',
   status: 'active'
 }
