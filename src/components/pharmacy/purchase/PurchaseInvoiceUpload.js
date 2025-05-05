@@ -1,3 +1,4 @@
+/* eslint-disable lines-around-comment */
 import { useState, useEffect, useRef, useCallback } from 'react'
 import axios from 'axios'
 import { Typography, Grid, Box, Button, FormControl, TextField, FormHelperText, Card, Tab, alpha } from '@mui/material'
@@ -11,6 +12,24 @@ import { v4 as uuidv4 } from 'uuid'
 import { useTheme } from '@emotion/react'
 import { useDropzone } from 'react-dropzone'
 import toast from 'react-hot-toast'
+import ImagePreview from 'src/views/utility/ImagePreview'
+
+const customScrollbar = {
+  overflowX: 'auto',
+  '&::-webkit-scrollbar': {
+    height: '6px',
+    width: '6px'
+  },
+  '&::-webkit-scrollbar-track': {
+    backgroundColor: 'transparent'
+  },
+  '&::-webkit-scrollbar-thumb': {
+    backgroundColor: '#ccc',
+    borderRadius: '4px'
+  },
+  scrollbarWidth: 'thin',
+  scrollbarColor: '#ccc transparent'
+}
 
 const PurchaseInvoiceUpload = ({
   setPurchaseItems,
@@ -136,6 +155,9 @@ const PurchaseInvoiceUpload = ({
       // Clear the srcObject to stop the video from playing
       videoRef.current.srcObject = null
     }
+
+    // Reset camera permission state
+    // setHasPermission(false)
   }
 
   const dataURLtoBlob = dataURL => {
@@ -275,6 +297,8 @@ const PurchaseInvoiceUpload = ({
       return
     }
 
+    // Stop the camera before submitting
+    // stopCamera()
     setInvoiceSubmitLoader(true)
 
     const promises = Array.from(file).map(file => {
@@ -473,52 +497,7 @@ const PurchaseInvoiceUpload = ({
 
   const handleDeleteFile = fileIndex => {
     setFile(prev => prev.filter((file, index) => index !== fileIndex))
-  }
-
-  const imagePreview = (file, index) => {
-    return (
-      <Box
-        sx={{
-          position: 'relative',
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          borderRadius: '8px',
-          overflow: 'hidden',
-          backgroundColor: 'customColors.displaybgPrimary',
-          padding: '16px',
-          boxShadow: 1,
-          height: 'auto',
-          my: 1
-        }}
-      >
-        <>
-          <img
-            alt='Preview'
-            src={URL.createObjectURL(file)}
-            style={{ display: 'block', width: '100%', height: '100%' }}
-          />
-
-          <Icon
-            disabled={invoiceSubmitLoader}
-            onClick={() => {
-              handleDeleteFile(index)
-              if (browseButtonRef.current) browseButtonRef.current.value = ''
-            }}
-            icon='solar:close-square-bold'
-            style={{
-              position: 'absolute',
-              top: '0px',
-              right: '0px',
-              cursor: 'pointer',
-              pointerEvents: invoiceSubmitLoader ? 'none' : 'auto'
-            }}
-            width='24'
-            height='24'
-          />
-        </>
-      </Box>
-    )
+    if (browseButtonRef.current) browseButtonRef.current.value = ''
   }
 
   const onDrop = useCallback((acceptedFiles, rejectedFiles) => {
@@ -773,10 +752,28 @@ const PurchaseInvoiceUpload = ({
                           </Box>
                         )}
                       </Grid>
-                      <Grid item xs={12} sm={3} sx={{ overflowY: 'auto', height: 400 }}>
-                        {console.log('file', file)}
-                        {Array.isArray(file) && file.length > 0 && (
-                          <>{file.map((el, index) => imagePreview(el, index))}</>
+                      <Grid
+                        item
+                        xs={12}
+                        sm={3}
+                        sx={{ overflowY: 'auto', overflowX: 'hidden', height: 400, ...customScrollbar }}
+                      >
+                        {Array.isArray(file) && file?.length > 0 && (
+                          <>
+                            {file?.map((el, index) => {
+                              return (
+                                <ImagePreview
+                                  // imageDetails={el}
+                                  loader={invoiceSubmitLoader}
+                                  onClose={() => {
+                                    handleDeleteFile(index)
+                                  }}
+                                  key={index}
+                                  imageSrc={URL.createObjectURL(el)}
+                                />
+                              )
+                            })}
+                          </>
                         )}
                       </Grid>
                     </Grid>
@@ -912,54 +909,23 @@ const PurchaseInvoiceUpload = ({
               sm={12}
               sx={{
                 display: 'flex',
-                overflowX: 'auto'
+                overflowX: 'auto',
+                ...customScrollbar
               }}
             >
               {file &&
                 file?.length > 0 &&
                 file.map((el, index) => {
                   return (
-                    <Box
+                    <ImagePreview
+                      // imageDetails={el}
+                      loader={invoiceSubmitLoader}
                       key={index}
-                      sx={{
-                        position: 'relative',
-                        display: 'flex',
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                        borderRadius: '8px',
-                        overflow: 'hidden',
-                        backgroundColor: 'customColors.displaybgPrimary',
-                        padding: '8px',
-                        boxShadow: 1,
-                        height: 'auto',
-                        mx: 2,
-                        minWidth: '124px'
+                      onClose={() => {
+                        handleDeleteFile(index)
                       }}
-                    >
-                      <>
-                        <img
-                          alt='Preview'
-                          src={URL.createObjectURL(el) || ''}
-                          style={{ display: 'block', width: '116px', height: '96px' }}
-                        />
-
-                        <Icon
-                          onClick={() => {
-                            handleDeleteFile(index)
-                          }}
-                          icon='solar:close-square-bold'
-                          style={{
-                            position: 'absolute',
-                            top: '0px',
-                            right: '0px',
-                            cursor: 'pointer',
-                            pointerEvents: invoiceSubmitLoader ? 'none' : 'auto'
-                          }}
-                          width='24'
-                          height='24'
-                        />
-                      </>
-                    </Box>
+                      imageSrc={URL.createObjectURL(el)}
+                    />
                   )
                 })}
             </Grid>

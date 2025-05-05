@@ -367,6 +367,17 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
     path: '/pharmacy/reports/return-to-supplier'
   }
 
+  const allRequestedItemsReport = {
+    title: 'All requested Item Report',
+    path: '/pharmacy/reports/all-requested-items'
+  }
+
+  const rackAndShelves = {
+    icon: 'tabler:settings-spark',
+    title: 'Racks And Shelves',
+    path: '/pharmacy/stock-location'
+  }
+
   reportsParent.children.push(consumptionReport)
   reportsParent.children.push(returnReport)
   reportsParent.children.push(shipmentReport)
@@ -387,6 +398,7 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
     reportsParent.children.push(purchaseReport)
     reportsParent.children.push(requestReport)
     reportsParent.children.push(returnToSupplierReport)
+    reportsParent.children.push(allRequestedItemsReport)
 
     // requestParent.children.push(requestByProductListing)
 
@@ -453,7 +465,7 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
       pharmacyNavigationArray.push(stocksAdjustment)
     }
 
-    pharmacyNavigationArray.push(reportsParent, discard, settingsParent)
+    pharmacyNavigationArray.push(reportsParent, discard, rackAndShelves, settingsParent)
   }
 
   if (selectedPharmacy?.type === 'local') {
@@ -509,7 +521,7 @@ const composePharmacyNavigation = ({ pharmacyList, pharmacyRole, selectedPharmac
     ) {
       pharmacyNavigationArray.push(stocksAdjustment)
     }
-    pharmacyNavigationArray.push(reportsParent, settingsParent)
+    pharmacyNavigationArray.push(reportsParent, rackAndShelves, settingsParent)
   }
 
   if (pharmacyRole) {

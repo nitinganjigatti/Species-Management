@@ -120,6 +120,8 @@ export const PHARMACY_MASTER_BASE_URL = 'v1/master/pharma/'
 
 export const PHARMACY_BASE_URL = 'v1/pharma/'
 
+export const BASE_URL_Pharmacy = 'v1/pharmacy/' //From now onwards use this constant
+
 export const UPDATE_PURCHASE_BASE_URL = 'v2/pharma/'
 
 export const RETURN_REQUEST = 'return-item'
@@ -262,7 +264,11 @@ export const DISPENSE_REPORT = 'dispense-report'
 
 export const RETURN_TO_SUPPLIER = 'return-supplier-report'
 
+export const ALL_REQUESTED_ITEMS_REPORT = 'all-requested-items'
+
 export const PRODUCT_MAPPING_FOR_ML = 'v1/public/pharmacy/ml/product-mapping/bulkInsert'
+
+export const STOCK_LIST = 'stock-item'
 
 export const FEED_DETAILS = 'details'
 

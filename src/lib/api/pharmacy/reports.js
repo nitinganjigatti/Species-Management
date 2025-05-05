@@ -6,7 +6,8 @@ import {
   RETURN_REPORT,
   REQUESTED_ITEMS_REPORT,
   DISPENSE_REPORT,
-  RETURN_TO_SUPPLIER
+  RETURN_TO_SUPPLIER,
+  ALL_REQUESTED_ITEMS_REPORT
 } from 'src/constants/ApiConstant'
 import { axiosGet } from '../utility'
 
@@ -48,6 +49,12 @@ export async function getDispenseReport({ params }) {
 
 export async function getReturnToSupplier({ params }) {
   const response = await axiosGet({ url: `${PHARMACY_BASE_URL}${RETURN_TO_SUPPLIER}`, params, pharmacy: true })
+
+  return response?.data
+}
+
+export async function getAllRequestedItemsReport({ params }) {
+  const response = await axiosGet({ url: `${PHARMACY_BASE_URL}${ALL_REQUESTED_ITEMS_REPORT}`, params, pharmacy: true })
 
   return response?.data
 }

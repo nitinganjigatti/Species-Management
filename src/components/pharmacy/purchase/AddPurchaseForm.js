@@ -2936,7 +2936,7 @@ const AddPurchaseForm = () => {
       )}
       <CommonDialogBox
         loader={invoiceSubmitLoader}
-        dialogWithMaxWidth={true}
+        // dialogWithMaxWidth={true}
         title={
           <Typography
             sx={{
