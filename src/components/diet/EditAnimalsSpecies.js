@@ -522,7 +522,7 @@ const EditAnimalSpeciesMapped = ({
                                       : '',
                                   px: 2,
                                   py: 1.5,
-                                  height: '70px',
+                                  // height: '70px',
                                   borderRadius: mappedSpecies.length > 1 ? '' : '5px',
                                   borderTopRightRadius: mappedSpecies.length > 1 ? '0px' : '0px',
                                   borderTopLeftRadius: mappedSpecies.length > 1 ? '0px' : '0px'
@@ -673,7 +673,7 @@ const EditAnimalSpeciesMapped = ({
                           pb: 1
                         }}
                       >
-                        {speciestotalcount || ''} Species
+                        {speciestotalcount || ''} Animals
                       </Typography>
                     )
                   ) : (
@@ -723,7 +723,7 @@ const EditAnimalSpeciesMapped = ({
                                   pl: 3
                                 }}
                               >
-                                Species
+                                Animals
                               </Typography>
                               <Typography
                                 variant='body1'

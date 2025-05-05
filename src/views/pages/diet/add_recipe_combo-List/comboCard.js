@@ -430,6 +430,18 @@ const ComboCard = ({
       // Preserve the previous days_of_week if new ones are not selected
       const preservedDaysOfWeek = selectedDayId?.length ? selectedDayId : existingCard?.days_of_week || []
 
+      // Update ingredients with cut_size information
+      const updatedIngredients = item.ingredients.map(ingredient => {
+        const cutSizeId = size[item.id]?.[ingredient.ingredient_id]?.id || null
+        const cutSize = cutsizelist.find(cs => cs.id === cutSizeId)?.cut_size || null
+
+        return {
+          ...ingredient,
+          cut_size_id: cutSizeId,
+          cut_size: cutSize
+        }
+      })
+
       return {
         recipe_name: item.recipe_name,
         recipe_id: item.id ? item.id : null,
@@ -441,7 +453,7 @@ const ComboCard = ({
         ingredient_name: ingredientNames,
         quantity: quantity,
         quantity_type: quantityper,
-        ingredients: item.ingredients,
+        ingredients: updatedIngredients,
         desc: item.desc,
         combo_ingredients: comboIngredients
       }

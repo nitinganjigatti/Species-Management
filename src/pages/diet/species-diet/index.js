@@ -202,7 +202,7 @@ const SpeciesDietList = () => {
     {
       width: colWidths[0],
       field: 'id',
-      headerName: '#',
+      headerName: 'SL',
       align: 'center',
       sortable: false,
       renderCell: params => (
