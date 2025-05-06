@@ -143,11 +143,13 @@ const schema = yup.object().shape({
   // }),
   prescription_required: yup
     .string()
-    .transform(value => (value === true || value === '1' || value === 1 ? '1' : '0'))
-    .when('controlled_substance', (controlled_substance, schema) => {
-      return controlled_substance[0] === '1'
-        ? schema.oneOf(['1'], 'Prescription is required if product is a controlled substance')
-        : schema
+    .transform(value =>
+      value === true || value === '1' || value === 1 ? '1' : value === false || value === '0' || value === 0 ? '0' : ''
+    )
+    .when('controlled_substance', {
+      is: value => value === '1',
+      then: schema => schema.oneOf(['1'], 'Prescription is required').required('Prescription is required'),
+      otherwise: schema => schema.optional().nullable()
     }),
   part_out_of_stock: yup.string().required('part of out of stock is required'),
 
@@ -168,7 +170,7 @@ const AddMedicine = () => {
     trigger,
     watch,
     setValue,
-    setError,
+    clearErrors,
     getValues
   } = useForm({
     defaultValues,
@@ -686,6 +688,7 @@ const AddMedicine = () => {
     if (files.length > 0) {
       payload.image = files[0]
     } else {
+      payload.image = uploadedImage ?? ''
     }
 
     if (id !== undefined && action === 'edit') {
@@ -959,6 +962,10 @@ const AddMedicine = () => {
   const addNewSalt = () => {
     setOpenSalt(true)
     setResetForm(false)
+  }
+
+  const handleRemoveImage = () => {
+    setUploadedImage(null)
   }
 
   const handleManufacturer = async payload => {
@@ -1703,17 +1710,16 @@ const AddMedicine = () => {
                                     value={value}
                                     label='Controlled substances'
                                     onChange={e => {
-                                      // console.log('e.target.value', e.target.value)
+                                      const selectedValue = e.target.value
                                       onChange(e)
 
-                                      if (e.target === '1') {
+                                      if (selectedValue === '1') {
                                         setValue('prescription_required', '1')
                                       } else {
                                         setValue('prescription_required', '0')
-                                        setError('prescription_required', '')
                                       }
 
-                                      setError('prescription_required', '')
+                                      clearErrors('prescription_required')
                                     }}
                                     error={Boolean(errors?.controlled_substance)}
                                     labelId='controlled_substance'
@@ -1925,9 +1931,14 @@ const AddMedicine = () => {
 
                           <Grid item xs={12}>
                             <Card>
-                              <CardHeader title='Upload Product Picture' />
+                              <CardHeader title='Add Product Image' />
                               <CardContent>
-                                <FileUploaderSingle onImageUpload={onImageUpload} image={uploadedImage} files={files} />
+                                <FileUploaderSingle
+                                  onImageUpload={onImageUpload}
+                                  image={uploadedImage}
+                                  files={files}
+                                  onRemoveImage={handleRemoveImage}
+                                />
                               </CardContent>
                             </Card>
                           </Grid>
