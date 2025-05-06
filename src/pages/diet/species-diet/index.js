@@ -144,7 +144,7 @@ const SpeciesDietList = () => {
           limit: paginationModel.pageSize,
           with_diet: filterByDiet,
           sort_order: newModel?.sort?.toUpperCase(),
-          sort_by: newModel?.field,
+          // sort_by: newModel?.field,
           class_ids: classIds?.length > 0 ? JSON?.stringify(classIds) : ''
         }
         await getSpeciesList(params).then(res => {
@@ -231,7 +231,6 @@ const SpeciesDietList = () => {
       width: colWidths[1],
       sortable: false,
       field: 'scientific_name',
-      sortable: true,
       headerName: 'SPECIES',
       renderCell: params => (
         <Box onClick={() => setSpeciesDetailsDrawer(true)} sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -320,7 +319,6 @@ const SpeciesDietList = () => {
       width: colWidths[2],
       sortable: false,
       field: 'genus_name',
-      sortable: true,
       headerName: 'Genus',
       renderCell: params => (
         <Tooltip title={params.row.genus_name ? params.row.genus_name : ''}>
