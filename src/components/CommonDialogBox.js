@@ -72,7 +72,7 @@ const CommonDialogBox = ({
                 </>
               }
             />
-            <Divider variant='middle' />
+            {/* <Divider variant='middle' /> */}
           </>
         )}
 

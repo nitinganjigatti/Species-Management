@@ -1496,7 +1496,8 @@ const IndividualRequest = () => {
                   action={
                     selectedPharmacy?.type === 'local' &&
                     requestItems?.status === 'request' &&
-                    requestItems?.is_modified !== '1' ? (
+                    requestItems?.is_modified !== '1' &&
+                    Number(requestItems?.shipped_product_count) === 0 && (
                       <Button
                         size='big'
                         variant='contained'
@@ -1506,8 +1507,6 @@ const IndividualRequest = () => {
                       >
                         Edit
                       </Button>
-                    ) : (
-                      <></>
                     )
                   }
                 />

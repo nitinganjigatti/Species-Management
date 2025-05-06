@@ -795,6 +795,7 @@ const AddRequestForm = () => {
       // <CardContent>
 
       <form style={{ width: '650px' }}>
+        <Divider sx={{ mt: -6 }} />
         <Grid sx={{ my: 6 }} xs={12}>
           <Grid item sx={{ display: 'flex', justifyItems: 'center', justifyContent: 'center', gap: 4 }} xs={12} sm={12}>
             <Typography
