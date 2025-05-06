@@ -57,6 +57,12 @@ export async function speciesAttachmentActive(payload) {
   }
 }
 
+export async function getClassList(params) {
+  const response = await axiosGet({ url: `get/taxonomy/hierarchy`, params })
+
+  return response.data
+}
+
 // export async function updateRecipeStatus(id, payload) {
 //   try {
 //     const response = await axiosPost({ url: `${DIET}/${RECIPES}/${UPDATE_STATUS}/${id}`, body: payload })

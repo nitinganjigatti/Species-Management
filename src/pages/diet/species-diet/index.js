@@ -32,6 +32,7 @@ import SpeciesDetails from '../../../components/diet/species-diet/speciesDetails
 import UploadDiet from '../../../components/diet/species-diet/uploadDiet'
 import { getSpeciesList, speciesAttachmentUpload } from 'src/lib/api/diet/speciesDiet'
 import Error404 from 'src/pages/404'
+import SpeciesDietFilterDrawer from 'src/views/pages/diet/species/SpeciesDietFilterDrawer'
 
 const SpeciesDietList = () => {
   const colWidths = [65, 300, 200, 100]
@@ -48,6 +49,13 @@ const SpeciesDietList = () => {
   // const [attachmentUploadConfirmDialog, setAttachmentUploadConfirmDialog] = useState(false) // has to be modified
   const [filterByDiet, setFilterByDiet] = useState('-1')
   const [exportLoading, setExportLoading] = useState(false)
+
+  const [openFilterDrawer, setOpenFilterDrawer] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [selectedFiltersOptions, setSelectedFiltersOptions] = useState({})
+  const [selectedOptions, setSelectedOptions] = useState({
+    Class: []
+  })
 
   ///////////////////////Filter-Code////////////////////////////
   // const [isSearchOpen, setIsSearchOpen] = useState(false)
@@ -118,6 +126,7 @@ const SpeciesDietList = () => {
   const fetchTableData = useCallback(
     async (q, newModel) => {
       try {
+        const classIds = selectedFiltersOptions?.Class?.map(option => option.id) || []
         ///////////////////////Filter-Code////////////////////////////
         // console.log('applyFilters', applyFilters)
         // const siteIds = applyFilters.Site?.map(option => option.id)
@@ -134,8 +143,9 @@ const SpeciesDietList = () => {
           page_no: paginationModel.page + 1,
           limit: paginationModel.pageSize,
           with_diet: filterByDiet,
-          sort_order: newModel.sort.toUpperCase(),
-          sort_by: newModel.field
+          sort_order: newModel?.sort?.toUpperCase(),
+          sort_by: newModel?.field,
+          class_ids: classIds?.length > 0 ? JSON?.stringify(classIds) : ''
         }
         await getSpeciesList(params).then(res => {
           // Generate uid field based on the index
@@ -154,12 +164,12 @@ const SpeciesDietList = () => {
         setLoading(false)
       }
     },
-    [paginationModel, filterByDiet]
+    [paginationModel, filterByDiet, selectedFiltersOptions]
   )
 
   useEffect(() => {
     fetchTableData(searchValue)
-  }, [fetchTableData])
+  }, [fetchTableData, selectedFiltersOptions])
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
@@ -862,6 +872,21 @@ const SpeciesDietList = () => {
                           </>
                         </Tooltip>
                       </Box>
+                      <Box
+                        sx={{
+                          display: 'flex',
+                          justifyContent: 'center',
+                          width: '40px',
+                          height: '40px',
+                          borderRadius: '4px',
+                          bgcolor: theme?.palette.customColors?.lightBg,
+                          alignItems: 'center',
+                          cursor: 'pointer'
+                        }}
+                        onClick={() => setOpenFilterDrawer(true)}
+                      >
+                        <Icon icon='mage:filter' fontSize={24} />
+                      </Box>
                     </Box>
                   </Grid>
 
@@ -985,6 +1010,17 @@ const SpeciesDietList = () => {
               setspeciesId={setspeciesId}
               uploadDietDrawer={uploadDietDrawer}
               setUploadDietDrawer={setUploadDietDrawer}
+            />
+          )}
+          {openFilterDrawer && (
+            <SpeciesDietFilterDrawer
+              setOpenFilterDrawer={setOpenFilterDrawer}
+              searchQuery={searchQuery}
+              setSearchQuery={setSearchQuery}
+              openFilterDrawer={openFilterDrawer}
+              setSelectedFiltersOptions={setSelectedFiltersOptions}
+              selectedOptions={selectedOptions}
+              setSelectedOptions={setSelectedOptions}
             />
           )}
         </>

@@ -1,0 +1,386 @@
+import { useTheme } from '@mui/material/styles'
+import { LoadingButton } from '@mui/lab'
+import {
+  Box,
+  Checkbox,
+  CircularProgress,
+  debounce,
+  Divider,
+  Drawer,
+  Grid,
+  IconButton,
+  TextField,
+  Typography
+} from '@mui/material'
+import React, { useState, useEffect, useCallback, useRef } from 'react'
+import Icon from 'src/@core/components/icon'
+import { getClassList } from 'src/lib/api/diet/speciesDiet'
+
+const SpeciesDietFilterDrawer = ({
+  searchQuery,
+  setSearchQuery,
+  openFilterDrawer,
+  setOpenFilterDrawer,
+  setSelectedFiltersOptions,
+  selectedOptions,
+  setSelectedOptions
+}) => {
+  const theme = useTheme()
+  const leftMenu = [{ id: 1, name: 'Class' }]
+
+  const [selectedMenu, setSelectedMenu] = useState(leftMenu[0])
+  const [loading, setLoading] = useState(false)
+  const [classListData, setClassListData] = useState([])
+  const [classListCount, setClassListCount] = useState(0)
+  const [page_no, setPage_no] = useState(1)
+  const [limit, setLimit] = useState(10)
+  const [selectAll, setSelectAll] = useState(false)
+
+  //   const getClassListData = async q => {
+  //     try {
+  //       setLoading(true)
+  //       await getClassList({ type: 'class', page_no, limit, q }).then(res => {
+  //         if (res.success) {
+  //           setClassListData(res?.data?.result)
+  //           setClassListCount(res?.data?.count)
+  //         }
+  //       })
+  //     } catch (e) {
+  //       console.log(e)
+  //     } finally {
+  //       setLoading(false)
+  //     }
+  //   }
+
+  const getClassListData = async (q = '') => {
+    try {
+      setLoading(true)
+      const res = await getClassList({ type: 'class', page_no, limit, q })
+      if (res.success) {
+        setClassListData(prev => (page_no === 1 ? res?.data?.result : [...prev, ...res?.data?.result]))
+        setClassListCount(res?.data?.count)
+      }
+    } catch (e) {
+      console.log(e)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const scrollContainerRef = useRef(null)
+
+  const handleScroll = () => {
+    const container = scrollContainerRef.current
+    if (container) {
+      const { scrollTop, scrollHeight, clientHeight } = container
+      const isBottom = scrollTop + clientHeight >= scrollHeight - 50 // near bottom
+      if (isBottom && !loading && classListData.length < classListCount) {
+        setPage_no(prev => prev + 1)
+      }
+    }
+  }
+
+  //   useEffect(() => {
+  //     getClassListData()
+  //   }, [openFilterDrawer])
+
+  useEffect(() => {
+    if (openFilterDrawer) {
+      getClassListData(searchQuery)
+    }
+  }, [page_no])
+
+  const getOptionsForMenu = menu => {
+    switch (menu.name) {
+      case 'Class':
+        return (
+          classListData?.map(classItem => ({
+            id: classItem?.tsn_id,
+            name: classItem?.complete_name
+          })) || []
+        )
+      default:
+        return []
+    }
+  }
+
+  const handleSelectAllChange = event => {
+    const isChecked = event.target.checked
+    setSelectAll(isChecked)
+
+    if (isChecked) {
+      const newSelectedOptions = {
+        ...selectedOptions,
+        [selectedMenu.name]: getOptionsForMenu(selectedMenu).map(item => ({
+          id: item.id,
+          name: item.name
+        }))
+      }
+      setSelectedOptions(newSelectedOptions)
+    } else {
+      const newSelectedOptions = {
+        ...selectedOptions,
+        [selectedMenu.name]: []
+      }
+      setSelectedOptions(newSelectedOptions)
+    }
+  }
+
+  //   const debouncedGetClassListData = useCallback(
+  //     debounce(query => {
+  //       getClassListData(query)
+  //     }, 1000),
+  //     []
+  //   )
+
+  const debouncedGetClassListData = useCallback(
+    debounce(query => {
+      getClassListData(query)
+    }, 1000),
+    []
+  )
+
+  const handleSearchChange = event => {
+    const query = event.target.value.toLowerCase()
+    setSearchQuery(event.target.value)
+    setPage_no(1)
+    setClassListData([])
+    debouncedGetClassListData(query)
+  }
+
+  const handleCheckboxChange = (id, name) => {
+    // Default to empty array if currentSelectedOptions is not defined
+    const currentSelectedOptions = selectedOptions[selectedMenu.name] || []
+
+    const isChecked = currentSelectedOptions.some(option => option.id === id)
+
+    const newSelectedOptions = isChecked
+      ? currentSelectedOptions.filter(option => option.id !== id)
+      : [...currentSelectedOptions, { id, name }]
+
+    const allOptions = getOptionsForMenu(selectedMenu)
+    const areAllSelected = newSelectedOptions.length === allOptions.length
+
+    setSelectedOptions({
+      ...selectedOptions,
+      [selectedMenu.name]: newSelectedOptions
+    })
+
+    if (searchQuery === '') {
+      setSelectAll(areAllSelected)
+    }
+  }
+  useEffect(() => {
+    const allOptions = getOptionsForMenu(selectedMenu) || []
+    const selected = selectedOptions[selectedMenu.name] || []
+
+    const allSelected = allOptions.length > 0 && selected.length === allOptions.length
+
+    setSelectAll(allSelected)
+  }, [selectedOptions, selectedMenu, getOptionsForMenu])
+
+  const handleApplyFilter = () => {
+    setSelectedFiltersOptions(selectedOptions ?? {})
+    handleCloseDrawer()
+  }
+
+  const handleCloseDrawer = () => {
+    setOpenFilterDrawer(false)
+    setSearchQuery('')
+    setPage_no(1)
+    setClassListData([])
+    setClassListCount(0)
+  }
+  return (
+    <Drawer
+      anchor='right'
+      open={openFilterDrawer}
+      sx={{
+        '& .MuiDrawer-paper': { width: ['100%', '562px'], height: '100vh' },
+        position: 'relative',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '24px',
+        backgroundColor: 'background.default'
+      }}
+    >
+      <Box
+        className='sidebar-header'
+        sx={{
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'space-between',
+          backgroundColor: 'background.default',
+          p: theme => theme.spacing(3, 3.255, 3, 5.255)
+        }}
+      >
+        <Box sx={{ mt: 2, display: 'flex', flexDirection: 'row', gap: 2, alignItems: 'center' }}>
+          <Icon icon='mage:filter' fontSize={30} />
+          <Typography sx={{ fontSize: '24px', fontWeight: 500 }}>Filter</Typography>
+        </Box>
+
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
+          <IconButton size='small' sx={{ color: 'text.primary' }} onClick={handleCloseDrawer}>
+            <Icon icon='mdi:close' fontSize={24} />
+          </IconButton>
+        </Box>
+      </Box>
+
+      <Box
+        sx={{
+          '& .MuiDrawer-paper': { width: ['100%', '562px'] },
+          backgroundColor: 'background.default',
+          height: '100%'
+        }}
+      >
+        <Grid container sx={{ px: 5 }}>
+          <Grid item md={4} sm={4} xs={4}>
+            {leftMenu.map(menu => (
+              <Box
+                key={menu.id}
+                sx={{
+                  width: '190px',
+                  bgcolor: selectedMenu?.id === menu.id ? 'white' : 'transparent',
+                  cursor: 'pointer',
+                  p: 4,
+                  borderTopLeftRadius: '8px',
+                  borderBottomLeftRadius: '8px'
+                }}
+                // onClick={() => handleMenuClick(menu)}
+              >
+                <Typography sx={{ color: theme.palette.primary.dark, fontSize: '16px', fontWeight: 400 }}>
+                  {menu.name}
+                </Typography>
+              </Box>
+            ))}
+          </Grid>
+          <Grid item md={8} sm={8} xs={8}>
+            <Box
+              ref={scrollContainerRef}
+              onScroll={handleScroll}
+              sx={{
+                bgcolor: theme.palette.primary.contrastText,
+                p: '16px',
+                borderRadius: '8px',
+                width: '345px',
+                height: 'calc(100vh - 185px)',
+                overflowY: 'auto', // Enable vertical scrolling
+                '&::-webkit-scrollbar': {
+                  width: 0,
+                  height: 0
+                },
+                '-ms-overflow-style': 'none', // Hide scrollbar for Internet Explorer and Edge
+                scrollbarWidth: 'none' // Hide scrollbar for Firefox
+              }}
+            >
+              <>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+                    borderRadius: '4px',
+                    padding: '0 8px',
+                    height: '40px',
+                    mb: 4
+                  }}
+                >
+                  <Icon icon='mi:search' color={theme.palette.customColors.OnSurfaceVariant} />
+                  <TextField
+                    variant='outlined'
+                    placeholder='Search'
+                    value={searchQuery}
+                    onChange={handleSearchChange}
+                    InputProps={{
+                      disableUnderline: false
+                    }}
+                    sx={{
+                      '& .MuiOutlinedInput-root': {
+                        border: 'none',
+                        padding: '0',
+                        '& fieldset': {
+                          border: 'none'
+                        }
+                      }
+                    }}
+                  />
+                </Box>
+                <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
+                  <Checkbox
+                    disabled={classListData.length == 0}
+                    checked={selectAll}
+                    onChange={handleSelectAllChange}
+                    inputProps={{ 'aria-label': 'controlled' }}
+                  />
+                  <Typography sx={{ fontSize: '16px', fontWeight: 400, color: theme.palette.customColors.Outline }}>
+                    Select All
+                  </Typography>
+                </Box>
+                <Divider sx={{ mb: 3 }} />
+              </>
+
+              {selectedMenu && (
+                <Box sx={{ mt: 2 }}>
+                  {getOptionsForMenu(selectedMenu)?.map((option, index) => (
+                    <Box key={index} sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
+                      <Checkbox
+                        checked={selectedOptions[selectedMenu.name]?.some(item => item.id === option.id)}
+                        onChange={() => handleCheckboxChange(option.id, option.name)}
+                        inputProps={{ 'aria-label': 'controlled' }}
+                      />
+                      <Typography sx={{ fontSize: '16px', fontWeight: 400, color: theme.palette.customColors.Outline }}>
+                        {option.name}
+                      </Typography>
+                    </Box>
+                  ))}
+                  {loading && (
+                    <Box sx={{ textAlign: 'center' }}>
+                      <CircularProgress />
+                    </Box>
+                  )}
+                </Box>
+              )}
+            </Box>
+          </Grid>
+        </Grid>
+      </Box>
+
+      {/* bottom buttons */}
+      <Box
+        sx={{
+          height: '122px',
+          width: '100%',
+          maxWidth: '562px',
+          position: 'fixed',
+          bottom: 0,
+          px: 4,
+          bgcolor: 'white',
+          alignItems: 'center',
+          justifyContent: 'center',
+          gap: 5,
+          display: 'flex',
+          boxShadow: '0px -4px 10px rgba(0, 0, 0, 0.2)',
+          zIndex: 123
+        }}
+      >
+        <LoadingButton
+          fullWidth
+          variant='outlined'
+          size='large'
+          onClick={() => {
+            handleCloseDrawer()
+            setSelectedOptions([])
+            setSelectedFiltersOptions({})
+          }}
+        >
+          CANCEL ALL
+        </LoadingButton>
+        <LoadingButton fullWidth variant='contained' size='large' onClick={handleApplyFilter}>
+          APPLY FILTER
+        </LoadingButton>
+      </Box>
+    </Drawer>
+  )
+}
+
+export default SpeciesDietFilterDrawer
