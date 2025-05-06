@@ -961,6 +961,7 @@ const SpeciesDietList = () => {
               rowCount={total}
               rowHeight={64}
               disableRowSelectionOnClick
+              disableColumnMenu
               columns={columns}
               sortingMode='server'
               paginationMode='server'
