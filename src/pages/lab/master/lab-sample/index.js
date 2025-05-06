@@ -254,7 +254,7 @@ const LabSamples = () => {
               variant='body2'
               sx={{ color: theme.palette.customColors.neutralSecondary, fontSize: 12 }}
             >
-              {params.row.created_at ? moment(params.row.created_at).format('DD/MM/YYYY') : '-'}
+              {params.row.created_at ? moment(params.row.created_at).format('DD MMM YYYY') : '-'}
             </Typography>
           </Box>
         </Box>
