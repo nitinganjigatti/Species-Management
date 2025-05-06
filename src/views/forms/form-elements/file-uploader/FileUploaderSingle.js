@@ -70,23 +70,25 @@ const FileUploaderSingle = ({ files: availableFiles, onImageUpload, image, onRem
 
       {files.length || image ? (
         <Box sx={{ position: 'relative', display: 'inline-block' }}>
-          <IconButton
-            size='small'
-            onClick={e => {
-              e.stopPropagation()
-              handleRemoveImage()
-            }}
-            sx={{
-              position: 'absolute',
-              top: 8,
-              right: 8,
-              zIndex: 2,
-              backgroundColor: 'white',
-              '&:hover': { backgroundColor: 'grey.200' }
-            }}
-          >
-            <CloseIcon fontSize='small' />
-          </IconButton>
+          {onRemoveImage && (
+            <IconButton
+              size='small'
+              onClick={e => {
+                e.stopPropagation()
+                handleRemoveImage()
+              }}
+              sx={{
+                position: 'absolute',
+                top: 8,
+                right: 8,
+                zIndex: 2,
+                backgroundColor: 'white',
+                '&:hover': { backgroundColor: 'grey.200' }
+              }}
+            >
+              <CloseIcon fontSize='small' />
+            </IconButton>
+          )}
 
           <img
             alt='Medicine Picture'
