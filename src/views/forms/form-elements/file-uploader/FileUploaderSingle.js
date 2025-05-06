@@ -8,7 +8,8 @@ import Link from 'next/link'
 import Box from '@mui/material/Box'
 import { styled } from '@mui/material/styles'
 import Typography from '@mui/material/Typography'
-import { IMAGE_BASE_URL } from 'src/constants/ApiConstant'
+import IconButton from '@mui/material/IconButton'
+import CloseIcon from '@mui/icons-material/Close'
 
 // ** Third Party Imports
 import { useDropzone } from 'react-dropzone'
@@ -34,7 +35,7 @@ const HeadingTypography = styled(Typography)(({ theme }) => ({
   }
 }))
 
-const FileUploaderSingle = props => {
+const FileUploaderSingle = ({ files: availableFiles, onImageUpload, image, onRemoveImage = null }) => {
   // ** State
   const [files, setFiles] = useState([])
 
@@ -45,42 +46,57 @@ const FileUploaderSingle = props => {
       'image/*': ['.png', '.jpg', '.jpeg']
     },
     onDrop: acceptedFiles => {
-      props?.onImageUpload(acceptedFiles.map(file => Object.assign(file)))
+      onImageUpload(acceptedFiles.map(file => Object.assign(file)))
       setFiles(acceptedFiles.map(file => Object.assign(file)))
     }
   })
 
   useEffect(() => {
-    if (props?.files?.length === 0) {
+    if (!availableFiles?.length)
       setFiles([])
-    }
-  }, [props])
+  }, [availableFiles])
 
-  const img = files.map(file => (
-    <img
-      key={file.name}
-      alt={file.name}
-      className='single-file-image'
-      src={URL.createObjectURL(file)}
-      style={{ maxHeight: '300px', maxWidth: '300px', objectFit: 'contain' }}
-    />
-  ))
+  const handleRemoveImage = () => {
+    setFiles([])
+    onImageUpload([])
+    if (image && onRemoveImage) {
+      onRemoveImage()
+    }
+  }
 
   return (
     <Box {...getRootProps({ className: 'dropzone' })} sx={files.length ? {} : {}}>
       <input {...getInputProps()} />
 
-      {files.length > 0 || (props?.image !== '' && props.image !== undefined && props.image !== null) ? (
-        files.length > 0 ? (
-          img
-        ) : (
+      {files.length || image ? (
+        <Box sx={{ position: 'relative', display: 'inline-block' }}>
+          {onRemoveImage && (
+            <IconButton
+              size='small'
+              onClick={e => {
+                e.stopPropagation()
+                handleRemoveImage()
+              }}
+              sx={{
+                position: 'absolute',
+                top: 8,
+                right: 8,
+                zIndex: 2,
+                backgroundColor: 'white',
+                '&:hover': { backgroundColor: 'grey.200' }
+              }}
+            >
+              <CloseIcon fontSize='small' />
+            </IconButton>
+          )}
+
           <img
             alt='Medicine Picture'
             className='single-file-image'
-            src={`${props?.image}`}
+            src={files.length ? URL.createObjectURL(files[0]) : image}
             style={{ maxHeight: '300px', maxWidth: '300px', objectFit: 'contain' }}
           />
-        )
+        </Box>
       ) : (
         <Box
           sx={{
@@ -107,7 +123,7 @@ const FileUploaderSingle = props => {
                 <Link href='/' onClick={e => e.preventDefault()}>
                   browse
                 </Link>{' '}
-                thorough your machine
+                through your machine
               </Typography>
             </div>
           </Box>
