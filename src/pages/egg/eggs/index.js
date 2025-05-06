@@ -159,9 +159,9 @@ const EggList = () => {
 
   const received = [
     {
-      width: 60,
+      width: 80,
       field: 'uid',
-      headerName: 'NO',
+      headerName: 'SL.NO',
       align: 'center',
       sortable: false,
       renderCell: params => (
@@ -429,9 +429,9 @@ const EggList = () => {
 
   const columns = [
     {
-      width: 60,
+      width: 80,
       field: 'uid',
-      headerName: 'NO',
+      headerName: 'SL.NO',
       align: 'center',
       sortable: false,
       renderCell: params => (
@@ -669,10 +669,9 @@ const EggList = () => {
 
   const hatchedColumn = [
     {
-      width: 60,
+      width: 80,
       field: 'uid',
-      headerName: 'NO',
-
+      headerName: 'SL.NO',
       align: 'center',
       sortable: false,
       renderCell: params => (
@@ -857,9 +856,9 @@ const EggList = () => {
 
   const incubationColumns = [
     {
-      width: 60,
+      width: 80,
       field: 'uid',
-      headerName: 'NO',
+      headerName: 'SL.NO',
       align: 'center',
       sortable: false,
       renderCell: params => (
@@ -1366,9 +1365,9 @@ const EggList = () => {
 
   const discarded_Egg_Columns = [
     {
-      width: 60,
+      width: 80,
       field: 'uid',
-      headerName: 'NO',
+      headerName: 'SL.NO',
       align: 'center',
       sortable: false,
       renderCell: params => (
@@ -1626,9 +1625,9 @@ const EggList = () => {
 
   const ready_to_discard = [
     {
-      width: 60,
+      width: 70,
       field: 'uid',
-      headerName: 'NO',
+      headerName: 'SL.NO',
       align: 'center',
       sortable: false,
       renderCell: params => (
