@@ -100,7 +100,7 @@ const SelectedEnclosure = ({
                   <Card
                     key={index}
                     sx={{
-                      p: 2,
+                      p: 4,
                       width: '100%',
                       height: '70px',
                       borderTop: selectedEnclosureIds.includes(item?.enclosure_id) && '1px solid #C3CEC7',
