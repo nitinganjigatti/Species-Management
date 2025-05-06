@@ -436,7 +436,7 @@ const AnimalList = () => {
     }
   }
 
-  console.log('List >>', headerList, animalList)
+  // console.log('List >>', headerList, animalList)
 
   useEffect(() => {
     if (animalId) {
@@ -1078,9 +1078,9 @@ const AnimalList = () => {
                   />
                 </Box> */}
 
-                {columns.length > 0 && (
+                {columns.length > 0 ? (
                   <StickyTable
-                    rows={reportRows}
+                    rows={reportRows.length && reportRows}
                     rowCount={total}
                     rowHeight={86}
                     headerHeight={47}
@@ -1110,6 +1110,10 @@ const AnimalList = () => {
                     // hideFooterSelectedRowCount
                     // scrollbarSize={10}
                   />
+                ) : (
+                  <Box sx={{ py: 4, textAlign: 'center' }}>
+                    <CircularProgress />
+                  </Box>
                 )}
               </Box>
             </TabContext>

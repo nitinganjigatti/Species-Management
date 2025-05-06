@@ -29,8 +29,8 @@ import { axiosGet, axiosPost } from '../utility'
 //   return response.data
 // }
 
-export async function getReportTitle() {
-  const response = await axiosGet({ url: `${REPORT_TYPE}` })
+export async function getReportTitle(params) {
+  const response = await axiosGet({ url: `${REPORT_TYPE}`, params })
   return response.data
 }
 

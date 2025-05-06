@@ -20,6 +20,7 @@ import { getAnimalReport, getReportTitle, getUserReport, getMedicalReport } from
 import { AuthContext } from 'src/context/AuthContext'
 import Error404 from 'src/pages/404'
 import { useTheme } from '@emotion/react'
+import CommonTable from 'src/views/table/data-grid/CommonTable'
 
 const Animal = () => {
   const theme = useTheme()
@@ -93,7 +94,10 @@ const Animal = () => {
   useEffect(() => {
     if (enable_daily_report && reports_module && enable_daily_report) {
       const fetchReportType = async () => {
-        const response = await getReportTitle()
+        const response = await getReportTitle({
+          page_no: paginationModel.page + 1,
+          limit: paginationModel.pageSize
+        })
         if (response) {
           setReportData(response)
         } else {
@@ -102,7 +106,7 @@ const Animal = () => {
       }
       fetchReportType()
     }
-  }, [])
+  }, [paginationModel])
 
   const downloadNewCSVFile = csvContent => {
     try {
@@ -447,7 +451,7 @@ const Animal = () => {
           </Box>
           <Box sx={{ width: '98%', margin: 4 }}>
             <Box sx={{ borderRadius: '8px' }}>
-              <DataGrid
+              {/* <DataGrid
                 sx={{
                   mt: 3,
                   mx: 2,
@@ -496,6 +500,16 @@ const Animal = () => {
                 autoHeight
                 disableColumnFilter={false}
                 hideFooterSelectedRowCount
+                rowHeight={70}
+                scrollbarSize={10}
+              /> */}
+              <CommonTable
+                setPaginationModel={setPaginationModel}
+                indexedRows={reportRows}
+                disableColumnSorting={true}
+                columns={columns}
+                paginationModel={paginationModel}
+                disableColumnFilter={false}
                 rowHeight={70}
                 scrollbarSize={10}
               />
