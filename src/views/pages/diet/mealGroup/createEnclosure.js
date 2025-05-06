@@ -45,8 +45,6 @@ const CreateEnclosure = ({
   const [mealGroupError, setMealGroupError] = useState(false)
   const [selectedEnclosureDrawer, setSelectedEnclosureDrawer] = useState(false)
 
-  // const [selectedGroup, setSelectedGroup] = useState('all')
-
   useEffect(() => {
     if (checkedRows) {
       setSelectedEnclosureIds(checkedRows)
@@ -79,7 +77,6 @@ const CreateEnclosure = ({
   }
 
   const handleAddEnclosure = async () => {
-    debugger
     if (!groupId.trim()) {
       setMealGroupError(true)
       return
@@ -202,13 +199,8 @@ const CreateEnclosure = ({
   }
 
   const handleCheckboxChange = id => {
-    debugger
     setSelectedEnclosureIds(prev => (prev.includes(id) ? prev.filter(eId => eId !== id) : [...prev, id]))
   }
-
-  console.log('selected Enclosures >', selectedEnclosureIds)
-
-  console.log('Selected Drawer', selectedForDrawer)
 
   return (
     <>
@@ -229,21 +221,9 @@ const CreateEnclosure = ({
       >
         <Box
           sx={{
-            // position: 'fixed',
-            // top: 0,
             bgcolor: theme.palette.customColors.bodyBg,
             zIndex: 10,
-            // width: {
-            //   xs: '100%', // full width on small screens
-            //   sm: '74%',
-            //   md: '500px',
-            //   lg: '562px'
-            // },
-            // width: '100%',
-            // maxWidth: '562px',
-            // maxHeight: '100dvh',
             height: 'calc(100dvh - 10px)'
-            // overflow: 'auto'
           }}
         >
           {/* Header */}
@@ -283,7 +263,7 @@ const CreateEnclosure = ({
           <Box sx={{ overflowY: 'auto' }}>
             {' '}
             {/* Outer wrapper with padding from all sides */}
-            <Box sx={{ p: 2, backgroundColor: '#EEF5F1', borderRadius: '8px', mt: 3 }}>
+            <Box sx={{ p: 4, backgroundColor: '#EEF5F1', borderRadius: '8px', mt: 3 }}>
               {/* Search */}
               <Box display='flex' gap={1} mb={6}>
                 <TextField

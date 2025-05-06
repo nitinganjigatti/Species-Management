@@ -97,6 +97,7 @@ const CreateMealGroup = ({
     debounce(async q => {
       setSearchTerm(q)
       if (q.trim() === '') {
+      
         // Search field is cleared — restore from unmapped list using checkedRows
         const data = [...selectedItems] // your original full unmapped list (store this when fetching the full list)
         const filteredData = data.filter(item => checkedRows.includes(item.id)) // adjust key if needed
@@ -119,7 +120,7 @@ const CreateMealGroup = ({
         console.log(err)
       }
     }, 1000),
-    [selectedOption, checkedRows] // 👈 now includes these dependencies
+    [selectedOption] // 👈 now includes these dependencies
   )
 
   const handleCreateSearch = value => {
@@ -440,11 +441,11 @@ const CreateMealGroup = ({
               <Box display='flex' gap={1} mt={2} flexDirection={{ xs: 'column', sm: 'row' }}>
                 <TextField
                   placeholder='Search...'
-                  value={editeditems.length > 0 ? editSearchValue : searchTerm}
+                  value={Object.keys(editParam).length > 0 ? editSearchValue : searchTerm}
                   variant='outlined'
                   size='small'
                   onChange={e => {
-                    if (editeditems.length > 0) {
+                    if (Object.keys(editParam).length > 0) {
                       handleEditSearch(e.target.value, mealId)
                     } else {
                       handleCreateSearch(e.target.value)
@@ -562,15 +563,17 @@ const CreateMealGroup = ({
                         </Typography>
                       </Box>
 
-                      <IconButton
-                        size='medium'
-                        sx={{ color: 'text.primary' }}
-                        onClick={() =>
-                          Object.keys(editParam).length > 0 ? handleEnclosureRemove(index) : handleRemove(index)
-                        }
-                      >
-                        <Icon icon='mdi:close' sx={{ fontSize: '24px' }} />
-                      </IconButton>
+                      {mealType.type !== 'view' && (
+                        <IconButton
+                          size='medium'
+                          sx={{ color: 'text.primary' }}
+                          onClick={() =>
+                            Object.keys(editParam).length > 0 ? handleEnclosureRemove(index) : handleRemove(index)
+                          }
+                        >
+                          <Icon icon='mdi:close' sx={{ fontSize: '24px' }} />
+                        </IconButton>
+                      )}
                     </Card>
                   ))
                 ) : (

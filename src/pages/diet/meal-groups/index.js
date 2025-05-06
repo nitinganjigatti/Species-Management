@@ -19,7 +19,8 @@ import {
   Dialog,
   DialogTitle,
   DialogActions,
-  DialogContent
+  DialogContent,
+  CircularProgress
 } from '@mui/material'
 import { fontSize, fontWeight, textAlign } from '@mui/system'
 import React, { useCallback, useContext, useEffect, useState } from 'react'
@@ -69,7 +70,7 @@ const MealGroup = () => {
   const [deleteId, setDeleteId] = useState(null)
   const [groupId, setGroupId] = useState(null)
   const [total, setTotal] = useState(0)
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(true)
   const [Loader, setLoader] = useState(false)
   const [paginationModel, setPaginationModel] = useState({
     page: parseInt(router.query.page) || 0,
@@ -1621,7 +1622,12 @@ const MealGroup = () => {
               width: '100%'
             }}
           >
-            <Typography sx={{ fontSize: '16px', color: '#888' }}>No record found</Typography>
+            {!loading && <Typography sx={{ fontSize: '16px', color: '#888' }}>No record found</Typography>}
+            {loading && (
+              <Box>
+                <CircularProgress />
+              </Box>
+            )}
           </Box>
         )}
       </Card>
