@@ -23,7 +23,8 @@ const SpeciesDietFilterDrawer = ({
   setOpenFilterDrawer,
   setSelectedFiltersOptions,
   selectedOptions,
-  setSelectedOptions
+  setSelectedOptions,
+  setFilterCount
 }) => {
   const theme = useTheme()
   const leftMenu = [{ id: 1, name: 'Class' }]
@@ -175,11 +176,15 @@ const SpeciesDietFilterDrawer = ({
     const selected = selectedOptions[selectedMenu.name] || []
 
     const allSelected = allOptions.length > 0 && selected.length === allOptions.length
-
     setSelectAll(allSelected)
   }, [selectedOptions, selectedMenu, getOptionsForMenu])
 
   const handleApplyFilter = () => {
+    const totalFilters = Object.values(selectedOptions ?? {}).reduce((sum, arr) => {
+      return sum + (Array.isArray(arr) ? arr.length : 0)
+    }, 0)
+
+    setFilterCount(totalFilters) // Update count
     setSelectedFiltersOptions(selectedOptions ?? {})
     handleCloseDrawer()
   }
@@ -370,6 +375,7 @@ const SpeciesDietFilterDrawer = ({
           onClick={() => {
             handleCloseDrawer()
             setSelectedOptions([])
+            setFilterCount(0)
             setSelectedFiltersOptions({})
           }}
         >

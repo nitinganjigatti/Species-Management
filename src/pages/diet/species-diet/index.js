@@ -15,7 +15,8 @@ import {
   InputLabel,
   Select,
   MenuItem,
-  CircularProgress
+  CircularProgress,
+  Badge
 } from '@mui/material'
 
 // ** MUI Imports
@@ -53,6 +54,7 @@ const SpeciesDietList = () => {
   const [openFilterDrawer, setOpenFilterDrawer] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedFiltersOptions, setSelectedFiltersOptions] = useState({})
+  const [filterCount, setFilterCount] = useState(0)
   const [selectedOptions, setSelectedOptions] = useState({
     Class: []
   })
@@ -883,7 +885,9 @@ const SpeciesDietList = () => {
                         }}
                         onClick={() => setOpenFilterDrawer(true)}
                       >
-                        <Icon icon='mage:filter' fontSize={24} />
+                        <Badge badgeContent={filterCount} color='primary'>
+                          <Icon icon='mage:filter' fontSize={24} />
+                        </Badge>
                       </Box>
                     </Box>
                   </Grid>
@@ -1020,6 +1024,7 @@ const SpeciesDietList = () => {
               setSelectedFiltersOptions={setSelectedFiltersOptions}
               selectedOptions={selectedOptions}
               setSelectedOptions={setSelectedOptions}
+              setFilterCount={setFilterCount}
             />
           )}
         </>
