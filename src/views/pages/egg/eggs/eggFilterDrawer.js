@@ -23,7 +23,6 @@ import { AuthContext } from 'src/context/AuthContext'
 import dayjs from 'dayjs'
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
 import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
-import moment from 'moment'
 import { DatePicker } from '@mui/x-date-pickers'
 import { useRouter } from 'next/router'
 
@@ -38,7 +37,7 @@ const EggFilterDrawer = ({
   selectedDate,
   setSelectedDate
 }) => {
-  console.log('selectedOptions :>> ', selectedOptions)
+  // console.log('selectedOptions :>> ', selectedOptions)
   const theme = useTheme()
   const router = useRouter()
 
@@ -52,15 +51,12 @@ const EggFilterDrawer = ({
 
   useEffect(() => {
     if (filter_list) {
-      // console.log('filter_List :>> ', filter_list)
       setFilterList(JSON.parse(filter_list))
     }
     if (selected_options) {
-      // console.log('selected_options :>> ', selected_options)
       setSelectedOptions(JSON.parse(selected_options))
     }
     if (selected_filters_options) {
-      // console.log('selected_filters_options :>> ', selected_filters_options)
       setSelectedFiltersOptions(JSON.parse(selected_filters_options))
     }
   }, [])
@@ -68,8 +64,6 @@ const EggFilterDrawer = ({
   const leftMenu = [
     { id: 1, name: 'Stage' },
     { id: 2, name: 'Site' },
-
-    // { id: 3, name: 'Nursery' },
     { id: 4, name: 'Collected Date' },
     { id: 5, name: 'Collected By' }
   ]
@@ -90,12 +84,7 @@ const EggFilterDrawer = ({
 
   const discardMenu = [
     { id: 2, name: 'Site' },
-
-    // { id: 3, name: 'Nursery' },
-    {
-      id: 4,
-      name: 'Discarded Date'
-    },
+    { id: 4, name: 'Discarded Date' },
     { id: 5, name: 'Discarded By' },
     { id: 6, name: 'Security Check' }
   ]
@@ -333,16 +322,12 @@ const EggFilterDrawer = ({
         [selectedMenu.name]: getOptionsForMenu(selectedMenu).map(item => ({ id: item.id, name: item.name }))
       }
       setSelectedOptions(newSelectedOptions)
-
-      // console.log('Selected All: ')
     } else {
       const newSelectedOptions = {
         ...selectedOptions,
         [selectedMenu.name]: []
       }
       setSelectedOptions(newSelectedOptions)
-
-      // console.log('Deselected All')
     }
   }
 
@@ -658,24 +643,6 @@ const EggFilterDrawer = ({
                 </>
               )}
 
-              {/* {tab_Value === 'all' && selectedMenu?.name === 'Stage' && (
-                <FormControl fullWidth>
-                  <InputLabel id='dropdown-label'>Select Status</InputLabel>
-                  <Select
-                    labelId='dropdown-label'
-                    label='Select Status'
-                    value={selectedDropdownID}
-                    onChange={handleDropdownChange}
-                  >
-                    {eggMaster?.egg_status.map(item => (
-                      <MenuItem key={item.id} value={item.id}>
-                        {item.egg_status}
-                      </MenuItem>
-                    ))}
-                  </Select>
-                </FormControl>
-              )} */}
-
               {(tab_Value === 'all' || tab_Value === 'eggs_incubation') && selectedMenu?.name === 'Stage' && (
                 <FormControl fullWidth>
                   <InputLabel id='dropdown-label'>Select Status</InputLabel>
@@ -689,7 +656,7 @@ const EggFilterDrawer = ({
                       All
                     </MenuItem>
                     {eggMaster?.egg_status
-                      .filter(item => tab_Value !== 'eggs_incubation' || ['1', '2'].includes(item.id))
+                      // .filter(item => tab_Value !== 'eggs_incubation' || ['1', '2'].includes(item.id))
                       .map(item => (
                         <MenuItem key={item.id} value={item.id}>
                           {item.egg_status}
@@ -754,7 +721,7 @@ const EggFilterDrawer = ({
         }}
       >
         <LoadingButton fullWidth variant='outlined' size='large' onClick={handleCloseDrawer}>
-          CANCEL ALL
+          Clear ALL
         </LoadingButton>
         <LoadingButton fullWidth variant='contained' size='large' onClick={handleApplyFilter}>
           APPLY FILTER
