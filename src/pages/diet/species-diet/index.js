@@ -41,6 +41,8 @@ import { getSpeciesList, speciesAttachmentUpload } from 'src/lib/api/diet/specie
 import Toaster from 'src/components/Toaster'
 import UploadDiet from './uploadDiet'
 import Error404 from 'src/pages/404'
+import SpeciesDietFilterDrawer from 'src/views/pages/diet/species/SpeciesDietFilterDrawer'
+import { ExportButton, FilterButton } from 'src/views/utility/render-snippets'
 
 const SpeciesDietList = () => {
   const colWidths = [65, 300, 200, 100]
@@ -57,6 +59,14 @@ const SpeciesDietList = () => {
   // const [attachmentUploadConfirmDialog, setAttachmentUploadConfirmDialog] = useState(false) // has to be modified
   const [filterByDiet, setFilterByDiet] = useState('-1')
   const [exportLoading, setExportLoading] = useState(false)
+
+  const [openFilterDrawer, setOpenFilterDrawer] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [selectedFiltersOptions, setSelectedFiltersOptions] = useState({})
+
+  const [selectedOptions, setSelectedOptions] = useState({
+    Class: []
+  })
 
   ///////////////////////Filter-Code////////////////////////////
   // const [isSearchOpen, setIsSearchOpen] = useState(false)
@@ -127,6 +137,7 @@ const SpeciesDietList = () => {
   const fetchTableData = useCallback(
     async q => {
       try {
+        const classIds = selectedFiltersOptions?.Class?.map(option => option.id) || []
         ///////////////////////Filter-Code////////////////////////////
         // console.log('applyFilters', applyFilters)
         // const siteIds = applyFilters.Site?.map(option => option.id)
@@ -142,7 +153,8 @@ const SpeciesDietList = () => {
           q: q?.q ? q?.q : searchValue,
           page_no: paginationModel.page + 1,
           limit: paginationModel.pageSize,
-          with_diet: filterByDiet
+          with_diet: filterByDiet,
+          class_ids: classIds?.length > 0 ? classIds.toString() : ''
         }
         await getSpeciesList(params).then(res => {
           // Generate uid field based on the index
@@ -161,14 +173,14 @@ const SpeciesDietList = () => {
         setLoading(false)
       }
     },
-    [paginationModel, filterByDiet]
+    [paginationModel, filterByDiet, selectedFiltersOptions]
   )
 
   useEffect(() => {
     if (dietModule) {
       fetchTableData(searchValue)
     }
-  }, [fetchTableData])
+  }, [fetchTableData, selectedFiltersOptions])
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
@@ -356,12 +368,11 @@ const SpeciesDietList = () => {
     },
     {
       width: colWidths[2],
-      // flex: 1,
       sortable: false,
-      field: 'inactive_attachment_count',
-      headerName: 'INACTIVE DIETS',
+      field: 'genus_name',
+      headerName: 'Genus',
       renderCell: params => (
-        <Tooltip title={params.row.inactive_attachment_count ? params.row.inactive_attachment_count : '-'}>
+        <Tooltip title={params.row.genus_name ? params.row.genus_name : ''}>
           <Typography
             noWrap
             sx={{
@@ -374,11 +385,36 @@ const SpeciesDietList = () => {
               ml: 2
             }}
           >
-            {params.row.inactive_attachment_count ? params.row.inactive_attachment_count : '-'}
+            {params.row.genus_name ? params.row.genus_name : ''}
           </Typography>
         </Tooltip>
       )
     },
+    // {
+    //   width: colWidths[2],
+    //   // flex: 1,
+    //   sortable: false,
+    //   field: 'inactive_attachment_count',
+    //   headerName: 'INACTIVE DIETS',
+    //   renderCell: params => (
+    //     <Tooltip title={params.row.inactive_attachment_count ? params.row.inactive_attachment_count : '-'}>
+    //       <Typography
+    //         noWrap
+    //         sx={{
+    //           color: theme.palette.customColors.OnSurfaceVariant,
+    //           fontSize: '16px',
+    //           fontWeight: '400',
+    //           lineHeight: '19.36px',
+    //           overflow: 'hidden',
+    //           textOverflow: 'ellipsis',
+    //           ml: 2
+    //         }}
+    //       >
+    //         {params.row.inactive_attachment_count ? params.row.inactive_attachment_count : '-'}
+    //       </Typography>
+    //     </Tooltip>
+    //   )
+    // },
 
     // {
     //   // flex: '8',
@@ -642,7 +678,8 @@ const SpeciesDietList = () => {
       flex: 1,
       sortable: false,
       field: 'diet_attachment_upload',
-      headerName: '',
+      headerName: 'Action',
+      headerAlign: 'right',
       renderCell: params => (
         <>
           {(dietModuleAccess === 'ADD' || dietModuleAccess === 'EDIT' || dietModuleAccess === 'DELETE') && (
@@ -829,6 +866,15 @@ const SpeciesDietList = () => {
                   />
                 </Box>
                 <Box>
+                  <ExportButton loading={loading || exportLoading} onClick={handleExport} />
+                </Box>
+                <Box>
+                  <FilterButton
+                    onClick={() => setOpenFilterDrawer(true)}
+                    appliedFiltersCount={selectedFiltersOptions['Class']?.length}
+                  />
+                </Box>
+                {/* <Box>
                   <Tooltip title='Export'>
                     <>
                       {loading || exportLoading ? (
@@ -866,6 +912,21 @@ const SpeciesDietList = () => {
                     </>
                   </Tooltip>
                 </Box>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    justifyContent: 'center',
+                    width: '40px',
+                    height: '40px',
+                    borderRadius: '4px',
+                    bgcolor: theme?.palette.customColors?.lightBg,
+                    alignItems: 'center',
+                    cursor: 'pointer'
+                  }}
+                  onClick={() => setOpenFilterDrawer(true)}
+                >
+                  <Icon icon='mage:filter' fontSize={24} />
+                </Box> */}
                 {/* <Box
               sx={{
                 display: 'flex',
@@ -947,6 +1008,7 @@ const SpeciesDietList = () => {
               rowCount={total}
               rowHeight={64}
               disableRowSelectionOnClick
+              disableColumnMenu
               columns={columns}
               sortingMode='server'
               paginationMode='server'
@@ -993,6 +1055,18 @@ const SpeciesDietList = () => {
               setspeciesId={setspeciesId}
               uploadDietDrawer={uploadDietDrawer}
               setUploadDietDrawer={setUploadDietDrawer}
+            />
+          )}
+
+          {openFilterDrawer && (
+            <SpeciesDietFilterDrawer
+              setOpenFilterDrawer={setOpenFilterDrawer}
+              searchQuery={searchQuery}
+              setSearchQuery={setSearchQuery}
+              openFilterDrawer={openFilterDrawer}
+              setSelectedFiltersOptions={setSelectedFiltersOptions}
+              selectedOptions={selectedOptions}
+              setSelectedOptions={setSelectedOptions}
             />
           )}
 
