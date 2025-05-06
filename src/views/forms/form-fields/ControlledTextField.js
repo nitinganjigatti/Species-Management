@@ -16,7 +16,8 @@ const ControlledTextField = ({
   inputProps = {},
   onKeyDown,
   onPaste,
-  onInput
+  onInput,
+  sx = {}
 }) => {
   return (
     <Controller
@@ -42,6 +43,7 @@ const ControlledTextField = ({
           onKeyDown={onKeyDown}
           onPaste={onPaste}
           onInput={onInput}
+          sx={sx}
         />
       )}
     />
