@@ -145,7 +145,7 @@ const SpeciesDietList = () => {
           with_diet: filterByDiet,
           sort_order: newModel?.sort?.toUpperCase(),
           // sort_by: newModel?.field,
-          class_ids: classIds?.length > 0 ? JSON?.stringify(classIds) : ''
+          class_ids: classIds?.length > 0 ? classIds.toString() : ''
         }
         await getSpeciesList(params).then(res => {
           // Generate uid field based on the index
