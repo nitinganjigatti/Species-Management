@@ -349,12 +349,11 @@ export default function NewProductList() {
   const [excelLoader, setExcelLoader] = useState(false)
 
   const handleChange = (event, newValue) => {
-    // Reset total and search value
     setTotal(0)
     setSearchValue('')
     setPaginationModel({ page: 0, pageSize: 10 })
+    setFilterDates('')
 
-    // Update the status
     setStatus(newValue)
 
     // Fetch table data with the new status
