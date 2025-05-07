@@ -97,7 +97,6 @@ const CreateMealGroup = ({
     debounce(async q => {
       setSearchTerm(q)
       if (q.trim() === '') {
-      
         // Search field is cleared — restore from unmapped list using checkedRows
         const data = [...selectedItems] // your original full unmapped list (store this when fetching the full list)
         const filteredData = data.filter(item => checkedRows.includes(item.id)) // adjust key if needed
@@ -129,7 +128,6 @@ const CreateMealGroup = ({
   }
 
   const handleUpdateGroup = async () => {
-    debugger
     console.log('EditItems >', editeditems, removedEnclosures)
     const updatedEnclosure = editeditems?.map(item => item?.enclosure_id)
     if (!groupName.trim()) {
@@ -164,7 +162,6 @@ const CreateMealGroup = ({
 
   const handleEnclosureRemove = async index => {
     console.log('index >', index)
-    debugger
 
     const itemToRemove = editeditems[index] // Get the item being removed
 
@@ -323,7 +320,7 @@ const CreateMealGroup = ({
               <Typography
                 sx={{
                   fontWeight: 500,
-                  color: '#44544A',
+                  color: theme.palette.customColors.OnSurfaceVariant,
                   mb: 1,
                   fontSize: '20px',
                   fontFamily: 'Inter'
@@ -352,7 +349,7 @@ const CreateMealGroup = ({
                       borderRadius: '4px'
                     },
                     input: {
-                      color: '#839D8D'
+                      color: theme.palette.customColors.Outline
                     }
                   }}
                 />
@@ -368,7 +365,7 @@ const CreateMealGroup = ({
                     borderRadius: '8px',
                     justifyContent: 'space-between',
                     alignItems: 'center',
-                    backgroundColor: '#E1F9ED',
+                    backgroundColor: theme.palette.customColors.OnBackground,
                     mt: groupNameError ? 1 : 2,
                     px: 2,
                     py: 1.5,
@@ -378,13 +375,24 @@ const CreateMealGroup = ({
                   <Typography>
                     <Box
                       component='span'
-                      sx={{ fontWeight: 600, fontSize: '16px', fontFamily: 'Inter', mr: 1, color: '#44544A' }}
+                      sx={{
+                        fontWeight: 600,
+                        fontSize: '16px',
+                        fontFamily: 'Inter',
+                        mr: 1,
+                        color: theme.palette.customColors.OnSurfaceVariant
+                      }}
                     >
                       {siteStats?.total_enclosures}
                     </Box>
                     <Box
                       component='span'
-                      sx={{ fontWeight: 500, fontSize: '14px', fontFamily: 'Inter', color: '#44544A' }}
+                      sx={{
+                        fontWeight: 500,
+                        fontSize: '14px',
+                        fontFamily: 'Inter',
+                        color: theme.palette.customColors.OnSurfaceVariant
+                      }}
                     >
                       Enclosures
                     </Box>
@@ -393,13 +401,24 @@ const CreateMealGroup = ({
                   <Typography>
                     <Box
                       component='span'
-                      sx={{ fontWeight: 600, fontSize: '16px', fontFamily: 'Inter', mr: 1, color: '#44544A' }}
+                      sx={{
+                        fontWeight: 600,
+                        fontSize: '16px',
+                        fontFamily: 'Inter',
+                        mr: 1,
+                        color: theme.palette.customColors.OnSurfaceVariant
+                      }}
                     >
                       {siteStats?.total_species}
                     </Box>
                     <Box
                       component='span'
-                      sx={{ fontWeight: 500, fontSize: '14px', fontFamily: 'Inter', color: '#44544A' }}
+                      sx={{
+                        fontWeight: 500,
+                        fontSize: '14px',
+                        fontFamily: 'Inter',
+                        color: theme.palette.customColors.OnSurfaceVariant
+                      }}
                     >
                       Species
                     </Box>
@@ -408,13 +427,24 @@ const CreateMealGroup = ({
                   <Typography>
                     <Box
                       component='span'
-                      sx={{ fontWeight: 600, fontSize: '16px', fontFamily: 'Inter', mr: 1, color: '#44544A' }}
+                      sx={{
+                        fontWeight: 600,
+                        fontSize: '16px',
+                        fontFamily: 'Inter',
+                        mr: 1,
+                        color: theme.palette.customColors.OnSurfaceVariant
+                      }}
                     >
                       {siteStats?.total_animals}
                     </Box>
                     <Box
                       component='span'
-                      sx={{ fontWeight: 500, fontSize: '14px', fontFamily: 'Inter', color: '#44544A' }}
+                      sx={{
+                        fontWeight: 500,
+                        fontSize: '14px',
+                        fontFamily: 'Inter',
+                        color: theme.palette.customColors.OnSurfaceVariant
+                      }}
                     >
                       Animals
                     </Box>
@@ -424,13 +454,13 @@ const CreateMealGroup = ({
             </Card>
           </Box>
 
-          <Box sx={{ p: 3, backgroundColor: '#EEF5F1', borderRadius: '8px' }}>
+          <Box sx={{ p: 3, borderRadius: '8px' }}>
             <Typography
               sx={{
                 fontFamily: 'Inter',
                 fontSize: '20px',
                 fontWeight: 500,
-                color: '#44544A',
+                color: theme.palette.customColors.OnSurfaceVariant,
                 ml: 2,
                 mb: mealType.type === 'view' && 4
               }}
@@ -466,7 +496,7 @@ const CreateMealGroup = ({
                       width: { xs: '96%', sm: '520px', md: '524px' },
                       height: '48px',
                       input: {
-                        color: '#839D8D',
+                        color: theme.palette.customColors.Outline,
                         padding: '10px 0'
                       }
                     }
@@ -528,7 +558,7 @@ const CreateMealGroup = ({
                         m: { xs: 0, sm: 0, md: 0 },
                         mt: { xs: 2, sm: 2, md: 0 },
                         ml: { xs: 0, sm: 0, md: 0 },
-                        backgroundColor: '#E8F3EE',
+                        backgroundColor: theme.palette.customColors.displaybgPrimary,
                         borderRadius: '16px',
                         display: 'flex',
                         boxShadow: 'none',
@@ -538,10 +568,24 @@ const CreateMealGroup = ({
                       }}
                     >
                       <Box>
-                        <Typography sx={{ fontWeight: 500, fontSize: '16px', fontFamily: 'Inter', color: '#44544A' }}>
+                        <Typography
+                          sx={{
+                            fontWeight: 500,
+                            fontSize: '16px',
+                            fontFamily: 'Inter',
+                            color: theme.palette.customColors.OnSurfaceVariant
+                          }}
+                        >
                           {item.user_enclosure_name}
                         </Typography>
-                        <Typography sx={{ fontWeight: 400, fontSize: '14px', fontFamily: 'Inter', color: '#44544A' }}>
+                        <Typography
+                          sx={{
+                            fontWeight: 400,
+                            fontSize: '14px',
+                            fontFamily: 'Inter',
+                            color: theme.palette.customColors.OnSurfaceVariant
+                          }}
+                        >
                           {item.section_name}
                         </Typography>
                       </Box>
@@ -555,10 +599,24 @@ const CreateMealGroup = ({
                           ml: 'auto'
                         }}
                       >
-                        <Typography sx={{ fontFamily: 'Inter', fontSize: '14px', fontWeight: 400, color: '#44544A' }}>
+                        <Typography
+                          sx={{
+                            fontFamily: 'Inter',
+                            fontSize: '14px',
+                            fontWeight: 400,
+                            color: theme.palette.customColors.OnSurfaceVariant
+                          }}
+                        >
                           Species : {item.species_count}
                         </Typography>
-                        <Typography sx={{ fontFamily: 'Inter', fontSize: '14px', fontWeight: 400, color: '#44544A' }}>
+                        <Typography
+                          sx={{
+                            fontFamily: 'Inter',
+                            fontSize: '14px',
+                            fontWeight: 400,
+                            color: theme.palette.customColors.OnSurfaceVariant
+                          }}
+                        >
                           Animals : {item.animal_count}
                         </Typography>
                       </Box>

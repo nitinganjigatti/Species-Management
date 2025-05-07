@@ -18,6 +18,7 @@ import { useEffect, useState } from 'react'
 import toast from 'react-hot-toast'
 import { AddEnclosureToExistng, getMealGroupList } from 'src/lib/api/diet/mealgroup'
 import SelectedEnclosure from './selectedEnclosure'
+import { hexToRGBA } from 'src/@core/utils/hex-to-rgba'
 
 const CreateEnclosure = ({
   enclosureDrawer,
@@ -116,6 +117,13 @@ const CreateEnclosure = ({
   }
 
   const RenderSidebarFooter = () => {
+    function hexToHex8(hex, opacity) {
+      hex = hex.replace('#', '')
+      let alpha = Math.round(opacity * 255)
+        .toString(16)
+        .padStart(2, '0')
+      return `#${hex}${alpha}`
+    }
     return (
       <Box
         sx={{
@@ -139,6 +147,7 @@ const CreateEnclosure = ({
       >
         {/* Left: Selected Dropdown */}
         <Box
+          onClick={handleSelected}
           display='flex'
           alignItems='center'
           sx={{ width: { xs: '100%', sm: 'auto' }, justifyContent: { xs: 'center', sm: 'flex-start' } }}
@@ -146,7 +155,7 @@ const CreateEnclosure = ({
           <Typography
             sx={{
               ml: { xs: 0, sm: 2 },
-              color: '#37BD69',
+              color: theme.palette.primary.main,
               fontWeight: 600,
               fontSize: '16px',
               fontFamily: 'Inter'
@@ -154,7 +163,7 @@ const CreateEnclosure = ({
           >
             {selectedEnclosureIds.length} Selected
           </Typography>
-          <IconButton size='small' sx={{ color: '#37BD69', ml: 1 }} onClick={handleSelected}>
+          <IconButton size='small' sx={{ color: theme.palette.primary.main, ml: 1 }} onClick={handleSelected}>
             <Icon icon='mdi:chevron-down' />
           </IconButton>
         </Box>
@@ -172,8 +181,8 @@ const CreateEnclosure = ({
             sx={{
               height: { xs: '45px', sm: '58px' },
               width: { xs: '100%', sm: '140px' },
-              borderColor: '#37BD6980',
-              color: '#44544ADE',
+              borderColor: hexToHex8('#37BD69', 0.5), // ✅ call function here,
+              color: theme.palette.customColors.customTextColorGray2,
               opacity: 0.8,
               fontWeight: 500
             }}
@@ -187,7 +196,7 @@ const CreateEnclosure = ({
             sx={{
               height: { xs: '45px', sm: '58px' },
               width: { xs: '100%', sm: '140px' },
-              bgcolor: '#37BD69',
+              bgcolor: theme.palette.primary.main,
               fontWeight: 500
             }}
           >
@@ -357,13 +366,21 @@ const CreateEnclosure = ({
                               p: 2,
                               width: '100%',
                               height: '70px',
-                              borderTop: selectedEnclosureIds.includes(item?.enclosure_id) && '1px solid #C3CEC7',
-                              borderLeft: selectedEnclosureIds.includes(item?.enclosure_id) && '1px solid #C3CEC7',
-                              borderRight: selectedEnclosureIds.includes(item?.enclosure_id) && '1px solid #C3CEC7',
+                              borderTop:
+                                selectedEnclosureIds.includes(item?.enclosure_id) &&
+                                `1px solid ${theme.palette.customColors.OutlineVariant}`,
+                              borderLeft:
+                                selectedEnclosureIds.includes(item?.enclosure_id) &&
+                                `1px solid ${theme.palette.customColors.OutlineVariant}`,
+                              borderRight:
+                                selectedEnclosureIds.includes(item?.enclosure_id) &&
+                                `1px solid ${theme.palette.customColors.OutlineVariant}`,
                               borderTopLeftRadius: selectedEnclosureIds.includes(item?.enclosure_id) && '8px',
                               borderTopRightRadius: selectedEnclosureIds.includes(item?.enclosure_id) && '8px',
-                              borderBottom: '1px solid #C3CEC7',
-                              bgcolor: selectedEnclosureIds.includes(item?.enclosure_id) ? '#F2FFF8' : 'white',
+                              borderBottom: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+                              bgcolor: selectedEnclosureIds.includes(item?.enclosure_id)
+                                ? theme.palette.customColors.Surface
+                                : 'white',
                               borderRadius: selectedEnclosureIds.includes(item?.enclosure_id) ? '8px' : '2px',
                               display: 'flex',
                               boxShadow: 'none',
@@ -372,14 +389,20 @@ const CreateEnclosure = ({
                             }}
                           >
                             <Box>
-                              <Typography sx={{ fontWeight: 500, fontSize: '16px', color: '#44544A' }}>
+                              <Typography
+                                sx={{
+                                  fontWeight: 500,
+                                  fontSize: '16px',
+                                  color: theme.palette.customColors.OnSurfaceVariant
+                                }}
+                              >
                                 {item.user_enclosure_name}
                               </Typography>
                               <Typography
                                 sx={{
                                   fontWeight: 400,
                                   fontSize: '14px',
-                                  color: '#44544A',
+                                  color: theme.palette.customColors.OnSurfaceVariant,
                                   maxWidth: '100px',
                                   // overflow: 'hidden',
                                   // textOverflow: 'ellipsis',
@@ -399,10 +422,10 @@ const CreateEnclosure = ({
                                 ml: 'auto'
                               }}
                             >
-                              <Typography sx={{ fontSize: '14px', color: '#44544A' }}>
+                              <Typography sx={{ fontSize: '14px', color: theme.palette.customColors.OnSurfaceVariant }}>
                                 Species: {item.species_count}
                               </Typography>
-                              <Typography sx={{ fontSize: '14px', color: '#44544A' }}>
+                              <Typography sx={{ fontSize: '14px', color: theme.palette.customColors.OnSurfaceVariant }}>
                                 Animals: {item.animal_count}
                               </Typography>
                             </Box>

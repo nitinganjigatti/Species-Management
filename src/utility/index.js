@@ -258,6 +258,15 @@ const decryptData = cipherText => {
   return JSON.parse(bytes.toString(CryptoJS.enc.Utf8))
 }
 
+function hexToHex8(hex, opacity) {
+  debugger
+  hex = hex.replace('#', '')
+  let alpha = Math.round(opacity * 255)
+    .toString(16)
+    .padStart(2, '0')
+  return `#${hex}${alpha}`
+}
+
 const Utility = {
   formatDate,
   formatNumber,
@@ -281,7 +290,8 @@ const Utility = {
   renderUserAvatar,
   formatAmountCompactDisplay,
   encryptData,
-  decryptData
+  decryptData,
+  hexToHex8
 }
 
 export default Utility
