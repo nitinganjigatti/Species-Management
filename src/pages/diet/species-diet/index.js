@@ -51,7 +51,7 @@ const SpeciesDietList = () => {
   const [rows, setRows] = useState([])
   const [searchValue, setSearchValue] = useState('')
   // const [sortColumning, setsortColumning] = useState('ingredient_name')
-  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
+  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 25 })
   const [loading, setLoading] = useState(false)
 
   const [speciesDetailsDrawer, setSpeciesDetailsDrawer] = useState(false) // has to be modified
@@ -256,7 +256,7 @@ const SpeciesDietList = () => {
     {
       width: colWidths[0],
       field: 'id',
-      headerName: '#',
+      headerName: 'sl.no',
       align: 'center',
       sortable: false,
       renderCell: params => (
