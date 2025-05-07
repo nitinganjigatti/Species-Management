@@ -34,6 +34,7 @@ import UploadDiet from '../../../components/diet/species-diet/uploadDiet'
 import { getSpeciesList, speciesAttachmentUpload } from 'src/lib/api/diet/speciesDiet'
 import Error404 from 'src/pages/404'
 import SpeciesDietFilterDrawer from 'src/views/pages/diet/species/SpeciesDietFilterDrawer'
+import { FilterButton } from '../../../views/utility/render-snippets'
 
 const SpeciesDietList = () => {
   const colWidths = [65, 300, 200, 100]
@@ -872,23 +873,13 @@ const SpeciesDietList = () => {
                           </>
                         </Tooltip>
                       </Box>
-                      <Box
-                        sx={{
-                          display: 'flex',
-                          justifyContent: 'center',
-                          width: '40px',
-                          height: '40px',
-                          borderRadius: '4px',
-                          bgcolor: theme?.palette.customColors?.lightBg,
-                          alignItems: 'center',
-                          cursor: 'pointer'
-                        }}
+
+                      <FilterButton
                         onClick={() => setOpenFilterDrawer(true)}
-                      >
-                        <Badge badgeContent={filterCount} color='primary'>
-                          <Icon icon='mage:filter' fontSize={24} />
-                        </Badge>
-                      </Box>
+                        appliedFiltersCount={filterCount}
+                        icon='mage:filter'
+                        iconSize={24}
+                      />
                     </Box>
                   </Grid>
 
