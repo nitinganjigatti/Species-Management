@@ -15,7 +15,8 @@ import {
   InputLabel,
   Select,
   MenuItem,
-  CircularProgress
+  CircularProgress,
+  Badge
 } from '@mui/material'
 
 // ** MUI Imports
@@ -32,6 +33,7 @@ import SpeciesDetails from '../../../components/diet/species-diet/speciesDetails
 import UploadDiet from '../../../components/diet/species-diet/uploadDiet'
 import { getSpeciesList, speciesAttachmentUpload } from 'src/lib/api/diet/speciesDiet'
 import Error404 from 'src/pages/404'
+import SpeciesDietFilterDrawer from 'src/views/pages/diet/species/SpeciesDietFilterDrawer'
 
 const SpeciesDietList = () => {
   const colWidths = [65, 300, 200, 100]
@@ -48,6 +50,14 @@ const SpeciesDietList = () => {
   // const [attachmentUploadConfirmDialog, setAttachmentUploadConfirmDialog] = useState(false) // has to be modified
   const [filterByDiet, setFilterByDiet] = useState('-1')
   const [exportLoading, setExportLoading] = useState(false)
+
+  const [openFilterDrawer, setOpenFilterDrawer] = useState(false)
+  const [searchQuery, setSearchQuery] = useState('')
+  const [selectedFiltersOptions, setSelectedFiltersOptions] = useState({})
+  const [filterCount, setFilterCount] = useState(0)
+  const [selectedOptions, setSelectedOptions] = useState({
+    Class: []
+  })
 
   ///////////////////////Filter-Code////////////////////////////
   // const [isSearchOpen, setIsSearchOpen] = useState(false)
@@ -118,6 +128,7 @@ const SpeciesDietList = () => {
   const fetchTableData = useCallback(
     async (q, newModel) => {
       try {
+        const classIds = selectedFiltersOptions?.Class?.map(option => option.id) || []
         ///////////////////////Filter-Code////////////////////////////
         // console.log('applyFilters', applyFilters)
         // const siteIds = applyFilters.Site?.map(option => option.id)
@@ -134,8 +145,9 @@ const SpeciesDietList = () => {
           page_no: paginationModel.page + 1,
           limit: paginationModel.pageSize,
           with_diet: filterByDiet,
-          sort_order: newModel.sort.toUpperCase(),
-          sort_by: newModel.field
+          sort_order: newModel?.sort?.toUpperCase(),
+          // sort_by: newModel?.field,
+          class_ids: classIds?.length > 0 ? classIds.toString() : ''
         }
         await getSpeciesList(params).then(res => {
           // Generate uid field based on the index
@@ -154,12 +166,12 @@ const SpeciesDietList = () => {
         setLoading(false)
       }
     },
-    [paginationModel, filterByDiet]
+    [paginationModel, filterByDiet, selectedFiltersOptions]
   )
 
   useEffect(() => {
     fetchTableData(searchValue)
-  }, [fetchTableData])
+  }, [fetchTableData, selectedFiltersOptions])
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
@@ -221,7 +233,6 @@ const SpeciesDietList = () => {
       width: colWidths[1],
       sortable: false,
       field: 'scientific_name',
-      sortable: true,
       headerName: 'SPECIES',
       renderCell: params => (
         <Box onClick={() => setSpeciesDetailsDrawer(true)} sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -310,7 +321,6 @@ const SpeciesDietList = () => {
       width: colWidths[2],
       sortable: false,
       field: 'genus_name',
-      sortable: true,
       headerName: 'Genus',
       renderCell: params => (
         <Tooltip title={params.row.genus_name ? params.row.genus_name : ''}>
@@ -862,6 +872,23 @@ const SpeciesDietList = () => {
                           </>
                         </Tooltip>
                       </Box>
+                      <Box
+                        sx={{
+                          display: 'flex',
+                          justifyContent: 'center',
+                          width: '40px',
+                          height: '40px',
+                          borderRadius: '4px',
+                          bgcolor: theme?.palette.customColors?.lightBg,
+                          alignItems: 'center',
+                          cursor: 'pointer'
+                        }}
+                        onClick={() => setOpenFilterDrawer(true)}
+                      >
+                        <Badge badgeContent={filterCount} color='primary'>
+                          <Icon icon='mage:filter' fontSize={24} />
+                        </Badge>
+                      </Box>
                     </Box>
                   </Grid>
 
@@ -938,6 +965,7 @@ const SpeciesDietList = () => {
               rowCount={total}
               rowHeight={64}
               disableRowSelectionOnClick
+              disableColumnMenu
               columns={columns}
               sortingMode='server'
               paginationMode='server'
@@ -985,6 +1013,18 @@ const SpeciesDietList = () => {
               setspeciesId={setspeciesId}
               uploadDietDrawer={uploadDietDrawer}
               setUploadDietDrawer={setUploadDietDrawer}
+            />
+          )}
+          {openFilterDrawer && (
+            <SpeciesDietFilterDrawer
+              setOpenFilterDrawer={setOpenFilterDrawer}
+              searchQuery={searchQuery}
+              setSearchQuery={setSearchQuery}
+              openFilterDrawer={openFilterDrawer}
+              setSelectedFiltersOptions={setSelectedFiltersOptions}
+              selectedOptions={selectedOptions}
+              setSelectedOptions={setSelectedOptions}
+              setFilterCount={setFilterCount}
             />
           )}
         </>
