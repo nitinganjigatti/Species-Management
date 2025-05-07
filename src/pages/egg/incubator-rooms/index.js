@@ -137,10 +137,9 @@ const RoomsList = () => {
 
   const columns = [
     {
-      flex: 0.05,
-      Width: 40,
+      minWidth: 80,
       field: 'id',
-      headerName: 'NO ',
+      headerName: 'SL.NO',
       sortable: false,
       align: 'center',
       renderCell: params => (

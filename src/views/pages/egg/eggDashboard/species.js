@@ -172,9 +172,9 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
 
   const columnSpecies = [
     {
-      width: 60,
+      width: 80,
       field: 'uid',
-      headerName: 'SL',
+      headerName: 'SL.NO',
       disableColumnMenu: true,
       sortable: false,
       align: 'center',
@@ -798,9 +798,9 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
 
   const columnSites = [
     {
-      width: 60,
+      width: 80,
       field: 'uid',
-      headerName: 'SL',
+      headerName: 'SL.NO',
       disableColumnMenu: true,
       sortable: false,
       align: 'center',
@@ -1402,9 +1402,9 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
 
   const columnNurseries = [
     {
-      width: 60,
+      width: 80,
       field: 'uid',
-      headerName: 'SL',
+      headerName: 'SL.NO',
       disableColumnMenu: true,
       sortable: false,
       align: 'center',
