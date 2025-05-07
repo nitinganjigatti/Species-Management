@@ -192,11 +192,10 @@ const MealGroup = () => {
     }
   }
 
-  const fetchEnclosure = async () => {
+  const fetchEnclosure = async passedParams => {
     if (!selectedOption) return
 
     setLoading(true)
-    debugger
 
     if (status === 'mealgroup') {
       const groupparams = {
@@ -221,8 +220,7 @@ const MealGroup = () => {
       return
     }
 
-    // Build params conditionally
-    const params = {
+    const params = passedParams || {
       type: status,
       q: searchValue,
       site_id: selectedOption,
@@ -230,21 +228,15 @@ const MealGroup = () => {
       limit: paginationModel.pageSize
     }
 
-    // Add section_ids only if selectedSection is NOT ['all']
     if (selectedSection !== 'all') {
       params.section_ids = JSON.stringify([selectedSection])
     }
-
     if (selectedSpecies !== 'all') {
       params.species_ids = JSON.stringify([selectedSpecies])
     }
     if (selectedGroup !== 'all') {
       params.meal_group_ids = JSON.stringify([selectedGroup])
     }
-    // If you have species_ids or other filters, add them similarly
-    // if (selectedSpecies.length > 0) {
-    //   params.species_ids = JSON.stringify(selectedSpecies)
-    // }
 
     try {
       const response = await getEnclosureList(params)
@@ -260,6 +252,7 @@ const MealGroup = () => {
       setLoading(false)
     }
   }
+
   const debouncedSearch = useCallback(
     debounce(async q => {
       setSearchValue(q)
@@ -278,7 +271,7 @@ const MealGroup = () => {
         console.log(err)
       }
     }, 1000),
-    [selectedOption] // track selectedOption in dependencies
+    [selectedOption, status] // track selectedOption in dependencies
   )
 
   const debouncedEnclosureSearch = useCallback(
@@ -431,7 +424,7 @@ const MealGroup = () => {
     paginationModel.pageSize,
     selectedSection,
     selectedSpecies,
-    // selectedGroup
+    selectedGroup
   ])
 
   const StatCard = ({ value, label, bgColor, textColor }) => (
