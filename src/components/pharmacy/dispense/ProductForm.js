@@ -144,7 +144,7 @@ function ProductForm({
                 const isValid = product_batches?.every(item => {
                   const batchQty = parseFloat(item?.batch_no?.qty)
                   const inputQty = parseFloat(item?.qty)
-                  
+
                   if (isNaN(batchQty) || isNaN(inputQty)) return true
 
                   return inputQty <= batchQty
@@ -945,7 +945,7 @@ function ProductForm({
                                   <Typography variant='body2' color='customColors.neutralSecondary'>
                                     Expiry Date: {Utility.formatDisplayDate(option?.expiry_date)}
                                   </Typography>
-                                  <Typography variant='body2' color='customColors.Tertiary'>
+                                  <Typography variant='body2' color='primary.main'>
                                     Availability: {option?.qty}
                                   </Typography>
                                 </Box>
@@ -998,7 +998,7 @@ function ProductForm({
                         <TextField
                           disabled
                           type='text'
-                          value={value || ""}
+                          value={value || ''}
                           InputLabelProps={{ shrink: true }}
                           label='Product Variant'
                           error={Boolean(errors?.product_batches?.[index]?.multiplier)}
