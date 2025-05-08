@@ -1167,7 +1167,7 @@ const MealGroup = () => {
   console.log('Indexed >', indexedRows)
 
   const handleSiteChange = site => {
-    debugger
+   
     if (!site) {
       setDefaultSite(null)
       setSelectedOption(null)
@@ -1525,7 +1525,6 @@ const MealGroup = () => {
             )}
           </Box>
         )}
-
         <Grid
           sx={{
             mx: { xs: 1, sm: 3, md: 2 },
@@ -1538,17 +1537,33 @@ const MealGroup = () => {
               <CircularProgress />
             </Box>
           ) : (
-            <CommonTable
-              onRowClick={status === 'mealgroup' ? handleView : undefined}
-              indexedRows={status === 'mealgroup' ? GroupindexedRows : indexedRows}
-              total={total}
-              handleSortModel={''}
-              columns={status === 'mealgroup' ? groupcolumns : columns}
-              paginationModel={paginationModel}
-              setPaginationModel={setPaginationModel}
-              loading={loading}
-              searchValue={''}
-            />
+            <>
+              {(() => {
+                const dataRows = status === 'mealgroup' ? GroupindexedRows : indexedRows
+                if (!dataRows || dataRows.length === 0) {
+                  return (
+                    <Box sx={{ display: 'flex', justifyContent: 'center', py: 10 }}>
+                      <Typography sx={{ fontSize: '16px' }} color='text.secondary'>
+                        No record found
+                      </Typography>
+                    </Box>
+                  )
+                }
+                return (
+                  <CommonTable
+                    onRowClick={status === 'mealgroup' ? handleView : undefined}
+                    indexedRows={dataRows}
+                    total={total}
+                    handleSortModel={''}
+                    columns={status === 'mealgroup' ? groupcolumns : columns}
+                    paginationModel={paginationModel}
+                    setPaginationModel={setPaginationModel}
+                    loading={loading}
+                    searchValue={''}
+                  />
+                )
+              })()}
+            </>
           )}
 
           <Dialog open={openDeleteEnclosureDialog} onClose={cancelEnclosureDialog}>
