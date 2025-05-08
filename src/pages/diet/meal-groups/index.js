@@ -1526,16 +1526,18 @@ const MealGroup = () => {
           </Box>
         )}
 
-        {enclosureList.length > 0 ? (
-          <Grid
-            sx={{
-              mx: { xs: 1, sm: 3, md: 2 },
-              mb: 5,
-              pb: { xs: 0, sm: 5 }
-            }}
-          >
-            {' '}
-            {/* 👈 wrap CommonTable */}
+        <Grid
+          sx={{
+            mx: { xs: 1, sm: 3, md: 2 },
+            mb: 5,
+            pb: { xs: 0, sm: 5 }
+          }}
+        >
+          {loading ? (
+            <Box sx={{ display: 'flex', justifyContent: 'center', py: 10 }}>
+              <CircularProgress />
+            </Box>
+          ) : (
             <CommonTable
               onRowClick={status === 'mealgroup' ? handleView : undefined}
               indexedRows={status === 'mealgroup' ? GroupindexedRows : indexedRows}
@@ -1547,51 +1549,36 @@ const MealGroup = () => {
               loading={loading}
               searchValue={''}
             />
-            <Dialog open={openDeleteEnclosureDialog} onClose={cancelEnclosureDialog}>
+          )}
+
+          <Dialog open={openDeleteEnclosureDialog} onClose={cancelEnclosureDialog}>
+            <DialogTitle>Confirm Deletion</DialogTitle>
+            <DialogContent>Are you sure you want to remove the enclosure?</DialogContent>
+            <DialogActions>
+              <Button onClick={cancelEnclosureDialog} color='primary'>
+                Cancel
+              </Button>
+              <Button onClick={confirmEnclosureDelete} color='error' variant='contained'>
+                Delete
+              </Button>
+            </DialogActions>
+          </Dialog>
+
+          {status === 'mealgroup' && (
+            <Dialog open={openDeleteDialog} onClose={handleCloseDialog}>
               <DialogTitle>Confirm Deletion</DialogTitle>
-              <DialogContent>Are you sure you want to remove the enclosure?</DialogContent>
+              <DialogContent>Are you sure you want to delete this group?</DialogContent>
               <DialogActions>
-                <Button onClick={cancelEnclosureDialog} color='primary'>
+                <Button onClick={handleCloseDialog} color='primary'>
                   Cancel
                 </Button>
-                <Button onClick={confirmEnclosureDelete} color='error' variant='contained'>
+                <Button onClick={handleConfirmDelete} color='error' variant='contained'>
                   Delete
                 </Button>
               </DialogActions>
             </Dialog>
-            {status === 'mealgroup' && (
-              <Dialog open={openDeleteDialog} onClose={handleCloseDialog}>
-                <DialogTitle>Confirm Deletion</DialogTitle>
-                <DialogContent>Are you sure you want to delete this group?</DialogContent>
-                <DialogActions>
-                  <Button onClick={handleCloseDialog} color='primary'>
-                    Cancel
-                  </Button>
-                  <Button onClick={handleConfirmDelete} color='error' variant='contained'>
-                    Delete
-                  </Button>
-                </DialogActions>
-              </Dialog>
-            )}
-          </Grid>
-        ) : (
-          <Box
-            sx={{
-              display: 'flex',
-              justifyContent: 'center',
-              alignItems: 'center',
-              height: '300px', // adjust as needed
-              width: '100%'
-            }}
-          >
-            {!loading && <Typography sx={{ fontSize: '16px', color: '#888' }}>No record found</Typography>}
-            {loading && (
-              <Box>
-                <CircularProgress />
-              </Box>
-            )}
-          </Box>
-        )}
+          )}
+        </Grid>
       </Card>
 
       {/* Footer Card */}
