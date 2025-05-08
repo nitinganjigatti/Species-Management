@@ -66,7 +66,7 @@ import Image from 'next/image'
 import UploadIcon from 'public/images/upload_invoice_icon.png'
 import TotalAmountIcon from 'public/images/amount_summary.png'
 import { borderRadius, getValue } from '@mui/system'
-import { getVariantFOrProduct } from 'src/lib/api/pharmacy/variant'
+import { getVariantFOrProduct, getVariants } from 'src/lib/api/pharmacy/variant'
 import PurchaseInvoiceUpload from './PurchaseInvoiceUpload'
 import { v4 as uuidv4 } from 'uuid'
 
@@ -201,6 +201,7 @@ const AddPurchaseForm = () => {
   const [invoiceUploadDialog, setInvoiceUploadDialog] = useState(false)
   const [showAmount, setShowAmount] = useState(false)
   const [invoiceSubmitLoader, setInvoiceSubmitLoader] = useState(false)
+  const [variantLists, setVariantLists] = useState([])
 
   const schema = yup.object().shape({
     // product: yup.string().required('Product name is required'),
@@ -247,9 +248,7 @@ const AddPurchaseForm = () => {
   const showDialog = () => {
     setShow(true)
   }
-  useEffect(() => {
-    console.log('edit params', editParams)
-  }, [editParams])
+
   // const getStoreType = id => {
   //   const foundOStores = stores.find(item => item.id === id)
   //   if (foundOStores) {
@@ -296,9 +295,9 @@ const AddPurchaseForm = () => {
     const totalFreight = parseFloat(totalFreightCharges) || 0
     const additional = parseFloat(additionalCharges) || 0
     const totalItems = parseFloat(totalLineItemsPurchase) || 0
-    console.log('additional', additional)
-    console.log('totalItems', totalItems)
-    console.log('totalFreight', totalFreight)
+    // console.log('additional', additional)
+    // console.log('totalItems', totalItems)
+    // console.log('totalFreight', totalFreight)
     const result = totalItems + totalFreight + additional + roundUp
 
     return result
@@ -658,8 +657,6 @@ const AddPurchaseForm = () => {
         if (response?.success) {
           toast.success(response.message)
           if (postData?.purchase_created_by === 'invoice_upload') {
-            // debugger
-
             const suggestionData = postData?.purchase_details?.map(el => {
               return {
                 ml_product_name: el?.medicine_name_by_ml,
@@ -860,11 +857,10 @@ const AddPurchaseForm = () => {
 
   const getProductVariantByproductId = async productId => {
     const productVariant = await getVariantFOrProduct(productId)
-    // debugger
 
     // if (editParams.purchase_created_by === 'invoice_upload') {
     //   const data = {
-    //     value: 1,
+    //     value: 16,
     //     label: 1,
     //     description: '',
     //     is_default: ''
@@ -1060,8 +1056,6 @@ const AddPurchaseForm = () => {
         // purchase_tax_amount: getItems[0].purchase_tax_amount
       })
     } else {
-      console.log('on else', editParams.purchase_details)
-
       const getItems = editParams.purchase_details.filter(el => {
         return el.uid === itemId && el.medicine_name === medicineName && el.purchase_batch_no === purchase_batch_no
       })
@@ -1374,8 +1368,7 @@ const AddPurchaseForm = () => {
     const params = { transcript_id: deleteId }
     setDeleteLoader(true)
     try {
-      const res = await postDeleteInvoiceById(id, params) // Call the actual API function
-      // console.log('res', res)
+      const res = await postDeleteInvoiceById(id, params)
       if (res?.success) {
         if (id != undefined && action === 'edit') {
           getListOfItemsById(id)
@@ -1389,6 +1382,21 @@ const AddPurchaseForm = () => {
     } finally {
       setDeleteLoader(false)
       setConfirmDeleteDialog(false)
+    }
+  }
+
+  const fetchAllVariantsList = async (sort, q, column) => {
+    try {
+      const params = {
+        sort,
+        q,
+        column
+      }
+      await getVariants({ params: params }).then(res => {
+        setVariantLists(res?.data?.list_items)
+      })
+    } catch (e) {
+      console.log(e)
     }
   }
 
@@ -1442,6 +1450,7 @@ const AddPurchaseForm = () => {
   useEffect(() => {
     getStoresLists()
     getSuppliersLists()
+    fetchAllVariantsList()
   }, [])
 
   // useEffect(() => {
@@ -1451,7 +1460,7 @@ const AddPurchaseForm = () => {
   // }, [grandTotalAmount])
 
   const validateErrorForItemId = () => {
-    const error = editParams.purchase_details.some(
+    const error = editParams?.purchase_details?.some(
       el =>
         el?.purchase_stock_item_id === '' ||
         el?.purchase_stock_item_id === null ||
@@ -2164,6 +2173,11 @@ const AddPurchaseForm = () => {
             </Grid>
           </Grid>
         </CardContent>
+        {validateErrorForItemId() && (
+          <Typography sx={{ color: 'error.main', mx: 6, mb: 2 }}>
+            Kindly review all invoice entries carefully before saving the purchase.
+          </Typography>
+        )}
         <Box
           sx={{
             mx: '20px',
@@ -2293,28 +2307,29 @@ const AddPurchaseForm = () => {
                   <TableCell align='right'>Action</TableCell>
                 </TableRow>
               </TableHead>
-              {console.log('editParams?.purchase_details', editParams?.purchase_details)}
               <TableBody>
                 {editParams?.purchase_details
                   ? editParams?.purchase_details.map((el, index) => {
-                      // validateErrorForItemId(index, el)
-
                       return (
                         <TableRow key={index} sx={{ overflowX: 'scroll' }}>
                           <TableCell>
                             <Typography variant='body2'>{index + 1}</Typography>
                           </TableCell>
                           <TableCell>
-                            {el?.medicine_name}
+                            <Typography
+                              sx={{ color: (!el?.purchase_stock_item_id || !el?.medicine_name) && 'error.main' }}
+                            >
+                              {el?.medicine_name}
+                            </Typography>
 
                             <Typography variant='body2'>{el?.package_details}</Typography>
+
                             <Typography variant='body2'>{el?.manufacture}</Typography>
-                            {!el?.purchase_stock_item_id || !el?.medicine_name || !el?.purchase_unit_id ? (
+                            {/* {(!el?.purchase_stock_item_id || !el?.medicine_name) && (
                               <Typography sx={{ color: 'error.main', fontSize: '12px' }}>
-                                {/* {itemIdIdErrors[index]} */}
                                 Some product information appears to be missing. Kindly update the details.
                               </Typography>
-                            ) : null}
+                            )} */}
                           </TableCell>
                           <TableCell>{el?.purchase_batch_no}</TableCell>
                           <TableCell>
@@ -2724,7 +2739,6 @@ const AddPurchaseForm = () => {
                         {/* {totalLineItemsPurchase?.toFixed(2)} */}
                         {/* {grandTotalAmount ? grandTotalAmount?.toFixed(2) : 0.0} */}
                         {showAmount && grandTotalAmount?.toFixed(2)}
-                        {console.log('grandTotalAmount', grandTotalAmount)}
                       </Typography>
                       {/* {/* Input Box with Icon */}
 
@@ -2959,6 +2973,7 @@ const AddPurchaseForm = () => {
         dialogBoxStatus={invoiceUploadDialog}
         formComponent={
           <PurchaseInvoiceUpload
+            variantLists={variantLists}
             setPurchaseItems={setEditParams}
             reset={reset}
             closeDialog={() => {

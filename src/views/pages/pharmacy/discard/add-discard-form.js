@@ -241,42 +241,42 @@ export const AddItemsForm = ({
     setTotalAvailableCount(available_qty)
   }
 
-  const handleProductChange = (value) => {
-    setValue('request_item', value, { shouldValidate: true });
-    setValue('batch_no', '', { shouldValidate: true });
-    setValue('expiry_date', '', { shouldValidate: true });
-    setValue('available_item_qty', '', { shouldValidate: true });
-    setValue('reason', '', { shouldValidate: true });
-    setValue('stock_type', '');
-    setValue('packageDetails', '');
-    setValue('manufacture', '');
-  
+  const handleProductChange = value => {
+    setValue('request_item', value, { shouldValidate: true })
+    setValue('batch_no', '', { shouldValidate: true })
+    setValue('expiry_date', '', { shouldValidate: true })
+    setValue('available_item_qty', '', { shouldValidate: true })
+    setValue('reason', '', { shouldValidate: true })
+    setValue('stock_type', '')
+    setValue('packageDetails', '')
+    setValue('manufacture', '')
+
     if (!value?.expiry_date) {
       setError('expiry_date', {
         type: 'manual',
-        message: 'Expiry Date is required',
-      });
+        message: 'Expiry Date is required'
+      })
     } else {
-      clearErrors('expiry_date');
+      clearErrors('expiry_date')
     }
-  
-    if (value !== '' && value !== null) {
-      setQuantityError(false);
-      searchBatchData(value?.value, value?.stock_type);
-      setValue('stock_type', value?.stock_type);
-      setValue('packageDetails', value?.packageDetails);
-      setValue('manufacture', value?.manufacture);
-      setValue('control_substance', value?.control_substance);
-    }
-  
-    checkTotalCount();
-  };
 
-  const handleBatchChange = (value) => {
+    if (value !== '' && value !== null) {
+      setQuantityError(false)
+      searchBatchData(value?.value, value?.stock_type)
+      setValue('stock_type', value?.stock_type)
+      setValue('packageDetails', value?.packageDetails)
+      setValue('manufacture', value?.manufacture)
+      setValue('control_substance', value?.control_substance)
+    }
+
+    checkTotalCount()
+  }
+
+  const handleBatchChange = value => {
     const isExpired = dayjs(value?.expiry_date, 'YYYY-MM-DD').isBefore(dayjs())
 
     if (isExpired) {
-      setValue('reason', 'Expired', { shouldValidate: true })
+      setValue('reason', 'Product Expired', { shouldValidate: true })
     } else {
       setValue('reason', '', { shouldValidate: true })
     }
@@ -298,7 +298,7 @@ export const AddItemsForm = ({
     setQuantityError(false)
     checkTotalCount()
   }
-  
+
   useEffect(() => {
     checkTotalCount()
   }, [totalQuantity])

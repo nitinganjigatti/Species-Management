@@ -265,3 +265,5 @@ export const ALL_REQUESTED_ITEMS_REPORT = 'all-requested-items'
 export const PRODUCT_MAPPING_FOR_ML = 'v1/public/pharmacy/ml/product-mapping/bulkInsert'
 
 export const STOCK_LIST = 'stock-item'
+
+export const VARIANTS_MAPPING_FOR_BATCH = 'variantMappingBatch'
