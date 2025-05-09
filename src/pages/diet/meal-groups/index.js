@@ -1188,12 +1188,15 @@ const MealGroup = () => {
   }
 
   const addEventSidebarOpen = event => {
-    console.log('Edit >>', editParam) 
     event.stopPropagation()
+
+    // Collect selected row objects from checkedRows
+    const selected = enclosureList.filter(row => checkedRows.includes(row.enclosure_id))
+
+    setSelectedItems(selected)
     setEditParam({})
-    setEditItems([])
+    setEditItems(selected)
     setmealType({ type: 'edit' })
-    // setSelectedItems([])
     setOpenDrawer(true)
   }
 
@@ -1668,7 +1671,7 @@ const MealGroup = () => {
       )}
 
       {openDrawer && (
-        <CreateMealGroup 
+        <CreateMealGroup
           openDrawer={openDrawer}
           handleCloseSideBar={handleCloseSideBar}
           selectedItems={selectedItems}

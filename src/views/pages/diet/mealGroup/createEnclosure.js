@@ -175,13 +175,19 @@ const CreateEnclosure = ({
           sx={{ width: { xs: '100%', sm: 'auto' }, justifyContent: { xs: 'center', sm: 'flex-end' } }}
         >
           <Button
-            onClick={() => setEnclosureDrawer(false)}
+            onClick={event => {
+              event.stopPropagation()
+              setSelectedEnclosureIds([]) // ✅ clear enclosure-specific IDs
+              // setCheckedRows([]) // ✅ clear checkboxes
+              setSelectedItems([]) // ✅ clear selected rows
+              setEnclosureDrawer(false) // ✅ close the enclosure drawer
+            }}
             variant='outlined'
             fullWidth
             sx={{
               height: { xs: '45px', sm: '58px' },
               width: { xs: '100%', sm: '140px' },
-              borderColor: hexToHex8('#37BD69', 0.5), // ✅ call function here,
+              borderColor: hexToHex8(theme.palette.primary.main, 0.5), // ✅ call function here,
               color: theme.palette.customColors.customTextColorGray2,
               opacity: 0.8,
               fontWeight: 500
@@ -292,7 +298,7 @@ const CreateEnclosure = ({
                       backgroundColor: 'white',
                       borderRadius: '8px',
                       height: '48px',
-                      input: { color: '#839D8D', padding: '10px 0' }
+                      input: { color: theme.palette.customColors.Outline, padding: '10px 0' }
                     }
                   }}
                 />
