@@ -5,8 +5,7 @@ import { useTheme } from '@emotion/react'
 import { useState } from 'react'
 import { LoadingButton } from '@mui/lab'
 
-const 
-SiteSheet = ({
+const SiteSheet = ({
   openSiteDrawer,
   setOpenSiteDrawer,
   sites,
@@ -36,7 +35,6 @@ SiteSheet = ({
 
   const filteredSites = sites.filter(site => site.site_name.toLowerCase().includes(searchValue.toLowerCase()))
 
-  
   const handleConfirmSelection = () => {
     debugger
     const totalSites = [...sites] // Assuming sites is an array of objects
@@ -70,7 +68,6 @@ SiteSheet = ({
   const theme = useTheme()
 
   return (
-  
     <Drawer
       anchor='right'
       open={openSiteDrawer}
@@ -130,21 +127,23 @@ SiteSheet = ({
           />
 
           {/* Select All */}
-          <FormControlLabel
-            control={
-              <Checkbox
-                checked={tempSelectedSites.length === sites.length}
-                onChange={handleSelectAll}
-                indeterminate={tempSelectedSites.length > 0 && tempSelectedSites.length < sites.length}
-              />
-            }
-            label={
-              <Typography sx={{ color: '#839D8D', fontSize: '16px', fontFamily: 'Inter', fontWeight: 400 }}>
-                Select All
-              </Typography>
-            }
-            sx={{ mb: 1, ml: 1 }}
-          />
+          {filteredSites.length > 0 && (
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={tempSelectedSites.length === sites.length}
+                  onChange={handleSelectAll}
+                  indeterminate={tempSelectedSites.length > 0 && tempSelectedSites.length < sites.length}
+                />
+              }
+              label={
+                <Typography sx={{ color: '#839D8D', fontSize: '16px', fontFamily: 'Inter', fontWeight: 400 }}>
+                  Select All
+                </Typography>
+              }
+              sx={{ mb: 1, ml: 1 }}
+            />
+          )}
           <Divider sx={{ mb: 4 }} />
 
           {/* Sites List */}
@@ -178,7 +177,7 @@ SiteSheet = ({
                   }}
                 />
                 <Typography
-                  variant='body2' 
+                  variant='body2'
                   sx={{
                     fontWeight: 400,
                     fontFamily: 'Inter',
@@ -220,4 +219,5 @@ SiteSheet = ({
     </Drawer>
   )
 }
+
 export default SiteSheet

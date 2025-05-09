@@ -1447,8 +1447,8 @@ const AddLab = () => {
                               </CardContent>
                             </Card>
                           </Grid>
-                          <Grid item xs={12} md={12} sm={6}>
-                            <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+                          <Grid item xs={12}>
+                            <Box sx={{ display: 'flex', justifyContent: 'flex-end', width: '100%' }}>
                               <LoadingButton
                                 loading={submitLoader}
                                 onClick={handleSubmitData}

@@ -107,13 +107,11 @@ const MealGroup = () => {
   console.log('Group >>', groupList)
 
   useEffect(() => {
-    debugger
     const siteIdFromQuery = router.query.site_id
     const allSites = authData?.userData?.user?.zoos || []
 
     // Only run if authData is loaded
     if (allSites.length > 0) {
-      debugger
       if (siteIdFromQuery) {
         console.log('All Sites >', allSites[0])
 
@@ -128,7 +126,6 @@ const MealGroup = () => {
       // If no site_id in query or no match, fallback to first site
       const first = authData?.userData?.user?.zoos[0]?.sites?.[0] || null
       if (first) {
-        debugger
         setDefaultSite(first)
         setSelectedOption(first.site_id)
         router.replace(
@@ -256,7 +253,7 @@ const MealGroup = () => {
   const debouncedSearch = useCallback(
     debounce(async q => {
       setSearchValue(q)
-      debugger
+
       setPaginationModel({ page: 0, pageSize: 10 })
 
       try {
@@ -276,7 +273,6 @@ const MealGroup = () => {
 
   const debouncedEnclosureSearch = useCallback(
     debounce(async q => {
-      debugger
       setSearchValue(q)
       setLoader(true)
       setPaginationModel({ page: 0, pageSize: 10 })
@@ -301,7 +297,6 @@ const MealGroup = () => {
 
   const debouncedEditEnclosureSearch = useCallback(
     debounce(async (q, id) => {
-      debugger
       console.log('Edit >', editeditems)
 
       setEditSearchValue(q)
@@ -542,7 +537,6 @@ const MealGroup = () => {
   )
 
   const handleChange = (event, newValue) => {
-    debugger
     setStatus(newValue)
     setSelectedSection('all')
     setSelectedGroup('all')
@@ -558,7 +552,6 @@ const MealGroup = () => {
   const handleEnclosureEvent = async (event, id) => {
     event.stopPropagation()
     try {
-      debugger
       setEnclosureDrawer(true)
       setLoader(true)
       setGroupId(id)
@@ -621,7 +614,7 @@ const MealGroup = () => {
   const handleEdit = async (event, row) => {
     console.log('Row Detail >', row)
     event.stopPropagation()
-    debugger
+
     try {
       setEditParam(row)
       setmealType({ type: 'edit' })
@@ -1140,7 +1133,9 @@ const MealGroup = () => {
             fontSize: '14px',
             fontWeight: 500,
             fontFamily: 'Inter',
-            color: params.row.group_name ? '#44544A' : '#FA6140'
+            color: params.row.group_name
+              ? theme.palette.customColors.OnSurfaceVariant
+              : theme.palette.customColors.customDropdownColor
           }}
         >
           {params.row.group_name || 'Not assigned'}
@@ -1167,7 +1162,6 @@ const MealGroup = () => {
   console.log('Indexed >', indexedRows)
 
   const handleSiteChange = site => {
-   
     if (!site) {
       setDefaultSite(null)
       setSelectedOption(null)
@@ -1194,7 +1188,7 @@ const MealGroup = () => {
   }
 
   const addEventSidebarOpen = event => {
-    console.log('Edit >>', editParam)
+    console.log('Edit >>', editParam) 
     event.stopPropagation()
     setEditParam({})
     setEditItems([])
@@ -1208,7 +1202,6 @@ const MealGroup = () => {
   }
 
   const handleView = async parm => {
-    debugger
     setOpenDrawer(true)
     setEditParam(parm.row)
     setmealType({ type: 'view' })
@@ -1675,7 +1668,7 @@ const MealGroup = () => {
       )}
 
       {openDrawer && (
-        <CreateMealGroup
+        <CreateMealGroup 
           openDrawer={openDrawer}
           handleCloseSideBar={handleCloseSideBar}
           selectedItems={selectedItems}
