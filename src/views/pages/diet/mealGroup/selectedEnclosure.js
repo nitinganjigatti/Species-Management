@@ -103,12 +103,12 @@ const SelectedEnclosure = ({
                       p: 4,
                       width: '100%',
                       height: '70px',
-                      borderTop: selectedEnclosureIds.includes(item?.enclosure_id) && '1px solid #C3CEC7',
-                      borderLeft: selectedEnclosureIds.includes(item?.enclosure_id) && '1px solid #C3CEC7',
-                      borderRight: selectedEnclosureIds.includes(item?.enclosure_id) && '1px solid #C3CEC7',
+                      borderTop: selectedEnclosureIds.includes(item?.enclosure_id) && `1px solid ${theme.palette.customColors.OutlineVariant}`,
+                      borderLeft: selectedEnclosureIds.includes(item?.enclosure_id) && `1px solid ${theme.palette.customColors.OutlineVariant}`,
+                      borderRight: selectedEnclosureIds.includes(item?.enclosure_id) && `1px solid ${theme.palette.customColors.OutlineVariant}`,
                       borderTopLeftRadius: selectedEnclosureIds.includes(item?.enclosure_id) && '8px',
                       borderTopRightRadius: selectedEnclosureIds.includes(item?.enclosure_id) && '8px',
-                      borderBottom: '1px solid #C3CEC7',
+                      borderBottom: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                       bgcolor: selectedEnclosureIds.includes(item?.enclosure_id) && 'white',
                       borderRadius: selectedEnclosureIds.includes(item?.enclosure_id) ? '8px' : '2px',
                       display: 'flex',
@@ -118,14 +118,14 @@ const SelectedEnclosure = ({
                     }}
                   >
                     <Box>
-                      <Typography sx={{ fontWeight: 500, fontSize: '16px', color: '#44544A' }}>
+                      <Typography sx={{ fontWeight: 500, fontSize: '16px', color: theme.palette.customColors.OnSurfaceVariant }}>
                         {item.user_enclosure_name}
                       </Typography>
                       <Typography
                         sx={{
                           fontWeight: 400,
                           fontSize: '14px',
-                          color: '#44544A',
+                          color: theme.palette.customColors.OnSurfaceVariant,
                           maxWidth: '100px',
                           // overflow: 'hidden',
                           // textOverflow: 'ellipsis',
@@ -145,8 +145,8 @@ const SelectedEnclosure = ({
                         ml: 'auto'
                       }}
                     >
-                      <Typography sx={{ fontSize: '14px', color: '#44544A' }}>Species: {item.species_count}</Typography>
-                      <Typography sx={{ fontSize: '14px', color: '#44544A' }}>Animals: {item.animal_count}</Typography>
+                      <Typography sx={{ fontSize: '14px', color: theme.palette.customColors.OnSurfaceVariant  }}>Species: {item.species_count}</Typography>
+                      <Typography sx={{ fontSize: '14px', color: theme.palette.customColors.OnSurfaceVariant  }}>Animals: {item.animal_count}</Typography>
                     </Box>
 
                     {/* <Checkbox
