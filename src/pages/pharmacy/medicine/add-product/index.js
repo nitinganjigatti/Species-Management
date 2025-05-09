@@ -1127,7 +1127,6 @@ const AddMedicine = () => {
                               )}
                             </FormControl>
                           </Grid>
-
                           {medicineType !== 'non_medical' && (
                             <Grid item xs={12} sm={6}>
                               <FormControl fullWidth>
@@ -1147,6 +1146,7 @@ const AddMedicine = () => {
                                         // setDefaultManufacturer(val)
                                         if (val === null) {
                                           setDefaultGenericName(val)
+                                          genericSearch('')
 
                                           return onChange('')
                                         } else {
@@ -1213,6 +1213,7 @@ const AddMedicine = () => {
 
                                       if (val === null) {
                                         setDefaultManufacturer(val)
+                                        manufacturerSearch('')
 
                                         return onChange('')
                                       } else {
@@ -1258,9 +1259,7 @@ const AddMedicine = () => {
                           )}
                           {/* </Grid> */}
                           {/* </Grid> */}
-
                           {/* Packages */}
-
                           <Grid item xs={12} sm={12}>
                             <div>Package {getPackageString()}</div>
                           </Grid>
@@ -1281,6 +1280,7 @@ const AddMedicine = () => {
                                     onChange={(e, val) => {
                                       if (val === null) {
                                         setDefaultPackage(null)
+                                        packageSearch('')
 
                                         return onChange('')
                                       } else {
@@ -1352,6 +1352,7 @@ const AddMedicine = () => {
                                     onChange={(e, val) => {
                                       if (val === null) {
                                         setDefaultUom(null)
+                                        unitListSearch('')
 
                                         return onChange('')
                                       } else {
@@ -1399,6 +1400,7 @@ const AddMedicine = () => {
                                     onChange={(e, val) => {
                                       if (val === null) {
                                         setDefaultProductForm(null)
+                                        productFormSearch('')
 
                                         return onChange('')
                                       } else {
@@ -1429,9 +1431,7 @@ const AddMedicine = () => {
                             </FormControl>
                           </Grid>
                           {/* //Package */}
-
                           {/* Salt Composition */}
-
                           {medicineType !== 'non_medical' && (
                             <Grid item xs={12} sm={12}>
                               <FormGroup>
@@ -1485,6 +1485,7 @@ const AddMedicine = () => {
                                                     var saltComposition = defaultSalts
                                                     saltComposition[index] = null
                                                     setDefaultSalts(saltComposition)
+                                                    saltsListSearch('')
 
                                                     return onChange('')
                                                   } else {
@@ -1565,7 +1566,6 @@ const AddMedicine = () => {
                               </FormGroup>
                             </Grid>
                           )}
-
                           {/* //Salt Composition */}
                           {/* Others */}
                           <Grid item xs={12} sm={12}>
@@ -1623,6 +1623,7 @@ const AddMedicine = () => {
                                     onChange={(e, val) => {
                                       if (val === null) {
                                         setDefaultDrugClass(null)
+                                        drugClassListSearch('')
 
                                         return onChange('')
                                       } else {
@@ -1665,6 +1666,7 @@ const AddMedicine = () => {
                                     onChange={(e, val) => {
                                       if (val === null) {
                                         setDefaultStorage(null)
+                                        storageListSearch('')
 
                                         return onChange('')
                                       } else {
@@ -1693,7 +1695,6 @@ const AddMedicine = () => {
                               )}
                             </FormControl>
                           </Grid>
-
                           <Grid item xs={12} sm={6}>
                             {console.log('errors', errors)}
                             <FormControl fullWidth>
@@ -1766,7 +1767,6 @@ const AddMedicine = () => {
                               )}
                             </FormControl>
                           </Grid>
-
                           {/* <Grid item xs={12} sm={6}>
                             <FormControl fullWidth>
                               <InputLabel error={Boolean(errors?.part_out_of_stock)} id='part_out_of_stock'>
@@ -1797,7 +1797,6 @@ const AddMedicine = () => {
                               )}
                             </FormControl>
                           </Grid> */}
-
                           <Grid item xs={12} sm={6}>
                             <FormControl fullWidth>
                               <Controller
@@ -1846,7 +1845,6 @@ const AddMedicine = () => {
                               )}
                             </FormControl>
                           </Grid>
-
                           <Grid item xs={12} sm={6}>
                             <FormControl fullWidth>
                               <Controller
@@ -1872,7 +1870,6 @@ const AddMedicine = () => {
                               )}
                             </FormControl>
                           </Grid>
-
                           <Grid item xs={12} sm={6}>
                             <FormControl fullWidth>
                               <Controller
@@ -1894,7 +1891,6 @@ const AddMedicine = () => {
                               )}
                             </FormControl>
                           </Grid>
-
                           {/* <Grid item xs={12} sm={6}>
                             {id !== undefined ? (
                               <FormControl fullWidth sx={{ mb: 6 }} error={Boolean(errors.radio)}>
@@ -1928,7 +1924,6 @@ const AddMedicine = () => {
                               </FormControl>
                             ) : null}
                           </Grid> */}
-
                           <Grid item xs={12}>
                             <Card>
                               <CardHeader title='Add Product Image' />
