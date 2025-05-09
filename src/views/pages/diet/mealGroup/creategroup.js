@@ -58,9 +58,6 @@ const CreateMealGroup = ({
     setCheckedRows(updatedChecked) // or setSelectedCheckboxes(updatedChecked) if that's your setter
   }
 
-  // useEffect(() => {
-
-  // }, [editParam])
   console.log('Group NMW >', groupName)
 
   const handleCreateGroup = async () => {
@@ -74,7 +71,7 @@ const CreateMealGroup = ({
     try {
       const params = {
         site_id: selectedOption,
-        enclosure_ids: JSON.stringify(checkedRows.map(Number)),
+        enclosure_ids: JSON.stringify(checkedRows.map(Number)), 
         group_name: groupName
       }
 
