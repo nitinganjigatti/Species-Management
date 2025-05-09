@@ -145,8 +145,6 @@ const DiscardDetail = ({ setDetailDrawer, detailDrawer, eggDiscardedId, fetchTab
         open={detailDrawer}
         sx={{
           '& .MuiDrawer-paper': { width: ['100%', '562px'], height: '100vh' }
-
-          // backgroundColor: 'background.default'
         }}
       >
         <Box
@@ -394,24 +392,29 @@ const DiscardDetail = ({ setDetailDrawer, detailDrawer, eggDiscardedId, fetchTab
                   </Box>
                 </Box>
               </Box>
-              <Typography
-                sx={{
-                  mt: 6,
-                  ml: 4,
-                  fontSize: '20px',
-                  fontWeight: 500,
-                  fontFamily: 'Inter',
-                  lineHeight: '24.2px',
-                  color: theme.palette.customColors.OnSurfaceVariant
-                }}
-              >
-                Added Photos
-              </Typography>
 
-              {/* image gallery */}
-              <Box sx={{ mb: summary?.activity_status === 'DISCARD_REQUEST_GENERATED' ? null : 45 }}>
-                <AddGallery galleryList={galleryList} />
-              </Box>
+              {galleryList?.length ? (
+                <>
+                  <Typography
+                    sx={{
+                      mt: 6,
+                      ml: 4,
+                      fontSize: '20px',
+                      fontWeight: 500,
+                      fontFamily: 'Inter',
+                      lineHeight: '24.2px',
+                      color: theme.palette.customColors.OnSurfaceVariant
+                    }}
+                  >
+                    Added Photos
+                  </Typography>
+
+                  {/* image gallery */}
+                  <Box sx={{ mb: summary?.activity_status === 'DISCARD_REQUEST_GENERATED' ? null : 45 }}>
+                    <AddGallery galleryList={galleryList} />
+                  </Box>
+                </>
+              ) : null}
 
               {summary?.activity_status === 'DISCARD_REQUEST_GENERATED' ? (
                 <Box
