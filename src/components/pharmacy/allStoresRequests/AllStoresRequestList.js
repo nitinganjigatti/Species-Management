@@ -32,6 +32,7 @@ import MedicineCard from 'src/views/utility/MedicineCard'
 import Utility from 'src/utility'
 import RequestDetailsScreen from './RequestDetailsScreen'
 import RequestByProduct from 'src/pages/pharmacy/requests-by-product'
+import { ExportButton } from 'src/views/utility/render-snippets'
 
 const AllStoresRequestList = () => {
   const theme = useTheme()
@@ -545,7 +546,7 @@ const AllStoresRequestList = () => {
           {totalUniqueItems}
         </Typography>
       </Typography>
-      <ExcelExportButton
+      {/* <ExcelExportButton
         action={() => handleExcelExport(title)}
         loader={excelLoader}
         title='Download'
@@ -553,7 +554,7 @@ const AllStoresRequestList = () => {
           width: { xs: '100%', sm: 'auto' },
           textAlign: 'center'
         }}
-      />
+      /> */}
     </Box>
   )
 
@@ -570,7 +571,7 @@ const AllStoresRequestList = () => {
     return (
       <>
         {renderHeader(title)}
-        <Box sx={{ mb: 4, display: 'flex', justifyContent: 'end' }}>
+        <Box sx={{ mb: 4, display: 'flex', justifyContent: 'end', gap: '10px' }}>
           <TextField
             variant='outlined'
             size='small'
@@ -610,6 +611,13 @@ const AllStoresRequestList = () => {
               borderRadius: '8px'
             }}
           />
+          <Box sx={{ border: '1px', borderColor: '#000' }}>
+            <ExportButton
+              loading={excelLoader}
+              onClick={() => handleExcelExport(title)}
+              bgcolor={theme.palette.customColors.OnPrimary}
+            />
+          </Box>
         </Box>
 
         {isLoadingMore && isInitialLoadRef.current ? (

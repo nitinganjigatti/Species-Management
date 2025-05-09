@@ -26,6 +26,7 @@ import TextEllipsisWithModal from 'src/components/TextEllipsisWithModal'
 import Utility from 'src/utility'
 import MenuWithDots from 'src/components/MenuWithDots'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
+import PharmacyProductCard from 'src/views/utility/PharmacyProductCard'
 
 // ** Icon Imports
 
@@ -418,7 +419,51 @@ const RequestedProductDetails = props => {
             >
               <Grid container>
                 <Grid item xs={11} sm={11} sx={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-                  <Box
+                  <PharmacyProductCard
+                    title={requestedProducts?.stock_name ? requestedProducts?.stock_name : 'NA'}
+                    subTitle={
+                      requestedProducts?.package ||
+                      requestedProducts?.package_qty ||
+                      requestedProducts?.package_uom_label ||
+                      requestedProducts?.product_form_label
+                        ? `${requestedProducts?.package} of ${Utility.formatNumber(requestedProducts?.package_qty)} ${
+                            requestedProducts?.package_uom_label
+                          } `
+                        : 'NA'
+                    }
+                    secondSubTitle={
+                      selectedPharmacy.type === 'central' && (
+                        <Typography
+                          sx={{
+                            color: theme.palette.customColors.OnSurfaceVariant,
+                            fontSize: '12px',
+                            fontWeight: 400,
+                            fontFamily: 'Inter'
+                          }}
+                        >
+                          Available Quantity:
+                          <Typography
+                            component='span'
+                            sx={{
+                              color: theme.palette.customColors.neutralPrimary,
+                              fontSize: '14px',
+                              fontWeight: 400,
+                              fontFamily: 'Inter'
+                            }}
+                          >
+                            {requestedProducts?.total_available_quantity
+                              ? requestedProducts?.total_available_quantity
+                              : '0'}
+                          </Typography>
+                        </Typography>
+                      )
+                    }
+                    icon={requestedProducts?.image}
+                    heoImageDimension='66'
+                    controlSubstance={requestedProducts?.controlled_substance === '1' && true}
+                    prescriptionRequired={requestedProducts?.prescription_required === '1' && true}
+                  />
+                  {/* <Box
                     sx={{
                       backgroundColor: theme => alpha(theme.palette.customColors.neutral05, 0.05),
                       width: '66px',
@@ -438,7 +483,7 @@ const RequestedProductDetails = props => {
                     />
                   </Box>
                   <Box>
-                    <Typography
+                  <Typography
                       sx={{
                         color: theme.palette.customColors.OnSurfaceVariant,
                         fontSize: '20px',
@@ -448,7 +493,8 @@ const RequestedProductDetails = props => {
                     >
                       {requestedProducts?.stock_name ? requestedProducts?.stock_name : 'NA'}
                     </Typography>
-                    <Typography
+
+                  <Typography
                       sx={{
                         color: theme.palette.customColors.neutralSecondary,
                         fontSize: '14px',
@@ -465,7 +511,7 @@ const RequestedProductDetails = props => {
                           } `
                         : 'NA'}
                     </Typography>
-                    {selectedPharmacy.type === 'central' && (
+                  {selectedPharmacy.type === 'central' && (
                       <Typography
                         sx={{
                           color: theme.palette.customColors.OnSurfaceVariant,
@@ -490,7 +536,7 @@ const RequestedProductDetails = props => {
                         </Typography>
                       </Typography>
                     )}
-                  </Box>
+                  </Box> */}
                 </Grid>
                 <Grid item xs={1} sm={1} sx={{ float: 'right', textAlign: 'right', height: 'auto' }}>
                   <IconButton size='small' onClick={handleSidebarClose} sx={{ color: 'text.primary' }}>

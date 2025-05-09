@@ -260,7 +260,6 @@ const PurchaseItemForm = props => {
       editingIndex: medicineItemId ? nestedRowMedicine?.index : -1
     }
   })
-
   const [nonMedicalProduct, setNonMedicalProduct] = useState(false)
   const [userInteracted, setUserInteracted] = useState(false)
 
@@ -533,7 +532,10 @@ const PurchaseItemForm = props => {
       setValue('product', {
         // label: nestedRowMedicine?.purchase_unit_id ? nestedRowMedicine.medicine_name : '',
         label: nestedRowMedicine.medicine_name,
-        value: nestedRowMedicine.purchase_unit_id,
+        // value: nestedRowMedicine.purchase_unit_id,
+        value: nestedRowMedicine.purchase_unit_id
+          ? nestedRowMedicine.purchase_unit_id
+          : nestedRowMedicine.purchase_stock_item_id,
         stock_type: nestedRowMedicine.stock_type
       })
       setValue('package_details', nestedRowMedicine?.package_details)
@@ -603,8 +605,9 @@ const PurchaseItemForm = props => {
               {/* The product <span style={{ color: '#D32F2F', fontWeight: 'bold' }}>{getValues('product')?.label}</span>{' '}
               you entered is not available, please search and select.  */}
               The product <span style={{ color: '#D32F2F', fontWeight: 'bold' }}>{getValues('product')?.label} </span>
-              you entered is either not available or not selected from the dropdown.
-              <br /> Please search and select it to continue.
+              was not found in our system. Please use the search option to
+              <br />
+              select the correct product from the list
             </Typography>
           )}
         </Grid>
@@ -932,7 +935,6 @@ const PurchaseItemForm = props => {
                   value={value}
                   onChange={(e, val) => {
                     setValue('purchase_variant_ratio', Number(val?.props?.children))
-                    console.log('variant ratio', Number(val?.props?.children))
                     const purchaseQty = watch('purchase_qty')
 
                     const totalUnitQty = purchaseQty
@@ -1022,6 +1024,7 @@ const PurchaseItemForm = props => {
             {errors.purchase_unit_qty && (
               <FormHelperText sx={{ color: 'error.main' }}>{errors?.purchase_unit_qty?.message}</FormHelperText>
             )} */}
+
             <Typography
               sx={{
                 fontSize: '14px',
@@ -1654,4 +1657,4 @@ const PurchaseItemForm = props => {
   )
 }
 
-export default PurchaseItemForm
+export default React.memo(PurchaseItemForm)

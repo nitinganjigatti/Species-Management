@@ -392,7 +392,13 @@ const StockLocation = () => {
   const filterCount = selectedItems?.Racks?.length > 0 ? 1 : 0
 
   const handleStockRowClick = params => {
-    if (params.field === 'stock_name') {
+    if (
+      params.field === 'stock_name' ||
+      params.field === 'rack_count' ||
+      params.field === 'shelf_count' ||
+      params.field === 'total_available_qty' ||
+      params.field === 'min_qty'
+    ) {
       setConfigMed(params?.row)
       setOpenStockDetailDrawer(true)
     }
@@ -445,7 +451,12 @@ const StockLocation = () => {
                   variant='outlined'
                   startIcon={<FilterListIcon />}
                   endIcon={
-                    <Badge badgeContent={filterCount} color='primary' invisible={filterCount === 0} sx={{ ml: 2 }} />
+                    <Badge
+                      badgeContent={filterCount}
+                      color='primary'
+                      invisible={filterCount === 0}
+                      sx={{ ml: 2, mr: 2 }}
+                    />
                   }
                   sx={{
                     border: theme => `1px solid ${theme.palette.customColors.OutlineVariant}`,

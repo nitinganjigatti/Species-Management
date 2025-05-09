@@ -45,8 +45,6 @@ const schema = Yup.object().shape({
 })
 
 const AddMedicineDialog = ({ close, setDialogCheck, productData, selectedPharmacy, setProductData, dialogCheck }) => {
-  console.log(productData)
-
   const [products, setProducts] = useState([])
   const [racks, setRacks] = useState([])
   const [shelves, setShelves] = useState([])
@@ -55,19 +53,21 @@ const AddMedicineDialog = ({ close, setDialogCheck, productData, selectedPharmac
   const [submitLoader, setSubmitLoader] = useState(false)
   const [existingMedConfig, setExistingMedConfig] = useState([])
   const [configErrors, setConfigErrors] = useState({})
+  const [isConfigLoading, setIsConfigLoading] = useState(false)
 
   const {
     reset,
     control,
     handleSubmit,
     formState: { errors, isValid, isDirty },
-    watch
+    watch,
+    trigger
   } = useForm({
     defaultValues: defaultValues,
     resolver: yupResolver(schema),
     shouldUnregister: false,
-    reValidateMode: 'onChange',
-    mode: 'onChange'
+    reValidateMode: 'onSubmit',
+    mode: 'onSubmit'
   })
 
   const stockIdValue = watch('stock_id')
@@ -79,79 +79,50 @@ const AddMedicineDialog = ({ close, setDialogCheck, productData, selectedPharmac
 
   useEffect(() => {
     if (productData) {
-      // Find the matching product from products list
-      const matchingProduct = products?.find(p => p?.value === productData?.stock_item_id)
-      if (matchingProduct) {
-        // Set the product
-        reset({
-          stock_id: matchingProduct,
-          locations: productData?.racks.map(rack => ({
-            config_id: rack?.config_id,
-            rack_id: rack?.rack_id,
-            shelf_id: rack?.shelf_id
-          }))
-        })
-
-        // Set default rack and shelf values
-        const rackValues = productData?.racks.map(rack => ({
+      // Directly set the product from productData
+      reset({
+        stock_id: {
+          label: productData.stock_name,
+          value: productData.stock_item_id,
+          status: 1
+        },
+        locations: productData?.racks.map(rack => ({
+          config_id: rack?.config_id,
           rack_id: rack?.rack_id,
-          rack_name: rack?.rack_name
+          shelf_id: rack?.shelf_id
         }))
+      })
 
-        const shelfValues = productData?.racks.map(rack => ({
-          shelf_id: rack?.shelf_id,
-          shelf_name: rack?.shelf_name
-        }))
+      // Set default rack and shelf values
+      const rackValues = productData?.racks.map(rack => ({
+        rack_id: rack?.rack_id,
+        rack_name: rack?.rack_name
+      }))
 
-        setDefaultRack(rackValues)
-        setDefaultShelf(shelfValues)
+      const shelfValues = productData?.racks.map(rack => ({
+        shelf_id: rack?.shelf_id,
+        shelf_name: rack?.shelf_name
+      }))
 
-        // Fetch existing medicine config
-        getMedicineConfig({ stockId: productData?.stock_item_id })
-      } else {
-        console.log('No matching product found')
-      }
+      setDefaultRack(rackValues)
+      setDefaultShelf(shelfValues)
+
+      // Fetch existing medicine config
+      getMedicineConfig({ stockId: productData?.stock_item_id })
     }
-  }, [productData, products, selectedPharmacy?.id])
+  }, [productData, selectedPharmacy?.id])
 
   useEffect(() => {
-    try {
-      getProductList({ params: { sort: 'asc', q: '', limit: 1000 } }).then(res => {
-        if (res?.data?.list_items?.length > 0) {
-          setProducts(
-            res?.data?.list_items?.map(item => ({
-              label: item.name,
-              value: item.id,
-              stock_type: item.stock_type,
-              unit_price: item.unit_price,
-              status: item?.active === '0' ? 0 : 1,
-              manufacture: item?.manufacturer_name,
-              packageDetails: `${item?.package} of ${item?.package_qty} ${item?.package_uom_label} ${item?.product_form_label}`,
-              control_substance: item.controlled_substance === '1' ? true : false
-            }))
-          )
-        }
-      })
-    } catch (error) {
-      console.error(error)
-    }
-  }, [])
-
-  const searchProductData = useCallback(
-    debounce(async searchText => {
+    if (!productData) {
       try {
-        await getProductList({ params: { sort: 'asc', q: searchText, limit: 20 } }).then(res => {
+        getProductList({ params: { sort: 'asc', q: '', limit: 50 } }).then(res => {
           if (res?.data?.list_items?.length > 0) {
             setProducts(
               res?.data?.list_items?.map(item => ({
                 label: item.name,
                 value: item.id,
-                stock_type: item.stock_type,
-                unit_price: item.unit_price,
                 status: item?.active === '0' ? 0 : 1,
-                manufacture: item?.manufacturer_name,
-                packageDetails: `${item?.package} of ${item?.package_qty} ${item?.package_uom_label} ${item?.product_form_label}`,
-                control_substance: item.controlled_substance === '1' ? true : false
+                generic_name: item?.generic_name
               }))
             )
           }
@@ -159,13 +130,41 @@ const AddMedicineDialog = ({ close, setDialogCheck, productData, selectedPharmac
       } catch (error) {
         console.error(error)
       }
+    }
+  }, [productData])
+
+  const searchProductData = useCallback(
+    debounce(async searchText => {
+      if (!productData) {
+        try {
+          await getProductList({ params: { sort: 'asc', q: searchText, limit: 50 } }).then(res => {
+            if (res?.data?.list_items?.length > 0) {
+              setProducts(
+                res?.data?.list_items?.map(item => ({
+                  label: item.name,
+                  value: item.id,
+                  stock_type: item.stock_type,
+                  unit_price: item.unit_price,
+                  status: item?.active === '0' ? 0 : 1,
+                  manufacture: item?.manufacturer_name,
+                  packageDetails: `${item?.package} of ${item?.package_qty} ${item?.package_uom_label} ${item?.product_form_label}`,
+                  control_substance: item.controlled_substance === '1' ? true : false
+                }))
+              )
+            }
+          })
+        } catch (error) {
+          console.error(error)
+        }
+      }
     }, 500),
-    []
+    [productData]
   )
 
   const getMedicineConfig = useCallback(
     async ({ stockId }) => {
       try {
+        setIsConfigLoading(true)
         const params = {}
         const response = await getConfigMedicine({ id: stockId, params })
         if (response?.success) {
@@ -173,6 +172,8 @@ const AddMedicineDialog = ({ close, setDialogCheck, productData, selectedPharmac
         }
       } catch (error) {
         console.error('Cannot get medicine config list', error)
+      } finally {
+        setIsConfigLoading(false)
       }
     },
     [selectedPharmacy?.id]
@@ -219,13 +220,9 @@ const AddMedicineDialog = ({ close, setDialogCheck, productData, selectedPharmac
   )
 
   const onSubmit = async data => {
-    const hasConfigError = Object.values(configErrors).some(Boolean)
-    if (hasConfigError) {
-      toast.error('Please resolve all configuration errors before submitting.')
-      setSubmitLoader(false)
-
-      return
-    }
+    // Trigger validation before submitting
+    const isValid = await trigger()
+    if (!isValid) return
 
     const id = data?.stock_id?.value
     setSubmitLoader(true)
@@ -323,8 +320,6 @@ const AddMedicineDialog = ({ close, setDialogCheck, productData, selectedPharmac
         }
       }
 
-      console.log('Payload:', payload)
-
       const response = await addStockItem({ id, payload })
       if (response?.success === true) {
         toast.success(productData ? 'Configuration Updated Successfully' : 'Configuration Added Successfully')
@@ -352,232 +347,71 @@ const AddMedicineDialog = ({ close, setDialogCheck, productData, selectedPharmac
     <>
       <Grid container spacing={2} justifyContent='center'>
         <Grid item xs={12} sm={12} md={12}>
-          <form component='form' autoComplete='off' sx={{ width: '100%', my: 3 }} onSubmit={handleSubmit(onSubmit)}>
-            {/* Product Detail */}
-            <Box sx={{ mb: 4 }}>
-              <Typography sx={{ color: 'customColors.customTextColorGray2', fontSize: '14px', fontWeight: 700 }}>
-                Product Detail
-              </Typography>
+          {isConfigLoading ? (
+            <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '200px' }}>
+              <CircularProgress />
             </Box>
+          ) : (
+            <form component='form' autoComplete='off' sx={{ width: '100%', my: 3 }} onSubmit={handleSubmit(onSubmit)}>
+              {/* Product Detail */}
+              <Box sx={{ mb: 4 }}>
+                <Typography sx={{ color: 'customColors.customTextColorGray2', fontSize: '14px', fontWeight: 700 }}>
+                  Product Detail
+                </Typography>
+              </Box>
 
-            <Grid container spacing={2}>
-              <Grid item sm={6} xs={12}>
-                <FormControl fullWidth sx={{ mb: 4 }}>
-                  <Controller
-                    name='stock_id'
-                    control={control}
-                    render={({ field }) => (
-                      <>
-                        <Autocomplete
-                          forcePopupIcon={false}
-                          noOptionsText='Type to search'
-                          options={products}
-                          value={field.value}
-                          onChange={(event, newValue) => {
-                            field.onChange(newValue)
-                            if (newValue?.value) {
-                              getMedicineConfig({ stockId: newValue.value }) // fetch configs for selected product
-                            }
-                            setExistingMedConfig([]) // clear previous configs until new fetch completes
-                          }}
-                          onInputChange={(event, newInputValue) => {
-                            if (event) searchProductData(newInputValue)
-                          }}
-                          renderInput={params => (
-                            <TextField
-                              {...params}
-                              label='Product Name*'
-                              placeholder='Search & Select'
-                              error={Boolean(errors.stock_id)}
-                            />
-                          )}
-                          renderOption={(props, option) => (
-                            <li
-                              {...props}
-                              style={{
-                                opacity: option.status ? 1 : 0.5,
-                                pointerEvents: option.status ? 'auto' : 'none'
-                              }}
-                            >
-                              <Box>
-                                <Typography>{option.label}</Typography>
-                                <Typography variant='body2'>{option.packageDetails}</Typography>
-                                <Typography variant='body2'>{option.manufacture}</Typography>
-                                {RenderUtility?.renderControlLabel(option.control_substance, 'CS')}
-                                {RenderUtility?.renderPrescriptionLabel(option.prescription_required, 'PR')}
-                              </Box>
-                            </li>
-                          )}
-                        />
-                        {errors.stock_id && (
-                          <FormHelperText sx={{ color: 'error.main' }}>
-                            {errors.stock_id?.message || 'Product Name is required'}
-                          </FormHelperText>
-                        )}
-                      </>
-                    )}
-                  />
-                </FormControl>
-              </Grid>
-            </Grid>
-
-            {/* Product Location */}
-            <Box sx={{ mb: 2, mt: 4 }}>
-              <Typography sx={{ color: 'customColors.customTextColorGray2', fontSize: '14px', fontWeight: 700 }}>
-                Product Location
-              </Typography>
-            </Box>
-            {fields.map((field, index) => (
-              <Grid container spacing={2} key={field.id} alignItems='flex-start' sx={{ mb: 0 }}>
-                {/* Rack Field */}
-                <Grid item xs={12} sm={5}>
-                  <FormControl fullWidth sx={{ mb: 6 }}>
-                    <Controller
-                      name={`locations[${index}].rack_id`}
-                      control={control}
-                      render={({ field: { field, onChange } }) => (
-                        <>
-                          <Autocomplete
-                            value={defaultRack != null && defaultRack.length > 0 ? defaultRack[index] : null}
-                            disablePortal
-                            forcePopupIcon={false}
-                            id={`locations[${index}].rack_id`}
-                            disabled={!stockIdValue}
-                            noOptionsText='Type to search'
-                            options={racks}
-                            getOptionLabel={option => option?.rack_name}
-                            isOptionEqualToValue={(option, value) =>
-                              parseInt(option?.rack_id) === parseInt(value?.rack_id)
-                            }
-                            onChange={(e, val) => {
-                              if (val === null) {
-                                var rack = defaultRack
-                                rack[index] = null
-                                setDefaultRack(rack)
-
-                                setConfigErrors(prev => {
-                                  const newErrors = { ...prev }
-                                  delete newErrors[index]
-
-                                  return newErrors
-                                })
-
-                                return onChange('')
-                              } else {
-                                var rack = defaultRack
-                                rack[index] = { rack_id: val?.rack_id, rack_name: val?.rack_name }
-                                setDefaultRack(prev => {
-                                  const newArr = [...prev]
-                                  newArr[index] = val ? { rack_id: val.rack_id, rack_name: val.rack_name } : null
-
-                                  return newArr
-                                })
-                                getShelves({ rackId: val?.rack_id })
-
-                                return onChange(val.rack_id)
-                              }
-                            }}
-                            renderInput={params => (
-                              <TextField
-                                {...params}
-                                label='Rack*'
-                                placeholder='Search & Select'
-                                error={Boolean(errors?.locations?.[index]?.rack_id)}
-                              />
-                            )}
-                          />
-                          {errors?.locations?.[index]?.rack_id && (
-                            <FormHelperText sx={{ color: 'error.main' }}>
-                              {errors?.locations?.[index]?.rack_id?.message}
-                            </FormHelperText>
-                          )}
-                          {configErrors[index] && (
-                            <FormHelperText sx={{ color: 'error.main', fontSize: '14px' }}>
-                              {configErrors[index]}
-                            </FormHelperText>
-                          )}
-                        </>
-                      )}
-                    />
-                  </FormControl>
-                </Grid>
-
-                {/* Shelf Field */}
-                <Grid item xs={12} sm={5}>
+              <Grid container spacing={2}>
+                <Grid item sm={6} xs={12}>
                   <FormControl fullWidth sx={{ mb: 4 }}>
                     <Controller
-                      name={`locations[${index}].shelf_id`}
+                      name='stock_id'
                       control={control}
-                      render={({ field: { field, onChange } }) => (
+                      render={({ field }) => (
                         <>
                           <Autocomplete
-                            value={defaultShelf != null && defaultShelf.length > 0 ? defaultShelf[index] : null}
-                            disablePortal
-                            disabled={!stockIdValue}
                             forcePopupIcon={false}
-                            id={`locations[${index}].shelf_id`}
                             noOptionsText='Type to search'
-                            options={shelves.filter(option => {
-                              const selectedShelfIds = defaultShelf.map(shelf => shelf?.shelf_id)
-
-                              return !selectedShelfIds.includes(option.shelf_id)
-                            })}
-                            getOptionLabel={option => option?.shelf_name}
-                            isOptionEqualToValue={(option, value) =>
-                              parseInt(option?.shelf_id) === parseInt(value?.shelf_id)
-                            }
-                            onChange={(e, val) => {
-                              if (val === null) {
-                                var shelf = defaultShelf
-                                shelf[index] = null
-                                setDefaultShelf(shelf)
-
-                                setConfigErrors(prev => {
-                                  const newErrors = { ...prev }
-                                  delete newErrors[index]
-
-                                  return newErrors
-                                })
-
-                                return onChange('')
-                              } else {
-                                var shelf = defaultShelf
-                                shelf[index] = { shelf_id: val?.shelf_id, shelf_name: val?.shelf_name }
-                                setDefaultShelf(prev => {
-                                  const newArr = [...prev]
-                                  newArr[index] = val ? { shelf_id: val.shelf_id, shelf_name: val.shelf_name } : null
-
-                                  return newArr
-                                })
-
-                                // Get the rack_id for this index
-                                const rack_id = defaultRack[index]?.rack_id
-                                const shelf_id = val.shelf_id
-
-                                if (isConfigExists(rack_id, shelf_id)) {
-                                  setConfigErrors(prev => ({
-                                    ...prev,
-                                    [index]: 'This rack and shelf config already exists'
-                                  }))
-                                } else {
-                                  setConfigErrors(prev => ({ ...prev, [index]: null }))
-                                }
-
-                                return onChange(val.shelf_id)
+                            options={products}
+                            value={field.value}
+                            disabled={Boolean(productData)}
+                            onChange={(event, newValue) => {
+                              field.onChange(newValue)
+                              if (newValue?.value) {
+                                getMedicineConfig({ stockId: newValue.value }) // fetch configs for selected product
                               }
+                              setExistingMedConfig([]) // clear previous configs until new fetch completes
+                            }}
+                            onInputChange={(event, newInputValue) => {
+                              if (event && !productData) searchProductData(newInputValue)
                             }}
                             renderInput={params => (
                               <TextField
                                 {...params}
-                                label='Shelf*'
-                                placeholder='Search & Select'
-                                error={Boolean(errors?.locations?.[index]?.shelf_id)}
+                                label='Product Name*'
+                                placeholder={productData ? productData.name : 'Search & Select'}
+                                error={Boolean(errors.stock_id)}
                               />
                             )}
+                            renderOption={(props, option) => (
+                              <li
+                                {...props}
+                                style={{
+                                  opacity: option.status ? 1 : 0.5,
+                                  pointerEvents: option.status ? 'auto' : 'none'
+                                }}
+                              >
+                                <Box>
+                                  <Typography>{option.label}</Typography>
+                                  <Typography variant='body2'>
+                                    {option.generic_name ? option.generic_name : 'NA'}
+                                  </Typography>
+                                </Box>
+                              </li>
+                            )}
                           />
-                          {errors?.locations?.[index]?.shelf_id && (
+                          {errors.stock_id && (
                             <FormHelperText sx={{ color: 'error.main' }}>
-                              {errors?.locations?.[index]?.shelf_id?.message}
+                              {errors.stock_id?.message || 'Product Name is required'}
                             </FormHelperText>
                           )}
                         </>
@@ -585,89 +419,287 @@ const AddMedicineDialog = ({ close, setDialogCheck, productData, selectedPharmac
                     />
                   </FormControl>
                 </Grid>
-                <Grid
-                  item
-                  xs={12}
-                  sm={2}
+              </Grid>
+
+              {/* Product Location */}
+              <Box sx={{ mb: 2, mt: 4 }}>
+                <Typography sx={{ color: 'customColors.customTextColorGray2', fontSize: '14px', fontWeight: 700 }}>
+                  Product Location
+                </Typography>
+              </Box>
+              {fields.length === 0 ? (
+                <Box
                   sx={{
                     display: 'flex',
-                    gap: 1,
-                    alignItems: 'flex-start',
-                    height: '100%',
-                    mt: 0
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    py: 4,
+                    border: '1px dashed',
+                    borderColor: 'divider',
+                    borderRadius: 1
                   }}
                 >
-                  <IconButton
-                    color='success'
+                  <Typography sx={{ color: 'text.secondary', mb: 2 }}>No configuration exists</Typography>
+                  <Button
+                    variant='outlined'
+                    startIcon={<Icon icon='mdi:plus' />}
                     onClick={() => {
                       append({ config_id: null, rack_id: '', shelf_id: '' })
                       setDefaultRack(prev => [...prev, null])
                       setDefaultShelf(prev => [...prev, null])
                     }}
-                    disabled={!defaultRack[index] || !defaultShelf[index]}
-                    sx={{ height: '50px', width: '50px', borderRadius: '50%' }}
                   >
-                    <Icon icon='mdi:add' fontSize={22} />
-                  </IconButton>
+                    Add Configuration
+                  </Button>
+                </Box>
+              ) : (
+                fields.map((field, index) => (
+                  <Grid container spacing={2} key={field.id} alignItems='flex-start' sx={{ mb: 0 }}>
+                    {/* Rack Field */}
+                    <Grid item xs={12} sm={5}>
+                      <FormControl fullWidth sx={{ mb: 6 }}>
+                        <Controller
+                          name={`locations[${index}].rack_id`}
+                          control={control}
+                          render={({ field: { field, onChange } }) => (
+                            <>
+                              <Autocomplete
+                                value={defaultRack != null && defaultRack.length > 0 ? defaultRack[index] : null}
+                                disablePortal
+                                forcePopupIcon={false}
+                                id={`locations[${index}].rack_id`}
+                                disabled={!stockIdValue}
+                                noOptionsText='Type to search'
+                                options={racks}
+                                getOptionLabel={option => option?.rack_name}
+                                isOptionEqualToValue={(option, value) =>
+                                  parseInt(option?.rack_id) === parseInt(value?.rack_id)
+                                }
+                                onChange={(e, val) => {
+                                  if (val === null) {
+                                    var rack = defaultRack
+                                    rack[index] = null
+                                    setDefaultRack(rack)
 
-                  {fields.length > 1 && (
-                    <IconButton
-                      color='error'
-                      onClick={() => {
-                        remove(index)
-                        setDefaultRack(prev => prev.filter((_, i) => i !== index))
-                        setDefaultShelf(prev => prev.filter((_, i) => i !== index))
+                                    setConfigErrors(prev => {
+                                      const newErrors = { ...prev }
+                                      delete newErrors[index]
 
-                        setConfigErrors(prev => {
-                          const newErrors = { ...prev }
-                          delete newErrors[index]
-                          const updatedErrors = {}
-                          Object.entries(newErrors).forEach(([key, val]) => {
-                            const keyNum = Number(key)
-                            updatedErrors[keyNum > index ? keyNum - 1 : keyNum] = val
-                          })
+                                      return newErrors
+                                    })
 
-                          return updatedErrors
-                        })
+                                    return onChange('')
+                                  } else {
+                                    var rack = defaultRack
+                                    rack[index] = { rack_id: val?.rack_id, rack_name: val?.rack_name }
+                                    setDefaultRack(prev => {
+                                      const newArr = [...prev]
+                                      newArr[index] = val ? { rack_id: val.rack_id, rack_name: val.rack_name } : null
+
+                                      return newArr
+                                    })
+                                    getShelves({ rackId: val?.rack_id })
+
+                                    return onChange(val.rack_id)
+                                  }
+                                }}
+                                renderInput={params => (
+                                  <TextField
+                                    {...params}
+                                    label='Rack*'
+                                    placeholder='Search & Select'
+                                    error={Boolean(errors?.locations?.[index]?.rack_id)}
+                                  />
+                                )}
+                              />
+                              {errors?.locations?.[index]?.rack_id && (
+                                <FormHelperText sx={{ color: 'error.main' }}>
+                                  {errors?.locations?.[index]?.rack_id?.message}
+                                </FormHelperText>
+                              )}
+                              {configErrors[index] && (
+                                <FormHelperText sx={{ color: 'error.main', fontSize: '14px' }}>
+                                  {configErrors[index]}
+                                </FormHelperText>
+                              )}
+                            </>
+                          )}
+                        />
+                      </FormControl>
+                    </Grid>
+
+                    {/* Shelf Field */}
+                    <Grid item xs={12} sm={5}>
+                      <FormControl fullWidth sx={{ mb: 4 }}>
+                        <Controller
+                          name={`locations[${index}].shelf_id`}
+                          control={control}
+                          render={({ field: { field, onChange } }) => (
+                            <>
+                              <Autocomplete
+                                value={defaultShelf != null && defaultShelf.length > 0 ? defaultShelf[index] : null}
+                                disablePortal
+                                disabled={!stockIdValue}
+                                forcePopupIcon={false}
+                                id={`locations[${index}].shelf_id`}
+                                noOptionsText='Type to search'
+                                options={shelves.filter(option => {
+                                  const selectedShelfIds = defaultShelf.map(shelf => shelf?.shelf_id)
+
+                                  return !selectedShelfIds.includes(option.shelf_id)
+                                })}
+                                getOptionLabel={option => option?.shelf_name}
+                                isOptionEqualToValue={(option, value) =>
+                                  parseInt(option?.shelf_id) === parseInt(value?.shelf_id)
+                                }
+                                onChange={(e, val) => {
+                                  if (val === null) {
+                                    var shelf = defaultShelf
+                                    shelf[index] = null
+                                    setDefaultShelf(shelf)
+
+                                    setConfigErrors(prev => {
+                                      const newErrors = { ...prev }
+                                      delete newErrors[index]
+
+                                      return newErrors
+                                    })
+
+                                    return onChange('')
+                                  } else {
+                                    var shelf = defaultShelf
+                                    shelf[index] = { shelf_id: val?.shelf_id, shelf_name: val?.shelf_name }
+                                    setDefaultShelf(prev => {
+                                      const newArr = [...prev]
+                                      newArr[index] = val
+                                        ? { shelf_id: val.shelf_id, shelf_name: val.shelf_name }
+                                        : null
+
+                                      return newArr
+                                    })
+
+                                    // Get the rack_id for this index
+                                    const rack_id = defaultRack[index]?.rack_id
+                                    const shelf_id = val.shelf_id
+
+                                    if (!productData && isConfigExists(rack_id, shelf_id)) {
+                                      setConfigErrors(prev => ({
+                                        ...prev,
+                                        [index]: 'This rack and shelf config already exists'
+                                      }))
+                                    } else {
+                                      setConfigErrors(prev => ({ ...prev, [index]: null }))
+                                    }
+
+                                    return onChange(val.shelf_id)
+                                  }
+                                }}
+                                renderInput={params => (
+                                  <TextField
+                                    {...params}
+                                    label='Shelf*'
+                                    placeholder='Search & Select'
+                                    error={Boolean(errors?.locations?.[index]?.shelf_id)}
+                                  />
+                                )}
+                              />
+                              {errors?.locations?.[index]?.shelf_id && (
+                                <FormHelperText sx={{ color: 'error.main' }}>
+                                  {errors?.locations?.[index]?.shelf_id?.message}
+                                </FormHelperText>
+                              )}
+                            </>
+                          )}
+                        />
+                      </FormControl>
+                    </Grid>
+                    <Grid
+                      item
+                      xs={12}
+                      sm={2}
+                      sx={{
+                        display: 'flex',
+                        gap: 1,
+                        alignItems: 'flex-start',
+                        height: '100%',
+                        mt: 0
                       }}
-                      sx={{ height: '50px', width: '50px', borderRadius: '50%' }}
                     >
-                      <Icon icon='mdi:delete' fontSize={22} />
-                    </IconButton>
-                  )}
+                      {index === fields.length - 1 && (
+                        <IconButton
+                          color='success'
+                          onClick={() => {
+                            append({ config_id: null, rack_id: '', shelf_id: '' })
+                            setDefaultRack(prev => [...prev, null])
+                            setDefaultShelf(prev => [...prev, null])
+                          }}
+                          disabled={!defaultRack[index] || !defaultShelf[index]}
+                          sx={{ height: '50px', width: '50px', borderRadius: '50%' }}
+                        >
+                          <Icon icon='mdi:add' fontSize={22} />
+                        </IconButton>
+                      )}
+
+                      <IconButton
+                        color='error'
+                        onClick={() => {
+                          remove(index)
+                          setDefaultRack(prev => prev.filter((_, i) => i !== index))
+                          setDefaultShelf(prev => prev.filter((_, i) => i !== index))
+
+                          setConfigErrors(prev => {
+                            const newErrors = { ...prev }
+                            delete newErrors[index]
+                            const updatedErrors = {}
+                            Object.entries(newErrors).forEach(([key, val]) => {
+                              const keyNum = Number(key)
+                              updatedErrors[keyNum > index ? keyNum - 1 : keyNum] = val
+                            })
+
+                            return updatedErrors
+                          })
+                        }}
+                        sx={{ height: '50px', width: '50px', borderRadius: '50%' }}
+                      >
+                        <Icon icon='mdi:delete' fontSize={22} />
+                      </IconButton>
+                    </Grid>
+                  </Grid>
+                ))
+              )}
+
+              <Divider sx={{ my: 4 }} />
+              <Grid container spacing={2} justifyContent='flex-end' sx={{ mt: 2 }}>
+                <Grid item xs={12} sm='auto'>
+                  <Box>
+                    <Button
+                      variant='outlined'
+                      size='large'
+                      onClick={() => {
+                        reset()
+                        close()
+                        setProductData(null)
+                      }}
+                    >
+                      Cancel
+                    </Button>
+                  </Box>
+                </Grid>
+                <Grid item xs={12} sm='auto'>
+                  <Button
+                    variant='contained'
+                    color='primary'
+                    type='submit'
+                    fullWidth
+                    disabled={submitLoader || Object.values(configErrors).some(Boolean)}
+                  >
+                    {submitLoader ? <CircularProgress size={24} /> : productData === null ? 'Save' : 'Update'}
+                  </Button>
                 </Grid>
               </Grid>
-            ))}
-
-            <Divider sx={{ my: 4 }} />
-            <Grid container spacing={2} justifyContent='flex-end' sx={{ mt: 2 }}>
-              <Grid item xs={12} sm='auto'>
-                <Button
-                  variant='outlined'
-                  color='secondary'
-                  fullWidth
-                  onClick={() => {
-                    reset()
-                    close()
-                    setProductData(null)
-                  }}
-                >
-                  Cancel
-                </Button>
-              </Grid>
-              <Grid item xs={12} sm='auto'>
-                <Button
-                  variant='contained'
-                  color='primary'
-                  type='submit'
-                  fullWidth
-                  disabled={!isValid || !isDirty || submitLoader}
-                >
-                  {submitLoader ? <CircularProgress size={24} /> : productData === null ? 'Save' : 'Update'}
-                </Button>
-              </Grid>
-            </Grid>
-          </form>
+            </form>
+          )}
         </Grid>
       </Grid>
     </>

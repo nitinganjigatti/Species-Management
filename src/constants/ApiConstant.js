@@ -270,6 +270,8 @@ export const PRODUCT_MAPPING_FOR_ML = 'v1/public/pharmacy/ml/product-mapping/bul
 
 export const STOCK_LIST = 'stock-item'
 
+export const VARIANTS_MAPPING_FOR_BATCH = 'variantMappingBatch'
+
 export const FEED_DETAILS = 'details'
 
 export const FEED = 'feed'

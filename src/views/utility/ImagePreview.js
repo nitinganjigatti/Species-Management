@@ -18,8 +18,10 @@ const ImagePreview = ({ imageSrc, imageDetails, onClose, altText = 'preview', wi
     backgroundColor: 'white',
     borderRadius: 0,
     padding: 0,
+    cursor: 'pointer',
     '&:hover': {
-      backgroundColor: 'error.main'
+      backgroundColor: 'error.main',
+      cursor: 'pointer'
     },
     pointerEvents: loader ? 'none' : 'auto'
   }
@@ -56,43 +58,45 @@ const ImagePreview = ({ imageSrc, imageDetails, onClose, altText = 'preview', wi
         background: 'white'
       }}
     >
-      <Card
-        sx={{
-          position: 'relative',
-          width,
-          height,
-          minWidth: width,
-          minHeight: height,
-          backgroundColor: '#E8F4F2',
-          borderRadius: 1,
-          overflow: 'hidden',
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          padding: 2,
-          boxShadow: 'none',
-          mx: 1,
-          my: 1
-        }}
-      >
-        <a href={imageSrc} target='_blank' rel='noopener noreferrer' style={{ width: '100%', height: '100%' }}>
-          <CardMedia
-            component='img'
-            image={imageSrc}
-            alt={altText}
-            sx={{
-              width: '100%',
-              height: '100%',
-              objectFit: 'cover',
-              transform: `scale(${scale})`,
-              transition: 'transform 0.3s ease',
-              pointerEvents: 'none'
-            }}
-          />
-        </a>
+      {imageSrc && (
+        <Card
+          sx={{
+            position: 'relative',
+            width,
+            height,
+            minWidth: width,
+            minHeight: height,
+            backgroundColor: '#E8F4F2',
+            borderRadius: 1,
+            overflow: 'hidden',
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center',
+            padding: 2,
+            boxShadow: 'none',
+            mx: 1,
+            my: 1
+          }}
+        >
+          <a href={imageSrc} target='_blank' rel='noopener noreferrer' style={{ width: '100%', height: '100%' }}>
+            <CardMedia
+              component='img'
+              image={imageSrc}
+              alt={altText}
+              sx={{
+                width: '100%',
+                height: '100%',
+                objectFit: 'cover',
+                transform: `scale(${scale})`,
+                transition: 'transform 0.3s ease',
+                pointerEvents: 'none'
+              }}
+            />
+          </a>
 
-        {actionButtons()}
-      </Card>
+          {actionButtons()}
+        </Card>
+      )}
       {imageDetails && (
         <Box sx={{ marginTop: -1, px: 2, pb: 1 }}>
           <Typography

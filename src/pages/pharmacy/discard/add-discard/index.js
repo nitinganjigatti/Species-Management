@@ -627,7 +627,7 @@ const AddDiscardProducts = () => {
               }
               action={
                 <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-                  <ExportButton loading={excelLoader} onClick={getAddDiscardData} disabled={''} />
+                  {id && action && <ExportButton loading={excelLoader} onClick={getAddDiscardData} disabled={''} />}
                   {/* <ExcelExportButton
                     action={() => getAddDiscardData()}
                     title='Download'

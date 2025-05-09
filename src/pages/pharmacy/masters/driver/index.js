@@ -3,7 +3,6 @@ import React, { useState, useEffect, useCallback } from 'react'
 import { getDrivers, addDriver, updateDriver } from 'src/lib/api/pharmacy/driver'
 import FallbackSpinner from 'src/@core/components/spinner/index'
 import CardHeader from '@mui/material/CardHeader'
-import { DataGrid } from '@mui/x-data-grid'
 
 // ** MUI Imports
 
@@ -16,19 +15,14 @@ import Card from '@mui/material/Card'
 import IconButton from '@mui/material/IconButton'
 
 // import UserSnackbar from 'src/components/utility/snackbar'
-
 import { debounce } from 'lodash'
-
 import { useTheme } from '@emotion/react'
-
 import toast from 'react-hot-toast'
 import AddDriver from 'src/views/pages/pharmacy/medicine/driver/addDriverForm'
 import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
-
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import Error404 from 'src/pages/404'
 import { AddButton } from 'src/components/Buttons'
-
 import { useContext } from 'react'
 import { AuthContext } from 'src/context/AuthContext'
 import Utility from 'src/utility'
