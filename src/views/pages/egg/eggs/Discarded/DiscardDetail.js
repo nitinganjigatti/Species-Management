@@ -309,7 +309,7 @@ const DiscardDetail = ({ setDetailDrawer, detailDrawer, eggDiscardedId, fetchTab
                             ml: 7
                           }}
                         >
-                          {summary?.egg_count ? summary?.egg_count : '-'} Eggs
+                          {summary?.egg_count ? summary?.egg_count : '-'} {summary?.egg_count < 1 ? 'Eggs' : 'Egg'}
                         </Typography>
                       </Box>
                     </Box>

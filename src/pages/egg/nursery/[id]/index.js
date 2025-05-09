@@ -125,7 +125,7 @@ const NurseryDetails = () => {
               Room: res?.data?.no_of_rooms,
               Site: res?.data?.site_name,
               Incubator: res?.data?.no_of_incubators,
-              Eggs: res?.data?.no_of_eggs
+              'Eggs in Nursery': res?.data?.no_of_eggs
             },
             Avatar: {
               profile_Pic: res?.data?.user_profile_pic,
@@ -307,7 +307,7 @@ const NurseryDetails = () => {
       flex: 0.1,
       minWidth: 10,
       field: 'Eggs',
-      headerName: 'Eggs',
+      headerName: 'Eggs in Incubator',
       headerAlign: 'left',
       align: 'left',
       sortable: false,
