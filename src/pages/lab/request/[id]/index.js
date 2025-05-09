@@ -77,13 +77,14 @@ const RequestDetails = () => {
   const [fileViews, setFileViews] = useState(authData?.userData?.settings?.DEFAULT_IMAGE_MASTER)
 
   const [loader, setLoader] = useState(false)
+  const [deleteAttachmentLoader, setDeleteAttachmentLoader] = useState(false)
   const [image, setImage] = useState()
   const [document, setDocument] = useState()
   const [medicalImage, setMedicalImage] = useState()
   const [medicalDocument, setMedicalDocument] = useState()
-  const [testImage, setTestImage] = useState()
+  const [testImage, setTestImage] = useState([])
 
-  const [testDoc, setTestDoc] = useState()
+  const [testDoc, setTestDoc] = useState([])
   const [transferStatus, setTransferStatus] = useState('')
 
   const { id, lab_id, page, q, pageSize } = Router.query
@@ -118,6 +119,7 @@ const RequestDetails = () => {
 
   const [sort, setSort] = useState('asc')
   const [rows, setRows] = useState([])
+  const [rowId, setRowId] = useState(null)
 
   const [searchValue, setSearchValue] = useState('')
   const [sortColumn, setSortColumn] = useState('name')
@@ -407,12 +409,9 @@ const RequestDetails = () => {
   }
 
   const handleOpenShowFile = (e, params) => {
-    // setShowTestFile(true)
+    e.stopPropagation()
+    setRowId(params?.id)
     setOpenAttachmentSheet(true)
-    // setAttachmentCommentData(params?.row?.attachments?.images)
-
-    setTestImage(params?.row?.attachments?.images)
-    setTestDoc(params?.row?.attachments?.docs)
   }
 
   const shouldShowDropdown =
@@ -893,20 +892,32 @@ const RequestDetails = () => {
     setFileId(item?.id)
 
     try {
+      setDeleteAttachmentLoader(true)
       const params = { lab_test_id: id }
       const response = await DeleteLAbRequestAttachment(testId, params)
       fetchRequestDetails()
       if (response?.success) {
         Toaster({ type: 'success', message: response.message })
-
         fetchRequestDetails()
         setShowTestFile(false)
       } else {
         setShowTestFile(false)
         Toaster({ type: 'error', message: response.message })
       }
-    } catch (error) {}
+    } catch (error) {
+    } finally {
+      setDeleteAttachmentLoader(false)
+    }
   }
+
+  useEffect(() => {
+    // for get updated UI in attachment side sheet
+    if (openAttachmentSheet && rowId) {
+      const selected = rows.find(item => item.id === rowId)
+      setTestImage(selected?.attachments?.images || [])
+      setTestDoc(selected?.attachments?.docs || [])
+    }
+  }, [rows, rowId, openAttachmentSheet])
 
   const handleRowSelection = (rowSelectionModel, details) => {
     setSelectedRow(rowSelectionModel)
@@ -914,7 +925,6 @@ const RequestDetails = () => {
     // Retrieve the complete row data based on selected row IDs
     const selectedRowData = rows.filter(row => rowSelectionModel.includes(row.id))
 
-    // setShouldShowBulkStatus(!selectedRowData.some(item => item.status.startsWith('completed')))
     setShouldShowBulkStatus(
       selectedRowData?.filter(item =>
         [
@@ -1061,7 +1071,7 @@ const RequestDetails = () => {
                         </span>
                       </Typography>
                     </Box>
-                    <Typography> {moment(item?.created_at).format('DD MMM YYYY')}</Typography>
+                    <Typography>Requested On : {moment(item?.created_at).format('DD MMM YYYY')}</Typography>
                     <Typography>
                       Site :{' '}
                       <span
@@ -1083,7 +1093,7 @@ const RequestDetails = () => {
                       justifyContent: 'center',
                       backgroundColor: theme.palette.customColors.cardHeaderBg,
                       borderRadius: '8px',
-                      alignItems: 'center'
+                      alignItems: ''
                     }}
                   >
                     <AnimalParentCard
@@ -2001,10 +2011,15 @@ const RequestDetails = () => {
       <>
         {openAttachmentSheet && (
           <AttachmentSheet
+            permissions={permissions}
+            handleDeleteImg={handleDeleteImg}
             fileViews={fileViews}
             openAttachmentSheet={openAttachmentSheet}
             setOpenAttachmentSheet={setOpenAttachmentSheet}
-            attachmentData={[...testImage, ...testDoc]}
+            allCompleted={allCompleted}
+            testImage={testImage}
+            testDoc={testDoc}
+            deleteAttachmentLoader={deleteAttachmentLoader}
           />
         )}
       </>

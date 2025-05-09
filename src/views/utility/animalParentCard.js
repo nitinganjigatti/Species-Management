@@ -16,8 +16,6 @@ const AnimalParentCard = ({ data, backgroundColor }) => {
             borderRadius: '8px',
             paddingY: '20px',
             paddingX: '16px',
-
-            // border: '1px solid #C3CEC7',
             display: 'flex',
             gap: '10px'
           }}
@@ -116,6 +114,7 @@ const AnimalParentCard = ({ data, backgroundColor }) => {
               AID : {data?.animal_id}
               {/* {Utility?.toPascalSentenceCase(data?.common_name)} */}
             </Typography>
+
             <Typography
               sx={{
                 fontSize: '16px',
@@ -182,6 +181,60 @@ const AnimalParentCard = ({ data, backgroundColor }) => {
               >
                 <span style={{ fontWeight: 400 }}>Count: </span>
                 {data?.total_animal}
+              </Typography>
+            )}
+
+            {data?.breed_name && (
+              <Typography
+                sx={{
+                  fontSize: '16px',
+                  fontWeight: 600,
+                  lineHeight: '19.36px',
+                  color: theme.palette.customColors.OnSurfaceVariant
+                }}
+              >
+                Breed : {data?.breed_name}
+                {/* {Utility?.toPascalSentenceCase(data?.common_name)} */}
+              </Typography>
+            )}
+            {data?.morph_name && (
+              <Typography
+                sx={{
+                  fontSize: '16px',
+                  fontWeight: 600,
+                  lineHeight: '19.36px',
+                  color: theme.palette.customColors.OnSurfaceVariant
+                }}
+              >
+                Variant : {data?.morph_name}
+                {/* {Utility?.toPascalSentenceCase(data?.common_name)} */}
+              </Typography>
+            )}
+
+            {data?.breed_name && (
+              <Typography
+                sx={{
+                  fontSize: '16px',
+                  fontWeight: 600,
+                  lineHeight: '19.36px',
+                  color: theme.palette.customColors.OnSurfaceVariant
+                }}
+              >
+                Breed : {data?.breed_name}
+                {/* {Utility?.toPascalSentenceCase(data?.common_name)} */}
+              </Typography>
+            )}
+            {data?.morph_name && (
+              <Typography
+                sx={{
+                  fontSize: '16px',
+                  fontWeight: 600,
+                  lineHeight: '19.36px',
+                  color: theme.palette.customColors.OnSurfaceVariant
+                }}
+              >
+                Variant : {data?.morph_name}
+                {/* {Utility?.toPascalSentenceCase(data?.common_name)} */}
               </Typography>
             )}
             <Typography
