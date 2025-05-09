@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import {
   Box,
   Typography,
@@ -7,18 +7,11 @@ import {
   Avatar,
   Card,
   CardContent,
-  FormControl,
-  InputLabel,
-  Select,
-  MenuItem,
   Button,
   List,
   ListItem,
-  ListItemText,
   CardHeader,
   Drawer,
-  TextField,
-  Autocomplete,
   alpha,
   CircularProgress
 } from '@mui/material'
@@ -41,6 +34,7 @@ import StyleWithIconCardComponent from 'src/views/utility/style-with-icon-card'
 import { useTheme } from '@emotion/react'
 import { useRouter } from 'next/router'
 import {
+  getMedicineList,
   getProductAboutToExpireList,
   getProductDashboardList,
   getProductExpiredBatchesList,
@@ -52,21 +46,58 @@ import FallbackSpinner from 'src/@core/components/spinner'
 import Utility from 'src/utility'
 import MonthlyChart from 'src/views/utility/monthlychart'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
+import {
+  addNewAlternativeMedicineProducts,
+  getAlternativeMedicineProducts
+} from 'src/lib/api/pharmacy/alternateMedicines'
+import ControlledAutocomplete from 'src/views/forms/form-fields/ControlledAutocomplete'
+import { debounce } from 'lodash'
+import ProductOption from 'src/views/pages/pharmacy/utility/ProductOption'
+import ControlledTextField from 'src/views/forms/form-fields/ControlledTextField'
+import AlternativeMedicinesList from './AlternativeMedicinesList'
 
 const validationSchema = yup.object().shape({
   alternatives: yup.array().of(
     yup.object().shape({
-      productName: yup.string().required('Product Name is required'),
-      manufacturerName: yup
-        .string()
-        .min(3, 'Manufacturer Name must be at least 3 characters')
-        .required('Manufacturer Name is required')
+      productName: yup
+        .object()
+        .shape({
+          label: yup.string().required('Product Name is required'),
+          value: yup
+            .string()
+            .required('Product Name is required')
+            .test('is-unique', 'Duplicate Product Name selected', function (value) {
+              const { options, parent, path } = this
+
+              // Skip validation if we are not on the updated field
+              if (!parent || !path) return true
+
+              // Extract all alternatives (entire form array)
+              const allAlternatives = options?.from?.[2]?.value?.alternatives || []
+              const currentIndex = Number(path.match(/\d+/)?.[0])
+
+              // Ensure we're not validating the same field more than once
+              const duplicates = allAlternatives.filter((item, idx) => {
+                const isSameProduct = item?.productName?.value === value
+
+                return isSameProduct && idx !== currentIndex // exclude the current field itself
+              })
+
+              const hasDuplicates = duplicates.length > 0
+
+              // console.log('Duplicate Count (excluding self):', duplicates.length)
+              // console.log('Validation Result:', !hasDuplicates)
+
+              return !hasDuplicates // Return false if duplicates exist, causing an error
+            })
+        })
+        .required('Product Name is required'),
+      manufacturerName: yup.string().min(3, 'Manufacturer Name is required').required('Manufacturer Name is required')
     })
   )
 })
 
 const Overview = props => {
-  console.log(props, 'props')
   const { productDetails, productDashboardData, purchaseData, dispatchData, tabValue, updateUrlParams } = props
   const theme = useTheme()
 
@@ -74,13 +105,82 @@ const Overview = props => {
   const { id } = router.query
   const { selectedPharmacy } = usePharmacyContext()
 
+  const limit = 10
+
   // const [productDashboardData, setProductDashboardData] = useState()
   // const [purchaseData, setPurchaseData] = useState({ dispatch_count: [], dispatch_value: [] })
   // const [dispatchData, setDispatchData] = useState({ dispatch_count: [], dispatch_value: [] })
   const [isAlternativeMedicinesDrawerOpen, setAlternativeMedicinesDrawerOpen] = useState(false)
   const [addMedicinesDrawerOpen, setAddMedicinesDrawerOpen] = useState(false)
+  const [alternativeMedicinesList, setAlternativeMedicinesList] = useState()
+  const [optionsMedicineList, setOptionsMedicineList] = useState([])
+  const [productLoading, setProductLoading] = useState(false)
+  const [page, setPage] = useState(1)
+  const [hasMore, setHasMore] = useState(true)
 
-  console.log(selectedPharmacy, 'selectedPharmacy')
+  const searchMedicineData = useCallback(
+    debounce(async searchText => {
+      try {
+        await fetchMedicineData(searchText)
+      } catch (error) {
+        console.error(error)
+      }
+    }, 500),
+    []
+  )
+
+  const handleProductChange = (selectedOption, index) => {
+    // Update productName field
+    setValue(`alternatives[${index}].productName`, selectedOption)
+
+    // Update or clear manufacturerName field
+    setValue(`alternatives[${index}].manufacturerName`, selectedOption?.manufacture || '')
+
+    // Re-trigger validation with current form context
+    trigger(undefined, {
+      shouldFocus: false,
+      context: {
+        alternatives: getValues('alternatives')
+      }
+    })
+  }
+
+  const fetchMedicineData = async searchText => {
+    try {
+      setProductLoading(true)
+
+      const params = {
+        sort: 'asc',
+        q: searchText,
+        limit: 20
+      }
+
+      const searchResults = await getMedicineList({ params: params })
+      if (searchResults?.data?.list_items?.length > 0) {
+        setOptionsMedicineList(
+          searchResults?.data?.list_items
+            ?.filter(item => item?.id !== id)
+            ?.map(item => ({
+              value: item.id,
+              label: item.name,
+              status: item?.active === '0' ? 0 : 1,
+              control_substance: item.controlled_substance === '1' ? true : false,
+              stock_type: item.stock_type,
+              packageDetails: `${item?.package} of ${item?.package_qty} ${item?.package_uom_label} ${item?.product_form_label}`,
+              manufacture: item?.manufacturer_name
+            }))
+        )
+      }
+    } catch (e) {
+      console.error('error', e)
+    } finally {
+      setProductLoading(false)
+    }
+  }
+
+  useEffect(() => {
+    fetchMedicineData()
+  }, [])
 
   useEffect(() => {
     if (router.query.tab !== tabValue) {
@@ -90,79 +190,39 @@ const Overview = props => {
     }
   }, [tabValue, updateUrlParams])
 
-  const medicines = [
-    {
-      name: 'Genimol 650 Tablet',
-      manufacturer: 'Geneda Pharma'
-    },
-    {
-      name: 'Duramol Advanced Tablet',
-      manufacturer: 'Makers Laboratories Ltd'
-    },
-    {
-      name: 'Calpol 650 + Tablet',
-      manufacturer: 'GlaxoSmithKline Pharmaceuticals Ltd'
-    },
-    {
-      name: 'Opara Semi Tablet',
-      manufacturer: '10 tablets'
-    },
-    {
-      name: 'Pyregesic 650mg Tablet',
-      manufacturer: 'GlaxoSmithKline Pharmaceuticals Ltd'
-    },
-    {
-      name: 'Calpol 650 + Tablet',
-      manufacturer: 'GlaxoSmithKline Pharmaceuticals Ltd'
-    },
-    {
-      name: 'Pyregesic 650mg Tablet',
-      manufacturer: 'GlaxoSmithKline Pharmaceuticals Ltd'
-    },
-    {
-      name: 'Genimol 650 Tablet',
-      manufacturer: 'Geneda Pharma'
-    },
-    {
-      name: 'Pyregesic 650mg Tablet',
-      manufacturer: 'GlaxoSmithKline Pharmaceuticals Ltd'
-    },
-    {
-      name: 'Calpol 650 + Tablet',
-      manufacturer: 'GlaxoSmithKline Pharmaceuticals Ltd'
+  const getAlternativeMedicineList = async (pageNum = 1) => {
+    setIsLoading(true)
+    try {
+      const payload = {
+        page: pageNum,
+        limit
+      }
+      const response = await getAlternativeMedicineProducts(id, payload)
+      if (response.success) {
+        const newItems = response.data?.list_items || []
+        const totalCount = response?.data?.total_count || 0
+
+        setAlternativeMedicinesList(prev => ({
+          total_count: totalCount,
+          list_items: [...(prev?.list_items || []), ...newItems]
+        }))
+
+        const totalPages = Math.ceil(totalCount / limit)
+        setHasMore(pageNum < totalPages)
+      }
+    } catch (e) {
+      console.error(e)
+    } finally {
+      setIsLoading(false)
     }
-  ]
+  }
 
-  const alternativeMedicines = (
-    <>
-      <Typography
-        variant='h6'
-        gutterBottom
-        sx={{ color: 'customColors.customHeadingTextColor', fontSize: '16px', fontWeight: 500 }}
-      >
-        Alternative Medicines (10)
-      </Typography>
-      <Paper elevation={3}>
-        <List>
-          {medicines.map((medicine, index) => (
-            <ListItem key={index}>
-              <ListItemText
-                primary={medicine.name}
-                secondary={medicine.manufacturer}
-                primaryTypographyProps={{
-                  sx: { color: 'primary.dark', fontWeight: 500, fontSize: '14px' } // Customize primary text
-                }}
-                secondaryTypographyProps={{
-                  sx: { color: 'customColors.neutralSecondary', fontWeight: 400, fontSize: '12px' }
-                }}
-              />
-            </ListItem>
-          ))}
-        </List>
-      </Paper>
-    </>
-  )
+  useEffect(() => {
+    if (id) getAlternativeMedicineList(page)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id, page])
 
+  
   const QuantityInStoresContent = ({ data, isLoading }) => {
     const totalCentralQty = Array.isArray(data?.central)
       ? data.central.reduce((sum, store) => sum + Number(store.total_qty), 0)
@@ -523,7 +583,6 @@ const Overview = props => {
         setDrawerDataArray(result.data)
         if (name === 'quantityInStores') {
           const allStores = [...(result?.data?.central || []), ...(result?.data?.local || [])]
-          console.log(allStores, 'allStores')
 
           const totalQuantity = allStores.reduce((sum, store) => sum + Number(store.total_qty), 0)
           const totalStores = allStores.length
@@ -535,7 +594,6 @@ const Overview = props => {
             totalBatches: 0,
             totalValue: 0
           })
-          console.log('Calculated Totals:', { totalQuantity, totalStores })
         } else {
           const totalValue = result.data.reduce((acc, item) => {
             return acc + parseInt(item.qty) * parseInt(item.unit_price)
@@ -577,6 +635,7 @@ const Overview = props => {
   }
 
   const handleAddAlternativeMedicine = () => {
+    reset()
     setAddMedicinesDrawerOpen(true)
   }
 
@@ -585,27 +644,23 @@ const Overview = props => {
     handleSubmit,
     watch,
     setValue,
+    trigger,
+    getValues,
     reset,
+    setError,
     formState: { errors }
   } = useForm({
     resolver: yupResolver(validationSchema),
     defaultValues: {
-      alternatives: [{ productName: '', manufacturerName: '' }]
+      alternatives: [{ productName: {}, manufacturerName: '' }]
     }
   })
 
-  const productOptions = [
-    { label: 'Paracetamol', value: 'paracetamol' },
-    { label: 'Ibuprofen', value: 'ibuprofen' },
-    { label: 'Aspirin', value: 'aspirin' },
-    { label: 'Amoxicillin', value: 'amoxicillin' }
-  ]
-
   // Watch alternatives field
-  const alternatives = watch('alternatives', [])
+  const alternatives = watch('alternatives')
 
   const handleAddAlternative = () => {
-    setValue('alternatives', [...alternatives, { productName: '', manufacturerName: '' }])
+    setValue('alternatives', [...alternatives, { productName: { value: '', label: '' }, manufacturerName: '' }])
   }
 
   const handleDeleteLastAlternative = () => {
@@ -615,12 +670,38 @@ const Overview = props => {
     }
   }
 
-  const onSubmit = data => {
-    console.log('Submitted Alternatives:', data.alternatives)
-    reset()
-  }
+  const onSubmit = async data => {
+    try {
+      const body = data?.alternatives?.map(item => ({
+        stock_item_id: id,
+        alternate_stock_item_id: item?.productName?.value,
+        status: 1
+      }))
 
-  console.log(productDetails, 'overview')
+      const response = await addNewAlternativeMedicineProducts(JSON.stringify(body))
+      if (response.success) {
+        getAlternativeMedicineList(1)
+        setAddMedicinesDrawerOpen(false)
+
+        // TODO: Integrate Toast
+
+        reset()
+      } else if (response.errors?.length) {
+        response.errors.forEach(error => {
+          const errorIndex = error.index
+
+          if (typeof errorIndex === 'number' && error.exists) {
+            setError(`alternatives.${errorIndex}.productName`, {
+              type: 'manual',
+              message: error.exists
+            })
+          }
+        })
+      }
+    } catch (e) {
+      console.error(e) // TODO: Implement Toast
+    }
+  }
 
   // const productDashboardList = async id => {
   //   try {
@@ -675,7 +756,6 @@ const Overview = props => {
   //   }
   // }, [id])
 
-  console.log(purchaseData, 'purchaseData')
 
   return (
     <>
@@ -739,7 +819,7 @@ const Overview = props => {
         </Grid>
 
         {/* Apply similar structure to the rest of the cards */}
-        <Grid item xs={12} md={6} sx={{ display: 'none', flexDirection: 'column' }}>
+        <Grid item xs={12} md={6} sx={{ flexDirection: 'column' }}>
           <Card sx={{ height: '100%' }}>
             <CardContent sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
               {/* Header Section */}
@@ -770,7 +850,8 @@ const Overview = props => {
                         style={{ color: '#FFFFFF', fontSize: '18px', fontWeight: 'bold' }} // Icon color and size
                       />
                     </Box>
-                    Alternative Medicines (10)
+                    Alternative Medicines{' '}
+                    {alternativeMedicinesList?.total_count ? `(${alternativeMedicinesList?.total_count})` : null}
                   </Box>
                 </Typography>
 
@@ -793,36 +874,61 @@ const Overview = props => {
 
               {/* Medicine List */}
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, flexGrow: 1 }}>
-                <Typography variant='body2'>
-                  <List>
-                    {medicines.slice(0, 5).map((medicine, index) => (
-                      <ListItem key={index}>
-                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
-                          <Typography sx={{ color: 'primary.dark', fontWeight: 500, fontSize: '14px' }}>
-                            {medicine.name}
-                          </Typography>
-                          <Typography
-                            component='span'
-                            sx={{ color: 'customColors.neutralSecondary', fontWeight: 400, fontSize: '12px' }}
-                          >
-                            {medicine.manufacturer}
-                          </Typography>
-                        </Box>
-                      </ListItem>
-                    ))}
-                  </List>
-                </Typography>
-              </Box>
+                {isLoading ? (
+                  <Typography
+                    color='primary.light'
+                    style={{
+                      fontWeight: 400,
+                      fontSize: '0.875rem',
+                      color: 'customColors.OnPrimaryContainer',
+                      display: 'flex',
+                      justifyContent: 'center',
+                      alignItems: 'center'
+                    }}
+                  >
+                    <CircularProgress />
+                  </Typography>
+                ) : alternativeMedicinesList?.list_items?.length > 0 ? (
+                  <>
+                    <List>
+                      {alternativeMedicinesList.list_items.slice(0, 5).map((medicine, index) => (
+                        <ListItem key={index} disableGutters>
+                          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                            <Typography sx={{ color: 'primary.dark', fontWeight: 500, fontSize: '14px' }}>
+                              {medicine.stock_name}
+                            </Typography>
+                            <Typography
+                              component='span'
+                              sx={{ color: 'customColors.neutralSecondary', fontWeight: 400, fontSize: '12px' }}
+                            >
+                              {medicine.manufacturer_name}
+                            </Typography>
+                          </Box>
+                        </ListItem>
+                      ))}
+                    </List>
 
-              {/* More Section - Always at the bottom */}
-              <Box>
-                <Button
-                  variant='text'
-                  sx={{ color: 'primary.main', cursor: 'pointer' }}
-                  onClick={() => setAlternativeMedicinesDrawerOpen(true)}
-                >
-                  +5 More
-                </Button>
+                    {/* More Section - Only show if more than 5 */}
+                    {alternativeMedicinesList?.total_count > 5 && (
+                      <Box>
+                        <Button
+                          variant='text'
+                          sx={{ color: 'primary.main', cursor: 'pointer', textTransform: 'none', fontSize: '13px' }}
+                          onClick={() => setAlternativeMedicinesDrawerOpen(true)}
+                        >
+                          +{alternativeMedicinesList?.total_count - 5} More
+                        </Button>
+                      </Box>
+                    )}
+                  </>
+                ) : (
+                  <Typography
+                    variant='body2'
+                    sx={{ color: 'customColors.neutralSecondary', textAlign: 'center', py: 2 }}
+                  >
+                    No items found.
+                  </Typography>
+                )}
               </Box>
             </CardContent>
           </Card>
@@ -967,7 +1073,14 @@ const Overview = props => {
         title='Dolo 650 Tablet'
         drawerStatus={isAlternativeMedicinesDrawerOpen}
         close={() => setAlternativeMedicinesDrawerOpen(false)}
-        contentComponent={alternativeMedicines}
+        contentComponent={
+          <AlternativeMedicinesList
+            data={alternativeMedicinesList}
+            isLoading={isLoading}
+            hasMore={hasMore}
+            onLoadMore={() => setPage(prev => prev + 1)}
+          />
+        }
         style='customColors.Background'
       />
 
@@ -1011,50 +1124,28 @@ const Overview = props => {
                 {/* Map through alternatives */}
                 {alternatives.map((alt, index) => (
                   <Box key={index} display='flex' flexDirection='column' gap={2}>
-                    {/* Product Name */}
-                    <FormControl fullWidth sx={{ mb: 4 }}>
-                      <Controller
-                        name={`alternatives[${index}].productName`}
-                        control={control}
-                        render={({ field }) => (
-                          <Autocomplete
-                            {...field}
-                            options={productOptions}
-                            getOptionLabel={option => (typeof option === 'string' ? option : option?.label || '')}
-                            value={productOptions.find(option => option.value === field.value) || null}
-                            onChange={(_, selectedOption) => field.onChange(selectedOption?.value || '')}
-                            renderInput={params => (
-                              <TextField
-                                {...params}
-                                label='Product Name'
-                                variant='outlined'
-                                error={!!errors?.alternatives?.[index]?.productName}
-                                helperText={errors?.alternatives?.[index]?.productName?.message}
-                                fullWidth
-                              />
-                            )}
-                          />
-                        )}
-                      />
-                    </FormControl>
+                    <ControlledAutocomplete
+                      name={`alternatives[${index}].productName`}
+                      label='Product Name*'
+                      control={control}
+                      errors={errors}
+                      options={optionsMedicineList}
+                      loading={productLoading}
+                      onKeyUp={e => searchMedicineData(e.target.value)}
+                      onChangeOverride={value => handleProductChange(value, index)}
+                      renderOption={(props, option) => <ProductOption option={option} {...props} />}
+                    />
 
                     {/* Manufacturer Name */}
-                    <FormControl fullWidth sx={{ mb: 4 }}>
-                      <Controller
-                        name={`alternatives[${index}].manufacturerName`}
-                        control={control}
-                        render={({ field }) => (
-                          <TextField
-                            {...field}
-                            label='Manufacturer Name'
-                            variant='outlined'
-                            error={!!errors?.alternatives?.[index]?.manufacturerName}
-                            helperText={errors?.alternatives?.[index]?.manufacturerName?.message}
-                            fullWidth
-                          />
-                        )}
-                      />
-                    </FormControl>
+
+                    <ControlledTextField
+                      name={`alternatives[${index}].manufacturerName`}
+                      label='Manufacturer Name'
+                      control={control}
+                      errors={errors}
+                      required={true}
+                      disabled
+                    />
                   </Box>
                 ))}
 

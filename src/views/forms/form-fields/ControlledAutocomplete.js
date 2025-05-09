@@ -1,10 +1,7 @@
 import React from 'react'
 import { Controller } from 'react-hook-form'
-import {
-  Autocomplete,
-  TextField,
-  FormControl,
-} from '@mui/material'
+import { Autocomplete, TextField, FormControl } from '@mui/material'
+import get from 'lodash/get'
 
 const ControlledAutocomplete = ({
   name,
@@ -23,9 +20,11 @@ const ControlledAutocomplete = ({
   renderOption = null
 }) => {
   if (!options) return
-  
+
+  const fieldError = get(errors, name)
+
   return (
-    <FormControl fullWidth={fullWidth} error={Boolean(errors?.[name])}>
+    <FormControl fullWidth={fullWidth} error={Boolean(fieldError)}>
       <Controller
         name={name}
         control={control}
@@ -50,12 +49,8 @@ const ControlledAutocomplete = ({
                 {...params}
                 label={label}
                 placeholder='Search & Select'
-                error={Boolean(errors?.[name])}
-                helperText={
-                  errors?.[name]?.value?.message ||
-                  errors?.[name]?.label?.message ||
-                  errors?.[name]?.message
-                }
+                error={Boolean(fieldError)}
+                helperText={fieldError?.value?.message || fieldError?.label?.message || fieldError?.message}
               />
             )}
             renderOption={renderOption}
