@@ -89,7 +89,8 @@ function ProductForm({
             },
             qty: '',
             variant_id: '',
-            multiplier: ''
+            multiplier: '',
+            expiry_date: ''
           }
         ]
       }
@@ -104,7 +105,8 @@ function ProductForm({
         },
         qty: '',
         variant_id: '',
-        multiplier: ''
+        multiplier: '',
+        expiry_date: ''
       }
 
   const ProductValidationSchema = !editMode
@@ -611,11 +613,13 @@ function ProductForm({
 
   useEffect(() => {
     if (editMode) {
+      console.log('dataForEditRow', dataForEditRow)
       setValue('stock_id', dataForEditRow?.stock_id)
       setValue('batch_no', dataForEditRow?.batch_no)
       setValue('qty', dataForEditRow?.qty)
       setValue('variant_id', dataForEditRow?.variant_id)
       setValue('multiplier', dataForEditRow?.multiplier)
+      setValue('expiry_date', dataForEditRow?.expiry_date)
 
       callBatchesApi(dataForEditRow.stock_id?.value, dataForEditRow?.stock_id?.stock_type)
       setTotalQty(getValues('batch_no.qty'))
@@ -1112,6 +1116,40 @@ function ProductForm({
                             })
                           }
                         }}
+                        renderOption={(props, option) => (
+                          <Box
+                            component='li'
+                            {...props}
+                            sx={{
+                              border: '1px solid transparent',
+                              '&:last-child': {
+                                borderBottom: 'none'
+                              },
+                              m: 3,
+                              '&:hover': {
+                                border: `1px solid ${theme.palette.customColors.neutral05}`
+                              },
+
+                              borderRadius: '2px'
+                            }}
+                          >
+                            <Box sx={{ p: 1 }}>
+                              <Typography
+                                variant='body2'
+                                color='customColors.customHeadingTextColor'
+                                sx={{ fontWeight: 600 }}
+                              >
+                                {option.label}
+                              </Typography>
+                              <Typography variant='body2' color='customColors.neutralSecondary'>
+                                Expiry Date: {Utility.formatDisplayDate(option?.expiry_date)}
+                              </Typography>
+                              <Typography variant='body2' color='primary.main'>
+                                Availability: {option?.qty}
+                              </Typography>
+                            </Box>
+                          </Box>
+                        )}
                       />
                       {errors.batch_no && (
                         <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
