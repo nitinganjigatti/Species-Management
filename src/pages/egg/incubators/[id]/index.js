@@ -170,9 +170,9 @@ const IncubatorDetails = () => {
 
   const columns = [
     {
-      width: 60,
+      width: 80,
       field: 'uid',
-      headerName: 'NO',
+      headerName: 'SL.NO',
       align: 'center',
       sortable: false,
       renderCell: params => (

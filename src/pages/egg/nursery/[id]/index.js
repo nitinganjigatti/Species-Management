@@ -240,10 +240,9 @@ const NurseryDetails = () => {
 
   const columns = [
     {
-      flex: 0.05,
-      minWidth: 40,
+      minWidth: 80,
       field: 'id',
-      headerName: 'NO',
+      headerName: 'SL.NO',
       headerAlign: 'center',
       align: 'center',
       sortable: false,
