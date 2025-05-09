@@ -175,7 +175,13 @@ const CreateEnclosure = ({
           sx={{ width: { xs: '100%', sm: 'auto' }, justifyContent: { xs: 'center', sm: 'flex-end' } }}
         >
           <Button
-            onClick={() => setEnclosureDrawer(false)}
+            onClick={event => {
+              event.stopPropagation()
+              setSelectedEnclosureIds([]) // ✅ clear enclosure-specific IDs
+              // setCheckedRows([]) // ✅ clear checkboxes
+              setSelectedItems([]) // ✅ clear selected rows
+              setEnclosureDrawer(false) // ✅ close the enclosure drawer
+            }}
             variant='outlined'
             fullWidth
             sx={{
