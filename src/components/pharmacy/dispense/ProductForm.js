@@ -414,8 +414,6 @@ function ProductForm({
   // }
 
   function submitItems(data) {
-    console.log(data, 'data')
-
     const index = productArrayUi.findIndex(item => item.stock_id?.value === data?.stock_id?.value)
 
     // If index is found, insert the new items just after that index
@@ -518,8 +516,6 @@ function ProductForm({
     if (!editMode) {
       try {
         getProductList({ params: { sort: 'asc', q: '', limit: 20, is_specific: 1 } }).then(res => {
-          console.log('unit_price', res)
-
           if (res?.data?.list_items?.length > 0) {
             setProducts(
               res?.data?.list_items?.map(item => ({
@@ -574,7 +570,6 @@ function ProductForm({
   const callBatchesApi = (stock_id, stock_type) => {
     if (stock_id) {
       getBatchList({ ProductId: stock_id, store_type: selectedPharmacy?.type, stock_type }).then(res => {
-        console.log('unit_price', res)
         if (res?.data?.items?.length > 0) {
           setBatches(
             res?.data?.items?.map(item => ({
@@ -582,7 +577,8 @@ function ProductForm({
               value: item?.batch_no,
               qty: item?.qty,
               variant_id: item?.variant_id,
-              multiplier: item?.multiplier
+              multiplier: item?.multiplier,
+              expiry_date: item?.expiry_date
             }))
           )
 
