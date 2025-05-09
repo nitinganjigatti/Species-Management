@@ -148,7 +148,8 @@ const ExpiringMedicine = () => {
           limit: paginationModel.pageSize,
           pending_days_start: startDate || filterDates?.startDate,
           pending_days_end: endDate || filterDates?.endDate,
-          ...(selectedStorePharmacy !== 'all' && { store_id: selectedStorePharmacy })
+          ...(selectedStorePharmacy !== 'all' && { store_id: selectedStorePharmacy }),
+          is_medical_only: 1
         }
 
         const res = await aboutExpiringProduct({ params })

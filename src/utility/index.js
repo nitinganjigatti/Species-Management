@@ -41,11 +41,16 @@ function formattedPresentDate() {
 }
 
 function formatDisplayDate(date) {
-  const result = moment(date).format('DD MMM YYYY')
-  if (result === 'Invalid date') {
-    return 'NA'
+  if (date) {
+    const result = moment(date).format('DD MMM YYYY')
+
+    if (result === 'Invalid date') {
+      return 'NA'
+    } else {
+      return result
+    }
   } else {
-    return result
+    return 'NA'
   }
 
   // return moment(date).format('DD MMM YYYY')
