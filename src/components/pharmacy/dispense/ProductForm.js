@@ -880,8 +880,8 @@ function ProductForm({
         {!editMode ? (
           <FormGroup sx={{ bgcolor: '#0000000D', padding: 2, borderRadius: 1 }}>
             {fields.map((field, index) => (
-              <Grid container spacing={2} key={field?.id} sx={{ mb: 2, mt: 2 }}>
-                <Grid item xs={12} sm={3}>
+              <Grid container spacing={3} key={field?.id} sx={{ mb: 2, mt: 2 }}>
+                <Grid item xs={12} sm={3} md={3.5}>
                   <FormControl fullWidth>
                     <Controller
                       name={`product_batches[${index}].batch_no`}
@@ -988,7 +988,7 @@ function ProductForm({
                     />
                   </FormControl>
                 </Grid>
-                <Grid item xs={12} sm={3}>
+                <Grid item xs={12} sm={3} md={3.5}>
                   <FormControl fullWidth>
                     <Controller
                       name={`product_batches[${index}].multiplier`}
@@ -1016,7 +1016,7 @@ function ProductForm({
                     ></Controller>
                   </FormControl>
                 </Grid>
-                <Grid item xs={12} sm={3}>
+                <Grid item xs={12} sm={3} md={3.5}>
                   <FormControl fullWidth>
                     <Controller
                       name={`product_batches[${index}].qty`}
@@ -1061,6 +1061,7 @@ function ProductForm({
                   item
                   xs={12}
                   sm={3}
+                  md={1.5}
                   sx={{
                     display: 'flex',
                     justifyContent: { xs: 'flex-start', sm: 'flex-end' },

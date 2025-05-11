@@ -665,6 +665,20 @@ const RequestList = () => {
           )}
         </>
       )
+    },
+    {
+      minWidth: 250,
+      field: 'updated_by',
+      headerName: 'Updated by',
+      renderCell: params => (
+        <>
+          {RenderUtility?.renderUserAvatarDetails(
+            params?.row?.user_updated_profile_pic,
+            params?.row?.updated_by_user_name,
+            params?.row?.updated_at
+          )}
+        </>
+      )
     }
   ]
 

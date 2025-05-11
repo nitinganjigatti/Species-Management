@@ -120,17 +120,16 @@ const PurchaseItemForm = props => {
     }),
     purchase_batch_no: yup
       .string()
+      .test('is-unique', 'Product with same batch exist', function (value, { parent }) {
+        const isDuplicate = purchase_details?.some(
+          (entry, index) =>
+            index !== (medicineItemId ? nestedRowMedicine?.index : -1) &&
+            entry?.purchase_unit_id === parent?.product?.value &&
+            entry?.purchase_batch_no?.trim()?.toLowerCase() === value?.trim()?.toLowerCase()
+        )
 
-      // .test('is-unique', 'Product with same batch exist', function (value, { parent }) {
-      //   const isDuplicate = purchase_details?.some(
-      //     (entry, index) =>
-      //       index !== (medicineItemId ? nestedRowMedicine?.index : -1) &&
-      //       entry?.purchase_unit_id === parent?.product?.value &&
-      //       entry?.purchase_batch_no?.trim()?.toLowerCase() === value?.trim()?.toLowerCase()
-      //   )
-
-      //   return !isDuplicate
-      // })
+        return !isDuplicate
+      })
       .required('Batch number is required'),
 
     purchase_unit_price: yup
