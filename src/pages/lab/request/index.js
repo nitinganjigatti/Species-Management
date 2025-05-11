@@ -154,7 +154,8 @@ const ListOfRequest = () => {
                 color: 'white',
                 borderRadius: '50px',
                 height: 20,
-                width: 20,
+                minWidth: 20,
+                paddingX: 1.4,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center'
@@ -171,7 +172,8 @@ const ListOfRequest = () => {
                 color: 'white',
                 borderRadius: '50px',
                 height: 20,
-                width: 20,
+                minWidth: 20,
+                paddingX: 1.4,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center'
@@ -188,7 +190,8 @@ const ListOfRequest = () => {
                 color: 'white',
                 borderRadius: '50px',
                 height: 20,
-                width: 20,
+                minWidth: 20,
+                paddingX: 1.4,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center'
