@@ -56,6 +56,7 @@ import { useRouter } from 'next/router'
 import StockReportDetails from 'src/views/pages/pharmacy/stock/stockReportDetails'
 import RenderUtility from 'src/utility/render'
 import { ExportButton } from 'src/views/utility/render-snippets'
+import PharmacyProductCard from 'src/views/utility/PharmacyProductCard'
 
 const ListOfStocks = () => {
   const theme = useTheme()
@@ -290,8 +291,6 @@ const ListOfStocks = () => {
     [paginationModel, stockId]
   )
 
-  // console.log('stock Reports >', stockReport)
-
   const indexedRows = stockReport?.map((row, index) => ({
     ...row,
     id: `${row.id}_${index}`,
@@ -452,7 +451,6 @@ const ListOfStocks = () => {
 
   const columns = [
     {
-      // flex: 0.05,
       Width: 40,
       field: 'uid',
       headerName: 'SL.NO',
@@ -462,48 +460,21 @@ const ListOfStocks = () => {
         </Typography>
       )
     },
-    {
-      // flex: 0.12,
-      minWidth: 20,
-      field: 'image',
-      headerName: 'IMAGE',
-      renderCell: params => (
-        <Badge
-          sx={{ ml: 2, cursor: 'pointer' }}
-          anchorOrigin={{
-            vertical: 'bottom',
-            horizontal: 'right'
-          }}
-        >
-          <Avatar
-            variant='square'
-            alt='Medicine Image'
-            sx={{ width: 40, height: 40 }}
-            src={params.row.image ? `${params.row.image}` : '/images/tablet.png'}
-          />
-        </Badge>
-      )
-    },
 
     {
-      // flex: 0.2,
       width: 260,
       field: 'stock_items_name',
       headerName: 'Product Name',
       renderCell: params => (
-        <Tooltip title={params.row.stock_items_name} placement='top'>
-          <Typography
-            variant='body2'
-            sx={{
-              color: theme.palette.customColors.customHeadingTextColor,
-              fontSize: '14px',
-              fontWeight: 500,
-              fontFamily: 'Inter'
-            }}
-          >
-            {params.row.stock_items_name}
-          </Typography>
-        </Tooltip>
+        <Box>
+          <PharmacyProductCard
+            title={params?.row?.stock_items_name}
+            subTitle={params?.row?.generic_name}
+            icon={params?.row?.image}
+            controlSubstance={params?.row?.controlled_substance === '1' && true}
+            prescriptionRequired={params?.row?.prescription_required === '1' && true}
+          />
+        </Box>
       )
     },
     {
@@ -609,47 +580,22 @@ const ListOfStocks = () => {
         </Typography>
       )
     },
-    {
-      // flex: 0.2,
-      minWidth: 20,
-      field: 'image',
-      headerName: 'IMAGE',
-      renderCell: params => (
-        <Badge
-          sx={{ ml: 2, cursor: 'pointer' }}
-          anchorOrigin={{
-            vertical: 'bottom',
-            horizontal: 'right'
-          }}
-        >
-          <Avatar
-            variant='square'
-            alt='Medicine Image'
-            sx={{ width: 40, height: 40 }}
-            src={params.row.image ? `${params.row.image}` : '/images/tablet.png'}
-          />
-        </Badge>
-      )
-    },
+
     {
       // flex: 0.4,
       minWidth: 260,
       field: 'stock_items_name',
       headerName: 'Product Name',
       renderCell: params => (
-        <Tooltip title={params.row.stock_items_name} placement='top'>
-          <Typography
-            variant='body2'
-            sx={{
-              color: theme.palette.customColors.customHeadingTextColor,
-              fontSize: '14px',
-              fontWeight: 500,
-              fontFamily: 'Inter'
-            }}
-          >
-            {params.row.stock_items_name}
-          </Typography>
-        </Tooltip>
+        <Box>
+          <PharmacyProductCard
+            title={params?.row?.stock_items_name}
+            subTitle={params?.row?.generic_name}
+            icon={params?.row?.image}
+            controlSubstance={params?.row?.controlled_substance === '1' && true}
+            prescriptionRequired={params?.row?.prescription_required === '1' && true}
+          />
+        </Box>
       )
     },
     {

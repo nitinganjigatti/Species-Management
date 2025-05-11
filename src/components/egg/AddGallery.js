@@ -10,7 +10,6 @@ const AddGallery = ({ galleryList }) => {
     <Box
       sx={{
         display: 'flex',
-
         flexDirection: 'row',
         gap: '12px',
         m: 4,

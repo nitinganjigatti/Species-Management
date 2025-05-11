@@ -89,7 +89,8 @@ function ProductForm({
             },
             qty: '',
             variant_id: '',
-            multiplier: ''
+            multiplier: '',
+            expiry_date: ''
           }
         ]
       }
@@ -104,7 +105,8 @@ function ProductForm({
         },
         qty: '',
         variant_id: '',
-        multiplier: ''
+        multiplier: '',
+        expiry_date: ''
       }
 
   const ProductValidationSchema = !editMode
@@ -144,7 +146,7 @@ function ProductForm({
                 const isValid = product_batches?.every(item => {
                   const batchQty = parseFloat(item?.batch_no?.qty)
                   const inputQty = parseFloat(item?.qty)
-                  
+
                   if (isNaN(batchQty) || isNaN(inputQty)) return true
 
                   return inputQty <= batchQty
@@ -414,8 +416,6 @@ function ProductForm({
   // }
 
   function submitItems(data) {
-    console.log(data, 'data')
-
     const index = productArrayUi.findIndex(item => item.stock_id?.value === data?.stock_id?.value)
 
     // If index is found, insert the new items just after that index
@@ -518,8 +518,6 @@ function ProductForm({
     if (!editMode) {
       try {
         getProductList({ params: { sort: 'asc', q: '', limit: 20, is_specific: 1 } }).then(res => {
-          console.log('unit_price', res)
-
           if (res?.data?.list_items?.length > 0) {
             setProducts(
               res?.data?.list_items?.map(item => ({
@@ -574,7 +572,6 @@ function ProductForm({
   const callBatchesApi = (stock_id, stock_type) => {
     if (stock_id) {
       getBatchList({ ProductId: stock_id, store_type: selectedPharmacy?.type, stock_type }).then(res => {
-        console.log('unit_price', res)
         if (res?.data?.items?.length > 0) {
           setBatches(
             res?.data?.items?.map(item => ({
@@ -582,7 +579,8 @@ function ProductForm({
               value: item?.batch_no,
               qty: item?.qty,
               variant_id: item?.variant_id,
-              multiplier: item?.multiplier
+              multiplier: item?.multiplier,
+              expiry_date: item?.expiry_date
             }))
           )
 
@@ -615,11 +613,13 @@ function ProductForm({
 
   useEffect(() => {
     if (editMode) {
+      console.log('dataForEditRow', dataForEditRow)
       setValue('stock_id', dataForEditRow?.stock_id)
       setValue('batch_no', dataForEditRow?.batch_no)
       setValue('qty', dataForEditRow?.qty)
       setValue('variant_id', dataForEditRow?.variant_id)
       setValue('multiplier', dataForEditRow?.multiplier)
+      setValue('expiry_date', dataForEditRow?.expiry_date)
 
       callBatchesApi(dataForEditRow.stock_id?.value, dataForEditRow?.stock_id?.stock_type)
       setTotalQty(getValues('batch_no.qty'))
@@ -880,8 +880,8 @@ function ProductForm({
         {!editMode ? (
           <FormGroup sx={{ bgcolor: '#0000000D', padding: 2, borderRadius: 1 }}>
             {fields.map((field, index) => (
-              <Grid container spacing={2} key={field?.id} sx={{ mb: 2, mt: 2 }}>
-                <Grid item xs={12} sm={3}>
+              <Grid container spacing={3} key={field?.id} sx={{ mb: 2, mt: 2 }}>
+                <Grid item xs={12} sm={3} md={3.5}>
                   <FormControl fullWidth>
                     <Controller
                       name={`product_batches[${index}].batch_no`}
@@ -945,7 +945,7 @@ function ProductForm({
                                   <Typography variant='body2' color='customColors.neutralSecondary'>
                                     Expiry Date: {Utility.formatDisplayDate(option?.expiry_date)}
                                   </Typography>
-                                  <Typography variant='body2' color='customColors.Tertiary'>
+                                  <Typography variant='body2' color='primary.main'>
                                     Availability: {option?.qty}
                                   </Typography>
                                 </Box>
@@ -988,7 +988,7 @@ function ProductForm({
                     />
                   </FormControl>
                 </Grid>
-                <Grid item xs={12} sm={3}>
+                <Grid item xs={12} sm={3} md={3.5}>
                   <FormControl fullWidth>
                     <Controller
                       name={`product_batches[${index}].multiplier`}
@@ -998,7 +998,7 @@ function ProductForm({
                         <TextField
                           disabled
                           type='text'
-                          value={value || ""}
+                          value={value || ''}
                           InputLabelProps={{ shrink: true }}
                           label='Product Variant'
                           error={Boolean(errors?.product_batches?.[index]?.multiplier)}
@@ -1016,7 +1016,7 @@ function ProductForm({
                     ></Controller>
                   </FormControl>
                 </Grid>
-                <Grid item xs={12} sm={3}>
+                <Grid item xs={12} sm={3} md={3.5}>
                   <FormControl fullWidth>
                     <Controller
                       name={`product_batches[${index}].qty`}
@@ -1061,6 +1061,7 @@ function ProductForm({
                   item
                   xs={12}
                   sm={3}
+                  md={1.5}
                   sx={{
                     display: 'flex',
                     justifyContent: { xs: 'flex-start', sm: 'flex-end' },
@@ -1116,6 +1117,40 @@ function ProductForm({
                             })
                           }
                         }}
+                        renderOption={(props, option) => (
+                          <Box
+                            component='li'
+                            {...props}
+                            sx={{
+                              border: '1px solid transparent',
+                              '&:last-child': {
+                                borderBottom: 'none'
+                              },
+                              m: 3,
+                              '&:hover': {
+                                border: `1px solid ${theme.palette.customColors.neutral05}`
+                              },
+
+                              borderRadius: '2px'
+                            }}
+                          >
+                            <Box sx={{ p: 1 }}>
+                              <Typography
+                                variant='body2'
+                                color='customColors.customHeadingTextColor'
+                                sx={{ fontWeight: 600 }}
+                              >
+                                {option.label}
+                              </Typography>
+                              <Typography variant='body2' color='customColors.neutralSecondary'>
+                                Expiry Date: {Utility.formatDisplayDate(option?.expiry_date)}
+                              </Typography>
+                              <Typography variant='body2' color='primary.main'>
+                                Availability: {option?.qty}
+                              </Typography>
+                            </Box>
+                          </Box>
+                        )}
                       />
                       {errors.batch_no && (
                         <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>

@@ -1,4 +1,5 @@
-import { useState, useEffect, useRef, useCallback } from 'react'
+/* eslint-disable lines-around-comment */
+import React, { useState, useEffect, useRef, useCallback } from 'react'
 import axios from 'axios'
 import { Typography, Grid, Box, Button, FormControl, TextField, FormHelperText, Card, Tab, alpha } from '@mui/material'
 import IconButton from '@mui/material/IconButton'
@@ -11,6 +12,25 @@ import { v4 as uuidv4 } from 'uuid'
 import { useTheme } from '@emotion/react'
 import { useDropzone } from 'react-dropzone'
 import toast from 'react-hot-toast'
+import ImagePreview from 'src/views/utility/ImagePreview'
+import { variantMappingForProductBatch } from 'src/lib/api/pharmacy/getPurchaseList'
+
+const customScrollbar = {
+  overflowX: 'auto',
+  '&::-webkit-scrollbar': {
+    height: '6px',
+    width: '6px'
+  },
+  '&::-webkit-scrollbar-track': {
+    backgroundColor: 'transparent'
+  },
+  '&::-webkit-scrollbar-thumb': {
+    backgroundColor: '#ccc',
+    borderRadius: '4px'
+  },
+  scrollbarWidth: 'thin',
+  scrollbarColor: '#ccc transparent'
+}
 
 const PurchaseInvoiceUpload = ({
   setPurchaseItems,
@@ -18,7 +38,8 @@ const PurchaseInvoiceUpload = ({
   closeDialog,
   handleInputImageChange,
   invoiceSubmitLoader,
-  setInvoiceSubmitLoader
+  setInvoiceSubmitLoader,
+  variantLists
 }) => {
   const theme = useTheme()
   const [cameras, setCameras] = useState([])
@@ -40,6 +61,12 @@ const PurchaseInvoiceUpload = ({
 
   const handleClick = () => {
     fileInputRef.current.click()
+  }
+
+  const findVariantIdWithUnitMultiplierOne = () => {
+    const found = variantLists?.length > 0 && variantLists?.find(item => item?.unit_multiplier === '1')
+
+    return found ? found?.id : ''
   }
 
   const formatInvoiceDate = dateStr => {
@@ -96,8 +123,6 @@ const PurchaseInvoiceUpload = ({
     stopCamera() // Stop the previous camera if any
 
     try {
-      console.log(`Starting camera with deviceId: ${deviceId}`)
-
       const stream = await navigator.mediaDevices.getUserMedia({
         video: { deviceId: { exact: deviceId } }
       })
@@ -136,6 +161,9 @@ const PurchaseInvoiceUpload = ({
       // Clear the srcObject to stop the video from playing
       videoRef.current.srcObject = null
     }
+
+    // Reset camera permission state
+    // setHasPermission(false)
   }
 
   const dataURLtoBlob = dataURL => {
@@ -164,10 +192,8 @@ const PurchaseInvoiceUpload = ({
 
       context.drawImage(video, 0, 0, width, height)
       const imageDataUrl = canvas.toDataURL('image/png')
-      console.log('Picture captured.', imageDataUrl)
       const blob = dataURLtoBlob(imageDataUrl)
       const file = new File([blob], 'captured-image.png', { type: 'image/png' })
-      console.log('Picture saved as file.', file)
 
       // setCapturedImage(imageDataUrl)
 
@@ -175,7 +201,6 @@ const PurchaseInvoiceUpload = ({
       setFile(prev => [...prev, file])
 
       // stopCamera()
-      console.log('Picture captured.')
     }
   }
 
@@ -275,6 +300,8 @@ const PurchaseInvoiceUpload = ({
       return
     }
 
+    // Stop the camera before submitting
+    stopCamera()
     setInvoiceSubmitLoader(true)
 
     const promises = Array.from(file).map(file => {
@@ -309,11 +336,38 @@ const PurchaseInvoiceUpload = ({
             }
           }
         )
-        .then(data => {
+        .then(async data => {
           setInvoiceSubmitLoader(false)
+
           closeDialog()
-          console.log(data.data.data)
-          const responseData = data.data.data
+          let responseData = data?.data?.data
+
+          const payLoad = responseData?.product_details
+            ?.filter(el => el?.purchase_stock_item_id && el?.purchase_batch_no)
+            .map(el => ({
+              stock_item_id: el?.purchase_stock_item_id,
+              batch_no: el?.purchase_batch_no
+            }))
+
+          try {
+            await variantMappingForProductBatch(payLoad).then(res => {
+              if (res?.success && res?.data?.length > 0) {
+                responseData.product_details = responseData?.product_details?.map(el => {
+                  const matched = res.data.find(
+                    src => src?.batch_no === el?.purchase_batch_no && src?.stock_item_id === el?.purchase_stock_item_id
+                  )
+
+                  return {
+                    ...el,
+                    purchase_variant_id: matched?.variant_id || '',
+                    purchase_variant_ratio: matched?.unit_multiplier || ''
+                  }
+                })
+              }
+            })
+          } catch (error) {
+            console.error('Error in variant mapping:', error)
+          }
           if (responseData) {
             const purchase_details = responseData.product_details.map((el, index) => {
               // Get GST values from invoice data
@@ -336,6 +390,7 @@ const PurchaseInvoiceUpload = ({
                 ...el,
                 uid: uuidv4(),
                 medicine_name: el?.medicine_name,
+                purchase_unit_id: el?.purchase_unit_id ? el?.purchase_unit_id : el?.purchase_stock_item_id,
                 purchase_stock_item_id: el?.purchase_stock_item_id,
                 id: el?.id || '',
                 stock_type: el?.stock_type,
@@ -347,12 +402,12 @@ const PurchaseInvoiceUpload = ({
                 purchase_expiry_date: el?.purchase_expiry_date,
 
                 // variant id hardcodedd for demoprepose
-                purchase_variant_id: el?.purchase_variant_id,
-                purchase_variant_ratio: el?.unit_multiplier ? el?.unit_multiplier : 1,
+                // purchase_variant_id: findVariantIdWithUnitMultiplierOne(),
+                // purchase_variant_ratio: 1,
 
                 // purchase_variant_id: 1,
                 // purchase_variant_ratio: 1,
-                // purchase_unit_qty: el?.purchase_qty * 1,
+                purchase_unit_qty: el?.purchase_qty * 1,
 
                 ///********** */
                 purchase_qty: el?.purchase_qty,
@@ -473,52 +528,7 @@ const PurchaseInvoiceUpload = ({
 
   const handleDeleteFile = fileIndex => {
     setFile(prev => prev.filter((file, index) => index !== fileIndex))
-  }
-
-  const imagePreview = (file, index) => {
-    return (
-      <Box
-        sx={{
-          position: 'relative',
-          display: 'flex',
-          justifyContent: 'center',
-          alignItems: 'center',
-          borderRadius: '8px',
-          overflow: 'hidden',
-          backgroundColor: 'customColors.displaybgPrimary',
-          padding: '16px',
-          boxShadow: 1,
-          height: 'auto',
-          my: 1
-        }}
-      >
-        <>
-          <img
-            alt='Preview'
-            src={URL.createObjectURL(file)}
-            style={{ display: 'block', width: '100%', height: '100%' }}
-          />
-
-          <Icon
-            disabled={invoiceSubmitLoader}
-            onClick={() => {
-              handleDeleteFile(index)
-              if (browseButtonRef.current) browseButtonRef.current.value = ''
-            }}
-            icon='solar:close-square-bold'
-            style={{
-              position: 'absolute',
-              top: '0px',
-              right: '0px',
-              cursor: 'pointer',
-              pointerEvents: invoiceSubmitLoader ? 'none' : 'auto'
-            }}
-            width='24'
-            height='24'
-          />
-        </>
-      </Box>
-    )
+    if (browseButtonRef.current) browseButtonRef.current.value = ''
   }
 
   const onDrop = useCallback((acceptedFiles, rejectedFiles) => {
@@ -681,6 +691,7 @@ const PurchaseInvoiceUpload = ({
                               fontSize: '14px',
                               backgroundColor: 'customColors.bodyBg',
                               cursor: 'pointer',
+                              my: 1,
                               borderColor: theme => alpha(theme.palette.customColors.neutral05, 0.05)
                             }}
                             onClick={() => startCamera(camera.deviceId)}
@@ -773,10 +784,28 @@ const PurchaseInvoiceUpload = ({
                           </Box>
                         )}
                       </Grid>
-                      <Grid item xs={12} sm={3} sx={{ overflowY: 'auto', height: 400 }}>
-                        {console.log('file', file)}
-                        {Array.isArray(file) && file.length > 0 && (
-                          <>{file.map((el, index) => imagePreview(el, index))}</>
+                      <Grid
+                        item
+                        xs={12}
+                        sm={3}
+                        sx={{ overflowY: 'auto', overflowX: 'hidden', height: 400, ...customScrollbar }}
+                      >
+                        {Array.isArray(file) && file?.length > 0 && (
+                          <>
+                            {file?.map((el, index) => {
+                              return (
+                                <ImagePreview
+                                  // imageDetails={el}
+                                  loader={invoiceSubmitLoader}
+                                  onClose={() => {
+                                    handleDeleteFile(index)
+                                  }}
+                                  key={index}
+                                  imageSrc={URL.createObjectURL(el)}
+                                />
+                              )
+                            })}
+                          </>
                         )}
                       </Grid>
                     </Grid>
@@ -787,7 +816,6 @@ const PurchaseInvoiceUpload = ({
           </Grid>
         </TabPanel>
         <TabPanel value='by_input' sx={{ px: '24px' }}>
-          {console.log('file', file)}
           <Grid
             container
             gap={1}
@@ -912,54 +940,23 @@ const PurchaseInvoiceUpload = ({
               sm={12}
               sx={{
                 display: 'flex',
-                overflowX: 'auto'
+                overflowX: 'auto',
+                ...customScrollbar
               }}
             >
               {file &&
                 file?.length > 0 &&
                 file.map((el, index) => {
                   return (
-                    <Box
+                    <ImagePreview
+                      // imageDetails={el}
+                      loader={invoiceSubmitLoader}
                       key={index}
-                      sx={{
-                        position: 'relative',
-                        display: 'flex',
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                        borderRadius: '8px',
-                        overflow: 'hidden',
-                        backgroundColor: 'customColors.displaybgPrimary',
-                        padding: '8px',
-                        boxShadow: 1,
-                        height: 'auto',
-                        mx: 2,
-                        minWidth: '124px'
+                      onClose={() => {
+                        handleDeleteFile(index)
                       }}
-                    >
-                      <>
-                        <img
-                          alt='Preview'
-                          src={URL.createObjectURL(el) || ''}
-                          style={{ display: 'block', width: '116px', height: '96px' }}
-                        />
-
-                        <Icon
-                          onClick={() => {
-                            handleDeleteFile(index)
-                          }}
-                          icon='solar:close-square-bold'
-                          style={{
-                            position: 'absolute',
-                            top: '0px',
-                            right: '0px',
-                            cursor: 'pointer',
-                            pointerEvents: invoiceSubmitLoader ? 'none' : 'auto'
-                          }}
-                          width='24'
-                          height='24'
-                        />
-                      </>
-                    </Box>
+                      imageSrc={URL.createObjectURL(el)}
+                    />
                   )
                 })}
             </Grid>
@@ -985,6 +982,7 @@ const PurchaseInvoiceUpload = ({
           variant='outlined'
           onClick={() => {
             closeDialog()
+            stopCamera()
           }}
           sx={{ mr: 2 }}
         >
@@ -1004,4 +1002,4 @@ const PurchaseInvoiceUpload = ({
   )
 }
 
-export default PurchaseInvoiceUpload
+export default React.memo(PurchaseInvoiceUpload)

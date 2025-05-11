@@ -18,6 +18,7 @@ import { Icon } from '@iconify/react'
 import { useTheme } from '@emotion/react'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import RenderUtility from 'src/utility/render'
+import PharmacyProductCard from 'src/views/utility/PharmacyProductCard'
 
 const StockOut = () => {
   const theme = useTheme()
@@ -90,8 +91,6 @@ const StockOut = () => {
       const sortOrder = newModel[0]?.sort || 'asc' // Fallback to 'asc' if undefined
       const sortField = newModel[0]?.field || ''
 
-      console.log('Sort Order:', sortOrder, 'Sort Field:', sortField)
-
       // Update state
       setSort(sortOrder)
       setSortColumn(sortField)
@@ -142,19 +141,15 @@ const StockOut = () => {
       field: 'stock_item_name',
       headerName: 'Product Name',
       renderCell: params => (
-        <Tooltip title={params.row.stock_item_name} placement='top'>
-          <Typography
-            variant='body2'
-            sx={{
-              color: theme.palette.customColors.customHeadingTextColor,
-              fontSize: '14px',
-              fontWeight: 500,
-              fontFamily: 'Inter'
-            }}
-          >
-            {params.row.stock_item_name}
-          </Typography>
-        </Tooltip>
+        <Box>
+          <PharmacyProductCard
+            title={params?.row?.stock_item_name}
+            subTitle={params?.row?.generic_name}
+            icon={params?.row?.image}
+            controlSubstance={params?.row?.controlled_substance === '1' && true}
+            prescriptionRequired={params?.row?.prescription_required === '1' && true}
+          />
+        </Box>
       )
     },
 
@@ -228,8 +223,7 @@ const StockOut = () => {
 
   const outOfStocksColumn = [
     {
-      width: 150,
-      minWidth: 100,
+      width: 80,
       alignItems: 'right',
       field: 'id',
       headerName: 'SL',
@@ -248,22 +242,20 @@ const StockOut = () => {
       )
     },
     {
-      width: 150,
-      minWidth: 100,
+      width: 300,
+      minWidth: 300,
       field: 'stock_item_name',
       headerName: 'Product Name',
       renderCell: params => (
-        <Typography
-          variant='body2'
-          sx={{
-            color: theme.palette.customColors.customHeadingTextColor,
-            fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
-          }}
-        >
-          {params.row.stock_item_name}
-        </Typography>
+        <Box>
+          <PharmacyProductCard
+            title={params?.row?.stock_item_name}
+            subTitle={params?.row?.generic_name}
+            icon={params?.row?.image}
+            controlSubstance={params?.row?.controlled_substance === '1' && true}
+            prescriptionRequired={params?.row?.prescription_required === '1' && true}
+          />
+        </Box>
       )
     },
 

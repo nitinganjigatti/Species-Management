@@ -19,6 +19,7 @@ import { createMealGroup, getEnclosureListByGroup, updateMealGroup } from 'src/l
 import toast from 'react-hot-toast'
 import { debounce } from 'lodash'
 import { fontSize } from '@mui/system'
+import { object } from 'yup'
 
 const CreateMealGroup = ({
   openDrawer,
@@ -30,20 +31,23 @@ const CreateMealGroup = ({
   selectedOption,
   editParam,
   editeditems,
+  setEditItems,
   fetchEnclosure,
   siteStats,
   setStatus,
   editSearchValue,
   groupId,
+  mealType,
   loader,
   mealId,
   handleEditSearch
 }) => {
-  console.log('editeditems >', editeditems, selectedItems)
+  console.log('editeditems >', editeditems, selectedItems, mealType)
 
   const [groupName, setGroupName] = useState(editParam?.group_name || '')
   const [groupNameError, setGroupNameError] = useState(false)
   const [searchTerm, setSearchTerm] = useState('')
+  const [removedEnclosures, setRemovedEnclosures] = useState([])
 
   const handleRemove = index => {
     const itemToRemove = selectedItems[index] // Get the item being removed
@@ -54,9 +58,6 @@ const CreateMealGroup = ({
     setCheckedRows(updatedChecked) // or setSelectedCheckboxes(updatedChecked) if that's your setter
   }
 
-  // useEffect(() => {
-
-  // }, [editParam])
   console.log('Group NMW >', groupName)
 
   const handleCreateGroup = async () => {
@@ -70,7 +71,7 @@ const CreateMealGroup = ({
     try {
       const params = {
         site_id: selectedOption,
-        enclosure_ids: JSON.stringify(checkedRows.map(Number)),
+        enclosure_ids: JSON.stringify(checkedRows.map(Number)), 
         group_name: groupName
       }
 
@@ -79,7 +80,7 @@ const CreateMealGroup = ({
       if (response) {
         handleCloseSideBar()
         toast.success('Meal Group created Successfully')
-        setStatus('')
+        setStatus('mealgroup')
       } else {
         toast.error('Something went wrong')
       }
@@ -115,7 +116,7 @@ const CreateMealGroup = ({
         console.log(err)
       }
     }, 1000),
-    [selectedOption, checkedRows] // 👈 now includes these dependencies
+    [selectedOption] // 👈 now includes these dependencies
   )
 
   const handleCreateSearch = value => {
@@ -124,6 +125,8 @@ const CreateMealGroup = ({
   }
 
   const handleUpdateGroup = async () => {
+    console.log('EditItems >', editeditems, removedEnclosures)
+    const updatedEnclosure = editeditems?.map(item => item?.enclosure_id)
     if (!groupName.trim()) {
       setGroupNameError(true)
       return
@@ -133,7 +136,9 @@ const CreateMealGroup = ({
       const params = {
         site_id: selectedOption,
         meal_group_id: editParam?.id,
-        group_name: groupName
+        group_name: groupName,
+        add_enclosure_ids: JSON.stringify(updatedEnclosure),
+        remove_enclosure_ids: JSON.stringify(removedEnclosures)
       }
       setGroupNameError(false)
 
@@ -154,29 +159,42 @@ const CreateMealGroup = ({
 
   const handleEnclosureRemove = async index => {
     console.log('index >', index)
-    const selectedObj = editeditems[index]
-    console.log('selected obj>', selectedObj)
 
-    try {
-      const params = {
-        site_id: selectedOption,
-        meal_group_id: selectedObj?.group_id,
-        group_name: selectedObj?.group_name,
-        remove_enclosure_ids: JSON.stringify([selectedObj?.enclosure_id])
-      }
-      const response = await updateMealGroup(params)
-      if (response) {
-        handleCloseSideBar()
-        fetchEnclosure()
-        toast.success('Enclosure Removed from Group Successfully')
-      } else {
-        toast.error('Something went wrong')
-      }
-    } catch (error) {
-      toast.error('Server error. Please try again.')
-      console.error('Create Meal Group Error:', error)
-    }
+    const itemToRemove = editeditems[index] // Get the item being removed
+
+    const updatedEditedEnclosures = editeditems.filter((_, i) => i !== index)
+    const updatedChecked = checkedRows.filter(id => id !== itemToRemove.enclosure_id)
+
+    // Add the removed item to removedEnclosures
+    setRemovedEnclosures([...removedEnclosures, itemToRemove?.enclosure_id])
+
+    setEditItems(updatedEditedEnclosures)
+    setCheckedRows(updatedChecked) // or setSelectedCheckboxes
   }
+
+  // const selectedObj = editeditems[index]
+  // console.log('selected obj>', selectedObj)
+
+  // try {
+  //   const params = {
+  //     site_id: selectedOption,
+  //     meal_group_id: selectedObj?.group_id,
+  //     group_name: selectedObj?.group_name,
+  //     remove_enclosure_ids: JSON.stringify([selectedObj?.enclosure_id])
+  //   }
+  //   const response = await updateMealGroup(params)
+  //   if (response) {
+  //     handleCloseSideBar()
+  //     fetchEnclosure()
+  //     toast.success('Enclosure Removed from Group Successfully')
+  //   } else {
+  //     toast.error('Something went wrong')
+  //   }
+  // } catch (error) {
+  //   toast.error('Server error. Please try again.')
+  //   console.error('Create Meal Group Error:', error)
+  // }
+  // }
 
   const theme = useTheme()
 
@@ -260,19 +278,15 @@ const CreateMealGroup = ({
           >
             <Box sx={{ gap: 2, display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
               <img src='/icons/Activity.svg' alt='Grocery Icon' width='35px' />
-              {Object.keys(editParam).length > 0 ? (
-                <Typography
-                  sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontSize: '24px', fontWeight: 500 }}
-                >
-                  Edit Meal Group
-                </Typography>
-              ) : (
-                <Typography
-                  sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontSize: '24px', fontWeight: 500 }}
-                >
-                  Create new group
-                </Typography>
-              )}
+              <Typography
+                sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontSize: '24px', fontWeight: 500 }}
+              >
+                {mealType.type === 'view'
+                  ? 'Meal Group'
+                  : Object.keys(editParam).length > 0
+                  ? 'Edit Meal Group'
+                  : 'Create new group'}
+              </Typography>
             </Box>
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
               <IconButton
@@ -303,7 +317,7 @@ const CreateMealGroup = ({
               <Typography
                 sx={{
                   fontWeight: 500,
-                  color: '#44544A',
+                  color: theme.palette.customColors.OnSurfaceVariant,
                   mb: 1,
                   fontSize: '20px',
                   fontFamily: 'Inter'
@@ -315,6 +329,7 @@ const CreateMealGroup = ({
               <FormControl fullWidth>
                 <TextField
                   fullWidth
+                  disabled={mealType.type === 'view'}
                   placeholder='Enter name'
                   variant='outlined'
                   value={groupName}
@@ -331,7 +346,7 @@ const CreateMealGroup = ({
                       borderRadius: '4px'
                     },
                     input: {
-                      color: '#839D8D'
+                      color: theme.palette.customColors.Outline
                     }
                   }}
                 />
@@ -346,8 +361,8 @@ const CreateMealGroup = ({
                     height: '44px',
                     borderRadius: '8px',
                     justifyContent: 'space-between',
-                    alignItems:"center",
-                    backgroundColor: '#E1F9ED',
+                    alignItems: 'center',
+                    backgroundColor: theme.palette.customColors.OnBackground,
                     mt: groupNameError ? 1 : 2,
                     px: 2,
                     py: 1.5,
@@ -357,13 +372,24 @@ const CreateMealGroup = ({
                   <Typography>
                     <Box
                       component='span'
-                      sx={{ fontWeight: 600, fontSize: '16px', fontFamily: 'Inter', mr: 1, color: '#44544A' }}
+                      sx={{
+                        fontWeight: 600,
+                        fontSize: '16px',
+                        fontFamily: 'Inter',
+                        mr: 1,
+                        color: theme.palette.customColors.OnSurfaceVariant
+                      }}
                     >
                       {siteStats?.total_enclosures}
                     </Box>
                     <Box
                       component='span'
-                      sx={{ fontWeight: 500, fontSize: '14px', fontFamily: 'Inter', color: '#44544A' }}
+                      sx={{
+                        fontWeight: 500,
+                        fontSize: '14px',
+                        fontFamily: 'Inter',
+                        color: theme.palette.customColors.OnSurfaceVariant
+                      }}
                     >
                       Enclosures
                     </Box>
@@ -372,13 +398,24 @@ const CreateMealGroup = ({
                   <Typography>
                     <Box
                       component='span'
-                      sx={{ fontWeight: 600, fontSize: '16px', fontFamily: 'Inter', mr: 1, color: '#44544A' }}
+                      sx={{
+                        fontWeight: 600,
+                        fontSize: '16px',
+                        fontFamily: 'Inter',
+                        mr: 1,
+                        color: theme.palette.customColors.OnSurfaceVariant
+                      }}
                     >
                       {siteStats?.total_species}
                     </Box>
                     <Box
                       component='span'
-                      sx={{ fontWeight: 500, fontSize: '14px', fontFamily: 'Inter', color: '#44544A' }}
+                      sx={{
+                        fontWeight: 500,
+                        fontSize: '14px',
+                        fontFamily: 'Inter',
+                        color: theme.palette.customColors.OnSurfaceVariant
+                      }}
                     >
                       Species
                     </Box>
@@ -387,13 +424,24 @@ const CreateMealGroup = ({
                   <Typography>
                     <Box
                       component='span'
-                      sx={{ fontWeight: 600, fontSize: '16px', fontFamily: 'Inter', mr: 1, color: '#44544A' }}
+                      sx={{
+                        fontWeight: 600,
+                        fontSize: '16px',
+                        fontFamily: 'Inter',
+                        mr: 1,
+                        color: theme.palette.customColors.OnSurfaceVariant
+                      }}
                     >
                       {siteStats?.total_animals}
                     </Box>
                     <Box
                       component='span'
-                      sx={{ fontWeight: 500, fontSize: '14px', fontFamily: 'Inter', color: '#44544A' }}
+                      sx={{
+                        fontWeight: 500,
+                        fontSize: '14px',
+                        fontFamily: 'Inter',
+                        color: theme.palette.customColors.OnSurfaceVariant
+                      }}
                     >
                       Animals
                     </Box>
@@ -403,46 +451,56 @@ const CreateMealGroup = ({
             </Card>
           </Box>
 
-          <Box sx={{ p: 3, backgroundColor: '#EEF5F1', borderRadius: '8px' }}>
-            <Typography sx={{ fontFamily: 'Inter', fontSize: '20px', fontWeight: 500, color: '#44544A', ml: 2 }}>
+          <Box sx={{ p: 3, borderRadius: '8px' }}>
+            <Typography
+              sx={{
+                fontFamily: 'Inter',
+                fontSize: '20px',
+                fontWeight: 500,
+                color: theme.palette.customColors.OnSurfaceVariant,
+                ml: 2,
+                mb: mealType.type === 'view' && 4
+              }}
+            >
               Selected enclosures
             </Typography>
-
-            <Box display='flex' gap={1} mt={2} flexDirection={{ xs: 'column', sm: 'row' }}>
-              <TextField
-                placeholder='Search...'
-                value={editeditems.length > 0 ? editSearchValue : searchTerm}
-                variant='outlined'
-                size='small'
-                onChange={e => {
-                  if (editeditems.length > 0) {
-                    handleEditSearch(e.target.value, mealId)
-                  } else {
-                    handleCreateSearch(e.target.value)
-                  }
-                }}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position='start'>
-                      <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
-                    </InputAdornment>
-                  ),
-                  sx: {
-                    backgroundColor: 'white',
-                    borderRadius: '8px',
-                    m: { md: 5 },
-                    mt: { md: 0 },
-                    ml: { xs: 0, sm: 2, md: 1 },
-                    width: { xs: '96%', sm: '520px', md: '524px' },
-                    height: '48px',
-                    input: {
-                      color: '#839D8D',
-                      padding: '10px 0'
+            {mealType.type !== 'view' && (
+              <Box display='flex' gap={1} mt={2} flexDirection={{ xs: 'column', sm: 'row' }}>
+                <TextField
+                  placeholder='Search...'
+                  value={Object.keys(editParam).length > 0 ? editSearchValue : searchTerm}
+                  variant='outlined'
+                  size='small'
+                  onChange={e => {
+                    if (Object.keys(editParam).length > 0) {
+                      handleEditSearch(e.target.value, mealId)
+                    } else {
+                      handleCreateSearch(e.target.value)
                     }
-                  }
-                }}
-              />
-            </Box>
+                  }}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position='start'>
+                        <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
+                      </InputAdornment>
+                    ),
+                    sx: {
+                      backgroundColor: 'white',
+                      borderRadius: '8px',
+                      m: { md: 5 },
+                      mt: { md: 0 },
+                      ml: { xs: 0, sm: 2, md: 1 },
+                      width: { xs: '96%', sm: '520px', md: '524px' },
+                      height: '48px',
+                      input: {
+                        color: theme.palette.customColors.Outline,
+                        padding: '10px 0'
+                      }
+                    }
+                  }}
+                />
+              </Box>
+            )}
 
             <Card
               sx={{
@@ -484,35 +542,47 @@ const CreateMealGroup = ({
                       alignItems: 'center'
                     }}
                   >
-                    <CircularProgress size={40} />
+                    <CircularProgress size={40} sx={{ mb: 100 }} />
                   </Box>
-                ) : (
+                ) : (Object.keys(editParam).length > 0 ? editeditems : selectedItems).length > 0 ? (
                   (Object.keys(editParam).length > 0 ? editeditems : selectedItems).map((item, index) => (
                     <Card
                       key={index}
                       sx={{
                         p: 5,
                         width: { xs: '90vw', sm: '475px', md: '485px' },
-                        // width: '482px',
                         height: '80px',
                         m: { xs: 0, sm: 0, md: 0 },
                         mt: { xs: 2, sm: 2, md: 0 },
                         ml: { xs: 0, sm: 0, md: 0 },
-                        backgroundColor: '#E8F3EE',
-
+                        backgroundColor: theme.palette.customColors.displaybgPrimary,
                         borderRadius: '16px',
                         display: 'flex',
                         boxShadow: 'none',
                         justifyContent: 'space-between',
                         alignItems: 'center',
-                        flexShrink: 0 // Prevents child cards from shrinking when scrolling
+                        flexShrink: 0
                       }}
                     >
                       <Box>
-                        <Typography sx={{ fontWeight: 500, fontSize: '16px', fontFamily: 'Inter', color: '#44544A' }}>
+                        <Typography
+                          sx={{
+                            fontWeight: 500,
+                            fontSize: '16px',
+                            fontFamily: 'Inter',
+                            color: theme.palette.customColors.OnSurfaceVariant
+                          }}
+                        >
                           {item.user_enclosure_name}
                         </Typography>
-                        <Typography sx={{ fontWeight: 400, fontSize: '14px', fontFamily: 'Inter', color: '#44544A' }}>
+                        <Typography
+                          sx={{
+                            fontWeight: 400,
+                            fontSize: '14px',
+                            fontFamily: 'Inter',
+                            color: theme.palette.customColors.OnSurfaceVariant
+                          }}
+                        >
                           {item.section_name}
                         </Typography>
                       </Box>
@@ -526,32 +596,59 @@ const CreateMealGroup = ({
                           ml: 'auto'
                         }}
                       >
-                        <Typography sx={{ fontFamily: 'Inter', fontSize: '14px', fontWeight: 400, color: '#44544A' }}>
+                        <Typography
+                          sx={{
+                            fontFamily: 'Inter',
+                            fontSize: '14px',
+                            fontWeight: 400,
+                            color: theme.palette.customColors.OnSurfaceVariant
+                          }}
+                        >
                           Species : {item.species_count}
                         </Typography>
-                        <Typography sx={{ fontFamily: 'Inter', fontSize: '14px', fontWeight: 400, color: '#44544A' }}>
+                        <Typography
+                          sx={{
+                            fontFamily: 'Inter',
+                            fontSize: '14px',
+                            fontWeight: 400,
+                            color: theme.palette.customColors.OnSurfaceVariant
+                          }}
+                        >
                           Animals : {item.animal_count}
                         </Typography>
                       </Box>
 
-                      <IconButton
-                        size='medium'
-                        sx={{ color: 'text.primary' }}
-                        onClick={() =>
-                          Object.keys(editParam).length > 0 ? handleEnclosureRemove(index) : handleRemove(index)
-                        }
-                      >
-                        <Icon icon='mdi:close' sx={{ fontSize: '24px' }} />
-                      </IconButton>
+                      {mealType.type !== 'view' && (
+                        <IconButton
+                          size='medium'
+                          sx={{ color: 'text.primary' }}
+                          onClick={() =>
+                            Object.keys(editParam).length > 0 ? handleEnclosureRemove(index) : handleRemove(index)
+                          }
+                        >
+                          <Icon icon='mdi:close' sx={{ fontSize: '24px' }} />
+                        </IconButton>
+                      )}
                     </Card>
                   ))
+                ) : (
+                  <Box
+                    sx={{
+                      height: '50%',
+                      display: 'flex',
+                      justifyContent: 'center',
+                      alignItems: 'center'
+                    }}
+                  >
+                    <Typography sx={{ fontSize: '16px', fontWeight: 500, color: '#888' }}>No Data Found</Typography>
+                  </Box>
                 )}
               </Box>
             </Card>
           </Box>
         </Box>
 
-        <RenderSidebarFooter />
+        {mealType.type !== 'view' && <RenderSidebarFooter />}
       </Drawer>
     </>
   )

@@ -1,4 +1,7 @@
-import { Icon } from '@iconify/react'
+import React, { useCallback, useEffect, useState, useContext } from 'react'
+import { useRouter } from 'next/router'
+import Router from 'next/router'
+
 import {
   Card,
   Box,
@@ -16,25 +19,25 @@ import {
   FormControlLabel
 } from '@mui/material'
 import { DataGrid } from '@mui/x-data-grid'
-import moment from 'moment'
-import { useRouter } from 'next/router'
-import React, { useCallback, useEffect, useState, useContext } from 'react'
+import { useTheme } from '@mui/material/styles'
+
+import { Icon } from '@iconify/react'
+
+import CustomChip from 'src/@core/components/mui/chip'
 import AddIncubatorRoom from 'src/components/egg/AddIncubatorRoom'
 import DetailCard from 'src/components/egg/DetailCard'
-import { GetNurseryDetailsById, GetRoomByNursery } from 'src/lib/api/egg/nursery'
-import Router from 'next/router'
-import CustomChip from 'src/@core/components/mui/chip'
-import ServerSideToolbarWithFilter from 'src/views/table/data-grid/ServerSideToolbarWithFilter'
-import ErrorScreen from 'src/pages/Error'
-
-import { useTheme } from '@mui/material/styles'
-import Utility from 'src/utility'
-import { AuthContext } from 'src/context/AuthContext'
-import { hatcheryStatus } from 'src/lib/api/egg'
+import NurseryAddComponent from 'src/components/egg/NurseryAddComponent'
 import Toaster from 'src/components/Toaster'
+
+import ErrorScreen from 'src/pages/Error'
 import StatusDialogBox from 'src/views/pages/egg/eggs/eggDetails/StatusDialogBox'
 import EditRedirectionDialog from 'src/views/pages/egg/eggs/eggDetails/EditRedirectionDialog'
-import NurseryAddComponent from 'src/components/egg/NurseryAddComponent'
+
+import Utility from 'src/utility'
+import { AuthContext } from 'src/context/AuthContext'
+
+import { hatcheryStatus } from 'src/lib/api/egg'
+import { GetNurseryDetailsById, GetRoomByNursery } from 'src/lib/api/egg/nursery'
 
 const NurseryDetails = () => {
   const theme = useTheme()
@@ -52,9 +55,9 @@ const NurseryDetails = () => {
   const [total, setTotal] = useState(0)
   const [rows, setRows] = useState([])
   const [loading, setLoading] = useState(false)
-  const [openRoomSideBar, setOpenRoomSidebar] = useState(false)
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [isPreFilled, setIsPreFilled] = useState({})
+  const [disabledAddRoomBtn, setdisabledAddRoomBtn] = useState(true)
 
   const [defaultStatus, setDefaultStatus] = useState(null)
 
@@ -73,8 +76,8 @@ const NurseryDetails = () => {
   const egg_nursery_permission = authData?.userData?.permission?.user_settings?.add_nursery_permisson
   const egg_collection_permission = authData?.userData?.roles?.settings?.enable_egg_collection_module
 
-  // console.log('rows >>', rows)
-  // console.log('Paginate>', paginationModel)
+  // console.log('egg_nursery_permission', egg_nursery_permission)
+  // console.log('egg_collection_permission', egg_collection_permission)
 
   const EditRedirectionFunc = () => {
     setOpenDrawer(true)
@@ -122,7 +125,7 @@ const NurseryDetails = () => {
               Room: res?.data?.no_of_rooms,
               Site: res?.data?.site_name,
               Incubator: res?.data?.no_of_incubators,
-              Eggs: res?.data?.no_of_eggs
+              'Eggs in Nursery': res?.data?.no_of_eggs
             },
             Avatar: {
               profile_Pic: res?.data?.user_profile_pic,
@@ -133,6 +136,7 @@ const NurseryDetails = () => {
           })
           setActive(Boolean(Number(res?.data?.active)))
           setIsPreFilled(res?.data)
+          setdisabledAddRoomBtn(false)
           setEditNurseryId(id)
           setEditName(res.data?.nursery_name)
           setEditSite(res?.data?.site_id)
@@ -151,8 +155,6 @@ const NurseryDetails = () => {
       fetchNurseryById()
     }
   }, [])
-
-  // console.log('Id >>', editNurseryId)
 
   function loadServerRows(currentPage, data) {
     return data
@@ -187,10 +189,6 @@ const NurseryDetails = () => {
     },
     [paginationModel]
   )
-
-  // console.log('Rows >>', rows)
-
-  // console.log('Nursery Details >>', nurseryData)
 
   useEffect(() => {
     if (egg_nursery_permission || egg_collection_permission) {
@@ -242,10 +240,9 @@ const NurseryDetails = () => {
 
   const columns = [
     {
-      flex: 0.05,
-      minWidth: 40,
+      minWidth: 80,
       field: 'id',
-      headerName: 'NO',
+      headerName: 'SL.NO',
       headerAlign: 'center',
       align: 'center',
       sortable: false,
@@ -310,7 +307,7 @@ const NurseryDetails = () => {
       flex: 0.1,
       minWidth: 10,
       field: 'Eggs',
-      headerName: 'Eggs',
+      headerName: 'Eggs in Incubator',
       headerAlign: 'left',
       align: 'left',
       sortable: false,
@@ -421,8 +418,7 @@ const NurseryDetails = () => {
             >
               {params.row.created_at
                 ? 'Created on' + ' ' + Utility.formatDisplayDate(Utility.convertUTCToLocal(params.row?.created_at))
-                : // moment(moment.utc(params.row.created_at).toDate().toLocaleString()).format('DD MMM YYYY')
-                  '-'}
+                : '-'}
             </Typography>
           </Box>
         </Box>
@@ -438,10 +434,7 @@ const NurseryDetails = () => {
     sl_no: getSlNo(index)
   }))
 
-  // console.log(indexedRows, 'indexedRows')
-
   const onCellClick = params => {
-    // console.log('params  2323>>', params)
     router.push(`/egg/incubator-rooms/${params.row.id}`)
   }
 
@@ -526,7 +519,12 @@ const NurseryDetails = () => {
                         onClick={() => setOpenDrawer(true)}
                       />
                     </IconButton>
-                    <Button size='medium' variant='contained' onClick={() => setIsOpen(true)}>
+                    <Button
+                      size='medium'
+                      variant='contained'
+                      disabled={disabledAddRoomBtn}
+                      onClick={() => setIsOpen(true)}
+                    >
                       <Icon icon='mdi:add' fontSize={20} />
                       &nbsp; ADD ROOM
                     </Button>

@@ -15,7 +15,7 @@ import DialogContent from '@mui/material/DialogContent'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
-import { CardContent, CardHeader, CircularProgress } from '@mui/material'
+import { CardContent, CardHeader, CircularProgress, Divider } from '@mui/material'
 
 const Transition = forwardRef(function Transition(props, ref) {
   return <Fade ref={ref} {...props} />
@@ -57,20 +57,23 @@ const CommonDialogBox = ({
           }}
         > */}
         {title && (
-          <CardHeader
-            title={title ? title : null}
-            action={
-              <>
-                {loader ? (
-                  <CircularProgress color='success' size={20} />
-                ) : (
-                  <IconButton size='small' onClick={() => close()} sx={{ mx: 4 }}>
-                    <Icon icon='mdi:close' />
-                  </IconButton>
-                )}
-              </>
-            }
-          />
+          <>
+            <CardHeader
+              title={title ? title : null}
+              action={
+                <>
+                  {loader ? (
+                    <CircularProgress color='success' size={20} />
+                  ) : (
+                    <IconButton size='small' onClick={() => close()} sx={{ mx: 4 }}>
+                      <Icon icon='mdi:close' />
+                    </IconButton>
+                  )}
+                </>
+              }
+            />
+            {/* <Divider variant='middle' /> */}
+          </>
         )}
 
         <CardContent

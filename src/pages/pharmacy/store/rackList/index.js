@@ -307,42 +307,83 @@ const ListOfRacks = () => {
         </Typography>
       )
     },
-    {
-      flex: 0.2,
-      minWidth: 20,
-      field: 'Action',
-      headerName: 'Action',
-      renderCell: params => (
-        <Box sx={{ display: 'flex', alignItems: 'right', textAlign: 'right' }}>
-          <IconButton
-            size='small'
-            sx={{ mr: 0.5 }}
-            onClick={() =>
-              handleEdit(
-                params.row.id,
-                params.row.name,
-                params.row.position,
-                params.row.store_id,
-                params.row.shelfs,
-                params.row.status
-              )
-            }
-          >
-            <Icon icon='mdi:pencil-outline' />
-          </IconButton>
-          <IconButton
-            size='small'
-            sx={{ mr: 0.5 }}
-            onClick={() => {
-              setDeleteRowId(params.row.id)
-              handleClickOpen()
-            }}
-          >
-            <Icon icon='mdi:delete-outline' />
-          </IconButton>
-        </Box>
-      )
-    }
+    ...(selectedPharmacy?.permission?.pharmacy_module !== 'VIEW'
+      ? [
+          {
+            flex: 0.2,
+            minWidth: 20,
+            field: 'Action',
+            headerName: 'Action',
+            renderCell: params => (
+              <Box sx={{ display: 'flex', alignItems: 'right', textAlign: 'right' }}>
+                <IconButton
+                  size='small'
+                  sx={{ mr: 0.5 }}
+                  onClick={() =>
+                    handleEdit(
+                      params.row.id,
+                      params.row.name,
+                      params.row.position,
+                      params.row.store_id,
+                      params.row.shelfs,
+                      params.row.status
+                    )
+                  }
+                >
+                  <Icon icon='mdi:pencil-outline' />
+                </IconButton>
+                <IconButton
+                  size='small'
+                  sx={{ mr: 0.5 }}
+                  onClick={() => {
+                    setDeleteRowId(params.row.id)
+                    handleClickOpen()
+                  }}
+                >
+                  <Icon icon='mdi:delete-outline' />
+                </IconButton>
+              </Box>
+            )
+          }
+        ]
+      : [])
+
+    // {
+    //   flex: 0.2,
+    //   minWidth: 20,
+    //   field: 'Action',
+    //   headerName: 'Action',
+    //   renderCell: params => (
+    //     <Box sx={{ display: 'flex', alignItems: 'right', textAlign: 'right' }}>
+    //       <IconButton
+    //         size='small'
+    //         sx={{ mr: 0.5 }}
+    //         onClick={() =>
+    //           handleEdit(
+    //             params.row.id,
+    //             params.row.name,
+    //             params.row.position,
+    //             params.row.store_id,
+    //             params.row.shelfs,
+    //             params.row.status
+    //           )
+    //         }
+    //       >
+    //         <Icon icon='mdi:pencil-outline' />
+    //       </IconButton>
+    //       <IconButton
+    //         size='small'
+    //         sx={{ mr: 0.5 }}
+    //         onClick={() => {
+    //           setDeleteRowId(params.row.id)
+    //           handleClickOpen()
+    //         }}
+    //       >
+    //         <Icon icon='mdi:delete-outline' />
+    //       </IconButton>
+    //     </Box>
+    //   )
+    // }
   ]
 
   const addRackButton = (

@@ -10,7 +10,8 @@ import {
   Tab,
   Divider,
   Chip,
-  Stack
+  Stack,
+  Tooltip
 } from '@mui/material'
 import Icon from 'src/@core/components/icon'
 import { useEffect, useState } from 'react'
@@ -144,8 +145,6 @@ const DiscardDetail = ({ setDetailDrawer, detailDrawer, eggDiscardedId, fetchTab
         open={detailDrawer}
         sx={{
           '& .MuiDrawer-paper': { width: ['100%', '562px'], height: '100vh' }
-
-          // backgroundColor: 'background.default'
         }}
       >
         <Box
@@ -189,8 +188,6 @@ const DiscardDetail = ({ setDetailDrawer, detailDrawer, eggDiscardedId, fetchTab
           </TabPanel>
         </TabContext>
 
-        {/* drower */}
-
         <Box
           className='sidebar-body'
           onScroll={handleScroll}
@@ -198,10 +195,6 @@ const DiscardDetail = ({ setDetailDrawer, detailDrawer, eggDiscardedId, fetchTab
             backgroundColor: 'background.default',
             height: '90%',
             overflowY: 'auto'
-
-            // display: 'flex'
-
-            // justifyContent: 'center'
           }}
         >
           {status === 'Overview' ? (
@@ -314,7 +307,7 @@ const DiscardDetail = ({ setDetailDrawer, detailDrawer, eggDiscardedId, fetchTab
                             ml: 7
                           }}
                         >
-                          {summary?.egg_count ? summary?.egg_count : '-'} Eggs
+                          {summary?.egg_count ? summary?.egg_count : '-'} {summary?.egg_count < 1 ? 'Eggs' : 'Egg'}
                         </Typography>
                       </Box>
                     </Box>
@@ -340,36 +333,88 @@ const DiscardDetail = ({ setDetailDrawer, detailDrawer, eggDiscardedId, fetchTab
                     >
                       Notes
                     </Typography>
-                    <Typography
-                      sx={{
-                        fontWeight: 500,
-                        fontSize: '16px',
-                        color: theme.palette.customColors.OnSurfaceVariant
-                      }}
+                    <Tooltip
+                      title={
+                        <div
+                          style={{
+                            maxHeight: 150,
+                            overflowY: 'auto',
+                            whiteSpace: 'normal',
+                            /* Firefox scrollbar */
+                            scrollbarWidth: 'thin',
+                            scrollbarColor: 'rgba(255, 255, 255, 0.2) transparent'
+                          }}
+                        >
+                          <div
+                            style={{
+                              /* Webkit scrollbar styles (Chrome, Edge, Safari) */
+                              display: 'inline-block',
+                              width: '100%',
+                              height: '100%',
+                              scrollbarWidth: 'thin',
+                              /* These only apply in WebKit browsers */
+                              WebkitScrollbarWidth: 'thin'
+                            }}
+                          >
+                            {summary?.reason ? summary?.reason : '-'}
+                          </div>
+                          <style>
+                            {`
+                              div::-webkit-scrollbar {
+                                width: 6px;
+                              }
+                              div::-webkit-scrollbar-thumb {
+                                background-color: rgba(255, 255, 255, 0.2);
+                                border-radius: 4px;
+                              }
+                              div::-webkit-scrollbar-track {
+                                background: transparent;
+                              }
+                           `}
+                          </style>
+                        </div>
+                      }
                     >
-                      {summary?.reason ? summary?.reason : '-'}
-                    </Typography>
+                      <Typography
+                        sx={{
+                          fontWeight: 500,
+                          fontSize: '16px',
+                          color: theme.palette.customColors.OnSurfaceVariant,
+                          lineHeight: '19.36px',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap'
+                        }}
+                      >
+                        {summary?.reason ? summary?.reason : '-'}
+                      </Typography>
+                    </Tooltip>
                   </Box>
                 </Box>
               </Box>
-              <Typography
-                sx={{
-                  mt: 6,
-                  ml: 4,
-                  fontSize: '20px',
-                  fontWeight: 500,
-                  fontFamily: 'Inter',
-                  lineHeight: '24.2px',
-                  color: theme.palette.customColors.OnSurfaceVariant
-                }}
-              >
-                Added Photos
-              </Typography>
 
-              {/* image gallery */}
-              <Box sx={{ mb: summary?.activity_status === 'DISCARD_REQUEST_GENERATED' ? null : 45 }}>
-                <AddGallery galleryList={galleryList} />
-              </Box>
+              {galleryList?.length ? (
+                <>
+                  <Typography
+                    sx={{
+                      mt: 6,
+                      ml: 4,
+                      fontSize: '20px',
+                      fontWeight: 500,
+                      fontFamily: 'Inter',
+                      lineHeight: '24.2px',
+                      color: theme.palette.customColors.OnSurfaceVariant
+                    }}
+                  >
+                    Added Photos
+                  </Typography>
+
+                  {/* image gallery */}
+                  <Box sx={{ mb: summary?.activity_status === 'DISCARD_REQUEST_GENERATED' ? null : 45 }}>
+                    <AddGallery galleryList={galleryList} />
+                  </Box>
+                </>
+              ) : null}
 
               {summary?.activity_status === 'DISCARD_REQUEST_GENERATED' ? (
                 <Box

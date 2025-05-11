@@ -1627,6 +1627,12 @@ const AddRequestForm = () => {
                   nestedRowMedicine.prescription_required_file?.type === 'image/jpeg' ? (
                   <>
                     <Chip
+                      onClick={() => {
+                        if (nestedRowMedicine.prescription_required_file) {
+                          const previewUrl = URL.createObjectURL(nestedRowMedicine.prescription_required_file)
+                          window.open(previewUrl, '_blank')
+                        }
+                      }}
                       sx={{
                         backgroundColor: 'customColors.lightBg',
                         height: '56px',
@@ -1634,7 +1640,8 @@ const AddRequestForm = () => {
                         borderRadius: '8px',
                         fontSize: '14px',
                         fontWeight: '400',
-                        position: 'relative'
+                        position: 'relative',
+                        cursor: 'pointer'
                       }}
                       label={
                         <Typography

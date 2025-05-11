@@ -23,6 +23,7 @@ import Utility from 'src/utility'
 import ServerSideToolbarWithFilter from 'src/views/table/data-grid/ServerSideToolbarWithFilter'
 import { DataGrid } from '@mui/x-data-grid'
 import toast from 'react-hot-toast'
+import PharmacyProductCard from 'src/views/utility/PharmacyProductCard'
 
 const ListOfStocksByBatch = () => {
   const [stores, setStores] = useState([])
@@ -171,11 +172,15 @@ const ListOfStocksByBatch = () => {
       field: 'stock_items_name',
       headerName: 'MEDICINE NAME',
       renderCell: params => (
-        <Tooltip title={params.row.stock_items_name} placement='top'>
-          <Typography variant='body2' sx={{ color: 'text.primary' }}>
-            {params.row.stock_items_name}
-          </Typography>
-        </Tooltip>
+        <Box>
+          <PharmacyProductCard
+            title={params?.row?.stock_items_name}
+            subTitle={params?.row?.generic_name}
+            icon={params?.row?.image}
+            controlSubstance={params?.row?.controlled_substance === '1' && true}
+            prescriptionRequired={params?.row?.prescription_required === '1' && true}
+          />
+        </Box>
       )
     },
 

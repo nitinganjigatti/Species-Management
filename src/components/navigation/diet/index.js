@@ -69,6 +69,11 @@ const composeDietNavigation = () => {
     path: '/diet/settings/cut-sizes'
   }
 
+  const dietCategory = {
+    title: 'Diet Category',
+    path: '/diet/settings/diet-category'
+  }
+
   const kitchenParent = {
     title: 'Kitchen',
     path: '/diet/kitchen/diet-report',
@@ -83,7 +88,7 @@ const composeDietNavigation = () => {
 
   kitchenParent.children.push(dietReport)
 
-  settingsParent.children.push(preparationTypes, cutSize)
+  settingsParent.children.push(preparationTypes, cutSize, dietCategory)
 
   const dietNavigation = [
     pharmacyTitle,

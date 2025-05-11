@@ -21,7 +21,7 @@ import moment from 'moment'
 import CustomChip from 'src/@core/components/mui/chip'
 import NurseryAddComponent from 'src/components/egg/NurseryAddComponent'
 import { useRouter } from 'next/router'
-import { styled } from '@mui/system'
+import { styled, width } from '@mui/system'
 import { useTheme } from '@mui/material/styles'
 import Utility from 'src/utility'
 import ErrorScreen from 'src/pages/Error'
@@ -121,10 +121,9 @@ const NurseryList = () => {
 
   const columns = [
     {
-      flex: 0.1,
-      Width: 20,
+      minWidth: 80,
       field: 'id',
-      headerName: 'NO',
+      headerName: 'SL.NO',
       align: 'center',
       headerAlign: 'center',
       sortable: false,

@@ -58,7 +58,7 @@ const LinkStyled = styled(Link)(({ theme }) => ({
 }))
 
 const schema = yup.object().shape({
-  email: yup.string().required('Username/Email required').min(4),
+  email: yup.string().required('Username/Email required').min(1),
   // password: yup.string().trim('Password required').required()
   password: yup.string().required('Password required')
 })

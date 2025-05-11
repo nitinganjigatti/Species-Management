@@ -5,6 +5,7 @@ import RenderUtility from 'src/utility/render'
 const PharmacyProductCard = ({
   title,
   subTitle,
+  secondSubTitle,
   icon,
   bgColor,
   onClick,
@@ -110,6 +111,24 @@ const PharmacyProductCard = ({
               }}
             >
               <span>{subTitle ? subTitle : null}</span>
+            </Typography>
+          </ToolTip>
+        )}
+        {secondSubTitle && (
+          <ToolTip title={secondSubTitle}>
+            <Typography
+              sx={{
+                color: 'customColors.neutralSecondary',
+                fontWeight: 400,
+                fontSize: '14px',
+                overflow: 'hidden', // Hide overflowing text
+                whiteSpace: 'nowrap', // Prevent wrapping to the next line
+                textOverflow: 'ellipsis', // Add ellipsis when text overflows
+                // maxWidth: 250
+                width: `${rowWidth - (marginLeft * 4 + 44 + 8)}px`
+              }}
+            >
+              <span>{secondSubTitle ? secondSubTitle : null}</span>
             </Typography>
           </ToolTip>
         )}

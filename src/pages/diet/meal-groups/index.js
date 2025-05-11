@@ -19,7 +19,8 @@ import {
   Dialog,
   DialogTitle,
   DialogActions,
-  DialogContent
+  DialogContent,
+  CircularProgress
 } from '@mui/material'
 import { fontSize, fontWeight, textAlign } from '@mui/system'
 import React, { useCallback, useContext, useEffect, useState } from 'react'
@@ -52,21 +53,29 @@ const MealGroup = () => {
   const theme = useTheme()
   const firstSite = authData?.userData?.user?.zoos[0]?.sites?.[0] || null
 
+  const updateUrlParams = params => {
+    const query = { ...router.query, ...params }
+    router.push({ pathname: router.pathname, query }, undefined, { shallow: true })
+  }
+
   const [defaultSite, setDefaultSite] = useState(firstSite)
-  const [selectedOption, setSelectedOption] = useState(firstSite?.site_id || '')
-  const [status, setStatus] = useState('unmapped')
+  const [selectedOption, setSelectedOption] = useState(
+    router.query.site_id ? router.query.site_id : firstSite?.site_id || ''
+  )
+  const [status, setStatus] = useState(router.query.status || 'unmapped')
   const [openDrawer, setOpenDrawer] = useState(false)
   const [enclosureList, setEnclosureList] = useState([])
   const [menuGroupList, setMenuGroupList] = useState([])
   const [openDeleteDialog, setOpenDeleteDialog] = useState(false)
+  const [openDeleteEnclosureDialog, setopenDeleteEnclosureDialog] = useState(false)
   const [deleteId, setDeleteId] = useState(null)
   const [groupId, setGroupId] = useState(null)
   const [total, setTotal] = useState(0)
-  const [loading, setLoading] = useState(false)
+  const [loading, setLoading] = useState(true)
   const [Loader, setLoader] = useState(false)
   const [paginationModel, setPaginationModel] = useState({
-    page: 0,
-    pageSize: 10
+    page: parseInt(router.query.page) || 0,
+    pageSize: parseInt(router.query.limit) || 10
   })
   const [originalItems, setOriginalItems] = useState([])
   const [selectedItems, setSelectedItems] = useState([])
@@ -91,17 +100,18 @@ const MealGroup = () => {
   const [editSearchValue, setEditSearchValue] = useState('')
   const [selectedForDrawer, setSelectedForDrawer] = useState([])
   const [mealId, setMealId] = useState(null)
+  const [mealType, setmealType] = useState({
+    type: 'view'
+  })
 
   console.log('Group >>', groupList)
 
   useEffect(() => {
-    debugger
     const siteIdFromQuery = router.query.site_id
     const allSites = authData?.userData?.user?.zoos || []
 
     // Only run if authData is loaded
     if (allSites.length > 0) {
-      debugger
       if (siteIdFromQuery) {
         console.log('All Sites >', allSites[0])
 
@@ -116,7 +126,6 @@ const MealGroup = () => {
       // If no site_id in query or no match, fallback to first site
       const first = authData?.userData?.user?.zoos[0]?.sites?.[0] || null
       if (first) {
-        debugger
         setDefaultSite(first)
         setSelectedOption(first.site_id)
         router.replace(
@@ -142,16 +151,19 @@ const MealGroup = () => {
   const handleSectionChange = event => {
     const value = event.target.value
     setSelectedSection(value) // value is string
+    setCheckedRows([])
   }
 
   const handleSpeciesChange = event => {
     const value = event.target.value
     setSelectedSpecies(value) // value is string
+    setCheckedRows([])
   }
 
   const handleGroupChange = event => {
     const value = event.target.value
     setSelectedGroup(value) // value is string
+    setCheckedRows([])
   }
 
   const handleCheckboxChange = (e, row) => {
@@ -177,13 +189,12 @@ const MealGroup = () => {
     }
   }
 
-  const fetchEnclosure = async () => {
+  const fetchEnclosure = async passedParams => {
     if (!selectedOption) return
 
     setLoading(true)
-    debugger
 
-    if (status === '') {
+    if (status === 'mealgroup') {
       const groupparams = {
         site_id: selectedOption,
         page_no: paginationModel.page + 1
@@ -206,8 +217,7 @@ const MealGroup = () => {
       return
     }
 
-    // Build params conditionally
-    const params = {
+    const params = passedParams || {
       type: status,
       q: searchValue,
       site_id: selectedOption,
@@ -215,21 +225,15 @@ const MealGroup = () => {
       limit: paginationModel.pageSize
     }
 
-    // Add section_ids only if selectedSection is NOT ['all']
     if (selectedSection !== 'all') {
       params.section_ids = JSON.stringify([selectedSection])
     }
-
     if (selectedSpecies !== 'all') {
       params.species_ids = JSON.stringify([selectedSpecies])
     }
     if (selectedGroup !== 'all') {
       params.meal_group_ids = JSON.stringify([selectedGroup])
     }
-    // If you have species_ids or other filters, add them similarly
-    // if (selectedSpecies.length > 0) {
-    //   params.species_ids = JSON.stringify(selectedSpecies)
-    // }
 
     try {
       const response = await getEnclosureList(params)
@@ -245,10 +249,11 @@ const MealGroup = () => {
       setLoading(false)
     }
   }
+
   const debouncedSearch = useCallback(
     debounce(async q => {
       setSearchValue(q)
-      debugger
+
       setPaginationModel({ page: 0, pageSize: 10 })
 
       try {
@@ -268,8 +273,8 @@ const MealGroup = () => {
 
   const debouncedEnclosureSearch = useCallback(
     debounce(async q => {
-      debugger
       setSearchValue(q)
+      setLoader(true)
       setPaginationModel({ page: 0, pageSize: 10 })
 
       try {
@@ -281,6 +286,7 @@ const MealGroup = () => {
 
         if (res) {
           setSelectedItems(res?.data?.result)
+          setLoader(false)
         }
       } catch (err) {
         console.log(err)
@@ -291,7 +297,6 @@ const MealGroup = () => {
 
   const debouncedEditEnclosureSearch = useCallback(
     debounce(async (q, id) => {
-      debugger
       console.log('Edit >', editeditems)
 
       setEditSearchValue(q)
@@ -344,7 +349,6 @@ const MealGroup = () => {
       console.error('Error fetching site stats:', error)
     }
   }
-
   const fetchSectionList = async () => {
     if (!selectedOption) return
     try {
@@ -397,16 +401,26 @@ const MealGroup = () => {
   }
 
   useEffect(() => {
-    setSelectedItems([])
-  }, [status])
-
-  useEffect(() => {
     fetchEnclosure()
     fetchSiteStats()
     fetchSectionList()
     fetchSpeciesList()
     fetchMealGroupNames()
-  }, [selectedOption, status, paginationModel, selectedSection, selectedSpecies, selectedGroup])
+    updateUrlParams({
+      status: status,
+      site_id: selectedOption,
+      page: paginationModel.page,
+      limit: paginationModel.pageSize
+    })
+  }, [
+    selectedOption,
+    status,
+    paginationModel.page,
+    paginationModel.pageSize,
+    selectedSection,
+    selectedSpecies,
+    selectedGroup
+  ])
 
   const StatCard = ({ value, label, bgColor, textColor }) => (
     <Card
@@ -449,7 +463,7 @@ const MealGroup = () => {
             fontSize: { xs: '13px', sm: '14px' },
             fontFamily: 'Inter',
             fontWeight: 500,
-            color: '#44544A'
+            color: theme.palette.customColors.OnSurfaceVariant
           }}
         >
           {label}
@@ -475,7 +489,7 @@ const MealGroup = () => {
               fontSize: '14px',
               fontWeight: 500,
               fontFamily: 'Inter',
-              color: '#44544A',
+              color: theme.palette.customColors.OnSurfaceVariant,
               mr: 1
             }}
           >
@@ -487,7 +501,7 @@ const MealGroup = () => {
               width: '158px',
               ml: 4,
               height: '48px',
-              backgroundColor: '#E8F4F2',
+              backgroundColor: theme.palette.customColors.tableHeaderBg,
               borderRadius: '4px',
               boxShadow: 'none',
               // px: 2,
@@ -501,7 +515,7 @@ const MealGroup = () => {
               sx={{
                 fontSize: '14px',
                 fontWeight: 600,
-                color: '#2B7350',
+                color: theme.palette.primary.dark,
                 fontFamily: 'Inter'
               }}
             >
@@ -530,12 +544,14 @@ const MealGroup = () => {
     setCheckedRows([])
     setSearchValue('')
     setEditItems([])
+    setSelectedItems([])
+    setPaginationModel({ page: 0, pageSize: 10 })
     setEditParam({})
   }
 
-  const handleEnclosureEvent = async id => {
+  const handleEnclosureEvent = async (event, id) => {
+    event.stopPropagation()
     try {
-      debugger
       setEnclosureDrawer(true)
       setLoader(true)
       setGroupId(id)
@@ -563,7 +579,8 @@ const MealGroup = () => {
     }
   }
 
-  const handleRemove = id => {
+  const handleRemove = (event, id) => {
+    event.stopPropagation()
     setDeleteId(id)
     setOpenDeleteDialog(true)
   }
@@ -594,10 +611,13 @@ const MealGroup = () => {
     }
   }
 
-  const handleEdit = async row => {
+  const handleEdit = async (event, row) => {
     console.log('Row Detail >', row)
+    event.stopPropagation()
+
     try {
       setEditParam(row)
+      setmealType({ type: 'edit' })
       setLoader(true)
       setMealId(row.id)
       setOpenDrawer(true) // 👈 open the drawer
@@ -621,12 +641,14 @@ const MealGroup = () => {
     }
   }
 
-  const removeEnclosure = async () => {
-    console.log('removed Ids >>', selectedItems, selectedOption)
+  const cancelEnclosureDialog = () => {
+    setopenDeleteEnclosureDialog(false)
+  }
 
+  const confirmEnclosureDelete = async () => {
     const removedEnclosureIds = selectedItems?.map(item => item.enclosure_id)
 
-    // Since API expects a single integer, we pick the first group_id
+    // // Since API expects a single integer, we pick the first group_id
     const removeGroupId = parseInt(selectedItems?.[0]?.group_id)
 
     const groupNames = Array.from(new Set(selectedItems?.map(item => item.group_name))).join(', ')
@@ -644,11 +666,17 @@ const MealGroup = () => {
       handleCloseSideBar()
       setCheckedRows([])
       toast.success(`Enclosure Removed from Group successfully`)
+      setopenDeleteEnclosureDialog(false)
       fetchEnclosure()
       fetchSiteStats()
     } else {
       toast.error('Something went wrong')
     }
+  }
+
+  const removeEnclosure = async () => {
+    console.log('removed Ids >>', selectedItems, selectedOption)
+    setopenDeleteEnclosureDialog(true)
   }
 
   const addEnclosure = async () => {
@@ -680,8 +708,9 @@ const MealGroup = () => {
 
   const groupcolumns = [
     {
-      flex: 0.3,
-      width: 30,
+      flex: 0.4,
+      width: 40,
+      sortable: false,
       field: 'group_name',
       headerName: 'Meal Group Name ',
       headerAlign: 'left',
@@ -694,7 +723,7 @@ const MealGroup = () => {
               fontWeight: 600,
               fontSize: '12px',
               fontFamily: 'Inter',
-              color: '#44544A',
+              color: theme.palette.customColors.OnSurfaceVariant,
               textTransform: 'uppercase'
             }}
           >
@@ -704,32 +733,19 @@ const MealGroup = () => {
       ),
       renderCell: params => (
         <>
-          {params?.row?.group_name ? (
-            <TextEllipsisWithModal
-              text={params.row.group_name}
-              style={{
-                color: theme.palette.customColors.customHeadingTextColor,
-                fontSize: '16px',
-                fontWeight: 500,
-                color: '#44544A',
-                fontFamily: 'Inter'
-              }}
-            />
-          ) : (
-            <Typography
-              variant='body2'
-              textAlign='center'
-              sx={{
-                color: theme.palette.customColors.customHeadingTextColor,
-                fontSize: '16px',
-                fontWeight: 500,
-                color: '#44544A',
-                fontFamily: 'Inter'
-              }}
-            >
-              NA
-            </Typography>
-          )}
+          <Typography
+            variant='body2'
+            textAlign='center'
+            sx={{
+              color: theme.palette.customColors.customHeadingTextColor,
+              fontSize: '16px',
+              fontWeight: 500,
+              color: theme.palette.customColors.OnSurfaceVariant,
+              fontFamily: 'Inter'
+            }}
+          >
+            {params?.row.group_name}
+          </Typography>
         </>
       )
     },
@@ -738,6 +754,7 @@ const MealGroup = () => {
       width: 20,
       field: 'enclosure_count',
       type: 'number',
+      sortable: false,
       headerName: 'Enclosures',
       headerAlign: 'center',
       align: 'center',
@@ -749,7 +766,7 @@ const MealGroup = () => {
               fontWeight: 600,
               fontSize: '12px',
               fontFamily: 'Inter',
-              color: '#44544A',
+              color: theme.palette.customColors.OnSurfaceVariant,
               textTransform: 'uppercase'
             }}
           >
@@ -764,7 +781,7 @@ const MealGroup = () => {
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '16px',
-            color: '#44544A',
+            color: theme.palette.customColors.OnSurfaceVariant,
             fontWeight: 400,
             fontFamily: 'Inter'
           }}
@@ -777,6 +794,7 @@ const MealGroup = () => {
       flex: 0.15,
       width: 10,
       field: 'species_count',
+      sortable: false,
       type: 'number',
       headerName: 'Species',
       headerAlign: 'center',
@@ -789,7 +807,7 @@ const MealGroup = () => {
               fontWeight: 600,
               fontSize: '12px',
               fontFamily: 'Inter',
-              color: '#44544A',
+              color: theme.palette.customColors.OnSurfaceVariant,
               textTransform: 'uppercase'
             }}
           >
@@ -818,6 +836,7 @@ const MealGroup = () => {
       width: 20,
       field: 'animal_count',
       headerName: 'Animals',
+      sortable: false,
       headerAlign: 'center',
       align: 'center',
       renderHeader: () => (
@@ -828,7 +847,7 @@ const MealGroup = () => {
               fontWeight: 600,
               fontSize: '12px',
               fontFamily: 'Inter',
-              color: '#44544A',
+              color: theme.palette.customColors.OnSurfaceVariant,
               textTransform: 'uppercase'
             }}
           >
@@ -844,7 +863,7 @@ const MealGroup = () => {
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '16px',
             fontWeight: 400,
-            color: '#44544A',
+            color: theme.palette.customColors.OnSurfaceVariant,
             fontFamily: 'Inter'
           }}
         >
@@ -856,6 +875,7 @@ const MealGroup = () => {
       flex: 0.35, // increased flex
       minWidth: 200, // minimum width for small screens
       field: 'actions',
+      sortable: false,
       headerAlign: 'center',
       align: 'center',
       renderHeader: () => (
@@ -867,7 +887,7 @@ const MealGroup = () => {
                 fontWeight: 600,
                 fontSize: '12px',
                 fontFamily: 'Inter',
-                color: '#44544A',
+                color: theme.palette.customColors.OnSurfaceVariant,
                 textTransform: 'uppercase'
               }}
             >
@@ -886,23 +906,23 @@ const MealGroup = () => {
         >
           <Button
             sx={{
-              borderColor: '#37BD69',
-              color: '#37BD69',
+              borderColor: theme.palette.primary.main,
+              color: theme.palette.primary.main,
               borderRadius: '4px',
               // minWidth: '120px',
               height: '36px',
               fontSize: '12px'
             }}
             variant='outlined'
-            onClick={() => handleEnclosureEvent(params.row.id)}
+            onClick={e => handleEnclosureEvent(e, params.row.id)}
           >
             Add Enclosure
           </Button>
-          <IconButton onClick={() => handleEdit(params.row)} size='small' sx={{ color: theme.palette.primary.light }}>
+          <IconButton onClick={e => handleEdit(e, params.row)} size='small' sx={{ color: theme.palette.primary.light }}>
             <Icon icon='mdi:pencil-outline' fontSize={20} />
           </IconButton>
           <IconButton
-            onClick={() => handleRemove(params.row.id)}
+            onClick={e => handleRemove(e, params.row.id)}
             size='small'
             sx={{ color: theme.palette.primary.light }}
           >
@@ -919,6 +939,7 @@ const MealGroup = () => {
       headerName: 'Enclosure Name',
       headerAlign: 'left',
       align: 'left',
+      sortable: false,
       flex: 1,
       minWidth: 180,
       renderHeader: () => (
@@ -972,6 +993,7 @@ const MealGroup = () => {
       field: 'section_name',
       headerName: 'Section',
       headerAlign: 'left',
+      sortable: false,
       align: 'left',
       flex: 0.5,
       minWidth: 60,
@@ -1014,6 +1036,7 @@ const MealGroup = () => {
       field: 'species_count',
       headerName: 'Species',
       type: 'number',
+      sortable: false,
       headerAlign: 'center',
       align: 'center',
       flex: 0.4,
@@ -1047,6 +1070,7 @@ const MealGroup = () => {
     {
       field: 'animal_count',
       headerName: 'Animals',
+      sortable: false,
       headerAlign: 'center',
       align: 'center',
       flex: 0.4,
@@ -1080,6 +1104,7 @@ const MealGroup = () => {
     {
       field: 'group_name',
       headerName: 'Meal Group Name',
+      sortable: false,
       headerAlign: 'center',
       align: 'center',
       flex: 0.6,
@@ -1108,7 +1133,9 @@ const MealGroup = () => {
             fontSize: '14px',
             fontWeight: 500,
             fontFamily: 'Inter',
-            color: params.row.group_name ? '#44544A' : '#FA6140'
+            color: params.row.group_name
+              ? theme.palette.customColors.OnSurfaceVariant
+              : theme.palette.customColors.customDropdownColor
           }}
         >
           {params.row.group_name || 'Not assigned'}
@@ -1151,27 +1178,52 @@ const MealGroup = () => {
       setSelectedOption(site.site_id)
       setEditItems([])
       setCheckedRows([])
-      router.replace(
-        {
-          pathname: router.pathname,
-          query: { ...router.query, site_id: site.site_id }
-        },
-        undefined,
-        { shallow: true }
-      )
+      updateUrlParams({
+        status: status,
+        site_id: site.site_id,
+        page: paginationModel.page,
+        limit: paginationModel.pageSize
+      })
     }
   }
 
-  const addEventSidebarOpen = () => {
-    console.log('Edit >>', editParam)
+  const addEventSidebarOpen = event => {
+    event.stopPropagation()
+
+    // Collect selected row objects from checkedRows
+    const selected = enclosureList.filter(row => checkedRows.includes(row.enclosure_id))
+
+    setSelectedItems(selected)
     setEditParam({})
-    setEditItems([])
-    // setSelectedItems([])
+    setEditItems(selected)
+    setmealType({ type: 'edit' })
     setOpenDrawer(true)
   }
 
   const handleCloseSideBar = () => {
     setOpenDrawer(false)
+  }
+
+  const handleView = async parm => {
+    setOpenDrawer(true)
+    setEditParam(parm.row)
+    setmealType({ type: 'view' })
+    console.log('params >', parm)
+    const params = {
+      type: 'mapped',
+      site_id: selectedOption,
+      meal_group_ids: JSON.stringify([parm.row.id]) // Send as array
+    }
+    const response = await getEnclosureListByGroup(params)
+
+    if (response.success) {
+      setLoader(false)
+      console.log('Enclosure list by group:', response.data.result)
+      setEditItems(response?.data?.result)
+    } else {
+      setLoader(true)
+      console.error('Failed to fetch enclosure list:', response.message || 'Unknown error')
+    }
   }
 
   return (
@@ -1211,7 +1263,7 @@ const MealGroup = () => {
                   fontWeight: 500,
                   fontSize: { xs: '18px', sm: '20px', md: '24px' },
                   fontFamily: 'Inter',
-                  color: '#44544A'
+                  color: theme.palette.customColors.OnSurfaceVariant
                 }}
               >
                 Meal group for the site -
@@ -1233,6 +1285,8 @@ const MealGroup = () => {
                 value={defaultSite}
                 disablePortal
                 id='site_id'
+                // clearIcon={firstSite?.site_id ? true: false}
+                disableClearable={defaultSite?.site_id === firstSite?.site_id}
                 options={authData?.userData?.user?.zoos?.[0]?.sites || []}
                 getOptionLabel={option => option?.site_name || ''}
                 isOptionEqualToValue={(option, value) => option?.site_id === value?.site_id}
@@ -1242,7 +1296,7 @@ const MealGroup = () => {
                     {...params}
                     placeholder='Search & Select'
                     sx={{
-                      backgroundColor: '#59b66f',
+                      backgroundColor: theme.palette.primary.main,
                       borderRadius: '8px',
                       '& .MuiInputBase-input': {
                         color: '#fff'
@@ -1270,9 +1324,22 @@ const MealGroup = () => {
               mt: { xs: 2, md: 0 }
             }}
           >
-            <StatCard value={siteStats?.total_enclosures} label='Enclosures' bgColor='#EFF5F2' />
-            <StatCard value={siteStats?.total_species} label='Species' bgColor='#E1F9ED' />
-            <StatCard value={siteStats?.total_animals} label='Animals' bgColor='#FFBDA84D' textColor='#FA6140' />
+            <StatCard
+              value={siteStats?.total_enclosures}
+              label='Enclosures'
+              bgColor={theme.palette.customColors.lightBg}
+            />
+            <StatCard
+              value={siteStats?.total_species}
+              label='Species'
+              bgColor={theme.palette.customColors.OnBackground}
+            />
+            <StatCard
+              value={siteStats?.total_animals}
+              label='Animals'
+              bgColor={theme.palette.customColors.Tertiary30}
+              textColor={theme.palette.customColors.Tertiary}
+            />
           </Box>
         </Box>
       </Card>
@@ -1291,7 +1358,7 @@ const MealGroup = () => {
                   value='mapped'
                   label={<TabBadge label={`Enclosures mapped - ${siteStats?.mapped_enclosures}`} />}
                 />
-                <Tab value='' label={<TabBadge label={`Meal group - ${siteStats?.meal_groups_count}`} />} />
+                <Tab value='mealgroup' label={<TabBadge label={`Meal group - ${siteStats?.meal_groups_count}`} />} />
               </TabList>
 
               {/* Divider only below TabList, responsive width */}
@@ -1311,7 +1378,7 @@ const MealGroup = () => {
           </TabContext>
         </Grid>
 
-        {status !== '' && (
+        {status !== 'mealgroup' && (
           <Box
             sx={{
               mt: 4,
@@ -1372,47 +1439,32 @@ const MealGroup = () => {
                 </MenuItem>
               ))}
             </Select>
-            {/* Species Dropdown */}
-            {/* <Select
-              value={selectedSpecies}
-              onChange={handleSpeciesChange}
-              displayEmpty
-              renderValue={selected => {
-                if (selected === 'all') return <Typography>All Species</Typography>
-                const selectedItem = speciesList.find(item => item.species_id === selected)
-                return `${selectedItem?.common_name} (${selectedItem?.scientific_name})` || ''
-              }}
-              size='small'
-              sx={{
-                flexGrow: 1,
-                minWidth: { xs: '100%', sm: '200px', md: '240px' },
-                backgroundColor: 'white',
-                borderRadius: '4px'
-              }}
-            >
-              <MenuItem value='all'>
-                <Typography>All Species</Typography>
-              </MenuItem>
-              {speciesList.map(item => (
-                <MenuItem key={item.species_id} value={item.species_id}>
-                  {`${item.common_name} (${item.scientific_name})`}
-                </MenuItem>
-              ))}
-            </Select> */}
 
             <Autocomplete
               options={[{ species_id: 'all', common_name: 'All Species', scientific_name: '' }, ...speciesList]}
-              getOptionLabel={option =>
-                option.species_id === 'all' ? 'All Species' : `${option.common_name} (${option.scientific_name})`
-              }
+              getOptionLabel={option => {
+                if (option.species_id === 'all') return 'All Species'
+
+                if (!option.common_name) return ` NA (${option.scientific_name})` || ''
+
+                return `${option.common_name} (${option.scientific_name})`
+              }}
               value={
                 selectedSpecies === 'all'
                   ? { species_id: 'all', common_name: 'All Species', scientific_name: '' }
                   : speciesList.find(item => item.species_id === selectedSpecies) || null
               }
+              onBlur={event => {
+                if (!selectedSpecies) {
+                  // if nothing is selected, default to "All Species"
+                  handleSpeciesChange({
+                    target: { value: 'all' }
+                  })
+                }
+              }}
               onChange={(event, newValue) => {
                 handleSpeciesChange({
-                  target: { value: newValue?.species_id || 'all' }
+                  target: { value: newValue?.species_id || '' }
                 })
               }}
               size='small'
@@ -1420,7 +1472,8 @@ const MealGroup = () => {
               renderInput={params => (
                 <TextField
                   {...params}
-                  placeholder='Select Species'
+                  label='search and select'
+                  placeholder='Search and select'
                   variant='outlined'
                   fullWidth
                   sx={{
@@ -1438,57 +1491,91 @@ const MealGroup = () => {
               }}
             />
             {/* Meal Group Dropdown */}
-            <Select
-              value={selectedGroup}
-              onChange={handleGroupChange}
-              displayEmpty
-              renderValue={selected => {
-                if (selected === 'all') return <Typography>All Meal groups</Typography>
-                const selectedItem = groupList.find(item => item.id === selected)
-                return selectedItem?.group_name || ''
-              }}
-              size='small'
-              sx={{
-                flexGrow: 1,
-                minWidth: { xs: '70%', sm: '20px', md: '20px' },
-                backgroundColor: 'white',
-                borderRadius: '4px'
-              }}
-            >
-              <MenuItem value='all'>
-                <Typography>All Meal groups</Typography>
-              </MenuItem>
-              {groupList.map(item => (
-                <MenuItem key={item.id} value={item.id}>
-                  {item.group_name}
+            {status !== 'unmapped' && (
+              <Select
+                value={selectedGroup}
+                onChange={handleGroupChange}
+                displayEmpty
+                renderValue={selected => {
+                  if (selected === 'all') return <Typography>All Meal groups</Typography>
+                  const selectedItem = groupList.find(item => item.id === selected)
+                  return selectedItem?.group_name || ''
+                }}
+                size='small'
+                sx={{
+                  flexGrow: 1,
+                  minWidth: { xs: '70%', sm: '20px', md: '20px' },
+                  backgroundColor: 'white',
+                  borderRadius: '4px'
+                }}
+              >
+                <MenuItem value='all'>
+                  <Typography>All Meal groups</Typography>
                 </MenuItem>
-              ))}
-            </Select>
+                {groupList.map(item => (
+                  <MenuItem key={item.id} value={item.id}>
+                    {item.group_name}
+                  </MenuItem>
+                ))}
+              </Select>
+            )}
           </Box>
         )}
-
         <Grid
           sx={{
-            // height: '800px',
-            // overflowY: 'scroll',
             mx: { xs: 1, sm: 3, md: 2 },
             mb: 5,
-            pb: { xs: 0, sm: 5 } // 👈 padding bottom to create space
+            pb: { xs: 0, sm: 5 }
           }}
         >
-          <CommonTable
-            onRowClick={''}
-            indexedRows={status === '' ? GroupindexedRows : indexedRows}
-            total={total}
-            handleSortModel={''}
-            columns={status === '' ? groupcolumns : columns}
-            paginationModel={paginationModel}
-            setPaginationModel={setPaginationModel}
-            loading={loading}
-            searchValue={''}
-          />
+          {loading ? (
+            <Box sx={{ display: 'flex', justifyContent: 'center', py: 10 }}>
+              <CircularProgress />
+            </Box>
+          ) : (
+            <>
+              {(() => {
+                const dataRows = status === 'mealgroup' ? GroupindexedRows : indexedRows
+                if (!dataRows || dataRows.length === 0) {
+                  return (
+                    <Box sx={{ display: 'flex', justifyContent: 'center', py: 10 }}>
+                      <Typography sx={{ fontSize: '16px' }} color='text.secondary'>
+                        No record found
+                      </Typography>
+                    </Box>
+                  )
+                }
+                return (
+                  <CommonTable
+                    onRowClick={status === 'mealgroup' ? handleView : undefined}
+                    indexedRows={dataRows}
+                    total={total}
+                    handleSortModel={''}
+                    columns={status === 'mealgroup' ? groupcolumns : columns}
+                    paginationModel={paginationModel}
+                    setPaginationModel={setPaginationModel}
+                    loading={loading}
+                    searchValue={''}
+                  />
+                )
+              })()}
+            </>
+          )}
 
-          {status === '' && (
+          <Dialog open={openDeleteEnclosureDialog} onClose={cancelEnclosureDialog}>
+            <DialogTitle>Confirm Deletion</DialogTitle>
+            <DialogContent>Are you sure you want to remove the enclosure?</DialogContent>
+            <DialogActions>
+              <Button onClick={cancelEnclosureDialog} color='primary'>
+                Cancel
+              </Button>
+              <Button onClick={confirmEnclosureDelete} color='error' variant='contained'>
+                Delete
+              </Button>
+            </DialogActions>
+          </Dialog>
+
+          {status === 'mealgroup' && (
             <Dialog open={openDeleteDialog} onClose={handleCloseDialog}>
               <DialogTitle>Confirm Deletion</DialogTitle>
               <DialogContent>Are you sure you want to delete this group?</DialogContent>
@@ -1506,7 +1593,7 @@ const MealGroup = () => {
       </Card>
 
       {/* Footer Card */}
-      {status !== '' && (
+      {status !== 'mealgroup' && (
         <FixedFooterWrapper>
           <Box
             sx={{
@@ -1532,10 +1619,10 @@ const MealGroup = () => {
                     width: { xs: '100%', sm: '160px' },
                     height: '56px',
                     borderRadius: '4px',
-                    color: '#44544A',
-                    borderColor: '#839D8D',
+                    color: theme.palette.customColors.OnSurfaceVariant,
+                    borderColor: theme.palette.customColors.Outline,
                     '&:hover': {
-                      borderColor: '#839D8D',
+                      borderColor: theme.palette.customColors.Outline,
                       backgroundColor: 'transparent'
                     }
                   }}
@@ -1551,8 +1638,8 @@ const MealGroup = () => {
                     width: { xs: '100%', sm: status === 'mapped' ? '220px' : '160px' },
                     borderRadius: '4px',
                     height: '56px',
-                    color: '#37BD69',
-                    borderColor: '#37BD69'
+                    color: theme.palette.primary.main,
+                    borderColor: theme.palette.primary.main
                   }}
                   variant='outlined'
                 >
@@ -1562,15 +1649,15 @@ const MealGroup = () => {
                 {status === 'unmapped' && (
                   <Button
                     disabled={checkedRows?.length <= 0}
-                    onClick={addEventSidebarOpen}
+                    onClick={e => addEventSidebarOpen(e)}
                     variant='contained'
                     sx={{
-                      backgroundColor: '#37BD69',
+                      backgroundColor: theme.palette.primary.main,
                       borderRadius: '4px',
                       width: { xs: '100%', sm: '160px' },
                       height: '56px',
                       '&:hover': {
-                        borderColor: '#37BD69'
+                        borderColor: theme.palette.primary.main
                       }
                     }}
                   >
@@ -1593,6 +1680,7 @@ const MealGroup = () => {
           setOriginalItems={setOriginalItems}
           checkedRows={checkedRows}
           setCheckedRows={setCheckedRows}
+          mealType={mealType}
           selectedOption={selectedOption}
           editParam={editParam}
           editeditems={editeditems}

@@ -103,32 +103,6 @@ const ListOfMedicine = () => {
       headerName: 'PRODUCT NAME',
       renderCell: params => (
         <Box>
-          {/* <Typography
-            variant='body2'
-            sx={{
-              color: theme.palette.customColors.customHeadingTextColor,
-              fontSize: '14px',
-              fontWeight: 500,
-              fontFamily: 'Inter'
-            }}
-          >
-            {params.row.name}
-          </Typography> */}
-          {/* <StyleWithIconCardComponent
-            value={params.row.name}
-            description={params.row.generic_name}
-            icon={params.row.image ? `${params.row.image}` : '/images/Medicine_Icon.png'}
-            showIcon={false}
-            customCss={{
-              p: '0px',
-              width: '100%',
-              height: '100%',
-              fontSize: '14px',
-              avtBorderRadius: '10px',
-              iconWidth: '44px',
-              iconHeight: '44px'
-            }}
-          /> */}
           <PharmacyProductCard
             title={params?.row?.name}
             subTitle={params?.row?.generic_name}

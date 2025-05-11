@@ -120,6 +120,8 @@ export const PHARMACY_MASTER_BASE_URL = 'v1/master/pharma/'
 
 export const PHARMACY_BASE_URL = 'v1/pharma/'
 
+export const BASE_URL_Pharmacy = 'v1/pharmacy/' //From now onwards use this constant
+
 export const UPDATE_PURCHASE_BASE_URL = 'v2/pharma/'
 
 export const RETURN_REQUEST = 'return-item'
@@ -262,7 +264,13 @@ export const SHIPMENT_REPORT = 'shipment-report'
 
 export const RETURN_TO_SUPPLIER = 'return-supplier-report'
 
+export const ALL_REQUESTED_ITEMS_REPORT = 'all-requested-items'
+
 export const PRODUCT_MAPPING_FOR_ML = 'v1/public/pharmacy/ml/product-mapping/bulkInsert'
+
+export const STOCK_LIST = 'stock-item'
+
+export const VARIANTS_MAPPING_FOR_BATCH = 'variantMappingBatch'
 
 export const FEED_DETAILS = 'details'
 
@@ -411,6 +419,14 @@ export const ADD_CUT_SIZE = 'diet/recipes/master/cutsizeadd'
 export const UPDATE_CUT_SIZE = 'diet/recipes/master/cutsizeupdate'
 
 export const GET_CUT_SIZEBY_ID = 'diet/recipes/master/cutsizeList'
+
+export const DIET_CATEGORIES_LIST = 'v1/diet/dietcategories/list'
+
+export const ADD_DIET_CATEGORY = 'v1/diet/dietcategories'
+
+export const UPDATE_DIET_CATEGORY = 'v1/diet/dietcategories'
+
+export const GET_DIET_CATEGORY_BY_ID = 'v1/diet/dietcategories'
 
 export const RECIPE_PARTOF_DIET_LIST = 'recipe_ingredient_part_of_diet_list'
 

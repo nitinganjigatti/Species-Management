@@ -201,10 +201,9 @@ const EggSecondSecion = ({
 
   const columns = [
     {
-      flex: 0.1,
-      Width: 40,
+      width: 70,
       field: 'id',
-      headerName: 'NO ',
+      headerName: 'SL.NO',
       sortable: false,
       renderCell: params => (
         <Typography

@@ -72,11 +72,12 @@ const defaultValues = {
 const schema = yup.object().shape({
   request_item: yup
     .object()
-    .required('Product Name is required')
+    .transform(value => (value === '' ? null : value))
     .shape({
       label: yup.string().required('Product Name is required'),
       value: yup.string().required('Product Name is required')
-    }),
+    })
+    .required('Product Name is required'),
 
   // request_item_batch_no: yup.object().shape({
   //   label: yup.string().required('Batch no is required'),
@@ -407,9 +408,9 @@ export const AddItemsForm = ({
                       searchMedicineData(e.target.value)
                     }}
                     onChange={(e, value) => {
-                      setValue('request_item', value)
-                      setValue('request_item_batch_no', '')
-                      setValue('expiry_date', '')
+                      setValue('request_item', value, { shouldValidate: true })
+                      setValue('request_item_batch_no', '', { shouldValidate: true })
+                      setValue('expiry_date', '', { shouldValidate: true })
                       setValue('available_item_qty', '')
                       setValue('stock_type', '')
                       setValue('packageDetails', '')
@@ -480,7 +481,9 @@ export const AddItemsForm = ({
                 )}
               />
               {errors?.request_item && (
-                <FormHelperText sx={{ color: 'error.main' }}>{errors?.request_item?.message}</FormHelperText>
+                <FormHelperText sx={{ color: 'error.main' }}>
+                  {errors?.request_item?.value?.message || errors?.request_item?.message}
+                </FormHelperText>
               )}
               {/* {watch('packageDetails') && (
                 <Box sx={{ mx: 1, my: 2, display: 'flex' }}>
@@ -694,7 +697,7 @@ export const AddItemsForm = ({
                     isOptionEqualToValue={(option, value) => option.value === value.value}
                     onChange={(e, value) => {
                       setValue('request_item_batch_no', value)
-                      setValue('expiry_date', value?.expiry_date)
+                      setValue('expiry_date', value?.expiry_date, { shouldValidate: true })
                       setValue('available_item_qty', value?.available_item_qty)
                       setValue('multiplier', value?.multiplier)
                       setValue('variant_id', value?.variant_id)
@@ -708,12 +711,8 @@ export const AddItemsForm = ({
                       <TextField
                         {...params}
                         placeholder='Enter Batch No'
+                        label={Boolean(errors.request_item_batch_no) ? 'Enter Batch No*' : 'Enter Batch No'}
                         error={Boolean(errors.request_item_batch_no)}
-                        sx={{
-                          '& .MuiOutlinedInput-root': {
-                            backgroundColor: 'white'
-                          }
-                        }}
                       />
                     )}
                     renderOption={(props, option) => (
@@ -744,7 +743,7 @@ export const AddItemsForm = ({
                           <Typography variant='body2' color='customColors.neutralSecondary'>
                             Expiry Date: {Utility.formatDisplayDate(option.expiry_date)}
                           </Typography>
-                          <Typography variant='body2' color='customColors.Tertiary'>
+                          <Typography variant='body2' color='primary.main'>
                             Availability: {option.available_item_qty}
                           </Typography>
                         </Box>
@@ -816,14 +815,19 @@ export const AddItemsForm = ({
                       name='expiry_date'
                       error={Boolean(errors.expiry_date)}
                       onChange={onChange}
-                      disabled
+                      variant='outlined'
+                      slotProps={{
+                        textField: {
+                          error: Boolean(errors.expiry_date)
+                        }
+                      }}
+                      inputProps={{ disabled: true }}
                     />
                   )}
-                >
-                  {errors.expiry_date && (
-                    <FormHelperText sx={{ color: 'error.main' }}>{errors?.expiry_date?.message}</FormHelperText>
-                  )}
-                </Controller>
+                />
+                {errors.expiry_date && (
+                  <FormHelperText sx={{ color: 'error.main' }}>{errors?.expiry_date?.message}</FormHelperText>
+                )}
               </FormControl>
             </Grid>
           )}
@@ -851,11 +855,10 @@ export const AddItemsForm = ({
                     onInput={checkTotalCount}
                   />
                 )}
-              >
-                {errors.request_item_qty && (
-                  <FormHelperText sx={{ color: 'error.main' }}>{errors?.request_item_qty?.message}</FormHelperText>
-                )}
-              </Controller>
+              />
+              {errors.request_item_qty && (
+                <FormHelperText sx={{ color: 'error.main' }}>{errors?.request_item_qty?.message}</FormHelperText>
+              )}
             </FormControl>
           </Grid>
           <Grid item xs={12} sm={12}>
