@@ -70,14 +70,7 @@ const TabLists = styled(MuiTabList)(({ theme }) => ({
 }))
 
 const TabBadge = ({ label, totalCount }) => (
-  <div
-    style={{
-      display: 'flex',
-      alignItems: 'center',
-      justifyItems: 'center',
-      justifyContent: 'space-between'
-    }}
-  >
+  <div style={{ display: 'flex', alignItems: 'center', justifyItems: 'center', justifyContent: 'space-between' }}>
     {label}
     {totalCount ? (
       <Chip sx={{ ml: '6px', fontSize: '12px' }} size='small' label={totalCount} color='secondary' />
@@ -551,8 +544,8 @@ const IndividualRequest = () => {
       width: 140,
       field: 'dispatch_qty',
       headerName: 'Fulfilled QTY',
-      headerAlign: 'center',
-      align: 'center',
+      type: 'number',
+      align: 'right',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.dispatch_qty}
@@ -947,14 +940,7 @@ const IndividualRequest = () => {
                     />
                   }
                 />
-                <Box
-                  sx={{
-                    backgroundColor: 'customColors.Background',
-                    p: 4,
-                    m: 4,
-                    borderRadius: '8px'
-                  }}
-                >
+                <Box sx={{ backgroundColor: 'customColors.Background', p: 4, m: 4, borderRadius: '8px' }}>
                   <Grid container spacing={2} sx={{ flexGrow: 1 }}>
                     <Grid item xs={3} sm={12 / 5} lg={12 / 5}>
                       <h5 style={{ marginBottom: '0px', marginTop: '0px' }}>Dispatched To</h5>
@@ -1079,12 +1065,7 @@ const IndividualRequest = () => {
                               onChange={(event, newValue) => {
                                 setShipmentTab(newValue)
                               }}
-                              sx={{
-                                width: '100%',
-                                height: '56px',
-                                py: '8px',
-                                gap: '6px'
-                              }}
+                              sx={{ width: '100%', height: '56px', py: '8px', gap: '6px' }}
                             >
                               <Tab
                                 value='Ready To Ship'
@@ -1116,14 +1097,7 @@ const IndividualRequest = () => {
                                       requestItems.status !== 'Cancelled' &&
                                       (selectedPharmacy.permission.key === 'ADD' ||
                                         selectedPharmacy.permission.key === 'allow_full_access') && (
-                                        <Grid
-                                          item
-                                          xs={6}
-                                          style={{
-                                            display: 'flex',
-                                            justifyContent: 'right'
-                                          }}
-                                        >
+                                        <Grid item xs={6} style={{ display: 'flex', justifyContent: 'right' }}>
                                           <Button size='big' variant='contained' onClick={handleNavigate}>
                                             Ship all items{' '}
                                           </Button>
