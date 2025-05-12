@@ -31,6 +31,7 @@ const ControlledTextField = ({
           value={field.value}
           type={type}
           label={label}
+          onWheel={event => event.target.blur()}
           disabled={disabled}
           InputProps={{ readOnly }}
           error={Boolean(errors?.[name])}
