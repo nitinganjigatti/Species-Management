@@ -16,8 +16,6 @@ const AnimalParentCard = ({ data, backgroundColor }) => {
             borderRadius: '8px',
             paddingY: '20px',
             paddingX: '16px',
-
-            // border: '1px solid #C3CEC7',
             display: 'flex',
             gap: '10px'
           }}
@@ -161,7 +159,7 @@ const AnimalParentCard = ({ data, backgroundColor }) => {
                 color: theme.palette.customColors.OnSurfaceVariant
               }}
             >
-              <span style={{ fontWeight: 400 }}>Morph: </span>
+              <span style={{ fontWeight: 400 }}>Variant: </span>
               {data?.morph_name ? data?.morph_name : '-'}
               {/* {Utility?.toPascalSentenceCase(data?.common_name)} */}
             </Typography>
