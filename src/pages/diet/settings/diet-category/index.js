@@ -29,7 +29,8 @@ const DietCategory = () => {
   const dietModuleAccessContext = useContext(AuthContext)
   const dietModuleAccess = dietModuleAccessContext?.userData?.roles?.settings?.diet_module_access || ""
 
-  const hasAddEditAccess = dietModuleAccess === 'ADD' || dietModuleAccess === 'EDIT'
+  const hasAddAccess = dietModuleAccess === 'ADD' || dietModuleAccess === 'EDIT' || dietModuleAccess === 'DELETE'
+  const hasEditAccess = dietModuleAccess === 'EDIT' || dietModuleAccess === 'DELETE'
   const hasFullAccess = dietModuleAccess === 'allow_full_access'
 
   function loadServerRows(currentPage, data) {
@@ -70,7 +71,10 @@ const DietCategory = () => {
       headerName: 'NAME',
       renderCell: params => (
         <Tooltip title={params.row.label?.length > 30 ? params.row.label : ''}>
-          <Typography sx={{ color: 'text.primary', pl: 1, fontSize: '0.875rem', fontWeight: 400 }} className='text_overflow_moduled'>
+          <Typography
+            sx={{ color: 'text.primary', pl: 1, fontSize: '0.875rem', fontWeight: 400 }}
+            className='text_overflow_moduled'
+          >
             {params.row.label}
           </Typography>
         </Tooltip>
@@ -88,9 +92,9 @@ const DietCategory = () => {
       )
     }
   ]
-  
+
   // Conditionally add Action column
-  if (hasAddEditAccess || hasFullAccess) {
+  if (hasAddAccess || hasEditAccess || hasFullAccess) {
     baseColumns.push({
       flex: 0.2,
       minWidth: 100,
@@ -114,7 +118,8 @@ const DietCategory = () => {
   const columns = baseColumns
   
 
-  const headerAction = (hasAddEditAccess || hasFullAccess) ? <AddButton title='Add Diet Category' action={addEventSidebarOpen} /> : null
+  const headerAction =
+    hasAddAccess || hasFullAccess ? <AddButton title='Add Diet Category' action={addEventSidebarOpen} /> : null
 
   const fetchTableData = useCallback(
     async (sortBy, q, column) => {
