@@ -521,7 +521,7 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
                   variant='body2'
                   sx={{ color: 'text.primary', fontWeight: 'bold', marginTop: '0px', textAlign: 'right' }}
                 >
-                  QTY Requested
+                  Qty Requested
                 </Typography>
                 <Typography variant='body2' sx={{ color: 'text.primary', float: 'right' }}>
                   {fulfillMedicine?.requested_qty}
