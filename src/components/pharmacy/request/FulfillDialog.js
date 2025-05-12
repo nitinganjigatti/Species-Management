@@ -806,7 +806,7 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
                       fontWeight: '400'
                     }}
                   >
-                    QTY Requested
+                    Qty Requested
                   </Typography>
                   <Typography
                     sx={{
@@ -1065,6 +1065,7 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
                                             fontSize: '12px',
                                             fontWeight: '400',
                                             lineHeight: '14.52px',
+
                                             // color: 'primary.main'
                                             color: reqColor ? 'primary.main' : 'primary.main'
                                           }}
