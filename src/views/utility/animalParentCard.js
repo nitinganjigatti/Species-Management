@@ -160,7 +160,7 @@ const AnimalParentCard = ({ data, backgroundColor }) => {
                 color: theme.palette.customColors.OnSurfaceVariant
               }}
             >
-              <span style={{ fontWeight: 400 }}>Morph: </span>
+              <span style={{ fontWeight: 400 }}>Variant: </span>
               {data?.morph_name ? data?.morph_name : '-'}
               {/* {Utility?.toPascalSentenceCase(data?.common_name)} */}
             </Typography>
