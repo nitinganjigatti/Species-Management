@@ -19,7 +19,7 @@ const CommonTable = ({
   selectedRows,
   disablePagination = false, // New prop to control pagination
   maxHeight,
-  rowHeight,
+  rowHeight = 52,
   externalTableStyle
 }) => {
   const theme = useTheme()
