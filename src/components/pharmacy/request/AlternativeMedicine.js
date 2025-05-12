@@ -33,6 +33,7 @@ import CustomChip from 'src/@core/components/mui/chip'
 import RenderUtility from 'src/utility/render'
 import IconButton from '@mui/material/IconButton'
 import { useTheme } from '@emotion/react'
+import Utility from 'src/utility'
 
 function AlternativeMedicine({ parentId, updateRequestItems, existingListItems, closeAlternativeMedicineDialog }) {
   const initialNestedRowMedicine = {
@@ -104,9 +105,10 @@ function AlternativeMedicine({ parentId, updateRequestItems, existingListItems, 
   }
 
   const getOptionStyle = options => {
-    const sameMedicine = existingMedicinesList.find(item => item.stock_item_id === options)
+    const sameMedicine = existingMedicinesList.find(item => item.stock_item_id === options.value)
+    const result = sameMedicine || Number(options?.availAbleQty) === 0 ? true : false
 
-    return sameMedicine ? true : false
+    return result
   }
 
   //  ****** debounce
@@ -226,7 +228,6 @@ function AlternativeMedicine({ parentId, updateRequestItems, existingListItems, 
       }
     })
 
-    console.log('exixting', requestItemsArray)
     setExistingMedicinesList(requestItemsArray)
     fetchMedicineData('')
   }, [])
@@ -365,34 +366,17 @@ function AlternativeMedicine({ parentId, updateRequestItems, existingListItems, 
                   <li
                     {...props}
                     style={{
-                      opacity: getOptionStyle(option.value) === false ? 1 : 0.5,
+                      opacity: getOptionStyle(option) === false ? 1 : 0.5,
 
-                      pointerEvents: getOptionStyle(option.value) === false ? 'auto' : 'none'
+                      pointerEvents: getOptionStyle(option) === false ? 'auto' : 'none'
                     }}
                   >
                     <Box>
-                      <Typography>{option.name}</Typography>
-                      <Typography variant='body2'>{option.package}</Typography>
-                      <Typography variant='body2'>{option.manufacture}</Typography>
-                      {option.control_substance === true && (
-                        <CustomChip label='CS' skin='light' color='success' size='small' />
-                      )}{' '}
-                      {option.prescription_required === true && (
-                        <CustomChip label='PR' skin='light' color='success' size='small' />
-                      )}
-                      {/* <Typography
-                        sx={{
-                          color: 'customColors.OnSecondaryContainer',
-                          display: 'flex',
-                          alignItems: 'center',
-                          fontSize: '16px',
-                          fontWeight: 400
-                        }}
-                      >
-                        {RenderUtility?.renderControlLabel(option.control_substance === true, 'CS')}
-                        {RenderUtility?.renderControlLabel(option.prescription_required === true, 'PR')}
-                        {option.name}({option.package})
-                      </Typography> */}
+                      <Typography>{option?.name}</Typography>
+                      <Typography variant='body2'>{option?.package}</Typography>
+                      <Typography variant='body2'>{option?.manufacture}</Typography>
+                      {RenderUtility?.renderControlLabel(option?.control_substance === true, 'CS')}
+                      {RenderUtility?.renderPrescriptionLabel(option?.prescription_required === true, 'PR')}
                     </Box>
                   </li>
                 )}
@@ -474,9 +458,9 @@ function AlternativeMedicine({ parentId, updateRequestItems, existingListItems, 
                   <li
                     {...props}
                     style={{
-                      opacity: getOptionStyle(option.value) === false ? 1 : 0.5,
+                      opacity: getOptionStyle(option) === false ? 1 : 0.5,
 
-                      pointerEvents: getOptionStyle(option.value) === false ? 'auto' : 'none'
+                      pointerEvents: getOptionStyle(option) === false ? 'auto' : 'none'
                     }}
                   >
                     <Box>
@@ -484,12 +468,14 @@ function AlternativeMedicine({ parentId, updateRequestItems, existingListItems, 
                       <Typography variant='body2'>{`Product - ${option.name}`}</Typography>
                       <Typography variant='body2'>{option.package}</Typography>
                       <Typography variant='body2'>{option.manufacture}</Typography>
-                      {option.control_substance === true && (
+                      {/* {option.control_substance === true && (
                         <CustomChip label='CS' skin='light' color='success' size='small' />
-                      )}
-                      {option.prescription_required === true && (
+                      )} */}
+                      {RenderUtility?.renderControlLabel(option.control_substance === true, 'CS')}
+                      {RenderUtility?.renderPrescriptionLabel(option.prescription_required === true, 'PR')}
+                      {/* {option.prescription_required === true && (
                         <CustomChip label='PR' skin='light' color='success' size='small' />
-                      )}
+                      )} */}
                       {/* <Typography
                         sx={{
                           color: 'customColors.OnSecondaryContainer',
@@ -592,7 +578,7 @@ function AlternativeMedicine({ parentId, updateRequestItems, existingListItems, 
             }}
           >
             <Typography sx={{ fontWeight: 400, fontFamily: 'Inter', fontSize: '12px', mb: 1 }}>
-              Available Packing:{' '}
+              Package:{' '}
               <span style={{ fontWeight: 400, fontSize: '12px', color: 'primary.light' }}>
                 {nestedRowMedicine?.package}
               </span>
@@ -621,6 +607,7 @@ function AlternativeMedicine({ parentId, updateRequestItems, existingListItems, 
               value={nestedRowMedicine.request_item_qty}
               error={Boolean(itemErrors.request_item_qty)}
               label='Quantity*'
+              onWheel={event => event.target.blur()}
               onChange={event => {
                 setNestedRowMedicine({ ...nestedRowMedicine, request_item_qty: event.target.value })
                 setItemErrors({})
@@ -633,33 +620,39 @@ function AlternativeMedicine({ parentId, updateRequestItems, existingListItems, 
               </FormHelperText>
             )}
 
-            {nestedRowMedicine.unit_price > 0 ? (
-              <Box sx={{ mx: 1, my: 2, display: 'flex', gap: 2 }}>
+            {nestedRowMedicine?.unit_price > 0 ? (
+              <Box sx={{ mx: 1, my: 2, display: 'flex' }}>
                 <Chip
-                  label={`Unit Price - ${nestedRowMedicine.unit_price}`}
+                  label={`Unit Price - ${Utility?.formatAmountToReadableDigit(Number(nestedRowMedicine?.unit_price))}`}
                   variant='outlined'
                   size='sm'
                   sx={{
                     mr: 2,
-                    fontSize: 12,
+                    fontSize: '13px',
                     height: '32px',
-                    borderRadius: '16px',
+                    fontWeight: 400,
+                    verticalAlign: 'middle',
                     backgroundColor: 'customColors.Surface',
                     color: 'customColors.OnSurfaceVariant',
                     border: `0.5px solid ${theme.palette.primary.main} !important`
+
+                    // border: '0.5px solid #37BD69 !important'
                   }}
                 />
                 <Chip
-                  label={`Total Quantity Price - ${nestedRowMedicine.unit_price * nestedRowMedicine.request_item_qty}`}
+                  label={`Total QTY Price - ${Utility?.formatAmountToReadableDigit(
+                    Number(nestedRowMedicine?.unit_price * nestedRowMedicine?.request_item_qty)
+                  )}`}
                   variant='outlined'
                   size='sm'
                   sx={{
-                    mr: 2,
-                    fontSize: 12,
+                    fontSize: '13px',
                     height: '32px',
-                    borderRadius: '16px',
+                    fontWeight: 400,
+                    verticalAlign: 'middle',
                     backgroundColor: 'customColors.Surface',
                     color: 'customColors.OnSurfaceVariant',
+
                     border: `0.5px solid ${theme.palette.primary.main} !important`
                   }}
                 />

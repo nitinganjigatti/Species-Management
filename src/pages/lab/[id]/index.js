@@ -4,7 +4,6 @@ import {
   GetRequestDetails,
   GetRequestPopUp,
   transferLab,
-  getNoOfLab,
   UpdateStatus,
   DeleteLAbRequestAttachment,
   GetLabListByTestId,
@@ -129,7 +128,8 @@ const RequestDetails = () => {
   const [requestById, setRequestById] = useState()
 
   const [permissions, setPermissions] = useState(null)
-  console.log('permissions', permissions)
+
+  // console.log('permissions', permissions)
 
   // const storedData = JSON.parse(localStorage.getItem('userDetails'))
 
@@ -176,7 +176,7 @@ const RequestDetails = () => {
   const [CommentData, setCommentData] = useState({})
   const [medicalRecordNotes, setMedicalRecordNotes] = useState([])
 
-  console.log('CommentData', CommentData)
+  // console.log('CommentData', CommentData)
 
   useEffect(() => {
     const labObject = localLabData?.find(item => item?.lab_id === lab_id)
@@ -306,7 +306,6 @@ const RequestDetails = () => {
       setMedicalRecordNotes(requestData[0]?.medical_attachements?.notes)
 
       // ✅ API call ke baad `allCompleted` ko update karein
-      // setAllCompleted(testReports.every(row => row.status.startsWith('completed')))
       setAllCompleted(testReports.some(row => row.status.startsWith('completed')))
     } catch (error) {
       console.error('Error fetching data:', error)
@@ -466,7 +465,7 @@ const RequestDetails = () => {
     //   flex: 0.05,
     //   Width: 40,
     //   field: 'id',
-    //   headerName: 'SL ',
+    //    headerName:'SL.NO',
     //   renderCell: params => (
     //     <Typography variant='body2' sx={{ color: 'text.primary' }}>
     //       {parseInt(params.row.sl_no)}
@@ -539,14 +538,14 @@ const RequestDetails = () => {
                       params.row.status === 'transferred' ||
                       params.row.status === 'awaiting_sample' ||
                       params.row.status === 'sample_rejected'
-                        ? '#FA6140'
+                        ? theme.palette.formContent.tertiary
                         : params.row.status === 'completed'
-                        ? '#37BD69'
+                        ? theme.palette.primary.main
                         : params.row.status === 'inprogress'
-                        ? '#E4B819 '
+                        ? theme.palette.customColors.moderateSecondary
                         : params.row.status === 'sample_received'
-                        ? '#37BD69'
-                        : '#37BD69',
+                        ? theme.palette.primary.main
+                        : theme.palette.primary.main,
 
                     borderRadius: '8px',
                     '& .MuiSelect-icon': {
@@ -555,14 +554,14 @@ const RequestDetails = () => {
                         params.row.status === 'transferred' ||
                         params.row.status === 'awaiting_sample' ||
                         params.row.status === 'sample_rejected'
-                          ? '#FA6140'
+                          ? theme.palette.formContent.tertiary
                           : params.row.status === 'completed'
-                          ? '#37BD69'
+                          ? theme.palette.primary.main
                           : params.row.status === 'inprogress'
-                          ? '#E4B819'
+                          ? theme.palette.customColors.moderateSecondary
                           : params.row.status === 'sample_received'
-                          ? '#37BD69'
-                          : '#37BD69'
+                          ? theme.palette.primary.main
+                          : theme.palette.primary.main
                     },
 
                     '&:hover .MuiOutlinedInput-notchedOutline': {
@@ -574,12 +573,12 @@ const RequestDetails = () => {
                       //   params.row.status === 'awaiting_sample' ||
                       //   params.row.status === 'sample_rejected' ||
                       //   params.row.status === 'sample_received'
-                      //     ? '#FA6140' // Custom red border for these statuses
+                      //     ? theme.palette.formContent.tertiary // Custom red border for these statuses
                       //     : params.row.status === 'completed'
-                      //     ? '#37BD69' // Custom green border for completed
+                      //     ? theme.palette.primary.main // Custom green border for completed
                       //     : params.row.status === 'inprogress'
-                      //     ? '#E4B819' // Custom yellow border for in progress
-                      //     : '#37BD69' // Default green border
+                      //     ? theme.palette.customColors.moderateSecondary // Custom yellow border for in progress
+                      //     : theme.palette.primary.main // Default green border
                     },
 
                     '& .MuiOutlinedInput-notchedOutline': {
@@ -604,14 +603,14 @@ const RequestDetails = () => {
                       params.row.status === 'transferred' ||
                       params.row.status === 'awaiting_sample' ||
                       params.row.status === 'sample_rejected'
-                        ? '#FA6140'
+                        ? theme.palette.formContent.tertiary
                         : params.row.status === 'completed'
-                        ? '#37BD69'
+                        ? theme.palette.primary.main
                         : params.row.status === 'inprogress'
-                        ? '#E4B819 '
+                        ? theme.palette.customColors.moderateSecondary
                         : params.row.status === 'sample_received'
-                        ? '#37BD69'
-                        : '#37BD69'
+                        ? theme.palette.primary.main
+                        : theme.palette.primary.main
                   }}
                 >
                   {params.row.status === 'awaiting_sample'
@@ -1119,7 +1118,12 @@ const RequestDetails = () => {
                         Request ID -{' '}
                         <span
                           onClick={() => handleClickOpen(item)}
-                          style={{ fontSize: '20px', fontWeight: 'bold', cursor: 'pointer', color: '#37BD69' }}
+                          style={{
+                            fontSize: '20px',
+                            fontWeight: 'bold',
+                            cursor: 'pointer',
+                            color: theme.palette.primary.main
+                          }}
                         >
                           {item?.request_id}
                         </span>
@@ -1128,7 +1132,13 @@ const RequestDetails = () => {
                     <Box sx={{ display: 'flex', flexDirection: 'column', flexWrap: 'wrap' }}>
                       <Typography>
                         Medical Record :{' '}
-                        <span style={{ fontSize: '15px', fontWeight: 'bold', color: '#7A8684' }}>
+                        <span
+                          style={{
+                            fontSize: '15px',
+                            fontWeight: 'bold',
+                            color: theme.palette.customColors.secondaryBg
+                          }}
+                        >
                           {item?.medical_record_code}
                         </span>
                       </Typography>
@@ -1136,7 +1146,13 @@ const RequestDetails = () => {
                     <Box sx={{ display: 'flex', flexDirection: 'column', flexWrap: 'wrap' }}>
                       <Typography>
                         Requested By :{' '}
-                        <span style={{ fontSize: '15px', fontWeight: 'bold', color: '#7A8684' }}>
+                        <span
+                          style={{
+                            fontSize: '15px',
+                            fontWeight: 'bold',
+                            color: theme.palette.customColors.secondaryBg
+                          }}
+                        >
                           {item?.created_by}
                         </span>
                       </Typography>
@@ -1144,7 +1160,11 @@ const RequestDetails = () => {
                     <Typography> {moment(item?.created_at).format('DD MMM YYYY')}</Typography>
                     <Typography>
                       Site :{' '}
-                      <span style={{ fontSize: '15px', fontWeight: 'bold', color: '#7A8684' }}>{item?.site_name}</span>
+                      <span
+                        style={{ fontSize: '15px', fontWeight: 'bold', color: theme.palette.customColors.secondaryBg }}
+                      >
+                        {item?.site_name}
+                      </span>
                     </Typography>
                     <Typography>
                       No. of Tests : <span style={{ fontSize: '15px', fontWeight: 'bold' }}>{item?.total_no_test}</span>
@@ -1157,13 +1177,16 @@ const RequestDetails = () => {
                       display: 'flex',
                       flexDirection: 'row',
                       justifyContent: 'center',
-                      backgroundColor: '#f2f2f2',
+                      backgroundColor: theme.palette.customColors.cardHeaderBg,
                       borderRadius: '8px',
 
                       alignItems: 'center'
                     }}
                   >
-                    <AnimalParentCard data={item?.animal_details[0]} backgroundColor={'#f2f2f2'} />
+                    <AnimalParentCard
+                      data={item?.animal_details[0]}
+                      backgroundColor={theme.palette.customColors.cardHeaderBg}
+                    />
                     {item?.animal_details?.length > 1 && (
                       <Box
                         onClick={() => setOpenAnimalSheet(true)}
@@ -1181,7 +1204,7 @@ const RequestDetails = () => {
                           display: 'flex',
                           justifyContent: 'center',
                           alignItems: 'center',
-                          color: '#37BD69',
+                          color: theme.palette.primary.main,
                           m: 3,
                           p: 3,
                           width: '50px',
@@ -1219,7 +1242,7 @@ const RequestDetails = () => {
                     <Box
                       sx={{
                         p: 2,
-                        bgcolor: '#0000000D',
+                        bgcolor: theme.palette.customColors.mdAntzNeutral,
                         width: '35px',
                         height: '35px',
                         display: 'flex',
@@ -1272,14 +1295,14 @@ const RequestDetails = () => {
                                 headerStatus === 'transferred' ||
                                 headerStatus === 'awaiting_sample' ||
                                 headerStatus === 'sample_rejected'
-                                  ? '#FA6140'
+                                  ? theme.palette.formContent.tertiary
                                   : headerStatus === 'completed'
-                                  ? '#37BD69'
+                                  ? theme.palette.primary.main
                                   : headerStatus === 'inprogress'
-                                  ? '#E4B819 '
+                                  ? theme.palette.customColors.moderateSecondary
                                   : headerStatus === 'sample_received'
-                                  ? '#37BD69'
-                                  : '#37BD69',
+                                  ? theme.palette.primary.main
+                                  : theme.palette.primary.main,
 
                               borderRadius: '8px',
 
@@ -1289,14 +1312,14 @@ const RequestDetails = () => {
                                   headerStatus === 'transferred' ||
                                   headerStatus === 'awaiting_sample' ||
                                   headerStatus === 'sample_rejected'
-                                    ? '#FA6140'
+                                    ? theme.palette.formContent.tertiary
                                     : headerStatus === 'completed'
-                                    ? '#37BD69'
+                                    ? theme.palette.primary.main
                                     : headerStatus === 'inprogress'
-                                    ? '#E4B819'
+                                    ? theme.palette.customColors.moderateSecondary
                                     : headerStatus === 'sample_received'
-                                    ? '#37BD69'
-                                    : '#37BD69'
+                                    ? theme.palette.primary.main
+                                    : theme.palette.primary.main
                               },
 
                               '&:hover .MuiOutlinedInput-notchedOutline': {
@@ -1308,12 +1331,12 @@ const RequestDetails = () => {
                                   headerStatus === 'awaiting_sample' ||
                                   headerStatus === 'sample_rejected' ||
                                   headerStatus === 'sample_received'
-                                    ? '#FA6140' // Custom red border for these statuses
+                                    ? theme.palette.formContent.tertiary // Custom red border for these statuses
                                     : headerStatus === 'completed'
-                                    ? '#37BD69' // Custom green border for completed
+                                    ? theme.palette.primary.main // Custom green border for completed
                                     : headerStatus === 'inprogress'
-                                    ? '#E4B819' // Custom yellow border for in progress
-                                    : '#37BD69' // Default green border
+                                    ? theme.palette.customColors.moderateSecondary // Custom yellow border for in progress
+                                    : theme.palette.primary.main // Default green border
                               },
 
                               '& .MuiOutlinedInput-notchedOutline': {
@@ -1512,7 +1535,15 @@ const RequestDetails = () => {
       <>
         {/* Open PopUp On Clicking Request Id */}
         <Dialog open={open} onClose={handleClose} maxWidth='md' fullWidth>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', px: 2, py: 3, bgcolor: '#e8f4f2' }}>
+          <Box
+            sx={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              px: 2,
+              py: 3,
+              bgcolor: theme.palette.customColors.displaybgPrimary
+            }}
+          >
             <Typography variant='h6' sx={{ ml: 3 }}>
               Tests list
             </Typography>
@@ -1524,7 +1555,8 @@ const RequestDetails = () => {
             <Box key={index} sx={{ p: 2, minWidth: 600, m: 4 }}>
               <Box ml={3}>
                 <Typography variant='h6'>
-                  Request - <span style={{ color: '#37BD69', fontWeight: 'bold' }}>{item.request_id}</span>
+                  Request -{' '}
+                  <span style={{ color: theme.palette.primary.main, fontWeight: 'bold' }}>{item.request_id}</span>
                 </Typography>
                 <Typography>{Utility.formatDate(item.created_at)}</Typography>
                 <Typography>
@@ -1549,7 +1581,7 @@ const RequestDetails = () => {
                 <TableContainer component={Paper} style={{ maxHeight: 400, overflow: 'auto' }}>
                   <Table>
                     <TableHead>
-                      <TableRow sx={{ bgcolor: '#e8f4f2' }}>
+                      <TableRow sx={{ bgcolor: theme.palette.customColors.displaybgPrimary }}>
                         <TableCell>Test Name</TableCell>
                         <TableCell>Lab Name</TableCell>
                         <TableCell>Status</TableCell>
@@ -1561,21 +1593,6 @@ const RequestDetails = () => {
                           <TableCell sx={{ textTransform: 'capitalize' }}>{data?.test_name}</TableCell>
                           <TableCell sx={{ textTransform: 'capitalize' }}>{data?.lab_name}</TableCell>
                           <TableCell>
-                            {' '}
-                            {/* <span
-                              style={{
-                                color:
-                                  data?.status === 'transferred' || data?.status === 'pending'
-                                    ? 'red'
-                                    : data?.status === 'completed'
-                                    ? '#2a9d0d'
-                                    : '#00aea4',
-                                textTransform: 'capitalize',
-                                fontSize: '15px'
-                              }}
-                            >
-                              {data?.status === 'transferred' ? 'pending' : data?.status}
-                            </span>{' '} */}
                             <Typography variant='body2' sx={{ color: 'text.primary', textTransform: 'capitalize' }}>
                               <span
                                 alt={data?.status}
@@ -1585,14 +1602,14 @@ const RequestDetails = () => {
                                     data?.status === 'transferred' ||
                                     data?.status === 'awaiting_sample' ||
                                     data?.status === 'sample_rejected'
-                                      ? '#FA6140'
+                                      ? theme.palette.formContent.tertiary
                                       : data?.status === 'completed'
-                                      ? '#37BD69'
+                                      ? theme.palette.primary.main
                                       : data?.status === 'inprogress'
-                                      ? '#E4B819 '
+                                      ? theme.palette.customColors.moderateSecondary
                                       : data?.status === 'sample_received'
-                                      ? '#37BD69'
-                                      : '#37BD69'
+                                      ? theme.palette.primary.main
+                                      : theme.palette.primary.main
                                 }}
                               >
                                 {data?.status === 'awaiting_sample'
@@ -1631,8 +1648,14 @@ const RequestDetails = () => {
       </>
 
       <>
-        <Dialog open={openTransfer} onClose={handleCloseTransfer} maxWidth='md' fullWidth sx={{ bgColor: '#FFFFFF' }}>
-          <DialogContent sx={{ bgcolor: '#ffffff' }}>
+        <Dialog
+          open={openTransfer}
+          onClose={handleCloseTransfer}
+          maxWidth='md'
+          fullWidth
+          sx={{ bgColor: theme.palette.primary.contrastText }}
+        >
+          <DialogContent sx={{ bgcolor: theme.palette.primary.contrastText }}>
             <Box
               sx={{
                 display: 'flex',
@@ -1642,11 +1665,20 @@ const RequestDetails = () => {
               }}
             >
               <Box sx={{ display: 'flex', alignItems: 'center', gap: 3 }}>
-                <Icon icon='mingcute:transfer-3-line' width='24' height='24' color='#44544A' />
-                <Typography sx={{ fontSize: '20px', color: '#44544A', fontWeight: 500 }}>Lab Test Transfer</Typography>
+                <Icon
+                  icon='mingcute:transfer-3-line'
+                  width='24'
+                  height='24'
+                  color={theme.palette.customColors.OnSurfaceVariant}
+                />
+                <Typography
+                  sx={{ fontSize: '20px', color: theme.palette.customColors.OnSurfaceVariant, fontWeight: 500 }}
+                >
+                  Lab Test Transfer
+                </Typography>
               </Box>
               <IconButton onClick={handleCloseTransfer}>
-                <Icon icon='ic:baseline-close' fontSize={24} color={'#44544A'} />
+                <Icon icon='ic:baseline-close' fontSize={24} color={theme.palette.customColors.OnSurfaceVariant} />
               </IconButton>
             </Box>
             <Divider />
@@ -1683,7 +1715,10 @@ const RequestDetails = () => {
                       title={
                         <Box>
                           {selectedRowData.map(name => (
-                            <Typography key={name?.id} sx={{ fontSize: '15px', color: '#fff' }}>
+                            <Typography
+                              key={name?.id}
+                              sx={{ fontSize: '15px', color: theme.palette.primary.contrastText }}
+                            >
                               {name?.test_name}
                             </Typography>
                           ))}
@@ -1697,7 +1732,7 @@ const RequestDetails = () => {
                           alignItems: 'center',
                           width: '30px',
                           height: '30px',
-                          border: '1px solid #C3CEC7',
+                          border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                           borderRadius: '8px',
                           fontSize: '15px'
                         }}
@@ -1732,7 +1767,10 @@ const RequestDetails = () => {
                       title={
                         <Box>
                           {selectedRowData.map(name => (
-                            <Typography key={name?.id} sx={{ fontSize: '15px', color: '#fff' }}>
+                            <Typography
+                              key={name?.id}
+                              sx={{ fontSize: '15px', color: theme.palette.primary.contrastText }}
+                            >
                               {name?.sample_name}
                             </Typography>
                           ))}
@@ -1747,7 +1785,7 @@ const RequestDetails = () => {
                           width: '30px',
                           height: '30px',
 
-                          border: '1px solid #C3CEC7',
+                          border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                           borderRadius: '8px',
                           fontSize: '15px'
                         }}
@@ -1912,15 +1950,15 @@ const RequestDetails = () => {
             }
           }}
         >
-          <DialogContent sx={{ bgcolor: '#ffffff' }}>
+          <DialogContent sx={{ bgcolor: theme.palette.primary.contrastText }}>
             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', px: 5, mb: 2 }}>
               <Box sx={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
-                <Icon icon='lucide:upload' fontSize={25} color={'#44544A'} />
+                <Icon icon='lucide:upload' fontSize={25} color={theme.palette.customColors.OnSurfaceVariant} />
                 <Typography sx={{ fontSize: '20px', fontWeight: 500 }}>Upload</Typography>
               </Box>
 
               <IconButton onClick={() => setOpenUploader(false)} sx={{ display: 'flex', justifyContent: 'flex-end' }}>
-                <Icon icon='ic:baseline-close' fontSize={25} color={'#44544A'} />
+                <Icon icon='ic:baseline-close' fontSize={25} color={theme.palette.customColors.OnSurfaceVariant} />
               </IconButton>
             </Box>
             <Divider sx={{ mx: 5 }} />
@@ -1947,7 +1985,7 @@ const RequestDetails = () => {
               py: 3,
               justifyContent: 'space-between',
               alignItems: 'center',
-              bgcolor: '#e8f4f2'
+              bgcolor: theme.palette.customColors.displaybgPrimary
             }}
           >
             <Typography sx={{ fontSize: '20px', fontWeight: 'bold' }}>Reports</Typography>

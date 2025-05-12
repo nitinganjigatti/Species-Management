@@ -93,8 +93,8 @@ function Purchase({ tabValue, updateUrlParams }) {
   const columns = [
     {
       width: 70,
-      field: 'sl',
-      headerName: 'S.NO',
+      field: 'sl_no',
+      headerName: 'SL.NO',
       sortable: false,
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
@@ -140,7 +140,7 @@ function Purchase({ tabValue, updateUrlParams }) {
     },
     {
       width: 130,
-      field: 'net_unit_price',
+      field: 'unit_price',
       headerName: 'UNIT PRICE (₹)',
       renderCell: params => (
         <Typography
@@ -152,7 +152,7 @@ function Purchase({ tabValue, updateUrlParams }) {
             fontFamily: 'Inter'
           }}
         >
-          {Utility.formatAmountToReadableDigit(params.row.net_unit_price)}
+          {Utility.formatAmountToReadableDigit(params.row.unit_price)}
         </Typography>
       )
     },
@@ -198,8 +198,6 @@ function Purchase({ tabValue, updateUrlParams }) {
       field: 'net_amount',
       headerName: 'TOTAL VALUE (₹)',
       renderCell: params => {
-        const totalValue = params.row.qty * params.row.net_unit_price
-
         return (
           <Typography
             variant='body2'
@@ -210,7 +208,7 @@ function Purchase({ tabValue, updateUrlParams }) {
               fontFamily: 'Inter'
             }}
           >
-            {Utility.formatAmountToReadableDigit(totalValue)}
+            {Utility.formatAmountToReadableDigit(params.row.net_amount)}
           </Typography>
         )
       }
@@ -238,7 +236,7 @@ function Purchase({ tabValue, updateUrlParams }) {
     {
       width: 200,
       field: 'supplier_name',
-      headerName: 'VENDOR NAME',
+      headerName: 'SUPPLIER NAME',
       renderCell: params => (
         <>
           {/* <Avatar
@@ -400,6 +398,8 @@ function Purchase({ tabValue, updateUrlParams }) {
     }
   })
 
+  console.log(indexedRows)
+
   const searchTableData = useCallback(
     debounce(async ({ sort, q, column }) => {
       setSearchValue(q)
@@ -436,7 +436,7 @@ function Purchase({ tabValue, updateUrlParams }) {
     console.log(data, 'data123')
     Router.push({
       pathname: `/pharmacy/medicine/${id}/purchase-details`,
-      query: { p_id: data?.uuid, po_no: data?.po_no, action: 'edit' }
+      query: { p_id: data?.uuid, po_no: data.po_no, action: 'edit' }
     })
   }
 
@@ -476,7 +476,6 @@ function Purchase({ tabValue, updateUrlParams }) {
       <Grid
         container
         gap={5}
-        // spacing={5}
         sx={{
           mt: 5,
           flexWrap: 'wrap',

@@ -1,16 +1,15 @@
+import React, { useState } from 'react'
+import { useRouter } from 'next/router'
 import { CircularProgress, IconButton, TextField, Typography } from '@mui/material'
 import { Box } from '@mui/system'
-import React, { useEffect, useState } from 'react'
-import Icon from 'src/@core/components/icon'
 import { useTheme } from '@mui/material/styles'
+import dayjs from 'dayjs'
+
+import Icon from 'src/@core/components/icon'
 import EggFilterDrawer from './eggFilterDrawer'
-import { useRouter } from 'next/router'
-import * as XLSX from 'xlsx'
-import ExcelExportButton from './exportEggListExcel'
 import Utility from 'src/utility'
 import { GetEggList } from 'src/lib/api/egg/egg'
 import { DiscardedEggList } from 'src/lib/api/egg/discard'
-import dayjs from 'dayjs'
 
 const EggTableHeader = ({
   totalCount,
@@ -28,15 +27,10 @@ const EggTableHeader = ({
   filterByNurseryId,
   tableSearch
 }) => {
-  // console.log('data :>> ', data)
-
   // debugger
   const theme = useTheme()
   const router = useRouter()
   const { search_value, subTab_value = 'eggs_discarded', tab_Value = 'eggs_incubation' } = router.query
-
-  // console.log('tab_Value :>> ', tab_Value)
-  // console.log('subTab_value :>> ', subTab_value)
 
   const [openFilterDrawer, setOpenFilterDrawer] = useState(false)
 
@@ -49,19 +43,10 @@ const EggTableHeader = ({
 
     const newSelectedFilters = { ...selectedFiltersOptions }
 
-    // console.log('newSelectedFilters :>> ', newSelectedFilters)
-
     if (item?.id === 'collected_date') {
       newSelectedFilters.collected_date = null
       setSelectedDate(null)
-    }
-
-    // else if (item?.id === 'search') {
-    //   setSearchQuery('')
-    //   handleSearch('')
-    //   router.push({ query: { ...router.query, search_value: '' } }, undefined, { shallow: true }) // Update the URL without a page refresh
-    // }
-    else {
+    } else {
       newSelectedFilters.status = null
     }
 
@@ -76,164 +61,7 @@ const EggTableHeader = ({
     // Update the state with the new selected filters
     setSelectedFiltersOptions(newSelectedFilters)
     setSelectedOptions(newSelectedFilters)
-
-    // Optionally refetch the table data if needed
-    // fetchTableData();
   }
-
-  // Download excel
-
-  const [xlsxList, setXlsxList] = useState([])
-
-  // console.log('xlsxList :>> ', xlsxList)
-  const [fileName, setFileName] = useState('Eggs Incubation')
-
-  // useEffect(() => {
-  //   if (tab_Value === 'eggs_received') {
-  //     setFileName('Eggs Received')
-
-  //     const formattedData = data?.map((item, index) => ({
-  //       NO: index + 1,
-  //       'DEFAULT COMMON NAME': item.default_common_name || 'Unknown',
-  //       'SCIENTIFIC NAME': item.complete_name || 'Unknown',
-  //       UEID: item.egg_number,
-  //       AEID: item.egg_code,
-  //       CONDITION: `${item.egg_condition} ${item.egg_initial_temperature}`,
-  //       'SITE NAME': item.site_name,
-  //       NURSERY: item.nursery_name,
-  //       'COLLECTED ON': Utility.formatDisplayDate(Utility.convertUTCToLocal(item.collection_date)),
-  //       'COLLECTED BY': `${item.user_full_name} ${Utility.formatDisplayDate(
-  //         Utility.convertUTCToLocal(item.created_at)
-  //       )} `
-  //     }))
-  //     setXlsxList(formattedData)
-  //   } else if (tab_Value === 'eggs_incubation') {
-  //     setFileName('Eggs Incubation')
-
-  //     const formattedData = data?.map((item, index) => ({
-  //       NO: index + 1,
-  //       'DEFAULT COMMON NAME': item.default_common_name || 'Unknown',
-  //       'SCIENTIFIC NAME': item.complete_name || 'Unknown',
-  //       UEID: item.egg_number,
-  //       AEID: item.egg_code,
-  //       'STATE & STAGE': `${item.egg_status} ${item.egg_state}`,
-  //       'DAY IN INCUBATION': item.days_in_incubation,
-  //       'INITIAL WEIGHT IN GM': item.initial_weight,
-  //       'CURRENT WEIGHT IN GM': item.current_weight,
-  //       'LENGTH IN MM': item.initial_length,
-  //       'WIDTH IN MM': item.initial_width,
-  //       'NO.EGGS / CLUTCH': item.no_of_eggs_in_clutch,
-  //       'CLUTCH ID': item.clutch_id,
-  //       ENCLOSURE: item.enclosure_name,
-  //       'SITE NAME': item.site_name,
-  //       NURSERY: item.nursery_name,
-
-  //       'COLLECTED ON': Utility.formatDisplayDate(Utility.convertUTCToLocal(item.collection_date)),
-  //       'ALLOCATED BY': `${item.user_full_name} ${Utility.formatDisplayDate(
-  //         Utility.convertUTCToLocal(item.allocate_date)
-  //       )} `
-  //     }))
-  //     setXlsxList(formattedData)
-  //   } else if (tab_Value == 'eggs_hatched') {
-  //     setFileName('Egg Hatched')
-
-  //     const formattedData = data?.map((item, index) => ({
-  //       NO: index + 1,
-  //       'DEFAULT COMMON NAME': item.default_common_name || 'Unknown',
-  //       'SCIENTIFIC NAME': item.complete_name || 'Unknown',
-  //       UEID: item.egg_number,
-  //       AEID: item.egg_code,
-  //       IDENTIFIER: `${item.local_id_type} : ${item.local_identifier_value}`,
-  //       'ANIMAL ID': `AAID :${item.animal_id}`,
-  //       'COLLECTED ON': Utility.formatDisplayDate(Utility.convertUTCToLocal(item.collection_date)),
-  //       'HATCHED ON': `${Utility.formatDisplayDate(Utility.convertUTCToLocal(item.hatched_date))} `
-  //     }))
-  //     setXlsxList(formattedData)
-  //   } else if (tab_Value == 'eggs_ready_to_be_discarded_at_nursery') {
-  //     setFileName('Egg To Be discarded')
-
-  //     const formattedData = data?.map((item, index) => ({
-  //       NO: index + 1,
-  //       'DEFAULT COMMON NAME': item.default_common_name || 'Unknown',
-  //       'SCIENTIFIC NAME': item.complete_name || 'Unknown',
-  //       UEID: item.egg_number,
-  //       AEID: item.egg_code,
-  //       REASON: item.egg_state,
-  //       'COLLECTED ON': Utility.formatDisplayDate(Utility.convertUTCToLocal(item.collection_date)),
-  //       'SITE NAME': item.site_name,
-  //       'INITIATED BY': `${Utility.formatDisplayDate(Utility.convertUTCToLocal(item.ready_to_be_discarded_date))} `
-  //     }))
-  //     setXlsxList(formattedData)
-  //   } else if (tab_Value === 'all') {
-  //     setFileName('All Egg')
-
-  //     const formattedData = data?.map((item, index) => ({
-  //       NO: index + 1,
-  //       'DEFAULT COMMON NAME': item.default_common_name || 'Unknown',
-  //       'SCIENTIFIC NAME': item.complete_name || 'Unknown',
-  //       UEID: item.egg_number,
-  //       AEID: item.egg_code,
-  //       STATE: `${item.egg_status}`,
-  //       'SITE NAME': item.site_name,
-  //       NURSERY: item.nursery_name,
-  //       'COLLECTED ON': Utility.formatDisplayDate(Utility.convertUTCToLocal(item.collection_date)),
-  //       'COLLECTED BY': `${item.user_full_name} ${Utility.formatDisplayDate(
-  //         Utility.convertUTCToLocal(item.created_at)
-  //       )} `
-  //     }))
-  //     setXlsxList(formattedData)
-  //   } else if (tab_Value === 'eggs_discarded' && subTab_value === 'eggs_discarded_at_nursery') {
-  //     setFileName('Eggs Discarded')
-
-  //     const formattedData = data?.map((item, index) => ({
-  //       NO: index + 1,
-  //       'DEFAULT COMMON NAME': item.default_common_name || 'Unknown',
-  //       'SCIENTIFIC NAME': item.complete_name || 'Unknown',
-  //       UEID: item.egg_number,
-  //       AEID: item.egg_code,
-  //       REASON: `${item.egg_state}`,
-  //       'COLLECTED ON': Utility.formatDisplayDate(Utility.convertUTCToLocal(item.collection_date)),
-  //       'SAMPLE TAKEN':
-  //         item.necropsy_file_uploaded === '0'
-  //           ? item.is_necropsy_needed === '1'
-  //             ? 'Not Yet'
-  //             : 'NA'
-  //           : item.is_sample_collected === '1'
-  //           ? 'Taken'
-  //           : 'NA',
-  //       'NECROPSY REPORT':
-  //         item.necropsy_file_uploaded === '1' ? 'Yes' : item.is_necropsy_needed === '1' ? 'Attach File' : 'NA',
-
-  //       'INITIATED BY': `${item.user_full_name} ${Utility.formatDisplayDate(
-  //         Utility.convertUTCToLocal(item.created_at)
-  //       )} `
-  //     }))
-  //     setXlsxList(formattedData)
-  //   } else if (tab_Value === 'eggs_discarded' && subTab_value === 'eggs_discarded') {
-  //     setFileName('Eggs Batch Discarded')
-
-  //     const formattedData = data?.map((item, index) => ({
-  //       NO: index + 1,
-  //       'REQUEST ID & EGGS': `${item.request_id} , Egg Count:${item.egg_count}`,
-  //       'REQUEST CREATED ON': `${Utility.formatDisplayDate(
-  //         Utility.convertUTCToLocal(item.requested_on)
-  //       )} | ${Utility.extractHoursAndMinutes(Utility.convertUTCToLocal(item.requested_on))}`,
-
-  //       NURSERY: item.nursery_name,
-
-  //       'CREATED BY': `${item.requested_name} , ${Utility.formatDisplayDate(
-  //         Utility.convertUTCToLocal(item.requested_on)
-  //       )} | ${Utility.extractHoursAndMinutes(Utility.convertUTCToLocal(item.requested_on))} `,
-  //       'SECURITY CHECK':
-  //         item.activity_status === 'DISCARD_REQUEST_GENERATED'
-  //           ? 'Pending'
-  //           : item.activity_status === 'COMPLETED'
-  //           ? `Security Checked ${item.discarded_person_name}`
-  //           : `Canceled ${item.commented_by}`
-  //     }))
-  //     setXlsxList(formattedData)
-  //   }
-  // }, [tab_Value, data])
 
   const handleExport = async () => {
     try {
@@ -259,7 +87,6 @@ const EggTableHeader = ({
       const activeStatus = selectedFiltersOptions['Security Check']?.map(option => option.id) || []
 
       // const siteIds = selectedFiltersOptions?.Site?.map(option => option.id) || []
-
       // const statusId = selectedFiltersOptions?.status ? [selectedFiltersOptions.status] : []
 
       const discardedDate = selectedFiltersOptions?.collected_date
@@ -429,9 +256,6 @@ const EggTableHeader = ({
 
                 'CREATED BY': item.requested_name,
 
-                //  ${Utility.formatDisplayDate(
-                //   Utility.convertUTCToLocal(item.requested_on)
-                // )} | ${Utility.extractHoursAndMinutes(Utility.convertUTCToLocal(item.requested_on))} `,
                 'SECURITY CHECK':
                   item?.activity_status === 'DISCARD_REQUEST_GENERATED'
                     ? 'Pending'
@@ -491,7 +315,7 @@ const EggTableHeader = ({
               : tab_Value === 'eggs_discarded' && subTab_value === 'eggs_discarded_at_nursery'
               ? 'Total eggs discarded'
               : 'Total eggs'}{' '}
-            : <span style={{ fontWeight: 500, color: '#000000' }}>{totalCount}</span>
+            : <span style={{ fontWeight: 500, color: theme.palette.primary.deepDark }}>{totalCount}</span>
           </Typography>
         </Box>
         <Box sx={{ fontSize: '16px', display: 'flex', alignItems: 'center', gap: 4 }}>
@@ -499,7 +323,7 @@ const EggTableHeader = ({
             sx={{
               display: 'flex',
               alignItems: 'center',
-              border: '1px solid #C3CEC7',
+              border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
               borderRadius: '4px',
               padding: '0 8px',
               height: '40px'
@@ -530,8 +354,6 @@ const EggTableHeader = ({
               }}
             />
           </Box>
-
-          {/* <ExcelExportButton tab_Value={tab_Value} subTab_value={subTab_value} data={data} /> */}
 
           <>
             {loading || excelLoading ? (
@@ -597,15 +419,22 @@ const EggTableHeader = ({
                 gap: '6px',
                 p: '8px',
                 py: '2px',
-                bgcolor: '#EFF5F2',
+                bgcolor: theme?.palette.customColors.lightBg,
                 borderRadius: '8px'
               }}
             >
-              <Typography sx={{ fontSize: '14px', fontWeight: 'bold', color: '#000000', textTransform: 'capitalize' }}>
+              <Typography
+                sx={{
+                  fontSize: '14px',
+                  fontWeight: 'bold',
+                  color: theme.palette.primary.deepDark,
+                  textTransform: 'capitalize'
+                }}
+              >
                 {item?.name}
               </Typography>{' '}
               <IconButton onClick={() => handleRemoveFilter(item)}>
-                <Icon icon='mdi:close' fontSize={18} color={'#1F515B'} />
+                <Icon icon='mdi:close' fontSize={18} color={theme.palette.primary.light} />
               </IconButton>
             </Box>
           ))}

@@ -29,6 +29,7 @@ import ReturnReportDrawer from 'src/views/pages/pharmacy/reports/ReturnReportDra
 import { format, subMonths } from 'date-fns'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import { ExportButton, FilterButton } from 'src/views/utility/render-snippets'
+import PharmacyProductCard from 'src/views/utility/PharmacyProductCard'
 
 const ReturnReport = () => {
   const router = useRouter()
@@ -92,16 +93,6 @@ const ReturnReport = () => {
     })
     setFilteredData({
       pharmacy: []
-    })
-
-    setExpiryFilterDates({
-      startDate: '',
-      endDate: ''
-    })
-
-    setNearExpiryFilterDates({
-      startDate: '',
-      endDate: ''
     })
   }, [selectedPharmacy.id])
 
@@ -189,7 +180,7 @@ const ReturnReport = () => {
         setLoading(false)
       }
     },
-    [paginationModel, filterDates]
+    [paginationModel, filterDates, filteredData]
   )
 
   useEffect(() => {
@@ -197,10 +188,11 @@ const ReturnReport = () => {
       sort: sort,
       q: searchValue,
       column: sortColumn,
-      filteredData: filteredData,
       expired: expired,
       page: paginationModel?.page,
       limit: paginationModel?.pageSize
+
+      // filteredData: filteredData,
     })
     updateUrlParams({
       sort,
@@ -211,7 +203,7 @@ const ReturnReport = () => {
       startDate: filterDates?.startDate,
       endDate: filterDates?.endDate
     })
-  }, [paginationModel.page, paginationModel.pageSize, filterDates, filteredData, expired, selectedPharmacy?.id])
+  }, [paginationModel.page, paginationModel.pageSize, filterDates, expired, selectedPharmacy?.id])
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
@@ -226,7 +218,7 @@ const ReturnReport = () => {
       minWidth: 20,
       field: 'id',
       sortable: false,
-      headerName: 'SL NO',
+      headerName: 'SL.NO',
 
       renderCell: params => (
         <Box sx={{ minWidth: 40 }}>
@@ -301,7 +293,7 @@ const ReturnReport = () => {
     //   )
     // },
     {
-      width: 250,
+      width: 260,
       minWidth: 20,
       field: 'stock_name',
       align: 'left',
@@ -310,7 +302,7 @@ const ReturnReport = () => {
 
       renderCell: params => (
         <Box>
-          <StyleWithIconCardComponent
+          {/* <StyleWithIconCardComponent
             value={
               <Box>
                 <Typography sx={{ display: 'flex', alignItems: 'center' }}>
@@ -330,7 +322,7 @@ const ReturnReport = () => {
                       !isNaN(params.row?.controlled_substance) && parseInt(params.row?.controlled_substance) === 1,
                       'CS'
                     )}
-                    {RenderUtility?.renderControlLabel(
+                    {RenderUtility?.renderPrescriptionLabel(
                       !isNaN(params.row?.prescription_required) && parseInt(params.row?.prescription_required) === 1,
                       'PR'
                     )}
@@ -363,6 +355,13 @@ const ReturnReport = () => {
               iconWidth: '44px',
               iconHeight: '44px'
             }}
+          /> */}
+          <PharmacyProductCard
+            title={params?.row?.stock_name}
+            subTitle={params?.row?.generic_name ? params?.row?.generic_name : 'NA'}
+            icon={params?.row?.image}
+            controlSubstance={params?.row?.controlled_substance === '1' && true}
+            prescriptionRequired={params?.row?.prescription_required === '1' && true}
           />
         </Box>
       )
@@ -601,6 +600,8 @@ const ReturnReport = () => {
     }
   ]
 
+  console.log(indexedRows)
+
   const handleSwitchChange = event => {
     setExpired(event.target.checked)
   }
@@ -641,6 +642,7 @@ const ReturnReport = () => {
     if (newModel.length) {
       setSort(newModel[0].sort)
       setSortColumn(newModel[0].field)
+
       fetchReturnReport({
         sort: newModel[0].sort,
         q: searchValue,
@@ -757,6 +759,19 @@ const ReturnReport = () => {
     } finally {
       setExportLoading(false)
     }
+  }
+
+  const handleFilter = async filterList => {
+    setFilteredData(filterList)
+    await fetchReturnReport({
+      sort: sort,
+      q: searchValue,
+      column: sortColumn,
+      expired: expired,
+      page: paginationModel?.page,
+      limit: paginationModel?.pageSize,
+      filteredData: filterList
+    })
   }
 
   const calculateAppliedFiltersCount = () => {
@@ -893,7 +908,7 @@ const ReturnReport = () => {
         <ReturnReportDrawer
           setOpenFilterDrawer={setOpenFilterDrawer}
           openFilterDrawer={openFilterDrawer}
-          onApplyFilter={filterList => setFilteredData(filterList)}
+          onApplyFilter={handleFilter}
           selectedOptions={selectedOptions}
           setSelectedOptions={setSelectedOptions}
           expiryFilterDates={expiryFilterDates}

@@ -143,11 +143,13 @@ const schema = yup.object().shape({
   // }),
   prescription_required: yup
     .string()
-    .transform(value => (value === true || value === '1' || value === 1 ? '1' : '0'))
-    .when('controlled_substance', (controlled_substance, schema) => {
-      return controlled_substance[0] === '1'
-        ? schema.oneOf(['1'], 'Prescription is required if product is a controlled substance')
-        : schema
+    .transform(value =>
+      value === true || value === '1' || value === 1 ? '1' : value === false || value === '0' || value === 0 ? '0' : ''
+    )
+    .when('controlled_substance', {
+      is: value => value === '1',
+      then: schema => schema.oneOf(['1'], 'Prescription is required').required('Prescription is required'),
+      otherwise: schema => schema.optional().nullable()
     }),
   part_out_of_stock: yup.string().required('part of out of stock is required'),
 
@@ -168,11 +170,10 @@ const AddMedicine = () => {
     trigger,
     watch,
     setValue,
-    setError,
+    clearErrors,
     getValues
   } = useForm({
     defaultValues,
-
     resolver: yupResolver(schema),
     shouldUnregister: false,
     mode: 'onChange',
@@ -690,6 +691,7 @@ const AddMedicine = () => {
     if (files.length > 0) {
       payload.image = files[0]
     } else {
+      payload.image = uploadedImage ?? ''
     }
 
     if (id !== undefined && action === 'edit') {
@@ -965,6 +967,10 @@ const AddMedicine = () => {
     setResetForm(false)
   }
 
+  const handleRemoveImage = () => {
+    setUploadedImage(null)
+  }
+
   const handleManufacturer = async payload => {
     try {
       setPopupLoader(true)
@@ -1124,7 +1130,6 @@ const AddMedicine = () => {
                               )}
                             </FormControl>
                           </Grid>
-
                           {medicineType !== 'non_medical' && (
                             <Grid item xs={12} sm={6}>
                               <FormControl fullWidth>
@@ -1144,6 +1149,7 @@ const AddMedicine = () => {
                                         // setDefaultManufacturer(val)
                                         if (val === null) {
                                           setDefaultGenericName(val)
+                                          genericSearch('')
 
                                           return onChange('')
                                         } else {
@@ -1210,6 +1216,7 @@ const AddMedicine = () => {
 
                                       if (val === null) {
                                         setDefaultManufacturer(val)
+                                        manufacturerSearch('')
 
                                         return onChange('')
                                       } else {
@@ -1255,9 +1262,7 @@ const AddMedicine = () => {
                           )}
                           {/* </Grid> */}
                           {/* </Grid> */}
-
                           {/* Packages */}
-
                           <Grid item xs={12} sm={12}>
                             <div>Package {getPackageString()}</div>
                           </Grid>
@@ -1278,6 +1283,7 @@ const AddMedicine = () => {
                                     onChange={(e, val) => {
                                       if (val === null) {
                                         setDefaultPackage(null)
+                                        packageSearch('')
 
                                         return onChange('')
                                       } else {
@@ -1349,6 +1355,7 @@ const AddMedicine = () => {
                                     onChange={(e, val) => {
                                       if (val === null) {
                                         setDefaultUom(null)
+                                        unitListSearch('')
 
                                         return onChange('')
                                       } else {
@@ -1396,6 +1403,7 @@ const AddMedicine = () => {
                                     onChange={(e, val) => {
                                       if (val === null) {
                                         setDefaultProductForm(null)
+                                        productFormSearch('')
 
                                         return onChange('')
                                       } else {
@@ -1426,9 +1434,7 @@ const AddMedicine = () => {
                             </FormControl>
                           </Grid>
                           {/* //Package */}
-
                           {/* Salt Composition */}
-
                           {medicineType !== 'non_medical' && (
                             <Grid item xs={12} sm={12}>
                               <FormGroup>
@@ -1482,6 +1488,7 @@ const AddMedicine = () => {
                                                     var saltComposition = defaultSalts
                                                     saltComposition[index] = null
                                                     setDefaultSalts(saltComposition)
+                                                    saltsListSearch('')
 
                                                     return onChange('')
                                                   } else {
@@ -1562,7 +1569,6 @@ const AddMedicine = () => {
                               </FormGroup>
                             </Grid>
                           )}
-
                           {/* //Salt Composition */}
                           {/* Others */}
                           <Grid item xs={12} sm={12}>
@@ -1620,6 +1626,7 @@ const AddMedicine = () => {
                                     onChange={(e, val) => {
                                       if (val === null) {
                                         setDefaultDrugClass(null)
+                                        drugClassListSearch('')
 
                                         return onChange('')
                                       } else {
@@ -1662,6 +1669,7 @@ const AddMedicine = () => {
                                     onChange={(e, val) => {
                                       if (val === null) {
                                         setDefaultStorage(null)
+                                        storageListSearch('')
 
                                         return onChange('')
                                       } else {
@@ -1690,8 +1698,8 @@ const AddMedicine = () => {
                               )}
                             </FormControl>
                           </Grid>
-
                           <Grid item xs={12} sm={6}>
+                            {console.log('errors', errors)}
                             <FormControl fullWidth>
                               <InputLabel error={Boolean(errors?.controlled_substance)} id='controlled_substance'>
                                 Controlled Substances
@@ -1706,13 +1714,16 @@ const AddMedicine = () => {
                                     value={value}
                                     label='Controlled substances'
                                     onChange={e => {
+                                      const selectedValue = e.target.value
                                       onChange(e)
-                                      if (e.target.value === '1') {
+
+                                      if (selectedValue === '1') {
                                         setValue('prescription_required', '1')
                                       } else {
                                         setValue('prescription_required', '0')
                                       }
-                                      setError('prescription_required', '')
+
+                                      clearErrors('prescription_required')
                                     }}
                                     error={Boolean(errors?.controlled_substance)}
                                     labelId='controlled_substance'
@@ -1759,7 +1770,6 @@ const AddMedicine = () => {
                               )}
                             </FormControl>
                           </Grid>
-
                           {/* <Grid item xs={12} sm={6}>
                             <FormControl fullWidth>
                               <InputLabel error={Boolean(errors?.part_out_of_stock)} id='part_out_of_stock'>
@@ -1790,7 +1800,6 @@ const AddMedicine = () => {
                               )}
                             </FormControl>
                           </Grid> */}
-
                           <Grid item xs={12} sm={6}>
                             <FormControl fullWidth>
                               <Controller
@@ -1839,7 +1848,6 @@ const AddMedicine = () => {
                               )}
                             </FormControl>
                           </Grid>
-
                           <Grid item xs={12} sm={6}>
                             <FormControl fullWidth>
                               <Controller
@@ -1865,7 +1873,6 @@ const AddMedicine = () => {
                               )}
                             </FormControl>
                           </Grid>
-
                           <Grid item xs={12} sm={6}>
                             <FormControl fullWidth>
                               <Controller
@@ -1887,7 +1894,6 @@ const AddMedicine = () => {
                               )}
                             </FormControl>
                           </Grid>
-
                           {/* <Grid item xs={12} sm={6}>
                             {id !== undefined ? (
                               <FormControl fullWidth sx={{ mb: 6 }} error={Boolean(errors.radio)}>
@@ -1921,12 +1927,16 @@ const AddMedicine = () => {
                               </FormControl>
                             ) : null}
                           </Grid> */}
-
                           <Grid item xs={12}>
                             <Card>
-                              <CardHeader title='Upload Product Picture' />
+                              <CardHeader title='Add Product Image' />
                               <CardContent>
-                                <FileUploaderSingle onImageUpload={onImageUpload} image={uploadedImage} files={files} />
+                                <FileUploaderSingle
+                                  onImageUpload={onImageUpload}
+                                  image={uploadedImage}
+                                  files={files}
+                                  onRemoveImage={handleRemoveImage}
+                                />
                               </CardContent>
                             </Card>
                           </Grid>

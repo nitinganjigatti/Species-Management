@@ -42,6 +42,7 @@ const ComboList = props => {
   useEffect(() => {
     const getRecipeListData = async () => {
       setReachedEnd(true)
+
       const params = {
         page: ingredientPage,
         q: fromrow !== 'rowedit_combo' ? searchValue : comboName,
@@ -79,6 +80,7 @@ const ComboList = props => {
   const handleScroll = async e => {
     const container = e.target
     const threshold = 20
+
     // Check if user has reached the bottom and more data is available
     if (totalCount > ingredientList?.length && !reachedEnd) {
       const isNearBottom =
@@ -243,7 +245,9 @@ const ComboList = props => {
         className=''
         sx={{
           marginTop: fromrow !== 'rowedit_combo' ? 30 : 12,
-          height: fromrow !== 'rowedit_combo' ? '70%' : '80%',
+
+          //height: fromrow !== 'rowedit_combo' ? '70%' : '80%',
+          height: fromrow !== 'rowedit_combo' ? 'calc(100vh - 220px)' : '80%',
           overflowY: 'auto',
           bgcolor: theme.palette.customColors.bodyBg,
           p: 4

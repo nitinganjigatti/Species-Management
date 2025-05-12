@@ -4,8 +4,10 @@ import { DataGrid } from '@mui/x-data-grid'
 import React, { useEffect, useState } from 'react'
 import { GetLabSitesById } from 'src/lib/api/lab/labDetails'
 import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
+import { useTheme } from '@mui/material/styles'
 
 const Site = ({ labId }) => {
+  const theme = useTheme()
   // console.log('labId', labId)
 
   const columns = [

@@ -44,6 +44,7 @@ import { AddButtonContained } from 'src/components/ButtonContained'
 
 function AddDispense() {
   const theme = useTheme()
+
   const [currentDate] = useState(() => {
     const today = new Date()
     const year = today.getFullYear()
@@ -428,6 +429,7 @@ function AddDispense() {
                 <Table>
                   <TableHead
                     sx={{ backgroundColor: 'customColors.customTableHeaderBg' }}
+
                     // sx={{ backgroundColor: '#F5F5F7' }}
                   >
                     <TableRow>
@@ -529,10 +531,7 @@ function AddDispense() {
             >
               <TableContainer>
                 <Table>
-                  <TableHead
-                    // sx={{ backgroundColor: '#F5F5F7' }}
-                    sx={{ backgroundColor: 'customColors.customTableHeaderBg' }}
-                  >
+                  <TableHead sx={{ backgroundColor: 'customColors.customTableHeaderBg' }}>
                     <TableRow>
                       <TableCell></TableCell>
                       <TableCell>Animal Id</TableCell>

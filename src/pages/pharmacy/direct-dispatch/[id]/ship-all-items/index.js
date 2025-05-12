@@ -55,6 +55,7 @@ const ShipmentDetails = () => {
           const items = {
             sl_no: index + 1,
             id: index + 1,
+            request_id: responseData?.request_number,
             dispatch_id: el.dispatch_id,
             dispatch_item_id: el.dispatch_item_id,
             stock_item_id: el.stock_item_id,

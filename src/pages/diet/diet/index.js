@@ -197,8 +197,8 @@ const Diet = () => {
 
   const columns = [
     {
-      flex: 0.19,
-      Width: 40,
+      //flex: 0.19,
+      width: 70,
       field: 'uid',
       headerName: 'SL',
       renderCell: params => (
@@ -208,8 +208,8 @@ const Diet = () => {
       )
     },
     {
-      flex: 0.5,
-      minWidth: 30,
+      //flex: 0.8,
+      width: 350,
       field: 'diet_no',
       headerName: 'Diet Id',
       renderCell: params => (
@@ -243,21 +243,21 @@ const Diet = () => {
       )
     },
     {
-      flex: 0.3,
-      minWidth: 10,
+      //flex: 0.3,
+      width: 130,
       field: 'no_meals',
-      headerName: 'Meals',
+      headerName: 'No of combos',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary', pl: 3 }}>
-          {params.row.num_meals ? params.row.num_meals : '-'}
+          {params.row.combo ? params.row.combo : '-'}
         </Typography>
       )
     },
     {
-      flex: 0.3,
-      minWidth: 10,
+      //flex: 0.3,
+      width: 120,
       field: 'no_recipe',
-      headerName: 'Recipe',
+      headerName: 'No of Recipes',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary', pl: 3 }}>
           {params.row.recipe ? params.row.recipe : '-'}
@@ -266,8 +266,8 @@ const Diet = () => {
     },
 
     {
-      flex: 0.6,
-      minWidth: 60,
+      //flex: 0.6,
+      width: 260,
       field: 'created_at',
       headerName: 'CREATED BY',
       renderCell: params => (
@@ -307,8 +307,8 @@ const Diet = () => {
     },
 
     {
-      flex: 0.3,
-      minWidth: 10,
+      //flex: 0.3,
+      width: 100,
       field: 'status',
       headerName: 'STATUS',
       renderCell: params => (
@@ -359,7 +359,7 @@ const Diet = () => {
         ) : (
           <>
             <Card>
-              <CardHeader title='Diet' action={headerAction} />
+              <CardHeader title='Diet' action={headerAction} sx={{ px: 5 }} />
               {/* <Grid sx={{ display: 'flex', ml: 5, m: 2 }}>
                 <Grid sx={{ m: 2 }}>
                   <Typography variant='body2'>Show</Typography>
@@ -398,53 +398,77 @@ const Diet = () => {
                 {/* </TabList>    */}
               </Grid>
 
-              <DataGrid
-                sx={{
-                  '.MuiDataGrid-cell:focus': {
-                    outline: 'none'
-                  },
+              <Box sx={{ width: '100%', overflowX: 'auto' }}>
+                <DataGrid
+                  sx={{
+                    height: 700,
+                    '.MuiDataGrid-cell:focus': {
+                      outline: 'none'
+                    },
+                    '& .MuiDataGrid-row:hover': {
+                      cursor: 'pointer'
+                    },
+                    '& .MuiDataGrid-columnHeaders': {
+                      backgroundColor: theme.palette.customColors.customTableHeaderBg,
+                      color: theme.palette.customColors.customHeadingTextColor
+                    },
+                    '.MuiDataGrid-virtualScroller': {
+                      overflowX: 'auto'
+                    },
+                    '.MuiDataGrid-main': {
+                      borderLeft: '1px solid #0000000D',
+                      borderRight: '1px solid #0000000D',
+                      marginLeft: '20px',
+                      marginRight: '20px',
+                      borderRadius: '8px',
+                      border: '1px solid rgba(233, 233, 236, 1)'
+                    },
+                    '& .MuiDataGrid-footerContainer': {
+                      borderTop: 'none'
+                    },
 
-                  '& .MuiDataGrid-row:hover': {
-                    cursor: 'pointer'
-                  }
-                }}
-                columnVisibilityModel={{
-                  sl_no: false
-                }}
-                hideFooterSelectedRowCount
-                disableColumnSelector={true}
-                autoHeight
-                pagination
-                rows={indexedRows === undefined ? [] : indexedRows}
-                rowCount={total}
-                columns={columns}
-                sortingMode='server'
-                paginationMode='server'
-                pageSizeOptions={[7, 10, 25, 50]}
-                paginationModel={paginationModel}
-                onSortModelChange={handleSortModel}
-                slots={{ toolbar: ServerSideToolbarWithFilter }}
-                onPaginationModelChange={newPaginationModel => {
-                  updateQueryParams({
-                    page: newPaginationModel.page,
-                    pageSize: newPaginationModel.pageSize
-                  })
-                  setPaginationModel(newPaginationModel)
-                }}
-                loading={loading}
-                slotProps={{
-                  baseButton: {
-                    variant: 'outlined'
-                  },
-                  toolbar: {
-                    value: searchValue,
-                    title: 'diet',
-                    clearSearch: () => handleSearch(''),
-                    onChange: event => handleSearch(event.target.value)
-                  }
-                }}
-                onCellClick={onCellClick}
-              />
+                    '& .MuiDataGrid-row:last-of-type .MuiDataGrid-cell': {
+                      borderBottom: 'none'
+                    }
+                  }}
+                  columnVisibilityModel={{
+                    sl_no: false
+                  }}
+                  hideFooterSelectedRowCount
+                  disableColumnSelector={true}
+                  autoHeight
+                  pagination
+                  rows={indexedRows === undefined ? [] : indexedRows}
+                  rowCount={total}
+                  columns={columns}
+                  sortingMode='server'
+                  paginationMode='server'
+                  pageSizeOptions={[7, 10, 25, 50]}
+                  paginationModel={paginationModel}
+                  onSortModelChange={handleSortModel}
+                  slots={{ toolbar: ServerSideToolbarWithFilter }}
+                  onPaginationModelChange={newPaginationModel => {
+                    updateQueryParams({
+                      page: newPaginationModel.page,
+                      pageSize: newPaginationModel.pageSize
+                    })
+                    setPaginationModel(newPaginationModel)
+                  }}
+                  loading={loading}
+                  slotProps={{
+                    baseButton: {
+                      variant: 'outlined'
+                    },
+                    toolbar: {
+                      value: searchValue,
+                      title: 'diet',
+                      clearSearch: () => handleSearch(''),
+                      onChange: event => handleSearch(event.target.value)
+                    }
+                  }}
+                  onCellClick={onCellClick}
+                />
+              </Box>
             </Card>
           </>
         )}

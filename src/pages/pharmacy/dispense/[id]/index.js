@@ -294,12 +294,7 @@ const IndividualDispense = () => {
                     Dispense List
                   </Typography>
 
-                  <Stack
-                    direction='row'
-                    spacing={2}
-                    // divider={<Divider orientation='vertical' flexItem />}
-                    sx={{ textAlign: 'center' }}
-                  >
+                  <Stack direction='row' spacing={2} sx={{ textAlign: 'center' }}>
                     <Typography
                       variant='body2'
                       sx={{ color: 'customColors.neutralSecondary', fontSize: '14px', fontWeight: 400 }}

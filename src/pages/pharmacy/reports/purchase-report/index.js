@@ -31,6 +31,7 @@ import Error404 from 'src/pages/404'
 import { readAsync } from 'src/lib/windows/utils'
 import { getUserList } from 'src/lib/api/pharmacy/dispenseProduct'
 import { ExportButton, FilterButton } from 'src/views/utility/render-snippets'
+import PharmacyProductCard from 'src/views/utility/PharmacyProductCard'
 
 const PurchaseReport = () => {
   const router = useRouter()
@@ -224,7 +225,7 @@ const PurchaseReport = () => {
       minWidth: 20,
       field: 'id',
       sortable: false,
-      headerName: 'SL NO',
+      headerName: 'SL.NO',
 
       renderCell: params => (
         <Box sx={{ minWidth: 40 }}>
@@ -283,7 +284,7 @@ const PurchaseReport = () => {
     //   )
     // },
     {
-      width: 250,
+      width: 260,
       minWidth: 20,
       field: 'stock_name',
       align: 'left',
@@ -292,7 +293,7 @@ const PurchaseReport = () => {
 
       renderCell: params => (
         <Box>
-          <StyleWithIconCardComponent
+          {/* <StyleWithIconCardComponent
             value={
               <>
                 <Typography sx={{ display: 'flex', alignItems: 'center' }}>
@@ -312,7 +313,7 @@ const PurchaseReport = () => {
                       !isNaN(params.row?.controlled_substance) && parseInt(params.row?.controlled_substance) === 1,
                       'CS'
                     )}
-                    {RenderUtility?.renderControlLabel(
+                    {RenderUtility?.renderPrescriptionLabel(
                       !isNaN(params.row?.prescription_required) && parseInt(params.row?.prescription_required) === 1,
                       'PR'
                     )}
@@ -345,6 +346,13 @@ const PurchaseReport = () => {
               iconWidth: '44px',
               iconHeight: '44px'
             }}
+          /> */}
+          <PharmacyProductCard
+            title={params?.row?.stock_name}
+            subTitle={params?.row?.generic_name ? params?.row?.generic_name : 'NA'}
+            icon={params?.row?.image}
+            controlSubstance={params?.row?.controlled_substance === '1' && true}
+            prescriptionRequired={params?.row?.prescription_required === '1' && true}
           />
         </Box>
       )
@@ -371,10 +379,10 @@ const PurchaseReport = () => {
     },
     {
       minWidth: 20,
-      width: 180,
+      width: 160,
       field: 'expiry_date',
       headerName: 'EXPIRY DATE',
-      sortable: false,
+      sortable: true,
       renderCell: params => (
         <Typography
           variant='body2'
@@ -671,14 +679,15 @@ const PurchaseReport = () => {
     if (newModel.length) {
       setSort(newModel[0].sort)
       setSortColumn(newModel[0].field)
-      fetchTableData({
-        sort: newModel[0].sort,
-        q: searchValue,
-        column: newModel[0].field,
-        filteredData: filteredData,
-        page: paginationModel?.page,
-        limit: paginationModel?.pageSize
-      })
+
+      // fetchTableData({
+      //   sort: newModel[0].sort,
+      //   q: searchValue,
+      //   column: newModel[0].field,
+      //   filteredData: filteredData,
+      //   page: paginationModel?.page,
+      //   limit: paginationModel?.pageSize
+      // })
       updateUrlParams({
         sort: newModel[0].sort,
         q: searchValue,

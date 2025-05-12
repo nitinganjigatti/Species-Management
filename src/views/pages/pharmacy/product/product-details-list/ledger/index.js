@@ -10,7 +10,9 @@ import {
   Checkbox,
   CircularProgress,
   InputAdornment,
-  IconButton
+  IconButton,
+  Tooltip,
+  Badge
 } from '@mui/material'
 import { useRouter } from 'next/router'
 import React, { useCallback, useEffect, useState } from 'react'
@@ -197,7 +199,7 @@ function Ledger({ tabValue, updateUrlParams }) {
     {
       width: 70,
       field: 'sl_no',
-      headerName: 'S.NO',
+      headerName: 'SL.NO',
       sortable: false,
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
@@ -305,17 +307,23 @@ function Ledger({ tabValue, updateUrlParams }) {
       field: 'receiving_pharmacy',
       headerName: 'DISPATCH TO',
       renderCell: params => (
-        <Typography
-          variant='body2'
-          sx={{
-            color: theme.palette.customColors.customHeadingTextColor,
-            fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
-          }}
-        >
-          {params.row.receiving_pharmacy || 'NA'}
-        </Typography>
+        <Tooltip title={params.row.receiving_pharmacy}>
+          <Typography
+            variant='body2'
+            sx={{
+              color: theme.palette.customColors.customHeadingTextColor,
+              fontSize: '14px',
+              fontWeight: 500,
+              fontFamily: 'Inter',
+              overflow: 'hidden',
+              whiteSpace: 'nowrap',
+              textOverflow: 'ellipsis',
+              maxWidth: 200
+            }}
+          >
+            <span alt={params.row.receiving_pharmacy}> {params.row.receiving_pharmacy}</span>
+          </Typography>
+        </Tooltip>
       )
     },
     {
@@ -323,17 +331,23 @@ function Ledger({ tabValue, updateUrlParams }) {
       field: 'dispatched_pharmacy',
       headerName: 'DISPATCHED BY',
       renderCell: params => (
-        <Typography
-          variant='body2'
-          sx={{
-            color: theme.palette.customColors.customHeadingTextColor,
-            fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
-          }}
-        >
-          {params.row.dispatched_pharmacy || 'NA'}
-        </Typography>
+        <Tooltip title={params.row.dispatched_pharmacy}>
+          <Typography
+            variant='body2'
+            sx={{
+              color: theme.palette.customColors.customHeadingTextColor,
+              fontSize: '14px',
+              fontWeight: 500,
+              fontFamily: 'Inter',
+              overflow: 'hidden',
+              whiteSpace: 'nowrap',
+              textOverflow: 'ellipsis',
+              maxWidth: 200
+            }}
+          >
+            <span alt={params.row.dispatched_pharmacy}> {params.row.dispatched_pharmacy}</span>
+          </Typography>
+        </Tooltip>
       )
     },
     {
@@ -386,7 +400,7 @@ function Ledger({ tabValue, updateUrlParams }) {
             fontFamily: 'Inter'
           }}
         >
-          {params.row.batch_balance || 'NA'}
+          {params.row.batch_balance || '0'}
         </Typography>
       )
     },
@@ -404,7 +418,7 @@ function Ledger({ tabValue, updateUrlParams }) {
             fontFamily: 'Inter'
           }}
         >
-          {params.row.balance || 'NA'}
+          {params.row.balance || '0'}
         </Typography>
       )
     },
@@ -909,6 +923,19 @@ function Ledger({ tabValue, updateUrlParams }) {
     getUserLists()
   }, [])
 
+  const getFilterCount = () => {
+    let count = 0
+
+    if (selectedBatches && selectedBatches.length > 0) count++
+    if (selectedDispatchedTo && selectedDispatchedTo.length > 0) count++
+    if (selectedCreateBy && selectedCreateBy.length > 0) count++
+    if (filterDates && (filterDates.startDate || filterDates.endDate)) count++
+
+    return count
+  }
+
+  const filterCount = getFilterCount()
+
   return (
     <>
       <Grid
@@ -1009,6 +1036,9 @@ function Ledger({ tabValue, updateUrlParams }) {
             <Button
               variant='outlined'
               startIcon={<FilterListIcon />}
+              endIcon={
+                <Badge badgeContent={filterCount} color='primary' invisible={filterCount === 0} sx={{ ml: 2 }} />
+              }
               sx={{
                 border: theme => `1px solid ${theme.palette.customColors.OutlineVariant}`,
                 borderRadius: '8px',

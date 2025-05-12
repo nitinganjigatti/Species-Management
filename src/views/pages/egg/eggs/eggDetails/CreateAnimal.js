@@ -611,7 +611,7 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
                                   <InputAdornment position='end'>
                                     <Icon
                                       icon={'material-symbols:add-circle-outline'}
-                                      style={{ color: '#37BD69' }}
+                                      style={{ color: theme.palette.primary.main }}
                                     ></Icon>
                                   </InputAdornment>
                                 )

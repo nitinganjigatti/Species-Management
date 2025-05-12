@@ -30,6 +30,7 @@ import { getSuppliers } from 'src/lib/api/pharmacy/getSupplierList'
 import { readAsync } from 'src/lib/windows/utils'
 import { getUserList } from 'src/lib/api/pharmacy/dispenseProduct'
 import { ExportButton, FilterButton } from 'src/views/utility/render-snippets'
+import PharmacyProductCard from 'src/views/utility/PharmacyProductCard'
 
 const ReturnSupplier = () => {
   const router = useRouter()
@@ -190,7 +191,7 @@ const ReturnSupplier = () => {
         setLoading(false)
       }
     },
-    [paginationModel, filterDates]
+    [paginationModel, filterDates, filteredData]
   )
 
   useEffect(() => {
@@ -199,8 +200,9 @@ const ReturnSupplier = () => {
       q: searchValue,
       column: sortColumn,
       page: paginationModel?.page,
-      limit: paginationModel?.pageSize,
-      filteredData: filteredData
+      limit: paginationModel?.pageSize
+
+      // filteredData: filteredData
     })
 
     updateUrlParams({
@@ -212,7 +214,7 @@ const ReturnSupplier = () => {
       startDate: filterDates?.startDate,
       endDate: filterDates?.endDate
     })
-  }, [paginationModel.page, paginationModel.pageSize, sort, sortColumn, filterDates, filteredData])
+  }, [paginationModel.page, paginationModel.pageSize, sort, sortColumn, filterDates])
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
@@ -227,7 +229,7 @@ const ReturnSupplier = () => {
       minWidth: 20,
       field: 'id',
       sortable: false,
-      headerName: 'SL NO',
+      headerName: 'SL.NO',
 
       renderCell: params => (
         <Box sx={{ minWidth: 40 }}>
@@ -278,7 +280,7 @@ const ReturnSupplier = () => {
       )
     },
     {
-      width: 250,
+      width: 260,
       minWidth: 20,
       field: 'stock_name',
       align: 'left',
@@ -287,7 +289,7 @@ const ReturnSupplier = () => {
 
       renderCell: params => (
         <Box>
-          <StyleWithIconCardComponent
+          {/* <StyleWithIconCardComponent
             value={
               <>
                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
@@ -307,7 +309,7 @@ const ReturnSupplier = () => {
                       !isNaN(params.row?.controlled_substance) && parseInt(params.row?.controlled_substance) === 1,
                       'CS'
                     )}
-                    {RenderUtility?.renderControlLabel(
+                    {RenderUtility?.renderPrescriptionLabel(
                       !isNaN(params.row?.prescription_required) && parseInt(params.row?.prescription_required) === 1,
                       'PR'
                     )}
@@ -340,6 +342,13 @@ const ReturnSupplier = () => {
               iconWidth: '44px',
               iconHeight: '44px'
             }}
+          /> */}
+          <PharmacyProductCard
+            title={params?.row?.stock_name}
+            subTitle={params?.row?.generic_name ? params?.row?.generic_name : 'NA'}
+            icon={params?.row?.image}
+            controlSubstance={params?.row?.controlled_substance === '1' && true}
+            prescriptionRequired={params?.row?.prescription_required === '1' && true}
           />
         </Box>
       )
@@ -608,14 +617,15 @@ const ReturnSupplier = () => {
     if (newModel.length) {
       setSort(newModel[0].sort)
       setSortColumn(newModel[0].field)
-      fetchTableData({
-        sort: newModel[0].sort,
-        q: searchValue,
-        column: newModel[0].field,
-        page: paginationModel?.page,
-        limit: paginationModel?.pageSize,
-        filteredData: filteredData
-      })
+
+      // fetchTableData({
+      //   sort: newModel[0].sort,
+      //   q: searchValue,
+      //   column: newModel[0].field,
+      //   page: paginationModel?.page,
+      //   limit: paginationModel?.pageSize,
+      //   filteredData: filteredData
+      // })
       updateUrlParams({
         sort: newModel[0].sort,
         q: searchValue,
@@ -707,6 +717,18 @@ const ReturnSupplier = () => {
     } finally {
       setExportLoading(false)
     }
+  }
+
+  const handleFilter = async filterList => {
+    setFilteredData(filterList)
+    await fetchTableData({
+      sort: sort,
+      q: searchValue,
+      column: sortColumn,
+      page: paginationModel?.page,
+      limit: paginationModel?.pageSize,
+      filteredData: filterList
+    })
   }
 
   const calculateAppliedFiltersCount = () => {
@@ -849,7 +871,7 @@ const ReturnSupplier = () => {
             <ReturnToSupplierFilter
               setOpenFilterDrawer={setOpenFilterDrawer}
               openFilterDrawer={openFilterDrawer}
-              onApplyFilter={filterList => setFilteredData(filterList)}
+              onApplyFilter={handleFilter}
               selectedOptions={selectedOptions}
               setSelectedOptions={setSelectedOptions}
               supplierData={supplierData}

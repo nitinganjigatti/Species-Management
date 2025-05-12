@@ -226,7 +226,7 @@ const EggFirstSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGalle
                                     className={clsx({
                                       active: currentSlide === idx
                                     })}
-                                    style={{ backgroundColor: '#fff' }}
+                                    style={{ backgroundColor: theme.palette.primary.contrastText }}
                                     onClick={() => {
                                       instanceRef.current?.moveToIdx(idx)
                                     }}
@@ -270,7 +270,7 @@ const EggFirstSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGalle
                         position: 'relative',
                         // top: eggDetails?.default_common_name && eggDetails?.complete_name ? '-57px' : '-20px',
                         top: '-57px',
-                        backgroundColor: '#00000033',
+                        backgroundColor: theme.palette.primary.neutralTeritary,
                         py: '8px',
                         px: '12px',
                         gap: '4px',
@@ -278,10 +278,24 @@ const EggFirstSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGalle
                         flexDirection: 'column'
                       }}
                     >
-                      <Typography sx={{ fontSize: '16px', fontWeight: 500, lineHeight: '19.36px', color: '#fff' }}>
+                      <Typography
+                        sx={{
+                          fontSize: '16px',
+                          fontWeight: 500,
+                          lineHeight: '19.36px',
+                          color: theme.palette.primary.contrastText
+                        }}
+                      >
                         {eggDetails?.default_common_name ? eggDetails?.default_common_name : 'Unknown'}
                       </Typography>
-                      <Typography sx={{ fontSize: '14px', fontWeight: 400, lineHeight: '16.94px', color: '#fff' }}>
+                      <Typography
+                        sx={{
+                          fontSize: '14px',
+                          fontWeight: 400,
+                          lineHeight: '16.94px',
+                          color: theme.palette.primary.contrastText
+                        }}
+                      >
                         {eggDetails?.complete_name ? eggDetails?.complete_name : 'Unknown'}
                       </Typography>
                     </Box>
@@ -418,7 +432,7 @@ const EggFirstSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGalle
                   sx={{
                     display: 'flex',
                     height: '88px',
-                    backgroundColor: '#FCF4AEB3',
+                    backgroundColor: theme.palette.customColors.antzNotesLight,
                     p: '12px',
                     borderRadius: '8px',
                     justifyContent: 'space-between',
@@ -495,7 +509,7 @@ const EggFirstSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGalle
                   sx={{
                     display: 'flex',
                     height: '88px',
-                    backgroundColor: '#AFEFEB4D',
+                    backgroundColor: theme.palette.customColors.antzInfoLight,
                     p: '12px',
                     borderRadius: '8px',
                     justifyContent: 'space-between',
@@ -509,7 +523,7 @@ const EggFirstSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGalle
                         height: '64px',
                         borderRadius: '8px',
                         padding: '8px',
-                        backgroundColor: '#00D6C9'
+                        backgroundColor: theme.palette.customColors.Secondary
                       }}
                     >
                       <Avatar
@@ -563,10 +577,10 @@ const EggFirstSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGalle
                     height: '88px',
                     backgroundColor:
                       eggDetails?.egg_status === ('Fresh' || 'Fertile' || 'Hatched')
-                        ? '#37BD691A'
+                        ? theme.palette.customColors.AntzLight10
                         : eggDetails?.egg_status === 'Discard'
-                        ? '#FFBDA84D'
-                        : '#37BD691A',
+                        ? theme.palette.customColors.AntzTertiary30
+                        : theme.palette.customColors.AntzLight10,
 
                     p: '12px',
                     borderRadius: '8px',
@@ -644,8 +658,8 @@ const EggFirstSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGalle
                           Number(eggDetails?.action_to_be_taken) === 5 ||
                           (Number(eggDetails?.action_to_be_taken) === 6 && Number(eggDetails?.discard_status) !== 2) ||
                           (Number(eggDetails?.action_to_be_taken) === 7 && eggDetails?.animal_data === null)
-                            ? '#00AFD6'
-                            : '#7A8684'
+                            ? theme.palette.customColors.AntzAddPrimary
+                            : theme.palette.customColors.neutralSecondary
                         }
                         icon='fontisto:angle-right'
                         fontSize={16}

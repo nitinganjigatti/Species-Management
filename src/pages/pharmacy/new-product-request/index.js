@@ -57,6 +57,7 @@ import RenderUtility from 'src/utility/render'
 import { AuthContext } from 'src/context/AuthContext'
 import { width } from '@mui/system'
 import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDateRangePickers'
+import { ExportButton } from 'src/views/utility/render-snippets'
 
 export default function NewProductList() {
   const theme = useTheme()
@@ -81,6 +82,7 @@ export default function NewProductList() {
   const [statusCall, setStatusCall] = useState(false)
   const { selectedPharmacy } = usePharmacyContext()
   const [selectedPharmacyId, setSelectedPharmacyId] = useState('')
+
   const [filterDates, setFilterDates] = useState({
     startDate: router.query.startDate || '',
     endDate: router.query.endDate || ''
@@ -150,9 +152,9 @@ export default function NewProductList() {
   const columns = [
     {
       width: 80,
-      minWidth: 80,
+      minWidth: 100,
       field: 'id',
-      headerName: 'S.NO',
+      headerName: 'SL.NO',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {parseInt(params.row.sl_no) + '.'}
@@ -182,7 +184,7 @@ export default function NewProductList() {
     },
     selectedPharmacy?.type === 'central' && {
       width: 150,
-      minWidth: 150,
+      minWidth: 180,
       field: 'to_store_name',
       headerName: 'From Store',
       renderCell: (params, rowId) => (
@@ -203,7 +205,7 @@ export default function NewProductList() {
     },
     {
       flex: 0.3,
-      minWidth: 40,
+      minWidth: 180,
       field: 'product_name',
       headerName: 'Product Name',
       renderCell: params => (
@@ -227,7 +229,7 @@ export default function NewProductList() {
 
     {
       flex: 0.2,
-      minWidth: 40,
+      minWidth: 150,
       field: 'priority',
       headerName: 'Priority',
       renderCell: params => (
@@ -246,7 +248,7 @@ export default function NewProductList() {
     },
     selectedPharmacy?.type === 'central' && {
       flex: 0.3,
-      minWidth: 40,
+      minWidth: 150,
       field: 'requested_by',
       headerName: 'Requested User',
       renderCell: params => (
@@ -265,7 +267,7 @@ export default function NewProductList() {
     },
     {
       flex: selectedPharmacy.type === 'central' ? 0.2 : 0.3,
-      minWidth: 40,
+      minWidth: 150,
       field: 'quantity',
       headerName: 'Quantity',
       type: 'number',
@@ -292,7 +294,7 @@ export default function NewProductList() {
 
     {
       flex: 0.3,
-      minWidth: 20,
+      minWidth: 150,
       field: 'created_at',
       headerName: 'CREATED Date',
       renderCell: params => (
@@ -311,7 +313,7 @@ export default function NewProductList() {
     },
     {
       flex: 0.3,
-      minWidth: 20,
+      minWidth: 150,
       field: 'status',
       headerName: 'Status',
       renderCell: params => (
@@ -347,12 +349,11 @@ export default function NewProductList() {
   const [excelLoader, setExcelLoader] = useState(false)
 
   const handleChange = (event, newValue) => {
-    // Reset total and search value
     setTotal(0)
     setSearchValue('')
     setPaginationModel({ page: 0, pageSize: 10 })
+    setFilterDates('')
 
-    // Update the status
     setStatus(newValue)
 
     // Fetch table data with the new status
@@ -579,7 +580,6 @@ export default function NewProductList() {
 
   const getProductRequestToExport = async () => {
     try {
-      // debugger
       setExcelLoader(true)
 
       const params = {
@@ -704,9 +704,10 @@ export default function NewProductList() {
                 onChange={e => handleSearch(e.target.value)}
                 sx={{
                   flex: 1,
-                  mr: { sm: 1 },
+                  mr: { sm: 2 },
                   borderRadius: '8px',
                   minWidth: 250
+
                   // mt: { xs: 3, sm: 0 }
                 }}
                 InputProps={{
@@ -724,6 +725,7 @@ export default function NewProductList() {
                 size='small'
                 sx={{
                   mt: { xs: 4, sm: 0 },
+
                   // mr: { sm: 2 },
                   // ml: { xs: 2 },
                   minWidth: { xs: '230px', sm: '10px' }, // Increased width for both small and larger screens
@@ -763,11 +765,25 @@ export default function NewProductList() {
                         </MenuItem>
                       )
                   )}
+                  {/* {authData.userData.modules.pharmacy_data.pharmacy?.map(item => (
+                    console.log("Item >>", item),
+                    <MenuItem key={item.id} value={item.id}>
+                      {item.name}
+                    </MenuItem>
+                  ))} */}
                 </Select>
               </FormControl>
 
               {/* Download Button */}
-              <Tooltip title='Export'>
+              <Box sx={{ mt: { xs: 4, sm: 0 }, ml: { xs: 2 } }}>
+                <ExportButton
+                  loading={excelLoader}
+                  onClick={getProductRequestToExport}
+                  disabled={total === 0 ? true : false}
+                />
+              </Box>
+
+              {/* <Tooltip title='Export'>
                 <>
                   {excelLoader ? (
                     <Box
@@ -807,7 +823,7 @@ export default function NewProductList() {
                     </Box>
                   )}
                 </>
-              </Tooltip>
+              </Tooltip> */}
             </Box>
           </Box>
 
@@ -1086,7 +1102,7 @@ export default function NewProductList() {
 //       width: 80,
 //       minWidth: 80,
 //       field: 'id',
-//       headerName: 'S.NO',
+//       headerName:'SL.NO',
 //       renderCell: params => (
 //         <Typography variant='body2' sx={{ color: 'text.primary' }}>
 //           {parseInt(params.row.sl_no) + '.'}

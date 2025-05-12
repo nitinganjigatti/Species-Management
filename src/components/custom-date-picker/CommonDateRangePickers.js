@@ -25,9 +25,11 @@ const CommonDateRangePickers = ({
   onChange,
   filterDates,
   showFutureDates = false,
+  showAllTime = false,
   useCustomText = false,
   customText = ''
 }) => {
+  debugger
   const theme = useTheme()
   const router = useRouter()
   const today = new Date()
@@ -38,9 +40,9 @@ const CommonDateRangePickers = ({
     if (useCustomText) {
       return customText
     } else if (showFutureDates) {
-      return `All time - From - ${format(today, 'dd MMM, yyyy')}`
+      return `All time - From - ${format(today, 'dd MMM yyyy')}`
     } else {
-      return `All time - Upto - ${format(today, 'dd MMM, yyyy')}`
+      return `All time - Upto - ${format(today, 'dd MMM yyyy')}`
     }
   }
 
@@ -54,25 +56,25 @@ const CommonDateRangePickers = ({
     const futureDateRanges = [
       {
         label: 'Tomorrow',
-        subLabel: format(addDays(today, 1), 'dd MMM, yyyy'),
+        subLabel: format(addDays(today, 1), 'dd MMM yyyy'),
         startDate: addDays(today, 1),
         endDate: addDays(today, 1)
       },
       {
         label: 'Next 7 days',
-        subLabel: `${format(today, 'dd MMM, yyyy')} - ${format(addDays(today, 7), 'dd MMM, yyyy')}`,
+        subLabel: `${format(today, 'dd MMM yyyy')} - ${format(addDays(today, 7), 'dd MMM yyyy')}`,
         startDate: today,
         endDate: addDays(today, 7)
       },
       {
         label: 'Next 1 month',
-        subLabel: `${format(today, 'dd MMM, yyyy')} - ${format(addMonths(today, 1), 'dd MMM, yyyy')}`,
+        subLabel: `${format(today, 'dd MMM yyyy')} - ${format(addMonths(today, 1), 'dd MMM yyyy')}`,
         startDate: today,
         endDate: addMonths(today, 1)
       },
       {
         label: 'Next 6 months',
-        subLabel: `${format(today, 'dd MMM, yyyy')} - ${format(addMonths(today, 6), 'dd MMM, yyyy')}`,
+        subLabel: `${format(today, 'dd MMM yyyy')} - ${format(addMonths(today, 6), 'dd MMM yyyy')}`,
         startDate: today,
         endDate: addMonths(today, 6)
       }
@@ -81,33 +83,33 @@ const CommonDateRangePickers = ({
     const pastDateRanges = [
       {
         label: 'Yesterday',
-        subLabel: format(subDays(today, 1), 'dd MMM, yyyy'),
+        subLabel: format(subDays(today, 1), 'dd MMM yyyy'),
         startDate: subDays(today, 1),
         endDate: subDays(today, 1)
       },
       {
         label: 'Last 7 days',
-        subLabel: `${format(subDays(today, 7), 'dd MMM, yyyy')} - ${format(today, 'dd MMM, yyyy')}`,
+        subLabel: `${format(subDays(today, 7), 'dd MMM yyyy')} - ${format(today, 'dd MMM yyyy')}`,
         startDate: subDays(today, 7),
         endDate: today
       },
       {
         label: 'Last 1 month',
-        subLabel: `${format(subMonths(today, 1), 'dd MMM, yyyy')} - ${format(today, 'dd MMM, yyyy')}`,
+        subLabel: `${format(subMonths(today, 1), 'dd MMM yyyy')} - ${format(today, 'dd MMM yyyy')}`,
         startDate: subMonths(today, 1),
         endDate: today
       },
       {
         label: 'Last 6 months',
-        subLabel: `${format(subMonths(today, 6), 'dd MMM, yyyy')} - ${format(today, 'dd MMM, yyyy')}`,
+        subLabel: `${format(subMonths(today, 6), 'dd MMM yyyy')} - ${format(today, 'dd MMM yyyy')}`,
         startDate: subMonths(today, 6),
         endDate: today
       }
     ]
 
     // const allTimeLabel = showFutureDates
-    //   ? `From - ${format(today, 'dd MMM, yyyy')}`
-    //   : `Upto - ${format(today, 'dd MMM, yyyy')}`
+    //   ? `From - ${format(today, 'dd MMM yyyy')}`
+    //   : `Upto - ${format(today, 'dd MMM yyyy')}`
 
     // return [
     //   {
@@ -118,7 +120,7 @@ const CommonDateRangePickers = ({
     //   },
     //   {
     //     label: 'Today',
-    //     subLabel: format(today, 'dd MMM, yyyy'),
+    //     subLabel: format(today, 'dd MMM yyyy'),
     //     startDate: today,
     //     endDate: today
     //   },
@@ -141,8 +143,8 @@ const CommonDateRangePickers = ({
       })
     } else {
       const allTimeLabel = showFutureDates
-        ? `From - ${format(today, 'dd MMM, yyyy')}`
-        : `Upto - ${format(today, 'dd MMM, yyyy')}`
+        ? `From - ${format(today, 'dd MMM yyyy')}`
+        : `Upto - ${format(today, 'dd MMM yyyy')}`
 
       initialRanges.push({
         label: 'All time',
@@ -156,7 +158,7 @@ const CommonDateRangePickers = ({
       ...initialRanges,
       {
         label: 'Today',
-        subLabel: format(today, 'dd MMM, yyyy'),
+        subLabel: format(today, 'dd MMM yyyy'),
         startDate: today,
         endDate: today
       },
@@ -181,7 +183,7 @@ const CommonDateRangePickers = ({
       if (useCustomText) {
         return customText
       } else {
-        return `All time - ${showFutureDates ? 'From' : 'Upto'} - ${format(today, 'dd MMM, yyyy')}`
+        return `All time - ${showFutureDates ? 'From' : 'Upto'} - ${format(today, 'dd MMM yyyy')}`
       }
     }
 
@@ -222,16 +224,16 @@ const CommonDateRangePickers = ({
           if (startDate.toDateString() === endDate.toDateString()) {
             // Check if it's today
             if (startDate.toDateString() === today.toDateString()) {
-              setSelectedRange(`Today - ${format(today, 'dd MMM, yyyy')}`)
+              setSelectedRange(`Today - ${format(today, 'dd MMM yyyy')}`)
             } else {
               // Single day, not today
-              const formattedDate = format(startDate, 'dd MMM, yyyy')
+              const formattedDate = format(startDate, 'dd MMM yyyy')
               setSelectedRange(`Custom Range - ${formattedDate} - ${formattedDate}`)
             }
           } else {
             // Custom range
-            const formattedStart = format(startDate, 'dd MMM, yyyy')
-            const formattedEnd = format(endDate, 'dd MMM, yyyy')
+            const formattedStart = format(startDate, 'dd MMM yyyy')
+            const formattedEnd = format(endDate, 'dd MMM yyyy')
             setSelectedRange(`Custom Range - ${formattedStart} - ${formattedEnd}`)
           }
         }
@@ -245,10 +247,14 @@ const CommonDateRangePickers = ({
 
   //   // Handle All time case (no dates)
   //   if (!startDateProp && !endDateProp) {
-  //     const allTimeLabel = showFutureDates
-  //       ? `All time - From - ${format(today, 'dd MMM, yyyy')}`
-  //       : `All time - Upto - ${format(today, 'dd MMM, yyyy')}`
-  //     setSelectedRange(` ${allTimeLabel}`)
+  //     if (useCustomText) {
+  //       setSelectedRange(customText)
+  //     } else {
+  //       const allTimeLabel = showFutureDates
+  //         ? `All time - From - ${format(today, 'dd MMM yyyy')}`
+  //         : `All time - Upto - ${format(today, 'dd MMM yyyy')}`
+  //       setSelectedRange(allTimeLabel)
+  //     }
 
   //     return
   //   }
@@ -284,21 +290,58 @@ const CommonDateRangePickers = ({
   //       if (startDate.toDateString() === endDate.toDateString()) {
   //         // Check if it's today
   //         if (startDate.toDateString() === today.toDateString()) {
-  //           setSelectedRange(`Today - ${format(today, 'dd MMM, yyyy')}`)
+  //           setSelectedRange(`Today - ${format(today, 'dd MMM yyyy')}`)
   //         } else {
   //           // Single day, not today
-  //           const formattedDate = format(startDate, 'dd MMM, yyyy')
+  //           const formattedDate = format(startDate, 'dd MMM yyyy')
   //           setSelectedRange(`Custom Range - ${formattedDate} - ${formattedDate}`)
   //         }
   //       } else {
   //         // Custom range
-  //         const formattedStart = format(startDate, 'dd MMM, yyyy')
-  //         const formattedEnd = format(endDate, 'dd MMM, yyyy')
+  //         const formattedStart = format(startDate, 'dd MMM yyyy')
+  //         const formattedEnd = format(endDate, 'dd MMM yyyy')
   //         setSelectedRange(`Custom Range - ${formattedStart} - ${formattedEnd}`)
   //       }
   //     }
   //   }
-  // }, [filterDates, showFutureDates])
+  // }, [filterDates, showFutureDates, useCustomText, customText])
+
+  // useEffect(() => {
+  //   const { from_date, to_date } = router.query
+
+  //   if (from_date && to_date) {
+  //     const fromDate = new Date(from_date)
+  //     const toDate = new Date(to_date)
+
+  //     // Check if from_date and to_date are the same
+  //     if (fromDate.toDateString() === toDate.toDateString()) {
+  //       setSelectedRange(`Today - ${format(today, 'dd MMM yyyy')}`)
+  //       onChange?.(fromDate, toDate)
+  //     } else {
+  //       // Find the matching range in dateRanges
+  //       const matchingRange = dateRanges.find(
+  //         range =>
+  //           range.startDate &&
+  //           range.endDate &&
+  //           range.startDate.toDateString() === fromDate.toDateString() &&
+  //           range.endDate.toDateString() === toDate.toDateString()
+  //       )
+
+  //       if (matchingRange) {
+  //         // If a predefined range matches, use its label and subLabel
+  //         setSelectedRange(`${matchingRange.label} - ${matchingRange.subLabel}`)
+  //       } else {
+  //         // set a custom range
+  //         const customRangeLabel = `Custom Range - ${format(fromDate, 'dd MMM yyyy')} - ${format(
+  //           toDate,
+  //           'dd MMM yyyy'
+  //         )}`
+  //         setSelectedRange(customRangeLabel)
+  //       }
+  //       onChange?.(fromDate, toDate)
+  //     }
+  //   }
+  // }, [router.query.tab])
 
   const handleClick = event => {
     setAnchorEl(event.currentTarget)
@@ -316,8 +359,8 @@ const CommonDateRangePickers = ({
       onChange?.('', '')
     } else if (!useCustomText && range.label === 'All time') {
       const allTimeLabel = showFutureDates
-        ? `All time - From - ${format(today, 'dd MMM, yyyy')}`
-        : `All time - Upto - ${format(today, 'dd MMM, yyyy')}`
+        ? `All time - From - ${format(today, 'dd MMM yyyy')}`
+        : `All time - Upto - ${format(today, 'dd MMM yyyy')}`
       setSelectedRange(allTimeLabel)
       onChange?.('', '')
     } else if (range.startDate && range.endDate) {
@@ -334,9 +377,9 @@ const CommonDateRangePickers = ({
 
   const handleApply = () => {
     if (tempRange.startDate && tempRange.endDate) {
-      const newRange = `Custom Range - ${format(tempRange.startDate, 'dd MMM, yyyy')} - ${format(
+      const newRange = `Custom Range - ${format(tempRange.startDate, 'dd MMM yyyy')} - ${format(
         tempRange.endDate,
-        'dd MMM, yyyy'
+        'dd MMM yyyy'
       )}`
       setSelectedRange(newRange) // Update selectedRange
       onChange?.(tempRange.startDate, tempRange.endDate)
@@ -387,7 +430,13 @@ const CommonDateRangePickers = ({
             flex: 1
           }}
         >
-          {selectedRange}
+          <Box sx={{ display: { xs: 'block', md: 'inline' } }}>
+            {selectedRange.split(' - ')[0]}
+            <Box component='span' sx={{ display: { xs: 'none', md: 'inline' }, mx: 1 }}>
+              -
+            </Box>
+          </Box>
+          <Box sx={{ display: { xs: 'block', md: 'inline' } }}>{selectedRange.split(' - ').slice(1).join(' - ')}</Box>
         </Typography>
       </Box>
 
@@ -622,45 +671,45 @@ export default CommonDateRangePickers
 //   const today = new Date()
 //   const [anchorEl, setAnchorEl] = useState(null)
 //   const [customDialogOpen, setCustomDialogOpen] = useState(false)
-//   const [selectedRange, setSelectedRange] = useState(`All time - Upto - ${format(today, 'dd MMM, yyyy')}`)
+//   const [selectedRange, setSelectedRange] = useState(`All time - Upto - ${format(today, 'dd MMM yyyy')}`)
 //   const [tempRange, setTempRange] = useState({})
 //   const open = Boolean(anchorEl)
 
 //   const dateRanges = [
 //     {
 //       label: 'All time',
-//       subLabel: `Upto - ${format(today, 'dd MMM, yyyy')}`,
+//       subLabel: `Upto - ${format(today, 'dd MMM yyyy')}`,
 //       startDate: today,
 //       endDate: today
 //     },
 //     {
 //       label: 'Today',
-//       subLabel: format(today, 'dd MMM, yyyy'),
+//       subLabel: format(today, 'dd MMM yyyy'),
 //       startDate: today,
 //       endDate: today
 //     },
 //     {
 //       label: 'Yesterday',
-//       subLabel: format(subDays(today, 1), 'dd MMM, yyyy'),
+//       subLabel: format(subDays(today, 1), 'dd MMM yyyy'),
 //       startDate: subDays(today, 1),
 //       endDate: subDays(today, 1)
 //     },
 //     {
 //       label: 'Last 7 days',
-//       subLabel: `${format(subDays(today, 7), 'dd MMM, yyyy')} - ${format(today, 'dd MMM, yyyy')}`,
+//       subLabel: `${format(subDays(today, 7), 'dd MMM yyyy')} - ${format(today, 'dd MMM yyyy')}`,
 //       startDate: subDays(today, 7),
 //       endDate: today
 //     },
 //     {
 //       label: 'Last 1 month',
-//       subLabel: `${format(subMonths(today, 1), 'dd MMM, yyyy')} - ${format(today, 'dd MMM, yyyy')}`,
+//       subLabel: `${format(subMonths(today, 1), 'dd MMM yyyy')} - ${format(today, 'dd MMM yyyy')}`,
 //       startDate: subMonths(today, 1), // Start date is 1 month ago from today
 //       endDate: today // End date is today
 //     },
 
 //     {
 //       label: 'Last 6 months',
-//       subLabel: `${format(subMonths(today, 6), 'dd MMM, yyyy')} - ${format(today, 'dd MMM, yyyy')}`,
+//       subLabel: `${format(subMonths(today, 6), 'dd MMM yyyy')} - ${format(today, 'dd MMM yyyy')}`,
 //       startDate: subMonths(today, 6),
 //       endDate: today
 //     },
@@ -677,7 +726,7 @@ export default CommonDateRangePickers
 
 //     // Handle All time case (no dates)
 //     if (!startDateProp && !endDateProp) {
-//       setSelectedRange(`All time - Upto - ${format(today, 'dd MMM, yyyy')}`)
+//       setSelectedRange(`All time - Upto - ${format(today, 'dd MMM yyyy')}`)
 
 //       return
 //     }
@@ -711,16 +760,16 @@ export default CommonDateRangePickers
 //         if (startDate.toDateString() === endDate.toDateString()) {
 //           // Check if it's today
 //           if (startDate.toDateString() === today.toDateString()) {
-//             setSelectedRange(`Today - ${format(today, 'dd MMM, yyyy')}`)
+//             setSelectedRange(`Today - ${format(today, 'dd MMM yyyy')}`)
 //           } else {
 //             // Single day, not today
-//             const formattedDate = format(startDate, 'dd MMM, yyyy')
+//             const formattedDate = format(startDate, 'dd MMM yyyy')
 //             setSelectedRange(`Custom Range - ${formattedDate} - ${formattedDate}`)
 //           }
 //         } else {
 //           // Custom range
-//           const formattedStart = format(startDate, 'dd MMM, yyyy')
-//           const formattedEnd = format(endDate, 'dd MMM, yyyy')
+//           const formattedStart = format(startDate, 'dd MMM yyyy')
+//           const formattedEnd = format(endDate, 'dd MMM yyyy')
 //           setSelectedRange(`Custom Range - ${formattedStart} - ${formattedEnd}`)
 //         }
 //       }
@@ -736,7 +785,7 @@ export default CommonDateRangePickers
 
 //   //     // Check if from_date and to_date are the same
 //   //     if (fromDate.toDateString() === toDate.toDateString()) {
-//   //       setSelectedRange(`Today - ${format(today, 'dd MMM, yyyy')}`)
+//   //       setSelectedRange(`Today - ${format(today, 'dd MMM yyyy')}`)
 //   //       onChange?.(fromDate, toDate)
 //   //     } else {
 //   //       // Find the matching range in dateRanges
@@ -753,9 +802,9 @@ export default CommonDateRangePickers
 //   //         setSelectedRange(`${matchingRange.label} - ${matchingRange.subLabel}`)
 //   //       } else {
 //   //         // set a custom range
-//   //         const customRangeLabel = `Custom Range - ${format(fromDate, 'dd MMM, yyyy')} - ${format(
+//   //         const customRangeLabel = `Custom Range - ${format(fromDate, 'dd MMM yyyy')} - ${format(
 //   //           toDate,
-//   //           'dd MMM, yyyy'
+//   //           'dd MMM yyyy'
 //   //         )}`
 //   //         setSelectedRange(customRangeLabel)
 //   //       }
@@ -792,9 +841,9 @@ export default CommonDateRangePickers
 
 //   const handleApply = () => {
 //     if (tempRange.startDate && tempRange.endDate) {
-//       const newRange = `Custom Range - ${format(tempRange.startDate, 'dd MMM, yyyy')} - ${format(
+//       const newRange = `Custom Range - ${format(tempRange.startDate, 'dd MMM yyyy')} - ${format(
 //         tempRange.endDate,
-//         'dd MMM, yyyy'
+//         'dd MMM yyyy'
 //       )}`
 //       setSelectedRange(newRange) // Update selectedRange
 //       onChange?.(tempRange.startDate, tempRange.endDate)

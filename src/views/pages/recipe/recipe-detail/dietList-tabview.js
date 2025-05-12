@@ -148,7 +148,7 @@ const DietListTabview = ({ IngredientName, onTotalChange, type }) => {
       )
     },
     {
-      flex: 0.3,
+      flex: 0.5,
       minWidth: 40,
       field: 'diet_name',
       headerName: 'DIET NAME',

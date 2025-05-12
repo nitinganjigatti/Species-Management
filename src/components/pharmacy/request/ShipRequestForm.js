@@ -256,8 +256,6 @@ const ShipRequest = ({ dispatchedItems, storeDetails, resetForm }) => {
       payload.push(payloadItem)
     })
 
-    // console.log('payload', payload)
-
     shipRequest(payload)
   }
 
@@ -307,6 +305,8 @@ const ShipRequest = ({ dispatchedItems, storeDetails, resetForm }) => {
       minWidth: 200,
       field: 'from_store_name',
       headerName: 'Shipped from ',
+      align: 'center',
+      headerAlign: 'center',
       renderCell: params => (
         <div>
           <Tooltip title={params.row.from_store_name} placement='top'>
@@ -322,6 +322,8 @@ const ShipRequest = ({ dispatchedItems, storeDetails, resetForm }) => {
       minWidth: 200,
       field: 'to_store_name',
       headerName: 'Shipped to',
+      align: 'center',
+      headerAlign: 'center',
       renderCell: params => (
         <div>
           <Tooltip title={params.row.to_store_name} placement='top'>
@@ -336,6 +338,8 @@ const ShipRequest = ({ dispatchedItems, storeDetails, resetForm }) => {
       minWidth: 100,
       field: 'batch_no',
       headerName: 'Batch no',
+      align: 'center',
+      headerAlign: 'center',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.batch_no}
@@ -346,9 +350,11 @@ const ShipRequest = ({ dispatchedItems, storeDetails, resetForm }) => {
       minWidth: 160,
       field: 'request_id',
       headerName: 'Request Id',
+      align: 'center',
+      headerAlign: 'center',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.ro_no}
+          {params?.row?.request_id}
         </Typography>
       )
     },
@@ -383,6 +389,8 @@ const ShipRequest = ({ dispatchedItems, storeDetails, resetForm }) => {
       minWidth: 120,
       field: 'expiry_date',
       headerName: 'Expiry date',
+      align: 'center',
+      headerAlign: 'center',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {Utility.formatDisplayDate(params.row.expiry_date) === 'Invalid date'
@@ -396,7 +404,8 @@ const ShipRequest = ({ dispatchedItems, storeDetails, resetForm }) => {
       field: 'dispatch_qty',
       headerName: 'Dispatch qty',
       type: 'number',
-      align: 'right',
+      align: 'center',
+      headerAlign: 'center',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.dispatch_qty}
@@ -434,8 +443,6 @@ const ShipRequest = ({ dispatchedItems, storeDetails, resetForm }) => {
       setValue('phone_number', '')
     }
   }
-
-  console.log(dispatchedItems?.[0]?.to_store_name, 'dispatchedItems')
 
   return (
     <>
@@ -697,7 +704,6 @@ const ShipRequest = ({ dispatchedItems, storeDetails, resetForm }) => {
                         placeholderText={'Shipment Date*'}
                         maxDate={new Date()}
                         onChangeHandler={date => {
-                          // console.log(date)
                           setDate(date)
                         }}
                         customInput={<CustomInput label='Shipment Date*' auto />}
@@ -772,7 +778,6 @@ const ShipRequest = ({ dispatchedItems, storeDetails, resetForm }) => {
                           placeholderText={'Shipment Date*'}
                           maxDate={new Date()}
                           onChangeHandler={date => {
-                            // console.log(date)
                             setDate(date)
                           }}
                           customInput={<CustomInput label='Shipment Date*' auto />}

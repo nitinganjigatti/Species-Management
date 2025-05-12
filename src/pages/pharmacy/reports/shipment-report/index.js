@@ -27,6 +27,7 @@ import ShipmentFilterDrawer from 'src/views/pages/pharmacy/reports/ShipmentFilte
 import { format, subMonths } from 'date-fns'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import { ExportButton, FilterButton } from 'src/views/utility/render-snippets'
+import PharmacyProductCard from 'src/views/utility/PharmacyProductCard'
 
 const ShipmentReport = () => {
   const router = useRouter()
@@ -51,7 +52,6 @@ const ShipmentReport = () => {
   const [selectAllPharmacy, setSelectAllPharmacy] = useState(false)
 
   const [selectedOptions, setSelectedOptions] = useState({
-    'Batch Number': [],
     Pharmacy: [],
     'Drug Type': 'all'
   })
@@ -68,7 +68,6 @@ const ShipmentReport = () => {
 
   useEffect(() => {
     setSelectedOptions({
-      'Batch Number': [],
       Pharmacy: [],
       'Drug Type': 'all'
     })
@@ -97,7 +96,7 @@ const ShipmentReport = () => {
       }
     }
     pharmacyList()
-  }, [selectedPharmacy])
+  }, [selectedPharmacy?.id])
 
   const handleSelectAllPharmacy = () => {
     setSelectAllPharmacy(!selectAllPharmacy)
@@ -156,7 +155,7 @@ const ShipmentReport = () => {
         setLoading(false)
       }
     },
-    [paginationModel, filterDates]
+    [paginationModel, filterDates, filteredData]
   )
 
   useEffect(() => {
@@ -164,9 +163,10 @@ const ShipmentReport = () => {
       sort: sort,
       q: searchValue,
       column: sortColumn,
-      filteredData: filteredData,
       page: paginationModel?.page,
       limit: paginationModel?.pageSize
+
+      // filteredData: filteredData,
     })
     updateUrlParams({
       sort,
@@ -177,15 +177,7 @@ const ShipmentReport = () => {
       startDate: filterDates?.startDate,
       endDate: filterDates?.endDate
     })
-  }, [
-    paginationModel.page,
-    paginationModel.pageSize,
-    filterDates,
-    filteredData,
-    sort,
-    sortColumn,
-    selectedPharmacy?.id
-  ])
+  }, [paginationModel.page, paginationModel.pageSize, filterDates, sort, sortColumn, selectedPharmacy?.id])
 
   //   console.log('rows data :', rows)
 
@@ -202,7 +194,7 @@ const ShipmentReport = () => {
       minWidth: 20,
       field: 'id',
       sortable: false,
-      headerName: 'SL NO',
+      headerName: 'SL.NO',
 
       renderCell: params => (
         <Box sx={{ minWidth: 40 }}>
@@ -253,7 +245,7 @@ const ShipmentReport = () => {
       )
     },
     {
-      width: 250,
+      width: 260,
       minWidth: 20,
       field: 'stock_name',
       align: 'left',
@@ -262,7 +254,7 @@ const ShipmentReport = () => {
 
       renderCell: params => (
         <Box>
-          <StyleWithIconCardComponent
+          {/* <StyleWithIconCardComponent
             value={
               <>
                 <Typography sx={{ display: 'flex', alignItems: 'center' }}>
@@ -282,7 +274,7 @@ const ShipmentReport = () => {
                       !isNaN(params.row?.controlled_substance) && parseInt(params.row?.controlled_substance) === 1,
                       'CS'
                     )}
-                    {RenderUtility?.renderControlLabel(
+                    {RenderUtility?.renderPrescriptionLabel(
                       !isNaN(params.row?.prescription_required) && parseInt(params.row?.prescription_required) === 1,
                       'PR'
                     )}
@@ -315,6 +307,13 @@ const ShipmentReport = () => {
               iconWidth: '44px',
               iconHeight: '44px'
             }}
+          /> */}
+          <PharmacyProductCard
+            title={params?.row?.stock_name}
+            subTitle={params?.row?.generic_name ? params?.row?.generic_name : 'NA'}
+            icon={params?.row?.image}
+            controlSubstance={params?.row?.controlled_substance === '1' && true}
+            prescriptionRequired={params?.row?.prescription_required === '1' && true}
           />
         </Box>
       )
@@ -693,14 +692,15 @@ const ShipmentReport = () => {
     if (newModel.length) {
       setSort(newModel[0].sort)
       setSortColumn(newModel[0].field)
-      fetchTableData({
-        sort: newModel[0].sort,
-        q: searchValue,
-        column: newModel[0].field,
-        filteredData: filteredData,
-        page: paginationModel?.page,
-        limit: paginationModel?.pageSize
-      })
+
+      // fetchTableData({
+      //   sort: newModel[0].sort,
+      //   q: searchValue,
+      //   column: newModel[0].field,
+      //   filteredData: filteredData,
+      //   page: paginationModel?.page,
+      //   limit: paginationModel?.pageSize
+      // })
       updateUrlParams({
         sort: newModel[0].sort,
         q: searchValue,
@@ -781,6 +781,18 @@ const ShipmentReport = () => {
     } finally {
       setExportLoading(false)
     }
+  }
+
+  const handleFilter = async filterList => {
+    setFilteredData(filterList)
+    await fetchTableData({
+      sort: sort,
+      q: searchValue,
+      column: sortColumn,
+      filteredData: filterList,
+      page: paginationModel?.page,
+      limit: paginationModel?.pageSize
+    })
   }
 
   const calculateAppliedFiltersCount = () => {
@@ -867,11 +879,7 @@ const ShipmentReport = () => {
                     }}
                   >
                     <ExportButton loading={loading || exportLoading} onClick={handleExport} />
-                    <FilterButton
-                      tooltip='Filters'
-                      onClick={() => setOpenFilterDrawer(true)}
-                      appliedFiltersCount={appliedFiltersCount}
-                    />
+                    <FilterButton onClick={() => setOpenFilterDrawer(true)} appliedFiltersCount={appliedFiltersCount} />
                   </Grid>
                 </Grid>
               </Grid>
@@ -909,7 +917,7 @@ const ShipmentReport = () => {
         <ShipmentFilterDrawer
           setOpenFilterDrawer={setOpenFilterDrawer}
           openFilterDrawer={openFilterDrawer}
-          onApplyFilter={filterList => setFilteredData(filterList)}
+          onApplyFilter={handleFilter}
           selectedOptions={selectedOptions}
           setSelectedOptions={setSelectedOptions}
           pharmacyList={pharmacyList}

@@ -24,7 +24,6 @@ import {
   getAnimalAssessment,
   getEnclosureAssessment
 } from 'src/lib/api/report'
-
 import { AuthContext } from 'src/context/AuthContext'
 import Error404 from 'src/pages/404'
 

@@ -662,7 +662,7 @@ const AddLocalDispatch = () => {
         console.log('cancelRequest result', result)
         if (result?.data?.success === true) {
           toast.success(result?.data?.data)
-          Router.replace(`/pharmacy/local-dispatch/local-dispatch-list/`)
+          Router.replace(`/pharmacy/local-dispatch/`)
         } else {
           toast.error(result?.data?.data)
           setDeleteDialog(false)
@@ -916,12 +916,7 @@ const AddLocalDispatch = () => {
                 >
                   Total Dispatch Value: {console.log('totalDispatchValue', totalDispatchValue)}
                   <Typography component='span' variant='body2' sx={{ color: 'primary.light' }}>
-                    {totalDispatchValue == null ||
-                    totalDispatchValue == '0' ||
-                    totalDispatchValue == 0 ||
-                    isNaN(totalDispatchValue)
-                      ? Utility.formatAmountToReadableDigit(0)
-                      : Utility.formatAmountToReadableDigit(totalDispatchValue.toString())}
+                    {Utility.formatAmountToReadableDigit(totalDispatchValue)}
                   </Typography>
                 </Typography>
               </Stack>
@@ -1003,9 +998,7 @@ const AddLocalDispatch = () => {
 
                                 <TableCell>{el.request_item_qty}</TableCell>
                                 <TableCell sx={{ borderBottomColor: 'customColors.customTableBorderBg' }}>
-                                  {el.unit_price == null || el.unit_price == '0'
-                                    ? Utility.formatAmountToReadableDigit('0')
-                                    : Utility.formatAmountToReadableDigit(el.unit_price)}
+                                  {Utility.formatAmountToReadableDigit(el.unit_price)}
                                 </TableCell>
                                 <TableCell sx={{ borderBottomColor: 'customColors.customTableBorderBg' }}>
                                   {Utility.formatAmountToReadableDigit(el.request_item_qty * el.unit_price)}

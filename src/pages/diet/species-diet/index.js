@@ -6,22 +6,17 @@ import { DataGrid } from '@mui/x-data-grid'
 import { debounce } from 'lodash'
 import {
   Avatar,
-  Button,
   Tooltip,
   Box,
   Breadcrumbs,
   TextField,
-  LinearProgress,
-  Dialog,
-  DialogTitle,
-  DialogContent,
-  DialogActions,
   Grid,
   FormControl,
   InputLabel,
   Select,
   MenuItem,
-  CircularProgress
+  CircularProgress,
+  Badge
 } from '@mui/material'
 
 // ** MUI Imports
@@ -34,15 +29,12 @@ import { useTheme } from '@mui/material/styles'
 
 import { AuthContext } from 'src/context/AuthContext'
 import Utility from 'src/utility'
-import ErrorScreen from 'src/pages/Error'
-// import DashboardFilter from './speciesDietFilter'
-import SpeciesDetails from './speciesDetails'
+import SpeciesDetails from '../../../components/diet/species-diet/speciesDetails'
+import UploadDiet from '../../../components/diet/species-diet/uploadDiet'
 import { getSpeciesList, speciesAttachmentUpload } from 'src/lib/api/diet/speciesDiet'
-import Toaster from 'src/components/Toaster'
-import UploadDiet from './uploadDiet'
 import Error404 from 'src/pages/404'
 import SpeciesDietFilterDrawer from 'src/views/pages/diet/species/SpeciesDietFilterDrawer'
-import { ExportButton, FilterButton } from 'src/views/utility/render-snippets'
+import { FilterButton } from '../../../views/utility/render-snippets'
 
 const SpeciesDietList = () => {
   const colWidths = [65, 300, 200, 100]
@@ -50,8 +42,8 @@ const SpeciesDietList = () => {
   const [total, setTotal] = useState(0)
   const [rows, setRows] = useState([])
   const [searchValue, setSearchValue] = useState('')
-  // const [sortColumning, setsortColumning] = useState('ingredient_name')
-  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 25 })
+  const [sortModel, setSortModel] = useState([{ field: 'scientific_name', sort: 'asc' }])
+  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [loading, setLoading] = useState(false)
 
   const [speciesDetailsDrawer, setSpeciesDetailsDrawer] = useState(false) // has to be modified
@@ -63,7 +55,7 @@ const SpeciesDietList = () => {
   const [openFilterDrawer, setOpenFilterDrawer] = useState(false)
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedFiltersOptions, setSelectedFiltersOptions] = useState({})
-
+  const [filterCount, setFilterCount] = useState(0)
   const [selectedOptions, setSelectedOptions] = useState({
     Class: []
   })
@@ -135,7 +127,7 @@ const SpeciesDietList = () => {
   }
 
   const fetchTableData = useCallback(
-    async q => {
+    async (q, newModel) => {
       try {
         const classIds = selectedFiltersOptions?.Class?.map(option => option.id) || []
         ///////////////////////Filter-Code////////////////////////////
@@ -154,6 +146,8 @@ const SpeciesDietList = () => {
           page_no: paginationModel.page + 1,
           limit: paginationModel.pageSize,
           with_diet: filterByDiet,
+          sort_order: newModel?.sort?.toUpperCase(),
+          // sort_by: newModel?.field,
           class_ids: classIds?.length > 0 ? classIds.toString() : ''
         }
         await getSpeciesList(params).then(res => {
@@ -177,9 +171,7 @@ const SpeciesDietList = () => {
   )
 
   useEffect(() => {
-    if (dietModule) {
-      fetchTableData(searchValue)
-    }
+    fetchTableData(searchValue)
   }, [fetchTableData, selectedFiltersOptions])
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
@@ -189,7 +181,10 @@ const SpeciesDietList = () => {
     sl_no: getSlNo(index)
   }))
 
-  const handleSortModel = newModel => {}
+  const handleSortModel = newModel => {
+    setSortModel(newModel)
+    fetchTableData(searchValue, newModel[0])
+  }
 
   const searchTableData = useCallback(
     debounce(async q => {
@@ -213,50 +208,11 @@ const SpeciesDietList = () => {
     setSpeciesDietDropdown(newValue)
   }
 
-  const handleFileUpload = async (event, speciesid) => {
-    const file = event?.target?.files[0]
-    // const fileList = event?.target?.files
-    // console.log('speciesIdup', speciesId)
-
-    const allowedTypes = [
-      'application/pdf'
-      // 'image/jpeg',
-      // 'image/png',
-      // 'image/gif',
-      // 'application/msword',
-      // 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-      // 'application/vnd.ms-excel',
-      // 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
-      // 'text/csv'
-    ]
-    if (!file || !allowedTypes.includes(file.type)) {
-      Toaster({ type: 'error', message: 'Please select a valid file.' })
-
-      return
-    }
-    // commented both setState for fixing attachment width UI for table
-    // setAttachmentWidth(prev => prev - 150)
-    setUploadingAttachment(true)
-
-    try {
-      const res = await speciesAttachmentUpload({ species_id: speciesid, attachment: file })
-      Toaster({ type: 'success', message: res.message })
-      fetchTableData()
-    } catch (error) {
-      Toaster({ type: 'error', message: error.message || 'File upload failed.' })
-    } finally {
-      event.target.value = null
-      // setAttachmentWidth(prev => prev + 150)
-      setUploadingAttachment(false)
-      // closeattachmentUploadConfirmDialog()
-    }
-  }
-
   const columns = [
     {
       width: colWidths[0],
       field: 'id',
-      headerName: 'sl.no',
+      headerName: 'SL',
       align: 'center',
       sortable: false,
       renderCell: params => (
@@ -277,7 +233,7 @@ const SpeciesDietList = () => {
     {
       width: colWidths[1],
       sortable: false,
-      field: 'species',
+      field: 'scientific_name',
       headerName: 'SPECIES',
       renderCell: params => (
         <Box onClick={() => setSpeciesDetailsDrawer(true)} sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -348,7 +304,7 @@ const SpeciesDietList = () => {
       field: 'attachment_count',
       headerName: 'ACTIVE DIETS',
       renderCell: params => (
-        <Tooltip title={params.row.attachment_count ? params.row.attachment_count : '-'}>
+        <Tooltip title={params.row.attachment_count ? params.row.attachment_count : 0}>
           <Typography
             noWrap
             sx={{
@@ -361,7 +317,7 @@ const SpeciesDietList = () => {
               ml: 2
             }}
           >
-            {params.row.attachment_count ? params.row.attachment_count : '-'}
+            {params.row.attachment_count ? params.row.attachment_count : 0}
           </Typography>
         </Tooltip>
       )
@@ -397,7 +353,7 @@ const SpeciesDietList = () => {
     //   field: 'inactive_attachment_count',
     //   headerName: 'INACTIVE DIETS',
     //   renderCell: params => (
-    //     <Tooltip title={params.row.inactive_attachment_count ? params.row.inactive_attachment_count : '-'}>
+    //     <Tooltip title={params.row.inactive_attachment_count ? params.row.inactive_attachment_count : 0}>
     //       <Typography
     //         noWrap
     //         sx={{
@@ -410,7 +366,7 @@ const SpeciesDietList = () => {
     //           ml: 2
     //         }}
     //       >
-    //         {params.row.inactive_attachment_count ? params.row.inactive_attachment_count : '-'}
+    //         {params.row.inactive_attachment_count ? params.row.inactive_attachment_count : 0}
     //       </Typography>
     //     </Tooltip>
     //   )
@@ -676,6 +632,7 @@ const SpeciesDietList = () => {
     {
       // width: colWidths[3],
       flex: 1,
+      minWidth: 100,
       sortable: false,
       field: 'diet_attachment_upload',
       headerName: 'Action',
@@ -695,7 +652,13 @@ const SpeciesDietList = () => {
                   setUploadDietDrawer(true)
                   // fileInputRef.current.click()
                 }}
-                sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '8px' }}
+                sx={{
+                  width: '80px',
+                  display: 'flex',
+                  justifyContent: 'end',
+                  alignItems: 'center',
+                  gap: '8px'
+                }}
               >
                 <Typography
                   sx={{
@@ -721,9 +684,6 @@ const SpeciesDietList = () => {
         </>
       )
     }
-    ///////////////////////Code-For-Show-Rsponsive-Multiple-Attachment////////////////////////////
-
-    ////////////////////////////////////////////////////////////////////////////////
   ]
 
   const handleExport = async () => {
@@ -760,9 +720,6 @@ const SpeciesDietList = () => {
   }
 
   const onCellClick = e => {
-    // console.log('e.row.species_id', e.row)
-    // console.log('e.field', e.field)
-    // console.log('e.field', e)
     const scientific_name = e.row.scientific_name
     const common_name = e.row.common_name
     const default_icon = e.row.default_icon
@@ -787,149 +744,152 @@ const SpeciesDietList = () => {
             </Typography>
           </Breadcrumbs>
           <Card>
-            <Box
+            <Grid
+              container
               sx={{
-                m: 4,
-                display: 'flex',
+                marginY: 6,
                 flexDirection: 'row',
                 alignItems: 'center',
-                justifyContent: 'space-between'
+                justifyContent: 'space-between',
+                rowGap: 4
               }}
             >
-              <Typography
-                sx={{
-                  color: theme.palette.customColors.OnSurfaceVariant,
-                  fontWeight: '500',
-                  fontSize: '24px',
-                  lineHeight: '29.05px'
-                }}
-              >
-                Species Diet
-              </Typography>
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                <Box>
-                  <FormControl
-                    sx={{
-                      width: { xs: '98%', sm: 200, md: 200 },
-                      ml: { xs: 1, sm: 2, md: 1 },
-                      mt: { xs: 3, sm: 0, md: 0 }
-                    }}
-                  >
-                    <InputLabel id='controlled-select-label'>Filter Species</InputLabel>
-                    <Select
-                      onChange={e => {
-                        setFilterByDiet(e.target.value)
-                      }}
-                      label='Filter Species'
-                      value={filterByDiet}
-                      id='controlled-select'
-                      labelId='controlled-select-label'
-                      sx={{ width: '100%' }}
-                      size='small'
-                    >
-                      <MenuItem value='-1'>All</MenuItem>
-                      <MenuItem value='1'>Species With Diet</MenuItem>
-                      <MenuItem value='0'>Species Without Diet</MenuItem>
-                    </Select>
-                  </FormControl>
-                </Box>
+              <Grid item xs={12} sm={3.5}>
+                <Typography
+                  sx={{
+                    marginLeft: 4,
+                    color: theme.palette.customColors.OnSurfaceVariant,
+                    fontWeight: '500',
+                    fontSize: '24px',
+                    lineHeight: '29.05px'
+                  }}
+                >
+                  Species Diet
+                </Typography>
+              </Grid>
+              <Grid item xs={12} sm={8}>
+                <Grid container sx={{ justifyContent: 'flex-end', alignItems: 'center', gap: 2 }}>
+                  <Grid item xs={12} sm={12} md={'auto'} xl={'auto'}>
+                    <Box sx={{ display: 'flex', justifyContent: 'flex-end', marginRight: { xs: 4, md: 0 } }}>
+                      <FormControl sx={{ minWidth: 250 }}>
+                        <InputLabel id='controlled-select-label'>Filter Species</InputLabel>
+                        <Select
+                          onChange={e => {
+                            setFilterByDiet(e.target.value)
+                          }}
+                          label='Filter Species'
+                          value={filterByDiet}
+                          id='controlled-select'
+                          labelId='controlled-select-label'
+                          sx={{ width: '100%' }}
+                          size='small'
+                        >
+                          <MenuItem value='-1'>All</MenuItem>
+                          <MenuItem value='1'>Species With Diet</MenuItem>
+                          <MenuItem value='0'>Species Without Diet</MenuItem>
+                        </Select>
+                      </FormControl>
+                    </Box>
+                  </Grid>
 
-                <Box
-                  sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    border: '1px solid #C3CEC7',
-                    borderRadius: '4px',
-                    padding: '0 8px',
-                    height: '40px'
-                  }}
-                >
-                  <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.OnSurfaceVariant} />
-                  <TextField
-                    value={searchValue}
-                    // clearSearch={() => handleSearch('')}
-                    onChange={event => handleSearch(event.target.value)}
-                    variant='outlined'
-                    placeholder='Search...'
-                    InputProps={
-                      {
-                        // disableUnderline: true
-                      }
-                    }
-                    sx={{
-                      '& .MuiOutlinedInput-root': {
-                        border: 'none',
-                        padding: '0',
-                        '& fieldset': {
-                          border: 'none'
-                        }
-                      }
-                    }}
-                  />
-                </Box>
-                <Box>
-                  <ExportButton loading={loading || exportLoading} onClick={handleExport} />
-                </Box>
-                <Box>
-                  <FilterButton
-                    onClick={() => setOpenFilterDrawer(true)}
-                    appliedFiltersCount={selectedFiltersOptions['Class']?.length}
-                  />
-                </Box>
-                {/* <Box>
-                  <Tooltip title='Export'>
-                    <>
-                      {loading || exportLoading ? (
-                        <Box
+                  <Grid
+                    item
+                    xs={12}
+                    sm={12}
+                    md={'auto'}
+                    xl={'auto'}
+                    sx={{ display: 'flex', justifyContent: 'flex-end', marginLeft: { xs: 4, md: 0 }, marginRight: 4 }}
+                  >
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        gap: 2,
+                        height: '40px'
+                      }}
+                    >
+                      <Box
+                        sx={{
+                          minWidth: 250,
+                          display: 'flex',
+                          alignItems: 'center',
+                          border: '1px solid #C3CEC7',
+                          borderRadius: '4px',
+                          padding: '0 8px',
+                          height: '40px'
+                        }}
+                      >
+                        <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.OnSurfaceVariant} />
+                        <TextField
+                          value={searchValue}
+                          // clearSearch={() => handleSearch('')}
+                          onChange={event => handleSearch(event.target.value)}
+                          variant='outlined'
+                          placeholder='Search...'
+                          InputProps={
+                            {
+                              // disableUnderline: true
+                            }
+                          }
                           sx={{
-                            display: 'flex',
-                            justifyContent: 'center',
-                            width: '40px',
-                            height: '40px',
-                            borderRadius: '4px',
-                            bgcolor: theme?.palette.customColors?.lightBg,
-                            alignItems: 'center',
-                            cursor: 'pointer'
+                            '& .MuiOutlinedInput-root': {
+                              border: 'none',
+                              padding: '0',
+                              '& fieldset': {
+                                border: 'none'
+                              }
+                            }
                           }}
-                        >
-                          <CircularProgress color='success' size={30} />
-                        </Box>
-                      ) : (
-                        <Box
-                          sx={{
-                            display: 'flex',
-                            justifyContent: 'center',
-                            width: '40px',
-                            height: '40px',
-                            borderRadius: '4px',
-                            bgcolor: theme?.palette.customColors?.lightBg,
-                            alignItems: 'center',
-                            cursor: 'pointer'
-                          }}
-                          onClick={handleExport}
-                        >
-                          <Icon icon='ic:round-download' fontSize={20} />
-                        </Box>
-                      )}
-                    </>
-                  </Tooltip>
-                </Box>
-                <Box
-                  sx={{
-                    display: 'flex',
-                    justifyContent: 'center',
-                    width: '40px',
-                    height: '40px',
-                    borderRadius: '4px',
-                    bgcolor: theme?.palette.customColors?.lightBg,
-                    alignItems: 'center',
-                    cursor: 'pointer'
-                  }}
-                  onClick={() => setOpenFilterDrawer(true)}
-                >
-                  <Icon icon='mage:filter' fontSize={24} />
-                </Box> */}
-                {/* <Box
+                        />
+                      </Box>
+                      <Box>
+                        <Tooltip title='Export'>
+                          <>
+                            {loading || exportLoading ? (
+                              <Box
+                                sx={{
+                                  display: 'flex',
+                                  justifyContent: 'center',
+                                  width: '40px',
+                                  height: '40px',
+                                  borderRadius: '4px',
+                                  bgcolor: theme?.palette.customColors?.lightBg,
+                                  alignItems: 'center',
+                                  cursor: 'pointer'
+                                }}
+                              >
+                                <CircularProgress color='success' size={30} />
+                              </Box>
+                            ) : (
+                              <Box
+                                sx={{
+                                  display: 'flex',
+                                  justifyContent: 'center',
+                                  width: '40px',
+                                  height: '40px',
+                                  borderRadius: '4px',
+                                  bgcolor: theme?.palette.customColors?.lightBg,
+                                  alignItems: 'center',
+                                  cursor: 'pointer'
+                                }}
+                                onClick={handleExport}
+                              >
+                                <Icon icon='ic:round-download' fontSize={20} />
+                              </Box>
+                            )}
+                          </>
+                        </Tooltip>
+                      </Box>
+
+                      <FilterButton
+                        onClick={() => setOpenFilterDrawer(true)}
+                        appliedFiltersCount={filterCount}
+                        icon='mage:filter'
+                        iconSize={24}
+                      />
+                    </Box>
+                  </Grid>
+
+                  {/* <Box
               sx={{
                 display: 'flex',
                 justifyContent: 'center',
@@ -976,18 +936,10 @@ const SpeciesDietList = () => {
                 </Box>
               )}
             </Box> */}
-              </Box>
-            </Box>
-            {/* <input
-          type='file'
-          multiple
-          accept='application/pdf, image/*, application/msword, application/vnd.openxmlformats-officedocument.wordprocessingml.document, application/vnd.ms-excel, application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, text/csv'
-          ref={fileInputRef}
-          style={{ display: 'none' }}
-          onChange={e => {
-            handleFileUpload(e, speciesId)
-          }}
-        /> */}
+                </Grid>
+              </Grid>
+            </Grid>
+
             <DataGrid
               ref={gridRef}
               sx={{
@@ -1017,6 +969,7 @@ const SpeciesDietList = () => {
               pageSizeOptions={[7, 10, 25, 50]}
               paginationModel={paginationModel}
               onSortModelChange={handleSortModel}
+              sortModel={sortModel}
               onPaginationModelChange={setPaginationModel}
               loading={loading}
               // onRowClick={() => setSpeciesDetailsDrawer(true)}
@@ -1059,7 +1012,6 @@ const SpeciesDietList = () => {
               setUploadDietDrawer={setUploadDietDrawer}
             />
           )}
-
           {openFilterDrawer && (
             <SpeciesDietFilterDrawer
               setOpenFilterDrawer={setOpenFilterDrawer}
@@ -1069,66 +1021,9 @@ const SpeciesDietList = () => {
               setSelectedFiltersOptions={setSelectedFiltersOptions}
               selectedOptions={selectedOptions}
               setSelectedOptions={setSelectedOptions}
+              setFilterCount={setFilterCount}
             />
           )}
-
-          {/* <Dialog
-        open={attachmentUploadConfirmDialog}
-        disableEscapeKeyDown
-        onClose={(event, reason) => {
-          if (reason !== 'backdropClick') {
-            closeattachmentUploadConfirmDialog()
-          }
-        }}
-      >
-        <Box sx={{ backgroundColor: '#fff', padding: '40px' }}>
-          <Typography
-            sx={{
-              color: theme.palette.customColors.OnSurfaceVariant,
-              fontSize: '16px',
-              fontWeight: 400,
-              lineHeight: '19.36px',
-              textAlign: 'center',
-              mb: '32px'
-            }}
-          >
-            New upload will become the primary diet for this species. You can still edit this later.{' '}
-          </Typography>
-          <Box
-            sx={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              gap: '24px',
-              width: '100%'
-            }}
-          >
-            <Button
-              sx={{ width: '100%', height: '58px' }}
-              variant='outlined'
-              size='small'
-              disabled={uploadingAttachment}
-              onClick={() => closeattachmentUploadConfirmDialog()}
-            >
-              Cancel
-            </Button>
-            <Button
-              sx={{ zIndex: 10000, width: '100%', height: '58px' }}
-              variant='contained'
-              size='small'
-              disabled={uploadingAttachment}
-              onClick={event => {
-                event.stopPropagation() // Stop event propagation
-                console.log('speciesId', speciesId)
-                // setspeciesId(speciesId)
-                fileInputRef.current.click()
-                setspeciesId(speciesId)
-              }}
-            >
-              {uploadingAttachment ? 'Uploading' : 'Continue'}
-            </Button>
-          </Box>
-        </Box>
-      </Dialog> */}
         </>
       ) : (
         <>

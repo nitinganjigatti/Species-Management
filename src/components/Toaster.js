@@ -4,10 +4,10 @@ import Icon from 'src/@core/components/icon'
 import toast from 'react-hot-toast'
 import { IconButton, Divider, Typography } from '@mui/material'
 
-const Toaster = ({ type = 'success', message }) => {
+const Toaster = ({ type = 'success', message, ignoreCase = false }) => {
   function toSentenceCase(str) {
-    if (!str) return str
-    return str.charAt(0).toUpperCase() + str.slice(1).toLowerCase()
+    if (!str?.trim()) return str
+    return str?.charAt(0).toUpperCase() + str.slice(1).toLowerCase()
   }
 
   return toast(
@@ -37,7 +37,7 @@ const Toaster = ({ type = 'success', message }) => {
             </Typography>
             <Divider sx={{ my: 2, width: '360px' }} />
             <Typography sx={{ fontWeight: 400, color: '#44544A', fontSize: '14px' }}>
-              {toSentenceCase(message)}
+              {ignoreCase === true ? message : toSentenceCase(message)}
             </Typography>
           </div>
         </Box>

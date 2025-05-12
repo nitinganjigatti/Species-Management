@@ -137,10 +137,9 @@ const RoomsList = () => {
 
   const columns = [
     {
-      flex: 0.05,
-      Width: 40,
+      minWidth: 80,
       field: 'id',
-      headerName: 'NO ',
+      headerName: 'SL.NO',
       sortable: false,
       align: 'center',
       renderCell: params => (
@@ -274,7 +273,7 @@ const RoomsList = () => {
               width: 30,
               height: 30,
               borderRadius: '50%',
-              background: '#E8F4F2',
+              background: theme.palette.customColors.displaybgPrimary,
               overflow: 'hidden'
             }}
           >
@@ -300,7 +299,7 @@ const RoomsList = () => {
             >
               {params.row.user_full_name ? params.row.user_full_name : '-'}
             </Typography>
-            <Typography noWrap sx={{ color: '#44544a9c', fontSize: 12 }}>
+            <Typography noWrap sx={{ color: theme.palette.customColors.neutralSecondary, fontSize: 12 }}>
               {params.row.created_at
                 ? 'Created on' + ' ' + Utility.formatDisplayDate(Utility.convertUTCToLocal(params.row.created_at))
                 : '-'}
@@ -438,7 +437,7 @@ const RoomsList = () => {
                           sx={{
                             display: 'flex',
                             alignItems: 'center',
-                            border: '1px solid #C3CEC7',
+                            border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                             borderRadius: '4px',
                             padding: '0 8px',
                             height: '40px'
@@ -489,8 +488,8 @@ const RoomsList = () => {
                             renderInput={params => (
                               <TextField
                                 sx={{
-                                  backgroundColor: '#fff',
-                                  borderColor: '1px solid #C3CEC7',
+                                  backgroundColor: theme.palette.primary.contrastText,
+                                  borderColor: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                                   width: '100%',
                                   '& .MuiOutlinedInput-root': {
                                     height: 40,
@@ -540,8 +539,8 @@ const RoomsList = () => {
                             renderInput={params => (
                               <TextField
                                 sx={{
-                                  backgroundColor: '#fff',
-                                  borderColor: '1px solid #C3CEC7',
+                                  backgroundColor: theme.palette.primary.contrastText,
+                                  borderColor: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                                   width: '100%',
                                   '& .MuiOutlinedInput-root': {
                                     height: 40,

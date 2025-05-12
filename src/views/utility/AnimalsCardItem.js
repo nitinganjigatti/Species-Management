@@ -54,53 +54,55 @@ const AnimalCardItem = ({ species, children, theme, tempSelectedSpecies, selecti
       <ListItemText
         primary={
           <>
-            <Typography
-              variant='body2'
-              sx={{
-                color: theme.palette.customColors.OnSurfaceVariant,
-                fontSize: '14px',
-                fontWeight: 600,
-                display: 'flex'
-              }}
-            >
-              {species.primary_identifier_type && species.identifier
-                ? `${species.primary_identifier_type}: ${species.identifier}`
-                : species.animal_id
-                ? `AID: ${species.animal_id}`
-                : 'AID: -'}
-              {speciesview === 'details' && species.is_primary === '1' ? (
-                <Typography
-                  variant='body2'
-                  sx={{
-                    color: theme.palette.customColors.OnSurfaceVariant,
-                    fontSize: '14px',
-                    fontWeight: 400,
-                    background: '#37bd6924',
-                    width: '24%',
-                    pl: '5px',
-                    py: '1px',
-                    borderRadius: '4px',
-                    mb: '2px',
-                    ml: '10px'
-                  }}
-                >
-                  Primary Diet
-                </Typography>
-              ) : (
-                ''
-              )}
-            </Typography>
-            <Typography
-              variant='body2'
-              sx={{
-                color: theme.palette.customColors.OnSurfaceVariant,
-                fontSize: '16px',
-                fontWeight: 400,
-                fontStyle: 'italic'
-              }}
-            >
-              {species.default_common_name ? species.default_common_name : '-'}
-            </Typography>
+            <Box sx={{ width: '100%' }}>
+              <Typography
+                variant='body2'
+                sx={{
+                  color: theme.palette.customColors.OnSurfaceVariant,
+                  fontSize: '14px',
+                  fontWeight: 600,
+                  display: 'flex'
+                }}
+              >
+                {species.primary_identifier_type && species.identifier
+                  ? `${species.primary_identifier_type}: ${species.identifier}`
+                  : species.animal_id
+                  ? `AID: ${species.animal_id}`
+                  : 'AID: -'}
+                {speciesview === 'details' && species.is_primary === '1' ? (
+                  <Typography
+                    variant='body2'
+                    sx={{
+                      color: theme.palette.customColors.OnSurfaceVariant,
+                      fontSize: '14px',
+                      fontWeight: 400,
+                      background: '#37bd6924',
+                      width: 'auto',
+                      px: '5px',
+                      py: '2px',
+                      borderRadius: '4px',
+                      mb: '2px',
+                      ml: '10px'
+                    }}
+                  >
+                    Primary Diet
+                  </Typography>
+                ) : (
+                  ''
+                )}
+              </Typography>
+              <Typography
+                variant='body2'
+                sx={{
+                  color: theme.palette.customColors.OnSurfaceVariant,
+                  fontSize: '16px',
+                  fontWeight: 400,
+                  fontStyle: 'italic'
+                }}
+              >
+                {species.default_common_name ? species.default_common_name : '-'}
+              </Typography>
+            </Box>
           </>
         }
         primaryTypographyProps={{

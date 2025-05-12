@@ -753,7 +753,7 @@ const AddRequestForm = () => {
         if (result?.data?.success === true) {
           closeCancelDialog()
           toast.success(result?.data?.data)
-          Router.push(`/pharmacy/request/request-list/`)
+          Router.push(`/pharmacy/request/`)
         } else {
           closeCancelDialog()
           toast.error(result?.data?.data)
@@ -845,12 +845,14 @@ const AddRequestForm = () => {
                         <Typography>{option.name}</Typography>
                         <Typography variant='body2'>{option.package}</Typography>
                         <Typography variant='body2'>{option.manufacture}</Typography>
-                        {option.control_substance === true && (
+                        {/* {option.control_substance === true && (
                           <CustomChip label='CS' skin='light' color='success' size='small' />
-                        )}{' '}
-                        {option.prescription_required === true && (
+                        )}{' '} */}
+                        {RenderUtility?.renderControlLabel(option.control_substance === true, 'CS')}
+                        {RenderUtility?.renderPrescriptionLabel(option.prescription_required === true, 'PR')}
+                        {/* {option.prescription_required === true && (
                           <CustomChip label='PR' skin='light' color='success' size='small' />
-                        )}
+                        )} */}
                         {/* <Typography
                           sx={{
                             color: 'customColors.OnSecondaryContainer',
@@ -1078,7 +1080,7 @@ const AddRequestForm = () => {
               }}
             >
               <Typography sx={{ fontWeight: 400, fontFamily: 'Inter', fontSize: '12px', mb: 1 }}>
-                Available Packing:{' '}
+                Package:{' '}
                 <span style={{ fontWeight: 400, fontSize: '12px', color: 'customColors.OnPrimaryContainer' }}>
                   {nestedRowMedicine?.package}
                 </span>
@@ -1140,6 +1142,7 @@ const AddRequestForm = () => {
             <FormControl fullWidth>
               <TextField
                 type='number'
+                onWheel={event => event.target.blur()}
                 value={nestedRowMedicine.request_item_qty}
                 error={Boolean(itemErrors.request_item_qty)}
                 label='Quantity*'
@@ -1158,7 +1161,9 @@ const AddRequestForm = () => {
               {nestedRowMedicine?.unit_price > 0 ? (
                 <Box sx={{ mx: 1, my: 2, display: 'flex' }}>
                   <Chip
-                    label={`Unit Price - ${nestedRowMedicine?.unit_price}`}
+                    label={`Unit Price - ${Utility?.formatAmountToReadableDigit(
+                      Number(nestedRowMedicine?.unit_price)
+                    )}`}
                     variant='outlined'
                     size='sm'
                     sx={{
@@ -1175,7 +1180,9 @@ const AddRequestForm = () => {
                     }}
                   />
                   <Chip
-                    label={`Total QTY Price - ${nestedRowMedicine?.unit_price * nestedRowMedicine?.request_item_qty}`}
+                    label={`Total QTY Price - ${Utility?.formatAmountToReadableDigit(
+                      Number(nestedRowMedicine?.unit_price * nestedRowMedicine?.request_item_qty)
+                    )}`}
                     variant='outlined'
                     size='sm'
                     sx={{
@@ -1621,6 +1628,12 @@ const AddRequestForm = () => {
                   nestedRowMedicine.prescription_required_file?.type === 'image/jpeg' ? (
                   <>
                     <Chip
+                      onClick={() => {
+                        if (nestedRowMedicine.prescription_required_file) {
+                          const previewUrl = URL.createObjectURL(nestedRowMedicine.prescription_required_file)
+                          window.open(previewUrl, '_blank')
+                        }
+                      }}
                       sx={{
                         backgroundColor: 'customColors.lightBg',
                         height: '56px',
@@ -1628,7 +1641,8 @@ const AddRequestForm = () => {
                         borderRadius: '8px',
                         fontSize: '14px',
                         fontWeight: '400',
-                        position: 'relative'
+                        position: 'relative',
+                        cursor: 'pointer'
                       }}
                       label={
                         <Typography
@@ -1943,7 +1957,7 @@ const AddRequestForm = () => {
             <Icon
               style={{ cursor: 'pointer' }}
               onClick={() => {
-                Router.push('/pharmacy/request/request-list/')
+                Router.push('/pharmacy/request/')
               }}
               icon='ep:back'
             />
@@ -1954,7 +1968,7 @@ const AddRequestForm = () => {
       <CardContent>
         <Grid container>
           <CommonDialogBox
-            title={'Add Request Item'}
+            title={'Add Request Item '}
             dialogBoxStatus={show}
             formComponent={createForm()}
             close={closeDialog}
@@ -2239,7 +2253,7 @@ const AddRequestForm = () => {
                           {/* Name and chips in a flex container */}
                           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
                             {RenderUtility?.renderControlLabel(el.control_substance === true, 'CS')}
-                            {RenderUtility?.renderControlLabel(el.prescription_required === true, 'PR')}
+                            {RenderUtility?.renderPrescriptionLabel(el.prescription_required === true, 'PR')}
                             {/* {el.control_substance ? (
                               <CustomChip
                                 label='CS'

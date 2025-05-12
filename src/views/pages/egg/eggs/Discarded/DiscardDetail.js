@@ -10,7 +10,8 @@ import {
   Tab,
   Divider,
   Chip,
-  Stack
+  Stack,
+  Tooltip
 } from '@mui/material'
 import Icon from 'src/@core/components/icon'
 import { useEffect, useState } from 'react'
@@ -96,16 +97,12 @@ const DiscardDetail = ({ setDetailDrawer, detailDrawer, eggDiscardedId, fetchTab
   }
 
   useEffect(() => {
-    if (eggDiscardedId) {
+    if (eggDiscardedId && detailDrawer) {
       if (status === 'Overview') {
         getSummary(eggDiscardedId)
         GetGalleryImgListFunc(eggDiscardedId)
         getEggListSummary(eggDiscardedId)
       }
-
-      //  else {
-
-      // }
     }
   }, [detailDrawer, status])
 
@@ -148,8 +145,6 @@ const DiscardDetail = ({ setDetailDrawer, detailDrawer, eggDiscardedId, fetchTab
         open={detailDrawer}
         sx={{
           '& .MuiDrawer-paper': { width: ['100%', '562px'], height: '100vh' }
-
-          // backgroundColor: 'background.default'
         }}
       >
         <Box
@@ -193,8 +188,6 @@ const DiscardDetail = ({ setDetailDrawer, detailDrawer, eggDiscardedId, fetchTab
           </TabPanel>
         </TabContext>
 
-        {/* drower */}
-
         <Box
           className='sidebar-body'
           onScroll={handleScroll}
@@ -202,10 +195,6 @@ const DiscardDetail = ({ setDetailDrawer, detailDrawer, eggDiscardedId, fetchTab
             backgroundColor: 'background.default',
             height: '90%',
             overflowY: 'auto'
-
-            // display: 'flex'
-
-            // justifyContent: 'center'
           }}
         >
           {status === 'Overview' ? (
@@ -215,11 +204,11 @@ const DiscardDetail = ({ setDetailDrawer, detailDrawer, eggDiscardedId, fetchTab
                   sx={{
                     mt: 4,
                     p: '20px 16px 20px 16px',
-                    bgcolor: '#fff',
+                    bgcolor: theme.palette.primary.contrastText,
                     borderRadius: '8px',
                     gap: '24px',
                     border: 1,
-                    borderColor: '#c3cec7'
+                    borderColor: theme.palette.customColors.OutlineVariant
                   }}
                 >
                   <Box sx={{ display: 'flex', alignItems: 'center', flexDirection: 'row', gap: '24px' }}>
@@ -233,7 +222,7 @@ const DiscardDetail = ({ setDetailDrawer, detailDrawer, eggDiscardedId, fetchTab
                     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, width: '340px' }}>
                       <Box
                         sx={{
-                          bgcolor: '#FFD3D3',
+                          bgcolor: theme.palette.customColors.AntzTertiary,
                           widows: '340px',
                           height: '60px',
                           px: '12px',
@@ -258,7 +247,7 @@ const DiscardDetail = ({ setDetailDrawer, detailDrawer, eggDiscardedId, fetchTab
                             sx={{
                               fontWeight: 500,
                               fontSize: '14px',
-                              color: '#44544A'
+                              color: theme.palette.customColors.OnSurfaceVariant
                             }}
                           >
                             Nursery
@@ -269,7 +258,7 @@ const DiscardDetail = ({ setDetailDrawer, detailDrawer, eggDiscardedId, fetchTab
                           sx={{
                             fontWeight: 500,
                             fontSize: '16px',
-                            color: '#44544A',
+                            color: theme.palette.customColors.OnSurfaceVariant,
                             ml: 7
                           }}
                         >
@@ -278,7 +267,7 @@ const DiscardDetail = ({ setDetailDrawer, detailDrawer, eggDiscardedId, fetchTab
                       </Box>
                       <Box
                         sx={{
-                          bgcolor: '#FFD3D3',
+                          bgcolor: theme.palette.customColors.AntzTertiary,
                           widows: '340px',
                           height: '60px',
                           px: '12px',
@@ -303,7 +292,7 @@ const DiscardDetail = ({ setDetailDrawer, detailDrawer, eggDiscardedId, fetchTab
                             sx={{
                               fontWeight: 500,
                               fontSize: '14px',
-                              color: '#44544A'
+                              color: theme.palette.customColors.OnSurfaceVariant
                             }}
                           >
                             Discard
@@ -314,11 +303,11 @@ const DiscardDetail = ({ setDetailDrawer, detailDrawer, eggDiscardedId, fetchTab
                           sx={{
                             fontWeight: 500,
                             fontSize: '16px',
-                            color: '#44544A',
+                            color: theme.palette.customColors.OnSurfaceVariant,
                             ml: 7
                           }}
                         >
-                          {summary?.egg_count ? summary?.egg_count : '-'} Eggs
+                          {summary?.egg_count ? summary?.egg_count : '-'} {summary?.egg_count < 1 ? 'Eggs' : 'Egg'}
                         </Typography>
                       </Box>
                     </Box>
@@ -330,7 +319,7 @@ const DiscardDetail = ({ setDetailDrawer, detailDrawer, eggDiscardedId, fetchTab
                       height: '64px',
                       borderRadius: '8px',
                       gap: '12px',
-                      bgcolor: '#FCF4AE',
+                      bgcolor: theme.palette.customColors.antzNotes,
                       mt: '20px',
                       p: '12px'
                     }}
@@ -339,41 +328,93 @@ const DiscardDetail = ({ setDetailDrawer, detailDrawer, eggDiscardedId, fetchTab
                       sx={{
                         fontWeight: 500,
                         fontSize: '14px',
-                        color: '#44544A'
+                        color: theme.palette.customColors.OnSurfaceVariant
                       }}
                     >
                       Notes
                     </Typography>
-                    <Typography
-                      sx={{
-                        fontWeight: 500,
-                        fontSize: '16px',
-                        color: '#44544A'
-                      }}
+                    <Tooltip
+                      title={
+                        <div
+                          style={{
+                            maxHeight: 150,
+                            overflowY: 'auto',
+                            whiteSpace: 'normal',
+                            /* Firefox scrollbar */
+                            scrollbarWidth: 'thin',
+                            scrollbarColor: 'rgba(255, 255, 255, 0.2) transparent'
+                          }}
+                        >
+                          <div
+                            style={{
+                              /* Webkit scrollbar styles (Chrome, Edge, Safari) */
+                              display: 'inline-block',
+                              width: '100%',
+                              height: '100%',
+                              scrollbarWidth: 'thin',
+                              /* These only apply in WebKit browsers */
+                              WebkitScrollbarWidth: 'thin'
+                            }}
+                          >
+                            {summary?.reason ? summary?.reason : '-'}
+                          </div>
+                          <style>
+                            {`
+                              div::-webkit-scrollbar {
+                                width: 6px;
+                              }
+                              div::-webkit-scrollbar-thumb {
+                                background-color: rgba(255, 255, 255, 0.2);
+                                border-radius: 4px;
+                              }
+                              div::-webkit-scrollbar-track {
+                                background: transparent;
+                              }
+                           `}
+                          </style>
+                        </div>
+                      }
                     >
-                      {summary?.reason ? summary?.reason : '-'}
-                    </Typography>
+                      <Typography
+                        sx={{
+                          fontWeight: 500,
+                          fontSize: '16px',
+                          color: theme.palette.customColors.OnSurfaceVariant,
+                          lineHeight: '19.36px',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap'
+                        }}
+                      >
+                        {summary?.reason ? summary?.reason : '-'}
+                      </Typography>
+                    </Tooltip>
                   </Box>
                 </Box>
               </Box>
-              <Typography
-                sx={{
-                  mt: 6,
-                  ml: 4,
-                  fontSize: '20px',
-                  fontWeight: 500,
-                  fontFamily: 'Inter',
-                  lineHeight: '24.2px',
-                  color: '#44544A'
-                }}
-              >
-                Added Photos
-              </Typography>
 
-              {/* image gallery */}
-              <Box sx={{ mb: summary?.activity_status === 'DISCARD_REQUEST_GENERATED' ? null : 45 }}>
-                <AddGallery galleryList={galleryList} />
-              </Box>
+              {galleryList?.length ? (
+                <>
+                  <Typography
+                    sx={{
+                      mt: 6,
+                      ml: 4,
+                      fontSize: '20px',
+                      fontWeight: 500,
+                      fontFamily: 'Inter',
+                      lineHeight: '24.2px',
+                      color: theme.palette.customColors.OnSurfaceVariant
+                    }}
+                  >
+                    Added Photos
+                  </Typography>
+
+                  {/* image gallery */}
+                  <Box sx={{ mb: summary?.activity_status === 'DISCARD_REQUEST_GENERATED' ? null : 45 }}>
+                    <AddGallery galleryList={galleryList} />
+                  </Box>
+                </>
+              ) : null}
 
               {summary?.activity_status === 'DISCARD_REQUEST_GENERATED' ? (
                 <Box
@@ -422,7 +463,7 @@ const DiscardDetail = ({ setDetailDrawer, detailDrawer, eggDiscardedId, fetchTab
                       display: 'flex',
                       gap: '12px',
                       borderRadius: '8px',
-                      bgcolor: '#FFD3D3'
+                      bgcolor: theme.palette.customColors.AntzTertiary
                     }}
                   >
                     <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
@@ -434,7 +475,7 @@ const DiscardDetail = ({ setDetailDrawer, detailDrawer, eggDiscardedId, fetchTab
                           height: 30,
                           mr: 4,
                           borderRadius: '50%',
-                          background: '#E8F4F2',
+                          background: theme.palette.customColors.displaybgPrimary,
                           overflow: 'hidden'
                         }}
                       >
@@ -445,7 +486,7 @@ const DiscardDetail = ({ setDetailDrawer, detailDrawer, eggDiscardedId, fetchTab
                             alt='Profile'
                           />
                         ) : (
-                          <Icon icon='mdi:user' fontSize={25} color={'#FA6140'} />
+                          <Icon icon='mdi:user' fontSize={25} color={theme.palette.customColors.Tertiary} />
                         )}
                       </Avatar>
 
@@ -469,7 +510,7 @@ const DiscardDetail = ({ setDetailDrawer, detailDrawer, eggDiscardedId, fetchTab
                             {Utility.extractHoursAndMinutes(Utility.convertUTCToLocal(summary?.requested_on))}
                           </Typography>
                         </Box>
-                        <Typography sx={{ fontSize: '14px', fontWeight: 500, color: '#E93353' }}>
+                        <Typography sx={{ fontSize: '14px', fontWeight: 500, color: theme.palette.customColors.Error }}>
                           {summary?.comments ? summary?.comments : '-'}
                         </Typography>
                       </Stack>
@@ -523,7 +564,7 @@ const DiscardDetail = ({ setDetailDrawer, detailDrawer, eggDiscardedId, fetchTab
                         display: 'flex',
                         gap: '12px',
                         borderRadius: '8px',
-                        bgcolor: '#FFD3D3'
+                        bgcolor: theme.palette.customColors.AntzTertiary
                       }}
                     >
                       <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
@@ -535,7 +576,7 @@ const DiscardDetail = ({ setDetailDrawer, detailDrawer, eggDiscardedId, fetchTab
                             height: 30,
                             mr: 4,
                             borderRadius: '50%',
-                            background: '#E8F4F2',
+                            background: theme.palette.customColors.tableHeaderBg,
                             overflow: 'hidden'
                           }}
                         >
@@ -546,7 +587,7 @@ const DiscardDetail = ({ setDetailDrawer, detailDrawer, eggDiscardedId, fetchTab
                               alt='Profile'
                             />
                           ) : (
-                            <Icon icon='mdi:user' fontSize={25} color={'#FA6140'} />
+                            <Icon icon='mdi:user' fontSize={25} color={theme.palette.customColors.Tertiary} />
                           )}
                         </Avatar>
 
@@ -574,7 +615,9 @@ const DiscardDetail = ({ setDetailDrawer, detailDrawer, eggDiscardedId, fetchTab
                                 : '-'}
                             </Typography>
                           </Box>
-                          <Typography sx={{ fontSize: '14px', fontWeight: 500, color: '#E93353' }}>
+                          <Typography
+                            sx={{ fontSize: '14px', fontWeight: 500, color: theme.palette.customColors.Error }}
+                          >
                             {summary?.comments ? summary?.comments : '-'}
                           </Typography>
                         </Stack>
@@ -594,7 +637,7 @@ const DiscardDetail = ({ setDetailDrawer, detailDrawer, eggDiscardedId, fetchTab
                             textTransform: 'uppercase',
                             fontSize: '15px',
                             fontWeight: 500,
-                            color: '#FA6140'
+                            color: theme.palette.customColors.Tertiary
                           }}
                         >
                           Canceled

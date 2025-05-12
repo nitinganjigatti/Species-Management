@@ -125,7 +125,7 @@ const EggActivityLogs = ({
             px: 4,
             position: 'sticky',
             top: 0,
-            backgroundColor: '#fff',
+            backgroundColor: theme.palette.primary.contrastText,
             boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)',
             zIndex: 100
           }}
@@ -240,16 +240,16 @@ const EggActivityLogs = ({
                           (showCommentIndex === index && item.status === 'Rotten')
                             ? theme.palette.formContent.tertiary
                             : item.status === 'Necropsy' || item.status === 'Discard' || item.status === 'Rotten'
-                            ? '#FFBDA84D'
+                            ? theme.palette.customColors.Tertiary30
                             : showCommentIndex === index
                             ? theme.palette.primary.light
-                            : '#37BD691A',
+                            : theme.palette.customColors.OnBackground,
                         // backgroundColor:
                         //   showCommentIndex === index
                         //     ? theme.palette.primary.light
                         //     : item.status === 'Necropsy' || item.status === 'Discard' || item.status === 'Rotten'
-                        //     ? '#FFBDA84D'
-                        //     : '#37BD691A',
+                        //     ? theme.palette.customColors.Tertiary30
+                        //     : theme.palette.customColors.OnBackground,
                         p: '16px',
                         transition: '0.4s ease-in-out',
                         display: 'flex',
@@ -270,20 +270,23 @@ const EggActivityLogs = ({
                             mb: '4px',
                             color:
                               showCommentIndex === index
-                                ? '#FFFFFF'
+                                ? theme.palette.primary.contrastText
                                 : item.status === 'Necropsy' || item.status === 'Discard' || item.status === 'Rotten'
                                 ? theme.palette.formContent.tertiary
                                 : theme.palette.primary.light
                           }}
                         >
-                          {item.status}
+                          {/* {item.status} */}
                         </Typography>
                         <Typography
                           sx={{
                             fontSize: 16,
                             fontWeight: showCommentIndex === index ? 500 : 400,
                             lineHeight: '19.36px',
-                            color: showCommentIndex === index ? '#fff' : theme.palette.primary.light
+                            color:
+                              showCommentIndex === index
+                                ? theme.palette.primary.contrastText
+                                : theme.palette.primary.light
                           }}
                         >
                           {item.action ? formatText(item.action) : '-'}
@@ -301,7 +304,10 @@ const EggActivityLogs = ({
                         <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'end' }}>
                           <Typography
                             sx={{
-                              color: showCommentIndex === index ? '#fff' : theme.palette.customColors.OnSurfaceVariant,
+                              color:
+                                showCommentIndex === index
+                                  ? theme.palette.primary.contrastText
+                                  : theme.palette.customColors.OnSurfaceVariant,
                               fontSize: 14,
                               mb: '4px',
                               fontWeight: 400,
@@ -312,7 +318,10 @@ const EggActivityLogs = ({
                           </Typography>
                           <Typography
                             sx={{
-                              color: showCommentIndex === index ? '#fff' : theme.palette.customColors.OnSurfaceVariant,
+                              color:
+                                showCommentIndex === index
+                                  ? theme.palette.primary.contrastText
+                                  : theme.palette.customColors.OnSurfaceVariant,
                               fontSize: 14,
                               fontWeight: 400,
                               lineHeight: '16.94px'
@@ -326,7 +335,7 @@ const EggActivityLogs = ({
                     <Collapse in={showCommentIndex === index} timeout={400} unmountOnExit>
                       <Typography
                         sx={{
-                          backgroundColor: '#FCF4AE',
+                          backgroundColor: theme.palette.customColors.antzNotes,
                           borderBottomLeftRadius: showCommentIndex === index ? '8px' : 'none',
                           borderBottomRightRadius: showCommentIndex === index ? '8px' : 'none',
                           mb: '4px',

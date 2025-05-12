@@ -63,8 +63,8 @@ const DiscardDialogBox = ({ openDiscardDialog, setOpenDiscardDialog, selectionEg
           gap: '24px'
         }}
       >
-        <Box sx={{ bgcolor: '#ffe5e5', p: '16px', borderRadius: '12px', mt: 10 }}>
-          <Icon icon='tdesign:error-triangle' fontSize={'48px'} color={'#E93353'} />
+        <Box sx={{ bgcolor: theme.palette.customColors.TertiaryLight, p: '16px', borderRadius: '12px', mt: 10 }}>
+          <Icon icon='tdesign:error-triangle' fontSize={'48px'} color={theme.palette.customColors.Error} />
         </Box>
         <Box>
           <Typography sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontSize: '24px', fontWeight: 600 }}>
@@ -80,7 +80,7 @@ const DiscardDialogBox = ({ openDiscardDialog, setOpenDiscardDialog, selectionEg
           <TextField
             multiline
             rows={2}
-            label='Add Comments*'
+            label='Add Comments'
             variant='outlined'
             fullWidth
             value={comments} // Bind the value to state

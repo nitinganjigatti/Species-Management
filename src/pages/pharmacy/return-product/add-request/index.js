@@ -626,7 +626,7 @@ const AddReturnRequest = () => {
         const result = await cancelReturnItemsRequest(id)
         if (result?.data?.success === true) {
           toast.success(result?.data?.data)
-          Router.replace(`/pharmacy/return-product/request-list/`)
+          Router.replace(`/pharmacy/return-product/`)
         } else {
           toast.error(result.data)
         }
@@ -822,7 +822,7 @@ const AddReturnRequest = () => {
                     {totalQty ? totalQty : '0'}
                   </Typography>
                 </Typography>
-                <Typography
+                {/* <Typography
                   variant='body2'
                   sx={{ color: 'customColors.neutralSecondary', fontSize: '14px', fontWeight: 400 }}
                 >
@@ -830,7 +830,7 @@ const AddReturnRequest = () => {
                   <Typography component='span' variant='body2' sx={{ color: 'primary.light' }}>
                     ₹0
                   </Typography>
-                </Typography>
+                </Typography> */}
               </Stack>
             </Box>
 

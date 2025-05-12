@@ -566,7 +566,7 @@ export const AddItemsForm = ({
                       color='customColors.neutralSecondary'
                       sx={{ fontWeight: 400, fontFamily: 'Inter', fontSize: '12px', mb: 1 }}
                     >
-                      Available Packing:
+                      Package:
                     </Typography>
                     <Typography
                       color='primary.light'
@@ -733,7 +733,7 @@ export const AddItemsForm = ({
                           <Typography variant='body2' color='customColors.neutralSecondary'>
                             Expiry Date: {Utility.formatDisplayDate(option.expiry_date)}
                           </Typography>
-                          <Typography variant='body2' color='customColors.Tertiary'>
+                          <Typography variant='body2' color='primary.main'>
                             Availability: {option.available_item_qty}
                           </Typography>
                         </Box>

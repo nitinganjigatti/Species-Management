@@ -92,7 +92,7 @@ const EggDisCarded = ({ eggList, getEggListSummary, fetchTableData, setDetailDra
             justifyContent: 'center',
             py: '20px',
             border: 1,
-            borderColor: '#c3cec7'
+            borderColor: theme.palette.customColors.OutlineVariant
           }}
 
           // onScroll={handleScroll}
@@ -104,7 +104,7 @@ const EggDisCarded = ({ eggList, getEggListSummary, fetchTableData, setDetailDra
                 sx={{
                   width: '482px',
                   height: '104px',
-                  border: '2px solid #FFD3D3',
+                  border: `2px solid ${theme.palette.customColors.AntzTertiary}`,
                   borderRadius: '8px',
                   display: 'flex',
                   gap: 4,
@@ -115,8 +115,8 @@ const EggDisCarded = ({ eggList, getEggListSummary, fetchTableData, setDetailDra
                   sx={{
                     width: '70px',
                     height: '104px',
-                    backgroundColor: '#FFD3D3',
-                    borderLeft: '1px solid FFD3D3',
+                    backgroundColor: theme.palette.customColors.AntzTertiary,
+                    borderLeft: `1px solid ${theme.palette.customColors.AntzTertiary}`,
                     display: 'flex',
                     borderTopLeftRadius: '5px ',
                     borderBottomLeftRadius: '5px ',
@@ -156,7 +156,7 @@ const EggDisCarded = ({ eggList, getEggListSummary, fetchTableData, setDetailDra
                           fontSize: '16px',
                           fontWeight: '400',
                           fontFamily: 'Inter',
-                          color: '#44544A',
+                          color: theme.palette.customColors.OnSurfaceVariant,
                           position: 'relative',
                           right: '10px',
 
@@ -181,7 +181,7 @@ const EggDisCarded = ({ eggList, getEggListSummary, fetchTableData, setDetailDra
                       <Box
                         sx={{
                           px: 3,
-                          backgroundColor: '#FFD3D3',
+                          backgroundColor: theme.palette.customColors.AntzTertiary,
                           textAlign: 'center',
                           borderRadius: '4px',
                           opacity: 0.8
@@ -195,7 +195,7 @@ const EggDisCarded = ({ eggList, getEggListSummary, fetchTableData, setDetailDra
                               textOverflow: 'ellipsis',
                               overflow: 'hidden',
                               whiteSpace: 'nowrap',
-                              color: '#E93353',
+                              color: theme.palette.customColors.Error,
                               maxWidth: 100
                             }}
                           >
@@ -210,7 +210,7 @@ const EggDisCarded = ({ eggList, getEggListSummary, fetchTableData, setDetailDra
                     {/* <Box
                     sx={{
                       px: 3,
-                      backgroundColor: '#FFD3D3',
+                      backgroundColor: theme.palette.customColors.AntzTertiary,
                       textAlign: 'center',
                       borderRadius: '4px',
                       alignSelf: 'flex-start',
@@ -227,7 +227,7 @@ const EggDisCarded = ({ eggList, getEggListSummary, fetchTableData, setDetailDra
                           textOverflow: 'ellipsis',
                           overflow: 'hidden',
                           whiteSpace: 'nowrap',
-                          color: '#E93353',
+                          color: theme.palette.customColors.Error,
                           maxWidth: 100
                         }}
                       >
@@ -282,8 +282,15 @@ const EggDisCarded = ({ eggList, getEggListSummary, fetchTableData, setDetailDra
             gap: '24px'
           }}
         >
-          <Box sx={{ bgcolor: '#ffe5e5', p: '16px', borderRadius: '12px', mt: 10 }}>
-            <Icon icon='tdesign:error-triangle' fontSize={'48px'} color={'#E93353'} />
+          <Box
+            sx={{
+              bgcolor: theme.palette.customColors.TertiaryLight,
+              p: '16px',
+              borderRadius: '12px',
+              mt: 10
+            }}
+          >
+            <Icon icon='tdesign:error-triangle' fontSize={'48px'} color={theme.palette.customColors.Error} />
           </Box>
           <Box>
             <Typography sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontSize: '24px', fontWeight: 600 }}>

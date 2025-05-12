@@ -70,7 +70,7 @@ const SelectSiteList = ({
       anchor='right'
       open={openSiteListDrawer}
       sx={{
-        '& .MuiDrawer-paper': { width: ['100%', '562px'], height: '100vh' },
+        '& .MuiDrawer-paper': { width: ['100%', '562px'], height: '100%' },
         position: 'relative',
         display: 'flex',
         flexDirection: 'column',
@@ -255,7 +255,8 @@ const SelectSiteList = ({
             position: 'sticky',
             bottom: 0,
             background: '#FFF',
-            zIndex: 1
+            zIndex: 1,
+            pb: 4
           }}
         >
           <Button

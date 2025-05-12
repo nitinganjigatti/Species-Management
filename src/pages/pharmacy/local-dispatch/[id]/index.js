@@ -344,8 +344,7 @@ const IndividualRequest = () => {
 
   const columns = [
     {
-      flex: 0.05,
-      Width: 40,
+      width: 40,
       field: 'sl_no',
       headerName: 'Sl',
       renderCell: (params, rowId) => (
@@ -355,8 +354,8 @@ const IndividualRequest = () => {
       )
     },
     {
-      flex: 0.2,
-      Width: 40,
+      width: 400,
+      minWidth: 400,
       field: 'stock_name',
       headerName: 'Product Name',
       renderCell: (params, rowId) => (
@@ -388,6 +387,19 @@ const IndividualRequest = () => {
       )
     },
     {
+      width: 100,
+      minWidth: 100,
+      field: 'batch_no',
+      headerName: 'Batch No',
+
+      // align: 'right',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {params.row.batch_no}
+        </Typography>
+      )
+    },
+    {
       flex: 0.6,
       minWidth: 20,
       field: 'unit_price',
@@ -415,12 +427,26 @@ const IndividualRequest = () => {
     },
 
     {
-      flex: 0.2,
-      minWidth: 20,
+      width: 100,
+      minWidth: 100,
+      field: 'batch_no',
+      headerName: 'Batch No',
+
+      // align: 'right',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {params.row.batch_no}
+        </Typography>
+      )
+    },
+
+    {
+      width: 150,
+      minWidth: 150,
       field: 'requested_qty',
       headerName: 'Dispatch QTY',
-      headerAlign: 'center',
-      align: 'center',
+      type: 'number',
+      align: 'right',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.requested_qty}
@@ -503,11 +529,10 @@ const IndividualRequest = () => {
       width: 140,
       field: 'unit_price',
       headerName: 'unit price',
-      headerAlign: 'right',
-      align: 'right',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {Utility.formatAmountToReadableDigit(params.row.unit_price)}
+          {console.log(params, 'params')}
+          {params.row.unit_price}
         </Typography>
       )
     },
@@ -515,8 +540,6 @@ const IndividualRequest = () => {
       width: 140,
       field: 'qty',
       headerName: 'total value',
-      headerAlign: 'right',
-      align: 'right',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {Utility.formatAmountToReadableDigit(params.row.unit_price * params.row.dispatch_qty)}
@@ -942,7 +965,7 @@ const IndividualRequest = () => {
                       <p style={{ marginBottom: '0' }}>{requestItems?.from_store}</p>
                     </Grid>
                     <Grid item xs={3} sm={12 / 5} lg={12 / 5}>
-                      <h5 style={{ marginBottom: '0px', marginTop: '0px' }}>Date</h5>
+                      <h5 style={{ marginBottom: '0px', marginTop: '0px' }}>Dispatched Date</h5>
                       <p style={{ marginBottom: '0' }}>{Utility.formatDisplayDate(requestItems?.request_date)}</p>
                     </Grid>
                     <Grid item xs={3} sm={12 / 5} lg={12 / 5}>
@@ -1233,7 +1256,7 @@ const IndividualRequest = () => {
               You don't have an access to view this request
               <Button
                 onClick={() => {
-                  router.push('/pharmacy/local-dispatch/local-dispatch-list/')
+                  router.push('/pharmacy/local-dispatch/')
                 }}
                 variant='contained'
                 size='small'

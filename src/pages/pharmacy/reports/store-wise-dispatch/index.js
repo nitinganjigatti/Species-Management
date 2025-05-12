@@ -32,6 +32,7 @@ const dropdownOptions = [
   { value: 'weekly', label: 'Weekly' },
   { value: 'monthly', label: 'Monthly' },
   { value: 'yearly', label: 'Yearly' }
+
   // { value: 'custom', label: 'Custom Range' }
 ]
 

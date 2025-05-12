@@ -457,11 +457,13 @@ const AddIngredients = props => {
 
   const handleScroll = async e => {
     const container = e.target
-
+    const threshold = 20
     // Check if the user has reached the bottom
 
     if (totalCount > ingredientList.length) {
-      if (container.scrollHeight - Math.round(container.scrollTop) === container.clientHeight) {
+      const isNearBottom =
+        container.scrollHeight - Math.round(container.scrollTop) <= container.clientHeight + threshold
+      if (isNearBottom) {
         // User has reached the bottom, perform your action here
 
         setIngredientPage(++ingredientPage)
@@ -769,7 +771,8 @@ const AddIngredients = props => {
           sx={{
             marginTop: fromrow === 'rowedit_ingredient' ? 0 : 35,
             paddingTop: fromrow !== 'rowedit_ingredient' ? 0 : 20,
-            height: fromrow !== 'rowedit_ingredient' ? '65%' : '85%',
+            //height: fromrow !== 'rowedit_ingredient' ? '65%' : '85%',
+            height: fromrow !== 'rowedit_ingredient' ? 'calc(100vh - 245px)' : '85%',
             overflowY: 'auto',
             bgcolor: theme.palette.customColors.bodyBg
           }}

@@ -3,33 +3,42 @@ import React, { useState, useEffect, useCallback } from 'react'
 import { aboutExpiringProduct } from 'src/lib/api/pharmacy/getStocksReportById'
 import FallbackSpinner from 'src/@core/components/spinner'
 import { debounce } from 'lodash'
-import CardHeader from '@mui/material/CardHeader'
-import { DataGrid } from '@mui/x-data-grid'
-import Card from '@mui/material/Card'
-import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
-import Typography from '@mui/material/Typography'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import Utility from 'src/utility'
-import { Box, width } from '@mui/system'
-import { ExcelExportButton } from 'src/components/Buttons'
-import { TextField, Tooltip } from '@mui/material'
 import Icon from 'src/@core/components/icon'
-import Grid from '@mui/material/Grid'
 import { useTheme } from '@emotion/react'
-
-import { FormControl, InputLabel, Select, MenuItem } from '@mui/material'
+import {
+  Card,
+  Typography,
+  CardHeader,
+  Grid,
+  MenuItem,
+  Tooltip,
+  TextField,
+  FormControl,
+  Select,
+  InputLabel,
+  FormHelperText,
+  InputAdornment,
+  Box
+} from '@mui/material'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import RenderUtility from 'src/utility/render'
+import { getStoreList } from 'src/lib/api/pharmacy/getStoreList'
 import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDateRangePickers'
+import { ExportButton } from 'src/views/utility/render-snippets'
+import PharmacyProductCard from 'src/views/utility/PharmacyProductCard'
 
 const ExpiringMedicine = () => {
   const theme = useTheme()
+  const { selectedPharmacy } = usePharmacyContext()
+
   const [loader, setLoader] = useState(false)
 
   /***** Server side pagination */
 
   const [total, setTotal] = useState(0)
-  const [sort, setSort] = useState('asc')
+  const [sort, setSort] = useState('desc')
   const [rows, setRows] = useState([])
   const [searchValue, setSearchValue] = useState('')
   const [sortColumn, setSortColumn] = useState('label')
@@ -44,12 +53,33 @@ const ExpiringMedicine = () => {
   const [selectDays, setSelectDays] = useState(7)
 
   const [excelLoader, setExcelLoader] = useState(false)
+  const [stores, setStores] = useState([])
+  const [errors, setErrors] = useState('')
 
+  const [storeId, setStoreId] = useState(selectedPharmacy.id)
   function loadServerRows(currentPage, data) {
     return data
   }
 
-  const { selectedPharmacy } = usePharmacyContext()
+  // const handleDateRangeChange = (startDate, endDate) => {
+  //   if (startDate && endDate) {
+  //     const formattedStartDate = Utility.formatDate(startDate)
+  //     const formattedEndDate = Utility.formatDate(endDate)
+  //     setFilterDates({
+  //       startDate: formattedStartDate,
+  //       endDate: formattedEndDate
+  //     })
+
+  //     console.log('Date range selected:', { startDate, endDate })
+  //   } else {
+  //     setFilterDates({
+  //       startDate: '',
+  //       endDate: ''
+  //     })
+
+  //     console.log('Empty date range selected,', { startDate, endDate })
+  //   }
+  // }
 
   // const fetchTableData = useCallback(
   //   async (sort, q, column, startDate, endDate, id) => {
@@ -84,12 +114,31 @@ const ExpiringMedicine = () => {
   //   },
   //   [paginationModel]
   // )
+  const getStoresLists = async () => {
+    try {
+      setLoader(true)
+      const response = await getStoreList({ params: { column: 'type' } })
+      if (response?.data?.list_items?.length > 0) {
+        response?.data?.list_items?.sort((a, b) => a.id - b.id)
+        setStores(response?.data?.list_items)
+        if (response?.data?.list_items.length > 0) {
+        }
+        setLoader(false)
+      } else {
+        setLoader(false)
+      }
+    } catch (error) {
+      setLoader(false)
+      console.error('error', error)
+    }
+  }
 
   const fetchTableData = useCallback(
     async (sort, q, column, startDate, endDate, id) => {
       if (!searchTriggered && q) return // Prevent searching unless explicitly triggered
       try {
         setLoading(true)
+        let selectedStorePharmacy = selectedPharmacy?.type === 'local' ? selectedPharmacy?.id : id
 
         const params = {
           sort,
@@ -98,10 +147,12 @@ const ExpiringMedicine = () => {
           page: paginationModel.page + 1,
           limit: paginationModel.pageSize,
           pending_days_start: startDate || filterDates?.startDate,
-          pending_days_end: endDate || filterDates?.endDate
+          pending_days_end: endDate || filterDates?.endDate,
+          ...(selectedStorePharmacy !== 'all' && { store_id: selectedStorePharmacy }),
+          is_medical_only: 1
         }
 
-        const res = await aboutExpiringProduct(id, params)
+        const res = await aboutExpiringProduct({ params })
         if (res?.data?.length > 0) {
           setTotal(parseInt(res?.count))
           setRows(loadServerRows(paginationModel.page, res?.data))
@@ -117,13 +168,16 @@ const ExpiringMedicine = () => {
         setLoading(false)
       }
     },
-    [paginationModel, filterDates, searchTriggered]
+    [paginationModel, filterDates, searchTriggered, selectedPharmacy.id, storeId]
   )
 
   useEffect(() => {
-    fetchTableData(sort, searchValue, sortColumn, filterDates?.startDate, filterDates?.endDate, selectedPharmacy?.id)
+    if (stores?.length === 0) {
+      getStoresLists()
+    }
+    fetchTableData(sort, searchValue, sortColumn, filterDates?.startDate, filterDates?.endDate, storeId)
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [fetchTableData, selectedPharmacy.id, filterDates])
+  }, [fetchTableData, selectedPharmacy.id, filterDates, storeId])
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
@@ -150,7 +204,9 @@ const ExpiringMedicine = () => {
 
   const handleSortModel = newModel => {
     if (newModel.length) {
-      setSort(newModel[0].sort)
+      setSort(prev => (prev === 'asc' ? 'desc' : 'asc'))
+
+      // setSort(newModel[0].sort)
       setSortColumn(newModel[0].field)
       fetchTableData(
         newModel[0].sort,
@@ -158,7 +214,7 @@ const ExpiringMedicine = () => {
         newModel[0].field,
         filterDates?.startDate,
         filterDates?.endDate,
-        selectedPharmacy?.id
+        storeId
       )
     }
   }
@@ -166,7 +222,7 @@ const ExpiringMedicine = () => {
   const debouncedSearch = useCallback(
     debounce(value => {
       setSearchTriggered(true) // Trigger the search explicitly
-      fetchTableData(sort, value, sortColumn, filterDates?.startDate, filterDates?.endDate, selectedPharmacy?.id)
+      fetchTableData(sort, value, sortColumn, filterDates?.startDate, filterDates?.endDate, storeId)
     }, 1000),
     [fetchTableData, sort, sortColumn, filterDates, selectedPharmacy]
   )
@@ -198,42 +254,6 @@ const ExpiringMedicine = () => {
   //   searchTableData(sort, value, sortColumn, filterDates?.startDate, filterDates?.endDate, selectedPharmacy?.id)
   // }
 
-  const filterByDays = days => {
-    const currentDate = new Date()
-    const selectedDays = parseInt(days)
-    let startDate
-    let endDate
-
-    switch (selectedDays) {
-      case 7:
-        startDate = Utility.formattedPresentDate()
-        endDate = Utility.getFeaturesDates(currentDate, 7)
-        setFilterDates({ startDate, endDate })
-        break
-      case 15:
-        startDate = Utility.getFeaturesDates(currentDate, 7)
-        endDate = Utility.getFeaturesDates(currentDate, 15)
-        setFilterDates({ startDate, endDate })
-
-        break
-      case 30:
-        startDate = Utility.getFeaturesDates(currentDate, 15)
-        endDate = Utility.getFeaturesDates(currentDate, 30)
-        setFilterDates({ startDate, endDate })
-        break
-      case 60:
-        startDate = Utility.getFeaturesDates(currentDate, 30)
-        endDate = Utility.getFeaturesDates(currentDate, 60)
-        setFilterDates({ startDate, endDate })
-        break
-      default:
-        startDate = Utility.getFeaturesDates(currentDate, selectedDays)
-        endDate = Utility.formattedPresentDate()
-        setFilterDates({ startDate, endDate })
-        break
-    }
-  }
-
   const columns = [
     // {
     //   flex: 0.1,
@@ -250,23 +270,41 @@ const ExpiringMedicine = () => {
     {
       width: 350,
       minWidth: 200,
-      field: 'stock_item_name',
+      field: 'label',
       headerName: 'Product Name',
       renderCell: params => (
-        <Tooltip title={params.row.stock_items_name} placement='top'>
-          <Typography
-            variant='body2'
-            sx={{
-              color: theme.palette.customColors.customHeadingTextColor,
-              fontSize: '14px',
-              fontWeight: 500,
-              fontFamily: 'Inter'
-            }}
-          >
-            {params.row.stock_items_name}
-          </Typography>
-        </Tooltip>
+        <Box>
+          <PharmacyProductCard
+            title={params?.row?.stock_items_name}
+            subTitle={params?.row?.generic_name}
+            icon={params?.row?.image}
+            controlSubstance={params?.row?.controlled_substance === '1' && true}
+            prescriptionRequired={params?.row?.prescription_required === '1' && true}
+          />
+        </Box>
       )
+    },
+    {
+      ...(storeId === 'all' && {
+        width: 200,
+        field: 'store_name',
+        headerName: 'Store Name',
+        renderCell: params => (
+          <Tooltip title={params.row.store_name} placement='top'>
+            <Typography
+              variant='body2'
+              sx={{
+                color: theme.palette.customColors.customHeadingTextColor,
+                fontSize: '14px',
+                fontWeight: 500,
+                fontFamily: 'Inter'
+              }}
+            >
+              {params.row.store_name}
+            </Typography>
+          </Tooltip>
+        )
+      })
     },
     {
       width: 250,
@@ -346,22 +384,25 @@ const ExpiringMedicine = () => {
   const getDataToExport = async () => {
     try {
       setExcelLoader(true)
+      let selectedStorePharmacy = selectedPharmacy?.type === 'local' ? selectedPharmacy?.id : storeId
 
       const params = {
         sort,
         q: searchValue,
         column: sortColumn,
         pending_days_start: filterDates?.startDate,
-        pending_days_end: filterDates?.endDate
+        pending_days_end: filterDates?.endDate,
+        ...(selectedStorePharmacy !== 'all' && { store_id: selectedStorePharmacy })
       }
-      const result = await aboutExpiringProduct(selectedPharmacy?.id, params)
+      const result = await aboutExpiringProduct({ params })
       if (result?.data.length > 0) {
         const data = result?.data.map(el => {
           return {
             ['Medicine Name']: el?.stock_items_name,
             ['Batch']: el?.batch_no,
             ['Expire Date']: el?.expiry_date,
-            ['Quantity']: el?.stock_qty
+            ['Quantity']: el?.stock_qty,
+            ['Store Name']: el?.store_name
           }
         })
 
@@ -393,23 +434,7 @@ const ExpiringMedicine = () => {
     // }
   }
 
-  const headerAction = (
-    <Box sx={{ mr: { xs: 0, sm: 1 } }}>
-      <ExcelExportButton
-        disabled={total === 0 ? true : false}
-        action={() => {
-          getDataToExport()
-        }}
-        loader={excelLoader}
-        title='Download'
-        fullWidth='fullWidth'
-      />
-    </Box>
-  )
-
-  const handleHeaderAction = () => {
-    console.log('Handle Header Action')
-  }
+  const handleHeaderAction = () => {}
   if (loading) {
     return <FallbackSpinner />
   }
@@ -461,128 +486,105 @@ const ExpiringMedicine = () => {
                 mx: { xs: -1, sm: 0 }
               }}
               title={RenderUtility.pageTitle('About To Expire')}
-              action={headerAction}
+
+              // action={headerAction}
             />
-            <Box
+            <Grid
               sx={{
                 display: 'flex',
                 flexDirection: { xs: 'column', md: 'row' },
-                justifyContent: { xs: 'center', md: 'space-between' },
-                mx: { xs: 3, sm: 5 }
+                justifyContent: 'space-between',
+
+                mx: { xs: 2, sm: 6, md: 6, lg: 6 }
               }}
             >
-              {/* Left Box (Search Field) */}
-              <Grid item xs={8}>
-                <Box
-                  sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-                    borderRadius: '8px',
-                    padding: '0 8px',
-                    height: '40px',
-                    width: { xs: '100%', md: '290px' },
-                    marginBottom: { xs: 4, md: 0 }
+              <Grid item xs={12} md={8} lg={8}>
+                <TextField
+                  variant='outlined'
+                  size='small'
+                  placeholder='Search...'
+                  value={searchValue}
+                  onChange={e => handleSearch(e.target.value)}
+                  fullWidth
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position='start'>
+                        <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
+                      </InputAdornment>
+                    )
                   }}
-                >
-                  <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.OnSurfaceVariant} />
-                  <TextField
-                    variant='outlined'
-                    placeholder='Search...'
-                    value={searchValue}
-                    onChange={e => handleSearch(e.target.value)}
-                    fullWidth
-                    sx={{
-                      '& .MuiOutlinedInput-root': {
-                        border: 'none',
-                        padding: '0',
-                        '& fieldset': {
-                          border: 'none'
-                        }
-                      }
-                    }}
-                  />
-                </Box>
-              </Grid>
-
-              {/* Group of two boxes on the right */}
-
-              {/* {selectedPharmacy.type === 'central' && (
-                  <Grid
-                    item
-                    sx={{
-                      width: '245px',
-                      height: '50px', // Increased height
-                      borderRadius: '8px',
-                      paddingLeft: '12px',
-                      paddingRight: '12px'
-                    }}
-                  >
-                    <FormControl fullWidth size='small'>
-                      <InputLabel>Filter by Stores</InputLabel>
-                      <Select
-                        fullWidth
-                        size='small'
-                        value={filterByStoreId}
-                        label='Filter by Stores'
-                        onChange={e => {
-                          setTotal(0)
-                          setPaginationModel({ page: 0, pageSize: 10 })
-                          setFilterByStoreId(e.target.value)
-                        }}
-                      >
-                        <MenuItem value='all'>All</MenuItem>
-                        {stores.length > 0 &&
-                          stores.map(store => (
-                            <MenuItem key={store?.id} value={store?.id}>
-                              {store?.name}
-                            </MenuItem>
-                          ))}
-                      </Select>
-                    </FormControl>
-                  </Grid>
-                )} */}
-              <Grid
-                item
-                sx={{
-                  width: { xs: '100%', md: 'auto' },
-                  height: '50px'
-                }}
-              >
-                <CommonDateRangePickers
-                  onChange={handleDateRangeChange}
-                  filterDates={filterDates}
-                  showFutureDates={true}
+                  sx={{
+                    borderRadius: '8px'
+                  }}
                 />
               </Grid>
 
-              {/* <Grid
-                item
-                sx={{
-                  width: { xs: '100%', md: '240px' },
-                  height: '50px'
-                }}
-              >
-                <FormControl fullWidth size='small'>
-                  <InputLabel id='filter-days-label'>Filter by days</InputLabel>
-                  <Select
-                    size='small'
-                    value={selectDays}
-                    label='Filter by days'
-                    onChange={e => {
-                      filterByDays(e.target.value)
-                      setSelectDays(e.target.value)
-                    }}
-                  >
-                    <MenuItem value='7'>7 Days</MenuItem>
-                    <MenuItem value='15'>7 to 15 Days </MenuItem>
-                    <MenuItem value='30'>15 to 30 Days</MenuItem>
-                    <MenuItem value='60'>30 to 60 Days</MenuItem>
-                  </Select>
-                </FormControl>
-              </Grid> */}
+              <Grid sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' } }}>
+                {selectedPharmacy.type === 'central' && (
+                  <Grid item xs={12} md={4} lg={4}>
+                    <FormControl
+                      sx={{
+                        width: { xs: '100%', md: 200, lg: 200 },
+                        mx: { xs: 0, md: 2, lg: 2 },
+                        my: { xs: 2, md: 0, lg: 0 }
+                      }}
+                    >
+                      <InputLabel id='controlled-select-label'>Stores</InputLabel>
+                      <Select
+                        onChange={e => {
+                          let id = e.target.value
+                          setStoreId(id)
+                        }}
+                        label='Stores'
+                        value={storeId}
+                        id='controlled-select'
+                        labelId='controlled-select-label'
+                        sx={{ width: '100%' }}
+                        size='small'
+                      >
+                        <MenuItem value='all'>All</MenuItem>
+                        {stores.length > 0
+                          ? stores.map(el => {
+                              return (
+                                <MenuItem key={el.id} value={el.id}>
+                                  {el.name}
+                                </MenuItem>
+                              )
+                            })
+                          : null}
+                      </Select>
+                      <FormHelperText sx={{ color: 'red' }}>{errors}</FormHelperText>
+                    </FormControl>
+                  </Grid>
+                )}
 
-              {/* <Grid item xs={12} sm={7} md={7} sx={{ float: 'right', mr: 1 }}>
+                <Grid
+                  item
+                  sx={{
+                    display: 'flex',
+                    justifyContent: 'center',
+                    gap: 2,
+                    alignItems: 'center',
+                    width: { xs: '100%', md: 'auto' },
+
+                    mx: { xs: 0, md: 2, lg: 2 },
+
+                    my: { xs: 2, md: 0, lg: 0 }
+                  }}
+                >
+                  <CommonDateRangePickers
+                    onChange={handleDateRangeChange}
+                    filterDates={filterDates}
+                    showFutureDates={true}
+                    useCustomText={true}
+                    customText='Select Near Expiry'
+                  />
+                  <ExportButton loading={excelLoader} onClick={getDataToExport} disabled={total === 0 ? true : false} />
+                </Grid>
+              </Grid>
+            </Grid>
+            {/*
+              <Grid item xs={12} sm={7} md={7} sx={{ float: 'right', mr: 1 }}>
                 {status === 'all' || status === 'completed' ? (
                   <Box sx={{ float: 'right', mt: 1 }}>
                     <FormControlLabel
@@ -592,8 +594,8 @@ const ExpiringMedicine = () => {
                     />
                   </Box>
                 ) : null}
-              </Grid> */}
-            </Box>
+              </Grid>
+            </Box> */}
 
             <Grid
               sx={{

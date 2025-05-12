@@ -69,11 +69,7 @@ const PurchaseFilterDrawer = ({
   }
 
   const handleClearAll = () => {
-    setSelectedOptions({
-      'Supplier Name': [],
-      'Created By': [],
-      'Drug Type': 'all'
-    })
+    setSelectedOptions({})
   }
 
   const handleCheckbox = useCallback(

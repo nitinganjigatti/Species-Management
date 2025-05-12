@@ -17,7 +17,8 @@ import {
   Breadcrumbs,
   Link,
   Divider,
-  IconButton
+  IconButton,
+  Avatar
 } from '@mui/material'
 import IngredientDetailCardview from 'src/views/pages/ingredient/ingredient-detail/cardview'
 import Router from 'next/router'
@@ -202,9 +203,17 @@ const IngredientDetail = () => {
                           {(dietModuleAccess === 'EDIT' || dietModuleAccess === 'DELETE') && (
                             <Tooltip title='Edit' placement='top'>
                               <Box sx={{ pr: 3 }}>
-                                <Icon
+                                {/* <Icon
                                   icon='bx:pencil'
                                   style={{ cursor: 'pointer' }}
+                                  onClick={() => {
+                                    Router.push({ pathname: '/diet/ingredient/add-ingredient', query: { id: id } })
+                                  }}
+                                /> */}
+                                <Avatar
+                                  sx={{ width: '100%', height: '100%', borderRadius: '8px', cursor: 'pointer' }}
+                                  src={'/icons/pencil_outlined.svg'}
+                                  variant='square'
                                   onClick={() => {
                                     Router.push({ pathname: '/diet/ingredient/add-ingredient', query: { id: id } })
                                   }}
@@ -215,9 +224,25 @@ const IngredientDetail = () => {
                           {dietModuleAccess === 'DELETE' && (
                             <Tooltip title='Delete' placement='top'>
                               <Box>
-                                <Icon
+                                {/* <Icon
                                   icon='material-symbols:delete-outline'
                                   style={{ cursor: 'pointer', marginLeft: '15px' }}
+                                  onClick={() => {
+                                    if (
+                                      Number(IngredientsDetailsval?.recipe_count) +
+                                        Number(IngredientsDetailsval?.diet_count) >
+                                      0
+                                    ) {
+                                      handleStatusClickOpen()
+                                    } else {
+                                      handleClickOpen()
+                                    }
+                                  }}
+                                /> */}
+                                <Avatar
+                                  sx={{ width: '100%', height: '100%', borderRadius: '8px', cursor: 'pointer' }}
+                                  src={'/icons/delete_outlined.svg'}
+                                  variant='square'
                                   onClick={() => {
                                     if (
                                       Number(IngredientsDetailsval?.recipe_count) +
@@ -244,7 +269,7 @@ const IngredientDetail = () => {
                           getIngredientsDetailval={getIngredientsDetailval}
                         />
 
-                        <Grid item xs={8}>
+                        <Grid item md={8} xs={12}>
                           <TabContext value={value}>
                             <TabList onChange={handleChange} aria-label='customized tabs example'>
                               <Tab
@@ -262,7 +287,7 @@ const IngredientDetail = () => {
                                 style={{ borderTopLeftRadius: 0, borderBottomLeftRadius: 0 }}
                                 value='3'
                                 //label={'USED IN DIET' + ' -' + ' ' + dietListTotal}
-                                label={`USED IN DIET${dietListTotal > 0 ? ` - ${dietListTotal}` : ''}`}
+                                label={`USED IN DIET ${dietListTotal > 0 ? ` - ${dietListTotal}` : ''}`}
                               />
                             </TabList>
                             <TabPanel value='1'>

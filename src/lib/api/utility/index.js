@@ -61,6 +61,15 @@ export const axiosGetExternal = async ({ url, params, pharmacy }) => {
   return axios.get(completeUrl, { headers: headers, params: params })
 }
 
+export const axiosAuthFormPost = async ({ url, body, pharmacy, authToken }) => {
+  const completeUrl = `${process.env.NEXT_PUBLIC_API_BASE_URL}${url}`
+  const headers = await GetAPIHeader({ pharmacy })
+  // headers['Content-Type'] = 'multipart/form-data'
+  headers['Authorization'] = `${authToken}`
+
+  return axios.post(completeUrl, body, { headers })
+}
+
 export const fetchFormPost = async ({ url, body, pharmacy }) => {
   const completeUrl = `${process.env.NEXT_PUBLIC_API_BASE_URL}${url}`
   const headers = await GetAPIHeader({ pharmacy })

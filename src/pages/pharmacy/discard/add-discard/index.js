@@ -66,6 +66,7 @@ import RenderUtility from 'src/utility/render'
 import { alpha, Stack } from '@mui/system'
 import { AddButtonContained, ExcelExportButton } from 'src/components/ButtonContained'
 import TextEllipsisWithModal from 'src/components/TextEllipsisWithModal'
+import { ExportButton } from 'src/views/utility/render-snippets'
 
 const editParamsInitialState = {
   supplier_id: '',
@@ -500,7 +501,7 @@ const AddDiscardProducts = () => {
     //       toast.success(response?.msg)
     //       setSubmitLoader(false)
     //       getListOfItemsById(id)
-    //       Router.push(`/pharmacy/discard/discard-list`)
+    //       Router.push(`/pharmacy/discard/`)
     //     } else {
     //       setSubmitLoader(false)
     //       toast.error(response?.msg)
@@ -515,7 +516,7 @@ const AddDiscardProducts = () => {
         toast.success(response?.msg)
         setEditParams(editParamsInitialState)
         setSubmitLoader(false)
-        Router.push(`/pharmacy/discard/discard-list`)
+        Router.push(`/pharmacy/discard/`)
       } else {
         setSubmitLoader(false)
         toast.error(response?.message)
@@ -586,7 +587,7 @@ const AddDiscardProducts = () => {
           ['Stock Type']: el?.stock_type
         }))
 
-        Utility.exportToCSV(data, 'Return_Supplier')
+        Utility.exportToCSV(data, 'Discarditems')
       } else {
         console.log('No data available for export.')
       }
@@ -619,57 +620,21 @@ const AddDiscardProducts = () => {
               avatar={<Icon style={{ cursor: 'pointer' }} onClick={() => Router.back()} icon='ep:back' />}
               title={
                 <Box>
+                  {' '}
                   {/* Title takes full available space */}
                   Return To Supplier
                 </Box>
               }
               action={
-                <Grid
-                  item
-                  sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 2,
-                    justifyContent: { sm: 'flex-end', xs: 'flex-end' }
-                  }}
-                >
-                  <Tooltip title='Export'>
-                    <>
-                      {excelLoader ? (
-                        <Box
-                          sx={{
-                            display: 'flex',
-                            justifyContent: 'center',
-                            width: '40px',
-                            height: '40px',
-                            borderRadius: '4px',
-                            bgcolor: theme?.palette.customColors?.lightBg,
-                            alignItems: 'center',
-                            cursor: 'pointer'
-                          }}
-                        >
-                          <CircularProgress color='success' size={30} />
-                        </Box>
-                      ) : (
-                        <Box
-                          sx={{
-                            display: 'flex',
-                            justifyContent: 'center',
-                            width: '40px',
-                            height: '40px',
-                            borderRadius: '4px',
-                            bgcolor: theme?.palette.customColors?.lightBg,
-                            alignItems: 'center',
-                            cursor: 'pointer'
-                          }}
-                          onClick={getAddDiscardData}
-                        >
-                          <Icon icon='ic:round-download' fontSize={20} />
-                        </Box>
-                      )}
-                    </>
-                  </Tooltip>
-                </Grid>
+                <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+                  {id && action && <ExportButton loading={excelLoader} onClick={getAddDiscardData} disabled={''} />}
+                  {/* <ExcelExportButton
+                    action={() => getAddDiscardData()}
+                    title='Download'
+                    loader={excelLoader}
+                    sx={{ minWidth: 120 }} // Consistent button size
+                  /> */}
+                </Box>
               }
             />
           </Grid>

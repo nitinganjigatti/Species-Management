@@ -393,8 +393,8 @@ const DietReportDrawer = ({
                       checked={selectedOptions['Species']?.includes(type?.tsn)}
                       onChange={() => handleCheckbox(type?.tsn, 'Species')}
                     />
-                    <SpeciesCard species={{ common_name: type?.common_name, scientific_name: type?.scientific_name }} />
 
+                    <SpeciesCard species={{ common_name: type?.common_name, scientific_name: type?.scientific_name }} />
                     {/* <Typography sx={{ fontSize: '16px', fontWeight: 400, color: '#839D8D' }}>
                       {type?.scientific_name}
                     </Typography> */}

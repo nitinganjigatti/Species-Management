@@ -10,4 +10,10 @@ const PHARMACY_TRANSACTION_CONSTANTS = {
   dispatch_cancel: 'Dispatch Cancel'
 }
 
+export const STOCK_ADJUSTMENT_REASON_TYPES = {
+  MISSED: "1",
+  EXPIRED: "2",
+  DAMAGED: "3"
+}
+
 export const getPharmacyTransactionConstants = key => PHARMACY_TRANSACTION_CONSTANTS[key] || key

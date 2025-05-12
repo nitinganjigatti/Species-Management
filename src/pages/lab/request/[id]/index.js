@@ -67,6 +67,7 @@ import {
   postBulkTransfer,
   getLabListByMultipleIds
 } from 'src/lib/api/lab/getLabRequest'
+import AttachmentSheet from 'src/views/pages/lab/AttachmentSheet'
 
 const RequestDetails = () => {
   const theme = useTheme()
@@ -76,13 +77,14 @@ const RequestDetails = () => {
   const [fileViews, setFileViews] = useState(authData?.userData?.settings?.DEFAULT_IMAGE_MASTER)
 
   const [loader, setLoader] = useState(false)
+  const [deleteAttachmentLoader, setDeleteAttachmentLoader] = useState(false)
   const [image, setImage] = useState()
   const [document, setDocument] = useState()
   const [medicalImage, setMedicalImage] = useState()
   const [medicalDocument, setMedicalDocument] = useState()
-  const [testImage, setTestImage] = useState()
+  const [testImage, setTestImage] = useState([])
 
-  const [testDoc, setTestDoc] = useState()
+  const [testDoc, setTestDoc] = useState([])
   const [transferStatus, setTransferStatus] = useState('')
 
   const { id, lab_id, page, q, pageSize } = Router.query
@@ -117,6 +119,7 @@ const RequestDetails = () => {
 
   const [sort, setSort] = useState('asc')
   const [rows, setRows] = useState([])
+  const [rowId, setRowId] = useState(null)
 
   const [searchValue, setSearchValue] = useState('')
   const [sortColumn, setSortColumn] = useState('name')
@@ -143,7 +146,9 @@ const RequestDetails = () => {
   const [allCompleted, setAllCompleted] = useState(false)
   const [openAnimalSheet, setOpenAnimalSheet] = useState(false)
   const [openCommentSheet, setOpenCommentSheet] = useState(false)
+  const [openAttachmentSheet, setOpenAttachmentSheet] = useState(false)
   const [CommentData, setCommentData] = useState({})
+  // const [attachmentData, setAttachmentCommentData] = useState({})
   const [medicalRecordNotes, setMedicalRecordNotes] = useState([])
 
   const [statusList, setStatusList] = useState([])
@@ -152,7 +157,7 @@ const RequestDetails = () => {
 
   useEffect(() => {
     const labObject = localLabData?.find(item => item?.lab_id === lab_id)
-    console.log('labObject', labObject)
+    // console.log('labObject', labObject)
 
     if (labObject && labObject.permission) {
       setPermissions(labObject.permission)
@@ -308,16 +313,34 @@ const RequestDetails = () => {
     const params = {
       test_ids: labId
     }
+    const requestData = request
     await getLabListByMultipleIds(id, params).then(res => {
-      // console.log('res', res?.data)
-      setLab(res?.data)
+      const labList = res?.data?.filter(labListItem => {
+        return labListItem.lab_id != requestData[0]?.lab_id
+      })
+      setLab(labList)
     })
   }
 
   const handleOpenTransfer = async params => {
     // console.log('params', params?.row)
-    const hasCompleted = selectedRowData.some(item => item.status.startsWith('completed'))
-    if (hasCompleted && !params) {
+    // const hasCompleted = selectedRowData.some(item => item.status.startsWith('completed'))
+
+    const hasCompleted = selectedRowData?.filter(item =>
+      [
+        'completed',
+        'completed_positive',
+        'completed_negative',
+        'completed_detected',
+        'completed_not_detected',
+        'completed_inconclusive',
+        'inprogress'
+      ].includes(item?.key)
+    )
+
+    debugger
+
+    if (hasCompleted?.length > 0 && !params) {
       setHasCompletedStatus(true)
     } else {
       setHasCompletedStatus(false)
@@ -386,10 +409,9 @@ const RequestDetails = () => {
   }
 
   const handleOpenShowFile = (e, params) => {
-    // setShowTestFile(true)
-
-    setTestImage(params?.row?.attachments?.images)
-    setTestDoc(params?.row?.attachments?.docs)
+    e.stopPropagation()
+    setRowId(params?.id)
+    setOpenAttachmentSheet(true)
   }
 
   const shouldShowDropdown =
@@ -408,8 +430,8 @@ const RequestDetails = () => {
   const handleRowPermission = ({ params }) => {
     const st = statusList.filter(status => status.key === params.row.status)
     const st1 = filteredStatusData.filter(status => status.key === params.row.status)
-    console.log('statusList', statusList)
-    console.log('st', st)
+    // console.log('statusList', statusList)
+    // console.log('st', st)
     if (st1?.length === 0) {
       return false
     } else if (
@@ -783,7 +805,7 @@ const RequestDetails = () => {
   const schema = yup.object().shape({
     lab_name: yup.string(),
     replaced_lab_id: yup.string().required('Transfer to is required'),
-    transfer_reason: yup.string().required('Transfer reason is required')
+    transfer_reason: yup.string().trim().required('Transfer reason is required')
   })
 
   const {
@@ -843,6 +865,7 @@ const RequestDetails = () => {
       const res = await postBulkTransfer({ params: testId.length ? payloadSingle : payloadMulti })
       if (res?.success) {
         handleCloseTransfer()
+
         Toaster({ type: 'success', message: res.message })
         reset({
           replaced_lab_id: '',
@@ -855,7 +878,7 @@ const RequestDetails = () => {
           replaced_lab_id: '',
           transfer_reason: ''
         })
-        Toaster({ type: 'error', message: res.message })
+        Toaster({ type: 'error', message: res.message.transfer_reason })
       }
     }
   }
@@ -869,20 +892,32 @@ const RequestDetails = () => {
     setFileId(item?.id)
 
     try {
+      setDeleteAttachmentLoader(true)
       const params = { lab_test_id: id }
       const response = await DeleteLAbRequestAttachment(testId, params)
       fetchRequestDetails()
       if (response?.success) {
         Toaster({ type: 'success', message: response.message })
-
         fetchRequestDetails()
         setShowTestFile(false)
       } else {
         setShowTestFile(false)
         Toaster({ type: 'error', message: response.message })
       }
-    } catch (error) {}
+    } catch (error) {
+    } finally {
+      setDeleteAttachmentLoader(false)
+    }
   }
+
+  useEffect(() => {
+    // for get updated UI in attachment side sheet
+    if (openAttachmentSheet && rowId) {
+      const selected = rows.find(item => item.id === rowId)
+      setTestImage(selected?.attachments?.images || [])
+      setTestDoc(selected?.attachments?.docs || [])
+    }
+  }, [rows, rowId, openAttachmentSheet])
 
   const handleRowSelection = (rowSelectionModel, details) => {
     setSelectedRow(rowSelectionModel)
@@ -890,7 +925,6 @@ const RequestDetails = () => {
     // Retrieve the complete row data based on selected row IDs
     const selectedRowData = rows.filter(row => rowSelectionModel.includes(row.id))
 
-    // setShouldShowBulkStatus(!selectedRowData.some(item => item.status.startsWith('completed')))
     setShouldShowBulkStatus(
       selectedRowData?.filter(item =>
         [
@@ -1037,7 +1071,7 @@ const RequestDetails = () => {
                         </span>
                       </Typography>
                     </Box>
-                    <Typography> {moment(item?.created_at).format('DD MMM YYYY')}</Typography>
+                    <Typography>Requested On : {moment(item?.created_at).format('DD MMM YYYY')}</Typography>
                     <Typography>
                       Site :{' '}
                       <span
@@ -1059,7 +1093,7 @@ const RequestDetails = () => {
                       justifyContent: 'center',
                       backgroundColor: theme.palette.customColors.cardHeaderBg,
                       borderRadius: '8px',
-                      alignItems: 'center'
+                      alignItems: ''
                     }}
                   >
                     <AnimalParentCard
@@ -1971,6 +2005,21 @@ const RequestDetails = () => {
             setOpenCommentSheet={setOpenCommentSheet}
             CommentData={CommentData}
             api={() => fetchRequestDetails()}
+          />
+        )}
+      </>
+      <>
+        {openAttachmentSheet && (
+          <AttachmentSheet
+            permissions={permissions}
+            handleDeleteImg={handleDeleteImg}
+            fileViews={fileViews}
+            openAttachmentSheet={openAttachmentSheet}
+            setOpenAttachmentSheet={setOpenAttachmentSheet}
+            allCompleted={allCompleted}
+            testImage={testImage}
+            testDoc={testDoc}
+            deleteAttachmentLoader={deleteAttachmentLoader}
           />
         )}
       </>

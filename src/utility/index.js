@@ -3,6 +3,7 @@ import toast from 'react-hot-toast'
 import FileSaver from 'file-saver'
 import * as XLSX from 'xlsx'
 import CustomAvatar from 'src/@core/components/mui/avatar'
+import CryptoJS from 'crypto-js'
 
 const formatDate = dateString => {
   if (dateString !== null) {
@@ -40,11 +41,16 @@ function formattedPresentDate() {
 }
 
 function formatDisplayDate(date) {
-  const result = moment(date).format('DD MMM YYYY')
-  if (result === 'Invalid date') {
-    return 'NA'
+  if (date) {
+    const result = moment(date).format('DD MMM YYYY')
+
+    if (result === 'Invalid date') {
+      return 'NA'
+    } else {
+      return result
+    }
   } else {
-    return result
+    return 'NA'
   }
 
   // return moment(date).format('DD MMM YYYY')
@@ -111,6 +117,13 @@ function renderUserAvatar(image) {
 function convertUTCToLocal(date) {
   var stillUtc = moment.utc(date).toDate()
   var local = moment(stillUtc).local(true).format('YYYY-MM-DD HH:mm:ss')
+
+  return local
+}
+
+function convertUTCToLocalDateTime(date) {
+  var stillUtc = moment.utc(date).toDate()
+  var local = moment(stillUtc).local(true).format('DD MMM YYYY hh:mm A')
 
   return local
 }
@@ -240,6 +253,26 @@ function formatAmountCompactDisplay(value) {
   return `${Number(roundedNum)}`
 }
 
+const SECRET_KEY = 'Antz-Vantara'
+
+const encryptData = data => {
+  return CryptoJS.AES.encrypt(JSON.stringify(data), SECRET_KEY).toString()
+}
+
+const decryptData = cipherText => {
+  const bytes = CryptoJS.AES.decrypt(cipherText, SECRET_KEY)
+  return JSON.parse(bytes.toString(CryptoJS.enc.Utf8))
+}
+
+function hexToHex8(hex, opacity) {
+  debugger
+  hex = hex.replace('#', '')
+  let alpha = Math.round(opacity * 255)
+    .toString(16)
+    .padStart(2, '0')
+  return `#${hex}${alpha}`
+}
+
 function convertUTCToLocalDateTime(date) {
   var stillUtc = moment.utc(date).toDate()
   var local = moment(stillUtc).local(true).format('DD MMM YYYY hh:mm A')
@@ -260,6 +293,7 @@ const Utility = {
   convertUTCToLocal,
   convertUTCToLocalDate,
   convertUTCToLocaltime,
+  convertUTCToLocalDateTime,
   extractHoursAndMinutes,
   formatNumberToDisplay,
   formatAmountToReadableDigit,
@@ -268,6 +302,9 @@ const Utility = {
   toPascalSentenceCase,
   renderUserAvatar,
   formatAmountCompactDisplay,
+  encryptData,
+  decryptData,
+  hexToHex8,
   convertUTCToLocalDateTime
 }
 

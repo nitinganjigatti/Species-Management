@@ -112,7 +112,7 @@ const IngredientsListforRecipeDetail = ({ IngredientsDetailsval }) => {
             {params.row.ingredient_image ? null : <Icon icon='healthicons:fruits-outline' />}
           </Avatar>
 
-          <Tooltip title={params.row.ingredient_name ? params.row.ingredient_name : '-'}>
+          <Tooltip title={params.row.ingredient_name ? params.row.ingredient_name : ''}>
             <Typography
               noWrap
               variant='body2'
@@ -145,9 +145,15 @@ const IngredientsListforRecipeDetail = ({ IngredientsDetailsval }) => {
       field: 'feed_type',
       headerName: 'FEED TYPE',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary', pl: 3 }} title={params.row.feed_type}>
-          {params.row.feed_type_label ? params.row.feed_type_label : '-'}
-        </Typography>
+        <Tooltip title={params.row.feed_type_label ? params.row.feed_type_label : ''}>
+          <Typography
+            variant='body2'
+            className='text_overflow_moduled'
+            sx={{ color: 'text.primary', pl: 3, maxWidth: 'calc(100% - 10px)' }}
+          >
+            {params.row.feed_type_label ? params.row.feed_type_label : '-'}
+          </Typography>
+        </Tooltip>
       )
     },
     {
