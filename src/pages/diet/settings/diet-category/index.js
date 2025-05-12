@@ -27,7 +27,7 @@ const DietCategory = () => {
   const [loading, setLoading] = useState(false)
 
   const dietModuleAccessContext = useContext(AuthContext)
-  const dietModuleAccess = dietModuleAccessContext?.userData?.roles?.settings?.diet_module_access || ""
+  const dietModuleAccess = dietModuleAccessContext?.userData?.roles?.settings?.diet_module_access || ''
 
   const hasAddAccess = dietModuleAccess === 'ADD' || dietModuleAccess === 'EDIT' || dietModuleAccess === 'DELETE'
   const hasEditAccess = dietModuleAccess === 'EDIT' || dietModuleAccess === 'DELETE'
@@ -102,21 +102,22 @@ const DietCategory = () => {
       headerName: 'Action',
       renderCell: params => (
         <Box sx={{ display: 'flex', alignItems: 'center', pl: 2 }}>
-          <IconButton
-            size='small'
-            sx={{ mr: 0.5 }}
-            onClick={() => handleEdit(params.row.id, params.row.label, params.row.status)}
-            aria-label='Edit'
-          >
-            <Icon icon='mdi:pencil-outline' />
-          </IconButton>
+          {parseInt(params.row.zoo_id) === 0 ? null : (
+            <IconButton
+              size='small'
+              sx={{ mr: 0.5 }}
+              onClick={() => handleEdit(params.row.id, params.row.label, params.row.status)}
+              aria-label='Edit'
+            >
+              <Icon icon='mdi:pencil-outline' />
+            </IconButton>
+          )}
         </Box>
       )
     })
   }
-  
+
   const columns = baseColumns
-  
 
   const headerAction =
     hasAddAccess || hasFullAccess ? <AddButton title='Add Diet Category' action={addEventSidebarOpen} /> : null
@@ -186,7 +187,6 @@ const DietCategory = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [sort, sortColumn, searchTableData, searchValue]
   )
-  
 
   const handleSubmitData = async payload => {
     try {
