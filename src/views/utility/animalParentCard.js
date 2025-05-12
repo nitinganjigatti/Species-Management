@@ -154,29 +154,32 @@ const AnimalParentCard = ({ data, backgroundColor }) => {
             {data?.breed_name && (
               <Typography
                 sx={{
-                  fontSize: '16px',
+                  fontSize: '14px',
                   fontWeight: 600,
-                  lineHeight: '19.36px',
+                  lineHeight: '16.94px',
                   color: theme.palette.customColors.OnSurfaceVariant
                 }}
               >
-                Breed : {data?.breed_name}
+                <span style={{ fontWeight: 400 }}> Breed : </span>
+                {data?.breed_name}
                 {/* {Utility?.toPascalSentenceCase(data?.common_name)} */}
               </Typography>
             )}
             {data?.morph_name && (
               <Typography
                 sx={{
-                  fontSize: '16px',
+                  fontSize: '14px',
                   fontWeight: 600,
-                  lineHeight: '19.36px',
+                  lineHeight: '16.94px',
                   color: theme.palette.customColors.OnSurfaceVariant
                 }}
               >
-                Variant : {data?.morph_name}
+                <span style={{ fontWeight: 400 }}> Variant: </span>
+                {data?.morph_name}
                 {/* {Utility?.toPascalSentenceCase(data?.common_name)} */}
               </Typography>
             )}
+
             <Typography
               sx={{
                 fontSize: '14px',
