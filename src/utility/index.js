@@ -261,23 +261,19 @@ const encryptData = data => {
 
 const decryptData = cipherText => {
   const bytes = CryptoJS.AES.decrypt(cipherText, SECRET_KEY)
+
   return JSON.parse(bytes.toString(CryptoJS.enc.Utf8))
 }
 
 function hexToHex8(hex, opacity) {
   debugger
   hex = hex.replace('#', '')
+
   let alpha = Math.round(opacity * 255)
     .toString(16)
     .padStart(2, '0')
+
   return `#${hex}${alpha}`
-}
-
-function convertUTCToLocalDateTime(date) {
-  var stillUtc = moment.utc(date).toDate()
-  var local = moment(stillUtc).local(true).format('DD MMM YYYY hh:mm A')
-
-  return local
 }
 
 const Utility = {
@@ -304,8 +300,7 @@ const Utility = {
   formatAmountCompactDisplay,
   encryptData,
   decryptData,
-  hexToHex8,
-  convertUTCToLocalDateTime
+  hexToHex8
 }
 
 export default Utility

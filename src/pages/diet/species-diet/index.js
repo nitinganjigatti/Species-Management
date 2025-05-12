@@ -56,6 +56,7 @@ const SpeciesDietList = () => {
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedFiltersOptions, setSelectedFiltersOptions] = useState({})
   const [filterCount, setFilterCount] = useState(0)
+
   const [selectedOptions, setSelectedOptions] = useState({
     Class: []
   })

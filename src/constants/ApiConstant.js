@@ -489,17 +489,3 @@ export const GET_STATS = '/diet/get-meal-group-site-wise-stats'
 export const GET_SECTION = '/master/zoos/getsections'
 
 export const GET_SPECIES = '/diet/species'
-
-export const ANIMAL = 'animal'
-
-export const ANIMAL_LISTS = 'animal-list'
-
-export const ASSIGN_TO_ANIMALS = 'assign-to-animal'
-
-export const ASSIGN_EDIT = 'assign-edit'
-
-export const GET_SECTIONS = 'master/zoos/getsections'
-
-export const GET_ENCLOSURES = 'master/enclosure/details'
-
-export const GET_TAXONOMYLIST = 'v1/taxonomyunits'
