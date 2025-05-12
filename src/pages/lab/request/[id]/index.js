@@ -28,7 +28,8 @@ import {
   DialogContent,
   IconButton,
   Typography,
-  Card
+  Card,
+  CardHeader
 } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import { LoadingButton } from '@mui/lab'
@@ -1012,6 +1013,7 @@ const RequestDetails = () => {
           </Breadcrumbs>
 
           <Card sx={{ p: 5 }}>
+            <CardHeader sx={{ py: 0, ml: -4 }} title='Request Details Page' />
             {request?.map((item, index) => (
               <>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap' }}>
