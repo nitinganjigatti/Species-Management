@@ -352,7 +352,8 @@ const AddDiscardProducts = () => {
                 packageDetails: `${item?.package} of ${item?.package_qty} ${item?.package_uom_label} ${item?.product_form_label}`,
                 manufacture: item?.manufacturer_name,
                 variant_id: item?.variant_id,
-                multiplier: item?.multiplier
+                multiplier: item?.multiplier,
+                stock_type: item?.stock_type
               }))
             )
             setTotalBatchQuantity(searchResults?.data?.total_quantity)
@@ -594,6 +595,19 @@ const AddDiscardProducts = () => {
     } catch (error) {
       console.log('Error >>', error)
     }
+  }
+
+  const getLabelColor = params => {
+    const reasonTextColor =
+      params === 'Product Expired'
+        ? theme.palette.customColors.Error
+        : params === 'Not Required'
+        ? theme.palette.customColors.Antz_Body_Medium
+        : params === 'About to Expired'
+        ? theme.palette.customColors.Tertiary
+        : theme.palette.customColors.neutralSecondary
+
+    return reasonTextColor
   }
 
   return (
@@ -942,15 +956,18 @@ const AddDiscardProducts = () => {
                               <Typography
                                 variant='body2'
                                 sx={{
-                                  color: () => {
-                                    if (el.reason === 'Expired') {
-                                      return 'customColors.moderateTableRed'
-                                    } else if (el.reason === 'About to expire') {
-                                      return 'customColors.Tertiary'
-                                    } else {
-                                      return 'customColors.moderateSecondary'
-                                    }
-                                  }
+                                  // color: () => {
+                                  //   if (el?.reason === 'Product Expired') {
+                                  //     return 'customColors.moderateTableRed'
+                                  //   } else if (el.reason === 'About to expire') {
+                                  //     return 'customColors.Tertiary'
+                                  //   } else {
+                                  //     return 'customColors.moderateSecondary'
+                                  //   }
+                                  // }
+                                  fontWeight: 500,
+                                  fontSize: '14px',
+                                  color: getLabelColor(el?.reason)
                                 }}
                               >
                                 {el.reason}
