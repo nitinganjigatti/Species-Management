@@ -66,16 +66,37 @@ const schema = yup.object().shape({
 
   expiry_date: yup.string().required('Expiry Date is required'),
 
+  // reason:
+  //  yup
+  //   .string()
+  //   .required('Reason is required')
+  //   .test('check-expiry', 'Expired must be selected for expired batches', function (value) {
+  //     const { expiry_date } = this.parent
+
+  //     if (expiry_date) {
+  //       const isExpired = dayjs(expiry_date, 'YYYY-MM-DD').isBefore(dayjs())
+  //       if (isExpired) {
+  //         return value === 'Product Expired'
+  //       }
+  //     }
+
+  //     return true
+  //   }),
   reason: yup
     .string()
     .required('Reason is required')
     .test('check-expiry', 'Expired must be selected for expired batches', function (value) {
       const { expiry_date } = this.parent
+      const { stock_type } = this.parent || {}
+
+      if (stock_type === 'non_medical') {
+        return true
+      }
 
       if (expiry_date) {
         const isExpired = dayjs(expiry_date, 'YYYY-MM-DD').isBefore(dayjs())
         if (isExpired) {
-          return value === 'Expired'
+          return value === 'Product Expired'
         }
       }
 
@@ -275,7 +296,7 @@ export const AddItemsForm = ({
   const handleBatchChange = value => {
     const isExpired = dayjs(value?.expiry_date, 'YYYY-MM-DD').isBefore(dayjs())
 
-    if (isExpired) {
+    if (isExpired && value?.stock_type !== 'non_medical') {
       setValue('reason', 'Product Expired', { shouldValidate: true })
     } else {
       setValue('reason', '', { shouldValidate: true })
@@ -418,7 +439,7 @@ export const AddItemsForm = ({
             disabled={true}
           />
         </Grid>
-        {getValues('stock_type') === 'non_medical' ? null : (
+        {getValues('stock_type') != 'non_medical' && (
           <Grid item xs={12} sm={4}>
             <ControlledTextField
               name='expiry_date'
