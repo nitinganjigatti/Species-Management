@@ -621,6 +621,7 @@ const PurchaseItemForm = props => {
                   disabled={nestedRowMedicine?.id ? true : false}
                   options={optionsMedicineList}
                   value={getValues('product')?.value ? value : null}
+                  getOptionDisabled={option => !option.status}
                   renderOption={(props, option) => (
                     <li
                       {...props}
