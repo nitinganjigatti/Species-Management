@@ -178,7 +178,6 @@ function PurchaseDetails() {
       // Call the API to fetch data with the sorting and other params
       await getPurchaseBatchDetailsList(p_id, params).then(res => {
         if (res?.success) {
-          console.log(res, 'resqwer')
           setTotal(parseInt(res?.data?.purchase_detailss?.length))
           setRows(loadServerRows(paginationModel.page, res?.data?.purchase_detailss))
         } else {
@@ -205,8 +204,6 @@ function PurchaseDetails() {
     id: `${row.id}`,
     sl_no: getSlNo(index)
   }))
-
-  console.log(indexedRows)
 
   const handleSearch = useCallback(
     debounce(value => {
