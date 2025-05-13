@@ -915,10 +915,12 @@ const RequestList = () => {
               value='disputed'
               label={<TabBadge label='Disputes' totalCount={status === 'disputed' ? total : null} />}
             />
-            <Tab
-              value='cancel'
-              label={<TabBadge label='Cancelled' totalCount={status === 'cancel' ? total : null} />}
-            />
+            {selectedPharmacy?.type === 'local' && (
+              <Tab
+                value='cancel'
+                label={<TabBadge label='Cancelled' totalCount={status === 'cancel' ? total : null} />}
+              />
+            )}
             <Tab
               value={'all' ? 'all' : 'completed'}
               label={<TabBadge label='All' totalCount={['all', 'completed'].includes(status) ? total : null} />}
@@ -929,7 +931,7 @@ const RequestList = () => {
           <TabPanel value='shipped'>{tableData()}</TabPanel>
 
           <TabPanel value='disputed'>{tableData()}</TabPanel>
-          <TabPanel value='cancel'>{tableData()}</TabPanel>
+          {selectedPharmacy?.type === 'local' && <TabPanel value='cancel'>{tableData()}</TabPanel>}
           {status === 'all' ? (
             <TabPanel value='all'>{tableData()}</TabPanel>
           ) : (
