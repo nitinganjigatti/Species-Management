@@ -25,8 +25,7 @@ import TableContainer from '@mui/material/TableContainer'
 import TableHead from '@mui/material/TableHead'
 import TableRow from '@mui/material/TableRow'
 import Paper from '@mui/material/Paper'
-import { Controller, useForm } from 'react-hook-form'
-import IconButton from '@mui/material/IconButton'
+import { useForm } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 import * as yup from 'yup'
 import ProductsChart from 'src/components/pharmacy/medicine/ProductsChart'
@@ -36,10 +35,7 @@ import { useRouter } from 'next/router'
 import {
   getMedicineList,
   getProductAboutToExpireList,
-  getProductDashboardList,
   getProductExpiredBatchesList,
-  getProductMonthWiseDispatchList,
-  getProductMonthWisePurchaseList,
   getProductQuantityInStoresList
 } from 'src/lib/api/pharmacy/getMedicineList'
 import FallbackSpinner from 'src/@core/components/spinner'
@@ -48,6 +44,7 @@ import MonthlyChart from 'src/views/utility/monthlychart'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import {
   addNewAlternativeMedicineProducts,
+  editNewAlternativeMedicineProducts,
   getAlternativeMedicineProducts
 } from 'src/lib/api/pharmacy/alternateMedicines'
 import ControlledAutocomplete from 'src/views/forms/form-fields/ControlledAutocomplete'
@@ -55,8 +52,13 @@ import { debounce } from 'lodash'
 import ProductOption from 'src/views/pages/pharmacy/utility/ProductOption'
 import ControlledTextField from 'src/views/forms/form-fields/ControlledTextField'
 import AlternativeMedicinesList from './AlternativeMedicinesList'
+import EditIcon from '@mui/icons-material/Edit'
+import EditAlternativeMedicineDrawer from './EditAlternativeMedicineDrawer'
+import AddAlternativeMedicineDrawer from './AddAlternativeMedicineDrawer'
+import AlternativeMedicinesTabs from './AlternativeMedicinesTabs'
+import toast from 'react-hot-toast'
 
-const validationSchema = yup.object().shape({
+const addValidationSchema = yup.object().shape({
   alternatives: yup.array().of(
     yup.object().shape({
       productName: yup
@@ -97,6 +99,17 @@ const validationSchema = yup.object().shape({
   )
 })
 
+const editValidationSchema = yup.object().shape({
+  productName: yup
+    .object()
+    .shape({
+      label: yup.string().required('Product Name is required'),
+      value: yup.string().required('Product Name is required')
+    })
+    .required('Product Name is required'),
+  manufacturerName: yup.string().min(3, 'Manufacturer Name is required').required('Manufacturer Name is required')
+})
+
 const Overview = props => {
   const { productDetails, productDashboardData, purchaseData, dispatchData, tabValue, updateUrlParams } = props
   const theme = useTheme()
@@ -112,6 +125,7 @@ const Overview = props => {
   // const [dispatchData, setDispatchData] = useState({ dispatch_count: [], dispatch_value: [] })
   const [isAlternativeMedicinesDrawerOpen, setAlternativeMedicinesDrawerOpen] = useState(false)
   const [addMedicinesDrawerOpen, setAddMedicinesDrawerOpen] = useState(false)
+  const [editMedicinesDrawerOpen, setEditMedicinesDrawerOpen] = useState(false)
   const [alternativeMedicinesList, setAlternativeMedicinesList] = useState()
   const [optionsMedicineList, setOptionsMedicineList] = useState([])
   const [productLoading, setProductLoading] = useState(false)
@@ -145,6 +159,16 @@ const Overview = props => {
     })
   }
 
+  const handleEditProductChange = option => {
+    if (option) {
+      setValue('manufacturerName', option.manufacture || '')
+      setValue('status', option.status == 1 ? 'active' : 'inactive')
+    } else {
+      setValue('manufacturerName', '')
+      setValue('status', 'inactive') // fallback to 'inactive' if no option is selected
+    }
+  }
+
   const fetchMedicineData = async searchText => {
     try {
       setProductLoading(true)
@@ -159,7 +183,7 @@ const Overview = props => {
       if (searchResults?.data?.list_items?.length > 0) {
         setOptionsMedicineList(
           searchResults?.data?.list_items
-            ?.filter(item => item?.id !== id)
+            ?.filter(item => item?.id !== id && item?.active === '1')
             ?.map(item => ({
               value: item.id,
               label: item.name,
@@ -202,10 +226,17 @@ const Overview = props => {
         const newItems = response.data?.list_items || []
         const totalCount = response?.data?.total_count || 0
 
-        setAlternativeMedicinesList(prev => ({
-          total_count: totalCount,
-          list_items: [...(prev?.list_items || []), ...newItems]
-        }))
+        setAlternativeMedicinesList(prev => {
+          const updatedList =
+            pageNum === 1
+              ? newItems 
+              : [...(prev?.list_items || []), ...newItems] 
+
+          return {
+            total_count: totalCount,
+            list_items: updatedList
+          }
+        })
 
         const totalPages = Math.ceil(totalCount / limit)
         setHasMore(pageNum < totalPages)
@@ -222,7 +253,6 @@ const Overview = props => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [id, page])
 
-  
   const QuantityInStoresContent = ({ data, isLoading }) => {
     const totalCentralQty = Array.isArray(data?.central)
       ? data.central.reduce((sum, store) => sum + Number(store.total_qty), 0)
@@ -635,8 +665,12 @@ const Overview = props => {
   }
 
   const handleAddAlternativeMedicine = () => {
-    reset()
+    reset(addDefaultValues)
     setAddMedicinesDrawerOpen(true)
+  }
+
+  const addDefaultValues = {
+    alternatives: [{ productName: {}, manufacturerName: '' }]
   }
 
   const {
@@ -650,10 +684,8 @@ const Overview = props => {
     setError,
     formState: { errors }
   } = useForm({
-    resolver: yupResolver(validationSchema),
-    defaultValues: {
-      alternatives: [{ productName: {}, manufacturerName: '' }]
-    }
+    resolver: yupResolver(editMedicinesDrawerOpen ? editValidationSchema : addValidationSchema),
+    defaultValues: addDefaultValues
   })
 
   // Watch alternatives field
@@ -675,16 +707,14 @@ const Overview = props => {
       const body = data?.alternatives?.map(item => ({
         stock_item_id: id,
         alternate_stock_item_id: item?.productName?.value,
-        status: 1
+        status: item?.productName?.status
       }))
 
       const response = await addNewAlternativeMedicineProducts(JSON.stringify(body))
       if (response.success) {
+        toast.success(response?.message)
         getAlternativeMedicineList(1)
         setAddMedicinesDrawerOpen(false)
-
-        // TODO: Integrate Toast
-
         reset()
       } else if (response.errors?.length) {
         response.errors.forEach(error => {
@@ -699,8 +729,54 @@ const Overview = props => {
         })
       }
     } catch (e) {
-      console.error(e) // TODO: Implement Toast
+      console.error(e)
     }
+  }
+
+  const onEditAlternativeMedicineSubmit = async data => {
+    try {
+      const body = {
+        stock_item_id: +id,
+        alternate_stock_item_id: +data?.productName?.value,
+        status: data.status === 'active' ? 1 : 0
+      }
+
+      const response = await editNewAlternativeMedicineProducts(+data?.id, JSON.stringify(body))
+      if (response.success) {
+        toast.success(response?.message)
+        setPage(1)
+        setEditMedicinesDrawerOpen(false)
+        reset()
+      } else if (response.errors?.length) {
+        response.errors.forEach(error => {
+          const errorIndex = error.index
+
+          if (typeof errorIndex === 'number' && error.exists) {
+            setError(`productName`, {
+              type: 'manual',
+              message: error.exists
+            })
+          }
+        })
+      }
+    } catch (e) {
+      console.error(e)
+    }
+  }
+
+  const handleEditAlternativeMedicine = medicine => {
+    const defaultValues = {
+      productName: { ...medicine, value: medicine.alternate_stock_item_id || '', label: medicine.stock_name } || {
+        value: '',
+        label: ''
+      },
+      manufacturerName: medicine.manufacturer_name || '',
+      status: medicine.status == 1 ? 'active' : 'inactive',
+      id: medicine.id
+    }
+
+    reset(defaultValues) // Prefill form
+    setEditMedicinesDrawerOpen(true)
   }
 
   // const productDashboardList = async id => {
@@ -755,7 +831,6 @@ const Overview = props => {
   //     fetchDispatchData(id)
   //   }
   // }, [id])
-
 
   return (
     <>
@@ -891,21 +966,39 @@ const Overview = props => {
                 ) : alternativeMedicinesList?.list_items?.length > 0 ? (
                   <>
                     <List>
-                      {alternativeMedicinesList.list_items.slice(0, 5).map((medicine, index) => (
-                        <ListItem key={index} disableGutters>
-                          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
-                            <Typography sx={{ color: 'primary.dark', fontWeight: 500, fontSize: '14px' }}>
-                              {medicine.stock_name}
-                            </Typography>
-                            <Typography
-                              component='span'
-                              sx={{ color: 'customColors.neutralSecondary', fontWeight: 400, fontSize: '12px' }}
+                      {alternativeMedicinesList?.list_items
+                        ?.filter(item => item.status == '1')
+                        ?.slice(0, 5)
+                        ?.map((medicine, index) => (
+                          <ListItem
+                            sx={{ display: 'flex', justifyContent: 'space-between' }}
+                            key={index}
+                            disableGutters
+                          >
+                            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                              <Typography sx={{ color: 'primary.dark', fontWeight: 500, fontSize: '14px' }}>
+                                {medicine.stock_name}
+                              </Typography>
+                              <Typography
+                                component='span'
+                                sx={{ color: 'customColors.neutralSecondary', fontWeight: 400, fontSize: '12px' }}
+                              >
+                                {medicine.manufacturer_name}
+                              </Typography>
+                            </Box>
+                            <Box
+                              sx={{
+                                display: 'flex',
+                                justifyContent: 'flex-end',
+                                cursor: 'pointer',
+                                ':hover': { color: 'primary.main' }
+                              }}
+                              onClick={() => handleEditAlternativeMedicine(medicine)}
                             >
-                              {medicine.manufacturer_name}
-                            </Typography>
-                          </Box>
-                        </ListItem>
-                      ))}
+                              <EditIcon />
+                            </Box>
+                          </ListItem>
+                        ))}
                     </List>
 
                     {/* More Section - Only show if more than 5 */}
@@ -1074,121 +1167,49 @@ const Overview = props => {
         drawerStatus={isAlternativeMedicinesDrawerOpen}
         close={() => setAlternativeMedicinesDrawerOpen(false)}
         contentComponent={
-          <AlternativeMedicinesList
+          <AlternativeMedicinesTabs
             data={alternativeMedicinesList}
             isLoading={isLoading}
             hasMore={hasMore}
             onLoadMore={() => setPage(prev => prev + 1)}
+            onEdit={handleEditAlternativeMedicine}
           />
         }
         style='customColors.Background'
       />
 
-      <Drawer
-        anchor='right'
-        open={addMedicinesDrawerOpen}
-        onClose={() => setAddMedicinesDrawerOpen(false)}
-        PaperProps={{
-          sx: {
-            width: 500,
-            display: 'flex',
-            flexDirection: 'column',
-            backgroundColor: 'customColors.Background'
-          }
-        }}
-      >
-        {/* Drawer Header */}
-        <Box display='flex' justifyContent='space-between' alignItems='center' sx={{ p: 4 }}>
-          <Box display='flex' alignItems='center' gap={2}>
-            <Typography variant='h6' fontWeight='bold'>
-              Add New Alternative Medicine
-            </Typography>
-          </Box>
-          <IconButton onClick={() => setAddMedicinesDrawerOpen(false)}>
-            <Icon icon='mdi:close' />
-          </IconButton>
-        </Box>
-        <Divider />
+      {addMedicinesDrawerOpen && (
+        <AddAlternativeMedicineDrawer
+          open={addMedicinesDrawerOpen}
+          onClose={() => setAddMedicinesDrawerOpen(false)}
+          onSubmit={onSubmit}
+          handleSubmit={handleSubmit}
+          control={control}
+          errors={errors}
+          alternatives={alternatives}
+          handleProductChange={handleProductChange}
+          handleAddAlternative={handleAddAlternative}
+          handleDeleteLastAlternative={handleDeleteLastAlternative}
+          optionsMedicineList={optionsMedicineList}
+          productLoading={productLoading}
+          searchMedicineData={searchMedicineData}
+        />
+      )}
 
-        {/* Drawer Content */}
-        <Box
-          p={4}
-          sx={{
-            flex: 1, // Allow content to grow and shrink
-            overflowY: 'auto' // Enable scrolling for content if it overflows
-          }}
-        >
-          <Card sx={{ p: 4 }}>
-            <form onSubmit={handleSubmit(onSubmit)}>
-              <Box display='flex' flexDirection='column' gap={2}>
-                {/* Map through alternatives */}
-                {alternatives.map((alt, index) => (
-                  <Box key={index} display='flex' flexDirection='column' gap={2}>
-                    <ControlledAutocomplete
-                      name={`alternatives[${index}].productName`}
-                      label='Product Name*'
-                      control={control}
-                      errors={errors}
-                      options={optionsMedicineList}
-                      loading={productLoading}
-                      onKeyUp={e => searchMedicineData(e.target.value)}
-                      onChangeOverride={value => handleProductChange(value, index)}
-                      renderOption={(props, option) => <ProductOption option={option} {...props} />}
-                    />
-
-                    {/* Manufacturer Name */}
-
-                    <ControlledTextField
-                      name={`alternatives[${index}].manufacturerName`}
-                      label='Manufacturer Name'
-                      control={control}
-                      errors={errors}
-                      required={true}
-                      disabled
-                    />
-                  </Box>
-                ))}
-
-                {/* Common Action Buttons */}
-                <Box display='flex' justifyContent='flex-end' gap={2}>
-                  {/* Delete Last Alternative */}
-                  <Button
-                    variant='text'
-                    color='error'
-                    onClick={handleDeleteLastAlternative}
-                    disabled={alternatives.length <= 1}
-                    startIcon={<Icon icon='mdi:delete' />}
-                  >
-                    Delete
-                  </Button>
-
-                  {/* Add Alternative */}
-                  <Button variant='text' onClick={handleAddAlternative} startIcon={<Icon icon='mdi:plus' />}>
-                    Add Alternative
-                  </Button>
-                </Box>
-              </Box>
-            </form>
-          </Card>
-        </Box>
-
-        {/* Drawer Footer */}
-        <Box
-          sx={{
-            p: 4,
-            borderTop: '1px solid #ddd'
-          }}
-        >
-          <Button
-            type='submit'
-            variant='contained'
-            fullWidth
-            onClick={handleSubmit(onSubmit)} // Ensure form submission is handled
-          >
-            Save
-          </Button>
-        </Box>
-      </Drawer>
+      {editMedicinesDrawerOpen && (
+        <EditAlternativeMedicineDrawer
+          open={editMedicinesDrawerOpen}
+          onClose={() => setEditMedicinesDrawerOpen(false)}
+          onSubmit={onEditAlternativeMedicineSubmit}
+          handleSubmit={handleSubmit}
+          control={control}
+          errors={errors}
+          handleProductChange={handleEditProductChange}
+          optionsMedicineList={optionsMedicineList}
+          productLoading={productLoading}
+          searchMedicineData={searchMedicineData}
+        />
+      )}
     </>
   )
 }

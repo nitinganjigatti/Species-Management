@@ -27,3 +27,13 @@ export async function addNewAlternativeMedicineProducts(body) {
 
   return response.data
 }
+
+export async function editNewAlternativeMedicineProducts(id, body) {
+  const response = await axiosPost({
+    url: `${BASE_URL_Pharmacy}${MEDICINE}/${ALTERNATE_MAPPING}/${id}/update`,
+    body,
+    pharmacy: true
+  })
+
+  return response.data
+}
