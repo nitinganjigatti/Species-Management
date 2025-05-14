@@ -20,7 +20,8 @@ import {
   DialogTitle,
   DialogActions,
   DialogContent,
-  CircularProgress
+  CircularProgress,
+  Tooltip
 } from '@mui/material'
 import { fontSize, fontWeight, textAlign } from '@mui/system'
 import React, { useCallback, useContext, useEffect, useState } from 'react'
@@ -733,19 +734,21 @@ const MealGroup = () => {
       ),
       renderCell: params => (
         <>
-          <Typography
-            variant='body2'
-            textAlign='center'
-            sx={{
-              color: theme.palette.customColors.customHeadingTextColor,
-              fontSize: '16px',
-              fontWeight: 500,
-              color: theme.palette.customColors.OnSurfaceVariant,
-              fontFamily: 'Inter'
-            }}
-          >
-            {params?.row.group_name}
-          </Typography>
+          <Tooltip title={params?.row.group_name}>
+            <Typography
+              variant='body2'
+              textAlign='center'
+              sx={{
+                color: theme.palette.customColors.customHeadingTextColor,
+                fontSize: '16px',
+                fontWeight: 500,
+                color: theme.palette.customColors.OnSurfaceVariant,
+                fontFamily: 'Inter'
+              }}
+            >
+              {params?.row.group_name}
+            </Typography>
+          </Tooltip>
         </>
       )
     },
@@ -985,21 +988,23 @@ const MealGroup = () => {
             checked={checkedRows.includes(params.row.enclosure_id)}
             onChange={e => handleCheckboxChange(e, params.row)}
           />
-          <Typography
-            noWrap
-            variant='body2'
-            sx={{
-              fontSize: '16px',
-              fontFamily: 'Inter',
-              fontWeight: 500,
-              color: '#44544A',
-              maxWidth: '100%',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis'
-            }}
-          >
-            {params.row.user_enclosure_name}
-          </Typography>
+          <Tooltip title={params.row.user_enclosure_name}>
+            <Typography
+              noWrap
+              variant='body2'
+              sx={{
+                fontSize: '16px',
+                fontFamily: 'Inter',
+                fontWeight: 500,
+                color: '#44544A',
+                maxWidth: '100%',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis'
+              }}
+            >
+              {params.row.user_enclosure_name}
+            </Typography>
+          </Tooltip>
         </Box>
       )
     },
@@ -1029,21 +1034,25 @@ const MealGroup = () => {
         </Box>
       ),
       renderCell: params => (
-        <Typography
-          variant='body2'
-          textAlign='center'
-          sx={{
-            fontSize: '16px',
-            fontWeight: 400,
-            color: '#44544A',
-            fontFamily: 'Inter',
-            maxWidth: '100%',
-            overflow: 'hidden',
-            textOverflow: 'ellipsis'
-          }}
-        >
-          {params.row.section_name}
-        </Typography>
+        <>
+          <Tooltip title={params.row.section_name}>
+            <Typography
+              variant='body2'
+              textAlign='center'
+              sx={{
+                fontSize: '16px',
+                fontWeight: 400,
+                color: '#44544A',
+                fontFamily: 'Inter',
+                maxWidth: '100%',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis'
+              }}
+            >
+              {params.row.section_name}
+            </Typography>
+          </Tooltip>
+        </>
       )
     },
     {
