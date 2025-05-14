@@ -948,6 +948,17 @@ const MealGroup = () => {
       renderHeader: () => (
         <Box display='flex' alignItems='center' justifyContent='start' gap={1}>
           <Checkbox
+            sx={{
+              '&.Mui-checked': {
+                color: theme.palette.primary.main
+              },
+              '& .MuiSvgIcon-root': {
+                width: '19px',
+                height: '19px',
+                border: '2px dotted'
+              },
+              mr: 1
+            }}
             size='small'
             checked={checkedRows.length === enclosureList.length && enclosureList.length > 0}
             indeterminate={checkedRows.length > 0 && checkedRows.length < enclosureList.length}
