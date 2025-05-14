@@ -57,6 +57,7 @@ import EditAlternativeMedicineDrawer from './EditAlternativeMedicineDrawer'
 import AddAlternativeMedicineDrawer from './AddAlternativeMedicineDrawer'
 import AlternativeMedicinesTabs from './AlternativeMedicinesTabs'
 import toast from 'react-hot-toast'
+import NoDataFound from 'src/views/utility/NoDataFound'
 
 const addValidationSchema = yup.object().shape({
   alternatives: yup.array().of(
@@ -1035,12 +1036,7 @@ const Overview = props => {
                     )}
                   </>
                 ) : (
-                  <Typography
-                    variant='body2'
-                    sx={{ color: 'customColors.neutralSecondary', textAlign: 'center', py: 2 }}
-                  >
-                    No items found.
-                  </Typography>
+                  <NoDataFound variant='Seal' height={200} width={200} />
                 )}
               </Box>
             </CardContent>
