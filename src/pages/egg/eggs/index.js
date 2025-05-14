@@ -1338,7 +1338,8 @@ const EggList = () => {
                   color: theme.palette.customColors.OnSurfaceVariant,
                   fontSize: '14px',
                   fontWeight: '500',
-                  lineHeight: '16.94px'
+                  lineHeight: '16.94px',
+                  mb: 0.7
                 }}
               >
                 {params.row.user_full_name ? params.row.user_full_name : '-'}
