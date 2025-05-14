@@ -314,7 +314,9 @@ export const AddItemsForm = ({
       nestedItemQuantity = nestedMedicine?.request_item_qty
     }
 
-    const available_qty = parseInt(totalQuantity) - (totalCount - nestedItemQuantity + enteredCount)
+    const available_qty = parseInt(totalQuantity)
+
+    //  - (totalCount - nestedItemQuantity + enteredCount)
 
     setTotalAvailableCount(available_qty)
   }
