@@ -126,11 +126,13 @@ const Overview = props => {
   const [isAlternativeMedicinesDrawerOpen, setAlternativeMedicinesDrawerOpen] = useState(false)
   const [addMedicinesDrawerOpen, setAddMedicinesDrawerOpen] = useState(false)
   const [editMedicinesDrawerOpen, setEditMedicinesDrawerOpen] = useState(false)
-  const [alternativeMedicinesList, setAlternativeMedicinesList] = useState()
+
+  const [alternativeMedicinesList, setAlternativeMedicinesList] = useState({
+    active: { list_items: [], total_count: 0, page: 1, hasMore: true },
+    inactive: { list_items: [], total_count: 0, page: 1, hasMore: true }
+  })
   const [optionsMedicineList, setOptionsMedicineList] = useState([])
   const [productLoading, setProductLoading] = useState(false)
-  const [page, setPage] = useState(1)
-  const [hasMore, setHasMore] = useState(true)
 
   const searchMedicineData = useCallback(
     debounce(async searchText => {
@@ -214,32 +216,49 @@ const Overview = props => {
     }
   }, [tabValue, updateUrlParams])
 
-  const getAlternativeMedicineList = async (pageNum = 1) => {
+  const getAlternativeMedicineList = async (tab = 'active', pageNum = 1) => {
     setIsLoading(true)
     try {
       const payload = {
         page: pageNum,
-        limit
+        limit,
+        status: tab === 'active' ? 1 : 0
       }
+
       const response = await getAlternativeMedicineProducts(id, payload)
+
       if (response.success) {
         const newItems = response.data?.list_items || []
         const totalCount = response?.data?.total_count || 0
 
         setAlternativeMedicinesList(prev => {
-          const updatedList =
-            pageNum === 1
-              ? newItems 
-              : [...(prev?.list_items || []), ...newItems] 
+          const prevTabData = prev[tab] || {}
+
+          const updatedList = pageNum === 1 ? newItems : [...(prevTabData.list_items || []), ...newItems]
+
+          const totalPages = Math.ceil(totalCount / limit)
+          const hasMore = pageNum < totalPages
+
+          console.log('data setAlternativeMedicinesList', {
+            ...prev,
+            [tab]: {
+              list_items: updatedList,
+              total_count: totalCount,
+              page: pageNum,
+              hasMore
+            }
+          })
 
           return {
-            total_count: totalCount,
-            list_items: updatedList
+            ...prev,
+            [tab]: {
+              list_items: updatedList,
+              total_count: totalCount,
+              page: pageNum,
+              hasMore
+            }
           }
         })
-
-        const totalPages = Math.ceil(totalCount / limit)
-        setHasMore(pageNum < totalPages)
       }
     } catch (e) {
       console.error(e)
@@ -249,9 +268,12 @@ const Overview = props => {
   }
 
   useEffect(() => {
-    if (id) getAlternativeMedicineList(page)
+    if (id) {
+      getAlternativeMedicineList('active', 1)
+      getAlternativeMedicineList('inactive', 1)
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id, page])
+  }, [id])
 
   const QuantityInStoresContent = ({ data, isLoading }) => {
     const totalCentralQty = Array.isArray(data?.central)
@@ -713,7 +735,7 @@ const Overview = props => {
       const response = await addNewAlternativeMedicineProducts(JSON.stringify(body))
       if (response.success) {
         toast.success(response?.message)
-        getAlternativeMedicineList(1)
+        await getAlternativeMedicineList('active', 1)
         setAddMedicinesDrawerOpen(false)
         reset()
       } else if (response.errors?.length) {
@@ -744,7 +766,10 @@ const Overview = props => {
       const response = await editNewAlternativeMedicineProducts(+data?.id, JSON.stringify(body))
       if (response.success) {
         toast.success(response?.message)
-        setPage(1)
+
+        // Refetch first page of the relevant tab
+        await getAlternativeMedicineList('active', 1)
+        await getAlternativeMedicineList('inactive', 1)
         setEditMedicinesDrawerOpen(false)
         reset()
       } else if (response.errors?.length) {
@@ -926,7 +951,9 @@ const Overview = props => {
                       />
                     </Box>
                     Alternative Medicines{' '}
-                    {alternativeMedicinesList?.total_count ? `(${alternativeMedicinesList?.total_count})` : null}
+                    {alternativeMedicinesList?.active?.total_count
+                      ? `(${alternativeMedicinesList?.active?.total_count})`
+                      : null}
                   </Box>
                 </Typography>
 
@@ -949,7 +976,7 @@ const Overview = props => {
 
               {/* Medicine List */}
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, flexGrow: 1 }}>
-                {isLoading ? (
+                {isLoading && !alternativeMedicinesList?.active?.list_items?.length ? (
                   <Typography
                     color='primary.light'
                     style={{
@@ -963,53 +990,46 @@ const Overview = props => {
                   >
                     <CircularProgress />
                   </Typography>
-                ) : alternativeMedicinesList?.list_items?.length > 0 ? (
+                ) : alternativeMedicinesList?.active?.list_items?.length > 0 ? (
                   <>
                     <List>
-                      {alternativeMedicinesList?.list_items
-                        ?.filter(item => item.status == '1')
-                        ?.slice(0, 5)
-                        ?.map((medicine, index) => (
-                          <ListItem
-                            sx={{ display: 'flex', justifyContent: 'space-between' }}
-                            key={index}
-                            disableGutters
-                          >
-                            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
-                              <Typography sx={{ color: 'primary.dark', fontWeight: 500, fontSize: '14px' }}>
-                                {medicine.stock_name}
-                              </Typography>
-                              <Typography
-                                component='span'
-                                sx={{ color: 'customColors.neutralSecondary', fontWeight: 400, fontSize: '12px' }}
-                              >
-                                {medicine.manufacturer_name}
-                              </Typography>
-                            </Box>
-                            <Box
-                              sx={{
-                                display: 'flex',
-                                justifyContent: 'flex-end',
-                                cursor: 'pointer',
-                                ':hover': { color: 'primary.main' }
-                              }}
-                              onClick={() => handleEditAlternativeMedicine(medicine)}
+                      {alternativeMedicinesList?.active?.list_items?.slice(0, 5)?.map((medicine, index) => (
+                        <ListItem sx={{ display: 'flex', justifyContent: 'space-between' }} key={index} disableGutters>
+                          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.5 }}>
+                            <Typography sx={{ color: 'primary.dark', fontWeight: 500, fontSize: '14px' }}>
+                              {medicine.stock_name}
+                            </Typography>
+                            <Typography
+                              component='span'
+                              sx={{ color: 'customColors.neutralSecondary', fontWeight: 400, fontSize: '12px' }}
                             >
-                              <EditIcon />
-                            </Box>
-                          </ListItem>
-                        ))}
+                              {medicine.manufacturer_name}
+                            </Typography>
+                          </Box>
+                          <Box
+                            sx={{
+                              display: 'flex',
+                              justifyContent: 'flex-end',
+                              cursor: 'pointer',
+                              ':hover': { color: 'primary.main' }
+                            }}
+                            onClick={() => handleEditAlternativeMedicine(medicine)}
+                          >
+                            <EditIcon />
+                          </Box>
+                        </ListItem>
+                      ))}
                     </List>
 
                     {/* More Section - Only show if more than 5 */}
-                    {alternativeMedicinesList?.total_count > 5 && (
+                    {alternativeMedicinesList?.active?.total_count > 5 && (
                       <Box>
                         <Button
                           variant='text'
                           sx={{ color: 'primary.main', cursor: 'pointer', textTransform: 'none', fontSize: '13px' }}
                           onClick={() => setAlternativeMedicinesDrawerOpen(true)}
                         >
-                          +{alternativeMedicinesList?.total_count - 5} More
+                          +{alternativeMedicinesList?.active?.total_count - 5} More
                         </Button>
                       </Box>
                     )}
@@ -1170,8 +1190,7 @@ const Overview = props => {
           <AlternativeMedicinesTabs
             data={alternativeMedicinesList}
             isLoading={isLoading}
-            hasMore={hasMore}
-            onLoadMore={() => setPage(prev => prev + 1)}
+            onLoadMore={tab => getAlternativeMedicineList(tab, alternativeMedicinesList[tab].page + 1)}
             onEdit={handleEditAlternativeMedicine}
           />
         }
