@@ -904,20 +904,23 @@ const MealGroup = () => {
           justifyContent='center'
           width='100%'
         >
-          <Button
-            sx={{
-              borderColor: theme.palette.primary.main,
-              color: theme.palette.primary.main,
-              borderRadius: '4px',
-              // minWidth: '120px',
-              height: '36px',
-              fontSize: '12px'
-            }}
-            variant='outlined'
-            onClick={e => handleEnclosureEvent(e, params.row.id)}
-          >
-            Add Enclosure
-          </Button>
+          {siteStats.unmapped_enclosures !== '0' && (
+            <Button
+              sx={{
+                borderColor: theme.palette.primary.main,
+                color: theme.palette.primary.main,
+                borderRadius: '4px',
+                // minWidth: '120px',
+                height: '36px',
+                fontSize: '12px'
+              }}
+              variant='outlined'
+              onClick={e => handleEnclosureEvent(e, params.row.id)}
+            >
+              Add Enclosure
+            </Button>
+          )}
+
           <IconButton onClick={e => handleEdit(e, params.row)} size='small' sx={{ color: theme.palette.primary.light }}>
             <Icon icon='mdi:pencil-outline' fontSize={20} />
           </IconButton>
@@ -1374,7 +1377,7 @@ const MealGroup = () => {
 
             <TabPanel value='unmapped'>{''}</TabPanel>
             <TabPanel value='mapped'>{''}</TabPanel>
-            <TabPanel value=''>{''}</TabPanel>
+            <TabPanel value='mealgroup'>{''}</TabPanel>
           </TabContext>
         </Grid>
 
