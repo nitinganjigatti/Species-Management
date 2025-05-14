@@ -289,7 +289,8 @@ const PurchaseInvoiceUpload = ({
       purchase_cgst_amount: checkFloatValue(cgstAmount),
       purchase_sgst_amount: checkFloatValue(sgstAmount),
       purchase_igst_amount: checkFloatValue(igstAmount),
-      purchase_gst: totalGst
+      // purchase_gst: totalGst
+      purchase_gst: parseFloat(taxableAmount * (totalGst / 100))
     }
   }
 
@@ -369,7 +370,7 @@ const PurchaseInvoiceUpload = ({
             console.error('Error in variant mapping:', error)
           }
           if (responseData) {
-            const purchase_details = responseData.product_details.map((el, index) => {
+            const purchase_details = responseData?.product_details?.map((el, index) => {
               // Get GST values from invoice data
               const purchase_gst = el.purchase_gst || 0
               const purchase_cgst = purchase_gst / 2 // Split GST into CGST and SGST
@@ -378,9 +379,10 @@ const PurchaseInvoiceUpload = ({
 
               // Calculate amounts using the calculateStuff function
               const calculatedAmounts = calculateStuff(
-                el.purchase_qty,
-                el.purchase_unit_price,
-                el.purchase_discount || 0,
+                el?.purchase_qty,
+                // el.purchase_unit_price,
+                el?.purchase_purchase_price,
+                el?.purchase_discount || 0,
                 purchase_cgst,
                 purchase_sgst,
                 purchase_igst
@@ -411,7 +413,8 @@ const PurchaseInvoiceUpload = ({
 
                 ///********** */
                 purchase_qty: el?.purchase_qty,
-                purchase_unit_price: el?.purchase_unit_price,
+                // purchase_unit_price: el?.purchase_unit_price,
+                purchase_unit_price: el?.purchase_purchase_price,
                 purchase_discount: el?.purchase_discount || 0,
                 purchase_cgst: purchase_cgst,
                 purchase_sgst: purchase_sgst,

@@ -1062,7 +1062,7 @@ const PurchaseItemForm = props => {
               mb: 4
             }}
           >
-            GST Details
+            GST Amount Details
           </Typography>
         </Grid>
         <Grid
@@ -1100,12 +1100,13 @@ const PurchaseItemForm = props => {
               variant='body1'
               sx={{
                 fontSize: '14px',
-                fontWeight: 4000,
+                fontWeight: 400,
                 color: 'customColors.customTextColorGray2',
                 mb: 0.5
               }}
             >
-              GST Amount:{watch('purchase_gst')}
+              GST :{Utility.formatAmountToReadableDigit(watch('purchase_gst'))}
+              {/* {watch('purchase_gst')} */}
             </Typography>
             <Divider
               orientation='vertical'
@@ -1132,12 +1133,13 @@ const PurchaseItemForm = props => {
               variant='body1'
               sx={{
                 fontSize: '14px',
-                fontWeight: 4000,
+                fontWeight: 400,
                 color: 'customColors.customTextColorGray2',
                 mb: 0.5
               }}
             >
-              Central GST Amount:{watch('purchase_cgst_amount')}
+              Central GST :{Utility.formatAmountToReadableDigit(watch('purchase_cgst_amount'))}
+              {/* {watch('purchase_cgst_amount')} */}
             </Typography>
             <Divider
               orientation='vertical'
@@ -1161,12 +1163,13 @@ const PurchaseItemForm = props => {
               variant='body1'
               sx={{
                 fontSize: '14px',
-                fontWeight: 4000,
+                fontWeight: 400,
                 color: 'customColors.customTextColorGray2',
                 mb: 0.5
               }}
             >
-              State GST Amount:{watch('purchase_sgst_amount')}
+              State GST :{Utility.formatAmountToReadableDigit(watch('purchase_sgst_amount'))}
+              {/* {watch('purchase_sgst_amount')} */}
             </Typography>
             <Divider
               orientation='vertical'
@@ -1190,12 +1193,13 @@ const PurchaseItemForm = props => {
               variant='body1'
               sx={{
                 fontSize: '14px',
-                fontWeight: 4000,
+                fontWeight: 400,
                 color: 'customColors.customTextColorGray2',
                 mb: 0.5
               }}
             >
-              IGST Amount:{watch('purchase_igst_amount')}
+              IGST :{Utility.formatAmountToReadableDigit(watch('purchase_igst_amount'))}
+              {/* {watch('purchase_igst_amount')} */}
             </Typography>
           </Grid>
         </Grid>
@@ -1430,12 +1434,13 @@ const PurchaseItemForm = props => {
             variant='body1'
             sx={{
               fontSize: '14px',
-              fontWeight: 4000,
+              fontWeight: 400,
               color: 'customColors.customTextColorGray2',
               mb: 0.5
             }}
           >
-            Discount Amount:{watch('purchase_discount_amount')}
+            Discount :{Utility.formatAmountToReadableDigit(watch('purchase_discount_amount'))}
+            {/* {watch('purchase_discount_amount')} */}
           </Typography>
         </Grid>
         <Grid item xs={12} sm={4}>
