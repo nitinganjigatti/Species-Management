@@ -603,6 +603,7 @@ const MealGroup = () => {
         // Refresh your data or state
         toast.success('Meal Group deleted successfully')
         fetchEnclosure()
+        fetchSiteStats()
       }
     } catch (error) {
       toast.error('something went wrong')
@@ -1228,6 +1229,7 @@ const MealGroup = () => {
   }
 
   const handleView = async parm => {
+    setLoader(true)
     setOpenDrawer(true)
     setEditParam(parm.row)
     setmealType({ type: 'view' })

@@ -463,6 +463,7 @@ const CreateEnclosure = ({
           setSelectedEnclosureDrawer={setSelectedEnclosureDrawer}
           selectEnclosures={selectedItems.filter(item => selectedEnclosureIds.includes(item.enclosure_id))}
           selectedEnclosureIds={selectedEnclosureIds}
+          loader={loader}
           setSelectedEnclosureIds={setSelectedEnclosureIds}
           selectedItems={selectedItems}
           checkedRows={checkedRows}
