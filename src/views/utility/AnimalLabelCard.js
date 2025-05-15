@@ -1,8 +1,7 @@
 import React from 'react'
 import { Box, Grid, Typography, Avatar, Tooltip } from '@mui/material'
-import RenderUtility from 'src/utility/render'
 
-const PharmacyProductCard = ({
+const AnimalLabelCard = ({
   title,
   subTitle,
   secondSubTitle,
@@ -10,9 +9,7 @@ const PharmacyProductCard = ({
   bgColor,
   onClick,
   rowWidth = 250,
-  heoImageDimension = 44,
-  controlSubstance = false,
-  prescriptionRequired = false
+  imageDimension = 44
 }) => {
   // 1 unit is equal to 4px
 
@@ -58,23 +55,24 @@ const PharmacyProductCard = ({
         sx={{
           display: 'flex',
           alignItems: 'center',
-          padding: 0,
-          borderRadius: '8px',
+          padding: 1,
+          borderRadius: '100%',
 
           // width: '100%',
           // height: '100%',
-          justifyContent: 'center'
+          justifyContent: 'center',
+
+          backgroundColor: 'customColors.displaybgPrimary'
         }}
       >
-        <Avatar
-          variant='square'
-          alt=''
-          src={icon ? icon : '/images/Medicine_Icon.png'}
-          sx={{
-            width: `${heoImageDimension}px`,
-            height: `${heoImageDimension}px`,
-            borderRadius: '10px'
+        <img
+          style={{
+            width: `${imageDimension}px`,
+            height: `${imageDimension}px`,
+            borderRadius: '100%'
           }}
+          src={icon ? icon : '/images/Medicine_Icon.png'}
+          alt='Animal'
         />
       </Box>
       <Box flex='1' ml={marginLeft}>
@@ -91,8 +89,7 @@ const PharmacyProductCard = ({
                 width: `${rowWidth - (marginLeft * 4 + 44 + 8)}px`
               }}
             >
-              {RenderUtility?.renderControlLabel(controlSubstance, 'CS')}
-              {RenderUtility?.renderPrescriptionLabel(prescriptionRequired, 'PR')} {title ? title : ''}
+              {title ? title : ''}
             </Typography>
           </ToolTip>
         )}
@@ -138,4 +135,4 @@ const PharmacyProductCard = ({
   )
 }
 
-export default PharmacyProductCard
+export default AnimalLabelCard

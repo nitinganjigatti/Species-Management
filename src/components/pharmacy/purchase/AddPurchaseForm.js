@@ -2184,7 +2184,8 @@ const AddPurchaseForm = () => {
             </Grid>
           </Grid>
         </CardContent>
-        {validateErrorForItemId() && (
+
+        {editParams.purchase_created_by === 'invoice_upload' && (
           <Typography sx={{ color: 'error.main', mx: 6, mb: 2 }}>
             Kindly review all invoice entries carefully before saving the purchase.
           </Typography>
