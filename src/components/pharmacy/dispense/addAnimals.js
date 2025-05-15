@@ -198,7 +198,8 @@ const AddAnimals = ({ drawerWidth, animals_s, setAnimals_s, user, addEventSideba
           enclosure_id: item?.enclosure_id,
           section_name: item?.section_name,
           icon: item.default_icon,
-          gender: item?.sex
+          gender: item?.sex,
+          full_animal_name: item?.complete_name
         })
       }
       setCollectedAnimalsCount(updatedArray?.length)
