@@ -11,19 +11,19 @@ const composeHousingNavigation = () => {
 
   const dashboard = {
     title: 'dashboard',
-    path: '',
+    path: '/housing/dashboard',
     icon: <img src='/icons/home_black.svg' alt='Grocery Icon' />,
     activeIcon: <img src='/icons/home_white.png' alt='Grocery Icon' />
   }
 
   const sites = {
     title: 'Sites',
-    path: '',
+    path: '/housing/sites',
     icon: 'mdi:rabbit-variant-outline'
   }
   const sections = {
     title: 'Sections',
-    path: '',
+    path: '/housing/sections',
     icon: 'mdi:rabbit-variant-outline'
   }
 
