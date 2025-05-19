@@ -120,6 +120,7 @@ const AddRequestForm = () => {
   const [fromStocks, setFromStocks] = useState([])
   const [editParams, setEditParams] = useState(editParamsInitialState)
   const [optionsMedicineList, setOptionsMedicineList] = useState([])
+  const [optionsGenericMedicineList, setOptionsGenericMedicineList] = useState([])
   const [show, setShow] = useState(false)
   const [errors, setErrors] = useState({})
   const [itemErrors, setItemErrors] = useState({})
@@ -486,9 +487,11 @@ const AddRequestForm = () => {
       }
 
       const searchResults = await getGenericMedicineList({ params: params })
-      if (searchResults?.data?.list_items.length > 0) {
-        setOptionsMedicineList(
-          searchResults?.data?.list_items?.map(item => ({
+      if (searchResults?.data?.list_items?.length > 0) {
+        const medicalProducts = searchResults?.data?.list_items?.filter(el => el.stock_type != 'Non Medical')
+        console.log('medicalProducts', medicalProducts)
+        setOptionsGenericMedicineList(
+          medicalProducts?.map(item => ({
             value: item.id,
             genericName: item?.generic_name,
             name: item?.name,
@@ -556,6 +559,7 @@ const AddRequestForm = () => {
   useEffect(() => {
     getStoresLists()
     fetchMedicineData('')
+    fetchGenericMedicineData('')
   }, [])
   //  ****** debounce
 
@@ -973,7 +977,7 @@ const AddRequestForm = () => {
                   // inputProps={{ tabIndex: '6' }}
                   // disablePortal
                   id='autocomplete-controlled'
-                  options={optionsMedicineList}
+                  options={optionsGenericMedicineList}
                   renderOption={(props, option) => (
                     <li
                       {...props}
@@ -1025,7 +1029,6 @@ const AddRequestForm = () => {
                   }}
                   onKeyUp={e => {
                     searchGenericMedicineData(e.target.value)
-
                     setItemErrors({})
                   }}
                   onBlur={() => {}}
