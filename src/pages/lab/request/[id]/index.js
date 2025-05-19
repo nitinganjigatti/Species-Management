@@ -149,6 +149,7 @@ const RequestDetails = () => {
   const [openCommentSheet, setOpenCommentSheet] = useState(false)
   const [openAttachmentSheet, setOpenAttachmentSheet] = useState(false)
   const [CommentData, setCommentData] = useState({})
+
   // const [attachmentData, setAttachmentCommentData] = useState({})
   const [medicalRecordNotes, setMedicalRecordNotes] = useState([])
 
@@ -158,6 +159,7 @@ const RequestDetails = () => {
 
   useEffect(() => {
     const labObject = localLabData?.find(item => item?.lab_id === lab_id)
+
     // console.log('labObject', labObject)
 
     if (labObject && labObject.permission) {
@@ -339,8 +341,6 @@ const RequestDetails = () => {
       ].includes(item?.key)
     )
 
-    debugger
-
     if (hasCompleted?.length > 0 && !params) {
       setHasCompletedStatus(true)
     } else {
@@ -431,6 +431,7 @@ const RequestDetails = () => {
   const handleRowPermission = ({ params }) => {
     const st = statusList.filter(status => status.key === params.row.status)
     const st1 = filteredStatusData.filter(status => status.key === params.row.status)
+
     // console.log('statusList', statusList)
     // console.log('st', st)
     if (st1?.length === 0) {
@@ -706,7 +707,7 @@ const RequestDetails = () => {
                     </>
                     <>
                       {(permissions?.allow_full_access || permissions?.transfer_tests) &&
-                        params.row.status.split(' ')[0] !== 'completed' && (
+                        params.row.status.split('_')[0] !== 'completed' && (
                           <Tooltip title='Transfer' arrow placement='top-start'>
                             <IconButton
                               variant='outlined'
