@@ -498,7 +498,19 @@ const SpeciesMappedtoDiet = ({
                 </SpeciesCardItem>
               ))
             ) : (
-              <Typography sx={{ textAlign: 'center', mt: 10, fontWeight: '500' }}>No Species Found</Typography>
+              <Box
+                sx={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  height: '70%',
+                  textAlign: 'center'
+                }}
+              >
+                <img src='/images/no_data_animal_2.png' alt='Grocery Icon' width='250px' />
+                <Typography sx={{ textAlign: 'center', fontWeight: '500' }}>No Species Found</Typography>
+              </Box>
             )}
             {isLoadingMore && (
               <Box
@@ -549,7 +561,19 @@ const SpeciesMappedtoDiet = ({
                 </AnimalCardItem>
               ))
             ) : (
-              <Typography sx={{ textAlign: 'center', mt: 10, fontWeight: '500' }}>No Animals Found</Typography>
+              <Box
+                sx={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  height: '70%',
+                  textAlign: 'center'
+                }}
+              >
+                <img src='/images/no_data_animal_2.png' alt='Grocery Icon' width='250px' />
+                <Typography sx={{ textAlign: 'center', fontWeight: '500' }}>No Animals Found</Typography>
+              </Box>
             )}
             {isLoadingMore && (
               <Box

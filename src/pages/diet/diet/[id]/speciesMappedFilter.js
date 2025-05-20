@@ -712,7 +712,19 @@ const SpeciesMappedtoDietFilter = ({
                               )
                             })
                           ) : (
-                            <Typography sx={{ textAlign: 'center', mt: 10 }}>No Species found</Typography>
+                            <Box
+                              sx={{
+                                display: 'flex',
+                                flexDirection: 'column',
+                                justifyContent: 'center',
+                                alignItems: 'center',
+                                height: '70%',
+                                textAlign: 'center'
+                              }}
+                            >
+                              <img src='/images/no_data_animal_2.png' alt='Grocery Icon' width='250px' />
+                              <Typography sx={{ textAlign: 'center', fontWeight: '500' }}>No Species Found</Typography>
+                            </Box>
                           )}
                         </Box>
                       </Box>

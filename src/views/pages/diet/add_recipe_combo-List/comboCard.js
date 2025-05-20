@@ -891,14 +891,22 @@ const ComboCard = ({
         <Box
           sx={{
             display: 'flex',
+            flexDirection: 'column',
             justifyContent: 'center',
             alignItems: 'center',
-            marginTop: '14%',
-            color: theme.palette.customColors.statusText,
-            fontSize: '16px'
+            height: '70%',
+            textAlign: 'center'
           }}
         >
-          No records to show
+          <img src='/images/no_data_animal_2.png' alt='Grocery Icon' width='250px' />
+          <Box
+            sx={{
+              color: theme.palette.customColors.statusText,
+              fontSize: '16px'
+            }}
+          >
+            No records to show
+          </Box>
         </Box>
       )}
       {/* {selectedCardCombo?.length > 0 && ( */}
