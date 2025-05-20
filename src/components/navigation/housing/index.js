@@ -3,35 +3,39 @@ const composeHousingNavigation = () => {
     sectionTitle: 'Housing'
   }
 
-  // const housing = {
-  //   title: 'Housing' ,
-  //   path:'/parivesh/housing',
-  //   icon: <img src='/icons/home_black.svg' alt='Grocery Icon' />,
-  // }
+  const housingParent = {
+    title: 'Housing',
+    path: '/parivesh/housing',
+    icon: <img src='/icons/home_black.svg' alt='Grocery Icon' />,
+    children: []
+  }
 
   const dashboard = {
     title: 'dashboard',
-    path: '/housing/dashboard',
-    icon: <img src='/icons/home_black.svg' alt='Grocery Icon' />,
-    activeIcon: <img src='/icons/home_white.png' alt='Grocery Icon' />
+    path: '/housing/dashboard'
+    // icon: <img src='/icons/home_black.svg' alt='Grocery Icon' />,
+    // activeIcon: <img src='/icons/home_white.png' alt='Grocery Icon' />
   }
 
   const sites = {
     title: 'Sites',
-    path: '/housing/sites',
-    icon: 'mdi:rabbit-variant-outline'
+    path: '/housing/sites'
+    // icon: 'mdi:rabbit-variant-outline'
   }
   const sections = {
     title: 'Sections',
-    path: '/housing/sections',
-    icon: 'mdi:rabbit-variant-outline'
+    path: '/housing/sections'
+    // icon: 'mdi:rabbit-variant-outline'
   }
+
+  housingParent.children.push(dashboard)
+  housingParent.children.push(sites)
+  housingParent.children.push(sections)
 
   const housingNavigationArray = []
 
   housingNavigationArray.push(Title)
-  housingNavigationArray.push(dashboard, sites, sections)
-
+  housingNavigationArray.push(housingParent)
   return housingNavigationArray
 }
 
