@@ -489,3 +489,5 @@ export const GET_STATS = '/diet/get-meal-group-site-wise-stats'
 export const GET_SECTION = '/master/zoos/getsections'
 
 export const GET_SPECIES = '/diet/species'
+
+export const GET_SITES = 'site-list'

@@ -1,4 +1,6 @@
+import Listing from 'src/views/pages/housing/sections/listing'
+
 const section = () => {
-  return <>section page</>
+  return <Listing title='Add Sections' />
 }
 export default section
