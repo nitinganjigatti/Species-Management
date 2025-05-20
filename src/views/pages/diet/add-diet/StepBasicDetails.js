@@ -955,7 +955,7 @@ const StepBasicDetails = ({
       const updatedFieldsIngredients = fieldsIngredients.map(field => {
         field.ingredientwithchoice = field.ingredientwithchoice
           ?.map((ing, i) => {
-            if (ing?.mealid === val) {
+            if (i === index && ing?.mealid === val) {
               return {
                 ...ing,
                 ingredientList: ing?.ingredientList?.filter(item => String(item.ingredient_id) !== ingredientIdToRemove)
