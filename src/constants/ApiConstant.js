@@ -490,4 +490,8 @@ export const GET_SECTION = '/master/zoos/getsections'
 
 export const GET_SPECIES = '/diet/species'
 
+// Housing
+
+export const HOUSING_SITE_ANALYTICS = "zoo/home"
+
 export const GET_SITES = 'site-list'

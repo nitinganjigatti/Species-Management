@@ -59,6 +59,10 @@ import { EggProvider } from 'src/context/EggContext'
 import { PariveshProvider } from 'src/context/PariveshContext'
 import { ForgotPasswordProvider } from 'src/context/ForgotPasswordContext'
 
+// Redux
+import { Provider } from 'react-redux'
+import store from 'src/store/store'
+
 const clientSideEmotionCache = createEmotionCache()
 
 // ** Pace Loader
@@ -99,47 +103,49 @@ const App = props => {
   const aclAbilities = Component.acl ?? defaultACLObj
 
   return (
-    <CacheProvider value={emotionCache}>
-      <Head>
-        <title>{`${themeConfig.templateName}`}</title>
-        <meta name='description' content={`${themeConfig.templateName}`} />
-        <meta name='viewport' content='initial-scale=1, width=device-width' />
-      </Head>
-      <PariveshProvider>
-        <PharmacyProvider>
-          <DynamicStatesProvider>
-            <EggProvider>
-              <ForgotPasswordProvider>
-                <AuthProvider>
-                  <SettingsProvider {...(setConfig ? { pageSettings: setConfig() } : {})}>
-                    <SettingsConsumer>
-                      {({ settings }) => {
-                        return (
-                          <ThemeComponent settings={settings}>
-                            <Guard authGuard={authGuard} guestGuard={guestGuard}>
-                              <AclGuard aclAbilities={aclAbilities} guestGuard={guestGuard} authGuard={authGuard}>
-                                {getLayout(<Component {...pageProps} />)}
-                              </AclGuard>
-                            </Guard>
-                            <ReactHotToast>
-                              <Toaster
-                                position={settings.toastPosition}
-                                containerClassName='react-hot-toast-container'
-                                toastOptions={{ className: 'react-hot-toast' }}
-                              />
-                            </ReactHotToast>
-                          </ThemeComponent>
-                        )
-                      }}
-                    </SettingsConsumer>
-                  </SettingsProvider>
-                </AuthProvider>
-              </ForgotPasswordProvider>
-            </EggProvider>
-          </DynamicStatesProvider>
-        </PharmacyProvider>
-      </PariveshProvider>
-    </CacheProvider>
+    <Provider store={store}>
+      <CacheProvider value={emotionCache}>
+        <Head>
+          <title>{`${themeConfig.templateName}`}</title>
+          <meta name='description' content={`${themeConfig.templateName}`} />
+          <meta name='viewport' content='initial-scale=1, width=device-width' />
+        </Head>
+        <PariveshProvider>
+          <PharmacyProvider>
+            <DynamicStatesProvider>
+              <EggProvider>
+                <ForgotPasswordProvider>
+                  <AuthProvider>
+                    <SettingsProvider {...(setConfig ? { pageSettings: setConfig() } : {})}>
+                      <SettingsConsumer>
+                        {({ settings }) => {
+                          return (
+                            <ThemeComponent settings={settings}>
+                              <Guard authGuard={authGuard} guestGuard={guestGuard}>
+                                <AclGuard aclAbilities={aclAbilities} guestGuard={guestGuard} authGuard={authGuard}>
+                                  {getLayout(<Component {...pageProps} />)}
+                                </AclGuard>
+                              </Guard>
+                              <ReactHotToast>
+                                <Toaster
+                                  position={settings.toastPosition}
+                                  containerClassName='react-hot-toast-container'
+                                  toastOptions={{ className: 'react-hot-toast' }}
+                                />
+                              </ReactHotToast>
+                            </ThemeComponent>
+                          )
+                        }}
+                      </SettingsConsumer>
+                    </SettingsProvider>
+                  </AuthProvider>
+                </ForgotPasswordProvider>
+              </EggProvider>
+            </DynamicStatesProvider>
+          </PharmacyProvider>
+        </PariveshProvider>
+      </CacheProvider>
+    </Provider>
   )
 }
 

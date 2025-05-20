@@ -1,15 +1,41 @@
 import React from 'react'
 import HeaderCard from './InsightsHeaderCard'
 import InfoStatCard from './InfoStatCard'
-import { alpha, Box, Grid, IconButton } from '@mui/material'
+import { alpha, Box, Card, CircularProgress, Grid, IconButton, Typography } from '@mui/material'
 import UserInfoCard from './UserInfoCard'
 import { useTheme } from '@mui/material/styles'
 import CallOutlinedIcon from '@mui/icons-material/CallOutlined'
 import InsertCommentOutlinedIcon from '@mui/icons-material/InsertCommentOutlined'
 
-const InsightsCard = ({ image = '/images/housing/testInDev.jpg', data, zooName, userName }) => {
+const InsightsCard = ({ image = '/images/housing/testInDev.jpg', data, zooName, userName, loading, error }) => {
   // TODO: Mapping has to be updated. zooName, userName and image has to be mapped from data
   const theme = useTheme()
+  console.log('data', data)
+  if (loading) {
+    return (
+      <Box display='flex' justifyContent='center' alignItems='center' minHeight='150px'>
+        <CircularProgress />
+      </Box>
+    )
+  }
+
+  if (error) {
+    return (
+      <Card sx={{ p: 3, bgcolor: '#ffe6e6' }}>
+        <Typography color='error' variant='body1'>
+          {error}
+        </Typography>
+      </Card>
+    )
+  }
+
+  if (!data) {
+    return (
+      <Card sx={{ p: 3 }}>
+        <Typography variant='body1'>No data available.</Typography>
+      </Card>
+    )
+  }
 
   const showHeader = Boolean(zooName)
   const showUserInfo = Boolean(userName)
