@@ -104,6 +104,7 @@ const UserThemeOptions = () => {
         antzInfo60: '#32bfdd',
         customHeadingTextColor: '#44544A',
         customTextColorGray2: '#44544ADE',
+        PrimaryContainer: '#52F990',
 
         // *** name required
         customTableHeaderBg: '#C1D3D0',
