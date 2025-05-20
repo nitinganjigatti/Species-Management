@@ -477,6 +477,7 @@ const RecipeList = () => {
                 }}
                 hideFooterSelectedRowCount
                 disableColumnSelector={true}
+                disableColumnMenu
                 autoHeight
                 pagination
                 rows={indexedRows === undefined ? [] : indexedRows}

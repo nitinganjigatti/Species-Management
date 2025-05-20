@@ -691,7 +691,9 @@ const DietDetail = () => {
                                         (!all?.recipe || all?.recipe?.length === 0) &&
                                         (!all?.combo || all?.combo?.length === 0)
                                     ) ? (
-                                      <div>No records to show</div>
+                                      <div style={{ width: '200px', float: 'left', paddingTop: '15px' }}>
+                                        No records to show
+                                      </div>
                                     ) : (
                                       <TableHead>
                                         <TableRow>
