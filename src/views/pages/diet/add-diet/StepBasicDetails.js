@@ -47,6 +47,8 @@ const defaultValues = {
   diet_name: '',
   diet_type_name: '',
   diet_type_id: '',
+  dietitian_name: '',
+  dietitian_id: null,
   child: '',
   diet_image: '',
   desc: '',
@@ -71,6 +73,7 @@ const schema = yup.object().shape({
 
   //diet_type_name: yup.string().required('Diet type is required'),
   diet_type_id: yup.string().required('Diet type is required'),
+  dietitian_id: yup.number().required('Dietician name is required'),
   meal_data: yup.array().of(
     yup.object().shape({
       meal_name: yup.string().required('Meal name is required'),
@@ -88,6 +91,7 @@ const StepBasicDetails = ({
   handleNext,
   formData,
   uomList,
+  dieticianList,
   selectedCard,
   setSelectedCard,
   setSelectedCardRecipe,
@@ -290,6 +294,7 @@ const StepBasicDetails = ({
       const updatedValues = [...filteredPrevState, ...uniqueValues].map(uniqueVal => {
         // Find the matching meal data
         console.log(uniqueVal, 'uniqueVal')
+
         const matchedMealData = formData.meal_data.find(
           mealData =>
             Array.isArray(mealData.recipe) &&
@@ -386,6 +391,7 @@ const StepBasicDetails = ({
       }
 
       console.log(updatedValues, 'updatedValues')
+
       return updatedValues
     })
 
@@ -815,6 +821,7 @@ const StepBasicDetails = ({
           // Remove ingredient only if mealid matches
           field.ingredient = field.ingredient?.filter(ing => String(ing.ingredient_id) !== ingredientIdToRemove)
         }
+
         return field
       })
 
@@ -880,6 +887,7 @@ const StepBasicDetails = ({
         if (field?.mealid === val) {
           field.recipe = field.recipe?.filter(ing => String(ing.recipe_id) !== recipeIdToRemove)
         }
+
         return field
       })
 
@@ -906,6 +914,7 @@ const StepBasicDetails = ({
         if (field?.mealid === val) {
           field.combo = field.combo?.filter(ing => String(ing.recipe_id) !== recipeIdToRemove)
         }
+
         return field
       })
 
@@ -933,6 +942,7 @@ const StepBasicDetails = ({
                 ingredientList: ingredient.ingredientList.filter(ing => ing?.ingredient_id !== ingredientIdToRemove)
               }
             }
+
             return ingredient
           })
           .filter(ingredient => ingredient.ingredientList.length > 0)
@@ -951,6 +961,7 @@ const StepBasicDetails = ({
                 ingredientList: ing?.ingredientList?.filter(item => String(item.ingredient_id) !== ingredientIdToRemove)
               }
             }
+
             return ing
           })
           .filter(ing => ing?.ingredientList && ing?.ingredientList.length > 0)
@@ -982,7 +993,7 @@ const StepBasicDetails = ({
             </Box>
             <ScrollToFieldError errors={errors} />
             <Grid container spacing={5} sx={{ px: 5 }}>
-              <Grid item xs={12} sm={6}>
+              <Grid item xs={12} sm={4}>
                 <FormControl fullWidth>
                   <Controller
                     name='diet_name'
@@ -1004,7 +1015,7 @@ const StepBasicDetails = ({
                 </FormControl>
               </Grid>
 
-              <Grid item xs={12} sm={6}>
+              <Grid item xs={12} sm={4}>
                 <FormControl fullWidth>
                   {/* <InputLabel id='uom'> Select unit of measurement (UOM)</InputLabel> */}
 
@@ -1055,6 +1066,51 @@ const StepBasicDetails = ({
 
                   {errors?.diet_type_id && (
                     <FormHelperText sx={{ color: 'error.main' }}>{errors?.diet_type_id?.message}</FormHelperText>
+                  )}
+                </FormControl>
+              </Grid>
+
+              <Grid item xs={12} sm={4}>
+                <FormControl fullWidth>
+                  <Controller
+                    name='dietitian_id'
+                    control={control}
+                    rules={{ required: true }}
+                    render={({ field: { value, onChange } }) => {
+                      console.log(value)
+
+                      return (
+                        <Autocomplete
+                          id='dietitian_id'
+                          value={dieticianList?.find(option => option.value === value) || null}
+                          options={dieticianList || []}
+                          getOptionLabel={option => option.label}
+                          isOptionEqualToValue={(option, value) => option?.value === value}
+                          onChange={(e, val) => {
+                            if (val === null) {
+                              setFormValue('dietitian_id', '')
+                              setFormValue('dietitian_name', '')
+                            } else {
+                              setFormValue('dietitian_id', val.value)
+                              setFormValue('dietitian_name', val.label)
+                              trigger('dietitian_id')
+                            }
+                          }}
+                          renderInput={params => (
+                            <TextField
+                              {...params}
+                              label='Dietician *'
+                              placeholder='Search & Select'
+                              error={Boolean(errors.dietitian_id)}
+                              name='dietitian_id'
+                            />
+                          )}
+                        />
+                      )
+                    }}
+                  />
+                  {errors?.dietitian_id && (
+                    <FormHelperText sx={{ color: 'error.main' }}>{errors?.dietitian_id?.message}</FormHelperText>
                   )}
                 </FormControl>
               </Grid>

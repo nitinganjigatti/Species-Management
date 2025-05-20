@@ -20,7 +20,8 @@ import {
   DialogTitle,
   DialogActions,
   DialogContent,
-  CircularProgress
+  CircularProgress,
+  Tooltip
 } from '@mui/material'
 import { fontSize, fontWeight, textAlign } from '@mui/system'
 import React, { useCallback, useContext, useEffect, useState } from 'react'
@@ -602,6 +603,7 @@ const MealGroup = () => {
         // Refresh your data or state
         toast.success('Meal Group deleted successfully')
         fetchEnclosure()
+        fetchSiteStats()
       }
     } catch (error) {
       toast.error('something went wrong')
@@ -733,19 +735,21 @@ const MealGroup = () => {
       ),
       renderCell: params => (
         <>
-          <Typography
-            variant='body2'
-            textAlign='center'
-            sx={{
-              color: theme.palette.customColors.customHeadingTextColor,
-              fontSize: '16px',
-              fontWeight: 500,
-              color: theme.palette.customColors.OnSurfaceVariant,
-              fontFamily: 'Inter'
-            }}
-          >
-            {params?.row.group_name}
-          </Typography>
+          <Tooltip title={params?.row.group_name}>
+            <Typography
+              variant='body2'
+              textAlign='center'
+              sx={{
+                color: theme.palette.customColors.customHeadingTextColor,
+                fontSize: '16px',
+                fontWeight: 500,
+                color: theme.palette.customColors.OnSurfaceVariant,
+                fontFamily: 'Inter'
+              }}
+            >
+              {params?.row.group_name}
+            </Typography>
+          </Tooltip>
         </>
       )
     },
@@ -904,20 +908,23 @@ const MealGroup = () => {
           justifyContent='center'
           width='100%'
         >
-          <Button
-            sx={{
-              borderColor: theme.palette.primary.main,
-              color: theme.palette.primary.main,
-              borderRadius: '4px',
-              // minWidth: '120px',
-              height: '36px',
-              fontSize: '12px'
-            }}
-            variant='outlined'
-            onClick={e => handleEnclosureEvent(e, params.row.id)}
-          >
-            Add Enclosure
-          </Button>
+          {siteStats.unmapped_enclosures !== '0' && (
+            <Button
+              sx={{
+                borderColor: theme.palette.primary.main,
+                color: theme.palette.primary.main,
+                borderRadius: '4px',
+                // minWidth: '120px',
+                height: '36px',
+                fontSize: '12px'
+              }}
+              variant='outlined'
+              onClick={e => handleEnclosureEvent(e, params.row.id)}
+            >
+              Add Enclosure
+            </Button>
+          )}
+
           <IconButton onClick={e => handleEdit(e, params.row)} size='small' sx={{ color: theme.palette.primary.light }}>
             <Icon icon='mdi:pencil-outline' fontSize={20} />
           </IconButton>
@@ -945,6 +952,17 @@ const MealGroup = () => {
       renderHeader: () => (
         <Box display='flex' alignItems='center' justifyContent='start' gap={1}>
           <Checkbox
+            sx={{
+              '&.Mui-checked': {
+                color: theme.palette.primary.main
+              },
+              '& .MuiSvgIcon-root': {
+                width: '19px',
+                height: '19px',
+                border: '2px dotted'
+              },
+              mr: 1
+            }}
             size='small'
             checked={checkedRows.length === enclosureList.length && enclosureList.length > 0}
             indeterminate={checkedRows.length > 0 && checkedRows.length < enclosureList.length}
@@ -971,21 +989,23 @@ const MealGroup = () => {
             checked={checkedRows.includes(params.row.enclosure_id)}
             onChange={e => handleCheckboxChange(e, params.row)}
           />
-          <Typography
-            noWrap
-            variant='body2'
-            sx={{
-              fontSize: '16px',
-              fontFamily: 'Inter',
-              fontWeight: 500,
-              color: '#44544A',
-              maxWidth: '100%',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis'
-            }}
-          >
-            {params.row.user_enclosure_name}
-          </Typography>
+          <Tooltip title={params.row.user_enclosure_name}>
+            <Typography
+              noWrap
+              variant='body2'
+              sx={{
+                fontSize: '16px',
+                fontFamily: 'Inter',
+                fontWeight: 500,
+                color: '#44544A',
+                maxWidth: '100%',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis'
+              }}
+            >
+              {params.row.user_enclosure_name}
+            </Typography>
+          </Tooltip>
         </Box>
       )
     },
@@ -1015,21 +1035,25 @@ const MealGroup = () => {
         </Box>
       ),
       renderCell: params => (
-        <Typography
-          variant='body2'
-          textAlign='center'
-          sx={{
-            fontSize: '16px',
-            fontWeight: 400,
-            color: '#44544A',
-            fontFamily: 'Inter',
-            maxWidth: '100%',
-            overflow: 'hidden',
-            textOverflow: 'ellipsis'
-          }}
-        >
-          {params.row.section_name}
-        </Typography>
+        <>
+          <Tooltip title={params.row.section_name}>
+            <Typography
+              variant='body2'
+              textAlign='center'
+              sx={{
+                fontSize: '16px',
+                fontWeight: 400,
+                color: '#44544A',
+                fontFamily: 'Inter',
+                maxWidth: '100%',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis'
+              }}
+            >
+              {params.row.section_name}
+            </Typography>
+          </Tooltip>
+        </>
       )
     },
     {
@@ -1205,6 +1229,7 @@ const MealGroup = () => {
   }
 
   const handleView = async parm => {
+    setLoader(true)
     setOpenDrawer(true)
     setEditParam(parm.row)
     setmealType({ type: 'view' })
@@ -1374,7 +1399,7 @@ const MealGroup = () => {
 
             <TabPanel value='unmapped'>{''}</TabPanel>
             <TabPanel value='mapped'>{''}</TabPanel>
-            <TabPanel value=''>{''}</TabPanel>
+            <TabPanel value='mealgroup'>{''}</TabPanel>
           </TabContext>
         </Grid>
 

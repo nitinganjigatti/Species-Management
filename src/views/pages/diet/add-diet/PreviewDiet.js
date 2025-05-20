@@ -74,6 +74,7 @@ const StepPreviewDiet = ({
   const [uomLabel, setuomLabel] = useState('')
   const [errorpop, setErrorpop] = useState('')
   const [expanded, setExpanded] = useState(false)
+
   const [screenSize, setScreenSize] = useState({
     width: window.innerWidth,
     height: window.innerHeight
@@ -685,6 +686,7 @@ const StepPreviewDiet = ({
   useEffect(() => {
     const updatedFormData = { ...formData }
     console.log(updatedFormData, 'updatedFormData')
+
     // Iterate over meal_data
     updatedFormData.meal_data.forEach(meal => {
       // Check if the meal_data has an ingredient array
@@ -693,6 +695,7 @@ const StepPreviewDiet = ({
           if (ingredient.meal_type && ingredient.meal_type.length > 0) {
             ingredient.meal_type = ingredient.meal_type.filter(mealType => {
               if (mealType.meal_value_header === 'Generic') return true
+
               return formData.diet_type_name === 'By Weight'
                 ? getCookie('dietTypeChildValues')?.includes(mealType.meal_value_header)
                 : formData.child?.includes(mealType.meal_value_header)
@@ -707,6 +710,7 @@ const StepPreviewDiet = ({
           if (recipe.meal_type && recipe.meal_type.length > 0) {
             recipe.meal_type = recipe.meal_type.filter(mealType => {
               if (mealType.meal_value_header === 'Generic') return true
+
               return formData.diet_type_name === 'By Weight'
                 ? getCookie('dietTypeChildValues')?.includes(mealType.meal_value_header)
                 : formData.child?.includes(mealType.meal_value_header)
@@ -721,6 +725,7 @@ const StepPreviewDiet = ({
           if (recipe.meal_type && recipe.meal_type.length > 0) {
             recipe.meal_type = recipe.meal_type.filter(mealType => {
               if (mealType.meal_value_header === 'Generic') return true
+
               return formData.diet_type_name === 'By Weight'
                 ? getCookie('dietTypeChildValues')?.includes(mealType.meal_value_header)
                 : formData.child?.includes(mealType.meal_value_header)
@@ -735,6 +740,7 @@ const StepPreviewDiet = ({
           if (ingredientwithchoice.meal_type && ingredientwithchoice.meal_type.length > 0) {
             ingredientwithchoice.meal_type = ingredientwithchoice.meal_type.filter(mealType => {
               if (mealType.meal_value_header === 'Generic') return true
+
               return formData.diet_type_name === 'By Weight'
                 ? getCookie('dietTypeChildValues')?.includes(mealType.meal_value_header)
                 : formData.child?.includes(mealType.meal_value_header)
@@ -783,6 +789,7 @@ const StepPreviewDiet = ({
 
   const getModal = (index, item) => {
     console.log(getValues())
+
     return (
       <Dialog
         className=''
@@ -967,6 +974,12 @@ const StepPreviewDiet = ({
                 <Typography>
                   <span>Diet Type : </span>
                   <span style={{ fontWeight: 600 }}>{formData.diet_type_name ? formData.diet_type_name : '-'}</span>
+                </Typography>
+              </div>
+              <div>
+                <Typography>
+                  <span>Dietician Name : </span>
+                  <span style={{ fontWeight: 600 }}>{formData.dietitian_name}</span>
                 </Typography>
               </div>
               <Grid sx={{ mt: 5 }}>
@@ -1332,6 +1345,7 @@ const StepPreviewDiet = ({
                                   pr: '36px',
                                   background: theme.palette.secondary.contrastText,
                                   height: '185px',
+
                                   //display: 'flex',
                                   //flexDirection: 'column',
                                   justifyContent: 'center',
@@ -1346,6 +1360,7 @@ const StepPreviewDiet = ({
                                     position: 'absolute',
                                     top: '80px',
                                     transform: 'translateY(-50%)',
+
                                     //display: 'flex',
                                     flexDirection: 'column',
                                     alignItems: 'center',
@@ -1429,10 +1444,12 @@ const StepPreviewDiet = ({
                                           left: '180px',
                                           border: 'none',
                                           backgroundColor: theme.palette.secondary.contrastText
+
                                           //float: 'left',
                                           // display: 'flex',
                                           // flexDirection: 'row'
                                         }}
+
                                         // className={
                                         //   formData?.diet_type_name === 'By Weight'
                                         //     ? formData?.child?.length === 1
@@ -2082,10 +2099,12 @@ const StepPreviewDiet = ({
                                           left: '180px',
                                           border: 'none',
                                           backgroundColor: theme.palette.secondary.contrastText
+
                                           //float: 'left',
                                           // display: 'flex',
                                           // flexDirection: 'row'
                                         }}
+
                                         // className={
                                         //   formData?.diet_type_name === 'By Weight'
                                         //     ? formData?.child?.length === 1
@@ -2762,10 +2781,12 @@ const StepPreviewDiet = ({
                                           left: '180px',
                                           border: 'none',
                                           backgroundColor: theme.palette.secondary.contrastText
+
                                           //float: 'left',
                                           // display: 'flex',
                                           // flexDirection: 'row'
                                         }}
+
                                         // className={
                                         //   formData?.diet_type_name === 'By Weight'
                                         //     ? formData?.child?.length === 1
@@ -3336,10 +3357,12 @@ const StepPreviewDiet = ({
                                           left: '180px',
                                           border: 'none',
                                           backgroundColor: theme.palette.secondary.contrastText
+
                                           //float: 'left',
                                           // display: 'flex',
                                           // flexDirection: 'row'
                                         }}
+
                                         // className={
                                         //   formData?.diet_type_name === 'By Weight'
                                         //     ? formData?.child?.length === 1
