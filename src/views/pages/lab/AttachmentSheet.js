@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useState } from 'react'
 import {
   Drawer,
   IconButton,
@@ -18,6 +18,7 @@ import Icon from 'src/@core/components/icon'
 import moment from 'moment'
 import { useTheme } from '@mui/material/styles'
 import Utility from 'src/utility'
+import { LoadingButton } from '@mui/lab'
 
 function AttachmentSheet({
   openAttachmentSheet,
@@ -27,7 +28,8 @@ function AttachmentSheet({
   fileViews,
   handleDeleteImg,
   permissions,
-  allCompleted,
+  image,
+  document,
   deleteAttachmentLoader
 }) {
   const theme = useTheme()
@@ -50,20 +52,11 @@ function AttachmentSheet({
     e.preventDefault()
     e.stopPropagation()
     setSelectedItem(item)
-    if (item?.file_type?.startsWith('image')) {
-      if (testImage?.length === 1 && allCompleted) {
-        setError(true)
-        setOpenConfirmDialog(true)
-      } else {
-        setOpenConfirmDialog(true)
-      }
+    if (Number(image?.length || 0) + Number(document?.length || 0) === 1) {
+      setError(true)
+      setOpenConfirmDialog(true)
     } else {
-      if (testDoc?.length === 1 && allCompleted) {
-        setError(true)
-        setOpenConfirmDialog(true)
-      } else {
-        setOpenConfirmDialog(true)
-      }
+      setOpenConfirmDialog(true)
     }
   }
 
@@ -280,6 +273,7 @@ function AttachmentSheet({
                         lineHeight: '19.36px',
                         overflow: 'hidden',
                         textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
                         p: 2
                       }}
                     >
@@ -401,7 +395,7 @@ function AttachmentSheet({
               </DialogContentText>
             </DialogContent>
             <DialogActions>
-              <Button
+              <LoadingButton
                 disabled={deleteAttachmentLoader}
                 onClick={() => {
                   setOpenConfirmDialog(false)
@@ -410,10 +404,10 @@ function AttachmentSheet({
                 variant='outlined'
               >
                 CANCEL
-              </Button>
-              <Button disabled={deleteAttachmentLoader} onClick={handleDelete} variant='contained' color='error'>
+              </LoadingButton>
+              <LoadingButton loading={deleteAttachmentLoader} onClick={handleDelete} variant='contained' color='error'>
                 DELETE
-              </Button>
+              </LoadingButton>
             </DialogActions>
           </>
         )}

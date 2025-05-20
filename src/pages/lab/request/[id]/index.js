@@ -79,13 +79,16 @@ const RequestDetails = () => {
 
   const [loader, setLoader] = useState(false)
   const [deleteAttachmentLoader, setDeleteAttachmentLoader] = useState(false)
-  const [image, setImage] = useState()
-  const [document, setDocument] = useState()
-  const [medicalImage, setMedicalImage] = useState()
-  const [medicalDocument, setMedicalDocument] = useState()
-  const [testImage, setTestImage] = useState([])
 
+  const [medicalImage, setMedicalImage] = useState([])
+  const [medicalDocument, setMedicalDocument] = useState([])
+
+  const [image, setImage] = useState([])
+  const [document, setDocument] = useState([])
+
+  const [testImage, setTestImage] = useState([])
   const [testDoc, setTestDoc] = useState([])
+
   const [transferStatus, setTransferStatus] = useState('')
 
   const { id, lab_id, page, q, pageSize } = Router.query
@@ -890,9 +893,7 @@ const RequestDetails = () => {
     e.stopPropagation()
 
     const testId = item?.id
-
     setFileId(item?.id)
-
     try {
       setDeleteAttachmentLoader(true)
       const params = { lab_test_id: id }
@@ -907,6 +908,7 @@ const RequestDetails = () => {
         Toaster({ type: 'error', message: response.message })
       }
     } catch (error) {
+      Toaster({ type: 'error', message: response.message || 'Failed to delete' })
     } finally {
       setDeleteAttachmentLoader(false)
     }
@@ -1379,24 +1381,26 @@ const RequestDetails = () => {
               {image?.length > 0 || document?.length > 0 ? (
                 <Box sx={{ px: 5, mb: 8 }}>
                   <Box sx={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', gap: 4 }}>
-                    {image && (
+                    {(image || document) && (
                       <CommonMediaView
                         allCompleted={allCompleted}
                         image={image}
-                        handleDeleteImg={handleDeleteImg}
-                        fileViews={fileViews}
-                        permissions={permissions}
-                      />
-                    )}
-                    {document && (
-                      <CommonMediaView
-                        allCompleted={allCompleted}
                         document={document}
                         handleDeleteImg={handleDeleteImg}
                         fileViews={fileViews}
+                        deleteAttachmentLoader={deleteAttachmentLoader}
                         permissions={permissions}
                       />
                     )}
+                    {/* {document && (
+                      <CommonMediaView
+                        allCompleted={allCompleted}
+                        
+                        handleDeleteImg={handleDeleteImg}
+                        fileViews={fileViews}
+                        permissions={permissions}
+                      />
+                    )} */}
                   </Box>
                 </Box>
               ) : null}
@@ -2022,6 +2026,8 @@ const RequestDetails = () => {
             allCompleted={allCompleted}
             testImage={testImage}
             testDoc={testDoc}
+            image={image}
+            document={document}
             deleteAttachmentLoader={deleteAttachmentLoader}
           />
         )}
