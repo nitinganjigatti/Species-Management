@@ -500,7 +500,6 @@ const AddRequestForm = () => {
             manufacture: item.manufacturer_name,
             control_substance: item.controlled_substance === '1' ? true : false,
             status: item?.active === '0' ? 0 : 1,
-            // prescription_required: item?.prescription_required === '1' ? true : false,
             prescription_required:
               item?.controlled_substance === '1' ? true : item?.prescription_required === '1' ? true : false,
             unit_price: item?.unit_price ? item?.unit_price : 0
