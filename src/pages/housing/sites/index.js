@@ -58,7 +58,9 @@ const Sites = () => {
         /> */}
         <InsightsCard data={data} loading={loading} error={error} isAllSites />
         <Box sx={{ mt: 6 }}>
-          <Listing />
+          <Card sx={{ p: { xs: 3, md: 5 } }}>
+            <Listing />
+          </Card>
         </Box>
       </Box>
     </Box>

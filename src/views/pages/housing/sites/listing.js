@@ -226,34 +226,36 @@ const Listing = ({ title }) => {
   )
 
   return (
-    <Card>
+    <>
       <CardHeader title={title} action={headerAction} />
-      <Search
-        value={searchValue}
-        onChange={e => handleSearch(e.target.value)}
-        onClear={() => handleSearch('')}
-        placeholder='Search…'
-        sx={{ mt: 2 }}
-      />
-      <Grid sx={{ mx: { xs: 3, md: 5 } }}>
-        <CommonTable
-          onRowClick={''}
-          indexedRows={indexedRows}
-          total={total}
-          columns={columns}
-          pageSizeOptions={[10]}
-          paginationModel={{
-            page: page - 1,
-            pageSize: pageSize
-          }}
-          setPaginationModel={handlePaginationModelChange}
-          paginationMode='server'
-          loading={loading}
-          searchValue={''}
-          maxHeight='60vh'
+      <Box>
+        <Search
+          value={searchValue}
+          onChange={e => handleSearch(e.target.value)}
+          onClear={() => handleSearch('')}
+          placeholder='Search…'
+          sx={{ mt: 2 }}
         />
-      </Grid>
-    </Card>
+        <Grid>
+          <CommonTable
+            onRowClick={''}
+            indexedRows={indexedRows}
+            total={total}
+            columns={columns}
+            pageSizeOptions={[10]}
+            paginationModel={{
+              page: page - 1,
+              pageSize: pageSize
+            }}
+            setPaginationModel={handlePaginationModelChange}
+            paginationMode='server'
+            loading={loading}
+            searchValue={''}
+            maxHeight='60vh'
+          />
+        </Grid>
+      </Box>
+    </>
   )
 }
 
