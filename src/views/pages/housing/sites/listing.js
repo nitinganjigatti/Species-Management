@@ -1,48 +1,38 @@
 import { useTheme } from '@emotion/react'
 import { Avatar, Box, Card, CardHeader, Grid, Typography } from '@mui/material'
 import { useEffect, useState } from 'react'
-import { getAllSites } from 'src/lib/api/housing/sites'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import Search from 'src/views/utility/Search'
+import { useDispatch, useSelector } from 'react-redux'
+import { fetchSites, setPagination } from 'src/store/slices/housing/sitesSlice'
 
 const Listing = ({ title }) => {
   const theme = useTheme()
-  const [siteList, setSiteList] = useState([])
-  const [total, setTotal] = useState(0)
-  const [loading, setLoading] = useState(false)
-  const [paginationModel, setPaginationModel] = useState({
-    page: 0,
-    pageSize: 10
-  })
-
+  // const [paginationModel, setPaginationModel] = useState({
+  //   page: 0,
+  //   pageSize: 10
+  // })
   function loadServerRows(currentPage, data) {
     return data
   }
+  const dispatch = useDispatch()
+  // const { list: siteList, loading, total, page } = useSelector(state => state.sites)
+
+  const { list: siteList, loading, total, page, pageSize } = useSelector(state => state.sites)
+
+  // useEffect(() => {
+  //   dispatch(fetchSites({ page_no: paginationModel.page + 1 }))
+  // }, [dispatch, paginationModel])
 
   useEffect(() => {
-    const fetchSites = async () => {
-      debugger
-      setLoading(true)
-      try {
-        const params = {
-          page_no: paginationModel.page + 1
-        }
-        const response = await getAllSites(params)
-        if (response.success) {
-          setTotal(response.data.total_count)
-          setSiteList(loadServerRows(paginationModel.page, response.data.result))
-          setLoading(false)
-        } else {
-          setLoading(false)
-          console.error('Failed to fetch sites:', response.message)
-        }
-      } catch (error) {
-        console.error('Error fetching sites:', error)
-      }
-    }
+    dispatch(fetchSites({ page_no: page, limit: pageSize }))
+  }, [dispatch, page, pageSize])
 
-    fetchSites()
-  }, [paginationModel])
+  const handlePaginationModelChange = model => {
+    console.log('model >>', model.page + 1)
+
+    dispatch(setPagination({ page: model.page + 1, pageSize: model.pageSize }))
+  }
 
   console.log('Sites >', siteList)
 
@@ -256,7 +246,15 @@ const Listing = ({ title }) => {
     }
   ]
 
-  const getSlNo = index => (paginationModel?.page + 1 - 1) * paginationModel?.pageSize + index + 1
+  // const getSlNo = index => (paginationModel?.page + 1 - 1) * paginationModel?.pageSize + index + 1
+
+  // const indexedRows = siteList?.map((row, index) => ({
+  //   ...row,
+  //   id: row?.site_id,
+  //   sl_no: getSlNo(index)
+  // }))
+
+  const getSlNo = index => (page - 1) * pageSize + index + 1
 
   const indexedRows = siteList?.map((row, index) => ({
     ...row,
@@ -291,11 +289,14 @@ const Listing = ({ title }) => {
             onRowClick={''}
             indexedRows={indexedRows}
             total={total}
-            columns={columns || []}
-            paginationModel={paginationModel}
-            onPaginationModelChange={setPaginationModel}
+            paginationMode='server' // ✅ Required
+            columns={columns}
+            paginationModel={{
+              page: page, // DataGrid expects 0-indexed page
+              pageSize: pageSize
+            }}
+            onPaginationModelChange={handlePaginationModelChange}
             handleSortModel={''}
-            setPaginationModel={setPaginationModel}
             loading={loading}
             searchValue={''}
           />

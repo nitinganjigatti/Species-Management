@@ -3,6 +3,7 @@ import { useRouter } from 'next/router'
 import { useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { fetchInsights } from 'src/store/slices/housing/insightsSlice'
+import Listing from 'src/views/pages/housing/sites/listing'
 import InsightsCard from 'src/views/utility/insights/InsightsCard'
 
 const Sites = () => {
@@ -35,6 +36,7 @@ const Sites = () => {
       </Box>
       <Card>
         <Box>Content</Box>
+        <Box><Listing/></Box>
       </Card>
     </Box>
   )
