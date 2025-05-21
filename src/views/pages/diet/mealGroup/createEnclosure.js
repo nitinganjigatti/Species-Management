@@ -158,7 +158,8 @@ const CreateEnclosure = ({
               color: theme.palette.primary.main,
               fontWeight: 600,
               fontSize: '16px',
-              fontFamily: 'Inter'
+              fontFamily: 'Inter',
+              cursor: 'pointer'
             }}
           >
             {selectedEnclosureIds.length} Selected
@@ -238,7 +239,7 @@ const CreateEnclosure = ({
           sx={{
             bgcolor: theme.palette.customColors.bodyBg,
             zIndex: 10,
-            height: 'calc(100dvh - 10px)'
+            height: 'calc(100dvh - 0px)'
           }}
         >
           {/* Header */}
@@ -338,18 +339,27 @@ const CreateEnclosure = ({
               )}
 
               {/* Card List */}
-              <Box sx={{}}>
+              <Box sx={{ height: '58vh' }}>
+                {' '}
+                {/* Outer Box with fixed height */}
                 <Card
                   sx={{
                     borderRadius: '8px',
                     boxShadow: 'none',
                     display: 'flex',
                     flexDirection: 'column',
-                    height: '70vh',
+                    height: '100%', // fill full height of outer Box
                     width: '100%'
                   }}
                 >
-                  <Box sx={{ flex: 1, overflowY: 'auto', height: '60vh', px: 2, pt: 2 }}>
+                  <Box
+                    sx={{
+                      flex: 1,
+                      overflowY: 'auto',
+                      px: 2,
+                      pt: 2
+                    }}
+                  >
                     {loader ? (
                       <Box
                         sx={{
@@ -363,11 +373,8 @@ const CreateEnclosure = ({
                       </Box>
                     ) : (
                       selectedItems.map((item, index) => (
-                        <Box sx={{ m: 3 }}>
-                          {' '}
-                          {/* Adds margin around the Card */}
+                        <Box key={index} sx={{ m: 3 }}>
                           <Card
-                            key={index}
                             sx={{
                               p: 2,
                               width: '100%',
@@ -410,8 +417,6 @@ const CreateEnclosure = ({
                                   fontSize: '14px',
                                   color: theme.palette.customColors.OnSurfaceVariant,
                                   maxWidth: '100px',
-                                  // overflow: 'hidden',
-                                  // textOverflow: 'ellipsis',
                                   whiteSpace: 'nowrap'
                                 }}
                               >
@@ -458,6 +463,7 @@ const CreateEnclosure = ({
           setSelectedEnclosureDrawer={setSelectedEnclosureDrawer}
           selectEnclosures={selectedItems.filter(item => selectedEnclosureIds.includes(item.enclosure_id))}
           selectedEnclosureIds={selectedEnclosureIds}
+          loader={loader}
           setSelectedEnclosureIds={setSelectedEnclosureIds}
           selectedItems={selectedItems}
           checkedRows={checkedRows}

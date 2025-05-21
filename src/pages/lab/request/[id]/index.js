@@ -79,13 +79,16 @@ const RequestDetails = () => {
 
   const [loader, setLoader] = useState(false)
   const [deleteAttachmentLoader, setDeleteAttachmentLoader] = useState(false)
-  const [image, setImage] = useState()
-  const [document, setDocument] = useState()
-  const [medicalImage, setMedicalImage] = useState()
-  const [medicalDocument, setMedicalDocument] = useState()
-  const [testImage, setTestImage] = useState([])
 
+  const [medicalImage, setMedicalImage] = useState([])
+  const [medicalDocument, setMedicalDocument] = useState([])
+
+  const [image, setImage] = useState([])
+  const [document, setDocument] = useState([])
+
+  const [testImage, setTestImage] = useState([])
   const [testDoc, setTestDoc] = useState([])
+
   const [transferStatus, setTransferStatus] = useState('')
 
   const { id, lab_id, page, q, pageSize } = Router.query
@@ -149,6 +152,7 @@ const RequestDetails = () => {
   const [openCommentSheet, setOpenCommentSheet] = useState(false)
   const [openAttachmentSheet, setOpenAttachmentSheet] = useState(false)
   const [CommentData, setCommentData] = useState({})
+
   // const [attachmentData, setAttachmentCommentData] = useState({})
   const [medicalRecordNotes, setMedicalRecordNotes] = useState([])
 
@@ -158,6 +162,7 @@ const RequestDetails = () => {
 
   useEffect(() => {
     const labObject = localLabData?.find(item => item?.lab_id === lab_id)
+
     // console.log('labObject', labObject)
 
     if (labObject && labObject.permission) {
@@ -339,8 +344,6 @@ const RequestDetails = () => {
       ].includes(item?.key)
     )
 
-    debugger
-
     if (hasCompleted?.length > 0 && !params) {
       setHasCompletedStatus(true)
     } else {
@@ -431,6 +434,7 @@ const RequestDetails = () => {
   const handleRowPermission = ({ params }) => {
     const st = statusList.filter(status => status.key === params.row.status)
     const st1 = filteredStatusData.filter(status => status.key === params.row.status)
+
     // console.log('statusList', statusList)
     // console.log('st', st)
     if (st1?.length === 0) {
@@ -706,7 +710,7 @@ const RequestDetails = () => {
                     </>
                     <>
                       {(permissions?.allow_full_access || permissions?.transfer_tests) &&
-                        params.row.status.split(' ')[0] !== 'completed' && (
+                        params.row.status.split('_')[0] !== 'completed' && (
                           <Tooltip title='Transfer' arrow placement='top-start'>
                             <IconButton
                               variant='outlined'
@@ -889,9 +893,7 @@ const RequestDetails = () => {
     e.stopPropagation()
 
     const testId = item?.id
-
     setFileId(item?.id)
-
     try {
       setDeleteAttachmentLoader(true)
       const params = { lab_test_id: id }
@@ -906,6 +908,7 @@ const RequestDetails = () => {
         Toaster({ type: 'error', message: response.message })
       }
     } catch (error) {
+      Toaster({ type: 'error', message: response.message || 'Failed to delete' })
     } finally {
       setDeleteAttachmentLoader(false)
     }
@@ -1378,24 +1381,26 @@ const RequestDetails = () => {
               {image?.length > 0 || document?.length > 0 ? (
                 <Box sx={{ px: 5, mb: 8 }}>
                   <Box sx={{ display: 'flex', flexDirection: 'row', flexWrap: 'wrap', gap: 4 }}>
-                    {image && (
+                    {(image || document) && (
                       <CommonMediaView
                         allCompleted={allCompleted}
                         image={image}
-                        handleDeleteImg={handleDeleteImg}
-                        fileViews={fileViews}
-                        permissions={permissions}
-                      />
-                    )}
-                    {document && (
-                      <CommonMediaView
-                        allCompleted={allCompleted}
                         document={document}
                         handleDeleteImg={handleDeleteImg}
                         fileViews={fileViews}
+                        deleteAttachmentLoader={deleteAttachmentLoader}
                         permissions={permissions}
                       />
                     )}
+                    {/* {document && (
+                      <CommonMediaView
+                        allCompleted={allCompleted}
+
+                        handleDeleteImg={handleDeleteImg}
+                        fileViews={fileViews}
+                        permissions={permissions}
+                      />
+                    )} */}
                   </Box>
                 </Box>
               ) : null}
@@ -1508,6 +1513,7 @@ const RequestDetails = () => {
                     <TableHead>
                       <TableRow sx={{ bgcolor: theme.palette.customColors.displaybgPrimary }}>
                         <TableCell>Test Name</TableCell>
+                        <TableCell>Sample Name</TableCell>
                         <TableCell>Lab Name</TableCell>
                         <TableCell>Status</TableCell>
                       </TableRow>
@@ -1516,6 +1522,7 @@ const RequestDetails = () => {
                       {item?.test_reports?.map((data, dataID) => (
                         <TableRow key={dataID}>
                           <TableCell sx={{ textTransform: 'capitalize' }}>{data?.test_name}</TableCell>
+                          <TableCell sx={{ textTransform: 'capitalize' }}>{data?.sample_name}</TableCell>
                           <TableCell sx={{ textTransform: 'capitalize' }}>{data?.lab_name}</TableCell>
                           <TableCell>
                             <Typography variant='body2' sx={{ color: 'text.primary', textTransform: 'capitalize' }}>
@@ -2021,6 +2028,8 @@ const RequestDetails = () => {
             allCompleted={allCompleted}
             testImage={testImage}
             testDoc={testDoc}
+            image={image}
+            document={document}
             deleteAttachmentLoader={deleteAttachmentLoader}
           />
         )}

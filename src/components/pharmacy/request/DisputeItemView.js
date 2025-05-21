@@ -1,14 +1,9 @@
 /* eslint-disable lines-around-comment */
 import React, { forwardRef, useState, useEffect } from 'react'
 import TableBasic from 'src/views/table/data-grid/TableBasic'
-
 import { Grid, Tooltip } from '@mui/material'
-
-// ** MUI Imports
-
 import Typography from '@mui/material/Typography'
 import Fade from '@mui/material/Fade'
-
 import { getDisputeItemById } from 'src/lib/api/pharmacy/getShipmentList'
 
 const Transition = forwardRef(function Transition(props, ref) {
@@ -130,17 +125,17 @@ function DisputeItemView({ disputeId }) {
 
   return (
     <Grid xs={12}>
-      {disputedItem?.dispute_item_details?.length > 0 ? (
+      {disputedItem?.dispute_item_details?.length > 0 && (
         <Grid md={12} sm={12} xs={12} sx={{ my: 2 }}>
           <TableBasic columns={disputedItemsColumns} rows={disputedItem?.dispute_item_details}></TableBasic>
         </Grid>
-      ) : null}
-      {disputedItem?.dispute_comments ? (
+      )}
+      {disputedItem?.dispute_comments && (
         <Grid item>
           <h5 style={{ marginBottom: '0px' }}>Comments</h5>
           <p>{disputedItem?.dispute_comments}</p>
         </Grid>
-      ) : null}
+      )}
     </Grid>
   )
 }

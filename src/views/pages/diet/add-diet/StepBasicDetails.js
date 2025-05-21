@@ -47,6 +47,8 @@ const defaultValues = {
   diet_name: '',
   diet_type_name: '',
   diet_type_id: '',
+  dietitian_name: '',
+  dietitian_id: null,
   child: '',
   diet_image: '',
   desc: '',
@@ -71,6 +73,7 @@ const schema = yup.object().shape({
 
   //diet_type_name: yup.string().required('Diet type is required'),
   diet_type_id: yup.string().required('Diet type is required'),
+  dietitian_id: yup.number().required('Dietician name is required'),
   meal_data: yup.array().of(
     yup.object().shape({
       meal_name: yup.string().required('Meal name is required'),
@@ -88,6 +91,7 @@ const StepBasicDetails = ({
   handleNext,
   formData,
   uomList,
+  dieticianList,
   selectedCard,
   setSelectedCard,
   setSelectedCardRecipe,
@@ -290,6 +294,7 @@ const StepBasicDetails = ({
       const updatedValues = [...filteredPrevState, ...uniqueValues].map(uniqueVal => {
         // Find the matching meal data
         console.log(uniqueVal, 'uniqueVal')
+
         const matchedMealData = formData.meal_data.find(
           mealData =>
             Array.isArray(mealData.recipe) &&
@@ -386,6 +391,7 @@ const StepBasicDetails = ({
       }
 
       console.log(updatedValues, 'updatedValues')
+
       return updatedValues
     })
 
@@ -726,7 +732,7 @@ const StepBasicDetails = ({
   }
 
   const cancelBack = () => {
-    Router.push('/diet/diet/')
+    Router.push(`/diet/diet/${id}`)
   }
 
   const addIngredientsButton = () => {
@@ -815,6 +821,7 @@ const StepBasicDetails = ({
           // Remove ingredient only if mealid matches
           field.ingredient = field.ingredient?.filter(ing => String(ing.ingredient_id) !== ingredientIdToRemove)
         }
+
         return field
       })
 
@@ -825,7 +832,7 @@ const StepBasicDetails = ({
     })
   }
 
-  const removeingClicking = (indexToRemove, val) => {
+  const removeingClicking = (indexToRemove, val, value) => {
     setingType('')
     setIngredientchoiceChildStateValue(prevSelectedCard => {
       // Filter out the entire ingredient object based on the index of prevSelectedCard
@@ -839,15 +846,25 @@ const StepBasicDetails = ({
         return updatedAllSelectedValues
       })
 
-      // Update fieldsIngredients by removing the ingredient based on the indexToRemove
+      // Update fieldsIngredients by removing the matching ingredient objects
       const updatedFieldsIngredients = fieldsIngredients.map(field => {
         if (field?.mealid === val) {
-          field.ingredientwithchoice = field.ingredientwithchoice?.filter((_, ingIndex) => ingIndex !== indexToRemove)
-        }
+          field.ingredientwithchoice = field.ingredientwithchoice?.filter(ingWithChoice => {
+            // Check if this ingWithChoice's ingredientList contains any object that matches all criteria
+            const hasMatchingIngredient = ingWithChoice.ingredientList?.some(ing => {
+              return value.ingredientList?.some(
+                valIng =>
+                  String(valIng.preparation_type_id) === String(ing.preparation_type_id) &&
+                  String(valIng.mealid) === String(ing.mealid) &&
+                  String(valIng.ingredient_id) === String(ing.ingredient_id)
+              )
+            })
 
+            return !hasMatchingIngredient
+          })
+        }
         return field
       })
-
       setfinalvalueingredientchoice(updatedFieldsIngredients)
 
       return filteredChildStateValue
@@ -870,6 +887,7 @@ const StepBasicDetails = ({
         if (field?.mealid === val) {
           field.recipe = field.recipe?.filter(ing => String(ing.recipe_id) !== recipeIdToRemove)
         }
+
         return field
       })
 
@@ -882,7 +900,6 @@ const StepBasicDetails = ({
 
   const removeingClickCombo = (recipeIdToRemove, val) => {
     setComboChildStateValue(prevSelectedCard => {
-      console.log(prevSelectedCard, 'prevSelectedCard')
       const filteredChildStateValue = prevSelectedCard.filter(recipe => recipe.recipe_id !== recipeIdToRemove)
 
       setAllComboSelectedValues(prevAllSelectedValues => {
@@ -897,6 +914,7 @@ const StepBasicDetails = ({
         if (field?.mealid === val) {
           field.combo = field.combo?.filter(ing => String(ing.recipe_id) !== recipeIdToRemove)
         }
+
         return field
       })
 
@@ -907,21 +925,22 @@ const StepBasicDetails = ({
     })
   }
 
-  const removeingClickingwithChoice = (ingredientIdToRemove, val) => {
+  const removeingClickingwithChoice = (ingredientIdToRemove, val, index) => {
     setIngredientchoiceChildStateValue(prevSelectedCard => {
       const filteredChildStateValue = prevSelectedCard.filter(ingredient =>
         ingredient.ingredientList.some(ing => ing.ingredient_id !== ingredientIdToRemove)
       )
 
       setAllIngredientchoiceSelectedValues(prevAllSelectedValues => {
-        // Filter out objects based on conditions
-
+        console.log(prevAllSelectedValues, 'prevAllSelectedValues')
         const updatedAllSelectedValues = prevAllSelectedValues
-          .map(ingredient => {
-            if (ingredient?.mealid === val) {
-              ingredient.ingredientList = ingredient.ingredientList.filter(
-                ing => ing?.ingredient_id !== ingredientIdToRemove
-              )
+          .map((ingredient, i) => {
+            // Check both index and checkid === mealid
+            if (i === index && ingredient?.mealid === val) {
+              return {
+                ...ingredient,
+                ingredientList: ingredient.ingredientList.filter(ing => ing?.ingredient_id !== ingredientIdToRemove)
+              }
             }
 
             return ingredient
@@ -931,14 +950,16 @@ const StepBasicDetails = ({
         return updatedAllSelectedValues
       })
 
-      // Update fieldsIngredients by filtering out ingredients based on ingredientIdToRemove
+      // Update fieldsIngredients with both index and checkid comparison
+      console.log(fieldsIngredients, 'fieldsIngredients')
       const updatedFieldsIngredients = fieldsIngredients.map(field => {
         field.ingredientwithchoice = field.ingredientwithchoice
-          ?.map(ing => {
-            if (ing?.mealid === val) {
-              ing.ingredientList = ing?.ingredientList?.filter(
-                item => String(item.ingredient_id) !== ingredientIdToRemove
-              )
+          ?.map((ing, i) => {
+            if (i === index && ing?.mealid === val) {
+              return {
+                ...ing,
+                ingredientList: ing?.ingredientList?.filter(item => String(item.ingredient_id) !== ingredientIdToRemove)
+              }
             }
 
             return ing
@@ -972,7 +993,7 @@ const StepBasicDetails = ({
             </Box>
             <ScrollToFieldError errors={errors} />
             <Grid container spacing={5} sx={{ px: 5 }}>
-              <Grid item xs={12} sm={6}>
+              <Grid item xs={12} sm={4}>
                 <FormControl fullWidth>
                   <Controller
                     name='diet_name'
@@ -994,7 +1015,7 @@ const StepBasicDetails = ({
                 </FormControl>
               </Grid>
 
-              <Grid item xs={12} sm={6}>
+              <Grid item xs={12} sm={4}>
                 <FormControl fullWidth>
                   {/* <InputLabel id='uom'> Select unit of measurement (UOM)</InputLabel> */}
 
@@ -1045,6 +1066,51 @@ const StepBasicDetails = ({
 
                   {errors?.diet_type_id && (
                     <FormHelperText sx={{ color: 'error.main' }}>{errors?.diet_type_id?.message}</FormHelperText>
+                  )}
+                </FormControl>
+              </Grid>
+
+              <Grid item xs={12} sm={4}>
+                <FormControl fullWidth>
+                  <Controller
+                    name='dietitian_id'
+                    control={control}
+                    rules={{ required: true }}
+                    render={({ field: { value, onChange } }) => {
+                      console.log(value)
+
+                      return (
+                        <Autocomplete
+                          id='dietitian_id'
+                          value={dieticianList?.find(option => option.value === value) || null}
+                          options={dieticianList || []}
+                          getOptionLabel={option => option.label}
+                          isOptionEqualToValue={(option, value) => option?.value === value}
+                          onChange={(e, val) => {
+                            if (val === null) {
+                              setFormValue('dietitian_id', '')
+                              setFormValue('dietitian_name', '')
+                            } else {
+                              setFormValue('dietitian_id', val.value)
+                              setFormValue('dietitian_name', val.label)
+                              trigger('dietitian_id')
+                            }
+                          }}
+                          renderInput={params => (
+                            <TextField
+                              {...params}
+                              label='Dietician *'
+                              placeholder='Search & Select'
+                              error={Boolean(errors.dietitian_id)}
+                              name='dietitian_id'
+                            />
+                          )}
+                        />
+                      )
+                    }}
+                  />
+                  {errors?.dietitian_id && (
+                    <FormHelperText sx={{ color: 'error.main' }}>{errors?.dietitian_id?.message}</FormHelperText>
                   )}
                 </FormControl>
               </Grid>
@@ -1872,7 +1938,7 @@ const StepBasicDetails = ({
                                   icon='bx:pencil'
                                 />
                                 <Icon
-                                  onClick={() => removeingClicking(index, all.mealid)}
+                                  onClick={() => removeingClicking(index, all.mealid, all)}
                                   style={{ position: 'relative', left: '1%' }}
                                   icon='iconoir:cancel'
                                 />
@@ -1886,9 +1952,9 @@ const StepBasicDetails = ({
                                     mt: 3
                                   }}
                                 >
-                                  {all?.ingredientList?.map((all, index) => {
+                                  {all?.ingredientList?.map((all, i) => {
                                     return (
-                                      <Grid item key={index}>
+                                      <Grid item key={i}>
                                         <Card sx={{ width: '280px', height: '90px', mr: 4, boxShadow: 'none', mt: 3 }}>
                                           <CardContent
                                             sx={{
@@ -1950,7 +2016,9 @@ const StepBasicDetails = ({
                                             </Box>
 
                                             <Icon
-                                              onClick={() => removeingClickingwithChoice(all.ingredient_id, all.mealid)}
+                                              onClick={() =>
+                                                removeingClickingwithChoice(all.ingredient_id, all.mealid, index)
+                                              }
                                               style={{ position: 'relative', left: '0%' }}
                                               icon='iconoir:cancel'
                                             />

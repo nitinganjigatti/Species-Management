@@ -489,3 +489,7 @@ export const GET_STATS = '/diet/get-meal-group-site-wise-stats'
 export const GET_SECTION = '/master/zoos/getsections'
 
 export const GET_SPECIES = '/diet/species'
+
+export const STORE_WISE_SHIPMENT_PDF = 'shipment-store-item/shipped/print/'
+
+export const REQUEST_SHIPMENT_DETAILS_PDF = 'shipment/shipped/print/'

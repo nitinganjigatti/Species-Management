@@ -55,6 +55,7 @@ import { useRouter } from 'next/router'
 import { useTheme } from '@emotion/react'
 import ShipmentPrintComponent from 'src/components/ShipmentPrintComponent'
 import { getShipmentDetailOfOrder } from 'src/lib/api/pharmacy/storeWiseRequest'
+import { getRequestsShipmentDetailPdf, getStoreWiseShipmentDetailPdf } from 'src/lib/api/pharmacy/downloadShipmentPdf'
 
 const Transition = forwardRef(function Transition(props, ref) {
   return <Fade ref={ref} {...props} />
@@ -288,6 +289,7 @@ function OrderReceiveForm({ orderId, requestId, requestedFrom }) {
 
   const [orderData, setOrderData] = useState([])
   const [showSpinner, setShowSpinner] = useState(false)
+  const [pdfLoader, setPdfLoader] = useState(false)
 
   const { selectedPharmacy } = usePharmacyContext()
   const theme = useTheme()
@@ -1616,12 +1618,35 @@ function OrderReceiveForm({ orderId, requestId, requestedFrom }) {
 
   const shipmentPrintRef = React.useRef(null)
 
-  const handlePrint = () => {
-    // Call the handlePrint method exposed by the ShipmentPrintFormat component
-    if (shipmentPrintRef.current) {
-      shipmentPrintRef.current.handlePrint()
+  const downLoadShipmentDetailPdf = async () => {
+    try {
+      // orderId is the shipmentId
+      setPdfLoader(true)
+      let pdfResult
+      if (requestedFrom === 'requestByAllStores') {
+        pdfResult = await getStoreWiseShipmentDetailPdf(orderId)
+      } else {
+        pdfResult = await getRequestsShipmentDetailPdf(orderId, requestId)
+      }
+      if (pdfResult?.success && pdfResult?.data) {
+        window.open(pdfResult?.data, '_blank')
+        setPdfLoader(false)
+      } else {
+        toast.error(pdfResult?.message)
+        setPdfLoader(false)
+      }
+    } catch (error) {
+      console.error('Error downloading PDF:', error)
+      setPdfLoader(false)
     }
   }
+
+  // const handlePrint = () => {
+  //   // Call the handlePrint method exposed by the ShipmentPrintFormat component
+  //   if (shipmentPrintRef.current) {
+  //     shipmentPrintRef.current.handlePrint()
+  //   }
+  // }
 
   return (
     <>
@@ -1649,19 +1674,20 @@ function OrderReceiveForm({ orderId, requestId, requestedFrom }) {
                     />
                   </Grid>
 
-                  <Grid container item xs={12} sm='auto' spacing={2}>
+                  <Grid container item xs={12} sm='auto' sx={{ display: 'flex', justifyContent: 'right' }} spacing={2}>
                     <Grid item>
-                      <Button
+                      <LoadingButton
                         size='large'
+                        loading={pdfLoader}
                         variant='outlined'
                         fullWidth
                         target='_blank'
                         sx={{ mb: 3.5 }}
                         startIcon={<Icon icon='material-symbols:print' />}
-                        onClick={handlePrint}
+                        onClick={downLoadShipmentDetailPdf}
                       >
                         print
-                      </Button>
+                      </LoadingButton>
                     </Grid>
                     {/* <Grid item>
                 {disputeItemDetails?.delivery_status !== 'Delivered' && selectedPharmacy.type === 'central' ? (

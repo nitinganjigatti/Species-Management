@@ -198,7 +198,8 @@ const AddAnimals = ({ drawerWidth, animals_s, setAnimals_s, user, addEventSideba
           enclosure_id: item?.enclosure_id,
           section_name: item?.section_name,
           icon: item.default_icon,
-          gender: item?.sex
+          gender: item?.sex,
+          full_animal_name: item?.complete_name
         })
       }
       setCollectedAnimalsCount(updatedArray?.length)
@@ -478,7 +479,7 @@ const AddAnimals = ({ drawerWidth, animals_s, setAnimals_s, user, addEventSideba
                       {item.local_identifier_name ? item.local_identifier_name + ' : ' + item.local_id : item.animal_id}
                     </Typography>
                     <Typography sx={{ fontWeight: 600 }}>{item?.default_common_name}</Typography>
-                    <Typography sx={{ fontWeight: 400 }}>Encl:{item?.enclosure_id}</Typography>
+                    <Typography sx={{ fontWeight: 400 }}>Encl:{item?.user_enclosure_name}</Typography>
                     <Typography sx={{ fontWeight: 400 }}>Sec: {item?.section_name}</Typography>
                   </Box>
                 </Box>

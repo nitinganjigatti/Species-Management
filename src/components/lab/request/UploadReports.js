@@ -105,6 +105,17 @@ const UploadReports = ({
     fileInputRef?.current?.click()
   }
 
+  const allowedTypes = [
+    'image/png',
+    'image/jpeg', // PNG, JPG
+    'application/pdf', // PDF
+    'application/msword', // DOC
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document', // DOCX
+    'application/vnd.ms-excel', // XLS
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', // XLSX
+    'text/csv' // CSV
+  ]
+
   // const handleInputImageChange = event => {
   //   const { files } = event.target
 
@@ -162,17 +173,6 @@ const UploadReports = ({
     const { files } = event.target
     if (!files) return
     const newFileArr = []
-
-    const allowedTypes = [
-      'image/png',
-      'image/jpeg', // PNG, JPG
-      'application/pdf', // PDF
-      'application/msword', // DOC
-      'application/vnd.openxmlformats-officedocument.wordprocessingml.document', // DOCX
-      'application/vnd.ms-excel', // XLS
-      'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', // XLSX
-      'text/csv' // CSV
-    ]
 
     if (restrictExecutiveFiles) {
       Array.from(files).forEach(file => {
@@ -309,7 +309,8 @@ const UploadReports = ({
                   <input
                     multiple
                     type='file'
-                    accept='*/*'
+                    // accept='*/*'
+                    accept={allowedTypes}
                     onChange={e => handleInputImageChange(e)}
                     style={{ display: 'none' }}
                     name='image'

@@ -809,9 +809,9 @@ const AllStoresRequestList = () => {
                     }
                   }}
                 >
-                  <Tab value='1' label='All items' sx={{ width: '30%' }} />
-                  <Tab value='2' label='Available items' />
-                  <Tab value='3' label='Not Available items' />
+                  <Tab value='1' label='Available items' />
+                  <Tab value='2' label='Not Available items' />
+                  <Tab value='3' label='All items' sx={{ width: '30%' }} />
                 </TabList>
               </TabContext>
             </Box>
@@ -829,13 +829,13 @@ const AllStoresRequestList = () => {
             >
               <TabContext value={activeTab}>
                 <TabPanel value='1' sx={{ px: '24px' }}>
-                  {renderContent('All items')}
-                </TabPanel>
-                <TabPanel value='2' sx={{ px: '24px' }}>
                   {renderContent('Available items')}
                 </TabPanel>
-                <TabPanel value='3' sx={{ px: '24px' }}>
+                <TabPanel value='2' sx={{ px: '24px' }}>
                   {renderContent('Not available items')}
+                </TabPanel>
+                <TabPanel value='3' sx={{ px: '24px' }}>
+                  {renderContent('All items')}
                 </TabPanel>
               </TabContext>
             </Box>

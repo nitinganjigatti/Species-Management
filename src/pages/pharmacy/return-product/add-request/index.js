@@ -878,7 +878,6 @@ const AddReturnRequest = () => {
                         <TableCell>Batch No</TableCell>
 
                         <TableCell>Expiry Date</TableCell>
-                        <TableCell>Priority</TableCell>
                         <TableCell>Quantity</TableCell>
                         <TableCell>Action</TableCell>
                       </TableRow>
@@ -913,7 +912,6 @@ const AddReturnRequest = () => {
                                       : Utility?.formatDisplayDate(el?.expiry_date)}
                                   </Typography>
                                 </TableCell>
-                                <TableCell>{el.priority_item}</TableCell>
 
                                 <TableCell>{el.request_item_qty}</TableCell>
 
