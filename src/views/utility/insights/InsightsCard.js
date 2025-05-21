@@ -20,7 +20,13 @@ const InsightsCard = ({
   zooName,
   subtitle,
   userName,
-  image = '/images/housing/testInDev.jpg'
+  description,
+  userImage,
+  image = '/images/housing/testInDev.jpg',
+  speciesCount,
+  animalCount,
+  sectionsCount,
+  enclosuresCount
 }) => {
   const theme = useTheme()
 
@@ -105,7 +111,7 @@ const InsightsCard = ({
 
         {showUserInfo && (
           <Box sx={{ mt: 4, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-            <UserInfoCard avatarUrl='' name={userName || ''} role='Super Admin' />
+            <UserInfoCard avatarUrl={userImage || ''} name={userName || ''} description={description || ''} />
             <Box display='flex' gap={2}>
               {onCallClick && (
                 <IconButton
@@ -152,7 +158,7 @@ const InsightsCard = ({
             <Grid item xs={12} sm={6} md={3}>
               <InfoStatCard
                 imagePath={'/images/housing/species.svg'}
-                value={data?.zoo_stats?.total_species || ''}
+                value={speciesCount || ''}
                 label='Species'
                 onClick={onInfoClick?.species}
               />
@@ -160,7 +166,7 @@ const InsightsCard = ({
             <Grid item xs={12} sm={6} md={3}>
               <InfoStatCard
                 imagePath={'/images/housing/animals.svg'}
-                value={data?.zoo_stats?.total_animals || ''}
+                value={animalCount || ''}
                 label='Animals'
                 onClick={onInfoClick?.animals}
               />
@@ -168,7 +174,7 @@ const InsightsCard = ({
             <Grid item xs={12} sm={6} md={3}>
               <InfoStatCard
                 imagePath={'/images/housing/sections.svg'}
-                value={data?.zoo_stats?.total_sections || ''}
+                value={sectionsCount || ''}
                 label='Sections'
                 onClick={onInfoClick?.sections}
               />
@@ -176,7 +182,7 @@ const InsightsCard = ({
             <Grid item xs={12} sm={6} md={3}>
               <InfoStatCard
                 imagePath={'/images/housing/enclosures.svg'}
-                value={data?.zoo_stats?.total_enclosures || ''}
+                value={enclosuresCount || ''}
                 label='Enclosures'
                 onClick={onInfoClick?.enclosures}
               />

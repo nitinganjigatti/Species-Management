@@ -1,7 +1,7 @@
 import React from 'react'
 import { Avatar, Box, Typography } from '@mui/material'
 
-const UserInfoCard = ({ avatarUrl, name, role }) => {
+const UserInfoCard = ({ avatarUrl, name, description }) => {
   return (
     <Box sx={{ display: 'flex', gap: 4, alignItems: 'center' }}>
       <Avatar src={avatarUrl} />
@@ -11,9 +11,9 @@ const UserInfoCard = ({ avatarUrl, name, role }) => {
             {name}
           </Typography>
         )}
-        {role && (
+        {description && (
           <Typography sx={{ color: theme => theme.palette.common.white }} variant='body2'>
-            {role}
+            {description}
           </Typography>
         )}
       </Box>

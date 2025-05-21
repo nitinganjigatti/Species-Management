@@ -44,6 +44,12 @@ const Sites = () => {
           zooName='Bannerghatta Zoo'
           subtitle='Bannerghatta Zoo'
           userName='Jordan Stevenson'
+          description={'Description'}
+          userImage={''}
+          sectionsCount={data?.zoo_stats?.total_sections}
+          animalCount={data?.zoo_stats?.total_animals}
+          speciesCount={data?.zoo_stats?.total_species}
+          enclosuresCount={data?.zoo_stats?.total_enclosures}
           actions={{
             onEdit: () => console.log('Edit'),
             onDelete: () => console.log('Delete'),
@@ -59,7 +65,16 @@ const Sites = () => {
             enclosures: () => console.log('Enclosures clicked')
           }}
         /> */}
-        <InsightsCard data={data} loading={loading} error={error} isAllSites />
+        <InsightsCard
+          data={data}
+          loading={loading}
+          error={error}
+          isAllSites
+          sectionsCount={data?.zoo_stats?.total_sections}
+          animalCount={data?.zoo_stats?.total_animals}
+          speciesCount={data?.zoo_stats?.total_species}
+          enclosuresCount={data?.zoo_stats?.total_enclosures}
+        />
         <Box sx={{ mt: 6 }}>
           <Card sx={{ p: { xs: 3, md: 5 } }}>
             <Listing />
