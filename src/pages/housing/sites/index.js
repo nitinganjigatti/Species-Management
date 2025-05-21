@@ -61,10 +61,6 @@ const Sites = () => {
           <Listing />
         </Box>
       </Box>
-      <Card sx={{mt:5}}>
-        {/* <Box>Content</Box> */}
-        <Box><Listing/></Box>
-      </Card>
     </Box>
   )
 }
