@@ -5,8 +5,10 @@ import CommonTable from 'src/views/table/data-grid/CommonTable'
 import Search from 'src/views/utility/Search'
 import { useDispatch, useSelector } from 'react-redux'
 import { fetchSites, setPagination } from 'src/store/slices/housing/sitesSlice'
+import UserInfoCard from 'src/views/utility/insights/UserInfoCard'
+import { ExportButton } from 'src/views/utility/render-snippets'
 
-const Listing = ({ title }) => {
+const Listing = () => {
   const theme = useTheme()
   const dispatch = useDispatch()
 
@@ -104,8 +106,8 @@ const Listing = ({ title }) => {
       width: 200,
       field: 'species',
       headerName: 'Species',
-      align: 'center',
-      headerAlign: 'center',
+      align: 'left',
+      headerAlign: 'left',
       renderCell: params => (
         <Typography sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600 }}>
           {params.row.species_count || 0}
@@ -113,11 +115,11 @@ const Listing = ({ title }) => {
       )
     },
     {
-      width: 100,
+      width: 150,
       field: 'animals',
       headerName: 'Animals',
-      align: 'center',
-      headerAlign: 'center',
+      align: 'left',
+      headerAlign: 'left',
       renderCell: params => (
         <Typography sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600 }}>
           {params.row.animal_count || 0}
@@ -125,11 +127,11 @@ const Listing = ({ title }) => {
       )
     },
     {
-      width: 200,
+      width: 150,
       field: 'enclosures',
       headerName: 'Enclosures',
-      align: 'center',
-      headerAlign: 'center',
+      align: 'left',
+      headerAlign: 'left',
       renderCell: params => (
         <Typography sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600 }}>
           {params.row.enclosure_count}
@@ -137,11 +139,11 @@ const Listing = ({ title }) => {
       )
     },
     {
-      width: 200,
+      width: 150,
       field: 'sections',
       headerName: 'Sections',
-      align: 'center',
-      headerAlign: 'center',
+      align: 'left',
+      headerAlign: 'left',
       renderCell: params => (
         <Typography sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600 }}>
           {params.row.section_count}
@@ -149,25 +151,35 @@ const Listing = ({ title }) => {
       )
     },
     {
-      width: 150,
+      width: 180,
       field: 'incharge',
       headerName: 'In-Charge',
       align: 'center',
-      headerAlign: 'center',
+      headerAlign: 'left',
       renderCell: params => (
-        <Typography sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontSize: '14px', fontWeight: 500 }}>
-          {params.row.incharge_name || 'NA'}
-        </Typography>
+        <Box display='flex' alignItems='center' width='100%'>
+          <UserInfoCard />
+          <Typography
+            sx={{
+              color: theme.palette.customColors.OnSurfaceVariant,
+              fontSize: '14px',
+              fontWeight: 500
+            }}
+          >
+            {params.row.incharge_name || 'NA'}
+          </Typography>
+        </Box>
       )
     },
+
     {
-      width: 100,
+      width: 150,
       field: 'actions',
       headerName: 'Actions',
       align: 'center',
       headerAlign: 'center',
       renderCell: () => (
-        <Box display='flex' justifyContent='center' alignItems='center' gap={2}>
+        <Box display='flex' justifyContent='center' alignItems='center' gap={3}>
           <Box component='img' src='/images/call.png' alt='Phone' sx={{ width: 20, height: 20, cursor: 'pointer' }} />
           <Box
             component='img'
@@ -182,16 +194,17 @@ const Listing = ({ title }) => {
 
   const headerAction = (
     <Box display='flex' alignItems='center' sx={{ gap: 2, mt: 2 }}>
-      <Typography color={theme.palette.primary.dark} sx={{ fontSize: '14px', fontWeight: 500 }}>
+      <Typography color={theme.palette.primary.dark} sx={{ fontSize: '14px', fontWeight: 500, fontFamily: 'Inter' }}>
         Download
       </Typography>
-      <img src='/images/download.png' width='20px' style={{ background: theme.palette.primary.dark }} />
+      {/* <img src='/images/download.png' width='20px' style={{ background: theme.palette.primary.dark }} /> */}
+      <ExportButton disabled={total === 0 ? true : false} />
     </Box>
   )
 
   return (
     <Card>
-      <CardHeader title={title} action={headerAction} />
+      <CardHeader title={`All Sites (${total})`} action={headerAction} />
       <Search sx={{ p: 2 }} />
       <Grid sx={{ mx: { xs: 3, md: 5 } }}>
         <CommonTable
@@ -199,6 +212,7 @@ const Listing = ({ title }) => {
           indexedRows={indexedRows}
           total={total}
           columns={columns}
+          pageSizeOptions={[10]}
           paginationModel={{
             page: page - 1,
             pageSize: pageSize
@@ -207,6 +221,7 @@ const Listing = ({ title }) => {
           paginationMode='server'
           loading={loading}
           searchValue={''}
+          maxHeight='60vh'
         />
       </Grid>
     </Card>
