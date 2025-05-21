@@ -1,6 +1,7 @@
 import { configureStore } from '@reduxjs/toolkit'
 import insightsReducer from 'src/store/slices/housing/insightsSlice'
 import sitesReducer from 'src/store/slices/housing/sitesSlice' 
+
 const store = configureStore({
   reducer: {
     insights: insightsReducer,

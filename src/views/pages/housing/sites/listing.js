@@ -1,6 +1,6 @@
 import { useTheme } from '@emotion/react'
 import { Avatar, Box, Card, CardHeader, Grid, Typography } from '@mui/material'
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import Search from 'src/views/utility/Search'
 import { useDispatch, useSelector } from 'react-redux'
@@ -8,33 +8,31 @@ import { fetchSites, setPagination } from 'src/store/slices/housing/sitesSlice'
 
 const Listing = ({ title }) => {
   const theme = useTheme()
-  // const [paginationModel, setPaginationModel] = useState({
-  //   page: 0,
-  //   pageSize: 10
-  // })
-  function loadServerRows(currentPage, data) {
-    return data
-  }
   const dispatch = useDispatch()
-  // const { list: siteList, loading, total, page } = useSelector(state => state.sites)
 
   const { list: siteList, loading, total, page, pageSize } = useSelector(state => state.sites)
-
-  // useEffect(() => {
-  //   dispatch(fetchSites({ page_no: paginationModel.page + 1 }))
-  // }, [dispatch, paginationModel])
 
   useEffect(() => {
     dispatch(fetchSites({ page_no: page, limit: pageSize }))
   }, [dispatch, page, pageSize])
 
   const handlePaginationModelChange = model => {
-    console.log('model >>', model.page + 1)
+    console.log('model', model)
+    const newPage = model.page + 1
+    const newPageSize = model.pageSize
 
-    dispatch(setPagination({ page: model.page + 1, pageSize: model.pageSize }))
+    if (newPage !== page || newPageSize !== pageSize) {
+      dispatch(setPagination({ page: newPage, pageSize: newPageSize }))
+    }
   }
 
-  console.log('Sites >', siteList)
+  const getSlNo = index => (page - 1) * pageSize + index + 1
+
+  const indexedRows = siteList?.map((row, index) => ({
+    ...row,
+    id: row?.site_id,
+    sl_no: getSlNo(index)
+  }))
 
   const columns = [
     {
@@ -42,14 +40,7 @@ const Listing = ({ title }) => {
       field: 'id',
       headerName: 'SL.NO',
       renderCell: params => (
-        <Typography
-          sx={{
-            color: theme.palette.customColors.neutralSecondary,
-            fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
-          }}
-        >
+        <Typography sx={{ color: theme.palette.customColors.neutralSecondary, fontSize: '14px', fontWeight: 500 }}>
           {parseInt(params.row.sl_no) + '.'}
         </Typography>
       )
@@ -91,18 +82,16 @@ const Listing = ({ title }) => {
                 {params.row.site_name?.charAt(0).toUpperCase() || '?'}
               </Avatar>
             )}
-
             <Typography
               noWrap
               sx={{
                 overflow: 'hidden',
                 textOverflow: 'ellipsis',
                 whiteSpace: 'nowrap',
-                maxWidth: '180px', // adjust based on image width + column width
+                maxWidth: '180px',
                 color: theme.palette.customColors.OnSurfaceVariant,
                 fontSize: '14px',
-                fontWeight: 500,
-                fontFamily: 'Inter'
+                fontWeight: 500
               }}
             >
               {params.row.site_name}
@@ -118,19 +107,11 @@ const Listing = ({ title }) => {
       align: 'center',
       headerAlign: 'center',
       renderCell: params => (
-        <Typography
-          sx={{
-            color: theme.palette.primary.OnSurface,
-            fontSize: '16px',
-            fontWeight: 600,
-            fontFamily: 'Inter'
-          }}
-        >
-          {params.row.species_count ? params.row.species_count : 0}
+        <Typography sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600 }}>
+          {params.row.species_count || 0}
         </Typography>
       )
     },
-
     {
       width: 100,
       field: 'animals',
@@ -138,15 +119,8 @@ const Listing = ({ title }) => {
       align: 'center',
       headerAlign: 'center',
       renderCell: params => (
-        <Typography
-          sx={{
-            color: theme.palette.primary.OnSurface,
-            fontSize: '16px',
-            fontWeight: 600,
-            fontFamily: 'Inter'
-          }}
-        >
-          {params.row.animal_count ? params.row.animal_count : 0}
+        <Typography sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600 }}>
+          {params.row.animal_count || 0}
         </Typography>
       )
     },
@@ -157,14 +131,7 @@ const Listing = ({ title }) => {
       align: 'center',
       headerAlign: 'center',
       renderCell: params => (
-        <Typography
-          sx={{
-            color: theme.palette.primary.OnSurface,
-            fontSize: '16px',
-            fontWeight: 600,
-            fontFamily: 'Inter'
-          }}
-        >
+        <Typography sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600 }}>
           {params.row.enclosure_count}
         </Typography>
       )
@@ -176,37 +143,11 @@ const Listing = ({ title }) => {
       align: 'center',
       headerAlign: 'center',
       renderCell: params => (
-        <Typography
-          sx={{
-            color: theme.palette.primary.OnSurface,
-            fontSize: '16px',
-            fontWeight: 600,
-            fontFamily: 'Inter'
-          }}
-        >
+        <Typography sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600 }}>
           {params.row.section_count}
         </Typography>
       )
     },
-    // {
-    //   width: 200,
-    //   field: 'clusters',
-    //   headerName: 'clusters',
-    //   align: 'center',
-    //   headerAlign: 'center',
-    //   renderCell: params => (
-    //     <Typography
-    //       sx={{
-    //         color: theme.palette.customColors.OnSurfaceVariant,
-    //         fontSize: '14px',
-    //         fontWeight: 500,
-    //         fontFamily: 'Inter'
-    //       }}
-    //     >
-    //       {''}
-    //     </Typography>
-    //   )
-    // },
     {
       width: 150,
       field: 'incharge',
@@ -214,15 +155,8 @@ const Listing = ({ title }) => {
       align: 'center',
       headerAlign: 'center',
       renderCell: params => (
-        <Typography
-          sx={{
-            color: theme.palette.customColors.OnSurfaceVariant,
-            fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
-          }}
-        >
-          {params.row.incharge_name ? params.row.incharge_name : 'NA'}
+        <Typography sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontSize: '14px', fontWeight: 500 }}>
+          {params.row.incharge_name || 'NA'}
         </Typography>
       )
     },
@@ -232,7 +166,7 @@ const Listing = ({ title }) => {
       headerName: 'Actions',
       align: 'center',
       headerAlign: 'center',
-      renderCell: params => (
+      renderCell: () => (
         <Box display='flex' justifyContent='center' alignItems='center' gap={2}>
           <Box component='img' src='/images/call.png' alt='Phone' sx={{ width: 20, height: 20, cursor: 'pointer' }} />
           <Box
@@ -246,63 +180,37 @@ const Listing = ({ title }) => {
     }
   ]
 
-  // const getSlNo = index => (paginationModel?.page + 1 - 1) * paginationModel?.pageSize + index + 1
-
-  // const indexedRows = siteList?.map((row, index) => ({
-  //   ...row,
-  //   id: row?.site_id,
-  //   sl_no: getSlNo(index)
-  // }))
-
-  const getSlNo = index => (page - 1) * pageSize + index + 1
-
-  const indexedRows = siteList?.map((row, index) => ({
-    ...row,
-    id: row?.site_id,
-    sl_no: getSlNo(index)
-  }))
-
   const headerAction = (
     <Box display='flex' alignItems='center' sx={{ gap: 2, mt: 2 }}>
-      <Typography color={theme.palette.primary.dark} sx={{ fontSize: '14px', fontFamily: 'Inter', fontWeight: 500 }}>
+      <Typography color={theme.palette.primary.dark} sx={{ fontSize: '14px', fontWeight: 500 }}>
         Download
       </Typography>
-
-      {/* <DownloadIcon /> */}
-      <img
-        src='/images/download.png'
-        // alt='Grocery Icon'
-        width='20px'
-        style={{ background: theme.palette.primary.dark }}
-      />
+      <img src='/images/download.png' width='20px' style={{ background: theme.palette.primary.dark }} />
     </Box>
   )
 
   return (
-    <>
-      <Card>
-        <CardHeader title={title} action={headerAction} />
-        <Search sx={{ p: 2 }} />
-
-        <Grid sx={{ mx: { xs: 3, md: 5 } }}>
-          <CommonTable
-            onRowClick={''}
-            indexedRows={indexedRows}
-            total={total}
-            paginationMode='server' // ✅ Required
-            columns={columns}
-            paginationModel={{
-              page: page, // DataGrid expects 0-indexed page
-              pageSize: pageSize
-            }}
-            onPaginationModelChange={handlePaginationModelChange}
-            handleSortModel={''}
-            loading={loading}
-            searchValue={''}
-          />
-        </Grid>
-      </Card>
-    </>
+    <Card>
+      <CardHeader title={title} action={headerAction} />
+      <Search sx={{ p: 2 }} />
+      <Grid sx={{ mx: { xs: 3, md: 5 } }}>
+        <CommonTable
+          onRowClick={''}
+          indexedRows={indexedRows}
+          total={total}
+          columns={columns}
+          paginationModel={{
+            page: page - 1,
+            pageSize: pageSize
+          }}
+          setPaginationModel={handlePaginationModelChange}
+          paginationMode='server'
+          loading={loading}
+          searchValue={''}
+        />
+      </Grid>
+    </Card>
   )
 }
+
 export default Listing
