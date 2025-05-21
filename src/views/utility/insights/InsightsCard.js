@@ -6,19 +6,21 @@ import UserInfoCard from './UserInfoCard'
 import { useTheme } from '@mui/material/styles'
 import CallOutlinedIcon from '@mui/icons-material/CallOutlined'
 import InsertCommentOutlinedIcon from '@mui/icons-material/InsertCommentOutlined'
+import InsightsOutlinedIcon from '@mui/icons-material/InsightsOutlined'
 
 const InsightsCard = ({
-  image = '/images/housing/testInDev.jpg',
   data,
-  zooName,
-  subtitle,
-  userName,
   loading,
   error,
+  isAllSites = false,
   actions = {},
   onCallClick,
   onMessageClick,
-  onInfoClick = {}
+  onInfoClick = {},
+  zooName,
+  subtitle,
+  userName,
+  image = '/images/housing/testInDev.jpg'
 }) => {
   const theme = useTheme()
 
@@ -50,7 +52,6 @@ const InsightsCard = ({
 
   const showHeader = Boolean(zooName)
   const showUserInfo = Boolean(userName)
-  const removeMarginTop = !showHeader && !showUserInfo
 
   return (
     <Box
@@ -78,6 +79,28 @@ const InsightsCard = ({
 
       {/* Foreground content */}
       <Box sx={{ position: 'relative', zIndex: 2, p: 6 }}>
+        {isAllSites && (
+          <Box sx={{ display: 'flex', gap: 4, alignItems: 'center' }}>
+            <Box
+              sx={{
+                p: 2,
+                borderRadius: '50%',
+                backgroundColor: alpha(theme.palette.common.white, 0.16),
+                color: theme.palette.customColors.PrimaryContainer,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                width: 'fit-content',
+                height: 'fit-content'
+              }}
+            >
+              <InsightsOutlinedIcon />
+            </Box>
+            <Typography sx={{ color: theme => theme.palette.common.white, fontSize: '1.5rem' }} fontWeight={600}>
+              All Site Insights
+            </Typography>
+          </Box>
+        )}
         {showHeader && <HeaderCard title={zooName || ''} subtitle={subtitle || ''} {...actions} />}
 
         {showUserInfo && (
@@ -116,7 +139,7 @@ const InsightsCard = ({
 
         <Box
           sx={{
-            mt: removeMarginTop ? 0 : 10,
+            mt: 10,
             p: { xs: 1.5, sm: 2 },
             border: `1px solid ${alpha(theme.palette.common.white, 0.2)}`,
             borderRadius: 1,

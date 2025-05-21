@@ -56,7 +56,7 @@ const Sites = () => {
             enclosures: () => console.log('Enclosures clicked')
           }}
         /> */}
-        <InsightsCard data={data} loading={loading} error={error} />
+        <InsightsCard data={data} loading={loading} error={error} isAllSites />
         <Box sx={{ mt: 6 }}>
           <Listing />
         </Box>

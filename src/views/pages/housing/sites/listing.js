@@ -1,6 +1,6 @@
 import { useTheme } from '@emotion/react'
-import { Avatar, Box, Card, CardHeader, Grid, Typography } from '@mui/material'
-import { useEffect } from 'react'
+import { Avatar, Box, Card, CardHeader, debounce, Grid, Typography } from '@mui/material'
+import { useCallback, useEffect, useState } from 'react'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import Search from 'src/views/utility/Search'
 import { useDispatch, useSelector } from 'react-redux'
@@ -8,18 +8,19 @@ import { fetchSites, setPagination } from 'src/store/slices/housing/sitesSlice'
 import UserInfoCard from 'src/views/utility/insights/UserInfoCard'
 import { ExportButton } from 'src/views/utility/render-snippets'
 
-const Listing = () => {
+const Listing = ({ title }) => {
+  const [searchValue, setSearchValue] = useState('')
+
   const theme = useTheme()
   const dispatch = useDispatch()
 
   const { list: siteList, loading, total, page, pageSize } = useSelector(state => state.sites)
 
   useEffect(() => {
-    dispatch(fetchSites({ page_no: page, limit: pageSize }))
+    dispatch(fetchSites({ page_no: page, limit: pageSize, q: searchValue }))
   }, [dispatch, page, pageSize])
 
   const handlePaginationModelChange = model => {
-    console.log('model', model)
     const newPage = model.page + 1
     const newPageSize = model.pageSize
 
@@ -27,6 +28,28 @@ const Listing = () => {
       dispatch(setPagination({ page: newPage, pageSize: newPageSize }))
     }
   }
+
+  const searchTableData = useCallback(
+    debounce(async value => {
+      setSearchValue(value)
+      try {
+        dispatch(fetchSites({ page_no: page, limit: pageSize, q: value }))
+      } catch (error) {
+        console.error(error)
+      }
+    }, 1000),
+    []
+  )
+
+  const handleSearch = useCallback(
+    value => {
+      setSearchValue(value)
+      dispatch(setPagination({ page: 1, pageSize })) // Reset to page 1
+      searchTableData(value)
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [searchValue]
+  )
 
   const getSlNo = index => (page - 1) * pageSize + index + 1
 
@@ -204,8 +227,14 @@ const Listing = () => {
 
   return (
     <Card>
-      <CardHeader title={`All Sites (${total})`} action={headerAction} />
-      <Search sx={{ p: 2 }} />
+      <CardHeader title={title} action={headerAction} />
+      <Search
+        value={searchValue}
+        onChange={e => handleSearch(e.target.value)}
+        onClear={() => handleSearch('')}
+        placeholder='Search…'
+        sx={{ mt: 2 }}
+      />
       <Grid sx={{ mx: { xs: 3, md: 5 } }}>
         <CommonTable
           onRowClick={''}
