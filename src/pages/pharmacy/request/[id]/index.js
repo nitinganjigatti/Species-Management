@@ -1566,7 +1566,7 @@ const IndividualRequest = () => {
                             color: 'customColors.neutralSecondary'
                           }}
                         >
-                          Requested By:
+                          Requested By :
                           <Box
                             component='span'
                             sx={{
@@ -1661,16 +1661,28 @@ const IndividualRequest = () => {
                             </Box>
                           </Typography>
                         )}
-
-                        <Typography
+                        <Box
                           sx={{
-                            fontSize: '14px',
-                            fontWeight: '400',
-                            lineHeight: '16.94px',
-                            color: 'customColors.neutralSecondary'
+                            display: 'flex',
+                            alignItems: 'center',
+                            marginLeft: { xs: 0, md: 0, sm: '47px' }
+                            // overflow: 'hidden' // optional, if you want to clip long content
                           }}
                         >
-                          Total Requested Value:
+                          <Typography
+                            component='span'
+                            sx={{
+                              fontSize: '14px',
+                              fontWeight: '400',
+                              lineHeight: '16.94px',
+                              color: 'customColors.neutralSecondary',
+                              whiteSpace: 'nowrap' // optional if this label might wrap
+                              // ml: { xs: 0, sm: 0 }
+                            }}
+                          >
+                            Total Requested Value:
+                          </Typography>
+
                           <Tooltip title={Utility.formatAmountToReadableDigit(requestItems?.requested_amount)}>
                             <Box
                               component='span'
@@ -1679,20 +1691,15 @@ const IndividualRequest = () => {
                                 fontSize: '16px',
                                 color: 'primary.light',
                                 lineHeight: '19.36px',
-                                mx: 2,
-                                [theme.breakpoints.up('lg')]: {
-                                  ...RenderUtility?.getEllipsisStyleForText('140')
-                                }
+                                whiteSpace: 'nowrap',
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis'
                               }}
                             >
                               {Utility.formatAmountToReadableDigit(requestItems?.requested_amount)}
-                              {/* ₹
-                              {RenderUtility?.getToolTipForText(
-                                Utility.formatNumberToDisplay(requestItems?.requested_amount)
-                              )} */}
                             </Box>
                           </Tooltip>
-                        </Typography>
+                        </Box>
 
                         {/* <Typography
                           sx={{
@@ -1707,12 +1714,12 @@ const IndividualRequest = () => {
                             component='span'
                             sx={{
                               fontWeight: '500',
+                          >
                               fontSize: '16px',
                               color: 'primary.OnSurface',
                               lineHeight: '19.36px',
                               mx: 2
                             }}
-                          >
                             {requestItems?.shipped_qty}
                           </Box>
                         </Typography> */}

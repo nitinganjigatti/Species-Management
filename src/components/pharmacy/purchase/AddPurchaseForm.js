@@ -203,6 +203,16 @@ const AddPurchaseForm = () => {
   const [invoiceSubmitLoader, setInvoiceSubmitLoader] = useState(false)
   const [variantLists, setVariantLists] = useState([])
 
+  const resetFelids = () => {
+    reset(editParamsInitialState)
+    setEditParams(editParamsInitialState)
+    setFileArr([])
+    setInputValue('')
+    setTotalFreightCharges(0)
+    setAdditionalCharges(0)
+    setFileSrc('')
+  }
+
   const schema = yup.object().shape({
     // product: yup.string().required('Product name is required'),
     supplier_id: yup.string().required('Supplier is required'),
@@ -1534,8 +1544,9 @@ const AddPurchaseForm = () => {
         >
           {authData?.userData?.roles?.settings?.add_pharmacy && !id && (
             <AddButton
-              title='Upload Invoice '
+              title='Process Invoice'
               action={() => {
+                resetFelids()
                 setInvoiceUploadDialog(true)
               }}
             />
@@ -2173,7 +2184,8 @@ const AddPurchaseForm = () => {
             </Grid>
           </Grid>
         </CardContent>
-        {validateErrorForItemId() && (
+
+        {editParams.purchase_created_by === 'invoice_upload' && (
           <Typography sx={{ color: 'error.main', mx: 6, mb: 2 }}>
             Kindly review all invoice entries carefully before saving the purchase.
           </Typography>
@@ -2213,7 +2225,7 @@ const AddPurchaseForm = () => {
                       minWidth: 20
                     }}
                   >
-                    S.No
+                    SL.No
                   </TableCell>
                   <TableCell
                     sx={{
@@ -2223,7 +2235,13 @@ const AddPurchaseForm = () => {
                     Product Name
                   </TableCell>
 
-                  <TableCell>Batch</TableCell>
+                  <TableCell
+                    sx={{
+                      textAlign: 'center'
+                    }}
+                  >
+                    Batch
+                  </TableCell>
                   <TableCell
                     sx={{
                       minWidth: 130,
@@ -2269,10 +2287,22 @@ const AddPurchaseForm = () => {
                   >
                     CGST
                     <Grid container>
-                      <Grid item xs={6}>
+                      <Grid
+                        item
+                        xs={6}
+                        sx={{
+                          textAlign: 'center'
+                        }}
+                      >
                         Rate
                       </Grid>
-                      <Grid item xs={6}>
+                      <Grid
+                        item
+                        xs={6}
+                        sx={{
+                          textAlign: 'center'
+                        }}
+                      >
                         Amount
                       </Grid>
                     </Grid>
@@ -2285,10 +2315,22 @@ const AddPurchaseForm = () => {
                   >
                     SGST
                     <Grid container>
-                      <Grid item xs={6}>
+                      <Grid
+                        item
+                        xs={6}
+                        sx={{
+                          textAlign: 'center'
+                        }}
+                      >
                         Rate
                       </Grid>
-                      <Grid item xs={6}>
+                      <Grid
+                        item
+                        xs={6}
+                        sx={{
+                          textAlign: 'center'
+                        }}
+                      >
                         Amount
                       </Grid>
                     </Grid>
@@ -2296,10 +2338,22 @@ const AddPurchaseForm = () => {
                   <TableCell sx={{ textAlign: 'center', minWidth: 130 }}>
                     IGST
                     <Grid container>
-                      <Grid item xs={6}>
+                      <Grid
+                        item
+                        xs={6}
+                        sx={{
+                          textAlign: 'center'
+                        }}
+                      >
                         Rate
                       </Grid>
-                      <Grid item xs={6}>
+                      <Grid
+                        item
+                        xs={6}
+                        sx={{
+                          textAlign: 'center'
+                        }}
+                      >
                         Amount
                       </Grid>
                     </Grid>
@@ -2339,33 +2393,51 @@ const AddPurchaseForm = () => {
                           </TableCell>
                           <TableCell align='right'>{el?.purchase_qty}</TableCell>
                           {/* <TableCell align='right'>{el.purchase_free_quantity}</TableCell> */}
-                          <TableCell align='right'>{el?.purchase_unit_price}</TableCell>
+                          <TableCell align='right'>
+                            {Utility.formatAmountToReadableDigit(el?.purchase_unit_price)}
+                          </TableCell>
                           <TableCell align='right'>{el?.purchase_discount}%</TableCell>
                           {/* <TableCell align='right'>{el.purchase_igst}%</TableCell> */}
-                          <TableCell align='right'>{el?.purchase_net_amount}</TableCell>
-                          <TableCell align='right'>{el?.purchase_gross_amount}</TableCell>
-                          <TableCell>
+                          <TableCell align='right'>
+                            {Utility.formatAmountToReadableDigit(el?.purchase_net_amount)}
+                          </TableCell>
+                          <TableCell align='right'>
+                            {Utility.formatAmountToReadableDigit(el?.purchase_gross_amount)}
+                          </TableCell>
+                          <TableCell
+                            sx={{
+                              textAlign: 'center'
+                            }}
+                          >
                             <TableCell sx={{ borderBottom: 'none', backgroundColor: 'transparent' }}>
                               {el?.purchase_cgst}%
                             </TableCell>
                             <TableCell sx={{ borderBottom: 'none', backgroundColor: 'transparent' }}>
-                              {el?.purchase_cgst_amount}
+                              {Utility.formatAmountToReadableDigit(el?.purchase_cgst_amount)}
                             </TableCell>
                           </TableCell>
-                          <TableCell>
+                          <TableCell
+                            sx={{
+                              textAlign: 'center'
+                            }}
+                          >
                             <TableCell sx={{ borderBottom: 'none', backgroundColor: 'transparent' }}>
                               {el?.purchase_sgst}%
                             </TableCell>
                             <TableCell sx={{ borderBottom: 'none', backgroundColor: 'transparent' }}>
-                              {el?.purchase_sgst_amount}
+                              {Utility.formatAmountToReadableDigit(el?.purchase_sgst_amount)}
                             </TableCell>
                           </TableCell>{' '}
-                          <TableCell>
+                          <TableCell
+                            sx={{
+                              textAlign: 'center'
+                            }}
+                          >
                             <TableCell sx={{ borderBottom: 'none', backgroundColor: 'transparent' }}>
                               {el?.purchase_igst}%
                             </TableCell>
                             <TableCell sx={{ borderBottom: 'none', backgroundColor: 'transparent' }}>
-                              {el?.purchase_igst_amount}
+                              {Utility.formatAmountToReadableDigit(el?.purchase_igst_amount)}
                             </TableCell>
                           </TableCell>
                           <TableCell align='center'>
@@ -2889,14 +2961,7 @@ const AddPurchaseForm = () => {
               Save
             </LoadingButton>
             {id ? null : (
-              <Button
-                onClick={() => {
-                  reset(editParamsInitialState)
-                  setEditParams(editParamsInitialState)
-                }}
-                size='large'
-                variant='outlined'
-              >
+              <Button onClick={resetFelids} size='large' variant='outlined'>
                 Reset
               </Button>
             )}
