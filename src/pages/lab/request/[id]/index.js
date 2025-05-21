@@ -1395,7 +1395,7 @@ const RequestDetails = () => {
                     {/* {document && (
                       <CommonMediaView
                         allCompleted={allCompleted}
-                        
+
                         handleDeleteImg={handleDeleteImg}
                         fileViews={fileViews}
                         permissions={permissions}
@@ -1513,6 +1513,7 @@ const RequestDetails = () => {
                     <TableHead>
                       <TableRow sx={{ bgcolor: theme.palette.customColors.displaybgPrimary }}>
                         <TableCell>Test Name</TableCell>
+                        <TableCell>Sample Name</TableCell>
                         <TableCell>Lab Name</TableCell>
                         <TableCell>Status</TableCell>
                       </TableRow>
@@ -1521,6 +1522,7 @@ const RequestDetails = () => {
                       {item?.test_reports?.map((data, dataID) => (
                         <TableRow key={dataID}>
                           <TableCell sx={{ textTransform: 'capitalize' }}>{data?.test_name}</TableCell>
+                          <TableCell sx={{ textTransform: 'capitalize' }}>{data?.sample_name}</TableCell>
                           <TableCell sx={{ textTransform: 'capitalize' }}>{data?.lab_name}</TableCell>
                           <TableCell>
                             <Typography variant='body2' sx={{ color: 'text.primary', textTransform: 'capitalize' }}>
