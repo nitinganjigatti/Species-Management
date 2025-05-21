@@ -7,10 +7,21 @@ import { useTheme } from '@mui/material/styles'
 import CallOutlinedIcon from '@mui/icons-material/CallOutlined'
 import InsertCommentOutlinedIcon from '@mui/icons-material/InsertCommentOutlined'
 
-const InsightsCard = ({ image = '/images/housing/testInDev.jpg', data, zooName, userName, loading, error }) => {
-  // TODO: Mapping has to be updated. zooName, userName and image has to be mapped from data
+const InsightsCard = ({
+  image = '/images/housing/testInDev.jpg',
+  data,
+  zooName,
+  subtitle,
+  userName,
+  loading,
+  error,
+  actions = {},
+  onCallClick,
+  onMessageClick,
+  onInfoClick = {}
+}) => {
   const theme = useTheme()
-  console.log('data', data)
+
   if (loading) {
     return (
       <Box display='flex' justifyContent='center' alignItems='center' minHeight='150px'>
@@ -67,45 +78,42 @@ const InsightsCard = ({ image = '/images/housing/testInDev.jpg', data, zooName, 
 
       {/* Foreground content */}
       <Box sx={{ position: 'relative', zIndex: 2, p: 6 }}>
-        {showHeader && (
-          <HeaderCard
-            title='Northern Highland Zoological Sanctuary'
-            subtitle='Bannerghatta North'
-            onEdit={() => console.log('Edit clicked')}
-            onDelete={() => console.log('Delete clicked')}
-            onAddNew={() => console.log('Add new clicked')}
-            onTimeClick={() => console.log('Time clicked')}
-          />
-        )}
+        {showHeader && <HeaderCard title={zooName || ''} subtitle={subtitle || ''} {...actions} />}
+
         {showUserInfo && (
           <Box sx={{ mt: 4, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-            <UserInfoCard avatarUrl='' name='Jordan Stevenson' role='Super Admin' />
-
+            <UserInfoCard avatarUrl='' name={userName || ''} role='Super Admin' />
             <Box display='flex' gap={2}>
-              <IconButton
-                sx={theme => ({
-                  backgroundColor: alpha(theme.palette.common.white, 0.21),
-                  border: `1px solid ${theme.palette.customColors?.OutlineVariant || theme.palette.divider}`,
-                  borderRadius: '50%',
-                  padding: 2
-                })}
-              >
-                <CallOutlinedIcon sx={{ color: theme => theme.palette.common.white }} />
-              </IconButton>
-
-              <IconButton
-                sx={theme => ({
-                  backgroundColor: alpha(theme.palette.common.white, 0.21),
-                  border: `1px solid ${theme.palette.customColors?.OutlineVariant || theme.palette.divider}`,
-                  borderRadius: '50%',
-                  padding: 2
-                })}
-              >
-                <InsertCommentOutlinedIcon sx={{ color: theme => theme.palette.common.white }} />
-              </IconButton>
+              {onCallClick && (
+                <IconButton
+                  onClick={onCallClick}
+                  sx={{
+                    backgroundColor: alpha(theme.palette.common.white, 0.21),
+                    border: `1px solid ${theme.palette.customColors?.OutlineVariant || theme.palette.divider}`,
+                    borderRadius: '50%',
+                    padding: 2
+                  }}
+                >
+                  <CallOutlinedIcon sx={{ color: theme.palette.common.white }} />
+                </IconButton>
+              )}
+              {onMessageClick && (
+                <IconButton
+                  onClick={onMessageClick}
+                  sx={{
+                    backgroundColor: alpha(theme.palette.common.white, 0.21),
+                    border: `1px solid ${theme.palette.customColors?.OutlineVariant || theme.palette.divider}`,
+                    borderRadius: '50%',
+                    padding: 2
+                  }}
+                >
+                  <InsertCommentOutlinedIcon sx={{ color: theme.palette.common.white }} />
+                </IconButton>
+              )}
             </Box>
           </Box>
         )}
+
         <Box
           sx={{
             mt: removeMarginTop ? 0 : 10,
@@ -123,6 +131,7 @@ const InsightsCard = ({ image = '/images/housing/testInDev.jpg', data, zooName, 
                 imagePath={'/images/housing/species.svg'}
                 value={data?.zoo_stats?.total_species || ''}
                 label='Species'
+                onClick={onInfoClick?.species}
               />
             </Grid>
             <Grid item xs={12} sm={6} md={3}>
@@ -130,6 +139,7 @@ const InsightsCard = ({ image = '/images/housing/testInDev.jpg', data, zooName, 
                 imagePath={'/images/housing/animals.svg'}
                 value={data?.zoo_stats?.total_animals || ''}
                 label='Animals'
+                onClick={onInfoClick?.animals}
               />
             </Grid>
             <Grid item xs={12} sm={6} md={3}>
@@ -137,6 +147,7 @@ const InsightsCard = ({ image = '/images/housing/testInDev.jpg', data, zooName, 
                 imagePath={'/images/housing/sections.svg'}
                 value={data?.zoo_stats?.total_sections || ''}
                 label='Sections'
+                onClick={onInfoClick?.sections}
               />
             </Grid>
             <Grid item xs={12} sm={6} md={3}>
@@ -144,6 +155,7 @@ const InsightsCard = ({ image = '/images/housing/testInDev.jpg', data, zooName, 
                 imagePath={'/images/housing/enclosures.svg'}
                 value={data?.zoo_stats?.total_enclosures || ''}
                 label='Enclosures'
+                onClick={onInfoClick?.enclosures}
               />
             </Grid>
           </Grid>

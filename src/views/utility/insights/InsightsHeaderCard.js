@@ -25,27 +25,46 @@ const HeaderCard = ({
           </Typography>
         )}
         {subtitle && (
-          <Typography sx={{ mt: 0.5, color: theme.palette.common.white, fontSize: '0.875rem' }}>
-            {subtitle}
-          </Typography>
+          <Typography sx={{ mt: 0.5, color: theme.palette.common.white, fontSize: '0.875rem' }}>{subtitle}</Typography>
         )}
       </Box>
 
       <Box sx={{ display: 'flex', alignItems: 'center', gap: '1rem', marginTop: '0.5rem' }}>
         {onTimeClick && (
-          <IconButton size="small" onClick={onTimeClick}>
+          <IconButton
+            sx={{
+              color: theme.palette.common.white,
+              transition: 'color 0.2s'
+            }}
+            size='small'
+            onClick={onTimeClick}
+          >
             <AccessTimeIcon sx={{ color: theme.palette.common.white }} />
           </IconButton>
         )}
 
         {onEdit && (
-          <IconButton size="small" onClick={onEdit}>
+          <IconButton
+            sx={{
+              color: theme.palette.common.white,
+              transition: 'color 0.2s'
+            }}
+            size='small'
+            onClick={onEdit}
+          >
             <ModeEditOutlineOutlinedIcon sx={{ color: theme.palette.common.white }} />
           </IconButton>
         )}
 
         {onDelete && (
-          <IconButton size="small" onClick={onDelete}>
+          <IconButton
+            sx={{
+              color: theme.palette.common.white,
+              transition: 'color 0.2s'
+            }}
+            size='small'
+            onClick={onDelete}
+          >
             <DeleteOutlineOutlinedIcon sx={{ color: theme.palette.common.white }} />
           </IconButton>
         )}
@@ -60,11 +79,13 @@ const HeaderCard = ({
               sx={{
                 border: '1px solid',
                 borderColor: theme.palette.customColors.PrimaryContainer,
+                color: theme.palette.customColors.PrimaryContainer,
+                transition: 'color 0.2s',
                 borderRadius: 0.5,
                 padding: 0
               }}
             >
-              <AddIcon sx={{ color: theme.palette.customColors.PrimaryContainer, fontSize: '1rem' }} />
+              <AddIcon sx={{ fontSize: '1rem' }} />
             </IconButton>
           </Stack>
         )}

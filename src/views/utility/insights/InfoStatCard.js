@@ -3,7 +3,7 @@ import { Box, Typography } from '@mui/material'
 import IconBox from './IconBox'
 import { useTheme } from '@mui/material/styles'
 
-const InfoStatCard = ({ icon: Icon, imagePath, value, label }) => {
+const InfoStatCard = ({ icon: Icon, imagePath, value, label, onClick }) => {
   const theme = useTheme()
 
   return (
@@ -16,8 +16,10 @@ const InfoStatCard = ({ icon: Icon, imagePath, value, label }) => {
         alignItems: 'center',
         gap: 4,
         color: 'white',
+        cursor: 'pointer',
         minWidth: 150
       }}
+      onClick={onClick}
     >
       <IconBox icon={Icon} imagePath={imagePath} />
       <Box>

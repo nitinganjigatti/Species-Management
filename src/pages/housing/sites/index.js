@@ -32,12 +32,35 @@ const Sites = () => {
         </Typography>
       </Breadcrumbs>
       <Box>
+        {/* For testing with all the data */}
+
+        {/* <InsightsCard
+          data={data}
+          loading={loading}
+          error={error}
+          zooName='Bannerghatta Zoo'
+          subtitle='Bannerghatta Zoo'
+          userName='Jordan Stevenson'
+          actions={{
+            onEdit: () => console.log('Edit'),
+            onDelete: () => console.log('Delete'),
+            onAddNew: () => console.log('Add new'),
+            onTimeClick: () => console.log('Time clicked')
+          }}
+          onCallClick={() => console.log('Call clicked')}
+          onMessageClick={() => console.log('Message clicked')}
+          onInfoClick={{
+            species: () => console.log('Species clicked'),
+            animals: () => console.log('Animals clicked'),
+            sections: () => console.log('Sections clicked'),
+            enclosures: () => console.log('Enclosures clicked')
+          }}
+        /> */}
         <InsightsCard data={data} loading={loading} error={error} />
+        <Box sx={{ mt: 6 }}>
+          <Listing />
+        </Box>
       </Box>
-      <Card>
-        <Box>Content</Box>
-        <Box><Listing/></Box>
-      </Card>
     </Box>
   )
 }
