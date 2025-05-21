@@ -732,7 +732,7 @@ const StepBasicDetails = ({
   }
 
   const cancelBack = () => {
-    Router.push('/diet/diet/')
+    Router.push(`/diet/diet/${id}`)
   }
 
   const addIngredientsButton = () => {
@@ -832,7 +832,7 @@ const StepBasicDetails = ({
     })
   }
 
-  const removeingClicking = (indexToRemove, val) => {
+  const removeingClicking = (indexToRemove, val, value) => {
     setingType('')
     setIngredientchoiceChildStateValue(prevSelectedCard => {
       // Filter out the entire ingredient object based on the index of prevSelectedCard
@@ -846,15 +846,25 @@ const StepBasicDetails = ({
         return updatedAllSelectedValues
       })
 
-      // Update fieldsIngredients by removing the ingredient based on the indexToRemove
+      // Update fieldsIngredients by removing the matching ingredient objects
       const updatedFieldsIngredients = fieldsIngredients.map(field => {
         if (field?.mealid === val) {
-          field.ingredientwithchoice = field.ingredientwithchoice?.filter((_, ingIndex) => ingIndex !== indexToRemove)
-        }
+          field.ingredientwithchoice = field.ingredientwithchoice?.filter(ingWithChoice => {
+            // Check if this ingWithChoice's ingredientList contains any object that matches all criteria
+            const hasMatchingIngredient = ingWithChoice.ingredientList?.some(ing => {
+              return value.ingredientList?.some(
+                valIng =>
+                  String(valIng.preparation_type_id) === String(ing.preparation_type_id) &&
+                  String(valIng.mealid) === String(ing.mealid) &&
+                  String(valIng.ingredient_id) === String(ing.ingredient_id)
+              )
+            })
 
+            return !hasMatchingIngredient
+          })
+        }
         return field
       })
-
       setfinalvalueingredientchoice(updatedFieldsIngredients)
 
       return filteredChildStateValue
@@ -890,7 +900,6 @@ const StepBasicDetails = ({
 
   const removeingClickCombo = (recipeIdToRemove, val) => {
     setComboChildStateValue(prevSelectedCard => {
-      console.log(prevSelectedCard, 'prevSelectedCard')
       const filteredChildStateValue = prevSelectedCard.filter(recipe => recipe.recipe_id !== recipeIdToRemove)
 
       setAllComboSelectedValues(prevAllSelectedValues => {
@@ -916,21 +925,22 @@ const StepBasicDetails = ({
     })
   }
 
-  const removeingClickingwithChoice = (ingredientIdToRemove, val) => {
+  const removeingClickingwithChoice = (ingredientIdToRemove, val, index) => {
     setIngredientchoiceChildStateValue(prevSelectedCard => {
       const filteredChildStateValue = prevSelectedCard.filter(ingredient =>
         ingredient.ingredientList.some(ing => ing.ingredient_id !== ingredientIdToRemove)
       )
 
       setAllIngredientchoiceSelectedValues(prevAllSelectedValues => {
-        // Filter out objects based on conditions
-
+        console.log(prevAllSelectedValues, 'prevAllSelectedValues')
         const updatedAllSelectedValues = prevAllSelectedValues
-          .map(ingredient => {
-            if (ingredient?.mealid === val) {
-              ingredient.ingredientList = ingredient.ingredientList.filter(
-                ing => ing?.ingredient_id !== ingredientIdToRemove
-              )
+          .map((ingredient, i) => {
+            // Check both index and checkid === mealid
+            if (i === index && ingredient?.mealid === val) {
+              return {
+                ...ingredient,
+                ingredientList: ingredient.ingredientList.filter(ing => ing?.ingredient_id !== ingredientIdToRemove)
+              }
             }
 
             return ingredient
@@ -940,14 +950,16 @@ const StepBasicDetails = ({
         return updatedAllSelectedValues
       })
 
-      // Update fieldsIngredients by filtering out ingredients based on ingredientIdToRemove
+      // Update fieldsIngredients with both index and checkid comparison
+      console.log(fieldsIngredients, 'fieldsIngredients')
       const updatedFieldsIngredients = fieldsIngredients.map(field => {
         field.ingredientwithchoice = field.ingredientwithchoice
-          ?.map(ing => {
-            if (ing?.mealid === val) {
-              ing.ingredientList = ing?.ingredientList?.filter(
-                item => String(item.ingredient_id) !== ingredientIdToRemove
-              )
+          ?.map((ing, i) => {
+            if (i === index && ing?.mealid === val) {
+              return {
+                ...ing,
+                ingredientList: ing?.ingredientList?.filter(item => String(item.ingredient_id) !== ingredientIdToRemove)
+              }
             }
 
             return ing
@@ -1926,7 +1938,7 @@ const StepBasicDetails = ({
                                   icon='bx:pencil'
                                 />
                                 <Icon
-                                  onClick={() => removeingClicking(index, all.mealid)}
+                                  onClick={() => removeingClicking(index, all.mealid, all)}
                                   style={{ position: 'relative', left: '1%' }}
                                   icon='iconoir:cancel'
                                 />
@@ -1940,9 +1952,9 @@ const StepBasicDetails = ({
                                     mt: 3
                                   }}
                                 >
-                                  {all?.ingredientList?.map((all, index) => {
+                                  {all?.ingredientList?.map((all, i) => {
                                     return (
-                                      <Grid item key={index}>
+                                      <Grid item key={i}>
                                         <Card sx={{ width: '280px', height: '90px', mr: 4, boxShadow: 'none', mt: 3 }}>
                                           <CardContent
                                             sx={{
@@ -2004,7 +2016,9 @@ const StepBasicDetails = ({
                                             </Box>
 
                                             <Icon
-                                              onClick={() => removeingClickingwithChoice(all.ingredient_id, all.mealid)}
+                                              onClick={() =>
+                                                removeingClickingwithChoice(all.ingredient_id, all.mealid, index)
+                                              }
                                               style={{ position: 'relative', left: '0%' }}
                                               icon='iconoir:cancel'
                                             />
