@@ -1,3 +1,6 @@
+import React, { useCallback, useEffect, useState, useContext } from 'react'
+import Router from 'next/router'
+
 import {
   Avatar,
   Box,
@@ -11,33 +14,34 @@ import {
   Autocomplete,
   FormControl
 } from '@mui/material'
-import React, { useCallback, useEffect, useState, useContext } from 'react'
-import Icon from 'src/@core/components/icon'
 import { DataGrid } from '@mui/x-data-grid'
 import { useTheme } from '@mui/material/styles'
-import ServerSideToolbarWithFilter from 'src/views/table/data-grid/ServerSideToolbarWithFilter'
 import { debounce } from 'lodash'
-import Router from 'next/router'
-import FallbackSpinner from 'src/@core/components/spinner/index'
-import { GetRoomList } from 'src/lib/api/egg/room/getRoom'
-import moment from 'moment'
-import CustomChip from 'src/@core/components/mui/chip'
-import AddIncubatorRoom from 'src/components/egg/AddIncubatorRoom'
+
 import Utility from 'src/utility'
 import { AuthContext } from 'src/context/AuthContext'
 import ErrorScreen from 'src/pages/Error'
+
+import Icon from 'src/@core/components/icon'
+import CustomChip from 'src/@core/components/mui/chip'
+import FallbackSpinner from 'src/@core/components/spinner/index'
+import AddIncubatorRoom from 'src/components/egg/AddIncubatorRoom'
+
+import { GetRoomList } from 'src/lib/api/egg/room/getRoom'
 import { GetNurseryList } from 'src/lib/api/egg/nursery'
 
 const RoomsList = () => {
   const theme = useTheme()
+  const authData = useContext(AuthContext)
+
+  const egg_nursery_permission = authData?.userData?.permission?.user_settings?.add_nursery_permisson
+  const egg_collection_permission = authData?.userData?.roles?.settings?.enable_egg_collection_module
 
   const [loader, setLoader] = useState(false)
   const [total, setTotal] = useState(0)
   const [sort, setSort] = useState('desc')
   const [rows, setRows] = useState([])
   const [searchValue, setSearchValue] = useState('')
-
-  // console.log('searchValue :>> ', searchValue)
 
   const [sortColumn, setSortColumn] = useState('nursery_name')
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
@@ -48,10 +52,6 @@ const RoomsList = () => {
   const [nurseryList, setNurseryList] = useState([])
   const [defaultNursery, setDefaultNursery] = useState(null)
   const [defaultStatus, setDefaultStatus] = useState(null)
-
-  const authData = useContext(AuthContext)
-  const egg_nursery_permission = authData?.userData?.permission?.user_settings?.add_nursery_permisson
-  const egg_collection_permission = authData?.userData?.roles?.settings?.enable_egg_collection_module
 
   const headerAction = (
     <>
@@ -64,7 +64,9 @@ const RoomsList = () => {
     </>
   )
 
-  const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
+  // 📌 Serial Number Calculation
+  // const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
+  const getSlNo = index => paginationModel.page * paginationModel.pageSize + index + 1
 
   const indexedRows = rows?.map((row, index) => ({
     ...row,
@@ -72,14 +74,58 @@ const RoomsList = () => {
     sl_no: getSlNo(index)
   }))
 
-  const handleSortModel = newModel => {
-    if (newModel.length) {
-      setSort(newModel[0].sort)
-      setSortColumn(newModel[0].field)
-      fetchTableData(newModel[0].sort, searchValue, newModel[0].field, status)
-    } else {
-    }
+  function loadServerRows(currentPage, data) {
+    return data
   }
+  // it can be removeed if there is no issue after long time
+  // const fetchTableData = useCallback(
+  //   async (q, nurseryId, status) => {
+  //     try {
+  //       setLoading(true)
+
+  //       const params = {
+  //         sort,
+  //         search: q || '',
+  //         nursery_id: nurseryId,
+  //         status: status || 'all',
+  //         page: paginationModel.page + 1,
+  //         limit: paginationModel.pageSize
+  //       }
+  //       await GetRoomList({ params: params }).then(res => {
+  //         setTotal(parseInt(res?.data?.total_count))
+  //         setRows(loadServerRows(paginationModel.page, res?.data?.result))
+  //       })
+  //       setLoading(false)
+  //     } catch (e) {
+  //       setLoading(false)
+  //     }
+  //   },
+  //   [paginationModel]
+  // )
+  const fetchTableData = useCallback(
+    async (q = '', nurseryId, status) => {
+      setLoading(true)
+      const params = {
+        sort,
+        search: q ?? '',
+        nursery_id: nurseryId,
+        status: status ?? 'all',
+        page: paginationModel.page + 1,
+        limit: paginationModel.pageSize
+      }
+
+      try {
+        const res = await GetRoomList({ params })
+        setTotal(parseInt(res?.data?.total_count ?? '0'))
+        setRows(loadServerRows(paginationModel.page, res?.data?.result))
+      } catch (e) {
+        console.error('Error fetching room list:', error)
+      } finally {
+        setLoading(false)
+      }
+    },
+    [paginationModel, sort]
+  )
 
   const searchTableData = useCallback(
     debounce(async (q, nurseryId, status) => {
@@ -90,12 +136,22 @@ const RoomsList = () => {
         console.error(error)
       }
     }, 1000),
-    []
+    // []  // it can be removeed if there is no issue after long time
+    [fetchTableData]
   )
 
   const handleSearch = (value, nurseryId, status) => {
     setSearchValue(value)
     searchTableData(value, nurseryId, status)
+  }
+
+  const handleSortModel = newModel => {
+    if (newModel.length > 0) {
+      const { sort, field } = newModel[0]
+      setSort(sort)
+      setSortColumn(field)
+      fetchTableData(newModel[0].sort, searchValue, newModel[0].field, status)
+    }
   }
 
   const handleEdit = async (event, site_id, room_name, nursery_id, room_id) => {
@@ -104,36 +160,28 @@ const RoomsList = () => {
     setIsOpen(true)
   }
 
-  const NurseryList = async q => {
+  // 📌 Fetch Nursery List
+  const NurseryList = async (q = '') => {
     try {
-      const params = {
-        // type: ['length', 'weight'],
-        search: q,
-        page: 1,
-        limit: 50
-      }
-      await GetNurseryList({ params: params }).then(res => {
-        setNurseryList(res?.data?.result)
-      })
-    } catch (e) {
-      console.log(e)
+      console.log('q', q)
+      const params = { search: q, page: 1, limit: 50 }
+      const res = await GetNurseryList({ params })
+      setNurseryList(res?.data?.result ?? [])
+    } catch (error) {
+      console.error('Error fetching nursery list:', error)
     }
   }
+
+  // 📌 Debounced Nursery Search
+  // const searchNursery = useCallback(
+  //   debounce(q => NurseryList(q), 1000),
+  //   []
+  // )
+  const searchNursery = useCallback(debounce(NurseryList, 1000), [])
 
   useEffect(() => {
     NurseryList()
   }, [])
-
-  const searchNursery = useCallback(
-    debounce(async q => {
-      try {
-        await NurseryList(q)
-      } catch (error) {
-        console.error(error)
-      }
-    }, 1000),
-    []
-  )
 
   const columns = [
     {
@@ -213,7 +261,6 @@ const RoomsList = () => {
         </Typography>
       )
     },
-
     {
       flex: 0.3,
       minWidth: 10,
@@ -316,7 +363,6 @@ const RoomsList = () => {
     //   headerName: 'STATUS',
     //   renderCell: params => (
     //     <Typography>Status</Typography>
-
     //     // <CustomChip
     //     //   skin='light'
     //     //   size='small'
@@ -333,7 +379,6 @@ const RoomsList = () => {
     //     // />
     //   )
     // }
-
     // {
     //   flex: 0.2,
     //   minWidth: 20,
@@ -371,37 +416,6 @@ const RoomsList = () => {
       pathname: `/egg/incubator-rooms/${data?.id}`
     })
   }
-
-  function loadServerRows(currentPage, data) {
-    return data
-  }
-
-  const fetchTableData = useCallback(
-    async (q, nurseryId, status) => {
-      try {
-        setLoading(true)
-
-        const params = {
-          sort,
-          search: q || '',
-          nursery_id: nurseryId,
-
-          // column,
-          status: status || 'all',
-          page: paginationModel.page + 1,
-          limit: paginationModel.pageSize
-        }
-        await GetRoomList({ params: params }).then(res => {
-          setTotal(parseInt(res?.data?.total_count))
-          setRows(loadServerRows(paginationModel.page, res?.data?.result))
-        })
-        setLoading(false)
-      } catch (e) {
-        setLoading(false)
-      }
-    },
-    [paginationModel]
-  )
 
   useEffect(() => {
     if (egg_nursery_permission || egg_collection_permission) {
@@ -568,40 +582,40 @@ const RoomsList = () => {
                     </Grid>
 
                     {/* <Box sx={{ py: 4, px: 4 }}>
-                  <Stack direction='row' gap={3}>
-                    <Typography variant='h6'>Legends : </Typography>
-                    <Box sx={{ display: 'flex', gap: 2, flexDirection: 'row', alignItems: 'center' }}>
-                      <Box sx={{ px: 3.5, py: 3.5, bgcolor: '#F2F2F2', borderRadius: 1 }}></Box>
-                      <Typography variant='body1' sx={{ fontSize: '20px' }}>
-                        Disabled
-                      </Typography>
-                    </Box>
-                    <Box sx={{ display: 'flex', gap: 2, flexDirection: 'row', alignItems: 'center' }}>
-                      <Box sx={{ px: 3.5, py: 3.5, bgcolor: '#e1f9ed', borderRadius: 1 }}></Box>
-                      <Typography variant='body1' sx={{ fontSize: '20px' }}>
-                        Empty
-                      </Typography>
-                    </Box>
-                    <Box sx={{ display: 'flex', gap: 2, flexDirection: 'row', alignItems: 'center' }}>
-                      <Box sx={{ px: 3.5, py: 3.5, bgcolor: '#e1f9ed', borderRadius: 1 }}></Box>
-                      <Typography variant='body1' sx={{ fontSize: '20px' }}>
-                        Available
-                      </Typography>
-                    </Box>
-                    <Box sx={{ display: 'flex', gap: 2, flexDirection: 'row', alignItems: 'center' }}>
-                      <Box sx={{ px: 3.5, py: 3.5, bgcolor: '#afe5c3', borderRadius: 1 }}></Box>
-                      <Typography variant='body1' sx={{ fontSize: '20px' }}>
-                        No Slots Available
-                      </Typography>
-                    </Box>
-                    <Box sx={{ display: 'flex', gap: 2, flexDirection: 'row', alignItems: 'center' }}>
-                      <Box sx={{ px: 3.5, py: 3.5, bgcolor: '#ffe9e9', borderRadius: 1 }}></Box>
-                      <Typography variant='body1' sx={{ fontSize: '20px' }}>
-                        Alert
-                      </Typography>
-                    </Box>
-                  </Stack>
-                </Box> */}
+                      <Stack direction='row' gap={3}>
+                        <Typography variant='h6'>Legends : </Typography>
+                        <Box sx={{ display: 'flex', gap: 2, flexDirection: 'row', alignItems: 'center' }}>
+                          <Box sx={{ px: 3.5, py: 3.5, bgcolor: '#F2F2F2', borderRadius: 1 }}></Box>
+                          <Typography variant='body1' sx={{ fontSize: '20px' }}>
+                            Disabled
+                          </Typography>
+                        </Box>
+                        <Box sx={{ display: 'flex', gap: 2, flexDirection: 'row', alignItems: 'center' }}>
+                          <Box sx={{ px: 3.5, py: 3.5, bgcolor: '#e1f9ed', borderRadius: 1 }}></Box>
+                          <Typography variant='body1' sx={{ fontSize: '20px' }}>
+                            Empty
+                          </Typography>
+                        </Box>
+                        <Box sx={{ display: 'flex', gap: 2, flexDirection: 'row', alignItems: 'center' }}>
+                          <Box sx={{ px: 3.5, py: 3.5, bgcolor: '#e1f9ed', borderRadius: 1 }}></Box>
+                          <Typography variant='body1' sx={{ fontSize: '20px' }}>
+                            Available
+                          </Typography>
+                        </Box>
+                        <Box sx={{ display: 'flex', gap: 2, flexDirection: 'row', alignItems: 'center' }}>
+                          <Box sx={{ px: 3.5, py: 3.5, bgcolor: '#afe5c3', borderRadius: 1 }}></Box>
+                          <Typography variant='body1' sx={{ fontSize: '20px' }}>
+                            No Slots Available
+                          </Typography>
+                        </Box>
+                        <Box sx={{ display: 'flex', gap: 2, flexDirection: 'row', alignItems: 'center' }}>
+                          <Box sx={{ px: 3.5, py: 3.5, bgcolor: '#ffe9e9', borderRadius: 1 }}></Box>
+                          <Typography variant='body1' sx={{ fontSize: '20px' }}>
+                            Alert
+                          </Typography>
+                        </Box>
+                      </Stack>
+                    </Box> */}
 
                     <Box>
                       <DataGrid
@@ -629,20 +643,9 @@ const RoomsList = () => {
                         pageSizeOptions={[7, 10, 25, 50]}
                         paginationModel={paginationModel}
                         onSortModelChange={handleSortModel}
-                        // slots={{ toolbar: ServerSideToolbarWithFilter }}
                         onPaginationModelChange={setPaginationModel}
                         rowHeight={64}
                         loading={loading}
-                        // slotProps={{
-                        //   baseButton: {
-                        //     variant: 'outlined'
-                        //   },
-                        //   toolbar: {
-                        //     value: searchValue,
-                        //     clearSearch: () => handleSearch(''),
-                        //     onChange: event => handleSearch(event.target.value)
-                        //   }
-                        // }}
                         onCellClick={onCellClick}
                       />
                     </Box>

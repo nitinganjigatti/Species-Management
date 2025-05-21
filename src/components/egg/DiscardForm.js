@@ -673,25 +673,83 @@ const DiscardForm = ({ isOpen, setIsOpen, eggID, callApi, getDetails, GetGallery
 
   const reason = watch('status_radioBtn')
 
-  const { getRootProps } = useDropzone({
-    multiple: true,
+  // const { getRootProps } = useDropzone({
+  //   multiple: true,
+  //   accept: {
+  //     '*/*': []
+  //   },
+  //   onDrop: acceptedFiles => {
+  //     const reader = new FileReader()
+  //     const files = acceptedFiles
+  //     if (files && files.length !== 0) {
+  //       reader.onload = () => {
+  //         setImgSrc(pre => [...pre, reader?.result])
+  //       }
+  //       setDisplayFile(files[0]?.name)
+  //       reader?.readAsDataURL(files[0])
+  //       // setImgArr(pre => [...pre, files[0]])
+  //       setImgSrc(pre => [...pre, files[0]])
+  //       setValue('image', files)
+
+  //       clearErrors('image')
+  //     }
+  //   }
+  // })
+
+  // const handleAddImageClick = () => {
+  //   fileInputRef?.current?.click()
+  // }
+
+  // const handleInputImageChange = file => {
+  //   const { files } = file.target
+  //   if (files && files.length !== 0) {
+  //     setImgSrc([])
+  //     setImgArr([])
+
+  //     for (let i = 0; i < files.length; i++) {
+  //       const reader = new FileReader()
+  //       const currentFile = files[i]
+
+  //       reader.onload = e => {
+  //         setImgSrc(pre => [...pre, e.target.result])
+  //       }
+
+  //       reader.readAsDataURL(currentFile)
+  //     }
+
+  //     setDisplayFile(files.length > 1 ? `${files.length} files selected` : files[0]?.name)
+  //     // setImgArr(pre => [...pre, ...files])
+  //     setImgSrc(pre => [...pre, ...files])
+  //     setValue('image', files)
+  //     clearErrors('image')
+  //   }
+  // }
+
+  const { getRootProps, getInputProps } = useDropzone({
+    multiple: true, // changed to true for multiple files
     accept: {
-      '*/*': []
+      'image/*': ['.png', '.jpg', '.jpeg', '.gif']
     },
     onDrop: acceptedFiles => {
-      const reader = new FileReader()
-      const files = acceptedFiles
-      if (files && files.length !== 0) {
-        reader.onload = () => {
-          setImgSrc(pre => [...pre, reader?.result])
-        }
-        setDisplayFile(files[0]?.name)
-        reader?.readAsDataURL(files[0])
-        setImgArr(pre => [...pre, files[0]])
-        setValue('image', files)
+      acceptedFiles.forEach(file => {
+        const reader = new FileReader()
 
-        clearErrors('image')
-      }
+        reader.onload = () => {
+          setImgSrc(prev => [...prev, reader.result])
+        }
+
+        reader.readAsDataURL(file)
+      })
+
+      // Update filenames as comma-separated string
+      const fileNames = acceptedFiles.map(file => file.name).join(', ')
+      setDisplayFile(fileNames)
+
+      // Add all files to imgArr state
+      setImgArr(prev => [...prev, ...acceptedFiles])
+
+      setValue('image', acceptedFiles)
+      clearErrors('image')
     }
   })
 
@@ -701,23 +759,26 @@ const DiscardForm = ({ isOpen, setIsOpen, eggID, callApi, getDetails, GetGallery
 
   const handleInputImageChange = file => {
     const { files } = file.target
+
     if (files && files.length !== 0) {
-      setImgSrc([])
-      setImgArr([])
-
-      for (let i = 0; i < files.length; i++) {
+      Array.from(files).forEach(fileItem => {
         const reader = new FileReader()
-        const currentFile = files[i]
 
-        reader.onload = e => {
-          setImgSrc(pre => [...pre, e.target.result])
+        reader.onload = () => {
+          setImgSrc(prev => [...prev, reader.result])
         }
 
-        reader.readAsDataURL(currentFile)
-      }
+        reader.readAsDataURL(fileItem)
 
-      setDisplayFile(files.length > 1 ? `${files.length} files selected` : files[0]?.name)
-      setImgArr(pre => [...pre, ...files])
+        setImgArr(prev => [...prev, fileItem])
+      })
+
+      // Display filenames as comma-separated string
+      const fileNames = Array.from(files)
+        .map(f => f.name)
+        .join(', ')
+      setDisplayFile(fileNames)
+
       setValue('image', files)
       clearErrors('image')
     }
@@ -953,7 +1014,7 @@ const DiscardForm = ({ isOpen, setIsOpen, eggID, callApi, getDetails, GetGallery
 
                 <Grid item md={12} sm={12} xs={12}>
                   {imgSrc && imgSrc.length > 0 && (
-                    <Box sx={{ display: 'flex', mt: 2 }}>
+                    <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 4, mt: 2 }}>
                       {imgSrc.map((src, index) => (
                         <Box
                           key={index}
@@ -963,8 +1024,8 @@ const DiscardForm = ({ isOpen, setIsOpen, eggID, callApi, getDetails, GetGallery
                             borderRadius: '10px',
                             height: 121,
                             padding: '10.5px',
-                            boxSizing: 'border-box',
-                            marginRight: '10px' // Add margin for spacing between images
+                            boxSizing: 'border-box'
+                            // marginRight: '10px' // Add margin for spacing between images
                           }}
                         >
                           <img
