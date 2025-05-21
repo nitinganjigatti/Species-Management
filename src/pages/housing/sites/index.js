@@ -2,6 +2,7 @@ import { Box, Breadcrumbs, Card, Typography } from '@mui/material'
 import { useRouter } from 'next/router'
 import { useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
+import { useAuth } from 'src/hooks/useAuth'
 import { fetchInsights } from 'src/store/slices/housing/insightsSlice'
 import Listing from 'src/views/pages/housing/sites/listing'
 import InsightsCard from 'src/views/utility/insights/InsightsCard'
@@ -11,10 +12,12 @@ const Sites = () => {
 
   const dispatch = useDispatch()
   const { data, loading, error } = useSelector(state => state.insights)
+  const auth = useAuth()
+  const zooId = auth?.userData?.user?.zoos[0]?.zoo_id
 
   useEffect(() => {
-    dispatch(fetchInsights(11))
-  }, [dispatch])
+    dispatch(fetchInsights(zooId))
+  }, [dispatch, zooId])
 
   const handleHousingClick = () => {
     // router.push('/housing')

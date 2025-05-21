@@ -18,37 +18,33 @@ const Search = ({
     <Box
       sx={{
         display: 'flex',
-        justifyContent: 'flex-end',
+        justifyContent: 'flex-start',
         alignItems: 'center',
         ...sx
       }}
     >
       <TextField
-        variant="outlined"
-        size="small"
+        variant='outlined'
+        size='small'
         value={value}
         onChange={onChange}
         placeholder={placeholder}
         InputProps={{
           startAdornment: (
-            <InputAdornment position="start">
-              <SearchIcon fontSize="small" color={iconColor} />
+            <InputAdornment position='start'>
+              <SearchIcon fontSize='small' color={iconColor} />
             </InputAdornment>
           ),
           endAdornment: value ? (
-            <InputAdornment position="end">
-              <IconButton
-                size="small"
-                onClick={onClear}
-                aria-label="clear search"
-              >
-                <ClearIcon fontSize="small" color={iconColor} />
+            <InputAdornment position='end'>
+              <IconButton size='small' onClick={onClear} aria-label='clear search'>
+                <ClearIcon fontSize='small' color={iconColor} />
               </IconButton>
             </InputAdornment>
           ) : null
         }}
         sx={{
-          width: 300,
+          width: 300
         }}
       />
     </Box>

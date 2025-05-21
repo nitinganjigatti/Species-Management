@@ -7,9 +7,11 @@ import { useDispatch, useSelector } from 'react-redux'
 import { fetchSites, setPagination } from 'src/store/slices/housing/sitesSlice'
 import UserInfoCard from 'src/views/utility/insights/UserInfoCard'
 import { ExportButton } from 'src/views/utility/render-snippets'
+import ListingHeader from '../utils/ListingHeader'
 
 const Listing = ({ title }) => {
   const [searchValue, setSearchValue] = useState('')
+  const [downloadLoading, setDownloadLoading] = useState(false)
 
   const theme = useTheme()
   const dispatch = useDispatch()
@@ -50,6 +52,11 @@ const Listing = ({ title }) => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [searchValue]
   )
+
+  const handleDownload = () => {
+    // download logic here
+    console.log('Downloading...')
+  }
 
   const getSlNo = index => (page - 1) * pageSize + index + 1
 
@@ -215,26 +222,16 @@ const Listing = ({ title }) => {
     }
   ]
 
-  const headerAction = (
-    <Box display='flex' alignItems='center' sx={{ gap: 2, mt: 2 }}>
-      <Typography color={theme.palette.primary.dark} sx={{ fontSize: '14px', fontWeight: 500, fontFamily: 'Inter' }}>
-        Download
-      </Typography>
-      {/* <img src='/images/download.png' width='20px' style={{ background: theme.palette.primary.dark }} /> */}
-      <ExportButton disabled={total === 0 ? true : false} />
-    </Box>
-  )
-
   return (
     <>
-      <CardHeader title={title} action={headerAction} />
+      <ListingHeader title='All Sites' totalCount={total} onDownload={handleDownload} loading={downloadLoading} />
       <Box>
         <Search
           value={searchValue}
           onChange={e => handleSearch(e.target.value)}
           onClear={() => handleSearch('')}
           placeholder='Search…'
-          sx={{ mt: 2 }}
+          sx={{ mt: 2, justifyContent: 'flex-start' }}
         />
         <Grid>
           <CommonTable
