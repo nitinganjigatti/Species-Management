@@ -11,6 +11,7 @@ import ListingHeader from '../utils/ListingHeader'
 import { useRouter } from 'next/router'
 
 const Listing = ({ title }) => {
+  const router = useRouter()
   const theme = useTheme()
   const dispatch = useDispatch()
 
