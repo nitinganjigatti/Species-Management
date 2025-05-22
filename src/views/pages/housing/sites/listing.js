@@ -37,7 +37,7 @@ const Listing = ({ title }) => {
   useEffect(() => {
     debouncedFetch()
 
-    return () => debouncedFetch.cancel()
+    return () => debouncedFetch.cancel() 
   }, [debouncedFetch])
 
   const handlePaginationModelChange = model => {

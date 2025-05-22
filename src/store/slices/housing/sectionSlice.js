@@ -1,21 +1,31 @@
-// src/store/slices/housing/sitesSlice.js
+// src/store/slices/housing/sectionSlice.js
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
 import { getAllSections } from 'src/lib/api/housing'
 
-// Async thunk to fetch sites with pagination
-export const fetchSections = createAsyncThunk('get-site-wise-section-list', async (params, { rejectWithValue }) => {
-  try {
-    debugger
-    const response = await getAllSections(params)
+// Async thunk to fetch sections with pagination
+export const fetchSections = createAsyncThunk(
+  'section-list',
+  async (_, { getState, rejectWithValue }) => {
+    const { page, pageSize, search, sortBy, sortOrder } = getState().section
 
-    return {
-      list: response.data.result,
-      total: response.data.total_count
+    try {
+      const response = await getAllSections({
+        page_no: page,
+        limit: pageSize,
+        q: search,
+        sort_by: sortBy,
+        sort_order: sortOrder
+      })
+
+      return {
+        list: response.data.result,
+        total: response.data.total_count
+      }
+    } catch (error) {
+      return rejectWithValue(error.response?.data?.message || 'Failed to fetch sections')
     }
-  } catch (error) {
-    return rejectWithValue(error.response?.data?.message || 'Failed to fetch sites')
   }
-})
+)
 
 const sectionSlice = createSlice({
   name: 'section',
@@ -25,7 +35,10 @@ const sectionSlice = createSlice({
     page: 1,
     pageSize: 10,
     loading: false,
-    error: null
+    error: null,
+    search: '',
+    sortBy: '',
+    sortOrder: 'asc'
   },
   reducers: {
     clearSection: state => {
@@ -33,12 +46,14 @@ const sectionSlice = createSlice({
       state.total = 0
       state.page = 1
       state.pageSize = 10
+      state.search = ''
+      state.sortBy = ''
+      state.sortOrder = 'asc'
       state.loading = false
       state.error = null
     },
-    setPagination: (state, action) => {
-      state.page = action.payload.page
-      state.pageSize = action.payload.pageSize
+    setParams: (state, action) => {
+      Object.assign(state, action.payload)
     }
   },
   extraReducers: builder => {
@@ -59,6 +74,6 @@ const sectionSlice = createSlice({
   }
 })
 
-export const { clearSection, setPagination } = sectionSlice.actions
+export const { clearSection, setParams } = sectionSlice.actions
 
 export default sectionSlice.reducer

@@ -1,71 +1,73 @@
 import { useTheme } from '@emotion/react'
-import { Avatar, Box, Grid, Typography } from '@mui/material'
+import { Avatar, Box, debounce, Grid, Typography } from '@mui/material'
 import { useRouter } from 'next/router'
-import { useCallback, useEffect } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
-import { debounce } from 'lodash'
-import { fetchSections, setPagination } from 'src/store/slices/housing/sectionSlice'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import UserInfoCard from 'src/views/utility/insights/UserInfoCard'
 import Search from 'src/views/utility/Search'
 import ListingHeader from '../utils/ListingHeader'
+import { fetchSpecies, setPagination } from 'src/store/slices/housing/speciesSlice'
 
-const SectionListing = () => {
+const SpeciesListing = () => {
   const theme = useTheme()
   const router = useRouter()
-  const dispatch = useDispatch()
+  const [searchValue, setSearchValue] = useState('')
+  const [downloadLoading, setDownloadLoading] = useState(false)
   const { id } = router.query
+  const dispatch = useDispatch()
 
-  const { list: sectionList, loading, total, page, pageSize, search } = useSelector(state => state.section)
-
-  const getSlNo = index => (page - 1) * pageSize + index + 1
-
-  const indexedRows = sectionList?.map((row, index) => ({
-    ...row,
-    id: row.section_id,
-    sl_no: getSlNo(index)
-  }))
-
-  // Debounced fetch
-  const debouncedFetch = useCallback(
-    debounce(() => {
-      if (id) {
-        dispatch(fetchSections({ site_id: id }))
-      }
-    }, 500),
-    [dispatch, id, page, pageSize, search]
-  )
+  const { list: list, loading, total, page, pageSize, search } = useSelector(state => state.species)
 
   useEffect(() => {
-    debouncedFetch()
     debugger
-    return () => debouncedFetch.cancel()
-  }, [debouncedFetch])
+    dispatch(fetchSpecies({ site_id: id }))
+  }, [dispatch, id, page, pageSize, search])
 
   const handlePaginationModelChange = model => {
     const newPage = model.page + 1
     const newPageSize = model.pageSize
+
     if (newPage !== page || newPageSize !== pageSize) {
       dispatch(setPagination({ page: newPage, pageSize: newPageSize }))
     }
   }
 
-  const handleSearch = useCallback(
-    value => {
-      dispatch(setPagination({ page: 1, search: value }))
-    },
-    [dispatch]
+  const searchTableData = useCallback(
+    debounce(async value => {
+      setSearchValue(value)
+      try {
+        dispatch(fetchSpecies({ site_id: id, page_no: page, limit: pageSize, search: value }))
+      } catch (error) {
+        console.error(error)
+      }
+    }, 1000),
+    []
   )
 
-  const handleDownload = () => {
-    console.log('Downloading sections...')
-  }
+  const handleSearch = useCallback(
+    value => {
+      setSearchValue(value)
+      dispatch(setPagination({ page: 1, pageSize })) // Reset to page 1
+      searchTableData(value)
+    },
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [searchValue]
+  )
 
-  const handleRowClick = params => {
-    router.push({
-      pathname: `/housing/sections/${params.row.section_id}`
-    })
-  }
+  const getSlNo = index => (page - 1) * pageSize + index + 1
+
+  const indexedRows = list?.map((row, index) => ({
+    ...row,
+    id: row?.tsn_id,
+    sl_no: getSlNo(index)
+  }))
+
+  // const handleRowClick = params => {
+  //   router.push({
+  //     pathname: `/housing/sites/${params.row.site_id}`
+  //   })
+  // }
 
   const columns = [
     {
@@ -80,17 +82,18 @@ const SectionListing = () => {
     },
     {
       width: 250,
-      field: 'section_name',
-      headerName: 'Section Name',
+      field: 'common_name',
+      headerName: 'Species',
       renderCell: params => {
-        const imageUrl = params.row.images?.[0]?.file
+        const imageUrl = params.row.default_icon
+
         return (
           <Box display='flex' alignItems='center' width='100%' gap={2}>
             {imageUrl ? (
               <Box
                 component='img'
                 src={imageUrl}
-                alt={params.row.section_name}
+                alt={params.row.default_icon}
                 sx={{
                   width: 40,
                   height: 40,
@@ -111,7 +114,7 @@ const SectionListing = () => {
                   bgcolor: theme.palette.primary.main
                 }}
               >
-                {params.row.section_name?.charAt(0).toUpperCase() || '?'}
+                {params.row.site_name?.charAt(0).toUpperCase() || '?'}
               </Avatar>
             )}
             <Typography
@@ -132,20 +135,19 @@ const SectionListing = () => {
         )
       }
     },
+    // {
+    //   width: 200,
+    //   field: 'species',
+    //   headerName: 'Species',
+    //   align: 'left',
+    //   headerAlign: 'left',
+    //   renderCell: params => (
+    //     <Typography sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600 }}>
+    //       {params.row.species_count || 0}
+    //     </Typography>
+    //   )
+    // },
     {
-      width: 200,
-      field: 'species',
-      headerName: 'Species',
-      align: 'left',
-      headerAlign: 'left',
-      renderCell: params => (
-        <Typography sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600 }}>
-          {params.row.species_count || 0}
-        </Typography>
-      )
-    },
-
-     {
       width: 150,
       field: 'animals',
       headerName: 'Animals',
@@ -157,8 +159,7 @@ const SectionListing = () => {
         </Typography>
       )
     },
-
-       {
+    {
       width: 150,
       field: 'enclosures',
       headerName: 'Enclosures',
@@ -170,10 +171,24 @@ const SectionListing = () => {
         </Typography>
       )
     },
+    // {
+    //   width: 150,
+    //   field: 'sections',
+    //   headerName: 'Sections',
+    //   align: 'left',
+    //   headerAlign: 'left',
+    //   renderCell: params => (
+    //     <Typography sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600 }}>
+    //       {params.row.section_count}
+    //     </Typography>
+    //   )
+    // },
     {
       width: 180,
       field: 'incharge',
       headerName: 'In-Charge',
+      align: 'center',
+      headerAlign: 'left',
       renderCell: params => (
         <Box display='flex' alignItems='center' width='100%'>
           <UserInfoCard />
@@ -189,6 +204,7 @@ const SectionListing = () => {
         </Box>
       )
     },
+
     {
       width: 150,
       field: 'actions',
@@ -209,31 +225,37 @@ const SectionListing = () => {
     }
   ]
 
+  const handleDownload = () => {
+    // download logic here
+    console.log('Downloading...')
+  }
+
   return (
     <>
-      <ListingHeader title='All Sections' totalCount={total} onDownload={handleDownload} loading={false} />
+      {/* <ListingHeader title='All Species' totalCount={total} onDownload={handleDownload} loading={downloadLoading} /> */}
       <Box>
         <Search
-          value={search}
+          value={searchValue}
           onChange={e => handleSearch(e.target.value)}
           onClear={() => handleSearch('')}
           placeholder='Search…'
-          sx={{ mt: 2, justifyContent: 'flex-start' }}
+          sx={{ mt: 2 }}
         />
         <Grid>
           <CommonTable
-            onRowClick={handleRowClick}
+            onRowClick={''}
             indexedRows={indexedRows}
             total={total}
             columns={columns}
             pageSizeOptions={[10]}
             paginationModel={{
               page: page - 1,
-              pageSize
+              pageSize: pageSize
             }}
             setPaginationModel={handlePaginationModelChange}
+            paginationMode='server'
             loading={loading}
-            searchValue=''
+            searchValue={searchValue}
             maxHeight='60vh'
           />
         </Grid>
@@ -242,4 +264,4 @@ const SectionListing = () => {
   )
 }
 
-export default SectionListing
+export default SpeciesListing

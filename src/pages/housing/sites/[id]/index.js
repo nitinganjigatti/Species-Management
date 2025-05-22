@@ -8,10 +8,13 @@ import Listing from 'src/views/pages/housing/sites/listing'
 import { fetchSite } from 'src/store/slices/housing/sitesAnalyticsSlice'
 import SectionListing from 'src/views/pages/housing/sections/sectionListing'
 import NotesListng from 'src/views/pages/housing/notes/notesListng'
+import SpeciesListing from 'src/views/pages/housing/species/speciesListing'
+
 
 const tabConfig = [
   { label: 'Sections', value: 'sections', component: SectionListing },
-  { label: 'Notes', value: 'notes', component: NotesListng }
+  { label: 'Notes', value: 'notes', component: NotesListng },
+  {label: 'Species' , value: 'species' , component: SpeciesListing }
 
   // { label: 'Species', value: 'species', component: Listing },
   // { label: 'Notes', value: 'notes', component: Listing },

@@ -4,7 +4,8 @@ import {
   GET_SITES,
   HOUSING_SITE_ANALYTICS,
   SITE_DETAILS,
-  GET_ALL_NOTES
+  GET_ALL_NOTES,
+  GET_ALL_SPECIES
 } from 'src/constants/ApiConstant'
 
 export async function getSiteAnalytics(id) {
@@ -31,5 +32,10 @@ export async function getAllSections(params) {
 export async function getAllNotes(params) {
   debugger
   const response = await axiosGet({ url: `${GET_ALL_NOTES}`, params })
+  return response.data
+}
+
+export async function getAllSpeciesList(params){
+  const response = await axiosGet({ url: `${GET_ALL_SPECIES}`, params })
   return response.data
 }
