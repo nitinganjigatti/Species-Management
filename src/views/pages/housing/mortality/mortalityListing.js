@@ -29,7 +29,7 @@ const MortalityListing = () => {
     sortBy,
     sortOrder,
     search
-  } = useSelector(state => state.species)
+  } = useSelector(state => state.mortality)
 
   useEffect(() => {
     console.log('MortalityList', MortalityList)
@@ -98,11 +98,241 @@ const MortalityListing = () => {
     // })
   }
 
+  //   const columns = [
+  //     {
+  //       width: 100,
+  //       field: 'id',
+  //       headerName: 'SL.NO',
+  //       renderCell: params => (
+  //         <Typography sx={{ color: theme.palette.customColors.neutralSecondary, fontSize: '14px', fontWeight: 500 }}>
+  //           {parseInt(params.row.sl_no) + '.'}
+  //         </Typography>
+  //       )
+  //     },
+  //     {
+  //       width: 280,
+  //       field: 'common_name',
+  //       headerAlign: 'center',
+  //       headerName: 'Species',
+  //       renderCell: params => {
+  //         const imageUrl = params.row.default_icon
+
+  //         return (
+  //           <Box display='flex' alignItems='center' width='100%' gap={2}>
+  //             {imageUrl ? (
+  //               <Box
+  //                 component='img'
+  //                 src={imageUrl}
+  //                 alt={params.row.default_icon}
+  //                 sx={{
+  //                   width: 40,
+  //                   height: 40,
+  //                   borderRadius: '50%',
+  //                   objectFit: 'cover',
+  //                   mr: 1
+  //                 }}
+  //               />
+  //             ) : (
+  //               <Avatar
+  //                 sx={{
+  //                   width: 40,
+  //                   height: 40,
+  //                   mr: 1,
+  //                   borderRadius: '50%',
+  //                   fontSize: '14px',
+  //                   bgcolor: theme.palette.primary.main
+  //                 }}
+  //               >
+  //                 {params.row.site_name?.charAt(0).toUpperCase() || '?'}
+  //               </Avatar>
+  //             )}
+
+  //             <Box display='flex' flexDirection='column' overflow='hidden'>
+  //               <Typography
+  //                 noWrap
+  //                 sx={{
+  //                   fontWeight: 500,
+  //                   fontSize: '16px',
+  //                   color: theme.palette.customColors.OnSurfaceVariant
+  //                 }}
+  //               >
+  //                 {params.row.common_name}
+  //               </Typography>
+  //               <Typography
+  //                 noWrap
+  //                 sx={{
+  //                   fontSize: '14px',
+  //                   fontWeight: 400,
+  //                   fontFamily: 'Inter',
+  //                   color: '#1F515B',
+  //                   maxWidth: '180px',
+  //                   overflow: 'hidden',
+  //                   textOverflow: 'ellipsis'
+  //                 }}
+  //               >
+  //                 {params.row.complete_name}
+  //               </Typography>
+  //             </Box>
+  //           </Box>
+  //         )
+  //       }
+  //     },
+
+  //     // {
+  //     //   width: 200,
+  //     //   field: 'species',
+  //     //   headerName: 'Species',
+  //     //   align: 'left',
+  //     //   headerAlign: 'left',
+  //     //   renderCell: params => (
+  //     //     <Typography sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600 }}>
+  //     //       {params.row.species_count || 0}
+  //     //     </Typography>
+  //     //   )
+  //     // },
+  //     {
+  //       width: 180,
+  //       field: 'animals',
+  //       headerName: 'Population',
+  //       align: 'left',
+  //       headerAlign: 'left',
+  //       renderCell: params => (
+  //         <Typography sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600 }}>
+  //           {params.row.animal_count || 0}
+  //         </Typography>
+  //       )
+  //     },
+
+  //     {
+  //       width: 160,
+  //       field: 'male',
+  //       headerName: 'MALE',
+  //       renderCell: params => (
+  //         <Box
+  //           sx={{
+  //             px: 1.5,
+  //             py: 0.5,
+  //             bgcolor: '#D7F3FA', // light blue
+  //             color: '#24B0D3', // darker blue text
+  //             fontSize: '14px',
+  //             fontWeight: 600,
+  //             display: 'inline-block',
+  //             textAlign: 'center',
+  //             minWidth: 40
+  //           }}
+  //         >
+  //           {params.row.sex_data?.male || 0}
+  //         </Box>
+  //       )
+  //     },
+
+  //     // {
+  //     //   width: 150,
+  //     //   field: 'sections',
+  //     //   headerName: 'Sections',
+  //     //   align: 'left',
+  //     //   headerAlign: 'left',
+  //     //   renderCell: params => (
+  //     //     <Typography sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600 }}>
+  //     //       {params.row.section_count}
+  //     //     </Typography>
+  //     //   )
+  //     // },
+  //     {
+  //       width: 160,
+  //       field: 'female',
+  //       headerName: 'FEMALE',
+  //       renderCell: params => (
+  //         <Box
+  //           sx={{
+  //             px: 1.5,
+  //             py: 0.5,
+
+  //             bgcolor: '#FDDDD2', // light peach
+  //             color: '#E16E4F', // darker coral
+  //             fontSize: '14px',
+  //             fontWeight: 600,
+  //             display: 'inline-block',
+  //             textAlign: 'center',
+  //             minWidth: 40
+  //           }}
+  //         >
+  //           {params.row.sex_data?.female || 0}
+  //         </Box>
+  //       )
+  //     },
+  //     {
+  //       width: 160,
+  //       field: 'undetermined',
+  //       headerName: 'UNDETERMINED',
+  //       renderCell: params => (
+  //         <Box
+  //           sx={{
+  //             px: 1.5,
+  //             py: 0.5,
+
+  //             bgcolor: '#E3EAE3', // light gray-green
+  //             color: '#BF2F3B', // maroonish-red
+  //             fontSize: '14px',
+  //             fontWeight: 600,
+  //             display: 'inline-block',
+  //             textAlign: 'center',
+  //             minWidth: 40
+  //           }}
+  //         >
+  //           {params.row.sex_data?.undetermined || 0}
+  //         </Box>
+  //       )
+  //     },
+  //     {
+  //       width: 160,
+  //       field: 'indeterminate',
+  //       headerName: 'INDETERMINATE',
+  //       renderCell: params => (
+  //         <Box
+  //           sx={{
+  //             px: 1.5,
+  //             py: 0.5,
+
+  //             bgcolor: '#D7E0E3', // bluish gray
+  //             color: '#31464F', // dark gray-blue
+  //             fontSize: '14px',
+  //             fontWeight: 600,
+  //             display: 'inline-block',
+  //             textAlign: 'center',
+  //             minWidth: 40
+  //           }}
+  //         >
+  //           {params.row.sex_data?.indeterminate || 0}
+  //         </Box>
+  //       )
+  //     },
+
+  //     {
+  //       width: 160,
+  //       field: 'actions',
+  //       headerName: 'Actions',
+  //       align: 'center',
+  //       headerAlign: 'center',
+  //       renderCell: () => (
+  //         <Box display='flex' justifyContent='center' alignItems='center' gap={3}>
+  //           <Box component='img' src='/images/call.png' alt='Phone' sx={{ width: 20, height: 20, cursor: 'pointer' }} />
+  //           <Box
+  //             component='img'
+  //             src='/images/message.png'
+  //             alt='Message'
+  //             sx={{ width: 20, height: 20, cursor: 'pointer' }}
+  //           />
+  //         </Box>
+  //       )
+  //     }
+  //   ]
+
   const columns = [
     {
-      width: 100,
-      field: 'id',
-      headerName: 'SL.NO',
+      width: 80,
+      field: 'sl_no',
+      headerName: 'NO',
       renderCell: params => (
         <Typography sx={{ color: theme.palette.customColors.neutralSecondary, fontSize: '14px', fontWeight: 500 }}>
           {parseInt(params.row.sl_no) + '.'}
@@ -110,10 +340,9 @@ const MortalityListing = () => {
       )
     },
     {
-      width: 280,
+      width: 300,
       field: 'common_name',
-      headerAlign: 'center',
-      headerName: 'Species',
+      headerName: 'SPECIES',
       renderCell: params => {
         const imageUrl = params.row.default_icon
 
@@ -123,39 +352,21 @@ const MortalityListing = () => {
               <Box
                 component='img'
                 src={imageUrl}
-                alt={params.row.default_icon}
+                alt='icon'
                 sx={{
                   width: 40,
                   height: 40,
                   borderRadius: '50%',
-                  objectFit: 'cover',
-                  mr: 1
+                  objectFit: 'cover'
                 }}
               />
             ) : (
-              <Avatar
-                sx={{
-                  width: 40,
-                  height: 40,
-                  mr: 1,
-                  borderRadius: '50%',
-                  fontSize: '14px',
-                  bgcolor: theme.palette.primary.main
-                }}
-              >
-                {params.row.site_name?.charAt(0).toUpperCase() || '?'}
+              <Avatar sx={{ width: 40, height: 40, fontSize: '14px', bgcolor: theme.palette.primary.main }}>
+                {params.row.common_name?.charAt(0).toUpperCase() || '?'}
               </Avatar>
             )}
-
             <Box display='flex' flexDirection='column' overflow='hidden'>
-              <Typography
-                noWrap
-                sx={{
-                  fontWeight: 500,
-                  fontSize: '16px',
-                  color: theme.palette.customColors.OnSurfaceVariant
-                }}
-              >
+              <Typography noWrap sx={{ fontWeight: 500, fontSize: '16px',color:"#44544A" }}>
                 {params.row.common_name}
               </Typography>
               <Typography
@@ -163,10 +374,8 @@ const MortalityListing = () => {
                 sx={{
                   fontSize: '14px',
                   fontWeight: 400,
-                  fontFamily: 'Inter',
-                  color: '#1F515B',
+                  color: '#44544A',
                   maxWidth: '180px',
-                  overflow: 'hidden',
                   textOverflow: 'ellipsis'
                 }}
               >
@@ -177,153 +386,65 @@ const MortalityListing = () => {
         )
       }
     },
-
-    // {
-    //   width: 200,
-    //   field: 'species',
-    //   headerName: 'Species',
-    //   align: 'left',
-    //   headerAlign: 'left',
-    //   renderCell: params => (
-    //     <Typography sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600 }}>
-    //       {params.row.species_count || 0}
-    //     </Typography>
-    //   )
-    // },
     {
-      width: 180,
-      field: 'animals',
-      headerName: 'Population',
-      align: 'left',
-      headerAlign: 'left',
+      width: 220,
+      field: 'identifier',
+      headerName: 'IDENTIFIER',
       renderCell: params => (
-        <Typography sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600 }}>
-          {params.row.animal_count || 0}
+        <Box>
+          <Typography sx={{ fontWeight: 600, fontSize: '15px', color: '#44544A' }}>AAID : {params.row.aaid}</Typography>
+          <Typography sx={{ fontSize: '13px', color: '#7A8684' }}>UAID : {params.row.uaid}</Typography>
+        </Box>
+      )
+    },
+    {
+      width: 200,
+      field: 'animal_name',
+      headerName: 'ANIMAL NAME',
+      renderCell: params => <Typography sx={{ fontWeight: 500, fontSize: '15px' }}>{params.row.common_name}</Typography>
+    },
+    {
+      width: 220,
+      field: 'died_on',
+      headerName: 'DIED ON',
+      renderCell: params => (
+        <Box>
+          <Typography sx={{ fontWeight: 500, fontSize: '14px' }}>{params.row.died_ago}</Typography>
+          <Typography sx={{ fontSize: '13px', color: '#757575' }}>{params.row.died_on}</Typography>
+        </Box>
+      )
+    },
+    {
+      width: 240,
+      field: 'reported_on',
+      headerName: 'REPORTED ON',
+      renderCell: params => (
+        <Box display='flex' alignItems='center' gap={1}>
+          <Avatar src={params.row.reporter_avatar} alt={params.row.reporter_name} sx={{ width: 28, height: 28 }} />
+          <Box>
+            <Typography sx={{ fontWeight: 500, fontSize: '14px' }}>{params.row.reporter_name}</Typography>
+            <Typography sx={{ fontSize: '13px', color: '#757575' }}>{params.row.discovered_date}</Typography>
+          </Box>
+        </Box>
+      )
+    },
+    {
+      width: 300,
+      field: 'reason',
+      headerName: 'REASON',
+      renderCell: params => (
+        <Typography
+          sx={{
+            fontSize: '14px',
+            color: theme.palette.text.primary,
+            textOverflow: 'ellipsis',
+            overflow: 'hidden',
+            whiteSpace: 'nowrap',
+            maxWidth: '100%'
+          }}
+        >
+          {params.row.reason_name}
         </Typography>
-      )
-    },
-
-    {
-      width: 160,
-      field: 'male',
-      headerName: 'MALE',
-      renderCell: params => (
-        <Box
-          sx={{
-            px: 1.5,
-            py: 0.5,
-            bgcolor: '#D7F3FA', // light blue
-            color: '#24B0D3', // darker blue text
-            fontSize: '14px',
-            fontWeight: 600,
-            display: 'inline-block',
-            textAlign: 'center',
-            minWidth: 40
-          }}
-        >
-          {params.row.sex_data?.male || 0}
-        </Box>
-      )
-    },
-
-    // {
-    //   width: 150,
-    //   field: 'sections',
-    //   headerName: 'Sections',
-    //   align: 'left',
-    //   headerAlign: 'left',
-    //   renderCell: params => (
-    //     <Typography sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600 }}>
-    //       {params.row.section_count}
-    //     </Typography>
-    //   )
-    // },
-    {
-      width: 160,
-      field: 'female',
-      headerName: 'FEMALE',
-      renderCell: params => (
-        <Box
-          sx={{
-            px: 1.5,
-            py: 0.5,
-
-            bgcolor: '#FDDDD2', // light peach
-            color: '#E16E4F', // darker coral
-            fontSize: '14px',
-            fontWeight: 600,
-            display: 'inline-block',
-            textAlign: 'center',
-            minWidth: 40
-          }}
-        >
-          {params.row.sex_data?.female || 0}
-        </Box>
-      )
-    },
-    {
-      width: 160,
-      field: 'undetermined',
-      headerName: 'UNDETERMINED',
-      renderCell: params => (
-        <Box
-          sx={{
-            px: 1.5,
-            py: 0.5,
-
-            bgcolor: '#E3EAE3', // light gray-green
-            color: '#BF2F3B', // maroonish-red
-            fontSize: '14px',
-            fontWeight: 600,
-            display: 'inline-block',
-            textAlign: 'center',
-            minWidth: 40
-          }}
-        >
-          {params.row.sex_data?.undetermined || 0}
-        </Box>
-      )
-    },
-    {
-      width: 160,
-      field: 'indeterminate',
-      headerName: 'INDETERMINATE',
-      renderCell: params => (
-        <Box
-          sx={{
-            px: 1.5,
-            py: 0.5,
-
-            bgcolor: '#D7E0E3', // bluish gray
-            color: '#31464F', // dark gray-blue
-            fontSize: '14px',
-            fontWeight: 600,
-            display: 'inline-block',
-            textAlign: 'center',
-            minWidth: 40
-          }}
-        >
-          {params.row.sex_data?.indeterminate || 0}
-        </Box>
-      )
-    },
-
-    {
-      width: 160,
-      field: 'actions',
-      headerName: 'Actions',
-      align: 'center',
-      headerAlign: 'center',
-      renderCell: () => (
-        <Box display='flex' justifyContent='center' alignItems='center' gap={3}>
-          <Box component='img' src='/images/call.png' alt='Phone' sx={{ width: 20, height: 20, cursor: 'pointer' }} />
-          <Box
-            component='img'
-            src='/images/message.png'
-            alt='Message'
-            sx={{ width: 20, height: 20, cursor: 'pointer' }}
-          />
-        </Box>
       )
     }
   ]

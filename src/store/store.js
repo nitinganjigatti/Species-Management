@@ -5,6 +5,7 @@ import sitesAnalyticsReducer from 'src/store/slices/housing/sitesAnalyticsSlice'
 import sectionReducer from 'src/store/slices/housing/sectionSlice'
 import notesReducer from 'src/store/slices/housing/notesSlice'
 import speciesReducer from 'src/store/slices/housing/speciesSlice'
+import mortalityReducer from 'src/store/slices/housing/mortalitySlice'
 
 const store = configureStore({
   reducer: {
@@ -13,7 +14,8 @@ const store = configureStore({
     siteAnalytics: sitesAnalyticsReducer,
     section: sectionReducer,
     notes: notesReducer,
-    species: speciesReducer
+    species: speciesReducer,
+    mortality: mortalityReducer
   },
   middleware: getDefaultMiddleware =>
     getDefaultMiddleware({
