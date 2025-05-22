@@ -11,10 +11,16 @@ import NotesListng from 'src/views/pages/housing/notes/notesListng'
 import SpeciesListing from 'src/views/pages/housing/species/speciesListing'
 
 
+// Reset actions
+import { clearSection as resetSectionState } from 'src/store/slices/housing/sectionSlice'
+import { clearSection as resetNotesState } from 'src/store/slices/housing/notesSlice'
+
 const tabConfig = [
-  { label: 'Sections', value: 'sections', component: SectionListing },
-  { label: 'Notes', value: 'notes', component: NotesListng },
-  {label: 'Species' , value: 'species' , component: SpeciesListing }
+  // { label: 'Sections', value: 'sections', component: SectionListing },
+  // { label: 'Notes', value: 'notes', component: NotesListng },
+  // {label: 'Species' , value: 'species' , component: SpeciesListing },
+  { label: 'Sections', value: 'sections', component: SectionListing, resetAction: resetSectionState },
+  { label: 'Notes', value: 'notes', component: NotesListng, resetAction: resetNotesState }
 
   // { label: 'Species', value: 'species', component: Listing },
   // { label: 'Notes', value: 'notes', component: Listing },
@@ -32,7 +38,6 @@ const SiteDetails = () => {
 
   useEffect(() => {
     if (id) {
-      debugger
       const params = {
         site_id: id
       }
@@ -41,6 +46,13 @@ const SiteDetails = () => {
   }, [dispatch])
 
   const handleTabChange = (event, newValue) => {
+    // Find reset action for previous tab
+    const prevTab = tabConfig.find(tab => tab.value === selectedTab)
+    if (prevTab?.resetAction) {
+      console.log('prevTab >>', prevTab)
+      dispatch(prevTab.resetAction())
+    }
+
     setSelectedTab(newValue)
   }
 
@@ -65,18 +77,28 @@ const SiteDetails = () => {
       <InsightsCard
         data={data}
         loading={loading}
-        zooName={'Northern Highland Zoological Sanctuary'}
-        subtitle={'Bannerghatta North'}
-        userName={'Jordan Stevenson'}
-        description={'Super Admin'}
-        actions={{
-          onEdit: () => console.log('Edit'),
-          onDelete: () => console.log('Delete'),
-          onAddNew: () => console.log('Add new'),
-          onTimeClick: () => console.log('Time clicked')
+        zooName={data?.site_name}
+        subtitle={data?.site_description}
+        description={data?.incharges[0]?.full_name}
+        userName={data?.incharges[0]?.role_name}
+        userImage={data?.incharges[0]?.user_profile_pic}
+
+        // actions={{
+        //   onEdit: () => console.log('Edit'),
+        //   onDelete: () => console.log('Delete'),
+        //   onAddNew: () => console.log('Add new'),
+        //   onTimeClick: () => console.log('Time clicked')
+        // }}
+        onCallClick={() => {
+          const phoneNumber = data?.incharges?.[0]?.user_mobile_number || '' // Adjust path as needed
+          if (phoneNumber) {
+            // window.location.href = `tel:${phoneNumber}`
+          } else {
+            return
+          }
         }}
-        onCallClick={() => console.log('Call clicked')}
-        onMessageClick={() => console.log('Message clicked')}
+
+        // onMessageClick={() => console.log('Message clicked')}
         error={error}
         speciesCount={data?.species_count}
         animalCount={data?.animal_count}

@@ -1,6 +1,6 @@
 import { useTheme } from '@emotion/react'
 import { Avatar, Box, Grid, Typography } from '@mui/material'
-import { useCallback, useEffect } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import debounce from 'lodash/debounce'
 import { useDispatch, useSelector } from 'react-redux'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
@@ -9,8 +9,11 @@ import { fetchSites, setParams } from 'src/store/slices/housing/sitesSlice'
 import UserInfoCard from 'src/views/utility/insights/UserInfoCard'
 import ListingHeader from '../utils/ListingHeader'
 import { useRouter } from 'next/router'
+import { ExportButton } from 'src/views/utility/render-snippets'
 
 const Listing = ({ title }) => {
+  const [downloading, setDownloading] = useState(false)
+
   const router = useRouter()
   const theme = useTheme()
   const dispatch = useDispatch()
@@ -241,15 +244,18 @@ const Listing = ({ title }) => {
 
   return (
     <>
-      <ListingHeader title='All Sites' totalCount={total} onDownload={handleDownload} loading={false} />
+      <ListingHeader title='All Sites' totalCount={total} />
       <Box>
-        <Search
-          value={search}
-          onChange={e => handleSearch(e.target.value)}
-          onClear={() => handleSearch('')}
-          placeholder='Search…'
-          sx={{ mt: 2, justifyContent: 'flex-start' }}
-        />
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 4 }}>
+          <Search
+            value={search}
+            onChange={e => handleSearch(e.target.value)}
+            onClear={() => handleSearch('')}
+            placeholder='Search…'
+            sx={{ justifyContent: 'flex-end' }}
+          />
+          <ExportButton loading={downloading} onClick={handleDownload} />
+        </Box>
         <Grid>
           <CommonTable
             onRowClick={handleRowClick}
