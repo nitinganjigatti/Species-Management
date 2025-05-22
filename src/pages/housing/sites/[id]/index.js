@@ -9,9 +9,13 @@ import { fetchSite } from 'src/store/slices/housing/sitesAnalyticsSlice'
 import SectionListing from 'src/views/pages/housing/sections/sectionListing'
 import NotesListng from 'src/views/pages/housing/notes/notesListng'
 
+// Reset actions
+import { clearSection as resetSectionState } from 'src/store/slices/housing/sectionSlice'
+import { clearSection as resetNotesState } from 'src/store/slices/housing/notesSlice'
+
 const tabConfig = [
-  { label: 'Sections', value: 'sections', component: SectionListing },
-  { label: 'Notes', value: 'notes', component: NotesListng }
+  { label: 'Sections', value: 'sections', component: SectionListing, resetAction: resetSectionState },
+  { label: 'Notes', value: 'notes', component: NotesListng, resetAction: resetNotesState }
 
   // { label: 'Species', value: 'species', component: Listing },
   // { label: 'Notes', value: 'notes', component: Listing },
@@ -29,7 +33,6 @@ const SiteDetails = () => {
 
   useEffect(() => {
     if (id) {
-      debugger
       const params = {
         site_id: id
       }
@@ -38,6 +41,13 @@ const SiteDetails = () => {
   }, [dispatch])
 
   const handleTabChange = (event, newValue) => {
+    // Find reset action for previous tab
+    const prevTab = tabConfig.find(tab => tab.value === selectedTab)
+    if (prevTab?.resetAction) {
+      console.log('prevTab >>', prevTab)
+      dispatch(prevTab.resetAction())
+    }
+
     setSelectedTab(newValue)
   }
 
