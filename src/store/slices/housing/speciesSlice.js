@@ -1,23 +1,34 @@
-// src/store/slices/housing/sitesSlice.js
+// src/store/slices/housing/speciesSlice.js
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
 import { getAllSpeciesList } from 'src/lib/api/housing'
 
-// Async thunk to fetch sites with pagination
-export const fetchSpecies = createAsyncThunk('listing', async (params, { rejectWithValue }) => {
+// Async thunk to fetch species with pagination
+export const fetchSpecies = createAsyncThunk('species-list', async (params, { getState, rejectWithValue }) => {
+  const { page, pageSize, search, sortBy, sortOrder } = getState().species
+
   try {
-    debugger
-    const response = await getAllSpeciesList(params)
+    const response = await getAllSpeciesList({
+      page_no: page,
+      limit: pageSize,
+      q: search,
+      sort_by: sortBy,
+      sort_order: sortOrder,
+      ...params
+    })
+    if (response) {
+      console.log('response', response)
+    }
 
     return {
-      list: response.data.listing,
-      total: response.data.total_scies_count
+      list: response?.data?.listing || [],
+      total: response?.data?.total_scies_count || 0
     }
   } catch (error) {
-    return rejectWithValue(error.response?.data?.message || 'Failed to fetch sites')
+    return rejectWithValue(error.response?.data?.message || 'Failed to fetch species')
   }
 })
 
-const SpeciesSlice = createSlice({
+const speciesSlice = createSlice({
   name: 'species',
   initialState: {
     list: [],
@@ -25,7 +36,10 @@ const SpeciesSlice = createSlice({
     page: 1,
     pageSize: 10,
     loading: false,
-    error: null
+    error: null,
+    search: '',
+    sortBy: '',
+    sortOrder: 'asc'
   },
   reducers: {
     clearSpecies: state => {
@@ -33,12 +47,14 @@ const SpeciesSlice = createSlice({
       state.total = 0
       state.page = 1
       state.pageSize = 10
+      state.search = ''
+      state.sortBy = ''
+      state.sortOrder = 'asc'
       state.loading = false
       state.error = null
     },
-    setPagination: (state, action) => {
-      state.page = action.payload.page
-      state.pageSize = action.payload.pageSize
+    setParams: (state, action) => {
+      Object.assign(state, action.payload)
     }
   },
   extraReducers: builder => {
@@ -59,6 +75,6 @@ const SpeciesSlice = createSlice({
   }
 })
 
-export const { clearSpecies, setPagination } = SpeciesSlice.actions
+export const { clearSpecies, setParams } = speciesSlice.actions
 
-export default SpeciesSlice.reducer
+export default speciesSlice.reducer

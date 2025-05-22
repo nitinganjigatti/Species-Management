@@ -1,73 +1,100 @@
 import { useTheme } from '@emotion/react'
-import { Avatar, Box, debounce, Grid, Typography } from '@mui/material'
+import { Avatar, Box, Grid, Typography } from '@mui/material'
 import { useRouter } from 'next/router'
 import { useCallback, useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import UserInfoCard from 'src/views/utility/insights/UserInfoCard'
 import Search from 'src/views/utility/Search'
+import { fetchSpecies, setParams } from 'src/store/slices/housing/speciesSlice'
+import { ExportButton } from 'src/views/utility/render-snippets'
+import { debounce } from 'lodash'
 import ListingHeader from '../utils/ListingHeader'
-import { fetchSpecies, setPagination } from 'src/store/slices/housing/speciesSlice'
 
 const SpeciesListing = () => {
-  const theme = useTheme()
+  const [downloading, setDownloading] = useState(false)
+
   const router = useRouter()
-  const [searchValue, setSearchValue] = useState('')
-  const [downloadLoading, setDownloadLoading] = useState(false)
   const { id } = router.query
+  const theme = useTheme()
   const dispatch = useDispatch()
 
-  const { list: list, loading, total, page, pageSize, search } = useSelector(state => state.species)
+  const {
+    list: speciesList,
+    loading,
+    total,
+    page,
+    pageSize,
+    sortBy,
+    sortOrder,
+    search
+  } = useSelector(state => state.species)
 
   useEffect(() => {
-    debugger
-    dispatch(fetchSpecies({ site_id: id }))
-  }, [dispatch, id, page, pageSize, search])
+    console.log('speciesList', speciesList)
+  }, [speciesList])
+
+  // Debounced fetchSpecies call whenever parameters change
+  const debouncedFetch = useCallback(
+    debounce(() => {
+      dispatch(
+        fetchSpecies({
+          site_id: id
+        })
+      )
+    }, 500),
+    [dispatch, page, pageSize, sortBy, sortOrder, search, id]
+  )
+
+  useEffect(() => {
+    if (id) debouncedFetch()
+
+    return () => debouncedFetch.cancel()
+  }, [debouncedFetch, id])
 
   const handlePaginationModelChange = model => {
     const newPage = model.page + 1
     const newPageSize = model.pageSize
 
     if (newPage !== page || newPageSize !== pageSize) {
-      dispatch(setPagination({ page: newPage, pageSize: newPageSize }))
+      dispatch(setParams({ page: newPage, pageSize: newPageSize }))
     }
   }
 
-  const searchTableData = useCallback(
-    debounce(async value => {
-      setSearchValue(value)
-      try {
-        dispatch(fetchSpecies({ site_id: id, page_no: page, limit: pageSize, search: value }))
-      } catch (error) {
-        console.error(error)
-      }
-    }, 1000),
-    []
-  )
-
   const handleSearch = useCallback(
     value => {
-      setSearchValue(value)
-      dispatch(setPagination({ page: 1, pageSize })) // Reset to page 1
-      searchTableData(value)
+      dispatch(setParams({ search: value, page: 1 }))
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [searchValue]
+    [dispatch]
   )
+
+  const handleSortModelChange = sortModel => {
+    console.log('sortModel', sortModel)
+    if (sortModel.length > 0) {
+      const { field, sort } = sortModel[0]
+      dispatch(setParams({ sortBy: field, sortOrder: sort, page: 1 }))
+    } else {
+      dispatch(setParams({ sortBy: '', sortOrder: '' }))
+    }
+  }
+
+  const handleDownload = () => {
+    console.log('Downloading...')
+  }
 
   const getSlNo = index => (page - 1) * pageSize + index + 1
 
-  const indexedRows = list?.map((row, index) => ({
+  const indexedRows = speciesList?.map((row, index) => ({
     ...row,
     id: row?.tsn_id,
     sl_no: getSlNo(index)
   }))
 
-  // const handleRowClick = params => {
-  //   router.push({
-  //     pathname: `/housing/sites/${params.row.site_id}`
-  //   })
-  // }
+  const handleRowClick = params => {
+    // router.push({
+    //   pathname: `/housing/sites/${params.row.site_id}`
+    // })
+  }
 
   const columns = [
     {
@@ -149,6 +176,18 @@ const SpeciesListing = () => {
       }
     },
 
+    // {
+    //   width: 200,
+    //   field: 'species',
+    //   headerName: 'Species',
+    //   align: 'left',
+    //   headerAlign: 'left',
+    //   renderCell: params => (
+    //     <Typography sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600 }}>
+    //       {params.row.species_count || 0}
+    //     </Typography>
+    //   )
+    // },
     {
       width: 180,
       field: 'animals',
@@ -184,6 +223,19 @@ const SpeciesListing = () => {
         </Box>
       )
     },
+
+    // {
+    //   width: 150,
+    //   field: 'sections',
+    //   headerName: 'Sections',
+    //   align: 'left',
+    //   headerAlign: 'left',
+    //   renderCell: params => (
+    //     <Typography sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600 }}>
+    //       {params.row.section_count}
+    //     </Typography>
+    //   )
+    // },
     {
       width: 160,
       field: 'female',
@@ -274,37 +326,35 @@ const SpeciesListing = () => {
     }
   ]
 
-  const handleDownload = () => {
-    // download logic here
-    console.log('Downloading...')
-  }
-
   return (
     <>
-      <ListingHeader title='All Species' totalCount={total} onDownload={handleDownload} loading={downloadLoading} />
+      <ListingHeader title='All Species' totalCount={total} />
       <Box>
-        <Search
-          value={searchValue}
-          onChange={e => handleSearch(e.target.value)}
-          onClear={() => handleSearch('')}
-          placeholder='Search…'
-          sx={{ mt: 2 }}
-        />
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 4 }}>
+          <Search
+            value={search}
+            onChange={e => handleSearch(e.target.value)}
+            onClear={() => handleSearch('')}
+            placeholder='Search…'
+            sx={{ justifyContent: 'flex-end' }}
+          />
+          <ExportButton loading={downloading} onClick={handleDownload} />
+        </Box>
         <Grid>
           <CommonTable
-            onRowClick={''}
+            onRowClick={handleRowClick}
             indexedRows={indexedRows}
             total={total}
             columns={columns}
             pageSizeOptions={[10]}
             paginationModel={{
               page: page - 1,
-              pageSize: pageSize
+              pageSize
             }}
             setPaginationModel={handlePaginationModelChange}
-            paginationMode='server'
+            handleSortModel={handleSortModelChange}
             loading={loading}
-            searchValue={searchValue}
+            searchValue=''
             maxHeight='60vh'
           />
         </Grid>

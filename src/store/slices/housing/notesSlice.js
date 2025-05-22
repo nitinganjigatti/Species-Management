@@ -27,7 +27,7 @@ const notesSlice = createSlice({
     error: null
   },
   reducers: {
-    clearnotes: state => {
+    clearNotes: state => {
       state.list = []
       state.total = 0
       state.page = 1
@@ -58,6 +58,6 @@ const notesSlice = createSlice({
   }
 })
 
-export const { clearnotes, setPagination } = notesSlice.actions
+export const { clearNotes, setPagination } = notesSlice.actions
 
 export default notesSlice.reducer
