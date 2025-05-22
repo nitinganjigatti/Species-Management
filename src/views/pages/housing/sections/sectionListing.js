@@ -1,28 +1,27 @@
 import { useTheme } from '@emotion/react'
-import { Avatar, Box, Card, CardHeader, debounce, Grid, Typography } from '@mui/material'
-import { useCallback, useEffect, useState } from 'react'
-import CommonTable from 'src/views/table/data-grid/CommonTable'
-import Search from 'src/views/utility/Search'
-import { useDispatch, useSelector } from 'react-redux'
-import { fetchSites, setPagination } from 'src/store/slices/housing/sitesSlice'
-import UserInfoCard from 'src/views/utility/insights/UserInfoCard'
-import { ExportButton } from 'src/views/utility/render-snippets'
-import ListingHeader from '../utils/ListingHeader'
+import { Avatar, Box, debounce, Grid, Typography } from '@mui/material'
 import { useRouter } from 'next/router'
+import { useCallback, useEffect, useState } from 'react'
+import { useDispatch, useSelector } from 'react-redux'
+import { fetchSections, setPagination } from 'src/store/slices/housing/sectionSlice'
+import CommonTable from 'src/views/table/data-grid/CommonTable'
+import UserInfoCard from 'src/views/utility/insights/UserInfoCard'
+import Search from 'src/views/utility/Search'
+import ListingHeader from '../utils/ListingHeader'
 
-const Listing = () => {
+const SectionListing = () => {
+  const theme = useTheme()
   const router = useRouter()
   const [searchValue, setSearchValue] = useState('')
-  const [downloadLoading, setDownloadLoading] = useState(false) 
-
-  const theme = useTheme()
+  const [downloadLoading, setDownloadLoading] = useState(false)
+  const { id } = router.query
   const dispatch = useDispatch()
 
-  const { list: siteList, loading, total, page, pageSize } = useSelector(state => state.sites)
+  const { list: sectionList, loading, total, page, pageSize } = useSelector(state => state.section)
 
   useEffect(() => {
     debugger
-    dispatch(fetchSites({ page_no: page, limit: pageSize, q: searchValue }))
+    dispatch(fetchSections({ site_id: id, page_no: page, limit: pageSize, search: searchValue }))
   }, [dispatch, page, pageSize])
 
   const handlePaginationModelChange = model => {
@@ -38,7 +37,7 @@ const Listing = () => {
     debounce(async value => {
       setSearchValue(value)
       try {
-        dispatch(fetchSites({ page_no: page, limit: pageSize, q: value }))
+        dispatch(fetchSections({ site_id: id, page_no: page, limit: pageSize, search: value }))
       } catch (error) {
         console.error(error)
       }
@@ -56,24 +55,19 @@ const Listing = () => {
     [searchValue]
   )
 
-  const handleDownload = () => {
-    // download logic here
-    console.log('Downloading...')
-  }
-
   const getSlNo = index => (page - 1) * pageSize + index + 1
 
-  const indexedRows = siteList?.map((row, index) => ({
+  const indexedRows = sectionList?.map((row, index) => ({
     ...row,
-    id: row?.site_id,
+    id: row?.section_id,
     sl_no: getSlNo(index)
   }))
 
-  const handleRowClick = params => {
-    router.push({
-      pathname: `/housing/sites/${params.row.site_id}`
-    })
-  }
+  // const handleRowClick = params => {
+  //   router.push({
+  //     pathname: `/housing/sites/${params.row.site_id}`
+  //   })
+  // }
 
   const columns = [
     {
@@ -88,8 +82,8 @@ const Listing = () => {
     },
     {
       width: 250,
-      field: 'site_name',
-      headerName: 'Site Name',
+      field: 'section_name',
+      headerName: 'Section Name',
       renderCell: params => {
         const imageUrl = params.row.images?.[0]?.file
 
@@ -135,7 +129,7 @@ const Listing = () => {
                 fontWeight: 500
               }}
             >
-              {params.row.site_name}
+              {params.row.section_name}
             </Typography>
           </Box>
         )
@@ -177,18 +171,18 @@ const Listing = () => {
         </Typography>
       )
     },
-    {
-      width: 150,
-      field: 'sections',
-      headerName: 'Sections',
-      align: 'left',
-      headerAlign: 'left',
-      renderCell: params => (
-        <Typography sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600 }}>
-          {params.row.section_count}
-        </Typography>
-      )
-    },
+    // {
+    //   width: 150,
+    //   field: 'sections',
+    //   headerName: 'Sections',
+    //   align: 'left',
+    //   headerAlign: 'left',
+    //   renderCell: params => (
+    //     <Typography sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600 }}>
+    //       {params.row.section_count}
+    //     </Typography>
+    //   )
+    // },
     {
       width: 180,
       field: 'incharge',
@@ -231,20 +225,25 @@ const Listing = () => {
     }
   ]
 
+  const handleDownload = () => {
+    // download logic here
+    console.log('Downloading...')
+  }
+
   return (
     <>
-      <ListingHeader title='All Sites' totalCount={total} onDownload={handleDownload} loading={downloadLoading} />
+      <ListingHeader title='All Sections' totalCount={total} onDownload={handleDownload} loading={downloadLoading} />
       <Box>
         <Search
           value={searchValue}
           onChange={e => handleSearch(e.target.value)}
           onClear={() => handleSearch('')}
           placeholder='Search…'
-          sx={{ mt: 2, justifyContent: 'flex-start' }}
+          sx={{ mt: 2 }}
         />
         <Grid>
           <CommonTable
-            onRowClick={handleRowClick}
+            onRowClick={''}
             indexedRows={indexedRows}
             total={total}
             columns={columns}
@@ -256,7 +255,7 @@ const Listing = () => {
             setPaginationModel={handlePaginationModelChange}
             paginationMode='server'
             loading={loading}
-            searchValue={''}
+            searchValue={searchValue}
             maxHeight='60vh'
           />
         </Grid>
@@ -265,4 +264,4 @@ const Listing = () => {
   )
 }
 
-export default Listing
+export default SectionListing

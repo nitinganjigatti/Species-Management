@@ -1,5 +1,11 @@
 import { axiosGet } from '../utility'
-import { GET_SITES, HOUSING_SITE_ANALYTICS } from 'src/constants/ApiConstant'
+import {
+  GET_ALL_SECTIONS,
+  GET_SITES,
+  HOUSING_SITE_ANALYTICS,
+  SITE_DETAILS,
+  GET_ALL_NOTES
+} from 'src/constants/ApiConstant'
 
 export async function getSiteAnalytics(id) {
   const response = await axiosGet({ url: `${HOUSING_SITE_ANALYTICS}/${id}` })
@@ -9,5 +15,21 @@ export async function getSiteAnalytics(id) {
 
 export async function getAllSites(params) {
   const response = await axiosGet({ url: `${GET_SITES}`, params })
+  return response.data
+}
+
+export async function getSpecificSiteAnalytics(params) {
+  const response = await axiosGet({ url: `${SITE_DETAILS}`, params })
+  return response.data
+}
+
+export async function getAllSections(params) {
+  const response = await axiosGet({ url: `${GET_ALL_SECTIONS}`, params })
+  return response.data
+}
+
+export async function getAllNotes(params) {
+  debugger
+  const response = await axiosGet({ url: `${GET_ALL_NOTES}`, params })
   return response.data
 }

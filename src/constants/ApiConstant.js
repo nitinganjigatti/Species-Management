@@ -492,6 +492,12 @@ export const GET_SPECIES = '/diet/species'
 
 // Housing
 
-export const HOUSING_SITE_ANALYTICS = "zoo/home"
+export const HOUSING_SITE_ANALYTICS = 'zoo/home'
 
 export const GET_SITES = 'site-list'
+
+export const SITE_DETAILS = 'site-details'
+
+export const GET_ALL_SECTIONS = 'get-site-wise-section-list'
+
+export const GET_ALL_NOTES = 'v1/get-observation-by-type-id'

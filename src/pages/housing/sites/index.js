@@ -59,7 +59,7 @@ const Sites = () => {
           onCallClick={() => console.log('Call clicked')}
           onMessageClick={() => console.log('Message clicked')}
           onInfoClick={{
-            species: () => console.log('Species clicked'),
+            species: () => console.log('Species clicked'), 
             animals: () => console.log('Animals clicked'),
             sections: () => console.log('Sections clicked'),
             enclosures: () => console.log('Enclosures clicked')
