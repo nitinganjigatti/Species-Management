@@ -1,63 +1,71 @@
 import { useTheme } from '@emotion/react'
-import { Avatar, Box, Card, CardHeader, debounce, Grid, Typography } from '@mui/material'
-import { useCallback, useEffect, useState } from 'react'
+import { Avatar, Box, Grid, Typography } from '@mui/material'
+import { useCallback, useEffect } from 'react'
+import debounce from 'lodash/debounce'
+import { useDispatch, useSelector } from 'react-redux'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import Search from 'src/views/utility/Search'
-import { useDispatch, useSelector } from 'react-redux'
-import { fetchSites, setPagination } from 'src/store/slices/housing/sitesSlice'
+import { fetchSites, setParams } from 'src/store/slices/housing/sitesSlice'
 import UserInfoCard from 'src/views/utility/insights/UserInfoCard'
-import { ExportButton } from 'src/views/utility/render-snippets'
 import ListingHeader from '../utils/ListingHeader'
 import { useRouter } from 'next/router'
 
-const Listing = () => {
-  const router = useRouter()
-  const [searchValue, setSearchValue] = useState('')
-  const [downloadLoading, setDownloadLoading] = useState(false) 
-
+const Listing = ({ title }) => {
   const theme = useTheme()
   const dispatch = useDispatch()
 
-  const { list: siteList, loading, total, page, pageSize } = useSelector(state => state.sites)
+  const {
+    list: siteList,
+    loading,
+    total,
+    page,
+    pageSize,
+    sortBy,
+    sortOrder,
+    search
+  } = useSelector(state => state.sites)
+
+  // Debounced fetchSites call whenever parameters change
+  const debouncedFetch = useCallback(
+    debounce(() => {
+      dispatch(fetchSites())
+    }, 500),
+    [dispatch, page, pageSize, sortBy, sortOrder, search]
+  )
 
   useEffect(() => {
-    debugger
-    dispatch(fetchSites({ page_no: page, limit: pageSize, q: searchValue }))
-  }, [dispatch, page, pageSize])
+    debouncedFetch()
+
+    return () => debouncedFetch.cancel()
+  }, [debouncedFetch])
 
   const handlePaginationModelChange = model => {
     const newPage = model.page + 1
     const newPageSize = model.pageSize
 
     if (newPage !== page || newPageSize !== pageSize) {
-      dispatch(setPagination({ page: newPage, pageSize: newPageSize }))
+      dispatch(setParams({ page: newPage, pageSize: newPageSize }))
     }
   }
 
-  const searchTableData = useCallback(
-    debounce(async value => {
-      setSearchValue(value)
-      try {
-        dispatch(fetchSites({ page_no: page, limit: pageSize, q: value }))
-      } catch (error) {
-        console.error(error)
-      }
-    }, 1000),
-    []
-  )
-
   const handleSearch = useCallback(
     value => {
-      setSearchValue(value)
-      dispatch(setPagination({ page: 1, pageSize })) // Reset to page 1
-      searchTableData(value)
+      dispatch(setParams({ search: value, page: 1 }))
     },
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-    [searchValue]
+    [dispatch]
   )
 
+  const handleSortModelChange = sortModel => {
+    console.log('sortModel', sortModel)
+    if (sortModel.length > 0) {
+      const { field, sort } = sortModel[0]
+      dispatch(setParams({ sortBy: field, sortOrder: sort, page: 1 }))
+    } else {
+      dispatch(setParams({ sortBy: '', sortOrder: '' }))
+    }
+  }
+
   const handleDownload = () => {
-    // download logic here
     console.log('Downloading...')
   }
 
@@ -210,7 +218,6 @@ const Listing = () => {
         </Box>
       )
     },
-
     {
       width: 150,
       field: 'actions',
@@ -233,10 +240,10 @@ const Listing = () => {
 
   return (
     <>
-      <ListingHeader title='All Sites' totalCount={total} onDownload={handleDownload} loading={downloadLoading} />
+      <ListingHeader title='All Sites' totalCount={total} onDownload={handleDownload} loading={false} />
       <Box>
         <Search
-          value={searchValue}
+          value={search}
           onChange={e => handleSearch(e.target.value)}
           onClear={() => handleSearch('')}
           placeholder='Search…'
@@ -254,9 +261,9 @@ const Listing = () => {
               pageSize: pageSize
             }}
             setPaginationModel={handlePaginationModelChange}
-            paginationMode='server'
+            handleSortModel={handleSortModelChange}
             loading={loading}
-            searchValue={''}
+            searchValue=''
             maxHeight='60vh'
           />
         </Grid>

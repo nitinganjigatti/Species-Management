@@ -1,11 +1,18 @@
-// src/store/slices/housing/sitesSlice.js
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
 import { getAllSites } from 'src/lib/api/housing'
 
 // Async thunk to fetch sites with pagination
-export const fetchSites = createAsyncThunk('site-list', async (params, { rejectWithValue }) => {
+export const fetchSites = createAsyncThunk('site-list', async (_, { getState, rejectWithValue }) => {
+  const { page, pageSize, search, sortBy, sortOrder } = getState().sites
+
   try {
-    const response = await getAllSites(params)
+    const response = await getAllSites({
+      page_no: page,
+      limit: pageSize,
+      q: search,
+      sort_by: sortBy,
+      sort_order: sortOrder
+    })
 
     return {
       list: response.data.result,
@@ -24,7 +31,10 @@ const sitesSlice = createSlice({
     page: 1,
     pageSize: 10,
     loading: false,
-    error: null
+    error: null,
+    search: '',
+    sortBy: '',
+    sortOrder: 'asc'
   },
   reducers: {
     clearSites: state => {
@@ -32,12 +42,14 @@ const sitesSlice = createSlice({
       state.total = 0
       state.page = 1
       state.pageSize = 10
+      state.search = ''
+      state.sortBy = ''
+      state.sortOrder = 'asc'
       state.loading = false
       state.error = null
     },
-    setPagination: (state, action) => {
-      state.page = action.payload.page
-      state.pageSize = action.payload.pageSize
+    setParams: (state, action) => {
+      Object.assign(state, action.payload)
     }
   },
   extraReducers: builder => {
@@ -58,6 +70,6 @@ const sitesSlice = createSlice({
   }
 })
 
-export const { clearSites, setPagination } = sitesSlice.actions
+export const { clearSites, setParams } = sitesSlice.actions
 
 export default sitesSlice.reducer
