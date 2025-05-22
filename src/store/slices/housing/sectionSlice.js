@@ -3,29 +3,30 @@ import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
 import { getAllSections } from 'src/lib/api/housing'
 
 // Async thunk to fetch sections with pagination
-export const fetchSections = createAsyncThunk(
-  'section-list',
-  async (_, { getState, rejectWithValue }) => {
-    const { page, pageSize, search, sortBy, sortOrder } = getState().section
+export const fetchSections = createAsyncThunk('section-list', async (params, { getState, rejectWithValue }) => {
+  const { page, pageSize, search, sortBy, sortOrder } = getState().section
 
-    try {
-      const response = await getAllSections({
-        page_no: page,
-        limit: pageSize,
-        q: search,
-        sort_by: sortBy,
-        sort_order: sortOrder
-      })
-
-      return {
-        list: response.data.result,
-        total: response.data.total_count
-      }
-    } catch (error) {
-      return rejectWithValue(error.response?.data?.message || 'Failed to fetch sections')
+  try {
+    const response = await getAllSections({
+      page_no: page,
+      limit: pageSize,
+      q: search,
+      sort_by: sortBy,
+      sort_order: sortOrder,
+      ...params
+    })
+    if (response) {
+      console.log('response', response)
     }
+
+    return {
+      list: response?.data?.result || [],
+      total: response?.data?.total_count || 0
+    }
+  } catch (error) {
+    return rejectWithValue(error.response?.data?.message || 'Failed to fetch sections')
   }
-)
+})
 
 const sectionSlice = createSlice({
   name: 'section',

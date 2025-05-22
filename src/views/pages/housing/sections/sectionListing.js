@@ -4,7 +4,7 @@ import { useRouter } from 'next/router'
 import { useCallback, useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { debounce } from 'lodash'
-import { fetchSections, setPagination } from 'src/store/slices/housing/sectionSlice'
+import { fetchSections, setParams } from 'src/store/slices/housing/sectionSlice'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import UserInfoCard from 'src/views/utility/insights/UserInfoCard'
 import Search from 'src/views/utility/Search'
@@ -12,57 +12,79 @@ import ListingHeader from '../utils/ListingHeader'
 import { ExportButton } from 'src/views/utility/render-snippets'
 
 const SectionListing = () => {
-  const theme = useTheme()
-  const router = useRouter()
-  const [searchValue, setSearchValue] = useState('')
   const [downloading, setDownloading] = useState(false)
+
+  const router = useRouter()
   const { id } = router.query
+  const theme = useTheme()
   const dispatch = useDispatch()
 
-  const { list: sectionList, loading, total, page, pageSize, search } = useSelector(state => state.section)
+  const {
+    list: sectionList,
+    loading,
+    total,
+    page,
+    pageSize,
+    sortBy,
+    sortOrder,
+    search
+  } = useSelector(state => state.section)
 
-  const getSlNo = index => (page - 1) * pageSize + index + 1
-
-  const indexedRows = sectionList?.map((row, index) => ({
-    ...row,
-    id: row.section_id,
-    sl_no: getSlNo(index)
-  }))
-
-  // Debounced fetch
+  // Debounced fetchSections call whenever parameters change
   const debouncedFetch = useCallback(
     debounce(() => {
-      if (id) {
-        dispatch(fetchSections({ site_id: id }))
-      }
+      dispatch(
+        fetchSections({
+          site_id: id
+        })
+      )
     }, 500),
-    [dispatch, id, page, pageSize, search]
+    [dispatch, page, pageSize, sortBy, sortOrder, search, id]
   )
 
   useEffect(() => {
-    debouncedFetch()
-    debugger
+    if (id) debouncedFetch()
+
     return () => debouncedFetch.cancel()
-  }, [debouncedFetch])
+  }, [debouncedFetch, id])
 
   const handlePaginationModelChange = model => {
     const newPage = model.page + 1
     const newPageSize = model.pageSize
+
     if (newPage !== page || newPageSize !== pageSize) {
-      dispatch(setPagination({ page: newPage, pageSize: newPageSize }))
+      dispatch(setParams({ page: newPage, pageSize: newPageSize }))
     }
   }
 
   const handleSearch = useCallback(
     value => {
-      dispatch(setPagination({ page: 1, search: value }))
+      dispatch(setParams({ search: value, page: 1 }))
     },
     [dispatch]
   )
 
-  const handleDownload = () => {
-    console.log('Downloading sections...')
+  const handleSortModelChange = sortModel => {
+    console.log('sortModel', sortModel)
+    if (sortModel.length > 0) {
+      const { field, sort } = sortModel[0]
+      dispatch(setParams({ sortBy: field, sortOrder: sort, page: 1 }))
+    } else {
+      dispatch(setParams({ sortBy: '', sortOrder: '' }))
+    }
   }
+
+  const handleDownload = () => {
+    console.log('Downloading...')
+  }
+
+  const getSlNo = index => (page - 1) * pageSize + index + 1
+
+  const indexedRows = sectionList?.map((row, index) => ({
+    ...row,
+    id: row?.section_id,
+    sl_no: getSlNo(index)
+  }))
 
   const handleRowClick = params => {
     router.push({
@@ -87,6 +109,7 @@ const SectionListing = () => {
       headerName: 'Section Name',
       renderCell: params => {
         const imageUrl = params.row.images?.[0]?.file
+
         return (
           <Box display='flex' alignItems='center' width='100%' gap={2}>
             {imageUrl ? (
@@ -231,7 +254,7 @@ const SectionListing = () => {
       <Box>
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 4 }}>
           <Search
-            value={searchValue}
+            value={search}
             onChange={e => handleSearch(e.target.value)}
             onClear={() => handleSearch('')}
             placeholder='Search…'
@@ -251,6 +274,7 @@ const SectionListing = () => {
               pageSize
             }}
             setPaginationModel={handlePaginationModelChange}
+            handleSortModel={handleSortModelChange}
             loading={loading}
             searchValue=''
             maxHeight='60vh'
