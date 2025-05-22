@@ -95,10 +95,10 @@ const SiteDetails = () => {
 
         // onMessageClick={() => console.log('Message clicked')}
         error={error}
-        speciesCount={data?.species_count}
-        animalCount={data?.animal_count}
-        enclosuresCount={data?.enclosure_count}
-        sectionsCount={data?.section_count}
+        speciesCount={data?.species_count || 0}
+        animalCount={data?.animal_count || 0}
+        enclosuresCount={data?.enclosure_count || 0}
+        sectionsCount={data?.section_count || 0}
       />
 
       {/* Tabs */}

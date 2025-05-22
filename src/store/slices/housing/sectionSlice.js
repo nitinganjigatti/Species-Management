@@ -5,7 +5,6 @@ import { getAllSections } from 'src/lib/api/housing'
 // Async thunk to fetch sites with pagination
 export const fetchSections = createAsyncThunk('get-site-wise-section-list', async (params, { rejectWithValue }) => {
   try {
-    debugger
     const response = await getAllSections(params)
 
     return {

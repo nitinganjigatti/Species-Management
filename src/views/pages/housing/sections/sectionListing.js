@@ -8,19 +8,19 @@ import CommonTable from 'src/views/table/data-grid/CommonTable'
 import UserInfoCard from 'src/views/utility/insights/UserInfoCard'
 import Search from 'src/views/utility/Search'
 import ListingHeader from '../utils/ListingHeader'
+import { ExportButton } from 'src/views/utility/render-snippets'
 
 const SectionListing = () => {
   const theme = useTheme()
   const router = useRouter()
   const [searchValue, setSearchValue] = useState('')
-  const [downloadLoading, setDownloadLoading] = useState(false)
+  const [downloading, setDownloading] = useState(false)
   const { id } = router.query
   const dispatch = useDispatch()
 
   const { list: sectionList, loading, total, page, pageSize } = useSelector(state => state.section)
 
   useEffect(() => {
-    debugger
     dispatch(fetchSections({ site_id: id, page_no: page, limit: pageSize, search: searchValue }))
   }, [dispatch, page, pageSize])
 
@@ -171,6 +171,7 @@ const SectionListing = () => {
         </Typography>
       )
     },
+
     // {
     //   width: 150,
     //   field: 'sections',
@@ -232,15 +233,18 @@ const SectionListing = () => {
 
   return (
     <>
-      <ListingHeader title='All Sections' totalCount={total} onDownload={handleDownload} loading={downloadLoading} />
+      <ListingHeader title='All Sections' totalCount={total} />
       <Box>
-        <Search
-          value={searchValue}
-          onChange={e => handleSearch(e.target.value)}
-          onClear={() => handleSearch('')}
-          placeholder='Search…'
-          sx={{ mt: 2 }}
-        />
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 4 }}>
+          <Search
+            value={searchValue}
+            onChange={e => handleSearch(e.target.value)}
+            onClear={() => handleSearch('')}
+            placeholder='Search…'
+            sx={{ justifyContent: 'flex-end' }}
+          />
+          <ExportButton loading={downloading} onClick={handleDownload} />
+        </Box>
         <Grid>
           <CommonTable
             onRowClick={''}

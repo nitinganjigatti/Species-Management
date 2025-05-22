@@ -5,7 +5,6 @@ import { getAllNotes } from 'src/lib/api/housing'
 // Async thunk to fetch sites with pagination
 export const fetchNotes = createAsyncThunk('get-observation-by-type-id', async (params, { rejectWithValue }) => {
   try {
-    debugger
     const response = await getAllNotes(params)
 
     return {

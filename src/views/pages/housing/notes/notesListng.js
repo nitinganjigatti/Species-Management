@@ -3,6 +3,7 @@ import { Avatar, Box, debounce, Grid, Typography } from '@mui/material'
 import { useRouter } from 'next/router'
 import { useCallback, useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
+
 // import { fetchSections, setPagination } from 'src/store/slices/housing/sectionSlice'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import UserInfoCard from 'src/views/utility/insights/UserInfoCard'
@@ -21,7 +22,6 @@ const NotesListng = () => {
   const { list: noteList, loading, total, page, pageSize } = useSelector(state => state.notes)
 
   useEffect(() => {
-    debugger
     dispatch(fetchNotes({ id: id, type: 'site', page_no: page, limit: pageSize, q: searchValue }))
   }, [dispatch, page, pageSize])
 
@@ -145,6 +145,7 @@ const NotesListng = () => {
         </Typography>
       )
     },
+
     // {
     //   width: 150,
     //   field: 'sections',
