@@ -1,7 +1,7 @@
 import { useTheme } from '@emotion/react'
 import { Avatar, Box, Grid, Typography } from '@mui/material'
 import { useRouter } from 'next/router'
-import { useCallback, useEffect } from 'react'
+import { useCallback, useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { debounce } from 'lodash'
 import { fetchSections, setPagination } from 'src/store/slices/housing/sectionSlice'
@@ -18,7 +18,6 @@ const SectionListing = () => {
   const [downloading, setDownloading] = useState(false)
   const { id } = router.query
   const dispatch = useDispatch()
-  const { id } = router.query
 
   const { list: sectionList, loading, total, page, pageSize, search } = useSelector(state => state.section)
 
@@ -149,7 +148,7 @@ const SectionListing = () => {
       )
     },
 
-     {
+    {
       width: 150,
       field: 'animals',
       headerName: 'Animals',
@@ -162,7 +161,7 @@ const SectionListing = () => {
       )
     },
 
-       {
+    {
       width: 150,
       field: 'enclosures',
       headerName: 'Enclosures',
