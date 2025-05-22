@@ -81,8 +81,9 @@ const SpeciesListing = () => {
       )
     },
     {
-      width: 250,
+      width: 280,
       field: 'common_name',
+      headerAlign:"center",
       headerName: 'Species',
       renderCell: params => {
         const imageUrl = params.row.default_icon
@@ -97,19 +98,18 @@ const SpeciesListing = () => {
                 sx={{
                   width: 40,
                   height: 40,
-                  borderRadius: 1,
+                  borderRadius: '50%',
                   objectFit: 'cover',
                   mr: 1
                 }}
               />
             ) : (
               <Avatar
-                variant='square'
                 sx={{
                   width: 40,
                   height: 40,
                   mr: 1,
-                  borderRadius: '8px',
+                  borderRadius: '50%',
                   fontSize: '14px',
                   bgcolor: theme.palette.primary.main
                 }}
@@ -117,40 +117,42 @@ const SpeciesListing = () => {
                 {params.row.site_name?.charAt(0).toUpperCase() || '?'}
               </Avatar>
             )}
-            <Typography
-              noWrap
-              sx={{
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                whiteSpace: 'nowrap',
-                maxWidth: '180px',
-                color: theme.palette.customColors.OnSurfaceVariant,
-                fontSize: '14px',
-                fontWeight: 500
-              }}
-            >
-              {params.row.section_name}
-            </Typography>
+
+            <Box display='flex' flexDirection='column' overflow='hidden'>
+              <Typography
+                noWrap
+                sx={{
+                  fontWeight: 500,
+                  fontSize: '16px',
+                  color: theme.palette.customColors.OnSurfaceVariant
+                }}
+              >
+                {params.row.common_name}
+              </Typography>
+              <Typography
+                noWrap
+                sx={{
+                  fontSize: '14px',
+                  fontWeight: 400,
+                  fontFamily: 'Inter',
+                  color: '#1F515B',
+                  maxWidth: '180px',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis'
+                }}
+              >
+                {params.row.complete_name}
+              </Typography>
+            </Box>
           </Box>
         )
       }
     },
-    // {
-    //   width: 200,
-    //   field: 'species',
-    //   headerName: 'Species',
-    //   align: 'left',
-    //   headerAlign: 'left',
-    //   renderCell: params => (
-    //     <Typography sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600 }}>
-    //       {params.row.species_count || 0}
-    //     </Typography>
-    //   )
-    // },
+
     {
-      width: 150,
+      width: 180,
       field: 'animals',
-      headerName: 'Animals',
+      headerName: 'Population',
       align: 'left',
       headerAlign: 'left',
       renderCell: params => (
@@ -159,54 +161,101 @@ const SpeciesListing = () => {
         </Typography>
       )
     },
+
     {
-      width: 150,
-      field: 'enclosures',
-      headerName: 'Enclosures',
-      align: 'left',
-      headerAlign: 'left',
+      width: 160,
+      field: 'male',
+      headerName: 'MALE',
       renderCell: params => (
-        <Typography sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600 }}>
-          {params.row.enclosure_count}
-        </Typography>
+        <Box
+          sx={{
+            px: 1.5,
+            py: 0.5,
+            bgcolor: '#D7F3FA', // light blue
+            color: '#24B0D3', // darker blue text
+            fontSize: '14px',
+            fontWeight: 600,
+            display: 'inline-block',
+            textAlign: 'center',
+            minWidth: 40
+          }}
+        >
+          {params.row.sex_data?.male || 0}
+        </Box>
       )
     },
-    // {
-    //   width: 150,
-    //   field: 'sections',
-    //   headerName: 'Sections',
-    //   align: 'left',
-    //   headerAlign: 'left',
-    //   renderCell: params => (
-    //     <Typography sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600 }}>
-    //       {params.row.section_count}
-    //     </Typography>
-    //   )
-    // },
     {
-      width: 180,
-      field: 'incharge',
-      headerName: 'In-Charge',
-      align: 'center',
-      headerAlign: 'left',
+      width: 160,
+      field: 'female',
+      headerName: 'FEMALE',
       renderCell: params => (
-        <Box display='flex' alignItems='center' width='100%'>
-          <UserInfoCard />
-          <Typography
-            sx={{
-              color: theme.palette.customColors.OnSurfaceVariant,
-              fontSize: '14px',
-              fontWeight: 500
-            }}
-          >
-            {params.row.incharge_name || 'NA'}
-          </Typography>
+        <Box
+          sx={{
+            px: 1.5,
+            py: 0.5,
+
+            bgcolor: '#FDDDD2', // light peach
+            color: '#E16E4F', // darker coral
+            fontSize: '14px',
+            fontWeight: 600,
+            display: 'inline-block',
+            textAlign: 'center',
+            minWidth: 40
+          }}
+        >
+          {params.row.sex_data?.female || 0}
+        </Box>
+      )
+    },
+    {
+      width: 160,
+      field: 'undetermined',
+      headerName: 'UNDETERMINED',
+      renderCell: params => (
+        <Box
+          sx={{
+            px: 1.5,
+            py: 0.5,
+
+            bgcolor: '#E3EAE3', // light gray-green
+            color: '#BF2F3B', // maroonish-red
+            fontSize: '14px',
+            fontWeight: 600,
+            display: 'inline-block',
+            textAlign: 'center',
+            minWidth: 40
+          }}
+        >
+          {params.row.sex_data?.undetermined || 0}
+        </Box>
+      )
+    },
+    {
+      width: 160,
+      field: 'indeterminate',
+      headerName: 'INDETERMINATE',
+      renderCell: params => (
+        <Box
+          sx={{
+            px: 1.5,
+            py: 0.5,
+
+            bgcolor: '#D7E0E3', // bluish gray
+            color: '#31464F', // dark gray-blue
+            fontSize: '14px',
+            fontWeight: 600,
+            display: 'inline-block',
+            textAlign: 'center',
+            minWidth: 40
+          }}
+        >
+          {params.row.sex_data?.indeterminate || 0}
         </Box>
       )
     },
 
     {
-      width: 150,
+      width: 160,
       field: 'actions',
       headerName: 'Actions',
       align: 'center',
@@ -232,7 +281,7 @@ const SpeciesListing = () => {
 
   return (
     <>
-      {/* <ListingHeader title='All Species' totalCount={total} onDownload={handleDownload} loading={downloadLoading} /> */}
+      <ListingHeader title='All Species' totalCount={total} onDownload={handleDownload} loading={downloadLoading} />
       <Box>
         <Search
           value={searchValue}

@@ -18,7 +18,7 @@ import { clearSection as resetNotesState } from 'src/store/slices/housing/notesS
 const tabConfig = [
   // { label: 'Sections', value: 'sections', component: SectionListing },
   // { label: 'Notes', value: 'notes', component: NotesListng },
-  // {label: 'Species' , value: 'species' , component: SpeciesListing },
+  {label: 'Species' , value: 'species' , component: SpeciesListing },
   { label: 'Sections', value: 'sections', component: SectionListing, resetAction: resetSectionState },
   { label: 'Notes', value: 'notes', component: NotesListng, resetAction: resetNotesState }
 

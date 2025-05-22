@@ -10,7 +10,7 @@ export const fetchSpecies = createAsyncThunk('listing', async (params, { rejectW
 
     return {
       list: response.data.listing,
-      total: response.data.total_count
+      total: response.data.total_scies_count
     }
   } catch (error) {
     return rejectWithValue(error.response?.data?.message || 'Failed to fetch sites')
