@@ -503,3 +503,5 @@ export const GET_ALL_SECTIONS = 'get-site-wise-section-list'
 export const GET_ALL_NOTES = 'v1/get-observation-by-type-id'
 
 export const GET_ALL_SPECIES = 'v1/species/listing'
+
+export const GET_MORTALITY = 'animal/get-mortality-listing-type-wise'

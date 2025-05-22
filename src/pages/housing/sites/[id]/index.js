@@ -10,18 +10,20 @@ import SectionListing from 'src/views/pages/housing/sections/sectionListing'
 import NotesListng from 'src/views/pages/housing/notes/notesListng'
 import SpeciesListing from 'src/views/pages/housing/species/speciesListing'
 
-
 // Reset actions
 import { clearSection as resetSectionState } from 'src/store/slices/housing/sectionSlice'
 import { clearNotes as resetNotesState } from 'src/store/slices/housing/notesSlice'
 import { clearSpecies as resetSpeciesState } from 'src/store/slices/housing/speciesSlice'
+import MortalityListing from 'src/views/pages/housing/mortality/mortalityListing'
 
 const tabConfig = [
   // { label: 'Sections', value: 'sections', component: SectionListing },
   // { label: 'Notes', value: 'notes', component: NotesListng },
-  { label: 'Species', value: 'species', component: SpeciesListing, resetAction: resetSpeciesState },
+
   { label: 'Sections', value: 'sections', component: SectionListing, resetAction: resetSectionState },
-  { label: 'Notes', value: 'notes', component: NotesListng, resetAction: resetNotesState }
+  { label: 'Species', value: 'species', component: SpeciesListing, resetAction: resetSpeciesState },
+  { label: 'Notes', value: 'notes', component: NotesListng, resetAction: resetNotesState },
+  { label: 'Mortality', value: 'mortality', component: MortalityListing }
 
   // { label: 'Species', value: 'species', component: Listing },
   // { label: 'Notes', value: 'notes', component: Listing },
@@ -83,7 +85,6 @@ const SiteDetails = () => {
         description={data?.incharges[0]?.full_name}
         userName={data?.incharges[0]?.role_name}
         userImage={data?.incharges[0]?.user_profile_pic}
-
         // actions={{
         //   onEdit: () => console.log('Edit'),
         //   onDelete: () => console.log('Delete'),
@@ -98,7 +99,6 @@ const SiteDetails = () => {
             return
           }
         }}
-
         // onMessageClick={() => console.log('Message clicked')}
         error={error}
         speciesCount={data?.species_count || 0}
