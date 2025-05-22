@@ -16,22 +16,25 @@ export async function getSiteAnalytics(id) {
 
 export async function getAllSites(params) {
   const response = await axiosGet({ url: `${GET_SITES}`, params })
+
   return response.data
 }
 
 export async function getSpecificSiteAnalytics(params) {
   const response = await axiosGet({ url: `${SITE_DETAILS}`, params })
+
   return response.data
 }
 
 export async function getAllSections(params) {
   const response = await axiosGet({ url: `${GET_ALL_SECTIONS}`, params })
+
   return response.data
 }
 
 export async function getAllNotes(params) {
-  debugger
   const response = await axiosGet({ url: `${GET_ALL_NOTES}`, params })
+
   return response.data
 }
 

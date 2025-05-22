@@ -9,10 +9,14 @@ import CommonTable from 'src/views/table/data-grid/CommonTable'
 import UserInfoCard from 'src/views/utility/insights/UserInfoCard'
 import Search from 'src/views/utility/Search'
 import ListingHeader from '../utils/ListingHeader'
+import { ExportButton } from 'src/views/utility/render-snippets'
 
 const SectionListing = () => {
   const theme = useTheme()
   const router = useRouter()
+  const [searchValue, setSearchValue] = useState('')
+  const [downloading, setDownloading] = useState(false)
+  const { id } = router.query
   const dispatch = useDispatch()
   const { id } = router.query
 
@@ -170,6 +174,19 @@ const SectionListing = () => {
         </Typography>
       )
     },
+
+    // {
+    //   width: 150,
+    //   field: 'sections',
+    //   headerName: 'Sections',
+    //   align: 'left',
+    //   headerAlign: 'left',
+    //   renderCell: params => (
+    //     <Typography sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600 }}>
+    //       {params.row.section_count}
+    //     </Typography>
+    //   )
+    // },
     {
       width: 180,
       field: 'incharge',
@@ -211,15 +228,18 @@ const SectionListing = () => {
 
   return (
     <>
-      <ListingHeader title='All Sections' totalCount={total} onDownload={handleDownload} loading={false} />
+      <ListingHeader title='All Sections' totalCount={total} />
       <Box>
-        <Search
-          value={search}
-          onChange={e => handleSearch(e.target.value)}
-          onClear={() => handleSearch('')}
-          placeholder='Search…'
-          sx={{ mt: 2, justifyContent: 'flex-start' }}
-        />
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 4 }}>
+          <Search
+            value={searchValue}
+            onChange={e => handleSearch(e.target.value)}
+            onClear={() => handleSearch('')}
+            placeholder='Search…'
+            sx={{ justifyContent: 'flex-end' }}
+          />
+          <ExportButton loading={downloading} onClick={handleDownload} />
+        </Box>
         <Grid>
           <CommonTable
             onRowClick={handleRowClick}

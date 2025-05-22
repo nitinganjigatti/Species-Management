@@ -4,8 +4,7 @@ import { getSpecificSiteAnalytics } from 'src/lib/api/housing'
 // Async thunk to fetch insights with params
 export const fetchSite = createAsyncThunk('site-details', async (params, { rejectWithValue }) => {
   try {
-    debugger
-    const response = await getSpecificSiteAnalytics(params) 
+    const response = await getSpecificSiteAnalytics(params)
 
     return response.data
   } catch (error) {

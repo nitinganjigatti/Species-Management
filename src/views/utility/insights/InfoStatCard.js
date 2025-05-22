@@ -23,14 +23,12 @@ const InfoStatCard = ({ icon: Icon, imagePath, value, label, onClick }) => {
     >
       <IconBox icon={Icon} imagePath={imagePath} />
       <Box>
-        {value && (
-          <Typography
-            sx={{ fontWeight: '600', fontSize: '1.5rem', color: theme.palette.customColors.PrimaryContainer }}
-            color='success.main'
-          >
-            {value}
-          </Typography>
-        )}
+        <Typography
+          sx={{ fontWeight: '600', fontSize: '1.5rem', color: theme.palette.customColors.PrimaryContainer }}
+          color='success.main'
+        >
+          {value}
+        </Typography>
         {label && (
           <Typography sx={{ fontSize: '0.875rem', color: theme => theme.palette.common.white }}>{label}</Typography>
         )}

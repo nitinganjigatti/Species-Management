@@ -158,7 +158,7 @@ const InsightsCard = ({
             <Grid item xs={12} sm={6} md={3}>
               <InfoStatCard
                 imagePath={'/images/housing/species.svg'}
-                value={speciesCount || ''}
+                value={speciesCount}
                 label='Species'
                 onClick={onInfoClick?.species}
               />
@@ -166,7 +166,7 @@ const InsightsCard = ({
             <Grid item xs={12} sm={6} md={3}>
               <InfoStatCard
                 imagePath={'/images/housing/animals.svg'}
-                value={animalCount || ''}
+                value={animalCount}
                 label='Animals'
                 onClick={onInfoClick?.animals}
               />
@@ -174,7 +174,7 @@ const InsightsCard = ({
             <Grid item xs={12} sm={6} md={3}>
               <InfoStatCard
                 imagePath={'/images/housing/sections.svg'}
-                value={sectionsCount || ''}
+                value={sectionsCount}
                 label='Sections'
                 onClick={onInfoClick?.sections}
               />
@@ -182,7 +182,7 @@ const InsightsCard = ({
             <Grid item xs={12} sm={6} md={3}>
               <InfoStatCard
                 imagePath={'/images/housing/enclosures.svg'}
-                value={enclosuresCount || ''}
+                value={enclosuresCount}
                 label='Enclosures'
                 onClick={onInfoClick?.enclosures}
               />
