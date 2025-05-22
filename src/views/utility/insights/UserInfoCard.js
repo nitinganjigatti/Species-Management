@@ -21,4 +21,4 @@ const UserInfoCard = ({ avatarUrl, name, description }) => {
   )
 }
 
-export default UserInfoCard
+export default React.memo(UserInfoCard)

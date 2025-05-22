@@ -17,7 +17,15 @@ const HeaderCard = ({
   const theme = useTheme()
 
   return (
-    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap' }}>
+    <Box
+      sx={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'flex-start',
+        flexWrap: { sm: 'nowrap', xs: 'wrap' },
+        gap: 6
+      }}
+    >
       <Box>
         {title && (
           <Typography sx={{ color: theme.palette.common.white, fontSize: '1.5rem', fontWeight: '600' }}>
@@ -71,7 +79,9 @@ const HeaderCard = ({
 
         {onAddNew && (
           <Stack direction='row' spacing={2} alignItems='center'>
-            <Typography sx={{ color: theme.palette.customColors.PrimaryContainer, fontSize: '0.875rem' }}>
+            <Typography
+              sx={{ color: theme.palette.customColors.PrimaryContainer, fontSize: '0.875rem', whiteSpace: 'nowrap' }}
+            >
               Add new
             </Typography>
             <IconButton

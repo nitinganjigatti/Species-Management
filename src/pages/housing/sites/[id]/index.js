@@ -72,18 +72,28 @@ const SiteDetails = () => {
       <InsightsCard
         data={data}
         loading={loading}
-        zooName={'Northern Highland Zoological Sanctuary'}
-        subtitle={'Bannerghatta North'}
-        userName={'Jordan Stevenson'}
-        description={'Super Admin'}
-        actions={{
-          onEdit: () => console.log('Edit'),
-          onDelete: () => console.log('Delete'),
-          onAddNew: () => console.log('Add new'),
-          onTimeClick: () => console.log('Time clicked')
+        zooName={data?.site_name}
+        subtitle={data?.site_description}
+        description={data?.incharges[0]?.full_name}
+        userName={data?.incharges[0]?.role_name}
+        userImage={data?.incharges[0]?.user_profile_pic}
+
+        // actions={{
+        //   onEdit: () => console.log('Edit'),
+        //   onDelete: () => console.log('Delete'),
+        //   onAddNew: () => console.log('Add new'),
+        //   onTimeClick: () => console.log('Time clicked')
+        // }}
+        onCallClick={() => {
+          const phoneNumber = data?.incharges?.[0]?.user_mobile_number || '' // Adjust path as needed
+          if (phoneNumber) {
+            // window.location.href = `tel:${phoneNumber}`
+          } else {
+            return
+          }
         }}
-        onCallClick={() => console.log('Call clicked')}
-        onMessageClick={() => console.log('Message clicked')}
+
+        // onMessageClick={() => console.log('Message clicked')}
         error={error}
         speciesCount={data?.species_count}
         animalCount={data?.animal_count}
