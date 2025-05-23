@@ -6,6 +6,7 @@ import sectionReducer from 'src/store/slices/housing/sectionSlice'
 import notesReducer from 'src/store/slices/housing/notesSlice'
 import speciesReducer from 'src/store/slices/housing/speciesSlice'
 import mortalityReducer from 'src/store/slices/housing/mortalitySlice'
+import animalTreatmentReducer from 'src/store/slices/housing/animalTreatmentSlice'
 
 const store = configureStore({
   reducer: {
@@ -15,7 +16,8 @@ const store = configureStore({
     section: sectionReducer,
     notes: notesReducer,
     species: speciesReducer,
-    mortality: mortalityReducer
+    mortality: mortalityReducer,
+    animalTreatment: animalTreatmentReducer
   },
   middleware: getDefaultMiddleware =>
     getDefaultMiddleware({

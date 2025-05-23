@@ -354,7 +354,7 @@ const SpeciesListing = () => {
             setPaginationModel={handlePaginationModelChange}
             handleSortModel={handleSortModelChange}
             loading={loading}
-            searchValue=''
+            searchValue={search}
             maxHeight='60vh'
           />
         </Grid>

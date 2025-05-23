@@ -15,6 +15,7 @@ import { clearSection as resetSectionState } from 'src/store/slices/housing/sect
 import { clearNotes as resetNotesState } from 'src/store/slices/housing/notesSlice'
 import { clearSpecies as resetSpeciesState } from 'src/store/slices/housing/speciesSlice'
 import MortalityListing from 'src/views/pages/housing/mortality/mortalityListing'
+import AnimalTreatmentListing from 'src/views/pages/housing/animalTreatment/AnimalTreatmentListing'
 
 const tabConfig = [
   // { label: 'Sections', value: 'sections', component: SectionListing },
@@ -23,7 +24,8 @@ const tabConfig = [
   { label: 'Sections', value: 'sections', component: SectionListing, resetAction: resetSectionState },
   { label: 'Species', value: 'species', component: SpeciesListing, resetAction: resetSpeciesState },
   { label: 'Notes', value: 'notes', component: NotesListng, resetAction: resetNotesState },
-  { label: 'Mortality', value: 'mortality', component: MortalityListing }
+  { label: 'Mortality', value: 'mortality', component: MortalityListing },
+  {label: 'Animals Under Treatment' , value: 'animalTreatment' , component: AnimalTreatmentListing}
 
   // { label: 'Species', value: 'species', component: Listing },
   // { label: 'Notes', value: 'notes', component: Listing },

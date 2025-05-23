@@ -11,9 +11,9 @@ import { format, formatDistanceToNow } from 'date-fns'
 import { ExportButton } from 'src/views/utility/render-snippets'
 import { debounce } from 'lodash'
 import ListingHeader from '../utils/ListingHeader'
-import { fetchMortality, setParams } from 'src/store/slices/housing/mortalitySlice'
+import { fetchAnimals, setParams } from 'src/store/slices/housing/animalTreatmentSlice'
 
-const MortalityListing = () => {
+const AnimalTreatmentListing = () => {
   const [downloading, setDownloading] = useState(false)
 
   const router = useRouter()
@@ -22,7 +22,7 @@ const MortalityListing = () => {
   const dispatch = useDispatch()
 
   const {
-    list: MortalityList,
+    list: animalTreatmentList,
     loading,
     total,
     page,
@@ -30,19 +30,20 @@ const MortalityListing = () => {
     sortBy,
     sortOrder,
     search
-  } = useSelector(state => state.mortality)
+  } = useSelector(state => state.animalTreatment)
 
   useEffect(() => {
-    console.log('MortalityList', MortalityList)
-  }, [MortalityList])
+    console.log('animalTreatmentList', animalTreatmentList)
+  }, [animalTreatmentList])
 
   // Debounced fetchSpecies call whenever parameters change
   const debouncedFetch = useCallback(
     debounce(() => {
+      debugger
       dispatch(
-        fetchMortality({
-          site_id: id,
-          type: 'animals'
+        fetchAnimals({
+          site_id: id
+          //  type: 'animals'
         })
       )
     }, 500),
@@ -87,7 +88,7 @@ const MortalityListing = () => {
 
   const getSlNo = index => (page - 1) * pageSize + index + 1
 
-  const indexedRows = MortalityList?.map((row, index) => ({
+  const indexedRows = animalTreatmentList?.map((row, index) => ({
     ...row,
     id: row?.animal_id,
     sl_no: getSlNo(index)
@@ -178,6 +179,53 @@ const MortalityListing = () => {
         </Box>
       )
     },
+
+    {
+      width: 160,
+      field: 'sex',
+      headerName: 'Gender',
+      renderCell: params => {
+        const gender = params.row.sex?.toLowerCase()
+
+        // Color styles for each gender value
+        const genderStyles = {
+          male: { bgcolor: '#AFEFEB80', color: '#00AFD6' },
+          female: { bgcolor: '#FA61404D', color: '#FA6140' },
+          undetermined: { bgcolor: '#DAE7DF', color: '#E93353' },
+          indeterminate: { bgcolor: '#DDEBE9', color: '#1F515B' }
+        }
+
+        // Display text mapping
+        const genderLabels = {
+          male: 'M',
+          female: 'F',
+          undetermined: 'UD',
+          indeterminate: 'ID'
+        }
+
+        const style = genderStyles[gender] || genderStyles['indeterminate']
+        const label = genderLabels[gender] || 'ID'
+
+        return (
+          <Box
+            sx={{
+              px: 1.5,
+              py: 0.5,
+              bgcolor: style.bgcolor,
+              color: style.color,
+              fontSize: '14px',
+              fontWeight: 600,
+              display: 'inline-block',
+              textAlign: 'center',
+              minWidth: 40
+            }}
+          >
+            {label}
+          </Box>
+        )
+      }
+    },
+
     {
       width: 250,
       field: 'animal_name',
@@ -189,71 +237,99 @@ const MortalityListing = () => {
 
     {
       width: 250,
-      field: 'reported_on',
-      headerName: 'REPORTED ON',
-      renderCell: params => {
-        const date = new Date(params.row.discovered_date)
-        return (
-          <Box display='flex' flexDirection='column'>
-            <Typography sx={{ fontSize: '14px', color: theme.palette.customColors.OnSurfaceVariant, fontWeight: 500 }}>
-              {params.row.user_enclosure_name}
-            </Typography>
-            <Typography sx={{ fontSize: '14px', color: theme.palette.customColors.OnSurfaceVariant, fontWeight: 400 }}>
-              {format(date, 'dd MMM yyyy • hh:mm a').toUpperCase()}
-            </Typography>
-          </Box>
-        )
-      }
-    },
-
-    {
-      field: 'died_on',
-      headerName: 'DIED ON',
-      width: 250,
-      renderCell: params => {
-        const diedDate = params.row.discovered_date ? new Date(params.row.discovered_date) : null
-
-        return (
-          <Box display='flex' flexDirection='column'>
-            {diedDate && (
-              <>
-                <Typography
-                  sx={{ fontSize: '14px', color: theme.palette.customColors.OnSurfaceVariant, fontWeight: 500 }}
-                >
-                  {formatDistanceToNow(diedDate, { addSuffix: true })}
-                </Typography>
-                <Typography
-                  sx={{ fontSize: '14px', color: theme.palette.customColors.OnSurfaceVariant, fontWeight: 400 }}
-                >
-                  {format(diedDate, 'dd MMM yyyy • hh:mm a').toUpperCase()}
-                </Typography>
-              </>
-            )}
-          </Box>
-        )
-      }
-    },
-
-    {
-      width: 300,
-      field: 'reason',
-      headerName: 'REASON',
+      field: 'section_name',
+      headerName: 'Section Name',
       renderCell: params => (
-        <Typography
-          sx={{
-            fontSize: '16px',
-            fontWeight: 400,
-            color: theme.palette.customColors.OnSurfaceVariant,
-            textOverflow: 'ellipsis',
-            overflow: 'hidden',
-            whiteSpace: 'nowrap',
-            maxWidth: '100%'
-          }}
-        >
-          {params.row.reason_name}
+        <Typography sx={{ fontWeight: 400, fontSize: '16px', color: '#44544A' }}>{params.row.section_name}</Typography>
+      )
+    },
+    {
+      width: 250,
+      field: 'site_name',
+      headerName: 'Site Name',
+      renderCell: params => (
+        <Typography sx={{ fontWeight: 400, fontSize: '16px', color: '#44544A' }}>{params.row.site_name}</Typography>
+      )
+    },
+
+    {
+      width: 250,
+      field: 'user_enclosure_name',
+      headerName: 'Enclosure Name',
+      renderCell: params => (
+        <Typography sx={{ fontWeight: 400, fontSize: '16px', color: '#44544A' }}>
+          {params.row.user_enclosure_name}
         </Typography>
       )
     }
+
+    // {
+    //   width: 250,
+    //   field: 'reported_on',
+    //   headerName: 'REPORTED ON',
+    //   renderCell: params => {
+    //     const date = new Date(params.row.discovered_date)
+    //     return (
+    //       <Box display='flex' flexDirection='column'>
+    //         <Typography sx={{ fontSize: '14px', color: theme.palette.customColors.OnSurfaceVariant, fontWeight: 500 }}>
+    //           {params.row.user_enclosure_name}
+    //         </Typography>
+    //         <Typography sx={{ fontSize: '14px', color: theme.palette.customColors.OnSurfaceVariant, fontWeight: 400 }}>
+    //           {format(date, 'dd MMM yyyy • hh:mm a').toUpperCase()}
+    //         </Typography>
+    //       </Box>
+    //     )
+    //   }
+    // },
+
+    // {
+    //   field: 'died_on',
+    //   headerName: 'DIED ON',
+    //   width: 250,
+    //   renderCell: params => {
+    //     const diedDate = params.row.discovered_date ? new Date(params.row.discovered_date) : null
+
+    //     return (
+    //       <Box display='flex' flexDirection='column'>
+    //         {diedDate && (
+    //           <>
+    //             <Typography
+    //               sx={{ fontSize: '14px', color: theme.palette.customColors.OnSurfaceVariant, fontWeight: 500 }}
+    //             >
+    //               {formatDistanceToNow(diedDate, { addSuffix: true })}
+    //             </Typography>
+    //             <Typography
+    //               sx={{ fontSize: '14px', color: theme.palette.customColors.OnSurfaceVariant, fontWeight: 400 }}
+    //             >
+    //               {format(diedDate, 'dd MMM yyyy • hh:mm a').toUpperCase()}
+    //             </Typography>
+    //           </>
+    //         )}
+    //       </Box>
+    //     )
+    //   }
+    // },
+
+    // {
+    //   width: 300,
+    //   field: 'reason',
+    //   headerName: 'REASON',
+    //   renderCell: params => (
+    //     <Typography
+    //       sx={{
+    //         fontSize: '16px',
+    //         fontWeight: 400,
+    //         color: theme.palette.customColors.OnSurfaceVariant,
+    //         textOverflow: 'ellipsis',
+    //         overflow: 'hidden',
+    //         whiteSpace: 'nowrap',
+    //         maxWidth: '100%'
+    //       }}
+    //     >
+    //       {params.row.reason_name}
+    //     </Typography>
+    //   )
+    // }
   ]
 
   return (
@@ -293,4 +369,4 @@ const MortalityListing = () => {
   )
 }
 
-export default MortalityListing
+export default AnimalTreatmentListing
