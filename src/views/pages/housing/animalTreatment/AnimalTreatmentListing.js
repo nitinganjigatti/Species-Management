@@ -334,7 +334,7 @@ const AnimalTreatmentListing = () => {
 
   return (
     <>
-      <ListingHeader title='Mortality' totalCount={total} />
+      <ListingHeader title='All Species' totalCount={total} />
       <Box>
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 4 }}>
           <Search
