@@ -29,7 +29,8 @@ import {
   IconButton,
   Typography,
   Card,
-  CardHeader
+  CardHeader,
+  Chip
 } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import { LoadingButton } from '@mui/lab'
@@ -69,6 +70,7 @@ import {
   getLabListByMultipleIds
 } from 'src/lib/api/lab/getLabRequest'
 import AttachmentSheet from 'src/views/pages/lab/AttachmentSheet'
+import { borderRadius, height, width } from '@mui/system'
 
 const RequestDetails = () => {
   const theme = useTheme()
@@ -159,6 +161,7 @@ const RequestDetails = () => {
   const [statusList, setStatusList] = useState([])
   const [filteredStatusData, setFilteredStatusData] = useState([])
   const [shouldShowBulkStatus, setShouldShowBulkStatus] = useState(false)
+  const [selectedSample, setSelectedSample] = useState(false)
 
   useEffect(() => {
     const labObject = localLabData?.find(item => item?.lab_id === lab_id)
@@ -195,13 +198,31 @@ const RequestDetails = () => {
     postMultipleStatus(testIds, value)
   }
 
+  const getAllRequestDetails = useCallback(async id => {
+    try {
+      const response = await GetRequestPopUp(id)
+      if (response.success) {
+        return response?.data?.request[0]
+      } else {
+        return null
+      }
+    } catch (error) {
+      console.log('Error:', error)
+    }
+  }, [])
+
   const handleClickOpen = async item => {
     const id = item?.request_id
+    setSelectedSample([])
+    setRequestById(null)
     setOpen(true)
     try {
-      const response = await GetRequestPopUp(id).then(res => {
-        setRequestById(res?.data?.request[0])
-      })
+      let data = await getAllRequestDetails(id)
+      debugger
+      data[0]['total_no_test'] = data[0]?.test_count
+      data[0]['created_by'] = data[0]?.user_first_name
+
+      setRequestById(data)
       setOpen(true)
     } catch (error) {
       console.log('Error:', error)
@@ -259,6 +280,16 @@ const RequestDetails = () => {
     }
   }, [statusList])
 
+  const matchSample = useCallback((sampleName, labName) => {
+    if (requestById?.length > 0) {
+      const result = requestById[0]?.test_reports.some(
+        (item, index) => sampleName === item?.sample_name && labName != item?.lab_name
+      )
+
+      return result
+    }
+  })
+
   const fetchRequestDetails = useCallback(async (sort, q) => {
     try {
       setLoading(true)
@@ -268,6 +299,14 @@ const RequestDetails = () => {
         q,
         sort
       }
+
+      let allRequestedItems = await getAllRequestDetails(id)
+      if (allRequestedItems) {
+        allRequestedItems[0]['total_no_test'] = allRequestedItems?.test_count
+        allRequestedItems[0]['created_by'] = allRequestedItems?.user_first_name
+      }
+
+      setRequestById(allRequestedItems)
 
       const response = await GetRequestDetails(id, { params })
       const requestData = response?.data?.result || []
@@ -492,7 +531,33 @@ const RequestDetails = () => {
       headerName: 'Sample',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary', textTransform: 'capitalize' }}>
-          <span alt={params?.row.sample_name}>{params.row.sample_name}</span>
+          {matchSample(params?.row.sample_name, params?.row?.lab_name) && (
+            <span
+              style={{
+                width: '8px',
+                height: '8px',
+                borderRadius: '50%',
+                backgroundColor: 'red',
+                display: 'inline-block',
+                verticalAlign: 'middle',
+                marginRight: '8px'
+              }}
+            ></span>
+          )}
+          <span style={{ display: 'inline-block', verticalAlign: 'middle' }} alt={params?.row.sample_name}>
+            {params.row.sample_name}
+          </span>
+          {params.row.is_special_sample == 1 && (
+            <span>
+              <Chip
+                sx={{ ml: '6px', fontSize: '12px' }}
+                size='small'
+                variant='outlined'
+                label='Special'
+                color='success'
+              />
+            </span>
+          )}
         </Typography>
       )
     },
@@ -988,6 +1053,235 @@ const RequestDetails = () => {
     }
   }
 
+  const HeaderCard = ({ item, handleClickOpen }) => {
+    debugger
+    if (!item) return null
+
+    return (
+      <Box>
+        {/* Top row with optional back button */}
+        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+          {/*
+          <IconButton
+            sx={{ mr: 1 }}
+            onClick={() => router.push({ pathname: '/lab/request' })}
+          >
+            <Icon icon='ep:back' fontSize={25} />
+          </IconButton>
+          */}
+          <Typography variant='h6'>
+            Request ID -{' '}
+            <span
+              onClick={() => handleClickOpen(item)}
+              style={{
+                fontSize: '20px',
+                fontWeight: 'bold',
+                cursor: 'pointer',
+                color: theme.palette.primary.main
+              }}
+            >
+              {item.request_id}
+            </span>
+          </Typography>
+        </Box>
+
+        {/* Request details */}
+        <Box sx={{ display: 'flex', flexDirection: 'column', flexWrap: 'wrap' }}>
+          <Typography>
+            Medical Record :{' '}
+            <span
+              style={{
+                fontSize: '15px',
+                fontWeight: 'bold',
+                color: theme.palette.customColors.secondaryBg
+              }}
+            >
+              {item.medical_record_code}
+            </span>
+          </Typography>
+        </Box>
+
+        <Box sx={{ display: 'flex', flexDirection: 'column', flexWrap: 'wrap' }}>
+          <Typography>
+            Requested By :{' '}
+            <span
+              style={{
+                fontSize: '15px',
+                fontWeight: 'bold',
+                color: theme.palette.customColors.secondaryBg
+              }}
+            >
+              {item.created_by}
+            </span>
+          </Typography>
+        </Box>
+
+        <Typography>Requested On : {moment(item.created_at).format('DD MMM YYYY')}</Typography>
+
+        <Typography>
+          Site :{' '}
+          <span
+            style={{
+              fontSize: '15px',
+              fontWeight: 'bold',
+              color: theme.palette.customColors.secondaryBg
+            }}
+          >
+            {item.site_name}
+          </span>
+        </Typography>
+
+        <Typography>
+          No. of Tests : <span style={{ fontSize: '15px', fontWeight: 'bold' }}>{item.total_no_test}</span>
+        </Typography>
+      </Box>
+    )
+  }
+
+  const onCellClick = params => {
+    debugger
+    if (params.field === 'sample_name') {
+      const result = matchSample(params.formattedValue, params.row.lab_name)
+      if (result) {
+        setOpen(true)
+        setSelectedSample([params.formattedValue, params.row.lab_name])
+      }
+    }
+    console.log(params)
+  }
+
+  const TestListPopup = ({ open, handleClose, requestById, selectedSample }) => {
+    var testList = requestById
+
+    if (selectedSample.length > 0) {
+      const filteredTest = requestById[0]?.test_reports.filter((item, index) => selectedSample[0] === item?.sample_name)
+      testList[0]['test_reports'] = filteredTest
+      testList[0]['total_no_test'] = filteredTest.length
+      testList[0]['created_by'] = testList[0].user_first_name
+      debugger
+      console.log(testList)
+    }
+
+    return (
+      <>
+        {/* Open PopUp On Clicking Request Id */}
+        <Dialog open={open} onClose={handleClose} maxWidth='md' fullWidth>
+          <Box
+            sx={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              px: 2,
+              py: 3,
+              bgcolor: theme.palette.customColors.displaybgPrimary
+            }}
+          >
+            <Typography variant='h6' sx={{ ml: 3 }}>
+              Tests list
+            </Typography>
+            <IconButton onClick={handleClose}>
+              <Icon icon='ep:close-bold' fontSize={20} color={'red'} />
+            </IconButton>
+          </Box>
+          {testList?.map((item, index) => (
+            <Box key={index} sx={{ p: 2, minWidth: 600, m: 4 }}>
+              <HeaderCard item={item} />
+
+              {/* <Box ml={3}>
+              <Typography variant='h6'>
+                Request -{' '}
+                <span style={{ color: theme.palette.primary.main, fontWeight: 'bold' }}>{item.request_id}</span>
+              </Typography>
+              <Typography>{Utility.formatDate(item.created_at)}</Typography>
+              <Typography>
+                Site - <span style={{ fontSize: '15px', fontWeight: 'bold' }}>{item.site_name}</span>
+              </Typography>
+            </Box> */}
+              {/* <Box sx={{ display: 'flex', justifyContent: 'space-between', ml: 3, mr: 3 }}>
+              <Box gap={4} sx={{ display: 'flex', alignItems: 'center' }}>
+                <Typography>
+                  No. of Tests : <span style={{ fontWeight: 'bold' }}>{item?.test_count}</span>
+                </Typography>
+
+              </Box>
+              <Typography>
+                Request By - <span style={{ fontWeight: 'bold' }}>{item?.user_first_name}</span>
+              </Typography>
+            </Box> */}
+
+              <Box mt={2}>
+                <TableContainer component={Paper} style={{ maxHeight: 400, overflow: 'auto' }}>
+                  <Table>
+                    <TableHead>
+                      <TableRow sx={{ bgcolor: theme.palette.customColors.displaybgPrimary }}>
+                        <TableCell>Test Name</TableCell>
+                        <TableCell>Sample Name</TableCell>
+                        <TableCell>Lab Name</TableCell>
+                        <TableCell>Status</TableCell>
+                      </TableRow>
+                    </TableHead>
+                    <TableBody>
+                      {item?.test_reports?.map((data, dataID) => (
+                        <TableRow key={dataID}>
+                          <TableCell sx={{ textTransform: 'capitalize' }}>{data?.test_name}</TableCell>
+                          <TableCell sx={{ textTransform: 'capitalize' }}>{data?.sample_name}</TableCell>
+                          <TableCell sx={{ textTransform: 'capitalize' }}>{data?.lab_name}</TableCell>
+                          <TableCell>
+                            <Typography variant='body2' sx={{ color: 'text.primary', textTransform: 'capitalize' }}>
+                              <span
+                                alt={data?.status}
+                                style={{
+                                  color:
+                                    data?.status === 'pending' ||
+                                    data?.status === 'transferred' ||
+                                    data?.status === 'awaiting_sample' ||
+                                    data?.status === 'sample_rejected'
+                                      ? theme.palette.customColors.customDropdownColor
+                                      : data?.status === 'completed'
+                                      ? theme.palette.primary.main
+                                      : data?.status === 'inprogress'
+                                      ? theme.palette.customColors.moderateSecondary
+                                      : data?.status === 'sample_received'
+                                      ? theme.palette.primary.main
+                                      : theme.palette.primary.main
+                                }}
+                              >
+                                {data?.status === 'awaiting_sample'
+                                  ? 'Awaiting sample'
+                                  : data?.status === 'sample_received'
+                                  ? 'Sample received'
+                                  : data?.status === 'sample_rejected'
+                                  ? 'sample rejected'
+                                  : data?.status === 'completed_positive'
+                                  ? 'completed positive'
+                                  : data?.status === 'completed_negative'
+                                  ? 'completed negative'
+                                  : data?.status === 'completed_detected'
+                                  ? 'completed detected'
+                                  : data?.status === 'completed_not_detected'
+                                  ? 'completed not detected'
+                                  : data?.status === 'completed_inconclusive'
+                                  ? 'completed inconclusive'
+                                  : data?.status === 'completed'
+                                  ? 'Completed'
+                                  : data?.status === 'completed_insufficient_samples'
+                                  ? 'Completed - Insufficient Samples'
+                                  : 'In Progress'}
+                              </span>
+                            </Typography>
+                          </TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </TableContainer>
+              </Box>
+            </Box>
+          ))}
+        </Dialog>
+      </>
+    )
+  }
+
   return (
     <>
       {loader ? (
@@ -1020,75 +1314,7 @@ const RequestDetails = () => {
             {request?.map((item, index) => (
               <>
                 <Box sx={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap' }}>
-                  <Box>
-                    <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                      {/* {' '}
-                      <IconButton
-                        sx={{ mr: 1 }}
-                        onClick={() =>
-                          router.push({
-                            pathname: '/lab/request'
-                          })
-                        }
-                      >
-                        <Icon icon='ep:back' fontSize={25} />
-                      </IconButton> */}
-                      <Typography variant='h6'>
-                        Request ID -{' '}
-                        <span
-                          onClick={() => handleClickOpen(item)}
-                          style={{
-                            fontSize: '20px',
-                            fontWeight: 'bold',
-                            cursor: 'pointer',
-                            color: theme.palette.primary.main
-                          }}
-                        >
-                          {item?.request_id}
-                        </span>
-                      </Typography>
-                    </Box>
-                    <Box sx={{ display: 'flex', flexDirection: 'column', flexWrap: 'wrap' }}>
-                      <Typography>
-                        Medical Record :{' '}
-                        <span
-                          style={{
-                            fontSize: '15px',
-                            fontWeight: 'bold',
-                            color: theme.palette.customColors.secondaryBg
-                          }}
-                        >
-                          {item?.medical_record_code}
-                        </span>
-                      </Typography>
-                    </Box>
-                    <Box sx={{ display: 'flex', flexDirection: 'column', flexWrap: 'wrap' }}>
-                      <Typography>
-                        Requested By :{' '}
-                        <span
-                          style={{
-                            fontSize: '15px',
-                            fontWeight: 'bold',
-                            color: theme.palette.customColors.secondaryBg
-                          }}
-                        >
-                          {item?.created_by}
-                        </span>
-                      </Typography>
-                    </Box>
-                    <Typography>Requested On : {moment(item?.created_at).format('DD MMM YYYY')}</Typography>
-                    <Typography>
-                      Site :{' '}
-                      <span
-                        style={{ fontSize: '15px', fontWeight: 'bold', color: theme.palette.customColors.secondaryBg }}
-                      >
-                        {item?.site_name}
-                      </span>
-                    </Typography>
-                    <Typography>
-                      No. of Tests : <span style={{ fontSize: '15px', fontWeight: 'bold' }}>{item?.total_no_test}</span>
-                    </Typography>
-                  </Box>
+                  <HeaderCard key={index} item={item} handleClickOpen={handleClickOpen} />
 
                   <Box
                     sx={{
@@ -1281,6 +1507,7 @@ const RequestDetails = () => {
                 permissions?.perform_tests || permissions?.allow_full_access || permissions?.transfer_tests
               }
               onRowSelectionModelChange={handleRowSelection}
+              onCellClick={onCellClick}
               isRowSelectable={params => {
                 if (
                   (permissions?.view &&
@@ -1462,122 +1689,12 @@ const RequestDetails = () => {
         </Box>
       </Card>
 
-      <>
-        {/* Open PopUp On Clicking Request Id */}
-        <Dialog open={open} onClose={handleClose} maxWidth='md' fullWidth>
-          <Box
-            sx={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              px: 2,
-              py: 3,
-              bgcolor: theme.palette.customColors.displaybgPrimary
-            }}
-          >
-            <Typography variant='h6' sx={{ ml: 3 }}>
-              Tests list
-            </Typography>
-            <IconButton onClick={handleClose}>
-              <Icon icon='ep:close-bold' fontSize={20} color={'red'} />
-            </IconButton>
-          </Box>
-          {requestById?.map((item, index) => (
-            <Box key={index} sx={{ p: 2, minWidth: 600, m: 4 }}>
-              <Box ml={3}>
-                <Typography variant='h6'>
-                  Request -{' '}
-                  <span style={{ color: theme.palette.primary.main, fontWeight: 'bold' }}>{item.request_id}</span>
-                </Typography>
-                <Typography>{Utility.formatDate(item.created_at)}</Typography>
-                <Typography>
-                  Site - <span style={{ fontSize: '15px', fontWeight: 'bold' }}>{item.site_name}</span>
-                </Typography>
-              </Box>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', ml: 3, mr: 3 }}>
-                <Box gap={4} sx={{ display: 'flex', alignItems: 'center' }}>
-                  <Typography>
-                    No. of Tests : <span style={{ fontWeight: 'bold' }}>{item?.test_count}</span>
-                  </Typography>
-                  {/* <Typography>
-                    No. of Samples : <span style={{ fontWeight: 'bold' }}>{item?.sample_count}</span>
-                  </Typography> */}
-                </Box>
-                <Typography>
-                  Request By - <span style={{ fontWeight: 'bold' }}>{item?.user_first_name}</span>
-                </Typography>
-              </Box>
-
-              <Box mt={2}>
-                <TableContainer component={Paper} style={{ maxHeight: 400, overflow: 'auto' }}>
-                  <Table>
-                    <TableHead>
-                      <TableRow sx={{ bgcolor: theme.palette.customColors.displaybgPrimary }}>
-                        <TableCell>Test Name</TableCell>
-                        <TableCell>Sample Name</TableCell>
-                        <TableCell>Lab Name</TableCell>
-                        <TableCell>Status</TableCell>
-                      </TableRow>
-                    </TableHead>
-                    <TableBody>
-                      {item?.test_reports?.map((data, dataID) => (
-                        <TableRow key={dataID}>
-                          <TableCell sx={{ textTransform: 'capitalize' }}>{data?.test_name}</TableCell>
-                          <TableCell sx={{ textTransform: 'capitalize' }}>{data?.sample_name}</TableCell>
-                          <TableCell sx={{ textTransform: 'capitalize' }}>{data?.lab_name}</TableCell>
-                          <TableCell>
-                            <Typography variant='body2' sx={{ color: 'text.primary', textTransform: 'capitalize' }}>
-                              <span
-                                alt={data?.status}
-                                style={{
-                                  color:
-                                    data?.status === 'pending' ||
-                                    data?.status === 'transferred' ||
-                                    data?.status === 'awaiting_sample' ||
-                                    data?.status === 'sample_rejected'
-                                      ? theme.palette.customColors.customDropdownColor
-                                      : data?.status === 'completed'
-                                      ? theme.palette.primary.main
-                                      : data?.status === 'inprogress'
-                                      ? theme.palette.customColors.moderateSecondary
-                                      : data?.status === 'sample_received'
-                                      ? theme.palette.primary.main
-                                      : theme.palette.primary.main
-                                }}
-                              >
-                                {data?.status === 'awaiting_sample'
-                                  ? 'Awaiting sample'
-                                  : data?.status === 'sample_received'
-                                  ? 'Sample received'
-                                  : data?.status === 'sample_rejected'
-                                  ? 'sample rejected'
-                                  : data?.status === 'completed_positive'
-                                  ? 'completed positive'
-                                  : data?.status === 'completed_negative'
-                                  ? 'completed negative'
-                                  : data?.status === 'completed_detected'
-                                  ? 'completed detected'
-                                  : data?.status === 'completed_not_detected'
-                                  ? 'completed not detected'
-                                  : data?.status === 'completed_inconclusive'
-                                  ? 'completed inconclusive'
-                                  : data?.status === 'completed'
-                                  ? 'Completed'
-                                  : data?.status === 'completed_insufficient_samples'
-                                  ? 'Completed - Insufficient Samples'
-                                  : 'In Progress'}
-                              </span>
-                            </Typography>
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </TableContainer>
-              </Box>
-            </Box>
-          ))}
-        </Dialog>
-      </>
+      <TestListPopup
+        open={open}
+        handleClose={handleClose}
+        requestById={requestById}
+        selectedSample={selectedSample}
+      ></TestListPopup>
 
       <>
         <Dialog

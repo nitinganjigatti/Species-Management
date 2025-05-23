@@ -1429,7 +1429,7 @@ const AddLab = () => {
                                                   }}
                                                   alt='image'
                                                   src={
-                                                    img.startsWith('data:image/') || img.startsWith('https://')
+                                                    img?.startsWith('data:image/') || img?.startsWith('https://')
                                                       ? img
                                                       : '/icons/document_icon.png'
                                                   }
