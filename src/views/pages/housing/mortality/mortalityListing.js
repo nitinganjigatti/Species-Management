@@ -52,7 +52,7 @@ const MortalityListing = () => {
     if (id) debouncedFetch()
 
     return () => debouncedFetch.cancel()
-  }, [debouncedFetch, id])
+  }, [debouncedFetch, id, page])
 
   const handlePaginationModelChange = model => {
     const newPage = model.page + 1
@@ -366,7 +366,7 @@ const MortalityListing = () => {
               </Avatar>
             )}
             <Box display='flex' flexDirection='column' overflow='hidden'>
-              <Typography noWrap sx={{ fontWeight: 500, fontSize: '16px',color:"#44544A" }}>
+              <Typography noWrap sx={{ fontWeight: 500, fontSize: '16px', color: '#44544A' }}>
                 {params.row.common_name}
               </Typography>
               <Typography
@@ -401,7 +401,9 @@ const MortalityListing = () => {
       width: 200,
       field: 'animal_name',
       headerName: 'ANIMAL NAME',
-      renderCell: params => <Typography sx={{ fontWeight: 500, fontSize: '15px' }}>{params.row.common_name}</Typography>
+      renderCell: params => (
+        <Typography sx={{ fontWeight: 400, fontSize: '16px', color: '#44544A' }}>{params.row.common_name}</Typography>
+      )
     },
     {
       width: 220,
