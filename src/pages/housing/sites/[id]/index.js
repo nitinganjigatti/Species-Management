@@ -23,7 +23,7 @@ const tabConfig = [
 
   { label: 'Sections', value: 'sections', component: SectionListing, resetAction: resetSectionState },
   { label: 'Species', value: 'species', component: SpeciesListing, resetAction: resetSpeciesState },
-  { label: 'Notes', value: 'notes', component: NotesListng, resetAction: resetNotesState },
+  // { label: 'Notes', value: 'notes', component: NotesListng, resetAction: resetNotesState },
   { label: 'Mortality', value: 'mortality', component: MortalityListing },
   {label: 'Animals Under Treatment' , value: 'animalTreatment' , component: AnimalTreatmentListing}
 
