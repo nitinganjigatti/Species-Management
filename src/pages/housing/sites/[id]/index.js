@@ -14,8 +14,12 @@ import SpeciesListing from 'src/views/pages/housing/species/speciesListing'
 import { clearSection as resetSectionState } from 'src/store/slices/housing/sectionSlice'
 import { clearNotes as resetNotesState } from 'src/store/slices/housing/notesSlice'
 import { clearSpecies as resetSpeciesState } from 'src/store/slices/housing/speciesSlice'
+import { clearMedia as resetMediaState } from 'src/store/slices/housing/mediaSlice'
+import { clearMortality as resetMortalityState } from 'src/store/slices/housing/mortalitySlice'
+import { clearAnimalTreatment as resetAnimalTreatmentState } from 'src/store/slices/housing/mortalitySlice'
 import MortalityListing from 'src/views/pages/housing/mortality/mortalityListing'
 import AnimalTreatmentListing from 'src/views/pages/housing/animalTreatment/AnimalTreatmentListing'
+import MediaListing from 'src/components/housing/MediaListing'
 
 const tabConfig = [
   // { label: 'Sections', value: 'sections', component: SectionListing },
@@ -24,8 +28,9 @@ const tabConfig = [
   { label: 'Sections', value: 'sections', component: SectionListing, resetAction: resetSectionState },
   { label: 'Species', value: 'species', component: SpeciesListing, resetAction: resetSpeciesState },
   { label: 'Notes', value: 'notes', component: NotesListng, resetAction: resetNotesState },
-  { label: 'Mortality', value: 'mortality', component: MortalityListing },
-  {label: 'Animals Under Treatment' , value: 'animalTreatment' , component: AnimalTreatmentListing}
+  { label: 'Media', value: 'media', component: MediaListing, resetAction: resetMediaState },
+  { label: 'Mortality', value: 'mortality', component: MortalityListing, resetAction: resetMortalityState },
+  {label: 'Animals Under Treatment' , value: 'animalTreatment' , component: AnimalTreatmentListing, resetAction: resetAnimalTreatmentState},
 
   // { label: 'Species', value: 'species', component: Listing },
   // { label: 'Notes', value: 'notes', component: Listing },
@@ -87,6 +92,7 @@ const SiteDetails = () => {
         description={data?.incharges[0]?.full_name}
         userName={data?.incharges[0]?.role_name}
         userImage={data?.incharges[0]?.user_profile_pic}
+
         // actions={{
         //   onEdit: () => console.log('Edit'),
         //   onDelete: () => console.log('Delete'),
@@ -101,6 +107,7 @@ const SiteDetails = () => {
             return
           }
         }}
+
         // onMessageClick={() => console.log('Message clicked')}
         error={error}
         speciesCount={data?.species_count || 0}
@@ -110,12 +117,14 @@ const SiteDetails = () => {
       />
 
       {/* Tabs */}
-      <Card sx={{ borderBottom: 1, borderColor: 'divider', mt: 6, p: { xs: 3, md: 5 } }}>
-        <Tabs value={selectedTab} onChange={handleTabChange} variant='scrollable' scrollButtons='auto'>
-          {tabConfig.map(tab => (
-            <Tab key={tab.value} label={tab.label} value={tab.value} />
-          ))}
-        </Tabs>
+      <Card sx={{ mt: 6, p: { xs: 3, md: 5 } }}>
+        <Box sx={{ borderBottom: 1, borderColor: 'divider' }}>
+          <Tabs value={selectedTab} onChange={handleTabChange} variant='scrollable' scrollButtons='auto'>
+            {tabConfig.map(tab => (
+              <Tab key={tab.value} label={tab.label} value={tab.value} />
+            ))}
+          </Tabs>
+        </Box>
 
         {/* Selected Tab Content */}
         <Box>

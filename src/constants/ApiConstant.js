@@ -507,3 +507,5 @@ export const GET_ALL_SPECIES = 'v1/species/listing'
 export const GET_MORTALITY = 'animal/get-mortality-listing-type-wise'
 
 export const GET_ANIMAL_TREATMENT = 'site-wise-animal-medical-data'
+
+export const GET_MEDIA = 'zoos/all-type-media-list'
