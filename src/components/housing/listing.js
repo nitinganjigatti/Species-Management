@@ -209,16 +209,12 @@ const Listing = ({ title }) => {
       headerAlign: 'left',
       renderCell: params => (
         <Box display='flex' alignItems='center' width='100%'>
-          <UserInfoCard />
-          <Typography
-            sx={{
-              color: theme.palette.customColors.OnSurfaceVariant,
-              fontSize: '14px',
-              fontWeight: 500
-            }}
-          >
-            {params.row.incharge_name || 'NA'}
-          </Typography>
+          <UserInfoCard
+            avatarUrl={params.row.incharge_image}
+            name={params.row.incharge_name}
+            textColor={theme.palette.customColors.OnSurfaceVariant}
+            fontWeight={500}
+          />
         </Box>
       )
     },
