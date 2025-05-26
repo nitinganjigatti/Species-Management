@@ -21,7 +21,7 @@ const UploadReports = ({
   type,
   id,
   handleCloseUploader,
-  setAlertDefaults,
+  restrictExecutiveFiles = [false],
   handleClosePopover,
   fetchRequestDetails,
   buttonText
@@ -84,19 +84,20 @@ const UploadReports = ({
       '*/*': []
     },
     onDrop: acceptedFiles => {
-      const reader = new FileReader()
-      const files = acceptedFiles
-      if (files && files.length !== 0) {
-        reader.onload = () => {
-          setImgSrc(pre => [...pre, reader?.result])
-        }
-        setDisplayFile(files[0]?.name)
-        reader?.readAsDataURL(files[0])
-        setImgArr(pre => [...pre, files[0]])
-        setValue('image', files)
+      const newImgArr = []
 
-        clearErrors('image')
-      }
+      acceptedFiles.forEach(file => {
+        const reader = new FileReader()
+        reader.onload = () => {
+          setImgSrc(prev => [...prev, reader.result])
+        }
+        reader.readAsDataURL(file)
+        newImgArr.push(file)
+      })
+
+      setImgArr(prev => [...prev, ...newImgArr])
+      setValue('image', newImgArr)
+      clearErrors('image')
     }
   })
 
@@ -104,20 +105,103 @@ const UploadReports = ({
     fileInputRef?.current?.click()
   }
 
-  const handleInputImageChange = file => {
-    const reader = new FileReader()
-    const { files } = file.target
-    // console.log('files :>> ', files)
-    if (files && files.length !== 0) {
-      reader.onload = () => {
-        setImgSrc(pre => [...pre, reader?.result])
-      }
-      setDisplayFile(files[0]?.name)
-      reader?.readAsDataURL(files[0])
-      setImgArr(pre => [...pre, files[0]])
-      setValue('image', files)
-      clearErrors('image')
+  const allowedTypes = [
+    'image/png',
+    'image/jpeg', // PNG, JPG
+    'application/pdf', // PDF
+    'application/msword', // DOC
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document', // DOCX
+    'application/vnd.ms-excel', // XLS
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', // XLSX
+    'text/csv' // CSV
+  ]
+
+  // const handleInputImageChange = event => {
+  //   const { files } = event.target
+
+  //   const newImgArr = []
+
+  //   Array.from(files).forEach(file => {
+  //     const reader = new FileReader()
+  //     reader.onload = () => {
+  //       setImgSrc(prev => [...prev, reader.result])
+  //     }
+  //     reader.readAsDataURL(file)
+  //     newImgArr.push(file)
+  //   })
+
+  //   setImgArr(prev => [...prev, ...newImgArr])
+  //   setValue('image', newImgArr)
+  //   clearErrors('image')
+  // }
+
+  // const handleInputImageChange = event => {
+  //   const { files } = event.target
+
+  //   const newFileArr = []
+  //   const allowedTypes = [
+  //     'image/png',
+  //     'image/jpeg', // PNG, JPG
+  //     'application/pdf', // PDF
+  //     'application/msword', // DOC
+  //     'application/vnd.openxmlformats-officedocument.wordprocessingml.document', // DOCX
+  //     'application/vnd.ms-excel', // XLS
+  //     'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet', // XLSX
+  //     'text/csv' // CSV
+  //   ]
+
+  //   Array.from(files).forEach(file => {
+  //     if (!allowedTypes.includes(file.type)) {
+  //       Toaster({ type: 'error', message: 'Please select a valid file.' })
+  //       return
+  //     }
+
+  //     const reader = new FileReader()
+  //     reader.onload = () => {
+  //       setImgSrc(prev => [...prev, reader.result])
+  //     }
+  //     reader.readAsDataURL(file)
+  //     newFileArr.push(file)
+  //   })
+
+  //   setImgArr(prev => [...prev, ...newFileArr])
+  //   setValue('image', newFileArr)
+  //   clearErrors('image')
+  // }
+
+  const handleInputImageChange = event => {
+    const { files } = event.target
+    if (!files) return
+    const newFileArr = []
+
+    if (restrictExecutiveFiles) {
+      Array.from(files).forEach(file => {
+        if (!allowedTypes.includes(file.type)) {
+          Toaster({ type: 'error', message: 'Executive files are not valid.' })
+          return
+        }
+
+        const reader = new FileReader()
+        reader.onload = () => {
+          setImgSrc(prev => [...prev, reader.result])
+        }
+        reader.readAsDataURL(file)
+        newFileArr.push(file)
+      })
+    } else {
+      Array.from(files).forEach(file => {
+        const reader = new FileReader()
+        reader.onload = () => {
+          setImgSrc(prev => [...prev, reader.result])
+        }
+        reader.readAsDataURL(file)
+        newFileArr.push(file)
+      })
     }
+
+    setImgArr(prev => [...prev, ...newFileArr])
+    setValue('image', newFileArr)
+    clearErrors('image')
   }
 
   // const removeSelectedImage = index => {
@@ -159,7 +243,6 @@ const UploadReports = ({
     if (!imgArr?.length) {
       Toaster({ type: 'error', message: 'File is Required' })
 
-      // setAlertDefaults({ status: true, message: 'Upload File is Required', severity: 'error' })
       setSubmitting(false)
     } else {
       const payload = {
@@ -183,14 +266,13 @@ const UploadReports = ({
           reset()
           setImgArr([])
 
-          // setAlertDefaults({ status: true, message: response?.message, severity: 'success' })
           Toaster({ type: 'success', message: response.message })
 
           fetchRequestDetails()
           setKey(key + 1)
         } else {
           reset(defaultValues)
-          // setAlertDefaults({ status: true, message: response?.message, severity: 'error' })
+
           Toaster({ type: 'error', message: response.message })
         }
         // Reset the form after successful submission
@@ -225,8 +307,10 @@ const UploadReports = ({
               <Grid item md={12} sm={12} xs={12}>
                 <Box sx={{ display: 'flex', alignItems: 'center', width: 'auto', flexWrap: 'wrap' }}>
                   <input
+                    multiple
                     type='file'
-                    accept='*/*'
+                    // accept='*/*'
+                    accept={allowedTypes}
                     onChange={e => handleInputImageChange(e)}
                     style={{ display: 'none' }}
                     name='image'
@@ -242,7 +326,7 @@ const UploadReports = ({
                       gap: 7,
                       height: 60,
                       borderRadius: '8px',
-                      border: `2px dotted #D8D8DD`,
+                      border: `2px dotted ${theme.palette.customColors.OutlineSecondary}`,
                       padding: 3,
                       width: '414px',
                       flexWrap: 'wrap'
@@ -251,19 +335,22 @@ const UploadReports = ({
                     <Image alt={'filename'} src={imageUploader} width={32} height={32} />
                     <Typography>Drop your lab files here</Typography>
                   </Box>
-
-                  {imgArr?.length > 0 && (
-                    <Box sx={{ marginLeft: 'auto', paddingRight: 2 }}>
-                      <LoadingButton loading={submitting} onClick={handleSubmitData} type='submit' variant='contained'>
-                        {buttonText || 'Upload'}
-                      </LoadingButton>
-                    </Box>
-                  )}
                 </Box>
               </Grid>
               {/* )} */}
               <Grid item md={12} sm={12} xs={12} sx={{ display: 'flex', justifyContent: 'flex-start' }}>
-                <Stack direction='row' sx={{ px: 2, display: 'flex', flexWrap: 'wrap', gap: 3 }}>
+                <Stack
+                  direction='row'
+                  sx={{
+                    width: '100%',
+                    px: 2,
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'flex-end',
+                    flexWrap: 'wrap',
+                    gap: 3
+                  }}
+                >
                   {imgSrc?.length > 0 &&
                     imgSrc?.map((img, index) => (
                       <Box key={index} sx={{ display: 'flex', mt: 3 }}>
@@ -301,7 +388,7 @@ const UploadReports = ({
                           >
                             <Icon
                               icon='material-symbols-light:close'
-                              color='#fff'
+                              color={theme.palette.primary.contrastText}
                               onClick={() => removeSelectedImage(index)}
                             >
                               {' '}
@@ -310,6 +397,13 @@ const UploadReports = ({
                         </Box>
                       </Box>
                     ))}
+                  {imgArr?.length > 0 && (
+                    <Box sx={{ marginLeft: 'auto', paddingRight: 2 }}>
+                      <LoadingButton loading={submitting} onClick={handleSubmitData} type='submit' variant='contained'>
+                        {buttonText || 'Upload'}
+                      </LoadingButton>
+                    </Box>
+                  )}
                 </Stack>
               </Grid>
             </Grid>

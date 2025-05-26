@@ -13,19 +13,17 @@ import {
   MenuItem,
   Button
 } from '@mui/material'
-import { DataGrid } from '@mui/x-data-grid'
 import Router, { useRouter } from 'next/router'
 import React, { useCallback, useEffect, useState, useRef } from 'react'
 
 // ** Icon Imports
-import { getDispenseList } from 'src/lib/api/pharmacy/dispenseProduct'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import Error404 from 'src/pages/404'
 import Utility from 'src/utility'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import { Icon } from '@iconify/react'
 import { useTheme } from '@emotion/react'
-import FilterListIcon from '@mui/icons-material/FilterList'
+import { getPurchaseBatchDetailsList } from 'src/lib/api/pharmacy/getMedicineList'
 
 function PurchaseDetails() {
   const router = useRouter()
@@ -33,36 +31,17 @@ function PurchaseDetails() {
   const [loading, setLoading] = useState(false)
   const [sort, setSort] = useState(router.query.sort || 'desc')
 
-  const [rows, setRows] = useState([
-    {
-      sl_no: '1',
-      batch_no: 'BAT-001',
-      expiry_date: '23 Jan 2024',
-      quantity: 20,
-      unit_price: 300,
-      product_price: 3000,
-      action: 'EDIT'
-    },
-    {
-      sl_no: '2',
-      batch_no: 'BAT-033',
-      expiry_date: '23 Jan 2024',
-      quantity: 20,
-      unit_price: 300,
-      product_price: 3000,
-      action: 'EDIT'
-    }
-  ])
+  const [rows, setRows] = useState([])
   const [searchValue, setSearchValue] = useState(router.query.searchValue || '')
   const [sortColumn, setSortColumn] = useState(router.query.column || 'batch_no')
   const [total, setTotal] = useState(0)
 
   const [paginationModel, setPaginationModel] = useState({
-    page: parseInt(router.query.page, 10) - 1 || 0,
-    pageSize: parseInt(router.query.pageSize, 10) || 10
+    page: parseInt(router.query.page) || 0,
+    pageSize: parseInt(router.query.limit) || 10
   })
 
-  const { id, action } = router.query
+  const { id, p_id, po_no, action } = router.query
 
   const { selectedPharmacy } = usePharmacyContext()
   function loadServerRows(currentPage, data) {
@@ -71,10 +50,9 @@ function PurchaseDetails() {
 
   const columns = [
     {
-      flex: 0.3,
       width: 70,
       field: 'sl',
-      headerName: 'S.NO',
+      headerName: 'SL.NO',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.sl_no + '.'}
@@ -82,9 +60,8 @@ function PurchaseDetails() {
       )
     },
     {
-      flex: 0.4,
-      width: 100,
-      field: 'batch_no',
+      width: 170,
+      field: 'purchase_batch_no',
       headerName: 'BATCH NO',
       renderCell: params => (
         <Typography
@@ -96,14 +73,13 @@ function PurchaseDetails() {
             fontFamily: 'Inter'
           }}
         >
-          {params.row.batch_no}
+          {params.row.purchase_batch_no || 'NA'}
         </Typography>
       )
     },
     {
-      flex: 0.4,
-      width: 100,
-      field: 'expiry_date',
+      width: 180,
+      field: 'purchase_expiry_date',
       headerName: 'EXPIRY DATE',
       renderCell: params => (
         <Typography
@@ -115,14 +91,13 @@ function PurchaseDetails() {
             fontFamily: 'Inter'
           }}
         >
-          {params.row.expiry_date}
+          {Utility.formatDisplayDate(Utility.convertUTCToLocal(params.row.purchase_expiry_date))}
         </Typography>
       )
     },
     {
-      flex: 0.4,
-      width: 100,
-      field: 'quantity',
+      width: 160,
+      field: 'purchase_qty',
       headerName: 'QUANTITY',
       renderCell: params => (
         <Typography
@@ -134,14 +109,13 @@ function PurchaseDetails() {
             fontFamily: 'Inter'
           }}
         >
-          {params.row.quantity}
+          {params.row.purchase_qty || 'NA'}
         </Typography>
       )
     },
     {
-      flex: 0.4,
-      width: 100,
-      field: 'unit_price',
+      width: 180,
+      field: 'purchase_unit_price',
       headerName: 'UNIT PRICE (₹)',
       renderCell: params => (
         <Typography
@@ -153,14 +127,13 @@ function PurchaseDetails() {
             fontFamily: 'Inter'
           }}
         >
-          {params.row.unit_price}
+          {params.row.purchase_unit_price}
         </Typography>
       )
     },
     {
-      flex: 0.4,
-      width: 100,
-      field: 'product_price',
+      width: 180,
+      field: 'purchase_purchase_price',
       headerName: 'PRODUCT PRICE (₹)',
       renderCell: params => (
         <Typography
@@ -172,81 +145,65 @@ function PurchaseDetails() {
             fontFamily: 'Inter'
           }}
         >
-          {params.row.product_price}
+          {params.row.purchase_purchase_price}
         </Typography>
       )
     },
     {
-      flex: 0.4,
-      width: 100,
+      width: 170,
       field: 'action',
       headerName: 'ACTION',
       renderCell: params => (
-        <Button variant='contained' color='primary'>
+        <Button variant='contained' color='primary' sx={{ cursor: 'pointer' }}>
           EDIT
         </Button>
       )
     }
   ]
 
-  const getPurchase = useCallback(
-    async ({ sort, q, column }) => {
-      try {
-        setLoading(true)
+  const fetchTableData = useCallback(async ({ sort, q, column }) => {
+    try {
+      setLoading(true)
 
-        const params = {
-          sort,
-          q,
-          column,
-          page: paginationModel.page + 1,
-          limit: paginationModel.pageSize
+      const params = {
+        // id: id,
+        // action: action
+        // sort,
+        // q,
+        // column,
+        // page: paginationModel.page + 1,
+        // limit: paginationModel.pageSize
+      }
+
+      // Call the API to fetch data with the sorting and other params
+      await getPurchaseBatchDetailsList(p_id, params).then(res => {
+        if (res?.success) {
+          setTotal(parseInt(res?.data?.purchase_detailss?.length))
+          setRows(loadServerRows(paginationModel.page, res?.data?.purchase_detailss))
+        } else {
+          setRows([])
+          setTotal(0)
         }
+      })
 
-        // Call the API to fetch data with the sorting and other params
-        // await getDispenseList({ params }).then(res => {
-        //   if (res?.success) {
-        //     setTotal(parseInt(res?.count))
-        //     setRows(loadServerRows(paginationModel.page, res?.data))
-        //   } else {
-        //     setRows([])
-        //     setTotal(0)
-        //   }
-        // })
-
-        setLoading(false)
-      } catch (e) {
-        setLoading(false)
-        console.log(e)
-      }
-    },
-    [paginationModel]
-  )
+      setLoading(false)
+    } catch (e) {
+      setLoading(false)
+      console.log(e)
+    }
+  }, [])
 
   useEffect(() => {
-    router.replace({
-      pathname: router.pathname,
-      query: {
-        ...router.query,
-        searchValue,
-        page: paginationModel.page + 1,
-        pageSize: paginationModel.pageSize
-      }
-    })
-  }, [paginationModel.page, paginationModel.pageSize])
-
-  useEffect(() => {
-    getPurchase({ sort, q: searchValue, column: sortColumn })
-  }, [getPurchase, selectedPharmacy.id])
+    fetchTableData({ sort, q: searchValue, column: sortColumn })
+  }, [fetchTableData])
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
   const indexedRows = rows?.map((row, index) => ({
     ...row,
-    id: `${row.sl_no}`,
+    id: `${row.id}`,
     sl_no: getSlNo(index)
   }))
-
-  console.log(indexedRows)
 
   const handleSearch = useCallback(
     debounce(value => {
@@ -255,14 +212,6 @@ function PurchaseDetails() {
         ...prevModel,
         page: 0
       }))
-
-      router.replace({
-        pathname: router.pathname,
-        query: {
-          ...router.query,
-          searchValue: value
-        }
-      })
     }, 500),
     [router]
   )
@@ -274,26 +223,29 @@ function PurchaseDetails() {
 
       setSort(newSort)
       setSortColumn(newColumn)
-      router.replace(
-        {
-          pathname: router.pathname,
-          query: {
-            ...router.query,
-            sort: newSort,
-            column: newColumn
-          }
-        },
-        undefined,
-        { shallow: true }
-      )
 
-      getPurchase({ sort: newSort, q: searchValue, column: newColumn })
+      fetchTableData({ sort: newSort, q: searchValue, column: newColumn })
     }
   }
 
-  const onRowClick = params => {
-    var data = params.row
+  const onRowClick = (params, event) => {
+    if (event.target.tagName === 'BUTTON') {
+      Router.push({
+        pathname: '/pharmacy/purchase/add-purchase/',
+        query: { id: params.row.purchase_id, action: 'edit' }
+      })
+    }
   }
+
+  // const onRowClick = params => {
+  //   var data = params.row
+  //   console.log(data, 'data')
+
+  //   Router.push({
+  //     pathname: '/pharmacy/purchase/add-purchase/',
+  //     query: { id: data?.purchase_id, action: 'edit' }
+  //   })
+  // }
 
   return (
     <>
@@ -304,11 +256,11 @@ function PurchaseDetails() {
           xs={12}
           sx={{
             display: 'flex',
-            justifyContent: 'flex-end',
+            justifyContent: 'space-between',
             alignItems: 'center'
           }}
         >
-          <Grid item xs={12} sm={2} sx={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'center' }}>
+          <Grid item xs={12} sm={12} sx={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'center' }}>
             <CardHeader
               avatar={
                 <Icon
@@ -327,45 +279,44 @@ function PurchaseDetails() {
                     mt: 1
                   }}
                 >
-                  <span>{id ? id : ''}</span>
-                  <span style={{ fontSize: '14px', color: 'gray' }}>{`Total Batches: ${1}`}</span>
+                  <span>{po_no ? po_no : ''}</span>
+                  <span style={{ fontSize: '14px', color: 'gray' }}>{`Total Batches: ${rows.length}`}</span>
                 </Box>
               }
             />
           </Grid>
 
-          <Grid item xs={12} sm={10}>
-            <Box display='flex' justifyContent='flex-end' alignItems='center'>
-              <Box
+          {/* <Grid item xs={12} sm={12} md={3} lg={3}>
+            <Box
+              sx={{
+                display: 'flex',
+                alignItems: 'center',
+                border: theme => `1px solid ${theme.palette.customColors.OutlineVariant}`,
+                borderRadius: '8px',
+                padding: '0 8px',
+                height: '40px',
+                width: '100%'
+              }}
+            >
+              <Icon icon='mi:search' fontSize={24} color={theme => theme.palette.customColors.neutralSecondary} />
+              <TextField
+                variant='outlined'
+                value={searchValue}
+                placeholder='Search...'
+                onChange={e => handleSearch(e.target.value)}
+                fullWidth
                 sx={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-                  borderRadius: '8px',
-                  padding: '0 8px',
-                  height: '40px'
-                }}
-              >
-                <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
-                <TextField
-                  variant='outlined'
-                  value={searchValue}
-                  placeholder='Search...'
-                  onChange={e => handleSearch(e.target.value)}
-                  fullWidth
-                  sx={{
-                    '& .MuiOutlinedInput-root': {
-                      border: 'none',
-                      padding: '0',
-                      '& fieldset': {
-                        border: 'none'
-                      }
+                  '& .MuiOutlinedInput-root': {
+                    border: 'none',
+                    padding: '0',
+                    '& fieldset': {
+                      border: 'none'
                     }
-                  }}
-                />
-              </Box>
+                  }
+                }}
+              />
             </Box>
-          </Grid>
+          </Grid> */}
         </Grid>
 
         <Grid>
@@ -373,12 +324,9 @@ function PurchaseDetails() {
             onRowClick={onRowClick}
             indexedRows={indexedRows}
             total={total}
-            handleSortModel={handleSortModel}
             columns={columns}
-            paginationModel={paginationModel}
-            setPaginationModel={setPaginationModel}
             loading={loading}
-            searchValue={searchValue}
+            disablePagination={true}
           />
         </Grid>
       </Card>

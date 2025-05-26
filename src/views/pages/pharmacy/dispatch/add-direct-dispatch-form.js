@@ -63,17 +63,21 @@ const defaultValues = {
   expiry_date: '',
   packageDetails: '',
   manufacture: '',
-  control_substance: false
+  control_substance: false,
+  variant_id: '',
+  multiplier: '',
+  unit_price: ''
 }
 
 const schema = yup.object().shape({
   request_item: yup
     .object()
-    .required('Product Name is required')
+    .transform(value => (value === '' ? null : value))
     .shape({
       label: yup.string().required('Product Name is required'),
       value: yup.string().required('Product Name is required')
-    }),
+    })
+    .required('Product Name is required'),
 
   // request_item_batch_no: yup.object().shape({
   //   label: yup.string().required('Batch no is required'),
@@ -164,6 +168,8 @@ export const AddItemsForm = ({
   console.log(batchList, 'list')
 
   const onSubmit = async params => {
+    console.log(params, 'params')
+
     setBatchError(false)
 
     const {
@@ -175,7 +181,10 @@ export const AddItemsForm = ({
       stock_type,
       packageDetails,
       manufacture,
-      control_substance
+      control_substance,
+      variant_id,
+      multiplier,
+      unit_price
     } = {
       ...params
     }
@@ -267,7 +276,10 @@ export const AddItemsForm = ({
         stock_type,
         packageDetails,
         manufacture,
-        control_substance
+        control_substance,
+        variant_id,
+        multiplier,
+        unit_price
 
         // to_store_id: '14'
       },
@@ -302,7 +314,9 @@ export const AddItemsForm = ({
       nestedItemQuantity = nestedMedicine?.request_item_qty
     }
 
-    const available_qty = parseInt(totalQuantity) - (totalCount - nestedItemQuantity + enteredCount)
+    const available_qty = parseInt(totalQuantity)
+
+    //  - (totalCount - nestedItemQuantity + enteredCount)
 
     setTotalAvailableCount(available_qty)
   }
@@ -328,6 +342,7 @@ export const AddItemsForm = ({
   //   )
   // }
   useEffect(() => {
+    console.log('available_item_qty in nested ', nestedMedicine)
     if (nestedMedicine?.id === undefined && nestedMedicine?.medicine_name !== '' && nestedMedicine?.uuid !== '') {
       reset({
         request_item: {
@@ -344,9 +359,12 @@ export const AddItemsForm = ({
         available_item_qty: nestedMedicine?.available_item_qty,
         stock_type: nestedMedicine?.stock_type,
         packageDetails: nestedMedicine?.packageDetails,
-        manufacture: nestedMedicine?.manufacture
+        manufacture: nestedMedicine?.manufacture,
+        variant_id: nestedMedicine?.variant_id,
+        multiplier: nestedMedicine?.multiplier,
+        unit_price: nestedMedicine?.unit_price
       })
-      console.log('available_item_qty in nested ', nestedMedicine?.available_item_qty)
+
       async function searchMedicine() {
         await searchMedicineData(nestedMedicine?.request_item_medicine_id, nestedMedicine.stock_type)
       }
@@ -363,6 +381,8 @@ export const AddItemsForm = ({
     }
     checkTotalCount()
   }, [])
+
+  console.log(productList, 'productList')
 
   return (
     <>
@@ -390,13 +410,14 @@ export const AddItemsForm = ({
                       searchMedicineData(e.target.value)
                     }}
                     onChange={(e, value) => {
-                      setValue('request_item', value)
-                      setValue('request_item_batch_no', '')
-                      setValue('expiry_date', '')
+                      setValue('request_item', value, { shouldValidate: true })
+                      setValue('request_item_batch_no', '', { shouldValidate: true })
+                      setValue('expiry_date', '', { shouldValidate: true })
                       setValue('available_item_qty', '')
                       setValue('stock_type', '')
                       setValue('packageDetails', '')
                       setValue('manufacture', '')
+                      setValue('unit_price', '')
 
                       if (value === null || value.status === 0) {
                         return onChange(null)
@@ -407,6 +428,7 @@ export const AddItemsForm = ({
                         setValue('packageDetails', value.packageDetails)
                         setValue('manufacture', value.manufacture)
                         setValue('control_substance', value.control_substance)
+                        setValue('unit_price', value.unit_price)
                       } else {
                       }
                       checkTotalCount()
@@ -437,9 +459,10 @@ export const AddItemsForm = ({
                           {/* <Typography>{option.label}</Typography> */}
                           <Typography variant='body2'>{option.packageDetails}</Typography>
                           <Typography variant='body2'>{option.manufacture}</Typography>
-                          {option.control_substance === true && (
+                          {RenderUtility?.renderControlLabel(option.control_substance === true, 'CS')}
+                          {/* {option.control_substance === true && (
                             <CustomChip label='CS' skin='light' color='success' size='small' />
-                          )}{' '}
+                          )}{' '} */}
                           {option.prescription_required === true && (
                             <CustomChip label='PR' skin='light' color='success' size='small' />
                           )}
@@ -460,9 +483,11 @@ export const AddItemsForm = ({
                 )}
               />
               {errors?.request_item && (
-                <FormHelperText sx={{ color: 'error.main' }}>{errors?.request_item?.message}</FormHelperText>
+                <FormHelperText sx={{ color: 'error.main' }}>
+                  {errors?.request_item?.value?.message || errors?.request_item?.message}
+                </FormHelperText>
               )}
-              {watch('packageDetails') && (
+              {/* {watch('packageDetails') && (
                 <Box sx={{ mx: 1, my: 2, display: 'flex' }}>
                   <Chip
                     label={watch('packageDetails')}
@@ -479,7 +504,7 @@ export const AddItemsForm = ({
                     sx={{ fontSize: 11, height: '22px' }}
                   />
                 </Box>
-              )}
+              )} */}
               {/* <Box>
                 <Typography>{option.name}</Typography>
                 <Typography variant='body2'>{option.package}</Typography>
@@ -517,7 +542,7 @@ export const AddItemsForm = ({
                       color='customColors.neutralSecondary'
                       sx={{ fontWeight: 400, fontFamily: 'Inter', fontSize: '12px', mb: 1 }}
                     >
-                      Available Packing:
+                      Package:
                     </Typography>
                     <Typography
                       color='primary.light'
@@ -545,7 +570,7 @@ export const AddItemsForm = ({
                   <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
                     <Typography
                       color='customColors.neutralSecondary'
-                      sx={{ fontWeight: 400, fontFamily: 'Inter', fontSize: '12px', mb: 1 }}
+                      sx={{ fontWeight: 400, fontFamily: 'Inter', fontSize: '12px' }}
                     >
                       Availability:
                     </Typography>
@@ -556,14 +581,58 @@ export const AddItemsForm = ({
                       {batchLoading ? <LoaderIcon /> : `${totalAvailableCount}`}
                     </Typography>
                   </Box>
+                  <Box
+                    sx={{
+                      backgroundColor: 'customColors.OnPrimaryContainer',
+                      borderRadius: '16px',
+                      padding: '5px 15px',
+                      width: 'fit-content',
+                      color: 'customColors.OnPrimary'
+                    }}
+                  >
+                    <Typography
+                      variant='body1'
+                      component='span'
+                      sx={{
+                        fontSize: '12px',
+                        fontWeight: 400,
+                        color: 'customColors.OnPrimary'
+                      }}
+                    >
+                      Unit Price - {Utility.formatAmountToReadableDigit(watch('unit_price'))}
+                    </Typography>
+                  </Box>
+
+                  {/* <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
+                    <Typography
+                      color='customColors.neutralSecondary'
+                      sx={{ fontWeight: 400, fontFamily: 'Inter', fontSize: '12px' }}
+                    >
+                      Unit Price:
+                    </Typography>
+                    <Typography sx={{ fontWeight: 400, fontSize: '12px', color: 'customColors.OnPrimaryContainer' }}>
+                      {Utility.formatAmountToReadableDigit(watch('unit_price'))}
+                    </Typography>
+                    <Typography
+                      color='customColors.neutralSecondary'
+                      sx={{ fontWeight: 400, fontFamily: 'Inter', fontSize: '12px', marginLeft: '8px' }}
+                    >
+                      Total Value:
+                    </Typography>
+                    <Typography sx={{ fontWeight: 400, fontSize: '12px', color: 'customColors.OnPrimaryContainer' }}>
+                      {Utility.formatAmountToReadableDigit(watch('unit_price') * watch('request_item_qty')) || 0}
+                    </Typography>
+                  </Box> */}
                 </Box>
               </Paper>
             )}
           </Grid>
           <Grid item xs={12} sm={12}>
-            <Typography variant='subtitle1'>Batch No and Expiry Date</Typography>
+            <Typography variant='subtitle1'>
+              {getValues('stock_type') === 'non_medical' ? 'Batch No' : 'Batch No and Expiry Date'}
+            </Typography>
           </Grid>
-          <Grid item xs={12} sm={6}>
+          <Grid item xs={12} sm={getValues('stock_type') === 'non_medical' ? 6 : 4}>
             {/* <FormControl fullWidth>
               <Controller
                 name='request_item_batch_no'
@@ -609,6 +678,11 @@ export const AddItemsForm = ({
                 </Typography>
               ) : null}
             </FormControl> */}
+            {/* {getValues('available_item_qty') ? (
+              <Typography sx={{ color: 'primary.main', fontSize: 14, mx: 2, my: { xs: 0, md: 1 } }}>
+                Available Quantity:{getValues('available_item_qty')}
+              </Typography>
+            ) : null} */}
 
             <FormControl fullWidth>
               <Controller
@@ -625,8 +699,10 @@ export const AddItemsForm = ({
                     isOptionEqualToValue={(option, value) => option.value === value.value}
                     onChange={(e, value) => {
                       setValue('request_item_batch_no', value)
-                      setValue('expiry_date', value?.expiry_date)
+                      setValue('expiry_date', value?.expiry_date, { shouldValidate: true })
                       setValue('available_item_qty', value?.available_item_qty)
+                      setValue('multiplier', value?.multiplier)
+                      setValue('variant_id', value?.variant_id)
                       clearErrors('request_item_batch_no')
                       setQuantityError(false)
                       checkTotalCount()
@@ -637,12 +713,8 @@ export const AddItemsForm = ({
                       <TextField
                         {...params}
                         placeholder='Enter Batch No'
+                        label={Boolean(errors.request_item_batch_no) ? 'Enter Batch No*' : 'Enter Batch No'}
                         error={Boolean(errors.request_item_batch_no)}
-                        sx={{
-                          '& .MuiOutlinedInput-root': {
-                            backgroundColor: 'white'
-                          }
-                        }}
                       />
                     )}
                     renderOption={(props, option) => (
@@ -673,7 +745,7 @@ export const AddItemsForm = ({
                           <Typography variant='body2' color='customColors.neutralSecondary'>
                             Expiry Date: {Utility.formatDisplayDate(option.expiry_date)}
                           </Typography>
-                          <Typography variant='body2' color='customColors.Tertiary'>
+                          <Typography variant='body2' color='primary.main'>
                             Availability: {option.available_item_qty}
                           </Typography>
                         </Box>
@@ -707,8 +779,32 @@ export const AddItemsForm = ({
               ) : null}
             </FormControl>
           </Grid>
+          <Grid item xs={12} sm={getValues('stock_type') === 'non_medical' ? 6 : 4}>
+            <FormControl fullWidth>
+              <Controller
+                name='multiplier'
+                control={control}
+                rules={{ required: true }}
+                render={({ field: { value, onChange } }) => (
+                  <TextField
+                    disabled
+                    type='text'
+                    value={value}
+                    label='Product Variant'
+                    name='multiplier'
+                    error={Boolean(errors.multiplier)}
+                    onChange={onChange}
+                  />
+                )}
+              >
+                {errors.multiplier && (
+                  <FormHelperText sx={{ color: 'error.main' }}>{errors?.multiplier?.message}</FormHelperText>
+                )}
+              </Controller>
+            </FormControl>
+          </Grid>
           {getValues('stock_type') === 'non_medical' ? null : (
-            <Grid item xs={12} sm={6}>
+            <Grid item xs={12} sm={4}>
               <FormControl fullWidth>
                 <Controller
                   name='expiry_date'
@@ -721,14 +817,19 @@ export const AddItemsForm = ({
                       name='expiry_date'
                       error={Boolean(errors.expiry_date)}
                       onChange={onChange}
-                      disabled
+                      variant='outlined'
+                      slotProps={{
+                        textField: {
+                          error: Boolean(errors.expiry_date)
+                        }
+                      }}
+                      inputProps={{ disabled: true }}
                     />
                   )}
-                >
-                  {errors.expiry_date && (
-                    <FormHelperText sx={{ color: 'error.main' }}>{errors?.expiry_date?.message}</FormHelperText>
-                  )}
-                </Controller>
+                />
+                {errors.expiry_date && (
+                  <FormHelperText sx={{ color: 'error.main' }}>{errors?.expiry_date?.message}</FormHelperText>
+                )}
               </FormControl>
             </Grid>
           )}
@@ -756,12 +857,36 @@ export const AddItemsForm = ({
                     onInput={checkTotalCount}
                   />
                 )}
-              >
-                {errors.request_item_qty && (
-                  <FormHelperText sx={{ color: 'error.main' }}>{errors?.request_item_qty?.message}</FormHelperText>
-                )}
-              </Controller>
+              />
+              {errors.request_item_qty && (
+                <FormHelperText sx={{ color: 'error.main' }}>{errors?.request_item_qty?.message}</FormHelperText>
+              )}
             </FormControl>
+          </Grid>
+          <Grid item xs={12} sm={12}>
+            <Box
+              sx={{
+                backgroundColor: 'customColors.Surface',
+                borderRadius: '16px',
+                padding: '5px 15px',
+                width: 'fit-content',
+
+                border: `1px solid ${theme.palette.primary.main}`
+              }}
+            >
+              <Typography
+                variant='body1'
+                component='span'
+                sx={{
+                  fontSize: '12px',
+                  fontWeight: 400,
+                  color: 'customColors.OnSurfaceVariant'
+                }}
+              >
+                Total Quantity Price -{' '}
+                {Utility.formatAmountToReadableDigit(watch('unit_price') * watch('request_item_qty')) || 0}
+              </Typography>
+            </Box>
           </Grid>
 
           {quantityError && (

@@ -70,6 +70,7 @@ import { AddButton, SwitchButton } from 'src/components/Buttons'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import GenericNamesList from '../../masters/generic'
 import AddGenericName from 'src/views/pages/pharmacy/medicine/generic/addGenericName'
+import { AuthContext } from 'src/context/AuthContext'
 
 const defaultValues = {
   medicine_type: 'allopathy',
@@ -142,11 +143,13 @@ const schema = yup.object().shape({
   // }),
   prescription_required: yup
     .string()
-    .transform(value => (value === true || value === '1' || value === 1 ? '1' : '0'))
-    .when('controlled_substance', (controlled_substance, schema) => {
-      return controlled_substance[0] === '1'
-        ? schema.oneOf(['1'], 'Prescription is required if product is a controlled substance')
-        : schema
+    .transform(value =>
+      value === true || value === '1' || value === 1 ? '1' : value === false || value === '0' || value === 0 ? '0' : ''
+    )
+    .when('controlled_substance', {
+      is: value => value === '1',
+      then: schema => schema.oneOf(['1'], 'Prescription is required').required('Prescription is required'),
+      otherwise: schema => schema.optional().nullable()
     }),
   part_out_of_stock: yup.string().required('part of out of stock is required'),
 
@@ -167,11 +170,10 @@ const AddMedicine = () => {
     trigger,
     watch,
     setValue,
-    setError,
+    clearErrors,
     getValues
   } = useForm({
     defaultValues,
-
     resolver: yupResolver(schema),
     shouldUnregister: false,
     mode: 'onChange',
@@ -179,6 +181,9 @@ const AddMedicine = () => {
   })
 
   const { selectedPharmacy } = usePharmacyContext()
+  const authData = useContext(AuthContext)
+
+  const pharmacyRole = authData?.userData?.roles?.settings?.add_pharmacy
 
   const router = useRouter()
   const { id, action } = router.query
@@ -686,6 +691,7 @@ const AddMedicine = () => {
     if (files.length > 0) {
       payload.image = files[0]
     } else {
+      payload.image = uploadedImage ?? ''
     }
 
     if (id !== undefined && action === 'edit') {
@@ -729,21 +735,28 @@ const AddMedicine = () => {
     try {
       const response = await updateMedicineById(payload, id)
       if (response?.success) {
-        setAlertDefaults({ status: true, message: response?.message, severity: 'success' })
+        // setAlertDefaults({ status: true, message: response?.message, severity: 'success' })
+        toast.success(response?.message)
 
         //setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message, severity: 'success' })
         setSubmitLoader(true)
         reset(defaultValues)
-        Router.push('/pharmacy/medicine/product-list')
+
+        Router.replace(`/pharmacy/medicine/${id}`)
+
+        // Router.back()
       } else {
         setSubmitLoader(false)
 
         // setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message, severity: 'error' })
-        setAlertDefaults({ status: true, message: response?.message, severity: 'error' })
+        // setAlertDefaults({ status: true, message: response?.message, severity: 'error' })
+        toast.error(response?.message)
       }
     } catch (e) {
       setSubmitLoader(false)
-      setAlertDefaults({ status: true, message: 'Error', severity: 'error' })
+      toast.error('error')
+
+      // setAlertDefaults({ status: true, message: 'Error', severity: 'error' })
 
       // setOpenSnackbar({ ...openSnackbar, open: true, message: 'Error', severity: 'error' })
     }
@@ -754,7 +767,8 @@ const AddMedicine = () => {
       const response = await addMedicine(payload)
 
       if (response?.success) {
-        setAlertDefaults({ status: true, message: response?.message, severity: 'success' })
+        // setAlertDefaults({ status: true, message: response?.message, severity: 'success' })
+        toast.success(response?.message)
 
         // setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message, severity: 'success' })
         setSubmitLoader(true)
@@ -772,7 +786,10 @@ const AddMedicine = () => {
           setDefaultSalts([])
           setShouldClearFields(false)
         } else {
-          Router.push('/pharmacy/medicine/product-list')
+          debugger
+
+          // Router.push('/pharmacy/medicine/product-list')
+          Router.replace(`/pharmacy/medicine/${response?.data?.stock_item_id}`)
         }
         setSubmitLoader(false)
       } else {
@@ -780,13 +797,17 @@ const AddMedicine = () => {
 
         // setOpenSnackbar({ ...openSnackbar, open: false, message: response?.message, severity: 'error' })
         shouldClearFieldsRef.current = false
-        setAlertDefaults({ status: true, message: response?.message, severity: 'error' })
+
+        // setAlertDefaults({ status: true, message: response?.message, severity: 'error' })
+        toast.error(response?.message)
       }
     } catch (e) {
       setSubmitLoader(false)
 
       // setOpenSnackbar({ ...openSnackbar, open: true, message: 'Error', severity: 'error' })
-      setAlertDefaults({ status: true, message: 'Error', severity: 'error' })
+      // setAlertDefaults({ status: true, message: 'Error', severity: 'error' })
+      toast.error('error')
+
       shouldClearFieldsRef.current = false
     }
   }
@@ -944,6 +965,10 @@ const AddMedicine = () => {
   const addNewSalt = () => {
     setOpenSalt(true)
     setResetForm(false)
+  }
+
+  const handleRemoveImage = () => {
+    setUploadedImage(null)
   }
 
   const handleManufacturer = async payload => {
@@ -1105,148 +1130,139 @@ const AddMedicine = () => {
                               )}
                             </FormControl>
                           </Grid>
-
                           {medicineType !== 'non_medical' && (
-                            <>
-                              <Grid item xs={12} sm={6}>
-                                <FormControl fullWidth>
-                                  <Controller
-                                    name='generic_name_id'
-                                    control={control}
-                                    rules={{ required: true }}
-                                    render={({ field: { value, onChange } }) => (
-                                      <Autocomplete
-                                        disablePortal
-                                        id='generic_name_id'
-                                        value={defaultGenericName}
-                                        options={genericNameList}
-                                        getOptionLabel={option => option.name}
-                                        isOptionEqualToValue={(option, value) => option?.id === value?.id}
-                                        onChange={(e, val) => {
-                                          // setDefaultManufacturer(val)
-                                          if (val === null) {
-                                            setDefaultGenericName(val)
+                            <Grid item xs={12} sm={6}>
+                              <FormControl fullWidth>
+                                <Controller
+                                  name='generic_name_id'
+                                  control={control}
+                                  rules={{ required: true }}
+                                  render={({ field: { value, onChange } }) => (
+                                    <Autocomplete
+                                      disablePortal
+                                      id='generic_name_id'
+                                      value={defaultGenericName}
+                                      options={genericNameList}
+                                      getOptionLabel={option => option.name}
+                                      isOptionEqualToValue={(option, value) => option?.id === value?.id}
+                                      onChange={(e, val) => {
+                                        // setDefaultManufacturer(val)
+                                        if (val === null) {
+                                          setDefaultGenericName(val)
+                                          genericSearch('')
 
-                                            return onChange('')
-                                          } else {
-                                            setDefaultGenericName(val)
+                                          return onChange('')
+                                        } else {
+                                          setDefaultGenericName(val)
 
-                                            return onChange(val.id)
-                                          }
-                                        }}
-                                        onKeyUp={e => {
-                                          genericSearch(e.target.value)
+                                          return onChange(val.id)
+                                        }
+                                      }}
+                                      onKeyUp={e => {
+                                        genericSearch(e.target.value)
 
-                                          // getManufacturersList({ key: e.target.value })
-                                        }}
-                                        renderInput={params => (
-                                          <TextField
-                                            {...params}
-                                            label='Generic Name*'
-                                            placeholder='Search & Select'
-                                            error={Boolean(errors.generic_name_id)}
-                                          />
-                                        )}
-                                      />
-                                    )}
-                                  />
-                                  {errors?.generic_name_id && (
-                                    <FormHelperText sx={{ color: 'error.main' }}>
-                                      {errors?.generic_name_id?.message}
-                                    </FormHelperText>
+                                        // getManufacturersList({ key: e.target.value })
+                                      }}
+                                      renderInput={params => (
+                                        <TextField
+                                          {...params}
+                                          label='Generic Name*'
+                                          placeholder='Search & Select'
+                                          error={Boolean(errors.generic_name_id)}
+                                        />
+                                      )}
+                                    />
                                   )}
-                                </FormControl>
-                              </Grid>
-                              <Grid item xs={12} sm={6} justifyContent='flex-end' alignSelf='center'>
-                                <Box sx={{ display: 'flex', alignItems: 'right', textAlign: 'right' }}>
-                                  <AddButton
-                                    title='Add Generic Name'
-                                    action={() => {
-                                      addNewGenericNameSidebarOpen()
-                                    }}
-                                  />
-                                </Box>
-                              </Grid>
-                            </>
+                                />
+                                {errors?.generic_name_id && (
+                                  <FormHelperText sx={{ color: 'error.main' }}>
+                                    {errors?.generic_name_id?.message}
+                                  </FormHelperText>
+                                )}
+                              </FormControl>
+                            </Grid>
+                          )}
+                          {pharmacyRole && medicineType !== 'non_medical' && (
+                            <Grid item xs={12} sm={6} justifyContent='flex-end' alignSelf='center'>
+                              <Box sx={{ display: 'flex', alignItems: 'right', textAlign: 'right' }}>
+                                <AddButton
+                                  title='Add Generic Name'
+                                  action={() => {
+                                    addNewGenericNameSidebarOpen()
+                                  }}
+                                />
+                              </Box>
+                            </Grid>
                           )}
 
-                          <Grid item xs={12} sm={12}>
-                            <Grid container spacing={5}>
-                              <Grid item xs={12} sm={6}>
-                                <FormControl fullWidth>
-                                  <Controller
-                                    name='manufacturer'
-                                    control={control}
-                                    rules={{ required: true }}
-                                    render={({ field: { value, onChange } }) => (
-                                      <Autocomplete
-                                        disablePortal
-                                        id='manufacturer'
-                                        value={defaultManufacturer}
-                                        options={manufacturer}
-                                        getOptionLabel={option => option.label}
-                                        isOptionEqualToValue={(option, value) => option?.id === value?.id}
-                                        onChange={(e, val) => {
-                                          // setDefaultManufacturer(val)
+                          {/* <Grid item xs={12} sm={12}> */}
+                          {/* <Grid container spacing={5}> */}
+                          <Grid item xs={12} sm={6}>
+                            <FormControl fullWidth>
+                              <Controller
+                                name='manufacturer'
+                                control={control}
+                                rules={{ required: true }}
+                                render={({ field: { value, onChange } }) => (
+                                  <Autocomplete
+                                    disablePortal
+                                    id='manufacturer'
+                                    value={defaultManufacturer}
+                                    options={manufacturer}
+                                    getOptionLabel={option => option.label}
+                                    isOptionEqualToValue={(option, value) => option?.id === value?.id}
+                                    onChange={(e, val) => {
+                                      // setDefaultManufacturer(val)
 
-                                          if (val === null) {
-                                            setDefaultManufacturer(val)
+                                      if (val === null) {
+                                        setDefaultManufacturer(val)
+                                        manufacturerSearch('')
 
-                                            return onChange('')
-                                          } else {
-                                            setDefaultManufacturer(val)
+                                        return onChange('')
+                                      } else {
+                                        setDefaultManufacturer(val)
 
-                                            return onChange(val.id)
-                                          }
-                                        }}
-                                        onKeyUp={e => {
-                                          manufacturerSearch(e.target.value)
+                                        return onChange(val.id)
+                                      }
+                                    }}
+                                    onKeyUp={e => {
+                                      manufacturerSearch(e.target.value)
 
-                                          // getManufacturersList({ key: e.target.value })
-                                        }}
-                                        renderInput={params => (
-                                          <TextField
-                                            {...params}
-                                            label='Manufacturer*'
-                                            placeholder='Search & Select'
-                                            error={Boolean(errors.manufacturer)}
-                                          />
-                                        )}
+                                      // getManufacturersList({ key: e.target.value })
+                                    }}
+                                    renderInput={params => (
+                                      <TextField
+                                        {...params}
+                                        label='Manufacturer*'
+                                        placeholder='Search & Select'
+                                        error={Boolean(errors.manufacturer)}
                                       />
                                     )}
                                   />
-                                  {errors?.manufacturer && (
-                                    <FormHelperText sx={{ color: 'error.main' }}>
-                                      {errors?.manufacturer?.message}
-                                    </FormHelperText>
-                                  )}
-                                </FormControl>
-                              </Grid>
-                              <Grid item xs={12} sm={6} justifyContent='flex-end' alignSelf='center'>
-                                <Box sx={{ display: 'flex', alignItems: 'right', textAlign: 'right' }}>
-                                  <AddButton
-                                    title='Add Manufacturer'
-                                    action={() => {
-                                      addNewManufacturer()
-                                    }}
-                                  />
-                                  {/* <IconButton
-                                aria-label='capture screenshot'
-                                color='primary'
-                                onClick={() => addNewManufacturer()}
-                              >
-                                <Icon icon='mdi:plus' />
-                              </IconButton> */}
-                                </Box>
-                                {/* <Button variant='outlined' onClick={() => addNewManufacturer()}>
-                              +
-                            </Button> */}
-                              </Grid>
-                            </Grid>
+                                )}
+                              />
+                              {errors?.manufacturer && (
+                                <FormHelperText sx={{ color: 'error.main' }}>
+                                  {errors?.manufacturer?.message}
+                                </FormHelperText>
+                              )}
+                            </FormControl>
                           </Grid>
-
+                          {pharmacyRole && (
+                            <Grid item xs={12} sm={6} justifyContent='flex-end' alignSelf='center'>
+                              <Box sx={{ display: 'flex', alignItems: 'right', textAlign: 'right' }}>
+                                <AddButton
+                                  title='Add Manufacturer'
+                                  action={() => {
+                                    addNewManufacturer()
+                                  }}
+                                />
+                              </Box>
+                            </Grid>
+                          )}
+                          {/* </Grid> */}
+                          {/* </Grid> */}
                           {/* Packages */}
-
                           <Grid item xs={12} sm={12}>
                             <div>Package {getPackageString()}</div>
                           </Grid>
@@ -1267,6 +1283,7 @@ const AddMedicine = () => {
                                     onChange={(e, val) => {
                                       if (val === null) {
                                         setDefaultPackage(null)
+                                        packageSearch('')
 
                                         return onChange('')
                                       } else {
@@ -1338,6 +1355,7 @@ const AddMedicine = () => {
                                     onChange={(e, val) => {
                                       if (val === null) {
                                         setDefaultUom(null)
+                                        unitListSearch('')
 
                                         return onChange('')
                                       } else {
@@ -1385,6 +1403,7 @@ const AddMedicine = () => {
                                     onChange={(e, val) => {
                                       if (val === null) {
                                         setDefaultProductForm(null)
+                                        productFormSearch('')
 
                                         return onChange('')
                                       } else {
@@ -1415,24 +1434,24 @@ const AddMedicine = () => {
                             </FormControl>
                           </Grid>
                           {/* //Package */}
-
                           {/* Salt Composition */}
-
                           {medicineType !== 'non_medical' && (
                             <Grid item xs={12} sm={12}>
                               <FormGroup>
                                 <Grid container item xs={12} sm={12} alignItems='center' spacing={2}>
                                   <Grid item xs={6}>
                                     <span style={{ marginRight: '10px' }}>Salt Composition</span>
-                                    <span>
-                                      <IconButton
-                                        aria-label='capture screenshot'
-                                        color='primary'
-                                        onClick={() => addNewSalt()}
-                                      >
-                                        <Icon icon='mdi:plus' />
-                                      </IconButton>
-                                    </span>
+                                    {pharmacyRole && (
+                                      <span>
+                                        <IconButton
+                                          aria-label='capture screenshot'
+                                          color='primary'
+                                          onClick={() => addNewSalt()}
+                                        >
+                                          <Icon icon='mdi:plus' />
+                                        </IconButton>
+                                      </span>
+                                    )}
                                   </Grid>
                                 </Grid>
                                 {fields.map((field, index) => (
@@ -1469,6 +1488,7 @@ const AddMedicine = () => {
                                                     var saltComposition = defaultSalts
                                                     saltComposition[index] = null
                                                     setDefaultSalts(saltComposition)
+                                                    saltsListSearch('')
 
                                                     return onChange('')
                                                   } else {
@@ -1549,7 +1569,6 @@ const AddMedicine = () => {
                               </FormGroup>
                             </Grid>
                           )}
-
                           {/* //Salt Composition */}
                           {/* Others */}
                           <Grid item xs={12} sm={12}>
@@ -1607,6 +1626,7 @@ const AddMedicine = () => {
                                     onChange={(e, val) => {
                                       if (val === null) {
                                         setDefaultDrugClass(null)
+                                        drugClassListSearch('')
 
                                         return onChange('')
                                       } else {
@@ -1649,6 +1669,7 @@ const AddMedicine = () => {
                                     onChange={(e, val) => {
                                       if (val === null) {
                                         setDefaultStorage(null)
+                                        storageListSearch('')
 
                                         return onChange('')
                                       } else {
@@ -1677,8 +1698,8 @@ const AddMedicine = () => {
                               )}
                             </FormControl>
                           </Grid>
-
                           <Grid item xs={12} sm={6}>
+                            {console.log('errors', errors)}
                             <FormControl fullWidth>
                               <InputLabel error={Boolean(errors?.controlled_substance)} id='controlled_substance'>
                                 Controlled Substances
@@ -1693,13 +1714,16 @@ const AddMedicine = () => {
                                     value={value}
                                     label='Controlled substances'
                                     onChange={e => {
+                                      const selectedValue = e.target.value
                                       onChange(e)
-                                      if (e.target.value === '1') {
+
+                                      if (selectedValue === '1') {
                                         setValue('prescription_required', '1')
                                       } else {
                                         setValue('prescription_required', '0')
                                       }
-                                      setError('prescription_required', '')
+
+                                      clearErrors('prescription_required')
                                     }}
                                     error={Boolean(errors?.controlled_substance)}
                                     labelId='controlled_substance'
@@ -1746,7 +1770,6 @@ const AddMedicine = () => {
                               )}
                             </FormControl>
                           </Grid>
-
                           {/* <Grid item xs={12} sm={6}>
                             <FormControl fullWidth>
                               <InputLabel error={Boolean(errors?.part_out_of_stock)} id='part_out_of_stock'>
@@ -1777,7 +1800,6 @@ const AddMedicine = () => {
                               )}
                             </FormControl>
                           </Grid> */}
-
                           <Grid item xs={12} sm={6}>
                             <FormControl fullWidth>
                               <Controller
@@ -1826,7 +1848,6 @@ const AddMedicine = () => {
                               )}
                             </FormControl>
                           </Grid>
-
                           <Grid item xs={12} sm={6}>
                             <FormControl fullWidth>
                               <Controller
@@ -1852,7 +1873,6 @@ const AddMedicine = () => {
                               )}
                             </FormControl>
                           </Grid>
-
                           <Grid item xs={12} sm={6}>
                             <FormControl fullWidth>
                               <Controller
@@ -1874,7 +1894,6 @@ const AddMedicine = () => {
                               )}
                             </FormControl>
                           </Grid>
-
                           {/* <Grid item xs={12} sm={6}>
                             {id !== undefined ? (
                               <FormControl fullWidth sx={{ mb: 6 }} error={Boolean(errors.radio)}>
@@ -1908,12 +1927,16 @@ const AddMedicine = () => {
                               </FormControl>
                             ) : null}
                           </Grid> */}
-
                           <Grid item xs={12}>
                             <Card>
-                              <CardHeader title='Upload Product Picture' />
+                              <CardHeader title='Add Product Image' />
                               <CardContent>
-                                <FileUploaderSingle onImageUpload={onImageUpload} image={uploadedImage} files={files} />
+                                <FileUploaderSingle
+                                  onImageUpload={onImageUpload}
+                                  image={uploadedImage}
+                                  files={files}
+                                  onRemoveImage={handleRemoveImage}
+                                />
                               </CardContent>
                             </Card>
                           </Grid>

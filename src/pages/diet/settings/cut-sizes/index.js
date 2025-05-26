@@ -11,8 +11,11 @@ import { getCutsizeList, addCutSize, UpdateCutsize } from 'src/lib/api/diet/sett
 import AddPreparationType from 'src/views/pages/diet/preparationTypes/addPreparationType'
 import AddCutSize from 'src/views/pages/diet/cutSizes/addCutSizes'
 import Toaster from 'src/components/Toaster'
+import { useTheme } from '@mui/material/styles'
+import ServerSideToolbarWithFilter from 'src/views/table/data-grid/ServerSideToolbarWithFilter'
 
 const CutSizes = () => {
+  const theme = useTheme()
   const editParamsInitialState = { id: null, label: null, status: null }
   const [openDrawer, setOpenDrawer] = useState(false)
   const [resetForm, setResetForm] = useState(false)
@@ -59,7 +62,7 @@ const CutSizes = () => {
 
   const columns = [
     {
-      flex: 0.1,
+      flex: 0.14,
       Width: 40,
       field: 'uid',
       headerName: 'SL No',
@@ -214,11 +217,13 @@ const CutSizes = () => {
         await fetchTableData(sort, searchValue, sortColumn)
       } else {
         setSubmitLoader(false)
+        setOpenDrawer(false)
         Toaster({ type: 'error', message: response?.message })
       }
     } catch (e) {
       console.log(e)
       setSubmitLoader(false)
+      setOpenDrawer(false)
       Toaster({ type: 'error', message: JSON.stringify(e) })
     }
   }
@@ -233,8 +238,8 @@ const CutSizes = () => {
   return (
     <>
       <Card>
-        <CardHeader title='Cut Sizes' action={headerAction} />
-        <DataGrid
+        <CardHeader title='Cut Sizes' action={headerAction} sx={{ px: 5 }}/>
+        {/* <DataGrid
           columnVisibilityModel={{
             id: false
           }}
@@ -263,6 +268,67 @@ const CutSizes = () => {
               onChange: event => handleSearch(event.target.value)
             }
           }}
+        /> */}
+        <DataGrid
+          columnVisibilityModel={{
+            id: false
+          }}
+          sx={{
+            '.MuiDataGrid-cell:focus': {
+              outline: 'none'
+            },
+            '& .MuiDataGrid-row:hover': {
+              cursor: 'pointer'
+            },
+            '& .MuiDataGrid-columnHeaders': {
+              backgroundColor: theme.palette.customColors.customTableHeaderBg,
+              color: theme.palette.customColors.customHeadingTextColor
+            },
+            '.MuiDataGrid-virtualScroller': {
+              overflowX: 'auto'
+            },
+            '.MuiDataGrid-main': {
+              borderLeft: '1px solid #0000000D',
+              borderRight: '1px solid #0000000D',
+              marginLeft: '20px',
+              marginRight: '20px',
+              borderRadius: '8px',
+              border: '1px solid rgba(233, 233, 236, 1)'
+            },
+            '& .MuiDataGrid-footerContainer': {
+              borderTop: 'none'
+            },
+
+            '& .MuiDataGrid-row:last-of-type .MuiDataGrid-cell': {
+              borderBottom: 'none'
+            }
+          }}
+          hideFooterSelectedRowCount
+          disableColumnSelector={true}
+          autoHeight
+          pagination
+          rows={indexedRows === undefined ? [] : indexedRows}
+          rowCount={total}
+          columns={columns}
+          sortingMode='server'
+          paginationMode='server'
+          pageSizeOptions={[7, 10, 25, 50]}
+          paginationModel={paginationModel}
+          onSortModelChange={handleSortModel}
+          slots={{ toolbar: ServerSideToolbarWithFilter }}
+          onPaginationModelChange={setPaginationModel}
+          loading={loading}
+          slotProps={{
+            baseButton: {
+              variant: 'outlined'
+            },
+            toolbar: {
+              value: searchValue,
+              clearSearch: () => handleSearch(''),
+              onChange: event => handleSearch(event.target.value)
+            }
+          }}
+          onCellClick={''}
         />
       </Card>
 

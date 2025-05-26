@@ -6,34 +6,37 @@ const composeEggNavigation = ({ egg_nursery, egg_collection }) => {
   const dashboard = {
     title: 'Dashboard',
     path: '/egg/dashboard',
-    icon: 'material-symbols:inventory-2-outline'
+    icon: <img src='/icons/egg_module_icons/Dashboard_Dark.svg' alt='Dashboard Icon' />,
+    activeIcon: <img src='/icons/egg_module_icons/Dashboard_White.svg' alt='Dashboard Icon' />
   }
 
   const nursery = {
     title: 'Nursery',
     path: '/egg/nursery',
-    icon: 'material-symbols:inventory-2-outline'
+    icon: <img src='/icons/egg_module_icons/Nursery_Dark.svg' alt='Nursery Icon' />,
+    activeIcon: <img src='/icons/egg_module_icons/Nursery_White.svg' alt='Nursery Icon' />
   }
 
   const incubatorRoom = {
     title: 'Incubator Rooms',
     path: '/egg/incubator-rooms',
-    icon: <img src='/icons/ingredient.png' alt='Grocery Icon' />,
-    activeIcon: <img src='/icons/icon_ingredient_white.png' alt='Grocery Icon' />
+    icon: <img src='/icons/egg_module_icons/Incubator_Room_Dark.svg' alt='IncubatorRoom Icon' />,
+    activeIcon: <img src='/icons/egg_module_icons/Incubator_Room_White.svg' alt='IncubatorRoom Icon' />
   }
 
   const incubators = {
     title: 'Incubator',
     path: '/egg/incubators',
-    icon: <img src='/icons/icon_diet_black.png' alt='Grocery Icon' />,
-    activeIcon: <img src='/icons/icon_diet_white.png' alt='Grocery Icon' />
+
+    icon: <img src='/icons/egg_module_icons/Incubator_Dark.svg' alt='Incubator Icon' />,
+    activeIcon: <img src='/icons/egg_module_icons/Incubator_White.svg' alt='Incubator Icon' />
   }
 
   const eggs = {
     title: 'Eggs',
     path: '/egg/eggs',
-    icon: <img src='/icons/icon_diet_black.png' alt='Grocery Icon' />,
-    activeIcon: <img src='/icons/icon_diet_white.png' alt='Grocery Icon' />
+    icon: <img src='/icons/egg_module_icons/Egg_Dark.svg' alt='Egg Icon' />,
+    activeIcon: <img src='/icons/egg_module_icons/Egg_White.svg' alt='Egg Icon' />
   }
 
   let eggNavigation = []

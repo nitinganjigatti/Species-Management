@@ -14,7 +14,7 @@ import * as yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
 import { LoadingButton } from '@mui/lab'
 import { useRouter } from 'next/router'
-import { RadioGroup, FormLabel, FormControlLabel, Radio, InputLabel, Select, MenuItem } from '@mui/material'
+import { RadioGroup, FormLabel, FormControlLabel, Radio, InputLabel, Select, MenuItem, Button } from '@mui/material'
 
 // ** Third Party Imports
 import { useForm, Controller } from 'react-hook-form'
@@ -80,6 +80,7 @@ const AddStore = props => {
     control,
     setValue,
     clearErrors,
+    watch,
     handleSubmit,
     formState: { errors }
   } = useForm({
@@ -231,6 +232,14 @@ const AddStore = props => {
                     onChange={onChange}
                     error={Boolean(errors?.gst_slab)}
                     labelId='site_id'
+                    MenuProps={{
+                      PaperProps: {
+                        style: {
+                          maxHeight: 300,
+                          width: 'auto'
+                        }
+                      }
+                    }}
                   >
                     {authData?.userData?.user?.zoos[0].sites?.map((item, index) => {
                       return (
@@ -282,7 +291,7 @@ const AddStore = props => {
             />
           </FormControl>
 
-          {/* {editParams?.id !== null ? (
+          {editParams?.id !== null && watch('type') === 'local' ? (
             <FormControl fullWidth sx={{ mb: 6 }} error={Boolean(errors.radio)}>
               <FormLabel>Status</FormLabel>
               <Controller
@@ -312,7 +321,7 @@ const AddStore = props => {
                 </FormHelperText>
               )}
             </FormControl>
-          ) : null} */}
+          ) : null}
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
             <RenderSidebarFooter />
           </Box>

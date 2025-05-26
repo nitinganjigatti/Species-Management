@@ -1,5 +1,23 @@
-import { LISTING, DIET, UPDATE_STATUS, DETAILS, DELETE, TYPE, ADD, UPDATE } from 'src/constants/ApiConstant'
-import { axiosFormPost, axiosGet } from '../utility'
+import {
+  LISTING,
+  DIET,
+  UPDATE_STATUS,
+  DETAILS,
+  SPECIES,
+  ASSIGN_TO_SPECIES,
+  DELETE,
+  DELETE_SPECIES,
+  TYPE,
+  ADD,
+  UPDATE,
+  ANIMAL_LISTS,
+  ASSIGN_EDIT,
+  ASSIGN_TO_ANIMALS,
+  GET_SECTIONS,
+  GET_ENCLOSURES,
+  GET_TAXONOMYLIST
+} from 'src/constants/ApiConstant'
+import { axiosFormPost, axiosGet, axiosPost } from '../utility'
 
 export async function getDietList({ params }) {
   const response = await axiosGet({ url: `${DIET}/${LISTING}`, params })
@@ -11,6 +29,103 @@ export async function getDietDetails(id, params) {
   const response = await axiosGet({ url: `${DIET}/${DETAILS}/${id}`, params })
 
   return response.data
+}
+
+export async function getSpeciesList(params) {
+  const response = await axiosGet({ url: `${DIET}/${SPECIES}`, params })
+
+  return response.data
+}
+
+export async function getAnimalsList(params) {
+  const response = await axiosGet({ url: `${DIET}/${ANIMAL_LISTS}`, params })
+
+  return response?.data
+}
+
+export async function getSectionsList(payload) {
+  try {
+    const response = await axiosFormPost({ url: `${GET_SECTIONS}`, body: payload })
+
+    return response?.data
+  } catch (error) {
+    if (error.response) {
+      console.error(error.response.data)
+    }
+
+    return error
+  }
+}
+
+export async function getEnclosureList(params) {
+  try {
+    const response = await axiosGet({ url: `${GET_ENCLOSURES}`, params })
+
+    return response?.data
+  } catch (error) {
+    if (error.response) {
+      console.error(error.response.data)
+    }
+
+    return error
+  }
+}
+
+export async function getTaxonomyList(params) {
+  try {
+    const response = await axiosGet({ url: `${GET_TAXONOMYLIST}`, params })
+
+    return response?.data
+  } catch (error) {
+    if (error.response) {
+      console.error(error.response.data)
+    }
+
+    return error
+  }
+}
+
+export async function deleteSpeciesFromDiet(payload) {
+  try {
+    const response = await axiosFormPost({ url: `${DIET}/${DELETE_SPECIES}`, body: payload })
+
+    return response?.data
+  } catch (error) {
+    if (error.response) {
+      console.error(error.response.data)
+    }
+
+    return error
+  }
+}
+
+export async function addAssigntoDiet(payload, selectionType) {
+  const endpoint = selectionType === 'species' ? ASSIGN_TO_SPECIES : ASSIGN_TO_ANIMALS
+  try {
+    const response = await axiosFormPost({ url: `${DIET}/${endpoint}`, body: payload })
+
+    return response?.data
+  } catch (error) {
+    if (error.response) {
+      console.error(error.response.data)
+    }
+
+    return error
+  }
+}
+
+export async function editAssigntoDiet(payload) {
+  try {
+    const response = await axiosFormPost({ url: `${DIET}/${ASSIGN_EDIT}`, body: payload })
+
+    return response?.data
+  } catch (error) {
+    if (error.response) {
+      console.error(error.response.data)
+    }
+
+    return error
+  }
 }
 
 export async function dietStatusChange(payload, id) {

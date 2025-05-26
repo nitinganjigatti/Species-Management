@@ -54,7 +54,7 @@ const CustomInput = forwardRef(({ ...props }, ref) => {
   return <TextField fullWidth inputRef={ref} {...props} />
 })
 
-const ShipRequest = ({ dispatchedItems, storeDetails }) => {
+const ShipRequest = ({ dispatchedItems, storeDetails, resetForm }) => {
   // ** Hooks
   const [submitLoader, setSubmitLoader] = useState(false)
   const [total, setTotal] = useState(0)
@@ -88,11 +88,20 @@ const ShipRequest = ({ dispatchedItems, storeDetails }) => {
         shipment_date: yup.string().required('Shipment Date is required'),
 
         // vehicle_no: yup.string().required('Vehicle Number is required'),
+        // phone_number: yup
+        //   .number()
+        //   .required('Mobile Number is required')
+        //   .test('is-valid-number', 'Mobile Number must be exactly 10 digits', value => {
+        //     return /^\d{10}$/.test(value)
+        //   }),
         phone_number: yup
-          .number()
+          .string()
           .required('Mobile Number is required')
-          .test('is-valid-number', 'Mobile Number must be exactly 10 digits', value => {
-            return /^\d{10}$/.test(value)
+          .test('is-valid-number', 'Only numbers are allowed', value => {
+            return /^\d*$/.test(value)
+          })
+          .test('is-valid-length', 'Mobile Number must be exactly 10 digits', value => {
+            return value?.length === 10
           }),
         carton_box: yup
           .number()
@@ -108,11 +117,20 @@ const ShipRequest = ({ dispatchedItems, storeDetails }) => {
           .min(3, 'Person Receiving Info must be at least 3 characters')
           .required('Person Receiving  Info is required'),
         shipment_date: yup.string().required('Shipment Date is required'),
+        // phone_number: yup
+        //   .number()
+        //   .required('Mobile Number is required')
+        //   .test('is-valid-number', 'Mobile Number must be exactly 10 digits', value => {
+        //     return /^\d{10}$/.test(value)
+        //   }),
         phone_number: yup
-          .number()
+          .string()
           .required('Mobile Number is required')
-          .test('is-valid-number', 'Mobile Number must be exactly 10 digits', value => {
-            return /^\d{10}$/.test(value)
+          .test('is-valid-number', 'Only numbers are allowed', value => {
+            return /^\d*$/.test(value)
+          })
+          .test('is-valid-length', 'Mobile Number must be exactly 10 digits', value => {
+            return value?.length === 10
           }),
         carton_box: yup
           .number()
@@ -188,9 +206,12 @@ const ShipRequest = ({ dispatchedItems, storeDetails }) => {
         setOpenSnackbar({ ...openSnackbar, open: true, message: response?.data, severity: 'success' })
         setSubmitLoader(false)
         reset(defaultValues)
-
+        if (resetForm) {
+          resetForm()
+        } else {
+          Router.back()
+        }
         // close()
-        Router.back()
       } else {
         setSubmitLoader(false)
         setOpenSnackbar({ ...openSnackbar, open: true, message: response?.message, severity: 'error' })
@@ -226,16 +247,14 @@ const ShipRequest = ({ dispatchedItems, storeDetails }) => {
       payloadItem.person_shipping = person_shipping
       payloadItem.receiver_name = receiver_name
       payloadItem.status = deliveryType.Ship ? 'Shipped' : 'PickedUp'
-      payloadItem.to_store_id = storeDetails.to_store_id
-      payloadItem.from_store_id = storeDetails.from_store_id
+      payloadItem.to_store_id = value?.to_store_id ? value?.to_store_id : storeDetails.to_store_id
+      payloadItem.from_store_id = value?.from_store_id ? value?.from_store_id : storeDetails.from_store_id
       payloadItem.vehicle_no = vehicle_no
       payloadItem.phone_number = phone_number
       payloadItem.carton_box = carton_box
 
       payload.push(payloadItem)
     })
-
-    // console.log('payload', payload)
 
     shipRequest(payload)
   }
@@ -255,7 +274,6 @@ const ShipRequest = ({ dispatchedItems, storeDetails }) => {
 
   const columns = [
     {
-      flex: 0.05,
       Width: 40,
       field: 'id',
       headerName: 'Id',
@@ -266,8 +284,8 @@ const ShipRequest = ({ dispatchedItems, storeDetails }) => {
       )
     },
     {
-      flex: 0.2,
-      Width: 40,
+      width: 300,
+      minWidth: 200,
       field: 'medicin_name',
       headerName: 'Product Name',
       renderCell: (params, rowId) => (
@@ -284,10 +302,11 @@ const ShipRequest = ({ dispatchedItems, storeDetails }) => {
       )
     },
     {
-      flex: 0.2,
-      minWidth: 20,
+      minWidth: 200,
       field: 'from_store_name',
       headerName: 'Shipped from ',
+      align: 'center',
+      headerAlign: 'center',
       renderCell: params => (
         <div>
           <Tooltip title={params.row.from_store_name} placement='top'>
@@ -300,10 +319,11 @@ const ShipRequest = ({ dispatchedItems, storeDetails }) => {
     },
 
     {
-      flex: 0.2,
-      minWidth: 20,
+      minWidth: 200,
       field: 'to_store_name',
       headerName: 'Shipped to',
+      align: 'center',
+      headerAlign: 'center',
       renderCell: params => (
         <div>
           <Tooltip title={params.row.to_store_name} placement='top'>
@@ -315,13 +335,26 @@ const ShipRequest = ({ dispatchedItems, storeDetails }) => {
       )
     },
     {
-      flex: 0.2,
-      minWidth: 20,
+      minWidth: 100,
       field: 'batch_no',
       headerName: 'Batch no',
+      align: 'center',
+      headerAlign: 'center',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.batch_no}
+        </Typography>
+      )
+    },
+    {
+      minWidth: 160,
+      field: 'request_id',
+      headerName: 'Request Id',
+      align: 'center',
+      headerAlign: 'center',
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+          {params?.row?.request_id}
         </Typography>
       )
     },
@@ -353,10 +386,11 @@ const ShipRequest = ({ dispatchedItems, storeDetails }) => {
     //   )
     // },
     {
-      flex: 0.2,
-      minWidth: 20,
+      minWidth: 120,
       field: 'expiry_date',
       headerName: 'Expiry date',
+      align: 'center',
+      headerAlign: 'center',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {Utility.formatDisplayDate(params.row.expiry_date) === 'Invalid date'
@@ -366,12 +400,12 @@ const ShipRequest = ({ dispatchedItems, storeDetails }) => {
       )
     },
     {
-      flex: 0.2,
-      minWidth: 20,
+      minWidth: 130,
       field: 'dispatch_qty',
       headerName: 'Dispatch qty',
       type: 'number',
-      align: 'right',
+      align: 'center',
+      headerAlign: 'center',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.dispatch_qty}
@@ -409,8 +443,6 @@ const ShipRequest = ({ dispatchedItems, storeDetails }) => {
       setValue('phone_number', '')
     }
   }
-
-  console.log(dispatchedItems?.[0]?.to_store_name, 'dispatchedItems')
 
   return (
     <>
@@ -672,7 +704,6 @@ const ShipRequest = ({ dispatchedItems, storeDetails }) => {
                         placeholderText={'Shipment Date*'}
                         maxDate={new Date()}
                         onChangeHandler={date => {
-                          // console.log(date)
                           setDate(date)
                         }}
                         customInput={<CustomInput label='Shipment Date*' auto />}
@@ -694,6 +725,10 @@ const ShipRequest = ({ dispatchedItems, storeDetails }) => {
                           value={value}
                           label='Mobile Number*'
                           onChange={onChange}
+                          // onChange={e => {
+                          //   const newValue = e.target.value.replace(/\D/g, '') // Remove non-numeric characters
+                          //   onChange(newValue)
+                          // }}
                           placeholder=''
                           error={Boolean(errors.phone_number)}
                           name='phone_number'
@@ -743,7 +778,6 @@ const ShipRequest = ({ dispatchedItems, storeDetails }) => {
                           placeholderText={'Shipment Date*'}
                           maxDate={new Date()}
                           onChangeHandler={date => {
-                            // console.log(date)
                             setDate(date)
                           }}
                           customInput={<CustomInput label='Shipment Date*' auto />}

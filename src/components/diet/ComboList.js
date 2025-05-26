@@ -4,14 +4,12 @@ import TextField from '@mui/material/TextField'
 import IconButton from '@mui/material/IconButton'
 import Typography from '@mui/material/Typography'
 import Icon from 'src/@core/components/icon'
-import Divider from '@mui/material/Divider'
-import Avatar from 'src/@core/components/mui/avatar'
-import Button from '@mui/material/Button'
 import { margin, padding } from '@mui/system'
 import { useState, useEffect, useCallback } from 'react'
 import { getRecipeList } from 'src/lib/api/diet/recipe'
 import { CircularProgress, debounce } from '@mui/material'
 import ComboCard from 'src/views/pages/diet/add_recipe_combo-List/comboCard'
+import { useTheme } from '@mui/material/styles'
 
 const ComboList = props => {
   const {
@@ -24,22 +22,34 @@ const ComboList = props => {
     onChange,
     allComboSelectedValues,
     setallComboSelectedValues,
-    formData
+    formData,
+    fromrow,
+    comboid,
+    cutsizelist,
+    dietid,
+    comboName
   } = props
-
+  const theme = useTheme()
   const [rows, setRows] = useState([])
   const [searchValue, setSearchValue] = useState('')
   const [ingredientList, setIngredientList] = useState([])
   const [totalCount, setTotalCount] = useState('')
-
+  const [loading, setLoading] = useState(false)
   const [reachedEnd, setReachedEnd] = useState(false)
-  const [sort, setSort] = useState('desc')
+  const [sortBy, setsortBy] = useState('desc')
   let [ingredientPage, setIngredientPage] = useState(1)
 
   useEffect(() => {
     const getRecipeListData = async () => {
       setReachedEnd(true)
-      const params = { page: ingredientPage, q: searchValue, sort, status: 1, meal_type: 'combo' }
+      const params = {
+        page: ingredientPage,
+        q: fromrow !== 'rowedit_combo' ? searchValue : comboName,
+        sortBy,
+        status: 1,
+        limit: 10,
+        meal_type: 'combo'
+      }
       const res = await getRecipeList({ params })
 
       if (res?.data?.result?.length > 0) {
@@ -60,7 +70,7 @@ const ComboList = props => {
     }
 
     getRecipeListData()
-  }, [ingredientPage, searchValue, sort])
+  }, [ingredientPage, sortBy, comboid])
 
   function loadServerRows(currentPage, data) {
     return data
@@ -68,14 +78,16 @@ const ComboList = props => {
 
   const handleScroll = async e => {
     const container = e.target
-
+    const threshold = 20
     // Check if user has reached the bottom and more data is available
     if (totalCount > ingredientList?.length && !reachedEnd) {
-      if (container.scrollHeight - Math.round(container.scrollTop) === container.clientHeight) {
+      const isNearBottom =
+        container.scrollHeight - Math.round(container.scrollTop) <= container.clientHeight + threshold
+      if (isNearBottom) {
         setReachedEnd(true) // Prevent multiple API calls
 
         try {
-          const params = { page: ingredientPage + 1, q: searchValue, sort, status: 1, meal_type: 'combo' }
+          const params = { page: ingredientPage + 1, q: searchValue, sortBy, status: 1, limit: 10, meal_type: 'combo' }
           const res = await getRecipeList({ params })
 
           if (res?.data?.result?.length > 0) {
@@ -101,32 +113,44 @@ const ComboList = props => {
     }
   }
 
-  const searchData = useCallback(
+  // Debounced search function
+  const debouncedSearch = useCallback(
     debounce(async search => {
-      if (search.trim()) {
-        try {
-          const params = { page: 1, q: search, sort, status: 1, meal_type: 'combo' }
-          const res = await getRecipeList({ params })
-          if (res?.data?.result.length > 0) {
-            // Append new results while ensuring unique IDs
-            const newResults = res.data.result.filter(
-              item => !ingredientList.some(existingItem => existingItem.id === item.id)
-            )
+      try {
+        setLoading(true)
+        const params = { page: 1, q: search, sortBy, status: 1, limit: 10, meal_type: 'combo' }
+        const res = await getRecipeList({ params })
 
-            const combinedList = [...ingredientList, ...newResults]
-            const uniqueList = Array.from(new Map(combinedList.map(item => [item.id, item])).values())
-
-            setIngredientList(uniqueList)
-            setIngredientPage(1)
-          }
-        } catch (error) {
-          console.error(error)
+        if (res?.data?.result.length > 0) {
+          // Merge new results with previous list, ensuring unique items
+          const newResults = res.data.result.filter(
+            item => !ingredientList.some(existingItem => existingItem.id === item.id)
+          )
+          setIngredientList(prevList => [...prevList, ...newResults])
           setIngredientPage(1)
+          setTotalCount(res?.data?.total_count)
+        } else {
+          setIngredientList([])
         }
+      } catch (error) {
+        console.error(error)
+      } finally {
+        setLoading(false)
       }
     }, 500),
-    [searchValue]
+    [ingredientList]
   )
+
+  const handleSearchChange = e => {
+    const value = e.target.value
+    setSearchValue(value)
+    debouncedSearch(value)
+  }
+
+  const handleCancelClick = () => {
+    setSearchValue('')
+    debouncedSearch('')
+  }
 
   return (
     <Drawer
@@ -138,27 +162,25 @@ const ComboList = props => {
         position: 'relative',
         display: 'flex',
         flexDirection: 'column',
-        bgcolor: '#dbe0de',
+        bgcolor: theme.palette.customColors.bodyBg,
         gap: '24px'
       }}
     >
-      <Box sx={{ position: 'fixed', top: 0, bgcolor: '#dbe0de', zIndex: 10, width: '562px' }}>
+      <Box sx={{ position: 'fixed', top: 0, bgcolor: theme.palette.customColors.bodyBg, zIndex: 10, width: '562px' }}>
         <Box
           className='sidebar-header'
           sx={{
             display: 'flex',
             justifyContent: 'space-between',
             p: theme => theme.spacing(3, 3.255, 3, 5.255),
-            px: '24px'
+            px: '16px'
           }}
         >
           <Box sx={{ gap: 2, display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
-            <Icon
-              style={{ marginLeft: -8 }}
-              icon='material-symbols-light:add-notes-outline-rounded'
-              fontSize={'32px'}
-            />
-            <Typography variant='h6'>Add Combo</Typography>
+            <img src='/icons/Activity.svg' alt='Grocery Icon' width='35px' />
+            <Typography variant='h6' sx={{ color: theme.palette.customColors.OnSurfaceVariant }}>
+              Add Combo
+            </Typography>
           </Box>
           <Box sx={{ display: 'flex', alignItems: 'center' }}>
             <IconButton
@@ -167,44 +189,68 @@ const ComboList = props => {
                 handleSidebarClose()
                 setSearchValue('')
               }}
-              sx={{ color: 'text.primary' }}
+              sx={{ color: theme.palette.primary.light }}
             >
-              <Icon icon='mdi:close' fontSize={20} />
+              <Icon icon='mdi:close' fontSize={25} />
             </IconButton>
           </Box>
         </Box>
-        <Box
-          sx={{
-            alignItems: 'center',
-
-            p: 2,
-            px: '24px'
-
-            // width: '100%'
-          }}
-        >
-          <Box>
-            <TextField
-              value={searchValue}
-              fullWidth
-              InputProps={{
-                startAdornment: <Icon style={{ marginRight: 10 }} icon={'ion:search-outline'} />
-              }}
-              placeholder='Search'
-              onKeyUp={e => searchData(e.target.value)}
-              onChange={e => {
-                setSearchValue(e.target.value)
-              }}
-            />
+        {fromrow !== 'rowedit_combo' ? (
+          <Box
+            sx={{
+              alignItems: 'center',
+              p: 2,
+              px: '16px'
+            }}
+          >
+            <Box>
+              <TextField
+                value={searchValue}
+                fullWidth
+                InputProps={{
+                  startAdornment: (
+                    <Icon
+                      style={{ marginRight: 10, color: theme.palette.customColors.OnSurfaceVariant }}
+                      icon={'ion:search-outline'}
+                    />
+                  ),
+                  endAdornment: searchValue && (
+                    <IconButton onClick={handleCancelClick} size='small' sx={{ padding: 0 }}>
+                      <Icon icon={'ion:close-outline'} style={{ color: theme.palette.customColors.OnSurfaceVariant }} />
+                    </IconButton>
+                  )
+                }}
+                placeholder='Search combo'
+                onChange={handleSearchChange}
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    borderColor: theme.palette.customColors.Outline,
+                    '& fieldset': {
+                      borderColor: theme.palette.customColors.Outline
+                    }
+                  }
+                }}
+              />
+            </Box>
           </Box>
-        </Box>
+        ) : (
+          ''
+        )}
       </Box>
 
       {/* on scroll */}
       <Box
-        className='raghu'
-        sx={{ marginTop: 30, height: '70%', overflowY: 'auto', bgcolor: '#dbe0de', p: 4 }}
-        onScroll={handleScroll}
+        className=''
+        sx={{
+          marginTop: fromrow !== 'rowedit_combo' ? 30 : 12,
+          //height: fromrow !== 'rowedit_combo' ? '70%' : '80%',
+          height: fromrow !== 'rowedit_combo' ? 'calc(100vh - 220px)' : '80%',
+          overflowY: 'auto',
+          bgcolor: theme.palette.customColors.bodyBg,
+          p: 4
+        }}
+        //onScroll={handleScroll}
+        onScroll={fromrow !== 'rowedit_combo' ? handleScroll : undefined}
       >
         <ComboCard
           rows={ingredientList}
@@ -219,6 +265,12 @@ const ComboList = props => {
           addEventSidebarOpen={addEventSidebarOpen}
           searchValue={searchValue}
           setSearchValue={setSearchValue}
+          fromrow={fromrow}
+          comboid={comboid}
+          cutsizelist={cutsizelist}
+          dietid={dietid}
+          loading={loading}
+          comboName={comboName}
         />
 
         {/* End Card Section */}

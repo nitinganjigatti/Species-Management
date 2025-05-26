@@ -143,21 +143,23 @@ const SiteSheet = ({
           />
 
           {/* Select All */}
-          <FormControlLabel
-            control={
-              <Checkbox
-                checked={tempSelectedSites.length === sites.length}
-                onChange={handleSelectAll}
-                indeterminate={tempSelectedSites.length > 0 && tempSelectedSites.length < sites.length}
-              />
-            }
-            label={
-              <Typography sx={{ color: '#839D8D', fontSize: '16px', fontFamily: 'Inter', fontWeight: 400 }}>
-                Select All
-              </Typography>
-            }
-            sx={{ mb: 1, ml: 1 }}
-          />
+          {filteredSites.length > 0 && (
+            <FormControlLabel
+              control={
+                <Checkbox
+                  checked={tempSelectedSites.length === sites.length}
+                  onChange={handleSelectAll}
+                  indeterminate={tempSelectedSites.length > 0 && tempSelectedSites.length < sites.length}
+                />
+              }
+              label={
+                <Typography sx={{ color: '#839D8D', fontSize: '16px', fontFamily: 'Inter', fontWeight: 400 }}>
+                  Select All
+                </Typography>
+              }
+              sx={{ mb: 1, ml: 1 }}
+            />
+          )}
           <Divider sx={{ mb: 4 }} />
 
           {/* Sites List */}
@@ -233,4 +235,5 @@ const SiteSheet = ({
     </Drawer>
   )
 }
+
 export default SiteSheet

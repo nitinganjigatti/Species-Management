@@ -10,10 +10,10 @@ import TableBody from '@mui/material/TableBody'
 import Typography from '@mui/material/Typography'
 import Box from '@mui/material/Box'
 import CardContent from '@mui/material/CardContent'
-import { styled, useTheme } from '@mui/material/styles'
+import { styled } from '@mui/material/styles'
 import TableContainer from '@mui/material/TableContainer'
 import TableCell from '@mui/material/TableCell'
-import { Button, CardHeader, Drawer } from '@mui/material'
+import { Button, CardHeader, CircularProgress, Drawer, Tooltip } from '@mui/material'
 import IconButton from '@mui/material/IconButton'
 import FormHelperText from '@mui/material/FormHelperText'
 import TextField from '@mui/material/TextField'
@@ -21,6 +21,7 @@ import FormControl from '@mui/material/FormControl'
 import InputLabel from '@mui/material/InputLabel'
 import Select from '@mui/material/Select'
 import MenuItem from '@mui/material/MenuItem'
+import { useTheme } from '@emotion/react'
 
 import Router from 'next/router'
 import { useRouter } from 'next/router'
@@ -63,8 +64,9 @@ import Icon from 'src/@core/components/icon'
 import { AddButton, RequestCancelButton } from 'src/components/Buttons'
 import RenderUtility from 'src/utility/render'
 import { alpha, Stack } from '@mui/system'
-import { AddButtonContained } from 'src/components/ButtonContained'
+import { AddButtonContained, ExcelExportButton } from 'src/components/ButtonContained'
 import TextEllipsisWithModal from 'src/components/TextEllipsisWithModal'
+import { ExportButton } from 'src/views/utility/render-snippets'
 
 const editParamsInitialState = {
   supplier_id: '',
@@ -81,7 +83,10 @@ const initialNestedRowMedicine = {
   medicine_name: '',
   uuid: '',
   stock_type: '',
-  reason: ''
+  reason: '',
+  variant_id: '',
+  multiplier: '',
+  unit_price: ''
 }
 
 const CustomInput = forwardRef(({ ...props }, ref) => {
@@ -102,6 +107,7 @@ const AddDiscardProducts = () => {
   const [submitLoader, setSubmitLoader] = useState(false)
   const [duplicateMedError, setDuplicateMedError] = useState(false)
   const [supplierList, setSupplierList] = useState([])
+  const [excelLoader, setExcelLoader] = useState(false)
 
   const [nestedRowMedicine, setNestedRowMedicine] = useState(initialNestedRowMedicine)
   const [visibleExpiryField, setVisibleExpiryField] = useState(false)
@@ -111,6 +117,11 @@ const AddDiscardProducts = () => {
 
   const router = useRouter()
   const { id, action } = router.query
+  const theme = useTheme()
+
+  const totalDispatchValue = editParams.items.reduce((total, item) => {
+    return total + item.quantity * parseFloat(item.unit_price)
+  }, 0)
 
   const { selectedPharmacy } = usePharmacyContext()
 
@@ -294,7 +305,8 @@ const AddDiscardProducts = () => {
             control_substance: item.controlled_substance === '1' ? true : false,
             stock_type: item.stock_type,
             packageDetails: `${item?.package} of ${item?.package_qty} ${item?.package_uom_label} ${item?.product_form_label}`,
-            manufacture: item?.manufacturer_name
+            manufacture: item?.manufacturer_name,
+            unit_price: item?.unit_price
           }))
         )
       }
@@ -344,7 +356,11 @@ const AddDiscardProducts = () => {
                 expiry_date: item?.expiry_date,
                 available_item_qty: item?.qty,
                 packageDetails: `${item?.package} of ${item?.package_qty} ${item?.package_uom_label} ${item?.product_form_label}`,
-                manufacture: item?.manufacturer_name
+                manufacture: item?.manufacturer_name,
+                variant_id: item?.variant_id,
+                multiplier: item?.multiplier,
+                stock_type: item?.stock_type,
+                unit_price: item?.unit_price
               }))
             )
             setTotalBatchQuantity(searchResults?.data?.total_quantity)
@@ -422,7 +438,8 @@ const AddDiscardProducts = () => {
             packageDetails: `${el?.package} of ${el?.package_qty} ${el?.package_uom_label} ${el?.product_form_label}`,
             manufacture: el?.manufacturer_name,
             comments: el?.comments,
-            reason: el?.reason
+            reason: el?.reason,
+            unit_price: el?.unit_price
           }
         })
         console.log('lineItems', lineItems)
@@ -464,7 +481,8 @@ const AddDiscardProducts = () => {
       packageDetails: getItems[0]?.packageDetails,
       manufacture: getItems[0]?.manufacture,
       comments: getItems[0]?.comments,
-      reason: getItems[0]?.reason
+      reason: getItems[0]?.reason,
+      unit_price: getItems[0]?.unit_price
     })
     // }
   }
@@ -493,7 +511,7 @@ const AddDiscardProducts = () => {
     //       toast.success(response?.msg)
     //       setSubmitLoader(false)
     //       getListOfItemsById(id)
-    //       Router.push(`/pharmacy/discard/discard-list`)
+    //       Router.push(`/pharmacy/discard/`)
     //     } else {
     //       setSubmitLoader(false)
     //       toast.error(response?.msg)
@@ -508,7 +526,7 @@ const AddDiscardProducts = () => {
         toast.success(response?.msg)
         setEditParams(editParamsInitialState)
         setSubmitLoader(false)
-        Router.push(`/pharmacy/discard/discard-list`)
+        Router.push(`/pharmacy/discard/`)
       } else {
         setSubmitLoader(false)
         toast.error(response?.message)
@@ -536,6 +554,71 @@ const AddDiscardProducts = () => {
 
   console.log(selectedComment)
 
+  // const headerAction = (
+  //   <ExcelExportButton
+  //     disabled={total === 0}
+  //     action={() => {
+  //       getAddDiscardData()
+  //     }}
+  //     loader={excelLoader}
+  //     title='Download'
+  //     fullWidth='fullWidth'
+  //   />
+  // )
+
+  console.log('Supplier >>', supplierList)
+
+  const getAddDiscardData = async () => {
+    try {
+      setExcelLoader(true)
+      const response = await getDiscardItemsListById(id)
+      console.log('Response inventory>', response)
+
+      if (response?.success === true && response?.data?.item_details?.length > 0) {
+        setExcelLoader(false)
+        const supplierId = response?.data?.supplier_id || null
+
+        const discardDate = response?.data?.discarded_date
+          ? formatDate(response?.data?.discarded_date) // Ensure date is formatted
+          : 'N/A'
+
+        // Find Supplier Name from supplierList using supplier_id
+        const supplierName = supplierList.find(supplier => supplier.id === supplierId)?.company_name || 'N/A'
+
+        const data = response?.data?.item_details.map(el => ({
+          ['Stock Name']: el?.stock_name,
+          ['Manufacture Name']: el?.manufacturer_name,
+          ['Batch No']: el?.batch_no,
+          ['Expiry Date']: el?.expiry_date,
+          ['Quantity']: el?.quantity,
+          ['Supplier Name']: supplierName, // Attach the found Supplier Name
+          ['Discard Date']: discardDate, // Attach formatted Discard Date
+          ['Reason']: el?.reason,
+          ['Stock Type']: el?.stock_type
+        }))
+
+        Utility.exportToCSV(data, 'Discarditems')
+      } else {
+        console.log('No data available for export.')
+      }
+    } catch (error) {
+      console.log('Error >>', error)
+    }
+  }
+
+  const getLabelColor = params => {
+    const reasonTextColor =
+      params === 'Product Expired'
+        ? theme.palette.customColors.Error
+        : params === 'Not Required'
+        ? theme.palette.customColors.Antz_Body_Medium
+        : params === 'About to Expired'
+        ? theme.palette.customColors.Tertiary
+        : theme.palette.customColors.neutralSecondary
+
+    return reasonTextColor
+  }
+
   return (
     <>
       {selectedPharmacy.type === 'central' &&
@@ -543,26 +626,39 @@ const AddDiscardProducts = () => {
         <Card>
           <Grid
             container
-            sm={12}
-            xs={12}
             sx={{
               display: 'flex',
-              justifyContent: 'space-between',
-              alignItems: 'center'
+              alignItems: 'center',
+              justifyContent: 'space-between'
             }}
           >
             <CardHeader
-              avatar={
-                <Icon
-                  style={{ cursor: 'pointer' }}
-                  onClick={() => {
-                    // Router.push('/pharmacy/discard/discard-list')
-                    Router.back()
-                  }}
-                  icon='ep:back'
-                />
+              sx={{
+                width: '100%', // Ensures full width
+                display: 'flex',
+                flexDirection: 'row',
+                alignItems: 'center',
+                padding: '16px'
+              }}
+              avatar={<Icon style={{ cursor: 'pointer' }} onClick={() => Router.back()} icon='ep:back' />}
+              title={
+                <Box>
+                  {' '}
+                  {/* Title takes full available space */}
+                  Return To Supplier
+                </Box>
               }
-              title='Return To Supplier'
+              action={
+                <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+                  {id && action && <ExportButton loading={excelLoader} onClick={getAddDiscardData} disabled={''} />}
+                  {/* <ExcelExportButton
+                    action={() => getAddDiscardData()}
+                    title='Download'
+                    loader={excelLoader}
+                    sx={{ minWidth: 120 }} // Consistent button size
+                  /> */}
+                </Box>
+              }
             />
           </Grid>
 
@@ -714,7 +810,7 @@ const AddDiscardProducts = () => {
                 >
                   Total Discard Value:{' '}
                   <Typography component='span' variant='body2' sx={{ color: 'primary.light' }}>
-                    ₹0
+                    {Utility.formatAmountToReadableDigit(totalDispatchValue)}
                   </Typography>
                 </Typography>
               </Stack>
@@ -799,7 +895,7 @@ const AddDiscardProducts = () => {
 
                             <TableCell>
                               <Typography variant='body2' sx={{ color: 'text.primary' }}>
-                                {Utility.formatDisplayDate(el.expiry_date) === 'Invalid date' ? 'NA' : el.expiry_date}
+                                {Utility?.formatDisplayDate(el?.expiry_date)}
                               </Typography>
                             </TableCell>
                             <TableCell>{el.quantity}</TableCell>
@@ -863,15 +959,18 @@ const AddDiscardProducts = () => {
                               <Typography
                                 variant='body2'
                                 sx={{
-                                  color: () => {
-                                    if (el.reason === 'Expired') {
-                                      return 'customColors.moderateTableRed'
-                                    } else if (el.reason === 'About to expire') {
-                                      return 'customColors.Tertiary'
-                                    } else {
-                                      return 'customColors.moderateSecondary'
-                                    }
-                                  }
+                                  // color: () => {
+                                  //   if (el?.reason === 'Product Expired') {
+                                  //     return 'customColors.moderateTableRed'
+                                  //   } else if (el.reason === 'About to expire') {
+                                  //     return 'customColors.Tertiary'
+                                  //   } else {
+                                  //     return 'customColors.moderateSecondary'
+                                  //   }
+                                  // }
+                                  fontWeight: 500,
+                                  fontSize: '14px',
+                                  color: getLabelColor(el?.reason)
                                 }}
                               >
                                 {el.reason}

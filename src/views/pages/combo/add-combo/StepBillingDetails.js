@@ -3,81 +3,81 @@ import { DataGrid } from '@mui/x-data-grid'
 import Box from '@mui/material/Box'
 import Grid from '@mui/material/Grid'
 import Button from '@mui/material/Button'
-import { Card, CardContent, Avatar } from '@mui/material'
+import { Card, CardContent, Avatar, CircularProgress } from '@mui/material'
 import Icon from 'src/@core/components/icon'
 import Typography from '@mui/material/Typography'
 import 'react-credit-cards/es/styles-compiled.css'
 
-const StepBillingDetails = ({ handlePrev, formData, handleSubmit }) => {
-  const columns = [
-    {
-      flex: 0.5,
-      minWidth: 30,
-      field: 'ingredient_name',
-      headerName: 'Ingredient Name',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.ingredient_name}
-        </Typography>
-      )
-    },
-    {
-      flex: 0.3,
-      minWidth: 10,
-      field: 'ingredient_id',
-      headerName: 'Ingredient ID',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary', pl: 7 }}>
-          {params.row.ingredient_id}
-        </Typography>
-      )
-    },
-    {
-      flex: 0.3,
-      minWidth: 20,
-      field: 'feed_type_label',
-      headerName: 'Feed Type',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary', pl: 3 }}>
-          {params.row.feed_type_label}
-        </Typography>
-      )
-    },
-    {
-      flex: 0.4,
-      minWidth: 10,
-      field: 'quantity',
-      headerName: 'Quantity',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary', pl: 3 }}>
-          {parseFloat(params.row.quantity).toFixed(2)}
-          {params.row.uom_text ? ` ${params.row.uom_text}` : ''}
-        </Typography>
-      )
-    },
-    {
-      flex: 0.4,
-      minWidth: 20,
-      field: 'preparation_type',
-      headerName: 'Preparation Type',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary', pl: 3 }}>
-          {params.row.preparation_type}
-        </Typography>
-      )
-    },
-    {
-      flex: 0.4,
-      minWidth: 20,
-      field: 'cut_size',
-      headerName: 'Cut Size',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary', pl: 5 }}>
-          {params?.row?.cut_size ? params?.row?.cut_size : '-'}
-        </Typography>
-      )
-    }
-  ]
+const StepBillingDetails = ({ handlePrev, formData, handleSubmit, loader }) => {
+  // const columns = [
+  //   {
+  //     flex: 0.5,
+  //     minWidth: 30,
+  //     field: 'ingredient_name',
+  //     headerName: 'Ingredient Name',
+  //     renderCell: params => (
+  //       <Typography variant='body2' sx={{ color: 'text.primary' }}>
+  //         {params.row.ingredient_name}
+  //       </Typography>
+  //     )
+  //   },
+  //   {
+  //     flex: 0.3,
+  //     minWidth: 10,
+  //     field: 'ingredient_id',
+  //     headerName: 'Ingredient ID',
+  //     renderCell: params => (
+  //       <Typography variant='body2' sx={{ color: 'text.primary', pl: 7 }}>
+  //         {params.row.ingredient_id}
+  //       </Typography>
+  //     )
+  //   },
+  //   {
+  //     flex: 0.9,
+  //     minWidth: 20,
+  //     field: 'feed_type_label',
+  //     headerName: 'Feed Type',
+  //     renderCell: params => (
+  //       <Typography variant='body2' sx={{ color: 'text.primary', pl: 3 }}>
+  //         {params.row.feed_type_label}
+  //       </Typography>
+  //     )
+  //   },
+  //   {
+  //     flex: 0.4,
+  //     minWidth: 10,
+  //     field: 'quantity',
+  //     headerName: 'Quantity',
+  //     renderCell: params => (
+  //       <Typography variant='body2' sx={{ color: 'text.primary', pl: 3 }}>
+  //         {parseFloat(params.row.quantity).toFixed(2)}
+  //         {params.row.uom_text ? ` ${params.row.uom_text}` : ''}
+  //       </Typography>
+  //     )
+  //   },
+  //   {
+  //     flex: 0.4,
+  //     minWidth: 20,
+  //     field: 'preparation_type',
+  //     headerName: 'Preparation Type',
+  //     renderCell: params => (
+  //       <Typography variant='body2' sx={{ color: 'text.primary', pl: 3 }}>
+  //         {params.row.preparation_type}
+  //       </Typography>
+  //     )
+  //   },
+  //   {
+  //     flex: 0.4,
+  //     minWidth: 20,
+  //     field: 'cut_size',
+  //     headerName: 'Cut Size',
+  //     renderCell: params => (
+  //       <Typography variant='body2' sx={{ color: 'text.primary', pl: 5 }}>
+  //         {params?.row?.cut_size ? params?.row?.cut_size : '-'}
+  //       </Typography>
+  //     )
+  //   }
+  // ]
 
   const columnsforPercentage = [
     {
@@ -103,7 +103,7 @@ const StepBillingDetails = ({ handlePrev, formData, handleSubmit }) => {
       )
     },
     {
-      flex: 0.3,
+      flex: 0.4,
       minWidth: 20,
       field: 'feed_type_label',
       headerName: 'Feed Type',
@@ -120,7 +120,7 @@ const StepBillingDetails = ({ handlePrev, formData, handleSubmit }) => {
       headerName: `Quantity (100%)`,
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary', pl: 3 }}>
-          {parseFloat(params.row.quantity).toFixed(2)}
+          {parseFloat(params.row.quantity).toFixed(1)}
           {params.row.uom_text ? ` ${params.row.uom_text}` : '%'}
         </Typography>
       )
@@ -135,18 +135,18 @@ const StepBillingDetails = ({ handlePrev, formData, handleSubmit }) => {
           {params.row.preparation_type}
         </Typography>
       )
-    },
-    {
-      flex: 0.4,
-      minWidth: 20,
-      field: 'cut_size',
-      headerName: 'Cut Size',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary', pl: 2 }}>
-          {params?.row?.cut_size ? params?.row?.cut_size : '-'}
-        </Typography>
-      )
     }
+    // {
+    //   flex: 0.4,
+    //   minWidth: 20,
+    //   field: 'cut_size',
+    //   headerName: 'Cut Size',
+    //   renderCell: params => (
+    //     <Typography variant='body2' sx={{ color: 'text.primary', pl: 2 }}>
+    //       {params?.row?.cut_size ? params?.row?.cut_size : '-'}
+    //     </Typography>
+    //   )
+    // }
   ]
 
   const rowsPercentage = formData.by_percentage.map((ingredient, index) => ({
@@ -364,12 +364,24 @@ const StepBillingDetails = ({ handlePrev, formData, handleSubmit }) => {
               >
                 Go back
               </Button>
+
               <Button
                 onClick={handleSubmit}
                 variant='contained'
                 endIcon={<Icon icon='mdi:arrow-right' fontSize={20} />}
+                disabled={loader}
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 1,
+                  minWidth: 120
+                }}
               >
-                Submit
+                <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  Submit
+                  {loader && <CircularProgress size={16} sx={{ color: '#ccc' }} />}
+                </span>
               </Button>
             </Box>
           </Grid>

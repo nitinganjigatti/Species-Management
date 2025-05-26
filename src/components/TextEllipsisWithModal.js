@@ -25,7 +25,12 @@ const TextEllipsisWithModal = ({ ...props }) => {
           alignItems: 'center'
         }}
       >
-        {props?.icon && <Icon icon={props?.icon} style={{ fontSize: '20px', color: '#00000066' }} />}
+        {props?.icon && (
+          <Icon
+            icon={props?.icon}
+            style={{ fontSize: '20px', color: props?.iconColor ? props?.iconColor : '#00000066', flexShrink: 0 }}
+          />
+        )}
         <Tooltip sx={{ cursor: 'pointer' }} title={props?.text}>
           <Typography
             variant='body2'

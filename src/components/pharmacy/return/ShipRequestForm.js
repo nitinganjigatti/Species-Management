@@ -88,11 +88,21 @@ const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
           .string()
           .min(3, 'Vehicle Number must be at least 3 characters')
           .required('Vehicle Number is required'),
+
+        // phone_number: yup
+        //   .number()
+        //   .required('Mobile Number is required')
+        //   .test('is-valid-number', 'Mobile Number must be exactly 10 digits', value => {
+        //     return /^\d{10}$/.test(value)
+        //   }),
         phone_number: yup
-          .number()
+          .string()
           .required('Mobile Number is required')
-          .test('is-valid-number', 'Mobile Number must be exactly 10 digits', value => {
-            return /^\d{10}$/.test(value)
+          .test('is-valid-number', 'Only numbers are allowed', value => {
+            return /^\d*$/.test(value)
+          })
+          .test('is-valid-length', 'Mobile Number must be exactly 10 digits', value => {
+            return value?.length === 10
           }),
         carton_box: yup
           .number()
@@ -108,11 +118,21 @@ const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
           .min(3, 'Person Receiving Info must be at least 3 characters')
           .required('Person Receiving  Info is required'),
         shipment_date: yup.string().required('Shipment Date is required'),
+
+        // phone_number: yup
+        //   .number()
+        //   .required('Mobile Number is required')
+        //   .test('is-valid-number', 'Mobile Number must be exactly 10 digits', value => {
+        //     return /^\d{10}$/.test(value)
+        //   }),
         phone_number: yup
-          .number()
+          .string()
           .required('Mobile Number is required')
-          .test('is-valid-number', 'Mobile Number must be exactly 10 digits', value => {
-            return /^\d{10}$/.test(value)
+          .test('is-valid-number', 'Only numbers are allowed', value => {
+            return /^\d*$/.test(value)
+          })
+          .test('is-valid-length', 'Mobile Number must be exactly 10 digits', value => {
+            return value?.length === 10
           }),
         carton_box: yup
           .number()

@@ -94,7 +94,7 @@ const MonthlyChart = ({ title, data, barColor, lineColor, barName, lineName, vie
       toolbar: { show: false }
     },
     stroke: {
-      width: [0, 3],
+      width: series.map(s => (s.type === 'line' ? 3 : 0)),
       curve: 'smooth',
       colors: [barColor, lineColor]
     },
@@ -134,6 +134,9 @@ const MonthlyChart = ({ title, data, barColor, lineColor, barName, lineName, vie
           return `₹${value.toFixed(2)} lac`
         }
       }
+    },
+    dataLabels: {
+      enabled: false
     },
     xaxis: { categories: shortMonths, labels: { rotate: -45, show: true } },
     yaxis: [

@@ -3,23 +3,36 @@ import React, { useState, useEffect, useCallback } from 'react'
 import { getExpiredMedicine } from 'src/lib/api/pharmacy/getStocksReportById'
 import FallbackSpinner from 'src/@core/components/spinner'
 import { debounce } from 'lodash'
-import CardHeader from '@mui/material/CardHeader'
-import { DataGrid } from '@mui/x-data-grid'
-import Card from '@mui/material/Card'
-import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
 import Typography from '@mui/material/Typography'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import Utility from 'src/utility'
-import { Box } from '@mui/system'
-import { ExcelExportButton } from 'src/components/Buttons'
-import { Grid, TextField, Tooltip } from '@mui/material'
 import { useTheme } from '@emotion/react'
 import Icon from 'src/@core/components/icon'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import RenderUtility from 'src/utility/render'
+import { getStoreList } from 'src/lib/api/pharmacy/getStoreList'
+import { ExportButton } from 'src/views/utility/render-snippets'
+
+import {
+  Card,
+  CardHeader,
+  Grid,
+  MenuItem,
+  Tooltip,
+  TextField,
+  FormControl,
+  Select,
+  InputLabel,
+  FormHelperText,
+  InputAdornment,
+  Box
+} from '@mui/material'
+import PharmacyProductCard from 'src/views/utility/PharmacyProductCard'
 
 const ExpiredMedicine = () => {
   const theme = useTheme()
+  const { selectedPharmacy } = usePharmacyContext()
+
   const [loader, setLoader] = useState(false)
 
   /***** Server side pagination */
@@ -37,11 +50,33 @@ const ExpiredMedicine = () => {
   function loadServerRows(currentPage, data) {
     return data
   }
+  const [errors, setErrors] = useState('')
+  const [stores, setStores] = useState([])
 
-  const { selectedPharmacy } = usePharmacyContext()
+  const [storeId, setStoreId] = useState(selectedPharmacy.id)
+
+  const getStoresLists = async () => {
+    try {
+      setLoader(true)
+      const response = await getStoreList({ params: { column: 'type' } })
+      if (response?.data?.list_items?.length > 0) {
+        response?.data?.list_items?.sort((a, b) => a.id - b.id)
+        setStores(response?.data?.list_items)
+        if (response?.data?.list_items.length > 0) {
+        }
+        setLoader(false)
+      } else {
+        setLoader(false)
+      }
+    } catch (error) {
+      setLoader(false)
+      console.error('error', error)
+    }
+  }
 
   const fetchTableData = useCallback(
-    async (sort, q, column) => {
+    async (sort, q, column, selectedStoreId) => {
+      let selectedStorePharmacy = selectedPharmacy.type === 'local' ? selectedPharmacy.id : selectedStoreId
       try {
         setLoading(true)
 
@@ -50,10 +85,11 @@ const ExpiredMedicine = () => {
           q,
           column,
           page: paginationModel.page + 1,
-          limit: paginationModel.pageSize
+          limit: paginationModel.pageSize,
+          ...(selectedStorePharmacy !== 'all' && { store_id: selectedStorePharmacy })
         }
 
-        await getExpiredMedicine({ params: params }).then(res => {
+        await getExpiredMedicine({ params }).then(res => {
           if (res?.list_items?.length > 0) {
             setTotal(parseInt(res?.total_count))
             setRows(
@@ -75,17 +111,16 @@ const ExpiredMedicine = () => {
         setRows([])
       }
     },
-    [paginationModel]
+    [paginationModel, selectedPharmacy.id, storeId]
   )
   useEffect(() => {
-    fetchTableData(sort, searchValue, sortColumn)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [fetchTableData, selectedPharmacy.id])
+    fetchTableData(sort, searchValue, sortColumn, storeId)
 
-  // useEffect(() => {
-  //   fetchTableData(sort, searchValue, sortColumn)
-  //   // eslint-disable-next-line react-hooks/exhaustive-deps
-  // }, [selectedPharmacy.id])
+    if (stores?.length === 0) {
+      getStoresLists()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fetchTableData])
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
@@ -98,16 +133,16 @@ const ExpiredMedicine = () => {
     if (newModel.length) {
       setSort(newModel[0].sort)
       setSortColumn(newModel[0].field)
-      fetchTableData(newModel[0].sort, searchValue, newModel[0].field)
+      fetchTableData(newModel[0].sort, searchValue, newModel[0].field, storeId)
     } else {
     }
   }
 
   const searchTableData = useCallback(
-    debounce(async (sort, q, column) => {
+    debounce(async (sort, q, column, storeId) => {
       setSearchValue(q)
       try {
-        await fetchTableData(sort, q, column)
+        await fetchTableData(sort, q, column, storeId)
       } catch (error) {
         console.error(error)
       }
@@ -117,7 +152,7 @@ const ExpiredMedicine = () => {
 
   const handleSearch = value => {
     setSearchValue(value)
-    searchTableData(sort, value, sortColumn)
+    searchTableData(sort, value, sortColumn, storeId)
   }
 
   const columns = [
@@ -139,20 +174,38 @@ const ExpiredMedicine = () => {
       field: 'stock_item_name',
       headerName: 'Product Name',
       renderCell: params => (
-        <Tooltip title={params.row.stock_item_name} placement='top'>
-          <Typography
-            variant='body2'
-            sx={{
-              color: theme.palette.customColors.customHeadingTextColor,
-              fontSize: '14px',
-              fontWeight: 500,
-              fontFamily: 'Inter'
-            }}
-          >
-            {params.row.stock_item_name}
-          </Typography>
-        </Tooltip>
+        <Box>
+          <PharmacyProductCard
+            title={params?.row?.stock_item_name}
+            subTitle={params?.row?.generic_name}
+            icon={params?.row?.image}
+            controlSubstance={params?.row?.controlled_substance === '1' && true}
+            prescriptionRequired={params?.row?.prescription_required === '1' && true}
+          />
+        </Box>
       )
+    },
+    {
+      ...(storeId === 'all' && {
+        width: 200,
+        field: 'store_name',
+        headerName: 'Store Name',
+        renderCell: params => (
+          <Tooltip title={params.row.store_name} placement='top'>
+            <Typography
+              variant='body2'
+              sx={{
+                color: theme.palette.customColors.customHeadingTextColor,
+                fontSize: '14px',
+                fontWeight: 500,
+                fontFamily: 'Inter'
+              }}
+            >
+              {params.row.store_name}
+            </Typography>
+          </Tooltip>
+        )
+      })
     },
     {
       width: 250,
@@ -185,6 +238,7 @@ const ExpiredMedicine = () => {
     //     </Typography>
     //   )
     // },
+
     {
       width: 250,
       minWidth: 100,
@@ -232,13 +286,15 @@ const ExpiredMedicine = () => {
   const getDataToExport = async () => {
     try {
       setExcelLoader(true)
+      let selectedStorePharmacy = selectedPharmacy.type === 'local' ? selectedPharmacy.id : storeId
 
       const params = {
         sort,
         q: searchValue,
-        column: sortColumn
+        column: sortColumn,
+        ...(selectedStorePharmacy !== 'all' && { store_id: selectedStorePharmacy })
       }
-      const result = await getExpiredMedicine({ params: params })
+      const result = await getExpiredMedicine({ params })
 
       if (result?.list_items.length > 0) {
         const data = result?.list_items.map(el => {
@@ -246,7 +302,8 @@ const ExpiredMedicine = () => {
             ['Medicine Name']: el?.stock_item_name,
             ['Batch']: el?.batch_no,
             ['Expire Date']: el?.expiry_date,
-            ['Quantity']: el?.stock_qty
+            ['Quantity']: el?.stock_qty,
+            ['Store Name']: el?.store_name
           }
         })
 
@@ -297,63 +354,100 @@ const ExpiredMedicine = () => {
                 mx: { xs: -2, sm: 1 }
               }}
               title={RenderUtility.pageTitle('Expired Products')}
-              action={
-                <ExcelExportButton
-                  disabled={total === 0 ? true : false}
-                  action={() => {
-                    getDataToExport()
-                  }}
-                  loader={excelLoader}
-                  title='Download'
-                  fullWidth='fullWidth'
-                />
-              }
+
+              // action={
+
+              // }
             />
+
             <Grid
-              display='flex'
-              justifyContent='space-between'
-              flexDirection={{ xs: 'column', sm: 'row' }} // Adjust direction based on screen size
-              gap={2} // Gap between items on smaller screens
+              sx={{
+                display: 'flex',
+                flexDirection: { xs: 'column', md: 'row' },
+                justifyContent: 'space-between',
+
+                mx: { xs: 2, sm: 6, md: 6, lg: 6 }
+              }}
             >
-              {/* Left Box (Search Field) */}
-              <Grid
-                item
-                xs={12}
-                sm={8}
-                md={6}
-                sx={{
-                  mx: { xs: 2, sm: 5 }
-                }}
-              >
-                <Box
+              <Grid item xs={12} md={8} lg={8}>
+                <TextField
+                  variant='outlined'
+                  size='small'
+                  placeholder='Search...'
+                  value={searchValue}
+                  onChange={e => handleSearch(e.target.value)}
+                  fullWidth
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position='start'>
+                        <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
+                      </InputAdornment>
+                    )
+                  }}
                   sx={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-                    borderRadius: '8px',
-                    padding: '0 8px',
-                    height: '40px',
-                    width: { xs: '100%', sm: '240px' }
+                    borderRadius: '8px'
+                  }}
+                />
+              </Grid>
+
+              <Grid sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' } }}>
+                {selectedPharmacy.type === 'central' && (
+                  <Grid item xs={12} md={4} lg={4}>
+                    <FormControl
+                      sx={{
+                        width: { xs: '100%', md: 200, lg: 200 },
+                        mx: { xs: 0, md: 2, lg: 2 },
+                        my: { xs: 2, md: 0, lg: 0 }
+                      }}
+                    >
+                      <InputLabel id='controlled-select-label'>Stores</InputLabel>
+                      <Select
+                        onChange={e => {
+                          let id = e.target.value
+
+                          // const store = id === 'all' ? '' : id
+
+                          // const type = stores.find(el => el.id === id)?.type || ''
+
+                          // setStockType(type)
+                          setStoreId(id)
+
+                          // let storeId = id === 'all' ? 'all' : id
+                        }}
+                        label='Stores'
+                        value={storeId}
+                        id='controlled-select'
+                        labelId='controlled-select-label'
+                        sx={{ width: '100%' }}
+                        size='small'
+                      >
+                        <MenuItem value='all'>All</MenuItem>
+                        {stores.length > 0
+                          ? stores.map(el => {
+                              return (
+                                <MenuItem key={el.id} value={el.id}>
+                                  {el.name}
+                                </MenuItem>
+                              )
+                            })
+                          : null}
+                      </Select>
+                      <FormHelperText sx={{ color: 'red' }}>{errors}</FormHelperText>
+                    </FormControl>
+                  </Grid>
+                )}
+
+                <Grid
+                  item
+                  xs={12}
+                  md={4}
+                  lg={4}
+                  sx={{
+                    my: selectedPharmacy.type === 'central' ? 0 : 2
                   }}
                 >
-                  <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
-                  <TextField
-                    variant='outlined'
-                    placeholder='Search...'
-                    value={searchValue}
-                    onChange={e => handleSearch(e.target.value)}
-                    fullWidth
-                    sx={{
-                      '& .MuiOutlinedInput-root': {
-                        border: 'none',
-                        padding: '0',
-                        '& fieldset': {
-                          border: 'none'
-                        }
-                      }
-                    }}
-                  />
-                </Box>
+                  <ExportButton loading={excelLoader} onClick={getDataToExport} disabled={total === 0 ? true : false} />
+                </Grid>
               </Grid>
             </Grid>
 

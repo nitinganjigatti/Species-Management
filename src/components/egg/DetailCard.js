@@ -23,13 +23,20 @@ const DetailCard = ({ radius, DetailsListData }) => {
             justifyContent: 'space-between',
             alignItems: 'center',
             flexWrap: 'wrap',
-            bgcolor: '#f2fff8',
+            bgcolor: theme.palette.customColors.Surface,
             borderRadius: radius
           }}
         >
           {DetailsListData?.AvatarLeft && (
             <Box sx={{ display: 'flex', gap: '12px' }}>
-              <Box sx={{ height: '64px', width: '64px', borderRadius: '8px', bgcolor: '#FFE86E' }}>
+              <Box
+                sx={{
+                  height: '64px',
+                  width: '64px',
+                  borderRadius: '8px',
+                  bgcolor: theme.palette.customColors.antzNotes80
+                }}
+              >
                 <img
                   src={DetailsListData?.AvatarLeft?.profile_Pic}
                   alt='incubator'
@@ -96,7 +103,7 @@ const DetailCard = ({ radius, DetailsListData }) => {
                   width: '34px',
                   height: '34px',
                   borderRadius: '50%',
-                  background: '#E8F4F2',
+                  background: theme.palette.customColors.displaybgPrimary,
                   overflow: 'hidden'
                 }}
               >
@@ -114,7 +121,11 @@ const DetailCard = ({ radius, DetailsListData }) => {
                 <Typography noWrap variant='body2' sx={{ color: 'text.primary', fontSize: 14 }}>
                   {DetailsListData?.Avatar?.user_Name}
                 </Typography>
-                <Typography noWrap variant='body2' sx={{ color: '#44544a9c', fontSize: 12 }}>
+                <Typography
+                  noWrap
+                  variant='body2'
+                  sx={{ color: theme.palette.customColors.neutralSecondary, fontSize: 12 }}
+                >
                   {DetailsListData?.Avatar?.create_at
                     ? 'Created on ' +
                       Utility.formatDisplayDate(Utility.convertUTCToLocal(DetailsListData?.Avatar?.create_at))

@@ -106,7 +106,9 @@ const initialNestedRowMedicine = {
   control_substance: false,
   control_substance_file: '',
   uuid: '',
-  stock_type: ''
+  stock_type: '',
+  variant_id: '',
+  multiplier: ''
 
   // to_store_id: '14'
 }
@@ -375,6 +377,8 @@ const AddDirectDispatch = () => {
       }
 
       const searchResults = await getMedicineList({ params: params })
+      console.log(searchResults, 'searchResults')
+
       if (searchResults?.data?.list_items?.length > 0) {
         setOptionsMedicineList(
           searchResults?.data?.list_items?.map(item => ({
@@ -384,7 +388,8 @@ const AddDirectDispatch = () => {
             control_substance: item.controlled_substance === '1' ? true : false,
             stock_type: item.stock_type,
             packageDetails: `${item?.package} of ${item?.package_qty} ${item?.package_uom_label} ${item?.product_form_label}`,
-            manufacture: item?.manufacturer_name
+            manufacture: item?.manufacturer_name,
+            unit_price: item?.unit_price
           }))
         )
       }
@@ -417,7 +422,10 @@ const AddDirectDispatch = () => {
                 expiry_date: item?.expiry_date,
                 available_item_qty: item?.qty,
                 packageDetails: `${item?.package} of ${item?.package_qty} ${item?.package_uom_label} ${item?.product_form_label}`,
-                manufacture: item?.manufacturer_name
+                manufacture: item?.manufacturer_name,
+                variant_id: item?.variant_id,
+                multiplier: item?.multiplier,
+                unit_price: item?.unit_price
               }))
             )
             setTotalBatchQuantity(searchResults?.data?.total_quantity)
@@ -532,7 +540,10 @@ const AddDirectDispatch = () => {
             dispatch_item_id: el?.dispatch_item_id,
             stock_type: el?.stock_type,
             packageDetails: `${el?.package} of ${el?.package_qty} ${el?.package_uom_label} ${el?.product_form_label}`,
-            manufacture: el?.manufacturer
+            manufacture: el?.manufacturer,
+            variant_id: el?.stock_variant_id,
+            multiplier: el?.stock_multiplier,
+            unit_price: el?.unit_price
           }
         })
 
@@ -599,7 +610,10 @@ const AddDirectDispatch = () => {
       available_item_qty: getItems[0]?.available_item_qty,
       stock_type: getItems[0]?.stock_type,
       packageDetails: getItems[0]?.packageDetails,
-      manufacture: getItems[0]?.manufacture
+      manufacture: getItems[0]?.manufacture,
+      variant_id: getItems[0]?.variant_id,
+      multiplier: getItems[0]?.multiplier,
+      unit_price: getItems[0]?.unit_price
     })
     // }
   }
@@ -704,7 +718,7 @@ const AddDirectDispatch = () => {
         const result = await cancelDirectDispatchItems(id)
         if (result?.data?.success === true) {
           toast.success(result?.data?.data)
-          Router.replace(`/pharmacy/direct-dispatch/direct-dispatch-list/`)
+          Router.replace(`/pharmacy/direct-dispatch/`)
         } else {
           toast.error(result?.data?.data)
           setDeleteDialog(false)
@@ -725,7 +739,7 @@ const AddDirectDispatch = () => {
   //       console.log('cancelRequest result', result)
   //       if (result?.data?.success === true) {
   //         toast.success(result?.data?.data)
-  //         Router.push(`/pharmacy/direct-dispatch/direct-dispatch-list/`)
+  //         Router.push(`/pharmacy/direct-dispatch/`)
   //       } else {
   //         toast.error(result.data)
   //       }
@@ -735,6 +749,12 @@ const AddDirectDispatch = () => {
   //     }
   //   }
   // }
+
+  const totalDispatchValue = editParams.request_item_details.reduce((total, item) => {
+    return total + item.request_item_qty * parseFloat(item.unit_price)
+  }, 0)
+
+  console.log(editParams.request_item_details, 'editParams')
 
   return (
     <>
@@ -756,7 +776,7 @@ const AddDirectDispatch = () => {
                 <Icon
                   style={{ cursor: 'pointer' }}
                   onClick={() => {
-                    Router.back('/pharmacy/direct-dispatch/direct-dispatch-list/')
+                    Router.back('/pharmacy/direct-dispatch/')
                   }}
                   icon='ep:back'
                 />
@@ -996,7 +1016,7 @@ const AddDirectDispatch = () => {
                 >
                   Total Dispatch Value:{' '}
                   <Typography component='span' variant='body2' sx={{ color: 'primary.light' }}>
-                    ₹0
+                    {Utility.formatAmountToReadableDigit(totalDispatchValue)}
                   </Typography>
                 </Typography>
               </Stack>
@@ -1059,8 +1079,9 @@ const AddDirectDispatch = () => {
                         <TableCell>Product Name</TableCell>
                         <TableCell>Batch No</TableCell>
                         <TableCell>Expiry Date</TableCell>
-                        <TableCell>Priority</TableCell>
                         <TableCell>Quantity</TableCell>
+                        <TableCell>Unit Price</TableCell>
+                        <TableCell>Total Value</TableCell>
                         <TableCell>Action</TableCell>
                       </TableRow>
                     </TableHead>
@@ -1104,12 +1125,15 @@ const AddDirectDispatch = () => {
                                       : Utility?.formatDisplayDate(el?.expiry_date)}
                                   </Typography>
                                 </TableCell>
-                                <TableCell sx={{ borderBottomColor: 'customColors.customTableBorderBg' }}>
-                                  {el.priority_item}
-                                </TableCell>
 
                                 <TableCell sx={{ borderBottomColor: 'customColors.customTableBorderBg' }}>
                                   {el.request_item_qty}
+                                </TableCell>
+                                <TableCell sx={{ borderBottomColor: 'customColors.customTableBorderBg' }}>
+                                  {Utility.formatAmountToReadableDigit(el.unit_price)}
+                                </TableCell>
+                                <TableCell sx={{ borderBottomColor: 'customColors.customTableBorderBg' }}>
+                                  {Utility.formatAmountToReadableDigit(el.request_item_qty * el.unit_price)}
                                 </TableCell>
 
                                 <TableCell sx={{ borderBottomColor: 'customColors.customTableBorderBg' }}>

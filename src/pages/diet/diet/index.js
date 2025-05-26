@@ -1,22 +1,15 @@
 import React, { useState, useEffect, useCallback, useContext } from 'react'
-
 import FallbackSpinner from 'src/@core/components/spinner/index'
 import CardHeader from '@mui/material/CardHeader'
-
 import { DataGrid } from '@mui/x-data-grid'
 import { debounce } from 'lodash'
 import Tab from '@mui/material/Tab'
 import TabPanel from '@mui/lab/TabPanel'
 import TabContext from '@mui/lab/TabContext'
-
 import TabList from '@mui/lab/TabList'
-import moment from 'moment'
-import { Avatar, Button, Box, Divider, Select, MenuItem, Tooltip } from '@mui/material'
-import toast from 'react-hot-toast'
-import NotesIcon from '@mui/icons-material/Notes'
+import { Avatar, Button, Box } from '@mui/material'
 
 // ** MUI Imports
-import IconButton from '@mui/material/IconButton'
 import Card from '@mui/material/Card'
 import Typography from '@mui/material/Typography'
 import Chip from '@mui/material/Chip'
@@ -24,16 +17,13 @@ import Grid from '@mui/material/Grid'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
-import Router from 'next/router'
+import Router, { useRouter } from 'next/router'
 import ServerSideToolbarWithFilter from 'src/views/table/data-grid/ServerSideToolbarWithFilter'
-import { updateIngredientStatus } from 'src/lib/api/diet/getIngredients'
-import { useTheme } from '@mui/material/styles'
 import { getDietList } from 'src/lib/api/diet/dietList'
-
-import RecipeList from 'src/components/diet/RecipeList'
 import CustomChip from 'src/@core/components/mui/chip'
 
 import { AuthContext } from 'src/context/AuthContext'
+import { useTheme } from '@mui/material/styles'
 import Error404 from 'src/pages/404'
 
 // Styled TabList component
@@ -43,35 +33,24 @@ const roleColors = {
 }
 
 const Diet = () => {
+  const router = useRouter()
   const theme = useTheme()
-  const Data = []
-
-  /***** Server side pagination */
-
+  const { query } = router
   const [total, setTotal] = useState(0)
   const [sort, setSort] = useState('desc')
   const [rows, setRows] = useState([])
+  const [searchValue, setSearchValue] = useState(query.q || '')
+  const [sortColumn, setSortColumn] = useState('created_at')
 
-  // const [Dietdata, setDietData] = useState(Data)
-
-  // const [filterStatusData, setFilterStatusData] = useState(Dietdata)
-  const [searchValue, setSearchValue] = useState('')
-  const [sortColumn, setSortColumn] = useState('diet_name')
-
-  // const [searchColumns, setSearchColumns] = useState('recipe_name')
-  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
+  const [paginationModel, setPaginationModel] = useState({
+    page: parseInt(query.page || 0, 10),
+    pageSize: parseInt(query.pageSize || 10, 10)
+  })
   const [loading, setLoading] = useState(false)
-  const [status, setStatus] = useState('')
-  const [statusCheckval, setstatusCheckval] = useState(false)
-  const [dialog, setDialog] = useState(false)
-  const [check, setCheck] = useState(false)
+  const [status, setStatus] = useState(query.status || '')
   const [selectedValue, setSelectedValue] = useState('10')
-  const [recipeList, setRecipeList] = useState([])
   const [loader, setLoader] = useState(false)
   const [openDrawer, setOpenDrawer] = useState(false)
-  const [submitLoader, setSubmitLoader] = useState(false)
-  const [selectedCard, setSelectedCard] = useState([])
-
   const authData = useContext(AuthContext)
   const dietModule = authData?.userData?.roles?.settings?.diet_module
   const dietModuleAccess = authData?.userData?.roles?.settings?.diet_module_access
@@ -80,10 +59,39 @@ const Diet = () => {
     return data
   }
 
+  // Common function to update URL query parameters
+  const updateQueryParams = useCallback(
+    newParams => {
+      router.replace(
+        {
+          pathname: router.pathname,
+          query: {
+            ...router.query,
+            ...newParams
+          }
+        },
+        undefined,
+        { shallow: true }
+      )
+    },
+    [router]
+  )
+
+  useEffect(() => {
+    const page = parseInt(query.page || 0, 10)
+    const pageSize = parseInt(query.pageSize || 10, 10)
+    const status = query.status || ''
+
+    setPaginationModel({ page: page, pageSize: pageSize })
+    setStatus(status)
+  }, [query.page, query.pageSize, query.status])
+
   const handleChange = (event, newValue) => {
     // debugger
-    setTotal(0)
     setStatus(newValue)
+    setTotal(0)
+    setPaginationModel({ page: 0, pageSize: 10 })
+    updateQueryParams({ page: 0, status: newValue, pageSize: 10 })
   }
 
   // const addEventSidebarOpen = () => {
@@ -102,7 +110,7 @@ const Diet = () => {
         setLoading(true)
 
         const params = {
-          sort,
+          sortBy: sort,
           q,
           sortColumn,
           page: paginationModel.page + 1,
@@ -132,7 +140,7 @@ const Diet = () => {
     if (dietModule) {
       fetchTableData(sort, searchValue, sortColumn, status)
     }
-  }, [fetchTableData, status])
+  }, [status, paginationModel.page, paginationModel.pageSize, sort, sortColumn])
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
@@ -181,15 +189,16 @@ const Diet = () => {
   )
 
   const handleSearch = value => {
-    // debugger
+    setPaginationModel({ page: 0, pageSize: paginationModel.pageSize })
+    updateQueryParams({ q: value, page: 0, pageSize: paginationModel.pageSize })
     setSearchValue(value)
     searchTableData(sort, value, sortColumn, status)
   }
 
   const columns = [
     {
-      flex: 0.05,
-      Width: 40,
+      //flex: 0.19,
+      width: 70,
       field: 'uid',
       headerName: 'SL',
       renderCell: params => (
@@ -199,8 +208,8 @@ const Diet = () => {
       )
     },
     {
-      flex: 0.5,
-      minWidth: 30,
+      //flex: 0.8,
+      width: 350,
       field: 'diet_no',
       headerName: 'Diet Id',
       renderCell: params => (
@@ -208,33 +217,47 @@ const Diet = () => {
           <Avatar
             variant='square'
             alt='Diet Image'
-            sx={{ width: 40, height: 40, mr: 4, background: '#E8F4F2', padding: '8px', borderRadius: '4px' }}
+            sx={{
+              width: 40,
+              height: 40,
+              mr: 4,
+              background: theme.palette.customColors.tableHeaderBg,
+              padding: '8px',
+              borderRadius: '4px'
+            }}
             src={params.row.diet_image ? params.row.diet_image : '/icons/icon_diet_fill.png'}
           ></Avatar>
           <Box sx={{ display: 'flex', flexDirection: 'column' }}>
             <Typography noWrap variant='body2' sx={{ color: 'text.primary', fontSize: '14px', fontWeight: '500' }}>
               {params.row.diet_no ? params.row.diet_no : '-'}
             </Typography>
+            <Typography
+              noWrap
+              variant='body2'
+              sx={{ color: 'text.primary', fontSize: '12px', fontWeight: '500', fontStyle: 'italic' }}
+            >
+              {params.row.diet_name}
+            </Typography>
           </Box>
         </Box>
       )
     },
     {
-      flex: 0.3,
-      minWidth: 10,
+      //flex: 0.3,
+      width: 130,
       field: 'no_meals',
-      headerName: 'No meals',
+      headerName: 'No of combos',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary', pl: 3 }}>
-          {params.row.num_meals ? params.row.num_meals : '-'}
+          {params.row.combo ? params.row.combo : '-'}
         </Typography>
       )
     },
     {
-      flex: 0.3,
-      minWidth: 10,
+      //flex: 0.3,
+      width: 120,
       field: 'no_recipe',
-      headerName: 'No Recipe',
+      headerName: 'No of Recipes',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary', pl: 3 }}>
           {params.row.recipe ? params.row.recipe : '-'}
@@ -242,37 +265,10 @@ const Diet = () => {
       )
     },
 
-    // {
-    //   flex: 0.3,
-    //   minWidth: 20,
-    //   field: 'ingredient_name',
-    //   headerName: 'NO OF INGREDIENTS',
-    //   renderCell: params => (
-    //     <Typography variant='body2' sx={{ color: 'text.primary' }}>
-    //       <Tooltip
-    //         title={
-    //           params.row.ingredients && params.row.ingredients.length > 0
-    //             ? params.row.ingredients.map(preparation => (
-    //                 <div style={{ padding: '4px' }} key={preparation.ingredient_name}>
-    //                   {preparation.ingredient_name}
-    //                 </div>
-    //               ))
-    //             : '-'
-    //         }
-    //         arrow
-    //         placement='right'
-
-    //         // style={{ background: '#1F515B' }}
-    //       >
-    //         <span>{params.row.ingredients_count ? params.row.ingredients_count : '-'}</span>
-    //       </Tooltip>
-    //     </Typography>
-    //   )
-    // },
     {
-      flex: 0.6,
-      minWidth: 60,
-      field: 'user_name',
+      //flex: 0.6,
+      width: 260,
+      field: 'created_at',
       headerName: 'CREATED BY',
       renderCell: params => (
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
@@ -284,7 +280,7 @@ const Diet = () => {
               height: 30,
               mr: 4,
               borderRadius: '50%',
-              background: '#E8F4F2',
+              background: theme.palette.customColors.tableHeaderBg,
               overflow: 'hidden'
             }}
           >
@@ -302,7 +298,7 @@ const Diet = () => {
             <Typography noWrap variant='body2' sx={{ color: 'text.primary', fontSize: 14, fontWeight: 500 }}>
               {params.row.user_name ? params.row.user_name : '-'}
             </Typography>
-            <Typography noWrap variant='body2' sx={{ color: '#44544a9c', fontSize: 12 }}>
+            <Typography noWrap variant='body2' sx={{ color: theme.palette.customColors.secondaryBg, fontSize: 12 }}>
               {params.row.created_at ? 'Created on' + ' ' + params.row.created_at : '-'}
             </Typography>
           </Box>
@@ -311,8 +307,8 @@ const Diet = () => {
     },
 
     {
-      flex: 0.3,
-      minWidth: 10,
+      //flex: 0.3,
+      width: 100,
       field: 'status',
       headerName: 'STATUS',
       renderCell: params => (
@@ -340,9 +336,7 @@ const Diet = () => {
     if (clickedColumn) {
       const data = params.row
 
-      Router.push({
-        pathname: `/diet/diet/${data?.id}`
-      })
+      router.push({ pathname: `/diet/diet/${data?.id}` })
     } else {
       return
     }
@@ -365,7 +359,7 @@ const Diet = () => {
         ) : (
           <>
             <Card>
-              <CardHeader title='Diet' action={headerAction} />
+              <CardHeader title='Diet' action={headerAction} sx={{ px: 5 }} />
               {/* <Grid sx={{ display: 'flex', ml: 5, m: 2 }}>
                 <Grid sx={{ m: 2 }}>
                   <Typography variant='body2'>Show</Typography>
@@ -404,58 +398,78 @@ const Diet = () => {
                 {/* </TabList>    */}
               </Grid>
 
-              <DataGrid
-                sx={{
-                  '.MuiDataGrid-cell:focus': {
-                    outline: 'none'
-                  },
+              <Box sx={{ width: '100%', overflowX: 'auto' }}>
+                <DataGrid
+                  sx={{
+                    height: 700,
+                    '.MuiDataGrid-cell:focus': {
+                      outline: 'none'
+                    },
+                    '& .MuiDataGrid-row:hover': {
+                      cursor: 'pointer'
+                    },
+                    '& .MuiDataGrid-columnHeaders': {
+                      backgroundColor: theme.palette.customColors.customTableHeaderBg,
+                      color: theme.palette.customColors.customHeadingTextColor
+                    },
+                    '.MuiDataGrid-virtualScroller': {
+                      overflowX: 'auto'
+                    },
+                    '.MuiDataGrid-main': {
+                      borderLeft: '1px solid #0000000D',
+                      borderRight: '1px solid #0000000D',
+                      marginLeft: '20px',
+                      marginRight: '20px',
+                      borderRadius: '8px',
+                      border: '1px solid rgba(233, 233, 236, 1)'
+                    },
+                    '& .MuiDataGrid-footerContainer': {
+                      borderTop: 'none'
+                    },
 
-                  '& .MuiDataGrid-row:hover': {
-                    cursor: 'pointer'
-                  }
-                }}
-                columnVisibilityModel={{
-                  sl_no: false
-                }}
-                hideFooterSelectedRowCount
-                disableColumnSelector={true}
-                autoHeight
-                pagination
-                rows={indexedRows === undefined ? [] : indexedRows}
-                rowCount={total}
-                columns={columns}
-                sortingMode='server'
-                paginationMode='server'
-                pageSizeOptions={[7, 10, 25, 50]}
-                paginationModel={paginationModel}
-                onSortModelChange={handleSortModel}
-                slots={{ toolbar: ServerSideToolbarWithFilter }}
-                onPaginationModelChange={setPaginationModel}
-                loading={loading}
-                slotProps={{
-                  baseButton: {
-                    variant: 'outlined'
-                  },
-                  toolbar: {
-                    value: searchValue,
-                    title: 'diet',
-                    clearSearch: () => handleSearch(''),
-                    onChange: event => handleSearch(event.target.value)
-                  }
-                }}
-                onCellClick={onCellClick}
-              />
+                    '& .MuiDataGrid-row:last-of-type .MuiDataGrid-cell': {
+                      borderBottom: 'none'
+                    }
+                  }}
+                  columnVisibilityModel={{
+                    sl_no: false
+                  }}
+                  hideFooterSelectedRowCount
+                  disableColumnSelector={true}
+                  autoHeight
+                  pagination
+                  rows={indexedRows === undefined ? [] : indexedRows}
+                  rowCount={total}
+                  columns={columns}
+                  sortingMode='server'
+                  paginationMode='server'
+                  pageSizeOptions={[7, 10, 25, 50]}
+                  paginationModel={paginationModel}
+                  onSortModelChange={handleSortModel}
+                  slots={{ toolbar: ServerSideToolbarWithFilter }}
+                  onPaginationModelChange={newPaginationModel => {
+                    updateQueryParams({
+                      page: newPaginationModel.page,
+                      pageSize: newPaginationModel.pageSize
+                    })
+                    setPaginationModel(newPaginationModel)
+                  }}
+                  loading={loading}
+                  slotProps={{
+                    baseButton: {
+                      variant: 'outlined'
+                    },
+                    toolbar: {
+                      value: searchValue,
+                      title: 'diet',
+                      clearSearch: () => handleSearch(''),
+                      onChange: event => handleSearch(event.target.value)
+                    }
+                  }}
+                  onCellClick={onCellClick}
+                />
+              </Box>
             </Card>
-
-            {/* <RecipeList
-              recipeList={recipeList}
-              setSelectedCard={setSelectedCard}
-              selectedCard={selectedCard}
-              drawerWidth={400}
-              addEventSidebarOpen={openDrawer}
-              handleSidebarClose={handleSidebarClose}
-              submitLoader={submitLoader}
-            /> */}
           </>
         )}
       </>
@@ -481,7 +495,6 @@ const Diet = () => {
             <TabPanel sx={{ cursor: 'pointer' }} value=''>
               {tableData()}
             </TabPanel>
-            {/* <TabPanel value='disputed'>{tableData()}</TabPanel> */}
           </TabContext>
         </Grid>
       ) : (

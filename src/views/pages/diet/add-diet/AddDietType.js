@@ -19,12 +19,13 @@ import { Controller, useFieldArray, useForm } from 'react-hook-form'
 import * as Yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
 import { getUnitsForIngredient } from 'src/lib/api/diet/getFeedDetails'
+import { useTheme } from '@mui/material/styles'
 
 const AddDietType = ({ activitySidebarOpen, setActivitySidebarOpen, onReceiveDietTypes, dietTypes }) => {
   const [uomList, setUomList] = useState([])
   const [uom, setUom] = useState('')
   const [dis, setDis] = useState(true)
-
+  const theme = useTheme()
   const getUnitsList = async () => {
     try {
       const params = {
@@ -208,6 +209,13 @@ const AddDietType = ({ activitySidebarOpen, setActivitySidebarOpen, onReceiveDie
     }
   }, [dietTypes, activitySidebarOpen])
 
+  useEffect(() => {
+    if (uom && fields.length === 1) {
+      setValue(`diet_types[0].unit.value`, uom)
+      checkDisabled()
+    }
+  }, [uom, fields.length])
+
   return (
     <div>
       <Drawer
@@ -223,7 +231,9 @@ const AddDietType = ({ activitySidebarOpen, setActivitySidebarOpen, onReceiveDie
         }}
       >
         <form onSubmit={handleSubmit(submitItems)}>
-          <Box sx={{ pt: 4, position: 'sticky', top: 0, backgroundColor: '#fff', zIndex: 100 }}>
+          <Box
+            sx={{ pt: 4, position: 'sticky', top: 0, backgroundColor: theme.palette.primary.contrastText, zIndex: 100 }}
+          >
             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'end', mb: 2 }}>
               <IconButton
                 size='small'
@@ -338,13 +348,14 @@ const AddDietType = ({ activitySidebarOpen, setActivitySidebarOpen, onReceiveDie
                             render={({ field: { value, onChange } }) => (
                               <>
                                 <Autocomplete
-                                  value={value || value?._id}
+                                  //value={value || value?._id}
+                                  value={getValues(`diet_types[${index}].unit.value`) || null}
                                   disablePortal
                                   id={`diet_types[${index}].unit.value`}
                                   options={uomList?.length > 0 ? uomList : []}
                                   getOptionLabel={option => option.name}
                                   onChange={(e, val) => {
-                                    onChange(val || '')
+                                    setValue(`diet_types[${index}].unit.value`, val || '')
                                     checkDisabled()
                                   }}
                                   renderInput={params => (
@@ -394,7 +405,17 @@ const AddDietType = ({ activitySidebarOpen, setActivitySidebarOpen, onReceiveDie
               </Box>
             </Box>
           </CardContent>
-          <Box sx={{ position: 'fixed', bottom: 0, width: '100%', px: 4, py: 4, backgroundColor: '#fff', zIndex: 200 }}>
+          <Box
+            sx={{
+              position: 'fixed',
+              bottom: 0,
+              width: '100%',
+              px: 4,
+              py: 4,
+              backgroundColor: theme.palette.primary.contrastText,
+              zIndex: 200
+            }}
+          >
             <Button
               disabled={dis || Boolean(errors?.diet_types)}
               type='submit'

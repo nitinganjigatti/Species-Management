@@ -25,26 +25,31 @@ import Select from '@mui/material/Select'
 import Divider from '@mui/material/Divider'
 import { Add, Remove } from '@mui/icons-material'
 import toast from 'react-hot-toast'
+import { useTheme } from '@mui/material/styles'
 import { getIngredientList } from 'src/lib/api/diet/getIngredients'
-import { getUnitsForRecipe } from 'src/lib/api/diet/recipe'
-import { getPreparationTypeList } from 'src/lib/api/diet/settings/preparationTypes'
 import { getFeedTypeList } from 'src/lib/api/diet/feedType'
 import { getCutsizeList } from 'src/lib/api/diet/settings/cutSizes'
+import { palette } from '@mui/system'
 
 const AddIngredientswithChoice = props => {
   const {
     open,
     setOpenIngredientchoice,
-    handleSidebarClose,
+    handleSidebarClose: parentHandleSidebarClose,
     onChange,
     allIngredientchoiceSelectedValues,
     checkid,
     formData,
     ingType,
     setingType,
-    ingredientChoiceIndex
+    ingredientChoiceIndex,
+    uom,
+    feedType,
+    fromrow,
+    ingredientwithChoiceId,
+    ingredientwithChoiceName
   } = props
-
+  const theme = useTheme()
   const [feed, setFeed] = React.useState('')
   const [selectFeed, setSelectFeed] = useState({})
 
@@ -62,12 +67,13 @@ const AddIngredientswithChoice = props => {
   let [ingredientPage, setIngredientPage] = useState(1)
   const [reachedEnd, setReachedEnd] = useState(false)
   const [sort, setSort] = useState('desc')
-  const [uom, setUom] = useState([])
-  const [feedType, setFeedType] = useState([])
+  // const [uom, setUom] = useState([])
+  // const [feedType, setFeedType] = useState([])
   const [selectedDays, setSelectedDays] = useState([])
 
   const [count, setCount] = useState(1)
   const [showDays, setShowDays] = useState(false)
+  const [loading, setLoading] = useState(false)
 
   const handelShowBottom = (event, item, index) => {
     event.stopPropagation()
@@ -88,15 +94,25 @@ const AddIngredientswithChoice = props => {
     })
   }
 
+  // Wrapper to extend the parent close function
+  const handleSidebarClose = () => {
+    setSearchValue('')
+    parentHandleSidebarClose()
+    setFeed('')
+    //debouncedSearch('')
+  }
+
   const handleChangeTopFeed = async event => {
     setReachedEnd(true)
     setFeed(event.target.value)
 
     try {
-      const params = { page: ingredientPage, q: searchValue, sort, feed_type: event.target.value, status: 1 }
+      const params = { page: 1, limit: 20, q: searchValue, sort, feed_type: event.target.value, status: 1 }
       await getIngredientList({ params }).then(res => {
         if (res?.data?.result?.length > 0) {
           setIngredientList(res?.data?.result)
+          setIngredientPage(1)
+          setTotalCount(res?.data?.total_count)
           setReachedEnd(false)
         } else {
           setReachedEnd(false)
@@ -117,6 +133,8 @@ const AddIngredientswithChoice = props => {
       await getIngredientList({ params }).then(res => {
         if (res?.data?.result?.length > 0) {
           setIngredientList(res?.data?.result)
+          setIngredientPage(1)
+          setTotalCount(res?.data?.total_count)
           setReachedEnd(false)
         } else {
           setReachedEnd(false)
@@ -148,7 +166,7 @@ const AddIngredientswithChoice = props => {
 
   const handleChangeSize = (event, item) => {
     event.stopPropagation()
-    // const newUom = event.target.value
+
     const { value } = event.target
     const newUom = uom.find(type => Number(type.id) === Number(value))
 
@@ -183,8 +201,6 @@ const AddIngredientswithChoice = props => {
     // Get the remarks value
     const remarksData = remarks || ''
     if (!feed_type) {
-      // toast.error('Please select a feed type.')
-
       return
     }
 
@@ -192,8 +208,6 @@ const AddIngredientswithChoice = props => {
       const cutSizeValue = newCutSize ? newCutSize : cutSize[item.id]?.id || ''
       const sizeValue = newUom ? newUom : size[item.id]?.id || ''
       if (!sizeValue) {
-        // toast.error('Cut size and size are required for chopped feed.')
-
         return
       }
     }
@@ -211,12 +225,9 @@ const AddIngredientswithChoice = props => {
     }
 
     if (feed_type !== '') {
-      // Include cut size and its dropdown only if feedType is "Chopped"
-      //const cutSizeValue = newCutSize ? newCutSize : cutSize[item.id]?.id || ''
       const sizeValue = newUom ? newUom?.id : size[item.id]?.id || ''
       const sizeName = newUom ? newUom?.cut_size : size[item.id]?.name || ''
 
-      // Update boxValues with cut size and size
       // boxValues.feed_cut_size = cutSizeValue
       boxValues.master_cut_size_id = sizeValue
       boxValues.master_cut_size = sizeName
@@ -235,78 +246,174 @@ const AddIngredientswithChoice = props => {
   }
 
   const handleContinueClick = event => {
-    if (Object.keys(size).length === 0) {
-      toast.error('Please select a Cutsize')
-    } else if (selectedCardIngchoice.length === 0) {
-      toast.error('Please select an Ingredient')
-    }
-    if (selectedCardIngchoice.length >= 1) {
-      setShowDays(true)
-
-      const allDayIds = Day.map(day => day.id)
-      setSelectedDays(allDayIds)
+    if (Object.keys(selectFeed).length === 0) {
+      toast.error('Ingredients are required', {
+        duration: 1000
+      })
+    } else if (
+      (Object.keys(selectFeed).length > 0 && Object.keys(size).length === 0) ||
+      Object.keys(selectFeed).length !== Object.keys(size).length
+    ) {
+      toast.error('Please select a Cutsize', {
+        duration: 1000
+      })
+    } else if (selectedCardIngchoice.length >= 1) {
+      if (allIngredientchoiceSelectedValues.some(all => all.mealid === checkid) && ingType === 'addingIndex') {
+        const selectedValuesWithCheckId = allIngredientchoiceSelectedValues?.filter((item, index) => {
+          return index === ingredientChoiceIndex && item?.mealid === checkid
+        })
+        const daysOfWeek = selectedValuesWithCheckId.flatMap(item => item.days_of_week)
+        setShowDays(true)
+        setSelectedDays(daysOfWeek)
+      } else {
+        const allDayIds = Day.map(day => day.id)
+        console.log(allDayIds, 'allDayIds')
+        setShowDays(true)
+        setSelectedDays(allDayIds)
+      }
     }
   }
 
+  // useEffect(() => {
+  //   // getUnitsList()
+  //   setReachedEnd(true)
+
+  //   try {
+  //     const params = { page: ingredientPage, q: searchValue, sort, limit: 20, status: 1 }
+  //     getIngredientList({ params }).then(res => {
+  //       if (res?.data?.result?.length > 0) {
+  //         const newResults = res.data.result.filter(
+  //           item => !ingredientList.some(existingItem => existingItem.id === item.id)
+  //         )
+
+  //         // Combine previous and new results, ensuring unique IDs
+  //         const combinedList = [...ingredientList, ...newResults]
+  //         const uniqueList = Array.from(new Map(combinedList.map(item => [item.id, item])).values())
+
+  //         setIngredientList(uniqueList)
+  //         setTotalCount(res?.data?.total_count)
+  //         setReachedEnd(false)
+  //       } else {
+  //         setReachedEnd(false)
+  //       }
+  //     })
+  //   } catch (error) {
+  //     console.error(error)
+  //   }
+  // }, [ingredientwithChoiceId])
+
   useEffect(() => {
-    getUnitsList()
     setReachedEnd(true)
 
-    try {
-      const params = { page: ingredientPage, q: searchValue, sort, limit: 20, status: 1 }
-      getIngredientList({ params }).then(res => {
-        if (res?.data?.result?.length > 0) {
-          setIngredientList(prevArray => [...prevArray, ...res?.data?.result])
-          setTotalCount(res?.data?.total_count)
+    const fetchIngredients = async () => {
+      try {
+        // If ingredientwithChoiceName is an array, process each item
+        if (fromrow === 'rowedit_ingredientwithchoice' && Array.isArray(ingredientwithChoiceName)) {
+          let allResults = []
+
+          for (const name of ingredientwithChoiceName) {
+            const params = {
+              page: ingredientPage,
+              q: name,
+              sort,
+              limit: 20,
+              status: 1
+            }
+
+            const res = await getIngredientList({ params })
+
+            if (res?.data?.result?.length > 0) {
+              // Filter out duplicates from previous fetches
+              const newResults = res.data.result.filter(
+                item => !allResults.some(existingItem => existingItem.id === item.id)
+              )
+
+              allResults = [...allResults, ...newResults]
+            }
+          }
+
+          // Combine with existing ingredientList and remove duplicates
+          const combinedList = [...ingredientList, ...allResults]
+          const uniqueList = Array.from(new Map(combinedList.map(item => [item.id, item])).values())
+
+          setIngredientList(uniqueList)
           setReachedEnd(false)
         } else {
+          // Original logic for non-array case
+          const params = {
+            page: ingredientPage,
+            q: searchValue,
+            sort,
+            limit: 20,
+            status: 1
+          }
+
+          const res = await getIngredientList({ params })
+
+          if (res?.data?.result?.length > 0) {
+            const newResults = res.data.result.filter(
+              item => !ingredientList.some(existingItem => existingItem.id === item.id)
+            )
+
+            const combinedList = [...ingredientList, ...newResults]
+            const uniqueList = Array.from(new Map(combinedList.map(item => [item.id, item])).values())
+
+            setIngredientList(uniqueList)
+            setTotalCount(res?.data?.total_count)
+          }
           setReachedEnd(false)
         }
-      })
-    } catch (error) {
-      console.error(error)
+      } catch (error) {
+        console.error(error)
+        setReachedEnd(false)
+      }
     }
-  }, [])
 
-  // Top Feed Type
-  const fetchData = async () => {
-    const params = { page: 1, limit: 50, status: 1 }
-    try {
-      const response = await getFeedTypeList(params)
+    fetchIngredients()
+  }, [ingredientwithChoiceId])
 
-      setFeedType(response?.data?.result)
-    } catch (error) {
-      console.log('error', error)
-    }
+  // Debounced search function
+  const debouncedSearch = useCallback(
+    debounce(async search => {
+      try {
+        setLoading(true)
+        const params = { page: 1, q: search, sort, status: 1, limit: 20, feed_type: feed }
+        const res = await getIngredientList({ params })
+        if (res?.data?.result.length > 0) {
+          setIngredientList(res.data.result)
+          setIngredientPage(1)
+          setTotalCount(res?.data?.total_count)
+        } else {
+          setIngredientList([])
+        }
+      } catch (error) {
+        console.error(error)
+      } finally {
+        setLoading(false)
+      }
+    }, 500),
+    [ingredientList]
+  )
+
+  const handleSearchChange = e => {
+    const value = e.target.value
+    setSearchValue(value)
+    debouncedSearch(value)
   }
 
-  useEffect(() => {
-    fetchData()
-  }, [])
-
-  // uom
-
-  const getUnitsList = async () => {
-    try {
-      const params = {
-        //type: ['length', 'weight'],
-        page: 1,
-        limit: 50
-      }
-      await getCutsizeList(params).then(res => {
-        setUom(res?.data?.result)
-      })
-    } catch (e) {
-      console.log(e)
-    }
+  const handleCancelClick = () => {
+    setSearchValue('')
+    debouncedSearch('')
   }
 
   const handleScroll = async e => {
     const container = e.target
-
+    const threshold = 20
     // Check if the user has reached the bottom
     if (totalCount > ingredientList.length) {
-      if (container.scrollHeight - Math.round(container.scrollTop) === container.clientHeight) {
+      const isNearBottom =
+        container.scrollHeight - Math.round(container.scrollTop) <= container.clientHeight + threshold
+      if (isNearBottom) {
         // User has reached the bottom, perform your action here
 
         setIngredientPage(++ingredientPage)
@@ -335,18 +442,17 @@ const AddIngredientswithChoice = props => {
       })
 
       if (selectedValuesWithCheckId?.length > 0) {
-        // Extract ingredientList from selectedValuesWithCheckId
         const ingredientLists = selectedValuesWithCheckId.flatMap(item => item.ingredientList)
         const daysOfWeek = selectedValuesWithCheckId.flatMap(item => item.days_of_week)
         const minChoices = selectedValuesWithCheckId.flatMap(item => item.no_of_component_required)
-        // Update selectedCardIngredientchoice state with ingredientList values
+
         setSelectedCardIngredientchoice(ingredientLists)
-        // Update selectedDays state with the extracted days
+        console.log(daysOfWeek, 'daysOfWeek')
         setSelectedDays(daysOfWeek)
-        setShowDays(true)
+        setShowDays(false)
         setCount(Math.max(...minChoices))
         //setListOfIngredient(selectedValuesWithCheckId)
-        // Create selectFeed object
+
         const selectFeedObj = {}
         const newUom = {}
         const newCutSize = {}
@@ -399,49 +505,26 @@ const AddIngredientswithChoice = props => {
     }
   }, [allIngredientchoiceSelectedValues, checkid, ingType === 'addingIndex', ingredientChoiceIndex, open])
 
-  const searchData = useCallback(
-    debounce(async search => {
-      if (searchValue != ' ') {
-        try {
-          // const currentAnimalFilterValue = animalFilterValueRef.current
-          const params = { page: 1, q: search, sort, status: 1 }
-          await getIngredientList({ params }).then(res => {
-            if (res?.data?.result.length > 0) {
-              setIngredientList(res?.data?.result)
-              setIngredientPage(1)
-            } else {
-              setIngredientList([])
-            }
-          })
-        } catch (error) {
-          setIngredientPage(1)
-        }
-      }
-    }, 500),
+  // const handelInputCutSize = (event, item) => {
+  //   event.stopPropagation()
+  //   const newCutSize = event.target.value
 
-    [searchValue]
-  )
+  //   // Set cutSize state
+  //   setCutSize(prevState => ({
+  //     ...prevState,
+  //     [item.id]: {
+  //       id: event.target.value
+  //       // name: selectedFeedType.label
+  //     }
+  //   }))
 
-  const handelInputCutSize = (event, item) => {
-    event.stopPropagation()
-    const newCutSize = event.target.value
-
-    // Set cutSize state
-    setCutSize(prevState => ({
-      ...prevState,
-      [item.id]: {
-        id: event.target.value
-        // name: selectedFeedType.label
-      }
-    }))
-
-    // Call handelCardSelection with the updated cutSize value
-    if (newCutSize) {
-      handelCardSelection(event, item, null, newCutSize, null, selectedDays)
-    } else {
-      removeSelectedCard(event, item.id)
-    }
-  }
+  //   // Call handelCardSelection with the updated cutSize value
+  //   if (newCutSize) {
+  //     handelCardSelection(event, item, null, newCutSize, null, selectedDays)
+  //   } else {
+  //     removeSelectedCard(event, item.id)
+  //   }
+  // }
 
   const removeSelectedCard = (event, itemId) => {
     // Check if the card with itemId is present in the selectedCard state
@@ -452,6 +535,19 @@ const AddIngredientswithChoice = props => {
       const updatedSelectedCard = [...selectedCardIngchoice]
       updatedSelectedCard.splice(cardIndex, 1)
       setSelectedCardIngredientchoice(updatedSelectedCard)
+
+      // Remove only the matching item from selectFeed and size
+      setSelectFeed(prev => {
+        const newFeed = { ...prev }
+        delete newFeed[itemId]
+        return newFeed
+      })
+
+      setSize(prev => {
+        const newSize = { ...prev }
+        delete newSize[itemId]
+        return newSize
+      })
     }
   }
 
@@ -467,20 +563,15 @@ const AddIngredientswithChoice = props => {
 
   const handleDayClick = day => {
     if (day.id === 0) {
-      // If "All" is clicked, select all days from Monday to Sunday
       const allDayIds = Day.map(day => day.id)
       setSelectedDays(allDayIds)
     } else if (selectedDays.length === 7 && selectedDays.includes(0)) {
-      // If all days are already selected and an individual day is clicked, remove both the clicked day and "All" from the selection
       setSelectedDays(selectedDays.filter(selectedDayId => selectedDayId !== day.id))
     } else if (selectedDays.length === 1 && selectedDays.includes(day.id)) {
-      // If only one day is selected and the user tries to deselect it, keep it selected
       return
     } else if (day.id !== 0 && selectedDays.includes(0)) {
-      // If an individual day is clicked and "All" is already selected, remove both the clicked day and "All" from the selection
       setSelectedDays(selectedDays.filter(selectedDayId => selectedDayId !== day.id && selectedDayId !== 0))
     } else {
-      // Toggle selection for the clicked day
       const updatedSelection = selectedDays.includes(day.id)
         ? selectedDays.filter(selectedDayId => selectedDayId !== day.id)
         : [...selectedDays, day.id]
@@ -529,8 +620,8 @@ const AddIngredientswithChoice = props => {
         // Check if the same ingredient_id is present in any other index of listOfIngredient with the same preparation_type
         const duplicateIngredientIndex = allIngredientchoiceSelectedValues.findIndex((item, index) => {
           return (
-            index !== existingIngredientIndex && // Exclude the current index
-            item.mealid === checkid && // Check if the mealid matches
+            index !== existingIngredientIndex &&
+            item.mealid === checkid &&
             item.ingredientList.some(ingredient => {
               return selectedCardIngchoice.some(
                 selectedIngredient =>
@@ -567,28 +658,44 @@ const AddIngredientswithChoice = props => {
         mealid: checkid
       }
 
-      // Check if any ingredient with the same preparation_type and ingredient_id already exists for the same mealid
-      const matchedIngredient = listOfIngredient.find(item => {
-        return (
-          item.mealid === checkid && // Check if the mealid matches
-          item.ingredientList.some(ingredient => {
-            return selectedCardIngchoice.some(
-              selectedIngredient =>
-                selectedIngredient.preparation_type === ingredient.preparation_type &&
-                selectedIngredient.ingredient_id === ingredient.ingredient_id
+      // Find all duplicate ingredients (matching ingredient_id and preparation_type)
+      const duplicateIngredients = listOfIngredient
+        .filter(item => item.mealid === checkid)
+        .flatMap(item =>
+          item.ingredientList.filter(existingIng =>
+            selectedCardIngchoice.some(
+              newIng =>
+                newIng.ingredient_id === existingIng.ingredient_id &&
+                newIng.preparation_type === existingIng.preparation_type
             )
-          })
+          )
         )
-      })
 
-      if (matchedIngredient) {
-        const daysMatch = selectedDays.every(day => matchedIngredient.days_of_week.includes(day))
-        if (daysMatch) {
-          // If days_of_week arrays partially match, do not add
-          const matchedIngredientName = matchedIngredient.ingredientList.map(ingredient => ingredient.name).join(', ')
+      // Check if any duplicates exist
+      if (duplicateIngredients.length > 0) {
+        // Check for overlapping days
+        const hasDayOverlap = listOfIngredient.some(
+          item =>
+            item.mealid === checkid &&
+            item.days_of_week.some(day => selectedDays.includes(day)) &&
+            item.ingredientList.some(existingIng =>
+              selectedCardIngchoice.some(
+                newIng =>
+                  newIng.ingredient_id === existingIng.ingredient_id &&
+                  newIng.preparation_type === existingIng.preparation_type
+              )
+            )
+        )
+
+        if (hasDayOverlap) {
+          // Get names of all duplicate ingredients
+          console.log(duplicateIngredients, 'duplicateIngredients')
+          const duplicateNames = duplicateIngredients
+            .map(ing => ing.ingredient_name)
+            .filter((name, index, self) => self.indexOf(name) === index) // Remove duplicates
 
           toast.error(
-            `Ingredient(s) ${matchedIngredientName} already exist(s) with same preparation_type and days_of_week`
+            `Ingredient ${duplicateNames.join(', ')} already exist's with same preparation type and days of the week`
           )
 
           return
@@ -602,7 +709,7 @@ const AddIngredientswithChoice = props => {
 
         return updatedList
       })
-
+      setSearchValue('')
       setSelectedCardIngredientchoice([])
       setVisibility([])
       setSelectFeed({})
@@ -610,7 +717,17 @@ const AddIngredientswithChoice = props => {
     }
   }
 
-  const sortedIngredientList = [...ingredientList]?.sort((a, b) => a.ingredient_name.localeCompare(b.ingredient_name))
+  let sortedIngredientList = [...ingredientList]?.sort((a, b) => a.ingredient_name.localeCompare(b.ingredient_name))
+
+  if (fromrow !== '' && fromrow === 'rowedit_ingredientwithchoice') {
+    sortedIngredientList = sortedIngredientList.filter(
+      item => ingredientwithChoiceId.includes(item.id) && ingredientwithChoiceName.includes(item.ingredient_name)
+    )
+  }
+
+  const handleClose = () => {
+    setShowDays(false)
+  }
 
   return (
     <>
@@ -623,11 +740,11 @@ const AddIngredientswithChoice = props => {
           position: 'relative',
           display: 'flex',
           flexDirection: 'column',
-          bgcolor: '#dbe0de',
+          bgcolor: theme.palette.customColors.bodyBg,
           gap: '24px'
         }}
       >
-        <Box sx={{ position: 'fixed', top: 0, bgcolor: '#dbe0de', zIndex: 10, width: '562px' }}>
+        <Box sx={{ position: 'fixed', top: 0, bgcolor: theme.palette.customColors.bodyBg, zIndex: 10, width: '562px' }}>
           <Box
             className='sidebar-header'
             sx={{
@@ -638,16 +755,14 @@ const AddIngredientswithChoice = props => {
             }}
           >
             <Box sx={{ gap: 2, display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
-              <Icon
-                style={{ marginLeft: -8 }}
-                icon='material-symbols-light:add-notes-outline-rounded'
-                fontSize={'32px'}
-              />
-              <Typography variant='h6'>Select Multiple Items</Typography>
+              <img src='/icons/Activity.svg' alt='Grocery Icon' width='35px' />
+              <Typography variant='h6' sx={{ color: theme.palette.customColors.OnSurfaceVariant }}>
+                Select Multiple Items
+              </Typography>
             </Box>
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
-              <IconButton size='small' onClick={handleSidebarClose} sx={{ color: 'text.primary' }}>
-                <Icon icon='mdi:close' fontSize={20} />
+              <IconButton size='small' onClick={handleSidebarClose} sx={{ color: theme.palette.primary.light }}>
+                <Icon icon='mdi:close' fontSize={25} />
               </IconButton>
             </Box>
           </Box>
@@ -659,12 +774,27 @@ const AddIngredientswithChoice = props => {
                 value={searchValue}
                 fullWidth
                 InputProps={{
-                  startAdornment: <Icon style={{ marginRight: 10 }} icon={'ion:search-outline'} />
+                  startAdornment: (
+                    <Icon
+                      style={{ marginRight: 10, color: theme.palette.customColors.OnSurfaceVariant }}
+                      icon={'ion:search-outline'}
+                    />
+                  ),
+                  endAdornment: searchValue && (
+                    <IconButton onClick={handleCancelClick} size='small' sx={{ padding: 0 }}>
+                      <Icon icon={'ion:close-outline'} style={{ color: theme.palette.customColors.OnSurfaceVariant }} />
+                    </IconButton>
+                  )
                 }}
-                placeholder='Search'
-                onKeyUp={e => searchData(e.target.value)}
-                onChange={e => {
-                  setSearchValue(e.target.value)
+                placeholder='Search ingredient'
+                onChange={handleSearchChange}
+                sx={{
+                  '& .MuiOutlinedInput-root': {
+                    borderColor: theme.palette.customColors.Outline,
+                    '& fieldset': {
+                      borderColor: theme.palette.customColors.Outline
+                    }
+                  }
                 }}
               />
             </Box>
@@ -677,6 +807,17 @@ const AddIngredientswithChoice = props => {
                   value={feed}
                   label='Feed'
                   onChange={handleChangeTopFeed}
+                  sx={{
+                    '& .MuiOutlinedInput-notchedOutline': {
+                      borderColor: theme.palette.customColors.Outline
+                    },
+                    '&:hover .MuiOutlinedInput-notchedOutline': {
+                      borderColor: theme.palette.customColors.Outline
+                    },
+                    '& .MuiOutlinedInput-root': {
+                      borderRadius: '0px'
+                    }
+                  }}
                   MenuProps={{
                     PaperProps: {
                       style: {
@@ -711,146 +852,197 @@ const AddIngredientswithChoice = props => {
 
         <Box
           key={feed}
-          sx={{ marginTop: 35, height: '65%', overflowY: 'auto', bgcolor: '#dbe0de' }}
-          onScroll={handleScroll}
+          sx={{
+            marginTop: 35,
+            height: 'calc(100vh - 245px)',
+            overflowY: 'auto',
+            bgcolor: theme.palette.customColors.bodyBg
+          }}
+          //onScroll={handleScroll}
+          onScroll={fromrow !== 'rowedit_ingredientwithchoice' ? handleScroll : undefined}
         >
-          {sortedIngredientList?.map((item, index) => (
-            <Box
-              key={item?.id}
-              sx={{
-                bgcolor: 'white',
-                mx: '24px',
-                borderRadius: '8px',
-                my: 4,
-                ...(selectedCardIngchoice.some(card => card.ingredient_id === item.id) && {
-                  border: '2px solid #37bd69'
-                })
-              }}
-              onClick={event => handelShowBottom(event, item, index)}
-            >
+          {loading ? (
+            <Box sx={{ display: 'flex', justifyContent: 'center', mt: 20 }}>
+              <CircularProgress />
+            </Box>
+          ) : sortedIngredientList?.length > 0 ? (
+            sortedIngredientList?.map((item, index) => (
               <Box
+                key={item?.id}
                 sx={{
-                  display: 'flex',
-                  flexDirection: 'row',
-                  alignItems: 'flex-start',
-                  ml: 2
+                  bgcolor: 'white',
+                  mx: '24px',
+                  borderRadius: '8px',
+                  my: 4,
+                  ...(selectedCardIngchoice.some(card => card.ingredient_id === item.id) && {
+                    border: `2px solid ${theme.palette.primary.main}`
+                  })
                 }}
+                onClick={event => handelShowBottom(event, item, index)}
               >
-                {selectedCardIngchoice.some(card => card.ingredient_id === item.id) ? (
-                  // Render checkbox icon if card is selected
-                  <Box
-                    onClick={event => removeSelectedCard(event, item.id)}
-                    sx={{
-                      width: '68px',
-                      height: '68px',
-                      borderRadius: 1,
-                      bgcolor: '#E8F4F2',
-                      display: 'flex',
-                      justifyContent: 'center',
-                      alignItems: 'center',
-                      mt: 4,
-                      ml: 3,
-                      mr: 4,
-                      p: 3
-                    }}
-                  >
-                    <Checkbox checked sx={{ '& .MuiSvgIcon-root': { fontSize: 80 } }} />
-                  </Box>
-                ) : (
-                  // Render image if card is not selected
-                  <Box
-                    sx={{
-                      width: '68px',
-                      height: '68px',
-                      borderRadius: 1,
-                      bgcolor: '#E8F4F2',
-                      display: 'flex',
-                      justifyContent: 'center',
-                      alignItems: 'center',
-                      mt: 4,
-                      ml: 3,
-                      mr: 4,
-                      p: 3
-                    }}
-                    onClick={event => handelCardSelection(event, item)}
-                  >
-                    <Avatar
-                      variant='square'
-                      alt='Medicine Image'
-                      sx={{ width: 40, height: 40, background: '#E8F4F2', borderRadius: 20 }}
-                      src={item?.image ? item?.image : '/icons/icon_diet_fill.png'}
-                    ></Avatar>
-                  </Box>
-                )}
-                <Box sx={{ pt: 3, paddingRight: 4, paddingBottom: 4, width: '100%' }}>
-                  <Tooltip title={item?.ingredient_name?.length > 50 ? item?.ingredient_name : ''}>
-                    <Typography
-                      variant='h6'
-                      sx={{ width: '400px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
-                    >
-                      {item?.ingredient_name}
-                    </Typography>
-                  </Tooltip>
-                  <Stack
-                    direction='row'
-                    sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 2, mt: 1 }}
-                  >
-                    <Typography>Id - {item?.id}</Typography>
-                    <Typography>Feed Type - {item?.feed_type_label}</Typography>
-                  </Stack>
-                  <Stack
-                    direction='row'
-                    sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 2, mt: 1 }}
-                  >
-                    <Typography>Preparation Type</Typography>
-
-                    <Box sx={{ width: 200 }}>
-                      <FormControl fullWidth>
-                        {/* <InputLabel id='demo-simple-select-label'>Select</InputLabel> */}
-                        <Select
-                          size='small'
-                          value={selectFeed[item.id]?.id || ''}
-                          onChange={e => handleChangeFeed(e, item)}
-                          displayEmpty
-                          error={
-                            visibility?.find(visItem => visItem && visItem.id === item.id)?.isVisible &&
-                            !selectFeed[item.id]?.id
-                          }
-                        >
-                          <MenuItem value='' disabled>
-                            Select
-                          </MenuItem>
-                          {item.preparation_types.map(preparationType => (
-                            <MenuItem key={preparationType.key} value={preparationType.id}>
-                              {preparationType.label}
-                            </MenuItem>
-                          ))}
-                        </Select>
-                      </FormControl>
-                    </Box>
-                  </Stack>
-                </Box>
-              </Box>
-
-              {/* bottom part */}
-
-              <>
                 <Box
                   sx={{
-                    p: 3,
-                    display: visibility.find(visItem => visItem && visItem.id === item.id)?.isVisible
-                      ? 'block'
-                      : ' none',
-                    transitionProperty: 'display',
-                    transitionDuration: '13s'
+                    display: 'flex',
+                    flexDirection: 'row',
+                    alignItems: 'flex-start',
+                    ml: 2
                   }}
                 >
-                  {selectFeed[item.id]?.name !== '' ? (
-                    <>
-                      <Divider mt={-2} />
-                      <Stack direction='row' sx={{ py: 4, px: 2, alignItems: 'center' }}>
-                        <Typography>Enter cut size</Typography>
-                        {/* <Box sx={{ width: '160.5px' }}>
+                  {selectedCardIngchoice.some(card => card.ingredient_id === item.id) ? (
+                    <Box
+                      onClick={event => removeSelectedCard(event, item.id)}
+                      sx={{
+                        width: '68px',
+                        height: '68px',
+                        borderRadius: 1,
+                        bgcolor: theme.palette.customColors.displaybgPrimary,
+                        display: 'flex',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        mt: 4,
+                        ml: 3,
+                        mr: 4,
+                        p: 3
+                      }}
+                    >
+                      <Checkbox checked sx={{ '& .MuiSvgIcon-root': { fontSize: 80 } }} />
+                    </Box>
+                  ) : (
+                    <Box
+                      sx={{
+                        width: '68px',
+                        height: '68px',
+                        borderRadius: 1,
+                        bgcolor: theme.palette.customColors.displaybgPrimary,
+                        display: 'flex',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        mt: 4,
+                        ml: 3,
+                        mr: 4,
+                        p: 3
+                      }}
+                      onClick={event => handelCardSelection(event, item)}
+                    >
+                      <Avatar
+                        variant='square'
+                        alt='Medicine Image'
+                        sx={{
+                          width: 40,
+                          height: 40,
+                          background: theme.palette.customColors.displaybgPrimary,
+                          borderRadius: 20
+                        }}
+                        src={item?.image ? item?.image : '/icons/icon_diet_fill.png'}
+                      ></Avatar>
+                    </Box>
+                  )}
+                  <Box sx={{ pt: 3, paddingRight: 4, paddingBottom: 4, width: '100%' }}>
+                    <Tooltip title={item?.ingredient_name?.length > 50 ? item?.ingredient_name : ''}>
+                      <Typography
+                        variant='h6'
+                        sx={{ width: '400px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+                      >
+                        {item?.ingredient_name}
+                      </Typography>
+                    </Tooltip>
+                    <Stack
+                      direction='row'
+                      sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 2, mt: 1 }}
+                    >
+                      <Typography>ING - {item?.id}</Typography>
+                      <Typography
+                        sx={{
+                          mr: 3,
+                          maxWidth: 180,
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap',
+                          display: 'flex',
+                          alignItems: 'center'
+                        }}
+                        noWrap
+                      >
+                        Feed Type -&nbsp;
+                        <Tooltip title={item?.feed_type_label || ''}>
+                          <span
+                            style={{
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                              whiteSpace: 'nowrap',
+                              display: 'inline-block',
+                              maxWidth: '100%'
+                            }}
+                          >
+                            {item?.feed_type_label}
+                          </span>
+                        </Tooltip>
+                      </Typography>
+                    </Stack>
+                    <Stack
+                      direction='row'
+                      sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 2, mt: 1 }}
+                    >
+                      <Typography>Preparation Type</Typography>
+
+                      <Box sx={{ width: 200 }}>
+                        <FormControl fullWidth>
+                          {/* <InputLabel id='demo-simple-select-label'>Select</InputLabel> */}
+                          <Select
+                            size='small'
+                            value={selectFeed[item.id]?.id || ''}
+                            onChange={e => handleChangeFeed(e, item)}
+                            displayEmpty
+                            error={
+                              visibility?.find(visItem => visItem && visItem.id === item.id)?.isVisible &&
+                              !selectFeed[item.id]?.id
+                            }
+                            sx={{
+                              '& .MuiOutlinedInput-notchedOutline': {
+                                borderColor: theme.palette.customColors.Outline
+                              },
+                              '&:hover .MuiOutlinedInput-notchedOutline': {
+                                borderColor: theme.palette.customColors.Outline
+                              },
+                              '& .MuiOutlinedInput-root': {
+                                borderRadius: '0px'
+                              }
+                            }}
+                          >
+                            <MenuItem value='' disabled>
+                              Select
+                            </MenuItem>
+                            {item.preparation_types.map(preparationType => (
+                              <MenuItem key={preparationType.key} value={preparationType.id}>
+                                {preparationType.label}
+                              </MenuItem>
+                            ))}
+                          </Select>
+                        </FormControl>
+                      </Box>
+                    </Stack>
+                  </Box>
+                </Box>
+
+                {/* bottom part */}
+
+                <>
+                  <Box
+                    sx={{
+                      p: 3,
+                      display: visibility.find(visItem => visItem && visItem.id === item.id)?.isVisible
+                        ? 'block'
+                        : ' none',
+                      transitionProperty: 'display',
+                      transitionDuration: '13s'
+                    }}
+                  >
+                    {selectFeed[item.id]?.name !== '' ? (
+                      <>
+                        <Divider mt={-2} />
+                        <Stack direction='row' sx={{ py: 4, px: 2, alignItems: 'center' }}>
+                          <Typography>Enter cut size</Typography>
+                          {/* <Box sx={{ width: '160.5px' }}>
                           <FormControl fullWidth>
                             <TextField
                               size='small'
@@ -867,45 +1059,77 @@ const AddIngredientswithChoice = props => {
                             />
                           </FormControl>
                         </Box> */}
-                        <Box sx={{ pl: 5 }}>
-                          <FormControl fullWidth>
-                            <Select
-                              size='small'
-                              value={size[item.id]?.id || ''}
-                              onChange={event => handleChangeSize(event, item)}
-                              displayEmpty
-                              error={
-                                visibility?.find(visItem => visItem && visItem.id === item.id)?.isVisible &&
-                                !size[item.id]?.id
-                              }
-                              MenuProps={{
-                                PaperProps: {
-                                  style: {
-                                    maxHeight: 300
-                                  }
+                          <Box sx={{ pl: 5 }}>
+                            <FormControl fullWidth>
+                              <Select
+                                size='small'
+                                value={size[item.id]?.id || ''}
+                                onChange={event => handleChangeSize(event, item)}
+                                displayEmpty
+                                error={
+                                  visibility?.find(visItem => visItem && visItem.id === item.id)?.isVisible &&
+                                  !size[item.id]?.id
                                 }
-                              }}
-                            >
-                              <MenuItem value='' disabled>
-                                Select
-                              </MenuItem>
-                              {uom?.map(unit => (
-                                <MenuItem key={unit.id} value={unit.id}>
-                                  {unit.cut_size}
+                                sx={{
+                                  '& .MuiOutlinedInput-notchedOutline': {
+                                    borderColor: theme.palette.customColors.Outline
+                                  },
+                                  '&:hover .MuiOutlinedInput-notchedOutline': {
+                                    borderColor: theme.palette.customColors.Outline
+                                  },
+                                  '& .MuiOutlinedInput-root': {
+                                    borderRadius: '0px'
+                                  }
+                                }}
+                                MenuProps={{
+                                  PaperProps: {
+                                    style: {
+                                      maxHeight: 300
+                                    }
+                                  }
+                                }}
+                              >
+                                <MenuItem value='' disabled>
+                                  Select
                                 </MenuItem>
-                              ))}
-                            </Select>
-                          </FormControl>
-                        </Box>
-                      </Stack>
-                    </>
-                  ) : null}
-                </Box>
-              </>
-              {/* ) : null} */}
+                                {uom?.map(unit => (
+                                  <MenuItem key={unit.id} value={unit.id}>
+                                    {unit.cut_size}
+                                  </MenuItem>
+                                ))}
+                              </Select>
+                            </FormControl>
+                          </Box>
+                        </Stack>
+                      </>
+                    ) : null}
+                  </Box>
+                </>
+              </Box>
+            ))
+          ) : searchValue !== '' && sortedIngredientList.length <= 0 ? (
+            <Box
+              sx={{
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'center',
+                alignItems: 'center',
+                height: '70%',
+                textAlign: 'center'
+              }}
+            >
+              <img src='/images/no_data_animal_2.png' alt='Grocery Icon' width='250px' />
+              <Box
+                sx={{
+                  color: theme.palette.customColors.statusText,
+                  fontSize: '16px'
+                }}
+              >
+                No records to show
+              </Box>
             </Box>
-          ))}
-          {reachedEnd ? (
+          ) : null}
+          {!loading && reachedEnd ? (
             <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%' }}>
               <CircularProgress sx={{ mb: 10 }} />
             </Box>
@@ -914,7 +1138,7 @@ const AddIngredientswithChoice = props => {
 
         <Box
           sx={{
-            height: showDays ? '370px' : '122px',
+            height: showDays ? '370px' : '100px',
             width: '100%',
             maxWidth: '562px',
             position: 'fixed',
@@ -935,7 +1159,7 @@ const AddIngredientswithChoice = props => {
                 <Typography sx={{ fontWeight: 'bold', fontSize: '20px' }}>
                   {selectedCardIngchoice?.length} Items Selected
                 </Typography>
-                <IconButton size='small' onClick={() => setShowDays(false)} sx={{ color: 'text.primary' }}>
+                <IconButton size='small' onClick={handleClose} sx={{ color: 'text.primary' }}>
                   <Icon icon='mdi:close' fontSize={25} />
                 </IconButton>
               </Stack>
@@ -946,7 +1170,7 @@ const AddIngredientswithChoice = props => {
                 display='flex'
                 alignItems='center'
                 sx={{
-                  border: '1px solid #C3CEC7',
+                  border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                   width: '22%',
                   borderRadius: '5px',
                   float: 'right',
@@ -957,7 +1181,7 @@ const AddIngredientswithChoice = props => {
                 <IconButton onClick={handleDecrement}>
                   <Remove />
                 </IconButton>
-                <Typography variant='h5' align='center' sx={{ color: '#37BD69' }}>
+                <Typography variant='h5' align='center' sx={{ color: theme.palette.primary.main }}>
                   {count}
                 </Typography>
                 <IconButton onClick={handleIncrement}>
@@ -975,14 +1199,14 @@ const AddIngredientswithChoice = props => {
                       sx={{
                         fontSize: 11,
                         fontWeight: 'bold',
-                        bgcolor: selectedDays.includes(day.id) ? '#203e56' : '#dedede66',
+                        bgcolor: selectedDays.includes(day.id) ? theme.palette.secondary.dark : '#dedede66',
                         borderRadius: 5,
                         p: 2,
                         justifyContent: 'center',
                         alignItems: 'center',
                         cursor: 'pointer',
                         '&:hover': {
-                          backgroundColor: selectedDays.includes(day.id) ? '#203e56' : '#dedede',
+                          backgroundColor: selectedDays.includes(day.id) ? theme.palette.secondary.dark : '#dedede',
                           color: selectedDays.includes(day.id) ? 'white' : 'black'
                         },
                         color: selectedDays.includes(day.id) ? 'white' : 'black'
@@ -1017,7 +1241,7 @@ const AddIngredientswithChoice = props => {
           {/* -------------------------------------------- */}
 
           {!showDays && (
-            <Button fullWidth variant='contained' size='large' sx={{ mb: 4 }} onClick={() => handleContinueClick()}>
+            <Button fullWidth variant='contained' size='large' sx={{ mb: 2 }} onClick={() => handleContinueClick()}>
               {selectedCardIngchoice?.length} SELECTED - CONTINUE
             </Button>
           )}

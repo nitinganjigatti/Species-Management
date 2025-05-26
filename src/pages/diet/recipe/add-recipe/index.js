@@ -47,6 +47,7 @@ const AddRecipe = () => {
   const [IngredientTypeList, setIngredientTypeList] = useState([])
   const [fullIngredientList, setFullIngredientList] = useState([])
   const [urlType, seturlType] = useState('')
+  const [loader, setLoader] = useState(false)
 
   const [formData, setFormData] = useState({
     recipe_name: '',
@@ -179,6 +180,7 @@ const AddRecipe = () => {
 
   const getIngredientsDetailval = async id => {
     try {
+      setLoader(true)
       const response = await getRecipeDetail(id)
 
       if (response.data.success === true && response.data.data !== null) {
@@ -235,7 +237,7 @@ const AddRecipe = () => {
         const uniqueIngredientList = combinedIngredients.filter(
           (item, index, self) => index === self.findIndex(i => i.id === item.id)
         )
-
+        setLoader(false)
         setFullIngredientList(uniqueIngredientList)
       }
     } catch (error) {
@@ -305,6 +307,7 @@ const AddRecipe = () => {
 
   const handleStepBillingSubmit = async () => {
     if (!id) {
+      setLoader(true)
       const numericFormData = {
         ...formData,
         by_percentage: JSON.stringify(
@@ -349,15 +352,17 @@ const AddRecipe = () => {
 
       if (apival.success === true) {
         Router.push(`/diet/recipe`)
-
+        setLoader(false)
         Toaster({ type: 'success', message: 'Recipe' + ' ' + apival?.message })
       } else {
         Toaster({
           type: 'error',
           message: apival?.message?.recipe_image ? 'Image type only PNG and JPG is allowed' : apival?.message
         })
+        setLoader(false)
       }
     } else if (id && urlType === 'copy') {
+      setLoader(true)
       const numericFormData = {
         ...formData,
         by_percentage: JSON.stringify(
@@ -411,15 +416,17 @@ const AddRecipe = () => {
 
       if (apival.success === true) {
         Router.push(`/diet/recipe`)
-
+        setLoader(false)
         Toaster({ type: 'success', message: 'Recipe' + ' ' + apival?.message })
       } else {
         Toaster({
           type: 'error',
           message: apival?.message?.recipe_image ? 'Image type only PNG and JPG is allowed' : apival?.message
         })
+        setLoader(false)
       }
     } else {
+      setLoader(true)
       const numericFormData = {
         ...formData,
         by_percentage: JSON.stringify(
@@ -473,13 +480,14 @@ const AddRecipe = () => {
 
       if (apival.success === true) {
         Router.push(`/diet/recipe`)
-
+        setLoader(false)
         Toaster({ type: 'success', message: 'Recipe' + ' ' + apival?.message })
       } else {
         Toaster({
           type: 'error',
           message: apival?.message?.recipe_image ? 'Image type only PNG and JPG is allowed' : apival?.message
         })
+        setLoader(false)
       }
     }
   }
@@ -493,6 +501,7 @@ const AddRecipe = () => {
             formData={formData}
             updateFormData={updateFormData}
             uomList={uomList}
+            loader={loader}
           />
         )
       case 1:
@@ -513,7 +522,14 @@ const AddRecipe = () => {
           />
         )
       case 2:
-        return <StepBillingDetails handlePrev={handlePrev} handleSubmit={handleStepBillingSubmit} formData={formData} />
+        return (
+          <StepBillingDetails
+            handlePrev={handlePrev}
+            handleSubmit={handleStepBillingSubmit}
+            formData={formData}
+            loader={loader}
+          />
+        )
       default:
         return null
     }
@@ -550,7 +566,10 @@ const AddRecipe = () => {
 
         <Divider sx={{ mx: '20px !important', pb: 1 }} />
 
-        <StepperWrapper sx={{ mb: 5, mt: 5, pt: 5, display: 'flex', justifyContent: 'center' }}>
+        <StepperWrapper
+          sx={{ mb: 5, mt: 5, pt: 5, display: 'flex', justifyContent: 'center' }}
+          className='recipe_steps'
+        >
           <Stepper activeStep={activeStep} sx={{ width: '75%', px: 15 }}>
             {steps.map((step, index) => {
               return (

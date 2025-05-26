@@ -40,7 +40,8 @@ import {
   getShipmentOrderDetails,
   getShipmentStatusList,
   resolveDisputeItems,
-  getCommentsList
+  getCommentsList,
+  getShipmentOrderDetailsOfRequests
 } from 'src/lib/api/pharmacy/getShipmentList'
 
 import { updateShipmentRequest } from 'src/lib/api/pharmacy/getRequestItemsList'
@@ -49,6 +50,7 @@ import Utility from 'src/utility'
 import ConfirmDialogBox from 'src/components/ConfirmDialogBox'
 import { useRouter } from 'next/router'
 import { useTheme } from '@emotion/react'
+import ShipmentPrintComponent from 'src/components/ShipmentPrintComponent'
 
 const Transition = forwardRef(function Transition(props, ref) {
   return <Fade ref={ref} {...props} />
@@ -122,7 +124,7 @@ const DisputeItemDetails = React.forwardRef((props, ref) => {
                   }}
                 >
                   <Typography variant='h6'>{`Items Shipped - ${disputeItemDetails?.item_details?.length}`}</Typography>
-                  {disputeItemDetails?.delivery_status !== 'Delivered' && selectedPharmacy.type === 'local' ? (
+                  {disputeItemDetails?.delivery_status !== 'Delivered' && selectedPharmacy.type === 'central' ? (
                     <>
                       {disputeItemDetails?.dispute_status !== 'Dispute Pending' && (
                         <FormGroup row>
@@ -315,9 +317,11 @@ function OrderReceiveForm({ orderId, requestId }) {
     }
   }
 
-  const getOrderDetails = async orderId => {
+  const getOrderDetails = async (orderId, requestId) => {
     try {
-      const response = await getShipmentOrderDetails(orderId)
+      // const response = await getShipmentOrderDetails(orderId)
+      // api updated for normal request api
+      const response = await getShipmentOrderDetailsOfRequests(orderId, requestId)
 
       if (response?.success === true && response?.data !== '') {
         const disputeLineItems = response?.data?.shipment_item_details?.map((el, index) => {
@@ -405,7 +409,7 @@ function OrderReceiveForm({ orderId, requestId }) {
   }
   useEffect(() => {
     if (orderId) {
-      getOrderDetails(orderId)
+      getOrderDetails(orderId, requestId)
     }
     getStatusList()
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -479,7 +483,7 @@ function OrderReceiveForm({ orderId, requestId }) {
       if (resolved?.success) {
         setResolveLoader(false)
         toast.success(resolved?.data)
-        getOrderDetails(orderId)
+        getOrderDetails(orderId, requestId)
       } else {
         setResolveLoader(false)
       }
@@ -560,7 +564,7 @@ function OrderReceiveForm({ orderId, requestId }) {
       if (resolved?.success) {
         setResolveLoader(false)
         toast.success(resolved?.data)
-        getOrderDetails(orderId)
+        getOrderDetails(orderId, requestId)
         closeDisputeDialog()
       } else {
         setResolveLoader(false)
@@ -704,7 +708,7 @@ function OrderReceiveForm({ orderId, requestId }) {
     {
       Width: 40,
       field: 'uid`',
-      headerName: 'S.NO',
+      headerName: 'SL.NO',
       renderCell: params => {
         return (
           <Typography variant='body2' sx={{ color: 'text.primary' }}>
@@ -780,7 +784,7 @@ function OrderReceiveForm({ orderId, requestId }) {
       renderCell: params => {
         return (
           <>
-            {selectedPharmacy.type === 'central' ? (
+            {selectedPharmacy?.type === 'local' ? (
               <>
                 <Grid
                   sx={{
@@ -1354,7 +1358,7 @@ function OrderReceiveForm({ orderId, requestId }) {
       setSubmitLoader(true) // Disable checkbox during submission
       try {
         await bulkStatusUpdate() // Ensure this completes before moving forward
-        await getOrderDetails(orderId) // Refresh the data only after updating status
+        await getOrderDetails(orderId, requestId) // Refresh the data only after updating status
       } catch (error) {
         console.error('Error in bulk status update: ', error)
       } finally {
@@ -1365,99 +1369,108 @@ function OrderReceiveForm({ orderId, requestId }) {
 
   const printRef = React.useRef()
 
+  // const handlePrint = () => {
+  //   const printWindow = window.open('', '_blank')
+  //   const printContents = printRef.current.innerHTML
+
+  //   const styles = Array.from(document.styleSheets)
+  //     .map(sheet => {
+  //       try {
+  //         return Array.from(sheet.cssRules)
+  //           .map(rule => rule.cssText)
+  //           .join('\n')
+  //       } catch (e) {
+  //         console.warn('Error accessing stylesheet:', e)
+
+  //         return ''
+  //       }
+  //     })
+  //     .join('\n')
+
+  //   printWindow.document.write(`
+  //     <html>
+  //       <head>
+  //         <title>${`Shipment Details - ${orderData?.shipment_id || ''}`}</title>
+  //         <style>
+  //           /* Include global styles */
+  //           ${styles}
+  //           /* You can add specific print styles here */
+  //           @media print {
+  //             body {
+  //               margin: 0;
+  //               padding: 0;
+  //             }
+  //               .printable-container {
+  //             background-color: ${theme.palette.customColors.lightBg};
+  //             padding: 16px;
+  //             border-radius: 8px;
+  //             border: 1px solid ${theme.palette.customColors.neutral05};
+  //             margin-top: 16px;
+
+  //           }
+  //             .MuiDataGrid-footerContainer{
+  //             display:none!important;
+  //             opacity: 0;
+  //           }
+  //              .print-title {
+  //             position: absolute;
+  //             top: 20px;
+  //             left: 50%;
+  //             transform: translateX(-50%);
+  //             font-size: 24px;
+  //             font-weight: bold;
+  //             margin-top: 10px;
+  //           }
+  //        .footer {
+  //           text-align: center;
+  //           font-size: 16px;
+  //           position: absolute;
+  //           bottom: 16px;
+  //           width: calc(100%);
+  //         }
+  //           #comments{
+  //             display: none!important
+  //           }
+  //             /* Add more print-specific styles if needed */
+  //           }
+  //         </style>
+  //       </head>
+  //       <body>
+  //           <div>
+  //         ${printContents}
+  //            </div>
+  //             <div class="footer">Antz Systems</div> <!-- Add footer with "Antz System" -->
+  //       </body>
+  //     </html>
+  //   `)
+
+  //   printWindow.document.close()
+  //   printWindow.focus()
+
+  //   printWindow.onload = () => {
+  //     printWindow.print()
+  //     printWindow.onafterprint = () => {
+  //       printWindow.close()
+  //     }
+  //   }
+
+  //   const interval = setInterval(() => {
+  //     if (printWindow.closed) {
+  //       clearInterval(interval)
+  //     } else {
+  //       printWindow.close()
+  //       clearInterval(interval)
+  //     }
+  //   }, 500)
+  // }
+
+  const shipmentPrintRef = useRef(null)
+
   const handlePrint = () => {
-    const printWindow = window.open('', '_blank')
-    const printContents = printRef.current.innerHTML
-
-    const styles = Array.from(document.styleSheets)
-      .map(sheet => {
-        try {
-          return Array.from(sheet.cssRules)
-            .map(rule => rule.cssText)
-            .join('\n')
-        } catch (e) {
-          console.warn('Error accessing stylesheet:', e)
-
-          return ''
-        }
-      })
-      .join('\n')
-
-    printWindow.document.write(`
-      <html>
-        <head>
-          <title>${`Shipment Details - ${orderData?.shipment_id || ''}`}</title>
-          <style>
-            /* Include global styles */
-            ${styles}
-            /* You can add specific print styles here */
-            @media print {
-              body {
-                margin: 0;
-                padding: 0;
-              }
-                .printable-container {
-              background-color: ${theme.palette.customColors.lightBg};
-              padding: 16px;
-              border-radius: 8px;
-              border: 1px solid ${theme.palette.customColors.neutral05};
-              margin-top: 16px;
-
-            }
-              .MuiDataGrid-footerContainer{
-              display:none!important;
-              opacity: 0;
-            }
-               .print-title {
-              position: absolute;
-              top: 20px;
-              left: 50%;
-              transform: translateX(-50%);
-              font-size: 24px;
-              font-weight: bold;
-              margin-top: 10px;
-            }
-         .footer {
-            text-align: center;
-            font-size: 16px;
-            position: absolute;
-            bottom: 16px;
-            width: calc(100%);
-          }
-            #comments{
-              display: none!important
-            }
-              /* Add more print-specific styles if needed */
-            }
-          </style>
-        </head>
-        <body>
-            <div>
-          ${printContents}
-             </div>
-              <div class="footer">Antz Systems</div> <!-- Add footer with "Antz System" -->
-        </body>
-      </html>
-    `)
-
-    printWindow.document.close()
-    printWindow.focus()
-
-    printWindow.onload = () => {
-      printWindow.print()
-      printWindow.onafterprint = () => {
-        printWindow.close()
-      }
+    // Call the handlePrint method exposed by the ShipmentPrintFormat component
+    if (shipmentPrintRef.current) {
+      shipmentPrintRef.current.handlePrint()
     }
-
-    const interval = setInterval(() => {
-      if (printWindow.closed) {
-        clearInterval(interval)
-      } else {
-        printWindow.close()
-        clearInterval(interval)
-      }
-    }, 500)
   }
 
   return (
@@ -1496,7 +1509,7 @@ function OrderReceiveForm({ orderId, requestId }) {
                 </Button>
               </Grid>
               <Grid item>
-                {disputeItemDetails?.delivery_status !== 'Delivered' && selectedPharmacy.type === 'local' ? (
+                {disputeItemDetails?.delivery_status !== 'Delivered' && selectedPharmacy.type === 'central' ? (
                   <LoadingButton
                     size='large'
                     disabled={disableButton() || submitLoader}
@@ -1528,6 +1541,17 @@ function OrderReceiveForm({ orderId, requestId }) {
 
         {commentDialog && commentDialogBox()}
       </div>
+
+      {orderData &&
+        ((Array.isArray(orderData) && orderData.length > 0) ||
+          (typeof orderData === 'object' && orderData !== null && Object.keys(orderData).length > 0)) && (
+          <div style={{ display: 'none' }}>
+            <ShipmentPrintComponent
+              ref={shipmentPrintRef}
+              data={orderData} // Pass your shipment data here
+            />
+          </div>
+        )}
     </>
   )
 }
@@ -1788,7 +1812,7 @@ export default OrderReceiveForm
 //   }
 //   useEffect(() => {
 //     if (orderId) {
-//       getOrderDetails(orderId)
+//       getOrderDetails(orderId, requestId)
 //     }
 //     getStatusList()
 //     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -1871,7 +1895,7 @@ export default OrderReceiveForm
 //       if (resolved?.success) {
 //         setResolveLoader(false)
 //         toast.success(resolved?.data)
-//         getOrderDetails(orderId)
+//         getOrderDetails(orderId, requestId)
 //       } else {
 //         setResolveLoader(false)
 //       }
@@ -1952,7 +1976,7 @@ export default OrderReceiveForm
 //       if (resolved?.success) {
 //         setResolveLoader(false)
 //         toast.success(resolved?.data)
-//         getOrderDetails(orderId)
+//         getOrderDetails(orderId, requestId)
 //         closeDisputeDialog()
 //       } else {
 //         setResolveLoader(false)

@@ -20,6 +20,7 @@ import * as yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
 import toast from 'react-hot-toast'
 import Toaster from 'src/components/Toaster'
+import { useTheme, useMediaQuery } from '@mui/material'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
@@ -116,6 +117,8 @@ const StepAddIngredients = ({
   const [openDrawer, setOpenDrawer] = useState(false)
   const [submitLoader, setSubmitLoader] = useState(false)
   const [editParams, setEditParams] = useState(editParamsInitialState)
+  const theme = useTheme()
+  const isSmallDevice = useMediaQuery(theme.breakpoints.down('md'))
 
   const {
     reset,
@@ -193,15 +196,17 @@ const StepAddIngredients = ({
 
   const addQuantityButton = () => {
     return (
-      <Typography
+      <Grid
+        container
         sx={{
-          mb: 1,
+          mb: 5,
           px: 4,
-          mt: 6,
-          float: 'left',
+          mt: 4,
+          //float: 'left',
           color: '#37BD69',
           display: 'flex',
           alignItems: 'center',
+          justifyContent: 'flex-start',
           cursor: 'pointer',
           fontWeight: 600
         }}
@@ -216,7 +221,7 @@ const StepAddIngredients = ({
       >
         <Icon icon='material-symbols:add' />
         ADD NEW INGREDIENT
-      </Typography>
+      </Grid>
     )
   }
 
@@ -241,7 +246,7 @@ const StepAddIngredients = ({
 
     return (
       <Box
-        style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '35px' }}
+        style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '5px' }}
         className='ing_byquan'
         onClick={() => {
           removeByQuantity(index)
@@ -861,250 +866,304 @@ const StepAddIngredients = ({
               </Box>
             </Grid>
 
-            <Grid container spacing={5} sx={{ px: 5, background: '#E8F4F2', my: 4, borderRadius: 0.5, mx: 4 }}>
-              {ingredientsbyqun.map((ingredient, index) => (
-                <Grid item xs={12} sm={ingredient.label !== 'Quantity' ? 2.4 : 2} key={index} sx={{ py: 4 }}>
-                  <Typography sx={{ textTransform: 'uppercase', fontSize: 14, fontWeight: 600 }}>
-                    {ingredient.label}
-                  </Typography>
+            <Box
+              sx={{
+                width: '100%', // Full width
+                overflowX: 'auto', // Horizontal scrolling for the entire container
+                padding: '10px'
+              }}
+            >
+              <Box
+                sx={{
+                  display: 'flex', // Flex to align rows horizontally
+                  flexDirection: 'column', // Stack rows vertically
+                  gap: '2px', // Add some gap between rows
+                  minWidth: 'max-content' // Ensure the container doesn't shrink
+                }}
+              >
+                <Grid container spacing={5} sx={{ px: 5, background: '#E8F4F2', my: 2, borderRadius: 0.5, mx: 4 }}>
+                  {ingredientsbyqun.map((ingredient, index) => (
+                    <Grid item xs={12} sm={ingredient.label !== 'Quantity' ? 2.4 : 2} key={index} sx={{ py: 4 }}>
+                      <Typography sx={{ textTransform: 'uppercase', fontSize: 14, fontWeight: 600 }}>
+                        {ingredient.label}
+                      </Typography>
+                    </Grid>
+                  ))}
                 </Grid>
-              ))}
-            </Grid>
-            <Grid container spacing={5} sx={{ px: 5, py: 5 }}>
-              {console.log(fieldsByQuantity, 'fieldsByQuantity')}
-              {fieldsByQuantity.map((field, index) => (
-                <Grid container spacing={5} sx={{ px: 5, py: 5 }} key={field.id} id={'testnew' + index}>
-                  <ScrollToFieldError errors={errors} index={index} />
-                  <Grid item xs={12} sm={2.3}>
-                    <FormControl fullWidth>
-                      <Controller
-                        name={`by_quantity[${index}].ingredient_id`}
-                        control={control}
-                        rules={{ required: true }}
-                        render={({ field: { value, onChange } }) => (
-                          <Autocomplete
-                            value={fullIngredientList.find(option => option.id === value) || null}
-                            disablePortal
-                            id={`by_quantity[${index}].ingredient_id`}
-                            placeholder='Search & Select'
-                            options={fullIngredientList || []}
-                            getOptionLabel={option => option?.ingredient_name}
-                            isOptionEqualToValue={(option, value) => option?.id === value?.id}
-                            onChange={(e, val) => {
-                              if (val === null) {
-                                onChange('')
-                                setFormValue(`by_quantity[${index}].ingredient_name`, '')
-                                setFormValue(`by_quantity[${index}].feed_type_label`, '')
-                                //setPreparationTypeListQuantity([])
-                                setFormValue(`by_quantity[${index}].preparation_type`, '')
-                              } else {
-                                onChange(val?.id)
-                                setFormValue(`by_quantity[${index}].ingredient_name`, val?.ingredient_name)
-                                setFormValue(`by_quantity[${index}].feed_type_label`, val?.feed_type_label)
-                                handlecheck(val?.id, index, 'by_quantity')
-                                setFormValue(`by_quantity[${index}].preparation_type`, '')
-                                setFormValue(`by_quantity[${index}].preparation_type_id`, '')
-                              }
-                            }}
-                            onKeyUp={e => {
-                              IngredientTypeListSearch(e?.target?.value)
-                            }}
-                            renderInput={params => (
-                              <TextField
-                                {...params}
-                                label='Select Ingredient*'
+                {fieldsByQuantity.map((field, index) => (
+                  <Box key={field.id}>
+                    <Grid
+                      container
+                      spacing={5}
+                      sx={{ px: 5, py: 2, flexWrap: 'nowrap', minWidth: 'max-content' }}
+                      id={'testnew' + index}
+                    >
+                      <ScrollToFieldError errors={errors} index={index} />
+                      <Grid item xs={12} sm={2.3}>
+                        <FormControl fullWidth>
+                          <Controller
+                            name={`by_quantity[${index}].ingredient_id`}
+                            control={control}
+                            rules={{ required: true }}
+                            render={({ field: { value, onChange } }) => (
+                              <Autocomplete
+                                sx={{
+                                  // '&.MuiAutocomplete-hasPopupIcon.MuiAutocomplete-hasClearIcon .MuiOutlinedInput-root':
+                                  //   isSmallDevice ? { paddingRight: '10px' } : {},
+                                  // '& .MuiAutocomplete-clearIndicator': isSmallDevice ? { display: 'none' } : {},
+                                  // '& .MuiAutocomplete-popupIndicator': isSmallDevice ? { display: 'none' } : {},
+                                  width: isSmallDevice ? '216px' : '216px'
+                                }}
+                                value={fullIngredientList.find(option => option.id === value) || null}
+                                //disablePortal
+                                id={`by_quantity[${index}].ingredient_id`}
                                 placeholder='Search & Select'
+                                options={fullIngredientList || []}
+                                getOptionLabel={option => option?.ingredient_name}
+                                isOptionEqualToValue={(option, value) => option?.id === value?.id}
+                                onChange={(e, val) => {
+                                  if (val === null) {
+                                    onChange('')
+                                    setFormValue(`by_quantity[${index}].ingredient_name`, '')
+                                    setFormValue(`by_quantity[${index}].feed_type_label`, '')
+                                    setFormValue(`by_quantity[${index}].preparation_type`, '')
+                                  } else {
+                                    onChange(val?.id)
+                                    setFormValue(`by_quantity[${index}].ingredient_name`, val?.ingredient_name)
+                                    setFormValue(`by_quantity[${index}].feed_type_label`, val?.feed_type_label)
+                                    handlecheck(val?.id, index, 'by_quantity')
+                                    setFormValue(`by_quantity[${index}].preparation_type`, '')
+                                    setFormValue(`by_quantity[${index}].preparation_type_id`, '')
+                                  }
+                                }}
+                                onKeyUp={e => {
+                                  IngredientTypeListSearch(e?.target?.value)
+                                }}
+                                renderInput={params => (
+                                  <TextField
+                                    {...params}
+                                    label='Select Ingredient*'
+                                    placeholder='Search & Select'
+                                    error={
+                                      errors.by_quantity &&
+                                      errors.by_quantity[index] &&
+                                      errors.by_quantity[index].ingredient_id?.message
+                                        ? true
+                                        : false
+                                    }
+                                  />
+                                )}
+                              />
+                            )}
+                          />
+                          {errors.by_quantity && errors.by_quantity[index] && (
+                            <FormHelperText sx={{ color: 'error.main' }}>
+                              {errors.by_quantity[index].ingredient_id?.message}
+                            </FormHelperText>
+                          )}
+                        </FormControl>
+                      </Grid>
+
+                      <Grid item xs={12} sm={2.3}>
+                        <FormControl fullWidth>
+                          <Controller
+                            name={`by_quantity[${index}].quantity`}
+                            control={control}
+                            rules={{ required: true }}
+                            render={({ field: { value, onChange } }) => (
+                              <TextField
+                                value={value}
+                                type='number'
+                                label='Enter Quantity *'
+                                name={`by_quantity[${index}].quantity`}
+                                onChange={onChange}
+                                placeholder=''
+                                sx={{ width: isSmallDevice ? '216px' : '216px' }}
+                                onInput={e => {
+                                  if (e.target.value < 0) {
+                                    e.target.value = ''
+                                  }
+                                }}
                                 error={
                                   errors.by_quantity &&
                                   errors.by_quantity[index] &&
-                                  errors.by_quantity[index].ingredient_id?.message
+                                  errors.by_quantity[index].quantity?.message
                                     ? true
                                     : false
                                 }
                               />
                             )}
                           />
-                        )}
-                      />
-                      {errors.by_quantity && errors.by_quantity[index] && (
-                        <FormHelperText sx={{ color: 'error.main' }}>
-                          {errors.by_quantity[index].ingredient_id?.message}
-                        </FormHelperText>
-                      )}
-                    </FormControl>
-                  </Grid>
-
-                  <Grid item xs={12} sm={2.3}>
-                    <FormControl fullWidth>
-                      <Controller
-                        name={`by_quantity[${index}].quantity`}
-                        control={control}
-                        rules={{ required: true }}
-                        render={({ field: { value, onChange } }) => (
-                          <TextField
-                            value={value}
-                            type='number'
-                            label='Enter Quantity *'
-                            name={`by_quantity[${index}].quantity`}
-                            onChange={onChange}
-                            placeholder=''
-                            onInput={e => {
-                              if (e.target.value < 0) {
-                                e.target.value = ''
-                              }
+                          {errors.by_quantity && errors.by_quantity[index] && (
+                            <FormHelperText sx={{ color: 'error.main' }}>
+                              {errors.by_quantity[index].quantity?.message}
+                            </FormHelperText>
+                          )}
+                        </FormControl>
+                      </Grid>
+                      <Grid item xs={12} sm={2.3}>
+                        <FormControl fullWidth>
+                          <Controller
+                            name={`by_quantity[${index}].uom_id`}
+                            control={control}
+                            rules={{ required: true }}
+                            render={({ field: { value, onChange } }) => {
+                              console.log(value, 'value')
+                              return (
+                                <Autocomplete
+                                  sx={{
+                                    // '&.MuiAutocomplete-hasPopupIcon.MuiAutocomplete-hasClearIcon .MuiOutlinedInput-root':
+                                    //   isSmallDevice ? { paddingRight: '10px' } : {},
+                                    // '& .MuiAutocomplete-clearIndicator': isSmallDevice ? { display: 'none' } : {},
+                                    // '& .MuiAutocomplete-popupIndicator': isSmallDevice ? { display: 'none' } : {},
+                                    width: isSmallDevice ? '216px' : '216px'
+                                  }}
+                                  id={`by_quantity[${index}].uom_id`}
+                                  getOptionLabel={option => option.name}
+                                  renderInput={params => (
+                                    <TextField
+                                      {...params}
+                                      label='Measurement (UOM) *'
+                                      error={
+                                        errors.by_quantity &&
+                                        errors.by_quantity[index] &&
+                                        errors.by_quantity[index].uom_id?.message
+                                          ? true
+                                          : false
+                                      }
+                                    />
+                                  )}
+                                  options={uomList || []}
+                                  onChange={(e, val) => {
+                                    if (val === null) {
+                                      onChange('')
+                                      setFormValue(`by_quantity[${index}].uom_text`, '')
+                                    } else {
+                                      onChange(val._id)
+                                      setFormValue(`by_quantity[${index}].uom_text`, val?.name || '')
+                                    }
+                                  }}
+                                  value={uomList.find(option => option._id === value) || null}
+                                  isOptionEqualToValue={(option, value) => option?._id === value?._id}
+                                />
+                              )
                             }}
-                            error={
-                              errors.by_quantity &&
-                              errors.by_quantity[index] &&
-                              errors.by_quantity[index].quantity?.message
-                                ? true
-                                : false
-                            }
                           />
-                        )}
-                      />
-                      {errors.by_quantity && errors.by_quantity[index] && (
-                        <FormHelperText sx={{ color: 'error.main' }}>
-                          {errors.by_quantity[index].quantity?.message}
-                        </FormHelperText>
-                      )}
-                    </FormControl>
-                  </Grid>
-                  <Grid item xs={12} sm={2.3}>
-                    <FormControl fullWidth>
-                      <Controller
-                        name={`by_quantity[${index}].uom_id`}
-                        control={control}
-                        rules={{ required: true }}
-                        render={({ field: { value, onChange } }) => {
-                          console.log(value, 'value')
-                          return (
-                            <Autocomplete
-                              id={`by_quantity[${index}].uom_id`}
-                              getOptionLabel={option => option.name}
-                              renderInput={params => (
-                                <TextField
-                                  {...params}
-                                  label='Measurement (UOM) *'
-                                  error={
-                                    errors.by_quantity &&
-                                    errors.by_quantity[index] &&
-                                    errors.by_quantity[index].uom_id?.message
-                                      ? true
-                                      : false
+                          {errors.by_quantity && errors.by_quantity[index] && (
+                            <FormHelperText sx={{ color: 'error.main' }}>
+                              {errors.by_quantity[index].uom_id?.message}
+                            </FormHelperText>
+                          )}
+                        </FormControl>
+                      </Grid>
+                      <Grid item xs={12} sm={2.3}>
+                        <FormControl fullWidth>
+                          <Controller
+                            name={`by_quantity[${index}].preparation_type_id`}
+                            control={control}
+                            rules={{ required: true }}
+                            render={({ field: { value, onChange } }) => {
+                              return (
+                                <Autocomplete
+                                  sx={{
+                                    // '&.MuiAutocomplete-hasPopupIcon.MuiAutocomplete-hasClearIcon .MuiOutlinedInput-root':
+                                    //   isSmallDevice ? { paddingRight: '10px' } : {},
+                                    // '& .MuiAutocomplete-clearIndicator': isSmallDevice ? { display: 'none' } : {},
+                                    // '& .MuiAutocomplete-popupIndicator': isSmallDevice ? { display: 'none' } : {},
+                                    width: isSmallDevice ? '216px' : '216px'
+                                  }}
+                                  id={`by_quantity[${index}].preparation_type_id`}
+                                  getOptionLabel={option => option.label || ''}
+                                  renderInput={params => (
+                                    <TextField
+                                      {...params}
+                                      label='Select Preparation Type*'
+                                      error={
+                                        errors.by_quantity &&
+                                        errors.by_quantity[index] &&
+                                        errors.by_quantity[index].preparation_type_id?.message
+                                          ? true
+                                          : false
+                                      }
+                                    />
+                                  )}
+                                  options={preparationTypeListQuantity[index] || []}
+                                  onChange={(event, newValue) => {
+                                    const updatedIngredient = newValue?.id || ''
+                                    setFormValue(`by_quantity[${index}].preparation_type_id`, newValue?.id || '') // Use id instead of value
+                                    setFormValue(`by_quantity[${index}].preparation_type`, newValue?.label || '')
+                                    onChange(updatedIngredient, index)
+                                  }}
+                                  value={
+                                    preparationTypeListQuantity[index]?.find(option => option.id === value) || null
                                   }
+                                  isOptionEqualToValue={(option, value) => option.id === value}
                                 />
-                              )}
-                              options={uomList || []}
-                              onChange={(e, val) => {
-                                if (val === null) {
-                                  onChange('')
-                                  setFormValue(`by_quantity[${index}].uom_text`, '')
-                                } else {
-                                  onChange(val._id)
-                                  setFormValue(`by_quantity[${index}].uom_text`, val?.name || '')
-                                }
-                              }}
-                              value={uomList.find(option => option._id === value) || null}
-                              isOptionEqualToValue={(option, value) => option?._id === value?._id}
-                            />
-                          )
-                        }}
-                      />
-                      {errors.by_quantity && errors.by_quantity[index] && (
-                        <FormHelperText sx={{ color: 'error.main' }}>
-                          {errors.by_quantity[index].uom_id?.message}
-                        </FormHelperText>
-                      )}
-                    </FormControl>
-                  </Grid>
-                  <Grid item xs={12} sm={2.3}>
-                    <FormControl fullWidth>
-                      <Controller
-                        name={`by_quantity[${index}].preparation_type_id`}
-                        control={control}
-                        rules={{ required: true }}
-                        render={({ field: { value, onChange } }) => {
-                          return (
-                            <Autocomplete
-                              id={`by_quantity[${index}].preparation_type_id`}
-                              getOptionLabel={option => option.label || ''}
-                              renderInput={params => (
-                                <TextField
-                                  {...params}
-                                  label='Select Preparation Type*'
-                                  error={
-                                    errors.by_quantity &&
-                                    errors.by_quantity[index] &&
-                                    errors.by_quantity[index].preparation_type_id?.message
-                                      ? true
-                                      : false
-                                  }
-                                />
-                              )}
-                              options={preparationTypeListQuantity[index] || []}
-                              onChange={(event, newValue) => {
-                                const updatedIngredient = newValue?.id || ''
-                                setFormValue(`by_quantity[${index}].preparation_type_id`, newValue?.id || '') // Use id instead of value
-                                setFormValue(`by_quantity[${index}].preparation_type`, newValue?.label || '')
-                                onChange(updatedIngredient, index)
-                              }}
-                              value={preparationTypeListQuantity[index]?.find(option => option.id === value) || null}
-                              isOptionEqualToValue={(option, value) => option.id === value}
-                            />
-                          )
-                        }}
-                      />
-                      {errors.by_quantity && errors.by_quantity[index] && (
-                        <FormHelperText sx={{ color: 'error.main' }}>
-                          {errors.by_quantity[index].preparation_type_id?.message}
-                        </FormHelperText>
-                      )}
-                    </FormControl>
-                  </Grid>
+                              )
+                            }}
+                          />
+                          {errors.by_quantity && errors.by_quantity[index] && (
+                            <FormHelperText sx={{ color: 'error.main' }}>
+                              {errors.by_quantity[index].preparation_type_id?.message}
+                            </FormHelperText>
+                          )}
+                        </FormControl>
+                      </Grid>
 
-                  <Grid item xs={12} sm={2.3}>
-                    <FormControl fullWidth>
-                      <Controller
-                        name={`by_quantity[${index}].cut_size`}
-                        control={control}
-                        rules={{ required: true }}
-                        render={({ field: { value, onChange } }) => {
-                          console.log(value, 'value')
-                          return (
-                            <Autocomplete
-                              id={`by_quantity[${index}].cut_size`}
-                              getOptionLabel={option => option.cut_size}
-                              renderInput={params => <TextField {...params} label='Select Cut size *' />}
-                              options={cutsizeList || []}
-                              onChange={(e, val) => {
-                                if (val === null) {
-                                  onChange('')
-                                  setFormValue(`by_quantity[${index}].cut_size`, '')
-                                  setFormValue(`by_quantity[${index}].cut_size_id`, '')
-                                } else {
-                                  onChange(val.id)
-                                  setFormValue(`by_quantity[${index}].cut_size`, val?.cut_size)
-                                  setFormValue(`by_quantity[${index}].cut_size_id`, val?.id)
-                                }
-                              }}
-                              value={cutsizeList.find(option => option.cut_size === value) || null}
-                              isOptionEqualToValue={(option, value) => option?.id === value?.id}
-                            />
-                          )
-                        }}
-                      />
-                    </FormControl>
-                  </Grid>
-                  {fieldsByQuantity.length - 1 === index && index > 0 ? (
-                    <Grid>{removebyQuantityButton(index)}</Grid>
-                  ) : (
-                    ''
-                  )}
-                  <Grid>{handleAddRemoveQuantity(fieldsByQuantity, index)}</Grid>
-                </Grid>
-              ))}
-            </Grid>
+                      <Grid item xs={12} sm={2.3}>
+                        <FormControl fullWidth>
+                          <Controller
+                            name={`by_quantity[${index}].cut_size`}
+                            control={control}
+                            rules={{ required: true }}
+                            render={({ field: { value, onChange } }) => {
+                              console.log(value, 'value')
+                              return (
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                                  <Autocomplete
+                                    sx={{
+                                      // '&.MuiAutocomplete-hasPopupIcon.MuiAutocomplete-hasClearIcon .MuiOutlinedInput-root':
+                                      //   isSmallDevice ? { paddingRight: '10px' } : {},
+                                      // '& .MuiAutocomplete-clearIndicator': isSmallDevice ? { display: 'none' } : {},
+                                      // '& .MuiAutocomplete-popupIndicator': isSmallDevice ? { display: 'none' } : {},
+                                      width: isSmallDevice ? '216px' : '216px'
+                                    }}
+                                    id={`by_quantity[${index}].cut_size`}
+                                    getOptionLabel={option => option.cut_size}
+                                    renderInput={params => <TextField {...params} label='Select Cut size *' />}
+                                    options={cutsizeList || []}
+                                    onChange={(e, val) => {
+                                      if (val === null) {
+                                        onChange('')
+                                        setFormValue(`by_quantity[${index}].cut_size`, '')
+                                        setFormValue(`by_quantity[${index}].cut_size_id`, '')
+                                      } else {
+                                        onChange(val.id)
+                                        setFormValue(`by_quantity[${index}].cut_size`, val?.cut_size)
+                                        setFormValue(`by_quantity[${index}].cut_size_id`, val?.id)
+                                      }
+                                    }}
+                                    value={cutsizeList.find(option => option.cut_size === value) || null}
+                                    isOptionEqualToValue={(option, value) => option?.id === value?.id}
+                                  />
+                                  {/* Cancel Icon (Remove Button) */}
+                                  {fieldsByQuantity.length > 1 && removebyQuantityButton(index)}
+                                </Box>
+                              )
+                            }}
+                          />
+                        </FormControl>
+                      </Grid>
+                    </Grid>
+
+                    {/* Add New Ingredient Button */}
+                    {fieldsByQuantity.length - 1 === index && (
+                      <Box sx={{ mt: 0, float: 'left' }}>{addQuantityButton()}</Box>
+                    )}
+                  </Box>
+                ))}
+              </Box>
+            </Box>
 
             <Grid container sx={{ px: 5, py: 3 }}>
               <Box sx={{ mb: 4, float: 'left' }}>

@@ -41,9 +41,9 @@ const CriticalInfoCards = ({ title, subTitle, modifiedProperties }) => {
         variant='h6'
         sx={{ mb: 1, width: '100%', textAlign: 'center', marginLeft: -4 }}
       >
-        {title ? title : null}
+        {title ? title : 0}
       </Typography>
-      <Typography variant='body2'>{subTitle ? modifiedProperties(subTitle).name : null}</Typography>
+      <Typography variant='body2'>{subTitle ? modifiedProperties(subTitle).name : ''}</Typography>
     </Box>
   )
 }

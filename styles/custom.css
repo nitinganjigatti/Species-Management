@@ -60,39 +60,89 @@
 .ing_byquan {
   margin-left: 12px;
 }
+.meal_dtl_hd {
+  width: 580px;
+}
 @media (min-width: 768px) and (max-width: 1023px) {
+  .recipe_name {
+    width: 100px;
+  }
+  .diet_steps .MuiStepper-root {
+    display: -webkit-inline-box;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+  }
+
+  .diet_steps .MuiStepConnector-root {
+    width: 20% !important;
+  }
+  .recipe_steps .MuiStepper-root {
+    display: -webkit-inline-box;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    padding-left: 0px;
+    padding-right: 0px;
+  }
+  .recipe_steps .MuiStepConnector-root {
+    width: 7% !important;
+  }
+  .combo_steps .MuiStepper-root {
+    display: -webkit-inline-box;
+    align-items: center;
+    justify-content: center;
+    gap: 16px;
+    padding-left: 0px;
+    padding-right: 0px;
+  }
+  .combo_steps .MuiStepConnector-root {
+    width: 22% !important;
+  }
+  .ing_choice {
+    margin-left: 0px !important;
+  }
+  .tabs_diet_dtl .MuiTabs-scroller {
+    overflow: scroll !important;
+  }
+  .meal_dtl_hd {
+    width: 396px !important;
+  }
+  .cellmodule4 {
+    width: 380px !important;
+  }
   .cellmodule5 {
-    width: 465px !important;
+    width: 365px !important;
   }
   .cellmodule6 {
-    width: 500px !important;
+    width: 365px !important;
   }
   .cellmodule7 {
-    width: 465px !important;
+    width: 360px !important;
   }
   .cellmodule3 {
-    width: 465px !important;
+    width: 360px !important;
   }
   .cellmodule9 {
-    width: 465px !important;
+    width: 360px !important;
   }
   .diet_val_container {
     width: 125px;
   }
   .cell_dimn {
-    width: 586px;
+    width: 386px;
   }
   .cell_dimn1 {
-    width: 586px;
+    width: 380px;
   }
   .cell_dimn2 {
-    width: 586px;
+    width: 380px;
   }
   .cell_dimn3 {
-    width: 586px;
+    width: 380px;
   }
   .cell_gend {
-    width: 580px;
+    width: 380px;
   }
   .diet_gender {
     width: 121px;
@@ -104,13 +154,13 @@
     width: 125px;
   }
   .cellmodule22 {
-    width: 465px !important;
+    width: 360px !important;
   }
   .cellmodule2 {
-    width: 465px !important;
+    width: 360px !important;
   }
   .cellmodule1 {
-    width: 500px !important;
+    width: 375px !important;
   }
   .diet_cell_weight {
     width: 121px;
@@ -119,7 +169,7 @@
     width: 121px;
   }
   .w_280 {
-    width: 180px;
+    width: 145px;
   }
   .ing_byperc {
     margin-left: 8px;
@@ -195,6 +245,12 @@
   }
 }
 
+@media (min-width: 1200px) and (max-width: 1400px) {
+  .cell_dimn {
+    width: 616px !important;
+  }
+}
+
 @media (min-width: 1200px) and (max-width: 1440px) {
   .cellmodule {
     width: 785px !important;
@@ -227,10 +283,10 @@
     width: 127px;
   }
   .cell_dimn {
-    width: 730px;
+    width: 723px;
   }
   .cell_dimn1 {
-    width: 625px;
+    width: 610px;
   }
   .cell_dimn2 {
     width: 570px;
@@ -341,7 +397,7 @@
     width: 590px;
   }
   .cell_gend {
-    width: 635px;
+    width: 608px;
   }
   .diet_gender {
     width: 129px;
@@ -404,7 +460,7 @@
     width: 613px;
   }
   .cell_gend {
-    width: 685px;
+    width: 662px;
   }
   .diet_gender {
     width: 140px;
@@ -462,7 +518,7 @@
     width: 610px;
   }
   .cell_gend {
-    width: 673px;
+    width: 667px;
   }
   .diet_gender {
     width: 138px;

@@ -8,8 +8,10 @@ import {
   Avatar,
   Card,
   CardContent,
-  CircularProgress,
-  Divider
+  useMediaQuery,
+  Button,
+  Menu,
+  MenuItem
 } from '@mui/material'
 import Router, { useRouter } from 'next/router'
 import Icon from 'src/@core/components/icon'
@@ -23,10 +25,20 @@ import Toaster from 'src/components/Toaster'
 import Tooltip from '@mui/material/Tooltip'
 import ChangeDietName from 'src/components/diet/ChangeDietname'
 
-const DietDetailCard = ({ dietDetails, dietModulePermission, dietModuleAccess }) => {
+const DietDetailCard = ({
+  dietDetails,
+  dietModulePermission,
+  dietModuleAccess,
+  refreshDietDetails,
+  handleSpeciesClick,
+  handleSpeciesClicknew,
+  setapplyfilterCheck,
+  authData
+}) => {
   const router = useRouter()
   const { source, recipeId, ingId } = router.query
   const theme = useTheme()
+  const isSmallDevice = useMediaQuery(theme.breakpoints.down('md'))
   const [expanded, setExpanded] = useState(false)
   const [loading, setLoading] = useState(false)
   const [activitySidebarOpen, setActivitySidebarOpen] = useState(false)
@@ -42,6 +54,8 @@ const DietDetailCard = ({ dietDetails, dietModulePermission, dietModuleAccess })
   // const [activePayload, setActivePayload] = useState(FeedDetailsValue?.active || false)
   const [activePayload, setActivePayload] = useState(false)
   const [confirmDialogBox, setConfirmDialogBox] = useState(false)
+  const [anchorEl, setAnchorEl] = useState(null)
+  const open = Boolean(anchorEl)
 
   const handleSwitchChange = async event => {
     if (dietModuleAccess && (dietModuleAccess === 'EDIT' || dietModuleAccess === 'DELETE')) {
@@ -50,6 +64,7 @@ const DietDetailCard = ({ dietDetails, dietModulePermission, dietModuleAccess })
       setConfirmDialogBox(true)
     }
   }
+
   const handleClosenew = () => {
     setConfirmDialogBox(false)
   }
@@ -113,6 +128,7 @@ const DietDetailCard = ({ dietDetails, dietModulePermission, dietModuleAccess })
 
       if (response.success) {
         setIsActive(isActive === '0' ? '1' : '0')
+        refreshDietDetails()
         Toaster({ type: 'success', message: response.message })
       } else {
         alert('something went wrong')
@@ -134,8 +150,17 @@ const DietDetailCard = ({ dietDetails, dietModulePermission, dietModuleAccess })
         query: { source: 'fromdiet' }
       })
     } else {
-      Router.push('/diet/diet')
+      // Router.push('/diet/diet')
+      Router.back()
     }
+  }
+
+  const handleClick = event => {
+    setAnchorEl(event.currentTarget)
+  }
+
+  const handleClose = () => {
+    setAnchorEl(null)
   }
 
   return (
@@ -159,103 +184,293 @@ const DietDetailCard = ({ dietDetails, dietModulePermission, dietModuleAccess })
             Diet Details
           </Typography>
         </Box>
-        <Grid sx={{ justifyContent: 'center', gap: '24px', boxSizing: 'border-box' }} container>
-          <Grid md={3.8} item>
-            <Box item sx={{ borderTopLeftRadius: 36, borderTopRightRadius: 36 }}>
+        <Grid
+          sx={{
+            justifyContent: 'space-between',
+            gap: isSmallDevice ? '25px' : '24px',
+            boxSizing: 'border-box',
+            flexWrap: 'nowrap',
+            alignItems: 'flex-start'
+          }}
+          container
+        >
+          <Grid md={3.8} xs={12} item>
+            {/* <Box item sx={{ borderTopLeftRadius: 36, borderTopRightRadius: 36 }}>
               <Avatar
                 variant='square'
                 alt={dietDetails?.image}
                 sx={{
                   width: '100%',
-                  height: dietDetails?.image ? '300px' : '250px',
-                  borderRadius: '8px'
+                  //height: '100%',
+                  height: '145px',
+                  borderRadius: '8px',
+                  '& img': {
+                    objectFit: isSmallDevice ? '' : 'cover',
+                    objectPosition: isSmallDevice ? 'left' : 'center'
+                  }
                 }}
                 src={dietDetails?.image ? dietDetails?.image : '/icons/icon_diet_fill.png'}
               ></Avatar>
-              {/* <Box
+            </Box> */}
+            <Box
+              sx={{
+                maxWidth: 400,
+                border: '1px solid #d0d0d0',
+                borderRadius: 2,
+                overflow: 'hidden'
+
+                // boxShadow: 2
+              }}
+            >
+              {/* Image Section */}
+              <Avatar
+                variant='square'
+                alt={dietDetails?.image}
                 sx={{
                   width: '100%',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'space-between',
-                  gap: '12px',
-                  p: '16px'
+
+                  // height: '300px',
+
+                  height: '145px',
+                  borderRadius: '8px',
+                  '& img': {
+                    objectFit: isSmallDevice ? '' : 'cover',
+                    objectPosition: isSmallDevice ? 'left' : 'center'
+                  }
                 }}
-              >
-                <Box
-                  sx={{
-                    width: '100%',
-                    display: 'flex',
-                    justifyContent: 'space-between'
-                  }}
-                >
-                  <Typography variant='body2' sx={{ fontSize: '14px', fontWeight: 400, color: 'text.primary' }}>
-                    Ingredients used
-                  </Typography>
-                  <Typography variant='body2' sx={{ fontSize: '14px', fontWeight: 500, color: '#44544A' }}>
-                    112
-                  </Typography>
-                </Box>
-                <Box
-                  sx={{
-                    width: '100%',
-                    display: 'flex',
-                    justifyContent: 'space-between'
-                  }}
-                >
-                  <Typography variant='body2' sx={{ fontSize: '14px', fontWeight: 400, color: 'text.primary' }}>
-                    Recipes used
-                  </Typography>
-                  <Typography variant='body2' sx={{ fontSize: '14px', fontWeight: 500, color: '#44544A' }}>
-                    45
-                  </Typography>
-                </Box>
-                <Box
-                  sx={{
-                    width: '100%',
-                    display: 'flex',
-                    justifyContent: 'space-between'
-                  }}
-                >
-                  <Typography variant='body2' sx={{ fontSize: '14px', fontWeight: 400, color: 'text.primary' }}>
-                    Species
-                  </Typography>
-                  <Typography variant='body2' sx={{ fontSize: '14px', fontWeight: 500, color: '#44544A' }}>
-                    12
-                  </Typography>
-                </Box>
-              </Box> */}
+                src={dietDetails?.image ? dietDetails?.image : '/images/diet_default.svg'}
+              ></Avatar>
+
+              {/* Details Section */}
+              <Box sx={{ p: 3, pt: 5 }}>
+                {authData?.userData?.roles?.settings?.assign_diet === true ? (
+                  <Box display='flex' justifyContent='space-between' alignItems='center' mb={2}>
+                    <Typography fontWeight='400' sx={{ color: theme.palette.customColors.secondaryBg }}>
+                      Assigned to
+                    </Typography>
+                    <div>
+                      <Button
+                        variant='outlined'
+                        size='small'
+                        onClick={handleClick}
+                        sx={{
+                          textTransform: 'none',
+                          fontWeight: 'bold',
+                          fontSize: '14px',
+                          color: theme.palette.primary.dark,
+                          pl: 4,
+                          pr: 4,
+                          pt: 2,
+                          pb: 2
+                        }}
+                      >
+                        + Assign
+                      </Button>
+                      <Menu
+                        anchorEl={anchorEl}
+                        open={open}
+                        onClose={handleClose}
+                        anchorOrigin={{ vertical: 'bottom', horizontal: 'left' }}
+                        transformOrigin={{ vertical: 'top', horizontal: 'left' }}
+                        // disablePortal // Prevents rendering in a separate portal
+                        //disableScrollLock // Prevents background scrolling from being locked
+                        sx={{
+                          '& .MuiPaper-root': {
+                            boxShadow: 'none',
+                            minWidth: 150,
+                            position: 'absolute'
+                            // left: '484px !important'
+                          }
+                        }} // Removes shadow for a cleaner look
+                      >
+                        <MenuItem
+                          onClick={() => {
+                            handleSpeciesClick('species')
+                            handleClose()
+                            setapplyfilterCheck(false)
+                          }}
+                          sx={{ fontSize: '14px' }}
+                        >
+                          Assign to Species
+                        </MenuItem>
+                        <MenuItem
+                          onClick={() => {
+                            handleSpeciesClick('animals')
+                            handleClose()
+                            setapplyfilterCheck(false)
+                          }}
+                          sx={{ fontSize: '14px' }}
+                        >
+                          Assign to Animals
+                        </MenuItem>
+                      </Menu>
+                    </div>
+                  </Box>
+                ) : (
+                  ''
+                )}
+                {/* Species and Animals Details */}
+                <Grid container spacing={2}>
+                  {/* Species Section */}
+                  <Grid item xs={12}>
+                    {dietDetails?.total_species !== '0' ? (
+                      <Box display='flex' justifyContent='space-between' alignItems='center'>
+                        {/* Label */}
+                        <Typography
+                          variant='body2'
+                          fontWeight='bold'
+                          sx={{ color: theme.palette.customColors.secondaryBg, fontSize: '16px' }}
+                        >
+                          Species
+                        </Typography>
+                        <Box
+                          display='flex'
+                          alignItems='center'
+                          onClick={() => handleSpeciesClicknew('details', 'species')}
+                          sx={{ cursor: 'pointer' }}
+                        >
+                          <Typography variant='h6' color={theme.palette.primary.main}>
+                            {dietDetails.total_species}
+                          </Typography>
+                          <Typography
+                            variant='caption'
+                            sx={{
+                              background: theme.palette.customColors.bodyBg,
+                              p: '5px',
+                              borderRadius: '3px',
+                              ml: 2,
+                              color: theme.palette.customColors.OnSurfaceVariant,
+                              fontWeight: '600'
+                            }}
+                          >
+                            Primary {dietDetails.total_primary_species}
+                          </Typography>
+                        </Box>
+                      </Box>
+                    ) : (
+                      ''
+                    )}
+                  </Grid>
+
+                  {/* Animals Section */}
+                  <Grid item xs={12}>
+                    {dietDetails?.total_animals !== '0' ? (
+                      <Box
+                        display='flex'
+                        justifyContent='space-between'
+                        alignItems='center'
+                        sx={{ pb: 3, cursor: 'pointer' }}
+                        onClick={() => handleSpeciesClicknew('details', 'animals')}
+                      >
+                        {/* Label */}
+                        <Typography
+                          variant='body2'
+                          fontWeight='bold'
+                          sx={{ color: theme.palette.customColors.secondaryBg, fontSize: '16px' }}
+                        >
+                          Animals
+                        </Typography>
+                        {/* Value and Primary */}
+                        <Box display='flex' alignItems='center'>
+                          <Typography variant='h6' color={theme.palette.primary.main}>
+                            {dietDetails.total_animals}
+                          </Typography>
+                          <Typography
+                            variant='caption'
+                            sx={{
+                              background: theme.palette.customColors.bodyBg,
+                              p: '5px',
+                              borderRadius: '3px',
+                              ml: 2,
+                              color: theme.palette.customColors.OnSurfaceVariant,
+                              fontWeight: '600'
+                            }}
+                          >
+                            Primary {dietDetails.total_primary_animals}
+                          </Typography>
+                        </Box>
+                      </Box>
+                    ) : (
+                      ''
+                    )}
+                  </Grid>
+                </Grid>
+              </Box>
             </Box>
           </Grid>
-          <Grid item md={7.8}>
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <Box>
-                  <Typography sx={{ fontWeight: 500, fontSize: '22px', color: '#44544A' }}>
+          <Grid item md={7.8} xs={12}>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <Box
+                sx={{
+                  display: 'flex',
+                  flexDirection: isSmallDevice ? 'column' : 'row',
+                  justifyContent: isSmallDevice ? 'flex-start' : 'space-between',
+                  alignItems: isSmallDevice ? 'flex-start' : 'center',
+                  gap: isSmallDevice ? '16px' : '0'
+                }}
+              >
+                <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                  <Typography
+                    sx={{ fontWeight: 500, fontSize: '22px', color: theme.palette.customColors.OnSurfaceVariant }}
+                  >
                     {dietDetails?.diet_no}
                   </Typography>
                   <Typography
-                    sx={{ fontWeight: 400, fontSize: '16px', color: '#44544A', lineHeight: '19.36px', pt: 2 }}
+                    sx={{
+                      fontWeight: 500,
+                      fontSize: '16px',
+                      color: theme.palette.customColors.OnSurfaceVariant,
+                      fontStyle: 'italic'
+                    }}
                   >
                     {dietDetails?.diet_name}
                   </Typography>
                 </Box>
-                <Box sx={{ display: 'flex', gap: '24px', alignItems: 'center' }}>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    gap: isSmallDevice ? '16px' : '24px',
+                    alignItems: 'center',
+                    flexDirection: isSmallDevice ? 'row' : 'row',
+                    flexWrap: isSmallDevice ? 'row' : 'nowrap'
+                  }}
+                >
                   <Box>
                     <FormControlLabel
                       control={
-                        <Switch checked={isActive === '1' ? true : false} onChange={handleSwitchChange} fontSize={2} />
+                        <Switch
+                          checked={isActive === '1' ? true : false}
+                          onChange={handleSwitchChange}
+                          fontSize={2}
+                          disabled={!(dietModuleAccess === 'EDIT' || dietModuleAccess === 'DELETE')}
+                          sx={{
+                            '&.Mui-disabled': {
+                              color: 'grey'
+                            },
+                            '& .MuiSwitch-switchBase.Mui-disabled + .MuiSwitch-track': {
+                              backgroundColor: '#ccc',
+                              opacity: 0.7
+                            }
+                          }}
+                        />
                       }
                       labelPlacement='start'
                       label={isActive === '1' ? 'Active' : 'InActive'}
+                      sx={{ marginLeft: isSmallDevice ? '0px' : '16px' }}
                     />
                   </Box>
                   {(dietModuleAccess === 'ADD' || dietModuleAccess === 'EDIT' || dietModuleAccess === 'DELETE') && (
                     <Tooltip title='Copy' placement='top'>
                       <Box>
-                        <Icon
+                        {/* <Icon
                           icon='fluent:copy-32-regular'
                           style={{ fontSize: 24, transform: 'rotate(180deg)', cursor: 'pointer' }}
+                          onClick={handleDietClick}
+                        /> */}
+                        <Avatar
+                          sx={{ width: '100%', height: '100%', borderRadius: '8px', cursor: 'pointer', fontSize: 24 }}
+                          src={'/icons/icon_copy.svg'}
+                          variant='square'
                           onClick={handleDietClick}
                         />
                       </Box>
@@ -264,9 +479,17 @@ const DietDetailCard = ({ dietDetails, dietModulePermission, dietModuleAccess })
                   {(dietModuleAccess === 'EDIT' || dietModuleAccess === 'DELETE') && (
                     <Tooltip title='Edit' placement='top'>
                       <Box>
-                        <Icon
+                        {/* <Icon
                           icon='bx:pencil'
                           style={{ fontSize: 24, cursor: 'pointer' }}
+                          onClick={() =>
+                            Router.push({ pathname: '/diet/add-diet', query: { id: dietDetails.id, action: 'update' } })
+                          }
+                        /> */}
+                        <Avatar
+                          sx={{ width: '100%', height: '100%', cursor: 'pointer' }}
+                          src={'/icons/pencil_outlined.svg'}
+                          variant='square'
                           onClick={() =>
                             Router.push({ pathname: '/diet/add-diet', query: { id: dietDetails.id, action: 'update' } })
                           }
@@ -277,18 +500,29 @@ const DietDetailCard = ({ dietDetails, dietModulePermission, dietModuleAccess })
                   {dietModuleAccess === 'DELETE' && (
                     <Tooltip title='Delete' placement='top'>
                       <Box>
-                        <Icon
+                        {/* <Icon
                           onClick={() => {
                             handlelOpenDelete()
                           }}
                           icon='material-symbols:delete-outline'
                           style={{ fontSize: 24, cursor: 'pointer' }}
+                        /> */}
+                        <Avatar
+                          sx={{ width: '100%', height: '100%', borderRadius: '8px', cursor: 'pointer' }}
+                          src={'/icons/delete_outlined.svg'}
+                          variant='square'
+                          onClick={() => {
+                            handlelOpenDelete()
+                          }}
                         />
                       </Box>
                     </Tooltip>
                   )}
                 </Box>
               </Box>
+              {/* <Typography sx={{ fontWeight: 400, fontSize: '16px', color: '#44544A' }}>
+                {dietDetails?.diet_name}
+              </Typography> */}
               <Box>
                 {dietDetails?.desc ? (
                   <div>
@@ -331,7 +565,15 @@ const DietDetailCard = ({ dietDetails, dietModulePermission, dietModuleAccess })
                   ''
                 )}
               </Box>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+              <Box
+                sx={{
+                  display: 'flex',
+                  flexDirection: isSmallDevice ? 'column' : 'row',
+                  justifyContent: isSmallDevice ? 'flex-start' : 'space-between',
+                  alignItems: isSmallDevice ? 'flex-start' : 'center',
+                  gap: isSmallDevice ? '16px' : '0'
+                }}
+              >
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                   <Avatar
                     src={dietDetails?.created_by_user?.profile_pic || '/icons/recipedummy.svg'}
@@ -365,7 +607,7 @@ const DietDetailCard = ({ dietDetails, dietModulePermission, dietModuleAccess })
                 {(dietModuleAccess === 'EDIT' || dietModuleAccess === 'DELETE') && (
                   <Box
                     onClick={() => setActivitySidebarOpen(true)}
-                    sx={{ display: 'flex', marginLeft: 'auto', cursor: 'pointer' }}
+                    sx={{ display: 'flex', marginLeft: isSmallDevice ? '0' : 'auto', cursor: 'pointer' }}
                   >
                     <Typography sx={{ color: '#000000', my: 3, fontSize: 14 }}>Activity Log</Typography>
                     <Icon icon='ph:clock' style={{ marginLeft: '4px', marginTop: '13px', fontSize: 20 }} />
@@ -379,7 +621,7 @@ const DietDetailCard = ({ dietDetails, dietModulePermission, dietModuleAccess })
           <ActivityLogs
             activitySidebarOpen={activitySidebarOpen}
             activity_type='diet'
-            detailsValue={{ id: dietDetails?.id }}
+            detailsValue={dietDetails}
             searchValue={activitySearchValue}
             setSearchValue={setActivitySearchValue}
             handleSidebarClose={handleSidebarClose}

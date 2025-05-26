@@ -19,7 +19,8 @@ import {
   TextField,
   Box,
   Dialog,
-  CircularProgress
+  CircularProgress,
+  Divider
 } from '@mui/material'
 import Icon from 'src/@core/components/icon'
 import React, { useEffect, useState } from 'react'
@@ -35,8 +36,17 @@ import AddAnimals from '../../../../components/pharmacy/dispense/addAnimals'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import Error404 from 'src/pages/404'
 import UserSnackbar from 'src/components/utility/snackbar'
+import Utility from 'src/utility'
+import { th } from 'date-fns/locale'
+import { useTheme } from '@emotion/react'
+import { Stack } from '@mui/system'
+import { AddButtonContained } from 'src/components/ButtonContained'
+import PharmacyProductCard from 'src/views/utility/PharmacyProductCard'
+import AnimalLabelCard from 'src/views/utility/AnimalLabelCard'
 
 function AddDispense() {
+  const theme = useTheme()
+
   const [currentDate] = useState(() => {
     const today = new Date()
     const year = today.getFullYear()
@@ -226,6 +236,12 @@ function AddDispense() {
     }
   }
 
+  const totalQty = productArrayUi.reduce((sum, item) => sum + item.qty, 0)
+  const totalUnitPrice = productArrayUi.reduce((sum, item) => sum + Number(item.unit_price) * item.qty, 0)
+
+  console.log(productArrayUi, 'productArrayUi')
+  console.log(productArray, 'productArray')
+
   return (
     <>
       {selectedPharmacy.permission.pharmacy_module === 'allow_full_access' ||
@@ -342,6 +358,56 @@ function AddDispense() {
             </CardContent>
             <Box
               sx={{
+                width: '100%',
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                px: 5,
+                py: 5
+              }}
+            >
+              <Box>
+                <Typography sx={{ color: 'customColors.customTextColorGray2', fontSize: '16px', fontWeight: 500 }}>
+                  Add Dispense Item
+                </Typography>
+
+                <Stack
+                  direction='row'
+                  spacing={2}
+                  divider={<Divider orientation='vertical' flexItem />}
+                  sx={{ textAlign: 'center' }}
+                >
+                  <Typography
+                    variant='body2'
+                    sx={{ color: 'customColors.neutralSecondary', fontSize: '14px', fontWeight: 400 }}
+                  >
+                    Total Dispense Quantity:{' '}
+                    <Typography component='span' variant='body2' sx={{ color: 'primary.light' }}>
+                      {totalQty ? totalQty : '0'}
+                    </Typography>
+                  </Typography>
+                  <Typography
+                    variant='body2'
+                    sx={{ color: 'customColors.neutralSecondary', fontSize: '14px', fontWeight: 400 }}
+                  >
+                    Total Value:{' '}
+                    <Typography component='span' variant='body2' sx={{ color: 'primary.light' }}>
+                      {Utility.formatAmountToReadableDigit(totalUnitPrice)}
+                    </Typography>
+                  </Typography>
+                </Stack>
+              </Box>
+
+              <AddButtonContained
+                disabled={watch('user_id')?.value === '' || errors.user_id}
+                title='Add Dispense Item'
+                action={() => {
+                  handleOpenAddDispense()
+                }}
+              />
+            </Box>
+            {/* <Box
+              sx={{
                 display: 'flex',
                 justifyContent: 'space-between',
                 alignItems: 'center',
@@ -357,138 +423,175 @@ function AddDispense() {
                   handleOpenAddDispense()
                 }}
               />
-            </Box>
-            <TableContainer sx={{ mb: 5 }}>
-              <Table>
-                <TableHead sx={{ backgroundColor: '#F5F5F7' }}>
-                  <TableRow>
-                    <TableCell>Product Name</TableCell>
-                    <TableCell>Batch No.</TableCell>
-                    <TableCell>Quantity</TableCell>
-                    <TableCell>Action</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {productArrayUi.length > 0
-                    ? productArrayUi.map((el, index, array) => {
-                        // Check if it's the first row with this Product Name
-                        const isFirstRow =
-                          index === array.findIndex(item => item?.stock_id?.label === el?.stock_id?.label)
+            </Box> */}
+            <Card
+              sx={{ mx: 5, boxShadow: 'none', border: '1px solid', borderColor: 'customColors.customTableBorderBg' }}
+            >
+              <TableContainer>
+                <Table>
+                  <TableHead
+                    sx={{ backgroundColor: 'customColors.customTableHeaderBg' }}
 
-                        return (
-                          <TableRow key={index}>
-                            {isFirstRow && (
-                              <TableCell
-                                rowSpan={array.filter(item => item?.stock_id?.label === el?.stock_id?.label).length}
-                                style={{
-                                  borderRight: '1px solid #ccc'
-                                }}
-                              >
-                                {el?.stock_id?.label}
+                    // sx={{ backgroundColor: '#F5F5F7' }}
+                  >
+                    <TableRow>
+                      <TableCell>Product Name</TableCell>
+                      <TableCell>Batch No.</TableCell>
+                      <TableCell>Quantity</TableCell>
+                      <TableCell>Unit Price</TableCell>
+                      <TableCell>Total Value</TableCell>
+                      <TableCell>Action</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {productArrayUi.length > 0
+                      ? productArrayUi.map((el, index, array) => {
+                          // Check if it's the first row with this Product Name
+                          const isFirstRow =
+                            index === array.findIndex(item => item?.stock_id?.label === el?.stock_id?.label)
+
+                          return (
+                            <TableRow
+                              key={index}
+                              sx={{
+                                borderColor: 'customColors.customTableBorderBg',
+                                '&:last-child td, &:last-child th': { borderBottom: 'none' }
+                              }}
+                            >
+                              {isFirstRow && (
+                                <TableCell
+                                  rowSpan={array.filter(item => item?.stock_id?.label === el?.stock_id?.label).length}
+                                  style={{
+                                    borderRight: `1px solid ${theme.palette.customColors.customTableBorderBg}`,
+                                    '&:last-child td, &:last-child th': { borderBottom: 'none' }
+                                  }}
+                                >
+                                  <PharmacyProductCard
+                                    title={el?.stock_id?.label}
+                                    subTitle={el?.stock_id?.generic_name}
+                                    icon={el?.stock_id?.image}
+                                    controlSubstance={el?.stock_id?.controlled_substance === '1' && true}
+                                    prescriptionRequired={el?.stock_id?.prescription_required === '1' && true}
+                                  />
+                                </TableCell>
+                              )}
+                              <TableCell>{el?.batch_no?.label}</TableCell>
+                              <TableCell>{el?.qty}</TableCell>
+                              <TableCell>{Utility.formatAmountToReadableDigit(el?.unit_price)}</TableCell>
+                              <TableCell>{Utility.formatAmountToReadableDigit(el?.qty * el?.unit_price)}</TableCell>
+                              <TableCell>
+                                <IconButton
+                                  size='small'
+                                  sx={{ mr: 0.5 }}
+                                  aria-label='Edit'
+                                  onClick={() => {
+                                    editRowData(index)
+                                    showDialog()
+                                  }}
+                                >
+                                  <Icon icon='mdi:pencil-outline' />
+                                </IconButton>
+                                <IconButton
+                                  onClick={() => {
+                                    deleteRowData(index)
+                                  }}
+                                  size='small'
+                                  sx={{ mr: 0.5 }}
+                                >
+                                  <Icon icon='mdi:delete-outline' />
+                                </IconButton>
                               </TableCell>
-                            )}
-                            <TableCell>{el?.batch_no?.label}</TableCell>
-                            <TableCell>{el?.qty}</TableCell>
-                            <TableCell>
-                              <IconButton
-                                size='small'
-                                sx={{ mr: 0.5 }}
-                                aria-label='Edit'
-                                onClick={() => {
-                                  editRowData(index)
-                                  showDialog()
-                                }}
-                              >
-                                <Icon icon='mdi:pencil-outline' />
-                              </IconButton>
-                              <IconButton
-                                onClick={() => {
-                                  deleteRowData(index)
-                                }}
-                                size='small'
-                                sx={{ mr: 0.5 }}
-                              >
-                                <Icon icon='mdi:delete-outline' />
-                              </IconButton>
-                            </TableCell>
-                          </TableRow>
-                        )
-                      })
-                    : null}
-                </TableBody>
-              </Table>
-            </TableContainer>
-            <TableContainer>
-              <Box
-                sx={{
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  px: 4.5,
-                  py: 2
-                }}
-              >
-                <Typography variant='h6'>Add Animals</Typography>
+                            </TableRow>
+                          )
+                        })
+                      : null}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </Card>
 
-                <AddButton
-                  title='Add Animals'
-                  disabled={productArray.length < 1 || errors.user_id}
-                  action={() => setOpenDrawer(true)}
-                />
-              </Box>
-              <Table>
-                <TableHead sx={{ backgroundColor: '#F5F5F7' }}>
-                  <TableRow>
-                    <TableCell></TableCell>
-                    <TableCell>Animal Id</TableCell>
-                    <TableCell>animal Name</TableCell>
-                    <TableCell>enclosure Id</TableCell>
-                    <TableCell>section Name</TableCell>
-                    <TableCell>gender</TableCell>
-                    <TableCell>Action</TableCell>
-                  </TableRow>
-                </TableHead>
-                <TableBody>
-                  {animals_s.length > 0
-                    ? animals_s.map((elmnt, index) => {
-                        return (
-                          <TableRow key={index}>
-                            <TableCell>
-                              {' '}
-                              <Avatar
-                                sx={{
-                                  '& > img': {
-                                    objectFit: 'contain'
-                                  }
-                                }}
-                                variant='rounded'
-                                alt={elmnt?.icon}
-                                src={elmnt?.icon}
-                              />
-                            </TableCell>
-                            <TableCell>{elmnt?.animal_id}</TableCell>
-                            <TableCell>{elmnt?.animalName}</TableCell>
-                            <TableCell>{elmnt?.enclosure_id}</TableCell>
-                            <TableCell>{elmnt?.section_name}</TableCell>
-                            <TableCell>{elmnt?.gender}</TableCell>
-                            <TableCell>
-                              <IconButton
-                                onClick={() => {
-                                  deleteAnimalRow(index)
-                                }}
-                                size='small'
-                                sx={{ mr: 0.5 }}
-                              >
-                                <Icon icon='mdi:delete-outline' />
-                              </IconButton>
-                            </TableCell>
-                          </TableRow>
-                        )
-                      })
-                    : null}
-                </TableBody>
-              </Table>
-            </TableContainer>
+            <Box
+              sx={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                px: 5,
+                py: 5
+              }}
+            >
+              <Typography variant='h6'>Add Animals</Typography>
+
+              <AddButtonContained
+                title='Add Animals'
+                disabled={productArray.length < 1 || errors.user_id}
+                action={() => setOpenDrawer(true)}
+              />
+
+              {/* <AddButton
+                title='Add Animals'
+                disabled={productArray.length < 1 || errors.user_id}
+                action={() => setOpenDrawer(true)}
+              /> */}
+            </Box>
+
+            <Card
+              sx={{ mx: 5, boxShadow: 'none', border: '1px solid', borderColor: 'customColors.customTableBorderBg' }}
+            >
+              <TableContainer>
+                <Table>
+                  <TableHead sx={{ backgroundColor: 'customColors.customTableHeaderBg' }}>
+                    <TableRow>
+                      <TableCell>Animal Name</TableCell>
+                      <TableCell>Animal Id</TableCell>
+                      {/* <TableCell>animal Name</TableCell> */}
+                      <TableCell>enclosure Id</TableCell>
+                      <TableCell>section Name</TableCell>
+                      <TableCell>gender</TableCell>
+                      <TableCell>Action</TableCell>
+                    </TableRow>
+                  </TableHead>
+                  {console.log('animals_s', animals_s)}
+                  <TableBody>
+                    {animals_s.length > 0
+                      ? animals_s.map((elmnt, index) => {
+                          return (
+                            <TableRow
+                              key={index}
+                              sx={{
+                                borderColor: 'customColors.customTableBorderBg',
+                                '&:last-child td, &:last-child th': { borderBottom: 'none' }
+                              }}
+                            >
+                              <TableCell>
+                                <AnimalLabelCard
+                                  title={elmnt?.animalName}
+                                  subTitle={elmnt?.full_animal_name}
+                                  icon={elmnt?.icon}
+                                />
+                              </TableCell>
+                              <TableCell>{elmnt?.animal_id}</TableCell>
+                              <TableCell>{elmnt?.enclosure_id}</TableCell>
+                              <TableCell>{elmnt?.section_name}</TableCell>
+                              <TableCell>{elmnt?.gender}</TableCell>
+                              <TableCell>
+                                <IconButton
+                                  onClick={() => {
+                                    deleteAnimalRow(index)
+                                  }}
+                                  size='small'
+                                  sx={{ mr: 0.5 }}
+                                >
+                                  <Icon icon='mdi:delete-outline' />
+                                </IconButton>
+                              </TableCell>
+                            </TableRow>
+                          )
+                        })
+                      : null}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            </Card>
             <CardContent>
               <Grid item xs={12} sm={12} md={6}>
                 <Grid Grid sx={{ height: '100%' }} alignItems='flex-end' justifyContent='flex-end' container>

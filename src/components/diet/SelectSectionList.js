@@ -1,0 +1,344 @@
+import { useTheme } from '@mui/material/styles'
+import {
+  Box,
+  Typography,
+  TextField,
+  Button,
+  Drawer,
+  ListItem,
+  ListItemText,
+  ListItemAvatar,
+  Checkbox,
+  Avatar,
+  InputAdornment,
+  IconButton,
+  debounce,
+  CardContent,
+  CircularProgress
+} from '@mui/material'
+import SearchIcon from '@mui/icons-material/Search'
+import React, { useState, useEffect, useCallback } from 'react'
+import Icon from 'src/@core/components/icon'
+import { getSectionsList } from 'src/lib/api/diet/dietList'
+
+const SelectSectionList = ({
+  open,
+  onClose,
+  siteId,
+  onSelectSections,
+  setSectionsData,
+  sectionsData,
+  setSelectedSections,
+  selectedSections,
+  tempSelectedItems,
+  openFilterDrawer
+}) => {
+  const theme = useTheme()
+  const [loading, setLoading] = useState(false)
+  const [pageNo, setPageNo] = useState(1)
+  const [totalCount, setTotalCount] = useState(0)
+  const [hasMore, setHasMore] = useState(true)
+  const [searchTerm, setSearchTerm] = useState('')
+
+  // Debounced search function
+  const debouncedSearch = useCallback(
+    debounce(searchValue => {
+      setPageNo(1)
+      fetchSections(searchValue)
+    }, 500),
+    [siteId]
+  )
+
+  const handleSearchChange = e => {
+    const value = e.target.value
+    setSearchTerm(value)
+    debouncedSearch(value)
+  }
+
+  const handleSiteCheckboxChange = sectionId => {
+    setSelectedSections(prev => (prev.includes(sectionId) ? prev.filter(id => id !== sectionId) : [...prev, sectionId]))
+  }
+
+  const handleSelectAllSites = () => {
+    if (selectedSections.length === sectionsData.length) {
+      setSelectedSections([])
+    } else {
+      setSelectedSections(sectionsData.map(s => s.section_id))
+    }
+  }
+
+  useEffect(() => {
+    if (open && siteId) {
+      fetchSections()
+    }
+    if (!open && siteId && openFilterDrawer) {
+      fetchSections()
+    }
+  }, [open, siteId, openFilterDrawer, pageNo])
+
+  useEffect(() => {
+    if (open && tempSelectedItems?.Section) {
+      setSelectedSections(tempSelectedItems.Section)
+    }
+  }, [open])
+
+  const fetchSections = async (searchQuery = searchTerm) => {
+    if (!siteId) return
+    setLoading(true)
+    try {
+      const params = {
+        site_id: siteId,
+        page_no: pageNo,
+        limit: 15,
+        q: searchQuery
+      }
+      const response = await getSectionsList(params)
+      const newSections = response.data?.result || []
+      setTotalCount(response.data?.total_count || 0)
+
+      setSectionsData(prev => (pageNo === 1 ? newSections : [...prev, ...newSections]))
+      setHasMore(newSections.length > 0)
+    } catch (error) {
+      console.error('Error fetching sections:', error)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const handleScroll = e => {
+    const { scrollTop, clientHeight, scrollHeight } = e.currentTarget
+    const threshold = 50
+
+    if (
+      scrollHeight - (scrollTop + clientHeight) < threshold &&
+      !loading &&
+      hasMore &&
+      sectionsData.length < totalCount
+    ) {
+      setPageNo(prev => prev + 1)
+    }
+  }
+
+  return (
+    <Drawer
+      anchor='right'
+      open={open}
+      // onClose={onClose}
+      sx={{
+        '& .MuiDrawer-paper': { width: ['100%', '562px'], height: '100%' },
+        position: 'relative',
+        display: 'flex',
+        flexDirection: 'column',
+        gap: '24px',
+        backgroundColor: 'background.default'
+      }}
+    >
+      {/* header */}
+      <Box
+        sx={{
+          bgcolor: '#FFF',
+          borderRadius: '8px',
+          overflow: 'hidden',
+          width: '100%',
+          maxWidth: 522,
+          margin: '15px 20px 0px 20px',
+          display: 'flex',
+          flexDirection: 'column',
+          flex: 1,
+          minHeight: 0
+        }}
+      >
+        {/* Header */}
+        <Box sx={{ p: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
+          <Box>
+            <Typography variant='h6' fontWeight='500' sx={{ color: '#1F515B' }}>
+              Choose Section
+            </Typography>
+            <Typography variant='body2' sx={{ color: '#44544A' }}>
+              Select a section from the list below
+            </Typography>
+          </Box>
+          <IconButton size='small' sx={{ color: 'text.primary' }} onClick={onClose}>
+            <Icon icon='mdi:close' fontSize={24} />
+          </IconButton>
+        </Box>
+
+        {/* Search */}
+        <Box sx={{ p: 2, borderBottom: '1px solid #E0E0E0' }}>
+          <TextField
+            fullWidth
+            placeholder='Search'
+            variant='outlined'
+            size='small'
+            value={searchTerm}
+            onChange={handleSearchChange}
+            InputProps={{
+              startAdornment: (
+                <InputAdornment position='start'>
+                  <SearchIcon sx={{ color: '#1F515B' }} />
+                </InputAdornment>
+              ),
+              endAdornment: searchTerm && (
+                <InputAdornment position='end'>
+                  <IconButton
+                    size='small'
+                    onClick={() => {
+                      setSearchTerm('')
+                      fetchSections('')
+                    }}
+                  >
+                    <Icon icon='mdi:close' fontSize={20} />
+                  </IconButton>
+                </InputAdornment>
+              ),
+              style: { background: '#EFF5F2', borderRadius: '4px', padding: '4px 8px', color: '#1F515B' }
+            }}
+          />
+        </Box>
+
+        {/* Selected Count */}
+        <Box sx={{ p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+          <Typography variant='body2' sx={{ color: '#44544A' }}>
+            {loading ? '' : `Selected ${selectedSections.length}/${sectionsData.length}`}
+          </Typography>
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center'
+            }}
+          >
+            <Button
+              size='small'
+              sx={{
+                color:
+                  selectedSections.length === sectionsData.length && sectionsData.length > 0
+                    ? theme.palette.primary.main
+                    : '#44544A',
+                fontSize: '12px',
+                fontWeight: 600,
+                textTransform: 'none',
+                p: 0
+              }}
+              onClick={handleSelectAllSites}
+            >
+              Select all
+            </Button>
+
+            <Checkbox
+              checked={selectedSections.length === sectionsData.length && sectionsData.length > 0}
+              indeterminate={selectedSections.length > 0 && selectedSections.length < sectionsData.length}
+              onChange={handleSelectAllSites}
+              inputProps={{ 'aria-label': 'Select all species' }}
+              sx={{
+                '&.Mui-checked': {
+                  color: theme.palette.primary.main
+                },
+                '& .MuiSvgIcon-root': {
+                  width: '19px',
+                  height: '19px',
+                  border: '2px dotted',
+                  borderColor:
+                    selectedSections.length === sectionsData.length && sectionsData.length > 0
+                      ? theme.palette.primary.main
+                      : '#44544A',
+                  color:
+                    selectedSections.length === sectionsData.length && sectionsData.length > 0
+                      ? theme.palette.primary.main
+                      : '#44544A'
+                },
+                mr: 1
+              }}
+            />
+          </Box>
+        </Box>
+
+        {/* Sections List */}
+        <Box
+          className=''
+          sx={{
+            flex: 1,
+            overflowY: 'auto',
+            overflowX: 'hidden',
+            //height: '60%',
+            p: 2,
+            '&::-webkit-scrollbar': {
+              width: '4px'
+            },
+            '&::-webkit-scrollbar-thumb': {
+              backgroundColor: theme.palette.grey[400],
+              borderRadius: '2px'
+            }
+          }}
+          onScroll={handleScroll}
+        >
+          {!loading ? (
+            sectionsData.length > 0 ? (
+              sectionsData?.map(section => (
+                <ListItem
+                  key={section.section_id}
+                  sx={{
+                    pr: 1.5,
+                    pl: 3,
+                    mb: 4,
+                    height: '70px',
+                    border: '1px solid',
+                    borderColor: selectedSections.includes(section.section_id) ? '#80E0A3' : '#C3CEC7',
+                    borderRadius: '8px',
+                    bgcolor: selectedSections.includes(section.section_id) ? '#E1F9ED' : 'transparent'
+                  }}
+                >
+                  <ListItemAvatar>
+                    <Avatar src={section.image || '/default-site.jpg'} variant='rounded' />
+                  </ListItemAvatar>
+                  <ListItemText
+                    primary={section.section_name}
+                    // secondary={section.location || '-'}
+                    primaryTypographyProps={{ fontWeight: 'bold', color: '#1F515B' }}
+                    secondaryTypographyProps={{ color: '#44544A' }}
+                  />
+                  <Checkbox
+                    checked={selectedSections.includes(section.section_id)}
+                    onChange={() => handleSiteCheckboxChange(section.section_id)}
+                  />
+                </ListItem>
+              ))
+            ) : (
+              <Typography sx={{ textAlign: 'center', mt: 15 }}>No Section's found</Typography>
+            )
+          ) : (
+            <CardContent>
+              <Box sx={{ display: 'flex', justifyContent: 'center', mt: 20 }}>
+                <CircularProgress />
+              </Box>
+            </CardContent>
+          )}
+        </Box>
+
+        {/* Footer Button */}
+        <Box
+          sx={{
+            p: 2,
+            pt: 4,
+            position: 'sticky',
+            bottom: 0,
+            background: '#FFF',
+            zIndex: 1,
+            pb: 4
+          }}
+        >
+          <Button
+            variant='contained'
+            fullWidth
+            sx={{ bgcolor: '#28A745', color: '#FFF', p: 2, borderRadius: '8px', '&:hover': { bgcolor: '#218838' } }}
+            onClick={() => onSelectSections(selectedSections)}
+            disabled={selectedSections.length <= 0}
+          >
+            CONTINUE
+          </Button>
+        </Box>
+      </Box>
+    </Drawer>
+  )
+}
+
+export default SelectSectionList

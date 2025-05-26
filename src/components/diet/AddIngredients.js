@@ -13,8 +13,7 @@ import {
   CircularProgress,
   Avatar,
   InputAdornment,
-  Tooltip,
-  collapseClasses
+  Tooltip
 } from '@mui/material'
 import Icon from 'src/@core/components/icon'
 import InputLabel from '@mui/material/InputLabel'
@@ -24,24 +23,30 @@ import Select from '@mui/material/Select'
 import Divider from '@mui/material/Divider'
 import ClearIcon from '@mui/icons-material/Clear'
 import toast from 'react-hot-toast'
+import { useTheme } from '@mui/material/styles'
 import { getIngredientList } from 'src/lib/api/diet/getIngredients'
 import { getUnitsForRecipe } from 'src/lib/api/diet/recipe'
 import { getCutsizeList } from 'src/lib/api/diet/settings/cutSizes'
-import { getPreparationTypeList } from 'src/lib/api/diet/settings/preparationTypes'
 import { getFeedTypeList } from 'src/lib/api/diet/feedType'
 
 const AddIngredients = props => {
   const {
     open,
-    handleSidebarClose,
+    handleSidebarClose: parentHandleSidebarClose,
     onChange,
     childStateValue,
     checkid,
     allSelectedValues,
     formData,
     setSelectedIngredient,
-    setUomprevnew
+    setUomprevnew,
+    uom,
+    feedType,
+    ingredientId,
+    fromrow,
+    ingredientName
   } = props
+  const theme = useTheme()
   const [feed, setFeed] = React.useState('')
   const [selectFeed, setSelectFeed] = useState({})
   const [searchValue, setSearchValue] = useState('')
@@ -60,10 +65,11 @@ const AddIngredients = props => {
   let [ingredientPage, setIngredientPage] = useState(1)
   const [reachedEnd, setReachedEnd] = useState(false)
   const [sort, setSort] = useState('desc')
-  const [uom, setUom] = useState([])
+  // const [uom, setUom] = useState([])
   const [uomnew, setUomnew] = useState([])
-  const [feedType, setFeedType] = useState([])
+  // const [feedType, setFeedType] = useState([])
   const [selectedDays, setSelectedDays] = useState([])
+  const [loading, setLoading] = useState(false)
 
   const handelShowBottom = (event, item, index) => {
     event.stopPropagation()
@@ -98,7 +104,6 @@ const AddIngredients = props => {
         return newSelectedDays
       }
 
-      // If the item already exists, do not update the selected days
       return prevSelectedDays
     })
 
@@ -110,15 +115,24 @@ const AddIngredients = props => {
     // })
   }
 
+  const handleSidebarClose = () => {
+    setSearchValue('')
+    parentHandleSidebarClose()
+    setFeed('')
+    //debouncedSearch('')
+  }
+
   const handleChangeTopFeed = async event => {
     setReachedEnd(true)
     setFeed(event.target.value)
 
     try {
-      const params = { page: ingredientPage, q: searchValue, sort, feed_type: event.target.value, status: 1 }
+      const params = { page: 1, limit: 20, q: searchValue, sort, feed_type: event.target.value, status: 1 }
       await getIngredientList({ params }).then(res => {
         if (res?.data?.result?.length > 0) {
           setIngredientList(res?.data?.result)
+          setIngredientPage(1)
+          setTotalCount(res?.data?.total_count)
           setReachedEnd(false)
         } else {
           setReachedEnd(false)
@@ -139,6 +153,8 @@ const AddIngredients = props => {
       await getIngredientList({ params }).then(res => {
         if (res?.data?.result?.length > 0) {
           setIngredientList(res?.data?.result)
+          setIngredientPage(1)
+          setTotalCount(res?.data?.total_count)
           setReachedEnd(false)
         } else {
           setReachedEnd(false)
@@ -196,10 +212,7 @@ const AddIngredients = props => {
     event.stopPropagation()
     const { value } = event.target
 
-    // const newUom = event.target.value
-    // Find the selected UOM object based on the value
     const newUom = uom.find(type => Number(type.id) === Number(value))
-    console.log('uomValue :>> ', newUom)
 
     setSize(prevState => ({
       ...prevState,
@@ -277,7 +290,6 @@ const AddIngredients = props => {
 
   // card selection
   const [selectedCard, setSelectedCard] = useState([])
-  console.log('selectedCard :>> ', selectedCard)
 
   useEffect(() => {
     const filteredSelectedCard = selectedCard.filter(card => card.mealid === checkid)
@@ -307,8 +319,6 @@ const AddIngredients = props => {
 
       if (!sizeValue) {
         // toast.error('Cut size and size are required for chopped feed.')
-        console.log('Return ')
-
         return
       }
     }
@@ -339,30 +349,53 @@ const AddIngredients = props => {
   }
 
   const handleAllSelect = event => {
-    setSelectedCard(selectedCard)
-    onChange(selectedCard)
     event?.stopPropagation()
-    setSelectedIngredient(selectedCard)
 
-    if (selectedCard?.length > 0) {
+    if (Object.keys(selectFeed).length === 0) {
+      toast.error('Ingredients are required', {
+        duration: 1000
+      })
+    } else if (
+      (Object.keys(selectFeed).length > 0 && Object.keys(size).length === 0) ||
+      Object.keys(selectFeed).length !== Object.keys(size).length
+    ) {
+      toast.error('Please select a Cutsize', {
+        duration: 1000
+      })
+    } else if (selectedCard?.length > 0) {
       handleSidebarClose()
-
+      setSelectedCard(selectedCard)
+      setSearchValue('')
+      onChange(selectedCard)
+      setSelectedIngredient(selectedCard)
       return toast.success('Ingredient selected')
-    } else {
-      return toast.error('Ingredients are required')
     }
   }
 
   useEffect(() => {
-    getUnitsList()
-    getUnitsListnew()
+    //getUnitsList()
+    //getUnitsListnew()
     setReachedEnd(true)
 
     try {
-      const params = { page: ingredientPage, q: searchValue, sort, limit: 20, status: 1 }
+      const params = {
+        page: ingredientPage,
+        q: fromrow !== 'rowedit_ingredient' ? searchValue : ingredientName,
+        sort,
+        limit: 20,
+        status: 1
+      }
       getIngredientList({ params }).then(res => {
         if (res?.data?.result?.length > 0) {
-          setIngredientList(prevArray => [...prevArray, ...res?.data?.result])
+          const newResults = res.data.result.filter(
+            item => !ingredientList.some(existingItem => existingItem.id === item.id)
+          )
+
+          // Combine previous and new results, ensuring unique IDs
+          const combinedList = [...ingredientList, ...newResults]
+          const uniqueList = Array.from(new Map(combinedList.map(item => [item.id, item])).values())
+
+          setIngredientList(uniqueList)
           setTotalCount(res?.data?.total_count)
           setReachedEnd(false)
         } else {
@@ -372,63 +405,65 @@ const AddIngredients = props => {
     } catch (error) {
       console.error(error)
     }
-  }, [])
+  }, [ingredientId])
 
   // Top Feed Type
-  const fetchData = async () => {
-    const params = { page: 1, limit: 50, status: 1 }
-    try {
-      const response = await getFeedTypeList(params)
+  // const fetchData = async () => {
+  //   const params = { page: 1, limit: 50, status: 1 }
+  //   try {
+  //     const response = await getFeedTypeList(params)
 
-      setFeedType(response?.data?.result)
-    } catch (error) {
-      console.log('error', error)
-    }
-  }
+  //     setFeedType(response?.data?.result)
+  //   } catch (error) {
+  //     console.log('error', error)
+  //   }
+  // }
 
-  useEffect(() => {
-    fetchData()
-  }, [])
+  // useEffect(() => {
+  //   fetchData()
+  // }, [])
 
-  const getUnitsList = async () => {
-    try {
-      const params = {
-        //type: ['length', 'weight'],
-        page: 1,
-        limit: 50
-      }
-      await getCutsizeList(params).then(res => {
-        setUom(res?.data?.result)
-        setUomprev(res?.data?.result)
-      })
-    } catch (e) {
-      console.log(e)
-    }
-  }
+  // const getUnitsList = async () => {
+  //   try {
+  //     const params = {
+  //       //type: ['length', 'weight'],
+  //       page: 1,
+  //       limit: 50
+  //     }
+  //     await getCutsizeList(params).then(res => {
+  //       setUom(res?.data?.result)
+  //       setUomprev(res?.data?.result)
+  //     })
+  //   } catch (e) {
+  //     console.log(e)
+  //   }
+  // }
 
-  const getUnitsListnew = async () => {
-    try {
-      const params = {
-        type: ['length', 'weight'],
-        page: 1,
-        limit: 50
-      }
-      await getUnitsForRecipe({ params: params }).then(res => {
-        setUomnew(res?.data?.result)
-        setUomprevnew(res?.data?.result)
-      })
-    } catch (e) {
-      console.log(e)
-    }
-  }
+  // const getUnitsListnew = async () => {
+  //   try {
+  //     const params = {
+  //       type: ['length', 'weight'],
+  //       page: 1,
+  //       limit: 50
+  //     }
+  //     await getUnitsForRecipe({ params: params }).then(res => {
+  //       setUomnew(res?.data?.result)
+  //       setUomprevnew(res?.data?.result)
+  //     })
+  //   } catch (e) {
+  //     console.log(e)
+  //   }
+  // }
 
   const handleScroll = async e => {
     const container = e.target
-
+    const threshold = 20
     // Check if the user has reached the bottom
 
     if (totalCount > ingredientList.length) {
-      if (container.scrollHeight - Math.round(container.scrollTop) === container.clientHeight) {
+      const isNearBottom =
+        container.scrollHeight - Math.round(container.scrollTop) <= container.clientHeight + threshold
+      if (isNearBottom) {
         // User has reached the bottom, perform your action here
 
         setIngredientPage(++ingredientPage)
@@ -525,48 +560,60 @@ const AddIngredients = props => {
     setVisibility(newVisibility)
   }, [allSelectedValues, checkid, formData, open])
 
-  const searchData = useCallback(
+  // Debounced search function
+  const debouncedSearch = useCallback(
     debounce(async search => {
-      if (searchValue != ' ') {
-        try {
-          // const currentAnimalFilterValue = animalFilterValueRef.current
-          const params = { page: 1, q: search, sort, status: 1 }
-          await getIngredientList({ params }).then(res => {
-            if (res?.data?.result.length > 0) {
-              setIngredientList(res?.data?.result)
-              setIngredientPage(1)
-            } else {
-              setIngredientList([])
-            }
-          })
-        } catch (error) {
+      try {
+        setLoading(true)
+        console.log(feed, 'feed')
+        const params = { page: 1, q: search, sort, status: 1, limit: 20, feed_type: feed }
+        const res = await getIngredientList({ params })
+        if (res?.data?.result.length > 0) {
+          setIngredientList(res.data.result)
           setIngredientPage(1)
+          setTotalCount(res?.data?.total_count)
+        } else {
+          setIngredientList([])
         }
+      } catch (error) {
+        console.error(error)
+      } finally {
+        setLoading(false)
       }
     }, 500),
-
-    [searchValue]
+    [ingredientList]
   )
 
-  const handelInputCutSize = (event, item) => {
-    event.stopPropagation()
-    const newCutSize = event.target.value
-
-    // Set cutSize state
-    setCutSize(prevState => ({
-      ...prevState,
-      [item.id]: {
-        id: event.target.value
-        // name: selectedFeedType.label
-      }
-    }))
-
-    if (newCutSize) {
-      handelCardSelection(event, item, null, newCutSize, null, selectedDays)
-    } else {
-      removeSelectedCard(event, item.id)
-    }
+  const handleSearchChange = e => {
+    const value = e.target.value
+    setSearchValue(value)
+    debouncedSearch(value)
   }
+
+  const handleCancelClick = () => {
+    setSearchValue('')
+    debouncedSearch('')
+  }
+
+  // const handelInputCutSize = (event, item) => {
+  //   event.stopPropagation()
+  //   const newCutSize = event.target.value
+
+  //   // Set cutSize state
+  //   setCutSize(prevState => ({
+  //     ...prevState,
+  //     [item.id]: {
+  //       id: event.target.value
+  //       // name: selectedFeedType.label
+  //     }
+  //   }))
+
+  //   if (newCutSize) {
+  //     handelCardSelection(event, item, null, newCutSize, null, selectedDays)
+  //   } else {
+  //     removeSelectedCard(event, item.id)
+  //   }
+  // }
 
   const removeSelectedCard = (event, itemId) => {
     event.stopPropagation()
@@ -578,10 +625,30 @@ const AddIngredients = props => {
       const updatedSelectedCard = [...selectedCard]
       updatedSelectedCard.splice(cardIndex, 1)
       setSelectedCard(updatedSelectedCard)
+
+      // Remove only the matching item from selectFeed and size
+      setSelectFeed(prev => {
+        const newFeed = { ...prev }
+        delete newFeed[itemId]
+        return newFeed
+      })
+
+      setSize(prev => {
+        const newSize = { ...prev }
+        delete newSize[itemId]
+        return newSize
+      })
     }
   }
 
-  const sortedIngredientList = [...ingredientList]?.sort((a, b) => a.ingredient_name.localeCompare(b.ingredient_name))
+  let sortedIngredientList = [...ingredientList]?.sort((a, b) => a.ingredient_name.localeCompare(b.ingredient_name))
+
+  // Filter sortedIngredientList based on remarks and fromrow condition
+  if (fromrow !== '' && fromrow === 'rowedit_ingredient') {
+    sortedIngredientList = sortedIngredientList.filter(
+      item => item.id === ingredientId && item.ingredient_name === ingredientName
+    ) // Compare with ingredientId state
+  }
 
   return (
     <>
@@ -594,11 +661,11 @@ const AddIngredients = props => {
           position: 'relative',
           display: 'flex',
           flexDirection: 'column',
-          bgcolor: '#dbe0de',
+          bgcolor: theme.palette.customColors.bodyBg,
           gap: '24px'
         }}
       >
-        <Box sx={{ position: 'fixed', top: 0, bgcolor: '#dbe0de', zIndex: 10, width: '562px' }}>
+        <Box sx={{ position: 'fixed', top: 0, bgcolor: theme.palette.customColors.bodyBg, zIndex: 10, width: '562px' }}>
           <Box
             className='sidebar-header'
             sx={{
@@ -609,221 +676,308 @@ const AddIngredients = props => {
             }}
           >
             <Box sx={{ gap: 2, display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
-              <Icon
-                style={{ marginLeft: -8 }}
-                icon='material-symbols-light:add-notes-outline-rounded'
-                fontSize={'32px'}
-              />
-              <Typography variant='h6'>Add Ingredients</Typography>
+              <img src='/icons/Activity.svg' alt='Grocery Icon' width='35px' />
+              <Typography variant='h6' sx={{ color: theme.palette.customColors.OnSurfaceVariant }}>
+                Add Ingredients
+              </Typography>
             </Box>
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
-              <IconButton size='small' onClick={handleSidebarClose} sx={{ color: 'text.primary' }}>
-                <Icon icon='mdi:close' fontSize={20} />
+              <IconButton size='small' onClick={handleSidebarClose} sx={{ color: theme.palette.primary.light }}>
+                <Icon icon='mdi:close' fontSize={25} />
               </IconButton>
             </Box>
           </Box>
-          <Box
-            sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 2, p: 4, px: '24px' }}
-          >
-            <Box sx={{ width: '306px' }}>
-              <TextField
-                value={searchValue}
-                fullWidth
-                InputProps={{
-                  startAdornment: <Icon style={{ marginRight: 10 }} icon={'ion:search-outline'} />
-                }}
-                placeholder='Search'
-                onKeyUp={e => searchData(e.target.value)}
-                onChange={e => {
-                  setSearchValue(e.target.value)
-                }}
-              />
-            </Box>
-            <Box sx={{ width: '184px' }}>
-              <FormControl fullWidth>
-                <InputLabel id='demo-simple-select-label'>Feed</InputLabel>
-                <Select
-                  labelId='demo-simple-select-label'
-                  id='demo-simple-select'
-                  value={feed}
-                  label='Feed'
-                  onChange={handleChangeTopFeed}
-                  MenuProps={{
-                    PaperProps: {
-                      style: {
-                        maxHeight: 300
+
+          {fromrow !== 'rowedit_ingredient' ? (
+            <Box
+              sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 2, p: 4, px: '24px' }}
+            >
+              <Box sx={{ width: '306px' }}>
+                <TextField
+                  value={searchValue}
+                  fullWidth
+                  InputProps={{
+                    startAdornment: (
+                      <Icon
+                        style={{ marginRight: 10, color: theme.palette.customColors.OnSurfaceVariant }}
+                        icon={'ion:search-outline'}
+                      />
+                    ),
+                    endAdornment: searchValue && (
+                      <IconButton onClick={handleCancelClick} size='small' sx={{ padding: 0 }}>
+                        <Icon
+                          icon={'ion:close-outline'}
+                          style={{ color: theme.palette.customColors.OnSurfaceVariant }}
+                        />
+                      </IconButton>
+                    )
+                  }}
+                  placeholder='Search ingredient'
+                  onChange={handleSearchChange}
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      borderColor: theme.palette.customColors.Outline,
+                      '& fieldset': {
+                        borderColor: theme.palette.customColors.Outline
                       }
                     }
                   }}
-                  endAdornment={
-                    feed ? (
-                      <InputAdornment position='end' sx={{ position: 'absolute', right: '30px' }}>
-                        <IconButton aria-label='clear feed selection' onClick={handleClearFeed} edge='end'>
-                          <ClearIcon />
-                        </IconButton>
-                      </InputAdornment>
-                    ) : (
-                      ''
-                    )
-                  }
-                >
-                  {feedType?.map(feedList => (
-                    <MenuItem key={feedList?.key} value={feedList?.id}>
-                      {feedList?.feed_type_name}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
+                />
+              </Box>
+              <Box sx={{ width: '184px' }}>
+                <FormControl fullWidth>
+                  <InputLabel id='demo-simple-select-label'>Feed</InputLabel>
+                  <Select
+                    labelId='demo-simple-select-label'
+                    id='demo-simple-select'
+                    value={feed}
+                    label='Feed'
+                    onChange={handleChangeTopFeed}
+                    sx={{
+                      '& .MuiOutlinedInput-notchedOutline': {
+                        borderColor: theme.palette.customColors.Outline
+                      },
+                      '&:hover .MuiOutlinedInput-notchedOutline': {
+                        borderColor: theme.palette.customColors.Outline
+                      },
+                      '& .MuiOutlinedInput-root': {
+                        borderRadius: '0px'
+                      }
+                    }}
+                    MenuProps={{
+                      PaperProps: {
+                        style: {
+                          maxHeight: 300
+                        }
+                      }
+                    }}
+                    endAdornment={
+                      feed ? (
+                        <InputAdornment position='end' sx={{ position: 'absolute', right: '30px' }}>
+                          <IconButton aria-label='clear feed selection' onClick={handleClearFeed} edge='end'>
+                            <ClearIcon />
+                          </IconButton>
+                        </InputAdornment>
+                      ) : (
+                        ''
+                      )
+                    }
+                  >
+                    {feedType?.map(feedList => (
+                      <MenuItem key={feedList?.key} value={feedList?.id}>
+                        {feedList?.feed_type_name}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Box>
             </Box>
-          </Box>
+          ) : (
+            ''
+          )}
         </Box>
 
         {/* Card View */}
 
         <Box
           key={feed}
-          sx={{ marginTop: 35, height: '65%', overflowY: 'auto', bgcolor: '#dbe0de' }}
-          onScroll={handleScroll}
+          sx={{
+            marginTop: fromrow === 'rowedit_ingredient' ? 0 : 35,
+            paddingTop: fromrow !== 'rowedit_ingredient' ? 0 : 20,
+            //height: fromrow !== 'rowedit_ingredient' ? '65%' : '85%',
+            height: fromrow !== 'rowedit_ingredient' ? 'calc(100vh - 245px)' : '85%',
+            overflowY: 'auto',
+            bgcolor: theme.palette.customColors.bodyBg
+          }}
+          //onScroll={handleScroll}
+          onScroll={fromrow !== 'rowedit_ingredient' ? handleScroll : undefined}
         >
-          {sortedIngredientList?.map((item, index) => (
-            <Box
-              key={item?.id}
-              sx={{
-                bgcolor: 'white',
-                mx: '24px',
-                borderRadius: '8px',
-                my: 4,
-                ...(selectedCard.some(card => card.ingredient_id === item.id) && {
-                  border: '2px solid #37bd69' // Change border color when isVisible is true
-                })
-              }}
-              onClick={event => handelShowBottom(event, item, index)}
-            >
+          {loading ? (
+            <Box sx={{ display: 'flex', justifyContent: 'center', mt: 20 }}>
+              <CircularProgress />
+            </Box>
+          ) : sortedIngredientList?.length > 0 ? (
+            sortedIngredientList?.map((item, index) => (
               <Box
+                key={item?.id}
                 sx={{
-                  display: 'flex',
-                  flexDirection: 'row',
-                  alignItems: 'flex-start',
-                  ml: 2
+                  bgcolor: theme.palette.customColors.OnPrimary,
+                  mx: '24px',
+                  borderRadius: '8px',
+                  my: 4,
+                  width: '92%',
+                  ...(selectedCard.some(card => card.ingredient_id === item.id) && {
+                    border: `2px solid ${theme.palette.primary.main}`
+                  })
                 }}
+                onClick={event => handelShowBottom(event, item, index)}
               >
-                {selectedCard.some(card => card.ingredient_id === item.id) ? (
-                  // Render checkbox icon if card is selected
-                  <Box
-                    onClick={event => removeSelectedCard(event, item.id)}
-                    sx={{
-                      width: '68px',
-                      height: '68px',
-                      borderRadius: 1,
-                      bgcolor: '#E8F4F2',
-                      display: 'flex',
-                      justifyContent: 'center',
-                      alignItems: 'center',
-                      mt: 4,
-                      ml: 3,
-                      mr: 4,
-                      p: 3
-                    }}
-                  >
-                    <Checkbox checked sx={{ '& .MuiSvgIcon-root': { fontSize: 80 } }} />
-                  </Box>
-                ) : (
-                  // Render image if card is not selected
-                  <Box
-                    sx={{
-                      width: '68px',
-                      height: '68px',
-                      borderRadius: 1,
-                      bgcolor: '#E8F4F2',
-                      display: 'flex',
-                      justifyContent: 'center',
-                      alignItems: 'center',
-                      mt: 4,
-                      ml: 3,
-                      mr: 4,
-                      p: 3
-                    }}
-                    onClick={event => handelCardSelection(event, item)}
-                  >
-                    <Avatar
-                      variant='square'
-                      alt='Medicine Image'
-                      sx={{ width: 40, height: 40, background: '#E8F4F2', borderRadius: 20 }}
-                      src={item?.image ? item?.image : '/icons/icon_diet_fill.png'}
-                    >
-                      {item?.image ? null : <Icon icon='healthicons:fruits-outline' />}
-                    </Avatar>
-                  </Box>
-                )}
-                <Box sx={{ pt: 3, paddingRight: 4, paddingBottom: 4, width: '100%' }}>
-                  <Tooltip title={item?.ingredient_name?.length > 50 ? item?.ingredient_name : ''}>
-                    <Typography
-                      variant='h6'
-                      sx={{ width: '400px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
-                    >
-                      {item?.ingredient_name}
-                    </Typography>
-                  </Tooltip>
-                  <Stack
-                    direction='row'
-                    sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 2, mt: 1 }}
-                  >
-                    <Typography>Id - {item?.id}</Typography>
-                    <Typography>Feed Type - {item?.feed_type_label}</Typography>
-                  </Stack>
-                  <Stack
-                    direction='row'
-                    sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 2, mt: 1 }}
-                  >
-                    <Typography>Preparation Type</Typography>
-
-                    <Box sx={{ width: 200 }}>
-                      <FormControl fullWidth>
-                        <Select
-                          size='small'
-                          value={selectFeed[item.id]?.id || ''}
-                          onChange={e => handleChangeFeed(e, item)}
-                          displayEmpty
-                          // color=
-                          error={
-                            visibility?.find(visItem => visItem && visItem.id === item.id)?.isVisible &&
-                            !selectFeed[item.id]?.id
-                          }
-                        >
-                          <MenuItem value='' disabled>
-                            Select
-                          </MenuItem>
-                          {item.preparation_types.map(preparationType => (
-                            <MenuItem key={preparationType.key} value={preparationType.id}>
-                              {preparationType.label}
-                            </MenuItem>
-                          ))}
-                        </Select>
-                      </FormControl>
-                    </Box>
-                  </Stack>
-                </Box>
-              </Box>
-
-              {/* bottom part */}
-
-              <>
                 <Box
                   sx={{
-                    p: 3,
-                    display: visibility?.find(visItem => visItem && visItem.id === item.id)?.isVisible
-                      ? 'block'
-                      : ' none',
-                    transitionProperty: 'display',
-                    transitionDuration: '13s'
+                    display: 'flex',
+                    flexDirection: 'row',
+                    alignItems: 'flex-start',
+                    ml: 2
                   }}
                 >
-                  {selectFeed[item.id]?.name !== '' ? (
-                    <>
-                      <Divider mt={-2} />
-                      <Stack direction='row' sx={{ py: 4, px: 2, alignItems: 'center' }}>
-                        <Typography>Enter cut size</Typography>
-                        {/* <Box sx={{ width: '160.5px' }}>
+                  {selectedCard.some(card => card.ingredient_id === item.id) ? (
+                    // Render checkbox icon if card is selected
+                    <Box
+                      onClick={event => removeSelectedCard(event, item.id)}
+                      sx={{
+                        width: '68px',
+                        height: '68px',
+                        borderRadius: 1,
+                        bgcolor: theme.palette.customColors.displaybgPrimary,
+                        display: 'flex',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        mt: 4,
+                        ml: 3,
+                        mr: 4,
+                        p: 3
+                      }}
+                    >
+                      <Checkbox checked sx={{ '& .MuiSvgIcon-root': { fontSize: 80 } }} />
+                    </Box>
+                  ) : (
+                    // Render image if card is not selected
+                    <Box
+                      sx={{
+                        width: '68px',
+                        height: '68px',
+                        borderRadius: 1,
+                        bgcolor: theme.palette.customColors.displaybgPrimary,
+                        display: 'flex',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        mt: 4,
+                        ml: 3,
+                        mr: 4,
+                        p: 3
+                      }}
+                      onClick={event => handelCardSelection(event, item)}
+                    >
+                      <Avatar
+                        variant='square'
+                        alt='Medicine Image'
+                        sx={{
+                          width: 40,
+                          height: 40,
+                          background: theme.palette.customColors.displaybgPrimary,
+                          borderRadius: 20
+                        }}
+                        src={item?.image ? item?.image : '/icons/icon_diet_fill.png'}
+                      >
+                        {item?.image ? null : <Icon icon='healthicons:fruits-outline' />}
+                      </Avatar>
+                    </Box>
+                  )}
+                  <Box sx={{ pt: 3, paddingRight: 4, paddingBottom: 4, width: '100%' }}>
+                    <Tooltip title={item?.ingredient_name?.length > 50 ? item?.ingredient_name : ''}>
+                      <Typography
+                        variant='h6'
+                        sx={{ width: '400px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}
+                      >
+                        {item?.ingredient_name}
+                      </Typography>
+                    </Tooltip>
+                    <Stack
+                      direction='row'
+                      sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 2, mt: 1 }}
+                    >
+                      <Typography>ING - {item?.id}</Typography>
+                      <Typography
+                        sx={{
+                          mr: 3,
+                          maxWidth: 180,
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap',
+                          display: 'flex',
+                          alignItems: 'center'
+                        }}
+                        noWrap
+                      >
+                        Feed Type -&nbsp;
+                        <Tooltip title={item?.feed_type_label || ''}>
+                          <span
+                            style={{
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                              whiteSpace: 'nowrap',
+                              display: 'inline-block',
+                              maxWidth: '100%'
+                            }}
+                          >
+                            {item?.feed_type_label}
+                          </span>
+                        </Tooltip>
+                      </Typography>
+                    </Stack>
+                    <Stack
+                      direction='row'
+                      sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 2, mt: 1 }}
+                    >
+                      <Typography>Preparation Type</Typography>
+
+                      <Box sx={{ width: 200 }}>
+                        <FormControl fullWidth>
+                          <Select
+                            size='small'
+                            value={selectFeed[item.id]?.id || ''}
+                            onChange={e => handleChangeFeed(e, item)}
+                            displayEmpty
+                            error={
+                              visibility?.find(visItem => visItem && visItem.id === item.id)?.isVisible &&
+                              !selectFeed[item.id]?.id
+                            }
+                            sx={{
+                              '& .MuiOutlinedInput-notchedOutline': {
+                                borderColor: theme.palette.customColors.Outline
+                              },
+                              '&:hover .MuiOutlinedInput-notchedOutline': {
+                                borderColor: theme.palette.customColors.Outline
+                              },
+                              '& .MuiOutlinedInput-root': {
+                                borderRadius: '0px'
+                              }
+                            }}
+                          >
+                            <MenuItem value='' disabled>
+                              Select
+                            </MenuItem>
+                            {item.preparation_types.map(preparationType => (
+                              <MenuItem key={preparationType.key} value={preparationType.id}>
+                                {preparationType.label}
+                              </MenuItem>
+                            ))}
+                          </Select>
+                        </FormControl>
+                      </Box>
+                    </Stack>
+                  </Box>
+                </Box>
+
+                {/* bottom part */}
+
+                <>
+                  <Box
+                    sx={{
+                      p: 3,
+                      display: visibility?.find(visItem => visItem && visItem.id === item.id)?.isVisible
+                        ? 'block'
+                        : ' none',
+                      transitionProperty: 'display',
+                      transitionDuration: '13s'
+                    }}
+                  >
+                    {selectFeed[item.id]?.name !== '' ? (
+                      <>
+                        <Divider mt={-2} />
+                        <Stack direction='row' sx={{ py: 4, px: 2, alignItems: 'center' }}>
+                          <Typography>Enter cut size</Typography>
+                          {/* <Box sx={{ width: '160.5px' }}>
                           <FormControl fullWidth>
                             <TextField
                               size='small'
@@ -838,73 +992,92 @@ const AddIngredients = props => {
                             />
                           </FormControl>
                         </Box> */}
-                        <Box sx={{ pl: 5 }}>
-                          <FormControl fullWidth>
-                            <Select
-                              size='small'
-                              value={size[item.id]?.id || ''}
-                              onChange={event => handleChangeSize(event, item)}
-                              displayEmpty
-                              error={
-                                visibility?.find(visItem => visItem && visItem.id === item.id)?.isVisible &&
-                                !size[item.id]?.id
-                              }
-                              MenuProps={{
-                                PaperProps: {
-                                  style: {
-                                    maxHeight: 300
-                                  }
+                          <Box sx={{ pl: 5 }}>
+                            <FormControl fullWidth>
+                              <Select
+                                size='small'
+                                value={size[item.id]?.id || ''}
+                                onChange={event => handleChangeSize(event, item)}
+                                displayEmpty
+                                error={
+                                  visibility?.find(visItem => visItem && visItem.id === item.id)?.isVisible &&
+                                  !size[item.id]?.id
                                 }
-                              }}
-                            >
-                              <MenuItem value='' disabled>
-                                Select
-                              </MenuItem>
-                              {uom?.map(unit => (
-                                <MenuItem key={unit.id} value={unit.id}>
-                                  {unit.cut_size}
+                                sx={{
+                                  '& .MuiOutlinedInput-notchedOutline': {
+                                    borderColor: theme.palette.customColors.Outline
+                                  },
+                                  '&:hover .MuiOutlinedInput-notchedOutline': {
+                                    borderColor: theme.palette.customColors.Outline
+                                  },
+                                  '& .MuiOutlinedInput-root': {
+                                    borderRadius: '0px'
+                                  }
+                                }}
+                                MenuProps={{
+                                  PaperProps: {
+                                    style: {
+                                      maxHeight: 300
+                                    }
+                                  }
+                                }}
+                              >
+                                <MenuItem value='' disabled>
+                                  Select
                                 </MenuItem>
-                              ))}
-                            </Select>
-                          </FormControl>
-                        </Box>
-                      </Stack>
-                    </>
-                  ) : null}
+                                {uom?.map(unit => (
+                                  <MenuItem key={unit.id} value={unit.id}>
+                                    {unit.cut_size}
+                                  </MenuItem>
+                                ))}
+                              </Select>
+                            </FormControl>
+                          </Box>
+                        </Stack>
+                      </>
+                    ) : null}
 
-                  <Divider />
-                  <Box>
-                    <Typography sx={{ py: 3, px: 2 }}>Feeding Days</Typography>
+                    <Divider />
+                    <Box>
+                      <Typography sx={{ py: 3, px: 2 }}>Feeding Days</Typography>
 
-                    <Stack direction='row' gap={3} mb={2} sx={{ px: 2 }}>
-                      {Day?.map(day => (
-                        <Box
-                          key={day.id}
-                          onClick={event => handleDayClick(event, day.id, day.name, item.id, item)}
-                          sx={{
-                            fontSize: 11,
-                            fontWeight: 'bold',
+                      <Stack direction='row' gap={3} mb={2} sx={{ px: 2 }}>
+                        {Day?.map(day => (
+                          <Box
+                            key={day.id}
+                            onClick={event => handleDayClick(event, day.id, day.name, item.id, item)}
+                            sx={{
+                              fontSize: 11,
+                              fontWeight: 'bold',
 
-                            bgcolor: selectedDays.some(
-                              selectedDay =>
-                                selectedDay.cardId === item.id &&
-                                selectedDay.days?.some(selectedDay => selectedDay.dayId === day.id)
-                            )
-                              ? '#203e56'
-                              : '#dedede66',
-                            borderRadius: 5,
-                            p: 2,
-                            justifyContent: 'center',
-                            alignItems: 'center',
-                            cursor: 'pointer',
-                            '&:hover': {
-                              backgroundColor: selectedDays.some(
+                              bgcolor: selectedDays.some(
                                 selectedDay =>
                                   selectedDay.cardId === item.id &&
                                   selectedDay.days?.some(selectedDay => selectedDay.dayId === day.id)
                               )
-                                ? '#203e56'
-                                : '#dedede',
+                                ? theme.palette.secondary.dark
+                                : '#dedede66',
+                              borderRadius: 5,
+                              p: 2,
+                              justifyContent: 'center',
+                              alignItems: 'center',
+                              cursor: 'pointer',
+                              '&:hover': {
+                                backgroundColor: selectedDays.some(
+                                  selectedDay =>
+                                    selectedDay.cardId === item.id &&
+                                    selectedDay.days?.some(selectedDay => selectedDay.dayId === day.id)
+                                )
+                                  ? theme.palette.secondary.dark
+                                  : '#dedede',
+                                color: selectedDays.some(
+                                  selectedDay =>
+                                    selectedDay.cardId === item.id &&
+                                    selectedDay.days?.some(selectedDay => selectedDay.dayId === day.id)
+                                )
+                                  ? 'white'
+                                  : 'black'
+                              },
                               color: selectedDays.some(
                                 selectedDay =>
                                   selectedDay.cardId === item.id &&
@@ -912,44 +1085,58 @@ const AddIngredients = props => {
                               )
                                 ? 'white'
                                 : 'black'
-                            },
-                            color: selectedDays.some(
-                              selectedDay =>
-                                selectedDay.cardId === item.id &&
-                                selectedDay.days?.some(selectedDay => selectedDay.dayId === day.id)
-                            )
-                              ? 'white'
-                              : 'black'
-                          }}
-                        >
-                          {day?.name}
-                        </Box>
-                      ))}
-                    </Stack>
+                            }}
+                          >
+                            {day?.name}
+                          </Box>
+                        ))}
+                      </Stack>
 
-                    <Divider />
+                      <Divider />
 
-                    <Box sx={{ pt: 3 }}>
-                      {' '}
-                      <FormControl fullWidth>
-                        <TextField
-                          sx={{ pt: 1 }}
-                          id='demo-simple-select-label'
-                          placeholder='Add Remarks (optional)'
-                          variant='standard'
-                          InputProps={{ disableUnderline: true }}
-                          value={remarks[item.id]?.remarks || ''}
-                          onChange={event => handleAddRemarks(event, item)}
-                        />
-                      </FormControl>
+                      <Box sx={{ pt: 3 }}>
+                        {' '}
+                        <FormControl fullWidth>
+                          <TextField
+                            sx={{ pt: 1 }}
+                            id='demo-simple-select-label'
+                            placeholder='Add Remarks (optional)'
+                            variant='standard'
+                            InputProps={{ disableUnderline: true }}
+                            value={remarks[item.id]?.remarks || ''}
+                            onChange={event => handleAddRemarks(event, item)}
+                          />
+                        </FormControl>
+                      </Box>
                     </Box>
                   </Box>
-                </Box>
-              </>
-              {/* ) : null} */}
+                </>
+                {/* ) : null} */}
+              </Box>
+            ))
+          ) : searchValue !== '' && sortedIngredientList.length <= 0 ? (
+            <Box
+              sx={{
+                display: 'flex',
+                flexDirection: 'column',
+                justifyContent: 'center',
+                alignItems: 'center',
+                height: '70%',
+                textAlign: 'center'
+              }}
+            >
+              <img src='/images/no_data_animal_2.png' alt='Grocery Icon' width='250px' />
+              <Box
+                sx={{
+                  color: theme.palette.customColors.statusText,
+                  fontSize: '16px'
+                }}
+              >
+                No records to show
+              </Box>
             </Box>
-          ))}
-          {reachedEnd ? (
+          ) : null}
+          {!loading && reachedEnd ? (
             <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', width: '100%' }}>
               <CircularProgress sx={{ mb: 10 }} />
             </Box>
@@ -958,7 +1145,7 @@ const AddIngredients = props => {
 
         <Box
           sx={{
-            height: '122px',
+            height: '100px',
             width: '100%',
             maxWidth: '562px',
             position: 'fixed',
@@ -970,9 +1157,15 @@ const AddIngredients = props => {
             display: 'flex'
           }}
         >
-          <Button fullWidth variant='contained' size='large' onClick={() => handleAllSelect()}>
-            ADD INGREDIENT - {selectedCard?.length} SELECTED
-          </Button>
+          {fromrow === 'rowedit_ingredient' ? (
+            <Button fullWidth variant='contained' size='large' onClick={() => handleAllSelect()}>
+              ADD INGREDIENT
+            </Button>
+          ) : (
+            <Button fullWidth variant='contained' size='large' onClick={() => handleAllSelect()}>
+              ADD INGREDIENT - {selectedCard?.length} SELECTED
+            </Button>
+          )}
         </Box>
       </Drawer>
     </>

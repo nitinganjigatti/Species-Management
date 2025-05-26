@@ -32,8 +32,9 @@ const dropdownOptions = [
   { value: 'daily', label: 'Daily' },
   { value: 'weekly', label: 'Weekly' },
   { value: 'monthly', label: 'Monthly' },
-  { value: 'yearly', label: 'Yearly' },
-  { value: 'custom', label: 'Custom Range' }
+  { value: 'yearly', label: 'Yearly' }
+
+  // { value: 'custom', label: 'Custom Range' }
 ]
 
 const ReceivedMedicinesReport = () => {

@@ -22,7 +22,7 @@ import Icon from 'src/@core/components/icon'
 import Router, { useRouter } from 'next/router'
 import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
 
-const DietListTabview = ({ IngredientName, onTotalChange }) => {
+const DietListTabview = ({ IngredientName, onTotalChange, type }) => {
   const [loader, setLoader] = useState(false)
   const router = useRouter()
   const { id } = router.query
@@ -56,7 +56,7 @@ const DietListTabview = ({ IngredientName, onTotalChange }) => {
           q,
           status
         }
-        await getDietListonRecipeDtl(id, params).then(res => {
+        await getDietListonRecipeDtl(id, params, type).then(res => {
           console.log('response', res)
           // Generate uid field based on the index
           const startingIndex = paginationModel.page * paginationModel.pageSize
@@ -148,7 +148,7 @@ const DietListTabview = ({ IngredientName, onTotalChange }) => {
       )
     },
     {
-      flex: 0.3,
+      flex: 0.5,
       minWidth: 40,
       field: 'diet_name',
       headerName: 'DIET NAME',

@@ -1,29 +1,31 @@
-/* eslint-disable lines-around-comment */
 import React, { useState, useEffect, useCallback, useContext } from 'react'
-import FallbackSpinner from 'src/@core/components/spinner/index'
-import CardHeader from '@mui/material/CardHeader'
-import { DataGrid } from '@mui/x-data-grid'
-import { debounce } from 'lodash'
+import Router from 'next/router'
+
 import { Avatar, Button, Tooltip, Box, Breadcrumbs, Grid, TextField, FormControl, Autocomplete } from '@mui/material'
 import Card from '@mui/material/Card'
+import CardHeader from '@mui/material/CardHeader'
 import Typography from '@mui/material/Typography'
+import { DataGrid } from '@mui/x-data-grid'
+import { useTheme } from '@mui/material/styles'
+
+import { debounce } from 'lodash'
+import { AuthContext } from 'src/context/AuthContext'
+import Utility from 'src/utility'
+
+import FallbackSpinner from 'src/@core/components/spinner/index'
 import CustomChip from 'src/@core/components/mui/chip'
 import Icon from 'src/@core/components/icon'
-import Router from 'next/router'
-import { useTheme } from '@mui/material/styles'
-import Error404 from 'src/pages/404'
-// import redBlink from 'public/images/gif/redBlink.gif'
-import redBlink from 'public/images/branding/Antz_logo_h_color.svg'
-import { AuthContext } from 'src/context/AuthContext'
-import AddIncubators from '../../../views/pages/egg/incubator/addIncubators'
-import Styles from './dot.module.css'
-import { getAvailibilityList, getIncubatorList } from 'src/lib/api/egg/incubator'
-import { GetRoomList } from 'src/lib/api/egg/room/getRoom'
-import Utility from 'src/utility'
 import ErrorScreen from 'src/pages/Error'
+import AddIncubators from '../../../views/pages/egg/incubator/addIncubators'
+
+import { getAvailibilityList, getIncubatorList } from 'src/lib/api/egg/incubator'
 
 const IncubatorsList = () => {
   const theme = useTheme()
+  const authData = useContext(AuthContext)
+  const egg_nursery_permission = authData?.userData?.permission?.user_settings?.add_nursery_permisson
+  const egg_collection_permission = authData?.userData?.roles?.settings?.enable_egg_collection_module
+
   const [loader, setLoader] = useState(false)
   const [total, setTotal] = useState(0)
   const [sort, setSort] = useState('desc')
@@ -35,30 +37,38 @@ const IncubatorsList = () => {
 
   const [defaultSite, setDefaultSite] = useState(null)
   const [defaultRoom, setDefaultRoom] = useState(null)
-  const [roomList, setRoomList] = useState([])
   const [availibilityList, setAvailibilityList] = useState([])
   const [defaultStatus, setDefaultStatus] = useState(null)
   const [defaultAvailibility, setDefaultAvailibility] = useState(null)
 
-  const authData = useContext(AuthContext)
-  const egg_nursery_permission = authData?.userData?.permission?.user_settings?.add_nursery_permisson
-  const egg_collection_permission = authData?.userData?.roles?.settings?.enable_egg_collection_module
+  // Utility: Load rows from server
+  const loadServerRows = (currentPage, data) => data
 
-  function loadServerRows(currentPage, data) {
-    return data
+  // Utility: Generate serial number for each row
+  // const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
+  const getSlNo = index => paginationModel.page * paginationModel.pageSize + index + 1
+
+  // 🟩 Transform rows to include sl_no
+  const indexedRows = rows?.map((row, index) => ({
+    ...row,
+    sl_no: getSlNo(index)
+  }))
+
+  // 📦 API: Fetch availability list
+  const fetchAvailabilityList = async () => {
+    try {
+      const res = await getAvailibilityList()
+      setAvailibilityList(res?.data?.data || [])
+    } catch (error) {
+      console.error('Failed to fetch availability list', error)
+    }
   }
 
-  const handleChange = (event, newValue) => {
-    setTotal(0)
-    // setStatus(newValue)
-  }
-
+  // 📦 API: Fetch incubator list for table
   const fetchTableData = useCallback(
-    async (q, siteId, roomId, availibility, status) => {
+    async (q, siteId, roomId, availability, status) => {
+      setLoading(true)
       try {
-        // console.log('til_date', siteId)
-        setLoading(true)
-
         const params = {
           q: q || searchValue,
           sort,
@@ -67,32 +77,61 @@ const IncubatorsList = () => {
           type: status || 'all',
           room_id: roomId,
           nursery_id: '',
-          availability: availibility,
+          availability,
           site_id: siteId
         }
-        // console.log('params', params)
-        await getIncubatorList({ params }).then(res => {
-          // console.log('response', res)
 
-          // Generate uid field based on the index
-          let listWithId = res?.data?.data?.result?.map((el, i) => {
-            return { ...el, id: i + 1 }
-          })
-          setTotal(parseInt(res?.data?.data?.total_count))
-          setRows(loadServerRows(paginationModel.page, listWithId))
+        const res = await getIncubatorList({ params })
+        const rawData = res?.data?.data?.result || []
 
-          // setstatusCheckval(res?.data?.result.map(all => all.active))
-        })
-        setLoading(false)
-      } catch (e) {
-        console.log(e)
+        const listWithId = rawData.map((el, i) => ({
+          ...el,
+          id: i + 1
+        }))
+
+        setTotal(parseInt(res?.data?.data?.total_count || 0))
+        setRows(loadServerRows(paginationModel.page, listWithId))
+      } catch (error) {
+        console.error('Error fetching table data:', error)
+      } finally {
         setLoading(false)
       }
     },
-    [paginationModel]
+    [paginationModel, sort, searchValue]
   )
 
+  // 🧠 Debounced Search Function
+  const debouncedSearch = useCallback(
+    debounce((q, siteId, roomId, availability, status) => {
+      setSearchValue(q)
+      fetchTableData(q, siteId, roomId, availability, status)
+    }, 1000),
+    [fetchTableData]
+  )
+
+  // 🔍 Search Input Handler
+  const handleSearch = (value, siteId, roomId, availability, status) => {
+    setSearchValue(value)
+    debouncedSearch(value, siteId, roomId, availability, status)
+  }
+
+  // ❌ Close sidebar dialog
+  const handleSidebarClose = () => {
+    setDialog(false)
+  }
+
+  // ➕ Add Button
+  const headerAction = egg_nursery_permission && (
+    <Button sx={{ height: '40px', width: '126px' }} size='small' variant='contained' onClick={() => setDialog(true)}>
+      <Icon icon='mdi:add' fontSize={20} />
+      &nbsp; Add New
+    </Button>
+  )
+
+  // 🔁 Fetch on mount (availability + initial table data)
   useEffect(() => {
+    fetchAvailabilityList()
+
     if (egg_nursery_permission || egg_collection_permission) {
       fetchTableData(
         searchValue,
@@ -102,108 +141,14 @@ const IncubatorsList = () => {
         defaultStatus?.key
       )
     }
-  }, [fetchTableData])
-
-  const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
-
-  const indexedRows = rows?.map((row, index) => ({
-    ...row,
-    sl_no: getSlNo(index)
-  }))
-
-  const handleSortModel = newModel => {
-    // if (newModel.length) {
-    //   setSort(newModel[0].sort)
-    //   setsortColumning(newModel[0].field)
-    //   fetchTableData(newModel[0].sort, searchValue, newModel[0].field, status)
-    // } else {
-    // }
-  }
-
-  const RoomList = async q => {
-    try {
-      const params = {
-        page: 1,
-        limit: 50,
-        // nursery_id:
-        search: q
-      }
-      await GetRoomList({ params: params }).then(res => {
-        setRoomList(res?.data?.result)
-      })
-    } catch (e) {
-      console.log(e)
-    }
-  }
-  const AvailibityList = async () => {
-    try {
-      await getAvailibilityList().then(res => {
-        setAvailibilityList(res?.data?.data)
-      })
-    } catch (e) {
-      console.log(e)
-    }
-  }
-
-  useEffect(() => {
-    // RoomList('')
-    AvailibityList()
   }, [])
-
-  const searchRoom = useCallback(
-    debounce(async q => {
-      try {
-        await RoomList(q)
-      } catch (error) {
-        console.error(error)
-      }
-    }, 1000),
-    []
-  )
-
-  const searchTableData = useCallback(
-    debounce(async (q, siteId, roomId, availibility, status) => {
-      setSearchValue(q)
-      try {
-        await fetchTableData(q, siteId, roomId, availibility, status)
-      } catch (error) {
-        console.error(error)
-      }
-    }, 1000),
-    []
-  )
-
-  const handleSidebarClose = () => {
-    setDialog(false)
-  }
-
-  const headerAction = (
-    <>
-      {egg_nursery_permission && (
-        <Button
-          sx={{ height: '40px', width: '126px' }}
-          size='small'
-          variant='contained'
-          onClick={() => setDialog(true)}
-        >
-          <Icon icon='mdi:add' fontSize={20} />
-          &nbsp; Add New
-        </Button>
-      )}
-    </>
-  )
-
-  const handleSearch = (value, siteId, roomId, availibility, status) => {
-    setSearchValue(value)
-    searchTableData(value, siteId, roomId, availibility, status)
-  }
+  // }, [fetchTableData])  // use this line if there happen any issue while fetching table data
 
   const columns = [
     {
-      flex: 0.05,
-      Width: 40,
+      minWidth: 80,
       field: 'id',
-      headerName: 'NO',
+      headerName: 'SL.NO',
       align: 'center',
       sortable: false,
       renderCell: params => (
@@ -219,7 +164,6 @@ const IncubatorsList = () => {
         </Typography>
       )
     },
-
     {
       flex: 0.27,
       minWidth: 30,
@@ -264,41 +208,6 @@ const IncubatorsList = () => {
         </Tooltip>
       )
     },
-    // {
-    //   flex: 0.3,
-    //   minWidth: 10,
-    //   field: 'sensors',
-    //   sortable: false,
-    //   headerName: 'SENSORS',
-    //   renderCell: params => (
-    //     <Box sx={{ display: 'flex', alignItems: 'center' }}>
-    //       <Typography
-    //         style={{
-    //           color: theme.palette.customColors.OnSurfaceVariant,
-    //           fontSize: '16px',
-    //           fontWeight: '400',
-    //           lineHeight: '19.36px'
-    //         }}
-    //       >
-    //         2
-    //       </Typography>{' '}
-    //       {params.row.sensors === 'Alert' && <div className={Styles.circle}></div>}
-    //       {params.row.sensors === 'Good' && (
-    //         <div style={{ backgroundColor: theme.palette.primary.main }} className={Styles.green_circle}></div>
-    //       )}
-    //       <Typography
-    //         sx={{
-    //           color: params.row.sensors === 'Good' ? theme.palette.primary.main : theme.palette.formContent.tertiary,
-    //           fontSize: '14px',
-    //           fontWeight: '500',
-    //           lineHeight: '16.94px'
-    //         }}
-    //       >
-    //         {params.row.sensors ? params.row.sensors : '-'}
-    //       </Typography>
-    //     </Box>
-    //   )
-    // },
     {
       flex: 0.3,
       minWidth: 10,
@@ -346,7 +255,7 @@ const IncubatorsList = () => {
       minWidth: 20,
       sortable: false,
       field: 'room_name',
-      headerName: 'ROOM NO',
+      headerName: 'ROOM',
       renderCell: params => (
         <Tooltip title={params.row.room_name ? params.row.room_name : '-'}>
           <Typography
@@ -423,7 +332,7 @@ const IncubatorsList = () => {
               width: 30,
               height: 30,
               borderRadius: '50%',
-              background: '#E8F4F2',
+              background: theme.palette.customColors.displaybgPrimary,
               overflow: 'hidden'
             }}
           >
@@ -469,8 +378,6 @@ const IncubatorsList = () => {
   ]
 
   const onCellClick = params => {
-    // console.log(params, 'params')
-
     Router.push({
       pathname: `/egg/incubators/${params.row?.incubator_id}`
     })
@@ -485,7 +392,6 @@ const IncubatorsList = () => {
           <>
             <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
               <Typography color='inherit'>Egg</Typography>
-
               <Typography sx={{ cursor: 'pointer' }} color='text.primary'>
                 Incubator List
               </Typography>
@@ -493,160 +399,13 @@ const IncubatorsList = () => {
             <Card>
               <CardHeader title='Incubator List' action={headerAction} />
 
-              {/* <Grid sx={{ pl: 2, mb: 2 }} container>
-                <Grid sx={{ px: 2 }} item xs={12} sm={6} md={4} lg={2}>
-                  <Autocomplete
-                    value={defaultUom}
-                    disablePortal
-                    id='uom'
-                    options={uomList?.length > 0 ? uomList : []}
-                    getOptionLabel={option => option.name}
-                    isOptionEqualToValue={(option, value) => option?._id === value?._id}
-                    onChange={(e, val) => {
-                      if (val === null) {
-                        setDefaultUom(null)
-
-                        return onChange('')
-                      } else {
-                        setDefaultUom(val)
-
-                        return onChange(val._id)
-                      }
-                    }}
-                    renderInput={params => (
-                      <StyledTextField
-                        {...params}
-                        label='All Time'
-                        placeholder='Search & Select'
-                        // error={Boolean(errors.uom)}
-                      />
-                    )}
-                  />
-                </Grid>
-                <Grid sx={{ px: 2 }} item xs={12} sm={6} md={4} lg={2}>
-                  <Autocomplete
-                    value={defaultUom}
-                    disablePortal
-                    id='uom'
-                    options={uomList?.length > 0 ? uomList : []}
-                    getOptionLabel={option => option.name}
-                    isOptionEqualToValue={(option, value) => option?._id === value?._id}
-                    onChange={(e, val) => {
-                      if (val === null) {
-                        setDefaultUom(null)
-
-                        return onChange('')
-                      } else {
-                        setDefaultUom(val)
-
-                        return onChange(val._id)
-                      }
-                    }}
-                    renderInput={params => (
-                      <StyledTextField
-                        {...params}
-                        label='Deviced'
-                        placeholder='Search & Select'
-                        // error={Boolean(errors.uom)}
-                      />
-                    )}
-                  />
-                </Grid>
-                <Grid sx={{ px: 2 }} item xs={12} sm={6} md={4} lg={2}>
-                  <Autocomplete
-                    value={defaultUom}
-                    disablePortal
-                    id='uom'
-                    options={uomList?.length > 0 ? uomList : []}
-                    getOptionLabel={option => option.name}
-                    isOptionEqualToValue={(option, value) => option?._id === value?._id}
-                    onChange={(e, val) => {
-                      if (val === null) {
-                        setDefaultUom(null)
-
-                        return onChange('')
-                      } else {
-                        setDefaultUom(val)
-
-                        return onChange(val._id)
-                      }
-                    }}
-                    renderInput={params => (
-                      <StyledTextField
-                        {...params}
-                        label='Availability'
-                        placeholder='Search & Select'
-                        // error={Boolean(errors.uom)}
-                      />
-                    )}
-                  />
-                </Grid>
-                <Grid sx={{ px: 2 }} item xs={12} sm={6} md={4} lg={2}>
-                  <Autocomplete
-                    value={defaultUom}
-                    disablePortal
-                    id='uom'
-                    options={uomList?.length > 0 ? uomList : []}
-                    getOptionLabel={option => option.name}
-                    isOptionEqualToValue={(option, value) => option?._id === value?._id}
-                    onChange={(e, val) => {
-                      if (val === null) {
-                        setDefaultUom(null)
-
-                        return onChange('')
-                      } else {
-                        setDefaultUom(val)
-
-                        return onChange(val._id)
-                      }
-                    }}
-                    renderInput={params => (
-                      <StyledTextField
-                        {...params}
-                        label='Site'
-                        placeholder='Search & Select'
-                        // error={Boolean(errors.uom)}
-                      />
-                    )}
-                  />
-                </Grid>
-                <Grid sx={{ px: 2 }} item xs={12} sm={6} md={4} lg={2}>
-                  <Autocomplete
-                    value={defaultUom}
-                    disablePortal
-                    id='uom'
-                    options={uomList?.length > 0 ? uomList : []}
-                    getOptionLabel={option => option.name}
-                    isOptionEqualToValue={(option, value) => option?._id === value?._id}
-                    onChange={(e, val) => {
-                      if (val === null) {
-                        setDefaultUom(null)
-
-                        return onChange('')
-                      } else {
-                        setDefaultUom(val)
-
-                        return onChange(val._id)
-                      }
-                    }}
-                    renderInput={params => (
-                      <StyledTextField
-                        {...params}
-                        label='Room'
-                        placeholder='Search & Select'
-                        // error={Boolean(errors.uom)}
-                      />
-                    )}
-                  />
-                </Grid>
-              </Grid> */}
               <Grid sx={{ ml: -2, mb: 6, mt: -4 }} container columns={15} spacing={6}>
                 <Grid item xs={3}>
                   <Box
                     sx={{
                       display: 'flex',
                       alignItems: 'center',
-                      border: '1px solid #C3CEC7',
+                      border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                       borderRadius: '4px',
                       padding: '0 8px',
                       height: '40px'
@@ -721,8 +480,8 @@ const IncubatorsList = () => {
                       renderInput={params => (
                         <TextField
                           sx={{
-                            backgroundColor: '#fff',
-                            borderColor: '1px solid #C3CEC7',
+                            backgroundColor: theme.palette.primary.contrastText,
+                            borderColor: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                             width: '100%',
                             '& .MuiOutlinedInput-root': {
                               height: 40,
@@ -761,7 +520,6 @@ const IncubatorsList = () => {
                 columnVisibilityModel={{
                   sl_no: false
                 }}
-                // sortModel={}
                 hideFooterSelectedRowCount
                 disableColumnSelector={true}
                 autoHeight
@@ -774,20 +532,8 @@ const IncubatorsList = () => {
                 paginationMode='server'
                 pageSizeOptions={[7, 10, 25, 50]}
                 paginationModel={paginationModel}
-                onSortModelChange={handleSortModel}
-                // slots={{ toolbar: ServerSideToolbarWithFilter }}
                 onPaginationModelChange={setPaginationModel}
                 loading={loading}
-                // slotProps={{
-                //   baseButton: {
-                //     variant: 'outlined'
-                //   },
-                //   toolbar: {
-                //     value: searchValue,
-                //     clearSearch: () => handleSearch(''),
-                //     onChange: event => handleSearch(event.target.value)
-                //   }
-                // }}
                 onCellClick={onCellClick}
               />
               <AddIncubators actionApi={fetchTableData} sidebarOpen={dialog} handleSidebarClose={handleSidebarClose} />

@@ -1,6 +1,6 @@
+import React from 'react'
 import { Avatar, Card, CardContent, Grid, Typography } from '@mui/material'
 import { Box } from '@mui/system'
-import React from 'react'
 import { useTheme } from '@mui/material/styles'
 import Icon from 'src/@core/components/icon'
 import Utility from 'src/utility'
@@ -44,7 +44,6 @@ const EggImageGallery = ({ galleryList }) => {
                       variant='rounded'
                       src={item?.file_name}
                     />
-                    {/* //////////////////////////////////////////// */}
                     <Box sx={{ display: 'flex', alignItems: 'center' }}>
                       <Avatar
                         variant='square'
@@ -54,7 +53,7 @@ const EggImageGallery = ({ galleryList }) => {
                           height: 30,
                           mr: 4,
                           borderRadius: '50%',
-                          background: '#E8F4F2',
+                          background: theme.palette.customColors.displaybgPrimary,
                           overflow: 'hidden'
                         }}
                       >
@@ -89,10 +88,6 @@ const EggImageGallery = ({ galleryList }) => {
                             lineHeight: '14.52px'
                           }}
                         >
-                          {/* {item?.created_at ? ' ' + moment(item?.created_at).format('DD MMM YYYY') : '-'} */}
-                          {/* {item?.created_at
-                            ? ' ' + moment(moment.utc(item?.created_at).toDate().toLocaleString()).format('DD MMM YYYY')
-                            : '-'} */}
                           {Utility?.formatDisplayDate(Utility.convertUTCToLocal(item?.created_at))}
                         </Typography>
                       </Box>

@@ -24,8 +24,10 @@ const RecipeDetailCardview = ({ IngredientsDetailsval, permission, getRecipeDeta
   const router = useRouter()
   const [deleteDialogBox, setDeleteDialogBox] = useState(false)
   const [activePayload, setActivePayload] = useState(IngredientsDetailsval?.active || false)
+
   const handleClosenew = () => {
     setDeleteDialogBox(false)
+
     //setIsActive(IngredientsDetailsval.active)
   }
 
@@ -44,6 +46,7 @@ const RecipeDetailCardview = ({ IngredientsDetailsval, permission, getRecipeDeta
     console.log(isActive, 'ooo')
     try {
       setDeleteDialogBox(false)
+
       const response = await updateRecipeStatus(IngredientsDetailsval?.id, {
         status: activePayload,
         meal_type: 'combo'
@@ -52,6 +55,7 @@ const RecipeDetailCardview = ({ IngredientsDetailsval, permission, getRecipeDeta
       if (response.success === true) {
         //Router.push(`/diet/recipe`)
         getRecipeDetailval(IngredientsDetailsval?.id)
+
         //return toast(t => <ToasterforSuccess isActive={isActive} type='Recipe' id={IngredientsDetailsval.id} t={t} />)
         return Toaster({ type: 'success', message: response?.message })
       } else {
@@ -61,7 +65,7 @@ const RecipeDetailCardview = ({ IngredientsDetailsval, permission, getRecipeDeta
   }
 
   return (
-    <Grid item xs={4}>
+    <Grid item md={4} xs={6.5} sx={{ marginLeft: 'auto', marginRight: 'auto', textAlign: 'center' }}>
       <Card sx={{ boxShadow: 'none', background: '#EFF5F2' }}>
         <div
           item
@@ -108,12 +112,13 @@ const RecipeDetailCardview = ({ IngredientsDetailsval, permission, getRecipeDeta
               flexWrap: 'wrap',
               alignItems: 'center',
               justifyContent: 'space-between'
+
               //my: 3
             }}
           >
             <Box sx={{ mr: 2, display: 'flex', flexDirection: 'column' }}>
               <Typography variant='body2' sx={{ mb: 0.5, fontWeight: 600, color: 'text.primary' }}>
-                {'COM' + IngredientsDetailsval.id}
+                {'CMB' + IngredientsDetailsval.id}
               </Typography>
             </Box>
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
@@ -128,6 +133,7 @@ const RecipeDetailCardview = ({ IngredientsDetailsval, permission, getRecipeDeta
                   }
                   labelPlacement='start'
                   label={isActive === '1' ? 'Active' : 'InActive'}
+                  disabled={!permission}
                 />
               </Grid>
             </Box>

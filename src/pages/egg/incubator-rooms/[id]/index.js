@@ -1,9 +1,6 @@
 import React, { useCallback, useEffect, useState, useContext } from 'react'
-import Router from 'next/router'
-import { useRouter } from 'next/router'
-import Icon from 'src/@core/components/icon'
-import { DataGrid } from '@mui/x-data-grid'
-import { useTheme } from '@mui/material/styles'
+import Router, { useRouter } from 'next/router'
+
 import {
   Grid,
   Card,
@@ -22,42 +19,49 @@ import {
   FormControlLabel,
   Switch
 } from '@mui/material'
-import ServerSideToolbarWithFilter from 'src/views/table/data-grid/ServerSideToolbarWithFilter'
+import { DataGrid } from '@mui/x-data-grid'
+import { useTheme } from '@mui/material/styles'
+
 import { debounce } from 'lodash'
-import { GetRoomDetails } from 'src/lib/api/egg/room/getRoom'
 import moment from 'moment'
-import DetailCard from 'src/components/egg/DetailCard'
-import AddIncubatorRoom from 'src/components/egg/AddIncubatorRoom'
-import { getAvailibilityList, getIncubatorList } from 'src/lib/api/egg/incubator'
-import AddIncubators from 'src/views/pages/egg/incubator/addIncubators'
+
 import Utility from 'src/utility'
-import CustomChip from 'src/@core/components/mui/chip'
 import { AuthContext } from 'src/context/AuthContext'
 import ErrorScreen from 'src/pages/Error'
-import { hatcheryStatus } from 'src/lib/api/egg'
+
+import Icon from 'src/@core/components/icon'
+import CustomChip from 'src/@core/components/mui/chip'
+import DetailCard from 'src/components/egg/DetailCard'
 import Toaster from 'src/components/Toaster'
+import AddIncubatorRoom from 'src/components/egg/AddIncubatorRoom'
+
+import AddIncubators from 'src/views/pages/egg/incubator/addIncubators'
 import StatusDialogBox from 'src/views/pages/egg/eggs/eggDetails/StatusDialogBox'
 import EditRedirectionDialog from 'src/views/pages/egg/eggs/eggDetails/EditRedirectionDialog'
 
+import { getAvailibilityList, getIncubatorList } from 'src/lib/api/egg/incubator'
+import { hatcheryStatus } from 'src/lib/api/egg'
+import { GetRoomDetails } from 'src/lib/api/egg/room/getRoom'
+
 const RoomDetails = () => {
-  const cuurent_date = moment().format('YYYY-MM-DD')
-  const router = useRouter()
-  const { id } = router.query
-
   const theme = useTheme()
-  const editParamsInitialState = { site_id: null, room_name: null, nursery_id: null, nursery_name: null }
-  const [editParams, setEditParams] = useState(editParamsInitialState)
+  const router = useRouter()
+  const authData = useContext(AuthContext)
+  const cuurent_date = moment().format('YYYY-MM-DD')
 
-  // console.log('editParams :>> ', editParams)
+  const { id } = router.query
+  const editParamsInitialState = { site_id: null, room_name: null, nursery_id: null, nursery_name: null }
+  const egg_nursery_permission = authData?.userData?.permission?.user_settings?.add_nursery_permisson
+  const egg_collection_permission = authData?.userData?.roles?.settings?.enable_egg_collection_module
+
+  const [editParams, setEditParams] = useState(editParamsInitialState)
   const [loader, setLoader] = useState(false)
   const [total, setTotal] = useState(0)
   const [sort, setSort] = useState('desc')
   const [rows, setRows] = useState([])
   const [searchValue, setSearchValue] = useState('')
-  const [sortColumn, setSortColumn] = useState('room_name')
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [loading, setLoading] = useState(false)
-  const [status, setStatus] = useState('')
   const [detailsData, setDetailsData] = useState({})
 
   const [availibilityList, setAvailibilityList] = useState([])
@@ -67,8 +71,6 @@ const RoomDetails = () => {
   const [statusLoading, setStatusLoading] = useState(false)
   const [active, setActive] = useState(false)
 
-  // console.log('detailsData :>> ', detailsData)
-
   const [isOpen, setIsOpen] = useState(false)
   const [DetailsListData, setDetailsListData] = useState({})
   const [dialog, setDialog] = useState(false)
@@ -77,10 +79,113 @@ const RoomDetails = () => {
   const [openRedirectionDialog, setOpenRedirectionDialog] = useState(false)
   const [editMessage, setEditMessage] = useState('')
 
-  const authData = useContext(AuthContext)
-  const egg_nursery_permission = authData?.userData?.permission?.user_settings?.add_nursery_permisson
-  const egg_collection_permission = authData?.userData?.roles?.settings?.enable_egg_collection_module
+  // ✅ Extracted helper functions and cleaned structure for clarity
+  // const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
+  const getSlNo = index => paginationModel.page * paginationModel.pageSize + index + 1
 
+  const indexedRows = rows?.map((row, index) => ({
+    ...row,
+    sl_no: getSlNo(index)
+  }))
+
+  const loadServerRows = (currentPage, data) => data
+
+  // const fetchTableData = useCallback(
+  //   async (q, availability) => {
+  //     try {
+  //       setLoading(true)
+
+  //       const params = {
+  //         sort,
+  //         q,
+  //         room_id: id,
+  //         availability,
+  //         til_date: cuurent_date,
+  //         page_no: paginationModel.page + 1,
+  //         limit: paginationModel.pageSize
+  //       }
+
+  //       await getIncubatorList({ params }).then(res => {
+  //         // Generate uid field based on the index
+  //         let listWithId = res?.data?.data?.result?.map((el, i) => {
+  //           return { ...el, id: i + 1 }
+  //         })
+  //         setTotal(parseInt(res?.data?.data?.total_count))
+  //         setRows(loadServerRows(paginationModel.page, listWithId))
+
+  //         // setstatusCheckval(res?.data?.result.map(all => all.active))
+  //       })
+  //       setLoading(false)
+  //     } catch (e) {
+  //       console.log(e)
+  //       setLoading(false)
+  //     }
+  //   },
+  //   [paginationModel]
+  // )
+
+  // ✅ Fetch incubator list
+  const fetchTableData = useCallback(
+    async (q = '', availability) => {
+      setLoading(true)
+      const params = {
+        sort,
+        q,
+        room_id: id,
+        availability,
+        til_date: cuurent_date,
+        page_no: paginationModel.page + 1,
+        limit: paginationModel.pageSize
+      }
+
+      try {
+        const res = await getIncubatorList({ params })
+        const listWithId = res?.data?.data?.result?.map((el, i) => ({ ...el, id: i + 1 }))
+        setTotal(parseInt(res?.data?.data?.total_count ?? '0'))
+        setRows(loadServerRows(paginationModel.page, listWithId))
+      } catch (error) {
+        console.error('Error fetching incubator list:', error)
+      } finally {
+        setLoading(false)
+      }
+    },
+    [paginationModel]
+  )
+
+  // ✅ Debounced search
+  const searchTableData = useCallback(
+    debounce(async (q, status) => {
+      setSearchValue(q)
+      try {
+        await fetchTableData(q, status)
+      } catch (error) {
+        console.error(error)
+      }
+    }, 1000),
+    // []
+    [fetchTableData]
+  )
+
+  const handleSearch = (value, status) => {
+    setSearchValue(value)
+    searchTableData(value, status)
+  }
+
+  // ✅ Availability List
+  const AvailibityList = async () => {
+    try {
+      const res = await getAvailibilityList()
+      setAvailibilityList(res?.data?.data ?? [])
+    } catch (error) {
+      console.error('Error fetching availability list:', error)
+    }
+  }
+
+  useEffect(() => {
+    AvailibityList()
+  }, [])
+
+  // ✅ Edit Redirection
   const EditRedirectionFunc = event => {
     handleEdit(
       event,
@@ -93,70 +198,32 @@ const RoomDetails = () => {
     setOpenRedirectionDialog(false)
   }
 
-  const hatcheryStatusFunc = () => {
+  // ✅ Hatchery Status Update
+  const hatcheryStatusFunc = async () => {
     setStatusLoading(true)
+
     try {
-      hatcheryStatus({
+      const response = await hatcheryStatus({
         ref_type: 'room',
         ref_id: id,
         status: active ? 'deactivate' : 'activate'
-      }).then(response => {
-        if (response.success) {
-          Toaster({ type: 'success', message: response.message })
-          setOpenStatusDialog(false)
-          setStatusLoading(false)
-          setActive(!active)
-          fetchDetailsData()
-        } else {
-          Toaster({ type: 'error', message: response.message })
-          setEditMessage(response?.message)
-          setOpenRedirectionDialog(true)
-          fetchDetailsData()
-          setOpenStatusDialog(false)
-          setStatusLoading(false)
-        }
       })
+      if (response.success) {
+        Toaster({ type: 'success', message: response.message })
+        setActive(!active)
+      } else {
+        Toaster({ type: 'error', message: response.message })
+        setEditMessage(response?.message)
+        setOpenRedirectionDialog(true)
+      }
+      fetchDetailsData()
     } catch (error) {
+      Toaster({ type: 'error', message: response.message })
+    } finally {
       setOpenStatusDialog(false)
       setStatusLoading(false)
-      Toaster({ type: 'error', message: response.message })
     }
   }
-
-  const fetchTableData = useCallback(
-    async (q, availability) => {
-      try {
-        // console.log('til_date', cuurent_date)
-        setLoading(true)
-
-        const params = {
-          sort,
-          q,
-          room_id: id,
-          availability,
-          til_date: cuurent_date,
-          page_no: paginationModel.page + 1,
-          limit: paginationModel.pageSize
-        }
-
-        await getIncubatorList({ params }).then(res => {
-          // Generate uid field based on the index
-          let listWithId = res?.data?.data?.result?.map((el, i) => {
-            return { ...el, id: i + 1 }
-          })
-          setTotal(parseInt(res?.data?.data?.total_count))
-          setRows(loadServerRows(paginationModel.page, listWithId))
-
-          // setstatusCheckval(res?.data?.result.map(all => all.active))
-        })
-        setLoading(false)
-      } catch (e) {
-        console.log(e)
-        setLoading(false)
-      }
-    },
-    [paginationModel]
-  )
 
   useEffect(() => {
     if (egg_nursery_permission || egg_collection_permission) {
@@ -164,50 +231,11 @@ const RoomDetails = () => {
     }
   }, [fetchTableData])
 
-  const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
-
-  const indexedRows = rows?.map((row, index) => ({
-    ...row,
-    sl_no: getSlNo(index)
-  }))
-
-  const searchTableData = useCallback(
-    debounce(async (q, status) => {
-      setSearchValue(q)
-      try {
-        await fetchTableData(q, status)
-      } catch (error) {
-        console.error(error)
-      }
-    }, 1000),
-    []
-  )
-
-  const handleSearch = (value, status) => {
-    setSearchValue(value)
-    searchTableData(value, status)
-  }
-
-  const AvailibityList = async () => {
-    try {
-      await getAvailibilityList().then(res => {
-        setAvailibilityList(res?.data?.data)
-      })
-    } catch (e) {
-      console.log(e)
-    }
-  }
-
-  useEffect(() => {
-    AvailibityList()
-  }, [])
-
   const columns = [
     {
-      flex: 0.05,
-      Width: 40,
+      minWidth: 80,
       field: 'id',
-      headerName: 'NO',
+      headerName: 'SL.NO',
       align: 'center',
       sortable: false,
       renderCell: params => (
@@ -315,7 +343,7 @@ const RoomDetails = () => {
       minWidth: 20,
       sortable: false,
       field: 'room_name',
-      headerName: 'ROOM NO',
+      headerName: 'ROOM',
       renderCell: params => (
         <Tooltip title={params.row.room_name ? params.row.room_name : '-'}>
           <Typography
@@ -412,7 +440,7 @@ const RoomDetails = () => {
               width: 30,
               height: 30,
               borderRadius: '50%',
-              background: '#E8F4F2',
+              background: theme.palette.customColors.displaybgPrimary,
               overflow: 'hidden'
             }}
           >
@@ -456,82 +484,38 @@ const RoomDetails = () => {
       )
     }
   ]
-  function loadServerRows(currentPage, data) {
-    return data
-  }
 
+  // ✅ Fetch Room Details
   const fetchDetailsData = useCallback(async () => {
-    try {
-      setLoader(true)
+    setLoader(true)
 
-      await GetRoomDetails(id).then(res => {
-        setDetailsData(res?.data)
-        setDetailsListData({
-          list: {
-            Room: res?.data?.room_name,
-            'Nursery Name': res?.data?.nursery_name,
-            Site: res?.data?.site_name,
-            Incubator: res?.data?.no_of_incubators,
-            Eggs: res?.data?.no_of_eggs
-          },
-          Avatar: {
-            profile_Pic: res?.data?.user_profile_pic,
-            user_Name: res?.data?.user_full_name,
-            create_at: res?.data?.created_at,
-            site_id: res?.data?.site_id
-          }
-        })
-        setActive(Boolean(Number(res?.data?.active)))
-        setIsPreFilled(res?.data)
+    try {
+      const res = await GetRoomDetails(id)
+      const data = res?.data
+      setDetailsData(data)
+      setDetailsListData({
+        list: {
+          Room: data?.room_name,
+          'Nursery Name': data?.nursery_name,
+          Site: data?.site_name,
+          Incubator: data?.no_of_incubators,
+          Eggs: data?.no_of_eggs
+        },
+        Avatar: {
+          profile_Pic: data?.user_profile_pic,
+          user_Name: data?.user_full_name,
+          create_at: data?.created_at,
+          site_id: data?.site_id
+        }
       })
-      setLoader(false)
-    } catch (e) {
+      setActive(Boolean(Number(data?.active)))
+      setIsPreFilled(data)
+    } catch (error) {
+      console.error('Error fetching room details:', error)
+    } finally {
       setLoader(false)
     }
   }, [])
-
-  const handleEdit = async (event, site_id, room_name, nursery_id, room_id, nursery_name) => {
-    event?.stopPropagation()
-    setEditParams({
-      site_id: site_id,
-      room_name: room_name,
-      nursery_id: nursery_id,
-      room_id: room_id,
-      nursery_name: nursery_name
-    })
-    setIsOpen(true)
-  }
-
-  // const headerAction = (
-  //   <>
-  //     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-  //       <IconButton
-  //         sx={{ mr: 4 }}
-  //         onClick={event =>
-  //           handleEdit(
-  //             event,
-  //             detailsData.site_id,
-  //             detailsData.room_name,
-  //             detailsData.nursery_id,
-  //             detailsData.room_id,
-  //             detailsData.nursery_name
-  //           )
-  //         }
-  //       >
-  //         <Icon
-  //           icon='material-symbols:edit-outline'
-  //           fontSize={28}
-  //           color={theme.palette.customColors.OnSurfaceVariant}
-  //         />
-  //       </IconButton>
-
-  //       <Button size='medium' variant='contained' onClick={() => setDialog(true)}>
-  //         <Icon icon='mdi:add' fontSize={20} />
-  //         &nbsp; ADD INCUBATOR
-  //       </Button>
-  //     </Box>
-  //   </>
-  // )
 
   useEffect(() => {
     if (egg_nursery_permission || egg_collection_permission) {
@@ -539,21 +523,14 @@ const RoomDetails = () => {
     }
   }, [fetchDetailsData])
 
-  // const onCellClick = params => {
-  //   console.log(params, 'params')
-
-  //   Router.push({
-  //     pathname: `/egg/incubators/${params.row?.id}`
-  //   })
-  // }
-
-  const handleSidebarClose = () => {
-    setDialog(false)
+  const handleEdit = (event, site_id, room_name, nursery_id, room_id, nursery_name) => {
+    event?.stopPropagation()
+    setEditParams({ site_id, room_name, nursery_id, room_id, nursery_name })
+    setIsOpen(true)
   }
+  const handleSidebarClose = () => setDialog(false)
 
   const onCellClick = params => {
-    // console.log(params, 'params')
-
     Router.push({
       pathname: `/egg/incubators/${params.row?.incubator_id}`
     })
@@ -589,7 +566,6 @@ const RoomDetails = () => {
               </Breadcrumbs>
 
               <Card>
-                {/* <CardHeader title='Rooms Details' action={headerAction} /> */}
                 <Box sx={{ m: '16px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <Box sx={{ display: 'flex', gap: '16px', alignItems: 'center' }}>
                     <Icon
@@ -661,7 +637,7 @@ const RoomDetails = () => {
                       sx={{
                         display: 'flex',
                         alignItems: 'center',
-                        border: '1px solid #C3CEC7',
+                        border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                         borderRadius: '4px',
                         padding: '0 8px',
                         height: '40px'
@@ -710,8 +686,8 @@ const RoomDetails = () => {
                         renderInput={params => (
                           <TextField
                             sx={{
-                              backgroundColor: '#fff',
-                              borderColor: '1px solid #C3CEC7',
+                              backgroundColor: theme.palette.primary.contrastText,
+                              borderColor: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                               width: '100%',
                               '& .MuiOutlinedInput-root': {
                                 height: 40,
@@ -765,20 +741,8 @@ const RoomDetails = () => {
                     rowHeight={64}
                     pageSizeOptions={[7, 10, 25, 50]}
                     paginationModel={paginationModel}
-                    // onSortModelChange={handleSortModel}
-                    // slots={{ toolbar: ServerSideToolbarWithFilter }}
                     onPaginationModelChange={setPaginationModel}
                     loading={loading}
-                    // slotProps={{
-                    //   baseButton: {
-                    //     variant: 'outlined'
-                    //   },
-                    //   toolbar: {
-                    //     value: searchValue,
-                    //     clearSearch: () => handleSearch(''),
-                    //     onChange: event => handleSearch(event.target.value)
-                    //   }
-                    // }}
                     onCellClick={onCellClick}
                   />
                 </Box>

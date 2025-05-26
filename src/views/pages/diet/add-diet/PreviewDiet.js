@@ -21,11 +21,13 @@ import {
   TableBody,
   TableCell,
   TableHead,
-  TableRow
+  TableRow,
+  CircularProgress,
+  useMediaQuery
 } from '@mui/material'
 import { Divider, Card } from '@mui/material'
 import AddDietType from './AddDietType'
-import dayjs from 'dayjs'
+import { useTheme } from '@mui/material/styles'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
@@ -52,8 +54,11 @@ const StepPreviewDiet = ({
   setFormData,
   id,
   remarks,
-  onRemarksChange
+  onRemarksChange,
+  loader
 }) => {
+  const theme = useTheme()
+  const isSmallDevice = useMediaQuery(theme.breakpoints.down('md'))
   const [open, setOpen] = useState(false)
   const [mealData, setmealType] = useState([])
   const [LocalformData, setlocalformData] = useState([])
@@ -69,6 +74,7 @@ const StepPreviewDiet = ({
   const [uomLabel, setuomLabel] = useState('')
   const [errorpop, setErrorpop] = useState('')
   const [expanded, setExpanded] = useState(false)
+
   const [screenSize, setScreenSize] = useState({
     width: window.innerWidth,
     height: window.innerHeight
@@ -680,6 +686,7 @@ const StepPreviewDiet = ({
   useEffect(() => {
     const updatedFormData = { ...formData }
     console.log(updatedFormData, 'updatedFormData')
+
     // Iterate over meal_data
     updatedFormData.meal_data.forEach(meal => {
       // Check if the meal_data has an ingredient array
@@ -688,6 +695,7 @@ const StepPreviewDiet = ({
           if (ingredient.meal_type && ingredient.meal_type.length > 0) {
             ingredient.meal_type = ingredient.meal_type.filter(mealType => {
               if (mealType.meal_value_header === 'Generic') return true
+
               return formData.diet_type_name === 'By Weight'
                 ? getCookie('dietTypeChildValues')?.includes(mealType.meal_value_header)
                 : formData.child?.includes(mealType.meal_value_header)
@@ -702,6 +710,7 @@ const StepPreviewDiet = ({
           if (recipe.meal_type && recipe.meal_type.length > 0) {
             recipe.meal_type = recipe.meal_type.filter(mealType => {
               if (mealType.meal_value_header === 'Generic') return true
+
               return formData.diet_type_name === 'By Weight'
                 ? getCookie('dietTypeChildValues')?.includes(mealType.meal_value_header)
                 : formData.child?.includes(mealType.meal_value_header)
@@ -716,6 +725,7 @@ const StepPreviewDiet = ({
           if (recipe.meal_type && recipe.meal_type.length > 0) {
             recipe.meal_type = recipe.meal_type.filter(mealType => {
               if (mealType.meal_value_header === 'Generic') return true
+
               return formData.diet_type_name === 'By Weight'
                 ? getCookie('dietTypeChildValues')?.includes(mealType.meal_value_header)
                 : formData.child?.includes(mealType.meal_value_header)
@@ -730,6 +740,7 @@ const StepPreviewDiet = ({
           if (ingredientwithchoice.meal_type && ingredientwithchoice.meal_type.length > 0) {
             ingredientwithchoice.meal_type = ingredientwithchoice.meal_type.filter(mealType => {
               if (mealType.meal_value_header === 'Generic') return true
+
               return formData.diet_type_name === 'By Weight'
                 ? getCookie('dietTypeChildValues')?.includes(mealType.meal_value_header)
                 : formData.child?.includes(mealType.meal_value_header)
@@ -766,8 +777,19 @@ const StepPreviewDiet = ({
     return day ? day.name : ''
   }
 
+  const handleclickRecipeDetail = val => {
+    const url = `/diet/recipe/${val}`
+    window.open(url, '_blank')
+  }
+
+  const handleclickComboDetail = val => {
+    const url = `/diet/combo/${val}`
+    window.open(url, '_blank')
+  }
+
   const getModal = (index, item) => {
     console.log(getValues())
+
     return (
       <Dialog
         className=''
@@ -954,6 +976,12 @@ const StepPreviewDiet = ({
                   <span style={{ fontWeight: 600 }}>{formData.diet_type_name ? formData.diet_type_name : '-'}</span>
                 </Typography>
               </div>
+              <div>
+                <Typography>
+                  <span>Dietician Name : </span>
+                  <span style={{ fontWeight: 600 }}>{formData.dietitian_name}</span>
+                </Typography>
+              </div>
               <Grid sx={{ mt: 5 }}>
                 <div>
                   <Typography variant='h6' sx={{ mb: 2 }}>
@@ -963,7 +991,7 @@ const StepPreviewDiet = ({
                     variant='body2'
                     sx={{
                       width: '100%',
-                      color: '#7A8684',
+                      color: theme.palette.customColors.secondaryBg,
                       fontSize: '14px',
                       overflow: 'hidden',
                       textOverflow: 'ellipsis',
@@ -984,7 +1012,7 @@ const StepPreviewDiet = ({
                         fontSize: '13px',
 
                         textDecoration: 'underline',
-                        color: '#000',
+                        color: theme.palette.customColors.neutralPrimary,
                         cursor: 'pointer'
                       }}
                     >
@@ -1027,11 +1055,11 @@ const StepPreviewDiet = ({
                           sx={{
                             border: 'none',
                             height: '40px',
-                            backgroundColor: '#fff',
+                            backgroundColor: theme.palette.secondary.contrastText,
                             pl: '0 !important',
                             py: 0,
                             width: '180px',
-                            position: 'sticky',
+                            position: isSmallDevice ? '' : 'sticky ',
                             left: 0,
                             paddingRight: '0px'
                           }}
@@ -1061,12 +1089,13 @@ const StepPreviewDiet = ({
                           sx={{
                             border: 'none',
                             height: '40px',
-                            backgroundColor: '#fff',
-                            position: 'sticky',
+                            backgroundColor: theme.palette.secondary.contrastText,
+                            position: isSmallDevice ? '' : 'sticky ',
                             left: '180px',
                             p: 0,
                             width: '500px'
                           }}
+                          className='meal_dtl_hd'
                         >
                           <Box
                             sx={{
@@ -1097,7 +1126,7 @@ const StepPreviewDiet = ({
                                 backgroundColor: '#C1D3D099',
                                 height: '40px',
                                 width: '141px',
-                                borderRight: '1px solid #C3CEC7',
+                                borderRight: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                                 textAlign: 'center'
                               }}
                             >
@@ -1110,7 +1139,7 @@ const StepPreviewDiet = ({
                                 backgroundColor: '#C1D3D099',
                                 height: '40px',
                                 width: '141px',
-                                borderRight: '1px solid #C3CEC7',
+                                borderRight: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                                 textAlign: 'center'
                               }}
                             >
@@ -1123,7 +1152,7 @@ const StepPreviewDiet = ({
                                 backgroundColor: '#C1D3D099',
                                 height: '40px',
                                 width: '141px',
-                                borderRight: '1px solid #C3CEC7',
+                                borderRight: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                                 textAlign: 'center'
                               }}
                             >
@@ -1139,7 +1168,7 @@ const StepPreviewDiet = ({
                                 backgroundColor: '#C1D3D099',
                                 height: '40px',
                                 width: '137px',
-                                borderRight: '1px solid #C3CEC7',
+                                borderRight: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                                 textAlign: 'center'
                               }}
                             >
@@ -1169,7 +1198,7 @@ const StepPreviewDiet = ({
                                 backgroundColor: '#C1D3D099',
                                 height: '40px',
                                 width: '140px',
-                                borderRight: '1px solid #C3CEC7',
+                                borderRight: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                                 textAlign: 'center'
                               }}
                             >
@@ -1182,7 +1211,7 @@ const StepPreviewDiet = ({
                                 backgroundColor: '#C1D3D099',
                                 height: '40px',
                                 width: '140px',
-                                borderRight: '1px solid #C3CEC7',
+                                borderRight: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                                 textAlign: 'center'
                               }}
                             >
@@ -1195,7 +1224,7 @@ const StepPreviewDiet = ({
                                 backgroundColor: '#C1D3D099',
                                 height: '40px',
                                 width: '140px',
-                                borderRight: '1px solid #C3CEC7',
+                                borderRight: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                                 textAlign: 'center'
                               }}
                             >
@@ -1208,7 +1237,7 @@ const StepPreviewDiet = ({
                                 backgroundColor: '#C1D3D099',
                                 height: '40px',
                                 width: '157px',
-                                borderRight: '1px solid #C3CEC7',
+                                borderRight: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                                 textAlign: 'center'
                               }}
                             >
@@ -1221,7 +1250,7 @@ const StepPreviewDiet = ({
                                 backgroundColor: '#C1D3D099',
                                 height: '40px',
                                 width: '127px',
-                                borderRight: '1px solid #C3CEC7',
+                                borderRight: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                                 textAlign: 'center'
                               }}
                             >
@@ -1237,7 +1266,7 @@ const StepPreviewDiet = ({
                                 backgroundColor: '#C1D3D099',
                                 height: '40px',
                                 width: '137px',
-                                borderRight: '1px solid #C3CEC7',
+                                borderRight: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                                 textAlign: 'center'
                               }}
                             >
@@ -1253,7 +1282,7 @@ const StepPreviewDiet = ({
                                 backgroundColor: '#C1D3D099',
                                 height: '40px',
                                 width: '137px',
-                                borderRight: '1px solid #C3CEC7',
+                                borderRight: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                                 textAlign: 'center'
                               }}
                             >
@@ -1269,7 +1298,7 @@ const StepPreviewDiet = ({
                                     backgroundColor: '#C1D3D099',
                                     height: '40px',
                                     width: '140px',
-                                    borderRight: '1px solid #C3CEC7',
+                                    borderRight: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                                     textAlign: 'center'
                                   }}
                                 >
@@ -1308,14 +1337,15 @@ const StepPreviewDiet = ({
                             <TableRow key={index} className=''>
                               <TableCell
                                 sx={{
-                                  position: 'sticky',
+                                  position: isSmallDevice ? 'relative' : 'sticky ',
                                   left: 0,
                                   width: '180px',
                                   border: 'none',
                                   pl: 0,
                                   pr: '36px',
-                                  background: '#fff',
+                                  background: theme.palette.secondary.contrastText,
                                   height: '185px',
+
                                   //display: 'flex',
                                   //flexDirection: 'column',
                                   justifyContent: 'center',
@@ -1330,6 +1360,7 @@ const StepPreviewDiet = ({
                                     position: 'absolute',
                                     top: '80px',
                                     transform: 'translateY(-50%)',
+
                                     //display: 'flex',
                                     flexDirection: 'column',
                                     alignItems: 'center',
@@ -1340,7 +1371,7 @@ const StepPreviewDiet = ({
                                   <Typography
                                     sx={{
                                       textAlign: 'center',
-                                      color: '#00AFD6',
+                                      color: theme.palette.customColors.addPrimary,
                                       fontWeight: 500,
                                       fontSize: '14px',
                                       mt: '10px',
@@ -1352,7 +1383,7 @@ const StepPreviewDiet = ({
                                   <Box
                                     sx={{
                                       borderRadius: '25px',
-                                      border: `2px dotted #00AFD6`,
+                                      border: `2px dotted ${theme.palette.customColors.addPrimary}`,
                                       py: '5px',
                                       px: '4px'
                                     }}
@@ -1360,7 +1391,7 @@ const StepPreviewDiet = ({
                                     <Typography
                                       sx={{
                                         textAlign: 'center',
-                                        color: '#00AFD6',
+                                        color: theme.palette.customColors.addPrimary,
                                         fontWeight: 500,
                                         fontSize: '16px',
                                         lineHeight: '19.36px'
@@ -1370,13 +1401,19 @@ const StepPreviewDiet = ({
                                     </Typography>
                                   </Box>
                                   <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-                                    <Box sx={{ width: 0, height: '19px', borderLeft: `2px solid #00AFD6` }}></Box>
+                                    <Box
+                                      sx={{
+                                        width: 0,
+                                        height: '19px',
+                                        borderLeft: `2px solid ${theme.palette.customColors.addPrimary}`
+                                      }}
+                                    ></Box>
                                   </Box>
 
                                   <Box
                                     sx={{
                                       borderRadius: '25px',
-                                      border: `2px dotted #00AFD6`,
+                                      border: `2px dotted ${theme.palette.customColors.addPrimary}`,
                                       py: '5px',
                                       px: '4px'
                                     }}
@@ -1384,7 +1421,7 @@ const StepPreviewDiet = ({
                                     <Typography
                                       sx={{
                                         textAlign: 'center',
-                                        color: '#00AFD6',
+                                        color: theme.palette.customColors.addPrimary,
                                         fontWeight: 500,
                                         fontSize: '16px',
                                         lineHeight: '19.36px'
@@ -1395,465 +1432,7 @@ const StepPreviewDiet = ({
                                   </Box>
                                 </span>
                               </TableCell>
-                              <>
-                                {itemd?.ingredient?.map((item, index) => {
-                                  return (
-                                    <TableRow key={index} className='tablerowi'>
-                                      <TableCell
-                                        sx={{
-                                          position: 'sticky',
-                                          left: '180px',
-                                          border: 'none',
-                                          backgroundColor: '#fff'
-                                          //float: 'left',
-                                          // display: 'flex',
-                                          // flexDirection: 'row'
-                                        }}
-                                        // className={
-                                        //   formData?.diet_type_name === 'By Weight'
-                                        //     ? formData?.child?.length === 1
-                                        //       ? 'cellmodule9'
-                                        //       : formData?.child?.length === 0
-                                        //       ? 'cellmodule1'
-                                        //       : formData?.child?.length === 2
-                                        //       ? 'cellmodule2'
-                                        //       : formData?.child?.length === 3
-                                        //       ? 'cellmodule22'
-                                        //       : formData?.child?.length > 3
-                                        //       ? 'cellmodule3'
-                                        //       : 'cellmodule4' // Default for By Weight if no other condition is met
-                                        //     : formData?.diet_type_name === 'By Gender'
-                                        //     ? formData?.child?.length === 2
-                                        //       ? 'cellmodule5'
-                                        //       : 'cellmodule4' // Default if By Gender does not match other conditions
-                                        //     : formData?.diet_type_name === 'Generic'
-                                        //     ? 'cellmodule6' // Always 'cellmodule6' for Generic
-                                        //     : formData?.diet_type_name === 'By Lifestage'
-                                        //     ? formData?.child?.length > 2
-                                        //       ? 'cellmodule7'
-                                        //       : 'cellmodule4' // Default if By Lifestage does not match other conditions
-                                        //     : 'cellmodule4' // Default for all other cases
-                                        // }
-                                      >
-                                        <Box
-                                          key={index}
-                                          sx={{
-                                            display: 'flex',
-                                            flexDirection: 'column',
 
-                                            //backgroundColor: '#E1F9ED',
-                                            backgroundColor: '#00d6c957',
-                                            borderRadius: '8px',
-                                            p: '12px',
-                                            gap: '16px'
-                                          }}
-                                          className={
-                                            formData?.diet_type_name === 'By Weight'
-                                              ? formData?.child?.length === 1
-                                                ? 'cellmodule9'
-                                                : formData?.child?.length === 0
-                                                ? 'cellmodule1'
-                                                : formData?.child?.length === 2
-                                                ? 'cellmodule2'
-                                                : formData?.child?.length === 3
-                                                ? 'cellmodule22'
-                                                : formData?.child?.length > 3
-                                                ? 'cellmodule3'
-                                                : 'cellmodule4' // Default for By Weight if no other condition is met
-                                              : formData?.diet_type_name === 'By Gender'
-                                              ? formData?.child?.length === 2
-                                                ? 'cellmodule5'
-                                                : 'cellmodule4' // Default if By Gender does not match other conditions
-                                              : formData?.diet_type_name === 'Generic'
-                                              ? 'cellmodule6' // Always 'cellmodule6' for Generic
-                                              : formData?.diet_type_name === 'By Lifestage'
-                                              ? formData?.child?.length > 2
-                                                ? 'cellmodule7'
-                                                : 'cellmodule4' // Default if By Lifestage does not match other conditions
-                                              : 'cellmodule4' // Default for all other cases
-                                          }
-                                        >
-                                          <Box>
-                                            <Box
-                                              sx={{
-                                                display: 'flex',
-                                                flexDirection: 'column',
-                                                gap: '12px'
-                                              }}
-                                            >
-                                              <Box sx={{ display: 'flex' }}>
-                                                {item?.ingredient_name && (
-                                                  <Typography
-                                                    sx={{
-                                                      color: '#000',
-                                                      lineHeight: '16.94px',
-                                                      fontWeight: 600,
-                                                      fontSize: '16px'
-                                                    }}
-                                                  >
-                                                    {item?.ingredient_name}
-                                                  </Typography>
-                                                )}
-
-                                                {item?.preparation_type &&
-                                                  (item?.master_cut_size ? (
-                                                    <Typography
-                                                      sx={{
-                                                        color: '#7A8684',
-                                                        lineHeight: '16.94px',
-                                                        fontWeight: 400,
-                                                        fontSize: '14px'
-                                                      }}
-                                                    >
-                                                      &nbsp;-&nbsp; {item?.preparation_type}&nbsp;-&nbsp;
-                                                      {item?.master_cut_size}
-                                                    </Typography>
-                                                  ) : (
-                                                    <Typography
-                                                      sx={{
-                                                        color: '#7A8684',
-                                                        lineHeight: '16.94px',
-                                                        fontWeight: 400,
-                                                        fontSize: '14px'
-                                                      }}
-                                                    >
-                                                      &nbsp;-&nbsp; {item?.preparation_type}
-                                                      {/* {item?.master_cut_size + item.feed_uom_name} */}
-                                                    </Typography>
-                                                  ))}
-                                              </Box>
-
-                                              {item?.ingredient?.length > 0 && (
-                                                <Box
-                                                  sx={{
-                                                    display: 'flex',
-                                                    gap: '24px'
-                                                  }}
-                                                >
-                                                  {item?.ingredient?.map((item, index) => (
-                                                    <Box key={index} sx={{ display: 'flex' }}>
-                                                      <Typography
-                                                        sx={{
-                                                          color: '#1F515B',
-                                                          lineHeight: '16.94px',
-                                                          fontWeight: 400,
-                                                          fontSize: '14px'
-                                                        }}
-                                                      >
-                                                        {item.name}&nbsp;
-                                                      </Typography>
-                                                      <Typography
-                                                        sx={{
-                                                          color: '#000',
-                                                          lineHeight: '16.94px',
-                                                          fontWeight: 600,
-                                                          fontSize: '14px'
-                                                        }}
-                                                      >
-                                                        {item?.percentage}
-                                                      </Typography>
-                                                    </Box>
-                                                  ))}
-                                                </Box>
-                                              )}
-                                              {(item?.preparationType || item?.desc) && (
-                                                <Box
-                                                  sx={{
-                                                    display: 'flex',
-                                                    gap: '24px'
-                                                  }}
-                                                >
-                                                  {item?.preparationType && (
-                                                    <Typography
-                                                      sx={{
-                                                        color: '#1F515B',
-                                                        lineHeight: '16.94px',
-                                                        fontWeight: 400,
-                                                        fontSize: '14px'
-                                                      }}
-                                                    >
-                                                      {item?.preparationType}
-                                                    </Typography>
-                                                  )}
-                                                  {item?.desc && (
-                                                    <Typography
-                                                      sx={{
-                                                        color: '#1F515B',
-                                                        lineHeight: '16.94px',
-                                                        fontWeight: 400,
-                                                        fontSize: '14px'
-                                                      }}
-                                                    >
-                                                      {item?.desc}
-                                                    </Typography>
-                                                  )}
-                                                </Box>
-                                              )}
-                                              {item?.remarks && (
-                                                <Box
-                                                  sx={{
-                                                    backgroundColor: '#0000000d',
-                                                    display: 'flex',
-                                                    flexDirection: 'column',
-                                                    gap: '4px',
-                                                    p: '12px',
-                                                    borderRadius: '8px'
-                                                  }}
-                                                >
-                                                  <Typography
-                                                    sx={{
-                                                      color: '#000',
-                                                      lineHeight: '16.94px',
-                                                      fontWeight: 600,
-                                                      fontSize: '14px'
-                                                    }}
-                                                  >
-                                                    Remarks
-                                                  </Typography>
-                                                  <Typography
-                                                    sx={{
-                                                      color: '#000',
-                                                      lineHeight: '16.94px',
-                                                      fontWeight: 400,
-                                                      fontSize: '14px'
-                                                    }}
-                                                  >
-                                                    {item?.remarks}
-                                                  </Typography>
-                                                </Box>
-                                              )}
-                                            </Box>
-                                          </Box>
-                                          {item?.days_of_week?.length > 0 && (
-                                            <>
-                                              <Divider />
-                                              <Box sx={{ display: 'flex', gap: '12px' }}>
-                                                {item?.days_of_week?.map((item, index) => (
-                                                  <Box
-                                                    key={index}
-                                                    sx={{
-                                                      width: '48px',
-                                                      height: '32px',
-                                                      borderRadius: '16px',
-                                                      backgroundColor: '#0000000d',
-                                                      display: 'center',
-                                                      justifyContent: 'center',
-                                                      alignItems: 'center'
-                                                    }}
-                                                  >
-                                                    <Typography
-                                                      sx={{
-                                                        fontWeight: 400,
-                                                        fontSize: '13px',
-                                                        lineHeight: '18px',
-                                                        color: '#44544A'
-                                                      }}
-                                                    >
-                                                      {getDayName(item)}
-                                                    </Typography>
-                                                  </Box>
-                                                ))}
-                                              </Box>
-                                            </>
-                                          )}
-                                        </Box>
-                                      </TableCell>
-                                      <TableCell
-                                        style={{
-                                          paddingLeft: '8px',
-                                          paddingRight: '8px',
-                                          height: '10px',
-                                          maxHeight: '100%',
-                                          border: 'none'
-                                        }}
-                                        onClick={() => handleClickOpen(index, item, 'Generic', 'ingredient')}
-                                      >
-                                        <Box
-                                          sx={{
-                                            height: '100%'
-                                          }}
-                                        >
-                                          <Box
-                                            sx={{
-                                              backgroundColor: '#0000000d',
-                                              p: '10px',
-                                              display: 'flex',
-                                              justifyContent: 'center',
-                                              alignItems: 'center',
-                                              borderRadius: '8px',
-                                              height: '100%'
-                                            }}
-                                            className={
-                                              formData?.diet_type_name === 'By Gender'
-                                                ? 'diet_val_container'
-                                                : formData?.diet_type_name === 'By Weight' &&
-                                                  (formData?.child?.length === 2 || formData?.child?.length === 1)
-                                                ? 'diet_val_weight'
-                                                : formData?.diet_type_name === 'By Weight' &&
-                                                  formData?.child?.length === 3
-                                                ? 'diet_val_weight1'
-                                                : 'diet_val_cont'
-                                            }
-                                          >
-                                            <Typography
-                                              sx={{
-                                                color: '#000',
-                                                lineHeight: '16.94px',
-                                                fontWeight: 400,
-                                                fontSize: '14px'
-                                              }}
-                                            >
-                                              {/* {item.meal_type
-                                                ? item.meal_type.map((meal, i) => {
-                                                    return meal.meal_value_header === 'Generic'
-                                                      ? meal.quantity +
-                                                          (meal.feed_uom_name ? ' ' + meal.feed_uom_name : '')
-                                                      : ''
-                                                  })
-                                                : 'Add'} */}
-                                              {item.meal_type
-                                                ? item.meal_type
-                                                    .map((meal, i) => {
-                                                      return meal.meal_value_header === 'Generic'
-                                                        ? meal.quantity +
-                                                            (meal.feed_uom_name ? ' ' + meal.feed_uom_name : '')
-                                                        : null
-                                                    })
-                                                    .filter(Boolean).length === 0
-                                                  ? 'Add'
-                                                  : item.meal_type.map((meal, i) => {
-                                                      return meal.meal_value_header === 'Generic'
-                                                        ? meal.quantity +
-                                                            (meal.feed_uom_name ? ' ' + meal.feed_uom_name : '')
-                                                        : null
-                                                    })
-                                                : 'Add'}
-                                            </Typography>
-                                          </Box>
-                                        </Box>
-                                      </TableCell>
-                                      {formData.child?.map((all, indexnew) => {
-                                        if (all !== 'Generic') {
-                                          return (
-                                            <TableCell
-                                              key={index}
-                                              style={{
-                                                paddingLeft: '8px',
-                                                paddingRight: '8px',
-                                                height: '10px',
-                                                maxHeight: '100%',
-                                                border: 'none'
-                                              }}
-                                              onClick={() => handleClickOpen(index, item, all, 'ingredient')}
-                                            >
-                                              <Box
-                                                sx={{
-                                                  height: '100%'
-                                                }}
-                                              >
-                                                <Box
-                                                  sx={{
-                                                    backgroundColor: '#0000000d',
-                                                    p: '10px',
-                                                    display: 'flex',
-                                                    justifyContent: 'center',
-                                                    alignItems: 'center',
-                                                    borderRadius: '8px',
-                                                    height: '100%'
-                                                  }}
-                                                  className={
-                                                    formData?.diet_type_name === 'By Gender'
-                                                      ? 'diet_val_container'
-                                                      : formData?.diet_type_name === 'By Weight' &&
-                                                        (formData?.child?.length === 2 || formData?.child?.length === 1)
-                                                      ? 'diet_val_weight'
-                                                      : formData?.diet_type_name === 'By Weight' &&
-                                                        formData?.child?.length === 3
-                                                      ? 'diet_val_weight1'
-                                                      : 'diet_val_cont'
-                                                  }
-                                                >
-                                                  <Typography
-                                                    sx={{
-                                                      color: '#000',
-                                                      lineHeight: '16.94px',
-                                                      fontWeight: 400,
-                                                      fontSize: '14px'
-                                                    }}
-                                                  >
-                                                    {/* {formData.diet_type_name === 'By Weight' && item.meal_type
-                                                      ? item.meal_type.map((meal, i) => {
-                                                          if (all.includes(meal.meal_value_header)) {
-                                                            return (
-                                                              meal.quantity +
-                                                              (meal.feed_uom_name ? ' ' + meal.feed_uom_name : '')
-                                                            )
-                                                          } else {
-                                                            return ''
-                                                          }
-                                                        })
-                                                      : item.meal_type
-                                                      ? item.meal_type.map((meal, i) => {
-                                                          return meal.meal_value_header === all
-                                                            ? meal.quantity +
-                                                                (meal.feed_uom_name ? ' ' + meal.feed_uom_name : '')
-                                                            : ''
-                                                        })
-                                                      : 'Add'} */}
-                                                    {formData.diet_type_name === 'By Weight' && item.meal_type
-                                                      ? item.meal_type
-                                                          .map((meal, i) => {
-                                                            if (all.includes(meal.meal_value_header)) {
-                                                              return (
-                                                                meal.quantity +
-                                                                (meal.feed_uom_name ? ' ' + meal.feed_uom_name : '')
-                                                              )
-                                                            }
-                                                            // Return null for elements that do not match the condition
-                                                            return null
-                                                          })
-                                                          .filter(Boolean).length === 0
-                                                        ? 'Add'
-                                                        : item.meal_type.map((meal, i) => {
-                                                            if (all.includes(meal.meal_value_header)) {
-                                                              return (
-                                                                meal.quantity +
-                                                                (meal.feed_uom_name ? ' ' + meal.feed_uom_name : '')
-                                                              )
-                                                            }
-                                                            // Return null for elements that do not match the condition
-                                                            return null
-                                                          })
-                                                      : item.meal_type
-                                                      ? item.meal_type
-                                                          .map((meal, i) => {
-                                                            return meal.meal_value_header === all
-                                                              ? meal.quantity +
-                                                                  (meal.feed_uom_name ? ' ' + meal.feed_uom_name : '')
-                                                              : null
-                                                          })
-                                                          .filter(Boolean).length === 0
-                                                        ? 'Add'
-                                                        : item.meal_type.map((meal, i) => {
-                                                            return meal.meal_value_header === all
-                                                              ? meal.quantity +
-                                                                  (meal.feed_uom_name ? ' ' + meal.feed_uom_name : '')
-                                                              : null
-                                                          })
-                                                      : 'Add'}
-                                                  </Typography>
-                                                </Box>
-                                              </Box>
-                                            </TableCell>
-                                          )
-                                        }
-                                      })}
-
-                                      {getModal(index, item)}
-                                    </TableRow>
-                                  )
-                                })}
-                              </>
                               {/* Recipe module start  */}
                               <>
                                 {itemd?.recipe?.map((item, index) => {
@@ -1861,14 +1440,16 @@ const StepPreviewDiet = ({
                                     <TableRow key={index} className='tablerowi'>
                                       <TableCell
                                         sx={{
-                                          position: 'sticky',
+                                          position: isSmallDevice ? '' : 'sticky ',
                                           left: '180px',
                                           border: 'none',
-                                          backgroundColor: '#fff'
+                                          backgroundColor: theme.palette.secondary.contrastText
+
                                           //float: 'left',
                                           // display: 'flex',
                                           // flexDirection: 'row'
                                         }}
+
                                         // className={
                                         //   formData?.diet_type_name === 'By Weight'
                                         //     ? formData?.child?.length === 1
@@ -1901,8 +1482,8 @@ const StepPreviewDiet = ({
                                             display: 'flex',
                                             flexDirection: 'column',
 
-                                            //backgroundColor: '#E1F9ED',
-                                            backgroundColor: '#E1F9ED',
+                                            //backgroundColor: theme.palette.background.OnBackground,
+                                            backgroundColor: theme.palette.background.OnBackground,
                                             borderRadius: '8px',
                                             p: '12px',
                                             gap: '16px'
@@ -1919,18 +1500,18 @@ const StepPreviewDiet = ({
                                                 ? 'cellmodule22'
                                                 : formData?.child?.length > 3
                                                 ? 'cellmodule3'
-                                                : 'cellmodule4' // Default for By Weight if no other condition is met
+                                                : 'cellmodule4'
                                               : formData?.diet_type_name === 'By Gender'
                                               ? formData?.child?.length === 2
                                                 ? 'cellmodule5'
-                                                : 'cellmodule4' // Default if By Gender does not match other conditions
+                                                : 'cellmodule4'
                                               : formData?.diet_type_name === 'Generic'
-                                              ? 'cellmodule6' // Always 'cellmodule6' for Generic
+                                              ? 'cellmodule6'
                                               : formData?.diet_type_name === 'By Lifestage'
                                               ? formData?.child?.length > 2
                                                 ? 'cellmodule7'
-                                                : 'cellmodule4' // Default if By Lifestage does not match other conditions
-                                              : 'cellmodule4' // Default for all other cases
+                                                : 'cellmodule4'
+                                              : 'cellmodule4'
                                           }
                                         >
                                           <Box>
@@ -1941,26 +1522,42 @@ const StepPreviewDiet = ({
                                                 gap: '12px'
                                               }}
                                             >
-                                              <Box sx={{ display: 'flex' }}>
+                                              {console.log(item, 'item')}
+                                              <Box sx={{ display: 'flex', flexDirection: 'column' }}>
                                                 {item?.recipe_name && (
-                                                  <Typography
-                                                    sx={{
-                                                      color: '#000',
-                                                      lineHeight: '16.94px',
-                                                      fontWeight: 600,
-                                                      fontSize: '16px'
-                                                    }}
-                                                  >
-                                                    {item?.recipe_name}
-                                                  </Typography>
+                                                  <>
+                                                    <Typography
+                                                      sx={{
+                                                        color: theme.palette.customColors.OnSurfaceVariant,
+                                                        fontSize: '13px',
+                                                        fontWeight: 400,
+                                                        display: 'block'
+                                                      }}
+                                                    >
+                                                      Recipe
+                                                    </Typography>
+                                                    <Typography
+                                                      sx={{
+                                                        color: theme.palette.customColors.neutralPrimary,
+                                                        lineHeight: '16.94px',
+                                                        fontWeight: 600,
+                                                        fontSize: '16px',
+                                                        cursor: 'pointer',
+                                                        display: 'block'
+                                                      }}
+                                                      onClick={() => handleclickRecipeDetail(item.recipe_id)}
+                                                    >
+                                                      {item?.recipe_name}
+                                                    </Typography>
+                                                  </>
                                                 )}
                                               </Box>
-
+                                              <Divider />
                                               <Box sx={{ display: 'flex', flexWrap: 'wrap' }}>
                                                 {/* {item?.ingredient_name && item.ingredient_name.length > 0 && (
                                                   <Typography
                                                     sx={{
-                                                      color: '#7A8684',
+                                                      color: theme.palette.customColors.secondaryBg,
                                                       lineHeight: '16.94px',
                                                       fontWeight: 400,
                                                       fontSize: '14px',
@@ -1995,37 +1592,66 @@ const StepPreviewDiet = ({
                                                     ))}
                                                   </Typography>
                                                 )} */}
-                                                {item?.ingredients?.length > 0 &&
-                                                  item?.ingredients.map((name, index) => (
-                                                    <Box
-                                                      key={index}
-                                                      sx={{
-                                                        display: 'flex',
-                                                        alignItems: 'center',
-                                                        marginRight: '10px',
-                                                        backgroundColor: '#00D6C933',
-                                                        m: 1,
-                                                        borderRadius: '16px',
-                                                        px: '10px',
-                                                        gap: '8px'
-                                                      }}
-                                                    >
-                                                      {name?.ingredient_name}
-                                                      <Typography
-                                                        component='span'
+                                                <Typography
+                                                  sx={{
+                                                    color: theme.palette.customColors.OnSurfaceVariant,
+                                                    fontSize: '13px',
+                                                    fontWeight: 400,
+                                                    width: '100%',
+                                                    mb: 1
+                                                  }}
+                                                >
+                                                  Ingredients used
+                                                </Typography>
+                                                {item?.ingredients?.length > 0 && (
+                                                  <Box
+                                                    sx={{
+                                                      display: 'flex',
+                                                      flexWrap: 'wrap',
+                                                      alignItems: 'center',
+                                                      gap: '10px'
+                                                    }}
+                                                  >
+                                                    {item.ingredients.map((name, index) => (
+                                                      <Box
+                                                        key={index}
                                                         sx={{
-                                                          fontWeight: 'bold',
-                                                          marginLeft: '2px',
-                                                          fontSize: '14px',
-                                                          lineHeight: '1.7rem'
+                                                          display: 'flex',
+                                                          alignItems: 'center',
+                                                          backgroundColor: theme.palette.customColors.mdAntzNeutral,
+                                                          borderRadius: '8px',
+                                                          px: '10px',
+                                                          py: '2px'
                                                         }}
                                                       >
-                                                        {parseFloat(name?.quantity)}
-                                                        {''}
-                                                        {name?.quantity_type === 'percentage' ? '%' : ''}
-                                                      </Typography>
-                                                    </Box>
-                                                  ))}
+                                                        <Typography
+                                                          component='span'
+                                                          sx={{
+                                                            fontSize: '14px',
+                                                            lineHeight: '1.7rem',
+                                                            color: '#000'
+                                                          }}
+                                                        >
+                                                          {`${name?.ingredient_name || ''} | ${
+                                                            name?.preparation_type || ''
+                                                          } | ${name?.cut_size || ''} |  `}
+                                                        </Typography>
+                                                        <Typography
+                                                          component='span'
+                                                          sx={{
+                                                            fontWeight: 'bold',
+                                                            fontSize: '14px',
+                                                            lineHeight: '1.7rem',
+                                                            marginLeft: '2px',
+                                                            color: '#000'
+                                                          }}
+                                                        >
+                                                          {` ${parseFloat(name?.quantity) || 0}${' ' + name?.uom_text}`}
+                                                        </Typography>
+                                                      </Box>
+                                                    ))}
+                                                  </Box>
+                                                )}
                                               </Box>
 
                                               {item?.recipe?.length > 0 && (
@@ -2039,7 +1665,7 @@ const StepPreviewDiet = ({
                                                     <Box key={index} sx={{ display: 'flex' }}>
                                                       <Typography
                                                         sx={{
-                                                          color: '#1F515B',
+                                                          color: theme.palette.primary.light,
                                                           lineHeight: '16.94px',
                                                           fontWeight: 400,
                                                           fontSize: '14px'
@@ -2049,7 +1675,7 @@ const StepPreviewDiet = ({
                                                       </Typography>
                                                       <Typography
                                                         sx={{
-                                                          color: '#000',
+                                                          color: theme.palette.customColors.neutralPrimary,
                                                           lineHeight: '16.94px',
                                                           fontWeight: 600,
                                                           fontSize: '14px'
@@ -2071,7 +1697,7 @@ const StepPreviewDiet = ({
                                                   {item?.preparationType && (
                                                     <Typography
                                                       sx={{
-                                                        color: '#1F515B',
+                                                        color: theme.palette.primary.light,
                                                         lineHeight: '16.94px',
                                                         fontWeight: 400,
                                                         fontSize: '14px'
@@ -2083,7 +1709,7 @@ const StepPreviewDiet = ({
                                                   {item?.desc && (
                                                     <Typography
                                                       sx={{
-                                                        color: '#1F515B',
+                                                        color: theme.palette.primary.light,
                                                         lineHeight: '16.94px',
                                                         fontWeight: 400,
                                                         fontSize: '14px'
@@ -2097,7 +1723,7 @@ const StepPreviewDiet = ({
                                               {item?.remarks && (
                                                 <Box
                                                   sx={{
-                                                    backgroundColor: '#0000000d',
+                                                    backgroundColor: theme.palette.customColors.mdAntzNeutral,
                                                     display: 'flex',
                                                     flexDirection: 'column',
                                                     gap: '4px',
@@ -2107,7 +1733,7 @@ const StepPreviewDiet = ({
                                                 >
                                                   <Typography
                                                     sx={{
-                                                      color: '#000',
+                                                      color: theme.palette.customColors.neutralPrimary,
                                                       lineHeight: '16.94px',
                                                       fontWeight: 600,
                                                       fontSize: '14px'
@@ -2117,7 +1743,7 @@ const StepPreviewDiet = ({
                                                   </Typography>
                                                   <Typography
                                                     sx={{
-                                                      color: '#000',
+                                                      color: theme.palette.customColors.neutralPrimary,
                                                       lineHeight: '16.94px',
                                                       fontWeight: 400,
                                                       fontSize: '14px'
@@ -2129,35 +1755,38 @@ const StepPreviewDiet = ({
                                               )}
                                             </Box>
                                           </Box>
+
                                           {item?.days_of_week?.length > 0 && (
                                             <>
                                               <Divider />
                                               <Box sx={{ display: 'flex', gap: '12px' }}>
-                                                {item?.days_of_week?.map((item, index) => (
-                                                  <Box
-                                                    key={index}
-                                                    sx={{
-                                                      width: '48px',
-                                                      height: '32px',
-                                                      borderRadius: '16px',
-                                                      backgroundColor: '#0000000d',
-                                                      display: 'center',
-                                                      justifyContent: 'center',
-                                                      alignItems: 'center'
-                                                    }}
-                                                  >
-                                                    <Typography
+                                                {item?.days_of_week
+                                                  ?.sort((a, b) => a - b)
+                                                  .map((dayId, index) => (
+                                                    <Box
+                                                      key={index}
                                                       sx={{
-                                                        fontWeight: 400,
-                                                        fontSize: '13px',
-                                                        lineHeight: '18px',
-                                                        color: '#44544A'
+                                                        width: '48px',
+                                                        height: '32px',
+                                                        borderRadius: '16px',
+                                                        backgroundColor: theme.palette.customColors.mdAntzNeutral,
+                                                        display: 'center',
+                                                        justifyContent: 'center',
+                                                        alignItems: 'center'
                                                       }}
                                                     >
-                                                      {getDayName(item)}
-                                                    </Typography>
-                                                  </Box>
-                                                ))}
+                                                      <Typography
+                                                        sx={{
+                                                          fontWeight: 400,
+                                                          fontSize: '13px',
+                                                          lineHeight: '18px',
+                                                          color: theme.palette.customColors.OnSurfaceVariant
+                                                        }}
+                                                      >
+                                                        {getDayName(dayId)}
+                                                      </Typography>
+                                                    </Box>
+                                                  ))}
                                               </Box>
                                             </>
                                           )}
@@ -2180,7 +1809,7 @@ const StepPreviewDiet = ({
                                         >
                                           <Box
                                             sx={{
-                                              backgroundColor: '#0000000d',
+                                              backgroundColor: theme.palette.customColors.mdAntzNeutral,
                                               p: '10px',
                                               display: 'flex',
                                               justifyContent: 'center',
@@ -2202,10 +1831,11 @@ const StepPreviewDiet = ({
                                           >
                                             <Typography
                                               sx={{
-                                                color: '#000',
+                                                color: theme.palette.customColors.neutralPrimary,
                                                 lineHeight: '16.94px',
                                                 fontWeight: 400,
-                                                fontSize: '14px'
+                                                fontSize: '14px',
+                                                textAlign: 'center'
                                               }}
                                             >
                                               {/* {item.meal_type
@@ -2233,6 +1863,17 @@ const StepPreviewDiet = ({
                                                         : null
                                                     })
                                                 : 'Add'}
+                                              {item.meal_type
+                                                ? item.meal_type.map((meal, i) =>
+                                                    meal.meal_value_header === 'Generic' &&
+                                                    meal.notes &&
+                                                    meal.notes.trim() !== '' ? (
+                                                      <Typography key={i} sx={{ textAlign: 'center' }}>
+                                                        <img src='/icons/Notes.svg' alt='Grocery Icon' width='35px' />
+                                                      </Typography>
+                                                    ) : null
+                                                  )
+                                                : null}
                                             </Typography>
                                           </Box>
                                         </Box>
@@ -2258,7 +1899,7 @@ const StepPreviewDiet = ({
                                               >
                                                 <Box
                                                   sx={{
-                                                    backgroundColor: '#0000000d',
+                                                    backgroundColor: theme.palette.customColors.mdAntzNeutral,
                                                     p: '10px',
                                                     display: 'flex',
                                                     justifyContent: 'center',
@@ -2280,10 +1921,11 @@ const StepPreviewDiet = ({
                                                 >
                                                   <Typography
                                                     sx={{
-                                                      color: '#000',
+                                                      color: theme.palette.customColors.neutralPrimary,
                                                       lineHeight: '16.94px',
                                                       fontWeight: 400,
-                                                      fontSize: '14px'
+                                                      fontSize: '14px',
+                                                      textAlign: 'center'
                                                     }}
                                                   >
                                                     {/* {formData.diet_type_name === 'By Weight' && item.meal_type
@@ -2314,7 +1956,7 @@ const StepPreviewDiet = ({
                                                                 (meal.feed_uom_name ? ' ' + meal.feed_uom_name : '')
                                                               )
                                                             }
-                                                            // Return null for elements that do not match the condition
+
                                                             return null
                                                           })
                                                           .filter(Boolean).length === 0
@@ -2326,7 +1968,7 @@ const StepPreviewDiet = ({
                                                                 (meal.feed_uom_name ? ' ' + meal.feed_uom_name : '')
                                                               )
                                                             }
-                                                            // Return null for elements that do not match the condition
+
                                                             return null
                                                           })
                                                       : item.meal_type
@@ -2346,6 +1988,91 @@ const StepPreviewDiet = ({
                                                               : null
                                                           })
                                                       : 'Add'}
+                                                    {formData.diet_type_name === 'By Weight' && item.meal_type
+                                                      ? item.meal_type
+                                                          .map((meal, i) => {
+                                                            if (
+                                                              all.includes(meal.meal_value_header) &&
+                                                              meal.notes &&
+                                                              meal.notes.trim() !== ''
+                                                            ) {
+                                                              return (
+                                                                <Typography key={i} sx={{ textAlign: 'center' }}>
+                                                                  <img
+                                                                    src='/icons/Notes.svg'
+                                                                    alt='Grocery Icon'
+                                                                    width='35px'
+                                                                  />
+                                                                </Typography>
+                                                              )
+                                                            }
+
+                                                            return null
+                                                          })
+                                                          .filter(Boolean).length === 0
+                                                        ? ''
+                                                        : item.meal_type.map((meal, i) => {
+                                                            if (
+                                                              all.includes(meal.meal_value_header) &&
+                                                              meal.notes &&
+                                                              meal.notes.trim() !== ''
+                                                            ) {
+                                                              return (
+                                                                <Typography key={i} sx={{ textAlign: 'center' }}>
+                                                                  <img
+                                                                    src='/icons/Notes.svg'
+                                                                    alt='Grocery Icon'
+                                                                    width='35px'
+                                                                  />
+                                                                </Typography>
+                                                              )
+                                                            }
+
+                                                            return null
+                                                          })
+                                                      : item.meal_type
+                                                      ? item.meal_type
+                                                          .map((meal, i) => {
+                                                            if (
+                                                              meal.meal_value_header === all &&
+                                                              meal.notes &&
+                                                              meal.notes.trim() !== ''
+                                                            ) {
+                                                              return (
+                                                                <Typography key={i} sx={{ textAlign: 'center' }}>
+                                                                  <img
+                                                                    src='/icons/Notes.svg'
+                                                                    alt='Grocery Icon'
+                                                                    width='35px'
+                                                                  />
+                                                                </Typography>
+                                                              )
+                                                            }
+
+                                                            return null
+                                                          })
+                                                          .filter(Boolean).length === 0
+                                                        ? ''
+                                                        : item.meal_type.map((meal, i) => {
+                                                            if (
+                                                              meal.meal_value_header === all &&
+                                                              meal.notes &&
+                                                              meal.notes.trim() !== ''
+                                                            ) {
+                                                              return (
+                                                                <Typography key={i} sx={{ textAlign: 'center' }}>
+                                                                  <img
+                                                                    src='/icons/Notes.svg'
+                                                                    alt='Grocery Icon'
+                                                                    width='35px'
+                                                                  />
+                                                                </Typography>
+                                                              )
+                                                            }
+
+                                                            return null
+                                                          })
+                                                      : ''}
                                                   </Typography>
                                                 </Box>
                                               </Box>
@@ -2361,21 +2088,23 @@ const StepPreviewDiet = ({
                               {/* Recipe module end */}
 
                               {/* Combo module start  */}
-                              {console.log(itemd, 'itemd')}
+
                               <>
                                 {itemd?.combo?.map((item, index) => {
                                   return (
                                     <TableRow key={index} className='tablerowi'>
                                       <TableCell
                                         sx={{
-                                          position: 'sticky',
+                                          position: isSmallDevice ? '' : 'sticky ',
                                           left: '180px',
                                           border: 'none',
-                                          backgroundColor: '#fff'
+                                          backgroundColor: theme.palette.secondary.contrastText
+
                                           //float: 'left',
                                           // display: 'flex',
                                           // flexDirection: 'row'
                                         }}
+
                                         // className={
                                         //   formData?.diet_type_name === 'By Weight'
                                         //     ? formData?.child?.length === 1
@@ -2408,7 +2137,7 @@ const StepPreviewDiet = ({
                                             display: 'flex',
                                             flexDirection: 'column',
 
-                                            //backgroundColor: '#E1F9ED',
+                                            //backgroundColor: theme.palette.background.OnBackground,
                                             backgroundColor: '#DAE7DF99',
                                             borderRadius: '8px',
                                             p: '12px',
@@ -2426,18 +2155,18 @@ const StepPreviewDiet = ({
                                                 ? 'cellmodule22'
                                                 : formData?.child?.length > 3
                                                 ? 'cellmodule3'
-                                                : 'cellmodule4' // Default for By Weight if no other condition is met
+                                                : 'cellmodule4'
                                               : formData?.diet_type_name === 'By Gender'
                                               ? formData?.child?.length === 2
                                                 ? 'cellmodule5'
-                                                : 'cellmodule4' // Default if By Gender does not match other conditions
+                                                : 'cellmodule4'
                                               : formData?.diet_type_name === 'Generic'
-                                              ? 'cellmodule6' // Always 'cellmodule6' for Generic
+                                              ? 'cellmodule6'
                                               : formData?.diet_type_name === 'By Lifestage'
                                               ? formData?.child?.length > 2
                                                 ? 'cellmodule7'
-                                                : 'cellmodule4' // Default if By Lifestage does not match other conditions
-                                              : 'cellmodule4' // Default for all other cases
+                                                : 'cellmodule4'
+                                              : 'cellmodule4'
                                           }
                                         >
                                           <Box>
@@ -2448,26 +2177,68 @@ const StepPreviewDiet = ({
                                                 gap: '12px'
                                               }}
                                             >
-                                              <Box sx={{ display: 'flex' }}>
+                                              <Box sx={{ display: 'flex', flexDirection: 'column' }}>
                                                 {item?.recipe_name && (
-                                                  <Typography
-                                                    sx={{
-                                                      color: '#000',
-                                                      lineHeight: '16.94px',
-                                                      fontWeight: 600,
-                                                      fontSize: '16px'
-                                                    }}
-                                                  >
-                                                    {item?.recipe_name}
-                                                  </Typography>
+                                                  <>
+                                                    <Typography
+                                                      sx={{
+                                                        color: theme.palette.customColors.OnSurfaceVariant,
+                                                        fontSize: '13px',
+                                                        fontWeight: 400,
+                                                        display: 'block'
+                                                      }}
+                                                    >
+                                                      Combo
+                                                    </Typography>
+                                                    <Typography
+                                                      sx={{
+                                                        color: theme.palette.customColors.neutralPrimary,
+                                                        lineHeight: '16.94px',
+                                                        fontWeight: 600,
+                                                        fontSize: '16px',
+                                                        cursor: 'pointer'
+                                                      }}
+                                                      onClick={() => handleclickComboDetail(item.recipe_id)}
+                                                    >
+                                                      {item?.recipe_name}
+                                                    </Typography>
+                                                  </>
                                                 )}
+                                                {/* 
+                                                {item?.ingredients.map(all =>
+                                                  all ? (
+                                                    <Typography
+                                                      sx={{
+                                                        fontWeight: 400,
+                                                        fontSize: '14px',
+                                                        lineHeight: '18px',
+                                                        color: theme.palette.secondary.dark
+                                                      }}
+                                                    >
+                                                      &nbsp;-&nbsp; {all?.preparation_type}
+                                                      &nbsp;-&nbsp;
+                                                      {item?.master_cut_size}
+                                                    </Typography>
+                                                  ) : (
+                                                    <Typography
+                                                      sx={{
+                                                        fontWeight: 400,
+                                                        fontSize: '14px',
+                                                        lineHeight: '18px',
+                                                        color: theme.palette.secondary.dark
+                                                      }}
+                                                    >
+                                                      &nbsp;-&nbsp; {all?.preparation_type}
+                                                    </Typography>
+                                                  )
+                                                )} */}
                                               </Box>
-
+                                              <Divider />
                                               <Box sx={{ display: 'flex', flexWrap: 'wrap' }}>
                                                 {/* {item?.ingredient_name && item.ingredient_name.length > 0 && (
                                                   <Typography
                                                     sx={{
-                                                      color: '#7A8684',
+                                                      color: theme.palette.customColors.secondaryBg,
                                                       lineHeight: '16.94px',
                                                       fontWeight: 400,
                                                       fontSize: '14px',
@@ -2502,37 +2273,69 @@ const StepPreviewDiet = ({
                                                     ))}
                                                   </Typography>
                                                 )} */}
-                                                {item?.ingredients?.length > 0 &&
-                                                  item?.ingredients.map((name, index) => (
-                                                    <Box
-                                                      key={index}
-                                                      sx={{
-                                                        display: 'flex',
-                                                        alignItems: 'center',
-                                                        marginRight: '10px',
-                                                        backgroundColor: '#0000000d',
-                                                        m: 1,
-                                                        borderRadius: '16px',
-                                                        px: '10px',
-                                                        gap: '8px'
-                                                      }}
-                                                    >
-                                                      {name?.ingredient_name}
-                                                      <Typography
-                                                        component='span'
+
+                                                <Typography
+                                                  sx={{
+                                                    color: theme.palette.customColors.OnSurfaceVariant,
+                                                    fontSize: '13px',
+                                                    fontWeight: 400,
+                                                    width: '100%',
+                                                    mb: 1
+                                                  }}
+                                                >
+                                                  Ingredients used
+                                                </Typography>
+                                                {item?.ingredients?.length > 0 && (
+                                                  <Box
+                                                    sx={{
+                                                      display: 'flex',
+                                                      flexWrap: 'wrap',
+                                                      alignItems: 'center',
+                                                      gap: '10px'
+                                                    }}
+                                                  >
+                                                    {item.ingredients.map((name, index) => (
+                                                      <Box
+                                                        key={index}
                                                         sx={{
-                                                          fontWeight: 'bold',
-                                                          marginLeft: '2px',
-                                                          fontSize: '14px',
-                                                          lineHeight: '1.7rem'
+                                                          display: 'flex',
+                                                          alignItems: 'center',
+                                                          backgroundColor: theme.palette.customColors.mdAntzNeutral,
+                                                          borderRadius: '8px',
+                                                          px: '10px',
+                                                          py: '2px'
                                                         }}
                                                       >
-                                                        {parseFloat(name?.quantity)}
-                                                        {''}
-                                                        {name?.quantity_type === 'percentage' ? '%' : ''}
-                                                      </Typography>
-                                                    </Box>
-                                                  ))}
+                                                        <Typography
+                                                          component='span'
+                                                          sx={{
+                                                            fontSize: '14px',
+                                                            lineHeight: '1.7rem',
+                                                            color: '#000'
+                                                          }}
+                                                        >
+                                                          {`${name?.ingredient_name || ''} | ${
+                                                            name?.preparation_type || ''
+                                                          } | ${name?.cut_size || ''} |  `}
+                                                        </Typography>
+                                                        <Typography
+                                                          component='span'
+                                                          sx={{
+                                                            fontWeight: 'bold',
+                                                            fontSize: '14px',
+                                                            lineHeight: '1.7rem',
+                                                            marginLeft: '2px',
+                                                            color: '#000'
+                                                          }}
+                                                        >
+                                                          {` ${parseFloat(name?.quantity) || 0}${
+                                                            name?.quantity_type === 'percentage' ? ' %' : ''
+                                                          }`}
+                                                        </Typography>
+                                                      </Box>
+                                                    ))}
+                                                  </Box>
+                                                )}
                                               </Box>
 
                                               {item?.recipe?.length > 0 && (
@@ -2546,7 +2349,7 @@ const StepPreviewDiet = ({
                                                     <Box key={index} sx={{ display: 'flex' }}>
                                                       <Typography
                                                         sx={{
-                                                          color: '#1F515B',
+                                                          color: theme.palette.primary.light,
                                                           lineHeight: '16.94px',
                                                           fontWeight: 400,
                                                           fontSize: '14px'
@@ -2556,7 +2359,7 @@ const StepPreviewDiet = ({
                                                       </Typography>
                                                       <Typography
                                                         sx={{
-                                                          color: '#000',
+                                                          color: theme.palette.customColors.neutralPrimary,
                                                           lineHeight: '16.94px',
                                                           fontWeight: 600,
                                                           fontSize: '14px'
@@ -2578,7 +2381,7 @@ const StepPreviewDiet = ({
                                                   {item?.preparationType && (
                                                     <Typography
                                                       sx={{
-                                                        color: '#1F515B',
+                                                        color: theme.palette.primary.light,
                                                         lineHeight: '16.94px',
                                                         fontWeight: 400,
                                                         fontSize: '14px'
@@ -2590,7 +2393,7 @@ const StepPreviewDiet = ({
                                                   {item?.desc && (
                                                     <Typography
                                                       sx={{
-                                                        color: '#1F515B',
+                                                        color: theme.palette.primary.light,
                                                         lineHeight: '16.94px',
                                                         fontWeight: 400,
                                                         fontSize: '14px'
@@ -2604,7 +2407,7 @@ const StepPreviewDiet = ({
                                               {item?.remarks && (
                                                 <Box
                                                   sx={{
-                                                    backgroundColor: '#0000000D',
+                                                    backgroundColor: theme.palette.customColors.mdAntzNeutral,
                                                     display: 'flex',
                                                     flexDirection: 'column',
                                                     gap: '4px',
@@ -2614,7 +2417,7 @@ const StepPreviewDiet = ({
                                                 >
                                                   <Typography
                                                     sx={{
-                                                      color: '#000',
+                                                      color: theme.palette.customColors.neutralPrimary,
                                                       lineHeight: '16.94px',
                                                       fontWeight: 600,
                                                       fontSize: '14px'
@@ -2624,7 +2427,7 @@ const StepPreviewDiet = ({
                                                   </Typography>
                                                   <Typography
                                                     sx={{
-                                                      color: '#000',
+                                                      color: theme.palette.customColors.neutralPrimary,
                                                       lineHeight: '16.94px',
                                                       fontWeight: 400,
                                                       fontSize: '14px'
@@ -2640,31 +2443,33 @@ const StepPreviewDiet = ({
                                             <>
                                               <Divider />
                                               <Box sx={{ display: 'flex', gap: '12px' }}>
-                                                {item?.days_of_week?.map((item, index) => (
-                                                  <Box
-                                                    key={index}
-                                                    sx={{
-                                                      width: '48px',
-                                                      height: '32px',
-                                                      borderRadius: '16px',
-                                                      backgroundColor: '#0000000D',
-                                                      display: 'center',
-                                                      justifyContent: 'center',
-                                                      alignItems: 'center'
-                                                    }}
-                                                  >
-                                                    <Typography
+                                                {item?.days_of_week
+                                                  ?.sort((a, b) => a - b)
+                                                  .map((dayId, index) => (
+                                                    <Box
+                                                      key={index}
                                                       sx={{
-                                                        fontWeight: 400,
-                                                        fontSize: '13px',
-                                                        lineHeight: '18px',
-                                                        color: '#44544A'
+                                                        width: '48px',
+                                                        height: '32px',
+                                                        borderRadius: '16px',
+                                                        backgroundColor: theme.palette.customColors.mdAntzNeutral,
+                                                        display: 'center',
+                                                        justifyContent: 'center',
+                                                        alignItems: 'center'
                                                       }}
                                                     >
-                                                      {getDayName(item)}
-                                                    </Typography>
-                                                  </Box>
-                                                ))}
+                                                      <Typography
+                                                        sx={{
+                                                          fontWeight: 400,
+                                                          fontSize: '13px',
+                                                          lineHeight: '18px',
+                                                          color: theme.palette.customColors.OnSurfaceVariant
+                                                        }}
+                                                      >
+                                                        {getDayName(dayId)}
+                                                      </Typography>
+                                                    </Box>
+                                                  ))}
                                               </Box>
                                             </>
                                           )}
@@ -2687,7 +2492,7 @@ const StepPreviewDiet = ({
                                         >
                                           <Box
                                             sx={{
-                                              backgroundColor: '#0000000d',
+                                              backgroundColor: theme.palette.customColors.mdAntzNeutral,
                                               p: '10px',
                                               display: 'flex',
                                               justifyContent: 'center',
@@ -2709,10 +2514,11 @@ const StepPreviewDiet = ({
                                           >
                                             <Typography
                                               sx={{
-                                                color: '#000',
+                                                color: theme.palette.customColors.neutralPrimary,
                                                 lineHeight: '16.94px',
                                                 fontWeight: 400,
-                                                fontSize: '14px'
+                                                fontSize: '14px',
+                                                textAlign: 'center'
                                               }}
                                             >
                                               {/* {item.meal_type
@@ -2740,6 +2546,17 @@ const StepPreviewDiet = ({
                                                         : null
                                                     })
                                                 : 'Add'}
+                                              {item.meal_type
+                                                ? item.meal_type.map((meal, i) =>
+                                                    meal.meal_value_header === 'Generic' &&
+                                                    meal.notes &&
+                                                    meal.notes.trim() !== '' ? (
+                                                      <Typography key={i} sx={{ textAlign: 'center' }}>
+                                                        <img src='/icons/Notes.svg' alt='Grocery Icon' width='35px' />
+                                                      </Typography>
+                                                    ) : null
+                                                  )
+                                                : null}
                                             </Typography>
                                           </Box>
                                         </Box>
@@ -2765,7 +2582,7 @@ const StepPreviewDiet = ({
                                               >
                                                 <Box
                                                   sx={{
-                                                    backgroundColor: '#0000000d',
+                                                    backgroundColor: theme.palette.customColors.mdAntzNeutral,
                                                     p: '10px',
                                                     display: 'flex',
                                                     justifyContent: 'center',
@@ -2787,10 +2604,11 @@ const StepPreviewDiet = ({
                                                 >
                                                   <Typography
                                                     sx={{
-                                                      color: '#000',
+                                                      color: theme.palette.customColors.neutralPrimary,
                                                       lineHeight: '16.94px',
                                                       fontWeight: 400,
-                                                      fontSize: '14px'
+                                                      fontSize: '14px',
+                                                      textAlign: 'center'
                                                     }}
                                                   >
                                                     {/* {formData.diet_type_name === 'By Weight' && item.meal_type
@@ -2821,7 +2639,7 @@ const StepPreviewDiet = ({
                                                                 (meal.feed_uom_name ? ' ' + meal.feed_uom_name : '')
                                                               )
                                                             }
-                                                            // Return null for elements that do not match the condition
+
                                                             return null
                                                           })
                                                           .filter(Boolean).length === 0
@@ -2833,7 +2651,7 @@ const StepPreviewDiet = ({
                                                                 (meal.feed_uom_name ? ' ' + meal.feed_uom_name : '')
                                                               )
                                                             }
-                                                            // Return null for elements that do not match the condition
+
                                                             return null
                                                           })
                                                       : item.meal_type
@@ -2853,6 +2671,91 @@ const StepPreviewDiet = ({
                                                               : null
                                                           })
                                                       : 'Add'}
+                                                    {formData.diet_type_name === 'By Weight' && item.meal_type
+                                                      ? item.meal_type
+                                                          .map((meal, i) => {
+                                                            if (
+                                                              all.includes(meal.meal_value_header) &&
+                                                              meal.notes &&
+                                                              meal.notes.trim() !== ''
+                                                            ) {
+                                                              return (
+                                                                <Typography key={i} sx={{ textAlign: 'center' }}>
+                                                                  <img
+                                                                    src='/icons/Notes.svg'
+                                                                    alt='Grocery Icon'
+                                                                    width='35px'
+                                                                  />
+                                                                </Typography>
+                                                              )
+                                                            }
+
+                                                            return null
+                                                          })
+                                                          .filter(Boolean).length === 0
+                                                        ? ''
+                                                        : item.meal_type.map((meal, i) => {
+                                                            if (
+                                                              all.includes(meal.meal_value_header) &&
+                                                              meal.notes &&
+                                                              meal.notes.trim() !== ''
+                                                            ) {
+                                                              return (
+                                                                <Typography key={i} sx={{ textAlign: 'center' }}>
+                                                                  <img
+                                                                    src='/icons/Notes.svg'
+                                                                    alt='Grocery Icon'
+                                                                    width='35px'
+                                                                  />
+                                                                </Typography>
+                                                              )
+                                                            }
+
+                                                            return null
+                                                          })
+                                                      : item.meal_type
+                                                      ? item.meal_type
+                                                          .map((meal, i) => {
+                                                            if (
+                                                              meal.meal_value_header === all &&
+                                                              meal.notes &&
+                                                              meal.notes.trim() !== ''
+                                                            ) {
+                                                              return (
+                                                                <Typography key={i} sx={{ textAlign: 'center' }}>
+                                                                  <img
+                                                                    src='/icons/Notes.svg'
+                                                                    alt='Grocery Icon'
+                                                                    width='35px'
+                                                                  />
+                                                                </Typography>
+                                                              )
+                                                            }
+
+                                                            return null
+                                                          })
+                                                          .filter(Boolean).length === 0
+                                                        ? ''
+                                                        : item.meal_type.map((meal, i) => {
+                                                            if (
+                                                              meal.meal_value_header === all &&
+                                                              meal.notes &&
+                                                              meal.notes.trim() !== ''
+                                                            ) {
+                                                              return (
+                                                                <Typography key={i} sx={{ textAlign: 'center' }}>
+                                                                  <img
+                                                                    src='/icons/Notes.svg'
+                                                                    alt='Grocery Icon'
+                                                                    width='35px'
+                                                                  />
+                                                                </Typography>
+                                                              )
+                                                            }
+
+                                                            return null
+                                                          })
+                                                      : ''}
                                                   </Typography>
                                                 </Box>
                                               </Box>
@@ -2866,20 +2769,24 @@ const StepPreviewDiet = ({
                                 })}
                               </>
                               {/* Combo module end */}
+
+                              {/* ingredient module start */}
                               <>
-                                {itemd?.ingredientwithchoice?.map((item, index) => {
+                                {itemd?.ingredient?.map((item, index) => {
                                   return (
                                     <TableRow key={index} className='tablerowi'>
                                       <TableCell
                                         sx={{
-                                          position: 'sticky',
+                                          position: isSmallDevice ? '' : 'sticky ',
                                           left: '180px',
                                           border: 'none',
-                                          backgroundColor: '#fff'
+                                          backgroundColor: theme.palette.secondary.contrastText
+
                                           //float: 'left',
                                           // display: 'flex',
                                           // flexDirection: 'row'
                                         }}
+
                                         // className={
                                         //   formData?.diet_type_name === 'By Weight'
                                         //     ? formData?.child?.length === 1
@@ -2912,7 +2819,7 @@ const StepPreviewDiet = ({
                                             display: 'flex',
                                             flexDirection: 'column',
 
-                                            //backgroundColor: '#E1F9ED',
+                                            //backgroundColor: theme.palette.background.OnBackground,
                                             backgroundColor: '#00d6c957',
                                             borderRadius: '8px',
                                             p: '12px',
@@ -2930,166 +2837,215 @@ const StepPreviewDiet = ({
                                                 ? 'cellmodule22'
                                                 : formData?.child?.length > 3
                                                 ? 'cellmodule3'
-                                                : 'cellmodule4' // Default for By Weight if no other condition is met
+                                                : 'cellmodule4'
                                               : formData?.diet_type_name === 'By Gender'
                                               ? formData?.child?.length === 2
                                                 ? 'cellmodule5'
-                                                : 'cellmodule4' // Default if By Gender does not match other conditions
+                                                : 'cellmodule4'
                                               : formData?.diet_type_name === 'Generic'
-                                              ? 'cellmodule6' // Always 'cellmodule6' for Generic
+                                              ? 'cellmodule6'
                                               : formData?.diet_type_name === 'By Lifestage'
                                               ? formData?.child?.length > 2
                                                 ? 'cellmodule7'
-                                                : 'cellmodule4' // Default if By Lifestage does not match other conditions
-                                              : 'cellmodule4' // Default for all other cases
+                                                : 'cellmodule4'
+                                              : 'cellmodule4'
                                           }
                                         >
-                                          <Box
-                                            sx={{
-                                              display: 'flex',
-                                              flexDirection: 'column',
-                                              gap: '12px'
-                                            }}
-                                          >
-                                            {item?.no_of_component_required && (
-                                              <Typography
-                                                sx={{
-                                                  color: '#000',
-                                                  lineHeight: '16.94px',
-                                                  fontWeight: 600,
-                                                  fontSize: '16px'
-                                                }}
-                                              >
-                                                Offer minimum {item?.no_of_component_required} from the below items
-                                              </Typography>
-                                            )}
+                                          <Box>
+                                            <Box
+                                              sx={{
+                                                display: 'flex',
+                                                flexDirection: 'column',
+                                                gap: '12px'
+                                              }}
+                                            >
+                                              <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap' }}>
+                                                {item?.ingredient_name && (
+                                                  <Typography
+                                                    sx={{
+                                                      color: theme.palette.customColors.OnSurfaceVariant,
+                                                      fontSize: '13px',
+                                                      fontWeight: 400,
+                                                      display: 'block',
+                                                      width: '100%'
+                                                    }}
+                                                  >
+                                                    Ingredient
+                                                  </Typography>
+                                                )}
+                                                <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap' }}>
+                                                  <Typography
+                                                    sx={{
+                                                      color: theme.palette.customColors.neutralPrimary,
+                                                      lineHeight: '16.94px',
+                                                      fontWeight: 600,
+                                                      fontSize: '16px'
+                                                    }}
+                                                  >
+                                                    {item?.ingredient_name}
+                                                  </Typography>
 
-                                            {item?.ingredientList?.length > 0 && (
-                                              <Box
-                                                sx={{
-                                                  display: 'flex',
-                                                  flexWrap: 'wrap',
-                                                  columnGap: `24px`,
-                                                  rowGap: '10px'
-                                                }}
-                                              >
-                                                {item?.ingredientList?.map((item, index) => (
-                                                  <>
+                                                  {item?.preparation_type &&
+                                                    (item?.master_cut_size ? (
+                                                      <Typography
+                                                        sx={{
+                                                          color: theme.palette.customColors.OnSurfaceVariant,
+                                                          lineHeight: '16.94px',
+                                                          fontWeight: 400,
+                                                          fontSize: '14px'
+                                                        }}
+                                                      >
+                                                        &nbsp;-&nbsp; {item?.preparation_type}&nbsp;-&nbsp;
+                                                        {item?.master_cut_size}
+                                                      </Typography>
+                                                    ) : (
+                                                      <Typography
+                                                        sx={{
+                                                          color: theme.palette.customColors.OnSurfaceVariant,
+                                                          lineHeight: '16.94px',
+                                                          fontWeight: 400,
+                                                          fontSize: '14px'
+                                                        }}
+                                                      >
+                                                        &nbsp;-&nbsp; {item?.preparation_type}
+                                                        {/* {item?.master_cut_size + item.feed_uom_name} */}
+                                                      </Typography>
+                                                    ))}
+                                                </Box>
+                                              </Box>
+
+                                              {item?.ingredient?.length > 0 && (
+                                                <Box
+                                                  sx={{
+                                                    display: 'flex',
+                                                    gap: '24px'
+                                                  }}
+                                                >
+                                                  {item?.ingredient?.map((item, index) => (
+                                                    <Box key={index} sx={{ display: 'flex' }}>
+                                                      <Typography
+                                                        sx={{
+                                                          color: theme.palette.primary.light,
+                                                          lineHeight: '16.94px',
+                                                          fontWeight: 400,
+                                                          fontSize: '14px'
+                                                        }}
+                                                      >
+                                                        {item.name}&nbsp;
+                                                      </Typography>
+                                                      <Typography
+                                                        sx={{
+                                                          color: theme.palette.customColors.neutralPrimary,
+                                                          lineHeight: '16.94px',
+                                                          fontWeight: 600,
+                                                          fontSize: '14px'
+                                                        }}
+                                                      >
+                                                        {item?.percentage}
+                                                      </Typography>
+                                                    </Box>
+                                                  ))}
+                                                </Box>
+                                              )}
+                                              {(item?.preparationType || item?.desc) && (
+                                                <Box
+                                                  sx={{
+                                                    display: 'flex',
+                                                    gap: '24px'
+                                                  }}
+                                                >
+                                                  {item?.preparationType && (
+                                                    <Typography
+                                                      sx={{
+                                                        color: theme.palette.primary.light,
+                                                        lineHeight: '16.94px',
+                                                        fontWeight: 400,
+                                                        fontSize: '14px'
+                                                      }}
+                                                    >
+                                                      {item?.preparationType}
+                                                    </Typography>
+                                                  )}
+                                                  {item?.desc && (
+                                                    <Typography
+                                                      sx={{
+                                                        color: theme.palette.primary.light,
+                                                        lineHeight: '16.94px',
+                                                        fontWeight: 400,
+                                                        fontSize: '14px'
+                                                      }}
+                                                    >
+                                                      {item?.desc}
+                                                    </Typography>
+                                                  )}
+                                                </Box>
+                                              )}
+                                              {item?.remarks && (
+                                                <Box
+                                                  sx={{
+                                                    backgroundColor: theme.palette.customColors.mdAntzNeutral,
+                                                    display: 'flex',
+                                                    flexDirection: 'column',
+                                                    gap: '4px',
+                                                    p: '12px',
+                                                    borderRadius: '8px'
+                                                  }}
+                                                >
+                                                  <Typography
+                                                    sx={{
+                                                      color: theme.palette.customColors.neutralPrimary,
+                                                      lineHeight: '16.94px',
+                                                      fontWeight: 600,
+                                                      fontSize: '14px'
+                                                    }}
+                                                  >
+                                                    Remarks
+                                                  </Typography>
+                                                  <Typography
+                                                    sx={{
+                                                      color: theme.palette.customColors.neutralPrimary,
+                                                      lineHeight: '16.94px',
+                                                      fontWeight: 400,
+                                                      fontSize: '14px'
+                                                    }}
+                                                  >
+                                                    {item?.remarks}
+                                                  </Typography>
+                                                </Box>
+                                              )}
+                                            </Box>
+                                          </Box>
+                                          {item?.days_of_week?.length > 0 && (
+                                            <>
+                                              <Divider />
+                                              <Box sx={{ display: 'flex', gap: '12px' }}>
+                                                {item?.days_of_week
+                                                  ?.sort((a, b) => a - b)
+                                                  .map((dayId, index) => (
                                                     <Box
                                                       key={index}
                                                       sx={{
+                                                        width: '48px',
                                                         height: '32px',
                                                         borderRadius: '16px',
-                                                        backgroundColor: '#1F415B1A',
+                                                        backgroundColor: theme.palette.customColors.mdAntzNeutral,
                                                         display: 'center',
-                                                        px: 2,
                                                         justifyContent: 'center',
                                                         alignItems: 'center'
                                                       }}
                                                     >
                                                       <Typography
                                                         sx={{
-                                                          fontWeight: 600,
-                                                          fontSize: '14px',
-                                                          lineHeight: '16.94px',
-                                                          color: '#1F415B'
+                                                          fontWeight: 400,
+                                                          fontSize: '13px',
+                                                          lineHeight: '18px',
+                                                          color: theme.palette.customColors.OnSurfaceVariant
                                                         }}
                                                       >
-                                                        {item?.ingredient_name}
+                                                        {getDayName(dayId)}
                                                       </Typography>
-                                                      {item?.master_cut_size ? (
-                                                        <Typography
-                                                          sx={{
-                                                            fontWeight: 400,
-                                                            fontSize: '14px',
-                                                            lineHeight: '18px',
-                                                            color: '#1F415B'
-                                                          }}
-                                                        >
-                                                          &nbsp;-&nbsp; {item?.preparation_type}&nbsp;-&nbsp;
-                                                          {item?.master_cut_size}
-                                                        </Typography>
-                                                      ) : (
-                                                        <Typography
-                                                          sx={{
-                                                            fontWeight: 400,
-                                                            fontSize: '14px',
-                                                            lineHeight: '18px',
-                                                            color: '#1F415B'
-                                                          }}
-                                                        >
-                                                          &nbsp;-&nbsp; {item?.preparation_type}
-                                                        </Typography>
-                                                      )}
                                                     </Box>
-                                                  </>
-                                                ))}
-                                              </Box>
-                                            )}
-
-                                            {item?.remarks && (
-                                              <Box
-                                                sx={{
-                                                  backgroundColor: '#0000000d',
-                                                  display: 'flex',
-                                                  flexDirection: 'column',
-                                                  gap: '4px',
-                                                  p: '12px',
-                                                  borderRadius: '8px'
-                                                }}
-                                              >
-                                                <Typography
-                                                  sx={{
-                                                    color: '#000',
-                                                    lineHeight: '16.94px',
-                                                    fontWeight: 600,
-                                                    fontSize: '14px'
-                                                  }}
-                                                >
-                                                  Remarks
-                                                </Typography>
-                                                <Typography
-                                                  sx={{
-                                                    color: '#000',
-                                                    lineHeight: '16.94px',
-                                                    fontWeight: 400,
-                                                    fontSize: '14px'
-                                                  }}
-                                                >
-                                                  {item?.remarks}
-                                                </Typography>
-                                              </Box>
-                                            )}
-                                          </Box>
-                                          {item?.days_of_week?.length > 0 && (
-                                            <>
-                                              <Divider />
-                                              <Box sx={{ display: 'flex', gap: '12px' }}>
-                                                {item?.days_of_week?.map((item, index) => (
-                                                  <Box
-                                                    key={index}
-                                                    sx={{
-                                                      width: '48px',
-                                                      height: '32px',
-                                                      borderRadius: '16px',
-                                                      backgroundColor: '#0000000d',
-                                                      display: 'center',
-                                                      justifyContent: 'center',
-                                                      alignItems: 'center'
-                                                    }}
-                                                  >
-                                                    <Typography
-                                                      sx={{
-                                                        fontWeight: 400,
-                                                        fontSize: '13px',
-                                                        lineHeight: '18px',
-                                                        color: '#44544A'
-                                                      }}
-                                                    >
-                                                      {getDayName(item)}
-                                                    </Typography>
-                                                  </Box>
-                                                ))}
+                                                  ))}
                                               </Box>
                                             </>
                                           )}
@@ -3103,7 +3059,7 @@ const StepPreviewDiet = ({
                                           maxHeight: '100%',
                                           border: 'none'
                                         }}
-                                        onClick={() => handleClickOpen(index, item, 'Generic', 'ingredientwithchoice')}
+                                        onClick={() => handleClickOpen(index, item, 'Generic', 'ingredient')}
                                       >
                                         <Box
                                           sx={{
@@ -3112,9 +3068,8 @@ const StepPreviewDiet = ({
                                         >
                                           <Box
                                             sx={{
-                                              backgroundColor: '#0000000d',
+                                              backgroundColor: theme.palette.customColors.mdAntzNeutral,
                                               p: '10px',
-
                                               display: 'flex',
                                               justifyContent: 'center',
                                               alignItems: 'center',
@@ -3135,10 +3090,11 @@ const StepPreviewDiet = ({
                                           >
                                             <Typography
                                               sx={{
-                                                color: '#000',
+                                                color: theme.palette.customColors.neutralPrimary,
                                                 lineHeight: '16.94px',
                                                 fontWeight: 400,
-                                                fontSize: '14px'
+                                                fontSize: '14px',
+                                                textAlign: 'center'
                                               }}
                                             >
                                               {/* {item.meal_type
@@ -3166,6 +3122,17 @@ const StepPreviewDiet = ({
                                                         : null
                                                     })
                                                 : 'Add'}
+                                              {item.meal_type
+                                                ? item.meal_type.map((meal, i) =>
+                                                    meal.meal_value_header === 'Generic' &&
+                                                    meal.notes &&
+                                                    meal.notes.trim() !== '' ? (
+                                                      <Typography key={i} sx={{ textAlign: 'center' }}>
+                                                        <img src='/icons/Notes.svg' alt='Grocery Icon' width='35px' />
+                                                      </Typography>
+                                                    ) : null
+                                                  )
+                                                : null}
                                             </Typography>
                                           </Box>
                                         </Box>
@@ -3182,7 +3149,7 @@ const StepPreviewDiet = ({
                                                 maxHeight: '100%',
                                                 border: 'none'
                                               }}
-                                              onClick={() => handleClickOpen(index, item, all, 'ingredientwithchoice')}
+                                              onClick={() => handleClickOpen(index, item, all, 'ingredient')}
                                             >
                                               <Box
                                                 sx={{
@@ -3191,9 +3158,8 @@ const StepPreviewDiet = ({
                                               >
                                                 <Box
                                                   sx={{
-                                                    backgroundColor: '#0000000d',
+                                                    backgroundColor: theme.palette.customColors.mdAntzNeutral,
                                                     p: '10px',
-
                                                     display: 'flex',
                                                     justifyContent: 'center',
                                                     alignItems: 'center',
@@ -3214,10 +3180,11 @@ const StepPreviewDiet = ({
                                                 >
                                                   <Typography
                                                     sx={{
-                                                      color: '#000',
+                                                      color: theme.palette.customColors.neutralPrimary,
                                                       lineHeight: '16.94px',
                                                       fontWeight: 400,
-                                                      fontSize: '14px'
+                                                      fontSize: '14px',
+                                                      textAlign: 'center'
                                                     }}
                                                   >
                                                     {/* {formData.diet_type_name === 'By Weight' && item.meal_type
@@ -3248,7 +3215,7 @@ const StepPreviewDiet = ({
                                                                 (meal.feed_uom_name ? ' ' + meal.feed_uom_name : '')
                                                               )
                                                             }
-                                                            // Return null for elements that do not match the condition
+
                                                             return null
                                                           })
                                                           .filter(Boolean).length === 0
@@ -3260,7 +3227,7 @@ const StepPreviewDiet = ({
                                                                 (meal.feed_uom_name ? ' ' + meal.feed_uom_name : '')
                                                               )
                                                             }
-                                                            // Return null for elements that do not match the condition
+
                                                             return null
                                                           })
                                                       : item.meal_type
@@ -3280,6 +3247,634 @@ const StepPreviewDiet = ({
                                                               : null
                                                           })
                                                       : 'Add'}
+                                                    {formData.diet_type_name === 'By Weight' && item.meal_type
+                                                      ? item.meal_type
+                                                          .map((meal, i) => {
+                                                            if (
+                                                              all.includes(meal.meal_value_header) &&
+                                                              meal.notes &&
+                                                              meal.notes.trim() !== ''
+                                                            ) {
+                                                              return (
+                                                                <Typography key={i} sx={{ textAlign: 'center' }}>
+                                                                  <img
+                                                                    src='/icons/Notes.svg'
+                                                                    alt='Grocery Icon'
+                                                                    width='35px'
+                                                                  />
+                                                                </Typography>
+                                                              )
+                                                            }
+
+                                                            return null
+                                                          })
+                                                          .filter(Boolean).length === 0
+                                                        ? ''
+                                                        : item.meal_type.map((meal, i) => {
+                                                            if (
+                                                              all.includes(meal.meal_value_header) &&
+                                                              meal.notes &&
+                                                              meal.notes.trim() !== ''
+                                                            ) {
+                                                              return (
+                                                                <Typography key={i} sx={{ textAlign: 'center' }}>
+                                                                  <img
+                                                                    src='/icons/Notes.svg'
+                                                                    alt='Grocery Icon'
+                                                                    width='35px'
+                                                                  />
+                                                                </Typography>
+                                                              )
+                                                            }
+
+                                                            return null
+                                                          })
+                                                      : item.meal_type
+                                                      ? item.meal_type
+                                                          .map((meal, i) => {
+                                                            if (
+                                                              meal.meal_value_header === all &&
+                                                              meal.notes &&
+                                                              meal.notes.trim() !== ''
+                                                            ) {
+                                                              return (
+                                                                <Typography key={i} sx={{ textAlign: 'center' }}>
+                                                                  <img
+                                                                    src='/icons/Notes.svg'
+                                                                    alt='Grocery Icon'
+                                                                    width='35px'
+                                                                  />
+                                                                </Typography>
+                                                              )
+                                                            }
+
+                                                            return null
+                                                          })
+                                                          .filter(Boolean).length === 0
+                                                        ? ''
+                                                        : item.meal_type.map((meal, i) => {
+                                                            if (
+                                                              meal.meal_value_header === all &&
+                                                              meal.notes &&
+                                                              meal.notes.trim() !== ''
+                                                            ) {
+                                                              return (
+                                                                <Typography key={i} sx={{ textAlign: 'center' }}>
+                                                                  <img
+                                                                    src='/icons/Notes.svg'
+                                                                    alt='Grocery Icon'
+                                                                    width='35px'
+                                                                  />
+                                                                </Typography>
+                                                              )
+                                                            }
+
+                                                            return null
+                                                          })
+                                                      : ''}
+                                                  </Typography>
+                                                </Box>
+                                              </Box>
+                                            </TableCell>
+                                          )
+                                        }
+                                      })}
+
+                                      {getModal(index, item)}
+                                    </TableRow>
+                                  )
+                                })}
+                              </>
+                              {/* ingredient module end  */}
+
+                              <>
+                                {itemd?.ingredientwithchoice?.map((item, index) => {
+                                  return (
+                                    <TableRow key={index} className='tablerowi'>
+                                      <TableCell
+                                        sx={{
+                                          position: isSmallDevice ? '' : 'sticky ',
+                                          left: '180px',
+                                          border: 'none',
+                                          backgroundColor: theme.palette.secondary.contrastText
+
+                                          //float: 'left',
+                                          // display: 'flex',
+                                          // flexDirection: 'row'
+                                        }}
+
+                                        // className={
+                                        //   formData?.diet_type_name === 'By Weight'
+                                        //     ? formData?.child?.length === 1
+                                        //       ? 'cellmodule9'
+                                        //       : formData?.child?.length === 0
+                                        //       ? 'cellmodule1'
+                                        //       : formData?.child?.length === 2
+                                        //       ? 'cellmodule2'
+                                        //       : formData?.child?.length === 3
+                                        //       ? 'cellmodule22'
+                                        //       : formData?.child?.length > 3
+                                        //       ? 'cellmodule3'
+                                        //       : 'cellmodule4' // Default for By Weight if no other condition is met
+                                        //     : formData?.diet_type_name === 'By Gender'
+                                        //     ? formData?.child?.length === 2
+                                        //       ? 'cellmodule5'
+                                        //       : 'cellmodule4' // Default if By Gender does not match other conditions
+                                        //     : formData?.diet_type_name === 'Generic'
+                                        //     ? 'cellmodule6' // Always 'cellmodule6' for Generic
+                                        //     : formData?.diet_type_name === 'By Lifestage'
+                                        //     ? formData?.child?.length > 2
+                                        //       ? 'cellmodule7'
+                                        //       : 'cellmodule4' // Default if By Lifestage does not match other conditions
+                                        //     : 'cellmodule4' // Default for all other cases
+                                        // }
+                                      >
+                                        <Box
+                                          key={index}
+                                          sx={{
+                                            display: 'flex',
+                                            flexDirection: 'column',
+
+                                            //backgroundColor: theme.palette.background.OnBackground,
+                                            backgroundColor: '#00d6c957',
+                                            borderRadius: '8px',
+                                            p: '12px',
+                                            gap: '16px'
+                                          }}
+                                          className={
+                                            formData?.diet_type_name === 'By Weight'
+                                              ? formData?.child?.length === 1
+                                                ? 'cellmodule9'
+                                                : formData?.child?.length === 0
+                                                ? 'cellmodule1'
+                                                : formData?.child?.length === 2
+                                                ? 'cellmodule2'
+                                                : formData?.child?.length === 3
+                                                ? 'cellmodule22'
+                                                : formData?.child?.length > 3
+                                                ? 'cellmodule3'
+                                                : 'cellmodule4'
+                                              : formData?.diet_type_name === 'By Gender'
+                                              ? formData?.child?.length === 2
+                                                ? 'cellmodule5'
+                                                : 'cellmodule4'
+                                              : formData?.diet_type_name === 'Generic'
+                                              ? 'cellmodule6'
+                                              : formData?.diet_type_name === 'By Lifestage'
+                                              ? formData?.child?.length > 2
+                                                ? 'cellmodule7'
+                                                : 'cellmodule4'
+                                              : 'cellmodule4'
+                                          }
+                                        >
+                                          <Box
+                                            sx={{
+                                              display: 'flex',
+                                              flexDirection: 'column',
+                                              gap: '12px'
+                                            }}
+                                          >
+                                            {item?.no_of_component_required && (
+                                              <Typography
+                                                sx={{
+                                                  color: theme.palette.customColors.neutralPrimary,
+                                                  lineHeight: '16.94px',
+                                                  fontWeight: 600,
+                                                  fontSize: '16px'
+                                                }}
+                                              >
+                                                Offer minimum {item?.no_of_component_required} from the below items
+                                              </Typography>
+                                            )}
+                                            <Divider />
+                                            <Typography
+                                              sx={{
+                                                color: theme.palette.customColors.OnSurfaceVariant,
+                                                fontSize: '13px',
+                                                fontWeight: 400,
+                                                width: '100%',
+                                                mb: 0
+                                              }}
+                                            >
+                                              Ingredients using
+                                            </Typography>
+                                            {item?.ingredientList?.length > 0 && (
+                                              <Box
+                                                sx={{
+                                                  display: 'flex',
+                                                  flexWrap: 'wrap',
+                                                  columnGap: `24px`,
+                                                  rowGap: '10px'
+                                                }}
+                                              >
+                                                {item?.ingredientList?.map((item, index) => (
+                                                  <>
+                                                    <Box
+                                                      key={index}
+                                                      sx={{
+                                                        height: '32px',
+                                                        borderRadius: '7px',
+                                                        backgroundColor: '#1F415B1A',
+                                                        display: 'flex',
+                                                        px: 2,
+                                                        justifyContent: 'center',
+                                                        alignItems: 'center'
+                                                      }}
+                                                    >
+                                                      <Typography
+                                                        sx={{
+                                                          fontWeight: 600,
+                                                          fontSize: '14px',
+                                                          lineHeight: '16.94px',
+                                                          color: theme.palette.secondary.dark
+                                                        }}
+                                                      >
+                                                        {item?.ingredient_name}
+                                                      </Typography>
+
+                                                      {item?.master_cut_size ? (
+                                                        <Typography
+                                                          sx={{
+                                                            fontWeight: 400,
+                                                            fontSize: '14px',
+                                                            lineHeight: '18px',
+                                                            color: theme.palette.secondary.dark
+                                                          }}
+                                                        >
+                                                          &nbsp;-&nbsp; {item?.preparation_type}&nbsp;-&nbsp;
+                                                          {item?.master_cut_size}
+                                                        </Typography>
+                                                      ) : (
+                                                        <Typography
+                                                          sx={{
+                                                            fontWeight: 400,
+                                                            fontSize: '14px',
+                                                            lineHeight: '18px',
+                                                            color: theme.palette.secondary.dark
+                                                          }}
+                                                        >
+                                                          &nbsp;-&nbsp; {item?.preparation_type}
+                                                        </Typography>
+                                                      )}
+                                                    </Box>
+                                                  </>
+                                                ))}
+                                              </Box>
+                                            )}
+
+                                            {item?.remarks && (
+                                              <Box
+                                                sx={{
+                                                  backgroundColor: theme.palette.customColors.mdAntzNeutral,
+                                                  display: 'flex',
+                                                  flexDirection: 'column',
+                                                  gap: '4px',
+                                                  p: '12px',
+                                                  borderRadius: '8px'
+                                                }}
+                                              >
+                                                <Typography
+                                                  sx={{
+                                                    color: theme.palette.customColors.neutralPrimary,
+                                                    lineHeight: '16.94px',
+                                                    fontWeight: 600,
+                                                    fontSize: '14px'
+                                                  }}
+                                                >
+                                                  Remarks
+                                                </Typography>
+                                                <Typography
+                                                  sx={{
+                                                    color: theme.palette.customColors.neutralPrimary,
+                                                    lineHeight: '16.94px',
+                                                    fontWeight: 400,
+                                                    fontSize: '14px'
+                                                  }}
+                                                >
+                                                  {item?.remarks}
+                                                </Typography>
+                                              </Box>
+                                            )}
+                                          </Box>
+                                          {item?.days_of_week?.length > 0 && (
+                                            <>
+                                              <Divider />
+                                              <Box sx={{ display: 'flex', gap: '12px' }}>
+                                                {item?.days_of_week
+                                                  ?.sort((a, b) => a - b)
+                                                  .map((dayId, index) => (
+                                                    <Box
+                                                      key={index}
+                                                      sx={{
+                                                        width: '48px',
+                                                        height: '32px',
+                                                        borderRadius: '16px',
+                                                        backgroundColor: theme.palette.customColors.mdAntzNeutral,
+                                                        display: 'center',
+                                                        justifyContent: 'center',
+                                                        alignItems: 'center'
+                                                      }}
+                                                    >
+                                                      <Typography
+                                                        sx={{
+                                                          fontWeight: 400,
+                                                          fontSize: '13px',
+                                                          lineHeight: '18px',
+                                                          color: theme.palette.customColors.OnSurfaceVariant
+                                                        }}
+                                                      >
+                                                        {getDayName(dayId)}
+                                                      </Typography>
+                                                    </Box>
+                                                  ))}
+                                              </Box>
+                                            </>
+                                          )}
+                                        </Box>
+                                      </TableCell>
+                                      <TableCell
+                                        style={{
+                                          paddingLeft: '8px',
+                                          paddingRight: '8px',
+                                          height: '10px',
+                                          maxHeight: '100%',
+                                          border: 'none'
+                                        }}
+                                        onClick={() => handleClickOpen(index, item, 'Generic', 'ingredientwithchoice')}
+                                      >
+                                        <Box
+                                          sx={{
+                                            height: '100%'
+                                          }}
+                                        >
+                                          <Box
+                                            sx={{
+                                              backgroundColor: theme.palette.customColors.mdAntzNeutral,
+                                              p: '10px',
+
+                                              display: 'flex',
+                                              justifyContent: 'center',
+                                              alignItems: 'center',
+                                              borderRadius: '8px',
+                                              height: '100%'
+                                            }}
+                                            className={
+                                              formData?.diet_type_name === 'By Gender'
+                                                ? 'diet_val_container'
+                                                : formData?.diet_type_name === 'By Weight' &&
+                                                  (formData?.child?.length === 2 || formData?.child?.length === 1)
+                                                ? 'diet_val_weight'
+                                                : formData?.diet_type_name === 'By Weight' &&
+                                                  formData?.child?.length === 3
+                                                ? 'diet_val_weight1'
+                                                : 'diet_val_cont'
+                                            }
+                                          >
+                                            <Typography
+                                              sx={{
+                                                color: theme.palette.customColors.neutralPrimary,
+                                                lineHeight: '16.94px',
+                                                fontWeight: 400,
+                                                fontSize: '14px',
+                                                textAlign: 'center'
+                                              }}
+                                            >
+                                              {/* {item.meal_type
+                                                ? item.meal_type.map((meal, i) => {
+                                                    return meal.meal_value_header === 'Generic'
+                                                      ? meal.quantity +
+                                                          (meal.feed_uom_name ? ' ' + meal.feed_uom_name : '')
+                                                      : ''
+                                                  })
+                                                : 'Add'} */}
+                                              {item.meal_type
+                                                ? item.meal_type
+                                                    .map((meal, i) => {
+                                                      return meal.meal_value_header === 'Generic'
+                                                        ? meal.quantity +
+                                                            (meal.feed_uom_name ? ' ' + meal.feed_uom_name : '')
+                                                        : null
+                                                    })
+                                                    .filter(Boolean).length === 0
+                                                  ? 'Add'
+                                                  : item.meal_type.map((meal, i) => {
+                                                      return meal.meal_value_header === 'Generic'
+                                                        ? meal.quantity +
+                                                            (meal.feed_uom_name ? ' ' + meal.feed_uom_name : '')
+                                                        : null
+                                                    })
+                                                : 'Add'}
+                                              {item.meal_type
+                                                ? item.meal_type.map((meal, i) =>
+                                                    meal.meal_value_header === 'Generic' &&
+                                                    meal.notes &&
+                                                    meal.notes.trim() !== '' ? (
+                                                      <Typography key={i} sx={{ textAlign: 'center' }}>
+                                                        <img src='/icons/Notes.svg' alt='Grocery Icon' width='35px' />
+                                                      </Typography>
+                                                    ) : null
+                                                  )
+                                                : null}
+                                            </Typography>
+                                          </Box>
+                                        </Box>
+                                      </TableCell>
+                                      {formData.child?.map((all, indexnew) => {
+                                        if (all !== 'Generic') {
+                                          return (
+                                            <TableCell
+                                              key={index}
+                                              style={{
+                                                paddingLeft: '8px',
+                                                paddingRight: '8px',
+                                                height: '10px',
+                                                maxHeight: '100%',
+                                                border: 'none'
+                                              }}
+                                              onClick={() => handleClickOpen(index, item, all, 'ingredientwithchoice')}
+                                            >
+                                              <Box
+                                                sx={{
+                                                  height: '100%'
+                                                }}
+                                              >
+                                                <Box
+                                                  sx={{
+                                                    backgroundColor: theme.palette.customColors.mdAntzNeutral,
+                                                    p: '10px',
+
+                                                    display: 'flex',
+                                                    justifyContent: 'center',
+                                                    alignItems: 'center',
+                                                    borderRadius: '8px',
+                                                    height: '100%'
+                                                  }}
+                                                  className={
+                                                    formData?.diet_type_name === 'By Gender'
+                                                      ? 'diet_val_container'
+                                                      : formData?.diet_type_name === 'By Weight' &&
+                                                        (formData?.child?.length === 2 || formData?.child?.length === 1)
+                                                      ? 'diet_val_weight'
+                                                      : formData?.diet_type_name === 'By Weight' &&
+                                                        formData?.child?.length === 3
+                                                      ? 'diet_val_weight1'
+                                                      : 'diet_val_cont'
+                                                  }
+                                                >
+                                                  <Typography
+                                                    sx={{
+                                                      color: theme.palette.customColors.neutralPrimary,
+                                                      lineHeight: '16.94px',
+                                                      fontWeight: 400,
+                                                      fontSize: '14px',
+                                                      textAlign: 'center'
+                                                    }}
+                                                  >
+                                                    {/* {formData.diet_type_name === 'By Weight' && item.meal_type
+                                                      ? item.meal_type.map((meal, i) => {
+                                                          if (all.includes(meal.meal_value_header)) {
+                                                            return (
+                                                              meal.quantity +
+                                                              (meal.feed_uom_name ? ' ' + meal.feed_uom_name : '')
+                                                            )
+                                                          } else {
+                                                            return ''
+                                                          }
+                                                        })
+                                                      : item.meal_type
+                                                      ? item.meal_type.map((meal, i) => {
+                                                          return meal.meal_value_header === all
+                                                            ? meal.quantity +
+                                                                (meal.feed_uom_name ? ' ' + meal.feed_uom_name : '')
+                                                            : ''
+                                                        })
+                                                      : 'Add'} */}
+                                                    {formData.diet_type_name === 'By Weight' && item.meal_type
+                                                      ? item.meal_type
+                                                          .map((meal, i) => {
+                                                            if (all.includes(meal.meal_value_header)) {
+                                                              return (
+                                                                meal.quantity +
+                                                                (meal.feed_uom_name ? ' ' + meal.feed_uom_name : '')
+                                                              )
+                                                            }
+
+                                                            return null
+                                                          })
+                                                          .filter(Boolean).length === 0
+                                                        ? 'Add'
+                                                        : item.meal_type.map((meal, i) => {
+                                                            if (all.includes(meal.meal_value_header)) {
+                                                              return (
+                                                                meal.quantity +
+                                                                (meal.feed_uom_name ? ' ' + meal.feed_uom_name : '')
+                                                              )
+                                                            }
+
+                                                            return null
+                                                          })
+                                                      : item.meal_type
+                                                      ? item.meal_type
+                                                          .map((meal, i) => {
+                                                            return meal.meal_value_header === all
+                                                              ? meal.quantity +
+                                                                  (meal.feed_uom_name ? ' ' + meal.feed_uom_name : '')
+                                                              : null
+                                                          })
+                                                          .filter(Boolean).length === 0
+                                                        ? 'Add'
+                                                        : item.meal_type.map((meal, i) => {
+                                                            return meal.meal_value_header === all
+                                                              ? meal.quantity +
+                                                                  (meal.feed_uom_name ? ' ' + meal.feed_uom_name : '')
+                                                              : null
+                                                          })
+                                                      : 'Add'}
+                                                    {formData.diet_type_name === 'By Weight' && item.meal_type
+                                                      ? item.meal_type
+                                                          .map((meal, i) => {
+                                                            if (
+                                                              all.includes(meal.meal_value_header) &&
+                                                              meal.notes &&
+                                                              meal.notes.trim() !== ''
+                                                            ) {
+                                                              return (
+                                                                <Typography key={i} sx={{ textAlign: 'center' }}>
+                                                                  <img
+                                                                    src='/icons/Notes.svg'
+                                                                    alt='Grocery Icon'
+                                                                    width='35px'
+                                                                  />
+                                                                </Typography>
+                                                              )
+                                                            }
+
+                                                            return null
+                                                          })
+                                                          .filter(Boolean).length === 0
+                                                        ? ''
+                                                        : item.meal_type.map((meal, i) => {
+                                                            if (
+                                                              all.includes(meal.meal_value_header) &&
+                                                              meal.notes &&
+                                                              meal.notes.trim() !== ''
+                                                            ) {
+                                                              return (
+                                                                <Typography key={i} sx={{ textAlign: 'center' }}>
+                                                                  <img
+                                                                    src='/icons/Notes.svg'
+                                                                    alt='Grocery Icon'
+                                                                    width='35px'
+                                                                  />
+                                                                </Typography>
+                                                              )
+                                                            }
+
+                                                            return null
+                                                          })
+                                                      : item.meal_type
+                                                      ? item.meal_type
+                                                          .map((meal, i) => {
+                                                            if (
+                                                              meal.meal_value_header === all &&
+                                                              meal.notes &&
+                                                              meal.notes.trim() !== ''
+                                                            ) {
+                                                              return (
+                                                                <Typography key={i} sx={{ textAlign: 'center' }}>
+                                                                  <img
+                                                                    src='/icons/Notes.svg'
+                                                                    alt='Grocery Icon'
+                                                                    width='35px'
+                                                                  />
+                                                                </Typography>
+                                                              )
+                                                            }
+
+                                                            return null
+                                                          })
+                                                          .filter(Boolean).length === 0
+                                                        ? ''
+                                                        : item.meal_type.map((meal, i) => {
+                                                            if (
+                                                              meal.meal_value_header === all &&
+                                                              meal.notes &&
+                                                              meal.notes.trim() !== ''
+                                                            ) {
+                                                              return (
+                                                                <Typography key={i} sx={{ textAlign: 'center' }}>
+                                                                  <img
+                                                                    src='/icons/Notes.svg'
+                                                                    alt='Grocery Icon'
+                                                                    width='35px'
+                                                                  />
+                                                                </Typography>
+                                                              )
+                                                            }
+
+                                                            return null
+                                                          })
+                                                      : ''}
                                                   </Typography>
                                                 </Box>
                                               </Box>
@@ -3297,7 +3892,7 @@ const StepPreviewDiet = ({
                             <TableRow
                               sx={{
                                 width: '100%', // Ensure the row spans the full width of the table
-                                borderBottom: '1px solid #C3CEC7', // Add border directly to the row
+                                borderBottom: `1px solid ${theme.palette.customColors.OutlineVariant}`, // Add border directly to the row
                                 minHeight: '48px', // Optional: set a minimum height for the row
                                 display: 'table-row' // Default behavior for TableRow
                               }}
@@ -3356,12 +3951,30 @@ const StepPreviewDiet = ({
               >
                 Go back
               </Button>
-              <Button
+              {/* <Button
                 onClick={finalhandleSubmit}
                 variant='contained'
                 endIcon={<Icon icon='mdi:arrow-right' fontSize={20} />}
               >
                 Submit
+              </Button> */}
+              <Button
+                onClick={finalhandleSubmit}
+                variant='contained'
+                endIcon={<Icon icon='mdi:arrow-right' fontSize={20} />}
+                disabled={loader}
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  gap: 1,
+                  minWidth: 120
+                }}
+              >
+                <span style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+                  Submit
+                  {loader && <CircularProgress size={16} sx={{ color: '#ccc' }} />}
+                </span>
               </Button>
             </Box>
           </Grid>

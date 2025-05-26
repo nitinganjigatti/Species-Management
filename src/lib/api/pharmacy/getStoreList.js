@@ -13,6 +13,12 @@ export async function getStoreById(id) {
   return response.data
 }
 
+export async function deleteStoreById(id) {
+  const response = await axiosGet({ url: `${PHARMACY_BASE_URL}${STORE}/delete/${id}`, pharmacy: true })
+
+  return response.data
+}
+
 export async function addStore(payload) {
   try {
     const url = `${PHARMACY_BASE_URL}${STORE}/add`

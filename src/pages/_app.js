@@ -54,9 +54,11 @@ import '../../styles/globals.css'
 import '../../styles/custom.css'
 
 import { PharmacyProvider } from 'src/context/PharmacyContext'
+import { DynamicStatesProvider } from 'src/context/DynamicStatesContext'
 import { EggProvider } from 'src/context/EggContext'
 import { PariveshProvider } from 'src/context/PariveshContext'
 import { AnimalProvider } from 'src/context/AnimalContext'
+import { ForgotPasswordProvider } from 'src/context/ForgotPasswordContext'
 
 const clientSideEmotionCache = createEmotionCache()
 
@@ -106,33 +108,38 @@ const App = props => {
       </Head>
       <PariveshProvider>
         <PharmacyProvider>
-          <EggProvider>
-            <AnimalProvider>
-              <AuthProvider>
-                <SettingsProvider {...(setConfig ? { pageSettings: setConfig() } : {})}>
-                  <SettingsConsumer>
-                    {({ settings }) => {
-                      return (
-                        <ThemeComponent settings={settings}>
-                          <Guard authGuard={authGuard} guestGuard={guestGuard}>
-                            <AclGuard aclAbilities={aclAbilities} guestGuard={guestGuard} authGuard={authGuard}>
-                              {getLayout(<Component {...pageProps} />)}
-                            </AclGuard>
-                          </Guard>
-                          <ReactHotToast>
-                            <Toaster
-                              position={settings.toastPosition}
-                              toastOptions={{ className: 'react-hot-toast' }}
-                            />
-                          </ReactHotToast>
-                        </ThemeComponent>
-                      )
-                    }}
-                  </SettingsConsumer>
-                </SettingsProvider>
-              </AuthProvider>
-            </AnimalProvider>
-          </EggProvider>
+          <DynamicStatesProvider>
+            <EggProvider>
+              <AnimalProvider>
+                <ForgotPasswordProvider>
+                  <AuthProvider>
+                    <SettingsProvider {...(setConfig ? { pageSettings: setConfig() } : {})}>
+                      <SettingsConsumer>
+                        {({ settings }) => {
+                          return (
+                            <ThemeComponent settings={settings}>
+                              <Guard authGuard={authGuard} guestGuard={guestGuard}>
+                                <AclGuard aclAbilities={aclAbilities} guestGuard={guestGuard} authGuard={authGuard}>
+                                  {getLayout(<Component {...pageProps} />)}
+                                </AclGuard>
+                              </Guard>
+                              <ReactHotToast>
+                                <Toaster
+                                  position={settings.toastPosition}
+                                  containerClassName='react-hot-toast-container'
+                                  toastOptions={{ className: 'react-hot-toast' }}
+                                />
+                              </ReactHotToast>
+                            </ThemeComponent>
+                          )
+                        }}
+                      </SettingsConsumer>
+                    </SettingsProvider>
+                  </AuthProvider>
+                </ForgotPasswordProvider>
+              </AnimalProvider>
+            </EggProvider>
+          </DynamicStatesProvider>
         </PharmacyProvider>
       </PariveshProvider>
     </CacheProvider>

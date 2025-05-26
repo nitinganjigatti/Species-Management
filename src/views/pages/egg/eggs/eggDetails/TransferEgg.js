@@ -7,6 +7,7 @@ import {
   FormHelperText,
   IconButton,
   TextField,
+  Tooltip,
   Typography
 } from '@mui/material'
 import { Box } from '@mui/system'
@@ -130,6 +131,7 @@ const TransferEgg = ({ transferEggSideBar, setTransferEggSideBar, eggDetails, ge
       RoomList(eggDetails?.nursery_id)
     }
   }, [eggDetails?.nursery_id])
+
   // useEffect(() => {
   //   if (eggDetails?.room_id) {
   //     fetchIncubatorData(eggDetails?.room_id)
@@ -181,6 +183,7 @@ const TransferEgg = ({ transferEggSideBar, setTransferEggSideBar, eggDetails, ge
 
     try {
       setLoader(true)
+
       let params = {
         incubator_id: values.incubator,
         egg_ids: [egg_id]
@@ -282,7 +285,7 @@ const TransferEgg = ({ transferEggSideBar, setTransferEggSideBar, eggDetails, ge
                 sx={{
                   backgroundColor: theme.palette.primary.contrastText,
                   borderRadius: '8px',
-                  border: '1px solid #C3CEC7',
+                  border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                   paddingY: '20px',
                   paddingX: '16px',
                   display: 'flex',
@@ -322,17 +325,23 @@ const TransferEgg = ({ transferEggSideBar, setTransferEggSideBar, eggDetails, ge
                     >
                       Incubator ID
                     </Typography>
-                    <Typography
-                      sx={{
-                        color: theme.palette.customColors.OnSurfaceVariant,
-                        fontWeight: 500,
-                        fontSize: '16px',
-                        lineHeight: '19.36px',
-                        height: '19px'
-                      }}
-                    >
-                      {eggDetails?.incubator_name}
-                    </Typography>
+                    <Tooltip title={eggDetails?.incubator_code ? eggDetails?.incubator_code : 'Incubator Name'}>
+                      <Typography
+                        sx={{
+                          color: theme.palette.customColors.OnSurfaceVariant,
+                          fontWeight: 500,
+                          fontSize: '16px',
+                          lineHeight: '19.36px',
+                          height: '19px'
+                        }}
+                      >
+                        {eggDetails?.incubator_code
+                          ? eggDetails?.incubator_code.length > 16
+                            ? eggDetails?.incubator_code.slice(0, 16) + '...'
+                            : eggDetails?.incubator_code
+                          : ''}
+                      </Typography>
+                    </Tooltip>
                   </Box>
                   <Box sx={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                     <Typography
@@ -346,17 +355,23 @@ const TransferEgg = ({ transferEggSideBar, setTransferEggSideBar, eggDetails, ge
                     >
                       Room
                     </Typography>
-                    <Typography
-                      sx={{
-                        color: theme.palette.customColors.OnSurfaceVariant,
-                        fontWeight: 500,
-                        fontSize: '16px',
-                        lineHeight: '19.36px',
-                        height: '19px'
-                      }}
-                    >
-                      {eggDetails?.room_name}
-                    </Typography>
+                    <Tooltip title={eggDetails?.room_name ? eggDetails?.room_name : 'Room Name'}>
+                      <Typography
+                        sx={{
+                          color: theme.palette.customColors.OnSurfaceVariant,
+                          fontWeight: 500,
+                          fontSize: '16px',
+                          lineHeight: '19.36px',
+                          height: '19px'
+                        }}
+                      >
+                        {eggDetails?.room_name
+                          ? eggDetails?.room_name.length > 16
+                            ? eggDetails?.room_name.slice(0, 16) + '...'
+                            : eggDetails?.room_name
+                          : ''}
+                      </Typography>
+                    </Tooltip>
                   </Box>
                   <Box sx={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
                     <Typography
@@ -370,17 +385,23 @@ const TransferEgg = ({ transferEggSideBar, setTransferEggSideBar, eggDetails, ge
                     >
                       Nursery Name
                     </Typography>
-                    <Typography
-                      sx={{
-                        color: theme.palette.customColors.OnSurfaceVariant,
-                        fontWeight: 500,
-                        fontSize: '16px',
-                        lineHeight: '19.36px',
-                        height: '19px'
-                      }}
-                    >
-                      {eggDetails?.nursery_name}
-                    </Typography>
+                    <Tooltip title={eggDetails?.nursery_name ? eggDetails?.nursery_name : 'Nursery Name'}>
+                      <Typography
+                        sx={{
+                          color: theme.palette.customColors.OnSurfaceVariant,
+                          fontWeight: 500,
+                          fontSize: '16px',
+                          lineHeight: '19.36px',
+                          height: '19px'
+                        }}
+                      >
+                        {eggDetails?.nursery_name
+                          ? eggDetails?.nursery_name.length > 16
+                            ? eggDetails?.nursery_name.slice(0, 16) + '...'
+                            : eggDetails?.nursery_name
+                          : ''}
+                      </Typography>
+                    </Tooltip>
                   </Box>
                 </Box>
               </Box>
@@ -401,7 +422,7 @@ const TransferEgg = ({ transferEggSideBar, setTransferEggSideBar, eggDetails, ge
                 sx={{
                   backgroundColor: theme.palette.primary.contrastText,
                   borderRadius: '8px',
-                  border: '1px solid #C3CEC7',
+                  border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                   paddingY: '20px',
                   paddingX: '16px',
                   display: 'flex',
@@ -525,6 +546,7 @@ const TransferEgg = ({ transferEggSideBar, setTransferEggSideBar, eggDetails, ge
                           } else {
                             setDefaultIncubator(val)
                             setValue('incubator', '')
+
                             return onChange(val.incubator_id)
                           }
                         }}

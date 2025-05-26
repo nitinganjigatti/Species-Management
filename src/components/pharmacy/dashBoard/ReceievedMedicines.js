@@ -29,7 +29,7 @@ const ReceivedMedicines = () => {
         lineColor='#fa614059'
         barName='Received Value'
         lineName='Received Count'
-        viewMorePath='/pharmacy/reports/month-wise-purchase'
+        viewMorePath='/pharmacy/reports/received-medicines-report/'
       />
     </>
   )

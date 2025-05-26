@@ -5,18 +5,12 @@ import { getStockOutItems } from 'src/lib/api/pharmacy/getStocksReportById'
 import FallbackSpinner from 'src/@core/components/spinner'
 import { debounce } from 'lodash'
 import CardHeader from '@mui/material/CardHeader'
-import { DataGrid } from '@mui/x-data-grid'
 import Card from '@mui/material/Card'
-import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
 import Typography from '@mui/material/Typography'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import Grid from '@mui/material/Grid'
-import TabContext from '@mui/lab/TabContext'
-import TabList from '@mui/lab/TabList'
-import Tab from '@mui/material/Tab'
-import TabPanel from '@mui/lab/TabPanel'
+
 import { FormControlLabel, Switch, TextField } from '@mui/material'
-import { ExcelExportButton } from 'src/components/Buttons'
 import { Box } from '@mui/system'
 import Utility from 'src/utility'
 import { Tooltip } from '@mui/material'
@@ -24,6 +18,7 @@ import { Icon } from '@iconify/react'
 import { useTheme } from '@emotion/react'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import RenderUtility from 'src/utility/render'
+import PharmacyProductCard from 'src/views/utility/PharmacyProductCard'
 
 const StockOut = () => {
   const theme = useTheme()
@@ -61,7 +56,6 @@ const StockOut = () => {
           limit: paginationModel.pageSize,
           is_low_stock: status === 'out_of_stock' ? 'no' : 'yes'
         }
-
         const res = await getStockOutItems({ params })
         if (res?.list_items?.length > 0) {
           setTotal(parseInt(res?.total_count, 10))
@@ -81,7 +75,7 @@ const StockOut = () => {
     [paginationModel]
   )
   useEffect(() => {
-    fetchTableData(sort, searchValue, sortColumn)
+    fetchTableData(sort, searchValue, sortColumn, status)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [fetchTableData, selectedPharmacy.id, changeSwitch])
 
@@ -96,8 +90,6 @@ const StockOut = () => {
     if (newModel.length) {
       const sortOrder = newModel[0]?.sort || 'asc' // Fallback to 'asc' if undefined
       const sortField = newModel[0]?.field || ''
-
-      console.log('Sort Order:', sortOrder, 'Sort Field:', sortField)
 
       // Update state
       setSort(sortOrder)
@@ -149,19 +141,15 @@ const StockOut = () => {
       field: 'stock_item_name',
       headerName: 'Product Name',
       renderCell: params => (
-        <Tooltip title={params.row.stock_item_name} placement='top'>
-          <Typography
-            variant='body2'
-            sx={{
-              color: theme.palette.customColors.customHeadingTextColor,
-              fontSize: '14px',
-              fontWeight: 500,
-              fontFamily: 'Inter'
-            }}
-          >
-            {params.row.stock_item_name}
-          </Typography>
-        </Tooltip>
+        <Box>
+          <PharmacyProductCard
+            title={params?.row?.stock_item_name}
+            subTitle={params?.row?.generic_name}
+            icon={params?.row?.image}
+            controlSubstance={params?.row?.controlled_substance === '1' && true}
+            prescriptionRequired={params?.row?.prescription_required === '1' && true}
+          />
+        </Box>
       )
     },
 
@@ -235,8 +223,7 @@ const StockOut = () => {
 
   const outOfStocksColumn = [
     {
-      width: 150,
-      minWidth: 100,
+      width: 80,
       alignItems: 'right',
       field: 'id',
       headerName: 'SL',
@@ -255,22 +242,20 @@ const StockOut = () => {
       )
     },
     {
-      width: 150,
-      minWidth: 100,
+      width: 300,
+      minWidth: 300,
       field: 'stock_item_name',
       headerName: 'Product Name',
       renderCell: params => (
-        <Typography
-          variant='body2'
-          sx={{
-            color: theme.palette.customColors.customHeadingTextColor,
-            fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
-          }}
-        >
-          {params.row.stock_item_name}
-        </Typography>
+        <Box>
+          <PharmacyProductCard
+            title={params?.row?.stock_item_name}
+            subTitle={params?.row?.generic_name}
+            icon={params?.row?.image}
+            controlSubstance={params?.row?.controlled_substance === '1' && true}
+            prescriptionRequired={params?.row?.prescription_required === '1' && true}
+          />
+        </Box>
       )
     },
 
@@ -311,21 +296,9 @@ const StockOut = () => {
     }
   ]
 
-  const handleHeaderAction = () => {
-    console.log('Handle Header Action')
-  }
   if (loading) {
     return <FallbackSpinner />
   }
-
-  // const handleChange = (event, newValue) => {
-  //
-  //   setStatus(newValue)
-  // }
-
-  // if (isError) {
-  //   return <h1>{error.message}</h1>
-  // }
 
   const handleSwitchChange = event => {
     setChangeSwitch(event.target.checked)
@@ -354,7 +327,8 @@ const StockOut = () => {
             ['Medicine Name']: el?.stock_item_name,
             ['Batch']: el?.batch_no,
             ['Expire Date']: el?.expiry_date,
-            ['Quantity']: el?.stock_qty
+            ['Quantity']: el?.stock_qty,
+            ['Store Name']: el?.store_name
           }
         })
 
@@ -369,99 +343,6 @@ const StockOut = () => {
       console.log('error', error)
     }
   }
-
-  const headerAction = (
-    <div>
-      <FormControlLabel
-        control={<Switch checked={changeSwitch} onChange={handleSwitchChange} />}
-        labelPlacement='start'
-        label='Out Of Stock'
-      />
-      {status === 'out_of_stock' ? (
-        <Box sx={{ mx: 2 }}>
-          <ExcelExportButton
-            disabled={total === 0 ? true : false}
-            action={() => {
-              getDataToExport()
-            }}
-            loader={excelLoader}
-            title='Download'
-          />
-        </Box>
-      ) : null}
-    </div>
-  )
-
-  // const tableData = () => {
-  //   return (
-  //     <>
-  //       {loader ? (
-  //         <FallbackSpinner />
-  //       ) : (
-  //         <Card>
-  //           <CardHeader title='Out of Stock' action={headerAction} />
-  //           <DataGrid
-  //             sx={{
-  //               '.MuiDataGrid-cell:focus': {
-  //                 outline: 'none'
-  //               },
-
-  //               '& .MuiDataGrid-row:hover': {
-  //                 cursor: 'pointer'
-  //               }
-  //             }}
-  //             columnVisibilityModel={{
-  //               id: false
-  //             }}
-  //             hideFooterSelectedRowCount
-  //             disableColumnSelector={true}
-  //             autoHeight
-  //             pagination
-  //             rows={indexedRows === undefined ? [] : indexedRows}
-  //             rowCount={total}
-  //             total
-  //             columns={columns}
-  //             sortingMode='server'
-  //             paginationMode='server'
-  //             pageSizeOptions={[7, 10, 25, 50]}
-  //             paginationModel={paginationModel}
-  //             onSortModelChange={handleSortModel}
-  //             slots={{ toolbar: ServerSideToolbar }}
-  //             onPaginationModelChange={setPaginationModel}
-  //             loading={loading}
-  //             slotProps={{
-  //               baseButton: {
-  //                 variant: 'outlined'
-  //               },
-  //               toolbar: {
-  //                 value: searchValue,
-  //                 clearSearch: () => handleSearch(''),
-  //                 onChange: event => handleSearch(event.target.value)
-  //               }
-  //             }}
-
-  //             // onRowClick={onRowClick}
-  //           />
-  //         </Card>
-  //       )}
-  //     </>
-  //   )
-  // }
-
-  // return (
-  //   <>
-  //     <Grid>
-  //       <TabContext value={status}>
-  //         <TabList onChange={handleChange}>
-  //           <Tab value='out_of_stock' label='Out of Stock' />
-  //           <Tab value='low_stock' label='Low Stock' />
-  //         </TabList>
-  //         <TabPanel value='out_of_stock'>{tableData()}</TabPanel>
-  //         <TabPanel value='low_stock'>{tableData()}</TabPanel>
-  //       </TabContext>
-  //     </Grid>
-  //   </>
-  // )
 
   return (
     <>
@@ -558,51 +439,6 @@ const StockOut = () => {
               searchValue={searchValue}
             />
           </Grid>
-
-          {/*
-          <DataGrid
-            sx={{
-              '.MuiDataGrid-cell:focus': {
-                outline: 'none'
-              },
-
-              '& .MuiDataGrid-row:hover': {
-                cursor: 'pointer'
-              }
-            }}
-            columnVisibilityModel={{
-              id: false
-            }}
-            hideFooterSelectedRowCount
-            disableColumnSelector={true}
-            autoHeight
-            pagination
-            rows={indexedRows === undefined ? [] : indexedRows}
-            rowCount={total}
-            total
-            columns={status === 'low_stock' ? columns : outOfStocksColumn}
-            sortingMode='server'
-            paginationMode='server'
-            pageSizeOptions={[7, 10, 25, 50]}
-            paginationModel={paginationModel}
-            onSortModelChange={handleSortModel}
-            slots={{ toolbar: ServerSideToolbar }}
-            onPaginationModelChange={setPaginationModel}
-            loading={loading}
-            disableColumnMenu
-            slotProps={{
-              baseButton: {
-                variant: 'outlined'
-              },
-              toolbar: {
-                value: searchValue,
-                clearSearch: () => handleSearch(''),
-                onChange: event => handleSearch(event.target.value)
-              }
-            }}
-
-            // onRowClick={onRowClick}
-          /> */}
         </Card>
       )}
     </>

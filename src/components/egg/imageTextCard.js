@@ -19,47 +19,44 @@ const SpeciesImageCard = ({ imgURl, eggCondition, egg_status, eggCode, defaultNa
           p: '4px',
           bgcolor:
             tab === 'hatched'
-              ? '#37BD69'
+              ? theme.palette.primary.main
               : egg_status === 'Hatched'
-              ? '#37BD69'
+              ? theme.palette.primary.main
               : eggCondition === 'Broken'
-              ? '#e93353'
+              ? theme.palette.customColors.Error
               : eggCondition === 'Rotten'
-              ? '#fa6140'
+              ? theme.palette.customColors.Tertiary
               : eggCondition === 'Cracked'
-              ? '#e4b819'
+              ? theme.palette.customColors.moderateSecondary
               : egg_status === 'Fresh'
-              ? '#006d35'
+              ? theme.palette.primary.dark
               : egg_status === 'Fertile'
-              ? '#1F515B'
+              ? theme.palette.primary.light
               : egg_status === 'Discard'
-              ? '#E93353'
-              : '#006D35',
+              ? theme.palette.customColors.Error
+              : theme.palette.primary.dark,
           alignItems: 'center',
           borderRadius: '50px'
         }}
       >
         <Box
           sx={{
-            display: 'flex',
-            alignItems: 'center',
-            border: 'solid 1px #C3CEC7',
+            border: `solid 1px ${theme.palette.customColors.OutlineVariant}`,
             width: '35px',
             height: '35px',
             borderRadius: '50%',
-            p: 0.3,
             backgroundColor: theme.palette.primary.contrastText
           }}
         >
           {imgURl ? (
             <img
               src={imgURl}
-              alt='Default Icon'
+              alt='Default'
               style={{
                 width: '100%',
                 height: '100%',
-                borderRadius: '50%',
-                objectFit: 'contain'
+                padding: '3px',
+                objectFit: imgURl.includes('class_images') && imgURl.endsWith('.svg') ? 'contain' : 'cover'
               }}
             />
           ) : (
@@ -82,7 +79,7 @@ const SpeciesImageCard = ({ imgURl, eggCondition, egg_status, eggCode, defaultNa
               overflow: 'hidden',
               textOverflow: 'ellipsis',
               whiteSpace: 'nowrap',
-              color: '#000000'
+              color: theme.palette.primary.deepDark
             }}
           >
             {eggCode ? eggCode : '-'}
@@ -137,7 +134,7 @@ const SpeciesImageCard = ({ imgURl, eggCondition, egg_status, eggCode, defaultNa
                     egg_status === 'Fresh' || egg_status === 'Fertile'
                       ? theme.palette.primary.dark
                       : egg_status === 'Discard'
-                      ? '#fa6140'
+                      ? theme.palette.customColors.Tertiary
                       : egg_status === 'Hatched'
                       ? theme.palette.primary.main
                       : null,
@@ -146,10 +143,10 @@ const SpeciesImageCard = ({ imgURl, eggCondition, egg_status, eggCode, defaultNa
                   px: 3,
                   backgroundColor:
                     egg_status === 'Discard'
-                      ? '#FFD3D3'
+                      ? theme.palette.customColors.AntzTertiary
                       : egg_status === 'Fresh' || egg_status === 'Fertile' || egg_status === 'Hatched'
-                      ? '#EFF5F2'
-                      : '#EFF5F2',
+                      ? theme.palette.customColors.lightBg
+                      : theme.palette.customColors.lightBg,
                   textAlign: 'center',
                   borderRadius: '4px',
                   display: 'inline-block'
@@ -178,34 +175,34 @@ const TextCard = ({ egg_status }) => {
 
         backgroundColor:
           egg_status === 'Rotten'
-            ? '#ffebe5'
+            ? theme.palette.customColors.BgTeritary
             : egg_status === 'Cracked'
-            ? '#fdfad7'
+            ? theme.palette.customColors.antzNotes40
             : egg_status === 'Discard'
-            ? '#ffebe5'
+            ? theme.palette.customColors.BgTeritary
             : egg_status === 'Thin-Shelled'
-            ? '#E8F4F2'
+            ? theme.palette.customColors.displaybgPrimary
             : egg_status === 'Fertile'
-            ? '#E8F4F2'
-            : '#E1F9ED'
+            ? theme.palette.customColors.displaybgPrimary
+            : theme.palette.customColors.OnBackground
       }}
     >
       <Typography
         sx={{
           color:
             egg_status === 'Fresh'
-              ? '#006D35'
+              ? theme.palette.primary.dark
               : egg_status === 'Rotten'
-              ? '#FA6140'
+              ? theme.palette.customColors.Tertiary
               : egg_status === 'Cracked'
-              ? '#E4B819'
+              ? theme.palette.customColors.moderateSecondary
               : egg_status === 'Discard'
-              ? '#fa6140'
+              ? theme.palette.customColors.Tertiary
               : egg_status === 'Hatched'
-              ? '#32bfdd'
+              ? theme.palette.customColors.antzInfo60
               : egg_status === 'Thin-Shelled'
-              ? '#1F515B'
-              : '#006D35',
+              ? theme.palette.primary.light
+              : theme.palette.primary.dark,
           fontSize: '14px',
           fontWeight: '500'
         }}

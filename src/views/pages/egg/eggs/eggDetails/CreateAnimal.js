@@ -461,8 +461,8 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
                                 searchSpecies(e.target.value)
                               }}
                               {...params}
-                              label='Select Species *'
-                              placeholder='Search & Select'
+                              label='Species / Taxonomy *'
+                              placeholder='Select Species / Taxonomy'
                               error={Boolean(errors.species)}
                               sx={{
                                 '& .MuiInputLabel-root': {
@@ -611,7 +611,7 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
                                   <InputAdornment position='end'>
                                     <Icon
                                       icon={'material-symbols:add-circle-outline'}
-                                      style={{ color: '#37BD69' }}
+                                      style={{ color: theme.palette.primary.main }}
                                     ></Icon>
                                   </InputAdornment>
                                 )
@@ -927,26 +927,29 @@ const CreateAnimalSlider = ({ eggId, setOpenDrawer, openDrawer, fetchTableData }
                     )}
                   </FormControl>
                   {/* {watch('localIdentifierType')!=''&& */}
-                  <FormControl sx={{ mb: 4 }} fullWidth>
-                    <Controller
-                      name='localIdentifier'
-                      control={control}
-                      rules={{ required: true }}
-                      render={({ field: { value, onChange } }) => (
-                        <TextField
-                          error={Boolean(errors?.comment)}
-                          value={value}
-                          label={`Local Identifier ${watch('localIdentifierType') === '' ? '' : '*'}`}
-                          name='localIdentifier'
-                          onChange={onChange}
-                          placeholder=''
-                        />
+
+                  {watch('localIdentifierType') === '' ? null : (
+                    <FormControl sx={{ mb: 4 }} fullWidth>
+                      <Controller
+                        name='localIdentifier'
+                        control={control}
+                        rules={{ required: true }}
+                        render={({ field: { value, onChange } }) => (
+                          <TextField
+                            error={Boolean(errors?.comment)}
+                            value={value}
+                            label={`Local Identifier ${watch('localIdentifierType') === '' ? '' : '*'}`}
+                            name='localIdentifier'
+                            onChange={onChange}
+                            placeholder=''
+                          />
+                        )}
+                      />
+                      {errors.localIdentifier && (
+                        <FormHelperText sx={{ color: 'error.main' }}>{errors?.localIdentifier?.message}</FormHelperText>
                       )}
-                    />
-                    {errors.localIdentifier && (
-                      <FormHelperText sx={{ color: 'error.main' }}>{errors?.localIdentifier?.message}</FormHelperText>
-                    )}
-                  </FormControl>
+                    </FormControl>
+                  )}
                   <FormControl fullWidth sx={{ mb: 4 }}>
                     <InputLabel id='parentMother'>Parent Mother</InputLabel>
                     <Controller

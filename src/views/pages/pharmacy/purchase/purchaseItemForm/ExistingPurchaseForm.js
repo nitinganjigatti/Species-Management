@@ -50,7 +50,11 @@ const defaultValues = {
   purchase_taxable_amount: 0,
   purchase_net_amount: 0,
   package_details: '',
-  manufacture: ''
+  manufacture: '',
+  purchase_variant_id: '',
+  purchase_unit_qty: 0,
+  purchase_variant_ratio: '',
+  isVariantIdPresent: false
 }
 
 const ExistingPurchaseForm = props => {
@@ -65,7 +69,10 @@ const ExistingPurchaseForm = props => {
     purchase_details,
     checkMedicineExpiryDate,
     productExpiryDate,
-    expiryDateLoader
+    expiryDateLoader,
+    getProductVariantByproductId,
+    productVariantOptions,
+    setProductVariantOptions
   } = props
 
   const [defaultProduct, setDefaultProduct] = useState({ label: '', value: '', stock_type: '' })
@@ -73,18 +80,27 @@ const ExistingPurchaseForm = props => {
 
   const schema = yup.object().shape({
     // product: yup.string().required('Product name is required'),
-    product: yup.object().shape({
-      value: yup.string().required('Product name is required'),
-      label: yup.string().required('Product name is required'),
-      stock_type: yup.string().nullable()
-    }),
+    product: yup
+      .object()
+      .shape({
+        label: yup.string().required('Product Name is required'),
+        value: yup.string().required('Product Name is required'),
+        stock_type: yup.string().nullable()
+      })
+      .required('Product Name is required'),
 
-    purchase_expiry_date: yup.string().when('[product.stock_type]', (stockType, schema) => {
-      const result =
-        stockType[0] === 'non_medical' ? yup.string().notRequired() : yup.date().typeError('Select a valid expiry date')
+    purchase_expiry_date: yup
+      .mixed()
+      .transform((value, originalValue) => {
+        return originalValue === '' ? null : value
+      })
+      .when('product.stock_type', (stockType, schema) => {
+        if (stockType === 'non_medical') {
+          return schema.notRequired()
+        }
 
-      return result
-    }),
+        return yup.date().typeError('Select a valid expiry date').required('Expiry date is required')
+      }),
 
     purchase_batch_no: yup
       .string()
@@ -111,7 +127,8 @@ const ExistingPurchaseForm = props => {
       .number()
       .typeError('Purchase quantity must be a number')
       .min(1, 'Purchase quantity must be greater than zero')
-      .required('Purchase quantity is required')
+      .required('Purchase quantity is required'),
+    purchase_variant_id: yup.string().required('Product variant is required')
   })
 
   const {
@@ -157,7 +174,11 @@ const ExistingPurchaseForm = props => {
       purchase_taxable_amount,
       purchase_net_amount,
       package_details,
-      manufacture
+      manufacture,
+      purchase_variant_id,
+      purchase_unit_qty,
+      purchase_variant_ratio,
+      isVariantIdPresent
 
       // purchase_purchase_price,
     } = params
@@ -190,7 +211,11 @@ const ExistingPurchaseForm = props => {
       stock_type: stock_type,
       purchase_purchase_price: purchase_net_amount,
       package_details,
-      manufacture
+      manufacture,
+      purchase_variant_id,
+      purchase_unit_qty,
+      purchase_variant_ratio,
+      isVariantIdPresent
     }
 
     submitItems(payload)
@@ -232,6 +257,7 @@ const ExistingPurchaseForm = props => {
     const purchase_qty = checkNumber(updatedValues.purchase_qty)
 
     const purchase_discount = checkNumber(updatedValues.purchase_discount)
+    const totalUnitQty = checkNumber(updatedValues?.purchase_variant_ratio * purchase_qty)
 
     const purchase_free_quantity = checkNumber(updatedValues.purchase_free_quantity)
 
@@ -265,6 +291,7 @@ const ExistingPurchaseForm = props => {
     } else {
       netAmount = taxableAmount + purchase_igst_amount
     }
+    setValue('purchase_unit_qty', totalUnitQty)
 
     // const grandTotal = parseFloat(grossAmount).toFixed(2)
 
@@ -337,9 +364,21 @@ const ExistingPurchaseForm = props => {
 
   useEffect(() => {
     if (productExpiryDate !== '') {
-      setValue('purchase_expiry_date', dayjs(productExpiryDate))
+      setValue('purchase_expiry_date', dayjs(productExpiryDate), { shouldValidate: true })
+      if(nestedRowMedicine?.purchase_variant_id != 0)
+        setValue('purchase_variant_id', nestedRowMedicine?.purchase_variant_id, { shouldValidate: true })
+      else
+        setValue('purchase_variant_id', nestedRowMedicine?.purchase_variant_id)
+      setValue('purchase_variant_ratio', nestedRowMedicine?.purchase_variant_ratio)
+      const totalUnitQty = checkNumber(nestedRowMedicine?.purchase_variant_ratio * nestedRowMedicine?.purchase_qty)
+      setValue('isVariantIdPresent', true)
+      setValue('purchase_unit_qty', totalUnitQty)
     } else {
       setValue('purchase_expiry_date', '')
+      setValue('purchase_variant_id', '')
+      setValue('purchase_variant_ratio', '')
+      setValue('isVariantIdPresent', false)
+      setValue('purchase_unit_qty', nestedRowMedicine?.purchase_qty)
     }
   }, [productExpiryDate, expiryDateLoader])
 
@@ -360,6 +399,9 @@ const ExistingPurchaseForm = props => {
       })
       setValue('package_details', nestedRowMedicine?.package_details)
       setValue('manufacture', nestedRowMedicine?.manufacture)
+      setValue('purchase_variant_id', nestedRowMedicine?.purchase_variant_id)
+      setValue('purchase_variant_ratio', nestedRowMedicine?.purchase_variant_ratio)
+      setValue('isVariantIdPresent', nestedRowMedicine?.isVariantIdPresent)
       if (nestedRowMedicine.stock_type === 'non_medical') {
         setNonMedicalProduct(true)
       }
@@ -368,7 +410,8 @@ const ExistingPurchaseForm = props => {
     } else {
       setValue('purchase_expiry_date', null)
       setValue('package_details', '')
-      setValue('manufacture', '')
+      setValue('manufacture', ''), setValue('purchase_variant_id', ''), setValue('isVariantIdPresent', false)
+      setValue('purchase_variant_ratio', '')
       searchMedicineData('')
     }
   }, [])
@@ -401,10 +444,13 @@ const ExistingPurchaseForm = props => {
                   isOptionEqualToValue={(option, value) => option.value === value.value}
                   onChange={(e, val) => {
                     if (val === null) {
-                      setValue('purchase_batch_no', '')
-                      setValue('purchase_expiry_date', null)
+                      setValue('purchase_batch_no', '', { shouldValidate: true })
+                      setValue('purchase_expiry_date', null, { shouldValidate: true })
                       setValue('package_details', '')
                       setValue('manufacture', '')
+                      setValue('purchase_variant_id', '', { shouldValidate: true })
+                      setProductVariantOptions([])
+                      setValue('isVariantIdPresent', false)
 
                       return onChange(null)
                     } else {
@@ -412,11 +458,16 @@ const ExistingPurchaseForm = props => {
                         setNonMedicalProduct(true)
                         setValue('package_details', val?.package_details)
                         setValue('manufacture', val?.manufacture)
-                        setValue('purchase_expiry_date', dayjs(Date()))
+                        setValue('purchase_expiry_date', dayjs(Date()), { shouldValidate: true })
+                        setProductVariantOptions([])
+                        setValue('purchase_variant_id', '', { shouldValidate: true })
+                        getProductVariantByproductId(val?.value)
                       } else {
                         setNonMedicalProduct(false)
                         setValue('package_details', val?.package_details)
                         setValue('manufacture', val?.manufacture)
+                        setProductVariantOptions([])
+                        getProductVariantByproductId(val?.value)
                       }
 
                       return onChange(val)
@@ -444,6 +495,9 @@ const ExistingPurchaseForm = props => {
                 />
               )}
             />
+            {errors.product && (
+              <FormHelperText sx={{ color: 'error.main' }}>{errors?.product?.value?.message}</FormHelperText>
+            )}
             {watch('package_details') && (
               <Box sx={{ mx: 1, my: 2, display: 'flex' }}>
                 <Chip
@@ -479,9 +533,15 @@ const ExistingPurchaseForm = props => {
                   onBlur={e => {
                     if (!nonMedicalProduct) {
                       const product = getValues()
-                      if (product?.product?.value !== '' && e.target.value !== '') {
+
+                      if (product?.product?.value !== '' && e?.target?.value !== '') {
                         field?.onBlur()
                         checkMedicineExpiryDate(product?.product?.value, e.target.value)
+                      } else {
+                        setValue('purchase_qty', '')
+                        setValue('purchase_unit_qty', '')
+                        setValue('purchase_variant_id', '', { shouldValidate: true })
+                        setValue('purchase_variant_ratio', ''), setValue('isVariantIdPresent', false)
                       }
                     }
                   }}
@@ -509,9 +569,13 @@ const ExistingPurchaseForm = props => {
                       inputFormat='MM/DD/YYYY'
                       value={value}
                       onChange={onChange}
-                      renderInput={params => <TextField {...params} />}
+                      renderInput={params => <TextField {...params} error={Boolean(errors.purchase_expiry_date)} />}
+                      slotProps={{
+                        textField: {
+                          error: Boolean(errors.purchase_expiry_date)
+                        }
+                      }}
                       error={Boolean(errors.purchase_expiry_date)}
-                      helperText={errors.purchase_expiry_date?.message}
                     />
                   </LocalizationProvider>
                 )}
@@ -527,16 +591,17 @@ const ExistingPurchaseForm = props => {
         <Grid item xs={12} sm={6}>
           <FormControl fullWidth>
             <Controller
+              error={Boolean(errors.purchase_unit_price)}
               name='purchase_qty'
               control={control}
               render={({ field }) => (
                 <TextField
+                  error={Boolean(errors.purchase_qty)}
                   {...field}
                   label='Purchase Quantity*'
                   onKeyUp={e => {
                     calculateStuff()
                   }}
-                  error={Boolean(errors.purchase_unit_price)}
 
                   // helperText={errors.purchase_unit_price?.message}
                 />
@@ -546,6 +611,99 @@ const ExistingPurchaseForm = props => {
               <FormHelperText sx={{ color: 'error.main' }}>{errors?.purchase_qty?.message}</FormHelperText>
             )}
           </FormControl>
+        </Grid>
+        <Grid item xs={12} sm={6}>
+          <FormControl fullWidth>
+            <InputLabel error={Boolean(errors.purchase_variant_id)}>Product Variant*</InputLabel>
+            <Controller
+              name='purchase_variant_id'
+              control={control}
+              rules={{ required: true }}
+              render={({ field: { onChange, value, ...rest } }) => (
+                <Select
+                  {...rest}
+                  disabled={watch('isVariantIdPresent') === true || nestedRowMedicine?.id ? true : false}
+                  value={value}
+                  onChange={(e, val) => {
+                    setValue('purchase_variant_ratio', Number(val?.props?.children))
+                    console.log('variant ratio', Number(val?.props?.children))
+                    const purchaseQty = watch('purchase_qty')
+
+                    const totalUnitQty = purchaseQty
+                      ? purchaseQty * Number(val?.props?.children)
+                      : Number(val?.props?.children) * 1
+                    setValue('purchase_unit_qty', totalUnitQty)
+
+                    // setValue('purchase_qty', '')
+                    onChange(e)
+                  }}
+                  label='Product Variant*'
+                  error={Boolean(errors.purchase_variant_id)}
+                >
+                  {productVariantOptions?.length > 0 ? (
+                    productVariantOptions?.map((item, index) => (
+                      <MenuItem key={index} value={item.value}>
+                        {item?.label}
+                      </MenuItem>
+                    ))
+                  ) : (
+                    <MenuItem>No Options</MenuItem>
+                  )}
+                </Select>
+              )}
+            />
+            {errors?.purchase_variant_id && <FormHelperText error>{errors.purchase_variant_id.message}</FormHelperText>}
+          </FormControl>
+        </Grid>
+        <Grid item xs={12} sm={6}>
+          <Box
+            sx={{
+              width: '100%',
+              height: '100%',
+              backgroundColor: 'customColors.neutral05',
+              display: 'flex',
+              justifyContent: 'start',
+              alignItems: 'center',
+              px: '16px',
+              borderRadius: '8px',
+              height: '56px'
+            }}
+          >
+            {/* <Controller
+                      name='purchase_unit_qty'
+                      control={control}
+                      render={({ field }) => (
+                        <TextField
+                          disabled={true}
+                          {...field}
+                          value={field.value === 0 ? '' : field.value}
+                          label='Purchase Unit Quantity*'
+                          onKeyUp={e => {
+                            calculateStuff()
+                          }}
+                          error={Boolean(errors.purchase_unit_qty)}
+
+                          // helperText={errors.purchase_unit_price?.message}
+                        />
+                      )}
+                    />
+                    {errors.purchase_unit_qty && (
+                      <FormHelperText sx={{ color: 'error.main' }}>{errors?.purchase_unit_qty?.message}</FormHelperText>
+                    )} */}
+            <Typography
+              sx={{
+                fontSize: '14px',
+                fontWeight: 500,
+                color: 'customColors.neutralPrimary',
+                mb: 0.5
+              }}
+            >
+              Total Quantity-
+              {productVariantOptions?.length > 0 && watch('purchase_variant_ratio')
+                ? watch('purchase_unit_qty')
+                : watch('purchase_qty')}
+            </Typography>
+          </Box>
         </Grid>
 
         {/* // file uploader */}

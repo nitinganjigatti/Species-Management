@@ -1,4 +1,10 @@
-import { SHIPMENT, DISPUTE_ITEM, DENIED_COMMENTS, DISPENSE_ITEM } from '../../../constants/ApiConstant'
+import {
+  SHIPMENT,
+  DISPUTE_ITEM,
+  DENIED_COMMENTS,
+  DISPENSE_ITEM,
+  PHARMACY_BASE_URL
+} from '../../../constants/ApiConstant'
 import { axiosGet, axiosPost } from '../utility'
 
 export async function getShipmentList() {
@@ -9,6 +15,16 @@ export async function getShipmentList() {
 
 export async function getShipmentOrderDetails(id) {
   const response = await axiosGet({ url: `${SHIPMENT}/shipped/${id}`, pharmacy: true })
+
+  return response.data
+}
+
+// new api added for oder receive form for normal request
+export async function getShipmentOrderDetailsOfRequests(shipmentId, requestId) {
+  const response = await axiosGet({
+    url: `${PHARMACY_BASE_URL}${SHIPMENT}/shipped/${shipmentId}/${requestId}`,
+    pharmacy: true
+  })
 
   return response.data
 }
@@ -27,7 +43,7 @@ export async function getDisputeItemById(id) {
 
 export async function addDisputeItems(payload) {
   try {
-    const url = `${DISPUTE_ITEM}`
+    const url = `v2/${DISPUTE_ITEM}`
     var data = payload
 
     const response = await axiosPost({ url, body: data, pharmacy: true })
@@ -48,7 +64,7 @@ export async function addDisputeItems(payload) {
 
 export async function upDateDisputeItems(id, payload) {
   try {
-    const url = `${DISPUTE_ITEM}/${id}/update`
+    const url = `v2/${DISPUTE_ITEM}/${id}/update`
     var data = payload
     data.id = id
 
@@ -91,7 +107,7 @@ export async function addDispenseItems(payload) {
 
 export async function resolveDisputeItems(payload) {
   try {
-    const url = `${DISPUTE_ITEM}/resolve`
+    const url = `v2/${DISPUTE_ITEM}/resolve`
     var data = payload
 
     const response = await axiosPost({ url, body: data, pharmacy: true })

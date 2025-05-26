@@ -1,14 +1,10 @@
-import { Avatar, Button, Card, CardContent, CardHeader, Grid, Tooltip, Typography } from '@mui/material'
+import React from 'react'
+import { Avatar, Card, CardContent, CardHeader, Grid, Tooltip, Typography } from '@mui/material'
 import { Box } from '@mui/system'
 import { useTheme } from '@mui/material/styles'
-import React from 'react'
 
 const AnimalDetails = ({ eggDetails }) => {
-  const headerAction = (
-    <Typography sx={{ color: '#00AFD6', fontSize: '14px', lineHeight: '16.94px', fontWeight: 600, mr: 1 }}>
-      De-link
-    </Typography>
-  )
+  const theme = useTheme()
 
   const animalData = [
     { key: 'Animal Id', value: eggDetails?.animal_data?.animal_id },
@@ -17,16 +13,29 @@ const AnimalDetails = ({ eggDetails }) => {
     { key: 'Enclosure', value: eggDetails?.animal_data?.user_enclosure_name }
   ]
 
-  const theme = useTheme()
+  const headerAction = (
+    <Typography
+      sx={{
+        color: theme.palette.customColors.addPrimary,
+        fontSize: '14px',
+        lineHeight: '16.94px',
+        fontWeight: 600,
+        mr: 1
+      }}
+    >
+      De-link
+    </Typography>
+  )
+
   return (
-    <Card sx={{ backgroundColor: '#fff' }}>
+    <Card sx={{ backgroundColor: theme.palette.primary.contrastText }}>
       <CardHeader
         sx={{ pb: 0 }}
         title={'Animal Details'}
         // action={headerAction}
       />
       <CardContent sx={{ pt: 2 }}>
-        <Box sx={{ backgroundColor: '#EFF5F2', borderRadius: '8px', py: '14px', px: '16px' }}>
+        <Box sx={{ backgroundColor: theme.palette.customColors.lightBg, borderRadius: '8px', py: '14px', px: '16px' }}>
           <Grid spacing={2} sx={{ rowGap: 4, alignItems: 'center' }} container>
             <Grid xs={12} sm={6} md={4} xl={3} item>
               <Box sx={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
@@ -42,7 +51,7 @@ const AnimalDetails = ({ eggDetails }) => {
                     width: 35,
                     height: 35,
                     borderRadius: '50%',
-                    background: '#E8F4F2',
+                    background: theme.palette.customColors.displaybgPrimary,
                     overflow: 'hidden'
                   }}
                 />
@@ -56,14 +65,14 @@ const AnimalDetails = ({ eggDetails }) => {
                       lineHeight: '19.36px',
                       overflow: 'hidden',
                       textOverflow: 'ellipsis',
-                      whiteSpace: 'nowrap',
-                      whiteSpace: 'normal', // Change this to allow wrapping
+                      // whiteSpace: 'nowrap',
+                      // whiteSpace: 'normal', // Change this to allow wrapping
                       wordWrap: 'break-word',
                       wordBreak: 'break-word', // Change this to 'break-word'
                       width: '100%'
                     }}
                   >
-                    {eggDetails?.animal_data?.common_name || '-'}
+                    {eggDetails?.animal_data?.common_name || '-'} sb sdsdnja dha s
                   </Typography>
                   <Typography
                     sx={{
@@ -81,6 +90,26 @@ const AnimalDetails = ({ eggDetails }) => {
                     }}
                   >
                     {eggDetails?.animal_data?.scientific_name || '-'}
+                  </Typography>
+                  <Typography
+                    sx={{
+                      color: theme.palette.primary.light,
+                      fontSize: '14px',
+                      fontWeight: '400',
+                      lineHeight: '16.94px',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis',
+                      whiteSpace: 'nowrap',
+                      whiteSpace: 'normal', // Change this to allow wrapping
+                      wordWrap: 'break-word',
+                      wordBreak: 'break-word', // Change this to 'break-word'
+                      width: '100%'
+                    }}
+                  >
+                    {(eggDetails?.animal_data?.local_identifier_name &&
+                      eggDetails?.animal_data?.local_identifier_value &&
+                      `${eggDetails?.animal_data?.local_identifier_name}:${eggDetails?.animal_data?.local_identifier_value}`) ||
+                      '-'}
                   </Typography>
                 </Box>
               </Box>

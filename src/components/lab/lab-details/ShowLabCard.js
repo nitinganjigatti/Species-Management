@@ -2,11 +2,13 @@ import { Icon } from '@iconify/react'
 import { Avatar, Box, Card, IconButton, Stack, Typography } from '@mui/material'
 import React from 'react'
 import { useRouter } from 'next/navigation'
+import { useTheme } from '@mui/material/styles'
 
 const ShowLabCard = ({ data }) => {
   const router = useRouter()
+  const theme = useTheme()
 
-  console.log('data?.image', data)
+  // console.log('data?.image', data)
 
   // console.log('process.env.NEXT_PUBLIC_BASE_URL', process.env.NEXT_PUBLIC_BASE_URL + 'uploads/')
 
@@ -42,7 +44,7 @@ const ShowLabCard = ({ data }) => {
                 height: '100%'
               }}
               variant='square'
-              src={data?.image === process.env.NEXT_PUBLIC_BASE_URL + 'uploads/' ? '/images/med-lab.png' : data?.image}
+              src={data?.image === null ? '/images/Lab1.png' : data?.image}
             />
           </Box>
         </Box>

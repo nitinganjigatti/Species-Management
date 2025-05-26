@@ -52,6 +52,7 @@ import ExistingPurchaseForm from 'src/views/pages/pharmacy/purchase/purchaseItem
 import AddSupplier from 'src/pages/pharmacy/masters/supplier/add-supplier'
 import { AuthContext } from 'src/context/AuthContext'
 import { useContext } from 'react'
+import { getVariantFOrProduct } from 'src/lib/api/pharmacy/variant'
 
 const CalcWrapper = styled(Box)(({ theme }) => ({
   display: 'flex',
@@ -99,7 +100,11 @@ const initialNestedRowMedicine = {
   purchase_sgst_amount: 0,
   purchase_igst_amount: 0,
   package_details: '',
-  manufacturer: ''
+  manufacturer: '',
+  purchase_variant_id: '',
+  purchase_unit_qty: '',
+  purchase_variant_ratio: '',
+  isVariantIdPresent: false
 }
 
 const CustomInput = forwardRef(({ ...props }, ref) => {
@@ -130,6 +135,7 @@ const AddExistingPurchase = () => {
   const [nestedRowMedicine, setNestedRowMedicine] = useState(initialNestedRowMedicine)
 
   const [supplierDialog, setSupplierDialog] = useState(false)
+  const [productVariantOptions, setProductVariantOptions] = useState([])
 
   const router = useRouter()
   const { id, action } = router.query
@@ -171,6 +177,7 @@ const AddExistingPurchase = () => {
     setItemErrors({})
     setDuplicateMedError('')
     setOptionsMedicineList([])
+    setProductVariantOptions([])
   }
 
   const showDialog = () => {
@@ -387,7 +394,7 @@ const AddExistingPurchase = () => {
       toast.success(response.message)
       setEditParams(editParamsInitialState)
       setSubmitLoader(false)
-      Router.push('/pharmacy/purchase/purchase-list/')
+      Router.push('/pharmacy/purchase/')
     } else {
       setSubmitLoader(false)
       if (response.data?.po_no) {
@@ -442,6 +449,22 @@ const AddExistingPurchase = () => {
     }
   }
 
+  const getProductVariantByproductId = async productId => {
+    const productVariant = await getVariantFOrProduct(productId)
+    if (productVariant?.success && productVariant?.data?.length > 0) {
+      const data = productVariant?.data?.map(el => {
+        return {
+          value: Number(el?.variant_id),
+          label: el?.unit_multiplier,
+          description: el?.description,
+          is_default: el?.is_default
+          // variantId: el?.variant_id
+        }
+      })
+      // console.log('data', data)
+      setProductVariantOptions(data)
+    }
+  }
   useEffect(() => {
     getStoresLists()
     getSuppliersLists()
@@ -486,13 +509,18 @@ const AddExistingPurchase = () => {
       if (response.success && response.data !== null) {
         setNestedRowMedicine(prevState => ({
           ...prevState,
-          purchase_expiry_date: response.data.expiry_date
+          purchase_expiry_date: response.data.expiry_date,
+          purchase_variant_id: response?.data?.variant_id,
+          purchase_variant_ratio: response?.data?.multiplier,
+          isVariantIdPresent: response?.data?.variant_id && response?.data?.multiplier ? true : false
         }))
         setProductExpiryDate(response.data.expiry_date)
       } else {
         setNestedRowMedicine(prevState => ({
           ...prevState,
-          purchase_expiry_date: ''
+          purchase_expiry_date: '',
+          purchase_variant_id: '',
+          purchase_variant_ratio: ''
         }))
         setProductExpiryDate('')
       }
@@ -590,6 +618,7 @@ const AddExistingPurchase = () => {
           manufacture: getItems[0]?.manufacture
         }
       ])
+      getProductVariantByproductId(getItems[0]?.purchase_stock_item_id)
 
       setNestedRowMedicine({
         ...nestedRowMedicine,
@@ -619,7 +648,11 @@ const AddExistingPurchase = () => {
         purchase_net_amount: getItems[0].purchase_net_amount,
         purchase_purchase_price: getItems[0].purchase_purchase_price,
         package_details: getItems[0]?.package_details,
-        manufacture: getItems[0]?.manufacture
+        manufacture: getItems[0]?.manufacture,
+        purchase_variant_id: getItems[0]?.purchase_variant_id,
+        purchase_unit_qty: getItems[0]?.purchase_unit_qty,
+        purchase_variant_ratio: getItems[0]?.purchase_variant_ratio,
+        isVariantIdPresent: getItems[0]?.isVariantIdPresent
 
         // purchase_gst_type: getItems[0].purchase_gst_type,
         // purchase_tax_amount: getItems[0].purchase_tax_amount
@@ -638,6 +671,7 @@ const AddExistingPurchase = () => {
           manufacture: getItems[0]?.manufacture
         }
       ])
+      getProductVariantByproductId(getItems[0]?.purchase_stock_item_id)
 
       setNestedRowMedicine({
         ...nestedRowMedicine,
@@ -666,7 +700,11 @@ const AddExistingPurchase = () => {
         purchase_net_amount: getItems[0].purchase_net_amount,
         purchase_purchase_price: getItems[0].purchase_purchase_price,
         package_details: getItems[0]?.package_details,
-        manufacture: getItems[0]?.manufacture
+        manufacture: getItems[0]?.manufacture,
+        purchase_variant_id: getItems[0]?.purchase_variant_id,
+        purchase_unit_qty: getItems[0]?.purchase_unit_qty,
+        purchase_variant_ratio: getItems[0]?.purchase_variant_ratio,
+        isVariantIdPresent: getItems[0]?.isVariantIdPresent
       })
     }
   }
@@ -695,7 +733,7 @@ const AddExistingPurchase = () => {
         toast.success(response.message)
         setSubmitLoader(false)
         // getListOfItemsById(id)
-        Router.push('/pharmacy/purchase/purchase-list/')
+        Router.push('/pharmacy/purchase/')
       } else {
         setSubmitLoader(false)
         toast.error(response.message)
@@ -706,7 +744,7 @@ const AddExistingPurchase = () => {
         toast.success(response.message)
         setEditParams(editParamsInitialState)
         setSubmitLoader(false)
-        Router.push('/pharmacy/purchase/purchase-list/')
+        Router.push('/pharmacy/purchase/')
       } else {
         setSubmitLoader(false)
         if (response.data?.po_no) {
@@ -734,6 +772,9 @@ const AddExistingPurchase = () => {
           checkMedicineExpiryDate={checkMedicineExpiryDate}
           productExpiryDate={productExpiryDate}
           expiryDateLoader={expiryDateLoader}
+          getProductVariantByproductId={getProductVariantByproductId}
+          productVariantOptions={productVariantOptions}
+          setProductVariantOptions={setProductVariantOptions}
         ></ExistingPurchaseForm>
       </CardContent>
     )
@@ -933,7 +974,7 @@ const AddExistingPurchase = () => {
                       type='text'
                       name='requested_by'
                       disabled={id ? true : false}
-                      error={Boolean(errors.po_no)}
+                      // error={Boolean(errors.po_no)}
                       label='Requested by'
                     />
                   )}

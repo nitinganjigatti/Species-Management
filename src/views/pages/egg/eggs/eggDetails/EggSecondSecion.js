@@ -1,3 +1,4 @@
+import React, { useCallback, useEffect, useState } from 'react'
 import {
   Avatar,
   Button,
@@ -12,53 +13,36 @@ import {
   IconButton,
   TextField,
   Tooltip,
-  Typography
+  Typography,
+  Paper,
+  Table,
+  TableRow,
+  TableHead,
+  TableBody,
+  TableCell,
+  TableContainer
 } from '@mui/material'
 import { Box } from '@mui/system'
-import React, { useCallback, useEffect, useState } from 'react'
-import { useTheme } from '@mui/material/styles'
-import Icon from 'src/@core/components/icon'
-import Paper from '@mui/material/Paper'
-import Table from '@mui/material/Table'
-import TableRow from '@mui/material/TableRow'
-import TableHead from '@mui/material/TableHead'
-import TableBody from '@mui/material/TableBody'
-import TableCell from '@mui/material/TableCell'
-import TableContainer from '@mui/material/TableContainer'
-import { styled } from '@mui/material/styles'
-import Styles from '../../../../../pages/egg/incubators/dot.module.css'
-import moment from 'moment'
 import { DataGrid } from '@mui/x-data-grid'
-import * as yup from 'yup'
-
-import ServerSideToolbarWithFilter from 'src/views/table/data-grid/ServerSideToolbarWithFilter'
+import { useTheme } from '@mui/material/styles'
+import { styled } from '@mui/material/styles'
 import { LoadingButton } from '@mui/lab'
+
+import moment from 'moment'
+import * as yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
 import { Controller, useForm } from 'react-hook-form'
-import { AddAssesment, EditAssesment, getWeightList } from 'src/lib/api/egg/egg'
-import EggActivityLogs from './EggActivityLogs'
+
 import Utility from 'src/utility'
+import Icon from 'src/@core/components/icon'
+import ReactApexcharts from 'src/@core/components/react-apexcharts'
+import ServerSideToolbarWithFilter from 'src/views/table/data-grid/ServerSideToolbarWithFilter'
+
+import { AddAssesment, EditAssesment, getWeightList } from 'src/lib/api/egg/egg'
+
+import EggActivityLogs from './EggActivityLogs'
 import ProbableParent from './ProbableParent'
 import TransferEgg from './TransferEgg'
-import ReactApexcharts from 'src/@core/components/react-apexcharts'
-
-const CustomTableContainer = styled(TableContainer)({
-  '::-webkit-scrollbar': {
-    width: '4px',
-    height: '10px'
-  },
-  '::-webkit-scrollbar-track': {
-    // background: '#f1f1f1'
-    background: 'transparent'
-  },
-  '::-webkit-scrollbar-thumb': {
-    background: '#839D8D',
-    borderRadius: '10px'
-  },
-  '::-webkit-scrollbar-thumb:hover': {
-    background: '#555'
-  }
-})
 
 const EggSecondSecion = ({
   activtyLogData,
@@ -70,17 +54,50 @@ const EggSecondSecion = ({
   defaultEggAssesment,
   getDetails
 }) => {
+  const theme = useTheme()
   const currentDate = moment().format('YYYY-MM-DD')
+  const CustomTableContainer = styled(TableContainer)({
+    '::-webkit-scrollbar': {
+      width: '4px',
+      height: '10px'
+    },
+    '::-webkit-scrollbar-track': {
+      background: 'transparent'
+    },
+    '::-webkit-scrollbar-thumb': {
+      background: theme.palette.customColors.Outline,
+      borderRadius: '10px'
+    },
+    '::-webkit-scrollbar-thumb:hover': {
+      background: theme.palette.customColors.neutralSecondary
+    }
+  })
+
+  // ** States
+  const [transferEggSideBar, setTransferEggSideBar] = useState(false)
+  const [probableParentSideBar, setProbableParentSideBar] = useState(false)
+  const [activtyLogSideBar, setActivtyLogSideBar] = useState(false)
+
+  const [addWeightSidebar, setaddWeightSidebar] = useState(false)
+  const [editWeight, setEditWeight] = useState(false)
+  const [allWeightSidebarOpen, setAllWeightSidebarOpen] = useState(false)
+
+  const [parent, setParent] = useState('')
+  const [parentList, setParentList] = useState([])
+
+  const [rows, setRows] = useState([])
+  const [rowsWeight, setRowsWeight] = useState([])
+  const [total, setTotal] = useState(0)
+  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
+  const [loading, setLoading] = useState(false)
+  const [submitAssementloader, setSubmitAssementloader] = useState(false)
+
   const historyData = {
     history1: {
       Site: eggDetails?.site_name,
       Section: eggDetails?.enclosure_data?.length && eggDetails?.enclosure_data[0]?.section_name,
       Enclosure: eggDetails?.enclosure_data?.length && eggDetails?.enclosure_data[0]?.user_enclosure_name, // taken from h2
       'Clutch No': eggDetails?.clutch_number ? eggDetails?.clutch_number : '-'
-
-      // Cage: 'C112',
-      // 'Nest Box': 'N123',
-      // Shape: 'Normal'
     },
     history2: {
       'Mother id':
@@ -105,12 +122,9 @@ const EggSecondSecion = ({
       'Collected on': Utility.formatDisplayDate(Utility.convertUTCToLocal(eggDetails?.collection_date)),
       'Lay Date': eggDetails?.lay_date
         ? Utility.formatDisplayDate(Utility.convertUTCToLocal(eggDetails?.lay_date))
-        : 'NA (Not Applicable)'
-
-      // 'Collected By': 'Jordan Steveson'
+        : 'NA'
     }
   }
-  const theme = useTheme()
 
   const headerAction = (
     <Icon
@@ -123,131 +137,73 @@ const EggSecondSecion = ({
 
   const weightHeaderAction = (
     <>
-      <Button
-        onClick={() => setaddWeightSidebar(true)}
-        sx={{ fontWeight: 500, fontSize: '14px', lineHeight: '24px' }}
-        startIcon={<Icon icon='mdi:add' fontSize={20} />}
-      >
-        ADD NEW
-      </Button>
+      {!(eggDetails?.egg_status === 'Discard') && (
+        <Button
+          onClick={() => setaddWeightSidebar(true)}
+          sx={{ fontWeight: 500, fontSize: '14px', lineHeight: '24px' }}
+          startIcon={<Icon icon='mdi:add' fontSize={20} />}
+        >
+          ADD NEW
+        </Button>
+      )}
     </>
   )
 
-  // ** States
-  const [sidebarOpen, setSidebarOpen] = useState(false)
-  const [addWeightSidebar, setaddWeightSidebar] = useState(false)
-  const [activtyLogSideBar, setActivtyLogSideBar] = useState(false)
-  const [probableParentSideBar, setProbableParentSideBar] = useState(false)
-  const [transferEggSideBar, setTransferEggSideBar] = useState(false)
-  const [parent, setParent] = useState('')
-  const [parentList, setParentList] = useState([])
-  const [editWeight, setEditWeight] = useState(false)
-
-  //////////////////////////////////////////////////////////////
-  const [rows, setRows] = useState([])
-  const [rowsWeight, setRowsWeight] = useState([])
-  const [total, setTotal] = useState(0)
-  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
-  const [loading, setLoading] = useState(false)
-  const [btnDisabled, setBtnDisabled] = useState(true)
-  const [submitAssementloader, setSubmitAssementloader] = useState(false)
-
-  const defaultValues = {
-    egg_id: egg_id,
-    assessment_id: '',
-    assessment_type_id: defaultEggAssesment?.assessment_type_id,
-    measurement_unit_id: defaultEggAssesment?.unit_id,
-    assessment_value: ''
-  }
-
-  const schema = yup.object().shape({
-    assessment_value: yup.number().required('Assessment value is required')
-  })
-
-  const {
-    reset,
-    control,
-    setValue,
-    setError,
-    watch,
-    getValues,
-    clearErrors,
-    handleSubmit,
-    formState: { errors }
-  } = useForm({
-    defaultValues,
-    resolver: yupResolver(schema),
-    shouldUnregister: false,
-    mode: 'onBlur',
-    reValidateMode: 'onChange'
-  })
-
-  const onSubmit = val => {
-    const params = {
-      egg_id: egg_id,
-      assessment_type_id: defaultEggAssesment?.assessment_type_id,
-      measurement_unit_id: defaultEggAssesment?.unit_id,
-      assessment_value: val?.assessment_value
+  const series = [
+    {
+      name: 'Actual Value',
+      data: rowsWeight
     }
-    const paramsEdit = {
-      ref_id: val?.assessment_id,
-      measurement_unit_id: defaultEggAssesment?.unit_id,
-      assessment_value: val?.assessment_value,
-      assessment_date: currentDate
-    }
-    setSubmitAssementloader(true)
+  ]
 
-    if (editWeight) {
-      try {
-        EditAssesment(paramsEdit).then(res => {
-          if (res.success) {
-            reset()
-            setaddWeightSidebar(false)
-            setBtnDisabled(false)
-            setEditWeight(false)
-            setValue('assessment_id', '')
-            setSubmitAssementloader(false)
-            getDetails(egg_id)
-            fetchTableData()
-          } else {
-            setSubmitAssementloader(false)
-          }
-        })
-      } catch (error) {
-        console.log(error)
+  const options = {
+    chart: {
+      type: 'line',
+      height: 350,
+      toolbar: {
+        show: false
       }
-    } else {
-      try {
-        AddAssesment(params).then(res => {
-          if (res.success) {
-            reset()
-            setaddWeightSidebar(false)
-            setBtnDisabled(false)
-            setSubmitAssementloader(false)
-            getDetails(egg_id)
-            fetchTableData()
-          } else {
-            setSubmitAssementloader(false)
-          }
-        })
-      } catch (error) {
-        console.log(error)
+    },
+    stroke: {
+      curve: 'smooth',
+      width: 2
+    },
+    markers: {
+      size: 4,
+      hover: {
+        sizeOffset: 2
       }
-    }
-
-    // }
-  }
-
-  const onError = errors => {
-    // console.log('Form errros', errors)
+    },
+    tooltip: {
+      shared: true,
+      intersect: false,
+      y: {
+        formatter: val => `${val}g`
+      }
+    },
+    xaxis: {
+      categories: Array.from({ length: 21 }, (_, i) => i + 1),
+      title: {
+        text: 'Days'
+      }
+    },
+    yaxis: {
+      title: {
+        text: 'Weight (g)'
+      }
+    },
+    legend: {
+      position: 'top',
+      horizontalAlign: 'center'
+    },
+    colors: [theme.palette.primary.main] // Colors for the lines (green and blue)
   }
 
   const columns = [
     {
-      flex: 0.1,
-      Width: 40,
+      width: 70,
       field: 'id',
-      headerName: 'NO ',
+      headerName: 'SL.NO',
       sortable: false,
       renderCell: params => (
         <Typography
@@ -280,7 +236,6 @@ const EggSecondSecion = ({
           }}
         >
           {Utility.formatDisplayDate(Utility.convertUTCToLocal(params.row.created_at))}
-          {/* {moment(moment.utc(params.row.created_at).toDate().toLocaleString()).format('DD MMM YYYY')} */}
         </Typography>
       )
     },
@@ -301,8 +256,6 @@ const EggSecondSecion = ({
           }}
         >
           {Utility?.extractHoursAndMinutes(Utility.convertUTCToLocal(params?.row?.created_at))}
-          {/* {moment(params?.row?.created_at).format('hh : mm A')} */}
-          {/* {moment(moment.utc(params?.row?.created_at).toDate().toLocaleString()).format('hh : mm A')} */}
         </Typography>
       )
     },
@@ -328,9 +281,96 @@ const EggSecondSecion = ({
     }
   ]
 
+  const defaultValues = {
+    egg_id: egg_id,
+    assessment_id: '',
+    assessment_type_id: defaultEggAssesment?.assessment_type_id,
+    measurement_unit_id: defaultEggAssesment?.unit_id,
+    assessment_value: ''
+  }
+
+  const schema = yup.object().shape({
+    assessment_value: yup.number().required('Assessment value is required')
+  })
+
+  const {
+    reset,
+    control,
+    setValue,
+    setError,
+    watch,
+    getValues,
+    clearErrors,
+    handleSubmit,
+    formState: { errors }
+  } = useForm({
+    defaultValues,
+    resolver: yupResolver(schema),
+    shouldUnregister: false,
+    mode: 'onBlur',
+    reValidateMode: 'onChange'
+  })
+
+  const onError = errors => {
+    // console.log('Form errros', errors)
+  }
+
+  const onSubmit = val => {
+    const params = {
+      egg_id: egg_id,
+      assessment_type_id: defaultEggAssesment?.assessment_type_id,
+      measurement_unit_id: defaultEggAssesment?.unit_id,
+      assessment_value: val?.assessment_value
+    }
+
+    const paramsEdit = {
+      ref_id: val?.assessment_id,
+      measurement_unit_id: defaultEggAssesment?.unit_id,
+      assessment_value: val?.assessment_value,
+      assessment_date: currentDate
+    }
+    setSubmitAssementloader(true)
+
+    if (editWeight) {
+      try {
+        EditAssesment(paramsEdit).then(res => {
+          if (res.success) {
+            reset()
+            setaddWeightSidebar(false)
+            setEditWeight(false)
+            setValue('assessment_id', '')
+            setSubmitAssementloader(false)
+            getDetails(egg_id)
+            fetchTableData()
+          } else {
+            setSubmitAssementloader(false)
+          }
+        })
+      } catch (error) {
+        console.log(error)
+      }
+    } else {
+      try {
+        AddAssesment(params).then(res => {
+          if (res.success) {
+            reset()
+            setaddWeightSidebar(false)
+            setSubmitAssementloader(false)
+            getDetails(egg_id)
+            fetchTableData()
+          } else {
+            setSubmitAssementloader(false)
+          }
+        })
+      } catch (error) {
+        console.log(error)
+      }
+    }
+  }
+
   const handleSidebarClose = () => {
     setEditWeight(false)
-    setSidebarOpen(false)
+    setAllWeightSidebarOpen(false)
   }
 
   function loadServerRows(currentPage, data) {
@@ -344,19 +384,12 @@ const EggSecondSecion = ({
     sl_no: getSlNo(index)
   }))
 
-  const handleChange = (event, newValue) => {
-    setTotal(0)
-    setPaginationModel({ page: 0, pageSize: 10 })
-    setStatus(newValue)
-  }
-
   const fetchTableData = useCallback(async () => {
     try {
       setLoading(true)
 
       const params = {
         page_no: paginationModel.page + 1,
-
         limit: paginationModel.pageSize,
         type: 'weight',
         egg_id
@@ -367,12 +400,13 @@ const EggSecondSecion = ({
           let listWithId = res.data?.result.map((el, i) => {
             return { ...el, uid: i + 1 }
           })
+
           let rowWeights = res.data?.result.map((el, i) => {
             return el?.assessment_value
           })
           setTotal(parseInt(res?.data?.total_count))
           setRows(loadServerRows(paginationModel.page, listWithId))
-          setRowsWeight(rowWeights)
+          setRowsWeight(rowWeights.reverse())
         } else {
           console.log('res', res.message)
         }
@@ -382,70 +416,189 @@ const EggSecondSecion = ({
       setLoading(false)
     }
   }, [paginationModel])
+
   useEffect(() => {
     fetchTableData()
   }, [fetchTableData])
 
-  const series = [
-    {
-      name: 'Actual Value',
-      data: rowsWeight
-    }
-  ]
+  // internal used components
+  const ViewAllWeightSideBar = () => (
+    <Drawer
+      anchor='right'
+      open={allWeightSidebarOpen}
+      ModalProps={{ keepMounted: true }}
+      sx={{ '& .MuiDrawer-paper': { width: ['100%', 600] }, height: '100vh' }}
+    >
+      <Box sx={{ height: '0px', zIndex: 12 }}>
+        <Box
+          className='sidebar-header'
+          sx={{
+            display: 'flex',
+            width: '100%',
+            justifyContent: 'space-between',
+            backgroundColor: 'background.default',
+            p: theme => theme.spacing(3, 3.255, 3, 5.255),
+            paddingX: 2
+          }}
+        >
+          <Box></Box>
+          <Typography variant='h6'>Weight (Grams)</Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+            <IconButton
+              size='small'
+              onClick={() => {
+                handleSidebarClose()
+              }}
+              sx={{ color: 'text.primary' }}
+            >
+              <Icon icon='mdi:close' fontSize={20} />
+            </IconButton>
+          </Box>
+        </Box>
+      </Box>
+      <Box sx={{ px: 4, py: 2 }}>
+        <DataGrid
+          sx={{
+            '.MuiDataGrid-cell:focus': {
+              outline: 'none'
+            },
+            '& .MuiDataGrid-row:hover': {
+              cursor: 'pointer'
+            }
+          }}
+          columnVisibilityModel={{
+            sl_no: false
+          }}
+          hideFooterSelectedRowCount
+          disableColumnSelector={true}
+          autoHeight
+          pagination
+          rows={indexedRows === undefined ? [] : indexedRows}
+          rowCount={total}
+          columns={columns}
+          sortingMode='server'
+          paginationMode='server'
+          pageSizeOptions={[7, 10, 25, 50]}
+          paginationModel={paginationModel}
+          // onSortModelChange={handleSortModel}
+          slots={{ toolbar: ServerSideToolbarWithFilter }}
+          onPaginationModelChange={setPaginationModel}
+          loading={loading}
+          slotProps={{
+            baseButton: {
+              variant: 'outlined'
+            },
+            toolbar: {}
+          }}
+        />
+      </Box>
+    </Drawer>
+  )
 
-  const options = {
-    chart: {
-      type: 'line',
-      height: 350,
-      toolbar: {
-        show: false
-      }
-    },
-    // title: {
-    //   text: 'Egg Weight',
-    //   align: 'left',
-    //   style: {
-    //     fontSize: '16px',
-    //     fontWeight: 'bold',
-    //     color: '#333'
-    //   }
-    // },
-    stroke: {
-      curve: 'smooth',
-      width: 2
-    },
-    markers: {
-      size: 4,
-      hover: {
-        sizeOffset: 2
-      }
-    },
-    tooltip: {
-      shared: true,
-      intersect: false,
-      y: {
-        formatter: val => `${val}g`
-      }
-    },
-    xaxis: {
-      categories: Array.from({ length: 21 }, (_, i) => i + 1),
-      title: {
-        text: 'Days'
-      }
-    },
-    yaxis: {
-      title: {
-        text: 'Weight (g)'
-      }
-      // min: 100
-      // max: 300
-    },
-    legend: {
-      position: 'top',
-      horizontalAlign: 'center'
-    },
-    colors: ['#00E396', '#008FFB'] // Colors for the lines (green and blue)
-  }
+  const AddWeightSideBar = () => (
+    <Drawer
+      anchor='right'
+      open={addWeightSidebar}
+      sx={{ '& .MuiDrawer-paper': { width: ['100%', 500], height: '100vh' } }}
+    >
+      <Box sx={{ height: '100%', backgroundColor: 'background.default' }}>
+        <Box
+          className='sidebar-header'
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+
+            justifyContent: 'space-between',
+            backgroundColor: 'background.default',
+            p: theme => theme.spacing(3, 3.255, 3, 5.255)
+          }}
+        >
+          <Box sx={{ mt: 2 }}>
+            <img src='/icons/activity_icon.png' alt='Grocery Icon' width='30px' />
+          </Box>
+          <Typography variant='h6' sx={{ mr: 70 }}>
+            {editWeight ? 'Edit' : 'Add'} Weight
+          </Typography>
+          <Box sx={{ display: 'flex', alignItems: 'center' }}>
+            <IconButton
+              size='small'
+              sx={{ color: 'text.primary' }}
+              onClick={() => {
+                setaddWeightSidebar(false)
+                reset()
+              }}
+            >
+              <Icon icon='mdi:close' fontSize={20} />
+            </IconButton>
+          </Box>
+        </Box>
+
+        <Box className='sidebar-body'>
+          <form onSubmit={handleSubmit(onSubmit, onError)}>
+            <Box sx={{ px: 4, backgroundColor: 'background.default' }}>
+              <Card fullWidth sx={{ mt: 3 }}>
+                <CardContent>
+                  <Box sx={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                    <FormControl fullWidth>
+                      <Controller
+                        name='assessment_value'
+                        control={control}
+                        rules={{ required: true }}
+                        render={({ field: { value, onChange } }) => (
+                          <TextField
+                            label='Weight in Grams'
+                            value={value}
+                            autoFocus
+                            inputProps={{ min: 1 }}
+                            onChange={event => {
+                              const newValue = event.target.value
+                              // Validate the input to ensure it contains only numbers
+                              if (/^[1-9]\d*$/.test(newValue) || newValue === '') {
+                                onChange(event)
+                              }
+                            }}
+                            placeholder={`${editWeight ? 'Edit' : 'Add'} Weight`}
+                            error={Boolean(errors.assessment_value)}
+                            name='assessment_value'
+                          />
+                        )}
+                      />
+                      {errors.assessment_value && (
+                        <FormHelperText sx={{ color: 'error.main' }}>Assessment value is Required</FormHelperText>
+                      )}
+                    </FormControl>
+                  </Box>
+                </CardContent>
+              </Card>
+            </Box>
+            <Box
+              sx={{
+                position: 'fixed',
+                bottom: 0,
+                height: '80px',
+                backgroundColor: theme.palette.primary.contrastText,
+                width: '500px',
+                px: 4,
+                display: 'flex',
+                alignItems: 'center'
+              }}
+            >
+              <LoadingButton
+                fullWidth
+                variant='contained'
+                type='submit'
+                loading={submitAssementloader}
+                disabled={errors.assessment_value || submitAssementloader}
+                sx={{ height: '50px' }}
+              >
+                Submit
+              </LoadingButton>
+            </Box>
+          </form>
+        </Box>
+      </Box>
+    </Drawer>
+  )
 
   return (
     <Grid justifyContent='space-between' container alignItems='stretch' spacing={6}>
@@ -458,6 +611,7 @@ const EggSecondSecion = ({
                   display: 'flex',
                   minHeight: '68px',
                   gap: '16px',
+                  flexDirection: 'row',
                   borderRadius: '8px',
                   justifyContent: 'space-between',
                   alignItems: 'center',
@@ -478,18 +632,23 @@ const EggSecondSecion = ({
                       variant='square'
                     ></Avatar>
                   </Box>
-                  <Box>
-                    <Typography
-                      sx={{
-                        fontWeight: 400,
-                        fontSize: '14px',
-                        lineHeight: '16.94px',
-                        mb: '4px',
-                        color: theme.palette.customColors.neutralSecondary
-                      }}
-                    >
-                      {eggDetails?.room_name ? eggDetails?.room_name : 'Room Name'}
-                    </Typography>
+                  <Box sx={{ width: '140px' }}>
+                    <Tooltip title={eggDetails?.room_name ? eggDetails?.room_name : 'Room Name'}>
+                      <Typography
+                        sx={{
+                          fontWeight: 400,
+                          fontSize: '14px',
+                          lineHeight: '16.94px',
+                          mb: '4px',
+                          color: theme.palette.customColors.neutralSecondary,
+                          whiteSpace: 'nowrap',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis'
+                        }}
+                      >
+                        {eggDetails?.room_name ? eggDetails?.room_name : 'Room Name'}
+                      </Typography>
+                    </Tooltip>
                     <Tooltip title={eggDetails?.incubator_name ? eggDetails?.incubator_name : 'Incubator Code'}>
                       <Typography
                         sx={{
@@ -502,7 +661,7 @@ const EggSecondSecion = ({
                           textOverflow: 'ellipsis'
                         }}
                       >
-                        {eggDetails?.incubator_name ? eggDetails?.incubator_name : 'Incubator Code'}
+                        {eggDetails?.incubator_code ? eggDetails?.incubator_code : 'Incubator Code'}
                       </Typography>
                     </Tooltip>
                   </Box>
@@ -523,7 +682,7 @@ const EggSecondSecion = ({
                       Transfer
                     </Typography>
                     <Icon
-                      color='#00AFD6'
+                      color={theme.palette.customColors.addPrimary}
                       style={{ cursor: 'pointer', color: theme.palette.primary.main, transform: 'rotateY(180deg)' }}
                       icon='akar-icons:arrow-repeat'
                       fontSize={24}
@@ -535,11 +694,11 @@ const EggSecondSecion = ({
                 <Grid
                   item
                   xs={12}
-                  // sm={5.8}
-                  // md={5.7}
-                  // xl={5.8}
-                  // xxl={5.8}
-                  sx={{ borderRadius: '8px', border: '1px solid #C3CEC7', padding: '16px' }}
+                  sx={{
+                    borderRadius: '8px',
+                    border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+                    padding: '16px'
+                  }}
                 >
                   <Typography
                     sx={{
@@ -569,11 +728,11 @@ const EggSecondSecion = ({
                 <Grid
                   item
                   xs={12}
-                  // sm={5.8}
-                  // md={5.7}
-                  // xl={5.8}
-                  // xxl={5.8}
-                  sx={{ borderRadius: '8px', border: '1px solid #C3CEC7', padding: '16px' }}
+                  sx={{
+                    borderRadius: '8px',
+                    border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+                    padding: '16px'
+                  }}
                 >
                   <Typography
                     sx={{
@@ -601,30 +760,12 @@ const EggSecondSecion = ({
                   </Typography>
                 </Grid>
               </Grid>
-              {/* <Box sx={{ display: 'flex', justifyContent: 'center' }}>
-                  <img
-                    style={{ height: '120px', width: '120px', mixBlendMode: 'Luminosity' }}
-                    src='/icons/folderNot.png'
-                    alt='folderNot'
-                  />
-                </Box>
-                <Typography
-                  sx={{
-                    fontSize: '24px',
-                    fontWeight: 500,
-                    lineHeight: '29.05px',
-                    color: theme.palette.customColors.OnSurfaceVariant,
-                    textAlign: 'center'
-                  }}
-                >
-                  Coming soon
-                </Typography> */}
             </Box>
           </CardContent>
         </Card>
       </Grid>
       <Grid item xs={12} md={8}>
-        <Card sx={{ border: 1, borderColor: '#c3cec7' }}>
+        <Card sx={{ border: 1, borderColor: theme.palette.customColors.OutlineVariant }}>
           <CardHeader
             sx={{
               pb: 0,
@@ -727,7 +868,6 @@ const EggSecondSecion = ({
                               whiteSpace: 'nowrap',
                               overflow: 'hidden',
                               textOverflow: 'ellipsis',
-                              // cursor: value.startsWith('Probable') && 'pointer',
                               cursor: 'pointer',
                               textDecoration: key === 'Mother id' || key === 'Father id' ? 'underline' : 'none',
                               fontWeight: key === 'Mother id' || key === 'Father id' ? 600 : 400,
@@ -735,7 +875,7 @@ const EggSecondSecion = ({
                               lineHeight: '16.94px',
                               color:
                                 key === 'Mother id' || key === 'Father id'
-                                  ? '#00AFD6'
+                                  ? theme.palette.customColors.addPrimary
                                   : theme.palette.customColors.OnSurfaceVariant
                             }}
                           >
@@ -784,8 +924,8 @@ const EggSecondSecion = ({
                     xl={3.72}
                     xxl={3.72}
                     sx={{
-                      borderRight: { xs: 'none', sm: '1px solid #006D354D' },
-                      borderBottom: { xs: '1px solid #006D354D', sm: 'none' },
+                      borderRight: { xs: 'none', sm: `1px solid ${theme.palette.customColors.InnerAlignment}` },
+                      borderBottom: { xs: `1px solid ${theme.palette.customColors.InnerAlignment}`, sm: 'none' },
                       pb: { xs: '10px', sm: 'none' }
                     }}
                   >
@@ -826,8 +966,8 @@ const EggSecondSecion = ({
                     xl={3.72}
                     xxl={3.72}
                     sx={{
-                      borderRight: { xs: 'none', sm: '1px solid #006D354D' },
-                      borderBottom: { xs: '1px solid #006D354D', sm: 'none' },
+                      borderRight: { xs: 'none', sm: `1px solid ${theme.palette.customColors.InnerAlignment}` },
+                      borderBottom: { xs: `1px solid ${theme.palette.customColors.InnerAlignment}`, sm: 'none' },
                       pb: { xs: '10px', sm: 'none' }
                     }}
                   >
@@ -896,7 +1036,7 @@ const EggSecondSecion = ({
       </Grid>
 
       <Grid item xs={12} md={6} xl={8}>
-        <Card sx={{ border: 1, borderColor: '#c3cec7' }}>
+        <Card sx={{ border: 1, borderColor: theme.palette.customColors.OutlineVariant }}>
           <CardContent>
             <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
               <Typography
@@ -911,7 +1051,14 @@ const EggSecondSecion = ({
               </Typography>
               <Box sx={{ display: 'flex', gap: '20px', alignItems: 'center' }}>
                 <Box sx={{ display: 'flex', gap: '4px', alignItems: 'center' }}>
-                  <Box sx={{ backgroundColor: '#00AFD6', height: '10px', width: '10px', borderRadius: '10px' }}></Box>
+                  <Box
+                    sx={{
+                      backgroundColor: theme.palette.customColors.addPrimary,
+                      height: '10px',
+                      width: '10px',
+                      borderRadius: '10px'
+                    }}
+                  ></Box>
                   <Typography
                     sx={{
                       fontWeight: 400,
@@ -957,18 +1104,17 @@ const EggSecondSecion = ({
           <CardHeader sx={{ pb: 0, pl: 6 }} title='Weights (Grams)' action={weightHeaderAction} />
           <CardContent style={{ paddingBottom: 0 }}>
             <CustomTableContainer
-              // className={Styles.main}
-              style={{ border: '0.5px solid #C3CEC7', borderRadius: '8px' }}
+              style={{ border: `0.5px solid ${theme.palette.customColors.OutlineVariant}`, borderRadius: '8px' }}
               component={Paper}
               sx={{ height: 175 }}
             >
               <Table stickyHeader sx={{ borderRadius: '8px' }} aria-label='sticky table'>
                 <TableHead>
                   <TableRow>
-                    <TableCell sx={{ backgroundColor: '#AFEFEBB3', py: 1 }}>DATE</TableCell>
-                    <TableCell sx={{ backgroundColor: '#AFEFEBB3', py: 1 }}>TIME</TableCell>
-                    <TableCell sx={{ backgroundColor: '#AFEFEBB3', py: 1 }}>ACTUAL</TableCell>
-                    <TableCell sx={{ backgroundColor: '#AFEFEBB3', py: 1 }}>EDIT</TableCell>
+                    <TableCell sx={{ backgroundColor: theme.palette.customColors.antzInfo70, py: 1 }}>DATE</TableCell>
+                    <TableCell sx={{ backgroundColor: theme.palette.customColors.antzInfo70, py: 1 }}>TIME</TableCell>
+                    <TableCell sx={{ backgroundColor: theme.palette.customColors.antzInfo70, py: 1 }}>ACTUAL</TableCell>
+                    <TableCell sx={{ backgroundColor: theme.palette.customColors.antzInfo70, py: 1 }}>EDIT</TableCell>
                   </TableRow>
                 </TableHead>
                 <TableBody>
@@ -983,8 +1129,6 @@ const EggSecondSecion = ({
                             color: theme.palette.customColors.OnSurfaceVariant
                           }}
                         >
-                          {/* {moment(row?.created_at).format('DD MMM YYYY')} */}
-                          {/* {moment(moment.utc(row?.created_at).toDate().toLocaleString()).format('DD MMM YYYY')} */}
                           {Utility.formatDisplayDate(Utility.convertUTCToLocal(row?.created_at))}
                         </TableCell>
                         <TableCell
@@ -995,9 +1139,7 @@ const EggSecondSecion = ({
                             color: theme.palette.customColors.OnSurfaceVariant
                           }}
                         >
-                          {/* {moment(row?.created_at).format('hh : mm A')} */}
                           {Utility?.extractHoursAndMinutes(Utility.convertUTCToLocal(row?.created_at))}
-                          {/* {moment(moment(moment.utc(row?.created_at).toDate().toLocaleString())).format('hh : mm A')} */}
                         </TableCell>
                         <TableCell
                           style={{
@@ -1014,9 +1156,6 @@ const EggSecondSecion = ({
                             padding: '11px 12px 11px 12px',
                             fontSize: '12px',
                             fontWeight: '400',
-                            // display: 'flex',
-                            // alignItems: 'center',
-                            // justifyContent: 'center',
                             color: theme.palette.customColors.OnSurfaceVariant
                           }}
                         >
@@ -1048,195 +1187,15 @@ const EggSecondSecion = ({
             </CustomTableContainer>
 
             <Box sx={{ display: 'flex', justifyContent: 'center', mb: 0, mt: 1 }}>
-              {total > 3 && <Button onClick={() => setSidebarOpen(true)}>View All</Button>}
+              {total > 3 && <Button onClick={() => setAllWeightSidebarOpen(true)}>View All</Button>}
             </Box>
           </CardContent>
         </Card>
       </Grid>
-      <Drawer
-        anchor='right'
-        open={sidebarOpen}
-        ModalProps={{ keepMounted: true }}
-        sx={{ '& .MuiDrawer-paper': { width: ['100%', 600] }, height: '100vh' }}
-      >
-        <Box sx={{ height: '0px', zIndex: 12 }}>
-          <Box
-            className='sidebar-header'
-            sx={{
-              display: 'flex',
-              width: '100%',
-              justifyContent: 'space-between',
-              backgroundColor: 'background.default',
-              p: theme => theme.spacing(3, 3.255, 3, 5.255),
-              paddingX: 2
-            }}
-          >
-            <Box></Box>
-            <Typography variant='h6'>Weight (Grams)</Typography>
-            <Box sx={{ display: 'flex', alignItems: 'center' }}>
-              <IconButton
-                size='small'
-                onClick={() => {
-                  handleSidebarClose()
-                }}
-                sx={{ color: 'text.primary' }}
-              >
-                <Icon icon='mdi:close' fontSize={20} />
-              </IconButton>
-            </Box>
-          </Box>
-        </Box>
-        <Box sx={{ px: 4, py: 2 }}>
-          <DataGrid
-            sx={{
-              '.MuiDataGrid-cell:focus': {
-                outline: 'none'
-              },
 
-              '& .MuiDataGrid-row:hover': {
-                cursor: 'pointer'
-              }
-            }}
-            columnVisibilityModel={{
-              sl_no: false
-            }}
-            hideFooterSelectedRowCount
-            disableColumnSelector={true}
-            autoHeight
-            pagination
-            rows={indexedRows === undefined ? [] : indexedRows}
-            rowCount={total}
-            columns={columns}
-            sortingMode='server'
-            paginationMode='server'
-            pageSizeOptions={[7, 10, 25, 50]}
-            paginationModel={paginationModel}
-            // onSortModelChange={handleSortModel}
-            slots={{ toolbar: ServerSideToolbarWithFilter }}
-            onPaginationModelChange={setPaginationModel}
-            loading={loading}
-            slotProps={{
-              baseButton: {
-                variant: 'outlined'
-              },
-              toolbar: {
-                // value: searchValue
-                // clearSearch: () => handleSearch(''),
-                // onChange: event => handleSearch(event.target.value)
-              }
-            }}
+      <ViewAllWeightSideBar />
 
-            // onCellClick={onCellClick}
-          />
-        </Box>
-      </Drawer>
-      <Drawer
-        anchor='right'
-        open={addWeightSidebar}
-        sx={{ '& .MuiDrawer-paper': { width: ['100%', 500], height: '100vh' } }}
-      >
-        <Box sx={{ height: '100%', backgroundColor: 'background.default' }}>
-          <Box
-            className='sidebar-header'
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-
-              justifyContent: 'space-between',
-              backgroundColor: 'background.default',
-              p: theme => theme.spacing(3, 3.255, 3, 5.255)
-            }}
-          >
-            <Box sx={{ mt: 2 }}>
-              <img src='/icons/activity_icon.png' alt='Grocery Icon' width='30px' />
-            </Box>
-            <Typography variant='h6' sx={{ mr: 70 }}>
-              {editWeight ? 'Edit' : 'Add'} Weight
-            </Typography>
-            <Box sx={{ display: 'flex', alignItems: 'center' }}>
-              <IconButton
-                size='small'
-                sx={{ color: 'text.primary' }}
-                onClick={() => {
-                  setaddWeightSidebar(false)
-                  reset()
-                }}
-              >
-                <Icon icon='mdi:close' fontSize={20} />
-              </IconButton>
-            </Box>
-          </Box>
-
-          {/* drower */}
-
-          <Box className='sidebar-body'>
-            <form onSubmit={handleSubmit(onSubmit, onError)}>
-              <Box sx={{ px: 4, backgroundColor: 'background.default' }}>
-                <Card fullWidth sx={{ mt: 3 }}>
-                  <CardContent>
-                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-                      <FormControl fullWidth>
-                        <Controller
-                          name='assessment_value'
-                          control={control}
-                          rules={{ required: true }}
-                          render={({ field: { value, onChange } }) => (
-                            <TextField
-                              label='Weight in Grams'
-                              value={value}
-                              autoFocus
-                              inputProps={{ min: 1 }}
-                              onChange={event => {
-                                const newValue = event.target.value
-                                // Validate the input to ensure it contains only numbers
-                                if (/^[1-9]\d*$/.test(newValue) || newValue === '') {
-                                  onChange(event)
-                                }
-                              }}
-                              placeholder={`${editWeight ? 'Edit' : 'Add'} Weight`}
-                              error={Boolean(errors.assessment_value)}
-                              name='assessment_value'
-                            />
-                          )}
-                        />
-                        {errors.assessment_value && (
-                          <FormHelperText sx={{ color: 'error.main' }}>
-                            {/* {errors.assessment_value?.message} */}
-                            Assessment value is Required
-                          </FormHelperText>
-                        )}
-                      </FormControl>
-                    </Box>
-                  </CardContent>
-                </Card>
-              </Box>
-              <Box
-                sx={{
-                  position: 'fixed',
-                  bottom: 0,
-                  height: '80px',
-                  backgroundColor: '#fff',
-                  width: '500px',
-                  px: 4,
-                  display: 'flex',
-                  alignItems: 'center'
-                }}
-              >
-                <LoadingButton
-                  fullWidth
-                  variant='contained'
-                  type='submit'
-                  loading={submitAssementloader}
-                  disabled={errors.assessment_value || submitAssementloader}
-                  sx={{ height: '50px' }}
-                >
-                  Submit
-                </LoadingButton>
-              </Box>
-            </form>
-          </Box>
-        </Box>
-      </Drawer>
+      <AddWeightSideBar />
 
       <EggActivityLogs
         activtyLogSideBar={activtyLogSideBar}

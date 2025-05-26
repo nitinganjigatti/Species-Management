@@ -3,6 +3,7 @@ import toast from 'react-hot-toast'
 import FileSaver from 'file-saver'
 import * as XLSX from 'xlsx'
 import CustomAvatar from 'src/@core/components/mui/avatar'
+import CryptoJS from 'crypto-js'
 
 const formatDate = dateString => {
   if (dateString !== null) {
@@ -40,11 +41,16 @@ function formattedPresentDate() {
 }
 
 function formatDisplayDate(date) {
-  const result = moment(date).format('DD MMM YYYY')
-  if (result === 'Invalid date') {
-    return 'NA'
+  if (date) {
+    const result = moment(date).format('DD MMM YYYY')
+
+    if (result === 'Invalid date') {
+      return 'NA'
+    } else {
+      return result
+    }
   } else {
-    return result
+    return 'NA'
   }
 
   // return moment(date).format('DD MMM YYYY')
@@ -115,6 +121,20 @@ function convertUTCToLocal(date) {
   return local
 }
 
+function convertUTCToLocalDateTime(date) {
+  var stillUtc = moment.utc(date).toDate()
+  var local = moment(stillUtc).local(true).format('DD MMM YYYY hh:mm A')
+
+  return local
+}
+
+function convertUTCToLocalDate(date) {
+  var stillUtc = moment.utc(date).toDate()
+  var local = moment(stillUtc).local(true).format('YYYY-MM-DD')
+
+  return local
+}
+
 function convertUTCToLocaltime(date) {
   var stillUtc = moment.utc(date).toDate()
   var local = moment(stillUtc).local(true).format('h:mm A')
@@ -136,15 +156,72 @@ function formatNumberToDisplay(number) {
 }
 
 function formatAmountToReadableDigit(value) {
-  if (value) {
-    if (value > 10000) {
-      return `₹ ${value.toString().replace(/\B(?=(\d{2})+(?!\d))/g, ',')}.00`
-    }
+  // debugger
 
-    return `₹ ${value}.00`
+  const num = parseFloat(value)
+  if (isNaN(num)) return 'Invalid number'
+
+  const roundedNum = num.toFixed(2) // Round to 2 decimal places
+
+  if (num > 999) {
+    return Number(roundedNum).toLocaleString('en-IN', {
+      style: 'currency',
+      currency: 'INR',
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2
+    })
   }
 
-  return '0'
+  return `₹${Number(roundedNum)}`
+
+  // if (value) {
+  //   if (value > 10000) {
+  //     return `₹ ${value.toString().replace(/\B(?=(\d{2})+(?!\d))/g, ',')}.00`
+  //   }
+
+  //   return `₹ ${value}.00`
+
+  //   // return value.toLocaleString('de-DE')
+  // }
+
+  // return '0'
+}
+
+const downloadFileFromURL = async (fileUrl, title = '') => {
+  if (!fileUrl) {
+    console.error('No file URL provided')
+
+    return
+  }
+  try {
+    const fileType = fileUrl.split('.').pop()
+    const fileExtension = fileUrl.split('/')
+    const fetchResponse = await fetch(fileUrl)
+    if (!fetchResponse.ok) {
+      throw new Error(`Failed to fetch file: ${fetchResponse.statusText}`)
+    }
+    const blob = await fetchResponse.blob()
+    const url = window.URL.createObjectURL(blob)
+
+    const fileName = `${
+      title !== ''
+        ? `${title.toLowerCase().replace(/\s+/g, '-')}-report.${fileType}`
+        : fileExtension[fileExtension.length - 1]
+    }`
+    const link = document.createElement('a')
+    link.href = url
+    link.download = fileName
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    window.URL.revokeObjectURL(url)
+  } catch (error) {
+    console.error('Download failed:', error)
+  }
+}
+
+const formatText = text => {
+  return text.replace(/_/g, ' ').replace(/\b\w/g, char => char.toUpperCase())
 }
 
 function toPascalSentenceCase(str) {
@@ -155,6 +232,44 @@ function toPascalSentenceCase(str) {
     .split(' ')
     .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()) // Capitalize the first letter of each word
     .join(' ')
+}
+
+function formatAmountCompactDisplay(value) {
+  // debugger
+
+  const num = parseFloat(value)
+  if (isNaN(num)) return 'Invalid number'
+
+  const roundedNum = num.toFixed(2) // Round to 2 decimal places
+
+  if (num > 999) {
+    return Number(roundedNum).toLocaleString('en-US', {
+      maximumFractionDigits: 2,
+      notation: 'compact',
+      compactDisplay: 'short'
+    })
+  }
+  return `${Number(roundedNum)}`
+}
+
+const SECRET_KEY = 'Antz-Vantara'
+
+const encryptData = data => {
+  return CryptoJS.AES.encrypt(JSON.stringify(data), SECRET_KEY).toString()
+}
+
+const decryptData = cipherText => {
+  const bytes = CryptoJS.AES.decrypt(cipherText, SECRET_KEY)
+  return JSON.parse(bytes.toString(CryptoJS.enc.Utf8))
+}
+
+function hexToHex8(hex, opacity) {
+  debugger
+  hex = hex.replace('#', '')
+  let alpha = Math.round(opacity * 255)
+    .toString(16)
+    .padStart(2, '0')
+  return `#${hex}${alpha}`
 }
 
 const Utility = {
@@ -168,12 +283,20 @@ const Utility = {
   getPreviousDaysDate,
   daysFromToday,
   convertUTCToLocal,
+  convertUTCToLocalDate,
   convertUTCToLocaltime,
+  convertUTCToLocalDateTime,
   extractHoursAndMinutes,
   formatNumberToDisplay,
   formatAmountToReadableDigit,
+  downloadFileFromURL,
+  formatText,
   toPascalSentenceCase,
-  renderUserAvatar
+  renderUserAvatar,
+  formatAmountCompactDisplay,
+  encryptData,
+  decryptData,
+  hexToHex8
 }
 
 export default Utility

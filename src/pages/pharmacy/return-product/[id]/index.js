@@ -933,7 +933,7 @@ const IndividualReturnRequest = () => {
                       <p style={{ marginBottom: '0' }}>{requestItems?.to_store}</p>
                     </Grid>
                     <Grid item xs={3} sm={12 / 5} lg={12 / 5}>
-                      <h5 style={{ marginBottom: '0px', marginTop: '0px' }}>Date</h5>
+                      <h5 style={{ marginBottom: '0px', marginTop: '0px' }}>Dispatched Date</h5>
                       <p style={{ marginBottom: '0' }}>{Utility.formatDisplayDate(requestItems?.request_date)}</p>
                     </Grid>
                     <Grid item xs={3} sm={12 / 5} lg={12 / 5}>
@@ -984,6 +984,8 @@ const IndividualReturnRequest = () => {
                       title={`Return Items`}
                       action={
                         selectedPharmacy.type === 'local' &&
+                        (selectedPharmacy.permission.key === 'allow_full_access' ||
+                          selectedPharmacy.permission.key === 'ADD') &&
                         shippedItems.length === 0 &&
                         requestItems.status !== 'Cancelled' ? (
                           <Button
@@ -1095,7 +1097,9 @@ const IndividualReturnRequest = () => {
                                   // showOrderFormDialog()
                                   Router.push({
                                     pathname: `/pharmacy/return-product/${id}/shipment-details`,
-                                    query: { orderId: e.id }
+
+                                    // query: { orderId: e.id }
+                                    query: { orderId: e.id, requestId: id }
                                   })
                                 }}
                               ></TableBasic>
@@ -1234,7 +1238,7 @@ const IndividualReturnRequest = () => {
               You don't have an access to view this request
               <Button
                 onClick={() => {
-                  router.push('/pharmacy/return-product/request-list/')
+                  router.push('/pharmacy/return-product')
                 }}
                 variant='contained'
                 size='small'

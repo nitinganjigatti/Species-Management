@@ -13,7 +13,7 @@ import CardContent from '@mui/material/CardContent'
 import { styled } from '@mui/material/styles'
 import TableContainer from '@mui/material/TableContainer'
 import TableCell from '@mui/material/TableCell'
-import { Button, CardHeader } from '@mui/material'
+import { Button, ButtonBase, CardHeader } from '@mui/material'
 import IconButton from '@mui/material/IconButton'
 import FormHelperText from '@mui/material/FormHelperText'
 import TextField from '@mui/material/TextField'
@@ -97,7 +97,7 @@ const initialNestedRowMedicine = {
   medicine_name: '',
   request_item_qty: '',
   request_item_leaf_id: '',
-  priority_item: 'Normal',
+  priority_item: '',
   control_substance: false,
   control_substance_file: '',
   prescription_required: false,
@@ -120,6 +120,7 @@ const AddRequestForm = () => {
   const [fromStocks, setFromStocks] = useState([])
   const [editParams, setEditParams] = useState(editParamsInitialState)
   const [optionsMedicineList, setOptionsMedicineList] = useState([])
+  const [optionsGenericMedicineList, setOptionsGenericMedicineList] = useState([])
   const [show, setShow] = useState(false)
   const [errors, setErrors] = useState({})
   const [itemErrors, setItemErrors] = useState({})
@@ -186,6 +187,8 @@ const AddRequestForm = () => {
     0
   )
 
+  console.log('Edit Params >>', editParams)
+
   const addItemsToTable = () => {
     const newData = {
       medicine_name: nestedRowMedicine.medicine_name,
@@ -251,9 +254,9 @@ const AddRequestForm = () => {
       itemErrors.request_item_qty = 'Enter valid Quantity'
     }
 
-    if (!values.priority_item) {
-      itemErrors.priority_item = 'This field is required'
-    }
+    // if (!values.priority_item) {
+    //   itemErrors.priority_item = 'This field is required'
+    // }
 
     if (values.control_substance === true) {
       if (values.prescription_required_file?.length === 0) {
@@ -291,7 +294,7 @@ const AddRequestForm = () => {
     const HasErrors =
       !nestedRowMedicine.medicine_name ||
       !nestedRowMedicine.request_item_qty ||
-      !nestedRowMedicine.priority_item ||
+      // !nestedRowMedicine.priority_item ||
       !Number.isInteger(Number(nestedRowMedicine.request_item_qty)) ||
       Number(nestedRowMedicine.request_item_qty) === 0 ||
       Number(nestedRowMedicine.request_item_qty) < 0
@@ -358,7 +361,7 @@ const AddRequestForm = () => {
     const HasErrors =
       !nestedRowMedicine.medicine_name ||
       !nestedRowMedicine.request_item_qty ||
-      !nestedRowMedicine.priority_item ||
+      // !nestedRowMedicine.priority_item ||
       !Number.isInteger(Number(nestedRowMedicine.request_item_qty)) ||
       Number(nestedRowMedicine.request_item_qty) === 0 ||
       Number(nestedRowMedicine.request_item_qty) < 0
@@ -484,9 +487,11 @@ const AddRequestForm = () => {
       }
 
       const searchResults = await getGenericMedicineList({ params: params })
-      if (searchResults?.data?.list_items.length > 0) {
-        setOptionsMedicineList(
-          searchResults?.data?.list_items?.map(item => ({
+      if (searchResults?.data?.list_items?.length > 0) {
+        const medicalProducts = searchResults?.data?.list_items?.filter(el => el.stock_type != 'Non Medical')
+        console.log('medicalProducts', medicalProducts)
+        setOptionsGenericMedicineList(
+          medicalProducts?.map(item => ({
             value: item.id,
             genericName: item?.generic_name,
             name: item?.name,
@@ -495,7 +500,6 @@ const AddRequestForm = () => {
             manufacture: item.manufacturer_name,
             control_substance: item.controlled_substance === '1' ? true : false,
             status: item?.active === '0' ? 0 : 1,
-            // prescription_required: item?.prescription_required === '1' ? true : false,
             prescription_required:
               item?.controlled_substance === '1' ? true : item?.prescription_required === '1' ? true : false,
             unit_price: item?.unit_price ? item?.unit_price : 0
@@ -530,7 +534,7 @@ const AddRequestForm = () => {
       }
 
       const searchResults = await getMedicineList({ params: params })
-      if (searchResults?.data?.list_items.length === 1) {
+      if (searchResults?.data?.list_items?.length === 1) {
         let updatedData = searchResults?.data?.list_items?.map(item => ({
           value: item.id,
           name: item.name,
@@ -539,7 +543,6 @@ const AddRequestForm = () => {
           manufacture: item.manufacturer_name,
           control_substance: item.controlled_substance === '1' ? true : false,
           status: item?.active === '0' ? 0 : 1,
-
           prescription_required:
             item?.controlled_substance === '1' ? true : item?.prescription_required === '1' ? true : false,
           unit_price: item?.unit_price ? item?.unit_price : 0,
@@ -555,6 +558,7 @@ const AddRequestForm = () => {
   useEffect(() => {
     getStoresLists()
     fetchMedicineData('')
+    fetchGenericMedicineData('')
   }, [])
   //  ****** debounce
 
@@ -604,9 +608,10 @@ const AddRequestForm = () => {
       const getItems = editParams.request_item_details.filter(el => {
         return el.request_item_medicine_id === itemId
       })
-      let result
+      var result
       if (operation === 'update') {
         result = await getUpdatedMedicineData(getItems[0]?.medicine_name)
+        console.log('result: ', result)
       }
       setNestedRowMedicine({
         ...nestedRowMedicine,
@@ -664,12 +669,26 @@ const AddRequestForm = () => {
   // data posting section
 
   const postItemsData = async () => {
+    const updateData = { ...editParams }
     setSubmitLoader(true)
 
-    const postData = editParams
-    postData.total_qty = totalQty
-    console.log('edit', postData)
-    debugger
+    // Update the request_item_details array
+    const updatedRequestItemDetails = updateData.request_item_details.map(item => {
+      // Ensure `priority_item` is explicitly set to `null` if missing
+      return {
+        ...item,
+        priority_item: item.priority_item ? item.priority_item : '' // Set to null if undefined or missing
+      }
+    })
+
+    // Construct the final payload
+    const postData = {
+      ...editParams,
+      request_item_details: updatedRequestItemDetails,
+      total_qty: totalQty
+    }
+
+    console.log('Payload to be sent >', postData)
 
     if (id) {
       try {
@@ -701,7 +720,7 @@ const AddRequestForm = () => {
           toast.error(JSON.stringify(response), { position: 'top-left' })
         }
       } catch (error) {
-        console.log('error', JSON.stringify(error))
+        console.log('Error:', JSON.stringify(error))
         toast.error(JSON.stringify(error), { position: 'top-left' })
       }
     }
@@ -734,8 +753,9 @@ const AddRequestForm = () => {
       try {
         const result = await cancelRequestItems(id)
         if (result?.data?.success === true) {
+          closeCancelDialog()
           toast.success(result?.data?.data)
-          Router.push(`/pharmacy/request/request-list/`)
+          Router.push(`/pharmacy/request/`)
         } else {
           closeCancelDialog()
           toast.error(result?.data?.data)
@@ -827,12 +847,14 @@ const AddRequestForm = () => {
                         <Typography>{option.name}</Typography>
                         <Typography variant='body2'>{option.package}</Typography>
                         <Typography variant='body2'>{option.manufacture}</Typography>
-                        {option.control_substance === true && (
+                        {/* {option.control_substance === true && (
                           <CustomChip label='CS' skin='light' color='success' size='small' />
-                        )}{' '}
-                        {option.prescription_required === true && (
+                        )}{' '} */}
+                        {RenderUtility?.renderControlLabel(option.control_substance === true, 'CS')}
+                        {RenderUtility?.renderPrescriptionLabel(option.prescription_required === true, 'PR')}
+                        {/* {option.prescription_required === true && (
                           <CustomChip label='PR' skin='light' color='success' size='small' />
-                        )}
+                        )} */}
                         {/* <Typography
                           sx={{
                             color: 'customColors.OnSecondaryContainer',
@@ -954,7 +976,7 @@ const AddRequestForm = () => {
                   // inputProps={{ tabIndex: '6' }}
                   // disablePortal
                   id='autocomplete-controlled'
-                  options={optionsMedicineList}
+                  options={optionsGenericMedicineList}
                   renderOption={(props, option) => (
                     <li
                       {...props}
@@ -1006,7 +1028,6 @@ const AddRequestForm = () => {
                   }}
                   onKeyUp={e => {
                     searchGenericMedicineData(e.target.value)
-
                     setItemErrors({})
                   }}
                   onBlur={() => {}}
@@ -1060,7 +1081,7 @@ const AddRequestForm = () => {
               }}
             >
               <Typography sx={{ fontWeight: 400, fontFamily: 'Inter', fontSize: '12px', mb: 1 }}>
-                Available Packing:{' '}
+                Package:{' '}
                 <span style={{ fontWeight: 400, fontSize: '12px', color: 'customColors.OnPrimaryContainer' }}>
                   {nestedRowMedicine?.package}
                 </span>
@@ -1122,6 +1143,7 @@ const AddRequestForm = () => {
             <FormControl fullWidth>
               <TextField
                 type='number'
+                onWheel={event => event.target.blur()}
                 value={nestedRowMedicine.request_item_qty}
                 error={Boolean(itemErrors.request_item_qty)}
                 label='Quantity*'
@@ -1140,7 +1162,9 @@ const AddRequestForm = () => {
               {nestedRowMedicine?.unit_price > 0 ? (
                 <Box sx={{ mx: 1, my: 2, display: 'flex' }}>
                   <Chip
-                    label={`Unit Price - ${nestedRowMedicine?.unit_price}`}
+                    label={`Unit Price - ${Utility?.formatAmountToReadableDigit(
+                      Number(nestedRowMedicine?.unit_price)
+                    )}`}
                     variant='outlined'
                     size='sm'
                     sx={{
@@ -1157,7 +1181,9 @@ const AddRequestForm = () => {
                     }}
                   />
                   <Chip
-                    label={`Total QTY Price - ${nestedRowMedicine?.unit_price * nestedRowMedicine?.request_item_qty}`}
+                    label={`Total QTY Price - ${Utility?.formatAmountToReadableDigit(
+                      Number(nestedRowMedicine?.unit_price * nestedRowMedicine?.request_item_qty)
+                    )}`}
                     variant='outlined'
                     size='sm'
                     sx={{
@@ -1176,7 +1202,203 @@ const AddRequestForm = () => {
             </FormControl>
           </Grid>
 
-          {/* <Grid item xs={12} sm={12}>
+          {/* Priority Module */}
+          {/* <Grid>
+            <Typography
+              sx={{
+                mb: 2,
+                fontSize: '16px',
+                fontWeight: 500,
+                color: 'customColors.customTextColorGray2'
+              }}
+            >
+              Set Priority
+            </Typography>
+            <Grid
+              sx={{
+                display: 'flex',
+                width: '602px',
+                height: '46px',
+                gap: 2
+              }}
+            >
+              <Button
+                variant='contained'
+                sx={{
+                  width: '192px',
+                  height: '46px',
+                  borderRadius: '8px',
+                  boxShadow: 'none',
+                  backgroundColor: nestedRowMedicine.priority_item === 'high' ? '#007BFF' : '#F5F5F5',
+                  color: nestedRowMedicine.priority_item === 'high' ? '#FFFFFF' : '#000000',
+                  border: '0.5px solid #C3CEC7',
+                  '&:hover': {
+                    backgroundColor: nestedRowMedicine.priority_item === 'high' ? '#0056b3' : '#E0E0E0'
+                  }
+                }}
+                onClick={() => {
+                  setNestedRowMedicine({
+                    ...nestedRowMedicine,
+                    priority_item: nestedRowMedicine.priority_item === 'high' ? null : 'high' // Toggle high
+                  })
+                }}
+              >
+                <Typography sx={{ color: nestedRowMedicine.priority_item === 'high' ? '#44544A' : '#00000066' }}>
+                  High
+                </Typography>
+              </Button>
+              <Button
+                variant='contained'
+                sx={{
+                  width: '192px',
+                  height: '46px',
+                  borderRadius: '8px',
+                  boxShadow: 'none',
+                  backgroundColor: nestedRowMedicine.priority_item === 'emergency' ? '#FF0000' : '#F5F5F5',
+                  color: nestedRowMedicine.priority_item === 'emergency' ? '#FFFFFF' : '#000000',
+                  border: 'solid #C3CEC7',
+                  borderWidth: '0.25px',
+                  '&:hover': {
+                    backgroundColor: nestedRowMedicine.priority_item === 'emergency' ? '#cc0000' : '#E0E0E0'
+                  }
+                }}
+                onClick={() => {
+                  setNestedRowMedicine({
+                    ...nestedRowMedicine,
+                    priority_item: nestedRowMedicine.priority_item === 'emergency' ? null : 'emergency' // Toggle emergency
+                  })
+                }}
+              >
+                <Typography>Emergency</Typography>
+              </Button>
+            </Grid>
+          </Grid> */}
+
+          <Grid>
+            <Typography
+              sx={{
+                mb: 3,
+                mt: 1,
+                fontSize: '16px',
+                fontWeight: 500,
+                color: 'customColors.customTextColorGray2'
+              }}
+            >
+              Set Priority
+            </Typography>
+            <Grid
+              sx={{
+                display: 'flex',
+                width: '602px',
+                height: '46px',
+                gap: 5,
+                mt: 2
+              }}
+            >
+              <Button
+                // variant='contained'
+                sx={{
+                  width: '192px',
+                  height: '46px',
+                  borderRadius: '8px',
+                  boxShadow: 'none',
+                  backgroundColor:
+                    nestedRowMedicine.priority_item === 'high'
+                      ? `${theme.palette.customColors.TertiaryContainer}20`
+                      : 'white',
+                  color:
+                    nestedRowMedicine.priority_item === 'high'
+                      ? theme.palette.customColors.TertiaryContainer
+                      : theme.palette.customColors.customHeadingTextColor,
+                  opacity: nestedRowMedicine.priority_item === 'high' && 2,
+                  outline:
+                    nestedRowMedicine.priority_item === 'high'
+                      ? `1px solid ${theme.palette.customColors.Tertiary} !important`
+                      : `1.5px solid ${theme.palette.customColors.OutlineVariant}60 !important`,
+                  '&:hover': {
+                    backgroundColor:
+                      nestedRowMedicine.priority_item === 'high'
+                        ? `${theme.palette.customColors.TertiaryContainer}20 !important`
+                        : 'transparent !important'
+                  }
+                }}
+                onClick={() => {
+                  setNestedRowMedicine({
+                    ...nestedRowMedicine,
+                    priority_item: nestedRowMedicine.priority_item === 'high' ? '' : 'high'
+                  })
+                }}
+              >
+                <img width={20} src={`/images/HighPriority.png`} alt='image' style={{ marginRight: '5px' }} />
+                <Typography
+                  sx={{
+                    fontSize: '16px',
+                    fontWeight: 500,
+                    color:
+                      nestedRowMedicine.priority_item === 'high'
+                        ? theme.palette.customColors.customHeadingTextColor
+                        : theme.palette.customColors.neutral_50
+                  }}
+                >
+                  High
+                </Typography>
+              </Button>
+              <Button
+                // variant='contained'
+                sx={{
+                  width: '192px',
+                  height: '46px',
+                  borderRadius: '8px',
+                  boxShadow: 'none',
+                  backgroundColor:
+                    nestedRowMedicine.priority_item === 'emergency'
+                      ? `${theme.palette.customColors.TertiaryContainer}28`
+                      : 'white',
+                  color:
+                    nestedRowMedicine.priority_item === 'emergency'
+                      ? `${theme.palette.customColors.TertiaryContainer}60`
+                      : theme.palette.customColors.customHeadingTextColor,
+                  opacity: nestedRowMedicine.priority_item === 'emergency' && 2,
+                  outline:
+                    nestedRowMedicine.priority_item === 'emergency'
+                      ? `1px solid ${theme.palette.customColors.Error} !important`
+                      : `1.5px solid ${theme.palette.customColors.OutlineVariant}60 !important`,
+                  // '&:hover': {
+                  //   backgroundColor:
+                  //     nestedRowMedicine.priority_item === 'emergency' ? '#FFBDA833 !important' : 'transparent !important'
+                  // }
+                  '&:hover': {
+                    backgroundColor:
+                      nestedRowMedicine.priority_item === 'emergency'
+                        ? `${theme.palette.customColors.TertiaryContainer}20 !important`
+                        : 'transparent !important'
+                  }
+                }}
+                onClick={() => {
+                  setNestedRowMedicine({
+                    ...nestedRowMedicine,
+                    priority_item: nestedRowMedicine.priority_item === 'emergency' ? '' : 'emergency'
+                  })
+                }}
+              >
+                <img width={20} src={`/images/EmergencyPriority.png`} alt='image' style={{ marginRight: '5px' }} />
+                <Typography
+                  sx={{
+                    fontSize: '16px',
+                    fontWeight: 500,
+                    color:
+                      nestedRowMedicine.priority_item === 'emergency'
+                        ? theme.palette.customColors.customHeadingTextColor
+                        : theme.palette.customColors.neutral_50
+                  }}
+                >
+                  Emergency
+                </Typography>
+              </Button>
+            </Grid>
+          </Grid>
+
+          {/* { <Grid item xs={12} sm={12}>
             <Typography>Priority</Typography>
             <RadioGroup
               row
@@ -1190,8 +1412,9 @@ const AddRequestForm = () => {
               <FormControlLabel value='high' control={<Checkbox />} label='High' />
               <FormControlLabel value='Normal' control={<Checkbox />} label='Normal' />
             </RadioGroup>
-          </Grid> */}
-          <Grid
+          </Grid> } */}
+
+          {/* <Grid
             item
             xs={12}
             sm={12}
@@ -1238,7 +1461,7 @@ const AddRequestForm = () => {
               }
               // label='Mark this as a high priority item'
             />
-          </Grid>
+          </Grid> */}
 
           {/* // file uploader */}
           {/* {nestedRowMedicine.control_substance === true && nestedRowMedicine.prescription_required == false && (
@@ -1344,7 +1567,7 @@ const AddRequestForm = () => {
             nestedRowMedicine.prescription_required_file ? (
               <Grid item xs={12} sm={12} sx={{ mr: 'auto' }}>
                 <Typography
-                  sx={{ mb: 2, fontSize: '16px', fontWeight: 500, color: 'customColors.customTextColorGray2' }}
+                  sx={{ mb: 2, mt: 2, fontSize: '16px', fontWeight: 500, color: 'customColors.customTextColorGray2' }}
                 >
                   Add prescription*
                 </Typography>
@@ -1406,6 +1629,12 @@ const AddRequestForm = () => {
                   nestedRowMedicine.prescription_required_file?.type === 'image/jpeg' ? (
                   <>
                     <Chip
+                      onClick={() => {
+                        if (nestedRowMedicine.prescription_required_file) {
+                          const previewUrl = URL.createObjectURL(nestedRowMedicine.prescription_required_file)
+                          window.open(previewUrl, '_blank')
+                        }
+                      }}
                       sx={{
                         backgroundColor: 'customColors.lightBg',
                         height: '56px',
@@ -1413,7 +1642,8 @@ const AddRequestForm = () => {
                         borderRadius: '8px',
                         fontSize: '14px',
                         fontWeight: '400',
-                        position: 'relative'
+                        position: 'relative',
+                        cursor: 'pointer'
                       }}
                       label={
                         <Typography
@@ -1629,7 +1859,9 @@ const AddRequestForm = () => {
             )
           ) : null}
           <Grid item xs={12} sm={12}>
-            <Typography sx={{ mb: 2, fontSize: '16px', fontWeight: 500, color: 'customColors.customTextColorGray2' }}>
+            <Typography
+              sx={{ mb: 2, mt: 2, fontSize: '16px', fontWeight: 500, color: 'customColors.customTextColorGray2' }}
+            >
               Add Notes
             </Typography>
             <FormControl fullWidth>
@@ -1726,7 +1958,7 @@ const AddRequestForm = () => {
             <Icon
               style={{ cursor: 'pointer' }}
               onClick={() => {
-                Router.push('/pharmacy/request/request-list/')
+                Router.push('/pharmacy/request/')
               }}
               icon='ep:back'
             />
@@ -1737,7 +1969,7 @@ const AddRequestForm = () => {
       <CardContent>
         <Grid container>
           <CommonDialogBox
-            title={'Add Request Item'}
+            title={'Add Request Item '}
             dialogBoxStatus={show}
             formComponent={createForm()}
             close={closeDialog}
@@ -2001,20 +2233,9 @@ const AddRequestForm = () => {
                     return (
                       <TableRow key={index}>
                         <TableCell align='left'>
-                          {index + 1}.
-                          {el?.priority_item === 'high' && (
-                            <>
-                              &nbsp; {/* Adds space between index and bullet */}
-                              <span
-                                style={{
-                                  color: el?.priority_item === 'high' && 'red',
-                                  fontSize: '26px'
-                                }}
-                              >
-                                •
-                              </span>
-                            </>
-                          )}
+                          <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                            {index + 1}.{RenderUtility.getPriorityIcons(el?.priority_item)}
+                          </Box>
                         </TableCell>
                         {/* <TableCell>
                           <Typography variant='body2' sx={{ color: 'text.primary' }}>
@@ -2033,7 +2254,7 @@ const AddRequestForm = () => {
                           {/* Name and chips in a flex container */}
                           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
                             {RenderUtility?.renderControlLabel(el.control_substance === true, 'CS')}
-                            {RenderUtility?.renderControlLabel(el.prescription_required === true, 'PR')}
+                            {RenderUtility?.renderPrescriptionLabel(el.prescription_required === true, 'PR')}
                             {/* {el.control_substance ? (
                               <CustomChip
                                 label='CS'
@@ -2190,11 +2411,14 @@ const AddRequestForm = () => {
                         </TableCell> */}
 
                         <TableCell align='left'>{el.request_item_qty}</TableCell>
-                        <TableCell align='left'>{el.unit_price > 0 ? `₹ ${el.unit_price}` : 'NA'}</TableCell>
+                        <TableCell align='left'>
+                          {el.unit_price > 0 ? Utility?.formatAmountToReadableDigit(el.unit_price) : 'NA'}
+                        </TableCell>
                         <TableCell align='left'>
                           {el?.unit_price * el?.request_item_qty > 0
-                            ? `₹ ${el?.unit_price * el?.request_item_qty}`
-                            : 'NA'}
+                            ? Utility?.formatAmountToReadableDigit(el?.unit_price * el?.request_item_qty)
+                            : //  `₹ ${el?.unit_price * el?.request_item_qty}`
+                              'NA'}
                         </TableCell>
                         {/* <TableCell align='left'>
                           <Tooltip title={el?.notes}>
@@ -2390,6 +2614,7 @@ const AddRequestForm = () => {
           </Box>
         }
       /> */}
+
       <ConfirmDialogBox
         open={cancelRequestDialog}
         closeDialog={() => {
@@ -2398,50 +2623,7 @@ const AddRequestForm = () => {
         action={() => {
           closeCancelDialog()
         }}
-        content={
-          <Box>
-            <>
-              <DialogContent>
-                <DialogContentText sx={{ mb: 1 }}>
-                  {/* Are you sure you want to Cancel this request? If you cancel this request it will be disabled you
-                  cannot perform any operations for this request */}
-                  Are you sure you want to cancel this request?
-                </DialogContentText>
-              </DialogContent>
-              <DialogActions className='dialog-actions-dense'>
-                <Button
-                  variant='contained'
-                  size='small'
-                  color='primary'
-                  onClick={() => {
-                    closeCancelDialog()
-                  }}
-                >
-                  No
-                </Button>
-                <Button
-                  size='small'
-                  variant='contained'
-                  color='error'
-                  onClick={() => {
-                    cancelRequest(id)
-                  }}
-                >
-                  Yes
-                </Button>
-              </DialogActions>
-            </>
-          </Box>
-        }
-      />
-      <ConfirmDialogBox
-        open={cancelRequestDialog}
-        closeDialog={() => {
-          closeCancelDialog()
-        }}
-        action={() => {
-          closeCancelDialog()
-        }}
+        title={'Cancel the request'}
         content={
           <Box>
             <>
@@ -2451,30 +2633,32 @@ const AddRequestForm = () => {
                   cannot perform any operations for this request
                 </DialogContentText>
               </DialogContent>
-              <DialogActions className='dialog-actions-dense'>
-                <Button
-                  variant='contained'
-                  size='small'
-                  color='primary'
-                  onClick={() => {
-                    closeCancelDialog()
-                  }}
-                >
-                  Cancel
-                </Button>
-                <Button
-                  size='small'
-                  variant='contained'
-                  color='error'
-                  onClick={() => {
-                    cancelRequest(id)
-                  }}
-                >
-                  Confirm
-                </Button>
-              </DialogActions>
             </>
           </Box>
+        }
+        dialogActions={
+          <>
+            <Button
+              variant='contained'
+              size='small'
+              color='primary'
+              onClick={() => {
+                closeCancelDialog()
+              }}
+            >
+              Cancel
+            </Button>
+            <Button
+              size='small'
+              variant='contained'
+              color='error'
+              onClick={() => {
+                cancelRequest(id)
+              }}
+            >
+              Confirm
+            </Button>
+          </>
         }
       />
     </Card>

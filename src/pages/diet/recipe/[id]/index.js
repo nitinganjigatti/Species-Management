@@ -17,7 +17,8 @@ import {
   Breadcrumbs,
   Link,
   Divider,
-  IconButton
+  IconButton,
+  Avatar
 } from '@mui/material'
 import RecipeDetailCardview from 'src/views/pages/recipe/recipe-detail/cardview'
 import Router from 'next/router'
@@ -132,6 +133,7 @@ const RecipeDetail = () => {
     try {
       const activePayload = isActive == 0 ? 1 : 0
       setDeleteDialogBox(false)
+
       const response = await updateRecipeStatus(IngredientsDetailsval?.id, {
         status: activePayload,
         meal_type: 'recipe'
@@ -141,6 +143,7 @@ const RecipeDetail = () => {
         //Router.push(`/diet/ingredient`)
         getRecipeDetailval(id)
         setstatusDialog(false)
+
         return Toaster({ type: 'success', message: response?.message })
       } else {
         return Toaster({ type: 'error', message: response?.message })
@@ -184,7 +187,7 @@ const RecipeDetail = () => {
               {/* <Link underline='hover' color='inherit' href='/diet/recipe/'>
                 Recipe 
               </Link> */}
-              <Typography color='inherit' sx={{ cursor: 'pointer' }} onClick={() => Router.push('/diet/recipe/')}>
+              <Typography color='inherit' sx={{ cursor: 'pointer' }} onClick={() => router.back()}>
                 Recipe
               </Typography>
               <Typography color='text.primary'>Recipe Details</Typography>
@@ -200,7 +203,7 @@ const RecipeDetail = () => {
                       <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'end' }}>
                         <Tooltip title='Copy' placement='top'>
                           <Box sx={{ pr: 3 }}>
-                            <Icon
+                            {/* <Icon
                               icon='fluent:copy-32-regular'
                               style={{
                                 fontSize: 24,
@@ -209,15 +212,32 @@ const RecipeDetail = () => {
                                 marginLeft: '10px'
                               }}
                               onClick={handleRecipeClick}
+                            /> */}
+                            <Avatar
+                              sx={{ width: '100%', height: '100%', borderRadius: '8px', cursor: 'pointer' }}
+                              src={'/icons/icon_copy.svg'}
+                              variant='square'
+                              onClick={handleRecipeClick}
                             />
                           </Box>
                         </Tooltip>
                         {(dietModuleAccess === 'EDIT' || dietModuleAccess === 'DELETE') && (
                           <Tooltip title='Edit' placement='top'>
                             <Box sx={{ pr: 3 }}>
-                              <Icon
+                              {/* <Icon
                                 icon='bx:pencil'
                                 style={{ cursor: 'pointer', marginLeft: '10px' }}
+                                onClick={() =>
+                                  Router.push({
+                                    pathname: '/diet/recipe/add-recipe',
+                                    query: { id: id, action: 'edit' }
+                                  })
+                                }
+                              /> */}
+                              <Avatar
+                                sx={{ width: '100%', height: '100%', borderRadius: '8px', cursor: 'pointer' }}
+                                src={'/icons/pencil_outlined.svg'}
+                                variant='square'
                                 onClick={() =>
                                   Router.push({
                                     pathname: '/diet/recipe/add-recipe',
@@ -232,9 +252,31 @@ const RecipeDetail = () => {
                         {dietModuleAccess === 'DELETE' && (
                           <Tooltip title='Delete' placement='top'>
                             <Box>
-                              <Icon
+                              {/* <Icon
                                 icon='material-symbols:delete-outline'
                                 style={{ cursor: 'pointer', marginLeft: '10px' }}
+                                onClick={() => {
+                                  if (
+                                    Number(IngredientsDetailsval?.total_ingredients) +
+                                      Number(IngredientsDetailsval?.diet_count) >
+                                    0
+                                  ) {
+                                    handleStatusClickOpen()
+                                  } else {
+                                    handleClickOpen()
+                                  }
+                                }}
+                              /> */}
+                              <Avatar
+                                sx={{
+                                  width: '100%',
+                                  height: '100%',
+                                  borderRadius: '8px',
+                                  cursor: 'pointer',
+                                  marginLeft: '10px'
+                                }}
+                                src={'/icons/delete_outlined.svg'}
+                                variant='square'
                                 onClick={() => {
                                   if (
                                     Number(IngredientsDetailsval?.total_ingredients) +
@@ -261,7 +303,7 @@ const RecipeDetail = () => {
                         getRecipeDetailval={getRecipeDetailval}
                       />
 
-                      <Grid item xs={8}>
+                      <Grid item md={8} xs={12}>
                         <TabContext value={value}>
                           <TabList onChange={handleChange} aria-label='customized tabs example'>
                             <Tab
@@ -272,7 +314,7 @@ const RecipeDetail = () => {
                             <Tab
                               style={{ borderTopLeftRadius: 0, borderBottomLeftRadius: 0 }}
                               value='2'
-                              label={'USED IN DIET' + ' -' + ' ' + dietListTotal}
+                              label={`USED IN DIET${dietListTotal > 0 ? ` - ${dietListTotal}` : ''}`}
                             />
                           </TabList>
                           <TabPanel value='1'>
@@ -282,6 +324,7 @@ const RecipeDetail = () => {
                             <DietListTabview
                               IngredientName={IngredientsDetailsval.ingredient_name}
                               onTotalChange={setDietListTotal}
+                              type='recipe'
                             />
                           </TabPanel>
                         </TabContext>

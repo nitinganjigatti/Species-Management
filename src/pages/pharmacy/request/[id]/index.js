@@ -1,5 +1,5 @@
 /* eslint-disable react-hooks/exhaustive-deps */
-import React, { forwardRef, useState, useEffect } from 'react'
+import React, { forwardRef, useState, useEffect, useCallback } from 'react'
 
 import {
   getRequestItemsListById,
@@ -85,6 +85,8 @@ const IndividualRequest = () => {
       paddingBottom: theme.spacing(2)
     }
   }))
+  const router = useRouter()
+
   const [requestItems, setRequestItems] = useState([])
   const [loader, setLoader] = useState(false)
   const [show, setShow] = useState(false)
@@ -111,7 +113,6 @@ const IndividualRequest = () => {
   const [productNotAvailableLoading, setProductNotAvailableLoading] = useState(false)
   const [permissionView, setPermissionView] = useState(false)
 
-  const router = useRouter()
   const { selectedPharmacy } = usePharmacyContext()
 
   const { id, request_number } = router.query
@@ -129,8 +130,8 @@ const IndividualRequest = () => {
     product: ''
   })
   const [status, setStatus] = useState('Pending')
-  const [detailsTab, setDetailsTab] = useState('Pending')
-  const [shipmentTab, setShipmentTab] = useState('Ready To Ship')
+  const [detailsTab, setDetailsTab] = useState(router?.query?.detailsTab || 'Pending')
+  const [shipmentTab, setShipmentTab] = useState(router?.query?.shipmentTab || 'Ready To Ship')
   const theme = useTheme()
 
   const TabBadge = ({ label, totalCount }) => (
@@ -166,6 +167,14 @@ const IndividualRequest = () => {
   const openAlternativeMedicineDialog = () => {
     setShowAlternativeMedicineDialog(true)
   }
+
+  const updateUrlParams = useCallback(
+    params => {
+      const newQuery = { ...router.query, ...params }
+      router.replace({ pathname: router.pathname, query: newQuery }, undefined)
+    },
+    [router, detailsTab, shipmentTab]
+  )
 
   const closeRejectMedicineDialog = () => {
     setRejectRequestMedicineDialog(false)
@@ -205,14 +214,13 @@ const IndividualRequest = () => {
   const getRequestItemLists = async id => {
     setLoader(true)
     const response = await getRequestItemsListById(id)
-    if (response.success) {
-      const responseData = response.data
+    if (response?.success) {
+      const responseData = response?.data
 
       const mappedWithUid = response?.data?.request_item_details?.map((item, index) => ({
         ...item,
         sl_no: index + 1
       }))
-
       responseData['request_item_details'] = mappedWithUid
 
       // setRequestItems(response.data)
@@ -1046,15 +1054,28 @@ const IndividualRequest = () => {
       headerName: 'Action',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary', display: 'flex', alignItems: 'center' }}>
-          <Box sx={{ mr: 2 }}>
-            <Icon
-              onClick={() => {
-                setDeleteDialog(true)
-                setDeleteFullFillId(params.row.dispatch_item_id)
-              }}
-              icon='mdi:delete-outline'
-            />
-          </Box>
+          {/* <Box sx={{ mr: 2 }}> */}
+          <Button
+            sx={{
+              mr: 2,
+              padding: 2,
+              minWidth: 'auto',
+              borderRadius: '50%',
+              backgroundColor: 'transparent',
+              color: 'customColors.neutralSecondary',
+              '&:hover': {
+                backgroundColor: 'transparent'
+              }
+            }}
+            onClick={() => {
+              setDeleteDialog(true)
+              setDeleteFullFillId(params.row.dispatch_item_id)
+            }}
+            disabled={selectedPharmacy?.permission.key === 'VIEW'}
+          >
+            <Icon icon='mdi:delete-outline' />
+          </Button>
+          {/* </Box> */}
         </Typography>
       )
     }
@@ -1407,6 +1428,29 @@ const IndividualRequest = () => {
 
   console.log(shippedItems, 'shippedItems')
 
+  const hasNotFulfilledItems = requestItems?.request_item_details?.some(
+    el =>
+      el?.dispatch_status === 'Not Fulfilled' &&
+      el?.request_status !== 'Rejected' &&
+      el?.request_status !== 'Not Available'
+  )
+
+  useEffect(() => {
+    if (hasNotFulfilledItems) {
+      setStatus('Pending')
+    } else if (requestItems?.request_item_details?.length > 0) {
+      setStatus('All')
+    }
+  }, [hasNotFulfilledItems, requestItems?.request_item_details?.length > 0])
+
+  useEffect(() => {
+    if (dispatchedItems?.length > 0) {
+      setShipmentTab('Ready To Ship')
+    } else if (shippedItems?.length > 0) {
+      setShipmentTab('Shipped')
+    }
+  }, [dispatchedItems?.length > 0, shippedItems?.length > 0])
+
   return (
     <>
       {loader ? (
@@ -1440,7 +1484,7 @@ const IndividualRequest = () => {
                           requestItems?.status === 'request' &&
                           requestItems?.is_modified !== '1'
                         ) {
-                          Router.push('/pharmacy/request/request-list')
+                          Router.push('/pharmacy/request')
                         } else {
                           Router.back()
                         }
@@ -1452,7 +1496,8 @@ const IndividualRequest = () => {
                   action={
                     selectedPharmacy?.type === 'local' &&
                     requestItems?.status === 'request' &&
-                    requestItems?.is_modified !== '1' ? (
+                    requestItems?.is_modified !== '1' &&
+                    Number(requestItems?.shipped_product_count) === 0 && (
                       <Button
                         size='big'
                         variant='contained'
@@ -1462,8 +1507,6 @@ const IndividualRequest = () => {
                       >
                         Edit
                       </Button>
-                    ) : (
-                      <></>
                     )
                   }
                 />
@@ -1523,7 +1566,7 @@ const IndividualRequest = () => {
                             color: 'customColors.neutralSecondary'
                           }}
                         >
-                          Requested By:
+                          Requested By :
                           <Box
                             component='span'
                             sx={{
@@ -1531,10 +1574,13 @@ const IndividualRequest = () => {
                               fontSize: '16px',
                               color: 'customColors.OnSurfaceVariant',
                               lineHeight: '19.36px',
-                              mx: 2
+                              mx: 2,
+                              [theme.breakpoints.up('lg')]: {
+                                ...RenderUtility?.getEllipsisStyleForText('140')
+                              }
                             }}
                           >
-                            {requestItems?.to_store}
+                            {RenderUtility?.getToolTipForText(requestItems?.to_store)}
                           </Box>
                         </Typography>
                         <Typography
@@ -1553,10 +1599,13 @@ const IndividualRequest = () => {
                               fontSize: '16px',
                               color: 'customColors.OnSurfaceVariant',
                               lineHeight: '19.36px',
-                              mx: 2
+                              mx: 2,
+                              [theme.breakpoints.up('lg')]: {
+                                ...RenderUtility?.getEllipsisStyleForText('140')
+                              }
                             }}
                           >
-                            {requestItems?.request_number}
+                            {RenderUtility?.getToolTipForText(requestItems?.request_number)}
                           </Box>
                         </Typography>
                       </Grid>
@@ -1612,29 +1661,45 @@ const IndividualRequest = () => {
                             </Box>
                           </Typography>
                         )}
-
-                        <Typography
+                        <Box
                           sx={{
-                            fontSize: '14px',
-                            fontWeight: '400',
-                            lineHeight: '16.94px',
-                            color: 'customColors.neutralSecondary'
+                            display: 'flex',
+                            alignItems: 'center',
+                            marginLeft: { xs: 0, md: 0, sm: '47px' }
+                            // overflow: 'hidden' // optional, if you want to clip long content
                           }}
                         >
-                          Total Requested Value:
-                          <Box
+                          <Typography
                             component='span'
                             sx={{
-                              fontWeight: '500',
-                              fontSize: '16px',
-                              color: 'primary.light',
-                              lineHeight: '19.36px',
-                              mx: 2
+                              fontSize: '14px',
+                              fontWeight: '400',
+                              lineHeight: '16.94px',
+                              color: 'customColors.neutralSecondary',
+                              whiteSpace: 'nowrap' // optional if this label might wrap
+                              // ml: { xs: 0, sm: 0 }
                             }}
                           >
-                            ₹{Utility.formatNumberToDisplay(requestItems?.requested_amount)}
-                          </Box>
-                        </Typography>
+                            Total Requested Value:
+                          </Typography>
+
+                          <Tooltip title={Utility.formatAmountToReadableDigit(requestItems?.requested_amount)}>
+                            <Box
+                              component='span'
+                              sx={{
+                                fontWeight: '500',
+                                fontSize: '16px',
+                                color: 'primary.light',
+                                lineHeight: '19.36px',
+                                whiteSpace: 'nowrap',
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis'
+                              }}
+                            >
+                              {Utility.formatAmountToReadableDigit(requestItems?.requested_amount)}
+                            </Box>
+                          </Tooltip>
+                        </Box>
 
                         {/* <Typography
                           sx={{
@@ -1649,12 +1714,12 @@ const IndividualRequest = () => {
                             component='span'
                             sx={{
                               fontWeight: '500',
+                          >
                               fontSize: '16px',
                               color: 'primary.OnSurface',
                               lineHeight: '19.36px',
                               mx: 2
                             }}
-                          >
                             {requestItems?.shipped_qty}
                           </Box>
                         </Typography> */}
@@ -1715,18 +1780,20 @@ const IndividualRequest = () => {
                           }}
                         >
                           Shipped Value:
-                          <Box
-                            component='span'
-                            sx={{
-                              fontWeight: '500',
-                              fontSize: '16px',
-                              color: 'primary.main',
-                              lineHeight: '19.36px',
-                              mx: 2
-                            }}
-                          >
-                            ₹{Utility.formatNumberToDisplay(requestItems?.shipped_amount)}
-                          </Box>
+                          <Tooltip title={`₹${Utility.formatNumberToDisplay(requestItems?.shipped_amount)}`}>
+                            <Box
+                              component='span'
+                              sx={{
+                                fontWeight: '500',
+                                fontSize: '16px',
+                                color: 'primary.main',
+                                lineHeight: '19.36px',
+                                mx: 2
+                              }}
+                            >
+                              ₹{Utility.formatNumberToDisplay(requestItems?.shipped_amount)}
+                            </Box>
+                          </Tooltip>
                         </Typography>
                       </Grid>
 
@@ -1810,6 +1877,9 @@ const IndividualRequest = () => {
                       sx={{ borderBottom: `1px solid ${theme.palette.customColors.neutral05} !important` }}
                       onChange={(event, newValue) => {
                         setDetailsTab(newValue)
+                        updateUrlParams({
+                          detailsTab: newValue
+                        })
                       }}
                     >
                       <Tab
@@ -1868,7 +1938,7 @@ const IndividualRequest = () => {
                                       setOrderId(e.id)
                                       Router.push({
                                         pathname: `/pharmacy/request/${id}/shipment-details`,
-                                        query: { orderId: e.id }
+                                        query: { orderId: e.id, requestId: id }
                                       })
                                     }}
                                   ></TableBasic>
@@ -1979,6 +2049,9 @@ const IndividualRequest = () => {
                               <TabLists
                                 onChange={(event, newValue) => {
                                   setShipmentTab(newValue)
+                                  updateUrlParams({
+                                    shipmentTab: newValue
+                                  })
                                 }}
                                 sx={{ width: '100%', height: '56px', py: '8px', gap: '6px' }}
                               >
@@ -2054,7 +2127,7 @@ const IndividualRequest = () => {
                                           setOrderId(e.id)
                                           Router.push({
                                             pathname: `/pharmacy/request/${id}/shipment-details`,
-                                            query: { orderId: e.id }
+                                            query: { orderId: e.id, requestId: id }
                                           })
                                         }}
                                       ></TableBasic>
@@ -2661,7 +2734,7 @@ const IndividualRequest = () => {
               You don't have an access to view this request
               <Button
                 onClick={() => {
-                  router.push('/pharmacy/request/request-list/')
+                  router.push('/pharmacy/request')
                 }}
                 variant='contained'
                 size='small'

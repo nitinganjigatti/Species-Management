@@ -8,25 +8,34 @@ import TextField from '@mui/material/TextField'
 import Typography from '@mui/material/Typography'
 import FormControl from '@mui/material/FormControl'
 import { AddButton } from 'src/components/Buttons'
-import { FormHelperText } from '@mui/material'
+import { FormHelperText, CircularProgress } from '@mui/material'
 import Autocomplete from '@mui/material/Autocomplete'
 import { useForm, useFieldArray } from 'react-hook-form'
 import { Controller } from 'react-hook-form'
 import IconButton from '@mui/material/IconButton'
 import { getPreparationTypeList } from 'src/lib/api/diet/getIngredients'
-import { Divider } from '@mui/material'
-import CancelIcon from '@mui/icons-material/Cancel'
+import { Divider, CardContent } from '@mui/material'
 import * as yup from 'yup'
 import { yupResolver } from '@hookform/resolvers/yup'
 import toast from 'react-hot-toast'
 import Toaster from 'src/components/Toaster'
+import Router from 'next/router'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
 import AddCutSize from '../../diet/cutSizes/addCutSizes'
 import { addCutSize, getCutsizeList } from 'src/lib/api/diet/settings/cutSizes'
+import CustomFileUploaderSingle from 'src/views/forms/form-elements/file-uploader/CustomFileUploaderSingle'
+import { useTheme, useMediaQuery } from '@mui/material'
 
 const defaultValues = {
+  recipe_name: '',
+  portion_size: '',
+  portion_uom_id: '',
+  portion_uom_name: '',
+  nutrional_value: '',
+  nutrional_uom_id: '',
+  kcal: '',
   by_percentage: [
     {
       ingredient_id: '',
@@ -34,9 +43,9 @@ const defaultValues = {
       feed_type_label: '',
       quantity: '',
       preparation_type_id: '',
-      preparation_type: '',
-      cut_size: '',
-      cut_size_id: ''
+      preparation_type: ''
+      // cut_size: '',
+      // cut_size_id: ''
     }
   ],
   by_quantity: [
@@ -56,6 +65,7 @@ const defaultValues = {
 }
 
 const schema = yup.object().shape({
+  recipe_name: yup.string().required('Combo name is required')
   // by_percentage: yup.array().of(
   //   yup.object().shape({
   //     ingredient_id: yup.string().required('Ingredient is required'),
@@ -92,6 +102,7 @@ const StepAddIngredients = ({
   fullIngredientList,
   IngredientTypeListSearch,
   setcutSize,
+  loader,
   setFullIngredientList,
   onCancelIconClick,
   handleIngredientChange
@@ -99,8 +110,8 @@ const StepAddIngredients = ({
   const ingredients = [
     { label: ' Ingredients' },
     { label: 'Quantity' },
-    { label: 'Preparation Type' },
-    { label: 'Cut Size' }
+    { label: 'Preparation Type' }
+    // { label: 'Cut Size' }
   ]
 
   const ingredientsbyqun = [
@@ -111,11 +122,14 @@ const StepAddIngredients = ({
     { label: 'Cut Size' }
   ]
   const editParamsInitialState = { id: null, label: null, status: null }
+  const [uploadedImage, setUploadedImage] = useState(null)
   const [preparationTypeListPercentage, setPreparationTypeListPercentage] = useState([])
   const [preparationTypeListQuantity, setPreparationTypeListQuantity] = useState([])
   const [openDrawer, setOpenDrawer] = useState(false)
   const [submitLoader, setSubmitLoader] = useState(false)
   const [editParams, setEditParams] = useState(editParamsInitialState)
+  const theme = useTheme()
+  const isSmallDevice = useMediaQuery(theme.breakpoints.down('md'))
 
   const {
     reset,
@@ -171,8 +185,8 @@ const StepAddIngredients = ({
             appendIngredients({
               ingredient_id: '',
               quantity: '',
-              preparation_type_id: '',
-              cut_size_id: ''
+              preparation_type_id: ''
+              //cut_size_id: ''
             })
           }}
         >
@@ -209,8 +223,8 @@ const StepAddIngredients = ({
           appendByQuantity({
             ingredient_id: '',
             quantity: '',
-            preparation_type_id: '',
-            cut_size_id: ''
+            preparation_type_id: ''
+            //cut_size_id: ''
           })
         }}
       >
@@ -315,10 +329,24 @@ const StepAddIngredients = ({
   //   }
   // }
 
-  const handlePrevClick = () => {
-    window.scrollTo(0, 0)
-    handlePrev()
+  // const handlePrevClick = () => {
+  //   window.scrollTo(0, 0)
+  //   handlePrev()
+  // }
+
+  const cancelBack = () => {
+    Router.push('/diet/combo/')
   }
+
+  const handleImageUpload = imageData => {
+    setUploadedImage(imageData)
+  }
+
+  useEffect(() => {
+    if (formData) {
+      setUploadedImage(formData.recipe_image)
+    }
+  }, [formData])
 
   useEffect(() => {
     if (formData) {
@@ -333,7 +361,7 @@ const StepAddIngredients = ({
   const onSubmit = async data => {
     // Filter out incomplete entries
     data.by_percentage = data.by_percentage.filter(
-      item => item.ingredient_id || item.quantity || item.preparation_type_id || item.cut_size_id
+      item => item.ingredient_id || item.quantity || item.preparation_type_id
     )
     data.by_quantity = data.by_quantity.filter(
       item => item.ingredient_id || item.quantity || item.preparation_type_id || item.uom_id
@@ -346,7 +374,7 @@ const StepAddIngredients = ({
 
     // Check if all entries in by_percentage have all required fields
     const isByPercentageValid = data.by_percentage.every(
-      item => item.ingredient_id && item.quantity && item.preparation_type_id && item.cut_size_id
+      item => item.ingredient_id && item.quantity && item.preparation_type_id
     )
     // Check if all entries in by_quantity have all required fields
     const isByQuantityValid = data.by_quantity.every(
@@ -367,8 +395,8 @@ const StepAddIngredients = ({
       const firstIncompleteIndex = findFirstIncompleteIndex(data.by_percentage, [
         'ingredient_id',
         'quantity',
-        'preparation_type_id',
-        'cut_size_id'
+        'preparation_type_id'
+        //'cut_size_id'
       ])
       window.scrollTo(0, 0)
       //return toast.error(`Please fill in all fields in "By Percentage" at index ${firstIncompleteIndex + 1}.`)
@@ -378,17 +406,17 @@ const StepAddIngredients = ({
       })
     }
 
-    if (
-      !isByPercentageValid ||
-      data.by_percentage.some(item => item.cut_size_id === 'null' || item.cut_size_id === '0')
-    ) {
-      window.scrollTo(0, 0)
-      //return toast.error('Please fill in all fields in either "By Percentage" or "By Quantity".')
-      return Toaster({
-        type: 'error',
-        message: 'Please fill in all fields for By Percentage'
-      })
-    }
+    // if (
+    //   !isByPercentageValid ||
+    //   data.by_percentage.some(item => item.cut_size_id === 'null' || item.cut_size_id === '0')
+    // ) {
+    //   window.scrollTo(0, 0)
+    //   //return toast.error('Please fill in all fields in either "By Percentage" or "By Quantity".')
+    //   return Toaster({
+    //     type: 'error',
+    //     message: 'Please fill in all fields for By Percentage'
+    //   })
+    // }
 
     // if (data.by_quantity.length > 0 && !isByQuantityValid) {
     //   const firstIncompleteIndex = findFirstIncompleteIndex(data.by_quantity, [
@@ -481,7 +509,15 @@ const StepAddIngredients = ({
 
       try {
         await schema.validate(data, { abortEarly: false })
-        handleNext(data)
+        const imageData = await handleImageUpload()
+        console.log(imageData, 'imageData')
+
+        // Merge the image data with other form data
+        const formDataWithImage = {
+          ...data,
+          recipe_image: uploadedImage
+        }
+        handleNext(formDataWithImage)
       } catch (validationErrors) {
         validationErrors.inner.forEach(error => {
           setError(error.path, { message: error.message })
@@ -538,15 +574,25 @@ const StepAddIngredients = ({
   useEffect(() => {
     // Initialize fieldsByQuantity and fieldsIngredients with at least one empty object if empty
     if (fieldsByQuantity.length === 0) {
-      appendByQuantity({ ingredient_id: '', quantity: '', uom_id: '', preparation_type_id: '', cut_size_id: '' })
+      appendByQuantity({ ingredient_id: '', quantity: '', uom_id: '', preparation_type_id: '' })
     }
     if (fieldsIngredients.length === 0) {
-      appendIngredients({ ingredient_id: '', quantity: '', preparation_type_id: '', cut_size_id: '' })
+      appendIngredients({ ingredient_id: '', quantity: '', preparation_type_id: '' })
     }
   }, [fieldsByQuantity, fieldsIngredients, appendByQuantity, appendIngredients])
 
   const ScrollToFieldError = ({ errors, index }) => {
     // if (!errors) return
+    useEffect(() => {
+      if (!errors) return
+      console.log(Object.keys(errors)[0], 'check')
+      const firstErrorField = Object.keys(errors)[0]
+      const errorElement = document.querySelector(`input[name="${firstErrorField}"]`)
+      console.log(errorElement, 'errorElement')
+      if (errorElement) {
+        errorElement.scrollIntoView({ behavior: 'smooth', block: 'center' })
+      }
+    }, [errors])
     const firstErrorField = Object.keys(errors)[0]
 
     if (firstErrorField === 'by_percentage') {
@@ -583,270 +629,337 @@ const StepAddIngredients = ({
 
   return (
     <>
-      <form onSubmit={handleSubmit(onSubmit)}>
-        <Grid container spacing={5} sx={{ px: 5, pt: 6 }}>
-          <Grid item xs={12}>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4, mt: 2, mr: 4 }}>
-              <Typography variant='h6'>Add Ingredient - by Percentage</Typography>
-              <AddButton title='Add Cut Size' action={() => addEventSidebarOpen()} />
+      {loader ? (
+        <CardContent sx={{ background: '#fff', height: '100vh' }}>
+          <Box sx={{ display: 'flex', justifyContent: 'center', mt: 20 }}>
+            <CircularProgress />
+          </Box>
+        </CardContent>
+      ) : (
+        <form onSubmit={handleSubmit(onSubmit)}>
+          <Box sx={{ mb: 1, px: 5, mt: 5, float: 'left' }}>
+            <Typography variant='h6'>Combo details</Typography>
+          </Box>
+          <ScrollToFieldError errors={errors} />
+          <Grid container spacing={5} sx={{ px: 5 }}>
+            <Grid item xs={12} sm={6}>
+              <FormControl fullWidth>
+                <Controller
+                  name='recipe_name'
+                  control={control}
+                  rules={{ required: true }}
+                  render={({ field: { value, onChange } }) => (
+                    <TextField
+                      value={value}
+                      label='Combo name *'
+                      name='recipe_name'
+                      error={Boolean(errors.recipe_name)}
+                      onChange={onChange}
+                    />
+                  )}
+                />
+
+                {errors.recipe_name && (
+                  <FormHelperText sx={{ color: 'error.main' }}>{errors?.recipe_name?.message}</FormHelperText>
+                )}
+              </FormControl>
+            </Grid>
+            <Divider sx={{ mb: 2, mx: 3, pb: 1, mt: 8, width: '98%', ml: 5 }} />
+
+            <Box sx={{ mb: 0, px: 5, mt: 3, float: 'left', width: '100%' }}>
+              <Typography variant='h6'>Add image</Typography>
             </Box>
+            {console.log(uploadedImage, 'uploadedImage')}
+            <Grid item xs={6} sx={{ pt: 0 }}>
+              <CardContent sx={{ px: 0, paddingTop: 2 }}>
+                <CustomFileUploaderSingle onImageUpload={handleImageUpload} uploadedImagenew={uploadedImage} />
+              </CardContent>
+            </Grid>
           </Grid>
-          <Grid container spacing={5} sx={{ px: 5, background: '#E8F4F2', my: 1, borderRadius: 0.5, mx: 4 }}>
-            {ingredients.map((ingredient, index) => (
-              <Grid item xs={12} sm={2.85} key={index} sx={{ py: 4 }}>
-                <Typography sx={{ textTransform: 'uppercase', fontSize: 14, fontWeight: 600 }}>
-                  <div style={{ display: 'flex', alignItems: 'center' }}>
-                    {ingredient.label}{' '}
-                    <span style={{ fontSize: '12px', color: '#588980db', textTransform: 'lowercase' }}>
-                      {' '}
-                      {ingredient.label === 'Quantity' ? (
-                        calculateTotalQuantity() === 0 ? (
-                          '(0% Left)'
-                        ) : calculateTotalQuantity() >= 100 ? (
-                          <span style={{ fontSize: '12px', color: '#37BD69', textTransform: 'lowercase' }}>
-                            (100% Done)
-                          </span>
+          <Grid container spacing={5} sx={{ px: 5, pt: 6 }}>
+            <Grid item xs={12}>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4, mt: 2, mr: 4 }}>
+                <Typography variant='h6'>Add Ingredient - by Percentage</Typography>
+                {/* <AddButton title='Add Cut Size' action={() => addEventSidebarOpen()} /> */}
+              </Box>
+            </Grid>
+            <Grid container spacing={5} sx={{ px: 5, background: '#E8F4F2', my: 1, borderRadius: 0.5, mx: 4 }}>
+              {ingredients.map((ingredient, index) => (
+                <Grid item xs={12} sm={4} key={index} sx={{ py: 4 }}>
+                  <Typography sx={{ textTransform: 'uppercase', fontSize: 14, fontWeight: 600 }}>
+                    <div style={{ display: 'flex', alignItems: 'center' }}>
+                      {ingredient.label}{' '}
+                      <span style={{ fontSize: '12px', color: '#588980db', textTransform: 'lowercase' }}>
+                        {' '}
+                        {ingredient.label === 'Quantity' ? (
+                          calculateTotalQuantity() === 0 ? (
+                            '(0% Left)'
+                          ) : calculateTotalQuantity() >= 100 ? (
+                            <span style={{ fontSize: '12px', color: '#37BD69', textTransform: 'lowercase' }}>
+                              (100% Done)
+                            </span>
+                          ) : (
+                            `(${(100 - calculateTotalQuantity()).toFixed(2)}% Left)`
+                          )
                         ) : (
-                          `(${(100 - calculateTotalQuantity()).toFixed(2)}% Left)`
-                        )
-                      ) : (
-                        ''
-                      )}
-                    </span>
-                    {ingredient.label === 'Quantity' && <Icon icon='mdi:equal-box' onClick={handleEquilizerClick} />}
-                  </div>
-                </Typography>
-              </Grid>
-            ))}
-          </Grid>
+                          ''
+                        )}
+                      </span>
+                      {ingredient.label === 'Quantity' && <Icon icon='mdi:equal-box' onClick={handleEquilizerClick} />}
+                    </div>
+                  </Typography>
+                </Grid>
+              ))}
+            </Grid>
 
-          <Grid container spacing={5} sx={{ px: 5, py: 5 }}>
             <Grid container spacing={5} sx={{ px: 5, py: 5 }}>
-              {fieldsIngredients.map((field, index) => (
-                <Grid container spacing={5} sx={{ px: 5, py: 5 }} key={field.id} id={'test' + index}>
-                  <ScrollToFieldError errors={errors} index={index} />
-                  <Grid item xs={12} sm={2.85}>
-                    <FormControl fullWidth>
-                      <Controller
-                        name={`by_percentage[${index}].ingredient_id`}
-                        control={control}
-                        rules={{ required: true }}
-                        render={({ field: { value, onChange } }) => (
-                          <Autocomplete
-                            value={fullIngredientList.find(option => option.id === value) || null}
-                            disablePortal
-                            id={`by_percentage[${index}].ingredient_id`}
-                            placeholder='Search & Select'
-                            options={fullIngredientList || []}
-                            getOptionLabel={option => option?.ingredient_name}
-                            isOptionEqualToValue={(option, value) => option?.id === value?.id}
-                            onChange={(e, val) => {
-                              if (val === null) {
-                                onChange('')
-                                setFormValue(`by_percentage[${index}].ingredient_name`, '')
-                                setFormValue(`by_percentage[${index}].feed_type_label`, '')
+              <Grid container spacing={5} sx={{ px: 5, py: 5 }}>
+                {fieldsIngredients.map((field, index) => (
+                  <Grid container spacing={5} sx={{ px: 5, py: 5 }} key={field.id} id={'test' + index}>
+                    <ScrollToFieldError errors={errors} index={index} />
 
-                                //setPreparationTypeListPercentage([])
-                                setFormValue(`by_percentage[${index}].preparation_type`, '')
-                              } else {
-                                onChange(val?.id)
-                                setFormValue(`by_percentage[${index}].ingredient_name`, val?.ingredient_name)
-                                setFormValue(`by_percentage[${index}].feed_type_label`, val?.feed_type_label)
-
-                                // if (val.preparation_types) {
-                                //   setpreparationTypeList(val.preparation_types)
-                                // } else {
-                                //   setpreparationTypeList([])
-                                // }
-                                handlecheck(val?.id, index, 'by_percentage')
-                                setFormValue(`by_percentage[${index}].preparation_type`, '')
-                                setFormValue(`by_percentage[${index}].preparation_type_id`, '')
-                              }
-                            }}
-                            onKeyUp={e => {
-                              IngredientTypeListSearch(e?.target?.value)
-                            }}
-                            renderInput={params => (
-                              <TextField
-                                {...params}
-                                label='Select Ingredient*'
-                                placeholder='Search & Select'
-                                error={
-                                  errors.by_percentage &&
-                                  errors.by_percentage[index] &&
-                                  errors.by_percentage[index].ingredient_id?.message
-                                    ? true
-                                    : false
-                                }
-                              />
-                            )}
-                          />
-                        )}
-                      />
-
-                      {errors.by_percentage && errors.by_percentage[index] && (
-                        <FormHelperText sx={{ color: 'error.main' }}>
-                          {errors.by_percentage[index].ingredient_id?.message}
-                        </FormHelperText>
-                      )}
-                    </FormControl>
-                  </Grid>
-
-                  <Grid item xs={12} sm={2.85}>
-                    <FormControl fullWidth>
-                      <Controller
-                        name={`by_percentage[${index}].quantity`}
-                        control={control}
-                        rules={{ required: true }}
-                        render={({ field: { value, onChange } }) => (
-                          <TextField
-                            value={value}
-                            type='number'
-                            label='Enter Quantity (%)*'
-                            name={`by_percentage[${index}].quantity`}
-                            onChange={e => {
-                              onChange(e)
-                              const totalQuantity = calculateTotalQuantity()
-
-                              // Update the state or do whatever you need with the total quantity
-                              console.log('Total Quantity:', totalQuantity)
-                              trigger(`by_percentage[${index}].quantity`)
-                            }}
-                            // onBlur={() => {
-                            //   // Format value to 2 decimal places on blur
-                            //   onChange(parseFloat(value || 0).toFixed(2))
-                            // }}
-                            placeholder=''
-                            onInput={e => {
-                              if (e.target.value < 0) {
-                                e.target.value = ''
-                              }
-                            }}
-                            error={
-                              errors.by_percentage &&
-                              errors.by_percentage[index] &&
-                              errors.by_percentage[index].quantity?.message
-                                ? true
-                                : false
-                            }
-                          />
-                        )}
-                      />
-                      {errors.by_percentage && errors.by_percentage[index] && (
-                        <FormHelperText sx={{ color: 'error.main' }}>
-                          {errors.by_percentage[index].quantity?.message}
-                        </FormHelperText>
-                      )}
-                      {index === fieldsIngredients.length - 1 && (
-                        <Grid item xs={12} sm={12}>
-                          <span
-                            style={{
-                              paddingTop: '15px',
-                              float: 'left',
-                              color: '#ff0000cc',
-                              paddingLeft: '12px',
-                              fontSize: '14px'
-                            }}
-                          >
-                            {fieldsIngredients.length > 1 && calculateTotalQuantity() > 100
-                              ? "you've hit 100% limit"
-                              : fieldsIngredients.length > 1 && calculateTotalQuantity() < 100
-                              ? 'Limit should be equal to 100%'
-                              : ''}
-                          </span>
-                        </Grid>
-                      )}
-                    </FormControl>
-                  </Grid>
-
-                  <Grid item xs={12} sm={2.85}>
-                    <FormControl fullWidth>
-                      <Controller
-                        name={`by_percentage[${index}].preparation_type_id`}
-                        control={control}
-                        rules={{ required: true }}
-                        render={({ field: { value, onChange } }) => {
-                          return (
+                    <Grid item xs={12} sm={3.8}>
+                      <FormControl fullWidth>
+                        <Controller
+                          name={`by_percentage[${index}].ingredient_id`}
+                          control={control}
+                          rules={{ required: true }}
+                          render={({ field: { value, onChange } }) => (
                             <Autocomplete
-                              id={`by_percentage[${index}].preparation_type_id`}
-                              getOptionLabel={option => option.label || ''}
+                              sx={{
+                                '&.MuiAutocomplete-hasPopupIcon.MuiAutocomplete-hasClearIcon .MuiOutlinedInput-root':
+                                  isSmallDevice ? { paddingRight: '10px' } : {},
+                                '& .MuiAutocomplete-clearIndicator': isSmallDevice ? { display: 'none' } : {},
+                                '& .MuiAutocomplete-popupIndicator': isSmallDevice ? { display: 'none' } : {}
+                              }}
+                              value={fullIngredientList.find(option => option.id === value) || null}
+                              disablePortal
+                              id={`by_percentage[${index}].ingredient_id`}
+                              placeholder='Search & Select'
+                              options={fullIngredientList || []}
+                              getOptionLabel={option => option?.ingredient_name}
+                              isOptionEqualToValue={(option, value) => option?.id === value?.id}
+                              onChange={(e, val) => {
+                                if (val === null) {
+                                  onChange('')
+                                  setFormValue(`by_percentage[${index}].ingredient_name`, '')
+                                  setFormValue(`by_percentage[${index}].feed_type_label`, '')
+
+                                  //setPreparationTypeListPercentage([])
+                                  setFormValue(`by_percentage[${index}].preparation_type`, '')
+                                } else {
+                                  onChange(val?.id)
+                                  setFormValue(`by_percentage[${index}].ingredient_name`, val?.ingredient_name)
+                                  setFormValue(`by_percentage[${index}].feed_type_label`, val?.feed_type_label)
+
+                                  // if (val.preparation_types) {
+                                  //   setpreparationTypeList(val.preparation_types)
+                                  // } else {
+                                  //   setpreparationTypeList([])
+                                  // }
+                                  handlecheck(val?.id, index, 'by_percentage')
+                                  setFormValue(`by_percentage[${index}].preparation_type`, '')
+                                  setFormValue(`by_percentage[${index}].preparation_type_id`, '')
+                                }
+                              }}
+                              onKeyUp={e => {
+                                IngredientTypeListSearch(e?.target?.value)
+                              }}
                               renderInput={params => (
                                 <TextField
                                   {...params}
-                                  label='Select Preparation Type *'
+                                  label='Select Ingredient*'
+                                  placeholder='Search & Select'
                                   error={
                                     errors.by_percentage &&
                                     errors.by_percentage[index] &&
-                                    errors.by_percentage[index].preparation_type_id?.message
+                                    errors.by_percentage[index].ingredient_id?.message
                                       ? true
                                       : false
                                   }
                                 />
                               )}
-                              options={preparationTypeListPercentage[index] || []}
-                              onChange={(event, newValue) => {
-                                const updatedIngredient = newValue?.id || ''
-                                setFormValue(`by_percentage[${index}].preparation_type_id`, newValue?.id || '') // Use id instead of value
-                                setFormValue(`by_percentage[${index}].preparation_type`, newValue?.label || '')
-                                onChange(updatedIngredient, index)
-                              }}
-                              value={preparationTypeListPercentage[index]?.find(option => option.id === value) || null}
-                              isOptionEqualToValue={(option, value) => option.id === value}
                             />
-                          )
-                        }}
-                      />
-                      {errors.by_percentage && errors.by_percentage[index] && (
-                        <FormHelperText sx={{ color: 'error.main' }}>
-                          {errors.by_percentage[index].preparation_type_id?.message}
-                        </FormHelperText>
-                      )}
-                    </FormControl>
-                  </Grid>
+                          )}
+                        />
 
-                  <Grid item xs={12} sm={2.85}>
-                    <FormControl fullWidth>
-                      <Controller
-                        name={`by_percentage[${index}].cut_size`}
-                        control={control}
-                        rules={{ required: true }}
-                        render={({ field: { value, onChange } }) => {
-                          return (
-                            <Autocomplete
-                              id={`by_percentage[${index}].cut_size`}
-                              getOptionLabel={option => option.cut_size}
-                              renderInput={params => <TextField {...params} label='Select Cut size *' />}
-                              options={cutsizeList || []}
-                              onChange={(e, val) => {
-                                if (val === null) {
-                                  onChange('')
-                                  setFormValue(`by_percentage[${index}].cut_size`, '')
-                                  setFormValue(`by_percentage[${index}].cut_size_id`, '')
-                                } else {
-                                  onChange(val.id)
-                                  setFormValue(`by_percentage[${index}].cut_size`, val?.cut_size)
-                                  setFormValue(`by_percentage[${index}].cut_size_id`, val?.id)
+                        {errors.by_percentage && errors.by_percentage[index] && (
+                          <FormHelperText sx={{ color: 'error.main' }}>
+                            {errors.by_percentage[index].ingredient_id?.message}
+                          </FormHelperText>
+                        )}
+                      </FormControl>
+                    </Grid>
+
+                    <Grid item xs={12} sm={3.8}>
+                      <FormControl fullWidth>
+                        <Controller
+                          name={`by_percentage[${index}].quantity`}
+                          control={control}
+                          rules={{ required: true }}
+                          render={({ field: { value, onChange } }) => (
+                            <TextField
+                              value={value}
+                              type='number'
+                              label='Enter Quantity (%)*'
+                              name={`by_percentage[${index}].quantity`}
+                              onChange={e => {
+                                onChange(e)
+                                const totalQuantity = calculateTotalQuantity()
+
+                                // Update the state or do whatever you need with the total quantity
+                                console.log('Total Quantity:', totalQuantity)
+                                trigger(`by_percentage[${index}].quantity`)
+                              }}
+                              // onBlur={() => {
+                              //   // Format value to 2 decimal places on blur
+                              //   onChange(parseFloat(value || 0).toFixed(2))
+                              // }}
+                              placeholder=''
+                              onInput={e => {
+                                if (e.target.value < 0) {
+                                  e.target.value = ''
                                 }
                               }}
-                              value={cutsizeList.find(option => option.cut_size === value) || null}
-                              isOptionEqualToValue={(option, value) => option?.id === value?.id}
+                              error={
+                                errors.by_percentage &&
+                                errors.by_percentage[index] &&
+                                errors.by_percentage[index].quantity?.message
+                                  ? true
+                                  : false
+                              }
                             />
-                          )
-                        }}
-                      />
-                    </FormControl>
-                  </Grid>
-                  {fieldsIngredients.length - 1 === index && index > 0 ? (
-                    <Grid>{removeIngredientButton(index)}</Grid>
-                  ) : (
-                    ''
-                  )}
-                  <Grid>{handleAddRemoveingredient(fieldsIngredients, index)}</Grid>
-                </Grid>
-              ))}
-            </Grid>
+                          )}
+                        />
+                        {errors.by_percentage && errors.by_percentage[index] && (
+                          <FormHelperText sx={{ color: 'error.main' }}>
+                            {errors.by_percentage[index].quantity?.message}
+                          </FormHelperText>
+                        )}
+                        {index === fieldsIngredients.length - 1 && (
+                          <Grid item xs={12} sm={12}>
+                            <span
+                              style={{
+                                paddingTop: '15px',
+                                float: 'left',
+                                color: '#ff0000cc',
+                                paddingLeft: '12px',
+                                fontSize: '14px'
+                              }}
+                            >
+                              {fieldsIngredients.length > 1 && calculateTotalQuantity() > 100
+                                ? "you've hit 100% limit"
+                                : fieldsIngredients.length > 1 && calculateTotalQuantity() < 100
+                                ? 'Limit should be equal to 100%'
+                                : ''}
+                            </span>
+                          </Grid>
+                        )}
+                      </FormControl>
+                    </Grid>
 
-            {/* <Box sx={{ mb: 2, px: 5, mt: 2, float: 'left' }}>
+                    <Grid item xs={12} sm={3.8}>
+                      <FormControl fullWidth>
+                        <Controller
+                          name={`by_percentage[${index}].preparation_type_id`}
+                          control={control}
+                          rules={{ required: true }}
+                          render={({ field: { value, onChange } }) => {
+                            return (
+                              <Autocomplete
+                                sx={{
+                                  '&.MuiAutocomplete-hasPopupIcon.MuiAutocomplete-hasClearIcon .MuiOutlinedInput-root':
+                                    isSmallDevice ? { paddingRight: '10px' } : {},
+                                  '& .MuiAutocomplete-clearIndicator': isSmallDevice ? { display: 'none' } : {},
+                                  '& .MuiAutocomplete-popupIndicator': isSmallDevice ? { display: 'none' } : {}
+                                }}
+                                id={`by_percentage[${index}].preparation_type_id`}
+                                getOptionLabel={option => option.label || ''}
+                                renderInput={params => (
+                                  <TextField
+                                    {...params}
+                                    label='Select Preparation Type *'
+                                    error={
+                                      errors.by_percentage &&
+                                      errors.by_percentage[index] &&
+                                      errors.by_percentage[index].preparation_type_id?.message
+                                        ? true
+                                        : false
+                                    }
+                                  />
+                                )}
+                                options={preparationTypeListPercentage[index] || []}
+                                onChange={(event, newValue) => {
+                                  const updatedIngredient = newValue?.id || ''
+                                  setFormValue(`by_percentage[${index}].preparation_type_id`, newValue?.id || '') // Use id instead of value
+                                  setFormValue(`by_percentage[${index}].preparation_type`, newValue?.label || '')
+                                  onChange(updatedIngredient, index)
+                                }}
+                                value={
+                                  preparationTypeListPercentage[index]?.find(option => option.id === value) || null
+                                }
+                                isOptionEqualToValue={(option, value) => option.id === value}
+                              />
+                            )
+                          }}
+                        />
+                        {errors.by_percentage && errors.by_percentage[index] && (
+                          <FormHelperText sx={{ color: 'error.main' }}>
+                            {errors.by_percentage[index].preparation_type_id?.message}
+                          </FormHelperText>
+                        )}
+                      </FormControl>
+                    </Grid>
+
+                    {/* <Grid item xs={12} sm={2.85}>
+                      <FormControl fullWidth>
+                        <Controller
+                          name={`by_percentage[${index}].cut_size`}
+                          control={control}
+                          rules={{ required: true }}
+                          render={({ field: { value, onChange } }) => {
+                            return (
+                              <Autocomplete
+                                sx={{
+                                  '&.MuiAutocomplete-hasPopupIcon.MuiAutocomplete-hasClearIcon .MuiOutlinedInput-root':
+                                    isSmallDevice ? { paddingRight: '10px' } : {},
+                                  '& .MuiAutocomplete-clearIndicator': isSmallDevice ? { display: 'none' } : {},
+                                  '& .MuiAutocomplete-popupIndicator': isSmallDevice ? { display: 'none' } : {}
+                                }}
+                                id={`by_percentage[${index}].cut_size`}
+                                getOptionLabel={option => option.cut_size}
+                                renderInput={params => <TextField {...params} label='Select Cut size *' />}
+                                options={cutsizeList || []}
+                                onChange={(e, val) => {
+                                  if (val === null) {
+                                    onChange('')
+                                    setFormValue(`by_percentage[${index}].cut_size`, '')
+                                    setFormValue(`by_percentage[${index}].cut_size_id`, '')
+                                  } else {
+                                    onChange(val.id)
+                                    setFormValue(`by_percentage[${index}].cut_size`, val?.cut_size)
+                                    setFormValue(`by_percentage[${index}].cut_size_id`, val?.id)
+                                  }
+                                }}
+                                value={cutsizeList.find(option => option.cut_size === value) || null}
+                                isOptionEqualToValue={(option, value) => option?.id === value?.id}
+                              />
+                            )
+                          }}
+                        />
+                      </FormControl>
+                    </Grid> */}
+                    {fieldsIngredients.length - 1 === index && index > 0 ? (
+                      <Grid>{removeIngredientButton(index)}</Grid>
+                    ) : (
+                      ''
+                    )}
+                    <Grid>{handleAddRemoveingredient(fieldsIngredients, index)}</Grid>
+                  </Grid>
+                ))}
+              </Grid>
+
+              {/* <Box sx={{ mb: 2, px: 5, mt: 2, float: 'left' }}>
               <Typography variant='h6'>Add Ingredient- by Quantity</Typography>
             </Box>
             <Grid container spacing={5} sx={{ px: 5, background: '#E8F4F2', my: 4, borderRadius: 0.5, mx: 4 }}>
@@ -1094,51 +1207,52 @@ const StepAddIngredients = ({
               ))}
             </Grid> */}
 
-            <Grid container sx={{ px: 5, py: 3 }}>
-              <Box sx={{ mb: 4, float: 'left' }}>
-                <Typography variant='h6'>Add Description</Typography>
-              </Box>
-              <Grid item xs={12}>
-                <Controller
-                  name='desc'
-                  control={control}
-                  rules={{ required: true }}
-                  render={({ field: { value, onChange } }) => (
-                    <TextField
-                      multiline
-                      fullWidth
-                      value={value}
-                      label='Description (Optional) *'
-                      name='desc'
-                      error={Boolean(errors.desc)}
-                      onChange={onChange}
-                      id='textarea-outlined'
-                      rows={5}
-                    />
-                  )}
-                />
+              <Grid container sx={{ px: 5, py: 3 }}>
+                <Box sx={{ mb: 4, float: 'left' }}>
+                  <Typography variant='h6'>Add Description</Typography>
+                </Box>
+                <Grid item xs={12}>
+                  <Controller
+                    name='desc'
+                    control={control}
+                    rules={{ required: true }}
+                    render={({ field: { value, onChange } }) => (
+                      <TextField
+                        multiline
+                        fullWidth
+                        value={value}
+                        label='Description (Optional) *'
+                        name='desc'
+                        error={Boolean(errors.desc)}
+                        onChange={onChange}
+                        id='textarea-outlined'
+                        rows={5}
+                      />
+                    )}
+                  />
+                </Grid>
               </Grid>
             </Grid>
-          </Grid>
 
-          <Grid item xs={12}>
-            <Box sx={{ display: 'flex', justifyContent: 'flex-end', my: 12 }}>
-              <Button
-                color='secondary'
-                variant='outlined'
-                onClick={handlePrevClick}
-                startIcon={<Icon icon='mdi:arrow-left' fontSize={20} />}
-                sx={{ mr: 6 }}
-              >
-                Go back
-              </Button>
-              <Button type='submit' variant='contained' endIcon={<Icon icon='mdi:arrow-right' fontSize={20} />}>
-                Next
-              </Button>
-            </Box>
+            <Grid item xs={12}>
+              <Box sx={{ display: 'flex', justifyContent: 'flex-end', my: 12 }}>
+                <Button
+                  color='secondary'
+                  variant='outlined'
+                  onClick={cancelBack}
+                  startIcon={<Icon icon='mdi:arrow-left' fontSize={20} />}
+                  sx={{ mr: 6 }}
+                >
+                  Cancel
+                </Button>
+                <Button type='submit' variant='contained' endIcon={<Icon icon='mdi:arrow-right' fontSize={20} />}>
+                  Next
+                </Button>
+              </Box>
+            </Grid>
           </Grid>
-        </Grid>
-      </form>
+        </form>
+      )}
       <AddCutSize
         drawerWidth={400}
         addEventSidebarOpen={openDrawer}

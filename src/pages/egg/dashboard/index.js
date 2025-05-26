@@ -1,18 +1,9 @@
-import { Autocomplete, Avatar, Breadcrumbs, FormControl, Grid, TextField, Typography } from '@mui/material'
+import React, { useEffect, useState } from 'react'
+import { Breadcrumbs, Grid, Typography } from '@mui/material'
 import { Box } from '@mui/system'
-import React, { useContext, useEffect, useState } from 'react'
 import { useTheme } from '@mui/material/styles'
-import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
-import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
-import { DatePicker } from '@mui/x-date-pickers'
-import dayjs from 'dayjs'
-import Icon from 'src/@core/components/icon'
 
 // ** Custom Components Imports
-import OptionsMenu from 'src/@core/components/option-menu'
-import ReactApexcharts from 'src/@core/components/react-apexcharts'
-import { AuthContext } from 'src/context/AuthContext'
-import { DataGrid } from '@mui/x-data-grid'
 import { getAllStats } from 'src/lib/api/egg/dashboard'
 import moment from 'moment'
 import Toaster from 'src/components/Toaster'
@@ -23,7 +14,6 @@ import Species from 'src/views/pages/egg/eggDashboard/species'
 import EggsStats from 'src/views/pages/egg/eggDashboard/EggsStats'
 
 const Dashboard = () => {
-  // const authData = useContext(AuthContext)
   const theme = useTheme()
 
   const [fromDate, setFromDate] = useState(null)
@@ -62,7 +52,7 @@ const Dashboard = () => {
             fontSize: '16px',
             lineHeight: '24px',
             letterSpacing: '0.15px',
-            color: '#44544A61'
+            color: theme.palette.customColors.LightTypographyBody1
           }}
         >
           Egg
@@ -75,7 +65,7 @@ const Dashboard = () => {
             fontSize: '16px',
             lineHeight: '24px',
             letterSpacing: '0.15px',
-            color: '#44544ADE'
+            color: theme.palette.customColors.customTextColorGray2
           }}
         >
           Dashboard
@@ -100,7 +90,7 @@ const Dashboard = () => {
               <LocalizationProvider dateAdapter={AdapterDayjs}>
                 <DatePicker
                   sx={{
-                    backgroundColor: '#fff',
+                    backgroundColor: theme.palette.primary.contrastText,
                     borderRadius: '8px',
                     width: '100%',
                     '& .css-sn37jt-MuiInputBase-root-MuiOutlinedInput-root': {
@@ -108,7 +98,7 @@ const Dashboard = () => {
                       borderRadius: '4px'
                     },
                     '& .css-1lqkpd-MuiFormLabel-root-MuiInputLabel-root': { top: '-7px' },
-                    '& .css-1d3z3hw-MuiOutlinedInput-notchedOutline': { border: '1px solid #C3CEC7' }
+                    '& .css-1d3z3hw-MuiOutlinedInput-notchedOutline': { border: `1px solid ${theme.palette.customColors.OutlineVariant}` }
                   }}
                   value={fromDate}
                   onChange={newDate => setFromDate(newDate)}
@@ -118,7 +108,7 @@ const Dashboard = () => {
               </LocalizationProvider>
               <Typography
                 sx={{
-                  color: '#839D8D',
+                  color: theme.palette.customColors.Outline,
                   fontWeight: 400,
                   fontSize: '14px',
                   lineHeight: '16.94px'
@@ -129,7 +119,7 @@ const Dashboard = () => {
               <LocalizationProvider dateAdapter={AdapterDayjs}>
                 <DatePicker
                   sx={{
-                    backgroundColor: '#fff',
+                    backgroundColor: theme.palette.primary.contrastText,
                     borderRadius: '8px',
                     width: '100%',
                     '& .css-sn37jt-MuiInputBase-root-MuiOutlinedInput-root': {
@@ -137,7 +127,7 @@ const Dashboard = () => {
                       borderRadius: '4px'
                     },
                     '& .css-1lqkpd-MuiFormLabel-root-MuiInputLabel-root': { top: '-7px' },
-                    '& .css-1d3z3hw-MuiOutlinedInput-notchedOutline': { border: '1px solid #C3CEC7' }
+                    '& .css-1d3z3hw-MuiOutlinedInput-notchedOutline': { border: `1px solid ${theme.palette.customColors.OutlineVariant}` }
                   }}
                   value={tillDate}
                   onChange={newDate => setTilDate(newDate)}

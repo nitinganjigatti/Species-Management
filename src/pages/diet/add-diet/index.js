@@ -2,7 +2,17 @@
 import { useState, useEffect, useContext } from 'react'
 
 // ** MUI Imports
-import { Card, CardContent, Divider, Breadcrumbs, Link, debounce, Box, Typography } from '@mui/material'
+import {
+  Card,
+  CardContent,
+  Divider,
+  Breadcrumbs,
+  Link,
+  debounce,
+  Box,
+  Typography,
+  CircularProgress
+} from '@mui/material'
 import Icon from 'src/@core/components/icon'
 import Step from '@mui/material/Step'
 import Stepper from '@mui/material/Stepper'
@@ -23,7 +33,12 @@ import { useRouter } from 'next/router'
 import StepPreviewDiet from 'src/views/pages/diet/add-diet/PreviewDiet'
 import { getDietTypeList } from 'src/lib/api/diet/dietList'
 import { AuthContext } from 'src/context/AuthContext'
+import { getCutsizeList } from 'src/lib/api/diet/settings/cutSizes'
+import { getFeedTypeList } from 'src/lib/api/diet/feedType'
+import { getUnitsForRecipe } from 'src/lib/api/diet/recipe'
 import Error404 from 'src/pages/404'
+import { readAsync } from 'src/lib/windows/utils'
+import { getUserList } from 'src/lib/api/pharmacy/dispenseProduct'
 
 const steps = [
   {
@@ -41,6 +56,7 @@ const AddDiet = () => {
   const { id, name } = router.query
   const [activeStep, setActiveStep] = useState(0)
   const [uomList, setUomList] = useState([])
+  const [dieticianList, setDieticianList] = useState([])
   const [uomprevnew, setUomprevnew] = useState([])
   const [IngredientTypeList, setIngredientTypeList] = useState([])
   const [selectedCard, setSelectedCard] = useState([])
@@ -48,6 +64,10 @@ const AddDiet = () => {
   const [selectedCardCombo, setSelectedCardCombo] = useState([])
   const [diettypechildvalues, setdiettypechildvalues] = useState([])
   const [urlType, seturlType] = useState('')
+  const [loader, setLoader] = useState(false)
+  const [cutsizelist, setcutsize] = useState([])
+  const [uom, setUom] = useState([])
+  const [feedType, setFeedType] = useState([])
 
   const authData = useContext(AuthContext)
   const dietModule = authData?.userData?.roles?.settings?.diet_module
@@ -57,6 +77,8 @@ const AddDiet = () => {
     diet_name: '',
     diet_type_name: '',
     diet_type_id: '',
+    dietitian_name: '',
+    dietitian_id: null,
     child: '',
     diet_image: '',
     desc: '',
@@ -96,6 +118,70 @@ const AddDiet = () => {
       })
     } catch (e) {
       console.log(e)
+    }
+  }
+
+  const getUnitsListuom = async () => {
+    try {
+      const params = {
+        type: ['length', 'weight'],
+        page: 1,
+        limit: 100
+      }
+      await getUnitsForRecipe({ params: params }).then(res => {
+        setUomprevnew(res?.data?.result)
+      })
+    } catch (e) {
+      console.log(e)
+    }
+  }
+
+  const getcutsizeListFromApi = async () => {
+    try {
+      const params = {
+        //type: ['length', 'weight'],
+        page: 1,
+        limit: 100
+      }
+      await getCutsizeList(params).then(res => {
+        setcutsize(res?.data?.result)
+        setUom(res?.data?.result)
+      })
+    } catch (e) {
+      console.log(e)
+    }
+  }
+
+  const getDieticianList = async () => {
+    try {
+      const userDetails = await readAsync('userDetails')
+      if (userDetails?.user?.zoos.length > 0) {
+        let zoo_id = userDetails?.user?.zoos[0].zoo_id
+        await getUserList({ zoo_id }).then(res => {
+          if (res?.data?.length > 0) {
+            setDieticianList(
+              res?.data?.map(item => ({
+                label: item?.user_name,
+                value: item?.user_id
+              }))
+            )
+          }
+        })
+      }
+    } catch (error) {
+      console.log('user error', error)
+    }
+  }
+
+  // Top Feed Type
+  const fetchData = async () => {
+    const params = { page: 1, limit: 100, status: 1 }
+    try {
+      const response = await getFeedTypeList(params)
+
+      setFeedType(response?.data?.result)
+    } catch (error) {
+      console.log('error', error)
     }
   }
 
@@ -141,7 +227,6 @@ const AddDiet = () => {
     if (id) {
       const url = new URL(window.location.href)
       const action = url.searchParams.get('action')
-      console.log(action, 'action')
       seturlType(action || '')
     }
   }, [id])
@@ -161,18 +246,17 @@ const AddDiet = () => {
 
   useEffect(() => {
     if (id && urlType && (dietModuleAccess === 'ADD' || dietModuleAccess === 'EDIT' || dietModuleAccess === 'DELETE')) {
-      console.log(urlType, 'urlType')
       getIngredientsDetailval(id)
     }
   }, [id, urlType])
 
   const getIngredientsDetailval = async id => {
     try {
+      setLoader(true)
       const response = await getDietDetails(id, { week_day: 0 })
       console.log(response, 'response')
       if (response.success === true && response.data !== null) {
         const data = response.data
-        console.log(data, 'data')
 
         // Update formData state with the values from data
         setFormData(prevFormData => ({
@@ -180,15 +264,28 @@ const AddDiet = () => {
           diet_name: urlType === 'copy' ? name : data.diet_name,
           diet_type_name: data.diet_type_name,
           diet_type_id: data.diet_type_id,
+          dietitian_id: data?.dietitian_id,
           child: data.child,
           diet_image: data.diet_image,
           desc: data.desc,
           remarks: data.remarks,
-          meal_data: data.meal_data.map(meal => ({
-            ...meal,
-            meal_from_time: dayjs(meal.meal_from_time, 'HH:mm'),
-            meal_to_time: dayjs(meal.meal_to_time, 'HH:mm')
-          }))
+          meal_data: data.meal_data.map(meal => {
+            const parseTime = time => {
+              // Check if time includes AM/PM (indicative of 12-hour format)
+              if (time.toLowerCase().includes('am') || time.toLowerCase().includes('pm')) {
+                return dayjs(time, 'hh:mm A') // Parse 12-hour format
+              }
+
+              // Otherwise, assume it's in 24-hour format
+              return dayjs(time, 'HH:mm')
+            }
+
+            return {
+              ...meal,
+              meal_from_time: parseTime(meal.meal_from_time),
+              meal_to_time: parseTime(meal.meal_to_time)
+            }
+          })
         }))
 
         const dietTypesData = data.child
@@ -208,7 +305,6 @@ const AddDiet = () => {
             weight_uom_label: unitName
           }
         })
-        console.log(newarr, 'newarr')
 
         const newarrdiet = newarr?.map((item, index) => ({
           unit: {
@@ -223,6 +319,7 @@ const AddDiet = () => {
 
         document.cookie = `dietTypeChildValues=${JSON.stringify(data.child)}; path=/`
         document.cookie = `dietTypeChildVal=${JSON.stringify(newarr)}; path=/`
+        setLoader(false)
       }
     } catch (error) {
       console.log('Feed list', error)
@@ -242,6 +339,10 @@ const AddDiet = () => {
 
   useEffect(() => {
     getUnitsList()
+    getcutsizeListFromApi()
+    fetchData()
+    getUnitsListuom()
+    getDieticianList()
 
     // callIngredientTypeList({ status: 1, page: 1, limit: 10 })
   }, [])
@@ -327,6 +428,7 @@ const AddDiet = () => {
     if (!id) {
       // Omitting child field from formData
       // const { child, ...formDataWithoutChild } = formData
+      setLoader(true)
 
       const numericFormData = {
         // ...formDataWithoutChild,
@@ -370,20 +472,24 @@ const AddDiet = () => {
 
       console.log(updatedFormData, 'updatedFormData')
       const apival = await addNewDiet(updatedFormData)
-      console.log(apival, 'apival')
       if (apival.success === true) {
         Router.push(`/diet/diet`)
         deleteCookie('dietTypeChildValues')
         deleteCookie('dietTypeChildVal')
+        setLoader(false)
 
         return Toaster({ type: 'success', message: apival.message })
       } else {
+        setLoader(false)
+
         return Toaster({
           type: 'error',
           message: apival?.message?.diet_image ? 'Image type only PNG and JPG is allowed' : apival?.message
         })
       }
     } else if (id && urlType === 'copy') {
+      setLoader(true)
+
       const numericFormData = {
         //...formDataWithoutChild,
         ...formData,
@@ -422,7 +528,6 @@ const AddDiet = () => {
         ...numericFormData,
         meal_data: numericFormData.meal_data
       }
-      console.log(formData.diet_image, 'klkl')
       if (formData.diet_image === null) {
         delete updatedFormData.diet_image
         delete updatedFormData.remove_current_image
@@ -434,16 +539,18 @@ const AddDiet = () => {
         updatedFormData.remove_current_image = '1'
       }
 
-      console.log(updatedFormData, 'updatedFormData')
       const apival = await addNewDiet(updatedFormData)
-      console.log(apival, 'apival')
+
       if (apival.success === true) {
         Router.push(`/diet/diet`)
         deleteCookie('dietTypeChildValues')
         deleteCookie('dietTypeChildVal')
+        setLoader(false)
 
         return Toaster({ type: 'success', message: apival.message })
       } else {
+        setLoader(false)
+
         return Toaster({
           type: 'error',
           message: apival?.message?.diet_image ? 'Image type only PNG and JPG is allowed' : apival?.message
@@ -452,6 +559,7 @@ const AddDiet = () => {
     } else {
       // Omitting child field from formData
       // const { child, ...formDataWithoutChild } = formData
+      setLoader(true)
 
       const numericFormData = {
         //...formDataWithoutChild,
@@ -491,7 +599,7 @@ const AddDiet = () => {
         ...numericFormData,
         meal_data: numericFormData.meal_data
       }
-      console.log(formData.diet_image, 'klkl')
+
       if (formData.diet_image === null) {
         delete updatedFormData.diet_image
         delete updatedFormData.remove_current_image
@@ -503,16 +611,18 @@ const AddDiet = () => {
         updatedFormData.remove_current_image = '1'
       }
 
-      console.log(updatedFormData, 'updatedFormData')
       const apival = await updateDiet(id, updatedFormData)
-      console.log(apival, 'apival')
+
       if (apival.success === true) {
         Router.push(`/diet/diet`)
         deleteCookie('dietTypeChildValues')
         deleteCookie('dietTypeChildVal')
+        setLoader(false)
 
         return Toaster({ type: 'success', message: apival.message })
       } else {
+        setLoader(false)
+
         return Toaster({
           type: 'error',
           message: apival?.message?.diet_image ? 'Image type only PNG and JPG is allowed' : apival?.message
@@ -530,6 +640,7 @@ const AddDiet = () => {
             formData={formData}
             updateFormData={updateFormData}
             uomList={uomList}
+            dieticianList={dieticianList}
             setSelectedCardRecipe={handleSelectedCardChange}
             setSelectedCardCombo={handleSelectedCardChangeCombo}
             selectedCardRecipe={selectedCardRecipe}
@@ -538,6 +649,10 @@ const AddDiet = () => {
             setUomprevnew={setUomprevnew}
             diettypechildvalues={diettypechildvalues}
             id={id}
+            loader={loader}
+            cutsizelist={cutsizelist}
+            uom={uom}
+            feedType={feedType}
           />
         )
       case 1:
@@ -548,6 +663,7 @@ const AddDiet = () => {
             updateFormData={updateFormData}
             formData={formData}
             uomList={uomList}
+            dieticianList={dieticianList}
             IngredientTypeList={IngredientTypeList}
             IngredientTypeListSearch={IngredientTypeListSearch}
             onCancelIconClick={handleCancelIconClick}
@@ -557,6 +673,7 @@ const AddDiet = () => {
             id={id}
             remarks={formData.remarks}
             onRemarksChange={handleRemarksChange}
+            loader={loader}
 
             // onDietTypeChildValuesChange={handleDietTypeChildValuesChange}
             // diettypechildvalues={diettypechildvalues}
@@ -568,8 +685,6 @@ const AddDiet = () => {
   }
 
   const renderContent = () => {
-    console.log(formData, 'formdat')
-
     return getStepContent(activeStep)
   }
 
@@ -580,13 +695,13 @@ const AddDiet = () => {
           <Link underline='hover' color='inherit' href='/diet/diet/'>
             Diet
           </Link>
-          {console.log(id, 'id')}
+
           <Typography color='text.primary'>
             {id && urlType === 'copy' ? 'Add new diet' : id && urlType === 'update' ? 'Edit diet' : 'Add new diet'}
           </Typography>
         </Breadcrumbs>
-        {console.log(formData, 'ppp')}
-        <Card sx={{ borderBottomLeftRadius: 0, borderBottomRightRadius: 0 }}>
+
+        <Card sx={{ borderBottomLeftRadius: 0, borderBottomRightRadius: 0, boxShadow: 'none' }}>
           <CardContent>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
               <div style={{ width: '90%' }}>
@@ -602,7 +717,7 @@ const AddDiet = () => {
             </div>
           </CardContent>
 
-          <StepperWrapper sx={{ mb: 5, display: 'flex', justifyContent: 'center' }}>
+          <StepperWrapper sx={{ mb: 5, display: 'flex', justifyContent: 'center' }} className='diet_steps'>
             <Stepper activeStep={activeStep} sx={{ width: '55%', px: 15 }}>
               {steps.map((step, index) => {
                 return (

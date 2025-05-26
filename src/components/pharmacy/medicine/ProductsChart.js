@@ -15,16 +15,16 @@ const ProductsChart = ({
   frequencies,
   barColor,
   lineColor,
-  yAxisTitle,
-  yAxisOppositeTitle,
   seriesBarName,
   seriesLineName,
-  countLabel,
-  valueLabel
+  barLabel,
+  lineLabel
 }) => {
   const theme = useTheme()
-  const [showDispatchCount, setShowDispatchCount] = useState(true)
-  const [showDispatchValue, setShowDispatchValue] = useState(true)
+
+  const [showBar, setShowBar] = useState(true)
+  const [showLine, setShowLine] = useState(true)
+
   const [location, setLocation] = useState(locations?.[0] || 'Central Pharmacy')
   const [frequency, setFrequency] = useState(frequencies?.[0] || 'Monthly')
 
@@ -44,29 +44,45 @@ const ProductsChart = ({
     December: 'Dec'
   }
 
+  console.log(data, 'data123')
+
   // Extract months from data
-  const monthsFromApi = data?.dispatch_count[0] ? Object.keys(data.dispatch_count[0]) : []
-  const purchaseCounts = monthsFromApi.map(month => parseInt(data?.dispatch_count[0]?.[month]) || 0)
-  const purchaseValues = monthsFromApi.map(month => parseFloat(data?.dispatch_value[0]?.[month] || 0) / 100000)
+  const monthsFromApi = data?.[seriesBarName.toLowerCase().replace(' ', '_')]?.[0]
+    ? Object.keys(data[seriesBarName.toLowerCase().replace(' ', '_')][0])
+    : []
+  console.log(monthsFromApi)
+
+  const barData = monthsFromApi?.map(
+    month => parseFloat(data?.[seriesBarName?.toLowerCase()?.replace(' ', '_')][0][month]) / 100000 || 0
+  )
+
+  const lineData = monthsFromApi?.map(
+    month => parseInt(data?.[seriesLineName?.toLowerCase().replace(' ', '_')][0][month]) || 0
+  )
 
   // Convert full month names to short month names for the x-axis labels
-  const shortMonths = monthsFromApi.map(month => monthMapping[month] || month)
+  const shortMonths = monthsFromApi?.map(month => {
+    const [monthName, year] = month?.split(' ')
+
+    return `${monthMapping[monthName] || monthName} ${year?.slice(-2)}`
+  })
 
   // Conditionally add series based on checkbox selections
   const series = []
-  if (showDispatchCount) {
+
+  if (showBar) {
     series.push({
       name: seriesBarName,
       type: 'bar',
-      data: purchaseCounts,
+      data: barData,
       color: barColor
     })
   }
-  if (showDispatchValue) {
+  if (showLine) {
     series.push({
       name: seriesLineName,
       type: 'line',
-      data: purchaseValues,
+      data: lineData,
       color: lineColor
     })
   }
@@ -78,20 +94,21 @@ const ProductsChart = ({
       toolbar: { show: false }
     },
     tooltip: {
-      enabled: true,
       y: {
         formatter: (value, { seriesIndex }) => {
-          if (series[0].name === 'Dispatch Value' || seriesIndex === 1) {
-            return `₹${value.toFixed(2)} lac`
+          if (series[seriesIndex]?.name === seriesLineName) {
+            return value.toFixed(0)
           }
 
-          return value.toFixed(0)
+          return `₹${value.toFixed(2)} lac`
         }
       }
     },
-    dataLabels: { enabled: false },
+
+    // dataLabels: { enabled: false },
     stroke: {
-      width: [0, 3],
+      // width: [0, 3],
+      width: series.map(s => (s.type === 'line' ? 3 : 0)),
       curve: 'smooth',
       colors: [barColor, lineColor]
     },
@@ -99,27 +116,23 @@ const ProductsChart = ({
       show: true,
       padding: { left: 24, top: -4, right: 4 }
     },
-    fill: {
-      type: 'solid',
-      colors: ['#FA6140']
+
+    // fill: {
+    //   type: 'solid',
+    //   colors: ['#FA6140']
+    // },
+    dataLabels: {
+      enabled: false
     },
-    xaxis: {
-      categories: shortMonths,
-      labels: { show: true },
-      axisTicks: { show: true },
-      axisBorder: { show: true }
-    },
+    xaxis: { categories: shortMonths, labels: { rotate: -45, show: true } },
     yaxis: [
-      {
-        title: { text: yAxisTitle },
-        labels: { formatter: val => val.toFixed(0) }
-      },
-      {
-        opposite: true,
-        title: { text: yAxisOppositeTitle },
-        labels: { formatter: val => `₹${val.toFixed(2)} lac` }
-      }
-    ],
+      showBar
+        ? { title: { text: `${seriesBarName} (₹)` }, labels: { formatter: val => `₹${val.toFixed(2)} lac` } }
+        : null,
+      showLine
+        ? { title: { text: seriesLineName }, labels: { formatter: val => val.toFixed(0) }, opposite: true }
+        : null
+    ].filter(Boolean),
     markers: {
       size: 4,
       colors: ['#FFFFFF'],
@@ -146,11 +159,21 @@ const ProductsChart = ({
   return (
     <Card>
       <CardHeader
-        title={title}
+        title={
+          <Typography sx={{ color: theme.palette.customColors.OnSurfaceVariant, fontSize: '16px', fontWeight: 500 }}>
+            {title}
+          </Typography>
+        }
         action={
           <Typography
             onClick={handleClick}
-            sx={{ color: theme.palette.primary.main, cursor: 'pointer', fontWeight: 500 }}
+            sx={{
+              color: theme.palette.primary.main,
+              cursor: 'pointer',
+              fontSize: '16px',
+              fontWeight: 500,
+              display: 'none'
+            }}
           >
             View More
           </Typography>
@@ -158,7 +181,7 @@ const ProductsChart = ({
       />
 
       <CardContent>
-        <Grid container spacing={2} sx={{ mb: 2 }}>
+        <Grid container spacing={2} sx={{ mb: 2, display: 'none' }}>
           {/* Conditionally render Location dropdown */}
           {locations && locations.length > 0 && (
             <Grid item xs={6}>
@@ -193,8 +216,8 @@ const ProductsChart = ({
           <FormControlLabel
             control={
               <Checkbox
-                checked={showDispatchCount}
-                onChange={() => setShowDispatchCount(prev => !prev)}
+                checked={showBar}
+                onChange={() => setShowBar(!showBar)}
                 color='primary'
                 sx={{
                   transform: 'scale(0.8)',
@@ -202,13 +225,13 @@ const ProductsChart = ({
                 }}
               />
             }
-            label={<span style={{ fontSize: '12px' }}>{countLabel}</span>}
+            label={<span style={{ fontSize: '12px' }}>{barLabel}</span>}
           />
           <FormControlLabel
             control={
               <Checkbox
-                checked={showDispatchValue}
-                onChange={() => setShowDispatchValue(prev => !prev)}
+                checked={showLine}
+                onChange={() => setShowLine(!showLine)}
                 color='primary'
                 sx={{
                   transform: 'scale(0.8)',
@@ -216,10 +239,37 @@ const ProductsChart = ({
                 }}
               />
             }
-            label={<span style={{ fontSize: '12px' }}>{valueLabel}</span>}
+            label={<span style={{ fontSize: '12px' }}>{lineLabel}</span>}
           />
         </Box>
-        <ReactApexcharts type='line' height={300} options={options} series={series} />
+        {/* <ReactApexcharts
+          type={showLine ? 'line' : showBar ? 'bar' : 'bar'}
+          height={300}
+          options={options}
+          series={series}
+        /> */}
+        {showBar || showLine ? (
+          <ReactApexcharts
+            type={showLine ? 'line' : showBar ? 'bar' : 'bar'}
+            height={300}
+            options={options}
+            series={series}
+          />
+        ) : (
+          <Box
+            sx={{
+              height: 300,
+              display: 'flex',
+              justifyContent: 'center',
+              alignItems: 'center',
+              backgroundColor: theme.palette.background.default,
+              border: `1px dashed ${theme.palette.divider}`,
+              borderRadius: 2
+            }}
+          >
+            <Typography variant='body2'>No data to show</Typography>
+          </Box>
+        )}
       </CardContent>
     </Card>
   )
