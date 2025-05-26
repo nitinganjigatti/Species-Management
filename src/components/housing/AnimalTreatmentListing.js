@@ -7,10 +7,11 @@ import CommonTable from 'src/views/table/data-grid/CommonTable'
 import UserInfoCard from 'src/views/utility/insights/UserInfoCard'
 import Search from 'src/views/utility/Search'
 import { format, formatDistanceToNow } from 'date-fns'
+
 // import { fetchMortality, setParams } from 'src/store/slices/housing/speciesSlice'
 import { ExportButton } from 'src/views/utility/render-snippets'
 import { debounce } from 'lodash'
-import ListingHeader from '../utils/ListingHeader'
+import ListingHeader from '../../views/pages/housing/utils/ListingHeader'
 import { fetchAnimals, setParams } from 'src/store/slices/housing/animalTreatmentSlice'
 
 const AnimalTreatmentListing = () => {
@@ -43,6 +44,7 @@ const AnimalTreatmentListing = () => {
       dispatch(
         fetchAnimals({
           site_id: id
+
           //  type: 'animals'
         })
       )

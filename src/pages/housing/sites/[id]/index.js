@@ -4,11 +4,16 @@ import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { fetchInsights } from 'src/store/slices/housing/insightsSlice'
 import InsightsCard from 'src/views/utility/insights/InsightsCard'
-import Listing from 'src/views/pages/housing/sites/listing'
+import Listing from 'src/components/housing/listing'
 import { fetchSite } from 'src/store/slices/housing/sitesAnalyticsSlice'
-import SectionListing from 'src/views/pages/housing/sections/sectionListing'
-import NotesListng from 'src/views/pages/housing/notes/notesListng'
-import SpeciesListing from 'src/views/pages/housing/species/speciesListing'
+
+// Listing Components
+import SectionListing from 'src/components/housing/sectionListing'
+import NotesListng from 'src/components/housing/notesListng'
+import SpeciesListing from 'src/components/housing/speciesListing'
+import MortalityListing from 'src/components/housing/mortalityListing'
+import AnimalTreatmentListing from 'src/components/housing/AnimalTreatmentListing'
+import MediaListing from 'src/components/housing/MediaListing'
 
 // Reset actions
 import { clearSection as resetSectionState } from 'src/store/slices/housing/sectionSlice'
@@ -17,9 +22,6 @@ import { clearSpecies as resetSpeciesState } from 'src/store/slices/housing/spec
 import { clearMedia as resetMediaState } from 'src/store/slices/housing/mediaSlice'
 import { clearMortality as resetMortalityState } from 'src/store/slices/housing/mortalitySlice'
 import { clearAnimalTreatment as resetAnimalTreatmentState } from 'src/store/slices/housing/mortalitySlice'
-import MortalityListing from 'src/views/pages/housing/mortality/mortalityListing'
-import AnimalTreatmentListing from 'src/views/pages/housing/animalTreatment/AnimalTreatmentListing'
-import MediaListing from 'src/components/housing/MediaListing'
 
 const tabConfig = [
   // { label: 'Sections', value: 'sections', component: SectionListing },

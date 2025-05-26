@@ -10,7 +10,7 @@ import { format, formatDistanceToNow } from 'date-fns'
 // import { fetchMortality, setParams } from 'src/store/slices/housing/speciesSlice'
 import { ExportButton } from 'src/views/utility/render-snippets'
 import { debounce } from 'lodash'
-import ListingHeader from '../utils/ListingHeader'
+import ListingHeader from '../../views/pages/housing/utils/ListingHeader'
 import { fetchMortality, setParams } from 'src/store/slices/housing/mortalitySlice'
 
 const MortalityListing = () => {

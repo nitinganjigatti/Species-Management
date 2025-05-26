@@ -8,7 +8,7 @@ import { useDispatch, useSelector } from 'react-redux'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import UserInfoCard from 'src/views/utility/insights/UserInfoCard'
 import Search from 'src/views/utility/Search'
-import ListingHeader from '../utils/ListingHeader'
+import ListingHeader from 'src/views/pages/housing/utils/ListingHeader'
 import { fetchNotes, setPagination } from 'src/store/slices/housing/notesSlice'
 
 const NotesListng = () => {

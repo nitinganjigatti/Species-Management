@@ -7,7 +7,7 @@ import CommonTable from 'src/views/table/data-grid/CommonTable'
 import Search from 'src/views/utility/Search'
 import { fetchSites, setParams } from 'src/store/slices/housing/sitesSlice'
 import UserInfoCard from 'src/views/utility/insights/UserInfoCard'
-import ListingHeader from '../utils/ListingHeader'
+import ListingHeader from '../../views/pages/housing/utils/ListingHeader'
 import { useRouter } from 'next/router'
 import { ExportButton } from 'src/views/utility/render-snippets'
 
