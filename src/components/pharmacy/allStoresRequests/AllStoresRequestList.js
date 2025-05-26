@@ -571,7 +571,7 @@ const AllStoresRequestList = () => {
     return (
       <>
         {renderHeader(title)}
-        <Box sx={{ mb: 4, display: 'flex', justifyContent: 'end', gap: '10px' }}>
+        <Box sx={{ mb: 4, display: 'flex', justifyContent: 'start', gap: '10px' }}>
           <TextField
             variant='outlined'
             size='small'
@@ -608,10 +608,11 @@ const AllStoresRequestList = () => {
               )
             }}
             sx={{
-              borderRadius: '8px'
+              borderRadius: '8px',
+              width: '90%'
             }}
           />
-          <Box sx={{ border: '1px', borderColor: '#000' }}>
+          <Box sx={{ border: '1px', borderColor: '#000', ml: 'auto' }}>
             <ExportButton
               loading={excelLoader}
               onClick={() => handleExcelExport(title)}
