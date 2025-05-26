@@ -76,20 +76,20 @@ const MediaListing = () => {
 
     return total > 0 ? `${label} (${total})` : label
   }
-  
 
   return (
-    <>
-      <Box>
-        <Tabs value={activeTab} onChange={handleTabChange} sx={{ borderBottom: 1, borderColor: 'divider' }}>
+    <Box>
+      <Box sx={{ display: 'inline-block', borderBottom: 1, borderColor: 'divider' }}>
+        <Tabs value={activeTab} onChange={handleTabChange} sx={{ minHeight: 48 }}>
           <Tab value='image' label={getTabLabel('image', 'Images')} />
           <Tab value='document' label={getTabLabel('document', 'Documents')} />
           <Tab value='video' label={getTabLabel('video', 'Videos')} />
         </Tabs>
+      </Box>
 
-        {/* <ListingHeader title='Media Library' totalCount={total} /> */}
+      {/* <ListingHeader title='Media Library' totalCount={total} /> */}
 
-        {/* <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 4, mt: 2 }}>
+      {/* <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 4, mt: 2 }}>
           <Search
             value={search}
             onChange={e => handleSearch(e.target.value)}
@@ -99,31 +99,30 @@ const MediaListing = () => {
           <ExportButton loading={false} onClick={() => {}} />
         </Box> */}
 
-        <Box p={2} sx={{ p: 2, mt: 4 }}>
-          <Grid container spacing={6}>
-            {media.map(file => (
-              <Grid item xs={12} sm={6} md={4} lg={3} key={file.id}>
-                <MediaCard media={file} isBorderedCard />
-              </Grid>
-            ))}
-          </Grid>
+      <Box p={2} sx={{ p: 2, mt: 4 }}>
+        <Grid container spacing={6}>
+          {media.map(file => (
+            <Grid item xs={12} sm={6} md={4} lg={3} key={file.id}>
+              <MediaCard media={file} isBorderedCard />
+            </Grid>
+          ))}
+        </Grid>
 
-          {loading && (
-            <Box display='flex' justifyContent='center' p={2}>
-              <CircularProgress />
-            </Box>
-          )}
+        {loading && (
+          <Box display='flex' justifyContent='center' p={2}>
+            <CircularProgress />
+          </Box>
+        )}
 
-          {!loading && !hasMore && media.length > 0 && (
-            <Typography variant='body2' align='center' sx={{ mt: 6 }}>
-              No more media files to load.
-            </Typography>
-          )}
+        {!loading && !hasMore && media.length > 0 && (
+          <Typography variant='body2' align='center' sx={{ mt: 6 }}>
+            No more media files to load.
+          </Typography>
+        )}
 
-          <div ref={loaderRef} style={{ height: 1 }} />
-        </Box>
+        <div ref={loaderRef} style={{ height: 1 }} />
       </Box>
-    </>
+    </Box>
   )
 }
 
