@@ -517,9 +517,22 @@ const RequestDetails = () => {
       sortable: false,
       headerName: 'Test Name',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary', textTransform: 'capitalize' }}>
-          {params?.row?.test_name}
-        </Typography>
+        <Box>
+          <Typography variant='body2' sx={{ color: 'text.primary', textTransform: 'capitalize' }}>
+            {params?.row?.test_name}
+            {params.row.is_special_sample === '1' && (
+              <span>
+                <Chip
+                  sx={{ ml: '6px', fontSize: '12px' }}
+                  size='small'
+                  variant='outlined'
+                  label='Other'
+                  color='success'
+                />
+              </span>
+            )}
+          </Typography>
+        </Box>
       )
     },
 
@@ -547,17 +560,6 @@ const RequestDetails = () => {
           <span style={{ display: 'inline-block', verticalAlign: 'middle' }} alt={params?.row.sample_name}>
             {params.row.sample_name}
           </span>
-          {params.row.is_special_sample == 1 && (
-            <span>
-              <Chip
-                sx={{ ml: '6px', fontSize: '12px' }}
-                size='small'
-                variant='outlined'
-                label='Special'
-                color='success'
-              />
-            </span>
-          )}
         </Typography>
       )
     },
