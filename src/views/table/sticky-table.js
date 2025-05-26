@@ -299,9 +299,9 @@ const StickyTable = ({
             // Add a right border to the last left-pinned column
             if (index === leftPinnedColumns.length - 1) {
               borderStyle = {
-                borderRight: '1px solid #DAE7DF'
-                // boxShadow: '4px 0 12px -6px rgba(0, 0, 0, 0.3)',
-                // boxShadow: `-20px 0 10px -24px rgba(0,0,0,0.45) inset`
+                // borderRight: '1px solid #DAE7DF',
+                boxShadow: '-4px 0 12px -6px rgba(0, 0, 0, 0.3) inset'
+                // boxShadow: `-20px 0px 10px -24px rgba(0,0,0,0.45) inset`
               }
             }
           } else if (col.pinned === 'right') {
@@ -657,8 +657,8 @@ const StickyTable = ({
               }
               if (leftPinnedColumns?.length - 1 === index && !isSubHeader) {
                 borderStyle = {
-                  borderRight: '1px solid #DAE7DF'
-                  // boxShadow: `-20px 0 10px -24px rgba(0,0,0,0.45) inset`
+                  borderRight: '1px solid #DAE7DF',
+                  boxShadow: `-20px 0 10px -24px rgba(0,0,0,0.45) inset`
                 }
               }
               leftOffset += isSubHeader ? 0 : col.width
