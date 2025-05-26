@@ -36,16 +36,23 @@ const MediaCard = ({ media, isBorderedCard = false }) => {
         boxShadow: isBorderedCard && 'none' // default shadow
       })}
     >
-      <CardContent sx={{ display: 'flex', alignItems: 'center', pb: 1 }}>
+      <Box sx={{ display: 'flex', alignItems: 'center', px: '1rem', pt: '1.5rem' }}>
         <Tooltip title={media?.file_original_name} arrow>
           <Typography
             variant='subtitle2'
-            sx={{ ml: 2, mb: 0, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: 180 }}
+            sx={{
+              ml: 2,
+              mb: 0,
+              whiteSpace: 'nowrap',
+              overflow: 'hidden',
+              textOverflow: 'ellipsis',
+              maxWidth: 180
+            }}
           >
             {media?.file_original_name}
           </Typography>
         </Tooltip>
-      </CardContent>
+      </Box>
 
       {['jpeg', 'jpg', 'gif', 'png', 'svg'].includes(fileExt) ? (
         <CardMedia
@@ -82,9 +89,6 @@ const MediaCard = ({ media, isBorderedCard = false }) => {
       <Typography
         variant='caption'
         sx={{
-          //   position: 'absolute',
-          //   bottom: 8,
-          //   right: 12,
           color: 'text.secondary',
           fontSize: '0.75rem'
         }}

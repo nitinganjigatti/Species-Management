@@ -69,18 +69,25 @@ const MediaListing = () => {
     enabled: hasMore
   })
 
+  const getTabLabel = (tabKey, label) => {
+    if (activeTab !== tabKey) return label
+
+    if (loading) return label
+
+    return total > 0 ? `${label} (${total})` : label
+  }
+  
+
   return (
     <>
       <Box>
         <Tabs value={activeTab} onChange={handleTabChange} sx={{ borderBottom: 1, borderColor: 'divider' }}>
-          <Tab value='image' label='Images' />
-          <Tab value='document' label='Documents' />
-          <Tab value='video' label='Videos' />
-          {/* <Tab value='image' label={`Images ${total}`} />
-          <Tab value='document' label={`Documents ${total}`} />
-          <Tab value='video' label={`Videos ${total}`} /> */}
+          <Tab value='image' label={getTabLabel('image', 'Images')} />
+          <Tab value='document' label={getTabLabel('document', 'Documents')} />
+          <Tab value='video' label={getTabLabel('video', 'Videos')} />
         </Tabs>
-        <ListingHeader title='Media Library' totalCount={total} />
+
+        {/* <ListingHeader title='Media Library' totalCount={total} /> */}
 
         {/* <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 4, mt: 2 }}>
           <Search
