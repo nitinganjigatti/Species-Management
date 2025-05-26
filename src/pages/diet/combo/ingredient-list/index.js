@@ -168,7 +168,7 @@ const IngredientsListforRecipeDetail = ({ IngredientsDetailsval }) => {
       flex: 0.5,
       minWidth: 30,
       field: 'ingredient_name',
-      headerName: 'INGREDIENT NAME',
+      headerName: 'ITEM NAME',
       renderCell: params => (
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           {/* {renderClient(params)} */}
@@ -193,7 +193,7 @@ const IngredientsListforRecipeDetail = ({ IngredientsDetailsval }) => {
       flex: 0.3,
       minWidth: 10,
       field: 'ingredient_id',
-      headerName: 'INGREDIENT ID',
+      headerName: 'ITEM ID',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary', pl: 7 }}>
           {params.row.ingredient_id ? 'ING' + params.row.ingredient_id : '-'}
@@ -278,7 +278,7 @@ const IngredientsListforRecipeDetail = ({ IngredientsDetailsval }) => {
           <FallbackSpinner />
         ) : (
           <Card sx={{ boxShadow: 'none' }}>
-            <CardHeader title='Ingredient by percentage' />
+            <CardHeader title='Item by percentage' />
 
             <DataGrid
               sx={{

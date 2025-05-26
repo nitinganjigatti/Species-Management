@@ -355,11 +355,11 @@ const SpeciesMappedtoDiet = ({
                   px: 4,
                   py: 1,
                   borderRadius: '10px',
-                  background: '#EAF5EC',
+                  background: '#37BD691A',
                   border: '1px solid #0000000D'
                 }}
               >
-                <Typography variant='body2' sx={{ color: '#006D35', fontWeight: 600 }}>
+                <Typography variant='body2' sx={{ color: '#006D35', fontWeight: 500, fontSize: '16px' }}>
                   {site.site_name}
                 </Typography>
                 <IconButton

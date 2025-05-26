@@ -14,7 +14,7 @@ const StepBillingDetails = ({ handlePrev, formData, handleSubmit, loader }) => {
       flex: 0.5,
       minWidth: 30,
       field: 'ingredient_name',
-      headerName: 'Ingredient Name',
+      headerName: 'Item Name',
       renderCell: params => (
         <Tooltip title={params.row.ingredient_name}>
           <Typography variant='body2' sx={{ color: 'text.primary', pl: 2 }} className='text_overflow_moduled'>
@@ -27,9 +27,9 @@ const StepBillingDetails = ({ handlePrev, formData, handleSubmit, loader }) => {
       flex: 0.3,
       minWidth: 10,
       field: 'ingredient_id',
-      headerName: 'Ingredient ID',
+      headerName: 'Item ID',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary', pl: 7 }}>
+        <Typography variant='body2' sx={{ color: 'text.primary', pl: 5 }}>
           {params.row.ingredient_id}
         </Typography>
       )
@@ -270,7 +270,7 @@ const StepBillingDetails = ({ handlePrev, formData, handleSubmit, loader }) => {
                           >
                             <Box sx={{ mr: 2, display: 'flex', flexDirection: 'column' }}>
                               <Typography variant='body2' sx={{ fontWeight: 600, color: 'text.primary' }}>
-                                Ingredients used
+                                Items used
                               </Typography>
                             </Box>
                             <Box sx={{ display: 'flex', alignItems: 'center' }}>
@@ -336,7 +336,7 @@ const StepBillingDetails = ({ handlePrev, formData, handleSubmit, loader }) => {
                       hideFooter={true}
                     /> */}
 
-                    <CardHeader title='Ingredient by Quantity' />
+                    <CardHeader title='Item by Quantity' />
                     <DataGrid
                       sx={{
                         '.MuiDataGrid-cell:focus': {

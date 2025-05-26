@@ -25,7 +25,7 @@ import { getCutsizeList } from 'src/lib/api/diet/settings/cutSizes'
 
 const steps = [
   {
-    title: 'Basic Information with Ingredients',
+    title: 'Basic Information with Items',
     subtitle: 'Enter details'
   },
   // {

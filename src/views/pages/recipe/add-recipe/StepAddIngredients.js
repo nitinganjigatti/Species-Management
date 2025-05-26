@@ -97,15 +97,10 @@ const StepAddIngredients = ({
   onCancelIconClick,
   handleIngredientChange
 }) => {
-  const ingredients = [
-    { label: ' Ingredients' },
-    { label: 'Quantity' },
-    { label: 'Preparation Type' },
-    { label: 'Cut Size' }
-  ]
+  const ingredients = [{ label: ' Items' }, { label: 'Quantity' }, { label: 'Preparation Type' }, { label: 'Cut Size' }]
 
   const ingredientsbyqun = [
-    { label: ' Ingredients' },
+    { label: ' Items' },
     { label: 'Quantity' },
     { label: 'Unit of Measurement' },
     { label: 'Preparation Type' },
@@ -180,7 +175,7 @@ const StepAddIngredients = ({
           }}
         >
           <Icon icon='material-symbols:add' />
-          ADD NEW INGREDIENT
+          ADD NEW ITEM
         </Typography>
       </>
     )
@@ -220,7 +215,7 @@ const StepAddIngredients = ({
         }}
       >
         <Icon icon='material-symbols:add' />
-        ADD NEW INGREDIENT
+        ADD NEW ITEM
       </Grid>
     )
   }
@@ -861,7 +856,7 @@ const StepAddIngredients = ({
             </Grid> */}
             <Grid item xs={12}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4, mt: 2, mr: 4 }}>
-                <Typography variant='h6'>Add Ingredient- by Quantity</Typography>
+                <Typography variant='h6'>Add Item - by Quantity</Typography>
                 <AddButton title='Add Cut Size' action={() => addEventSidebarOpen()} />
               </Box>
             </Grid>
@@ -942,7 +937,7 @@ const StepAddIngredients = ({
                                 renderInput={params => (
                                   <TextField
                                     {...params}
-                                    label='Select Ingredient*'
+                                    label='Select Item*'
                                     placeholder='Search & Select'
                                     error={
                                       errors.by_quantity &&

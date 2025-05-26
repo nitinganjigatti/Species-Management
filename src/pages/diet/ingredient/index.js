@@ -258,7 +258,7 @@ const IngredientsList = () => {
       //flex: 1.1,
       width: 250,
       field: 'ingredient_name',
-      headerName: 'INGREDIENTS',
+      headerName: 'ITEMS',
       renderCell: params => (
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           {/* {renderClient(params)} */}
@@ -295,7 +295,7 @@ const IngredientsList = () => {
       //flex: 0.85,
       width: 200,
       field: 'ingredient_alias',
-      headerName: 'Ingredient alias',
+      headerName: 'ITEM alias',
       renderCell: params => (
         <Box sx={{ display: 'flex', alignItems: 'center' }}>
           <Box sx={{ display: 'flex', flexDirection: 'column' }}>
@@ -314,7 +314,7 @@ const IngredientsList = () => {
       //flex: 0.6,
       width: 140,
       field: 'id',
-      headerName: 'INGREDIENT ID',
+      headerName: 'ITEM ID',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary', pl: 2 }}>
           {params.row.id ? 'ING' + params.row.id : '-'}
@@ -470,7 +470,7 @@ const IngredientsList = () => {
           <FallbackSpinner />
         ) : (
           <Card>
-            <CardHeader title='Ingredients' action={headerAction} sx={{ px: 5 }} />
+            <CardHeader title='Items' action={headerAction} sx={{ px: 5 }} />
             <ConfirmationDialog
               // icon={'mdi:delete'}
               image={'https://app.antzsystems.com/uploads/6515471031963.jpg'}
