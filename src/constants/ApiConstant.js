@@ -376,6 +376,8 @@ export const USER_REPORT = 'v1/user/report'
 
 export const MEDICAL_REPORT = 'v1/medical/report'
 
+export const ASSESSMENT_REPORT = 'v1/animal/batch/assessments'
+
 export const All_ANIMAL_LIST = 'v1/all/animal/report'
 
 export const REPORT_TYPE = 'v1/report/daily/report/type'
