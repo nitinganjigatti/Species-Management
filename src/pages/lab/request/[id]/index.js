@@ -1072,11 +1072,11 @@ const RequestDetails = () => {
           <Typography variant='h6'>
             Request ID -{' '}
             <span
-              onClick={() => handleClickOpen(item)}
+              onClick={() => (handleClickOpen ? handleClickOpen(item) : null)}
               style={{
                 fontSize: '20px',
                 fontWeight: 'bold',
-                cursor: 'pointer',
+                cursor: `${handleClickOpen ? 'pointer' : 'default'}`,
                 color: theme.palette.primary.main
               }}
             >
@@ -1184,7 +1184,7 @@ const RequestDetails = () => {
           </Box>
           {testList?.map((item, index) => (
             <Box key={index} sx={{ p: 2, minWidth: 600, m: 4 }}>
-              <HeaderCard item={item} />
+              <HeaderCard item={item} handleClickOpen={null} />
 
               {/* <Box ml={3}>
               <Typography variant='h6'>
