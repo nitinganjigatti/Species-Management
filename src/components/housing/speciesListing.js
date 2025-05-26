@@ -175,19 +175,6 @@ const SpeciesListing = () => {
         )
       }
     },
-
-    // {
-    //   width: 200,
-    //   field: 'species',
-    //   headerName: 'Species',
-    //   align: 'left',
-    //   headerAlign: 'left',
-    //   renderCell: params => (
-    //     <Typography sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600 }}>
-    //       {params.row.species_count || 0}
-    //     </Typography>
-    //   )
-    // },
     {
       width: 180,
       field: 'animals',
@@ -224,18 +211,6 @@ const SpeciesListing = () => {
       )
     },
 
-    // {
-    //   width: 150,
-    //   field: 'sections',
-    //   headerName: 'Sections',
-    //   align: 'left',
-    //   headerAlign: 'left',
-    //   renderCell: params => (
-    //     <Typography sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600 }}>
-    //       {params.row.section_count}
-    //     </Typography>
-    //   )
-    // },
     {
       width: 160,
       field: 'female',

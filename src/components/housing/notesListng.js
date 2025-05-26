@@ -4,7 +4,7 @@ import { useRouter } from 'next/router'
 import { useCallback, useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 
-// import { fetchSections, setPagination } from 'src/store/slices/housing/sectionSlice'
+
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import UserInfoCard from 'src/views/utility/insights/UserInfoCard'
 import Search from 'src/views/utility/Search'
@@ -145,40 +145,6 @@ const NotesListng = () => {
         </Typography>
       )
     },
-
-    // {
-    //   width: 150,
-    //   field: 'sections',
-    //   headerName: 'Sections',
-    //   align: 'left',
-    //   headerAlign: 'left',
-    //   renderCell: params => (
-    //     <Typography sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600 }}>
-    //       {params.row.section_count}
-    //     </Typography>
-    //   )
-    // },
-    // {
-    //   width: 180,
-    //   field: 'incharge',
-    //   headerName: 'In-Charge',
-    //   align: 'center',
-    //   headerAlign: 'left',
-    //   renderCell: params => (
-    //     <Box display='flex' alignItems='center' width='100%'>
-    //       <UserInfoCard />
-    //       <Typography
-    //         sx={{
-    //           color: theme.palette.customColors.OnSurfaceVariant,
-    //           fontSize: '14px',
-    //           fontWeight: 500
-    //         }}
-    //       >
-    //         {params.row.incharge_name || 'NA'}
-    //       </Typography>
-    //     </Box>
-    //   )
-    // },
 
     {
       width: 200,

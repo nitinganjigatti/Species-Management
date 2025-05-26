@@ -40,12 +40,10 @@ const AnimalTreatmentListing = () => {
   // Debounced fetchSpecies call whenever parameters change
   const debouncedFetch = useCallback(
     debounce(() => {
-      debugger
+    
       dispatch(
         fetchAnimals({
           site_id: id
-
-          //  type: 'animals'
         })
       )
     }, 500),
@@ -265,73 +263,6 @@ const AnimalTreatmentListing = () => {
       )
     }
 
-    // {
-    //   width: 250,
-    //   field: 'reported_on',
-    //   headerName: 'REPORTED ON',
-    //   renderCell: params => {
-    //     const date = new Date(params.row.discovered_date)
-    //     return (
-    //       <Box display='flex' flexDirection='column'>
-    //         <Typography sx={{ fontSize: '14px', color: theme.palette.customColors.OnSurfaceVariant, fontWeight: 500 }}>
-    //           {params.row.user_enclosure_name}
-    //         </Typography>
-    //         <Typography sx={{ fontSize: '14px', color: theme.palette.customColors.OnSurfaceVariant, fontWeight: 400 }}>
-    //           {format(date, 'dd MMM yyyy • hh:mm a').toUpperCase()}
-    //         </Typography>
-    //       </Box>
-    //     )
-    //   }
-    // },
-
-    // {
-    //   field: 'died_on',
-    //   headerName: 'DIED ON',
-    //   width: 250,
-    //   renderCell: params => {
-    //     const diedDate = params.row.discovered_date ? new Date(params.row.discovered_date) : null
-
-    //     return (
-    //       <Box display='flex' flexDirection='column'>
-    //         {diedDate && (
-    //           <>
-    //             <Typography
-    //               sx={{ fontSize: '14px', color: theme.palette.customColors.OnSurfaceVariant, fontWeight: 500 }}
-    //             >
-    //               {formatDistanceToNow(diedDate, { addSuffix: true })}
-    //             </Typography>
-    //             <Typography
-    //               sx={{ fontSize: '14px', color: theme.palette.customColors.OnSurfaceVariant, fontWeight: 400 }}
-    //             >
-    //               {format(diedDate, 'dd MMM yyyy • hh:mm a').toUpperCase()}
-    //             </Typography>
-    //           </>
-    //         )}
-    //       </Box>
-    //     )
-    //   }
-    // },
-
-    // {
-    //   width: 300,
-    //   field: 'reason',
-    //   headerName: 'REASON',
-    //   renderCell: params => (
-    //     <Typography
-    //       sx={{
-    //         fontSize: '16px',
-    //         fontWeight: 400,
-    //         color: theme.palette.customColors.OnSurfaceVariant,
-    //         textOverflow: 'ellipsis',
-    //         overflow: 'hidden',
-    //         whiteSpace: 'nowrap',
-    //         maxWidth: '100%'
-    //       }}
-    //     >
-    //       {params.row.reason_name}
-    //     </Typography>
-    //   )
-    // }
   ]
 
   return (

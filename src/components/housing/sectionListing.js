@@ -197,18 +197,6 @@ const SectionListing = () => {
       )
     },
 
-    // {
-    //   width: 150,
-    //   field: 'sections',
-    //   headerName: 'Sections',
-    //   align: 'left',
-    //   headerAlign: 'left',
-    //   renderCell: params => (
-    //     <Typography sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600 }}>
-    //       {params.row.section_count}
-    //     </Typography>
-    //   )
-    // },
     {
       width: 180,
       field: 'incharge',
