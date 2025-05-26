@@ -265,25 +265,26 @@ export const AddItemsForm = ({
   }
 
   const handleProductChange = value => {
-    setValue('request_item', value, { shouldValidate: true })
-    setValue('batch_no', '', { shouldValidate: true })
-    setValue('expiry_date', '', { shouldValidate: true })
-    setValue('available_item_qty', '', { shouldValidate: true })
-    setValue('reason', '', { shouldValidate: true })
-    setValue('stock_type', '')
-    setValue('packageDetails', '')
-    setValue('manufacture', '')
-    setValue('unit_price', '')
+    if (!value) {
+      setValue('request_item', value, { shouldValidate: true })
+      setValue('batch_no', '', { shouldValidate: true })
+      setValue('expiry_date', '', { shouldValidate: true })
+      setValue('available_item_qty', '', { shouldValidate: true })
+      setValue('reason', '', { shouldValidate: true })
+      setValue('stock_type', '')
+      setValue('packageDetails', '')
+      setValue('manufacture', '')
+      setValue('unit_price', '')
 
-    if (!value?.expiry_date) {
-      setError('expiry_date', {
-        type: 'manual',
-        message: 'Expiry Date is required'
-      })
-    } else {
-      clearErrors('expiry_date')
+      if (!value?.expiry_date) {
+        setError('expiry_date', {
+          type: 'manual',
+          message: 'Expiry Date is required'
+        })
+      } else {
+        clearErrors('expiry_date')
+      }
     }
-
     if (value !== '' && value !== null) {
       setQuantityError(false)
       searchBatchData(value?.value, value?.stock_type)

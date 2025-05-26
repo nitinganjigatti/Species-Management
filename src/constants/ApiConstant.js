@@ -216,6 +216,10 @@ export const PURCHASE_BY_PRODUCT = 'v1/pharma/purchase/getPurchaseListByProduct'
 
 export const VARIANTS_MAPPING = 'variantMapping'
 
+export const ALTERNATE_LIST = 'AlternateList'
+
+export const ALTERNATE_MAPPING = 'AlternateMapping'
+
 export const VALIDATE_PURCHASE = 'validate'
 
 export const REQUEST_PENDING_PRODUCTS = 'v1/pharmacy/request-pending-products'
