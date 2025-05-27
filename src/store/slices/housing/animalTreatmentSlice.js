@@ -7,7 +7,6 @@ export const fetchAnimals = createAsyncThunk('animal-treatment', async (params, 
   const { page, pageSize, search, sortBy, sortOrder } = getState().animalTreatment
 
   try {
-    debugger
     const response = await getAnimalTreatmentList({
       page_no: page,
       limit: pageSize,

@@ -4,14 +4,14 @@ import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { fetchInsights } from 'src/store/slices/housing/insightsSlice'
 import InsightsCard from 'src/views/utility/insights/InsightsCard'
-import Listing from 'src/components/housing/listing'
+import Listing from 'src/components/housing/Listing'
 import { fetchSite } from 'src/store/slices/housing/sitesAnalyticsSlice'
 
 // Listing Components
-import SectionListing from 'src/components/housing/sectionListing'
-import NotesListng from 'src/components/housing/notesListng'
-import SpeciesListing from 'src/components/housing/speciesListing'
-import MortalityListing from 'src/components/housing/mortalityListing'
+import SectionListing from 'src/components/housing/SectionListing'
+import NotesListng from 'src/components/housing/NotesListng'
+import SpeciesListing from 'src/components/housing/SpeciesListing'
+import MortalityListing from 'src/components/housing/MortalityListing'
 import AnimalTreatmentListing from 'src/components/housing/AnimalTreatmentListing'
 import MediaListing from 'src/components/housing/MediaListing'
 
@@ -32,7 +32,12 @@ const tabConfig = [
   { label: 'Notes', value: 'notes', component: NotesListng, resetAction: resetNotesState },
   { label: 'Media', value: 'media', component: MediaListing, resetAction: resetMediaState },
   { label: 'Mortality', value: 'mortality', component: MortalityListing, resetAction: resetMortalityState },
-  {label: 'Animals Under Treatment' , value: 'animalTreatment' , component: AnimalTreatmentListing, resetAction: resetAnimalTreatmentState},
+  {
+    label: 'Animals Under Treatment',
+    value: 'animalTreatment',
+    component: AnimalTreatmentListing,
+    resetAction: resetAnimalTreatmentState
+  }
 
   // { label: 'Species', value: 'species', component: Listing },
   // { label: 'Notes', value: 'notes', component: Listing },
@@ -94,7 +99,6 @@ const SiteDetails = () => {
         description={data?.incharges[0]?.full_name}
         userName={data?.incharges[0]?.role_name}
         userImage={data?.incharges[0]?.user_profile_pic}
-
         // actions={{
         //   onEdit: () => console.log('Edit'),
         //   onDelete: () => console.log('Delete'),
@@ -109,7 +113,6 @@ const SiteDetails = () => {
             return
           }
         }}
-
         // onMessageClick={() => console.log('Message clicked')}
         error={error}
         speciesCount={data?.species_count || 0}

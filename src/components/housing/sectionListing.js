@@ -10,6 +10,7 @@ import UserInfoCard from 'src/views/utility/insights/UserInfoCard'
 import Search from 'src/views/utility/Search'
 import ListingHeader from '../../views/pages/housing/utils/ListingHeader'
 import { ExportButton } from 'src/views/utility/render-snippets'
+import { CellInfo, SectionCellRenderer } from 'src/utility/render'
 
 const SectionListing = () => {
   const [downloading, setDownloading] = useState(false)
@@ -82,7 +83,7 @@ const SectionListing = () => {
 
   const indexedRows = sectionList?.map((row, index) => ({
     ...row,
-    id: row?.section_id,
+    id: +row?.section_id, //convert string to number
     sl_no: getSlNo(index)
   }))
 
@@ -107,56 +108,7 @@ const SectionListing = () => {
       width: 250,
       field: 'section_name',
       headerName: 'Section Name',
-      renderCell: params => {
-        const imageUrl = params.row.images?.[0]?.file
-
-        return (
-          <Box display='flex' alignItems='center' width='100%' gap={2}>
-            {imageUrl ? (
-              <Box
-                component='img'
-                src={imageUrl}
-                alt={params.row.section_name}
-                sx={{
-                  width: 40,
-                  height: 40,
-                  borderRadius: 1,
-                  objectFit: 'cover',
-                  mr: 1
-                }}
-              />
-            ) : (
-              <Avatar
-                variant='square'
-                sx={{
-                  width: 40,
-                  height: 40,
-                  mr: 1,
-                  borderRadius: '8px',
-                  fontSize: '14px',
-                  bgcolor: theme.palette.primary.main
-                }}
-              >
-                {params.row.section_name?.charAt(0).toUpperCase() || '?'}
-              </Avatar>
-            )}
-            <Typography
-              noWrap
-              sx={{
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                whiteSpace: 'nowrap',
-                maxWidth: '180px',
-                color: theme.palette.customColors.OnSurfaceVariant,
-                fontSize: '14px',
-                fontWeight: 500
-              }}
-            >
-              {params.row.section_name}
-            </Typography>
-          </Box>
-        )
-      }
+      renderCell: params => <CellInfo value={params.row.section_name} row={params.row} />
     },
     {
       width: 200,
@@ -202,20 +154,14 @@ const SectionListing = () => {
       field: 'incharge',
       headerName: 'In-Charge',
       renderCell: params => (
-        <Box display='flex' alignItems='center' width='100%'>
-          <UserInfoCard />
-          <Typography
-            sx={{
-              color: theme.palette.customColors.OnSurfaceVariant,
-              fontSize: '14px',
-              fontWeight: 500
-            }}
-          >
-            {params.row.incharge_name || 'NA'}
-          </Typography>
-        </Box>
+        <UserInfoCard
+          textColor={theme.palette.customColors.OnSurfaceVariant}
+          avatarUrl={params.row.incharge_avatar} // Replace with correct avatar field if different
+          name={params.row.incharge_name || '-'}
+        />
       )
     },
+
     {
       width: 150,
       field: 'actions',
@@ -250,7 +196,20 @@ const SectionListing = () => {
           />
           <ExportButton loading={downloading} onClick={handleDownload} />
         </Box>
-        <Grid>
+        <Grid
+          sx={{
+            '& .MuiDataGrid-cell': {
+              pt: 4,
+              py: 4, // vertical padding (theme spacing, equivalent to padding-top and padding-bottom)
+              px: 4 // horizontal padding
+            },
+            '& .MuiDataGrid-columnHeaderTitle': {
+              color: theme.palette.customColors.OnSurfaceVariant,
+              fontSize: '12px',
+              fontWeight: 600
+            }
+          }}
+        >
           <CommonTable
             onRowClick={handleRowClick}
             indexedRows={indexedRows}

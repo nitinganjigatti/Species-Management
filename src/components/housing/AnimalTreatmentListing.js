@@ -13,6 +13,7 @@ import { ExportButton } from 'src/views/utility/render-snippets'
 import { debounce } from 'lodash'
 import ListingHeader from '../../views/pages/housing/utils/ListingHeader'
 import { fetchAnimals, setParams } from 'src/store/slices/housing/animalTreatmentSlice'
+import { GenderInfoCard, IdentifierInfoCard } from 'src/utility/render'
 
 const AnimalTreatmentListing = () => {
   const [downloading, setDownloading] = useState(false)
@@ -40,7 +41,6 @@ const AnimalTreatmentListing = () => {
   // Debounced fetchSpecies call whenever parameters change
   const debouncedFetch = useCallback(
     debounce(() => {
-    
       dispatch(
         fetchAnimals({
           site_id: id
@@ -111,72 +111,34 @@ const AnimalTreatmentListing = () => {
         </Typography>
       )
     },
+
     {
       width: 300,
       field: 'common_name',
       headerName: 'SPECIES',
-      renderCell: params => {
-        const imageUrl = params.row.default_icon
-
-        return (
-          <Box display='flex' alignItems='center' width='100%' gap={2}>
-            {imageUrl ? (
-              <Box
-                component='img'
-                src={imageUrl}
-                alt='icon'
-                sx={{
-                  width: 40,
-                  height: 40,
-                  borderRadius: '50%',
-                  objectFit: 'cover'
-                }}
-              />
-            ) : (
-              <Avatar sx={{ width: 40, height: 40, fontSize: '14px', bgcolor: theme.palette.primary.main }}>
-                {params.row.common_name?.charAt(0).toUpperCase() || '?'}
-              </Avatar>
-            )}
-            <Box display='flex' flexDirection='column' overflow='hidden'>
-              <Typography
-                noWrap
-                sx={{ fontWeight: 500, fontSize: '16px', color: theme.palette.customColors.OnSurfaceVariant }}
-              >
-                {params.row.scientific_name}
-              </Typography>
-              <Typography
-                noWrap
-                sx={{
-                  fontSize: '14px',
-                  fontWeight: 400,
-                  fontFamily: 'Inter',
-                  color: '#1F515B',
-                  maxWidth: '180px',
-                  textOverflow: 'ellipsis'
-                }}
-              >
-                {params.row.common_name}
-              </Typography>
-            </Box>
-          </Box>
-        )
-      }
+      renderCell: params => (
+        <UserInfoCard
+          avatarUrl={params.row.default_icon}
+          textColor={theme.palette.customColors.OnSurfaceVariant}
+          name={params.row.scientific_name}
+          description={params.row.common_name}
+          fontWeight={500}
+          round
+        />
+      )
     },
+
     {
       width: 250,
       field: 'identifier',
       headerName: 'IDENTIFIER',
       renderCell: params => (
-        <Box>
-          <Typography sx={{ fontWeight: 600, fontSize: '15px', color: '#44544A' }}>
-            AAID : {`${params.row.animal_id}/${total}`}
-          </Typography>
-          {params.row.local_identifier_name && (
-            <Typography sx={{ fontSize: '13px', color: '#7A8684' }}>
-              {params.row.local_identifier_name} : {params.row.local_identifier_value}
-            </Typography>
-          )}
-        </Box>
+        <IdentifierInfoCard
+          animalId={params.row.animal_id}
+          total={total}
+          localIdentifierName={params.row.local_identifier_name}
+          localIdentifierValue={params.row.local_identifier_value}
+        />
       )
     },
 
@@ -187,15 +149,27 @@ const AnimalTreatmentListing = () => {
       renderCell: params => {
         const gender = params.row.sex?.toLowerCase()
 
-        // Color styles for each gender value
+        // Define style mapping
         const genderStyles = {
-          male: { bgcolor: '#AFEFEB80', color: '#00AFD6' },
-          female: { bgcolor: '#FA61404D', color: '#FA6140' },
-          undetermined: { bgcolor: '#DAE7DF', color: '#E93353' },
-          indeterminate: { bgcolor: '#DDEBE9', color: '#1F515B' }
+          male: {
+            bgcolor: `${theme.palette.customColors.SecondaryContainer}80`,
+            color: theme.palette.customColors.addPrimary
+          },
+          female: {
+            bgcolor: `${theme.palette.customColors.customDropdownColor}4D`,
+            color: theme.palette.customColors.customDropdownColor
+          },
+          undetermined: {
+            bgcolor: theme.palette.customColors.SurfaceVariant,
+            color: theme.palette.customColors.Error
+          },
+          indeterminate: {
+            bgcolor: theme.palette.customColors.displaybgSecondary,
+            color: theme.palette.customColors.OnPrimaryContainer
+          }
         }
 
-        // Display text mapping
+        // Short display labels
         const genderLabels = {
           male: 'M',
           female: 'F',
@@ -203,26 +177,10 @@ const AnimalTreatmentListing = () => {
           indeterminate: 'ID'
         }
 
-        const style = genderStyles[gender] || genderStyles['indeterminate']
+        const { bgcolor, color } = genderStyles[gender] || genderStyles.indeterminate
         const label = genderLabels[gender] || 'ID'
 
-        return (
-          <Box
-            sx={{
-              px: 1.5,
-              py: 0.5,
-              bgcolor: style.bgcolor,
-              color: style.color,
-              fontSize: '14px',
-              fontWeight: 600,
-              display: 'inline-block',
-              textAlign: 'center',
-              minWidth: 40
-            }}
-          >
-            {label}
-          </Box>
-        )
+        return <GenderInfoCard value={label} bgcolor={bgcolor} color={color} />
       }
     },
 
@@ -231,7 +189,9 @@ const AnimalTreatmentListing = () => {
       field: 'animal_name',
       headerName: 'ANIMAL NAME',
       renderCell: params => (
-        <Typography sx={{ fontWeight: 400, fontSize: '16px', color: '#44544A' }}>{params.row.common_name}</Typography>
+        <Typography sx={{ fontWeight: 400, fontSize: '16px', color: theme.palette.customColors.OnSurfaceVariant }}>
+          {params.row.common_name}
+        </Typography>
       )
     },
 
@@ -240,7 +200,9 @@ const AnimalTreatmentListing = () => {
       field: 'section_name',
       headerName: 'Section Name',
       renderCell: params => (
-        <Typography sx={{ fontWeight: 400, fontSize: '16px', color: '#44544A' }}>{params.row.section_name}</Typography>
+        <Typography sx={{ fontWeight: 400, fontSize: '16px', color: theme.palette.customColors.OnSurfaceVariant }}>
+          {params.row.section_name}
+        </Typography>
       )
     },
     {
@@ -248,7 +210,9 @@ const AnimalTreatmentListing = () => {
       field: 'site_name',
       headerName: 'Site Name',
       renderCell: params => (
-        <Typography sx={{ fontWeight: 400, fontSize: '16px', color: '#44544A' }}>{params.row.site_name}</Typography>
+        <Typography sx={{ fontWeight: 400, fontSize: '16px', color: theme.palette.customColors.OnSurfaceVariant }}>
+          {params.row.site_name}
+        </Typography>
       )
     },
 
@@ -257,12 +221,11 @@ const AnimalTreatmentListing = () => {
       field: 'user_enclosure_name',
       headerName: 'Enclosure Name',
       renderCell: params => (
-        <Typography sx={{ fontWeight: 400, fontSize: '16px', color: '#44544A' }}>
+        <Typography sx={{ fontWeight: 400, fontSize: '16px', color: theme.palette.customColors.OnSurfaceVariant }}>
           {params.row.user_enclosure_name}
         </Typography>
       )
     }
-
   ]
 
   return (

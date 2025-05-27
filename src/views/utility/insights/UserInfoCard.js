@@ -1,5 +1,5 @@
 import React from 'react'
-import { Avatar, Box, Typography } from '@mui/material'
+import { Avatar, Box, Tooltip, Typography } from '@mui/material'
 
 const UserInfoCard = ({ avatarUrl, name, description, textColor, fontWeight }) => {
   return (
@@ -7,14 +7,25 @@ const UserInfoCard = ({ avatarUrl, name, description, textColor, fontWeight }) =
       <Avatar src={avatarUrl} />
       <Box>
         {name && (
-          <Typography sx={{ color: theme => textColor ?? theme.palette.common.white }} fontWeight={fontWeight ?? 600}>
-            {name}
-          </Typography>
+          <>
+            <Tooltip title={name}>
+              <Typography
+                sx={{ color: theme => textColor ?? theme.palette.common.white }}
+                fontWeight={fontWeight ?? 600}
+              >
+                {name}
+              </Typography>
+            </Tooltip>
+          </>
         )}
         {description && (
-          <Typography sx={{ color: theme => textColor ?? theme.palette.common.white }} variant='body2'>
-            {description}
-          </Typography>
+          <>
+            <Tooltip title={description}>
+              <Typography sx={{ color: theme => textColor ?? theme.palette.common.white }} variant='body2'>
+                {description}
+              </Typography>
+            </Tooltip>
+          </>
         )}
       </Box>
     </Box>

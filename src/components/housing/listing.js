@@ -10,8 +10,9 @@ import UserInfoCard from 'src/views/utility/insights/UserInfoCard'
 import ListingHeader from '../../views/pages/housing/utils/ListingHeader'
 import { useRouter } from 'next/router'
 import { ExportButton } from 'src/views/utility/render-snippets'
+import { CellInfo } from 'src/utility/render'
 
-const Listing = ({ title }) => {
+const Listing = () => {
   const [downloading, setDownloading] = useState(false)
 
   const router = useRouter()
@@ -40,7 +41,7 @@ const Listing = ({ title }) => {
   useEffect(() => {
     debouncedFetch()
 
-    return () => debouncedFetch.cancel() 
+    return () => debouncedFetch.cancel()
   }, [debouncedFetch])
 
   const handlePaginationModelChange = model => {
@@ -77,7 +78,7 @@ const Listing = ({ title }) => {
 
   const indexedRows = siteList?.map((row, index) => ({
     ...row,
-    id: row?.site_id,
+    id: +row?.site_id, // convert string to number
     sl_no: getSlNo(index)
   }))
 
@@ -102,56 +103,7 @@ const Listing = ({ title }) => {
       width: 250,
       field: 'site_name',
       headerName: 'Site Name',
-      renderCell: params => {
-        const imageUrl = params.row.images?.[0]?.file
-
-        return (
-          <Box display='flex' alignItems='center' width='100%' gap={2}>
-            {imageUrl ? (
-              <Box
-                component='img'
-                src={imageUrl}
-                alt={params.row.site_name}
-                sx={{
-                  width: 40,
-                  height: 40,
-                  borderRadius: 1,
-                  objectFit: 'cover',
-                  mr: 1
-                }}
-              />
-            ) : (
-              <Avatar
-                variant='square'
-                sx={{
-                  width: 40,
-                  height: 40,
-                  mr: 1,
-                  borderRadius: '8px',
-                  fontSize: '14px',
-                  bgcolor: theme.palette.primary.main
-                }}
-              >
-                {params.row.site_name?.charAt(0).toUpperCase() || '?'}
-              </Avatar>
-            )}
-            <Typography
-              noWrap
-              sx={{
-                overflow: 'hidden',
-                textOverflow: 'ellipsis',
-                whiteSpace: 'nowrap',
-                maxWidth: '180px',
-                color: theme.palette.customColors.OnSurfaceVariant,
-                fontSize: '14px',
-                fontWeight: 500
-              }}
-            >
-              {params.row.site_name}
-            </Typography>
-          </Box>
-        )
-      }
+      renderCell: params => <CellInfo value={params.row.site_name} row={params.row} />
     },
     {
       width: 200,
@@ -205,8 +157,6 @@ const Listing = ({ title }) => {
       width: 180,
       field: 'incharge',
       headerName: 'In-Charge',
-      align: 'center',
-      headerAlign: 'left',
       renderCell: params => (
         <Box display='flex' alignItems='center' width='100%'>
           <UserInfoCard
@@ -214,6 +164,7 @@ const Listing = ({ title }) => {
             name={params.row.incharge_name}
             textColor={theme.palette.customColors.OnSurfaceVariant}
             fontWeight={500}
+            fallbackChar={params.row.incharge_name?.charAt(0)}
           />
         </Box>
       )
@@ -252,11 +203,24 @@ const Listing = ({ title }) => {
           />
           <ExportButton loading={downloading} onClick={handleDownload} />
         </Box>
-        <Grid>
+        <Grid
+          sx={{
+            '& .MuiDataGrid-cell': {
+              pt: 4,
+              py: 4, // vertical padding (theme spacing, equivalent to padding-top and padding-bottom)
+              px: 4 // horizontal padding
+            },
+            '& .MuiDataGrid-columnHeaderTitle': {
+              color: theme.palette.customColors.OnSurfaceVariant,
+              fontSize: '12px',
+              fontWeight: 600
+            }
+          }}
+        >
           <CommonTable
             onRowClick={handleRowClick}
             indexedRows={indexedRows}
-            total={total}
+            total={+total}
             columns={columns}
             pageSizeOptions={[10]}
             paginationModel={{

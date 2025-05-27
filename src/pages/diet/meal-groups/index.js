@@ -196,6 +196,7 @@ const MealGroup = () => {
     setLoading(true)
 
     if (status === 'mealgroup') {
+      debugger
       const groupparams = {
         site_id: selectedOption,
         page_no: paginationModel.page + 1
@@ -1692,7 +1693,7 @@ const MealGroup = () => {
               </Box>
             </Box>
           </Box>
-        </FixedFooterWrapper>
+        </FixedFooterWrapper> 
       )}
 
       {openDrawer && (

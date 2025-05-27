@@ -11,6 +11,7 @@ import { ExportButton } from 'src/views/utility/render-snippets'
 import { debounce } from 'lodash'
 import ListingHeader from '../../views/pages/housing/utils/ListingHeader'
 import { fetchMortality, setParams } from 'src/store/slices/housing/mortalitySlice'
+import { DateInfoDisplay, IdentifierInfoCard } from 'src/utility/render'
 
 const MortalityListing = () => {
   const [downloading, setDownloading] = useState(false)
@@ -88,7 +89,7 @@ const MortalityListing = () => {
 
   const indexedRows = MortalityList?.map((row, index) => ({
     ...row,
-    id: row?.animal_id,
+    id: +row?.animal_id,
     sl_no: getSlNo(index)
   }))
 
@@ -113,68 +114,28 @@ const MortalityListing = () => {
       width: 300,
       field: 'common_name',
       headerName: 'SPECIES',
-      renderCell: params => {
-        const imageUrl = params.row.default_icon
-
-        return (
-          <Box display='flex' alignItems='center' width='100%' gap={2}>
-            {imageUrl ? (
-              <Box
-                component='img'
-                src={imageUrl}
-                alt='icon'
-                sx={{
-                  width: 40,
-                  height: 40,
-                  borderRadius: '50%',
-                  objectFit: 'cover'
-                }}
-              />
-            ) : (
-              <Avatar sx={{ width: 40, height: 40, fontSize: '14px', bgcolor: theme.palette.primary.main }}>
-                {params.row.common_name?.charAt(0).toUpperCase() || '?'}
-              </Avatar>
-            )}
-            <Box display='flex' flexDirection='column' overflow='hidden'>
-              <Typography
-                noWrap
-                sx={{ fontWeight: 500, fontSize: '16px', color: theme.palette.customColors.OnSurfaceVariant }}
-              >
-                {params.row.scientific_name}
-              </Typography>
-              <Typography
-                noWrap
-                sx={{
-                  fontSize: '14px',
-                  fontWeight: 400,
-                  fontFamily: 'Inter',
-                  color: '#1F515B',
-                  maxWidth: '180px',
-                  textOverflow: 'ellipsis'
-                }}
-              >
-                {params.row.common_name}
-              </Typography>
-            </Box>
-          </Box>
-        )
-      }
+      renderCell: params => (
+        <UserInfoCard
+          avatarUrl={params.row.default_icon}
+          textColor={theme.palette.customColors.OnSurfaceVariant}
+          name={params.row.scientific_name}
+          description={params.row.common_name}
+          fontWeight={500}
+          round
+        />
+      )
     },
     {
       width: 250,
       field: 'identifier',
       headerName: 'IDENTIFIER',
       renderCell: params => (
-        <Box>
-          <Typography sx={{ fontWeight: 600, fontSize: '15px', color: '#44544A' }}>
-            AAID : {`${params.row.animal_id}/${total}`}
-          </Typography>
-          {params.row.local_identifier_name && (
-            <Typography sx={{ fontSize: '13px', color: '#7A8684' }}>
-              {params.row.local_identifier_name} : {params.row.local_identifier_value}
-            </Typography>
-          )}
-        </Box>
+        <IdentifierInfoCard
+          animalId={params.row.animal_id}
+          total={total}
+          localIdentifierName={params.row.local_identifier_name}
+          localIdentifierValue={params.row.local_identifier_value}
+        />
       )
     },
     {
@@ -182,55 +143,23 @@ const MortalityListing = () => {
       field: 'animal_name',
       headerName: 'ANIMAL NAME',
       renderCell: params => (
-        <Typography sx={{ fontWeight: 400, fontSize: '16px', color: '#44544A' }}>{params.row.common_name}</Typography>
+        <Typography sx={{ fontWeight: 400, fontSize: '16px', color: theme.palette.customColors.OnSurfaceVariant }}>
+          {params.row.common_name}
+        </Typography>
       )
-    },
-
-    {
-      width: 250,
-      field: 'reported_on',
-      headerName: 'REPORTED ON',
-      renderCell: params => {
-        const date = new Date(params.row.discovered_date)
-        return (
-          <Box display='flex' flexDirection='column'>
-            <Typography sx={{ fontSize: '14px', color: theme.palette.customColors.OnSurfaceVariant, fontWeight: 500 }}>
-              {params.row.user_enclosure_name}
-            </Typography>
-            <Typography sx={{ fontSize: '14px', color: theme.palette.customColors.OnSurfaceVariant, fontWeight: 400 }}>
-              {format(date, 'dd MMM yyyy • hh:mm a').toUpperCase()}
-            </Typography>
-          </Box>
-        )
-      }
     },
 
     {
       field: 'died_on',
       headerName: 'DIED ON',
       width: 250,
-      renderCell: params => {
-        const diedDate = params.row.discovered_date ? new Date(params.row.discovered_date) : null
-
-        return (
-          <Box display='flex' flexDirection='column'>
-            {diedDate && (
-              <>
-                <Typography
-                  sx={{ fontSize: '14px', color: theme.palette.customColors.OnSurfaceVariant, fontWeight: 500 }}
-                >
-                  {formatDistanceToNow(diedDate, { addSuffix: true })}
-                </Typography>
-                <Typography
-                  sx={{ fontSize: '14px', color: theme.palette.customColors.OnSurfaceVariant, fontWeight: 400 }}
-                >
-                  {format(diedDate, 'dd MMM yyyy • hh:mm a').toUpperCase()}
-                </Typography>
-              </>
-            )}
-          </Box>
-        )
-      }
+      renderCell: params => <DateInfoDisplay date={params.row.discovered_date} showRelativeTime />
+    },
+    {
+      field: 'reported_on',
+      headerName: 'REPORTED ON',
+      width: 250,
+      renderCell: params => <DateInfoDisplay title={params.row.user_enclosure_name} date={params.row.discovered_date} />
     },
 
     {
@@ -269,7 +198,20 @@ const MortalityListing = () => {
           />
           <ExportButton loading={downloading} onClick={handleDownload} />
         </Box>
-        <Grid>
+        <Grid
+          sx={{
+            '& .MuiDataGrid-cell': {
+              pt: 4,
+              py: 4, // vertical padding (theme spacing, equivalent to padding-top and padding-bottom)
+              px: 4 // horizontal padding
+            },
+            '& .MuiDataGrid-columnHeaderTitle': {
+              color: theme.palette.customColors.OnSurfaceVariant,
+              fontSize: '12px',
+              fontWeight: 600
+            }
+          }}
+        >
           <CommonTable
             onRowClick={handleRowClick}
             indexedRows={indexedRows}

@@ -4,7 +4,7 @@ import { useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { useAuth } from 'src/hooks/useAuth'
 import { fetchInsights } from 'src/store/slices/housing/insightsSlice'
-import Listing from 'src/components/housing/listing'
+import Listing from 'src/components/housing/Listing'
 import InsightsCard from 'src/views/utility/insights/InsightsCard'
 
 const Sites = () => {

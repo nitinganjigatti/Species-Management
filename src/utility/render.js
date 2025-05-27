@@ -2,6 +2,8 @@ import { Typography, Box, Avatar, Tooltip } from '@mui/material'
 import CustomAvatar from 'src/@core/components/mui/avatar'
 import Utility from 'src/utility'
 import Icon from 'src/@core/components/icon'
+import { format, formatDistanceToNow } from 'date-fns'
+import { useTheme } from '@emotion/react'
 
 export const getEllipsisStyleForText = width => {
   return {
@@ -123,6 +125,156 @@ export const getToolTipForText = text => {
   )
 }
 
+export const CellInfo = ({ value, row }) => {
+  const theme = useTheme()
+  const imageUrl = row.images?.[0]?.file
+
+  return (
+    <Box display='flex' alignItems='center' width='100%' gap={2}>
+      {imageUrl ? (
+        <Box
+          component='img'
+          src={imageUrl}
+          alt={value}
+          sx={{
+            width: 40,
+            height: 40,
+            borderRadius: 1,
+            // objectFit: 'cover',
+            mr: 1
+          }}
+        />
+      ) : (
+        <Avatar
+          variant='square'
+          sx={{
+            width: 40,
+            height: 40,
+            mr: 1,
+            borderRadius: '8px',
+            fontSize: '14px',
+            bgcolor: theme.palette.primary.main
+          }}
+        >
+          {value?.charAt(0).toUpperCase() || '?'}
+        </Avatar>
+      )}
+      <Typography
+        noWrap
+        sx={{
+          overflow: 'hidden',
+          textOverflow: 'ellipsis',
+          whiteSpace: 'nowrap',
+          maxWidth: '180px',
+          color: theme.palette.customColors.OnSurfaceVariant,
+          fontSize: '16px',
+          fontWeight: 400
+        }}
+      >
+        {value}
+      </Typography>
+    </Box>
+  )
+}
+
+export const DateInfoDisplay = ({ title, date, showRelativeTime = false }) => {
+  const theme = useTheme()
+
+  if (!date) return null
+
+  const parsedDate = new Date(date)
+  const formattedDate = format(parsedDate, 'dd MMM yyyy • hh:mm a').toUpperCase()
+  const relativeTime = showRelativeTime ? formatDistanceToNow(parsedDate, { addSuffix: true }) : null
+
+  return (
+    <Box display='flex' flexDirection='column'>
+      {title && (
+        <Typography
+          sx={{
+            fontSize: '14px',
+            color: theme.palette.customColors.OnSurfaceVariant,
+            fontWeight: 500
+          }}
+        >
+          {title}
+        </Typography>
+      )}
+      <Typography
+        sx={{
+          fontSize: showRelativeTime ? '14px' : '12px',
+          color: theme.palette.customColors.OnSurfaceVariant,
+          fontWeight: 400
+        }}
+      >
+        {showRelativeTime ? relativeTime : formattedDate}
+      </Typography>
+      {showRelativeTime && (
+        <Typography
+          sx={{
+            fontSize: '14px',
+            color: theme.palette.customColors.OnSurfaceVariant,
+            fontWeight: 400
+          }}
+        >
+          {formattedDate}
+        </Typography>
+      )}
+    </Box>
+  )
+}
+
+export const IdentifierInfoCard = ({ animalId, total, localIdentifierName, localIdentifierValue }) => {
+  const theme = useTheme()
+
+  return (
+    <Box>
+      <Typography
+        sx={{
+          fontWeight: 500,
+          fontSize: '16px',
+          color: theme.palette.customColors.OnSurfaceVariant
+        }}
+      >
+        AAID : {`${animalId}/${total}`}
+      </Typography>
+
+      {localIdentifierName && (
+        <Typography
+          sx={{
+            fontSize: '12px',
+            color: theme.palette.customColors.secondaryBg
+          }}
+        >
+          {localIdentifierName} : {localIdentifierValue}
+        </Typography>
+      )}
+    </Box>
+  )
+}
+
+export const GenderInfoCard = ({ value, bgcolor, color }) => {
+  return (
+    <Box
+      sx={{
+        px: 1.5,
+        py: 0.5,
+        width: '48px',
+        height: '25px',
+        borderRadius: '4px',
+        bgcolor: bgcolor, // light gray-green
+        color: color, // maroonish-red
+        fontSize: '14px',
+        fontWeight: 600,
+        display: 'inline-block',
+        textAlign: 'center',
+        minWidth: 40
+      }}
+    >
+      {value}
+    </Box>
+  )
+}
+
 export const renderPrescriptionLabel = (condition, label) =>
   condition ? (
     <Typography
@@ -156,6 +308,10 @@ const RenderUtility = {
   getPriorityIcons,
   attachedFiles,
   getToolTipForText,
+  GenderInfoCard,
+  CellInfo,
+  DateInfoDisplay,
+  IdentifierInfoCard,
   renderPrescriptionLabel
 }
 
