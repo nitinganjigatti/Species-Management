@@ -242,7 +242,20 @@ const AnimalTreatmentListing = () => {
           />
           <ExportButton loading={downloading} onClick={handleDownload} />
         </Box>
-        <Grid>
+        <Grid
+          sx={{
+            '& .MuiDataGrid-cell': {
+              pt: 4,
+              py: 4, // vertical padding (theme spacing, equivalent to padding-top and padding-bottom)
+              px: 4 // horizontal padding
+            },
+            '& .MuiDataGrid-columnHeaderTitle': {
+              color: theme.palette.customColors.OnSurfaceVariant,
+              fontSize: '12px',
+              fontWeight: 600
+            }
+          }}
+        >
           <CommonTable
             onRowClick={handleRowClick}
             indexedRows={indexedRows}
