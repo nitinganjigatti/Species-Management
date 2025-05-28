@@ -125,11 +125,12 @@ export const getToolTipForText = text => {
   )
 }
 
-export const CellInfo = ({ value, subtitle, imgUrl, avatarUrl }) => {
+export const CellInfo = ({ value, subtitle, imgUrl, avatarUrl, inchagename }) => {
   const theme = useTheme()
 
   return (
-    <Box display='flex' alignItems='center' width='100%' gap={2}>
+    <Box display='flex' alignItems='center' gap={2} width='100%'>
+      {/* Image or fallback avatar */}
       {imgUrl ? (
         <Box
           component='img'
@@ -139,8 +140,7 @@ export const CellInfo = ({ value, subtitle, imgUrl, avatarUrl }) => {
             width: 40,
             height: 40,
             borderRadius: 1,
-            // objectFit: 'cover',
-            mr: 1
+            objectFit: 'cover'
           }}
         />
       ) : (
@@ -149,46 +149,63 @@ export const CellInfo = ({ value, subtitle, imgUrl, avatarUrl }) => {
           sx={{
             width: 40,
             height: 40,
-            mr: 1,
-            borderRadius: '8px',
-            fontSize: '14px',
+            borderRadius: 1,
+            fontSize: 14,
             bgcolor: theme.palette.primary.main
           }}
         >
           {value?.charAt(0).toUpperCase() || '?'}
         </Avatar>
       )}
-      <Typography
-        noWrap
-        sx={{
-          overflow: 'hidden',
-          textOverflow: 'ellipsis',
-          whiteSpace: 'nowrap',
-          maxWidth: '180px',
-          color: theme.palette.customColors.OnSurfaceVariant,
-          fontSize: '16px',
-          fontWeight: 400
-        }}
-      >
-        {value}
-      </Typography>
-      {avatarUrl && <Avatar src={avatarUrl} />}
-      {subtitle && (
+
+      <Box display='flex' flexDirection='column' overflow='hidden'>
+        {/* Title */}
         <Typography
           noWrap
           sx={{
-            overflow: 'hidden',
-            textOverflow: 'ellipsis',
-            whiteSpace: 'nowrap',
-            maxWidth: '180px',
-            color: theme.palette.customColors.OnSurfaceVariant,
-            fontSize: '14px',
-            fontWeight: 400
+            fontSize: '16px',
+            fontWeight: 500,
+            color: theme.palette.customColors.OnSurfaceVariant
           }}
         >
-          {subtitle}
+          {value}
         </Typography>
-      )}
+
+        {/* Subtitle */}
+        {subtitle && (
+          <Typography
+            noWrap
+            sx={{
+              fontSize: '14px',
+              fontWeight: 400,
+              color: theme.palette.customColors.OnSurfaceVariant
+            }}
+          >
+            {subtitle}
+          </Typography>
+        )}
+
+        {/* Incharge section */}
+        {inchagename && (
+          <Box display='flex' alignItems='center' gap={1} mt={0.5}>
+            {avatarUrl ? (
+              <Avatar src={avatarUrl} sx={{ width: 20, height: 20, fontSize: 12 }} />
+            ) : (
+              <Avatar sx={{ width: 20, height: 20, fontSize: 12 }}>{inchagename.charAt(0).toUpperCase()}</Avatar>
+            )}
+            <Typography
+              noWrap
+              sx={{
+                fontSize: '14px',
+                fontWeight: 400,
+                color: theme.palette.customColors.OnSurfaceVariant
+              }}
+            >
+              {inchagename}
+            </Typography>
+          </Box>
+        )}
+      </Box>
     </Box>
   )
 }

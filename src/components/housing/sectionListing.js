@@ -109,7 +109,7 @@ const SectionListing = () => {
       field: 'section_name',
       headerName: 'Section Name',
       renderCell: params => (
-        <CellInfo value={params.row.section_name} subtitle={''} imgUrl={params.row.images?.[0]?.file} avatarUrl={''} />
+        <CellInfo value={params.row.section_name} subtitle={''} imgUrl={params.row.images?.[0]?.file} avatarUrl={''} inchagename={''} />
       )
     },
     {
