@@ -8,10 +8,10 @@ import Listing from 'src/components/housing/Listing'
 import { fetchSite } from 'src/store/slices/housing/sitesAnalyticsSlice'
 
 // Listing Components
-import SectionListing from 'src/components/housing/SectionListing'
-import NotesListng from 'src/components/housing/NotesListng'
-import SpeciesListing from 'src/components/housing/SpeciesListing'
-import MortalityListing from 'src/components/housing/MortalityListing'
+import SectionListing from 'src/components/housing/sectionListing'
+import NotesListng from 'src/components/housing/notesListng'
+import SpeciesListing from 'src/components/housing/speciesListing'
+import MortalityListing from 'src/components/housing/mortalityListing'
 import AnimalTreatmentListing from 'src/components/housing/AnimalTreatmentListing'
 import MediaListing from 'src/components/housing/MediaListing'
 
@@ -57,10 +57,10 @@ const SiteDetails = () => {
 
   const handleTabChange = (event, newValue) => {
     // Find reset action for previous tab
-    const prevTab = tabConfig.find(tab => tab.value === selectedTab)
-    if (prevTab?.resetAction) {
-      dispatch(prevTab.resetAction())
-    }
+    // const prevTab = tabConfig.find(tab => tab.value === selectedTab)
+    // if (prevTab?.resetAction) {
+    //   dispatch(prevTab.resetAction())
+    // }
 
     setSelectedTab(newValue)
   }
