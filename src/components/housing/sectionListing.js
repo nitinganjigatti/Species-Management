@@ -108,7 +108,9 @@ const SectionListing = () => {
       width: 250,
       field: 'section_name',
       headerName: 'Section Name',
-      renderCell: params => <CellInfo value={params.row.section_name} row={params.row} />
+      renderCell: params => (
+        <CellInfo value={params.row.section_name} subtitle={''} imgUrl={params.row.images?.[0]?.file} avatarUrl={''} />
+      )
     },
     {
       width: 200,

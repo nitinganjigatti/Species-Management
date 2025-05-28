@@ -103,7 +103,9 @@ const Listing = () => {
       width: 250,
       field: 'site_name',
       headerName: 'Site Name',
-      renderCell: params => <CellInfo value={params.row.site_name} row={params.row} />
+      renderCell: params => (
+        <CellInfo value={params.row.site_name} subtitle={''} imgUrl={params.row.images?.[0]?.file} avatarUrl={''} />
+      )
     },
     {
       width: 200,

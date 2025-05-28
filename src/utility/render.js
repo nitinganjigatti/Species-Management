@@ -125,16 +125,15 @@ export const getToolTipForText = text => {
   )
 }
 
-export const CellInfo = ({ value, row }) => {
+export const CellInfo = ({ value, subtitle, imgUrl, avatarUrl }) => {
   const theme = useTheme()
-  const imageUrl = row.images?.[0]?.file
 
   return (
     <Box display='flex' alignItems='center' width='100%' gap={2}>
-      {imageUrl ? (
+      {imgUrl ? (
         <Box
           component='img'
-          src={imageUrl}
+          src={imgUrl}
           alt={value}
           sx={{
             width: 40,
@@ -173,6 +172,23 @@ export const CellInfo = ({ value, row }) => {
       >
         {value}
       </Typography>
+      {avatarUrl && <Avatar src={avatarUrl} />}
+      {subtitle && (
+        <Typography
+          noWrap
+          sx={{
+            overflow: 'hidden',
+            textOverflow: 'ellipsis',
+            whiteSpace: 'nowrap',
+            maxWidth: '180px',
+            color: theme.palette.customColors.OnSurfaceVariant,
+            fontSize: '14px',
+            fontWeight: 400
+          }}
+        >
+          {subtitle}
+        </Typography>
+      )}
     </Box>
   )
 }
