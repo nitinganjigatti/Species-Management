@@ -6,6 +6,14 @@ import { useTheme } from '@mui/material/styles'
 const InfoStatCard = ({ icon: Icon, imagePath, value, label, onClick }) => {
   const theme = useTheme()
 
+  const formatNumber = num => {
+    if (num >= 1_000_000_000) return (num / 1_000_000_000).toFixed(1).replace(/\.0$/, '') + 'B'
+    if (num >= 1_000_000) return (num / 1_000_000).toFixed(1).replace(/\.0$/, '') + 'M'
+    if (num >= 1_000) return (num / 1_000).toFixed(1).replace(/\.0$/, '') + 'k'
+
+    return num
+  }
+
   return (
     <Box
       elevation={3}
@@ -27,7 +35,7 @@ const InfoStatCard = ({ icon: Icon, imagePath, value, label, onClick }) => {
           sx={{ fontWeight: '600', fontSize: '1.5rem', color: theme.palette.customColors.PrimaryContainer }}
           color='success.main'
         >
-          {value}
+          {formatNumber(value)}
         </Typography>
         {label && (
           <Typography sx={{ fontSize: '0.875rem', color: theme => theme.palette.common.white }}>{label}</Typography>
