@@ -1,4 +1,4 @@
-import { useEffect, useCallback, useMemo } from 'react'
+import { useEffect, useCallback, useMemo, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { Typography, Box, CircularProgress } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
@@ -12,7 +12,7 @@ import {
   resetSectionInfiniteScroll,
   updateSectionSearch
 } from 'src/store/slices/housing/sectionInfiniteScrollSlice'
-import { debounce } from 'lodash'
+import debounce from 'lodash/debounce'
 
 const SectionsDrawer = ({ open, onClose, data }) => {
   const theme = useTheme()
@@ -20,6 +20,14 @@ const SectionsDrawer = ({ open, onClose, data }) => {
 
   const { list = [], loading, hasMore, search } = useSelector(state => state.sectionInfiniteScroll || {})
 
+  const [localSearch, setLocalSearch] = useState(search || '')
+
+  // Sync search value into local input when drawer opens
+  useEffect(() => {
+    if (open) setLocalSearch(search || '')
+  }, [open, search])
+
+  // Load more on scroll
   const loadMore = useCallback(() => {
     if (!loading && hasMore) {
       dispatch(fetchSectionPages({ site_id: data.id }))
@@ -28,6 +36,7 @@ const SectionsDrawer = ({ open, onClose, data }) => {
 
   const loaderRef = useInfiniteScroll(loadMore, loading, hasMore)
 
+  // Reset and fetch when drawer opens
   useEffect(() => {
     if (open) {
       dispatch(resetSectionInfiniteScroll())
@@ -35,10 +44,11 @@ const SectionsDrawer = ({ open, onClose, data }) => {
     }
   }, [open, data.id, dispatch])
 
-  // Debounced API call only
-  const debouncedSearch = useMemo(
+  // Debounced handler that updates search and fetches
+  const debouncedUpdate = useMemo(
     () =>
-      debounce(() => {
+      debounce(value => {
+        dispatch(updateSectionSearch(value))
         dispatch(fetchSectionPages({ site_id: data.id }))
       }, 500),
     [dispatch, data.id]
@@ -46,14 +56,19 @@ const SectionsDrawer = ({ open, onClose, data }) => {
 
   useEffect(() => {
     return () => {
-      debouncedSearch.cancel()
+      debouncedUpdate.cancel()
     }
-  }, [debouncedSearch])
+  }, [debouncedUpdate])
 
-  // Immediate value update + debounced fetch
-  const handleSearch = val => {
-    dispatch(updateSectionSearch(val))
-    debouncedSearch()
+  const handleSearchChange = e => {
+    const value = e.target.value
+    setLocalSearch(value)
+    debouncedUpdate(value)
+  }
+
+  const handleSearchClear = () => {
+    setLocalSearch('')
+    debouncedUpdate('')
   }
 
   return (
@@ -94,9 +109,9 @@ const SectionsDrawer = ({ open, onClose, data }) => {
             backgroundColor: theme.palette.common.white
           }}
           placeholder='Search for a section'
-          value={search}
-          onChange={e => handleSearch(e.target.value)}
-          onClear={() => handleSearch('')}
+          value={localSearch}
+          onChange={handleSearchChange}
+          onClear={handleSearchClear}
         />
       </Box>
 
@@ -105,9 +120,9 @@ const SectionsDrawer = ({ open, onClose, data }) => {
           <SectionCard key={section.id} section={section} />
         ))}
 
-        {loading && list.length === 0 && (
+        {(loading || hasMore) && (
           <Box ref={loaderRef} display='flex' justifyContent='center' p={2} mt={2}>
-            <CircularProgress />
+            {loading && <CircularProgress />}
           </Box>
         )}
 
@@ -116,14 +131,6 @@ const SectionsDrawer = ({ open, onClose, data }) => {
             No sections found
           </Typography>
         )}
-
-        {loading && list.length > 0 && (
-          <Box ref={loaderRef} display='flex' justifyContent='center' p={2} mt={2}>
-            <CircularProgress />
-          </Box>
-        )}
-
-        {!loading && hasMore && <Box ref={loaderRef} sx={{ height: 1 }} />}
 
         {!hasMore && list.length > 0 && (
           <Typography sx={{ textAlign: 'center', mt: 2, color: theme.palette.text.disabled }}>
