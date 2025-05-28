@@ -631,6 +631,7 @@ const AddRequestForm = () => {
         genericName: getItems[0].genericName,
         notes: getItems[0].notes
       })
+      showDialog()
     } else {
       const getItems = editParams.request_item_details.filter(el => {
         return el.request_item_medicine_id === itemId
@@ -656,6 +657,7 @@ const AddRequestForm = () => {
         genericName: getItems[0].genericName,
         notes: getItems[0].notes
       })
+      showDialog()
     }
   }
 
@@ -1324,7 +1326,7 @@ const AddRequestForm = () => {
                 onClick={() => {
                   setNestedRowMedicine({
                     ...nestedRowMedicine,
-                    priority_item: nestedRowMedicine.priority_item === 'normal' ? '' : 'normal'
+                    priority_item: 'normal'
                   })
                 }}
               >
@@ -1371,7 +1373,7 @@ const AddRequestForm = () => {
                 onClick={() => {
                   setNestedRowMedicine({
                     ...nestedRowMedicine,
-                    priority_item: nestedRowMedicine.priority_item === 'high' ? '' : 'high'
+                    priority_item: 'high'
                   })
                 }}
               >
@@ -1423,7 +1425,7 @@ const AddRequestForm = () => {
                 onClick={() => {
                   setNestedRowMedicine({
                     ...nestedRowMedicine,
-                    priority_item: nestedRowMedicine.priority_item === 'emergency' ? '' : 'emergency'
+                    priority_item: 'emergency'
                   })
                 }}
               >
@@ -2479,7 +2481,7 @@ const AddRequestForm = () => {
                                 editTableData(el?.request_item_medicine_id, 'new')
                               }
                               // editTableData(el?.request_item_medicine_id)
-                              showDialog()
+                              // showDialog()
                             }}
                           >
                             <Icon icon='mdi:pencil-outline' />
