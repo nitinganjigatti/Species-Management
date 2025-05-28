@@ -2214,8 +2214,15 @@ const AddRequestForm = () => {
             <TableHead sx={{ backgroundColor: 'customColors.customTableHeaderBg' }}>
               <TableRow>
                 <TableCell>S.No</TableCell>
-                <TableCell>Product Name</TableCell>
-                {/* <TableCell>Priority</TableCell> */}
+                <TableCell
+                  sx={{
+                    textAlign: 'center'
+                  }}
+                >
+                  Priority
+                </TableCell>
+
+                <TableCell>Product Names</TableCell>
                 {/* <TableCell>Quantity</TableCell> */}
                 <TableCell>request qty</TableCell>
                 <TableCell>Unit price</TableCell>
@@ -2233,8 +2240,16 @@ const AddRequestForm = () => {
                     return (
                       <TableRow key={index}>
                         <TableCell align='left'>
-                          <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                            {index + 1}.{RenderUtility.getPriorityIcons(el?.priority_item)}
+                          <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>{index + 1}.</Box>
+                        </TableCell>
+                        <TableCell>
+                          <Box
+                            sx={{
+                              display: 'flex',
+                              justifyContent: 'center'
+                            }}
+                          >
+                            {RenderUtility.getPriorityIcons(el?.priority_item)}
                           </Box>
                         </TableCell>
                         {/* <TableCell>
@@ -2255,40 +2270,6 @@ const AddRequestForm = () => {
                           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
                             {RenderUtility?.renderControlLabel(el.control_substance === true, 'CS')}
                             {RenderUtility?.renderPrescriptionLabel(el.prescription_required === true, 'PR')}
-                            {/* {el.control_substance ? (
-                              <CustomChip
-                                label='CS'
-                                skin='filled'
-                                // color='error'
-                                size='small'
-                                sx={{
-                                  borderRadius: '2px',
-                                  background: 'linear-gradient(180deg, #FA6140 0%, #E93353 100%)',
-                                  '& .MuiChip-label': {
-                                    color: 'white',
-                                    paddingLeft: '4px',
-                                    paddingRight: '4px'
-                                  }
-                                }}
-                              />
-                            ) : null} */}
-                            {/* {el.prescription_required ? (
-                              <CustomChip
-                                label='PR'
-                                skin='light'
-                                // color='success'
-                                size='small'
-                                sx={{
-                                  borderRadius: '2px',
-                                  background: 'linear-gradient(180deg, #FA6140 0%, #E93353 100%)',
-                                  '& .MuiChip-label': {
-                                    color: 'white',
-                                    paddingLeft: '4px',
-                                    paddingRight: '4px'
-                                  }
-                                }}
-                              />
-                            ) : null} */}
                             <Typography
                               variant='body2'
                               sx={{ color: 'customColors.OnPrimaryContainer', fontSize: '16px', fontWeight: 600 }}

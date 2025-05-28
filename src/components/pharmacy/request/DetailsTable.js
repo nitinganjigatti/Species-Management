@@ -142,12 +142,14 @@ export default function DetailsTable({ ...props }) {
                 sx={{
                   color: 'customColors.customTextColorGray2',
                   fontSize: '12px',
-                  fontWeight: 600
+                  fontWeight: 600,
+                  textAlign: 'left',
+                  maxWidth: 5
                 }}
               >
                 SL.NO
               </TableCell>
-              <TableCell>Priority</TableCell>
+              <TableCell sx={{ textAlign: 'center', maxWidth: 10 }}>Priority</TableCell>
               <TableCell>PRODUCT NAME</TableCell>
 
               <TableCell>QUANTITY</TableCell>
@@ -169,7 +171,8 @@ export default function DetailsTable({ ...props }) {
                       <TableCell
                         sx={{
                           backgroundColor: props?.getCellBgColor(el),
-                          verticalAlign: 'top'
+                          verticalAlign: 'top',
+                          textAlign: 'left'
                         }}
                       >
                         <Typography
@@ -192,7 +195,8 @@ export default function DetailsTable({ ...props }) {
                       <TableCell
                         sx={{
                           backgroundColor: props?.getCellBgColor(el),
-                          verticalAlign: 'top'
+                          verticalAlign: 'top',
+                          alignContent: 'center'
                         }}
                       >
                         {/* {console.log('items', paginatedItems)} */}
