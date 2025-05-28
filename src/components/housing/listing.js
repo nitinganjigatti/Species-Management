@@ -84,11 +84,11 @@ const Listing = () => {
     return () => debouncedFetch.cancel()
   }, [debouncedFetch])
 
-  useEffect(() => {
-    // Simulate drawer open on mount for testing
-    setDrawerType('sections')
-    setDrawerData(mockDrawerData)
-  }, [])
+  // useEffect(() => {
+  //   // Simulate drawer open on mount for testing
+  //   setDrawerType('sections')
+  //   setDrawerData(mockDrawerData)
+  // }, [])
 
   const handlePaginationModelChange = model => {
     const newPage = model.page + 1
@@ -150,7 +150,13 @@ const Listing = () => {
       field: 'site_name',
       headerName: 'Site Name',
       renderCell: params => (
-        <CellInfo value={params.row.site_name} subtitle={''} imgUrl={params.row.images?.[0]?.file} avatarUrl={''} inchargeName={""} />
+        <CellInfo
+          value={params.row.site_name}
+          subtitle={''}
+          imgUrl={params.row.images?.[0]?.file}
+          avatarUrl={''}
+          inchargeName={''}
+        />
       )
     },
     {
@@ -202,9 +208,9 @@ const Listing = () => {
             e.stopPropagation()
             setDrawerType('sections')
             setDrawerData({
-              cluster_name: params.row.site_name,
-              cluster_type: params.row.site_type || 'Rainforest Habitat Cluster',
-              sections: params.row.sections || [] // ensure structure is consistent
+              id: params.row?.site_id,
+              name: params.row?.site_name,
+              image: params.row?.images?.[0]?.file
             })
           }}
         >

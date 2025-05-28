@@ -18,9 +18,6 @@ const Stat = ({ label, value }) => (
 
 const SectionCard = ({ section }) => {
   const theme = useTheme()
-  const imageUrl = section.image
-
-  console.log('section :>> ', section)
 
   return (
     <Box
@@ -36,13 +33,13 @@ const SectionCard = ({ section }) => {
         gap: 4
       }}
     >
-      <CellInfo value={section.name} imgUrl={section.cluster_image} inchagename={section.incharge} />
+      <CellInfo value={section?.section_name} imgUrl={section?.images[0]?.file} inchagename={section?.incharge_name} />
 
-      <Box display='flex' flexWrap='wrap'>
+      <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
         <Stat label='Species' value={section.species_count} />
         <Stat label='Animals' value={section.animals_count} />
         <Stat label='Enclosures' value={section.enclosure_count} />
-        <Stat label='Sub enclosures' value={section.sub_enclosure_count} />
+        {/* <Stat label='Sub enclosures' value={section.sub_enclosure_count} /> */}
       </Box>
     </Box>
   )
