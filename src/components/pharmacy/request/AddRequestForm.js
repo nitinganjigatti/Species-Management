@@ -1303,6 +1303,52 @@ const AddRequestForm = () => {
                   borderRadius: '8px',
                   boxShadow: 'none',
                   backgroundColor:
+                    nestedRowMedicine.priority_item === 'normal' ? `${theme.palette.primary.main}30` : 'white',
+                  color:
+                    nestedRowMedicine.priority_item === 'normal'
+                      ? `${theme.palette.customColors.TertiaryContainer}60`
+                      : theme.palette.customColors.customHeadingTextColor,
+                  opacity: nestedRowMedicine.priority_item === 'normal' && 2,
+                  border:
+                    nestedRowMedicine.priority_item === 'normal'
+                      ? `1px solid ${theme.palette.customColors.displaybgSecondary}`
+                      : `1.5px solid ${theme.palette.customColors.OutlineVariant}60 !important`,
+
+                  '&:hover': {
+                    backgroundColor:
+                      nestedRowMedicine.priority_item === 'normal'
+                        ? `${theme.palette.primary.main}30 !important`
+                        : 'transparent !important'
+                  }
+                }}
+                onClick={() => {
+                  setNestedRowMedicine({
+                    ...nestedRowMedicine,
+                    priority_item: nestedRowMedicine.priority_item === 'normal' ? '' : 'normal'
+                  })
+                }}
+              >
+                <Typography
+                  sx={{
+                    fontSize: '16px',
+                    fontWeight: 500,
+                    color:
+                      nestedRowMedicine.priority_item === 'normal'
+                        ? theme.palette.customColors.customHeadingTextColor
+                        : theme.palette.customColors.neutral_50
+                  }}
+                >
+                  Normal
+                </Typography>
+              </Button>
+              <Button
+                // variant='contained'
+                sx={{
+                  width: '192px',
+                  height: '46px',
+                  borderRadius: '8px',
+                  boxShadow: 'none',
+                  backgroundColor:
                     nestedRowMedicine.priority_item === 'high'
                       ? `${theme.palette.customColors.TertiaryContainer}20`
                       : 'white',
@@ -1393,52 +1439,6 @@ const AddRequestForm = () => {
                   }}
                 >
                   Emergency
-                </Typography>
-              </Button>
-              <Button
-                // variant='contained'
-                sx={{
-                  width: '192px',
-                  height: '46px',
-                  borderRadius: '8px',
-                  boxShadow: 'none',
-                  backgroundColor:
-                    nestedRowMedicine.priority_item === 'normal' ? `${theme.palette.primary.main}30` : 'white',
-                  color:
-                    nestedRowMedicine.priority_item === 'normal'
-                      ? `${theme.palette.customColors.TertiaryContainer}60`
-                      : theme.palette.customColors.customHeadingTextColor,
-                  opacity: nestedRowMedicine.priority_item === 'normal' && 2,
-                  border:
-                    nestedRowMedicine.priority_item === 'normal'
-                      ? `1px solid ${theme.palette.customColors.displaybgSecondary}`
-                      : `1.5px solid ${theme.palette.customColors.OutlineVariant}60 !important`,
-
-                  '&:hover': {
-                    backgroundColor:
-                      nestedRowMedicine.priority_item === 'normal'
-                        ? `${theme.palette.primary.main}30 !important`
-                        : 'transparent !important'
-                  }
-                }}
-                onClick={() => {
-                  setNestedRowMedicine({
-                    ...nestedRowMedicine,
-                    priority_item: nestedRowMedicine.priority_item === 'normal' ? '' : 'normal'
-                  })
-                }}
-              >
-                <Typography
-                  sx={{
-                    fontSize: '16px',
-                    fontWeight: 500,
-                    color:
-                      nestedRowMedicine.priority_item === 'normal'
-                        ? theme.palette.customColors.customHeadingTextColor
-                        : theme.palette.customColors.neutral_50
-                  }}
-                >
-                  Normal
                 </Typography>
               </Button>
             </Grid>
