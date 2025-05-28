@@ -16,7 +16,16 @@ const MediaListing = () => {
   const dispatch = useDispatch()
   const router = useRouter()
   const { id } = router.query
-  const loaderRef = useRef(null)
+
+  const hasMore = media.length < total
+
+  const onLoadMore = () => {
+    if (!loading && hasMore) {
+      dispatch(setParams({ page: page + 1 }))
+    }
+  }
+
+  const loaderRef = useInfiniteScroll(onLoadMore, loading, hasMore)
 
   useEffect(() => {
     if (!id) return
@@ -57,17 +66,15 @@ const MediaListing = () => {
     debouncedSearch(value)
   }
 
-  const hasMore = media.length < total
-
-  useInfiniteScroll({
-    targetRef: loaderRef,
-    onIntersect: () => {
-      if (!loading && hasMore) {
-        dispatch(setParams({ page: page + 1 }))
-      }
-    },
-    enabled: hasMore
-  })
+  // useInfiniteScroll({
+  //   targetRef: loaderRef,
+  //   onIntersect: () => {
+  //     if (!loading && hasMore) {
+  //       dispatch(setParams({ page: page + 1 }))
+  //     }
+  //   },
+  //   enabled: hasMore
+  // })
 
   const getTabLabel = (tabKey, label) => {
     if (activeTab !== tabKey) return label
@@ -108,8 +115,14 @@ const MediaListing = () => {
           ))}
         </Grid>
 
-        {loading && (
-          <Box display='flex' justifyContent='center' p={2}>
+        {!loading && media.length === 0 && (
+          <Typography variant='body2' align='center' sx={{ mt: 6 }}>
+            No media found.
+          </Typography>
+        )}
+
+        {hasMore && (
+          <Box ref={loaderRef} display='flex' justifyContent='center' p={2}>
             <CircularProgress />
           </Box>
         )}
@@ -119,8 +132,6 @@ const MediaListing = () => {
             No more media files to load.
           </Typography>
         )}
-
-        <div ref={loaderRef} style={{ height: 1 }} />
       </Box>
     </Box>
   )

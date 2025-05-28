@@ -4,13 +4,7 @@ import SearchIcon from '@mui/icons-material/Search'
 import ClearIcon from '@mui/icons-material/Clear'
 import { useTheme } from '@mui/material/styles'
 
-const Search = ({
-  value,
-  onChange,
-  onClear,
-  placeholder = 'Search...',
-  sx = {}
-}) => {
+const Search = ({ value, onChange, onClear, placeholder = 'Search...', width = 300, sx = {}, textFielsSX = {} }) => {
   const theme = useTheme()
   const iconColor = theme.palette.customColors.neutralSecondary
 
@@ -29,6 +23,7 @@ const Search = ({
         value={value}
         onChange={onChange}
         placeholder={placeholder}
+        fullWidth
         InputProps={{
           startAdornment: (
             <InputAdornment position='start'>
@@ -44,7 +39,21 @@ const Search = ({
           ) : null
         }}
         sx={{
-          width: 300
+          width: width,
+          ...textFielsSX,
+          '& .MuiInputBase-root': {
+            backgroundColor: textFielsSX?.backgroundColor || 'transparent',
+            borderRadius: textFielsSX?.borderRadius || '8px',
+            height: textFielsSX?.height || 'auto', // allow height from parent
+            minHeight: textFielsSX?.height || 'auto',
+            paddingRight: '4px'
+          },
+          '& .MuiInputBase-input': {
+            height: '100%',
+            boxSizing: 'border-box',
+            paddingTop: '0.5rem',
+            paddingBottom: '0.5rem'
+          }
         }}
       />
     </Box>

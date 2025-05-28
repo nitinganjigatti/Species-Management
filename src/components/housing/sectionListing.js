@@ -76,8 +76,37 @@ const SectionListing = () => {
   }
 
   const handleDownload = () => {
-    console.log('Downloading...')
+    // TODO: Once the API is available update to have a download endpoint
+    if (!indexedRows || indexedRows.length === 0) return
+
+    setDownloading(true)
+
+    const csvHeader = ['SL.NO', 'Section Name', 'Species Count', 'Animal Count', 'Enclosure Count', 'In-Charge']
+
+    const csvRows = indexedRows.map(row => [
+      row.sl_no,
+      `"${row.section_name}"`,
+      row.species_count || 0,
+      row.animal_count || 0,
+      row.enclosure_count || 0,
+      `"${row.incharge_name || 'NA'}"`
+    ])
+
+    const csvContent = [csvHeader.join(','), ...csvRows.map(row => row.join(','))].join('\n')
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
+    const url = URL.createObjectURL(blob)
+
+    const link = document.createElement('a')
+    link.href = url
+    link.setAttribute('download', `sections_export_${new Date().toISOString()}.csv`)
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+
+    setDownloading(false)
   }
+  
 
   const getSlNo = index => (page - 1) * pageSize + index + 1
 

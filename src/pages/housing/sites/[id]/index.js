@@ -24,12 +24,8 @@ import { clearMortality as resetMortalityState } from 'src/store/slices/housing/
 import { clearAnimalTreatment as resetAnimalTreatmentState } from 'src/store/slices/housing/mortalitySlice'
 
 const tabConfig = [
-  // { label: 'Sections', value: 'sections', component: SectionListing },
-  // { label: 'Notes', value: 'notes', component: NotesListng },
-
   { label: 'Sections', value: 'sections', component: SectionListing, resetAction: resetSectionState },
   { label: 'Species', value: 'species', component: SpeciesListing, resetAction: resetSpeciesState },
-  { label: 'Notes', value: 'notes', component: NotesListng, resetAction: resetNotesState },
   { label: 'Media', value: 'media', component: MediaListing, resetAction: resetMediaState },
   { label: 'Mortality', value: 'mortality', component: MortalityListing, resetAction: resetMortalityState },
   {
@@ -39,8 +35,7 @@ const tabConfig = [
     resetAction: resetAnimalTreatmentState
   }
 
-  // { label: 'Species', value: 'species', component: Listing },
-  // { label: 'Notes', value: 'notes', component: Listing },
+  // { label: 'Notes', value: 'notes', component: NotesListng, resetAction: resetNotesState },
 ]
 
 const SiteDetails = () => {
@@ -48,8 +43,6 @@ const SiteDetails = () => {
   const dispatch = useDispatch()
   const { id } = router.query
   const { data, loading, error } = useSelector(state => state.siteAnalytics)
-
-  console.log('Data >>', data)
 
   const [selectedTab, setSelectedTab] = useState(tabConfig[0].value)
 
@@ -66,7 +59,6 @@ const SiteDetails = () => {
     // Find reset action for previous tab
     const prevTab = tabConfig.find(tab => tab.value === selectedTab)
     if (prevTab?.resetAction) {
-      console.log('prevTab >>', prevTab)
       dispatch(prevTab.resetAction())
     }
 

@@ -11,9 +11,49 @@ import ListingHeader from '../../views/pages/housing/utils/ListingHeader'
 import { useRouter } from 'next/router'
 import { ExportButton } from 'src/views/utility/render-snippets'
 import { CellInfo } from 'src/utility/render'
+import SectionsDrawer from 'src/views/pages/housing/section/SectionsDrawer'
+
+const mockDrawerData = {
+  cluster_name: 'Rainforest Habitat Cluster',
+  cluster_type: 'Rainforest Type',
+  sections: [
+    {
+      id: 1,
+      name: 'Tropical Zone A',
+      incharge: 'John Doe',
+      image: 'https://via.placeholder.com/80x80.png?text=Zone+A',
+      species_count: 12,
+      animals_count: 34,
+      enclosure_count: 5,
+      sub_enclosure_count: 2
+    },
+    {
+      id: 2,
+      name: 'Tropical Zone B',
+      incharge: 'Jane Smith',
+      image: '',
+      species_count: 8,
+      animals_count: 21,
+      enclosure_count: 3,
+      sub_enclosure_count: 1
+    },
+    {
+      id: 3,
+      name: 'Rainforest Central',
+      incharge: 'David Green',
+      image: 'https://via.placeholder.com/80x80.png?text=Central',
+      species_count: 15,
+      animals_count: 40,
+      enclosure_count: 7,
+      sub_enclosure_count: 4
+    }
+  ]
+}
 
 const Listing = () => {
   const [downloading, setDownloading] = useState(false)
+  const [drawerType, setDrawerType] = useState(null)
+  const [drawerData, setDrawerData] = useState(null)
 
   const router = useRouter()
   const theme = useTheme()
@@ -43,6 +83,12 @@ const Listing = () => {
 
     return () => debouncedFetch.cancel()
   }, [debouncedFetch])
+
+  useEffect(() => {
+    // Simulate drawer open on mount for testing
+    setDrawerType('sections')
+    setDrawerData(mockDrawerData)
+  }, [])
 
   const handlePaginationModelChange = model => {
     const newPage = model.page + 1
@@ -150,7 +196,18 @@ const Listing = () => {
       align: 'left',
       headerAlign: 'left',
       renderCell: params => (
-        <Typography sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600 }}>
+        <Typography
+          sx={{ cursor: 'pointer', fontWeight: 600, fontSize: '16px', color: theme.palette.primary.OnSurface }}
+          onClick={e => {
+            e.stopPropagation()
+            setDrawerType('sections')
+            setDrawerData({
+              cluster_name: params.row.site_name,
+              cluster_type: params.row.site_type || 'Rainforest Habitat Cluster',
+              sections: params.row.sections || [] // ensure structure is consistent
+            })
+          }}
+        >
           {params.row.section_count}
         </Typography>
       )
@@ -237,6 +294,16 @@ const Listing = () => {
           />
         </Grid>
       </Box>
+      {drawerType === 'sections' && (
+        <SectionsDrawer
+          open={!!drawerData}
+          onClose={() => {
+            setDrawerType(null)
+            setDrawerData(null)
+          }}
+          data={drawerData}
+        />
+      )}
     </>
   )
 }

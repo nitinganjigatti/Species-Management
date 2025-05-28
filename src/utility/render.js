@@ -140,7 +140,9 @@ export const CellInfo = ({ value, subtitle, imgUrl, avatarUrl, inchagename }) =>
             width: 40,
             height: 40,
             borderRadius: 1,
-            objectFit: 'cover'
+
+            // objectFit: 'cover',
+            mr: 1
           }}
         />
       ) : (
