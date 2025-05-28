@@ -680,7 +680,7 @@ export default function NewProductList() {
             }}
           >
             {/* Left Box (Date Picker) */}
-            <Grid item xs={12} sm={4} md={3} sx={{ mb: { xs: 3, sm: 0 }, width: { xs: '100%', sm: 'auto' } }}>
+            <Grid item size={{ xs: 12, sm: 4, md: 3 }} sx={{ mb: { xs: 3, sm: 0 }, width: { xs: '100%', sm: 'auto' } }}>
               <CommonDateRangePickers onChange={handleDateRangeChange} filterDates={filterDates} />
             </Grid>
 

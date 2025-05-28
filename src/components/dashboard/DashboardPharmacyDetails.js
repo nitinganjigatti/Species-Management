@@ -108,7 +108,7 @@ const Slides = ({ sliderData }) => {
                   </Typography>
                   <Grid container spacing={2.5}>
                     {Object.keys(slide.details).map((key, index) => (
-                      <Grid item xs={6} key={index}>
+                      <Grid item size={{ xs: 6 }} key={index}>
                         <Box sx={{ display: 'flex', alignItems: 'center' }}>
                           <CustomAvatar
                             skin='light'

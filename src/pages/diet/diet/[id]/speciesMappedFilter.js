@@ -125,6 +125,7 @@ const SpeciesMappedtoDietFilter = ({
     setSelectedSpeciesIds([])
     setSelectedTaxonomyIds([])
     setSearchQuery('')
+
     //setSelectedItems({ Site: [], Section: [], Enclosure: [], Taxonomy: [], Species: [] })
     // setTempSelectedItems({
     //   Site: [],
@@ -148,6 +149,7 @@ const SpeciesMappedtoDietFilter = ({
       Species: allSpeciesIds,
       Taxonomy: allTaxonomyIds
     })
+
     //handleCloseDrawer()
     setOpenFilterDrawer(false)
   }
@@ -156,12 +158,14 @@ const SpeciesMappedtoDietFilter = ({
     // Clear all tabs in tempSelectedItems
     const clearedTempSelectedItems = Object.keys(tempSelectedItems).reduce((acc, key) => {
       acc[key] = []
+
       return acc
     }, {})
 
     // Clear all tabs in selectedItems
     const clearedSelectedItems = Object.keys(selectedItems).reduce((acc, key) => {
       acc[key] = []
+
       return acc
     }, {})
 
@@ -212,6 +216,7 @@ const SpeciesMappedtoDietFilter = ({
 
   const filteredItems = items[activeTab].filter(item => {
     const itemName = activeTab === 'Site' ? item.site_name : item.name
+
     return itemName.toLowerCase().includes(searchTerm.toLowerCase())
   })
 
@@ -229,6 +234,7 @@ const SpeciesMappedtoDietFilter = ({
     }))
 
     setSectionsData(prev => prev.filter(section => section.section_id !== sectionId.toString()))
+
     // Also update selectedSections state
     if (setSelectedSections) {
       setSelectedSections(prev => prev.filter(id => id !== sectionId))
@@ -242,6 +248,7 @@ const SpeciesMappedtoDietFilter = ({
     }))
 
     setEnclosuresData(prev => prev.filter(enclosure => enclosure.enclosure_id !== enclosureId.toString()))
+
     // Also update selectedSections state
     if (setSelectedEnclosures) {
       setSelectedEnclosures(prev => prev.filter(id => id !== enclosureId))
@@ -329,7 +336,7 @@ const SpeciesMappedtoDietFilter = ({
           }}
         >
           <Grid container sx={{ px: 5 }}>
-            <Grid item md={4} sm={4} xs={4}>
+            <Grid item size={{ xs: 4, sm: 4, md: 4 }}>
               {tabsforfilter
                 .filter(
                   tab =>
@@ -358,7 +365,7 @@ const SpeciesMappedtoDietFilter = ({
                   </Box>
                 ))}
             </Grid>
-            <Grid item md={8} sm={8} xs={8}>
+            <Grid item size={{ xs: 8, sm: 8, md: 8 }}>
               <Box
                 sx={{
                   bgcolor: '#FFFFFF',
@@ -390,6 +397,7 @@ const SpeciesMappedtoDietFilter = ({
                     >
                       <Icon
                         icon='mi:search'
+
                         //color={theme.palette.customColors.OnSurfaceVariant}
                       />
                       <TextField
@@ -631,6 +639,7 @@ const SpeciesMappedtoDietFilter = ({
                               size='small'
                               aria-label='collapse'
                               sx={{ color: '#44544A' }}
+
                               //disabled={tempSelectedItems.Enclosure?.length > 0} // Disable if enclosures are selected
                             >
                               <Icon fontSize={20} icon={collapsed ? 'mdi:chevron-down' : 'mdi:chevron-up'} />
@@ -693,6 +702,7 @@ const SpeciesMappedtoDietFilter = ({
                             speciesDataforFilter.map(item => {
                               const itemName = item.scientific_name
                               const itemId = item.species_id
+
                               return (
                                 <div
                                   key={itemId}
@@ -727,6 +737,7 @@ const SpeciesMappedtoDietFilter = ({
                         mt: 2,
                         width: '100%',
                         '& .MuiDrawer-paper': { width: ['100%', '562px'] },
+
                         // backgroundColor: 'background.default',
                         overflowY: 'auto',
                         height: '100%'
@@ -739,6 +750,7 @@ const SpeciesMappedtoDietFilter = ({
                             filteredTaxonomyList.map(item => {
                               const itemName = item.scientific_name
                               const itemId = item.tsn
+
                               return (
                                 <div
                                   key={itemId}

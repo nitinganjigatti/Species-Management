@@ -186,7 +186,7 @@ const IndividualDispense = () => {
       selectedPharmacy.permission.dispense_medicine ? (
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
           <Grid container gap={3} justifyContent={'space-between'} alignItems={'stretch'}>
-            <Grid item xs={12} md={6.4}>
+            <Grid item size={{ xs: 12, md: 6.4 }}>
               <Card>
                 <CardHeader
                   title='Dispense Detail'
@@ -249,7 +249,7 @@ const IndividualDispense = () => {
                 </CardContent>
               </Card>
             </Grid>
-            <Grid item xs={12} md={5.4}>
+            <Grid item size={{ xs: 12, md: 5.4 }}>
               <Card>
                 <CardHeader title='Dispense To' avatar={<Icon style={{ cursor: 'pointer' }} icon='ep:user' />} />
                 <CardContent>

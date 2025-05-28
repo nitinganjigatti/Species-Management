@@ -484,10 +484,10 @@ function Purchase({ tabValue, updateUrlParams }) {
           alignItems: 'center'
         }}
       >
-        <Grid item xs={12} sm={12} md='auto' lg='auto' sx={{ width: '100%' }}>
+        <Grid item size={{ xs: 12, sm: 12, md: 'auto', lg: 'auto' }} sx={{ width: '100%' }}>
           <CommonDateRangePickers onChange={handleDateRangeChange} filterDates={filterDates} />
         </Grid>
-        <Grid item xs={12} sm={12} md={3} lg={3}>
+        <Grid item size={{ xs: 12, sm: 12, md: 3, lg: 3 }}>
           <Box
             sx={{
               display: 'flex',

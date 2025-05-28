@@ -104,7 +104,7 @@ const StoreWisedispatchFilter = ({
         }}
       >
         <Grid container sx={{ px: 5 }}>
-          <Grid item md={8} sm={8} xs={8}>
+          <Grid item size={{ xs: 8, sm: 8, md: 8 }} s>
             <Box
               sx={{
                 bgcolor: '#FFFFFF',

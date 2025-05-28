@@ -258,7 +258,6 @@ const AddAnimals = ({ drawerWidth, animals_s, setAnimals_s, user, addEventSideba
         height='auto'
         scroll='body'
         onClose={() => setShowFilterDialog(false)}
-        onBackdropClick={() => setShowFilterDialog(false)}
       >
         <Card>
           <CardHeader

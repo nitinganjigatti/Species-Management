@@ -27,7 +27,7 @@ const EditBirthFields = ({
   return (
     <>
       <Grid container spacing={2}>
-        <Grid item xs={12} sm={6} sx={{ mb: 6 }}>
+        <Grid item size={{ xs: 12, sm: 6 }} sx={{ mb: 6 }}>
           <FormControl fullWidth>
             <Controller
               name='possession_type'
@@ -77,7 +77,7 @@ const EditBirthFields = ({
             )}
           </FormControl>
         </Grid>
-        <Grid item xs={12} sm={6} sx={{ mb: 6 }}>
+        <Grid item size={{ xs: 12, sm: 6 }} sx={{ mb: 6 }}>
           <FormControl fullWidth>
             <Controller
               name='gender'
@@ -96,7 +96,7 @@ const EditBirthFields = ({
       </Grid>
       <Grid container spacing={2}>
         {reasonType !== 'death' && (
-          <Grid item xs={12} sm={6} sx={{ mb: 6 }}>
+          <Grid item size={{ xs: 12, sm: 6 }} sx={{ mb: 6 }}>
             <FormControl fullWidth>
               <Controller
                 name='animal_count'
@@ -121,7 +121,7 @@ const EditBirthFields = ({
             </FormControl>
           </Grid>
         )}
-        <Grid item xs={12} sm={6}>
+        <Grid item size={{ xs: 12, sm: 6 }}>
           <FormControl fullWidth>
             <Controller
               name='transaction_date'
@@ -147,7 +147,7 @@ const EditBirthFields = ({
             )}
           </FormControl>
         </Grid>
-        <Grid item xs={12} sm={6} sx={{ mb: 6 }}>
+        <Grid item size={{ xs: 12, sm: 6 }} sx={{ mb: 6 }}>
           <FormControl fullWidth>
             <Controller
               name='parent_registration_id'

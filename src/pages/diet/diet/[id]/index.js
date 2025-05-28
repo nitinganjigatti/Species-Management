@@ -276,7 +276,7 @@ const DietDetail = () => {
           setspeciestotalcount(totalCount)
 
           // Check if we've reached the end of available data
-          if (resultData.length === 0 || resultData.length < pageSize) {
+          if (resultData.length === 0 || resultData.length < totalCount) {
             setHasMoreData(false)
           } else {
             setHasMoreData(true)
@@ -356,8 +356,9 @@ const DietDetail = () => {
             })
 
             setspeciestotalcount(totalCount)
+
             // Check if we've reached the end of available data
-            if (resultData.length === 0 || resultData.length < pageSize) {
+            if (resultData.length === 0 || resultData.length < totalCount) {
               setHasMoreData(false)
             } else {
               setHasMoreData(true)
@@ -735,6 +736,7 @@ const DietDetail = () => {
                                               position: isSmallDevice ? '' : 'sticky ',
                                               left: '160px',
                                               p: 0
+
                                               // width: '580px'
                                             }}
                                             className='meal_dtl_hd'

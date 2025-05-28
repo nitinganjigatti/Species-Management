@@ -696,7 +696,7 @@ const Overview = props => {
       <Divider sx={{ my: 5 }} />
 
       <Grid container spacing={4} sx={{ display: 'flex', alignItems: 'stretch' }}>
-        <Grid item xs={12} md={6} sx={{ flexDirection: 'column' }}>
+        <Grid item size={{ xs: 12, md: 6 }} sx={{ flexDirection: 'column' }}>
           <Card sx={{ height: '100%' }}>
             {/* <MonthlyChart
               title='Dispatch'
@@ -722,7 +722,7 @@ const Overview = props => {
           </Card>
         </Grid>
 
-        <Grid item xs={12} md={6} sx={{ flexDirection: 'column' }}>
+        <Grid item size={{ xs: 12, md: 6 }} sx={{ flexDirection: 'column' }}>
           <Card sx={{ height: '100%' }}>
             <ProductsChart
               title='Purchases'
@@ -739,7 +739,7 @@ const Overview = props => {
         </Grid>
 
         {/* Apply similar structure to the rest of the cards */}
-        <Grid item xs={12} md={6} sx={{ display: 'none', flexDirection: 'column' }}>
+        <Grid item size={{ xs: 12, md: 6 }} sx={{ display: 'none', flexDirection: 'column' }}>
           <Card sx={{ height: '100%' }}>
             <CardContent sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
               {/* Header Section */}
@@ -828,7 +828,7 @@ const Overview = props => {
           </Card>
         </Grid>
 
-        <Grid item xs={12} md={6} sx={{ display: 'flex', flexDirection: 'column' }}>
+        <Grid item size={{ xs: 12, md: 6 }} sx={{ display: 'flex', flexDirection: 'column' }}>
           <Card sx={{ height: '100%' }}>
             <CardContent>
               <Box sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>

@@ -79,6 +79,7 @@ const Media = () => {
       if (!hasMore && page !== 1) return
       try {
         setLoading(true)
+
         const params = {
           q,
           userId,
@@ -137,11 +138,13 @@ const Media = () => {
             user_id: userId,
             user_attachment: [file]
           }
+
           // Call your upload API function with formData
           const res = await uploadMediaFile(payload)
           if (res?.success) {
             successCount++ // Increment successful uploads count
             message = res?.message
+
             // Toaster({ type: 'success', message: res?.message })
             // await getMediaListUserId(userId)
           } else {
@@ -167,6 +170,7 @@ const Media = () => {
     setIsModalOpenDelete(true)
     setAnchorEl(null)
   }
+
   const confirmDeleteAction = async () => {
     try {
       setIsModalOpenDelete(false)
@@ -241,11 +245,13 @@ const Media = () => {
 
   const handleDateFilterChange = event => {
     setSelectedDateFilter(event.target.value)
+
     // Implement filtering logic based on date filter selection
   }
 
   const handleFileTypeFilterChange = event => {
     setSelectedFileTypeFilter(event.target.value)
+
     // Implement filtering logic based on file type filter selection
   }
 
@@ -313,7 +319,7 @@ const Media = () => {
             <Box display='flex' flexDirection='column'>
               <Card sx={{ p: 4, mb: 6 }}>
                 <Grid container spacing={2} direction='column' alignItems='flex-start'>
-                  <Grid item xs={12} width='100%'>
+                  <Grid item size={{ xs: 12 }} width='100%'>
                     <Grid container justifyContent='space-between' alignItems='center'>
                       <Grid item>
                         <Typography
@@ -343,7 +349,7 @@ const Media = () => {
                       </Grid>
                     </Grid>
                   </Grid>
-                  <Grid item xs={12} sx={{ display: { xs: 'block', sm: 'none' }, width: '100%' }}>
+                  <Grid item size={{ xs: 12 }} sx={{ display: { xs: 'block', sm: 'none' }, width: '100%' }}>
                     <Button
                       size='large'
                       variant='outlined'
@@ -428,7 +434,7 @@ const Media = () => {
               >
                 <Grid container spacing={4}>
                   {filePreviews.map((group, groupIndex) => (
-                    <Grid item key={groupIndex} xs={12}>
+                    <Grid item key={groupIndex} size={{ xs: 12 }}>
                       <Typography
                         variant='subtitle1'
                         gutterBottom
@@ -443,7 +449,7 @@ const Media = () => {
                       <Grid container spacing={6}>
                         {group.media.map((media, mediaIndex) => (
                           <React.Fragment key={mediaIndex}>
-                            <Grid item xs={12} sm={6} md={4} lg={3}>
+                            <Grid item size={{ xs: 12, md: 4, sm: 6, lg: 3 }}>
                               <Card sx={{ position: 'relative', height: '100%', bgcolor: '#FFFFFF' }}>
                                 <CardContent sx={{ display: 'flex', alignItems: 'center', pb: 1 }}>
                                   <Tooltip title={media?.file_original_name} arrow>

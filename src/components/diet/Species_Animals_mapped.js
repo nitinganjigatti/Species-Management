@@ -100,6 +100,7 @@ const SpeciesAnimalsMapped = ({
   const handleEditclick = () => {
     setIsOpenTabsEdit(true)
     setPrimaryStatus({})
+
     //setspeciesview('')
   }
 
@@ -121,6 +122,7 @@ const SpeciesAnimalsMapped = ({
       })
       setSelectedItems({ Site: [], Section: [], Enclosure: [], Taxonomy: [], Species: [] })
     }
+
     //setItems({ Site: [], Section: [], Enclosure: [], Taxonomy: [], Species: [] })
     if (val === 'animals') {
       setFilterState('species')
@@ -181,8 +183,7 @@ const SpeciesAnimalsMapped = ({
           </IconButton>
         </Box>
       </Box>
-
-      <Grid item md={8} xs={12}>
+      <Grid item size={{ md: 8, xs: 12 }}>
         <TabContext value={selectionType}>
           {dietDetails?.total_animals !== '0' && dietDetails?.total_species !== '0' ? (
             <TabList onChange={handleChange} aria-label='customized tabs example' sx={{ background: '#fff' }}>
@@ -204,7 +205,7 @@ const SpeciesAnimalsMapped = ({
 
           <TabPanel value='species' sx={{ background: theme.palette.customColors.tableHeaderBg }}>
             {speciesview === 'details' ? (
-              <Grid item md={8} sm={8} xs={8} sx={{ background: 'background.default' }}>
+              <Grid item size={{ md: 8, sm: 8, xs: 8 }} sx={{ background: 'background.default' }}>
                 <Box
                   sx={{
                     bgcolor: 'background.default',
@@ -282,6 +283,7 @@ const SpeciesAnimalsMapped = ({
                         height: '45px',
                         pr: '6px',
                         mt: '10px',
+
                         // lineHeight: '2.2',
                         border:
                           selectedItems && Object.values(selectedItems).some(array => array.length > 0)
@@ -424,7 +426,7 @@ const SpeciesAnimalsMapped = ({
 
           <TabPanel value='animals' sx={{ background: theme.palette.customColors.tableHeaderBg }}>
             {speciesview === 'details' ? (
-              <Grid item md={8} sm={8} xs={8} sx={{ background: 'background.default' }}>
+              <Grid item size={{ md: 8, sm: 8, xs: 8 }} sx={{ background: 'background.default' }}>
                 <Box
                   sx={{
                     bgcolor: 'background.default',
@@ -573,14 +575,13 @@ const SpeciesAnimalsMapped = ({
                   {!loading ? (
                     speciesview === 'select' ? (
                       // <Typography>You have selected {speciestotalcount || ''} species</Typography>
-                      <Typography
+                      (<Typography
                         sx={{
                           color: theme.palette.customColors.OnSurfaceVariant,
                           pb: 1
                         }}
-                      >
-                        You have selected {tempSelectedSpecies?.length} species
-                      </Typography>
+                      >You have selected {tempSelectedSpecies?.length}species
+                                              </Typography>)
                     ) : (
                       <Typography
                         variant='body2'
@@ -641,10 +642,9 @@ const SpeciesAnimalsMapped = ({
           </TabPanel>
         </TabContext>
       </Grid>
-
       {/* bottom buttons */}
     </Drawer>
-  )
+  );
 }
 
 export default SpeciesAnimalsMapped

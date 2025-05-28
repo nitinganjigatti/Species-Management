@@ -149,6 +149,7 @@ const RequestDetails = () => {
   const [openCommentSheet, setOpenCommentSheet] = useState(false)
   const [openAttachmentSheet, setOpenAttachmentSheet] = useState(false)
   const [CommentData, setCommentData] = useState({})
+
   // const [attachmentData, setAttachmentCommentData] = useState({})
   const [medicalRecordNotes, setMedicalRecordNotes] = useState([])
 
@@ -158,6 +159,7 @@ const RequestDetails = () => {
 
   useEffect(() => {
     const labObject = localLabData?.find(item => item?.lab_id === lab_id)
+
     // console.log('labObject', labObject)
 
     if (labObject && labObject.permission) {
@@ -431,6 +433,7 @@ const RequestDetails = () => {
   const handleRowPermission = ({ params }) => {
     const st = statusList.filter(status => status.key === params.row.status)
     const st1 = filteredStatusData.filter(status => status.key === params.row.status)
+
     // console.log('statusList', statusList)
     // console.log('st', st)
     if (st1?.length === 0) {
@@ -1753,7 +1756,7 @@ const RequestDetails = () => {
             <Box sx={{ mt: 6 }}>
               <form onSubmit={handleSubmit(onSubmit)}>
                 <Grid container spacing={4}>
-                  <Grid item xs={6} md={6} sm={6} sx={{ mb: 2 }}>
+                  <Grid item size={{ xs: 6, sm: 6, md: 6 }} sx={{ mb: 2 }}>
                     <FormControl fullWidth>
                       <Controller
                         name='lab_name'
@@ -1782,7 +1785,7 @@ const RequestDetails = () => {
                       )}
                     </FormControl>
                   </Grid>
-                  <Grid item xs={6} md={6} sm={6} sx={{ mb: 2 }}>
+                  <Grid item size={{ xs: 6, sm: 6, md: 6 }} sx={{ mb: 2 }}>
                     <FormControl fullWidth>
                       <InputLabel error={Boolean(errors?.replaced_lab_id)} id='lab_type'>
                         Transfer To
@@ -1823,7 +1826,7 @@ const RequestDetails = () => {
                       )}
                     </FormControl>
                   </Grid>
-                  <Grid item xs={12} md={12} sm={6} sx={{ mb: 2 }}>
+                  <Grid item size={{ xs: 12, sm: 6, md: 12 }} sx={{ mb: 2 }}>
                     <FormControl fullWidth mt={2}>
                       <Controller
                         name='transfer_reason'

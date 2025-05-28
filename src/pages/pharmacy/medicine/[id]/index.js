@@ -300,7 +300,7 @@ const ProductDetailsList = () => {
             <>
               <Card sx={{ p: 6, mb: 4 }}>
                 <Grid container spacing={2}>
-                  <Grid item xs={12} mb={6}>
+                  <Grid item size={{ xs: 12 }} mb={6}>
                     <CardHeader
                       sx={{ p: 0, m: 0 }}
                       avatar={
@@ -333,7 +333,7 @@ const ProductDetailsList = () => {
 
                 <Grid container spacing={4}>
                   {/* Image Section */}
-                  <Grid item xs={12} sm={3} mb={6}>
+                  <Grid item size={{ xs: 12, sm: 3 }} mb={6}>
                     <Avatar
                       variant='square'
                       src={uploadedImage}
@@ -349,9 +349,9 @@ const ProductDetailsList = () => {
                   </Grid>
 
                   {/* Details Section */}
-                  <Grid item xs={12} sm={9}>
+                  <Grid item size={{ xs: 12, sm: 9 }}>
                     <Grid container spacing={4} mb={6}>
-                      <Grid item xs={6}>
+                      <Grid item size={{ xs: 6 }}>
                         <Box>
                           <Typography sx={{ color: 'secondary.dark', fontWeight: 500, fontSize: '20px' }}>
                             {productDetails?.name}
@@ -390,7 +390,7 @@ const ProductDetailsList = () => {
                       </Grid>
 
                       {/* Package Options */}
-                      <Grid item xs={12} sm={6}>
+                      <Grid item size={{ xs: 12, sm: 6 }}>
                         <Box>
                           {/* Row with Available Packages and Add Variant Button */}
                           <Box display='flex' justifyContent='space-between' alignItems='center' mb={2}>
@@ -467,7 +467,7 @@ const ProductDetailsList = () => {
                       }}
                     >
                       <Grid container spacing={2}>
-                        <Grid item xs={12} sm={4}>
+                        <Grid item size={{ xs: 12, sm: 4 }}>
                           <Typography
                             variant='caption'
                             sx={{ color: 'customColors.neutralSecondary', fontWeight: 400, fontSize: '14px' }}
@@ -481,7 +481,7 @@ const ProductDetailsList = () => {
                             {productDetails?.manufacturer_name}
                           </Typography>
                         </Grid>
-                        <Grid item xs={12} sm={4}>
+                        <Grid item size={{ xs: 12, sm: 4 }}>
                           <Typography
                             variant='caption'
                             sx={{ color: 'customColors.neutralSecondary', fontWeight: 400, fontSize: '14px' }}
@@ -496,7 +496,7 @@ const ProductDetailsList = () => {
                             {productDetails?.drug_class_label || 'NA'}
                           </Typography>
                         </Grid>
-                        <Grid item xs={12} sm={4}>
+                        <Grid item size={{ xs: 12, sm: 4 }}>
                           <Typography
                             variant='caption'
                             sx={{ color: 'customColors.neutralSecondary', fontWeight: 400, fontSize: '14px' }}

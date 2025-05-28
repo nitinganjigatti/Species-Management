@@ -275,7 +275,7 @@ const AddMedicine = () => {
   }
 
   const getPackagesList = async ({ key, page, limit }) => {
-    console.log("key >>>" ,key )
+    console.log('key >>>', key)
     try {
       const params = {
         q: key,
@@ -291,7 +291,7 @@ const AddMedicine = () => {
     }
   }
 
-  console.log("Packeages ??",packages);
+  console.log('Packeages ??', packages)
 
   const getProductForm = async ({ key, page, limit }) => {
     try {
@@ -846,18 +846,6 @@ const AddMedicine = () => {
 
   const removeSaltButton = index => {
     return (
-      <Box>
-        <Icon
-          onClick={() => {
-            var tempDefaultSalts = defaultSalts
-            tempDefaultSalts.splice(index, 1)
-            setDefaultSalts(tempDefaultSalts)
-            remove(index)
-          }}
-          icon='material-symbols-light:close'
-        />
-      </Box>
-
       // <Button
       //   variant='outlined'
       //   color='error'
@@ -871,6 +859,17 @@ const AddMedicine = () => {
       // >
       //   {/* Remove */}
       // </Button>
+      <Box>
+        <Icon
+          onClick={() => {
+            var tempDefaultSalts = defaultSalts
+            tempDefaultSalts.splice(index, 1)
+            setDefaultSalts(tempDefaultSalts)
+            remove(index)
+          }}
+          icon='material-symbols-light:close'
+        />
+      </Box>
     )
   }
 
@@ -1023,7 +1022,7 @@ const AddMedicine = () => {
           ) : (
             <>
               <Grid container spacing={6} className='match-height'>
-                <Grid item xs={12}>
+                <Grid item size={{ xs: 12 }}>
                   <Card>
                     <CardHeader
                       avatar={
@@ -1042,14 +1041,14 @@ const AddMedicine = () => {
                     <CardContent>
                       <form onSubmit={!submitLoader ? handleSubmit(onSubmit) : null}>
                         <Grid container spacing={5}>
-                          {/* <Grid item xs={12}> */}
+                          {/* <Grid item size={{xs: 12}}> */}
                           {/* <Grid container spacing={5}> */}
 
-                          {/* <Grid item xs={12} sm={12}>
+                          {/* <Grid item size={{xs: 12, sm: 12}}>
                             <div>Product</div>
                           </Grid> */}
                           {id ? (
-                            <Grid item xs={12} sm={12}>
+                            <Grid item size={{ xs: 12, sm: 12 }}>
                               <SwitchButton
                                 style={{ float: 'right' }}
                                 title='Active'
@@ -1061,7 +1060,7 @@ const AddMedicine = () => {
                               />
                             </Grid>
                           ) : null}
-                          <Grid item xs={12} sm={6}>
+                          <Grid item size={{ xs: 12, sm: 6 }}>
                             <FormControl fullWidth>
                               <InputLabel error={Boolean(errors?.medicine_type)} id='medicine_type'>
                                 Product Type*
@@ -1106,7 +1105,7 @@ const AddMedicine = () => {
                           </Grid>
                           {/* </Grid> */}
                           {/* </Grid> */}
-                          <Grid item xs={12} sm={6}>
+                          <Grid item size={{ xs: 12, sm: 6 }}>
                             <FormControl fullWidth>
                               <Controller
                                 name='medicine_name'
@@ -1131,7 +1130,7 @@ const AddMedicine = () => {
                             </FormControl>
                           </Grid>
                           {medicineType !== 'non_medical' && (
-                            <Grid item xs={12} sm={6}>
+                            <Grid item size={{ xs: 12, sm: 6 }}>
                               <FormControl fullWidth>
                                 <Controller
                                   name='generic_name_id'
@@ -1183,7 +1182,7 @@ const AddMedicine = () => {
                             </Grid>
                           )}
                           {pharmacyRole && medicineType !== 'non_medical' && (
-                            <Grid item xs={12} sm={6} justifyContent='flex-end' alignSelf='center'>
+                            <Grid item size={{ xs: 12, sm: 6 }} justifyContent='flex-end' alignSelf='center'>
                               <Box sx={{ display: 'flex', alignItems: 'right', textAlign: 'right' }}>
                                 <AddButton
                                   title='Add Generic Name'
@@ -1195,9 +1194,9 @@ const AddMedicine = () => {
                             </Grid>
                           )}
 
-                          {/* <Grid item xs={12} sm={12}> */}
+                          {/* <Grid item size={{xs: 12, sm: 12}}> */}
                           {/* <Grid container spacing={5}> */}
-                          <Grid item xs={12} sm={6}>
+                          <Grid item size={{ xs: 12, sm: 6 }}>
                             <FormControl fullWidth>
                               <Controller
                                 name='manufacturer'
@@ -1249,7 +1248,7 @@ const AddMedicine = () => {
                             </FormControl>
                           </Grid>
                           {pharmacyRole && (
-                            <Grid item xs={12} sm={6} justifyContent='flex-end' alignSelf='center'>
+                            <Grid item size={{ xs: 12, sm: 6 }} justifyContent='flex-end' alignSelf='center'>
                               <Box sx={{ display: 'flex', alignItems: 'right', textAlign: 'right' }}>
                                 <AddButton
                                   title='Add Manufacturer'
@@ -1263,10 +1262,10 @@ const AddMedicine = () => {
                           {/* </Grid> */}
                           {/* </Grid> */}
                           {/* Packages */}
-                          <Grid item xs={12} sm={12}>
+                          <Grid item size={{ xs: 12, sm: 12 }}>
                             <div>Package {getPackageString()}</div>
                           </Grid>
-                          <Grid item xs={12} sm={3}>
+                          <Grid item size={{ xs: 12, sm: 3 }}>
                             <FormControl fullWidth>
                               <Controller
                                 name='package_type'
@@ -1313,7 +1312,7 @@ const AddMedicine = () => {
                               )}
                             </FormControl>
                           </Grid>
-                          <Grid item xs={12} sm={3}>
+                          <Grid item size={{ xs: 12, sm: 3 }}>
                             <FormControl fullWidth>
                               <Controller
                                 name='package_qty'
@@ -1338,7 +1337,7 @@ const AddMedicine = () => {
                               )}
                             </FormControl>
                           </Grid>
-                          <Grid item xs={12} sm={3}>
+                          <Grid item size={{ xs: 12, sm: 3 }}>
                             <FormControl fullWidth>
                               <Controller
                                 name='package_uom'
@@ -1386,7 +1385,7 @@ const AddMedicine = () => {
                               )}
                             </FormControl>
                           </Grid>
-                          <Grid item xs={12} sm={3}>
+                          <Grid item size={{ xs: 12, sm: 3 }}>
                             <FormControl fullWidth>
                               <Controller
                                 name='product_form'
@@ -1436,10 +1435,10 @@ const AddMedicine = () => {
                           {/* //Package */}
                           {/* Salt Composition */}
                           {medicineType !== 'non_medical' && (
-                            <Grid item xs={12} sm={12}>
+                            <Grid item size={{ xs: 12, sm: 12 }}>
                               <FormGroup>
                                 <Grid container item xs={12} sm={12} alignItems='center' spacing={2}>
-                                  <Grid item xs={6}>
+                                  <Grid item size={{ xs: 6 }}>
                                     <span style={{ marginRight: '10px' }}>Salt Composition</span>
                                     {pharmacyRole && (
                                       <span>
@@ -1456,7 +1455,7 @@ const AddMedicine = () => {
                                 </Grid>
                                 {fields.map((field, index) => (
                                   <Grid container spacing={5} key={field.id} style={{ marginTop: '0px' }}>
-                                    <Grid item xs={4}>
+                                    <Grid item size={{ xs: 4 }}>
                                       <FormControl fullWidth>
                                         <Controller
                                           name={`salts[${index}].salt_id`}
@@ -1524,7 +1523,7 @@ const AddMedicine = () => {
                                         )}
                                       </FormControl>
                                     </Grid>
-                                    <Grid item xs={4}>
+                                    <Grid item size={{ xs: 4 }}>
                                       <FormControl fullWidth>
                                         <Controller
                                           name={`salts[${index}].salt_qty`}
@@ -1571,10 +1570,10 @@ const AddMedicine = () => {
                           )}
                           {/* //Salt Composition */}
                           {/* Others */}
-                          <Grid item xs={12} sm={12}>
+                          <Grid item size={{ xs: 12, sm: 12 }}>
                             <div>Others</div>
                           </Grid>
-                          {/* <Grid item xs={12} sm={6}>
+                          {/* <Grid item size={{xs: 12, sm: 6}}>
                             <FormControl fullWidth>
                               <InputLabel error={Boolean(errors?.gst_slab)} id='gst_slab'>
                                 GST*
@@ -1609,7 +1608,7 @@ const AddMedicine = () => {
                               )}
                             </FormControl>
                           </Grid> */}
-                          <Grid item xs={12} sm={6}>
+                          <Grid item size={{ xs: 12, sm: 6 }}>
                             <FormControl fullWidth>
                               <Controller
                                 name='drug_class'
@@ -1652,7 +1651,7 @@ const AddMedicine = () => {
                               />
                             </FormControl>
                           </Grid>
-                          <Grid item xs={12} sm={6}>
+                          <Grid item size={{ xs: 12, sm: 6 }}>
                             <FormControl fullWidth>
                               <Controller
                                 name='storage'
@@ -1698,7 +1697,7 @@ const AddMedicine = () => {
                               )}
                             </FormControl>
                           </Grid>
-                          <Grid item xs={12} sm={6}>
+                          <Grid item size={{ xs: 12, sm: 6 }}>
                             {console.log('errors', errors)}
                             <FormControl fullWidth>
                               <InputLabel error={Boolean(errors?.controlled_substance)} id='controlled_substance'>
@@ -1740,7 +1739,7 @@ const AddMedicine = () => {
                               )}
                             </FormControl>
                           </Grid>
-                          <Grid item xs={12} sm={6}>
+                          <Grid item size={{ xs: 12, sm: 6 }}>
                             <FormControl fullWidth>
                               <InputLabel error={Boolean(errors?.prescription_required)} id='prescription_required'>
                                 Prescription Required
@@ -1770,7 +1769,7 @@ const AddMedicine = () => {
                               )}
                             </FormControl>
                           </Grid>
-                          {/* <Grid item xs={12} sm={6}>
+                          {/* <Grid item size={{xs: 12, sm: 6}}>
                             <FormControl fullWidth>
                               <InputLabel error={Boolean(errors?.part_out_of_stock)} id='part_out_of_stock'>
                                 Part Out of Stock
@@ -1800,7 +1799,7 @@ const AddMedicine = () => {
                               )}
                             </FormControl>
                           </Grid> */}
-                          <Grid item xs={12} sm={6}>
+                          <Grid item size={{ xs: 12, sm: 6 }}>
                             <FormControl fullWidth>
                               <Controller
                                 name='side_effects'
@@ -1825,7 +1824,7 @@ const AddMedicine = () => {
                               )}
                             </FormControl>
                           </Grid>
-                          <Grid item xs={12} sm={6}>
+                          <Grid item size={{ xs: 12, sm: 6 }}>
                             <FormControl fullWidth>
                               <Controller
                                 name='uses'
@@ -1848,7 +1847,7 @@ const AddMedicine = () => {
                               )}
                             </FormControl>
                           </Grid>
-                          <Grid item xs={12} sm={6}>
+                          <Grid item size={{ xs: 12, sm: 6 }}>
                             <FormControl fullWidth>
                               <Controller
                                 name='safety_advice'
@@ -1873,7 +1872,7 @@ const AddMedicine = () => {
                               )}
                             </FormControl>
                           </Grid>
-                          <Grid item xs={12} sm={6}>
+                          <Grid item size={{ xs: 12, sm: 6 }}>
                             <FormControl fullWidth>
                               <Controller
                                 name='url'
@@ -1894,7 +1893,7 @@ const AddMedicine = () => {
                               )}
                             </FormControl>
                           </Grid>
-                          {/* <Grid item xs={12} sm={6}>
+                          {/* <Grid item size={{xs: 12, sm: 6}}>
                             {id !== undefined ? (
                               <FormControl fullWidth sx={{ mb: 6 }} error={Boolean(errors.radio)}>
                                 <FormLabel>Status</FormLabel>
@@ -1927,7 +1926,7 @@ const AddMedicine = () => {
                               </FormControl>
                             ) : null}
                           </Grid> */}
-                          <Grid item xs={12}>
+                          <Grid item size={{ xs: 12 }}>
                             <Card>
                               <CardHeader title='Add Product Image' />
                               <CardContent>
@@ -1940,7 +1939,7 @@ const AddMedicine = () => {
                               </CardContent>
                             </Card>
                           </Grid>
-                          <Grid item xs={12}>
+                          <Grid item size={{ xs: 12 }}>
                             <Box sx={{ float: 'right' }}>
                               <LoadingButton
                                 size='large'

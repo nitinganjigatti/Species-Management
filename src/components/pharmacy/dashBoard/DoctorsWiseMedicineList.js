@@ -76,7 +76,7 @@ const DoctorsWiseMedicineList = ({
         }}
       >
         <Grid container sx={{ px: 5 }}>
-          <Grid item md={8} sm={8} xs={8}>
+          <Grid item size={{ xs: 8, sm: 8, md: 8 }}>
             <Box
               sx={{
                 //bgcolor: '#FFFFFF',

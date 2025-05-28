@@ -639,10 +639,10 @@ export default function RequestedItems({ selectedStoreDetails, setSelectedStoreD
               gap: { xs: 2, md: 0 }
             }}
           >
-            <Grid item xs={12} sm={12} md='auto' lg='auto' xl='auto'>
+            <Grid item size={{ xs: 12, sm: 12, md: 'auto', lg: 'auto', xl: 'auto' }}>
               <CommonDateRangePickers onChange={handleDateRangeChange} filterDates={filterDates} />
             </Grid>
-            <Grid item xs={12} md={2.5} lg={2.5}>
+            <Grid item size={{ xs: 12, md: 2.5, lg: 2.5 }}>
               <FormControl fullWidth size='small'>
                 <InputLabel>Controlled</InputLabel>
                 <Select
@@ -657,7 +657,7 @@ export default function RequestedItems({ selectedStoreDetails, setSelectedStoreD
                 </Select>
               </FormControl>
             </Grid>
-            <Grid item xs={12} md={2.5} lg={2.5}>
+            <Grid item size={{ xs: 12, md: 2.5, lg: 2.5 }}>
               <FormControl fullWidth size='small'>
                 <InputLabel>Priority</InputLabel>
                 <Select
@@ -673,7 +673,7 @@ export default function RequestedItems({ selectedStoreDetails, setSelectedStoreD
                 </Select>
               </FormControl>
             </Grid>
-            <Grid item xs={12} md={3} lg={3}>
+            <Grid item size={{ xs: 12, md: 3, lg: 3 }}>
               <TextField
                 variant='outlined'
                 size='small'
@@ -727,7 +727,6 @@ export default function RequestedItems({ selectedStoreDetails, setSelectedStoreD
           }}
           onClose={() => closeFulfillDialog()}
           TransitionComponent={Transition}
-          onBackdropClick={() => closeFulfillDialog()}
         >
           <Grid
             container

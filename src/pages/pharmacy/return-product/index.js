@@ -713,7 +713,7 @@ const ReturnRequestList = () => {
                 {selectedPharmacy.type === 'central' && (
                   <Grid
                     item
-                    xs={12}
+                    size={{ xs: 12 }}
                     sx={{
                       maxWidth: { xs: '100%', md: '250px' },
                       width: '100%',
@@ -747,8 +747,7 @@ const ReturnRequestList = () => {
                 {/* Filter by Days */}
                 <Grid
                   item
-                  xs={12}
-                  md='auto'
+                  size={{ xs: 12, md: 'auto' }}
                   sx={{
                     maxWidth: { xs: '100%', md: '250px' },
                     mt: { xs: 2, md: 0 },
@@ -779,8 +778,7 @@ const ReturnRequestList = () => {
                 {(status === 'all' || status === 'completed') && (
                   <Grid
                     item
-                    xs={12}
-                    md='auto'
+                    size={{ xs: 12, md: 'auto' }}
                     sx={{
                       height: '48px',
                       display: 'flex',

@@ -76,6 +76,7 @@ const Organization = () => {
 
         await getBatchListSpecies({ params: params }).then(res => {
           console.log('responseqq', res)
+
           // Generate uid field based on the index
           let listWithId = res.data.data.map((el, i) => {
             return { ...el, id: i + 1 }
@@ -254,10 +255,12 @@ const Organization = () => {
     } else {
       return
     }
+
     // const { id, batch_id } = params.row
     // Router.push(`/parivesh/home/${batch_id}/batch-details`)
     // console.log(params, 'params')
   }
+
   const tableData = () => {
     return (
       <>

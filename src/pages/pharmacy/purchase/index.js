@@ -557,13 +557,13 @@ const ListOfPurchase = () => {
                   spacing={4}
                   sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
                 >
-                  <Grid item xs={12} sm={6} md={5}>
+                  <Grid item size={{ xs: 12, sm: 6, md: 5 }}>
                     <CommonDateRangePickers onChange={handleDateRangeChange} filterDates={filterDates} />
                   </Grid>
 
-                  <Grid item sm={6} xs={12}>
+                  <Grid item size={{ xs: 12, sm: 6 }}>
                     <Grid container spacing={2} justifyContent={{ xs: 'flex-end' }}>
-                      <Grid item xs={12} sm={8} sx={{ flex: 1 }}>
+                      <Grid item size={{ xs: 12, sm: 8 }} sx={{ flex: 1 }}>
                         <TextField
                           variant='outlined'
                           size='small'

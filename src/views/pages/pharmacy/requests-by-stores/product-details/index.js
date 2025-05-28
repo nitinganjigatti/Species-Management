@@ -92,7 +92,7 @@ const RequestedProductDetails = props => {
       <Box>
         {requestedProducts?.alt_parent?.length > 0 &&
           requestedProducts?.alt_parent?.map((nestedChildElm, index) => (
-            <Grid key={index} item xs={12} sm={12} mb={2}>
+            <Grid key={index} item size={{ xs: 12, sm: 12 }} mb={2}>
               <Card
                 sx={{
                   border: `0.5px solid${theme.palette.customColors.Notes}`,
@@ -258,8 +258,7 @@ const RequestedProductDetails = props => {
                     {nestedChildElm?.alternativeQuantityStatus?.map((item, index) => (
                       <Grid
                         key={index}
-                        md={2}
-                        xs={2}
+                        size={{ xs: 2, md: 2 }}
                         sx={{
                           display: 'flex',
                           justifyContent: 'space-between'
@@ -312,8 +311,7 @@ const RequestedProductDetails = props => {
                     ))}
 
                     <Grid
-                      md={3}
-                      xs={3}
+                      size={{ xs: 3, md: 3 }}
                       sx={{
                         display: 'flex',
                         justifyContent: 'right'
@@ -418,7 +416,7 @@ const RequestedProductDetails = props => {
               }}
             >
               <Grid container>
-                <Grid item xs={11} sm={11} sx={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
+                <Grid item size={{ xs: 11, sm: 11 }} sx={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
                   <PharmacyProductCard
                     title={requestedProducts?.stock_name ? requestedProducts?.stock_name : 'NA'}
                     subTitle={
@@ -538,14 +536,14 @@ const RequestedProductDetails = props => {
                     )}
                   </Box> */}
                 </Grid>
-                <Grid item xs={1} sm={1} sx={{ float: 'right', textAlign: 'right', height: 'auto' }}>
+                <Grid item size={{ xs: 1, sm: 1 }} sx={{ float: 'right', textAlign: 'right', height: 'auto' }}>
                   <IconButton size='small' onClick={handleSidebarClose} sx={{ color: 'text.primary' }}>
                     <Icon icon='mdi:close' fontSize={20} />
                   </IconButton>
                 </Grid>
                 <Grid
                   item
-                  sm={12}
+                  size={{ sm: 12 }}
                   sx={{
                     backgroundColor: theme => alpha(theme.palette.customColors.TertiaryContainer, 0.2),
                     height: '41px',
@@ -603,7 +601,7 @@ const RequestedProductDetails = props => {
                 maxWidth: '642px'
               }}
             >
-              <Grid item xs={12} sm={12} md={12}>
+              <Grid item size={{ xs: 12, sm: 12, md: 12 }}>
                 <Typography
                   sx={{
                     color: theme.palette.customColors.OnSurfaceVariant,
@@ -621,7 +619,7 @@ const RequestedProductDetails = props => {
 
               {requestedProducts?.list_items?.length > 0 &&
                 requestedProducts?.list_items?.map((parentItems, index) => (
-                  <Grid key={index} item xs={12} sm={12} mb={2}>
+                  <Grid key={index} item size={{ xs: 12, sm: 12 }} mb={2}>
                     <Card
                       sx={{
                         padding: '16px',
@@ -751,8 +749,7 @@ const RequestedProductDetails = props => {
                           {parentItems?.parentQuantityStatus?.map((item, index) => (
                             <Grid
                               key={index}
-                              md={2}
-                              xs={2}
+                              size={{ xs: 2, md: 2 }}
                               sx={{
                                 display: 'flex',
                                 justifyContent: 'space-between'
@@ -805,8 +802,7 @@ const RequestedProductDetails = props => {
                           ))}
 
                           <Grid
-                            md={3}
-                            xs={3}
+                            size={{ xs: 3, md: 3 }}
                             sx={{
                               display: 'flex',
                               justifyContent: 'flex-end'

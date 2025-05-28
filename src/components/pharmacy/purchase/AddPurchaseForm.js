@@ -1492,7 +1492,7 @@ const AddPurchaseForm = () => {
   return (
     <Card>
       <Grid container sx={{ display: 'flex', justifyContent: 'space-between' }}>
-        <Grid item sm={4} xs={12}>
+        <Grid item size={{ xs: 12, sm: 4 }}>
           <CardHeader
             sx={{
               display: 'flex',
@@ -1518,8 +1518,7 @@ const AddPurchaseForm = () => {
         </Grid>
         <Grid
           item
-          sm={7}
-          xs={12}
+          size={{ xs: 12, sm: 7 }}
           sx={{
             display: 'flex',
             flexDirection: { lg: 'row', md: 'row', xl: 'row', sm: 'row', xs: 'column' },
@@ -1550,14 +1549,13 @@ const AddPurchaseForm = () => {
           )}
         </Grid>
       </Grid>
-
       <form autoComplete='off' onSubmit={handleSubmit(onSubmit)}>
         <CardContent>
           <Divider sx={{ mb: '16px', mt: -2 }} />
           <Typography sx={{ fontSize: '16px', fontWeight: 500, mb: '16px' }}>Supplier Details</Typography>
           <Grid container spacing={5}>
             {/* <Grid item xs={12} sm={6}> */}
-            <Grid item xs={12} sm={4} md={4} lg={4}>
+            <Grid item size={{ xs: 12, sm: 4, md: 4, lg: 4 }}>
               <FormControl fullWidth>
                 <InputLabel error={Boolean(errors.supplier_id)}>Supplier*</InputLabel>
                 <Controller
@@ -1588,7 +1586,7 @@ const AddPurchaseForm = () => {
                 {errors?.supplier_id && <FormHelperText error>{errors.supplier_id.message}</FormHelperText>}
               </FormControl>
             </Grid>
-            <Grid item xs={12} sm={4} md={4} lg={4}>
+            <Grid item size={{ xs: 12, sm: 4, md: 4, lg: 4 }}>
               <FormControl fullWidth>
                 <Controller
                   name='po_date'
@@ -1617,7 +1615,7 @@ const AddPurchaseForm = () => {
                 )}
               </FormControl>
             </Grid>
-            <Grid item xs={12} sm={4} md={4} lg={4}>
+            <Grid item size={{ xs: 12, sm: 4, md: 4, lg: 4 }}>
               <FormControl fullWidth>
                 <Controller
                   name='po_no'
@@ -1643,7 +1641,7 @@ const AddPurchaseForm = () => {
               </FormControl>
             </Grid>
 
-            {/* <Grid item xs={12} sm={6}>
+            {/* <Grid item size={{xs: 12, sm: 6}}>
               <FormControl fullWidth>
                 <InputLabel error={Boolean(errors.supplier_id)}>Byy*</InputLabel>
                 <Controller
@@ -1674,7 +1672,7 @@ const AddPurchaseForm = () => {
                 {errors?.supplier_id && <FormHelperText error>{errors.supplier_id.message}</FormHelperText>}
               </FormControl>
             </Grid> */}
-            <Grid item xs={12} sm={4} md={4} lg={4}>
+            <Grid item size={{ xs: 12, sm: 4, md: 4, lg: 4 }}>
               <FormControl fullWidth>
                 <Controller
                   name='purchase_order_no'
@@ -1694,7 +1692,7 @@ const AddPurchaseForm = () => {
                 />
               </FormControl>
             </Grid>
-            <Grid item xs={12} sm={4} md={4} lg={4}>
+            <Grid item size={{ xs: 12, sm: 4, md: 4, lg: 4 }}>
               <FormControl fullWidth>
                 <Controller
                   name='requested_by'
@@ -1716,7 +1714,7 @@ const AddPurchaseForm = () => {
             </Grid>
 
             {/* Upload Docs */}
-            <Grid item xs={12} sm={4} md={4} lg={4}>
+            <Grid item size={{ xs: 12, sm: 4, md: 4, lg: 4 }}>
               <Box sx={{ display: 'flex', gap: '12px' }}>
                 <Box sx={{ width: '100%' }}>
                   <input
@@ -1886,10 +1884,7 @@ const AddPurchaseForm = () => {
 
             <Grid
               item
-              xs={12}
-              sm={4}
-              md={4}
-              lg={4}
+              size={{ xs: 12, sm: 4, md: 4, lg: 4 }}
               sx={{
                 mt: showFreight ? '16px' : 0,
                 height: showFreight ? 'auto' : 0,
@@ -1927,10 +1922,7 @@ const AddPurchaseForm = () => {
             {/* GST Input */}
             <Grid
               item
-              xs={12}
-              sm={4}
-              md={4}
-              lg={4}
+              size={{ xs: 12, sm: 4, md: 4, lg: 4 }}
               sx={{
                 mt: showFreight ? '16px' : 0,
                 height: showFreight ? 'auto' : 0,
@@ -1967,10 +1959,7 @@ const AddPurchaseForm = () => {
 
             <Grid
               item
-              xs={12}
-              sm={4}
-              md={4}
-              lg={4}
+              size={{ xs: 12, sm: 4, md: 4, lg: 4 }}
               sx={{
                 mt: showFreight ? '16px' : 0,
                 height: showFreight ? 'auto' : 0,
@@ -1993,11 +1982,11 @@ const AddPurchaseForm = () => {
               </Box>
             </Grid>
 
-            <Grid item xs={12} sm={12} md={12} lg={12}>
+            <Grid item size={{ xs: 12, sm: 12, md: 12, lg: 12 }}>
               <Divider />
             </Grid>
 
-            <Grid item xs={12} sm={4} md={4} lg={4}>
+            <Grid item size={{ xs: 12, sm: 4, md: 4, lg: 4 }}>
               <FormControl fullWidth>
                 <Controller
                   name='additional_charges'
@@ -2027,7 +2016,7 @@ const AddPurchaseForm = () => {
               </FormControl>
             </Grid>
 
-            <Grid item xs={12} sm={4} md={4} lg={4}>
+            <Grid item size={{ xs: 12, sm: 4, md: 4, lg: 4 }}>
               <FormControl fullWidth>
                 <Box sx={{ display: 'flex', alignItems: 'center' }}>
                   {/* Dropdown for "+" or "-" */}
@@ -2121,7 +2110,7 @@ const AddPurchaseForm = () => {
               </FormControl>
             </Grid>
 
-            <Grid item xs={12} sm={4} md={4} lg={4}>
+            <Grid item size={{ xs: 12, sm: 4, md: 4, lg: 4 }}>
               <FormControl fullWidth>
                 <Controller
                   name='description'
@@ -2156,8 +2145,7 @@ const AddPurchaseForm = () => {
           <Grid container>
             <Grid
               item
-              sm={12}
-              xs={12}
+              size={{ xs: 12, sm: 12 }}
               sx={{
                 display: 'flex',
                 justifyContent: 'flex-end',
@@ -2269,10 +2257,10 @@ const AddPurchaseForm = () => {
                   >
                     CGST
                     <Grid container>
-                      <Grid item xs={6}>
+                      <Grid item size={{ xs: 6 }}>
                         Rate
                       </Grid>
-                      <Grid item xs={6}>
+                      <Grid item size={{ xs: 6 }}>
                         Amount
                       </Grid>
                     </Grid>
@@ -2285,10 +2273,10 @@ const AddPurchaseForm = () => {
                   >
                     SGST
                     <Grid container>
-                      <Grid item xs={6}>
+                      <Grid item size={{ xs: 6 }}>
                         Rate
                       </Grid>
-                      <Grid item xs={6}>
+                      <Grid item size={{ xs: 6 }}>
                         Amount
                       </Grid>
                     </Grid>
@@ -2296,10 +2284,10 @@ const AddPurchaseForm = () => {
                   <TableCell sx={{ textAlign: 'center', minWidth: 130 }}>
                     IGST
                     <Grid container>
-                      <Grid item xs={6}>
+                      <Grid item size={{ xs: 6 }}>
                         Rate
                       </Grid>
-                      <Grid item xs={6}>
+                      <Grid item size={{ xs: 6 }}>
                         Amount
                       </Grid>
                     </Grid>
@@ -2407,15 +2395,12 @@ const AddPurchaseForm = () => {
             </Table>
           </TableContainer>
         </Box>
-        <Grid item xs={6}>
+        <Grid item size={{ xs: 6 }}>
           {/* {totalQty ? ( */}
           <Grid container>
             <Grid
               item
-              xs={12}
-              sm={7}
-              lg={4}
-              md={5}
+              size={{ xs: 12, sm: 7, lg: 4, md: 5 }}
               sx={{
                 mb: { sm: 0, xs: 4 },
                 mt: { xs: 4 },
@@ -2477,7 +2462,7 @@ const AddPurchaseForm = () => {
 
                   {/* <CalcWrapper>
                   <Grid container sx={{ display: 'flex', justifyContent: 'space-between' }} spacing={2}>
-                    <Grid item xs={12} sm={6}>
+                    <Grid item size={{xs: 12, sm: 6}}>
                       <FormControl fullWidth>
                         <InputLabel>Discount</InputLabel>
                         <Select
@@ -2493,7 +2478,7 @@ const AddPurchaseForm = () => {
                         </Select>
                       </FormControl>
                     </Grid>
-                    <Grid item xs={12} sm={6}>
+                    <Grid item size={{xs: 12, sm: 6}}>
                       <FormControl fullWidth>
                         <TextField
                           type='text'
@@ -2868,7 +2853,7 @@ const AddPurchaseForm = () => {
           {/* // ) : null} */}
         </Grid>
 
-        <Grid item xs={12}>
+        <Grid item size={{ xs: 12 }}>
           <Box sx={{ float: 'right', my: 4, mx: 6 }}>
             <LoadingButton
               // disabled={editParams.purchase_details.length > 0 && inputValue ? false : true}

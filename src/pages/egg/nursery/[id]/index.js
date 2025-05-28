@@ -539,8 +539,8 @@ const NurseryDetails = () => {
                 DetailsListData={nurseryData}
                 setOpenDrawer={setOpenDrawer}
               />{' '}
-              <Grid sx={{ ml: -6, mb: 6, mt: 0 }} container columns={15} spacing={6}>
-                <Grid item xs={3}>
+              <Grid sx={{ mb: 6, mt: 6 }} container columns={15} spacing={6}>
+                <Grid item size={{ xs: 3 }}>
                   <Box
                     sx={{
                       display: 'flex',
@@ -572,7 +572,7 @@ const NurseryDetails = () => {
                   </Box>
                 </Grid>
 
-                <Grid item xs={3}>
+                <Grid item size={{ xs: 3 }}>
                   <FormControl fullWidth>
                     <Autocomplete
                       name='status'
@@ -630,7 +630,17 @@ const NurseryDetails = () => {
                 '.MuiDataGrid-cell:focus': {
                   outline: 'none'
                 },
-
+                '.MuiDataGrid-main': {
+                  borderLeft: '1px solid #0000000D',
+                  borderRight: '1px solid #0000000D',
+                  marginLeft: '16px',
+                  marginRight: '16px',
+                  borderRadius: '8px',
+                  border: '1px solid rgba(233, 233, 236, 1)'
+                },
+                '& .MuiDataGrid-footerContainer': {
+                  borderTop: 'none'
+                },
                 '& .MuiDataGrid-row:hover': {
                   cursor: 'pointer'
                 }

@@ -213,7 +213,7 @@ export default function AddProduct() {
 
   return (
     <Grid container spacing={6}>
-      <Grid item xs={12}>
+      <Grid item size={{ xs: 12 }}>
         <Card>
           <CardHeader title='Add Product Form' />
           {successFulModal && (
@@ -232,7 +232,7 @@ export default function AddProduct() {
           <form onSubmit={handleSubmit(onSubmit)}>
             <CardContent>
               <Grid container spacing={6}>
-                <Grid item xs={12} sm={6}>
+                <Grid item size={{ xs: 12, sm: 6 }}>
                   <FormControl fullWidth>
                     <InputLabel>From Store</InputLabel>
                     <Controller
@@ -256,7 +256,7 @@ export default function AddProduct() {
                     )}
                   </FormControl>
                 </Grid>
-                <Grid item xs={12} sm={6}>
+                <Grid item size={{ xs: 12, sm: 6 }}>
                   <FormControl fullWidth>
                     <Controller
                       name='comment'
@@ -277,11 +277,10 @@ export default function AddProduct() {
                   </FormControl>
                 </Grid>
               </Grid>
-              <Grid container sm={12} xs={12}>
+              <Grid container size={{ xs: 12, sm: 12 }}>
                 <Grid
                   item
-                  sm={12}
-                  xs={12}
+                  size={{ xs: 12, sm: 12 }}
                   sx={{
                     display: 'flex',
                     justifyContent: 'flex-end',
@@ -298,7 +297,7 @@ export default function AddProduct() {
                   />
                 </Grid>
               </Grid>
-              <Grid item xs={12} sm={12}>
+              <Grid item size={{ xs: 12, sm: 12 }}>
                 <TableContainer>
                   <Table>
                     <TableHead sx={{ backgroundColor: '#F5F5F7' }}>
@@ -384,7 +383,7 @@ export default function AddProduct() {
                   </Table>
                 </TableContainer>
               </Grid>
-              <Grid item xs={12} sx={{ mt: 6 }}>
+              <Grid item size={{ xs: 12 }} sx={{ mt: 6 }}>
                 <Card>
                   <CardHeader title='Upload Prescription' />
                   <CardContent>
@@ -451,7 +450,7 @@ export default function AddProduct() {
               {/* </Grid>
               </Grid> */}{' '}
               <Grid
-                sm={12}
+                size={{ sm: 12 }}
                 spacing={6}
                 mt={4}
                 item

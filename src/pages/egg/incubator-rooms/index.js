@@ -427,12 +427,12 @@ const RoomsList = () => {
                 </Typography>
               </Breadcrumbs>
               <Grid container spacing={6}>
-                <Grid item xs={12}>
+                <Grid item size={{ xs: 12 }}>
                   <Card>
                     <CardHeader title='Incubator Rooms' action={headerAction} />
 
-                    <Grid sx={{ ml: -2, mb: 6 }} container columns={15} spacing={6}>
-                      <Grid item xs={3}>
+                    <Grid sx={{ ml: 4, mb: 6 }} container columns={15} spacing={6}>
+                      <Grid item size={{ xs: 3 }}>
                         <Box
                           sx={{
                             display: 'flex',
@@ -466,7 +466,7 @@ const RoomsList = () => {
                         </Box>
                       </Grid>
 
-                      <Grid item xs={3}>
+                      <Grid item size={{ xs: 3 }}>
                         <FormControl fullWidth>
                           <Autocomplete
                             name='nursery'
@@ -514,7 +514,7 @@ const RoomsList = () => {
                           />
                         </FormControl>
                       </Grid>
-                      <Grid item xs={3}>
+                      <Grid item size={{ xs: 3 }}>
                         <FormControl fullWidth>
                           <Autocomplete
                             name='status'
@@ -609,7 +609,17 @@ const RoomsList = () => {
                           '.MuiDataGrid-cell:focus': {
                             outline: 'none'
                           },
-
+                          '.MuiDataGrid-main': {
+                            borderLeft: '1px solid #0000000D',
+                            borderRight: '1px solid #0000000D',
+                            marginLeft: '16px',
+                            marginRight: '16px',
+                            borderRadius: '8px',
+                            border: '1px solid rgba(233, 233, 236, 1)'
+                          },
+                          '& .MuiDataGrid-footerContainer': {
+                            borderTop: 'none'
+                          },
                           '& .MuiDataGrid-row:hover': {
                             cursor: 'pointer'
                           }

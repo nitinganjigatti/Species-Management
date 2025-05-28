@@ -628,7 +628,7 @@ const AllStoresRequestList = () => {
           <Box sx={{ flexGrow: 1 }}>
             <Grid container direction='column' gap={1}>
               {uniquePendingData.map((med, index) => (
-                <Grid item xs={12} key={index} sx={{ padding: 0, margin: 0 }}>
+                <Grid item size={{ xs: 12 }} key={index} sx={{ padding: 0, margin: 0 }}>
                   <MedicineCard
                     {...med}
                     pendingColor={activeTab === '2' ? 'customColors.Error' : 'customColors.Tertiary'}

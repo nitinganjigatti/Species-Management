@@ -334,20 +334,6 @@ function ProductForm({
           icon='material-symbols-light:close-small'
         />
       </Box>
-
-      // <Button
-      //   variant='outlined'
-      //   color='error'
-      //   startIcon={<Icon icon='material-symbols-light:close' />}
-      //   onClick={() => {
-      //     var tempDefaultSalts = defaultSalts
-      //     tempDefaultSalts.splice(index, 1)
-      //     setDefaultSalts(tempDefaultSalts)
-      //     remove(index)
-      //   }}
-      // >
-      //   {/* Remove */}
-      // </Button>
     )
   }
 
@@ -689,7 +675,7 @@ function ProductForm({
       />
       <form onSubmit={handleSubmit(editMode ? EditItems : submitItems, onError)}>
         <Grid container mb={5}>
-          <Grid item xs={12}>
+          <Grid item size={{ xs: 12 }}>
             <FormControl fullWidth>
               {/* <Typography sx={{ my: 2 }}>
                 {`${
@@ -881,7 +867,7 @@ function ProductForm({
           <FormGroup sx={{ bgcolor: '#0000000D', padding: 2, borderRadius: 1 }}>
             {fields.map((field, index) => (
               <Grid container spacing={3} key={field?.id} sx={{ mb: 2, mt: 2 }}>
-                <Grid item xs={12} sm={3} md={3.5}>
+                <Grid item size={{ xs: 12, sm: 3, md: 3.5 }}>
                   <FormControl fullWidth>
                     <Controller
                       name={`product_batches[${index}].batch_no`}
@@ -988,7 +974,7 @@ function ProductForm({
                     />
                   </FormControl>
                 </Grid>
-                <Grid item xs={12} sm={3} md={3.5}>
+                <Grid item size={{ xs: 12, sm: 3, md: 3.5 }}>
                   <FormControl fullWidth>
                     <Controller
                       name={`product_batches[${index}].multiplier`}
@@ -1016,7 +1002,7 @@ function ProductForm({
                     ></Controller>
                   </FormControl>
                 </Grid>
-                <Grid item xs={12} sm={3} md={3.5}>
+                <Grid item size={{ xs: 12, sm: 3, md: 3.5 }}>
                   <FormControl fullWidth>
                     <Controller
                       name={`product_batches[${index}].qty`}
@@ -1059,9 +1045,7 @@ function ProductForm({
 
                 <Grid
                   item
-                  xs={12}
-                  sm={3}
-                  md={1.5}
+                  size={{ xs: 12, sm: 3, md: 1.5 }}
                   sx={{
                     display: 'flex',
                     justifyContent: { xs: 'flex-start', sm: 'flex-end' },
@@ -1081,7 +1065,7 @@ function ProductForm({
             columnSpacing={2}
             sx={{ bgcolor: '#0000000D', padding: 2, pl: 0, borderRadius: 1 }}
           >
-            <Grid item xs={12} sm={4} md={4}>
+            <Grid item size={{ xs: 12, sm: 4, md: 4 }}>
               <FormControl fullWidth>
                 <Controller
                   name='batch_no'
@@ -1166,7 +1150,7 @@ function ProductForm({
                 />
               </FormControl>
             </Grid>
-            <Grid item xs={12} sm={4}>
+            <Grid item size={{ xs: 12, sm: 4 }}>
               <FormControl fullWidth>
                 <Controller
                   name='multiplier'
@@ -1191,7 +1175,7 @@ function ProductForm({
                 </Controller>
               </FormControl>
             </Grid>
-            <Grid item xs={12} sm={4} md={4}>
+            <Grid item size={{ xs: 12, sm: 4, md: 4 }}>
               <FormControl fullWidth>
                 <Controller
                   name='qty'
@@ -1238,7 +1222,7 @@ function ProductForm({
             {errors.product_batches.find(batch => batch?.qty)?.qty?.message || 'Quantity should be greater than 0'}
           </FormHelperText>
         )}
-        <Grid item xs={12} sm={12} sx={{ mt: '40px' }}>
+        <Grid item size={{ xs: 12, sm: 12 }} sx={{ mt: '40px' }}>
           <Grid Grid sx={{ height: '100%' }} alignItems='flex-end' justifyContent='flex-end' container>
             {editMode ? (
               <Button type='submit' variant='contained'>

@@ -656,7 +656,7 @@ const ListOfMedicine = () => {
                     </TabList>
                   </TabContext>
                   {/* Search Field */}
-                  <Grid item xs={12} sm={8} md={7}>
+                  <Grid item size={{ xs: 12, sm: 8, md: 7 }}>
                     <Box
                       sx={{
                         display: 'flex',

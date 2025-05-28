@@ -686,8 +686,7 @@ const AddLocalDispatch = () => {
         <Card>
           <Grid
             container
-            sm={12}
-            xs={12}
+            size={{ xs: 12, sm: 12 }}
             sx={{
               display: 'flex',
               justifyContent: 'space-between',
@@ -738,7 +737,7 @@ const AddLocalDispatch = () => {
           <CardContent>
             <form>
               <Grid container spacing={5}>
-                <Grid item xs={12} sm={12}>
+                <Grid item size={{ xs: 12, sm: 12 }}>
                   <Typography
                     variant='subtitle2'
                     sx={{
@@ -751,7 +750,7 @@ const AddLocalDispatch = () => {
                     Dispatch to :
                   </Typography>
                 </Grid>
-                <Grid item xs={12} sm={6} sx={{ mb: 5, width: '100%' }}>
+                <Grid item size={{ xs: 12, sm: 6 }} sx={{ mb: 5, width: '100%' }}>
                   <FormControl fullWidth>
                     <InputLabel id='state_id' error={Boolean(errors.to_store_id)}>
                       Store*
@@ -791,7 +790,7 @@ const AddLocalDispatch = () => {
                     )}
                   </FormControl>
                 </Grid>
-                <Grid item xs={12} sm={6} sx={{ mb: 5 }}>
+                <Grid item size={{ xs: 12, sm: 6 }} sx={{ mb: 5 }}>
                   <Autocomplete
                     fullWidth
                     disablePortal
@@ -833,8 +832,8 @@ const AddLocalDispatch = () => {
                 </Grid>
                 {/* </Grid>
                 </Grid> */}
-                <Grid item xs={12} sm={6}>
-                  <Grid xs={12} sm={12} sx={{ mb: 5 }}>
+                <Grid item size={{ xs: 12, sm: 6 }}>
+                  <Grid size={{ xs: 12, sm: 12 }} sx={{ mb: 5 }}>
                     <Typography variant='subtitle2' sx={{ mb: 3, color: 'text.primary', letterSpacing: '.1px' }}>
                       &nbsp;
                     </Typography>
@@ -886,7 +885,6 @@ const AddLocalDispatch = () => {
               }}
             />
           </Grid> */}
-
           <Box
             sx={{ width: '100%', display: 'flex', justifyContent: 'space-between', alignItems: 'center', px: 6, mb: 4 }}
           >
@@ -929,7 +927,6 @@ const AddLocalDispatch = () => {
               }}
             />
           </Box>
-
           {editParams?.request_item_details.length ? (
             <Box>
               <Card
@@ -1074,7 +1071,7 @@ const AddLocalDispatch = () => {
                   </Grid>
                 ) : null}
               </CardContent> */}
-              <Grid item xs={12}>
+              <Grid item size={{ xs: 12 }}>
                 <Box sx={{ float: 'right', my: 4, mx: 6 }}>
                   {id ? (
                     <>

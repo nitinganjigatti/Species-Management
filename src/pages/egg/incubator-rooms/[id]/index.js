@@ -569,7 +569,7 @@ const RoomDetails = () => {
           </CardContent>
         ) : (
           <Grid container spacing={6}>
-            <Grid item xs={12}>
+            <Grid item size={{ xs: 12 }}>
               <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
                 <Typography sx={{ cursor: 'pointer' }} color='inherit'>
                   Egg
@@ -625,7 +625,6 @@ const RoomDetails = () => {
                         labelPlacement='start'
                         label='Active'
                       />
-
                       <IconButton
                         onClick={event =>
                           handleEdit(
@@ -644,7 +643,6 @@ const RoomDetails = () => {
                           color={theme.palette.customColors.OnSurfaceVariant}
                         />
                       </IconButton>
-
                       <Button size='medium' variant='contained' onClick={() => setDialog(true)}>
                         <Icon icon='mdi:add' fontSize={20} />
                         &nbsp; ADD INCUBATOR
@@ -654,8 +652,8 @@ const RoomDetails = () => {
                     // </Box>
                   )}
                 </Box>
-                <Grid sx={{ ml: -2, mb: 6 }} container columns={15} spacing={6}>
-                  <Grid item xs={3}>
+                <Grid sx={{ ml: 4, mb: 6 }} container columns={15} spacing={6}>
+                  <Grid item size={{ xs: 3 }}>
                     <Box
                       sx={{
                         display: 'flex',
@@ -687,7 +685,7 @@ const RoomDetails = () => {
                     </Box>
                   </Grid>
 
-                  <Grid item xs={3}>
+                  <Grid item size={{ xs: 3 }}>
                     <FormControl fullWidth>
                       <Autocomplete
                         name='availibility'
@@ -745,7 +743,17 @@ const RoomDetails = () => {
                       '.MuiDataGrid-cell:focus': {
                         outline: 'none'
                       },
-
+                      '.MuiDataGrid-main': {
+                        borderLeft: '1px solid #0000000D',
+                        borderRight: '1px solid #0000000D',
+                        marginLeft: '16px',
+                        marginRight: '16px',
+                        borderRadius: '8px',
+                        border: '1px solid rgba(233, 233, 236, 1)'
+                      },
+                      '& .MuiDataGrid-footerContainer': {
+                        borderTop: 'none'
+                      },
                       '& .MuiDataGrid-row:hover': {
                         cursor: 'pointer'
                       }

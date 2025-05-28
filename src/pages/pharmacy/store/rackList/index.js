@@ -407,7 +407,7 @@ const ListOfRacks = () => {
 
             <Box display='flex' justifyContent='space-between' alignItems='center'>
               {/* Left Box (Search Field) */}
-              <Grid item xs={8} sx={{ width: { xs: '100%', sm: '240px' } }}>
+              <Grid item size={{ xs: 8 }} sx={{ width: { xs: '100%', sm: '240px' } }}>
                 <Box
                   sx={{
                     display: 'flex',

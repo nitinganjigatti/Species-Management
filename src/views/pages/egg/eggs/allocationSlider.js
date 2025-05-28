@@ -32,6 +32,7 @@ import * as yup from 'yup'
 
 const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi, allocationValues, getDetails }) => {
   const theme = useTheme()
+
   // const [nurseryName, setNurseryName] = useState([])
   // const [roomName, setRoomName] = useState([])
   const [incubatorList, setIncubatorList] = useState([])
@@ -587,7 +588,7 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi, allocationVal
                 <CardContent sx={{ mt: '-1px' }}>
                   {fields.map((measurement, index) => (
                     <Grid container spacing={3} key={index}>
-                      <Grid item xs={6} sx={{ borderRadius: '5px' }}>
+                      <Grid item size={{ xs: 6 }} sx={{ borderRadius: '5px' }}>
                         <FormControl fullWidth sx={{ mt: 3, borderRadius: '5px' }}>
                           <Controller
                             name={`measurements[${index}].assessment_value`}
@@ -636,7 +637,7 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi, allocationVal
                           />
                         </FormControl>
                       </Grid>
-                      <Grid item xs={6}>
+                      <Grid item size={{ xs: 6 }}>
                         <FormControl fullWidth sx={{ mt: 3 }}>
                           <InputLabel error={Boolean(errors?.site_id)} id={`unit_label_${index}`}>
                             {measurement?.unit_name?.charAt(0)?.toUpperCase() + measurement?.unit_name.slice(1)}
@@ -670,7 +671,7 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi, allocationVal
                           )}
                         </FormControl>
                       </Grid>
-                      <Grid item xs={6} sx={{ display: 'none' }}>
+                      <Grid item size={{ xs: 6 }} sx={{ display: 'none' }}>
                         <FormControl fullWidth>
                           <Controller
                             name={`measurements[${index}].assessment_type_id`}

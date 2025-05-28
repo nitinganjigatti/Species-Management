@@ -6,7 +6,7 @@ const StyleWithIconCardComponent = ({ value, description, icon, bgColor, onClick
   console.log('customCss', customCss)
 
   return (
-    <Grid item xs={12} sm={6} md={4}>
+    <Grid item size={{ xs: 12, sm: 6, md: 4 }}>
       <Box
         sx={{
           display: 'flex',

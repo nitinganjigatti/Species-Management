@@ -178,6 +178,7 @@ const UploadReports = ({
       Array.from(files).forEach(file => {
         if (!allowedTypes.includes(file.type)) {
           Toaster({ type: 'error', message: 'Executive files are not valid.' })
+
           return
         }
 
@@ -300,11 +301,11 @@ const UploadReports = ({
   return (
     <form onSubmit={handleSubmit(onSubmit)}>
       <Grid container>
-        <Grid item md={12} xs={12} sm={12} sx={{ m: 5 }}>
+        <Grid item size={{ md: 12, sm: 12, xs: 12 }} sx={{ m: 5 }}>
           <Box key={key}>
             <Grid container>
               {/* {imgSrc !== '' ? null : ( */}
-              <Grid item md={12} sm={12} xs={12}>
+              <Grid item size={{ md: 12, sm: 12, xs: 12 }}>
                 <Box sx={{ display: 'flex', alignItems: 'center', width: 'auto', flexWrap: 'wrap' }}>
                   <input
                     multiple
@@ -337,7 +338,7 @@ const UploadReports = ({
                 </Box>
               </Grid>
               {/* )} */}
-              <Grid item md={12} sm={12} xs={12} sx={{ display: 'flex', justifyContent: 'flex-start' }}>
+              <Grid item size={{ md: 12, sm: 12, xs: 12 }} sx={{ display: 'flex', justifyContent: 'flex-start' }}>
                 <Stack
                   direction='row'
                   sx={{

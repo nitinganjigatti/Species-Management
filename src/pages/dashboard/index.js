@@ -57,9 +57,11 @@ function Dashboard() {
   const fetchAllData = useCallback(async () => {
     try {
       if (firstLoad) setLoading(true)
+
       // setLoading(true)
 
       const params = {}
+
       const [
         dashboardAnalyticsRes,
         keyInsightsRes,
@@ -119,6 +121,7 @@ function Dashboard() {
   useEffect(() => {
     fetchAllData()
     const interval = setInterval(fetchAllData, 120000) // Refresh every 2 minutes
+
     return () => clearInterval(interval) // Cleanup on unmount
   }, [fetchAllData])
 
@@ -162,44 +165,44 @@ function Dashboard() {
             <ApexChartWrapper>
               <KeenSliderWrapper>
                 <Grid container spacing={3} className='match-height'>
-                  <Grid item xs={12} sm={6} md={3}>
+                  <Grid item size={{ xs: 12, md: 3, sm: 6 }}>
                     <DashboardCardHeader title='Key insights'>
                       <Box sx={{ p: 6 }}>
                         <KeyInsights insights={keyInsightsData} />
                       </Box>
                     </DashboardCardHeader>
                   </Grid>
-                  <Grid item xs={12} sm={6} md={3}>
+                  <Grid item size={{ xs: 12, md: 3, sm: 6 }}>
                     <DashboardCardHeader title='Animal activity'>
                       <AnimalActivityChart animalActivityData={animalActivityData} />
                     </DashboardCardHeader>
                   </Grid>
-                  <Grid item xs={12} sm={6} md={3}>
+                  <Grid item size={{ xs: 12, md: 3, sm: 6 }}>
                     <DashboardCardHeader title='Animal transfer'>
                       <Box sx={{ p: 6 }}>
                         <AnimalTransferProgress animalTransfer={animalTransfer} />
                       </Box>
                     </DashboardCardHeader>
                   </Grid>
-                  <Grid item xs={12} sm={6} md={3}>
+                  <Grid item size={{ xs: 12, md: 3, sm: 6 }}>
                     <DashboardCardHeader title='Eggs'>
                       <EggChart eggAnalytics={eggAnalytics} height={332} />
                     </DashboardCardHeader>
                   </Grid>
-                  <Grid item xs={12} sm={6} md={4.5}>
+                  <Grid item size={{ xs: 12, md: 4.5, sm: 6 }}>
                     <DashboardPharmacyDetails pharmacyData={pharmacyData} />
                   </Grid>
-                  <Grid item xs={12} sm={6} md={2.5}>
+                  <Grid item size={{ xs: 12, md: 2.5, sm: 6 }}>
                     <DashboardCardHeader title='Pending requests(Pharmacy)' isSmall={true}>
                       <PharmacyPendingReqChart pendingRequests={pendingRequests} />
                     </DashboardCardHeader>
                   </Grid>
-                  <Grid item xs={12} sm={6} md={2.5}>
+                  <Grid item size={{ xs: 12, md: 2.5, sm: 6 }}>
                     <DashboardCardHeader title='Notes'>
                       <DashboardNotes notesData={notes} />
                     </DashboardCardHeader>
                   </Grid>
-                  <Grid item xs={12} sm={6} md={2.5}>
+                  <Grid item size={{ xs: 12, md: 2.5, sm: 6 }}>
                     <DashboardCardHeader title='Lab requests'>
                       <DashboardLabRequests labRequests={labRequests} />
                     </DashboardCardHeader>

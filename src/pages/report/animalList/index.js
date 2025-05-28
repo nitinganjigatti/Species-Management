@@ -158,6 +158,7 @@ const AnimalList = () => {
     try {
       setIsLoading(true)
       const response = await getAllAnimalReport(params)
+      console.log(response)
       if (responseType === 'csv' && response && response.data) {
         handleCsvResponse(response.data)
       } else if (response.success) {
@@ -264,10 +265,117 @@ const AnimalList = () => {
     return text
   }
 
+  // const columns = headerList.map(header => {
+  //   if (header.key.includes('default_icon')) {
+  //     return {
+  //       field: 'Animals',
+  //       headerName: header.label,
+  //       isAvatar: true,
+  //       sortable: false,
+  //       disableColumnMenu: true,
+  //       width: 280,
+  //       renderCell: params => (
+  //         <CardHeader
+  //           avatar={
+  //             <img
+  //               src={params.row.default_icon}
+  //               alt={params.row.common_name}
+  //               style={{ width: 40, height: 40, borderRadius: '50%' }}
+  //             />
+  //           }
+  //           title={
+  //             params.row.primary_identifier_value ? (
+  //               <Typography sx={{ fontSize: '16px', fontWeight: 500, fontFamily: 'Inter', color: '#006D35' }}>
+  //                 {params.row.primary_identifier_type}: {params.row.primary_identifier_value}
+  //               </Typography>
+  //             ) : null
+  //           }
+  //           subheader={
+  //             <>
+  //               <Tooltip
+  //                 title={params.row.scientific_name.length > 40 ? params.row.scientific_name : null}
+  //                 placement='bottom'
+  //               >
+  //                 <Typography
+  //                   sx={{
+  //                     fontSize: '14px',
+  //                     fontWeight: 400,
+  //                     fontFamily: 'Inter',
+  //                     color: '#7A8684',
+  //                     whiteSpace: 'nowrap',
+  //                     overflow: 'hidden',
+  //                     textOverflow: 'ellipsis',
+  //                     maxWidth: '200px'
+  //                   }}
+  //                   variant='body2'
+  //                 >
+  //                   {truncateText(params.row.scientific_name, 40)}
+  //                 </Typography>
+  //               </Tooltip>
+  //               <Tooltip title={params.row.common_name.length > 53 ? params.row.common_name : null} placement='bottom'>
+  //                 <Typography
+  //                   sx={{
+  //                     fontSize: '14px',
+  //                     fontWeight: 400,
+  //                     fontFamily: 'Inter',
+  //                     color: '#7A8684',
+  //                     whiteSpace: 'nowrap',
+  //                     overflow: 'hidden',
+  //                     textOverflow: 'ellipsis',
+  //                     maxWidth: '200px'
+  //                   }}
+  //                   variant='body2'
+  //                 >
+  //                   {truncateText(params.row.common_name, 53)}
+  //                 </Typography>
+  //               </Tooltip>
+  //             </>
+  //           }
+  //         />
+  //       )
+  //     }
+  //   }
+
+  //   return {
+  //     field: header.key,
+  //     headerName: header.label,
+  //     width: 310,
+  //     sortable: false,
+  //     disableColumnMenu: true,
+  //     textAlign: 'center',
+  //     renderCell: params => {
+  //       const truncatedValue = params?.value ? truncateText(params.value, 60) : params?.value
+
+  //       const showTooltip = params?.value?.length > 20
+
+  //       return (
+  //         <Tooltip title={showTooltip ? params.value : null} placement='bottom'>
+  //           <Typography
+  //             sx={{
+  //               fontSize: '14px',
+  //               fontWeight: 400,
+  //               fontFamily: 'Inter',
+  //               color: '#7A8684',
+  //               whiteSpace: 'nowrap',
+  //               overflow: 'hidden',
+  //               textOverflow: 'ellipsis'
+  //             }}
+  //           >
+  //             {truncatedValue}
+  //           </Typography>
+  //         </Tooltip>
+  //       )
+  //     }
+  //   }
+  // })
+
   const columns = headerList.map(header => {
+    // Convert the key array to a string for field identification
+    const fieldKey = Array.isArray(header.key) ? header.key[0] : header.key
+
     if (header.key.includes('default_icon')) {
       return {
-        field: 'Animals',
+        field: 'Animals', // Use a static field name for the Animals column
         headerName: header.label,
         isAvatar: true,
         sortable: false,
@@ -292,7 +400,7 @@ const AnimalList = () => {
             subheader={
               <>
                 <Tooltip
-                  title={params.row.scientific_name.length > 40 ? params.row.scientific_name : null}
+                  title={params.row.scientific_name?.length > 40 ? params.row.scientific_name : null}
                   placement='bottom'
                 >
                   <Typography
@@ -308,10 +416,10 @@ const AnimalList = () => {
                     }}
                     variant='body2'
                   >
-                    {truncateText(params.row.scientific_name, 40)}
+                    {truncateText(params.row.scientific_name || '', 40)}
                   </Typography>
                 </Tooltip>
-                <Tooltip title={params.row.common_name.length > 53 ? params.row.common_name : null} placement='bottom'>
+                <Tooltip title={params.row.common_name?.length > 53 ? params.row.common_name : null} placement='bottom'>
                   <Typography
                     sx={{
                       fontSize: '14px',
@@ -325,7 +433,7 @@ const AnimalList = () => {
                     }}
                     variant='body2'
                   >
-                    {truncateText(params.row.common_name, 53)}
+                    {truncateText(params.row.common_name || '', 53)}
                   </Typography>
                 </Tooltip>
               </>
@@ -336,19 +444,19 @@ const AnimalList = () => {
     }
 
     return {
-      field: header.key,
+      field: fieldKey, // Use the first element of the key array as the field
       headerName: header.label,
       width: 310,
       sortable: false,
       disableColumnMenu: true,
       textAlign: 'center',
       renderCell: params => {
-        const truncatedValue = params?.value ? truncateText(params.value, 60) : params?.value
-
-        const showTooltip = params?.value?.length > 20
+        const cellValue = params?.value || ''
+        const truncatedValue = cellValue ? truncateText(cellValue, 60) : cellValue
+        const showTooltip = cellValue?.length > 20
 
         return (
-          <Tooltip title={showTooltip ? params.value : null} placement='bottom'>
+          <Tooltip title={showTooltip ? cellValue : null} placement='bottom'>
             <Typography
               sx={{
                 fontSize: '14px',

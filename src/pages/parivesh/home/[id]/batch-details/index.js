@@ -54,6 +54,7 @@ import Error404 from 'src/pages/404'
 const CustomDropdownIcon = styled(ArrowDropDownIcon)({
   color: '#FFFFFF' // Change this to your desired color
 })
+
 // /^[a-zA-Z0-9]+(?:-[/][a-zA-Z0-9]+)?$/
 const schema = yup.object().shape({
   registrationId: yup
@@ -116,6 +117,7 @@ const BatchDetails = ({ params, searchParams }) => {
     async id => {
       try {
         const response = await getBatchListSpeciesById(id)
+
         // debugger
         if (response?.success) {
           setBatchDetails(response?.data?.data)
@@ -206,6 +208,7 @@ const BatchDetails = ({ params, searchParams }) => {
   const handleSaveBatch = async type => {
     if (type === 'saveBatch') {
       const ids = batchDetails?.entries_data.map(item => item.id)
+
       let payload = {
         batch_id: batchDetails?.batch_id,
         status: selectedStatus
@@ -233,6 +236,7 @@ const BatchDetails = ({ params, searchParams }) => {
   const onSubmit = async data => {
     setRegId(data.registrationId)
     setIsModalOpen(false)
+
     // const payload = {
     //   batch_id: batchDetails?.batch_id,
     //   status: selectedStatus,
@@ -328,6 +332,7 @@ const BatchDetails = ({ params, searchParams }) => {
         </Tooltip>
       )
     },
+
     // {
     //   flex: 0.4,
     //   minWidth: 10,
@@ -353,6 +358,7 @@ const BatchDetails = ({ params, searchParams }) => {
         </Typography>
       )
     },
+
     // {
     //   flex: 0.3,
     //   minWidth: 30,
@@ -477,6 +483,7 @@ const BatchDetails = ({ params, searchParams }) => {
       </>
     )
   }
+
   const onCellClick = params => {
     // Handle cell click logic here
   }
@@ -497,6 +504,7 @@ const BatchDetails = ({ params, searchParams }) => {
 
       if (totalFiles > 3) {
         Toaster({ type: 'error', message: 'You can only upload up to 3 files.' })
+
         return
       }
 
@@ -545,6 +553,7 @@ const BatchDetails = ({ params, searchParams }) => {
     setIsModalOpenDelete(true)
     setSelectedId(id)
   }
+
   const confirmDeleteAction = async () => {
     try {
       const payload = {
@@ -555,6 +564,7 @@ const BatchDetails = ({ params, searchParams }) => {
       if (res?.success) {
         Toaster({ type: 'success', message: res?.message })
         setFilePreviews(res?.data)
+
         // await getBatchListById(batchDetails?.batch_id)
       } else {
         Toaster({ type: 'error', message: res?.message })
@@ -577,8 +587,10 @@ const BatchDetails = ({ params, searchParams }) => {
     if (fileName.length <= maxLength) {
       return fileName
     }
+
     return fileName.substr(0, maxLength - 3) + '...'
   }
+
   const getIconByFileType = fileName => {
     const extension = fileName.split('.').pop().toLowerCase()
     switch (extension) {
@@ -659,7 +671,7 @@ const BatchDetails = ({ params, searchParams }) => {
           <Card>
             <Box sx={{ p: 6, pb: 0 }}>
               <Grid container justifyContent='space-between'>
-                <Grid item xs={12} sm='auto'>
+                <Grid item size={{ xs: 12, sm: 'auto' }}>
                   <CardHeader
                     sx={{ padding: 0 }}
                     avatar={
@@ -674,7 +686,7 @@ const BatchDetails = ({ params, searchParams }) => {
                     title='Batch Details'
                   />
                 </Grid>
-                <Grid item xs={12} sm='auto'>
+                <Grid item size={{ xs: 12, sm: 'auto' }}>
                   <Box
                     sx={{
                       display: 'flex',
@@ -837,7 +849,7 @@ const BatchDetails = ({ params, searchParams }) => {
               }}
             >
               {/* First Column */}
-              <Grid item xs={12} sm={6} md={3}>
+              <Grid item size={{ xs: 12, sm: 6, md: 3 }}>
                 <Box
                   sx={{
                     display: 'flex',
@@ -856,7 +868,7 @@ const BatchDetails = ({ params, searchParams }) => {
               </Grid>
 
               {/* Second Column */}
-              <Grid item xs={12} sm={6} md={5}>
+              <Grid item size={{ xs: 12, sm: 6, md: 5 }}>
                 <Box
                   sx={{
                     display: 'flex',
@@ -885,7 +897,7 @@ const BatchDetails = ({ params, searchParams }) => {
               </Grid>
 
               {/* Third Column */}
-              <Grid item xs={12} sm={6} md={4}>
+              <Grid item size={{ xs: 12, sm: 6, md: 4 }}>
                 <Box
                   sx={{
                     display: 'flex',

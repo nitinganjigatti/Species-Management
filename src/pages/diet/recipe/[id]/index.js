@@ -181,7 +181,7 @@ const RecipeDetail = () => {
         </CardContent>
       ) : (
         <Grid container spacing={6}>
-          <Grid item xs={12}>
+          <Grid item size={{ xs: 12 }}>
             <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
               <Typography color='inherit'>Diet</Typography>
               {/* <Link underline='hover' color='inherit' href='/diet/recipe/'>
@@ -303,7 +303,7 @@ const RecipeDetail = () => {
                         getRecipeDetailval={getRecipeDetailval}
                       />
 
-                      <Grid item md={8} xs={12}>
+                      <Grid item size={{ xs: 12, md: 8 }}>
                         <TabContext value={value}>
                           <TabList onChange={handleChange} aria-label='customized tabs example'>
                             <Tab

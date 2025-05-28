@@ -1539,10 +1539,7 @@ const IndividualRequest = () => {
                     >
                       <Grid
                         item
-                        xs={12}
-                        sm={6}
-                        md={6}
-                        lg={3}
+                        size={{ xs: 12, sm: 6, md: 6, lg: 3 }}
                         sx={{
                           display: 'flex',
                           flexDirection: 'column',
@@ -1612,10 +1609,7 @@ const IndividualRequest = () => {
 
                       <Grid
                         item
-                        xs={12}
-                        sm={6}
-                        md={6}
-                        lg={3}
+                        size={{ xs: 12, sm: 6, md: 6, lg: 3 }}
                         sx={{
                           display: 'flex',
                           flexDirection: 'column',
@@ -1720,10 +1714,7 @@ const IndividualRequest = () => {
 
                       <Grid
                         item
-                        xs={12}
-                        sm={6}
-                        md={6}
-                        lg={3}
+                        size={{ xs: 12, sm: 6, md: 6, lg: 3 }}
                         sx={{
                           display: 'flex',
                           flexDirection: 'column',
@@ -1790,7 +1781,7 @@ const IndividualRequest = () => {
                         </Typography>
                       </Grid>
 
-                      <Grid item xs={12} sm={6} md={6} lg={3}>
+                      <Grid item size={{ xs: 12, md: 6, sm: 6, lg: 3 }}>
                         <Box
                           sx={{
                             display: 'flex',
@@ -2076,7 +2067,11 @@ const IndividualRequest = () => {
                                         (selectedPharmacy.permission.key === 'ADD' ||
                                           selectedPharmacy.permission.key === 'allow_full_access') &&
                                         requestItems.status !== 'Cancelled' ? (
-                                          <Grid item xs={6} style={{ display: 'flex', justifyContent: 'right' }}>
+                                          <Grid
+                                            item
+                                            size={{ xs: 6 }}
+                                            style={{ display: 'flex', justifyContent: 'right' }}
+                                          >
                                             <Button
                                               size='big'
                                               variant='contained'
@@ -2662,7 +2657,6 @@ const IndividualRequest = () => {
                 }}
                 onClose={() => closeDialog()}
                 TransitionComponent={Transition}
-                onBackdropClick={() => closeDialog()}
               >
                 <Grid
                   container
@@ -2692,7 +2686,6 @@ const IndividualRequest = () => {
                 scroll='body'
                 onClose={() => closeShipDialog()}
                 TransitionComponent={Transition}
-                onBackdropClick={() => closeShipDialog()}
               >
                 <Grid
                   container

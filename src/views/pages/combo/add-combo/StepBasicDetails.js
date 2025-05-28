@@ -140,7 +140,7 @@ const StepBasicDetails = ({ handleNext, formData, uomList }) => {
       <form onSubmit={handleSubmit(onSubmit)}>
         <ScrollToFieldError errors={errors} />
         <Grid container spacing={5} sx={{ px: 5 }}>
-          <Grid item xs={12} sm={6}>
+          <Grid item size={{ xs: 12, sm: 6 }}>
             <FormControl fullWidth>
               <Controller
                 name='recipe_name'
@@ -309,7 +309,7 @@ const StepBasicDetails = ({ handleNext, formData, uomList }) => {
                 )}
               </FormControl>
             </Grid>
-            <Grid item xs={12} sm={3}>
+            <Grid item size={{xs: 12, sm: 3}} >
               <FormControl fullWidth>
                 <Controller
                   name='kcal'
@@ -343,13 +343,13 @@ const StepBasicDetails = ({ handleNext, formData, uomList }) => {
             <Typography variant='h6'>Add image</Typography>
           </Box>
           {console.log(uploadedImage, 'uploadedImage')}
-          <Grid item xs={6} sx={{ pt: 0 }}>
+          <Grid item size={{ xs: 6 }} sx={{ pt: 0 }}>
             <CardContent sx={{ px: 0, paddingTop: 2 }}>
               <CustomFileUploaderSingle onImageUpload={handleImageUpload} uploadedImagenew={uploadedImage} />
             </CardContent>
           </Grid>
 
-          <Grid item xs={12}>
+          <Grid item size={{ xs: 12 }}>
             <Box sx={{ display: 'flex', justifyContent: 'flex-end', my: 12 }}>
               <Button
                 color='secondary'

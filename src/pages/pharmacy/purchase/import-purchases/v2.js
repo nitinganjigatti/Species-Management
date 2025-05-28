@@ -251,7 +251,7 @@ const ValidateImportPurchase = () => {
             <form ref={formRef} autoComplete='off'>
               <CardContent>
                 <Grid container spacing={2}>
-                  <Grid item xs={12} sm={6} sx={{ my: 2, mx: 6 }}>
+                  <Grid item size={{ xs: 12, sm: 6 }} sx={{ my: 2, mx: 6 }}>
                     <FormControl fullWidth>
                       <FormLabel sx={{ m: 1 }}>Upload CSV file</FormLabel>
 
@@ -274,7 +274,7 @@ const ValidateImportPurchase = () => {
                     </FormControl>
                   </Grid>
                   {fileUploadErrors?.length > 0 ? (
-                    <Grid item xs={12} sm={12} sx={{ my: 2, mx: 6 }}>
+                    <Grid item size={{ xs: 12, sm: 12 }} sx={{ my: 2, mx: 6 }}>
                       <Card>
                         <CardHeader title='Rows with errors' />
                         <TableContainer component={Paper} sx={{ maxHeight: 440 }}>
@@ -310,7 +310,7 @@ const ValidateImportPurchase = () => {
                     </Grid>
                   ) : null}
                   {conflictProducts?.length > 0 ? (
-                    <Grid item xs={12} sm={12} sx={{ my: 2, mx: 6 }}>
+                    <Grid item size={{ xs: 12, sm: 12 }} sx={{ my: 2, mx: 6 }}>
                       <Card>
                         <CardHeader title='Conflict products' />
 
@@ -390,7 +390,7 @@ const ValidateImportPurchase = () => {
 
                   {uploadedFileData?.length > 0 ? (
                     <>
-                      <Grid item xs={12} sm={12} sx={{ my: 2, mx: 6 }}>
+                      <Grid item size={{ xs: 12, sm: 12 }} sx={{ my: 2, mx: 6 }}>
                         <Card>
                           <CardHeader title='Invoices good to upload' />
 
@@ -425,7 +425,7 @@ const ValidateImportPurchase = () => {
                     </>
                   ) : null}
                 </Grid>
-                <Grid item xs={12} sm={6} sx={{ mx: 6, my: 2 }}>
+                <Grid item size={{ xs: 12, sm: 6 }} sx={{ mx: 6, my: 2 }}>
                   {uploadedFileData?.length > 0 ? (
                     <LoadingButton
                       disabled={

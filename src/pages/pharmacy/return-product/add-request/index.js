@@ -685,8 +685,7 @@ const AddReturnRequest = () => {
         <Card>
           <Grid
             container
-            sm={12}
-            xs={12}
+            size={{ xs: 12, sm: 12 }}
             sx={{
               display: 'flex',
               justifyContent: 'space-between',
@@ -721,9 +720,9 @@ const AddReturnRequest = () => {
           <CardContent>
             <form>
               <Grid container spacing={5}>
-                <Grid item xs={12} sm={6}>
-                  <Grid xs={12} sm={12} sx={{ mb: 5 }}>
-                    <Grid xs={12} sm={12} sx={{ mb: 5 }}>
+                <Grid item size={{ xs: 12, sm: 6 }}>
+                  <Grid size={{ xs: 12, sm: 12 }} sx={{ mb: 5 }}>
+                    <Grid size={{ xs: 12, sm: 12 }} sx={{ mb: 5 }}>
                       <Typography variant='subtitle2' sx={{ mb: 3, color: 'text.primary', letterSpacing: '.1px' }}>
                         Returned to :
                       </Typography>
@@ -764,14 +763,14 @@ const AddReturnRequest = () => {
                     </FormControl>
                   </Grid>
                 </Grid>
-                <Grid item xs={12} sm={6}>
-                  <Grid xs={12} sm={12} sx={{ mb: 5 }}>
+                <Grid item size={{ xs: 12, sm: 6 }}>
+                  <Grid size={{ xs: 12, sm: 12 }} sx={{ mb: 5 }}>
                     <Typography variant='subtitle2' sx={{ mb: 3, color: 'text.primary', letterSpacing: '.1px' }}>
                       &nbsp;
                     </Typography>
                   </Grid>
 
-                  <Grid item xs={12} sm={12} lg={12} sx={{ mx: 'auto', mb: 5 }}>
+                  <Grid item size={{ xs: 12, sm: 12, lg: 12 }} sx={{ mx: 'auto', mb: 5 }}>
                     <FormControl fullWidth>
                       <SingleDatePicker
                         fullWidth
@@ -1004,7 +1003,7 @@ const AddReturnRequest = () => {
             ) : null}
           </CardContent> */}
 
-              <Grid item xs={12}>
+              <Grid item size={{ xs: 12 }}>
                 <Box sx={{ float: 'right', my: 4, mx: 6 }}>
                   {id ? (
                     <RequestCancelButton

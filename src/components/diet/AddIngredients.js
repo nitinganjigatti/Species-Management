@@ -809,7 +809,7 @@ const AddIngredients = props => {
                 >
                   {selectedCard.some(card => card.ingredient_id === item.id) ? (
                     // Render checkbox icon if card is selected
-                    <Box
+                    (<Box
                       onClick={event => removeSelectedCard(event, item.id)}
                       sx={{
                         width: '68px',
@@ -826,10 +826,10 @@ const AddIngredients = props => {
                       }}
                     >
                       <Checkbox checked sx={{ '& .MuiSvgIcon-root': { fontSize: 80 } }} />
-                    </Box>
+                    </Box>)
                   ) : (
                     // Render image if card is not selected
-                    <Box
+                    (<Box
                       sx={{
                         width: '68px',
                         height: '68px',
@@ -858,7 +858,7 @@ const AddIngredients = props => {
                       >
                         {item?.image ? null : <Icon icon='healthicons:fruits-outline' />}
                       </Avatar>
-                    </Box>
+                    </Box>)
                   )}
                   <Box sx={{ pt: 3, paddingRight: 4, paddingBottom: 4, width: '100%' }}>
                     <Tooltip title={item?.ingredient_name?.length > 50 ? item?.ingredient_name : ''}>
@@ -1148,7 +1148,7 @@ const AddIngredients = props => {
         </Box>
       </Drawer>
     </>
-  )
+  );
 }
 
 export default AddIngredients

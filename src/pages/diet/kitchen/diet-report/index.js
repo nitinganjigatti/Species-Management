@@ -52,6 +52,7 @@ const DietReportPage = () => {
       reportAlias: 'animal_wise_inventory_planning',
       downloadStatus: false
     }
+
     // {
     //   id: 4,
     //   reportName: 'Ingredient-Wise Inventory Estimate',
@@ -281,6 +282,7 @@ const DietReportPage = () => {
   const getTaxonomyListFunc = async (q, page_no) => {
     try {
       setTaxonomyLoading(true)
+
       const params = {
         search: q ? q : '',
         page_no: page_no ? page_no : paginationModel.page_no,
@@ -329,7 +331,7 @@ const DietReportPage = () => {
 
   return (
     <Grid container spacing={6}>
-      <Grid item xs={12}>
+      <Grid item size={{ xs: 12 }}>
         <Card>
           <CardHeader
             title={RenderUtility.pageTitle('Diet Reports')}
@@ -356,7 +358,7 @@ const DietReportPage = () => {
                 spacing={4}
                 sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
               >
-                <Grid item xs={8} sm={5} md={5}>
+                <Grid item size={{ xs: 8, sm: 5, md: 5 }}>
                   <CustomOptionDateRangePickers
                     onChange={handleDateRangeChange}
                     filterDates={{ startDate: filterDates.from_date, endDate: filterDates.to_date }}
@@ -364,7 +366,7 @@ const DietReportPage = () => {
                   />
                 </Grid>
 
-                <Grid item sm={4} xs={4}>
+                <Grid item size={{ xs: 4, sm: 4 }}>
                   <Grid container spacing={2} justifyContent={{ xs: 'flex-end' }}>
                     <Grid
                       item

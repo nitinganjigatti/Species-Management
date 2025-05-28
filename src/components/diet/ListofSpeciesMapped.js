@@ -108,8 +108,10 @@ const ListOfSpeciesMapped = ({
 
   const handelClose = () => {
     setIsOpennew(false)
+
     //refreshDietDetails()
     setspeciesview('')
+
     //setSearchQuery('')
     // setPrimaryStatus({}) // Reset primary status when closing
   }
@@ -224,7 +226,7 @@ const ListOfSpeciesMapped = ({
         </Box>
       </Box>
       {speciesview === 'details' ? (
-        <Grid item md={8} sm={8} xs={8}>
+        <Grid item size={{ md: 8, sm: 8, xs: 8 }}>
           <Box
             sx={{
               bgcolor: theme.palette.background.paper,
@@ -459,6 +461,7 @@ const ListOfSpeciesMapped = ({
                                   : '',
                               px: 2,
                               py: 1.5,
+
                               // height: '70px',
                               borderRadius: mappedSpecies.length > 1 ? '' : '5px',
                               borderTopRightRadius: mappedSpecies.length > 1 ? '0px' : '0px',

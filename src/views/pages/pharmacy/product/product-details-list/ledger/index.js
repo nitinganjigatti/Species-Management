@@ -948,7 +948,7 @@ function Ledger({ tabValue, updateUrlParams }) {
           flexWrap: 'wrap'
         }}
       >
-        <Grid item xs={12} sm={12} md={3} lg={3}>
+        <Grid item size={{ xs: 12, sm: 12, md: 3, lg: 3 }} md={3} lg={3}>
           <Box
             sx={{
               display: 'flex',
@@ -991,7 +991,7 @@ function Ledger({ tabValue, updateUrlParams }) {
           sx={{ flexWrap: { xs: 'wrap', md: 'nowrap' } }}
         >
           {/* Tabs Section */}
-          <Grid item xs={12} md='auto'>
+          <Grid item size={{ xs: 12, md: 'auto' }}>
             <Box
               sx={{
                 display: 'flex',
@@ -1068,8 +1068,7 @@ function Ledger({ tabValue, updateUrlParams }) {
             {/* Avatar Section */}
             <Grid
               item
-              xs={12}
-              sm='auto'
+              size={{ xs: 12, sm: 'auto' }}
               sx={{
                 display: 'flex',
                 justifyContent: { xs: 'center', sm: 'flex-start' }
@@ -1096,7 +1095,7 @@ function Ledger({ tabValue, updateUrlParams }) {
             <Grid item xs={12} sm>
               <Grid container spacing={12} justifyContent={{ xs: 'center', sm: 'flex-start' }}>
                 {/* Total Purchase */}
-                <Grid item xs={12} sm='auto'>
+                <Grid item size={{ xs: 12, sm: 'auto' }}>
                   <Box textAlign={{ xs: 'center', sm: 'left' }}>
                     <Typography
                       sx={{
@@ -1120,7 +1119,7 @@ function Ledger({ tabValue, updateUrlParams }) {
                 </Grid>
 
                 {/* Total Return */}
-                <Grid item xs={12} sm='auto'>
+                <Grid item size={{ xs: 12, sm: 'auto' }}>
                   <Box textAlign={{ xs: 'center', sm: 'left' }}>
                     <Typography
                       sx={{
@@ -1144,7 +1143,7 @@ function Ledger({ tabValue, updateUrlParams }) {
                 </Grid>
 
                 {/* Total Outgoing */}
-                <Grid item xs={12} sm='auto'>
+                <Grid item size={{ xs: 12, sm: 'auto' }}>
                   <Box textAlign={{ xs: 'center', sm: 'left' }}>
                     <Typography
                       sx={{

@@ -488,7 +488,7 @@ const DirectDispatchList = () => {
               >
                 <Grid container spacing={3}>
                   {/* Search Field */}
-                  <Grid item xs={12} sm={6} spacing={3} gap={3}>
+                  <Grid item size={{ xs: 12, sm: 6 }} spacing={3} gap={3}>
                     <Box
                       sx={{
                         display: 'flex',
@@ -524,8 +524,7 @@ const DirectDispatchList = () => {
                   {(status === 'all' || status === 'completed') && (
                     <Grid
                       item
-                      xs={12}
-                      sm={6}
+                      size={{ xs: 12, sm: 6 }}
                       sx={{ display: 'flex', justifyContent: { xs: 'flex-start', sm: 'flex-end' } }}
                     >
                       <FormControlLabel

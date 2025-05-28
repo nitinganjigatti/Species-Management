@@ -231,6 +231,7 @@ const AddDiet = () => {
       console.log(response, 'response')
       if (response.success === true && response.data !== null) {
         const data = response.data
+
         // Update formData state with the values from data
         setFormData(prevFormData => ({
           ...prevFormData,
@@ -247,6 +248,7 @@ const AddDiet = () => {
               if (time.toLowerCase().includes('am') || time.toLowerCase().includes('pm')) {
                 return dayjs(time, 'hh:mm A') // Parse 12-hour format
               }
+
               // Otherwise, assume it's in 24-hour format
               return dayjs(time, 'HH:mm')
             }
@@ -313,6 +315,7 @@ const AddDiet = () => {
     getcutsizeListFromApi()
     fetchData()
     getUnitsListuom()
+
     // callIngredientTypeList({ status: 1, page: 1, limit: 10 })
   }, [])
 
@@ -398,6 +401,7 @@ const AddDiet = () => {
       // Omitting child field from formData
       // const { child, ...formDataWithoutChild } = formData
       setLoader(true)
+
       const numericFormData = {
         // ...formDataWithoutChild,
         ...formData,
@@ -445,9 +449,11 @@ const AddDiet = () => {
         deleteCookie('dietTypeChildValues')
         deleteCookie('dietTypeChildVal')
         setLoader(false)
+
         return Toaster({ type: 'success', message: apival.message })
       } else {
         setLoader(false)
+
         return Toaster({
           type: 'error',
           message: apival?.message?.diet_image ? 'Image type only PNG and JPG is allowed' : apival?.message
@@ -455,6 +461,7 @@ const AddDiet = () => {
       }
     } else if (id && urlType === 'copy') {
       setLoader(true)
+
       const numericFormData = {
         //...formDataWithoutChild,
         ...formData,
@@ -511,9 +518,11 @@ const AddDiet = () => {
         deleteCookie('dietTypeChildValues')
         deleteCookie('dietTypeChildVal')
         setLoader(false)
+
         return Toaster({ type: 'success', message: apival.message })
       } else {
         setLoader(false)
+
         return Toaster({
           type: 'error',
           message: apival?.message?.diet_image ? 'Image type only PNG and JPG is allowed' : apival?.message
@@ -523,6 +532,7 @@ const AddDiet = () => {
       // Omitting child field from formData
       // const { child, ...formDataWithoutChild } = formData
       setLoader(true)
+
       const numericFormData = {
         //...formDataWithoutChild,
         ...formData,
@@ -580,9 +590,11 @@ const AddDiet = () => {
         deleteCookie('dietTypeChildValues')
         deleteCookie('dietTypeChildVal')
         setLoader(false)
+
         return Toaster({ type: 'success', message: apival.message })
       } else {
         setLoader(false)
+
         return Toaster({
           type: 'error',
           message: apival?.message?.diet_image ? 'Image type only PNG and JPG is allowed' : apival?.message
@@ -632,6 +644,7 @@ const AddDiet = () => {
             remarks={formData.remarks}
             onRemarksChange={handleRemarksChange}
             loader={loader}
+
             // onDietTypeChildValuesChange={handleDietTypeChildValuesChange}
             // diettypechildvalues={diettypechildvalues}
           />

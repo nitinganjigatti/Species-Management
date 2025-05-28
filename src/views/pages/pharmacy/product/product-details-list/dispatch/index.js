@@ -468,7 +468,7 @@ function Dispatch({ tabValue, updateUrlParams }) {
           flexWrap: 'wrap'
         }}
       >
-        <Grid item xs={12} sm={12} md={3} lg={3}>
+        <Grid item size={{ xs: 12, sm: 12, md: 3, lg: 3 }}>
           <Box
             sx={{
               display: 'flex',
@@ -502,8 +502,7 @@ function Dispatch({ tabValue, updateUrlParams }) {
       </Grid>
       <Grid
         container
-        sm={12}
-        xs={12}
+        size={{ xs: 12, sm: 12 }}
         sx={{
           display: 'flex',
           justifyContent: 'flex-end',
@@ -518,7 +517,7 @@ function Dispatch({ tabValue, updateUrlParams }) {
           justifyContent={{ xs: 'center', sm: 'space-between' }}
         >
           {/* Date Picker */}
-          <Grid item xs={12} sm='auto'>
+          <Grid item size={{ xs: 12, sm: 'auto' }}>
             <CommonDateRangePickers onChange={handleDateRangeChange} filterDates={filterDates} />
           </Grid>
 
@@ -534,7 +533,7 @@ function Dispatch({ tabValue, updateUrlParams }) {
             wrap='nowrap'
           >
             {/* Reference Type */}
-            <Grid item xs={12} sm={4} md={3}>
+            <Grid item size={{ xs: 12, sm: 4, md: 3 }}>
               <FormControl fullWidth size='small'>
                 <Autocomplete
                   id='reference-type-autocomplete'
@@ -554,7 +553,7 @@ function Dispatch({ tabValue, updateUrlParams }) {
             </Grid>
 
             {/* Dispatch To */}
-            <Grid item xs={12} sm={4} md={3}>
+            <Grid item size={{ xs: 12, sm: 4, md: 3 }}>
               <FormControl fullWidth size='small'>
                 <Autocomplete
                   id='dispatch-to-autocomplete'
@@ -572,7 +571,7 @@ function Dispatch({ tabValue, updateUrlParams }) {
             </Grid>
 
             {/* Requested By */}
-            <Grid item xs={12} sm={4} md={3}>
+            <Grid item size={{ xs: 12, sm: 4, md: 3 }}>
               <FormControl fullWidth size='small'>
                 <Autocomplete
                   id='requested-by-autocomplete'

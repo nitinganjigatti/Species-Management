@@ -583,7 +583,7 @@ const AddDebitForm = () => {
         // addItemsToTable={addMultipleMedicine(addItemsToTable)}
         >
           <Grid container spacing={5}>
-            <Grid item xs={12} sm={6}>
+            <Grid item size={{ xs: 12, sm: 6 }}>
               <FormControl fullWidth>
                 <Autocomplete
                   inputProps={{ tabIndex: '6' }}
@@ -628,7 +628,7 @@ const AddDebitForm = () => {
                 )}
               </FormControl>
             </Grid>
-            <Grid item xs={12} sm={6}>
+            <Grid item size={{ xs: 12, sm: 6 }}>
               {/* purchase_expiry_date */}
               <FormControl fullWidth>
                 <SingleDatePicker
@@ -661,7 +661,7 @@ const AddDebitForm = () => {
                 )}
               </FormControl>
             </Grid>
-            <Grid item xs={12} sm={6}>
+            <Grid item size={{ xs: 12, sm: 6 }}>
               <FormControl fullWidth>
                 <TextField
                   type='number'
@@ -686,7 +686,7 @@ const AddDebitForm = () => {
                 )}
               </FormControl>
             </Grid>
-            <Grid item xs={12} sm={6}>
+            <Grid item size={{ xs: 12, sm: 6 }}>
               <FormControl fullWidth>
                 <TextField
                   type='number'
@@ -714,7 +714,7 @@ const AddDebitForm = () => {
                 )}
               </FormControl>
             </Grid>
-            <Grid item xs={12} sm={6}>
+            <Grid item size={{ xs: 12, sm: 6 }}>
               <FormControl fullWidth>
                 <TextField
                   type='Number'
@@ -736,7 +736,7 @@ const AddDebitForm = () => {
             </Grid>
             {nestedRowMedicine.gst_type ? (
               <>
-                <Grid item xs={12} sm={6}>
+                <Grid item size={{ xs: 12, sm: 6 }}>
                   <FormControl fullWidth>
                     <TextField
                       type='text'
@@ -756,7 +756,7 @@ const AddDebitForm = () => {
                     )}
                   </FormControl>
                 </Grid>
-                <Grid item xs={12} sm={6}>
+                <Grid item size={{ xs: 12, sm: 6 }}>
                   <FormControl fullWidth>
                     <TextField
                       type='number'
@@ -779,7 +779,7 @@ const AddDebitForm = () => {
               </>
             ) : null}
 
-            <Grid item xs={12} sm={6}>
+            <Grid item size={{ xs: 12, sm: 6 }}>
               <FormControl fullWidth>
                 <TextField
                   type='text'
@@ -799,7 +799,7 @@ const AddDebitForm = () => {
               </FormControl>
             </Grid>
 
-            <Grid item xs={12}>
+            <Grid item size={{ xs: 12 }}>
               {medicineItemId ? (
                 <>
                   <Button
@@ -859,8 +859,7 @@ const AddDebitForm = () => {
     <Card>
       <Grid
         container
-        sm={12}
-        xs={12}
+        size={{ xs: 12, sm: 12 }}
         sx={{
           display: 'flex',
           justifyContent: 'space-between',
@@ -897,13 +896,13 @@ const AddDebitForm = () => {
       <CardContent>
         <form>
           <Grid container spacing={5}>
-            <Grid item xs={12} sm={6}>
-              <Grid xs={12} sm={12} sx={{ mb: 5 }}>
+            <Grid item size={{ xs: 12, sm: 6 }}>
+              <Grid size={{ xs: 12, sm: 12 }} sx={{ mb: 5 }}>
                 <Typography variant='subtitle2' sx={{ mb: 3, color: 'text.primary', letterSpacing: '.1px' }}>
                   Supplier :
                 </Typography>
               </Grid>
-              <Grid xs={12} sm={12} sx={{ mx: 'auto', mb: 5 }}>
+              <Grid size={{ xs: 12, sm: 12 }} sx={{ mx: 'auto', mb: 5 }}>
                 <FormControl fullWidth>
                   <InputLabel error={Boolean(errors.supplier_id)}>Supplier</InputLabel>
                   <Select
@@ -936,7 +935,7 @@ const AddDebitForm = () => {
                 </FormControl>
               </Grid>
               {editParams.debit_note_no ? (
-                <Grid item xs={12} sm={12} lg={12} sx={{ mx: 'auto', mb: 5 }}>
+                <Grid item size={{ xs: 12, sm: 12, lg: 12 }} sx={{ mx: 'auto', mb: 5 }}>
                   <FormControl fullWidth>
                     <TextField
                       type='text'
@@ -962,7 +961,7 @@ const AddDebitForm = () => {
                   </FormControl>
                 </Grid>
               ) : null}
-              <Grid item xs={12} sm={12} lg={12} sx={{ mx: 'auto', mb: 5 }}>
+              <Grid item size={{ xs: 12, sm: 12, lg: 12 }} sx={{ mx: 'auto', mb: 5 }}>
                 <FormControl fullWidth>
                   <TextField
                     type='text'
@@ -986,8 +985,8 @@ const AddDebitForm = () => {
               </Grid>
             </Grid>
             <Grid item xs={12} sm={6}>
-              <Grid xs={12} sm={12} sx={{ mb: 5 }}>
-                <Grid xs={12} sm={12} sx={{ mb: 5 }}>
+              <Grid size={{ xs: 12, sm: 12 }} sx={{ mb: 5 }}>
+                <Grid size={{ xs: 12, sm: 12 }} sx={{ mb: 5 }}>
                   <Typography variant='subtitle2' sx={{ mb: 3, color: 'text.primary', letterSpacing: '.1px' }}>
                     Store:
                   </Typography>
@@ -1029,7 +1028,7 @@ const AddDebitForm = () => {
                   )}
                 </FormControl>
               </Grid>
-              <Grid item xs={12} sm={12} lg={12} sx={{ mx: 'auto', mb: 5 }}>
+              <Grid item size={{ xs: 12, sm: 12, lg: 12 }} sx={{ mx: 'auto', mb: 5 }}>
                 <FormControl fullWidth>
                   <SingleDatePicker
                     fullWidth
@@ -1056,8 +1055,7 @@ const AddDebitForm = () => {
       </CardContent>
       <Grid
         container
-        sm={12}
-        xs={12}
+        size={{ xs: 12, sm: 12 }}
         sx={{
           display: 'flex',
           justifyContent: 'flex-end',
@@ -1144,9 +1142,7 @@ const AddDebitForm = () => {
         <Grid container>
           <Grid
             item
-            xs={12}
-            sm={3}
-            lg={3}
+            size={{ xs: 12, sm: 3, lg: 3 }}
             sx={{
               mb: { sm: 0, xs: 4 },
               order: { sm: 2, xs: 1 },
@@ -1175,7 +1171,7 @@ const AddDebitForm = () => {
 
             <CalcWrapper>
               <Grid container sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                <Grid item xs={12} sm={5}>
+                <Grid item size={{ xs: 12, sm: 5 }}>
                   <FormControl fullWidth>
                     <InputLabel>Discount</InputLabel>
                     <Select
@@ -1193,7 +1189,7 @@ const AddDebitForm = () => {
                     </Select>
                   </FormControl>
                 </Grid>
-                <Grid item xs={12} sm={5}>
+                <Grid item size={{ xs: 12, sm: 5 }}>
                   <FormControl fullWidth>
                     <TextField
                       type='text'

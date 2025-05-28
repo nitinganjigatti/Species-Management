@@ -64,6 +64,15 @@ const CustomDataGrid = styled(DataGrid)(({ theme }) => ({
   },
   '.MuiDataGrid-menuIcon': {
     display: 'none'
+  },
+  '.MuiDataGrid-main': {
+    borderLeft: '1px solid #0000000D',
+    borderRight: '1px solid #0000000D',
+    borderRadius: '8px',
+    border: '1px solid rgba(233, 233, 236, 1)'
+  },
+  '& .MuiDataGrid-footerContainer': {
+    borderTop: 'none'
   }
 }))
 
@@ -108,6 +117,7 @@ const IncubatorDetails = () => {
   const calculatePercentageChange = (value1, value2) => {
     // initial_weight
     const numValue1 = parseFloat(value1)
+
     // current_weight
     const numValue2 = parseFloat(value2)
 
@@ -880,7 +890,7 @@ const IncubatorDetails = () => {
               <DetailCard radius={'8px'} DetailsListData={incubatorDetailList} />
 
               <Grid container columns={15} spacing={6}>
-                <Grid item xs={3}>
+                <Grid item size={{ xs: 3 }}>
                   <Box
                     sx={{
                       display: 'flex',
@@ -910,7 +920,7 @@ const IncubatorDetails = () => {
                     />
                   </Box>
                 </Grid>
-                <Grid item xs={3}>
+                <Grid item size={{ xs: 3 }}>
                   <Box sx={{ display: 'flex', position: 'relative' }}>
                     <LocalizationProvider dateAdapter={AdapterDayjs}>
                       <DatePicker
@@ -993,7 +1003,7 @@ const IncubatorDetails = () => {
                     )}
                   </Box>
                 </Grid>
-                <Grid item xs={3}>
+                <Grid item size={{ xs: 3 }}>
                   <Box sx={{ display: 'flex', position: 'relative' }}>
                     <LocalizationProvider dateAdapter={AdapterDayjs}>
                       <DatePicker
@@ -1079,7 +1089,7 @@ const IncubatorDetails = () => {
                   </Box>
                 </Grid>
 
-                <Grid item xs={3}>
+                <Grid item size={{ xs: 3 }}>
                   <FormControl fullWidth>
                     <Autocomplete
                       name='species'

@@ -13,7 +13,7 @@ const TotalListCard = ({ data, modifiedProperties }) => {
       <Grid container spacing={2}>
         {data?.map((item, index) => {
           return (
-            <Grid item xs={6} sm={4} lg={12 / 4} key={index}>
+            <Grid item size={{ xs: 6, sm: 4, lg: 12 / 4 }} key={index}>
               <CardStatisticsHorizontal
                 title={<span style={{ color: '#44544A', fontSize: '14px' }}>{modifiedProperties(item.name).name}</span>}
                 stats={Math.round(item.value)}

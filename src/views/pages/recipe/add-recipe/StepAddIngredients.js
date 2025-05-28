@@ -202,6 +202,7 @@ const StepAddIngredients = ({
           mb: 5,
           px: 4,
           mt: 4,
+
           //float: 'left',
           color: '#37BD69',
           display: 'flex',
@@ -354,6 +355,7 @@ const StepAddIngredients = ({
       item => item.ingredient_id && item.quantity && item.preparation_type_id
     )
     console.log(data, 'data')
+
     // Check if all entries in by_quantity have all required fields
     const isByQuantityValid = data.by_quantity.every(
       item => item.ingredient_id && item.quantity && item.uom_id && item.preparation_type_id && item.cut_size_id
@@ -362,6 +364,7 @@ const StepAddIngredients = ({
     // If both arrays are empty or have incomplete entries, show an error
     if (data.by_quantity.length === 0) {
       window.scrollTo(0, 0)
+
       //return toast.error('Please fill in all fields in either "By Percentage" or "By Quantity".')
       return Toaster({
         type: 'error',
@@ -392,6 +395,7 @@ const StepAddIngredients = ({
         'cut_size_id'
       ])
       window.scrollTo(0, 0)
+
       //return toast.error(`Please fill in all fields in "By Quantity" at index ${firstIncompleteIndex + 1}.`)
       return Toaster({
         type: 'error',
@@ -401,6 +405,7 @@ const StepAddIngredients = ({
 
     if (!isByQuantityValid || data.by_quantity.some(item => item.cut_size_id === 'null' || item.cut_size_id === '0')) {
       window.scrollTo(0, 0)
+
       //return toast.error('Please fill in all fields in either "By Percentage" or "By Quantity".')
       return Toaster({
         type: 'error',
@@ -859,7 +864,7 @@ const StepAddIngredients = ({
                 </Grid>
               ))}
             </Grid> */}
-            <Grid item xs={12}>
+            <Grid item size={{ xs: 12 }}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4, mt: 2, mr: 4 }}>
                 <Typography variant='h6'>Add Ingredient- by Quantity</Typography>
                 <AddButton title='Add Cut Size' action={() => addEventSidebarOpen()} />
@@ -883,7 +888,12 @@ const StepAddIngredients = ({
               >
                 <Grid container spacing={5} sx={{ px: 5, background: '#E8F4F2', my: 2, borderRadius: 0.5, mx: 4 }}>
                   {ingredientsbyqun.map((ingredient, index) => (
-                    <Grid item xs={12} sm={ingredient.label !== 'Quantity' ? 2.4 : 2} key={index} sx={{ py: 4 }}>
+                    <Grid
+                      item
+                      size={{ xs: 12, sm: ingredient.label !== 'Quantity' ? 2.4 : 2 }}
+                      key={index}
+                      sx={{ py: 4 }}
+                    >
                       <Typography sx={{ textTransform: 'uppercase', fontSize: 14, fontWeight: 600 }}>
                         {ingredient.label}
                       </Typography>
@@ -899,7 +909,7 @@ const StepAddIngredients = ({
                       id={'testnew' + index}
                     >
                       <ScrollToFieldError errors={errors} index={index} />
-                      <Grid item xs={12} sm={2.3}>
+                      <Grid item size={{ xs: 12, sm: 2.3 }}>
                         <FormControl fullWidth>
                           <Controller
                             name={`by_quantity[${index}].ingredient_id`}
@@ -964,7 +974,7 @@ const StepAddIngredients = ({
                         </FormControl>
                       </Grid>
 
-                      <Grid item xs={12} sm={2.3}>
+                      <Grid item size={{ xs: 12, sm: 2.3 }}>
                         <FormControl fullWidth>
                           <Controller
                             name={`by_quantity[${index}].quantity`}
@@ -1001,7 +1011,7 @@ const StepAddIngredients = ({
                           )}
                         </FormControl>
                       </Grid>
-                      <Grid item xs={12} sm={2.3}>
+                      <Grid item size={{ xs: 12, sm: 2.3 }}>
                         <FormControl fullWidth>
                           <Controller
                             name={`by_quantity[${index}].uom_id`}
@@ -1009,6 +1019,7 @@ const StepAddIngredients = ({
                             rules={{ required: true }}
                             render={({ field: { value, onChange } }) => {
                               console.log(value, 'value')
+
                               return (
                                 <Autocomplete
                                   sx={{
@@ -1056,7 +1067,7 @@ const StepAddIngredients = ({
                           )}
                         </FormControl>
                       </Grid>
-                      <Grid item xs={12} sm={2.3}>
+                      <Grid item size={{ xs: 12, sm: 2.3 }}>
                         <FormControl fullWidth>
                           <Controller
                             name={`by_quantity[${index}].preparation_type_id`}
@@ -1110,7 +1121,7 @@ const StepAddIngredients = ({
                         </FormControl>
                       </Grid>
 
-                      <Grid item xs={12} sm={2.3}>
+                      <Grid item size={{ xs: 12, sm: 2.3 }}>
                         <FormControl fullWidth>
                           <Controller
                             name={`by_quantity[${index}].cut_size`}
@@ -1118,6 +1129,7 @@ const StepAddIngredients = ({
                             rules={{ required: true }}
                             render={({ field: { value, onChange } }) => {
                               console.log(value, 'value')
+
                               return (
                                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                                   <Autocomplete
@@ -1169,7 +1181,7 @@ const StepAddIngredients = ({
               <Box sx={{ mb: 4, float: 'left' }}>
                 <Typography variant='h6'>Add Description</Typography>
               </Box>
-              <Grid item xs={12}>
+              <Grid item size={{ xs: 12 }}>
                 <Controller
                   name='desc'
                   control={control}
@@ -1192,7 +1204,7 @@ const StepAddIngredients = ({
             </Grid>
           </Grid>
 
-          <Grid item xs={12}>
+          <Grid item size={{ xs: 12 }}>
             <Box sx={{ display: 'flex', justifyContent: 'flex-end', my: 12 }}>
               <Button
                 color='secondary'

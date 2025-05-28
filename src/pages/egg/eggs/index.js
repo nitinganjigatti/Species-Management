@@ -363,6 +363,7 @@ const EggList = () => {
                   handleAction={handleAction}
                   setAllocationValues={setAllocationValues}
                   condition={params.row.egg_condition}
+
                   // hover={hover} setHover={setHover}
                 />
               </div>
@@ -602,6 +603,7 @@ const EggList = () => {
                   setEggId={setEggId}
                   handleAction={handleAction}
                   setAllocationValues={setAllocationValues}
+
                   // hover={hover} setHover={setHover}
                 />
               </div>
@@ -1950,6 +1952,7 @@ const EggList = () => {
       // debugger
       try {
         setLoading(true)
+
         // Extracting IDs from selectedFiltersOptions
         // const nurseryIds = selectedFiltersOptions.Nursery?.map(option => option.id) || []
         const eggStateIds = selectedFiltersOptions.Stage?.map(option => option.id) || []
@@ -2117,7 +2120,8 @@ const EggList = () => {
         <Autocomplete
           sx={{
             width: 250,
-            m: 2,
+
+            // m: 2,
             ml: 5
           }}
           name='nursery'
@@ -2361,6 +2365,7 @@ const EggList = () => {
                     loading={loading}
                     searchValue={searchValue}
                     maxHeight='70vh'
+                    externalTableStyle={{ mx: 4 }}
                   />
                 </Box>
               </TabPanel>
@@ -2496,6 +2501,7 @@ const EggList = () => {
 }
 
 export default EggList
+
 // label={<TabBadge label='Hatched' totalCount={status === 'eggs_hatched' ? total : null} />}
 
 {

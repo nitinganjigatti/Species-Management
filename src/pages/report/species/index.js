@@ -152,6 +152,8 @@ const SpeciesReport = () => {
       } else if (response.success) {
         const { header, datalist, total_count } = response.data || {}
 
+        console.log(response)
+
         // setDataList(datalist || [])
         // if (setHeaders) setHeaderList(header)
         setTotal(total_count)
@@ -326,10 +328,88 @@ const SpeciesReport = () => {
     }
   }, [fetchData])
 
-  const columns = headerList.map(header => {
+  // const columns = headerList.map(header => {
+  //   if (header.key.includes('default_icon')) {
+  //     return {
+  //       field: 'speciesAndCommonName',
+  //       headerName: header.label,
+  //       isAvatar: true,
+  //       sortable: false,
+  //       disableColumnMenu: true,
+  //       width: 400,
+  //       renderCell: params => (
+  //         <CardHeader
+  //           avatar={
+  //             <img
+  //               src={params.row.default_icon}
+  //               alt={params.row.common_name}
+  //               style={{ width: 40, height: 40, borderRadius: '50%' }}
+  //             />
+  //           }
+  //           title={
+  //             <Typography sx={{ fontSize: '16px', fontWeight: 500, fontFamily: 'Inter', color: '#006D35' }}>
+  //               {params.row.common_name}
+  //             </Typography>
+  //           }
+  //           subheader={
+  //             <Typography
+  //               sx={{ fontSize: '14px', fontWeight: 400, fontFamily: 'Inter', fontStyle: 'italic', color: '#006D35' }}
+  //               variant='body2'
+  //             >
+  //               {params.row.scientific_name}
+  //             </Typography>
+  //           }
+  //         />
+  //       )
+  //     }
+  //   }
+
+  //   return {
+  //     field: header.key,
+  //     headerName: header.label,
+  //     width: 200,
+  //     sortable: false,
+  //     disableColumnMenu: true,
+  //     textAlign: 'center',
+  //     renderCell: params => (
+  //       <Box
+  //         sx={{
+  //           width: ['Male', 'Female', 'Indeterminate', 'Undetermined'].includes(header.label) ? '50px' : '90px',
+  //           height: '25px',
+  //           backgroundColor: getCellBackgroundColor(header.label),
+  //           color: getCellTextColor(header.label),
+  //           fontWeight: 400,
+  //           borderRadius: '4px',
+  //           display: 'flex',
+  //           alignItems: 'center',
+  //           justifyContent: ['Male', 'Female', 'Indeterminate', 'Undetermined'].includes(header.label)
+  //             ? 'center'
+  //             : header.label === 'total'
+  //             ? 'flex-end'
+  //             : 'flex-start',
+  //           textAlign: ['Male', 'Female', 'Indeterminate', 'Undetermined'].includes(header.label)
+  //             ? 'center'
+  //             : header.label === 'total'
+  //             ? 'right'
+  //             : 'left'
+  //         }}
+  //       >
+  //         {params?.value
+  //           ? params?.value
+  //           : ['Male', 'Female', 'Indeterminate', 'Undetermined', 'Total'].includes(header.label) &&
+  //             params?.value === undefined
+  //           ? 0
+  //           : '-'}
+  //       </Box>
+  //     )
+  //   }
+  // })
+
+  const columns = headerList.map((header, index) => {
+    // Check if this is the species column (contains default_icon)
     if (header.key.includes('default_icon')) {
       return {
-        field: 'speciesAndCommonName',
+        field: 'speciesAndCommonName', // Use a custom field name
         headerName: header.label,
         isAvatar: true,
         sortable: false,
@@ -339,14 +419,14 @@ const SpeciesReport = () => {
           <CardHeader
             avatar={
               <img
-                src={params.row.default_icon}
-                alt={params.row.common_name}
+                src={params.row.default_icon || '/placeholder-image.png'}
+                alt={params.row.common_name || 'Species'}
                 style={{ width: 40, height: 40, borderRadius: '50%' }}
               />
             }
             title={
               <Typography sx={{ fontSize: '16px', fontWeight: 500, fontFamily: 'Inter', color: '#006D35' }}>
-                {params.row.common_name}
+                {params.row.common_name || ''}
               </Typography>
             }
             subheader={
@@ -354,7 +434,7 @@ const SpeciesReport = () => {
                 sx={{ fontSize: '14px', fontWeight: 400, fontFamily: 'Inter', fontStyle: 'italic', color: '#006D35' }}
                 variant='body2'
               >
-                {params.row.scientific_name}
+                {params.row.scientific_name || ''}
               </Typography>
             }
           />
@@ -362,44 +442,50 @@ const SpeciesReport = () => {
       }
     }
 
+    // For other columns, use the first key from the array
+    const fieldKey = Array.isArray(header.key) ? header.key[0] : header.key
+
     return {
-      field: header.key,
+      field: fieldKey,
       headerName: header.label,
       width: 200,
       sortable: false,
       disableColumnMenu: true,
       textAlign: 'center',
-      renderCell: params => (
-        <Box
-          sx={{
-            width: ['Male', 'Female', 'Indeterminate', 'Undetermined'].includes(header.label) ? '50px' : '90px',
-            height: '25px',
-            backgroundColor: getCellBackgroundColor(header.label),
-            color: getCellTextColor(header.label),
-            fontWeight: 400,
-            borderRadius: '4px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: ['Male', 'Female', 'Indeterminate', 'Undetermined'].includes(header.label)
-              ? 'center'
-              : header.label === 'total'
-              ? 'flex-end'
-              : 'flex-start',
-            textAlign: ['Male', 'Female', 'Indeterminate', 'Undetermined'].includes(header.label)
-              ? 'center'
-              : header.label === 'total'
-              ? 'right'
-              : 'left'
-          }}
-        >
-          {params?.value
-            ? params?.value
-            : ['Male', 'Female', 'Indeterminate', 'Undetermined', 'Total'].includes(header.label) &&
-              params?.value === undefined
-            ? 0
-            : '-'}
-        </Box>
-      )
+      renderCell: params => {
+        // Get the value using the field key
+        const rawValue = params.row[fieldKey]
+
+        // Convert to string safely
+        const displayValue = rawValue !== null && rawValue !== undefined ? String(rawValue) : ''
+
+        // Handle specific cases for gender/total columns
+        const isGenderColumn = ['Male', 'Female', 'Indeterminate', 'Undetermined'].includes(header.label)
+        const isTotalColumn = header.label === 'Total'
+
+        // For gender and total columns, show 0 if value is empty
+        const finalDisplayValue =
+          (isGenderColumn || isTotalColumn) && (!displayValue || displayValue === '') ? '0' : displayValue || '-'
+
+        return (
+          <Box
+            sx={{
+              width: isGenderColumn ? '50px' : '90px',
+              height: '25px',
+              backgroundColor: getCellBackgroundColor(header.label),
+              color: getCellTextColor(header.label),
+              fontWeight: 400,
+              borderRadius: '4px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: isGenderColumn ? 'center' : isTotalColumn ? 'flex-end' : 'flex-start',
+              textAlign: isGenderColumn ? 'center' : isTotalColumn ? 'right' : 'left'
+            }}
+          >
+            {finalDisplayValue}
+          </Box>
+        )
+      }
     }
   })
 
@@ -753,9 +839,10 @@ const SpeciesReport = () => {
                     sx={{
                       mt: 3,
                       borderRadius: '8px',
-                      '.MuiDataGrid-cell:focus': {
-                        outline: 'none'
-                      },
+
+                      // '.MuiDataGrid-cell:focus': {
+                      //   outline: 'none'
+                      // },
                       '& .MuiDataGrid-columnHeader': {
                         backgroundColor: '#DDEBE9',
                         color: '#1F415B',

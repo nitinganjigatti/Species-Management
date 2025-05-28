@@ -1812,7 +1812,7 @@ const RequestDetails = () => {
             <Box sx={{ mt: 6 }}>
               <form onSubmit={handleSubmit(onSubmit)}>
                 <Grid container spacing={4}>
-                  <Grid item xs={6} md={6} sm={6} sx={{ mb: 2 }}>
+                  <Grid item size={{ xs: 6, sm: 6, md: 6 }} sx={{ mb: 2 }}>
                     <FormControl fullWidth>
                       <Controller
                         name='lab_name'
@@ -1841,7 +1841,7 @@ const RequestDetails = () => {
                       )}
                     </FormControl>
                   </Grid>
-                  <Grid item xs={6} md={6} sm={6} sx={{ mb: 2 }}>
+                  <Grid item size={{ xs: 6, sm: 6, md: 6 }} sx={{ mb: 2 }}>
                     <FormControl fullWidth>
                       <InputLabel error={Boolean(errors?.replaced_lab_id)} id='lab_type'>
                         Transfer To
@@ -1882,7 +1882,7 @@ const RequestDetails = () => {
                       )}
                     </FormControl>
                   </Grid>
-                  <Grid item xs={12} md={12} sm={6} sx={{ mb: 2 }}>
+                  <Grid item size={{ xs: 12, sm: 6, md: 12 }} sx={{ mb: 2 }}>
                     <FormControl fullWidth mt={2}>
                       <Controller
                         name='transfer_reason'

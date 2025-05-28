@@ -177,7 +177,7 @@ const ActivityLogs = ({
                 {activitydata?.map((item, index) => (
                   <Box key={index}>
                     <Grid container spacing={3}>
-                      <Grid item xs='auto'>
+                      <Grid item size={{ xs: 'auto' }}>
                         <Box
                           sx={{
                             display: 'flex',
@@ -211,7 +211,7 @@ const ActivityLogs = ({
                           justifyContent: 'center'
                         }}
                         item
-                        xs
+                        size='grow'
                       >
                         <Box
                           sx={{

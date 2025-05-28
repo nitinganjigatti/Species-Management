@@ -510,7 +510,7 @@ const AddIngredient = () => {
                       1. Ingredient details
                     </Typography>
                     <Grid container sx={{ justifyContent: 'space-between', rowGap: '20px' }}>
-                      <Grid item xs={12} sm={3.9} md={3.9}>
+                      <Grid item size={{ xs: 12, md: 3.9, sm: 3.9 }}>
                         <FormControl fullWidth>
                           <Controller
                             name='ingredientName'
@@ -535,7 +535,7 @@ const AddIngredient = () => {
                         </FormControl>
                       </Grid>
 
-                      <Grid item xs={12} sm={3.9} md={3.9}>
+                      <Grid item size={{ xs: 12, md: 3.9, sm: 3.9 }}>
                         <FormControl fullWidth>
                           <Controller
                             name='ingredientAlias'
@@ -554,7 +554,7 @@ const AddIngredient = () => {
                         </FormControl>
                       </Grid>
 
-                      <Grid item xs={12} sm={3.9} md={3.9}>
+                      <Grid item size={{ xs: 12, md: 3.9, sm: 3.9 }}>
                         <FormControl fullWidth>
                           <Controller
                             name='feedType'
@@ -600,7 +600,7 @@ const AddIngredient = () => {
                         </FormControl>
                       </Grid>
 
-                      <Grid item xs={12} sm={5.9} md={5.9}>
+                      <Grid item size={{ xs: 12, md: 5.9, sm: 5.9 }}>
                         <FormControl fullWidth>
                           <Controller
                             name='waterPercentage'
@@ -630,7 +630,7 @@ const AddIngredient = () => {
                         </FormControl>
                       </Grid>
 
-                      <Grid item xs={12} sm={5.9} md={5.9}>
+                      <Grid item size={{ xs: 12, md: 5.9, sm: 5.9 }}>
                         <FormControl fullWidth>
                           <Controller
                             name='dryMatterPercentage'
@@ -668,7 +668,7 @@ const AddIngredient = () => {
 
                     <Typography sx={{ my: '20px', fontSize: 20, fontWeight: 500 }}>2. Calories</Typography>
                     <Grid container sx={{ justifyContent: 'space-between', rowGap: '20px' }}>
-                      <Grid item xs={12} md={3.9}>
+                      <Grid item size={{ xs: 12, md: 3.9 }}>
                         <FormControl fullWidth>
                           <Controller
                             name='nutritionalValuesPer'
@@ -694,7 +694,7 @@ const AddIngredient = () => {
                           )}
                         </FormControl>
                       </Grid>
-                      <Grid item xs={12} md={3.9}>
+                      <Grid item size={{ xs: 12, md: 3.9 }}>
                         <FormControl fullWidth>
                           <Controller
                             name='uom'
@@ -735,7 +735,7 @@ const AddIngredient = () => {
                           )}
                         </FormControl>
                       </Grid>
-                      <Grid item xs={12} md={3.9}>
+                      <Grid item size={{ xs: 12, md: 3.9 }}>
                         <FormControl fullWidth>
                           <Controller
                             name='calorie'
@@ -769,7 +769,7 @@ const AddIngredient = () => {
                     <Typography sx={{ mt: '32px', fontSize: 20, fontWeight: 500 }}>3. Description</Typography>
 
                     <Grid container sx={{ justifyContent: 'space-between', mt: '20px' }}>
-                      <Grid item xs={12}>
+                      <Grid item size={{ xs: 12 }}>
                         <FormControl fullWidth>
                           <Controller
                             name='description'
@@ -806,7 +806,7 @@ const AddIngredient = () => {
 
                     <Grid container sx={{ justifyContent: 'space-between', mt: '20px' }}>
                       {imgSrc !== '' ? null : (
-                        <Grid item xs={12} sm={9} md={5.9}>
+                        <Grid item size={{ xs: 12, md: 5.9, sm: 9 }}>
                           <input
                             type='file'
                             accept='image/*'
@@ -835,7 +835,7 @@ const AddIngredient = () => {
                           </Box>
                         </Grid>
                       )}
-                      <Grid item md={5.9}>
+                      <Grid item size={{ md: 5.9 }}>
                         {imgSrc !== '' && (
                           <Box sx={{ display: 'flex' }}>
                             <Box
@@ -910,7 +910,7 @@ const AddIngredient = () => {
                     </Box>
 
                     <Grid container sx={{ justifyContent: 'space-between', mt: '20px' }}>
-                      <Grid item xs={12}>
+                      <Grid item size={{ xs: 12 }}>
                         <FormControl sx={{ mb: 6 }} fullWidth>
                           <Controller
                             name='preprationTypes'
@@ -942,7 +942,7 @@ const AddIngredient = () => {
                         </FormControl>
                       </Grid>
                     </Grid>
-                    <Grid item xs={12} sm={12} md={5}>
+                    <Grid item size={{ xs: 12, md: 5, sm: 12 }}>
                       <Grid
                         sx={{
                           height: '100%',

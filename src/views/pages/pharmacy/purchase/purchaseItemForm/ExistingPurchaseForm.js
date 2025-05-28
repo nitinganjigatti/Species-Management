@@ -365,10 +365,9 @@ const ExistingPurchaseForm = props => {
   useEffect(() => {
     if (productExpiryDate !== '') {
       setValue('purchase_expiry_date', dayjs(productExpiryDate), { shouldValidate: true })
-      if(nestedRowMedicine?.purchase_variant_id != 0)
+      if (nestedRowMedicine?.purchase_variant_id != 0)
         setValue('purchase_variant_id', nestedRowMedicine?.purchase_variant_id, { shouldValidate: true })
-      else
-        setValue('purchase_variant_id', nestedRowMedicine?.purchase_variant_id)
+      else setValue('purchase_variant_id', nestedRowMedicine?.purchase_variant_id)
       setValue('purchase_variant_ratio', nestedRowMedicine?.purchase_variant_ratio)
       const totalUnitQty = checkNumber(nestedRowMedicine?.purchase_variant_ratio * nestedRowMedicine?.purchase_qty)
       setValue('isVariantIdPresent', true)
@@ -419,7 +418,7 @@ const ExistingPurchaseForm = props => {
   return (
     <form autoComplete='off' onSubmit={handleSubmit(onSubmit)}>
       <Grid container spacing={5}>
-        <Grid item xs={12} sm={6}>
+        <Grid item size={{ xs: 12, sm: 6 }}>
           <FormControl fullWidth>
             <Controller
               name='product'
@@ -518,7 +517,7 @@ const ExistingPurchaseForm = props => {
             )}
           </FormControl>
         </Grid>
-        <Grid item xs={12} sm={6}>
+        <Grid item size={{ xs: 12, sm: 6 }}>
           <FormControl fullWidth>
             <Controller
               name='purchase_batch_no'
@@ -552,7 +551,7 @@ const ExistingPurchaseForm = props => {
         </Grid>
 
         {!nonMedicalProduct && (
-          <Grid item xs={12} sm={6}>
+          <Grid item size={{ xs: 12, sm: 6 }}>
             <FormControl fullWidth>
               {expiryDateLoader && (
                 <span style={{ position: 'absolute', right: '12px', top: '16px' }}>
@@ -588,7 +587,7 @@ const ExistingPurchaseForm = props => {
           </Grid>
         )}
 
-        <Grid item xs={12} sm={6}>
+        <Grid item size={{ xs: 12, sm: 6 }}>
           <FormControl fullWidth>
             <Controller
               error={Boolean(errors.purchase_unit_price)}
@@ -612,7 +611,7 @@ const ExistingPurchaseForm = props => {
             )}
           </FormControl>
         </Grid>
-        <Grid item xs={12} sm={6}>
+        <Grid item size={{ xs: 12, sm: 6 }}>
           <FormControl fullWidth>
             <InputLabel error={Boolean(errors.purchase_variant_id)}>Product Variant*</InputLabel>
             <Controller
@@ -655,7 +654,7 @@ const ExistingPurchaseForm = props => {
             {errors?.purchase_variant_id && <FormHelperText error>{errors.purchase_variant_id.message}</FormHelperText>}
           </FormControl>
         </Grid>
-        <Grid item xs={12} sm={6}>
+        <Grid item size={{ xs: 12, sm: 6 }}>
           <Box
             sx={{
               width: '100%',
@@ -707,7 +706,7 @@ const ExistingPurchaseForm = props => {
         </Grid>
 
         {/* // file uploader */}
-        <Grid item xs={12}>
+        <Grid item size={{ xs: 12 }}>
           <Box sx={{ float: 'right' }}>
             {medicineItemId ? (
               <>

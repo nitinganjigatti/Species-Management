@@ -320,6 +320,7 @@ const SpeciesDetail = () => {
         'Collection On',
         'Ley Date',
         'Collected by'
+
         // Add more labels as needed
       ]
 
@@ -497,6 +498,7 @@ const SpeciesDetail = () => {
         )
       }
       console.log(customData, 'customData')
+
       const rows = customData.map(data => ({
         id: data.id,
         no: data.no,
@@ -761,6 +763,7 @@ const SpeciesDetail = () => {
                     date={tillDate}
                     value={tillDate}
                     onChangeHandler={handleTillDateChange}
+
                     //disabled={!fromDate}
                   />
                 </Box>

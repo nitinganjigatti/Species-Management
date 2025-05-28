@@ -252,7 +252,6 @@ function AddDispense() {
             height='auto'
             scroll='body'
             onClose={() => closeDialog()}
-            onBackdropClick={() => closeDialog()}
           >
             <Card>
               <CardHeader
@@ -286,8 +285,7 @@ function AddDispense() {
           </Dialog>
           <Grid
             container
-            sm={12}
-            xs={12}
+            size={{ xs: 12, sm: 12 }}
             sx={{
               display: 'flex',
               justifyContent: 'space-between',
@@ -313,7 +311,7 @@ function AddDispense() {
           <form onSubmit={handleSubmit(submitForm, onError)}>
             <CardContent>
               <Grid container spacing={5}>
-                <Grid item xs={12} sm={12} md={6}>
+                <Grid item size={{ xs: 12, sm: 12, md: 6 }}>
                   <FormControl fullWidth>
                     <Controller
                       name='user_id'
@@ -591,7 +589,7 @@ function AddDispense() {
               </TableContainer>
             </Card>
             <CardContent>
-              <Grid item xs={12} sm={12} md={6}>
+              <Grid item size={{ xs: 12, sm: 12, md: 6 }}>
                 <Grid Grid sx={{ height: '100%' }} alignItems='flex-end' justifyContent='flex-end' container>
                   <Button
                     sx={{ width: '100px', height: '40px' }}

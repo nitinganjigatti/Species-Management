@@ -305,8 +305,8 @@ const AddStockAdjustment = () => {
         onSubmit={handleSubmit(onSubmit)}
         style={{ width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center' }}
       >
-        <Grid container rowSpacing={4} columnSpacing={2} xs={12}>
-          <Grid item xs={12} sm={4}>
+        <Grid container rowSpacing={4} columnSpacing={2} size={{ xs: 12 }}>
+          <Grid item size={{ xs: 12, sm: 4 }}>
             <FormControl fullWidth>
               <Controller
                 name='batch_no'
@@ -330,7 +330,7 @@ const AddStockAdjustment = () => {
               </Controller>
             </FormControl>
           </Grid>
-          <Grid item xs={12} sm={4}>
+          <Grid item size={{ xs: 12, sm: 4 }}>
             <FormControl fullWidth>
               <Controller
                 name='multiplier'
@@ -354,7 +354,7 @@ const AddStockAdjustment = () => {
               </Controller>
             </FormControl>
           </Grid>
-          <Grid item xs={12} sm={4}>
+          <Grid item size={{ xs: 12, sm: 4 }}>
             <FormControl fullWidth>
               <Controller
                 name='availableQty'
@@ -378,7 +378,7 @@ const AddStockAdjustment = () => {
               </Controller>
             </FormControl>
           </Grid>
-          <Grid item xs={12} sm={6}>
+          <Grid item size={{ xs: 12, sm: 6 }}>
             <FormControl fullWidth>
               <Controller
                 name='adjustment_quantity'
@@ -401,7 +401,7 @@ const AddStockAdjustment = () => {
             </FormControl>
           </Grid>
 
-          <Grid item xs={12} sm={6}>
+          <Grid item size={{ xs: 12, sm: 6 }}>
             <FormControl fullWidth>
               <InputLabel error={Boolean(errors?.reason)}>Select reason*</InputLabel>
               <Controller
@@ -433,7 +433,7 @@ const AddStockAdjustment = () => {
               )}
             </FormControl>
           </Grid>
-          <Grid item xs={12} sm={12}>
+          <Grid item size={{ xs: 12, sm: 12 }}>
             <FormControl fullWidth>
               <Controller
                 name='comments'
@@ -457,7 +457,7 @@ const AddStockAdjustment = () => {
               )}
             </FormControl>
           </Grid>
-          <Grid item xs={12}>
+          <Grid item size={{ xs: 12 }}>
             <Box sx={{ float: 'right' }}>
               <LoadingButton loading={submitLoader} sx={{ mr: 2 }} type='submit' size='large' variant='contained'>
                 Save
@@ -542,8 +542,7 @@ const AddStockAdjustment = () => {
     <Card>
       <Grid
         container
-        sm={12}
-        xs={12}
+        size={{ xs: 12, sm: 12 }}
         sx={{
           display: 'flex',
           justifyContent: 'space-between',
@@ -567,9 +566,9 @@ const AddStockAdjustment = () => {
       <CardContent>
         <form>
           <Grid container spacing={5}>
-            <Grid item xs={12} sm={6}>
-              <Grid xs={12} sm={12} sx={{ mb: 5 }}>
-                <Grid xs={12} sm={12} sx={{ mb: 5 }}>
+            <Grid item size={{ xs: 12, sm: 6 }}>
+              <Grid size={{ xs: 12, sm: 12 }} sx={{ mb: 5 }}>
+                <Grid size={{ xs: 12, sm: 12 }} sx={{ mb: 5 }}>
                   <Typography variant='subtitle2' sx={{ mb: 3, color: 'text.primary', letterSpacing: '.1px' }}>
                     Search product :
                   </Typography>

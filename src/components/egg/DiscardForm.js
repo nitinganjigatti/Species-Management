@@ -381,7 +381,7 @@
 //               </FormControl>
 
 //               <Grid container sx={{ justifyContent: 'space-between' }}>
-//                 <Grid item md={12} sm={12} xs={12}>
+//                 <Grid item md={12} sm={12} xs={12} >
 //                   <input
 //                     type='file'
 //                     accept='image/*'
@@ -731,6 +731,7 @@ const DiscardForm = ({ isOpen, setIsOpen, eggID, callApi, getDetails, GetGallery
       } else {
         setValue('image', updatedImages)
       }
+
       return updatedImages
     })
 
@@ -741,6 +742,7 @@ const DiscardForm = ({ isOpen, setIsOpen, eggID, callApi, getDetails, GetGallery
       } else {
         setValue('image', updatedFiles)
       }
+
       return updatedFiles
     })
   }
@@ -921,7 +923,7 @@ const DiscardForm = ({ isOpen, setIsOpen, eggID, callApi, getDetails, GetGallery
               </FormControl>
 
               <Grid container sx={{ justifyContent: 'space-between' }}>
-                <Grid item md={12} sm={12} xs={12}>
+                <Grid item size={{ md: 12, sm: 12, xs: 12 }}>
                   <input
                     type='file'
                     accept='image/*'
@@ -951,7 +953,7 @@ const DiscardForm = ({ isOpen, setIsOpen, eggID, callApi, getDetails, GetGallery
                   </Box>
                 </Grid>
 
-                <Grid item md={12} sm={12} xs={12}>
+                <Grid item size={{ md: 12, sm: 12, xs: 12 }}>
                   {imgSrc && imgSrc.length > 0 && (
                     <Box sx={{ display: 'flex', mt: 2 }}>
                       {imgSrc.map((src, index) => (

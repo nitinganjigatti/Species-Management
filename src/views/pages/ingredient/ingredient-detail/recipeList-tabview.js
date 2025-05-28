@@ -74,6 +74,7 @@ const RecipeListTabview = ({ IngredientName, onTotalChange }) => {
           if (Array.isArray(result)) {
             // If result is an array, update rows directly
             const startingIndex = paginationModel.page * paginationModel.pageSize
+
             let listWithId = res.data.data.result.map((el, i) => {
               return { ...el, uid: startingIndex + i + 1 }
             })
@@ -150,6 +151,7 @@ const RecipeListTabview = ({ IngredientName, onTotalChange }) => {
   const handleclickChange = (data, val) => {
     Router.push({
       pathname: `/diet/recipe/${data?.id}`
+
       //query: { source: val, ingId: id }
     })
   }
@@ -327,7 +329,7 @@ const RecipeListTabview = ({ IngredientName, onTotalChange }) => {
   return (
     <>
       <Grid container spacing={6}>
-        <Grid item xs={12}>
+        <Grid item size={{ xs: 12 }}>
           <TabContext value={status}>
             <TabList onChange={handleChange}>
               {/* <Tab value='all' label={<TabBadge label='All' totalCount={status === 'all' ? total : null} />} /> */}

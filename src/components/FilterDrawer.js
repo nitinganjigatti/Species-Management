@@ -1,7 +1,9 @@
 // FilterDrawer.js
 import React, { useState } from 'react'
-import { Drawer, Box, Typography, IconButton, List, ListItem, ListItemText, Button } from '@mui/material'
+import { Drawer, Box, Typography, IconButton, List, ListItemText, Button } from '@mui/material'
 import { Icon } from '@iconify/react'
+
+import ListItemButton from '@mui/material/ListItemButton'
 
 const FilterDrawer = ({
   open,
@@ -65,8 +67,7 @@ const FilterDrawer = ({
         >
           <List sx={{ p: 0, ml: 5 }}>
             {filterLists.map(item => (
-              <ListItem
-                button
+              <ListItemButton
                 key={item}
                 onClick={() => onSelectItem(item)}
                 sx={{
@@ -89,7 +90,7 @@ const FilterDrawer = ({
                     }
                   }}
                 />
-              </ListItem>
+              </ListItemButton>
             ))}
           </List>
         </Box>
@@ -106,7 +107,6 @@ const FilterDrawer = ({
           {children}
         </Box>
       </Box>
-
       <Box
         sx={{
           display: 'flex',

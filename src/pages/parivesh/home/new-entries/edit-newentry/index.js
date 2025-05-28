@@ -81,6 +81,7 @@ const schema = yup.object().shape({
       if (death_date) {
         return new Date(value).getTime() >= new Date(death_date).getTime()
       }
+
       return true // No death date, no comparison
     }),
 
@@ -303,6 +304,7 @@ const EditNewEntry = () => {
 
     if (!isValid) {
       console.log('Form is invalid, not submitting')
+
       return
     }
 
@@ -321,6 +323,7 @@ const EditNewEntry = () => {
       transaction_date: moment.utc(selectedDate).format('YYYY-MM-DD HH:mm:ss'),
       attachment: attachments
     }
+
     // Add conditional fields based on possession_type
     if (possession_type === 'death') {
       payload.reason_for_death = reason_for_death
@@ -403,6 +406,7 @@ const EditNewEntry = () => {
             scientific_name: response.data.scientific_name,
             tsn_relation: response.data.tsn_relation
           }
+
           // Set the specie object
           setValue('specie', specieObject)
 
@@ -576,6 +580,7 @@ const EditNewEntry = () => {
     if (filename?.length <= maxLength) return filename
     const start = filename?.slice(0, Math.floor(maxLength / 2))
     const end = filename?.slice(-Math.floor(maxLength / 2))
+
     return `${start}...${end}`
   }
 
@@ -631,7 +636,7 @@ const EditNewEntry = () => {
 
                 <form autoComplete='off' onSubmit={handleSubmit(onSubmit)}>
                   <Grid container spacing={2} sx={{ mb: 6 }}>
-                    <Grid item xs={12}>
+                    <Grid item size={{ xs: 12 }}>
                       <FormControl fullWidth>
                         <Controller
                           name='specie'
@@ -686,7 +691,7 @@ const EditNewEntry = () => {
                   </Grid>
                   {possessionType !== 'birth' && possessionType && (
                     <Grid container spacing={2} sx={{ mb: 6 }}>
-                      <Grid item xs={12}>
+                      <Grid item size={{ xs: 12 }}>
                         <FormControl fullWidth>
                           <Controller
                             name='possession_type'
@@ -823,7 +828,7 @@ const EditNewEntry = () => {
                   </Typography>
 
                   <Grid container spacing={2} sx={{ mb: 6 }}>
-                    <Grid item xs={12} sm={4} md={3} lg={2.3}>
+                    <Grid item size={{ xs: 12, sm: 4, md: 3, lg: 2.3 }}>
                       {/* <FormControl fullWidth> */}
                       <Controller
                         name='attachments'
@@ -865,8 +870,9 @@ const EditNewEntry = () => {
                       console.log(src, 'vvvvv')
 
                       const isImage = /\.(jpeg|jpg|gif|png|svg|JPG|svg)$/.test(src?.name)
+
                       return (
-                        <Grid item xs={12} sm='auto' md='auto' lg='auto' key={index}>
+                        <Grid item size={{ xs: 12, sm: 'auto', md: 'auto', lg: 'auto' }} key={index}>
                           <FormControl fullWidth>
                             <Box
                               sx={{
@@ -954,6 +960,7 @@ const EditNewEntry = () => {
                       size='large'
                       variant='contained'
                       type='submit'
+
                       //   onClick={onSubmit}
                     >
                       {isEditMode ? 'Save' : 'Add Entry'}

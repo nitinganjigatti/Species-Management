@@ -65,6 +65,7 @@ const SubmittedBatches = ({ type }) => {
   function loadServerRows(currentPage, data) {
     return data
   }
+
   const fetchTableData = useCallback(
     async (sort, q, sortColumn) => {
       try {
@@ -82,6 +83,7 @@ const SubmittedBatches = ({ type }) => {
 
         await getBatchListSpecies({ params: params }).then(res => {
           console.log('response', res)
+
           // Generate uid field based on the index
           let listWithId = res.data.data.map((el, i) => {
             return { ...el, id: i + 1 }
@@ -246,6 +248,7 @@ const SubmittedBatches = ({ type }) => {
         </Box>
       )
     },
+
     // {
     //   flex: 0.5,
     //   minWidth: 60,
@@ -326,6 +329,7 @@ const SubmittedBatches = ({ type }) => {
               : '-'}
           </Typography>
         </Box>
+
         // <Typography variant='body2' sx={{ color: '#E93353' }}>
         //   {params.row.status ? params.row.status : '-'}
         // </Typography>
@@ -335,6 +339,7 @@ const SubmittedBatches = ({ type }) => {
 
   const onCellClick = params => {
     const { id, batchId } = params.row
+
     // console.log(params, 'params')
     // Router.push(`/parivesh/home/${id}/batch-details?batchId=${batchId}`)
     // Router.push({

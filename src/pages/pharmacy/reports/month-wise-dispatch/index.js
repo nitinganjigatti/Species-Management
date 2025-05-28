@@ -734,7 +734,7 @@ const MonthWiseDispatch = () => {
                     sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', pr: 5, pt: 2 }}
                   >
                     {/* Search toolbar aligned to the left */}
-                    <Grid item xs={12} sm={6} md={6} sx={{ justifyContent: 'flex-start' }}>
+                    <Grid item size={{ xs: 12, sm: 6, md: 6 }} sx={{ justifyContent: 'flex-start' }}>
                       <ServerSideToolbar
                         value={searchValue}
                         clearSearch={() => handleSearch('')}
@@ -747,7 +747,7 @@ const MonthWiseDispatch = () => {
                     </Grid>
 
                     {/* Right-aligned container for Select Days and Filter button */}
-                    <Grid item xs={12} sm={4} md={4} sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+                    <Grid item size={{ xs: 12, sm: 4, md: 4 }} sx={{ display: 'flex', justifyContent: 'flex-end' }}>
                       <FormControl size='small' sx={{ mr: 2 }}>
                         <InputLabel id='demo-simple-select-label'>Select Days</InputLabel>
                         <Select

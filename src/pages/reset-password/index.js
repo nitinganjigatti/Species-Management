@@ -57,6 +57,7 @@ const ResetPassword = () => {
 
   const onSubmit = async data => {
     console.log('Form submitted successfully', data)
+
     // Handle form submission logic here
 
     const payload = {
@@ -94,6 +95,7 @@ const ResetPassword = () => {
 
   const getColor = isValid => {
     if (!isInteracted) return 'customColors.OnSurfaceVariant'
+
     return isValid ? 'success.main' : 'error.main'
   }
 

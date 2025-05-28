@@ -129,9 +129,11 @@ const SpeciesMappedtoDiet = ({
       })
       setSelectedItems({ Site: [], Section: [], Enclosure: [], Taxonomy: [], Species: [] })
     }
+
     //setItems({ Site: [], Section: [], Enclosure: [], Taxonomy: [], Species: [] })
     if (selectionType === 'animals') {
       setFilterState('species')
+
       // refreshSpeciesData('')
       setPageNo(1)
     } else {
@@ -161,6 +163,7 @@ const SpeciesMappedtoDiet = ({
     }
     setSelectedEnclosures([])
     setSelectedSections([])
+
     //refreshSpeciesData('')
   }
 
@@ -212,7 +215,7 @@ const SpeciesMappedtoDiet = ({
 
       {/* Search and filter start */}
 
-      <Grid item md={8} sm={8} xs={8}>
+      <Grid item size={{ md: 8, sm: 8, xs: 8 }}>
         <Box
           sx={{
             bgcolor: theme.palette.background.paper,

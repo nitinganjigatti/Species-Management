@@ -683,7 +683,7 @@ const AddDiscardProducts = () => {
           <CardContent>
             <form>
               <Grid container spacing={5}>
-                <Grid item xs={12} sm={12}>
+                <Grid item size={{ xs: 12, sm: 12 }}>
                   <Typography
                     variant='subtitle1'
                     sx={{ color: 'customColors.customTextColorGray2', fontSize: '16px', fontWeight: 500 }}
@@ -691,8 +691,8 @@ const AddDiscardProducts = () => {
                     Supplier Name:
                   </Typography>
                 </Grid>
-                <Grid item xs={12} sm={12} sx={{ display: 'flex', gap: 2 }}>
-                  <Grid xs={12} sm={6} sx={{ mb: 5 }}>
+                <Grid item size={{ xs: 12, sm: 12 }} sx={{ display: 'flex', gap: 2 }}>
+                  <Grid size={{ xs: 12, sm: 6 }} sx={{ mb: 5 }}>
                     <FormControl fullWidth>
                       <InputLabel error={Boolean(errors.supplier_id)}>Supplier*</InputLabel>
 
@@ -725,7 +725,7 @@ const AddDiscardProducts = () => {
                       )}
                     </FormControl>
                   </Grid>
-                  <Grid item xs={12} sm={6} lg={6} sx={{ mb: 5 }}>
+                  <Grid item size={{ xs: 12, sm: 6, lg: 6 }} sx={{ mb: 5 }}>
                     <FormControl fullWidth>
                       <SingleDatePicker
                         fullWidth
@@ -1061,7 +1061,7 @@ const AddDiscardProducts = () => {
               </Grid>
             ) : null}
           </CardContent> */}
-          <Grid item xs={12}>
+          <Grid item size={{ xs: 12 }}>
             <Box sx={{ float: 'right', my: 4, mx: 6 }}>
               {id ? null : (
                 <>

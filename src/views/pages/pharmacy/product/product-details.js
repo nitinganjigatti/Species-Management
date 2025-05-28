@@ -50,14 +50,14 @@ export const ProductDetail = ({
             {console.log('Item >>', item)}
             <Grid container spacing={6} sx={{ mb: '30px' }} xs={12}>
               {selectedPharmacy.type === 'central' && (
-                <Grid item xs={6}>
+                <Grid item size={{ xs: 6 }}>
                   <Typography variant='subtitle2' sx={{ mr: 2, color: 'text.primary' }}>
                     From Store
                   </Typography>
                   {productDetails?.to_store_name}
                 </Grid>
               )}
-              <Grid item xs={6}>
+              <Grid item size={{ xs: 6 }}>
                 <Typography variant='subtitle2' sx={{ mr: 2, color: 'text.primary' }}>
                   Product Type
                 </Typography>
@@ -65,31 +65,31 @@ export const ProductDetail = ({
                   {item.product_type.replace(/_/g, ' ').replace(/\b\w/g, char => char.toUpperCase())}
                 </Typography>
               </Grid>
-              <Grid item xs={6}>
+              <Grid item size={{ xs: 6 }}>
                 <Typography variant='subtitle2' sx={{ mr: 2, color: 'text.primary' }}>
                   Product Name
                 </Typography>
                 <Typography variant='body2'>{item.product_name}</Typography>
               </Grid>
-              <Grid item xs={6}>
+              <Grid item size={{ xs: 6 }}>
                 <Typography variant='subtitle2' sx={{ mr: 2, color: 'text.primary' }}>
                   Generic Name
                 </Typography>
                 <Typography variant='body2'>{item.generic_name ? item.generic_name : 'NA'}</Typography>
               </Grid>
-              <Grid item xs={6}>
+              <Grid item size={{ xs: 6 }}>
                 <Typography variant='subtitle2' sx={{ mr: 2, color: 'text.primary' }}>
                   Quantity
                 </Typography>
                 <Typography variant='body2'>{item.quantity}</Typography>
               </Grid>
-              <Grid item xs={6}>
+              <Grid item size={{ xs: 6 }}>
                 <Typography variant='subtitle2' sx={{ mr: 2, color: 'text.primary' }}>
                   Priority
                 </Typography>
                 {item?.priority}
               </Grid>
-              <Grid item xs={6}>
+              <Grid item size={{ xs: 6 }}>
                 <Typography variant='subtitle2' sx={{ mr: 2, color: 'text.primary' }}>
                   Reason of Rejecting
                 </Typography>
@@ -97,7 +97,7 @@ export const ProductDetail = ({
               </Grid>
 
               {productDetails?.status !== 'Pending' && (
-                <Grid item xs={6} key={statusCall}>
+                <Grid item size={{ xs: 6 }} key={statusCall}>
                   <Typography variant='subtitle2' sx={{ mr: 2, color: 'text.primary' }}>
                     Status
                   </Typography>
@@ -105,7 +105,7 @@ export const ProductDetail = ({
                 </Grid>
               )}
               {item?.product_image && (
-                <Grid item xs={6}>
+                <Grid item size={{ xs: 6 }}>
                   <Typography variant='subtitle2' sx={{ mr: 2, color: 'text.primary' }}>
                     Product Image
                   </Typography>
@@ -123,12 +123,12 @@ export const ProductDetail = ({
               )}
 
               {prescriptionImages && (
-                <Grid item xs={12}>
+                <Grid item size={{ xs: 12 }}>
                   <Typography variant='subtitle2' sx={{ mr: 2, color: 'text.primary' }}>
                     Prescription Images
                   </Typography>
 
-                  <Grid item xs={6} sx={{ display: 'flex', flexDirection: 'row' }}>
+                  <Grid item size={{ xs: 6 }} sx={{ display: 'flex', flexDirection: 'row' }}>
                     {prescriptionImages &&
                       prescriptionImages?.map((item, index) => {
                         return (
@@ -149,7 +149,7 @@ export const ProductDetail = ({
                 </Grid>
               )}
 
-              <Grid item xs={12}>
+              <Grid item size={{ xs: 12 }}>
                 <Typography variant='subtitle2' sx={{ mr: 2, color: 'text.primary' }}>
                   Comments
                 </Typography>
@@ -160,8 +160,7 @@ export const ProductDetail = ({
 
               <Grid
                 item
-                xs={12}
-                sm={12}
+                size={{ xs: 12, sm: 12 }}
                 sx={{
                   position: 'relative',
                   top: '52px',
@@ -225,7 +224,7 @@ export const ProductDetail = ({
                 <Card sx={{ width: '100%', ml: '30px' }}>
                   <CardContent>
                     {/* <Typography sx={{ mb: '10px' }}>Reason of Rejection</Typography> */}
-                    <Grid item xs={12} sm={12}>
+                    <Grid item size={{ xs: 12, sm: 12 }}>
                       {visibleArea && (
                         <>
                           <TextField
@@ -268,8 +267,8 @@ export const ProductDetail = ({
               )}
             </Grid>
           </div>
-        )
+        );
       })}
     </Grid>
-  )
+  );
 }

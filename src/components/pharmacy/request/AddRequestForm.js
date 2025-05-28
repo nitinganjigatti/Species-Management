@@ -794,10 +794,15 @@ const AddRequestForm = () => {
     return (
       // <CardContent>
 
+      // </CardContent>
       <form style={{ width: '650px' }}>
         <Divider sx={{ mt: -6 }} />
-        <Grid sx={{ my: 6 }} xs={12}>
-          <Grid item sx={{ display: 'flex', justifyItems: 'center', justifyContent: 'center', gap: 4 }} xs={12} sm={12}>
+        <Grid sx={{ my: 6 }} size={{ xs: 12 }}>
+          <Grid
+            item
+            sx={{ display: 'flex', justifyItems: 'center', justifyContent: 'center', gap: 4 }}
+            size={{ xs: 12, sm: 12 }}
+          >
             <Typography
               variant='button'
               onClick={() => setTabStatus('By product')}
@@ -824,9 +829,9 @@ const AddRequestForm = () => {
             </Typography>
           </Grid>
         </Grid>
-        <Grid container sx={{ display: 'flex', flexDirection: 'column', gap: '10px' }} item xs={12}>
+        <Grid container sx={{ display: 'flex', flexDirection: 'column', gap: '10px' }} item size={{ xs: 12 }}>
           {tabStatus === 'By product' ? (
-            <Grid item xs={12} sm={12}>
+            <Grid item size={{ xs: 12, sm: 12 }}>
               <FormControl fullWidth>
                 <Autocomplete
                   // sx={{ zIndex: 1 }}
@@ -965,7 +970,7 @@ const AddRequestForm = () => {
               </FormControl>
             </Grid>
           ) : (
-            <Grid item xs={12} sm={12}>
+            <Grid item size={{ xs: 12, sm: 12 }}>
               <FormControl fullWidth>
                 <Autocomplete
                   // sx={{ zIndex: 1 }}
@@ -1100,23 +1105,21 @@ const AddRequestForm = () => {
               )}
             </Box>
           )}
-          <Grid item xs={12} sm={12}>
+          <Grid item size={{ xs: 12, sm: 12 }}>
             {showWarning.count && (
-              <Typography
+              (<Typography
                 sx={{
                   mb: 2,
                   fontSize: '12px',
                   fontWeight: 400,
                   color: 'customColors.Tertiary'
                 }}
-              >
-                *You have{' '}
+              >*You have{' '}
                 <Box component='span' sx={{ fontWeight: 600 }}>
                   {showWarning?.count || 0} ongoing requests
-                </Box>{' '}
-                for this product (Qty: {showWarning?.total_pending_quantity || 0}). Please review before proceeding to
-                avoid duplicate requests.
-              </Typography>
+                </Box>{' '}for this product (Qty: {showWarning?.total_pending_quantity || 0}). Please review before proceeding to
+                                avoid duplicate requests.
+                              </Typography>)
               // <Typography
               //   sx={{
               //     mb: 2,
@@ -1134,7 +1137,7 @@ const AddRequestForm = () => {
             )}
           </Grid>
 
-          <Grid item xs={12} sm={12}>
+          <Grid item size={{ xs: 12, sm: 12 }}>
             <Typography sx={{ mb: 2, fontSize: '16px', fontWeight: 500, color: 'customColors.customTextColorGray2' }}>
               Quantity *
             </Typography>
@@ -1563,7 +1566,7 @@ const AddRequestForm = () => {
           ) : null} */}
           {nestedRowMedicine.control_substance === true || nestedRowMedicine.prescription_required === true ? (
             nestedRowMedicine.prescription_required_file ? (
-              <Grid item xs={12} sm={12} sx={{ mr: 'auto' }}>
+              <Grid item size={{ xs: 12, sm: 12 }} sx={{ mr: 'auto' }}>
                 <Typography
                   sx={{ mb: 2, mt: 2, fontSize: '16px', fontWeight: 500, color: 'customColors.customTextColorGray2' }}
                 >
@@ -1703,7 +1706,7 @@ const AddRequestForm = () => {
                   //     })
                   //   }}
                   // />
-                  <Chip
+                  (<Chip
                     sx={{
                       backgroundColor: 'customColors.lightBg',
                       height: '56px',
@@ -1756,11 +1759,11 @@ const AddRequestForm = () => {
                         }}
                       />
                     }
-                  />
+                  />)
                 )}
               </Grid>
             ) : (
-              <Grid item xs={12} sm={12}>
+              <Grid item size={{ xs: 12, sm: 12 }}>
                 <Typography sx={{ mb: 2 }}>Add prescription*</Typography>
                 {/* <FormControl fullWidth>
                   <TextField
@@ -1856,7 +1859,7 @@ const AddRequestForm = () => {
               </Grid>
             )
           ) : null}
-          <Grid item xs={12} sm={12}>
+          <Grid item size={{ xs: 12, sm: 12 }}>
             <Typography
               sx={{ mb: 2, mt: 2, fontSize: '16px', fontWeight: 500, color: 'customColors.customTextColorGray2' }}
             >
@@ -1882,7 +1885,7 @@ const AddRequestForm = () => {
             </FormControl>
           </Grid>
 
-          <Grid item xs={12}>
+          <Grid item size={{ xs: 12 }}>
             <Box sx={{ float: 'right' }}>
               {medicineItemId ? (
                 <>
@@ -1934,8 +1937,7 @@ const AddRequestForm = () => {
           </Grid>
         </Grid>
       </form>
-      // </CardContent>
-    )
+    );
   }
 
   return (
@@ -1943,8 +1945,7 @@ const AddRequestForm = () => {
       <Grid
         item
         container
-        sm={12}
-        xs={12}
+        size={{ xs: 12, sm: 12 }}
         sx={{
           display: 'flex',
           justifyContent: 'space-between',
@@ -1979,9 +1980,9 @@ const AddRequestForm = () => {
       <CardContent>
         <form>
           <Grid container spacing={5}>
-            <Grid item xs={12} sm={6}>
-              <Grid item xs={12} sm={12} sx={{ mb: 5 }}>
-                <Grid item xs={12} sm={12} sx={{ mb: 5 }}>
+            <Grid item size={{ xs: 12, sm: 6 }}>
+              <Grid item size={{ xs: 12, sm: 12 }} sx={{ mb: 5 }}>
+                <Grid item size={{ xs: 12, sm: 12 }} sx={{ mb: 5 }}>
                   <Typography variant='subtitle2' sx={{ mb: 3, color: 'text.primary', letterSpacing: '.1px' }}>
                     Requested to :
                   </Typography>
@@ -2022,8 +2023,8 @@ const AddRequestForm = () => {
                 </FormControl>
               </Grid>
             </Grid>
-            <Grid item xs={12} sm={6}>
-              <Grid item xs={12} sm={12} sx={{ mb: 5 }}>
+            <Grid item size={{ xs: 12, sm: 6 }}>
+              <Grid item size={{ xs: 12, sm: 12 }} sx={{ mb: 5 }}>
                 <Typography variant='subtitle2' sx={{ mb: 3, color: 'text.primary', letterSpacing: '.1px' }}>
                   &nbsp;
                 </Typography>
@@ -2127,7 +2128,7 @@ const AddRequestForm = () => {
           }}
         >
           {/* Left side content */}
-          <Grid item xs={12} sm={8}>
+          <Grid item size={{ xs: 12, sm: 8 }}>
             <Typography
               variant='body1'
               sx={{
@@ -2190,8 +2191,7 @@ const AddRequestForm = () => {
           {/* Right side button */}
           <Grid
             item
-            xs={12}
-            sm={4}
+            size={{ xs: 12, sm: 4 }}
             sx={{
               display: 'flex',
               justifyContent: { xs: 'flex-start', sm: 'flex-end' }
@@ -2524,7 +2524,7 @@ const AddRequestForm = () => {
           </Grid>
         ) : null}
       </CardContent> */}
-      <Grid item xs={12}>
+      <Grid item size={{ xs: 12 }}>
         <Box sx={{ float: 'right', my: 4, mx: 6 }}>
           {id && editParams?.request_item_details?.length > 0 ? (
             <>

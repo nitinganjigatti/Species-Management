@@ -389,8 +389,8 @@ export const AddItemsForm = ({
         onSubmit={handleSubmit(onSubmit)}
         style={{ width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center' }}
       >
-        <Grid container rowSpacing={4} columnSpacing={2} sm={12} xs={12}>
-          <Grid item xs={12} sm={12} lg={12}>
+        <Grid container rowSpacing={4} columnSpacing={2} size={{ xs: 12, sm: 12 }}>
+          <Grid item size={{ xs: 12, sm: 12, lg: 12 }}>
             <FormControl fullWidth>
               <Controller
                 name='request_item'
@@ -625,12 +625,16 @@ export const AddItemsForm = ({
               </Paper>
             )}
           </Grid>
-          <Grid item xs={12} sm={12}>
+          <Grid item size={{ xs: 12, sm: 12 }}>
             <Typography variant='subtitle1'>
               {getValues('stock_type') === 'non_medical' ? 'Batch No' : 'Batch No and Expiry Date'}
             </Typography>
           </Grid>
-          <Grid item xs={12} sm={getValues('stock_type') === 'non_medical' ? 6 : 4}>
+          <Grid
+            item
+            size={{ xs: 12, sm: getValues('stock_type') === 'non_medical' ? 6 : 4 }}
+            sm={getValues('stock_type') === 'non_medical' ? 6 : 4}
+          >
             {/* <FormControl fullWidth>
               <Controller
                 name='request_item_batch_no'
@@ -777,7 +781,7 @@ export const AddItemsForm = ({
               ) : null}
             </FormControl>
           </Grid>
-          <Grid item xs={12} sm={getValues('stock_type') === 'non_medical' ? 6 : 4}>
+          <Grid item size={{ xs: 12, sm: getValues('stock_type') === 'non_medical' ? 6 : 4 }}>
             <FormControl fullWidth>
               <Controller
                 name='multiplier'
@@ -802,7 +806,7 @@ export const AddItemsForm = ({
             </FormControl>
           </Grid>
           {getValues('stock_type') === 'non_medical' ? null : (
-            <Grid item xs={12} sm={4}>
+            <Grid item size={{ xs: 12, sm: 4 }}>
               <FormControl fullWidth>
                 <Controller
                   name='expiry_date'
@@ -832,12 +836,12 @@ export const AddItemsForm = ({
             </Grid>
           )}
           {getValues('stock_type') === 'non_medical' ? null : (
-            <Grid item xs={12} sm={12}>
+            <Grid item size={{ xs: 12, sm: 12 }}>
               <Typography variant='subtitle1'> Quantity</Typography>
             </Grid>
           )}
 
-          <Grid item xs={12} sm={getValues('stock_type') === 'non_medical' ? 6 : 12}>
+          <Grid item size={{ xs: 12, sm: getValues('stock_type') === 'non_medical' ? 6 : 12 }}>
             <FormControl fullWidth>
               <Controller
                 name='request_item_qty'
@@ -861,7 +865,7 @@ export const AddItemsForm = ({
               )}
             </FormControl>
           </Grid>
-          <Grid item xs={12} sm={12}>
+          <Grid item size={{ xs: 12, sm: 12 }}>
             <Box
               sx={{
                 backgroundColor: 'customColors.Surface',
@@ -888,11 +892,11 @@ export const AddItemsForm = ({
           </Grid>
 
           {quantityError && (
-            <Grid item xs={12}>
+            <Grid item size={{ xs: 12 }}>
               <Typography color={'error.main'}>Quantity should be lesser than available Quantity.</Typography>
             </Grid>
           )}
-          <Grid item xs={12} display={'flex'} justifyContent={'flex-end'} gap={4}>
+          <Grid item size={{ xs: 12 }} display={'flex'} justifyContent={'flex-end'} gap={4}>
             <Button variant='outlined' onClick={() => closeDialog()}>
               Cancel
             </Button>

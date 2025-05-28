@@ -324,7 +324,7 @@ const VerifyOtp = () => {
         </CustomButton>
       </form>
     </CommonCard>
-  )
+  );
 }
 
 VerifyOtp.guestGuard = true

@@ -498,7 +498,7 @@ const ExpiringMedicine = () => {
                 mx: { xs: 2, sm: 6, md: 6, lg: 6 }
               }}
             >
-              <Grid item xs={12} md={8} lg={8}>
+              <Grid item size={{ xs: 12, md: 8, lg: 8 }}>
                 <TextField
                   variant='outlined'
                   size='small'
@@ -521,7 +521,7 @@ const ExpiringMedicine = () => {
 
               <Grid sx={{ display: 'flex', flexDirection: { xs: 'column', md: 'row' } }}>
                 {selectedPharmacy.type === 'central' && (
-                  <Grid item xs={12} md={4} lg={4}>
+                  <Grid item size={{ xs: 12, md: 4, lg: 4 }}>
                     <FormControl
                       sx={{
                         width: { xs: '100%', md: 200, lg: 200 },

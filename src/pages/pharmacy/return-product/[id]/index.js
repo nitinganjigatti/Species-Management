@@ -924,23 +924,23 @@ const IndividualReturnRequest = () => {
                 />
                 <Box sx={{ backgroundColor: 'customColors.Background', p: 4, m: 4, borderRadius: '8px' }}>
                   <Grid container spacing={2} sx={{ flexGrow: 1 }}>
-                    <Grid item xs={3} sm={12 / 5} lg={12 / 5}>
+                    <Grid item size={{ xs: 3, sm: 12 / 5, lg: 12 / 5 }}>
                       <h5 style={{ marginBottom: '0px', marginTop: '0px' }}>Returned From</h5>
                       <p style={{ marginBottom: '0' }}>{requestItems?.from_store}</p>
                     </Grid>
-                    <Grid item xs={3} sm={12 / 5} lg={12 / 5}>
+                    <Grid item size={{ xs: 3, sm: 12 / 5, lg: 12 / 5 }}>
                       <h5 style={{ marginBottom: '0px', marginTop: '0px' }}>Returned To</h5>
                       <p style={{ marginBottom: '0' }}>{requestItems?.to_store}</p>
                     </Grid>
-                    <Grid item xs={3} sm={12 / 5} lg={12 / 5}>
+                    <Grid item size={{ xs: 3, sm: 12 / 5, lg: 12 / 5 }}>
                       <h5 style={{ marginBottom: '0px', marginTop: '0px' }}>Dispatched Date</h5>
                       <p style={{ marginBottom: '0' }}>{Utility.formatDisplayDate(requestItems?.request_date)}</p>
                     </Grid>
-                    <Grid item xs={3} sm={12 / 5} lg={12 / 5}>
+                    <Grid item size={{ xs: 3, sm: 12 / 5, lg: 12 / 5 }}>
                       <h5 style={{ marginBottom: '0px', marginTop: '0px' }}>Return ID</h5>
                       <p style={{ marginBottom: '0' }}>{requestItems?.request_number}</p>
                     </Grid>
-                    <Grid item xs={3} sm={12 / 5} lg={12 / 5}>
+                    <Grid item size={{ xs: 3, sm: 12 / 5, lg: 12 / 5 }}>
                       <h5 style={{ marginBottom: '0px', marginTop: '0px' }}>Returned By</h5>
 
                       <Box sx={{ mt: 2, display: 'flex', alignItems: 'center' }}>
@@ -1058,7 +1058,7 @@ const IndividualReturnRequest = () => {
                                   requestItems.status !== 'Cancelled' &&
                                   (selectedPharmacy.permission.key === 'ADD' ||
                                     selectedPharmacy.permission.key === 'allow_full_access') && (
-                                    <Grid item xs={6} style={{ display: 'flex', justifyContent: 'right' }}>
+                                    <Grid item size={{ xs: 6 }} style={{ display: 'flex', justifyContent: 'right' }}>
                                       <Button size='big' variant='contained' onClick={handleNavigate}>
                                         Ship all items
                                       </Button>
@@ -1177,7 +1177,6 @@ const IndividualReturnRequest = () => {
                 scroll='body'
                 onClose={() => closeDialog()}
                 TransitionComponent={Transition}
-                onBackdropClick={() => closeDialog()}
               >
                 <Grid
                   container
@@ -1209,7 +1208,6 @@ const IndividualReturnRequest = () => {
                 scroll='body'
                 onClose={() => closeShipDialog()}
                 TransitionComponent={Transition}
-                onBackdropClick={() => closeShipDialog()}
               >
                 <Grid
                   container

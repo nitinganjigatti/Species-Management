@@ -384,10 +384,10 @@ const StockMedicineConfigure = ({ configureMedId, storeId, close }) => {
           </TableContainer>
         ) : null}
         {/* {showQtyForm === false ? ( */}
-        <Grid xs={12} sm={12} sx={{ display: 'flex', my: 6 }}>
+        <Grid size={{ xs: 12, sm: 12 }} sx={{ display: 'flex', my: 6 }}>
           <form autoComplete='off' style={{ width: '50%' }} onSubmit={handleSubmit(addMedicineConfiguration)}>
-            <Grid container spacing={2} xs={12} sm={12}>
-              <Grid item xs={12} sm={12}>
+            <Grid container spacing={2} size={{ xs: 12, sm: 12 }}>
+              <Grid item size={{ xs: 12, sm: 12 }}>
                 <FormControl fullWidth sx={{ mb: 6 }}>
                   <InputLabel error={Boolean(errors?.rack_id)} id='rack_id'>
                     Rack
@@ -420,7 +420,7 @@ const StockMedicineConfigure = ({ configureMedId, storeId, close }) => {
                   )}
                 </FormControl>
               </Grid>
-              <Grid item xs={12} sm={12}>
+              <Grid item size={{ xs: 12, sm: 12 }}>
                 <FormControl fullWidth>
                   <InputLabel error={Boolean(errors?.shelf_id)} id='shelf_id'>
                     Shelf
@@ -453,7 +453,7 @@ const StockMedicineConfigure = ({ configureMedId, storeId, close }) => {
                 </FormControl>
               </Grid>
 
-              <Grid item xs={12} sm={12}>
+              <Grid item size={{ xs: 12, sm: 12 }}>
                 {deleteRowId ? (
                   <Button
                     variant='contained'
@@ -485,8 +485,8 @@ const StockMedicineConfigure = ({ configureMedId, storeId, close }) => {
           </form>
           {/* ) : ( */}
           <form style={{ width: '50%' }} autoComplete='off' onSubmit={handleSubmit(addMinQuantity)}>
-            <Grid container spacing={2} xs={12} sm={12}>
-              <Grid item xs={12} sm={12}>
+            <Grid container spacing={2} size={{ xs: 12, sm: 12 }}>
+              <Grid item size={{ xs: 12, sm: 12 }}>
                 <FormControl fullWidth>
                   <Controller
                     name='min_qty'
@@ -509,7 +509,7 @@ const StockMedicineConfigure = ({ configureMedId, storeId, close }) => {
                   )}
                 </FormControl>
               </Grid>
-              <Grid item xs={12} sm={12}>
+              <Grid item size={{ xs: 12, sm: 12 }}>
                 <LoadingButton
                   sx={{ my: 4 }}
                   size='medium'

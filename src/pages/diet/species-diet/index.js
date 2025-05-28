@@ -56,6 +56,7 @@ const SpeciesDietList = () => {
   const [searchQuery, setSearchQuery] = useState('')
   const [selectedFiltersOptions, setSelectedFiltersOptions] = useState({})
   const [filterCount, setFilterCount] = useState(0)
+
   const [selectedOptions, setSelectedOptions] = useState({
     Class: []
   })
@@ -748,7 +749,7 @@ const SpeciesDietList = () => {
                 rowGap: 4
               }}
             >
-              <Grid item xs={12} sm={3.5}>
+              <Grid item size={{ xs: 12, sm: 3.5 }}>
                 <Typography
                   sx={{
                     marginLeft: 4,
@@ -761,9 +762,9 @@ const SpeciesDietList = () => {
                   Species Diet
                 </Typography>
               </Grid>
-              <Grid item xs={12} sm={8}>
+              <Grid item size={{ xs: 12, sm: 8 }}>
                 <Grid container sx={{ justifyContent: 'flex-end', alignItems: 'center', gap: 2 }}>
-                  <Grid item xs={12} sm={12} md={'auto'} xl={'auto'}>
+                  <Grid item size={{ xs: 12, sm: 12, md: 'auto', xl: 'auto' }}>
                     <Box sx={{ display: 'flex', justifyContent: 'flex-end', marginRight: { xs: 4, md: 0 } }}>
                       <FormControl sx={{ minWidth: 250 }}>
                         <InputLabel id='controlled-select-label'>Filter Species</InputLabel>
@@ -788,10 +789,7 @@ const SpeciesDietList = () => {
 
                   <Grid
                     item
-                    xs={12}
-                    sm={12}
-                    md={'auto'}
-                    xl={'auto'}
+                    size={{ xs: 12, sm: 12, md: 'auto', xl: 'auto' }}
                     sx={{ display: 'flex', justifyContent: 'flex-end', marginLeft: { xs: 4, md: 0 }, marginRight: 4 }}
                   >
                     <Box

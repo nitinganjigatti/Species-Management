@@ -942,23 +942,23 @@ const IndividualRequest = () => {
                 />
                 <Box sx={{ backgroundColor: 'customColors.Background', p: 4, m: 4, borderRadius: '8px' }}>
                   <Grid container spacing={2} sx={{ flexGrow: 1 }}>
-                    <Grid item xs={3} sm={12 / 5} lg={12 / 5}>
+                    <Grid item size={{ xs: 3, sm: 12 / 5, lg: 12 / 5 }}>
                       <h5 style={{ marginBottom: '0px', marginTop: '0px' }}>Dispatched To</h5>
                       <p style={{ marginBottom: '0' }}>{requestItems?.to_store}</p>
                     </Grid>
-                    <Grid item xs={3} sm={12 / 5} lg={12 / 5}>
+                    <Grid item size={{ xs: 3, sm: 12 / 5, lg: 12 / 5 }}>
                       <h5 style={{ marginBottom: '0px', marginTop: '0px' }}>Dispatched By</h5>
                       <p style={{ marginBottom: '0' }}>{requestItems?.from_store}</p>
                     </Grid>
-                    <Grid item xs={3} sm={12 / 5} lg={12 / 5}>
+                    <Grid item size={{ xs: 3, sm: 12 / 5, lg: 12 / 5 }}>
                       <h5 style={{ marginBottom: '0px', marginTop: '0px' }}>Dispatched Date</h5>
                       <p style={{ marginBottom: '0' }}>{Utility.formatDisplayDate(requestItems?.request_date)}</p>
                     </Grid>
-                    <Grid item xs={3} sm={12 / 5} lg={12 / 5}>
+                    <Grid item size={{ xs: 3, sm: 12 / 5, lg: 12 / 5 }}>
                       <h5 style={{ marginBottom: '0px', marginTop: '0px' }}>Request ID</h5>
                       <p style={{ marginBottom: '0' }}>{requestItems?.request_number}</p>
                     </Grid>
-                    <Grid item xs={3} sm={12 / 5} lg={12 / 5}>
+                    <Grid item size={{ xs: 3, sm: 12 / 5, lg: 12 / 5 }}>
                       <h5 style={{ marginBottom: '0px', marginTop: '0px' }}>Dispatched By</h5>
 
                       <Box sx={{ mt: 2, display: 'flex', alignItems: 'center' }}>
@@ -974,7 +974,7 @@ const IndividualRequest = () => {
                       </Box>
                     </Grid>
                     <>
-                      <Grid item xs={3} sm={12 / 5} lg={12 / 5}>
+                      <Grid item size={{ xs: 3, sm: 12 / 5, lg: 12 / 5 }}>
                         <h5 style={{ marginBottom: '0px', marginTop: '0px' }}>Requested Amount</h5>
                         <p style={{ marginBottom: '0' }}>
                           {Utility.formatAmountToReadableDigit(requestItems?.requested_amount)}
@@ -982,13 +982,13 @@ const IndividualRequest = () => {
                       </Grid>
                       {shippedItems.length > 0 && (
                         <>
-                          <Grid item xs={3} sm={12 / 5} lg={12 / 5}>
+                          <Grid item size={{ xs: 3, sm: 12 / 5, lg: 12 / 5 }}>
                             <h5 style={{ marginBottom: '0px', marginTop: '0px' }}>Shipped Amount</h5>
                             <p style={{ marginBottom: '0' }}>
                               {Utility.formatAmountToReadableDigit(requestItems?.shipped_amount)}
                             </p>
                           </Grid>
-                          <Grid item xs={3} sm={12 / 5} lg={12 / 5}>
+                          <Grid item size={{ xs: 3, sm: 12 / 5, lg: 12 / 5 }}>
                             <h5 style={{ marginBottom: '0px', marginTop: '0px' }}>Shipped Qty</h5>
                             <p style={{ marginBottom: '0' }}>{requestItems?.shipped_qty}</p>
                           </Grid>
@@ -1097,7 +1097,11 @@ const IndividualRequest = () => {
                                       requestItems.status !== 'Cancelled' &&
                                       (selectedPharmacy.permission.key === 'ADD' ||
                                         selectedPharmacy.permission.key === 'allow_full_access') && (
-                                        <Grid item xs={6} style={{ display: 'flex', justifyContent: 'right' }}>
+                                        <Grid
+                                          item
+                                          size={{ xs: 6 }}
+                                          style={{ display: 'flex', justifyContent: 'right' }}
+                                        >
                                           <Button size='big' variant='contained' onClick={handleNavigate}>
                                             Ship all items{' '}
                                           </Button>
@@ -1163,7 +1167,6 @@ const IndividualRequest = () => {
                 scroll='body'
                 onClose={() => closeDialog()}
                 TransitionComponent={Transition}
-                onBackdropClick={() => closeDialog()}
               >
                 <Grid
                   container
@@ -1195,7 +1198,6 @@ const IndividualRequest = () => {
                 scroll='body'
                 onClose={() => closeShipDialog()}
                 TransitionComponent={Transition}
-                onBackdropClick={() => closeShipDialog()}
               >
                 <Grid
                   container
@@ -2278,7 +2280,6 @@ export default IndividualRequest
 //                 scroll='body'
 //                 onClose={() => closeDialog()}
 //                 TransitionComponent={Transition}
-//                 onBackdropClick={() => closeDialog()}
 //               >
 //                 <Grid
 //                   container
@@ -2310,7 +2311,6 @@ export default IndividualRequest
 //                 scroll='body'
 //                 onClose={() => closeShipDialog()}
 //                 TransitionComponent={Transition}
-//                 onBackdropClick={() => closeShipDialog()}
 //               >
 //                 <Grid
 //                   container

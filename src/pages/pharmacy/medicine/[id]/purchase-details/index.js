@@ -255,15 +255,18 @@ function PurchaseDetails() {
       <Card sx={{ p: 4 }}>
         <Grid
           container
-          sm={12}
-          xs={12}
+          size={{ xs: 12, sm: 12 }}
           sx={{
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center'
           }}
         >
-          <Grid item xs={12} sm={12} sx={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'center' }}>
+          <Grid
+            item
+            size={{ xs: 12, sm: 12 }}
+            sx={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'center' }}
+          >
             <CardHeader
               avatar={
                 <Icon

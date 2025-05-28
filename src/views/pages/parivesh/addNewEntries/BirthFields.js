@@ -36,7 +36,7 @@ const BirthFields = ({
   return (
     <>
       <Grid container spacing={2}>
-        <Grid item xs={12} sm={possessionType !== 'birth' ? 6 : 12} sx={{ mb: 6 }}>
+        <Grid item size={{ xs: 12 }} sm={possessionType !== 'birth' ? 6 : 12} sx={{ mb: 6 }}>
           <FormControl fullWidth>
             <Controller
               name='possession_type'
@@ -88,7 +88,7 @@ const BirthFields = ({
           </FormControl>
         </Grid>
         {possessionType !== 'birth' && (
-          <Grid item xs={12} sm={6} sx={{ mb: 6 }}>
+          <Grid item size={{ xs: 12, sm: 6 }} sx={{ mb: 6 }}>
             <FormControl fullWidth>
               <Controller
                 name='transaction_date'
@@ -117,7 +117,7 @@ const BirthFields = ({
         )}
         {possessionType === 'birth' && (
           <>
-            <Grid item xs={12} sm={6} sx={{ mb: 6 }}>
+            <Grid item size={{ xs: 12, sm: 6 }} sx={{ mb: 6 }}>
               <FormControl fullWidth>
                 <Controller
                   name='parent_registration_id'
@@ -144,7 +144,7 @@ const BirthFields = ({
               </FormControl>
             </Grid>
 
-            <Grid item xs={12} sm={6} sx={{ mb: 6 }}>
+            <Grid item size={{ xs: 12, sm: 6 }} sx={{ mb: 6 }}>
               <FormControl fullWidth>
                 <Controller
                   name='transaction_date'
@@ -173,10 +173,8 @@ const BirthFields = ({
           </>
         )}
       </Grid>
-
       <Divider />
-
-      <Grid item xs={12}>
+      <Grid item size={{ xs: 12 }}>
         <Box mt={6}>
           <Typography variant='h5' gutterBottom>
             Gender
@@ -187,7 +185,7 @@ const BirthFields = ({
         </Box>
       </Grid>
       <Grid container spacing={3}>
-        <Grid item xs={12} sm={4} sx={{ mb: 6 }}>
+        <Grid item size={{ xs: 12, sm: 4 }} sx={{ mb: 6 }}>
           <FormControl fullWidth>
             <Controller
               name='male_count'
@@ -214,13 +212,13 @@ const BirthFields = ({
               <FormHelperText sx={{ color: 'error.main' }}>{errors.male_count?.message}</FormHelperText>
             )}
             {errors.counts && (
-              <Grid item xs={12} sx={{ mb: 6 }}>
+              <Grid item size={{ xs: 12 }} sx={{ mb: 6 }}>
                 <FormHelperText sx={{ color: 'error.main' }}>{errors.counts.message}</FormHelperText>
               </Grid>
             )}
           </FormControl>
         </Grid>
-        <Grid item xs={12} sm={4} sx={{ mb: 6 }}>
+        <Grid item size={{ xs: 12, sm: 4 }} sx={{ mb: 6 }}>
           <FormControl fullWidth>
             <Controller
               name='female_count'
@@ -239,6 +237,7 @@ const BirthFields = ({
                   }}
                   error={Boolean(errors.female_count)}
                   name='female_count'
+
                   // onBlur={() => {
                   //   if (
                   //     !Boolean(errors.maleCount) &&
@@ -256,13 +255,13 @@ const BirthFields = ({
               <FormHelperText sx={{ color: 'error.main' }}>{errors.female_count?.message}</FormHelperText>
             )}
             {errors.counts && (
-              <Grid item xs={12} sx={{ mb: 6 }}>
+              <Grid item size={{ xs: 12 }} sx={{ mb: 6 }}>
                 <FormHelperText sx={{ color: 'error.main' }}>{errors.counts.message}</FormHelperText>
               </Grid>
             )}
           </FormControl>
         </Grid>
-        <Grid item xs={12} sm={4}>
+        <Grid item size={{ xs: 12, sm: 4 }}>
           <FormControl fullWidth>
             <Controller
               name='other_count'
@@ -289,7 +288,7 @@ const BirthFields = ({
               <FormHelperText sx={{ color: 'error.main' }}>{errors.other_count?.message}</FormHelperText>
             )}
             {errors.counts && (
-              <Grid item xs={12} sx={{ mb: 6 }}>
+              <Grid item size={{ xs: 12 }} sx={{ mb: 6 }}>
                 <FormHelperText sx={{ color: 'error.main' }}>{errors.counts.message}</FormHelperText>
               </Grid>
             )}

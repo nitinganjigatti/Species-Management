@@ -929,7 +929,7 @@ const AddLab = () => {
                 <Typography color='text.primary'>Add lab</Typography>
               </Breadcrumbs>
               <Grid container spacing={6} className='match-height'>
-                <Grid item xs={12}>
+                <Grid item size={{ xs: 12 }}>
                   <Card>
                     <Box sx={{ display: 'flex', alignItems: 'center' }}>
                       {/* <IconButton sx={{ ml: 2 }} onClick={() => router.back()}>
@@ -940,7 +940,7 @@ const AddLab = () => {
                     <CardContent>
                       <form onSubmit={handleSubmit(onSubmit)}>
                         <Grid container spacing={5}>
-                          <Grid item xs={12} md={6} sm={6}>
+                          <Grid item size={{ xs: 12, sm: 6, md: 6 }}>
                             <FormControl fullWidth>
                               <Controller
                                 name='lab_name'
@@ -964,7 +964,7 @@ const AddLab = () => {
                               )}
                             </FormControl>
                           </Grid>
-                          <Grid item xs={12} md={6} sm={6}>
+                          <Grid item size={{ xs: 12, sm: 6, md: 6 }}>
                             <FormControl fullWidth mt={2}>
                               <InputLabel error={Boolean(errors?.type)} id='type'>
                                 Lab Type*
@@ -995,7 +995,7 @@ const AddLab = () => {
                               )}
                             </FormControl>
                           </Grid>
-                          <Grid item xs={12} md={6} sm={6}>
+                          <Grid item size={{ xs: 12, sm: 6, md: 6 }}>
                             <FormControl fullWidth>
                               <Controller
                                 name='incharge_name'
@@ -1020,7 +1020,7 @@ const AddLab = () => {
                             </FormControl>
                           </Grid>
 
-                          <Grid item xs={12} md={6} sm={6}>
+                          <Grid item size={{ xs: 12, sm: 6, md: 6 }}>
                             <FormControl fullWidth>
                               <Controller
                                 name='address'
@@ -1042,7 +1042,7 @@ const AddLab = () => {
                               )}
                             </FormControl>
                           </Grid>
-                          <Grid item xs={12} md={6} sm={6}>
+                          <Grid item size={{ xs: 12, sm: 6, md: 6 }}>
                             <FormControl fullWidth>
                               <Controller
                                 name='lab_contact_number'
@@ -1068,7 +1068,7 @@ const AddLab = () => {
                               )}
                             </FormControl>
                           </Grid>
-                          <Grid item xs={12} md={6} sm={6}>
+                          <Grid item size={{ xs: 12, sm: 6, md: 6 }}>
                             <Controller
                               name='is_default'
                               control={control}
@@ -1097,7 +1097,7 @@ const AddLab = () => {
                           </Grid>
 
                           {/* test Data */}
-                          <Grid item xs={12} md={12} sm={12}>
+                          <Grid item size={{ xs: 12, sm: 12, md: 12 }}>
                             <Card
                               sx={{
                                 p: 2,
@@ -1237,7 +1237,7 @@ const AddLab = () => {
                             </Card>
                           </Grid>
 
-                          <Grid item xs={12} md={6} sm={6}>
+                          <Grid item size={{ xs: 12, sm: 6, md: 6 }}>
                             <Card sx={{ p: 2 }}>
                               <Box
                                 sx={{
@@ -1314,14 +1314,14 @@ const AddLab = () => {
                               </Box>
                             </Card>
                           </Grid>
-                          <Grid item xs={12} md={12} sm={12}>
+                          <Grid item size={{ xs: 12, sm: 12, md: 12 }}>
                             <Card>
                               <CardHeader title='Add Lab Picture' />
                               <CardContent>
                                 {/* <FileUploaderSingle onImageUpload={onImageUpload} image={uploadedImage} /> */}
                                 <Grid container>
                                   {/* {imgSrc !== '' ? null : ( */}
-                                  <Grid item md={12} sm={12} xs={12}>
+                                  <Grid item size={{ xs: 12, sm: 12, md: 12 }}>
                                     <input
                                       type='file'
                                       accept='*/*'
@@ -1353,9 +1353,7 @@ const AddLab = () => {
                                   {/* )} */}
                                   <Grid
                                     item
-                                    md={12}
-                                    sm={12}
-                                    xs={12}
+                                    size={{ xs: 12, sm: 12, md: 12 }}
                                     sx={{ display: 'flex', justifyContent: 'flex-start' }}
                                   >
                                     <Stack direction='row' sx={{ px: 2, display: 'flex', flexWrap: 'wrap', gap: 3 }}>
@@ -1464,7 +1462,7 @@ const AddLab = () => {
                               </CardContent>
                             </Card>
                           </Grid>
-                          <Grid item xs={12} md={12} sm={6}>
+                          <Grid item size={{ xs: 12, sm: 6, md: 12 }}>
                             <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end' }}>
                               <LoadingButton
                                 onClick={() => router.push('/lab/lab-list/')}
@@ -1550,7 +1548,7 @@ const AddLab = () => {
                     {sample?.tests?.map((parent, index) =>
                       parent?.child_tests?.length > 0 ? (
                         <Card key={index} mt={2}>
-                          <Accordion>
+                          <Accordion slotProps={{ heading: { component: 'h4' } }}>
                             <AccordionSummary
                               expandIcon={<ExpandMoreIcon />}
                               aria-controls='panel1a-content'
@@ -1566,6 +1564,7 @@ const AddLab = () => {
                                     fontSize: '15px',
                                     fontWeight: '500'
                                   }}
+                                  component='span'
                                 >
                                   {parent?.test_name}
                                 </Typography>

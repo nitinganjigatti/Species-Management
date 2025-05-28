@@ -184,7 +184,7 @@ const ProductsChart = ({
         <Grid container spacing={2} sx={{ mb: 2, display: 'none' }}>
           {/* Conditionally render Location dropdown */}
           {locations && locations.length > 0 && (
-            <Grid item xs={6}>
+            <Grid item size={{ xs: 6 }}>
               <FormControl fullWidth size='small'>
                 <InputLabel>Location</InputLabel>
                 <Select value={location} onChange={e => setLocation(e.target.value)} label='Location'>
@@ -198,7 +198,7 @@ const ProductsChart = ({
             </Grid>
           )}
           {frequencies && frequencies.length > 0 && (
-            <Grid item xs={6}>
+            <Grid item size={{ xs: 6 }}>
               <FormControl fullWidth size='small'>
                 <InputLabel>Frequency</InputLabel>
                 <Select value={frequency} onChange={e => setFrequency(e.target.value)} label='Frequency'>

@@ -46,6 +46,7 @@ const schema = yup.object().shape({
     .string()
     .transform(value => (value ? value.trim() : value))
     .required('Common Name is Required'),
+
   // animal_count: yup.number().when('possession_type', {
   //   is: val => val !== 'death',
   //   then: () =>
@@ -66,6 +67,7 @@ const schema = yup.object().shape({
   }),
   transaction_date: yup.date().required('Date is Required'),
   possession_type: yup.string().required('Reason is Required'),
+
   // Conditional fields for Transfer
   // organization_transfer: yup.string().when('possession_type', {
   //   is: 'transfer',
@@ -97,6 +99,7 @@ const schema = yup.object().shape({
     then: () => yup.date().required('Date of Death is required'),
     otherwise: () => yup.date().notRequired()
   }),
+
   // death_animal_id: yup.string().when('possession_type', {
   //   is: 'death',
   //   then: () => yup.string().notRequired(),
@@ -142,6 +145,7 @@ const schema = yup.object().shape({
         }),
     otherwise: () => yup.string().notRequired()
   }),
+
   // dgft_number: yup.string().when('possession_type', {
   //   is: 'acquisition',
   //   then: () => yup.string().required('DGFT Number is required'),
@@ -205,6 +209,7 @@ const schema = yup.object().shape({
     then: schema =>
       schema.test('at-least-one', 'At least one count must be provided', function (value) {
         const { male_count, female_count, other_count } = this.parent
+
         // Check if any of the counts are greater than 0
         return [male_count, female_count, other_count].some(count => count > 0)
       }),
@@ -263,6 +268,7 @@ const AddSpeciesNewEntry = props => {
   const fileInputRef = useRef(null)
   const [values, setValues] = useState(defaultValues)
   const [showAdditionalFields, setShowAdditionalFields] = useState(false)
+
   // const { selectedParivesh } = usePariveshContext()
   const [displayFile, setDisplayFile] = useState([])
   const [currentImageIndex, setCurrentImageIndex] = useState(0)
@@ -323,11 +329,13 @@ const AddSpeciesNewEntry = props => {
       tsn_id: specie?.id,
       tsn_relation: specie?.tsn_relation,
       possession_type: possession_type,
+
       // gender: gender,
       // animal_count: animal_count,
       transaction_date: moment.utc(selectedDate).format('YYYY-MM-DD HH:mm:ss'),
       attachment: attachments
     }
+
     // Add conditional fields based on possession_type
     // if (possession_type === 'death') {
     //   payload.reason_for_death = reason_for_death
@@ -348,10 +356,12 @@ const AddSpeciesNewEntry = props => {
       if (typeof male_count !== 'undefined' && male_count !== null) {
         payload.male_count = male_count
       }
+
       // Conditionally include female_count if it's defined
       if (typeof female_count !== 'undefined' && female_count !== null) {
         payload.female_count = female_count
       }
+
       // Conditionally include other_count if it's defined
       if (typeof other_count !== 'undefined' && other_count !== null) {
         payload.other_count = other_count
@@ -379,6 +389,7 @@ const AddSpeciesNewEntry = props => {
 
     if (!isValid) {
       console.log('Form is invalid, not submitting')
+
       return
     }
 
@@ -591,6 +602,7 @@ const AddSpeciesNewEntry = props => {
     if (filename.length <= maxLength) return filename
     const start = filename.slice(0, Math.floor(maxLength / 2))
     const end = filename.slice(-Math.floor(maxLength / 2))
+
     return `${start}...${end}`
   }
 
@@ -877,7 +889,6 @@ const AddSpeciesNewEntry = props => {
           </IconButton>
         </Box>
       </Box>
-
       <form autoComplete='off' onSubmit={!submitLoader ? handleSubmit(onSubmit) : null}>
         <Box className='sidebar-body' sx={{ p: theme => theme.spacing(5, 6), height: '100%' }}>
           <FormControl fullWidth sx={{ mb: 6 }}>
@@ -996,7 +1007,7 @@ const AddSpeciesNewEntry = props => {
             </Typography>
             <Grid container spacing={2} sx={{ mb: 6 }}>
               {/* {/ Add Attachments button /} */}
-              <Grid item xs={12} sm={12} md={7.2} lg={7.2}>
+              <Grid item size={{ xs: 12, sm: 12, md: 7.2, lg: 7.2 }}>
                 <Controller
                   name='attachments'
                   control={control}
@@ -1115,8 +1126,9 @@ const AddSpeciesNewEntry = props => {
               {/* {/ Uploaded files display /} */}
               {displayFile.map((src, index) => {
                 const isImage = /\.(jpeg|jpg|gif|png|svg|JPG|svg)$/.test(src?.name)
+
                 return (
-                  <Grid item xs={12} sm='auto' md='auto' lg='auto' key={index}>
+                  <Grid item size={{ xs: 12, sm: 'auto', md: 'auto', lg: 'auto' }} key={index}>
                     <FormControl fullWidth>
                       <Box
                         sx={{
@@ -1236,6 +1248,7 @@ const AddSpeciesNewEntry = props => {
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
+
             // backgroundColor: 'background.default',
             p: theme => theme.spacing(3, 3.255, 3, 5.255),
             bottom: 0,
@@ -1259,7 +1272,7 @@ const AddSpeciesNewEntry = props => {
           </Box> */}
       </form>
     </Drawer>
-  )
+  );
 }
 
 export default AddSpeciesNewEntry

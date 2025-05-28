@@ -436,7 +436,7 @@ export const AddItemsForm = ({
         style={{ width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center' }}
       >
         <Grid container rowSpacing={4} columnSpacing={2} xs={12}>
-          <Grid item xs={12} sm={12} lg={12}>
+          <Grid item size={{ xs: 12, sm: 12, lg: 12 }}>
             <FormControl fullWidth>
               <Controller
                 name='request_item'
@@ -609,7 +609,7 @@ export const AddItemsForm = ({
               </Paper>
             )}
           </Grid>
-          <Grid item xs={12} sm={12}>
+          <Grid item size={{ xs: 12, sm: 12 }}>
             <Typography
               variant='subtitle1'
               sx={{ color: 'customColors.customTextColorGray2', fontSize: '14px', fontWeight: 500 }}
@@ -617,7 +617,7 @@ export const AddItemsForm = ({
               {getValues('stock_type') === 'non_medical' ? 'Batch No' : 'Batch No and Expiry Date'}
             </Typography>
           </Grid>
-          <Grid item xs={12} sm={getValues('stock_type') === 'non_medical' ? 6 : 4}>
+          <Grid item size={{ xs: 12, sm: getValues('stock_type') === 'non_medical' ? 6 : 4 }}>
             {/* <FormControl fullWidth>
               <Controller
                 name='request_item_batch_no'
@@ -767,7 +767,7 @@ export const AddItemsForm = ({
               )}
             </FormControl>
           </Grid>
-          <Grid item xs={12} sm={getValues('stock_type') === 'non_medical' ? 6 : 4}>
+          <Grid item size={{ xs: 12, sm: getValues('stock_type') === 'non_medical' ? 6 : 4 }}>
             <FormControl fullWidth>
               <Controller
                 name='multiplier'
@@ -792,7 +792,7 @@ export const AddItemsForm = ({
             </FormControl>
           </Grid>
           {getValues('stock_type') === 'non_medical' ? null : (
-            <Grid item xs={12} sm={4}>
+            <Grid item size={{ xs: 12, sm: 4 }}>
               <FormControl fullWidth>
                 <Controller
                   name='expiry_date'
@@ -816,7 +816,7 @@ export const AddItemsForm = ({
               </FormControl>
             </Grid>
           )}
-          <Grid item xs={12} sm={12}>
+          <Grid item size={{ xs: 12, sm: 12 }}>
             <Typography
               variant='subtitle1'
               sx={{ color: 'customColors.customTextColorGray2', fontSize: '14px', fontWeight: 500 }}
@@ -824,7 +824,7 @@ export const AddItemsForm = ({
               Quantity
             </Typography>
           </Grid>
-          <Grid item xs={12} sm={12}>
+          <Grid item size={{ xs: 12, sm: 12 }}>
             <FormControl fullWidth>
               <Controller
                 name='request_item_qty'
@@ -876,11 +876,11 @@ export const AddItemsForm = ({
             </Grid>
           )} */}
           {quantityError && (
-            <Grid item xs={12}>
+            <Grid item size={{ xs: 12 }}>
               <Typography color={'error.main'}>Quantity should be lesser than available Quantity.</Typography>
             </Grid>
           )}
-          <Grid item xs={12} display={'flex'} justifyContent={'flex-end'} gap={4}>
+          <Grid item size={{ xs: 12 }} display={'flex'} justifyContent={'flex-end'} gap={4}>
             <Button variant='outlined' onClick={() => closeDialog()}>
               Cancel
             </Button>

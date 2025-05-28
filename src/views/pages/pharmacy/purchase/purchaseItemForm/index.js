@@ -587,7 +587,7 @@ const PurchaseItemForm = props => {
   return (
     <form autoComplete='off' onSubmit={handleSubmit(onSubmit)}>
       <Grid container spacing={5}>
-        <Grid item xs={12} sm={12}>
+        <Grid item size={{ xs: 12, sm: 12 }}>
           <Typography
             variant='body1'
             sx={{
@@ -610,7 +610,7 @@ const PurchaseItemForm = props => {
             </Typography>
           )}
         </Grid>
-        <Grid item xs={12} sm={8}>
+        <Grid item size={{ xs: 12, sm: 8 }}>
           <FormControl fullWidth>
             <Controller
               name='product'
@@ -733,7 +733,7 @@ const PurchaseItemForm = props => {
           </FormControl>
         </Grid>
 
-        <Grid item xs={12} sm={4}>
+        <Grid item size={{ xs: 12, sm: 4 }}>
           <FormControl fullWidth>
             <Controller
               name='purchase_batch_no'
@@ -768,7 +768,7 @@ const PurchaseItemForm = props => {
         </Grid>
 
         {!nonMedicalProduct && (
-          <Grid item xs={12} sm={4}>
+          <Grid item size={{ xs: 12, sm: 4 }}>
             <FormControl fullWidth>
               {expiryDateLoader && (
                 <span style={{ position: 'absolute', right: '12px', top: '16px' }}>
@@ -807,7 +807,7 @@ const PurchaseItemForm = props => {
           </Grid>
         )}
 
-        <Grid item xs={12} sm={4}>
+        <Grid item size={{ xs: 12, sm: 4 }}>
           <FormControl fullWidth>
             <Controller
               name='purchase_unit_price'
@@ -842,7 +842,7 @@ const PurchaseItemForm = props => {
           </FormControl>
         </Grid>
 
-        <Grid item xs={12} sm={4}>
+        <Grid item size={{ xs: 12, sm: 4 }}>
           <FormControl fullWidth>
             <Controller
               name='purchase_discount'
@@ -896,7 +896,7 @@ const PurchaseItemForm = props => {
             )}
           </FormControl>
         </Grid> */}
-        <Grid item xs={12} sm={12}>
+        <Grid item size={{ xs: 12, sm: 12 }}>
           <Divider
             orientation='horizontal'
             flexItem
@@ -908,7 +908,7 @@ const PurchaseItemForm = props => {
             }}
           />
         </Grid>
-        <Grid item xs={12} sm={12}>
+        <Grid item size={{ xs: 12, sm: 12 }}>
           <Typography
             variant='body1'
             sx={{
@@ -921,7 +921,7 @@ const PurchaseItemForm = props => {
             Purchase Quantity
           </Typography>
         </Grid>
-        <Grid item xs={12} sm={4}>
+        <Grid item size={{ xs: 12, sm: 4 }}>
           <FormControl fullWidth>
             <InputLabel error={Boolean(errors.purchase_variant_id)}>Product Variant*</InputLabel>
             <Controller
@@ -963,7 +963,7 @@ const PurchaseItemForm = props => {
             {errors?.purchase_variant_id && <FormHelperText error>{errors.purchase_variant_id.message}</FormHelperText>}
           </FormControl>
         </Grid>
-        <Grid item xs={12} sm={4}>
+        <Grid item size={{ xs: 12, sm: 4 }}>
           <FormControl fullWidth>
             <Controller
               name='purchase_qty'
@@ -989,7 +989,7 @@ const PurchaseItemForm = props => {
           </FormControl>
         </Grid>
 
-        <Grid item xs={12} sm={4}>
+        <Grid item size={{ xs: 12, sm: 4 }}>
           <Box
             sx={{
               width: '100%',
@@ -1040,7 +1040,7 @@ const PurchaseItemForm = props => {
             </Typography>
           </Box>
         </Grid>
-        <Grid item xs={12} sm={12}>
+        <Grid item size={{ xs: 12, sm: 12 }}>
           <Divider
             orientation='horizontal'
             flexItem
@@ -1052,7 +1052,7 @@ const PurchaseItemForm = props => {
             }}
           />
         </Grid>
-        <Grid item xs={12} sm={12}>
+        <Grid item size={{ xs: 12, sm: 12 }}>
           <Typography
             variant='body1'
             sx={{
@@ -1091,9 +1091,7 @@ const PurchaseItemForm = props => {
         >
           <Grid
             item
-            lg={3}
-            sm={6}
-            xs={6}
+            size={{ xs: 12, sm: 6 }}
             sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
           >
             <Typography
@@ -1123,9 +1121,7 @@ const PurchaseItemForm = props => {
           </Grid>
           <Grid
             item
-            lg={3}
-            sm={6}
-            xs={6}
+            size={{ xs: 12, sm: 6 }}
             sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
           >
             <Typography
@@ -1152,9 +1148,7 @@ const PurchaseItemForm = props => {
           </Grid>
           <Grid
             item
-            lg={3}
-            sm={6}
-            xs={6}
+            size={{ xs: 12, sm: 6 }}
             sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
           >
             <Typography
@@ -1181,9 +1175,7 @@ const PurchaseItemForm = props => {
           </Grid>
           <Grid
             item
-            lg={3}
-            sm={6}
-            xs={6}
+            size={{ xs: 12, sm: 6 }}
             sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
           >
             <Typography
@@ -1200,7 +1192,7 @@ const PurchaseItemForm = props => {
           </Grid>
         </Grid>
 
-        <Grid item xs={12} sm={4}>
+        <Grid item size={{ xs: 12, sm: 4 }}>
           <FormControl fullWidth>
             <Controller
               name='purchase_cgst'
@@ -1236,7 +1228,7 @@ const PurchaseItemForm = props => {
           </FormControl>
         </Grid>
 
-        <Grid item xs={12} sm={4}>
+        <Grid item size={{ xs: 12, sm: 4 }}>
           <FormControl fullWidth>
             <Controller
               name='purchase_sgst'
@@ -1270,7 +1262,7 @@ const PurchaseItemForm = props => {
             )}
           </FormControl>
         </Grid>
-        <Grid item xs={12} sm={4}>
+        <Grid item size={{ xs: 12, sm: 4 }}>
           <FormControl fullWidth>
             <Controller
               name='purchase_igst'
@@ -1389,7 +1381,7 @@ const PurchaseItemForm = props => {
             />
           </FormControl>
         </Grid> */}
-        <Grid item xs={12} sm={12}>
+        <Grid item size={{ xs: 12, sm: 12 }}>
           <Divider
             orientation='horizontal'
             flexItem
@@ -1401,7 +1393,7 @@ const PurchaseItemForm = props => {
             }}
           />
         </Grid>
-        <Grid item xs={12} sm={12}>
+        <Grid item size={{ xs: 12, sm: 12 }}>
           <Typography
             sx={{
               fontSize: '16px',
@@ -1416,8 +1408,7 @@ const PurchaseItemForm = props => {
         </Grid>
         <Grid
           item
-          sm={12}
-          xs={12}
+          size={{ xs: 12, sm: 12 }}
           sx={{
             display: 'flex',
             justifyContent: 'flex-start',
@@ -1438,7 +1429,7 @@ const PurchaseItemForm = props => {
             Discount Amount:{watch('purchase_discount_amount')}
           </Typography>
         </Grid>
-        <Grid item xs={12} sm={4}>
+        <Grid item size={{ xs: 12, sm: 4 }}>
           <FormControl fullWidth>
             <Controller
               name='purchase_gross_amount'
@@ -1460,7 +1451,7 @@ const PurchaseItemForm = props => {
           </FormControl>
         </Grid>
 
-        {/* <Grid item xs={12} sm={6}>
+        {/* <Grid item size={{xs: 12, sm: 6}}>
           <FormControl fullWidth>
             <Controller
               name='purchase_discount_amount'
@@ -1483,7 +1474,7 @@ const PurchaseItemForm = props => {
           </FormControl>
         </Grid> */}
 
-        <Grid item xs={12} sm={4}>
+        <Grid item size={{ xs: 12, sm: 4 }}>
           <FormControl fullWidth>
             <Controller
               name='purchase_taxable_amount'
@@ -1506,7 +1497,7 @@ const PurchaseItemForm = props => {
           </FormControl>
         </Grid>
 
-        <Grid item xs={12} sm={4}>
+        <Grid item size={{ xs: 12, sm: 4 }}>
           <FormControl fullWidth>
             <Controller
               name='purchase_net_amount'
@@ -1625,7 +1616,7 @@ const PurchaseItemForm = props => {
           }
         />
         {/* // file uploader */}
-        <Grid item xs={12}>
+        <Grid item size={{ xs: 12 }}>
           <Box sx={{ float: 'right' }}>
             {medicineItemId ? (
               <>

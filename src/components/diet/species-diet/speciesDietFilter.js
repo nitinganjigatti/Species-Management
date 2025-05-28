@@ -56,6 +56,7 @@ const DashboardFilter = ({
 
     const allOptions = getOptionsForMenu(menu)
     console.log('menu', menu)
+
     // Always update selectAll based on the new selection state
     setSelectAll(() => selectedOptions[menu?.name]?.length === allOptions.length)
   }
@@ -286,7 +287,7 @@ const DashboardFilter = ({
         }}
       >
         <Grid container sx={{ px: 5 }}>
-          <Grid item md={4} sm={4} xs={4}>
+          <Grid item size={{ md: 4, sm: 4, xs: 4 }}>
             {leftMenu.map(menu => (
               <Box
                 key={menu.id}
@@ -307,7 +308,7 @@ const DashboardFilter = ({
               </Box>
             ))}
           </Grid>
-          <Grid item md={8} sm={8} xs={8}>
+          <Grid item size={{ md: 8, sm: 8, xs: 8 }}>
             <Box
               sx={{
                 bgcolor: '#FFFFFF',

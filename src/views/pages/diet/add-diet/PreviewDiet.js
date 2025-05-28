@@ -74,6 +74,7 @@ const StepPreviewDiet = ({
   const [uomLabel, setuomLabel] = useState('')
   const [errorpop, setErrorpop] = useState('')
   const [expanded, setExpanded] = useState(false)
+
   const [screenSize, setScreenSize] = useState({
     width: window.innerWidth,
     height: window.innerHeight
@@ -685,6 +686,7 @@ const StepPreviewDiet = ({
   useEffect(() => {
     const updatedFormData = { ...formData }
     console.log(updatedFormData, 'updatedFormData')
+
     // Iterate over meal_data
     updatedFormData.meal_data.forEach(meal => {
       // Check if the meal_data has an ingredient array
@@ -693,6 +695,7 @@ const StepPreviewDiet = ({
           if (ingredient.meal_type && ingredient.meal_type.length > 0) {
             ingredient.meal_type = ingredient.meal_type.filter(mealType => {
               if (mealType.meal_value_header === 'Generic') return true
+
               return formData.diet_type_name === 'By Weight'
                 ? getCookie('dietTypeChildValues')?.includes(mealType.meal_value_header)
                 : formData.child?.includes(mealType.meal_value_header)
@@ -707,6 +710,7 @@ const StepPreviewDiet = ({
           if (recipe.meal_type && recipe.meal_type.length > 0) {
             recipe.meal_type = recipe.meal_type.filter(mealType => {
               if (mealType.meal_value_header === 'Generic') return true
+
               return formData.diet_type_name === 'By Weight'
                 ? getCookie('dietTypeChildValues')?.includes(mealType.meal_value_header)
                 : formData.child?.includes(mealType.meal_value_header)
@@ -721,6 +725,7 @@ const StepPreviewDiet = ({
           if (recipe.meal_type && recipe.meal_type.length > 0) {
             recipe.meal_type = recipe.meal_type.filter(mealType => {
               if (mealType.meal_value_header === 'Generic') return true
+
               return formData.diet_type_name === 'By Weight'
                 ? getCookie('dietTypeChildValues')?.includes(mealType.meal_value_header)
                 : formData.child?.includes(mealType.meal_value_header)
@@ -735,6 +740,7 @@ const StepPreviewDiet = ({
           if (ingredientwithchoice.meal_type && ingredientwithchoice.meal_type.length > 0) {
             ingredientwithchoice.meal_type = ingredientwithchoice.meal_type.filter(mealType => {
               if (mealType.meal_value_header === 'Generic') return true
+
               return formData.diet_type_name === 'By Weight'
                 ? getCookie('dietTypeChildValues')?.includes(mealType.meal_value_header)
                 : formData.child?.includes(mealType.meal_value_header)
@@ -783,6 +789,7 @@ const StepPreviewDiet = ({
 
   const getModal = (index, item) => {
     console.log(getValues())
+
     return (
       <Dialog
         className=''
@@ -821,7 +828,7 @@ const StepPreviewDiet = ({
         <DialogContent>
           {/* <Typography variant='h6'>Add Value</Typography> */}
           <Grid container spacing={5} sx={{ mt: 1 }}>
-            <Grid item xs={12} sm={6}>
+            <Grid item size={{ xs: 12, sm: 6 }}>
               <FormControl fullWidth>
                 <Controller
                   name='quantity'
@@ -840,7 +847,7 @@ const StepPreviewDiet = ({
                 />
               </FormControl>
             </Grid>
-            <Grid item xs={12} sm={6}>
+            <Grid item size={{ xs: 12, sm: 6 }}>
               <FormControl fullWidth>
                 <Controller
                   name='feed_uom_name'
@@ -864,7 +871,7 @@ const StepPreviewDiet = ({
               </FormControl>
             </Grid>
 
-            <Grid item xs={12} sx={{ pt: 5 }}>
+            <Grid item size={{ xs: 12 }} sx={{ pt: 5 }}>
               <Controller
                 name='notes'
                 control={control}
@@ -883,7 +890,12 @@ const StepPreviewDiet = ({
                 )}
               />
             </Grid>
-            <Grid item xs={12} sx={{ textAlign: 'center', mb: 3 }} onClick={() => SelectQuantityclick(index, item)}>
+            <Grid
+              item
+              size={{ xs: 12 }}
+              sx={{ textAlign: 'center', mb: 3 }}
+              onClick={() => SelectQuantityclick(index, item)}
+            >
               <Button variant='contained' sx={{ width: '350px', height: '40px' }}>
                 ADD Quantity
               </Button>{' '}
@@ -905,9 +917,9 @@ const StepPreviewDiet = ({
             <Typography variant='h6'>Preview</Typography>
           </Box>
 
-          <Grid container spacing={5} sx={{ mx: 1 }}>
+          <Grid container spacing={5} sx={{ px: 5 }}>
             {/* First Grid item */}
-            <Grid item xs={12} sm={4}>
+            <Grid item size={{ xs: 12, sm: 4 }}>
               <div
                 item
                 md={3}
@@ -958,7 +970,7 @@ const StepPreviewDiet = ({
               </div>
             </Grid>
             {/* Second Grid item */}
-            <Grid item xs={10} sm={7.5}>
+            <Grid item size={{ xs: 10, sm: 7.5 }}>
               <div style={{ display: 'flex', justifyContent: 'space-between' }}>
                 <Typography>
                   <span>Diet Name : </span>
@@ -1332,6 +1344,7 @@ const StepPreviewDiet = ({
                                   pr: '36px',
                                   background: theme.palette.secondary.contrastText,
                                   height: '185px',
+
                                   //display: 'flex',
                                   //flexDirection: 'column',
                                   justifyContent: 'center',
@@ -1346,6 +1359,7 @@ const StepPreviewDiet = ({
                                     position: 'absolute',
                                     top: '80px',
                                     transform: 'translateY(-50%)',
+
                                     //display: 'flex',
                                     flexDirection: 'column',
                                     alignItems: 'center',
@@ -1429,10 +1443,12 @@ const StepPreviewDiet = ({
                                           left: '180px',
                                           border: 'none',
                                           backgroundColor: theme.palette.secondary.contrastText
+
                                           //float: 'left',
                                           // display: 'flex',
                                           // flexDirection: 'row'
                                         }}
+
                                         // className={
                                         //   formData?.diet_type_name === 'By Weight'
                                         //     ? formData?.child?.length === 1
@@ -2082,10 +2098,12 @@ const StepPreviewDiet = ({
                                           left: '180px',
                                           border: 'none',
                                           backgroundColor: theme.palette.secondary.contrastText
+
                                           //float: 'left',
                                           // display: 'flex',
                                           // flexDirection: 'row'
                                         }}
+
                                         // className={
                                         //   formData?.diet_type_name === 'By Weight'
                                         //     ? formData?.child?.length === 1
@@ -2762,10 +2780,12 @@ const StepPreviewDiet = ({
                                           left: '180px',
                                           border: 'none',
                                           backgroundColor: theme.palette.secondary.contrastText
+
                                           //float: 'left',
                                           // display: 'flex',
                                           // flexDirection: 'row'
                                         }}
+
                                         // className={
                                         //   formData?.diet_type_name === 'By Weight'
                                         //     ? formData?.child?.length === 1
@@ -3336,10 +3356,12 @@ const StepPreviewDiet = ({
                                           left: '180px',
                                           border: 'none',
                                           backgroundColor: theme.palette.secondary.contrastText
+
                                           //float: 'left',
                                           // display: 'flex',
                                           // flexDirection: 'row'
                                         }}
+
                                         // className={
                                         //   formData?.diet_type_name === 'By Weight'
                                         //     ? formData?.child?.length === 1
@@ -3891,7 +3913,7 @@ const StepPreviewDiet = ({
                     </TableBody>
                   </Table>
                 </CustomScrollbar>
-                <Grid item xs={12} sx={{ pt: 10, pb: 8 }}>
+                <Grid item size={{ xs: 12 }} sx={{ pt: 10, pb: 8 }}>
                   <Controller
                     name='remarks'
                     control={control}
@@ -3917,7 +3939,7 @@ const StepPreviewDiet = ({
             </Grid>
           </Card>
 
-          <Grid item xs={12}>
+          <Grid item size={{ xs: 12 }}>
             <Box sx={{ display: 'flex', justifyContent: 'flex-end', my: 12, mx: 6 }}>
               <Button
                 color='secondary'

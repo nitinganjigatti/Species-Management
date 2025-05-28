@@ -392,7 +392,7 @@ function Dispense() {
             }}
           >
             {/* Search Field */}
-            <Grid item xs={12} sm={8} md={8} sx={{ mx: { xs: 3, md: 5 } }}>
+            <Grid item size={{ xs: 12, sm: 8, md: 8 }} sx={{ mx: { xs: 3, md: 5 } }}>
               <Box
                 sx={{
                   display: 'flex',
@@ -426,7 +426,11 @@ function Dispense() {
 
             {/* Switch */}
             {status === 'all' || status === 'completed' ? (
-              <Grid item xs={12} sm='auto' sx={{ textAlign: { xs: 'center', sm: 'right' }, mt: { xs: 2, sm: 0 } }}>
+              <Grid
+                item
+                size={{ xs: 12, sm: 'auto' }}
+                sx={{ textAlign: { xs: 'center', sm: 'right' }, mt: { xs: 2, sm: 0 } }}
+              >
                 <FormControlLabel
                   control={<Switch defaultChecked={filterSwitch} onChange={handleSwitchChange} />}
                   label='Completed'

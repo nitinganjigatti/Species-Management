@@ -790,8 +790,7 @@ const AddExistingPurchase = () => {
       <Grid container spacing={6}>
         <Grid
           item
-          sm={12}
-          xs={12}
+          size={{ xs: 12, sm: 12 }}
           sx={{
             display: 'flex',
             justifyContent: 'space-between',
@@ -827,8 +826,8 @@ const AddExistingPurchase = () => {
       <form autoComplete='off' onSubmit={handleSubmit(onSubmit)}>
         <CardContent>
           <Grid container spacing={6}>
-            {/* <Grid item xs={12} sm={6}> */}
-            <Grid item xs={12} sm={6}>
+            {/* <Grid item size={{xs: 12, sm: 6}}> */}
+            <Grid item size={{ xs: 12, sm: 6 }}>
               <FormControl fullWidth>
                 <InputLabel error={Boolean(errors.supplier_id)}>Supplier*</InputLabel>
                 <Controller
@@ -859,7 +858,7 @@ const AddExistingPurchase = () => {
                 {errors?.supplier_id && <FormHelperText error>{errors.supplier_id.message}</FormHelperText>}
               </FormControl>
             </Grid>
-            <Grid item xs={12} sm={6} lg={6}>
+            <Grid item size={{ xs: 12, sm: 6, lg: 6 }}>
               <FormControl fullWidth>
                 <Controller
                   name='po_date'
@@ -888,7 +887,7 @@ const AddExistingPurchase = () => {
                 )}
               </FormControl>
             </Grid>
-            <Grid item xs={12} sm={6} lg={6}>
+            <Grid item size={{ xs: 12, sm: 6, lg: 6 }}>
               <FormControl fullWidth>
                 <Controller
                   name='po_no'
@@ -913,7 +912,7 @@ const AddExistingPurchase = () => {
                 )}
               </FormControl>
             </Grid>
-            <Grid item xs={12} sm={6} lg={6} sx={{ mx: 'auto' }}>
+            <Grid item size={{ xs: 12, sm: 6, lg: 6 }} sx={{ mx: 'auto' }}>
               <FormControl fullWidth>
                 <Controller
                   name='description'
@@ -941,7 +940,7 @@ const AddExistingPurchase = () => {
                 )}
               </FormControl>
             </Grid>
-            <Grid item xs={12} sm={6} lg={6}>
+            <Grid item size={{ xs: 12, sm: 6, lg: 6 }}>
               <FormControl fullWidth>
                 <Controller
                   name='purchase_order_no'
@@ -961,7 +960,7 @@ const AddExistingPurchase = () => {
                 />
               </FormControl>
             </Grid>
-            <Grid item xs={12} sm={6} lg={6}>
+            <Grid item size={{ xs: 12, sm: 6, lg: 6 }}>
               <FormControl fullWidth>
                 <Controller
                   name='requested_by'
@@ -987,8 +986,7 @@ const AddExistingPurchase = () => {
           <Grid container>
             <Grid
               item
-              sm={12}
-              xs={12}
+              size={{ xs: 12, sm: 12 }}
               sx={{
                 display: 'flex',
                 justifyContent: 'flex-end',
@@ -1155,7 +1153,7 @@ const AddExistingPurchase = () => {
             </Card>
           </Grid>
         </Grid> */}
-        <Grid item xs={12}>
+        <Grid item size={{ xs: 12 }}>
           <Box sx={{ float: 'right', my: 4, mx: 6 }}>
             <LoadingButton
               disabled={editParams.purchase_details.length > 0 ? false : true}

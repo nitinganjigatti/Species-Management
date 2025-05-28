@@ -126,7 +126,7 @@ const AnalyticsWeeklySales = () => {
         }}
       >
         <Grid container>
-          <Grid item xs={6}>
+          <Grid item size={{ xs: 6 }}>
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
               {/* <CustomAvatar skin='light' sx={{ mr: 4 }} variant='rounded'>
                 <Icon icon='mdi:trending-up' />
@@ -138,7 +138,7 @@ const AnalyticsWeeklySales = () => {
               <CardStatsVertical />
             </Box>
           </Grid>
-          <Grid item xs={6}>
+          <Grid item size={{ xs: 6 }}>
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
               {/* <CustomAvatar skin='light' sx={{ mr: 4 }} color='warning' variant='rounded'>
                 <Icon icon='mdi:currency-usd' />

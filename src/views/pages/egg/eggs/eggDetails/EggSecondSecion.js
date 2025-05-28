@@ -56,6 +56,7 @@ const EggSecondSecion = ({
 }) => {
   const theme = useTheme()
   const currentDate = moment().format('YYYY-MM-DD')
+
   const CustomTableContainer = styled(TableContainer)({
     '::-webkit-scrollbar': {
       width: '4px',
@@ -552,6 +553,7 @@ const EggSecondSecion = ({
                             inputProps={{ min: 1 }}
                             onChange={event => {
                               const newValue = event.target.value
+
                               // Validate the input to ensure it contains only numbers
                               if (/^[1-9]\d*$/.test(newValue) || newValue === '') {
                                 onChange(event)
@@ -602,7 +604,7 @@ const EggSecondSecion = ({
 
   return (
     <Grid justifyContent='space-between' container alignItems='stretch' spacing={6}>
-      <Grid item xs={12} md={4}>
+      <Grid item size={{ xs: 12, md: 4 }}>
         <Card>
           <CardContent>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
@@ -693,7 +695,7 @@ const EggSecondSecion = ({
               <Grid container sx={{ gap: '16px', justifyContent: 'space-between' }}>
                 <Grid
                   item
-                  xs={12}
+                  size={{ xs: 12 }}
                   sx={{
                     borderRadius: '8px',
                     border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
@@ -727,7 +729,7 @@ const EggSecondSecion = ({
                 </Grid>
                 <Grid
                   item
-                  xs={12}
+                  size={{ xs: 12 }}
                   sx={{
                     borderRadius: '8px',
                     border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
@@ -764,7 +766,7 @@ const EggSecondSecion = ({
           </CardContent>
         </Card>
       </Grid>
-      <Grid item xs={12} md={8}>
+      <Grid item size={{ xs: 12, md: 8 }}>
         <Card sx={{ border: 1, borderColor: theme.palette.customColors.OutlineVariant }}>
           <CardHeader
             sx={{
@@ -776,7 +778,7 @@ const EggSecondSecion = ({
           />
           <CardContent>
             <Grid container spacing={6} justifyContent={'space-between'}>
-              <Grid item xs={12} sm={6} md={6} lg={6} xl={6}>
+              <Grid item size={{ xs: 12, sm: 6, md: 6, lg: 6, xl: 6 }}>
                 <Box
                   sx={{
                     backgroundColor: theme.palette.customColors.mdAntzNeutral,
@@ -789,7 +791,7 @@ const EggSecondSecion = ({
                 >
                   {Object.entries(historyData?.history1)?.map(([key, value]) => (
                     <Grid container key={key} sx={{ justifyContent: 'space-between', pb: '4px' }}>
-                      <Grid item xs={6}>
+                      <Grid item size={{ xs: 6 }}>
                         <Typography
                           sx={{
                             fontWeight: 400,
@@ -801,7 +803,7 @@ const EggSecondSecion = ({
                           {key}
                         </Typography>
                       </Grid>
-                      <Grid item xs={6}>
+                      <Grid item size={{ xs: 6 }}>
                         <Tooltip title={value ? value : '-'}>
                           <Typography
                             sx={{
@@ -822,7 +824,7 @@ const EggSecondSecion = ({
                   ))}
                 </Box>
               </Grid>
-              <Grid item xs={12} sm={6} md={6} lg={6} xl={6}>
+              <Grid item size={{ xs: 12, sm: 6, md: 6, lg: 6, xl: 6 }}>
                 <Box
                   sx={{
                     backgroundColor: theme.palette.customColors.mdAntzNeutral,
@@ -835,7 +837,7 @@ const EggSecondSecion = ({
                 >
                   {Object.entries(historyData?.history2)?.map(([key, value]) => (
                     <Grid key={key} container sx={{ justifyContent: 'space-between', pb: '4px' }}>
-                      <Grid item xs={6}>
+                      <Grid item size={{ xs: 6 }}>
                         <Typography
                           sx={{
                             fontWeight: 400,
@@ -847,7 +849,7 @@ const EggSecondSecion = ({
                           {key}
                         </Typography>
                       </Grid>
-                      <Grid item xs={6}>
+                      <Grid item size={{ xs: 6 }}>
                         <Tooltip title={value ? value : '-'}>
                           <Typography
                             onClick={() => {
@@ -917,12 +919,7 @@ const EggSecondSecion = ({
                 <Grid gap='24px' container>
                   <Grid
                     item
-                    sm={3.55}
-                    xs={12}
-                    md={3.5}
-                    lg={3.55}
-                    xl={3.72}
-                    xxl={3.72}
+                    size={{ xs: 12, sm: 3.55, md: 3.5, lg: 3.55, xl: 3.72, xxl: 3.72 }}
                     sx={{
                       borderRight: { xs: 'none', sm: `1px solid ${theme.palette.customColors.InnerAlignment}` },
                       borderBottom: { xs: `1px solid ${theme.palette.customColors.InnerAlignment}`, sm: 'none' },
@@ -959,12 +956,7 @@ const EggSecondSecion = ({
                   </Grid>
                   <Grid
                     item
-                    sm={3.55}
-                    xs={12}
-                    md={3.5}
-                    lg={3.55}
-                    xl={3.72}
-                    xxl={3.72}
+                    size={{ xs: 12, sm: 3.55, md: 3.5, lg: 3.55, xl: 3.72, xxl: 3.72 }}
                     sx={{
                       borderRight: { xs: 'none', sm: `1px solid ${theme.palette.customColors.InnerAlignment}` },
                       borderBottom: { xs: `1px solid ${theme.palette.customColors.InnerAlignment}`, sm: 'none' },
@@ -999,7 +991,7 @@ const EggSecondSecion = ({
                       </Box>
                     </Box>
                   </Grid>
-                  <Grid item xs={12} sm={3.55} md={3.5} lg={3.55} xl={3.72} xxl={3.72}>
+                  <Grid item xs={12} size={{ xs: 12, sm: 3.55, md: 3.5, lg: 3.55, xl: 3.72, xxl: 3.72 }}>
                     <Box sx={{ justifyContent: { xs: 'center', sm: 'start' }, display: 'flex', gap: '10px' }}>
                       <Box>
                         <img src='/icons/weight_icon.png' style={{ height: '28px' }} alt='Weight' />
@@ -1035,7 +1027,7 @@ const EggSecondSecion = ({
         </Card>
       </Grid>
 
-      <Grid item xs={12} md={6} xl={8}>
+      <Grid item size={{ xs: 12, md: 6, xl: 8 }}>
         <Card sx={{ border: 1, borderColor: theme.palette.customColors.OutlineVariant }}>
           <CardContent>
             <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
@@ -1099,7 +1091,7 @@ const EggSecondSecion = ({
           </CardContent>
         </Card>
       </Grid>
-      <Grid item xs={12} md={6} xl={4}>
+      <Grid item size={{ xs: 12, md: 6, xl: 4 }}>
         <Card sx={{ height: '100%' }}>
           <CardHeader sx={{ pb: 0, pl: 6 }} title='Weights (Grams)' action={weightHeaderAction} />
           <CardContent style={{ paddingBottom: 0 }}>

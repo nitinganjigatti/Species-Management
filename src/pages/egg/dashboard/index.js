@@ -73,7 +73,7 @@ const Dashboard = () => {
       </Breadcrumbs>
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
         <Grid container spacing={6} sx={{ justifyContent: 'space-between' }} columns={5}>
-          <Grid item sm={5} md={2} xl={2}>
+          <Grid item size={{ sm: 5, md: 2, xl: 2 }}>
             <Typography
               sx={{
                 color: theme.palette.customColors.OnSurfaceVariant,

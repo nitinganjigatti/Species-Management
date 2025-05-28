@@ -211,9 +211,11 @@ const Tests = ({ labTest }) => {
                         borderBottomRightRadius: '4px'
                       }
                     }}
+                    slotProps={{ heading: { component: 'h4' } }}
                   >
                     <AccordionSummary expandIcon={<ExpandMoreIcon />}>
                       <Typography
+                        component="span"
                         sx={{ overflow: 'hidden', textOverflow: 'ellipsis', fontWeight: 'bold', fontSize: '15px' }}
                       >
                         {parent?.test_name}

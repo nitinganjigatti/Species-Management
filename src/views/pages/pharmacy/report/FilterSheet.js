@@ -14,7 +14,6 @@ const FilterSheet = ({
   handleSelection,
   getTotalSelectedFilters
 }) => {
-
   const theme = useTheme()
   const [activeCategory, setActiveCategory] = useState(categories[0])
   const [searchValue, setSearchValue] = useState('')
@@ -135,7 +134,7 @@ const FilterSheet = ({
       <Box sx={{ width: '562px', height: '753px', display: 'flex', backgroundColor: 'background.default' }}>
         <Box sx={{ width: '180px', height: '900px', backgroundColor: 'background.default' }}>
           <Grid container>
-            <Grid item md={4} sm={4} xs={4}>
+            <Grid item size={{ xs: 4, sm: 4, md: 4 }}>
               <Box
                 sx={{
                   ml: 3,

@@ -308,7 +308,7 @@ function AlternativeMedicine({ parentId, updateRequestItems, existingListItems, 
           <Grid container spacing={2}>
             <Grid
               item
-              xs={12}
+              size={{ xs: 12 }}
               sx={{ display: 'flex', flexDirection: 'column', backgroundColor: 'customColors.Surface' }}
             >
               <Typography sx={{ color: 'customColors.SecondaryDark' }}>
@@ -323,8 +323,12 @@ function AlternativeMedicine({ parentId, updateRequestItems, existingListItems, 
       </Card>
       <Divider />
 
-      <Grid sx={{ my: 6 }} xs={12}>
-        <Grid item sx={{ display: 'flex', justifyItems: 'center', justifyContent: 'center', gap: 4 }} xs={12} sm={12}>
+      <Grid sx={{ my: 6 }} size={{ xs: 12 }}>
+        <Grid
+          item
+          sx={{ display: 'flex', justifyItems: 'center', justifyContent: 'center', gap: 4 }}
+          size={{ xs: 12, sm: 12 }}
+        >
           <Typography
             variant='button'
             onClick={() => setTabStatus('By product')}
@@ -355,9 +359,9 @@ function AlternativeMedicine({ parentId, updateRequestItems, existingListItems, 
           </Typography>
         </Grid>
       </Grid>
-      <Grid container sx={{ display: 'flex', flexDirection: 'column', gap: 2 }} item xs={12}>
+      <Grid container sx={{ display: 'flex', flexDirection: 'column', gap: 2 }} item size={{ xs: 12 }}>
         {tabStatus === 'By product' ? (
-          <Grid item xs={12} sm={12}>
+          <Grid item size={{ xs: 12, sm: 12 }}>
             <FormControl fullWidth>
               <Autocomplete
                 id='autocomplete-controlled'
@@ -449,7 +453,7 @@ function AlternativeMedicine({ parentId, updateRequestItems, existingListItems, 
             </FormControl>
           </Grid>
         ) : (
-          <Grid item xs={12} sm={12}>
+          <Grid item size={{ xs: 12, sm: 12 }}>
             <FormControl fullWidth>
               <Autocomplete
                 id='autocomplete-controlled'
@@ -600,7 +604,7 @@ function AlternativeMedicine({ parentId, updateRequestItems, existingListItems, 
           </Box>
         )}
 
-        <Grid item xs={12} sm={12} sx={{ mt: 3 }}>
+        <Grid item size={{ xs: 12, sm: 12 }} sx={{ mt: 3 }}>
           <FormControl fullWidth>
             <TextField
               type='number'
@@ -661,8 +665,8 @@ function AlternativeMedicine({ parentId, updateRequestItems, existingListItems, 
           </FormControl>
         </Grid>
 
-        <Grid item xs={12} sm={1}></Grid>
-        <Grid item xs={12} sm={12}>
+        <Grid item size={{ xs: 12, sm: 1 }}></Grid>
+        <Grid item size={{ xs: 12, sm: 12 }}>
           <FormControl fullWidth>
             <TextField
               type='text'
@@ -893,7 +897,7 @@ function AlternativeMedicine({ parentId, updateRequestItems, existingListItems, 
         ) : null} */}
         {nestedRowMedicine.control_substance === true || nestedRowMedicine.prescription_required === true ? (
           nestedRowMedicine.prescription_required_file ? (
-            <Grid item xs={12} sm={12} sx={{ mr: 'auto' }}>
+            <Grid item size={{ xs: 12, sm: 12 }} sx={{ mr: 'auto' }}>
               <Typography sx={{ mb: 2, fontSize: '16px', fontWeight: 500, color: 'customColors.customTextColorGray2' }}>
                 Add prescription*
               </Typography>
@@ -1073,7 +1077,7 @@ function AlternativeMedicine({ parentId, updateRequestItems, existingListItems, 
               )}
             </Grid>
           ) : (
-            <Grid item xs={12} sm={12}>
+            <Grid item size={{ xs: 12, sm: 12 }}>
               <Typography sx={{ mb: 2 }}>Add prescription*</Typography>
               {/* <FormControl fullWidth>
                   <TextField

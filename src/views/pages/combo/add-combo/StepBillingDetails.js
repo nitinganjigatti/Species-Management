@@ -136,6 +136,7 @@ const StepBillingDetails = ({ handlePrev, formData, handleSubmit, loader }) => {
         </Typography>
       )
     }
+
     // {
     //   flex: 0.4,
     //   minWidth: 20,
@@ -168,12 +169,12 @@ const StepBillingDetails = ({ handlePrev, formData, handleSubmit, loader }) => {
 
         <Grid container spacing={5}>
           {console.log(formData, 'formData')}
-          <Grid item xs={12}>
+          <Grid item size={{ xs: 12 }}>
             <>
               <Card sx={{ boxShadow: 'none' }}>
                 <CardContent sx={{ mt: 0 }}>
                   <Grid container spacing={6}>
-                    <Grid item xs={4}>
+                    <Grid item size={{ xs: 4 }}>
                       <Card sx={{ boxShadow: 'none', background: '#EFF5F2' }}>
                         <div
                           item
@@ -294,7 +295,7 @@ const StepBillingDetails = ({ handlePrev, formData, handleSubmit, loader }) => {
                       </Card>
                     </Grid>
 
-                    <Grid item xs={8}>
+                    <Grid item size={{ xs: 8 }}>
                       <Typography sx={{ fontSize: '16px', color: '#000', fontWeight: 500 }}>Description</Typography>
                       <Typography variant='body2' sx={{ fontSize: '14px', pt: 2 }}>
                         {formData.desc ? formData.desc : 'No Description to show'}
@@ -353,7 +354,7 @@ const StepBillingDetails = ({ handlePrev, formData, handleSubmit, loader }) => {
             </>
           </Grid>
 
-          <Grid item xs={12}>
+          <Grid item size={{ xs: 12 }}>
             <Box sx={{ display: 'flex', justifyContent: 'flex-end', my: 12 }}>
               <Button
                 color='secondary'

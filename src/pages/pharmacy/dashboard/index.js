@@ -125,11 +125,11 @@ const NewDashboard = () => {
         </LoadingButton> */}
       </Box>
       <Grid container spacing={6} className='match-height'>
-        <Grid item xs={12} md={selectedPharmacy.type === 'central' ? 8 : 12}>
+        <Grid item size={{ xs: 12, md: selectedPharmacy.type === 'central' ? 8 : 12 }}>
           <AnalyticsCongratulations />
         </Grid>
         {selectedPharmacy.type === 'central' ? (
-          <Grid item xs={12} md={4}>
+          <Grid item size={{ xs: 12, md: 4 }}>
             <Card>
               <CardHeader
                 title={'Critical info'}
@@ -142,7 +142,7 @@ const NewDashboard = () => {
               />
               <CardContent sx={{ marginTop: -6 }}>
                 <Grid container sx={{ display: 'flex', justifyContent: 'space-between' }} className='match-height'>
-                  <Grid item xs={6} sm={11 / 2}>
+                  <Grid item size={{ xs: 6, sm: 11 / 2 }}>
                     <CriticalInfoCards
                       title={expiredMedicine?.value ? '₹ ' + expiredMedicine?.value : '0'}
                       subTitle={expiredMedicine?.name}
@@ -151,7 +151,7 @@ const NewDashboard = () => {
                   </Grid>
                   <Divider orientation='vertical' variant='middle' flexItem />
 
-                  <Grid item xs={11 / 2}>
+                  <Grid item size={{ xs: 11 / 2 }}>
                     <CriticalInfoCards
                       title={outOfStockMedicine?.value ? outOfStockMedicine?.value : '0'}
                       subTitle={outOfStockMedicine?.name}
@@ -166,7 +166,7 @@ const NewDashboard = () => {
           ''
         )}
         {selectedPharmacy.type === 'central' ? (
-          <Grid item xs={12} md={12}>
+          <Grid item size={{ xs: 12, md: 12 }}>
             {console.log(totalList, 'totalList')}
             <TotalListCard
               data={
@@ -197,39 +197,39 @@ const NewDashboard = () => {
         ) : null} */}
         {selectedPharmacy.type !== 'central' ? (
           <>
-            <Grid item xs={12} md={12} sx={{ mb: 0 }}>
+            <Grid item size={{ xs: 12, md: 12 }} sx={{ mb: 0 }}>
               <ReceievedMedicines />
             </Grid>
           </>
         ) : null}
         {selectedPharmacy.type === 'central' ? (
           <>
-            <Grid item xs={12} md={6}>
+            <Grid item size={{ xs: 12, md: 6 }}>
               <MonthlyDispatchChart />
             </Grid>
-            <Grid item xs={12} md={6}>
+            <Grid item size={{ xs: 12, md: 6 }}>
               <MonthlyPurchaseChart />
             </Grid>
           </>
         ) : null}
         {selectedPharmacy.type !== 'central' ? (
           <>
-            <Grid item xs={12} md={12} sx={{ mb: 0 }}>
+            <Grid item size={{ xs: 12, md: 12 }} sx={{ mb: 0 }}>
               <RequestSentChart />
             </Grid>
           </>
         ) : null}
 
         {selectedPharmacy.type !== 'central' ? (
-          <Grid container item spacing={6} xs={12} md={12} sx={{ display: 'flex' }}>
-            <Grid item xs={12} md={12} sx={{ mb: 0 }}>
+          <Grid container item spacing={6} size={{ xs: 12, md: 12 }} sx={{ display: 'flex' }}>
+            <Grid item size={{ xs: 12, md: 12 }} sx={{ mb: 0 }}>
               <DoctorWiseRequest />
             </Grid>
 
-            <Grid item xs={12} md={7.5}>
+            <Grid item size={{ xs: 12, md: 7.5 }}>
               <StoreWiseNewRequests />
             </Grid>
-            <Grid item xs={12} md={4.5}>
+            <Grid item size={{ xs: 12, md: 4.5 }}>
               <Card>
                 <CardHeader
                   title='Products'
@@ -260,19 +260,19 @@ const NewDashboard = () => {
           </Grid>
         ) : null}
         {selectedPharmacy.type === 'central' ? (
-          <Grid container item spacing={6} xs={12} md={12} sx={{ display: 'flex' }}>
-            <Grid item xs={12} md={12} sx={{ mb: 0 }}>
+          <Grid container item spacing={6} size={{ xs: 12, md: 12 }} sx={{ display: 'flex' }}>
+            <Grid item size={{ xs: 12, md: 12 }} sx={{ mb: 0 }}>
               <StoreWiseDispatch />
             </Grid>
 
-            <Grid item xs={12} md={12} sx={{ mb: 0 }}>
+            <Grid item size={{ xs: 12, md: 12 }} sx={{ mb: 0 }}>
               <RequestChart />
             </Grid>
 
-            <Grid item xs={12} md={7.5}>
+            <Grid item size={{ xs: 12, md: 7.5 }}>
               <StoreWiseNewRequests />
             </Grid>
-            <Grid item xs={12} md={4.5}>
+            <Grid item size={{ xs: 12, md: 4.5 }}>
               <Card>
                 <CardHeader
                   title='Products'

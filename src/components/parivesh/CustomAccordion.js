@@ -5,6 +5,7 @@ import AccordionSummary from '@mui/material/AccordionSummary'
 import AccordionDetails from '@mui/material/AccordionDetails'
 import { styled } from '@mui/material/styles'
 import Box from '@mui/material/Box'
+
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
 import { Card, CardContent, Grid } from '@mui/material'
@@ -95,6 +96,7 @@ const CustomAccordion = ({
             cursor: 'pointer',
             color: '#00AFD6'
           }}
+
           // onClick={() => handleBoxClick()}
         >
           {/* #AFEFEB */}
@@ -116,7 +118,7 @@ const CustomAccordion = ({
         </Box>
       )}
 
-      <StyledAccordion expanded={expanded} onChange={handleChange}>
+      <StyledAccordion expanded={expanded} onChange={handleChange} slotProps={{ heading: { component: 'h4' } }}>
         <AccordionSummary
           id='panel-header-1'
           aria-controls='panel-content-1'
@@ -130,7 +132,7 @@ const CustomAccordion = ({
                 </Typography>
                 <Grid container spacing={2}>
                   {cards?.map((card, index) => (
-                    <Grid item xs={12} sm={6} md={12 / cards.length} key={index}>
+                    <Grid item size={{ xs: 12, sm: 6, md: 12 / cards.length }} key={index}>
                       <Card sx={{ backgroundColor: '#00000099', border: '1px solid #37BD694D' }}>
                         <CardContent>
                           <Typography variant='h6' component='div' sx={{ color: card?.bgColor }}>
@@ -142,7 +144,7 @@ const CustomAccordion = ({
 
                           <Grid container spacing={2}>
                             {card.items.map((item, idx) => (
-                              <Grid item xs={4} key={idx}>
+                              <Grid item size={{ xs: 4 }} key={idx}>
                                 <Typography variant='body2' sx={{ color: '#fff' }}>
                                   <Typography
                                     variant='body2'
@@ -280,6 +282,7 @@ const CustomAccordion = ({
                             padding: index === 0 ? '0.8rem' : 0,
                             display: 'flex',
                             flexDirection: 'column'
+
                             // alignItems: 'center'
                           }}
                         >
@@ -340,7 +343,7 @@ const CustomAccordion = ({
             <>
               <Grid container spacing={2}>
                 {cards?.map((card, index) => (
-                  <Grid item xs={12} sm={6} md={12 / cards.length} key={index}>
+                  <Grid item size={{ xs: 12, sm: 6, md: 12 / cards.length }} key={index}>
                     <Card sx={{ backgroundColor: '#00000099', border: '1px solid #37BD694D' }}>
                       <CardContent>
                         <Typography variant='h6' component='div' sx={{ color: card?.bgColor }}>
@@ -352,7 +355,7 @@ const CustomAccordion = ({
 
                         <Grid container spacing={2}>
                           {card.items.map((item, idx) => (
-                            <Grid item xs={4} key={idx}>
+                            <Grid item size={{ xs: 4 }} key={idx}>
                               <Typography variant='body2' sx={{ color: '#fff' }}>
                                 <Typography
                                   variant='body2'

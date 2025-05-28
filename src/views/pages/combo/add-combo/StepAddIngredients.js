@@ -44,6 +44,7 @@ const defaultValues = {
       quantity: '',
       preparation_type_id: '',
       preparation_type: ''
+
       // cut_size: '',
       // cut_size_id: ''
     }
@@ -66,6 +67,7 @@ const defaultValues = {
 
 const schema = yup.object().shape({
   recipe_name: yup.string().required('Combo name is required')
+
   // by_percentage: yup.array().of(
   //   yup.object().shape({
   //     ingredient_id: yup.string().required('Ingredient is required'),
@@ -111,6 +113,7 @@ const StepAddIngredients = ({
     { label: ' Ingredients' },
     { label: 'Quantity' },
     { label: 'Preparation Type' }
+
     // { label: 'Cut Size' }
   ]
 
@@ -186,6 +189,7 @@ const StepAddIngredients = ({
               ingredient_id: '',
               quantity: '',
               preparation_type_id: ''
+
               //cut_size_id: ''
             })
           }}
@@ -224,6 +228,7 @@ const StepAddIngredients = ({
             ingredient_id: '',
             quantity: '',
             preparation_type_id: ''
+
             //cut_size_id: ''
           })
         }}
@@ -376,6 +381,7 @@ const StepAddIngredients = ({
     const isByPercentageValid = data.by_percentage.every(
       item => item.ingredient_id && item.quantity && item.preparation_type_id
     )
+
     // Check if all entries in by_quantity have all required fields
     const isByQuantityValid = data.by_quantity.every(
       item => item.ingredient_id && item.quantity && item.uom_id && item.preparation_type_id
@@ -384,6 +390,7 @@ const StepAddIngredients = ({
     // If both arrays are empty or have incomplete entries, show an error
     if (data.by_percentage.length === 0) {
       window.scrollTo(0, 0)
+
       //return toast.error('Please fill in all fields in either "By Percentage" or "By Quantity".')
       return Toaster({
         type: 'error',
@@ -396,9 +403,11 @@ const StepAddIngredients = ({
         'ingredient_id',
         'quantity',
         'preparation_type_id'
+
         //'cut_size_id'
       ])
       window.scrollTo(0, 0)
+
       //return toast.error(`Please fill in all fields in "By Percentage" at index ${firstIncompleteIndex + 1}.`)
       return Toaster({
         type: 'error',
@@ -642,7 +651,7 @@ const StepAddIngredients = ({
           </Box>
           <ScrollToFieldError errors={errors} />
           <Grid container spacing={5} sx={{ px: 5 }}>
-            <Grid item xs={12} sm={6}>
+            <Grid item size={{ xs: 12, sm: 6 }}>
               <FormControl fullWidth>
                 <Controller
                   name='recipe_name'
@@ -670,14 +679,14 @@ const StepAddIngredients = ({
               <Typography variant='h6'>Add image</Typography>
             </Box>
             {console.log(uploadedImage, 'uploadedImage')}
-            <Grid item xs={6} sx={{ pt: 0 }}>
+            <Grid item size={{ xs: 6 }} sx={{ pt: 0 }}>
               <CardContent sx={{ px: 0, paddingTop: 2 }}>
                 <CustomFileUploaderSingle onImageUpload={handleImageUpload} uploadedImagenew={uploadedImage} />
               </CardContent>
             </Grid>
           </Grid>
           <Grid container spacing={5} sx={{ px: 5, pt: 6 }}>
-            <Grid item xs={12}>
+            <Grid item size={{ xs: 12 }}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4, mt: 2, mr: 4 }}>
                 <Typography variant='h6'>Add Ingredient - by Percentage</Typography>
                 {/* <AddButton title='Add Cut Size' action={() => addEventSidebarOpen()} /> */}
@@ -685,7 +694,7 @@ const StepAddIngredients = ({
             </Grid>
             <Grid container spacing={5} sx={{ px: 5, background: '#E8F4F2', my: 1, borderRadius: 0.5, mx: 4 }}>
               {ingredients.map((ingredient, index) => (
-                <Grid item xs={12} sm={4} key={index} sx={{ py: 4 }}>
+                <Grid item size={{ xs: 12, sm: 4 }} key={index} sx={{ py: 4 }}>
                   <Typography sx={{ textTransform: 'uppercase', fontSize: 14, fontWeight: 600 }}>
                     <div style={{ display: 'flex', alignItems: 'center' }}>
                       {ingredient.label}{' '}
@@ -718,7 +727,7 @@ const StepAddIngredients = ({
                   <Grid container spacing={5} sx={{ px: 5, py: 5 }} key={field.id} id={'test' + index}>
                     <ScrollToFieldError errors={errors} index={index} />
 
-                    <Grid item xs={12} sm={3.8}>
+                    <Grid item size={{ xs: 12, sm: 3.8 }}>
                       <FormControl fullWidth>
                         <Controller
                           name={`by_percentage[${index}].ingredient_id`}
@@ -791,7 +800,7 @@ const StepAddIngredients = ({
                       </FormControl>
                     </Grid>
 
-                    <Grid item xs={12} sm={3.8}>
+                    <Grid item size={{ xs: 12, sm: 3.8 }}>
                       <FormControl fullWidth>
                         <Controller
                           name={`by_percentage[${index}].quantity`}
@@ -837,7 +846,7 @@ const StepAddIngredients = ({
                           </FormHelperText>
                         )}
                         {index === fieldsIngredients.length - 1 && (
-                          <Grid item xs={12} sm={12}>
+                          <Grid item size={{ xs: 12, sm: 12 }}>
                             <span
                               style={{
                                 paddingTop: '15px',
@@ -858,7 +867,7 @@ const StepAddIngredients = ({
                       </FormControl>
                     </Grid>
 
-                    <Grid item xs={12} sm={3.8}>
+                    <Grid item size={{ xs: 12, sm: 3.8 }}>
                       <FormControl fullWidth>
                         <Controller
                           name={`by_percentage[${index}].preparation_type_id`}
@@ -1211,7 +1220,7 @@ const StepAddIngredients = ({
                 <Box sx={{ mb: 4, float: 'left' }}>
                   <Typography variant='h6'>Add Description</Typography>
                 </Box>
-                <Grid item xs={12}>
+                <Grid item size={{ xs: 12 }}>
                   <Controller
                     name='desc'
                     control={control}
@@ -1234,7 +1243,7 @@ const StepAddIngredients = ({
               </Grid>
             </Grid>
 
-            <Grid item xs={12}>
+            <Grid item size={{ xs: 12 }}>
               <Box sx={{ display: 'flex', justifyContent: 'flex-end', my: 12 }}>
                 <Button
                   color='secondary'

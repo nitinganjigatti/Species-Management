@@ -717,10 +717,7 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
               <Grid container sx={{ flexGrow: 1, m: 'auto' }}>
                 <Grid
                   item
-                  xs={12 / 1}
-                  sm={12 / 3}
-                  md={12 / 5}
-                  lg={12 / 5}
+                  size={{ xs: 12 / 1, sm: 12 / 3, md: 12 / 5, lg: 12 / 5 }}
                   sx={{ display: 'flex', flexDirection: 'column', gap: '4px' }}
                 >
                   <Typography
@@ -750,10 +747,7 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
                 </Grid>
                 <Grid
                   item
-                  xs={12 / 1}
-                  sm={12 / 3}
-                  md={12 / 5}
-                  lg={12 / 5}
+                  size={{ xs: 12 / 1, sm: 12 / 3, md: 12 / 5, lg: 12 / 5 }}
                   sx={{
                     mt: { xs: '12px', sm: '0px', md: '0px', lg: '0px' },
                     display: 'flex',
@@ -786,10 +780,7 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
                 </Grid>
                 <Grid
                   item
-                  xs={12 / 1}
-                  sm={12 / 3}
-                  md={12 / 5}
-                  lg={12 / 5}
+                  size={{ xs: 12 / 1, sm: 12 / 3, md: 12 / 5, lg: 12 / 5 }}
                   sx={{
                     textAlign: { xs: 'left', sx: 'right' },
                     mt: { xs: '12px', sm: '0px', md: '0px', lg: '0px' },
@@ -822,10 +813,7 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
                 </Grid>
                 <Grid
                   item
-                  xs={12 / 1}
-                  sm={12 / 3}
-                  md={12 / 5}
-                  lg={12 / 5}
+                  size={{ xs: 12 / 1, sm: 12 / 3, md: 12 / 5, lg: 12 / 5 }}
                   sx={{
                     textAlign: { sm: 'left', sx: 'right' },
                     mt: { xs: '12px', sm: '12px', md: '0px', lg: '0px' },
@@ -858,10 +846,7 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
                 </Grid>
                 <Grid
                   item
-                  xs={12 / 1}
-                  sm={12 / 3}
-                  md={12 / 5}
-                  lg={12 / 5}
+                  size={{ xs: 12 / 1, sm: 12 / 3, md: 12 / 5, lg: 12 / 5 }}
                   sx={{
                     textAlign: { sm: 'left', sx: 'right' },
                     mt: { xs: '12px', sm: '12px', md: '0px', lg: '0px' },
@@ -899,10 +884,7 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
             <Grid sx={{ my: '28px' }}>
               <Grid
                 item
-                xs={12}
-                sm={12}
-                md={12}
-                lg={12}
+                size={{ xs: 12, sm: 12, md: 12, lg: 12 }}
                 sx={{
                   display: 'flex',
                   mb: 3
@@ -931,7 +913,7 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
                   {getTotalQty()}
                 </Typography>
               </Grid>
-              <Grid item xs={12} sm={12}>
+              <Grid item size={{ xs: 12, sm: 12 }}>
                 <FormGroup>
                   {fields.map((field, index) => (
                     <Grid
@@ -955,7 +937,7 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
                         transition: 'min-height 0.3s ease-in-out'
                       }}
                     >
-                      <Grid item xs={12} sm={batchItems[index]?.stock_type === 'non_medical' ? 3.2 : 2.4}>
+                      <Grid item size={{ xs: 12, sm: batchItems[index]?.stock_type === 'non_medical' ? 3.2 : 2.4 }}>
                         <FormControl fullWidth sx={{ position: 'relative' }}>
                           <Controller
                             name={`product_batches[${index}].batch_no`}
@@ -1116,7 +1098,7 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
                       </Grid>
 
                       {batchItems[index]?.stock_type === 'non_medical' ? null : (
-                        <Grid item xs={12} sm={batchItems[index]?.stock_type === 'non_medical' ? 3.2 : 2.4}>
+                        <Grid item size={{ xs: 12, sm: batchItems[index]?.stock_type === 'non_medical' ? 3.2 : 2.4 }}>
                           <FormControl fullWidth sx={{ position: 'relative' }}>
                             <Controller
                               name={`product_batches[${index}].expiry_date`}
@@ -1153,7 +1135,7 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
                           </FormControl>
                         </Grid>
                       )}
-                      <Grid item xs={12} sm={batchItems[index]?.stock_type === 'non_medical' ? 3.2 : 2.4}>
+                      <Grid item size={{ xs: 12, sm: batchItems[index]?.stock_type === 'non_medical' ? 3.2 : 2.4 }}>
                         <FormControl fullWidth sx={{ position: 'relative' }}>
                           <Controller
                             name={`product_batches[${index}].multiplier`}
@@ -1175,7 +1157,7 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
                           />
                         </FormControl>
                       </Grid>
-                      <Grid item xs={12} sm={batchItems[index]?.stock_type === 'non_medical' ? 3.2 : 2.4}>
+                      <Grid item size={{ xs: 12, sm: batchItems[index]?.stock_type === 'non_medical' ? 3.2 : 2.4 }}>
                         <FormControl fullWidth sx={{ position: 'relative' }}>
                           <Controller
                             name={`product_batches[${index}].qty`}
@@ -1244,8 +1226,7 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
 
                       <Grid
                         item
-                        xs={12}
-                        sm={batchItems[index]?.stock_type === 'non_medical' ? 1.6 : 1.6}
+                        size={{ xs: 12, sm: batchItems[index]?.stock_type === 'non_medical' ? 1.6 : 1.6 }}
                         alignSelf={errors?.product_batches?.[index] ? 'flex-start' : 'center'}
                         sx={{
                           display: 'flex',
@@ -1291,16 +1272,16 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
                 </div>
               ) : null}
               {quantityError && (
-                <Grid item xs={12}>
+                <Grid item size={{ xs: 12 }}>
                   <Typography color={'error.main'}>Quantity should be lesser than available Quantity.</Typography>
                 </Grid>
               )}
               {batchItems.length === 0 ? (
-                <Grid item xs={12} sx={{ my: 2 }}>
+                <Grid item size={{ xs: 12 }} sx={{ my: 2 }}>
                   <Typography color={'error.main'}>This product is out of stock</Typography>
                 </Grid>
               ) : null}
-              <Grid item xs={12} style={{ alignSelf: 'flex-end', marginTop: '10px' }}>
+              <Grid item size={{ xs: 12 }} style={{ alignSelf: 'flex-end', marginTop: '10px' }}>
                 {batchItems.length === 0 ? (
                   <AddButton
                     styles={{ marginRight: 4 }}

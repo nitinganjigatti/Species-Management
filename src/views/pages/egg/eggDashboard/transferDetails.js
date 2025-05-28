@@ -56,6 +56,7 @@ const TransferDetails = () => {
       console.log(e)
     }
   }
+
   const FromSiteList = async q => {
     try {
       const params = {
@@ -70,6 +71,7 @@ const TransferDetails = () => {
       console.log(e)
     }
   }
+
   const ToSiteList = async q => {
     try {
       const params = {
@@ -101,6 +103,7 @@ const TransferDetails = () => {
     }, 1000),
     []
   )
+
   const searchToSite = useCallback(
     debounce(async q => {
       try {
@@ -227,6 +230,7 @@ const TransferDetails = () => {
               overflow: 'hidden',
               textOverflow: 'ellipsis',
               whiteSpace: 'nowrap',
+
               // width: '90%',
               // textAlign: 'center',
               // margin: '0 auto',
@@ -444,6 +448,7 @@ const TransferDetails = () => {
 
   const handleChange = (event, newValue) => {
     setTotal(0)
+
     // setStatus(newValue)
   }
 
@@ -462,6 +467,7 @@ const TransferDetails = () => {
           to_site_id: toSiteId || defaultToSite?.site_id,
           nursery_id: nurseryId || defaultNursery?.nursery_id
         }
+
         // console.log('params', params)
         await getTransferList(params).then(res => {
           if (res?.data?.success) {
@@ -541,7 +547,7 @@ const TransferDetails = () => {
         Transfer Details
       </Typography>
       <Grid container columns={15} spacing={6}>
-        <Grid item xs={3}>
+        <Grid item size={{ xs: 3 }}>
           <Box
             sx={{
               display: 'flex',
@@ -583,7 +589,7 @@ const TransferDetails = () => {
             />
           </Box>
         </Grid>
-        <Grid item xs={5}>
+        <Grid item size={{ xs: 5 }}>
           <Box sx={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
             <LocalizationProvider dateAdapter={AdapterDayjs}>
               <DatePicker
@@ -658,7 +664,7 @@ const TransferDetails = () => {
             </LocalizationProvider>
           </Box>
         </Grid>
-        <Grid item xs={3}>
+        <Grid item size={{ xs: 3 }}>
           <FormControl fullWidth>
             <Autocomplete
               name='fromSite'
@@ -725,7 +731,7 @@ const TransferDetails = () => {
             />
           </FormControl>
         </Grid>
-        <Grid item xs={3}>
+        <Grid item size={{ xs: 3 }}>
           <FormControl fullWidth>
             <Autocomplete
               name='toSite'
@@ -785,7 +791,7 @@ const TransferDetails = () => {
             />
           </FormControl>
         </Grid>
-        {/* <Grid item xs={3}>
+        {/* <Grid item size={{xs: 3}}>
           <FormControl fullWidth>
             <Autocomplete
               name='nursery'
@@ -879,6 +885,7 @@ const TransferDetails = () => {
         // slots={{ toolbar: ServerSideToolbarWithFilter }}
         onPaginationModelChange={setPaginationModel}
         loading={loading}
+
         // slotProps={{
         //   baseButton: {
         //     variant: 'outlined'

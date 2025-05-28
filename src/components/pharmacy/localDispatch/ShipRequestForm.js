@@ -409,7 +409,7 @@ const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
       /> */}
 
       <Grid container spacing={6} className='match-height'>
-        <Grid item xs={12}>
+        <Grid item size={{ xs: 12 }}>
           <CardContent>
             {/* <Grid md={12} sm={12} xs={12} sx={{ my: 6 }}>
               <FormControlLabel
@@ -465,7 +465,7 @@ const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
               </Box>
 
               <Grid container sx={{ my: 6 }}>
-                <Grid md={3} sm={12} xs={12}>
+                <Grid size={{ xs: 12, sm: 12, md: 3 }}>
                   <Typography sx={{ color: 'customColors.customTextColorGray2', fontWeight: 500, fontSize: '1rem' }}>
                     {' '}
                     Shipped To:
@@ -474,7 +474,7 @@ const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
                     {dispatchedItems?.[0]?.to_store_name}
                   </Typography>
                 </Grid>
-                <Grid md={7} sm={12} xs={12}>
+                <Grid size={{ xs: 12, sm: 12, md: 7 }}>
                   <Typography sx={{ color: 'customColors.customTextColorGray2', fontWeight: 500, fontSize: '1rem' }}>
                     Delivery Type
                   </Typography>
@@ -521,7 +521,7 @@ const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
                 >
                   Shipment Details
                 </Typography>
-                <Grid item xs={12} sm={6}>
+                <Grid item size={{ xs: 12, sm: 6 }}>
                   <FormControl fullWidth>
                     <SingleDatePicker
                       fullWidth
@@ -547,7 +547,7 @@ const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
                 </Grid>
                 {deliveryType.Ship ? (
                   <>
-                    <Grid item xs={12} sm={6}>
+                    <Grid item size={{ xs: 12, sm: 6 }}>
                       <FormControl fullWidth>
                         <Controller
                           name='vehicle_no'
@@ -570,7 +570,7 @@ const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
                       </FormControl>
                     </Grid>
 
-                    <Grid item xs={12} sm={6}>
+                    <Grid item size={{ xs: 12, sm: 6 }}>
                       <FormControl fullWidth>
                         <Controller
                           name='person_shipping'
@@ -594,7 +594,7 @@ const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
                     </Grid>
                   </>
                 ) : (
-                  <Grid item xs={12} sm={6}>
+                  <Grid item size={{ xs: 12, sm: 6 }}>
                     <FormControl fullWidth>
                       <Controller
                         name='receiver_name'
@@ -618,7 +618,7 @@ const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
                   </Grid>
                 )}
 
-                {/* <Grid item xs={12} sm={6}>
+                {/* <Grid item size={{xs: 12, sm: 6}}>
                   <FormControl fullWidth>
                     <Controller
                       name='delivery_mode'
@@ -641,7 +641,7 @@ const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
                   </FormControl>
                 </Grid> */}
 
-                <Grid item xs={12} sm={6}>
+                <Grid item size={{ xs: 12, sm: 6 }}>
                   <FormControl fullWidth>
                     <Controller
                       name='phone_number'
@@ -663,7 +663,7 @@ const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
                     )}
                   </FormControl>
                 </Grid>
-                <Grid item xs={12} sm={6}>
+                <Grid item size={{ xs: 12, sm: 6 }}>
                   <FormControl fullWidth>
                     <Controller
                       name='carton_box'
@@ -707,7 +707,7 @@ const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
             </Box>
             <Box mt={6}>
               {dispatchedItems?.length > 0 ? (
-                <Grid md={12} sm={12} xs={12} sx={{ mb: 14 }}>
+                <Grid md={12} size={{ xs: 12, sm: 12, md: 12 }} sx={{ mb: 14 }}>
                   <TableBasic
                     columns={columns}
                     rows={dispatchedItems}

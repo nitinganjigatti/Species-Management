@@ -763,8 +763,7 @@ const AddDirectDispatch = () => {
         <Card>
           <Grid
             container
-            sm={12}
-            xs={12}
+            size={{ xs: 12, sm: 12 }}
             sx={{
               display: 'flex',
               justifyContent: 'space-between',
@@ -814,7 +813,7 @@ const AddDirectDispatch = () => {
           <CardContent>
             <form>
               <Grid container spacing={5}>
-                <Grid item xs={12} sm={12}>
+                <Grid item size={{ xs: 12, sm: 12 }}>
                   <Typography
                     variant='subtitle2'
                     sx={{
@@ -828,7 +827,7 @@ const AddDirectDispatch = () => {
                   </Typography>
                 </Grid>
 
-                <Grid item xs={12} sm={6} sx={{ mb: 5, width: '100%' }}>
+                <Grid item size={{ xs: 12, sm: 6 }} sx={{ mb: 5, width: '100%' }}>
                   <FormControl fullWidth>
                     <InputLabel id='state_id' error={Boolean(errors.to_store_id)}>
                       Store*
@@ -865,7 +864,7 @@ const AddDirectDispatch = () => {
                   </FormControl>
                 </Grid>
 
-                <Grid item xs={12} sm={6} sx={{ mb: 5 }}>
+                <Grid item size={{ xs: 12, sm: 6 }} sx={{ mb: 5 }}>
                   <Autocomplete
                     fullWidth
                     disablePortal
@@ -1225,7 +1224,7 @@ const AddDirectDispatch = () => {
                    </Grid>
                  ) : null}
                </CardContent> */}
-              <Grid item xs={12}>
+              <Grid item size={{ xs: 12 }}>
                 <Box sx={{ float: 'right', my: 4, mx: 6 }}>
                   {id ? (
                     <>

@@ -27,6 +27,7 @@ import { getOrgCountList } from 'src/lib/api/parivesh/organizationCount'
 import ImageLightbox from 'src/components/parivesh/ImageLightbox'
 import Utility from 'src/utility'
 import Error404 from 'src/pages/404'
+
 // import { getSpeciesListByOrg } from 'src/lib/api/parivesh'
 
 const SpeciesDetails = () => {
@@ -116,6 +117,7 @@ const SpeciesDetails = () => {
         </>
       )
     },
+
     // {
     //   flex: 0.3,
     //   minWidth: 30,
@@ -184,6 +186,7 @@ const SpeciesDetails = () => {
         </Typography>
       )
     },
+
     // {
     //   flex: 0.3,
     //   minWidth: 30,
@@ -230,6 +233,7 @@ const SpeciesDetails = () => {
               : '-'}
           </Typography>
         </Box>
+
         // <Typography variant='body2' sx={{ color: 'text.primary' }}>
         //   {params.row.transaction_date ? moment.utc(params.row.transaction_date).format('DD MMMM YYYY') : '-'}
         // </Typography>
@@ -250,11 +254,13 @@ const SpeciesDetails = () => {
     //   return
     // }
   }
+
   const addEventSidebarOpen = () => {
     setEditParams({ id: null, name: null, active: null })
     setResetForm(true)
     setOpenDrawer(true)
   }
+
   const handleSidebarClose = () => {
     setEditParams({ id: null, name: null, active: null })
     setResetForm(true)
@@ -284,6 +290,7 @@ const SpeciesDetails = () => {
         await getEntryList({ params: params }).then(res => {
           // console.log('list response', res)
           setSpeciesDetails({ scientific_name: res.data.scientific_name, common_name: res.data.common_name })
+
           // Generate uid field based on the index
           let listWithId = res.data.data.map((el, i) => {
             return { ...el, id: i + 1 }
@@ -815,6 +822,7 @@ const SpeciesDetails = () => {
               {organizationCountList.length > 0 &&
                 organizationCountList.map((org, inx) => {
                   console.log(org, 'pppppqwer')
+
                   return (
                     <CardContent sx={{ display: 'flex', flexDirection: 'column' }}>
                       <CustomAccordion

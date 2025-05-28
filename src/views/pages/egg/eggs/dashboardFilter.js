@@ -84,6 +84,7 @@ const DashboardFilter = ({
     searchData('')
 
     const allOptions = getOptionsForMenu(menu)
+
     // Always update selectAll based on the new selection state
     setSelectAll(() => selectedOptions[menu?.name]?.length === allOptions.length)
   }
@@ -353,7 +354,7 @@ const DashboardFilter = ({
         }}
       >
         <Grid container sx={{ px: 5 }}>
-          <Grid item md={4} sm={4} xs={4}>
+          <Grid item size={{ xs: 4, sm: 4, md: 4 }}>
             {leftMenu.map(menu => (
               <Box
                 key={menu.id}
@@ -374,7 +375,7 @@ const DashboardFilter = ({
               </Box>
             ))}
           </Grid>
-          <Grid item md={8} sm={8} xs={8}>
+          <Grid item size={{ xs: 8, sm: 8, md: 8 }}>
             <Box
               sx={{
                 bgcolor: theme.palette.primary.contrastText,

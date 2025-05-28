@@ -466,7 +466,7 @@ export default function ShipmentRequests({ updateUrlParams }) {
           }}
         >
           {shipmentTab === 'Ready To Ship' && (
-            <Grid item xs={5} sm={4.5} md={4} lg={3}>
+            <Grid item size={{ xs: 5, sm: 4.5, md: 4, lg: 3 }}>
               <FormControl fullWidth size='small'>
                 <InputLabel sx={{ py: '2px' }}>Priority</InputLabel>
                 <Select
@@ -487,7 +487,7 @@ export default function ShipmentRequests({ updateUrlParams }) {
           {shipmentTab === 'Ready To Ship' &&
           (indexedRows?.length > 0 || selectedRows?.length > 0) &&
           (selectedPharmacy?.permission.key === 'ADD' || selectedPharmacy?.permission.key === 'allow_full_access') ? (
-            <Grid item xs={5} sm='auto' md={4} lg={3}>
+            <Grid item size={{ xs: 5, sm: 'auto', md: 4, lg: 3 }}>
               <Button
                 fullWidth
                 disabled={selectedRows?.length === 0}

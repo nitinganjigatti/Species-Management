@@ -13,6 +13,7 @@ import {
 } from '@mui/material'
 import { Box } from '@mui/system'
 import { useTheme } from '@mui/material/styles'
+
 // ** Third Party Components
 import clsx from 'clsx'
 import moment from 'moment'
@@ -43,6 +44,7 @@ const EggHeroSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGaller
   const [openAllocate, setOpenAllocate] = useState(false)
   const [openDiscard, setOpenDiscard] = useState(false)
   const [allocationNurseryId, setAllocationNurseryId] = useState({})
+
   //Edit Egg info
   const [openEditDrawer, setOpenEditDrawer] = useState(false)
 
@@ -472,10 +474,7 @@ const EggHeroSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGaller
                 height: '100%',
                 py: { xs: '24px', sm: '24px', md: '0px', lg: '0px', xl: '0px' }
               }}
-              xs={12}
-              md={6}
-              lg={9.3}
-              xl={9}
+              size={{ xs: 12, md: 6, lg: 9.3, xl: 9 }}
               item
             >
               <Box
@@ -584,13 +583,13 @@ const EggHeroSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGaller
                 gap={{ xs: '24px', sm: '16px', md: '16px', lg: '0px', xl: '2px', xxl: '2px' }}
                 sx={{ justifyContent: 'space-between' }}
               >
-                <Grid item xl={3.75} lg={3.9} md={12} sm={5.8} xs={12}>
+                <Grid item size={{ xs: 12, sm: 5.8, md: 12, lg: 3.9, xl: 3.75 }}>
                   <TimeCard />
                 </Grid>
-                <Grid item xl={3.75} lg={3.9} md={12} sm={5.8} xs={12}>
+                <Grid item size={{ xs: 12, sm: 5.8, md: 12, lg: 3.9, xl: 3.75 }}>
                   <WeightCard />
                 </Grid>
-                <Grid item xl={3.75} lg={3.9} xs={12}>
+                <Grid item xl={3.75} lg={3.9} size={{ xs: 12, lg: 3.9, xl: 3.75 }}>
                   <ConditionCard />
                 </Grid>
               </Grid>

@@ -377,6 +377,7 @@ const ConditionSlider = ({
     } else {
       setDisplayFile(prev => {
         const updatedFiles = prev.split(', ').filter((_, i) => i !== index)
+
         return updatedFiles.join(', ')
       })
     }
@@ -975,7 +976,7 @@ const ConditionSlider = ({
                   </FormControl>
                   <Grid container>
                     {/* {imgSrc !== '' ? null : ( */}
-                    <Grid item md={12} sm={12} xs={12}>
+                    <Grid item size={{ md: 12, sm: 12, xs: 12 }}>
                       <input
                         type='file'
                         multiple
@@ -1005,7 +1006,7 @@ const ConditionSlider = ({
                       </Box>
                     </Grid>
                     {/* )} */}
-                    <Grid item md={12} sm={12} xs={12} sx={{ display: 'flex', justifyContent: 'flex-start' }}>
+                    <Grid item size={{ md: 12, sm: 12, xs: 12 }} sx={{ display: 'flex', justifyContent: 'flex-start' }}>
                       <Stack direction='row' sx={{ px: 2, display: 'flex', flexWrap: 'wrap', gap: 3 }}>
                         {imgSrc?.length > 0 &&
                           imgSrc?.map((img, index) => (
