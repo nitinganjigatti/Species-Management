@@ -18,7 +18,7 @@ const SectionsDrawer = ({ open, onClose, data }) => {
   const theme = useTheme()
   const dispatch = useDispatch()
 
-  const { list = [], loading, hasMore, search } = useSelector(state => state.sectionInfiniteScroll || {})
+  const { list = [], loading, hasMore, search, total } = useSelector(state => state.sectionInfiniteScroll || {})
 
   const [localSearch, setLocalSearch] = useState(search || '')
 
@@ -96,7 +96,7 @@ const SectionsDrawer = ({ open, onClose, data }) => {
       </Box>
 
       <Typography sx={{ fontSize: '1.25rem', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}>
-        Sections {list.length > 0 ? `(${list.length})` : ''}
+        Sections {total ? `(${total})` : ''}
       </Typography>
 
       <Box sx={{ mt: 2, mb: 3, backgroundColor: theme.palette.common.white }}>
