@@ -1178,7 +1178,7 @@ const RequestDetails = () => {
             }}
           >
             <Typography variant='h6' sx={{ ml: 3 }}>
-              Tests list
+              Test list
             </Typography>
             <IconButton onClick={handleClose}>
               <Icon icon='ep:close-bold' fontSize={20} color={'red'} />
