@@ -1,5 +1,6 @@
-import { Avatar, Box, Typography, Chip } from '@mui/material'
-import LandscapeIcon from '@mui/icons-material/Landscape'
+import { Box, Chip } from '@mui/material'
+import { CellInfo } from 'src/utility/render'
+import { useTheme } from '@mui/material/styles'
 
 const Stat = ({ label, value }) => (
   <Chip
@@ -16,23 +17,26 @@ const Stat = ({ label, value }) => (
 )
 
 const SectionCard = ({ section }) => {
+  const theme = useTheme()
   const imageUrl = section.image
 
+  console.log('section :>> ', section)
+
   return (
-    <Box p={2} mb={2} sx={{ bgcolor: '#fff', borderRadius: 2 }}>
-      <Box display='flex' alignItems='center' gap={2} mb={1}>
-        {imageUrl ? (
-          <Box component='img' src={imageUrl} alt={section.name} sx={{ width: 40, height: 40, borderRadius: 1 }} />
-        ) : (
-          <Avatar variant='square' sx={{ width: 40, height: 40 }}>
-            <LandscapeIcon />
-          </Avatar>
-        )}
-        <Box>
-          <Typography fontWeight={600}>{section.name}</Typography>
-          <Typography variant='body2'>{section.incharge}</Typography>
-        </Box>
-      </Box>
+    <Box
+      sx={{
+        border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+        backgroundColor: theme.palette.common.white,
+        padding: 4,
+        width: '100%',
+        display: 'flex',
+        alignItems: 'center',
+        borderRadius: '8px',
+        flexDirection: 'column',
+        gap: 4
+      }}
+    >
+      <CellInfo value={section.name} imgUrl={section.cluster_image} inchagename={section.incharge} />
 
       <Box display='flex' flexWrap='wrap'>
         <Stat label='Species' value={section.species_count} />

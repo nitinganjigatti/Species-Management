@@ -21,7 +21,8 @@ const SectionsDrawer = ({ open, onClose, data }) => {
         sx={{
           border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
           backgroundColor: theme.palette.common.white,
-          padding: '12px',
+          paddingX: 4,
+          paddingY: 3,
           marginY: 6,
           width: '100%',
           display: 'flex',
@@ -32,12 +33,10 @@ const SectionsDrawer = ({ open, onClose, data }) => {
         <CellInfo value={data.cluster_name} subtitle={data.cluster_type} imgUrl={data.cluster_image} />
       </Box>
 
-      <Typography
-        sx={{ fontSize: '1.25rem', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}
-      >
+      <Typography sx={{ fontSize: '1.25rem', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}>
         Sections {data.sections?.length ? `(${data.sections?.length})` : ''}
       </Typography>
-      <Box sx={{ my: 2, backgroundColor: theme.palette.common.white }} >
+      <Box sx={{ mt: 2, mb: 3, backgroundColor: theme.palette.common.white }}>
         <Search
           sx={{ width: '100%' }}
           textFielsSX={{
@@ -49,10 +48,11 @@ const SectionsDrawer = ({ open, onClose, data }) => {
           placeholder='Search for a section'
         />
       </Box>
-
-      {data.sections?.map(section => (
-        <SectionCard key={section.id} section={section} />
-      ))}
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+        {data.sections?.map(section => (
+          <SectionCard key={section.id} section={section} />
+        ))}
+      </Box>
     </CustomDrawer>
   )
 }
