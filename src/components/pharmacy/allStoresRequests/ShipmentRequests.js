@@ -432,8 +432,17 @@ export default function ShipmentRequests({ updateUrlParams }) {
 
   return (
     <TabContext value={shipmentTab}>
-      <Grid container spacing={2} alignItems='center'>
-        <Grid item xs={12} sm={9} md={10}>
+      <Grid
+        container
+        sx={{
+          display: 'flex',
+          flexDirection: { xs: 'column', md: 'row', sm: 'row' },
+
+          justifyContent: 'space-between',
+          mt: 6
+        }}
+      >
+        <Grid item xs={12} sm={6} md={6}>
           <TabLists
             container
             variant='scrollable'
@@ -447,83 +456,84 @@ export default function ShipmentRequests({ updateUrlParams }) {
             sx={{
               height: 'auto',
               display: 'flex',
-              flexDirection: { xs: 'column', md: 'row' },
+              flexDirection: { xs: 'column', md: 'row', sm: 'row' },
               alignItems: 'center',
-              justifyContent: 'space-between',
-              mt: 6
+
+              justifyContent: { xs: 'flex-start', md: 'flex-start', lg: 'space-between' }
             }}
           >
             {selectedPharmacy.type === 'local' ? null : (
               <Tab value='Ready To Ship' label={`Ready To Ship - ${total}`} />
             )}
             <Tab value='Shipped' label={totalShippedCounts ? `Shipped-${totalShippedCounts}` : 'Shipped'} />
-
-            <Grid
-              container
-              sx={{
-                display: 'flex',
-                flexDirection: { xs: 'row', md: 'row' },
-                width: '100%',
-                justifyContent: { xs: 'space-between', md: 'flex-end' },
-                gap: { xs: 2, md: 3, sm: 1 },
-                py: 1
-              }}
-            >
-              {shipmentTab === 'Ready To Ship' && (
-                <Grid item xs={5} sm={4.5} md={4} lg={3}>
-                  <FormControl fullWidth size='small'>
-                    <InputLabel sx={{ py: '2px' }}>Priority</InputLabel>
-                    <Select
-                      value={priority}
-                      label='Priority'
-                      onChange={e => {
-                        setPriority(e.target.value)
-                        setPaginationModel({ page: parseInt(0), pageSize: parseInt(10) })
-                      }}
-                    >
-                      <MenuItem value='all'>All</MenuItem>
-                      <MenuItem value='high'>High</MenuItem>
-                      <MenuItem value='emergency'>Emergency</MenuItem>
-                    </Select>
-                  </FormControl>
-                </Grid>
-              )}
-              {shipmentTab === 'Ready To Ship' &&
-              (indexedRows?.length > 0 || selectedRows?.length > 0) &&
-              (selectedPharmacy?.permission.key === 'ADD' ||
-                selectedPharmacy?.permission.key === 'allow_full_access') ? (
-                <Grid item xs={5} sm='auto' md={4} lg={3}>
-                  <Button
-                    fullWidth
-                    disabled={selectedRows?.length === 0}
-                    size='big'
-                    variant='contained'
-                    onClick={() => {
-                      shipItems()
-                    }}
-                  >
-                    {selectedRows?.length > 0 ? 'Ship Selected Items' : 'Ship All Items'}
-                  </Button>
-                </Grid>
-              ) : null}
-            </Grid>
           </TabLists>
         </Grid>
-        {shipmentTab === 'Shipped' && (
-          <Grid
-            item
-            xs={12}
-            sm={3}
-            md={2}
-            sx={{
-              display: 'flex',
-              justifyContent: { xs: 'flex-end', sm: 'flex-end' },
-              mt: { xs: 2, sm: 0 }
-            }}
-          >
-            <ExportButton loading={exportLoading} disabled={totalShippedCounts === 0} />
-          </Grid>
-        )}
+        <Grid
+          item
+          xs={12}
+          sm={6}
+          md={6}
+          sx={{
+            display: 'flex',
+            flexDirection: { xs: 'column', sm: 'row', md: 'row' },
+            width: '100%',
+            justifyContent: { xs: 'space-between', md: 'flex-end' },
+            gap: { xs: 2, md: 3, sm: 1 },
+            py: 1,
+            alignItems: 'center'
+          }}
+        >
+          {shipmentTab === 'Ready To Ship' && (
+            <Grid item>
+              <FormControl fullWidth size='small'>
+                <InputLabel sx={{ py: '2px' }}>Priority</InputLabel>
+                <Select
+                  value={priority}
+                  label='Priority'
+                  onChange={e => {
+                    setPriority(e.target.value)
+                    setPaginationModel({ page: parseInt(0), pageSize: parseInt(10) })
+                  }}
+                >
+                  <MenuItem value='all'>All</MenuItem>
+                  <MenuItem value='high'>High</MenuItem>
+                  <MenuItem value='emergency'>Emergency</MenuItem>
+                </Select>
+              </FormControl>
+            </Grid>
+          )}
+          {shipmentTab === 'Ready To Ship' &&
+          (indexedRows?.length > 0 || selectedRows?.length > 0) &&
+          (selectedPharmacy?.permission.key === 'ADD' || selectedPharmacy?.permission.key === 'allow_full_access') ? (
+            <Grid item xs={12} sm='auto' md='auto' lg={5}>
+              <Button
+                fullWidth
+                disabled={selectedRows?.length === 0}
+                size='big'
+                variant='contained'
+                onClick={() => {
+                  shipItems()
+                }}
+              >
+                Ship Selected Items
+              </Button>
+            </Grid>
+          ) : null}
+          {shipmentTab === 'Shipped' && (
+            <Grid
+              item
+              xs={12}
+              md={6}
+              sx={{
+                display: 'flex',
+                justifyContent: { xs: 'flex-end', sm: 'flex-end' },
+                mt: { xs: 2, sm: 0 }
+              }}
+            >
+              <ExportButton loading={exportLoading} disabled={totalShippedCounts === 0} />
+            </Grid>
+          )}
+        </Grid>
       </Grid>
       <TabPanel
         value='Ready To Ship'
@@ -534,7 +544,7 @@ export default function ShipmentRequests({ updateUrlParams }) {
         <Card
           sx={{
             minWidth: '100%',
-            ml: -2,
+
             boxShadow: 'none !important'
           }}
         >
@@ -548,7 +558,7 @@ export default function ShipmentRequests({ updateUrlParams }) {
                 display: 'flex',
                 justifyContent: 'flex-start',
                 alignItems: 'center',
-                borderRadius: '8px'
+                borderRadius: '6px'
               }}
             >
               {selectedRows?.length} Items Selected
