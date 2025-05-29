@@ -216,6 +216,10 @@ export const PURCHASE_BY_PRODUCT = 'v1/pharma/purchase/getPurchaseListByProduct'
 
 export const VARIANTS_MAPPING = 'variantMapping'
 
+export const ALTERNATE_LIST = 'AlternateList'
+
+export const ALTERNATE_MAPPING = 'AlternateMapping'
+
 export const VALIDATE_PURCHASE = 'validate'
 
 export const REQUEST_PENDING_PRODUCTS = 'v1/pharmacy/request-pending-products'
@@ -489,3 +493,7 @@ export const GET_STATS = '/diet/get-meal-group-site-wise-stats'
 export const GET_SECTION = '/master/zoos/getsections'
 
 export const GET_SPECIES = '/diet/species'
+
+export const STORE_WISE_SHIPMENT_PDF = 'shipment-store-item/shipped/print/'
+
+export const REQUEST_SHIPMENT_DETAILS_PDF = 'shipment/shipped/print/'

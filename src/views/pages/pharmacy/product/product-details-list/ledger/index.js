@@ -197,7 +197,7 @@ function Ledger({ tabValue, updateUrlParams }) {
 
   const columns = [
     {
-      width: 70,
+      width: 100,
       field: 'sl_no',
       headerName: 'SL.NO',
       sortable: false,
@@ -386,42 +386,43 @@ function Ledger({ tabValue, updateUrlParams }) {
         </Typography>
       )
     },
-    {
-      width: 140,
-      field: 'batch_balance',
-      headerName: 'BATCH BALANCE',
-      renderCell: params => (
-        <Typography
-          variant='body2'
-          sx={{
-            color: theme.palette.customColors.customHeadingTextColor,
-            fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
-          }}
-        >
-          {params.row.batch_balance || '0'}
-        </Typography>
-      )
-    },
-    {
-      width: 140,
-      field: 'balance',
-      headerName: 'TOTAL BALANCE',
-      renderCell: params => (
-        <Typography
-          variant='body2'
-          sx={{
-            color: theme.palette.customColors.customHeadingTextColor,
-            fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
-          }}
-        >
-          {params.row.balance || '0'}
-        </Typography>
-      )
-    },
+
+    // {
+    //   width: 140,
+    //   field: 'batch_balance',
+    //   headerName: 'BATCH BALANCE',
+    //   renderCell: params => (
+    //     <Typography
+    //       variant='body2'
+    //       sx={{
+    //         color: theme.palette.customColors.customHeadingTextColor,
+    //         fontSize: '14px',
+    //         fontWeight: 500,
+    //         fontFamily: 'Inter'
+    //       }}
+    //     >
+    //       {params.row.batch_balance || '0'}
+    //     </Typography>
+    //   )
+    // },
+    // {
+    //   width: 140,
+    //   field: 'balance',
+    //   headerName: 'TOTAL BALANCE',
+    //   renderCell: params => (
+    //     <Typography
+    //       variant='body2'
+    //       sx={{
+    //         color: theme.palette.customColors.customHeadingTextColor,
+    //         fontSize: '14px',
+    //         fontWeight: 500,
+    //         fontFamily: 'Inter'
+    //       }}
+    //     >
+    //       {params.row.balance || '0'}
+    //     </Typography>
+    //   )
+    // },
     {
       width: 120,
       field: 'transaction',

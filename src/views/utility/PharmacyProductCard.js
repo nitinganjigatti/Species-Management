@@ -60,8 +60,9 @@ const PharmacyProductCard = ({
           alignItems: 'center',
           padding: 0,
           borderRadius: '8px',
-          width: '100%',
-          height: '100%',
+
+          // width: '100%',
+          // height: '100%',
           justifyContent: 'center'
         }}
       >

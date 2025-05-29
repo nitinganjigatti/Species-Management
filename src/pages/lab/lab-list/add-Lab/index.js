@@ -1429,7 +1429,7 @@ const AddLab = () => {
                                                   }}
                                                   alt='image'
                                                   src={
-                                                    img.startsWith('data:image/') || img.startsWith('https://')
+                                                    img?.startsWith('data:image/') || img?.startsWith('https://')
                                                       ? img
                                                       : '/icons/document_icon.png'
                                                   }
@@ -1464,7 +1464,7 @@ const AddLab = () => {
                               </CardContent>
                             </Card>
                           </Grid>
-                          <Grid item xs={12} md={12} sm={6}>
+                          <Grid item xs={12} md={12}>
                             <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end' }}>
                               <LoadingButton
                                 onClick={() => router.push('/lab/lab-list/')}

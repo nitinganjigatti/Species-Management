@@ -200,10 +200,12 @@ const DispenseReport = () => {
       minWidth: 20,
       field: 'id',
       sortable: false,
+      align: 'center',
+      headerAlign: 'center',
       headerName: 'SL.NO',
 
       renderCell: params => (
-        <Box sx={{ minWidth: 40 }}>
+        <Box sx={{ minWidth: 40, textAlign: 'center' }}>
           <Typography sx={{ color: 'text.primary', fontSize: '14px', fontWeight: '400px' }}>
             {params.row.id + '.'}
           </Typography>
@@ -231,7 +233,7 @@ const DispenseReport = () => {
       )
     },
     {
-      width: 260,
+      width: 340,
       minWidth: 20,
       field: 'stock_name',
       align: 'left',
@@ -246,6 +248,7 @@ const DispenseReport = () => {
             icon={params?.row?.image}
             controlSubstance={params?.row?.controlled_substance === '1' && true}
             prescriptionRequired={params?.row?.prescription_required === '1' && true}
+            rowWidth={320}
           />
         </Box>
       )

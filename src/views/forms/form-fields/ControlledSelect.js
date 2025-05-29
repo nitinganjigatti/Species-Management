@@ -7,6 +7,7 @@ import {
   MenuItem,
   FormHelperText
 } from '@mui/material'
+import get from 'lodash/get'
 
 const ControlledSelect = ({
   name,
@@ -22,14 +23,16 @@ const ControlledSelect = ({
   onChangeExtra = () => {},
   disabled = false
 }) => {
+  const fieldError = get(errors, name)
+
   return (
-    <FormControl fullWidth={fullWidth} error={Boolean(errors?.[name])}>
+    <FormControl fullWidth={fullWidth} error={Boolean(fieldError)}>
       <InputLabel
         id={`${name}-label`}
         sx={{
-          color: errors?.[name] ? 'error.main' : 'text.primary',
+          color: fieldError ? 'error.main' : 'text.primary',
           '&.Mui-focused': {
-            color: errors?.[name] ? 'error.main' : 'primary.main'
+            color: fieldError ? 'error.main' : 'primary.main'
           }
         }}
       >
@@ -45,27 +48,21 @@ const ControlledSelect = ({
             labelId={`${name}-label`}
             label={label}
             disabled={disabled}
-            error={Boolean(errors?.[name])}
+            error={Boolean(fieldError)}
             onChange={e => {
               field.onChange(e)
               onChangeExtra(e)
             }}
           >
             {options.map((option, index) => (
-              <MenuItem
-                key={index}
-                value={getOptionValue(option)}
-                disabled={isOptionDisabled(option)}
-              >
+              <MenuItem key={index} value={getOptionValue(option)} disabled={isOptionDisabled(option)}>
                 {getOptionLabel(option)}
               </MenuItem>
             ))}
           </Select>
         )}
       />
-      {errors?.[name] && (
-        <FormHelperText>{errors[name]?.message}</FormHelperText>
-      )}
+      {fieldError && <FormHelperText>{fieldError?.message}</FormHelperText>}
     </FormControl>
   )
 }

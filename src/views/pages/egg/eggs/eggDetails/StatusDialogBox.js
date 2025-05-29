@@ -11,7 +11,7 @@ const StatusDialogBox = ({
   setOpenStatusDialog,
   elements,
   statusLoading,
-  hatcheryStatusFunc
+  toggleHatcheryStatus
 }) => {
   const theme = useTheme()
 
@@ -63,7 +63,7 @@ const StatusDialogBox = ({
             sx={{ p: 4 }}
             disabled={elements > 0}
             loading={statusLoading}
-            onClick={hatcheryStatusFunc}
+            onClick={toggleHatcheryStatus}
           >
             {active ? 'deactivate' : 'activate'}
           </LoadingButton>

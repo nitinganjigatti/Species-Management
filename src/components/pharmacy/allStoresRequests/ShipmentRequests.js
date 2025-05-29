@@ -21,6 +21,7 @@ import ConfirmDialogBox from 'src/components/ConfirmDialogBox'
 import { deleteFulfillItem } from 'src/lib/api/pharmacy/getRequestItemsList'
 import toast from 'react-hot-toast'
 import { LoadingButton } from '@mui/lab'
+import { ExportButton } from 'src/views/utility/render-snippets'
 
 export default function ShipmentRequests({ updateUrlParams }) {
   const { selectedPharmacy } = usePharmacyContext()
@@ -81,6 +82,8 @@ export default function ShipmentRequests({ updateUrlParams }) {
   const [deleteDialog, setDeleteDialog] = useState(false)
   const [deleteFullFillId, setDeleteFullFillId] = useState(null)
   const [deleteItemLoader, setDeleteItemLoader] = useState(false)
+  const [exportLoading, setExportLoading] = useState(false)
+  const [handleExport, setHandleExport] = useState(null)
 
   const currentStoreId = selectedPharmacy.type === 'local' ? selectedPharmacy.id : id
 
@@ -429,44 +432,59 @@ export default function ShipmentRequests({ updateUrlParams }) {
 
   return (
     <TabContext value={shipmentTab}>
-      <TabLists
+      <Grid
         container
-        variant='scrollable'
-        allowScrollButtonsMobile
-        onChange={(event, newValue) => {
-          setShipmentTab(newValue)
-          updateUrlParams({
-            subTab: newValue
-          })
-        }}
         sx={{
-          // width: '100%',
-          height: 'auto',
           display: 'flex',
-          flexDirection: { xs: 'column', md: 'row' },
+          flexDirection: { xs: 'column', md: 'row', sm: 'row' },
 
-          // justifyContent: 'center',
-          alignItems: 'center',
           justifyContent: 'space-between',
           mt: 6
         }}
       >
-        {selectedPharmacy.type === 'local' ? null : <Tab value='Ready To Ship' label={`Ready To Ship - ${total}`} />}
-        <Tab value='Shipped' label={totalShippedCounts ? `Shipped-${totalShippedCounts}` : 'Shipped'} />
+        <Grid item xs={12} sm={6} md={6}>
+          <TabLists
+            container
+            variant='scrollable'
+            allowScrollButtonsMobile
+            onChange={(event, newValue) => {
+              setShipmentTab(newValue)
+              updateUrlParams({
+                subTab: newValue
+              })
+            }}
+            sx={{
+              height: 'auto',
+              display: 'flex',
+              flexDirection: { xs: 'column', md: 'row', sm: 'row' },
+              alignItems: 'center',
 
+              justifyContent: { xs: 'flex-start', md: 'flex-start', lg: 'space-between' }
+            }}
+          >
+            {selectedPharmacy.type === 'local' ? null : (
+              <Tab value='Ready To Ship' label={`Ready To Ship - ${total}`} />
+            )}
+            <Tab value='Shipped' label={totalShippedCounts ? `Shipped-${totalShippedCounts}` : 'Shipped'} />
+          </TabLists>
+        </Grid>
         <Grid
-          container
+          item
+          xs={12}
+          sm={6}
+          md={6}
           sx={{
             display: 'flex',
-            flexDirection: { xs: 'row', md: 'row' },
+            flexDirection: { xs: 'column', sm: 'row', md: 'row' },
             width: '100%',
             justifyContent: { xs: 'space-between', md: 'flex-end' },
             gap: { xs: 2, md: 3, sm: 1 },
-            py: 1
+            py: 1,
+            alignItems: 'center'
           }}
         >
           {shipmentTab === 'Ready To Ship' && (
-            <Grid item xs={5} sm={4.5} md={4} lg={3}>
+            <Grid item>
               <FormControl fullWidth size='small'>
                 <InputLabel sx={{ py: '2px' }}>Priority</InputLabel>
                 <Select
@@ -487,7 +505,7 @@ export default function ShipmentRequests({ updateUrlParams }) {
           {shipmentTab === 'Ready To Ship' &&
           (indexedRows?.length > 0 || selectedRows?.length > 0) &&
           (selectedPharmacy?.permission.key === 'ADD' || selectedPharmacy?.permission.key === 'allow_full_access') ? (
-            <Grid item xs={5} sm='auto' md={4} lg={3}>
+            <Grid item xs={12} sm='auto' md='auto' lg={5}>
               <Button
                 fullWidth
                 disabled={selectedRows?.length === 0}
@@ -497,12 +515,26 @@ export default function ShipmentRequests({ updateUrlParams }) {
                   shipItems()
                 }}
               >
-                {selectedRows?.length > 0 ? 'Ship Selected Items' : 'Ship All Items'}
+                Ship Selected Items
               </Button>
             </Grid>
           ) : null}
+          {shipmentTab === 'Shipped' && (
+            <Grid
+              item
+              xs={12}
+              md={6}
+              sx={{
+                display: 'flex',
+                justifyContent: { xs: 'flex-end', sm: 'flex-end' },
+                mt: { xs: 2, sm: 0 }
+              }}
+            >
+              <ExportButton loading={exportLoading} disabled={totalShippedCounts === 0} />
+            </Grid>
+          )}
         </Grid>
-      </TabLists>
+      </Grid>
       <TabPanel
         value='Ready To Ship'
         sx={{
@@ -512,7 +544,7 @@ export default function ShipmentRequests({ updateUrlParams }) {
         <Card
           sx={{
             minWidth: '100%',
-            ml: -2,
+
             boxShadow: 'none !important'
           }}
         >
@@ -526,7 +558,7 @@ export default function ShipmentRequests({ updateUrlParams }) {
                 display: 'flex',
                 justifyContent: 'flex-start',
                 alignItems: 'center',
-                borderRadius: '8px'
+                borderRadius: '6px'
               }}
             >
               {selectedRows?.length} Items Selected
@@ -607,7 +639,21 @@ export default function ShipmentRequests({ updateUrlParams }) {
         }}
       >
         <Card sx={{ mb: 6, minWidth: '100%', ml: -2, boxShadow: 'none !important' }}>
-          <ShippedItems updateUrlParams={updateUrlParams} setTotalShippedCounts={setTotalShippedCounts} />
+          <ShippedItems
+            updateUrlParams={updateUrlParams}
+            setTotalShippedCounts={setTotalShippedCounts}
+            onExportClick={exportHandler => {
+              setHandleExport(() => async () => {
+                setExportLoading(true)
+                try {
+                  await exportHandler()
+                } finally {
+                  setExportLoading(false)
+                }
+              })
+            }}
+            exportLoading={exportLoading}
+          />
         </Card>
       </TabPanel>
     </TabContext>

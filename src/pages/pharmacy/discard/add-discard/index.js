@@ -85,7 +85,8 @@ const initialNestedRowMedicine = {
   stock_type: '',
   reason: '',
   variant_id: '',
-  multiplier: ''
+  multiplier: '',
+  unit_price: ''
 }
 
 const CustomInput = forwardRef(({ ...props }, ref) => {
@@ -117,6 +118,10 @@ const AddDiscardProducts = () => {
   const router = useRouter()
   const { id, action } = router.query
   const theme = useTheme()
+
+  const totalDispatchValue = editParams.items.reduce((total, item) => {
+    return total + item.quantity * parseFloat(item.unit_price)
+  }, 0)
 
   const { selectedPharmacy } = usePharmacyContext()
 
@@ -300,7 +305,8 @@ const AddDiscardProducts = () => {
             control_substance: item.controlled_substance === '1' ? true : false,
             stock_type: item.stock_type,
             packageDetails: `${item?.package} of ${item?.package_qty} ${item?.package_uom_label} ${item?.product_form_label}`,
-            manufacture: item?.manufacturer_name
+            manufacture: item?.manufacturer_name,
+            unit_price: item?.unit_price
           }))
         )
       }
@@ -353,7 +359,8 @@ const AddDiscardProducts = () => {
                 manufacture: item?.manufacturer_name,
                 variant_id: item?.variant_id,
                 multiplier: item?.multiplier,
-                stock_type: item?.stock_type
+                stock_type: item?.stock_type,
+                unit_price: item?.unit_price
               }))
             )
             setTotalBatchQuantity(searchResults?.data?.total_quantity)
@@ -431,7 +438,8 @@ const AddDiscardProducts = () => {
             packageDetails: `${el?.package} of ${el?.package_qty} ${el?.package_uom_label} ${el?.product_form_label}`,
             manufacture: el?.manufacturer_name,
             comments: el?.comments,
-            reason: el?.reason
+            reason: el?.reason,
+            unit_price: el?.unit_price
           }
         })
         console.log('lineItems', lineItems)
@@ -473,7 +481,8 @@ const AddDiscardProducts = () => {
       packageDetails: getItems[0]?.packageDetails,
       manufacture: getItems[0]?.manufacture,
       comments: getItems[0]?.comments,
-      reason: getItems[0]?.reason
+      reason: getItems[0]?.reason,
+      unit_price: getItems[0]?.unit_price
     })
     // }
   }
@@ -801,7 +810,7 @@ const AddDiscardProducts = () => {
                 >
                   Total Discard Value:{' '}
                   <Typography component='span' variant='body2' sx={{ color: 'primary.light' }}>
-                    ₹0
+                    {Utility.formatAmountToReadableDigit(totalDispatchValue)}
                   </Typography>
                 </Typography> */}
               </Stack>
@@ -885,15 +894,9 @@ const AddDiscardProducts = () => {
                             </TableCell>
 
                             <TableCell>
-                              {el.stock_type != 'non_medical' ? (
-                                <Typography variant='body2' sx={{ color: 'text.primary' }}>
-                                  {Utility.formatDisplayDate(el.expiry_date) === 'Invalid date' ? 'NA' : el.expiry_date}
-                                </Typography>
-                              ) : (
-                                <Typography variant='body2' sx={{ color: 'text.primary' }}>
-                                  NA
-                                </Typography>
-                              )}
+                              <Typography variant='body2' sx={{ color: 'text.primary' }}>
+                                {Utility?.formatDisplayDate(el?.expiry_date)}
+                              </Typography>
                             </TableCell>
                             <TableCell>{el.quantity}</TableCell>
                             {/* <TableCell>{el.comments ? el.comments : 'NA'}</TableCell> */}

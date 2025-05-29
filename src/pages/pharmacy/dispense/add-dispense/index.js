@@ -41,6 +41,8 @@ import { th } from 'date-fns/locale'
 import { useTheme } from '@emotion/react'
 import { Stack } from '@mui/system'
 import { AddButtonContained } from 'src/components/ButtonContained'
+import PharmacyProductCard from 'src/views/utility/PharmacyProductCard'
+import AnimalLabelCard from 'src/views/utility/AnimalLabelCard'
 
 function AddDispense() {
   const theme = useTheme()
@@ -464,7 +466,13 @@ function AddDispense() {
                                     '&:last-child td, &:last-child th': { borderBottom: 'none' }
                                   }}
                                 >
-                                  {el?.stock_id?.label}
+                                  <PharmacyProductCard
+                                    title={el?.stock_id?.label}
+                                    subTitle={el?.stock_id?.generic_name}
+                                    icon={el?.stock_id?.image}
+                                    controlSubstance={el?.stock_id?.controlled_substance === '1' && true}
+                                    prescriptionRequired={el?.stock_id?.prescription_required === '1' && true}
+                                  />
                                 </TableCell>
                               )}
                               <TableCell>{el?.batch_no?.label}</TableCell>
@@ -533,15 +541,16 @@ function AddDispense() {
                 <Table>
                   <TableHead sx={{ backgroundColor: 'customColors.customTableHeaderBg' }}>
                     <TableRow>
-                      <TableCell></TableCell>
+                      <TableCell>Animal Name</TableCell>
                       <TableCell>Animal Id</TableCell>
-                      <TableCell>animal Name</TableCell>
+                      {/* <TableCell>animal Name</TableCell> */}
                       <TableCell>enclosure Id</TableCell>
                       <TableCell>section Name</TableCell>
                       <TableCell>gender</TableCell>
                       <TableCell>Action</TableCell>
                     </TableRow>
                   </TableHead>
+                  {console.log('animals_s', animals_s)}
                   <TableBody>
                     {animals_s.length > 0
                       ? animals_s.map((elmnt, index) => {
@@ -554,20 +563,13 @@ function AddDispense() {
                               }}
                             >
                               <TableCell>
-                                {' '}
-                                <Avatar
-                                  sx={{
-                                    '& > img': {
-                                      objectFit: 'contain'
-                                    }
-                                  }}
-                                  variant='rounded'
-                                  alt={elmnt?.icon}
-                                  src={elmnt?.icon}
+                                <AnimalLabelCard
+                                  title={elmnt?.animalName}
+                                  subTitle={elmnt?.full_animal_name}
+                                  icon={elmnt?.icon}
                                 />
                               </TableCell>
                               <TableCell>{elmnt?.animal_id}</TableCell>
-                              <TableCell>{elmnt?.animalName}</TableCell>
                               <TableCell>{elmnt?.enclosure_id}</TableCell>
                               <TableCell>{elmnt?.section_name}</TableCell>
                               <TableCell>{elmnt?.gender}</TableCell>

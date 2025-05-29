@@ -182,7 +182,8 @@ export const AddItemsForm = ({
       reason,
       variant_id,
       multiplier,
-      control_substance
+      control_substance,
+      unit_price
     } = {
       ...params
     }
@@ -228,7 +229,8 @@ export const AddItemsForm = ({
         reason,
         control_substance,
         variant_id,
-        multiplier
+        multiplier,
+        unit_price
       },
       type
     )
@@ -263,24 +265,26 @@ export const AddItemsForm = ({
   }
 
   const handleProductChange = value => {
-    setValue('request_item', value, { shouldValidate: true })
-    setValue('batch_no', '', { shouldValidate: true })
-    setValue('expiry_date', '', { shouldValidate: true })
-    setValue('available_item_qty', '', { shouldValidate: true })
-    setValue('reason', '', { shouldValidate: true })
-    setValue('stock_type', '')
-    setValue('packageDetails', '')
-    setValue('manufacture', '')
+    if (!value) {
+      setValue('request_item', value, { shouldValidate: true })
+      setValue('batch_no', '', { shouldValidate: true })
+      setValue('expiry_date', '', { shouldValidate: true })
+      setValue('available_item_qty', '', { shouldValidate: true })
+      setValue('reason', '', { shouldValidate: true })
+      setValue('stock_type', '')
+      setValue('packageDetails', '')
+      setValue('manufacture', '')
+      setValue('unit_price', '')
 
-    if (!value?.expiry_date) {
-      setError('expiry_date', {
-        type: 'manual',
-        message: 'Expiry Date is required'
-      })
-    } else {
-      clearErrors('expiry_date')
+      if (!value?.expiry_date) {
+        setError('expiry_date', {
+          type: 'manual',
+          message: 'Expiry Date is required'
+        })
+      } else {
+        clearErrors('expiry_date')
+      }
     }
-
     if (value !== '' && value !== null) {
       setQuantityError(false)
       searchBatchData(value?.value, value?.stock_type)
@@ -288,6 +292,7 @@ export const AddItemsForm = ({
       setValue('packageDetails', value?.packageDetails)
       setValue('manufacture', value?.manufacture)
       setValue('control_substance', value?.control_substance)
+      setValue('unit_price', value.unit_price)
     }
 
     checkTotalCount()
@@ -345,7 +350,8 @@ export const AddItemsForm = ({
         comments: nestedMedicine?.comments,
         reason: nestedMedicine?.reason,
         variant_id: nestedMedicine?.variant_id,
-        multiplier: nestedMedicine?.multiplier
+        multiplier: nestedMedicine?.multiplier,
+        unit_price: nestedMedicine?.unit_price
       })
       async function searchMedicine() {
         await searchMedicineData(nestedMedicine?.stock_id, nestedMedicine.stock_type)
