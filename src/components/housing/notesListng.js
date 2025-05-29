@@ -197,7 +197,7 @@ const NotesListng = () => {
             paginationMode='server'
             loading={loading}
             searchValue={searchValue}
-            maxHeight='60vh'
+            maxHeight='80vh'
           />
         </Grid>
       </Box>

@@ -1,4 +1,4 @@
-import { Avatar, Typography } from '@mui/material'
+import { Avatar, Tooltip, Typography } from '@mui/material'
 import { Box } from '@mui/system'
 import React from 'react'
 import { useTheme } from '@mui/material/styles'
@@ -25,25 +25,29 @@ function SpeciesCard({ species }) {
         />
       )}
       <Box>
-        <Typography
-          sx={{
-            color: theme.palette.customColors.OnSurfaceVariant,
-            fontSize: '16px',
-            fontWeight: 600
-          }}
-        >
-          {species.common_name ? species.common_name : '-'}
-        </Typography>
-        <Typography
-          sx={{
-            color: theme.palette.customColors.OnSurfaceVariant,
-            fontSize: '16px',
-            fontWeight: 400,
-            fontStyle: 'italic'
-          }}
-        >
-          {species.scientific_name ? species.scientific_name : '-'}
-        </Typography>
+        <Tooltip title={species.common_name}>
+          <Typography
+            sx={{
+              color: theme.palette.customColors.OnSurfaceVariant,
+              fontSize: '16px',
+              fontWeight: 600
+            }}
+          >
+            {species.common_name ? species.common_name : '-'}
+          </Typography>
+        </Tooltip>
+        <Tooltip title={species.scientific_name}>
+          <Typography
+            sx={{
+              color: theme.palette.customColors.OnSurfaceVariant,
+              fontSize: '16px',
+              fontWeight: 400,
+              fontStyle: 'italic'
+            }}
+          >
+            {species.scientific_name ? species.scientific_name : '-'}
+          </Typography>
+        </Tooltip>
       </Box>
     </Box>
   )

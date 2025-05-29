@@ -20,43 +20,51 @@ const HousingSpeciesCard = ({ species }) => {
             }}
           />
 
-          <Box display='flex' flexWrap='wrap' gap={3} sx={{ mt: 1, ml:10 }}>
-            <Chip
-              label={`M - ${species?.sex_data?.male}`}
-              size='small'
-              sx={{
-                bgcolor: `${theme.palette.customColors.SecondaryContainer}80`,
-                color: theme.palette.customColors.addPrimary,
-                borderRadius: 0.5
-              }}
-            />
-            <Chip
-              label={`F - ${species?.sex_data?.female}`}
-              size='small'
-              sx={{
-                bgcolor: `${theme.palette.customColors.customDropdownColor}4D`,
-                color: theme.palette.customColors.customDropdownColor,
-                borderRadius: 0.5
-              }}
-            />
-            <Chip
-              label={`UD - ${species?.sex_data?.undetermined}`}
-              size='small'
-              sx={{
-                bgcolor: theme.palette.customColors.SurfaceVariant,
-                color: theme.palette.customColors.Error,
-                borderRadius: 0.5
-              }}
-            />
-            <Chip
-              label={`ID - ${species?.sex_data?.indeterminate}`}
-              size='small'
-              sx={{
-                bgcolor: theme.palette.customColors.displaybgSecondary,
-                color: theme.palette.customColors.OnPrimaryContainer,
-                borderRadius: 0.5
-              }}
-            />
+          <Box display='flex' flexWrap='wrap' gap={3} sx={{ mt: 1, ml: 10 }}>
+            {species?.sex_data?.male && (
+              <Chip
+                label={`M - ${species?.sex_data?.male}`}
+                size='small'
+                sx={{
+                  bgcolor: `${theme.palette.customColors.SecondaryContainer}80`,
+                  color: theme.palette.customColors.addPrimary,
+                  borderRadius: 0.5
+                }}
+              />
+            )}
+            {species?.sex_data?.female && (
+              <Chip
+                label={`F - ${species?.sex_data?.female}`}
+                size='small'
+                sx={{
+                  bgcolor: `${theme.palette.customColors.customDropdownColor}4D`,
+                  color: theme.palette.customColors.customDropdownColor,
+                  borderRadius: 0.5
+                }}
+              />
+            )}
+            {species?.species?.sex_data?.undetermined && (
+              <Chip
+                label={`UD - ${species?.sex_data?.undetermined}`}
+                size='small'
+                sx={{
+                  bgcolor: theme.palette.customColors.SurfaceVariant,
+                  color: theme.palette.customColors.Error,
+                  borderRadius: 0.5
+                }}
+              />
+            )}
+            {species?.sex_data?.indeterminate && (
+              <Chip
+                label={`ID - ${species?.sex_data?.indeterminate}`}
+                size='small'
+                sx={{
+                  bgcolor: theme.palette.customColors.displaybgSecondary,
+                  color: theme.palette.customColors.OnPrimaryContainer,
+                  borderRadius: 0.5
+                }}
+              />
+            )}
           </Box>
         </Box>
 
@@ -66,7 +74,7 @@ const HousingSpeciesCard = ({ species }) => {
           sx={{
             color: theme.palette.customColors.onSurfaceVariant,
             mt: 12,
-            mr:2,
+            mr: 2,
             fontSize: '24px',
             fontFamily: 'Inter'
           }}

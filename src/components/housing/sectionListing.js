@@ -106,7 +106,6 @@ const SectionListing = () => {
 
     setDownloading(false)
   }
-  
 
   const getSlNo = index => (page - 1) * pageSize + index + 1
 
@@ -138,7 +137,13 @@ const SectionListing = () => {
       field: 'section_name',
       headerName: 'Section Name',
       renderCell: params => (
-        <CellInfo value={params.row.section_name} subtitle={''} imgUrl={params.row.images?.[0]?.file} avatarUrl={''} inchagename={''} />
+        <CellInfo
+          value={params.row.section_name}
+          subtitle={''}
+          imgUrl={params.row.images?.[0]?.file}
+          avatarUrl={''}
+          inchagename={''}
+        />
       )
     },
     {
@@ -188,7 +193,7 @@ const SectionListing = () => {
         <UserInfoCard
           textColor={theme.palette.customColors.OnSurfaceVariant}
           avatarUrl={params.row.incharge_avatar} // Replace with correct avatar field if different
-          name={params.row.incharge_name || '-'}
+          name={params.row.incharge_name}
         />
       )
     },
@@ -255,7 +260,7 @@ const SectionListing = () => {
             handleSortModel={handleSortModelChange}
             loading={loading}
             searchValue=''
-            maxHeight='60vh'
+            maxHeight='80vh'
           />
         </Grid>
       </Box>

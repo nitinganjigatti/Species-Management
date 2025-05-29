@@ -254,30 +254,36 @@ export const CellInfo = ({ value, subtitle, color, subtitleColor, imgUrl, avatar
         alignSelf={hasExtraInfo ? 'flex-start' : 'center'}
         mt={hasExtraInfo ? 0.25 : 0}
       >
-        <Typography
-          noWrap
-          sx={{
-            fontSize: '16px',
-            ml: 1,
-            fontWeight: 600,
-            color: color ?? theme.palette.text.primary
-          }}
-        >
-          {value}
-        </Typography>
-
-        {subtitle && (
+        <Tooltip title={value}>
           <Typography
             noWrap
             sx={{
-              fontSize: '14px',
+              fontSize: '16px',
               ml: 1,
-              fontWeight: 400,
-              color: subtitleColor ?? theme.palette.text.secondary
+              fontWeight: 600,
+              color: color ?? theme.palette.text.primary
             }}
           >
-            {subtitle}
+            {value}
           </Typography>
+        </Tooltip>
+
+        {subtitle && (
+          <>
+            <Tooltip title={subtitle}>
+              <Typography
+                noWrap
+                sx={{
+                  fontSize: '14px',
+                  ml: 1,
+                  fontWeight: 400,
+                  color: subtitleColor ?? theme.palette.text.secondary
+                }}
+              >
+                {subtitle}
+              </Typography>
+            </Tooltip>
+          </>
         )}
 
         {inchagename && (

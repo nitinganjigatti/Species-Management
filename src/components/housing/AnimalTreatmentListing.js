@@ -270,7 +270,7 @@ const AnimalTreatmentListing = () => {
             handleSortModel={handleSortModelChange}
             loading={loading}
             searchValue={search}
-            maxHeight='60vh'
+            maxHeight='80vh'
           />
         </Grid>
       </Box>

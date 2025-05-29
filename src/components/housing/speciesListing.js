@@ -125,7 +125,13 @@ const SpeciesListing = () => {
       headerAlign: 'center',
       headerName: 'Species',
       renderCell: params => (
-        <SpeciesCard species={{ common_name: params.row.common_name, scientific_name: params.row.complete_name }} />
+        <SpeciesCard
+          species={{
+            common_name: params.row.common_name,
+            scientific_name: params.row.complete_name,
+            default_icon: params.row.default_icon
+          }}
+        />
         // <UserInfoCard
         //   avatarUrl={params.row.default_icon}
         //   textColor={theme.palette.customColors.OnSurfaceVariant}
@@ -262,7 +268,7 @@ const SpeciesListing = () => {
             handleSortModel={handleSortModelChange}
             loading={loading}
             searchValue={search}
-            maxHeight='60vh'
+            maxHeight='80vh'
           />
         </Grid>
       </Box>
