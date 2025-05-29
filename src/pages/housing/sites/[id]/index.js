@@ -111,6 +111,12 @@ const SiteDetails = () => {
         animalCount={data?.animal_count || 0}
         enclosuresCount={data?.enclosure_count || 0}
         sectionsCount={data?.section_count || 0}
+        onInfoClick={{
+          species: () => setSelectedTab('species'),
+          animal: () => console.log('animal'),
+          enclosures: () => console.log('enclosures'),
+          sections: () => setSelectedTab('sections')
+        }}
       />
 
       {/* Tabs */}

@@ -13,6 +13,7 @@ import {
   updateSectionSearch
 } from 'src/store/slices/housing/sectionInfiniteScrollSlice'
 import debounce from 'lodash/debounce'
+import { height } from '@mui/system'
 
 const SectionsDrawer = ({ open, onClose, data }) => {
   const theme = useTheme()
@@ -99,25 +100,23 @@ const SectionsDrawer = ({ open, onClose, data }) => {
         Sections {total ? `(${total})` : ''}
       </Typography>
 
-      <Box sx={{ mt: 2, mb: 3, backgroundColor: theme.palette.common.white }}>
+      <Box sx={{ mt: 2, mb: 3 }}>
         <Search
           sx={{ width: '100%' }}
-          textFielsSX={{
-            width: '100%',
-            height: 52,
-            borderRadius: '8px',
-            backgroundColor: theme.palette.common.white
-          }}
+          textFielsSX={{ width: '100%', height: 52 }}
           placeholder='Search for a section'
           value={localSearch}
           onChange={handleSearchChange}
           onClear={handleSearchClear}
+          backgroundColor={theme.palette.common.white}
         />
       </Box>
 
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4, pb: 4 }}>
         {list.map(section => (
-          <SectionCard key={section.id} section={section} />
+          <Box key={section.id}>
+            <SectionCard section={section} />
+          </Box>
         ))}
 
         {(loading || hasMore) && (

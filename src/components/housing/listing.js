@@ -214,7 +214,14 @@ const Listing = () => {
       align: 'left',
       headerAlign: 'left',
       renderCell: params => (
-        <Typography sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600 }}>
+        <Typography
+          sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600 }}
+          onClick={e => {
+            e.stopPropagation()
+            setDrawerType('enclosures')
+            console.log('params.row', params.row)
+          }}
+        >
           {params.row.enclosure_count}
         </Typography>
       )

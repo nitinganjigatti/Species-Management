@@ -4,7 +4,17 @@ import SearchIcon from '@mui/icons-material/Search'
 import ClearIcon from '@mui/icons-material/Clear'
 import { useTheme } from '@mui/material/styles'
 
-const Search = ({ value, onChange, onClear, placeholder = 'Search...', width = 300, sx = {}, textFielsSX = {} }) => {
+const Search = ({
+  value,
+  onChange,
+  onClear,
+  placeholder = 'Search...',
+  width = 300,
+  sx = {},
+  textFielsSX = {},
+  backgroundColor,
+  borderRadius
+}) => {
   const theme = useTheme()
   const iconColor = theme.palette.customColors.neutralSecondary
 
@@ -14,6 +24,8 @@ const Search = ({ value, onChange, onClear, placeholder = 'Search...', width = 3
         display: 'flex',
         justifyContent: 'flex-start',
         alignItems: 'center',
+        backgroundColor: backgroundColor || 'transparent',
+        borderRadius: borderRadius || '8px',
         ...sx
       }}
     >
@@ -42,8 +54,8 @@ const Search = ({ value, onChange, onClear, placeholder = 'Search...', width = 3
           width: width,
           ...textFielsSX,
           '& .MuiInputBase-root': {
-            backgroundColor: textFielsSX?.backgroundColor || 'transparent',
-            borderRadius: textFielsSX?.borderRadius || '8px',
+            backgroundColor: backgroundColor || 'transparent',
+            borderRadius: borderRadius || '8px',
             height: textFielsSX?.height || 'auto', // allow height from parent
             minHeight: textFielsSX?.height || 'auto',
             paddingRight: '4px'
@@ -51,8 +63,7 @@ const Search = ({ value, onChange, onClear, placeholder = 'Search...', width = 3
           '& .MuiInputBase-input': {
             height: '100%',
             boxSizing: 'border-box',
-            paddingTop: '0.5rem',
-            paddingBottom: '0.5rem'
+            padding: '10px 8px'
           }
         }}
       />
