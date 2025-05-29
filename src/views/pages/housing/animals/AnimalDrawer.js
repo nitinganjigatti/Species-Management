@@ -7,10 +7,10 @@ import { Box, height, width } from '@mui/system'
 import Search from 'src/views/utility/Search'
 import { useDispatch, useSelector } from 'react-redux'
 import {
-  fetchSpeciesPages,
-  resetSpeciesInfiniteScroll,
-  updateSpeciesSearch
-} from 'src/store/slices/housing/speciesInfiniteScrollSlice'
+  fetchAnimalPages,
+  resetAnimalInfiniteScroll,
+  updateAnimalSearch
+} from 'src/store/slices/housing/animalInfiniteScrollSlice'
 import debounce from 'lodash/debounce'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import useInfiniteScroll from 'src/hooks/useInfiniteScroll'
@@ -21,7 +21,7 @@ const AnimalsDrawer = ({ open, onClose, data }) => {
 
   const dispatch = useDispatch()
 
-  const { list = [], loading, hasMore, search, total } = useSelector(state => state.speciesInfiniteScroll || {})
+  const { list = [], loading, hasMore, search, total } = useSelector(state => state.animalInfiniteScroll || {})
 
   const [localSearch, setLocalSearch] = useState(search || '')
 
@@ -33,7 +33,7 @@ const AnimalsDrawer = ({ open, onClose, data }) => {
   // Load more on scroll
   const loadMore = useCallback(() => {
     if (!loading && hasMore) {
-      dispatch(fetchSpeciesPages({ site_id: data.id }))
+      dispatch(fetchAnimalPages({ site_id: data.id }))
     }
   }, [dispatch, data.id, loading, hasMore])
 
@@ -42,8 +42,8 @@ const AnimalsDrawer = ({ open, onClose, data }) => {
   // Reset and fetch when drawer opens
   useEffect(() => {
     if (open) {
-      dispatch(resetSpeciesInfiniteScroll())
-      dispatch(fetchSpeciesPages({ site_id: data.id }))
+      dispatch(resetAnimalInfiniteScroll())
+      dispatch(fetchAnimalPages({ site_id: data.id }))
     }
   }, [open, data.id, dispatch])
 
@@ -51,8 +51,8 @@ const AnimalsDrawer = ({ open, onClose, data }) => {
   const debouncedUpdate = useMemo(
     () =>
       debounce(value => {
-        dispatch(updateSpeciesSearch(value))
-        dispatch(fetchSpeciesPages({ site_id: data.id }))
+        dispatch(updateAnimalSearch(value))
+        dispatch(fetchAnimalPages({ site_id: data.id }))
       }, 500),
     [dispatch, data.id]
   )
@@ -122,21 +122,24 @@ const AnimalsDrawer = ({ open, onClose, data }) => {
       </Box>
 
       <Box sx={{ mt: 5, display: 'flex', flexDirection: 'column', gap: 3 }}>
-        <AnimalCard  data={data}/>
+        {list.map(species => (
+          <AnimalCard key={species.id} data={species} textColor={theme.palette.customColors.OnSurfaceVariant} />
+        ))}
         {(loading || hasMore) && (
           <Box ref={loaderRef} display='flex' justifyContent='center' p={2} mt={2}>
             {loading && <CircularProgress />}
           </Box>
         )}
+
         {!loading && list.length === 0 && (
           <Typography sx={{ textAlign: 'center', mt: 2, color: theme.palette.text.secondary }}>
-            No species found
+            No sections found
           </Typography>
         )}
 
         {!hasMore && list.length > 0 && (
           <Typography sx={{ textAlign: 'center', mt: 2, color: theme.palette.text.disabled }}>
-            No more species to load
+            No more sections to load
           </Typography>
         )}
       </Box>

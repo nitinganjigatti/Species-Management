@@ -3,7 +3,7 @@ import { Box } from '@mui/system'
 import { useTheme } from '@mui/material/styles'
 import React from 'react'
 
-const AnimalParentCard = ({ data, backgroundColor, size }) => {
+const AnimalParentCard = ({ data, backgroundColor, size, animal = false }) => {
   const theme = useTheme()
 
   return (
@@ -128,8 +128,8 @@ const AnimalParentCard = ({ data, backgroundColor, size }) => {
             </Typography>
             <Typography
               sx={{
-                fontSize: '13px',
-                fontWeight: 500,
+                fontSize: animal ? '16px' : '13px',
+                fontWeight: animal ? 400 : 500,
                 fontStyle: 'italic',
                 color: theme.palette.customColors.OnSurfaceVariant
               }}
@@ -138,112 +138,100 @@ const AnimalParentCard = ({ data, backgroundColor, size }) => {
               {/* {Utility?.toPascalSentenceCase(data?.scientific_name)} */}
             </Typography>
             {/* {data?.breed_name && ( */}
-            <Typography
-              sx={{
-                fontSize: '14px',
-                fontWeight: 600,
-                lineHeight: '19.36px',
-                color: theme.palette.customColors.OnSurfaceVariant
-              }}
-            >
-              <span style={{ fontWeight: 400 }}>Breed: </span>
-              {data?.breed_name ? data?.breed_name : '-'}
-              {/* {Utility?.toPascalSentenceCase(data?.common_name)} */}
-            </Typography>
+            {!animal && (
+              <Typography
+                sx={{
+                  fontSize: '14px',
+                  fontWeight: 600,
+                  lineHeight: '19.36px',
+                  color: theme.palette.customColors.OnSurfaceVariant
+                }}
+              >
+                <span style={{ fontWeight: 400 }}>Breed: </span>
+                {data?.breed_name ? data?.breed_name : '-'}
+                {/* {Utility?.toPascalSentenceCase(data?.common_name)} */}
+              </Typography>
+            )}
+
             {/* )} */}
             {/* {data?.morph_name && ( */}
-            <Typography
-              sx={{
-                fontSize: '14px',
-                fontWeight: 600,
-                lineHeight: '19.36px',
-                color: theme.palette.customColors.OnSurfaceVariant
-              }}
-            >
-              <span style={{ fontWeight: 400 }}>Variant: </span>
-              {data?.morph_name ? data?.morph_name : '-'}
-              {/* {Utility?.toPascalSentenceCase(data?.common_name)} */}
-            </Typography>
-            {/* )} */}
-            {data?.type === 'group' && (
-              <Typography
-                sx={{
-                  width: '250px',
-                  paddingY: '4px',
-                  borderRadius: '5px',
-                  backgroundColor: theme.palette.customColors.mdAntzNeutral,
-                  textAlign: 'center',
-                  fontSize: '16px',
-                  fontWeight: 500,
-                  lineHeight: '19.36px',
-                  color: 'black'
-                }}
-              >
-                <span style={{ fontWeight: 400 }}>Count: </span>
-                {data?.total_animal}
-              </Typography>
-            )}
-
-            {data?.breed_name && (
-              <Typography
-                sx={{
-                  fontSize: '16px',
-                  fontWeight: 600,
-                  lineHeight: '19.36px',
-                  color: theme.palette.customColors.OnSurfaceVariant
-                }}
-              >
-                Breed : {data?.breed_name}
-                {/* {Utility?.toPascalSentenceCase(data?.common_name)} */}
-              </Typography>
-            )}
-            {data?.morph_name && (
-              <Typography
-                sx={{
-                  fontSize: '16px',
-                  fontWeight: 600,
-                  lineHeight: '19.36px',
-                  color: theme.palette.customColors.OnSurfaceVariant
-                }}
-              >
-                Variant : {data?.morph_name}
-                {/* {Utility?.toPascalSentenceCase(data?.common_name)} */}
-              </Typography>
-            )}
-
-            {data?.breed_name && (
+            {!animal && (
               <Typography
                 sx={{
                   fontSize: '14px',
                   fontWeight: 600,
-                  lineHeight: '16.94px',
+                  lineHeight: '19.36px',
                   color: theme.palette.customColors.OnSurfaceVariant
                 }}
               >
-                <span style={{ fontWeight: 400 }}> Breed : </span>
-                {data?.breed_name}
+                <span style={{ fontWeight: 400 }}>Variant: </span>
+                {data?.morph_name ? data?.morph_name : '-'}
                 {/* {Utility?.toPascalSentenceCase(data?.common_name)} */}
               </Typography>
             )}
-            {data?.morph_name && (
-              <Typography
-                sx={{
-                  fontSize: '14px',
-                  fontWeight: 600,
-                  lineHeight: '16.94px',
-                  color: theme.palette.customColors.OnSurfaceVariant
-                }}
-              >
-                <span style={{ fontWeight: 400 }}> Variant: </span>
-                {data?.morph_name}
-                {/* {Utility?.toPascalSentenceCase(data?.common_name)} */}
-              </Typography>
+
+            {!animal && (
+              <>
+                {data?.breed_name && (
+                  <Typography
+                    sx={{
+                      fontSize: '16px',
+                      fontWeight: 600,
+                      lineHeight: '19.36px',
+                      color: theme.palette.customColors.OnSurfaceVariant
+                    }}
+                  >
+                    Breed : {data?.breed_name}
+                  </Typography>
+                )}
+
+                {data?.morph_name && (
+                  <Typography
+                    sx={{
+                      fontSize: '16px',
+                      fontWeight: 600,
+                      lineHeight: '19.36px',
+                      color: theme.palette.customColors.OnSurfaceVariant
+                    }}
+                  >
+                    Variant : {data?.morph_name}
+                  </Typography>
+                )}
+
+                {data?.breed_name && (
+                  <Typography
+                    sx={{
+                      fontSize: '14px',
+                      fontWeight: 600,
+                      lineHeight: '16.94px',
+                      color: theme.palette.customColors.OnSurfaceVariant
+                    }}
+                  >
+                    <span style={{ fontWeight: 400 }}>Breed : </span>
+                    {data?.breed_name}
+                  </Typography>
+                )}
+
+                {data?.morph_name && (
+                  <Typography
+                    sx={{
+                      fontSize: '14px',
+                      fontWeight: 600,
+                      lineHeight: '16.94px',
+                      color: theme.palette.customColors.OnSurfaceVariant
+                    }}
+                  >
+                    <span style={{ fontWeight: 400 }}>Variant: </span>
+                    {data?.morph_name}
+                  </Typography>
+                )}
+              </>
             )}
 
             <Typography
               sx={{
                 fontSize: '14px',
-                fontWeight: 600,
+                fontWeight: animal ? 400 : 600,
                 lineHeight: '16.94px',
                 color: theme.palette.customColors.OnSurfaceVariant
               }}
@@ -255,26 +243,29 @@ const AnimalParentCard = ({ data, backgroundColor, size }) => {
             <Typography
               sx={{
                 fontSize: '14px',
-                fontWeight: 600,
+                fontWeight: animal ? 400 : 600,
                 lineHeight: '16.94px',
                 color: theme.palette.customColors.OnSurfaceVariant
               }}
             >
-              <span style={{ fontWeight: 400 }}>Sec: </span> {data?.section_name}
+              <span style={{ fontWeight: 400, fontSize: animal && '14px' }}>Sec: </span> {data?.section_name}
               {/* {Utility?.toPascalSentenceCase(data?.section_name)} */}
             </Typography>
-            <Typography
-              sx={{
-                fontSize: '14px',
-                fontWeight: 600,
-                lineHeight: '16.94px',
-                color: theme.palette.customColors.OnSurfaceVariant
-              }}
-            >
-              <span style={{ fontWeight: 400 }}>Site: </span>
-              {data?.site_name}
-              {/* {Utility?.toPascalSentenceCase(data?.site_name)} */}
-            </Typography>
+
+            {!animal && (
+              <Typography
+                sx={{
+                  fontSize: '14px',
+                  fontWeight: 600,
+                  lineHeight: '16.94px',
+                  color: theme.palette.customColors.OnSurfaceVariant
+                }}
+              >
+                <span style={{ fontWeight: 400 }}>Site: </span>
+                {data?.site_name}
+                {/* {Utility?.toPascalSentenceCase(data?.site_name)} */}
+              </Typography>
+            )}
           </Box>
         </Box>
       )}

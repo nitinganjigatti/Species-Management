@@ -8,7 +8,8 @@ import {
   GET_ALL_SPECIES,
   GET_MORTALITY,
   GET_ANIMAL_TREATMENT,
-  GET_MEDIA
+  GET_MEDIA,
+  GET_ANIMAL
 } from 'src/constants/ApiConstant'
 
 export async function getSiteAnalytics(id) {
@@ -61,6 +62,11 @@ export async function getAllMedia(params) {
 
 export async function getAnimalTreatmentList(params) {
   const response = await axiosGet({ url: `${GET_ANIMAL_TREATMENT}/${params?.site_id}`, params })
-  
-return response.data
+
+  return response.data
+}
+
+export async function getAllAnimalList(params) {
+  const response = await axiosGet({ url: `${GET_ANIMAL}`, params })
+  return response.data
 }

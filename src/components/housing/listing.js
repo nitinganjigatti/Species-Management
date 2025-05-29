@@ -266,21 +266,32 @@ const Listing = () => {
       )
     },
     {
-      width: 150,
+      width: 150, 
       field: 'actions',
       headerName: 'Actions',
       align: 'center',
       headerAlign: 'center',
-      renderCell: () => (
-        <Box display='flex' justifyContent='center' alignItems='center' gap={3}>
-          <Box component='img' src='/images/call.png' alt='Phone' sx={{ width: 20, height: 20, cursor: 'pointer' }} />
-          <Box
-            component='img'
-            src='/images/message.png'
-            alt='Message'
-            sx={{ width: 20, height: 20, cursor: 'pointer' }}
-          />
-        </Box>
+      renderCell: (params) => (
+        <>
+          {params.row.incharge_name ? (
+            <Box display='flex' justifyContent='center' alignItems='center' gap={3}>
+              <Box
+                component='img'
+                src='/images/call.png'
+                alt='Phone'
+                sx={{ width: 20, height: 20, cursor: 'pointer' }}
+              />
+              <Box
+                component='img'
+                src='/images/message.png'
+                alt='Message'
+                sx={{ width: 20, height: 20, cursor: 'pointer' }}
+              />
+            </Box>
+          ) : (
+            '-'
+          )}
+        </>
       )
     }
   ]
