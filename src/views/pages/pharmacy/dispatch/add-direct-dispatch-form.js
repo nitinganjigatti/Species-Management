@@ -79,11 +79,14 @@ const schema = yup.object().shape({
     })
     .required('Product Name is required'),
 
-  request_item_batch_no: yup.object().shape({
-    label: yup.string().required('Batch no is required'),
-    value: yup.string().required('Batch no is required'),
-    expiry_date: yup.string().required('Batch no is required')
-  }),
+  request_item_batch_no: yup
+    .object()
+    .transform((value, originalValue) => (originalValue === '' ? null : value))
+    .nullable()
+    .required('Batch number is required')
+    .test('is-valid-object', 'Batch number is required', value => {
+      return value !== null && typeof value === 'object' && value.label && value.value && value.expiry_date
+    }),
 
   // request_item_batch_no: yup
   //   .mixed()

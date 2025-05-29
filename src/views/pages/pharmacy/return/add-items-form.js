@@ -32,7 +32,8 @@ const defaultValues = {
   manufacture: '',
   control_substance: false,
   variant_id: '',
-  multiplier: ''
+  multiplier: '',
+  unit_price: ''
 }
 
 const schema = yup.object().shape({
@@ -132,18 +133,16 @@ export const AddItemsForm = ({
       expiry_date,
       request_item,
       stock_type,
-
       packageDetails,
       manufacture,
       control_substance,
       variant_id,
-      multiplier
+      multiplier,
+      unit_price
     } = {
       ...params
     }
     const type = nestedMedicine?.uuid === '' ? 'new' : 'update'
-
-    // console.log('params', params)
 
     const isMedicineAlreadyExists = editParams.request_item_details.some(
       item =>
@@ -234,12 +233,12 @@ export const AddItemsForm = ({
         priority_item: 'Normal',
         uuid: nestedMedicine?.uuid,
         stock_type,
-
         packageDetails,
         manufacture,
         control_substance,
         variant_id,
-        multiplier
+        multiplier,
+        unit_price
       },
       type
     )
@@ -267,7 +266,6 @@ export const AddItemsForm = ({
   }, [error, totalQuantity])
 
   const checkTotalCount = e => {
-    // console.log('editParams', editParams)
     const productId = watch('request_item')
     const quantity = watch('request_item_qty')
     var totalCount = 0
@@ -291,7 +289,9 @@ export const AddItemsForm = ({
       nestedItemQuantity = nestedMedicine?.request_item_qty
     }
 
-    const available_qty = parseInt(totalQuantity) - (totalCount - nestedItemQuantity + enteredCount)
+    const available_qty = parseInt(totalQuantity)
+
+    //  const available_qty = parseInt(totalQuantity)- (totalCount - nestedItemQuantity + enteredCount) removed  subtraction function while doing  qty entry
     setTotalAvailableCount(available_qty)
   }
 
@@ -388,7 +388,7 @@ export const AddItemsForm = ({
       setValue('packageDetails', value?.packageDetails)
       setValue('manufacture', value?.manufacture)
       setValue('control_substance', value?.control_substance)
-      setValue('unit_price', value.unit_price)
+      setValue('unit_price', value?.unit_price)
     }
 
     checkTotalCount()
@@ -415,7 +415,8 @@ export const AddItemsForm = ({
     setValue('expiry_date', value?.expiry_date, { shouldValidate: true })
     setValue('available_item_qty', value?.available_item_qty)
     setValue('multiplier', value?.multiplier)
-    setValue('variant_id', value?.variant_id)
+    setValue('variant_id', value?.variant_id), setValue('unit_price', value?.unit_price)
+
     clearErrors('batch_no')
     setQuantityError(false)
     checkTotalCount()
@@ -440,7 +441,8 @@ export const AddItemsForm = ({
         packageDetails: nestedMedicine?.packageDetails,
         manufacture: nestedMedicine?.manufacture,
         variant_id: nestedMedicine?.variant_id,
-        multiplier: nestedMedicine?.multiplier
+        multiplier: nestedMedicine?.multiplier,
+        unit_price: nestedMedicine?.unit_price
       })
       async function searchMedicine() {
         await searchMedicineData(nestedMedicine?.request_item_medicine_id, nestedMedicine.stock_type)
