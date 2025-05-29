@@ -56,6 +56,7 @@ import { useTheme } from '@emotion/react'
 import ShipmentPrintComponent from 'src/components/ShipmentPrintComponent'
 import { getShipmentDetailOfOrder } from 'src/lib/api/pharmacy/storeWiseRequest'
 import { getRequestsShipmentDetailPdf, getStoreWiseShipmentDetailPdf } from 'src/lib/api/pharmacy/downloadShipmentPdf'
+import { textAlign } from '@mui/system'
 
 const Transition = forwardRef(function Transition(props, ref) {
   return <Fade ref={ref} {...props} />
@@ -167,7 +168,7 @@ const DisputeItemDetails = React.forwardRef((props, ref) => {
                             checked={checked}
                             onChange={handleChange}
                             name=' mark_all_as_received'
-                            disabled={checked}
+                            // disabled={checked}
                           />
                         }
                       />
@@ -460,18 +461,38 @@ function OrderReceiveForm({ orderId, requestId, requestedFrom }) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedPharmacy])
 
-  const bulkStatusUpdate = async () => {
-    const updatedItemDetails = disputeItemDetails.item_details.map(item => {
-      return {
-        ...item,
-        status: 'Received'
-      }
-    })
+  const bulkStatusUpdate = async isChecked => {
+    if (isChecked === true) {
+      const updatedItemDetails = disputeItemDetails.item_details.map(item => {
+        return {
+          ...item,
+          status: 'Received'
+        }
+      })
 
-    const items = disputeItemDetails
-    items['item_details'] = updatedItemDetails
-    setDisputeItemDetails({ ...disputeItemDetails, items })
-    updateStatus()
+      // const items = disputeItemDetails
+      // items['item_details'] = updatedItemDetails
+      setDisputeItemDetails(prevState => ({
+        ...prevState,
+        item_details: updatedItemDetails
+      }))
+    } else {
+      const updatedItemDetails = disputeItemDetails.item_details.map(item => {
+        return {
+          ...item,
+          status: ''
+        }
+      })
+
+      // const items = disputeItemDetails
+      // items['item_details'] = updatedItemDetails
+      setDisputeItemDetails(prevState => ({
+        ...prevState,
+        item_details: updatedItemDetails
+      }))
+    }
+
+    // updateStatus()
   }
 
   const resolveItems = async payload => {
@@ -860,20 +881,16 @@ function OrderReceiveForm({ orderId, requestId, requestedFrom }) {
 
   const columns = [
     {
-      Width: 40,
-      field: 'uid`',
+      width: 100,
+      field: 'uid',
       headerName: 'SL.NO',
+      textAlign: 'center',
       renderCell: params => {
-        return (
-          <Typography variant='body2' sx={{ color: 'text.primary' }}>
-            {params.row.uid + '.'}
-          </Typography>
-        )
+        return <Typography sx={{ color: 'text.primary', textAlign: 'center' }}>{params.row.uid + '.'}</Typography>
       }
     },
     {
-      flex: 0.5,
-      Width: 100,
+      width: 400,
       field: 'stock_name',
       headerName: 'Product Name',
       renderCell: (params, rowId) => (
@@ -887,8 +904,7 @@ function OrderReceiveForm({ orderId, requestId, requestedFrom }) {
       )
     },
     {
-      flex: 0.2,
-      minWidth: 20,
+      minWidth: 200,
       field: 'batch_no',
       headerName: 'Batch',
       renderCell: params => (
@@ -899,8 +915,7 @@ function OrderReceiveForm({ orderId, requestId, requestedFrom }) {
     },
 
     {
-      flex: 0.2,
-      minWidth: 20,
+      minWidth: 100,
       field: 'count',
       headerName: 'qty',
       renderCell: params => (
@@ -1508,17 +1523,14 @@ function OrderReceiveForm({ orderId, requestId, requestedFrom }) {
   const handleChange = async event => {
     const isChecked = event.target.checked
     setChecked(isChecked)
-
-    if (isChecked) {
-      setSubmitLoader(true) // Disable checkbox during submission
-      try {
-        await bulkStatusUpdate() // Ensure this completes before moving forward
-        await getOrderDetails(orderId, requestId) // Refresh the data only after updating status
-      } catch (error) {
-        console.error('Error in bulk status update: ', error)
-      } finally {
-        setSubmitLoader(false) // Re-enable checkbox after submission
-      }
+    setSubmitLoader(true) // Disable checkbox during submission
+    try {
+      await bulkStatusUpdate(isChecked) // Ensure this completes before moving forward
+      // await getOrderDetails(orderId, requestId) // Refresh the data only after updating status
+    } catch (error) {
+      console.error('Error in bulk status update: ', error)
+    } finally {
+      setSubmitLoader(false) // Re-enable checkbox after submission
     }
   }
 
