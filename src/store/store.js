@@ -1,6 +1,5 @@
 import { configureStore } from '@reduxjs/toolkit'
 import insightsReducer from 'src/store/slices/housing/insightsSlice'
-import sitesReducer from 'src/store/slices/housing/sitesSlice'
 import sitesAnalyticsReducer from 'src/store/slices/housing/sitesAnalyticsSlice'
 import sectionReducer from 'src/store/slices/housing/sectionSlice'
 import notesReducer from 'src/store/slices/housing/notesSlice'
@@ -15,7 +14,6 @@ import animalInfiniteScrollReducer from 'src/store/slices/housing/animalInfinite
 const store = configureStore({
   reducer: {
     insights: insightsReducer,
-    sites: sitesReducer,
     siteAnalytics: sitesAnalyticsReducer,
     section: sectionReducer,
     notes: notesReducer,

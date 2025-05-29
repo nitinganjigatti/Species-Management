@@ -4,7 +4,6 @@ import React, { useEffect, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { fetchInsights } from 'src/store/slices/housing/insightsSlice'
 import InsightsCard from 'src/views/utility/insights/InsightsCard'
-import Listing from 'src/components/housing/Listing'
 import { fetchSite } from 'src/store/slices/housing/sitesAnalyticsSlice'
 
 // Listing Components
@@ -91,6 +90,7 @@ const SiteDetails = () => {
         description={data?.incharges[0]?.full_name}
         userName={data?.incharges[0]?.role_name}
         userImage={data?.incharges[0]?.user_profile_pic}
+
         // actions={{
         //   onEdit: () => console.log('Edit'),
         //   onDelete: () => console.log('Delete'),
@@ -105,6 +105,7 @@ const SiteDetails = () => {
             return
           }
         }}
+
         // onMessageClick={() => console.log('Message clicked')}
         error={error}
         speciesCount={data?.species_count || 0}

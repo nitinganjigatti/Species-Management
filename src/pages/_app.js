@@ -63,6 +63,21 @@ import { ForgotPasswordProvider } from 'src/context/ForgotPasswordContext'
 import { Provider } from 'react-redux'
 import store from 'src/store/store'
 
+// Tanstack query
+import { QueryClient, QueryClientProvider } from '@tanstack/react-query'
+
+// Configure QueryClient
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      staleTime: 5 * 60 * 1000, // 5 minutes (data will be considered fresh for 5 minutes)
+      gcTime: 10 * 60 * 1000, // 10 minutes (cache data will be garbage collected after 10 minutes of inactivity)
+      refetchOnWindowFocus: false, // Prevent refetching on window focus
+    },
+  },
+});
+
+
 const clientSideEmotionCache = createEmotionCache()
 
 // ** Pace Loader
@@ -103,49 +118,51 @@ const App = props => {
   const aclAbilities = Component.acl ?? defaultACLObj
 
   return (
-    <Provider store={store}>
-      <CacheProvider value={emotionCache}>
-        <Head>
-          <title>{`${themeConfig.templateName}`}</title>
-          <meta name='description' content={`${themeConfig.templateName}`} />
-          <meta name='viewport' content='initial-scale=1, width=device-width' />
-        </Head>
-        <PariveshProvider>
-          <PharmacyProvider>
-            <DynamicStatesProvider>
-              <EggProvider>
-                <ForgotPasswordProvider>
-                  <AuthProvider>
-                    <SettingsProvider {...(setConfig ? { pageSettings: setConfig() } : {})}>
-                      <SettingsConsumer>
-                        {({ settings }) => {
-                          return (
-                            <ThemeComponent settings={settings}>
-                              <Guard authGuard={authGuard} guestGuard={guestGuard}>
-                                <AclGuard aclAbilities={aclAbilities} guestGuard={guestGuard} authGuard={authGuard}>
-                                  {getLayout(<Component {...pageProps} />)}
-                                </AclGuard>
-                              </Guard>
-                              <ReactHotToast>
-                                <Toaster
-                                  position={settings.toastPosition}
-                                  containerClassName='react-hot-toast-container'
-                                  toastOptions={{ className: 'react-hot-toast' }}
-                                />
-                              </ReactHotToast>
-                            </ThemeComponent>
-                          )
-                        }}
-                      </SettingsConsumer>
-                    </SettingsProvider>
-                  </AuthProvider>
-                </ForgotPasswordProvider>
-              </EggProvider>
-            </DynamicStatesProvider>
-          </PharmacyProvider>
-        </PariveshProvider>
-      </CacheProvider>
-    </Provider>
+    <QueryClientProvider client={queryClient}>
+      <Provider store={store}>
+        <CacheProvider value={emotionCache}>
+          <Head>
+            <title>{`${themeConfig.templateName}`}</title>
+            <meta name='description' content={`${themeConfig.templateName}`} />
+            <meta name='viewport' content='initial-scale=1, width=device-width' />
+          </Head>
+          <PariveshProvider>
+            <PharmacyProvider>
+              <DynamicStatesProvider>
+                <EggProvider>
+                  <ForgotPasswordProvider>
+                    <AuthProvider>
+                      <SettingsProvider {...(setConfig ? { pageSettings: setConfig() } : {})}>
+                        <SettingsConsumer>
+                          {({ settings }) => {
+                            return (
+                              <ThemeComponent settings={settings}>
+                                <Guard authGuard={authGuard} guestGuard={guestGuard}>
+                                  <AclGuard aclAbilities={aclAbilities} guestGuard={guestGuard} authGuard={authGuard}>
+                                    {getLayout(<Component {...pageProps} />)}
+                                  </AclGuard>
+                                </Guard>
+                                <ReactHotToast>
+                                  <Toaster
+                                    position={settings.toastPosition}
+                                    containerClassName='react-hot-toast-container'
+                                    toastOptions={{ className: 'react-hot-toast' }}
+                                  />
+                                </ReactHotToast>
+                              </ThemeComponent>
+                            )
+                          }}
+                        </SettingsConsumer>
+                      </SettingsProvider>
+                    </AuthProvider>
+                  </ForgotPasswordProvider>
+                </EggProvider>
+              </DynamicStatesProvider>
+            </PharmacyProvider>
+          </PariveshProvider>
+        </CacheProvider>
+      </Provider>
+    </QueryClientProvider>
   )
 }
 
