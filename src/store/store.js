@@ -9,6 +9,7 @@ import mortalityReducer from 'src/store/slices/housing/mortalitySlice'
 import animalTreatmentReducer from 'src/store/slices/housing/animalTreatmentSlice'
 import mediaReducer from 'src/store/slices/housing/mediaSlice'
 import sectionInfiniteScrollReducer from 'src/store/slices/housing/sectionInfiniteScrollSlice'
+import speciesInfiniteScrollReducer from 'src/store/slices/housing/speciesInfiniteScrollSlice'
 
 const store = configureStore({
   reducer: {
@@ -21,7 +22,8 @@ const store = configureStore({
     mortality: mortalityReducer,
     animalTreatment: animalTreatmentReducer,
     media: mediaReducer,
-    sectionInfiniteScroll: sectionInfiniteScrollReducer
+    sectionInfiniteScroll: sectionInfiniteScrollReducer,
+    speciesInfiniteScroll: speciesInfiniteScrollReducer
   },
   middleware: getDefaultMiddleware =>
     getDefaultMiddleware({

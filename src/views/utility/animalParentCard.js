@@ -3,7 +3,7 @@ import { Box } from '@mui/system'
 import { useTheme } from '@mui/material/styles'
 import React from 'react'
 
-const AnimalParentCard = ({ data, backgroundColor }) => {
+const AnimalParentCard = ({ data, backgroundColor, size }) => {
   const theme = useTheme()
 
   return (
@@ -105,7 +105,7 @@ const AnimalParentCard = ({ data, backgroundColor }) => {
 
             <Typography
               sx={{
-                fontSize: '16px',
+                fontSize: size ?? '16px',
                 fontWeight: 600,
                 lineHeight: '19.36px',
                 color: theme.palette.customColors.OnSurfaceVariant

@@ -29,8 +29,7 @@ function SpeciesCard({ species }) {
           sx={{
             color: theme.palette.customColors.OnSurfaceVariant,
             fontSize: '16px',
-            fontWeight: 400,
-            fontStyle: 'italic'
+            fontWeight: 600
           }}
         >
           {species.common_name ? species.common_name : '-'}
@@ -39,7 +38,8 @@ function SpeciesCard({ species }) {
           sx={{
             color: theme.palette.customColors.OnSurfaceVariant,
             fontSize: '16px',
-            fontWeight: 600
+            fontWeight: 400,
+            fontStyle: 'italic'
           }}
         >
           {species.scientific_name ? species.scientific_name : '-'}

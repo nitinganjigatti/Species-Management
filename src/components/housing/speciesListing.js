@@ -11,9 +11,13 @@ import { ExportButton } from 'src/views/utility/render-snippets'
 import { debounce } from 'lodash'
 import ListingHeader from 'src/views/pages/housing/utils/ListingHeader'
 import { GenderInfoCard } from 'src/utility/render'
+import SpeciesDrawer from 'src/views/pages/housing/species/SpeciesDrawer'
+import SpeciesCard from 'src/views/utility/SpeciesCard'
 
 const SpeciesListing = () => {
   const [downloading, setDownloading] = useState(false)
+  const [openDrawer, setOpenDrawer] = useState(false)
+  const [specieName, setSpecieName] = useState('')
 
   const router = useRouter()
   const { id } = router.query
@@ -92,9 +96,15 @@ const SpeciesListing = () => {
   }))
 
   const handleRowClick = params => {
+    setOpenDrawer(true)
+    setSpecieName(params.row.common_name)
     // router.push({
     //   pathname: `/housing/sites/${params.row.site_id}`
     // })
+  }
+
+  const handleClose = () => {
+    setOpenDrawer(false)
   }
 
   const columns = [
@@ -115,14 +125,15 @@ const SpeciesListing = () => {
       headerAlign: 'center',
       headerName: 'Species',
       renderCell: params => (
-        <UserInfoCard
-          avatarUrl={params.row.default_icon}
-          textColor={theme.palette.customColors.OnSurfaceVariant}
-          name={params.row.common_name}
-          description={params.row.complete_name}
-          fontWeight={500}
-          round
-        />
+        <SpeciesCard species={{ common_name: params.row.common_name, scientific_name: params.row.complete_name }} />
+        // <UserInfoCard
+        //   avatarUrl={params.row.default_icon}
+        //   textColor={theme.palette.customColors.OnSurfaceVariant}
+        //   name={params.row.common_name}
+        //   description={params.row.complete_name}
+        //   fontWeight={500}
+        //   round
+        // />
       )
     },
     {
@@ -255,6 +266,7 @@ const SpeciesListing = () => {
           />
         </Grid>
       </Box>
+      {openDrawer && <SpeciesDrawer open={openDrawer} onClose={handleClose} specieName={specieName} />}
     </>
   )
 }

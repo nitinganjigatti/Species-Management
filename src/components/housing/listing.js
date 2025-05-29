@@ -12,6 +12,8 @@ import { useRouter } from 'next/router'
 import { ExportButton } from 'src/views/utility/render-snippets'
 import { CellInfo } from 'src/utility/render'
 import SectionsDrawer from 'src/views/pages/housing/section/SectionsDrawer'
+import SpeciesDrawer from 'src/views/pages/housing/species/SpeciesDrawer'
+import AnimalsDrawer from 'src/views/pages/housing/animals/AnimalDrawer'
 
 const mockDrawerData = {
   cluster_name: 'Rainforest Habitat Cluster',
@@ -166,7 +168,18 @@ const Listing = () => {
       align: 'left',
       headerAlign: 'left',
       renderCell: params => (
-        <Typography sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600 }}>
+        <Typography
+          sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600 }}
+          onClick={e => {
+            e.stopPropagation()
+            setDrawerType('species')
+            setDrawerData({
+              id: params.row?.site_id,
+              name: params.row?.site_name,
+              image: params.row?.images?.[0]?.file
+            })
+          }}
+        >
           {params.row.species_count || 0}
         </Typography>
       )
@@ -178,7 +191,18 @@ const Listing = () => {
       align: 'left',
       headerAlign: 'left',
       renderCell: params => (
-        <Typography sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600 }}>
+        <Typography
+          sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600 }}
+          onClick={e => {
+            e.stopPropagation()
+            setDrawerType('animals')
+            setDrawerData({
+              id: params.row?.site_id,
+              name: params.row?.site_name,
+              image: params.row?.images?.[0]?.file
+            })
+          }}
+        >
           {params.row.animal_count || 0}
         </Typography>
       )
@@ -296,12 +320,32 @@ const Listing = () => {
             handleSortModel={handleSortModelChange}
             loading={loading}
             searchValue=''
-            maxHeight='60vh'
+            maxHeight='80vh'
           />
         </Grid>
       </Box>
       {drawerType === 'sections' && (
         <SectionsDrawer
+          open={!!drawerData}
+          onClose={() => {
+            setDrawerType(null)
+            setDrawerData(null)
+          }}
+          data={drawerData}
+        />
+      )}
+      {drawerType === 'species' && (
+        <SpeciesDrawer
+          open={!!drawerData}
+          onClose={() => {
+            setDrawerType(null)
+            setDrawerData(null)
+          }}
+          data={drawerData}
+        />
+      )}
+      {drawerType === 'animals' && (
+        <AnimalsDrawer
           open={!!drawerData}
           onClose={() => {
             setDrawerType(null)
