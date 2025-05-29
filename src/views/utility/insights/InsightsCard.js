@@ -12,7 +12,8 @@ const InsightsCard = ({
   data,
   loading,
   error,
-  isAllSites = false,
+  isListingPage = false,
+  pageTitle,
   actions = {},
   onCallClick,
   onMessageClick,
@@ -85,7 +86,7 @@ const InsightsCard = ({
 
       {/* Foreground content */}
       <Box sx={{ position: 'relative', zIndex: 2, p: 6 }}>
-        {isAllSites && (
+        {isListingPage && (
           <Box sx={{ display: 'flex', gap: 4, alignItems: 'center' }}>
             <Box
               sx={{
@@ -103,7 +104,7 @@ const InsightsCard = ({
               <InsightsOutlinedIcon />
             </Box>
             <Typography sx={{ color: theme => theme.palette.common.white, fontSize: '1.5rem' }} fontWeight={600}>
-              All Site Insights
+              {pageTitle || ''}
             </Typography>
           </Box>
         )}

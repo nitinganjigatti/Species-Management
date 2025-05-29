@@ -69,7 +69,8 @@ const Sites = () => {
           data={data}
           loading={loading}
           error={error}
-          isAllSites
+          isListingPage
+          pageTitle={'All Site Insights'}
           sectionsCount={data?.zoo_stats?.total_sections}
           animalCount={data?.zoo_stats?.total_animals}
           speciesCount={data?.zoo_stats?.total_species}
