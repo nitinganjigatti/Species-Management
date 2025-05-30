@@ -10,7 +10,8 @@ import InsightsCard from 'src/views/utility/insights/InsightsCard'
 
 const tabConfig = [
   { label: 'Sites', value: 'sites', component: ClusterSites },
-  { label: 'Species', value: 'species', component: ClusterSpecies }
+  { label: 'Species', value: 'species', component: ClusterSpecies },
+  //  { label: 'Incharges', value: 'Incharges', component: ClusterIncharges }
 ]
 
 const ClusterDetails = () => {

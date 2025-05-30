@@ -10,7 +10,7 @@ import CommonTable from 'src/views/table/data-grid/CommonTable'
 import { ExportButton } from 'src/views/utility/render-snippets'
 import Search from 'src/views/utility/Search'
 
-const ClusterSites = () => {
+const ClusterIncharges = () => {
   const router = useRouter()
   const { id } = router.query
   const theme = useTheme()
@@ -291,4 +291,4 @@ const ClusterSites = () => {
   )
 }
 
-export default ClusterSites
+export default ClusterIncharges
