@@ -1,25 +1,28 @@
-import { useEffect, useCallback, useMemo, useState } from 'react'
-import { useDispatch, useSelector } from 'react-redux'
-import { Typography, Box, CircularProgress } from '@mui/material'
-import { useTheme } from '@mui/material/styles'
-import CustomDrawer from '../utils/CustomDrawer'
-import SectionCard from './SectionCard'
-import { CellInfo } from 'src/utility/render'
-import Search from 'src/views/utility/Search'
-import useInfiniteScroll from 'src/hooks/useInfiniteScroll'
-import {
-  fetchSectionPages,
-  resetSectionInfiniteScroll,
-  updateSectionSearch
-} from 'src/store/slices/housing/sectionInfiniteScrollSlice'
-import debounce from 'lodash/debounce'
-import { height } from '@mui/system'
+import CustomDrawer from '../../views/pages/housing/utils/CustomDrawer'
+import { Typography, Divider, CircularProgress } from '@mui/material'
 
-const SectionsDrawer = ({ open, onClose, data }) => {
+// import SectionCard from './SectionCard'
+import { useTheme } from '@mui/material/styles'
+import { CellInfo } from 'src/utility/render'
+import { Box, height, width } from '@mui/system'
+import Search from 'src/views/utility/Search'
+import { useDispatch, useSelector } from 'react-redux'
+import {
+  fetchAnimalPages,
+  resetAnimalInfiniteScroll,
+  updateAnimalSearch
+} from 'src/store/slices/housing/animalInfiniteScrollSlice'
+import debounce from 'lodash/debounce'
+import { useCallback, useEffect, useMemo, useState } from 'react'
+import useInfiniteScroll from 'src/hooks/useInfiniteScroll'
+import AnimalCard from '../../views/pages/housing/animals/AnimalCard'
+
+const AnimalsDrawer = ({ open, onClose, data }) => {
   const theme = useTheme()
+
   const dispatch = useDispatch()
 
-  const { list = [], loading, hasMore, search, total } = useSelector(state => state.sectionInfiniteScroll || {})
+  const { list = [], loading, hasMore, search, total } = useSelector(state => state.animalInfiniteScroll || {})
 
   const [localSearch, setLocalSearch] = useState(search || '')
 
@@ -31,7 +34,7 @@ const SectionsDrawer = ({ open, onClose, data }) => {
   // Load more on scroll
   const loadMore = useCallback(() => {
     if (!loading && hasMore) {
-      dispatch(fetchSectionPages({ site_id: data.id }))
+      dispatch(fetchAnimalPages({ site_id: data.id }))
     }
   }, [dispatch, data.id, loading, hasMore])
 
@@ -40,8 +43,8 @@ const SectionsDrawer = ({ open, onClose, data }) => {
   // Reset and fetch when drawer opens
   useEffect(() => {
     if (open) {
-      dispatch(resetSectionInfiniteScroll())
-      dispatch(fetchSectionPages({ site_id: data.id }))
+      dispatch(resetAnimalInfiniteScroll())
+      dispatch(fetchAnimalPages({ site_id: data.id }))
     }
   }, [open, data.id, dispatch])
 
@@ -49,8 +52,8 @@ const SectionsDrawer = ({ open, onClose, data }) => {
   const debouncedUpdate = useMemo(
     () =>
       debounce(value => {
-        dispatch(updateSectionSearch(value))
-        dispatch(fetchSectionPages({ site_id: data.id }))
+        dispatch(updateAnimalSearch(value))
+        dispatch(fetchAnimalPages({ site_id: data.id }))
       }, 500),
     [dispatch, data.id]
   )
@@ -73,19 +76,18 @@ const SectionsDrawer = ({ open, onClose, data }) => {
   }
 
   return (
-    <CustomDrawer 
+    <CustomDrawer
       open={open}
       onClose={onClose}
-      title='Sections'
-      icon='/images/housing/section-icon-colored.png'
+      title='Animals'
+      icon='/images/housing/Enclosure icon.png'
       iconColor={theme.palette.primary.main}
     >
       <Box
         sx={{
           border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
           backgroundColor: theme.palette.common.white,
-          paddingX: 4,
-          paddingY: 3,
+          padding: '12px',
           marginY: 6,
           width: '100%',
           display: 'flex',
@@ -93,32 +95,37 @@ const SectionsDrawer = ({ open, onClose, data }) => {
           borderRadius: '8px'
         }}
       >
-        <CellInfo value={data?.name} imgUrl={data?.image} />
-      </Box>
-
-      <Typography sx={{ fontSize: '1.25rem', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}>
-        Sections {total ? `(${total})` : ''}
-      </Typography>
-
-      <Box sx={{ mt: 2, mb: 3 }}>
-        <Search
-          sx={{ width: '100%' }}
-          textFielsSX={{ width: '100%', height: 52 }}
-          placeholder='Search for a section'
-          value={localSearch}
-          onChange={handleSearchChange}
-          onClear={handleSearchClear}
-          backgroundColor={theme.palette.common.white}
+        <CellInfo
+          value={data?.name}
+          imgUrl={data?.image}
+          color={theme.palette.customColors.OnSurfaceVariant}
+          subtitleColor={theme.palette.customColors.secondaryBg}
         />
       </Box>
 
-      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4, pb: 4 }}>
-        {list.map(section => (
-          <Box key={section.id}>
-            <SectionCard section={section} />
-          </Box>
-        ))}
+      <Typography sx={{ fontSize: '20px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}>
+        Animals {total ? `(${total})` : ''}
+      </Typography>
+      <Box sx={{ my: 2, backgroundColor: theme.palette.common.white }}>
+        <Search
+          sx={{ width: '100%' }}
+          textFielsSX={{
+            width: '100%',
+            height: 52,
+            borderRadius: '8px',
+            backgroundColor: theme.palette.common.white
+          }}
+          placeholder='Search for animals'
+          value={localSearch}
+          onChange={handleSearchChange}
+          onClear={handleSearchClear}
+        />
+      </Box>
 
+      <Box sx={{ mt: 5, display: 'flex', flexDirection: 'column', gap: 3 }}>
+        {list.map(species => (
+          <AnimalCard key={species.id} data={species} textColor={theme.palette.customColors.OnSurfaceVariant} />
+        ))}
         {(loading || hasMore) && (
           <Box ref={loaderRef} display='flex' justifyContent='center' p={2} mt={2}>
             {loading && <CircularProgress />}
@@ -127,13 +134,13 @@ const SectionsDrawer = ({ open, onClose, data }) => {
 
         {!loading && list.length === 0 && (
           <Typography sx={{ textAlign: 'center', mt: 2, color: theme.palette.text.secondary }}>
-            No sections found
+            No animals found
           </Typography>
         )}
 
         {!hasMore && list.length > 0 && (
           <Typography sx={{ textAlign: 'center', mt: 2, color: theme.palette.text.disabled }}>
-            No more sections to load
+            No more animals to load
           </Typography>
         )}
       </Box>
@@ -141,4 +148,4 @@ const SectionsDrawer = ({ open, onClose, data }) => {
   )
 }
 
-export default SectionsDrawer
+export default AnimalsDrawer

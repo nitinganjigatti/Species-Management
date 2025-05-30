@@ -1,79 +1,106 @@
-import { useEffect, useCallback, useMemo, useState } from 'react'
-import { useDispatch, useSelector } from 'react-redux'
+import React, { useEffect, useMemo, useState, useCallback } from 'react'
 import { Typography, Box, CircularProgress } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
+import debounce from 'lodash/debounce'
+
 import CustomDrawer from '../../views/pages/housing/utils/CustomDrawer'
 import SectionCard from '../../views/pages/housing/section/SectionCard'
 import { CellInfo } from 'src/utility/render'
 import Search from 'src/views/utility/Search'
 import useInfiniteScroll from 'src/hooks/useInfiniteScroll'
-import {
-  fetchSectionPages,
-  resetSectionInfiniteScroll,
-  updateSectionSearch
-} from 'src/store/slices/housing/sectionInfiniteScrollSlice'
-import debounce from 'lodash/debounce'
-import { height } from '@mui/system'
+import { getAllSections } from 'src/lib/api/housing'
+import { useInfiniteQuery } from '@tanstack/react-query'
 
 const SectionsDrawer = ({ open, onClose, data }) => {
   const theme = useTheme()
-  const dispatch = useDispatch()
 
-  const { list = [], loading, hasMore, search, total } = useSelector(state => state.sectionInfiniteScroll || {})
+  const [localSearch, setLocalSearch] = useState('')
+  const [search, setSearch] = useState('')
 
-  const [localSearch, setLocalSearch] = useState(search || '')
+  const PAGE_SIZE = 10
 
-  // Sync search value into local input when drawer opens
-  useEffect(() => {
-    if (open) setLocalSearch(search || '')
-  }, [open, search])
-
-  // Load more on scroll
-  const loadMore = useCallback(() => {
-    if (!loading && hasMore) {
-      dispatch(fetchSectionPages({ site_id: data.id }))
-    }
-  }, [dispatch, data.id, loading, hasMore])
-
-  const loaderRef = useInfiniteScroll(loadMore, loading, hasMore)
-
-  // Reset and fetch when drawer opens
-  useEffect(() => {
-    if (open) {
-      dispatch(resetSectionInfiniteScroll())
-      dispatch(fetchSectionPages({ site_id: data.id }))
-    }
-  }, [open, data.id, dispatch])
-
-  // Debounced handler that updates search and fetches
-  const debouncedUpdate = useMemo(
+  // Debounced search handler
+  const debouncedSearch = useMemo(
     () =>
       debounce(value => {
-        dispatch(updateSectionSearch(value))
-        dispatch(fetchSectionPages({ site_id: data.id }))
+        setSearch(value)
       }, 500),
-    [dispatch, data.id]
+    []
   )
 
   useEffect(() => {
     return () => {
-      debouncedUpdate.cancel()
+      debouncedSearch.cancel()
     }
-  }, [debouncedUpdate])
+  }, [debouncedSearch])
+
+  const {
+    data: queryData,
+    fetchNextPage,
+    hasNextPage,
+    isFetching,
+    isFetchingNextPage,
+    remove
+  } = useInfiniteQuery({
+    queryKey: ['sections', data?.id, search, open], // Include `open` to reset on re-open
+    queryFn: async ({ pageParam = 1 }) => {
+      const res = await getAllSections({
+        site_id: data?.id,
+        page_no: pageParam,
+        limit: PAGE_SIZE,
+        q: search
+      })
+
+      return {
+        result: res?.data?.result || [],
+        nextPage: res?.data?.result?.length === PAGE_SIZE ? pageParam + 1 : undefined,
+        total: res?.data?.total_count || 0
+      }
+    },
+    getNextPageParam: lastPage => lastPage.nextPage,
+    enabled: open && !!data?.id
+  })
+
+  // Reset local state on open
+  useEffect(() => {
+    if (open) {
+      setLocalSearch('')
+      setSearch('')
+    }
+  }, [open, data?.id])
+
+  // Clean up query data on drawer close
+  useEffect(() => {
+    if (!open) {
+      remove()
+    }
+  }, [open, remove])
+
+  const list = useMemo(() => queryData?.pages?.flatMap(page => page.result) || [], [queryData])
+
+  const total = useMemo(() => queryData?.pages?.[0]?.total || 0, [queryData])
+
+  const loadMore = useCallback(() => {
+    if (!isFetchingNextPage && hasNextPage) {
+      fetchNextPage()
+    }
+  }, [isFetchingNextPage, hasNextPage, fetchNextPage])
+
+  const loaderRef = useInfiniteScroll(loadMore, isFetchingNextPage, hasNextPage)
 
   const handleSearchChange = e => {
     const value = e.target.value
     setLocalSearch(value)
-    debouncedUpdate(value)
+    debouncedSearch(value)
   }
 
   const handleSearchClear = () => {
     setLocalSearch('')
-    debouncedUpdate('')
+    debouncedSearch('')
   }
 
   return (
-    <CustomDrawer 
+    <CustomDrawer
       open={open}
       onClose={onClose}
       title='Sections'
@@ -119,19 +146,25 @@ const SectionsDrawer = ({ open, onClose, data }) => {
           </Box>
         ))}
 
-        {(loading || hasMore) && (
-          <Box ref={loaderRef} display='flex' justifyContent='center' p={2} mt={2}>
-            {loading && <CircularProgress />}
+        {isFetching && list.length === 0 && (
+          <Box display='flex' justifyContent='center' p={2} mt={2}>
+            <CircularProgress />
           </Box>
         )}
 
-        {!loading && list.length === 0 && (
+        {(isFetchingNextPage || hasNextPage) && list.length > 0 && (
+          <Box ref={loaderRef} display='flex' justifyContent='center' p={2} mt={2}>
+            <CircularProgress />
+          </Box>
+        )}
+
+        {!isFetching && list.length === 0 && (
           <Typography sx={{ textAlign: 'center', mt: 2, color: theme.palette.text.secondary }}>
             No sections found
           </Typography>
         )}
 
-        {!hasMore && list.length > 0 && (
+        {!hasNextPage && list.length > 0 && (
           <Typography sx={{ textAlign: 'center', mt: 2, color: theme.palette.text.disabled }}>
             No more sections to load
           </Typography>
@@ -141,4 +174,4 @@ const SectionsDrawer = ({ open, onClose, data }) => {
   )
 }
 
-export default SectionsDrawer
+export default React.memo(SectionsDrawer)

@@ -12,8 +12,8 @@ import { useRouter } from 'next/router'
 import { ExportButton } from 'src/views/utility/render-snippets'
 import RenderUtility, { CellInfo } from 'src/utility/render'
 import SectionsDrawer from './SectionsDrawer'
-import SpeciesDrawer from 'src/views/pages/housing/species/SpeciesDrawer'
-import AnimalsDrawer from 'src/views/pages/housing/animals/AnimalDrawer'
+import SpeciesDrawer from 'src/components/housing/SpeciesDrawer'
+import AnimalsDrawer from 'src/components/housing/AnimalDrawer'
 import { getAllSites } from 'src/lib/api/housing'
 
 const Listing = () => {
