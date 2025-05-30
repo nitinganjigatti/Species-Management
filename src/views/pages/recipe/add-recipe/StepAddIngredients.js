@@ -198,7 +198,7 @@ const StepAddIngredients = ({
           px: 4,
           mt: 4,
           //float: 'left',
-          color: '#37BD69',
+          color: theme.palette.primary.main,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'flex-start',
@@ -416,7 +416,7 @@ const StepAddIngredients = ({
                   Alert!
                 </Typography>
                 <Divider sx={{ my: 2 }} />
-                <Typography variant='body2' sx={{ color: '#44544A' }}>
+                <Typography variant='body2' sx={{ color: theme.palette.customColors.OnSurfaceVariant }}>
                   Please review and adjust percentages before adding new ingredients
                 </Typography>
               </div>
@@ -449,7 +449,7 @@ const StepAddIngredients = ({
                   Alert!
                 </Typography>
                 <Divider sx={{ my: 2 }} />
-                <Typography variant='body2' sx={{ color: '#44544A' }}>
+                <Typography variant='body2' sx={{ color: theme.palette.customColors.OnSurfaceVariant }}>
                   Percentage added should be equal to 100%
                 </Typography>
               </div>
@@ -876,7 +876,17 @@ const StepAddIngredients = ({
                   minWidth: 'max-content' // Ensure the container doesn't shrink
                 }}
               >
-                <Grid container spacing={5} sx={{ px: 5, background: '#E8F4F2', my: 2, borderRadius: 0.5, mx: 4 }}>
+                <Grid
+                  container
+                  spacing={5}
+                  sx={{
+                    px: 5,
+                    background: theme.palette.customColors.displaybgPrimary,
+                    my: 2,
+                    borderRadius: 0.5,
+                    mx: 4
+                  }}
+                >
                   {ingredientsbyqun.map((ingredient, index) => (
                     <Grid item xs={12} sm={ingredient.label !== 'Quantity' ? 2.4 : 2} key={index} sx={{ py: 4 }}>
                       <Typography sx={{ textTransform: 'uppercase', fontSize: 14, fontWeight: 600 }}>

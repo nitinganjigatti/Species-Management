@@ -6,9 +6,11 @@ import Button from '@mui/material/Button'
 import { Card, CardContent, Avatar, Tooltip, CircularProgress } from '@mui/material'
 import Icon from 'src/@core/components/icon'
 import Typography from '@mui/material/Typography'
+import { useTheme } from '@mui/material/styles'
 import 'react-credit-cards/es/styles-compiled.css'
 
 const StepBillingDetails = ({ handlePrev, formData, handleSubmit, loader }) => {
+  const theme = useTheme()
   const columns = [
     {
       flex: 0.5,
@@ -184,7 +186,7 @@ const StepBillingDetails = ({ handlePrev, formData, handleSubmit, loader }) => {
                 <CardContent sx={{ mt: 0 }}>
                   <Grid container spacing={6}>
                     <Grid item xs={4}>
-                      <Card sx={{ boxShadow: 'none', background: '#EFF5F2' }}>
+                      <Card sx={{ boxShadow: 'none', background: theme.palette.customColors.bodyBg }}>
                         <div
                           item
                           md={3}
@@ -251,7 +253,10 @@ const StepBillingDetails = ({ handlePrev, formData, handleSubmit, loader }) => {
                               </Typography>
                             </Box>
                             <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                              <Typography variant='body2' sx={{ mr: 1.5, color: '#7A8684' }}>
+                              <Typography
+                                variant='body2'
+                                sx={{ mr: 1.5, color: theme.palette.customColors.secondaryBg }}
+                              >
                                 {formData.portion_size !== '0'
                                   ? formData.portion_size + ' ' + (formData.portion_uom_name || '')
                                   : '0' + ' g'}
@@ -274,7 +279,10 @@ const StepBillingDetails = ({ handlePrev, formData, handleSubmit, loader }) => {
                               </Typography>
                             </Box>
                             <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                              <Typography variant='body2' sx={{ mr: 1.5, color: '#7A8684' }}>
+                              <Typography
+                                variant='body2'
+                                sx={{ mr: 1.5, color: theme.palette.customColors.secondaryBg }}
+                              >
                                 {formData.by_percentage.length + formData.by_quantity.length + ' nos'}
                               </Typography>
                             </Box>

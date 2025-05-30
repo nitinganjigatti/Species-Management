@@ -186,7 +186,7 @@ const IngredientDetail = () => {
                       }
                     }}
                     color='inherit'
-                    onClick={() => router.back()}
+                    onClick={() => Router.push('/diet/ingredient')}
                   >
                     Items
                   </Typography>
