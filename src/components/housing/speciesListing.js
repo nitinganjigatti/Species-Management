@@ -1,110 +1,124 @@
 import { useTheme } from '@emotion/react'
-import { Avatar, Box, Grid, Typography } from '@mui/material'
+import { Box, Grid, Typography } from '@mui/material'
 import { useRouter } from 'next/router'
-import { useCallback, useEffect, useState } from 'react'
-import { useDispatch, useSelector } from 'react-redux'
-import CommonTable from 'src/views/table/data-grid/CommonTable'
-import UserInfoCard from 'src/views/utility/insights/UserInfoCard'
-import Search from 'src/views/utility/Search'
-import { fetchSpecies, setParams } from 'src/store/slices/housing/speciesSlice'
-import { ExportButton } from 'src/views/utility/render-snippets'
+import React, { useMemo, useState, useEffect } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import { debounce } from 'lodash'
-import ListingHeader from 'src/views/pages/housing/utils/ListingHeader'
-import { GenderInfoCard } from 'src/utility/render'
+
+import CommonTable from 'src/views/table/data-grid/CommonTable'
 import SpeciesDrawer from 'src/views/pages/housing/species/SpeciesDrawer'
+import ListingHeader from 'src/views/pages/housing/utils/ListingHeader'
+import { ExportButton } from 'src/views/utility/render-snippets'
+import Search from 'src/views/utility/Search'
 import SpeciesCard from 'src/views/utility/SpeciesCard'
+import { GenderInfoCard } from 'src/utility/render'
+import { getAllSpeciesList } from 'src/lib/api/housing'
 
 const SpeciesListing = () => {
-  const [downloading, setDownloading] = useState(false)
+  const theme = useTheme()
+  const router = useRouter()
+  const { id } = router.query
   const [openDrawer, setOpenDrawer] = useState(false)
   const [specieName, setSpecieName] = useState('')
 
-  const router = useRouter()
-  const { id } = router.query
-  const theme = useTheme()
-  const dispatch = useDispatch()
+  const [filters, setFilters] = useState({
+    page: 1,
+    pageSize: 10,
+    search: '',
+    sortBy: '',
+    sortOrder: 'asc'
+  })
 
-  const {
-    list: speciesList,
-    loading,
-    total,
-    page,
-    pageSize,
-    sortBy,
-    sortOrder,
-    search
-  } = useSelector(state => state.species)
+  const [inputValue, setInputValue] = useState('')
+  const [downloading, setDownloading] = useState(false)
 
-  useEffect(() => {
-    console.log('speciesList', speciesList)
-  }, [speciesList])
+  const { data, isLoading } = useQuery({
+    queryKey: ['species', id, filters],
+    queryFn: () =>
+      getAllSpeciesList({
+        site_id: id,
+        page_no: filters.page,
+        limit: filters.pageSize,
+        q: filters.search,
+        sort_by: filters.sortBy,
+        sort_order: filters.sortOrder
+      }),
+    enabled: !!id,
+    keepPreviousData: true
+  })
 
-  // Debounced fetchSpecies call whenever parameters change
-  const debouncedFetch = useCallback(
-    debounce(() => {
-      dispatch(
-        fetchSpecies({
-          site_id: id
-        })
-      )
-    }, 500),
-    [dispatch, page, pageSize, sortBy, sortOrder, search, id]
+  const listing = data?.data?.listing || []
+  const total = data?.data?.total_scies_count || 0
+
+  const getSlNo = index => (filters.page - 1) * filters.pageSize + index + 1
+
+  const indexedRows = useMemo(
+    () =>
+      listing.map((row, index) => ({
+        ...row,
+        id: +row?.tsn_id,
+        sl_no: getSlNo(index)
+      })),
+    [listing, filters.page, filters.pageSize]
+  )
+
+  const debouncedSearch = useMemo(
+    () =>
+      debounce(value => {
+        setFilters(prev => ({
+          ...prev,
+          search: value,
+          page: 1
+        }))
+      }, 500),
+    []
   )
 
   useEffect(() => {
-    if (id) debouncedFetch()
+    return () => debouncedSearch.cancel()
+  }, [debouncedSearch])
 
-    return () => debouncedFetch.cancel()
-  }, [debouncedFetch, id])
+  const handleSearch = value => {
+    setInputValue(value)
+    debouncedSearch(value)
+  }
+
+  const handleSortModelChange = model => {
+    if (model.length > 0) {
+      const { field, sort } = model[0]
+      setFilters(prev => ({
+        ...prev,
+        sortBy: field,
+        sortOrder: sort,
+        page: 1
+      }))
+    } else {
+      setFilters(prev => ({
+        ...prev,
+        sortBy: '',
+        sortOrder: '',
+        page: 1
+      }))
+    }
+  }
 
   const handlePaginationModelChange = model => {
-    const newPage = model.page + 1
-    const newPageSize = model.pageSize
-
-    if (newPage !== page || newPageSize !== pageSize) {
-      dispatch(setParams({ page: newPage, pageSize: newPageSize }))
-    }
+    setFilters(prev => ({
+      ...prev,
+      page: model.page + 1,
+      pageSize: model.pageSize
+    }))
   }
-
-  const handleSearch = useCallback(
-    value => {
-      dispatch(setParams({ search: value, page: 1 }))
-    },
-    [dispatch]
-  )
-
-  const handleSortModelChange = sortModel => {
-    console.log('sortModel', sortModel)
-    if (sortModel.length > 0) {
-      const { field, sort } = sortModel[0]
-      dispatch(setParams({ sortBy: field, sortOrder: sort, page: 1 }))
-    } else {
-      dispatch(setParams({ sortBy: '', sortOrder: '' }))
-    }
-  }
-
-  const handleDownload = () => {
-    console.log('Downloading...')
-  }
-
-  const getSlNo = index => (page - 1) * pageSize + index + 1
-
-  const indexedRows = speciesList?.map((row, index) => ({
-    ...row,
-    id: +row?.tsn_id,
-    sl_no: getSlNo(index)
-  }))
 
   const handleRowClick = params => {
     setOpenDrawer(true)
     setSpecieName(params.row.common_name)
-    // router.push({
-    //   pathname: `/housing/sites/${params.row.site_id}`
-    // })
   }
 
-  const handleClose = () => {
-    setOpenDrawer(false)
+  const handleClose = () => setOpenDrawer(false)
+
+  const handleDownload = () => {
+    console.log('Downloading...')
   }
 
   const columns = [
@@ -114,11 +128,10 @@ const SpeciesListing = () => {
       headerName: 'SL.NO',
       renderCell: params => (
         <Typography sx={{ color: theme.palette.customColors.neutralSecondary, fontSize: '14px', fontWeight: 500 }}>
-          {parseInt(params.row.sl_no) + '.'}
+          {params.row.sl_no}.
         </Typography>
       )
     },
-
     {
       width: 280,
       field: 'common_name',
@@ -138,15 +151,12 @@ const SpeciesListing = () => {
       width: 180,
       field: 'animals',
       headerName: 'Population',
-      align: 'left',
-      headerAlign: 'left',
       renderCell: params => (
         <Typography sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600 }}>
           {params.row.animal_count || 0}
         </Typography>
       )
     },
-
     {
       width: 160,
       field: 'male',
@@ -154,12 +164,11 @@ const SpeciesListing = () => {
       renderCell: params => (
         <GenderInfoCard
           value={params.row.sex_data?.male || 0}
-          bgcolor={`${theme.palette.customColors.SecondaryContainer}80`} // background color
-          color={theme.palette.customColors.addPrimary} // text color
+          bgcolor={`${theme.palette.customColors.SecondaryContainer}80`}
+          color={theme.palette.customColors.addPrimary}
         />
       )
     },
-
     {
       width: 160,
       field: 'female',
@@ -167,12 +176,11 @@ const SpeciesListing = () => {
       renderCell: params => (
         <GenderInfoCard
           value={params.row.sex_data?.female || 0}
-          bgcolor={`${theme.palette.customColors.customDropdownColor}4D`} // background (light peach)
-          color={theme.palette.customColors.customDropdownColor} // text color (darker coral)
+          bgcolor={`${theme.palette.customColors.customDropdownColor}4D`}
+          color={theme.palette.customColors.customDropdownColor}
         />
       )
     },
-
     {
       width: 160,
       field: 'undetermined',
@@ -180,8 +188,8 @@ const SpeciesListing = () => {
       renderCell: params => (
         <GenderInfoCard
           value={params.row.sex_data?.undetermined || 0}
-          bgcolor={theme.palette.customColors.SurfaceVariant} // light gray-green
-          color={theme.palette.customColors.Error} // maroonish-red
+          bgcolor={theme.palette.customColors.SurfaceVariant}
+          color={theme.palette.customColors.Error}
         />
       )
     },
@@ -192,12 +200,11 @@ const SpeciesListing = () => {
       renderCell: params => (
         <GenderInfoCard
           value={params.row.sex_data?.indeterminate || 0}
-          bgcolor={theme.palette.customColors.displaybgSecondary} // bluish gray
-          color={theme.palette.customColors.OnPrimaryContainer} // dark gray-blue
+          bgcolor={theme.palette.customColors.displaybgSecondary}
+          color={theme.palette.customColors.OnPrimaryContainer}
         />
       )
     },
-
     {
       width: 160,
       field: 'actions',
@@ -224,7 +231,7 @@ const SpeciesListing = () => {
       <Box>
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 4 }}>
           <Search
-            value={search}
+            value={inputValue}
             onChange={e => handleSearch(e.target.value)}
             onClear={() => handleSearch('')}
             placeholder='Search…'
@@ -232,12 +239,13 @@ const SpeciesListing = () => {
           />
           <ExportButton loading={downloading} onClick={handleDownload} />
         </Box>
+
         <Grid
           sx={{
             '& .MuiDataGrid-cell': {
               pt: 4,
-              py: 6, // vertical padding (theme spacing, equivalent to padding-top and padding-bottom)
-              px: 6 // horizontal padding
+              py: 6,
+              px: 6
             },
             '& .MuiDataGrid-columnHeaderTitle': {
               color: theme.palette.customColors.OnSurfaceVariant,
@@ -253,20 +261,21 @@ const SpeciesListing = () => {
             columns={columns}
             pageSizeOptions={[10]}
             paginationModel={{
-              page: page - 1,
-              pageSize
+              page: filters.page - 1,
+              pageSize: filters.pageSize
             }}
             setPaginationModel={handlePaginationModelChange}
             handleSortModel={handleSortModelChange}
-            loading={loading}
-            searchValue={search}
+            loading={isLoading}
+            searchValue={filters.search}
             maxHeight='80vh'
           />
         </Grid>
       </Box>
+
       {openDrawer && <SpeciesDrawer open={openDrawer} onClose={handleClose} specieName={specieName} />}
     </>
   )
 }
 
-export default SpeciesListing
+export default React.memo(SpeciesListing)

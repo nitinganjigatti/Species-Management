@@ -1,23 +1,23 @@
 import { Box, Breadcrumbs, Card, Typography } from '@mui/material'
 import { useRouter } from 'next/router'
-import { useEffect } from 'react'
-import { useDispatch, useSelector } from 'react-redux'
+import React, { useEffect } from 'react'
 import { useAuth } from 'src/hooks/useAuth'
-import { fetchInsights } from 'src/store/slices/housing/insightsSlice'
-import Listing from 'src/components/housing/listing'
+import SiteListing from 'src/components/housing/SiteListing'
 import InsightsCard from 'src/views/utility/insights/InsightsCard'
+import { getSiteAnalytics } from 'src/lib/api/housing'
+import { useQuery } from '@tanstack/react-query'
 
 const Sites = () => {
   const router = useRouter()
 
-  const dispatch = useDispatch()
-  const { data, loading, error } = useSelector(state => state.insights)
   const auth = useAuth()
   const zooId = auth?.userData?.user?.zoos[0]?.zoo_id
 
-  useEffect(() => {
-    dispatch(fetchInsights(zooId))
-  }, [dispatch, zooId])
+  const { data, isLoading, error } = useQuery({
+    queryKey: ['site-insights', zooId],
+    queryFn: () => getSiteAnalytics(zooId),
+    enabled: !!zooId
+  })
 
   const handleHousingClick = () => {
     // router.push('/housing')
@@ -66,18 +66,20 @@ const Sites = () => {
           }}
         /> */}
         <InsightsCard
-          data={data}
-          loading={loading}
+          data={data?.data}
+          loading={isLoading}
+          pageTitle={'All Site Insights'}
+          isListingPage
           error={error}
           isAllSites
-          sectionsCount={data?.zoo_stats?.total_sections}
-          animalCount={data?.zoo_stats?.total_animals}
-          speciesCount={data?.zoo_stats?.total_species}
-          enclosuresCount={data?.zoo_stats?.total_enclosures}
+          sectionsCount={data?.data?.zoo_stats?.total_sections}
+          animalCount={data?.data?.zoo_stats?.total_animals}
+          speciesCount={data?.data?.zoo_stats?.total_species}
+          enclosuresCount={data?.data?.zoo_stats?.total_enclosures}
         />
         <Box sx={{ mt: 6 }}>
           <Card sx={{ p: { xs: 3, md: 5 } }}>
-            <Listing />
+            <SiteListing />
           </Card>
         </Box>
       </Box>
@@ -85,4 +87,4 @@ const Sites = () => {
   )
 }
 
-export default Sites
+export default React.memo(Sites)

@@ -1,11 +1,7 @@
 import { Box, Breadcrumbs, Typography, Tabs, Tab, Card } from '@mui/material'
 import { useRouter } from 'next/router'
 import React, { useEffect, useState } from 'react'
-import { useDispatch, useSelector } from 'react-redux'
-import { fetchInsights } from 'src/store/slices/housing/insightsSlice'
 import InsightsCard from 'src/views/utility/insights/InsightsCard'
-import Listing from 'src/components/housing/Listing'
-import { fetchSite } from 'src/store/slices/housing/sitesAnalyticsSlice'
 
 // Listing Components
 import SectionListing from 'src/components/housing/sectionListing'
@@ -22,6 +18,8 @@ import { clearSpecies as resetSpeciesState } from 'src/store/slices/housing/spec
 import { clearMedia as resetMediaState } from 'src/store/slices/housing/mediaSlice'
 import { clearMortality as resetMortalityState } from 'src/store/slices/housing/mortalitySlice'
 import { clearAnimalTreatment as resetAnimalTreatmentState } from 'src/store/slices/housing/mortalitySlice'
+import { useQuery } from '@tanstack/react-query'
+import { getSpecificSiteAnalytics } from 'src/lib/api/housing'
 
 const tabConfig = [
   { label: 'Sections', value: 'sections', component: SectionListing, resetAction: resetSectionState },
@@ -40,20 +38,22 @@ const tabConfig = [
 
 const SiteDetails = () => {
   const router = useRouter()
-  const dispatch = useDispatch()
   const { id } = router.query
-  const { data, loading, error } = useSelector(state => state.siteAnalytics)
 
   const [selectedTab, setSelectedTab] = useState(tabConfig[0].value)
 
-  useEffect(() => {
-    if (id) {
-      const params = {
+  const { data, isLoading, error } = useQuery({
+    queryKey: ['site-detail', id],
+    queryFn: () =>
+      getSpecificSiteAnalytics({
         site_id: id
-      }
-      dispatch(fetchSite(params))
-    }
-  }, [dispatch])
+      }),
+    enabled: !!id
+  })
+
+  useEffect(() => {
+    console.log('data', data)
+  }, [data])
 
   const handleTabChange = (event, newValue) => {
     // Find reset action for previous tab
@@ -84,13 +84,13 @@ const SiteDetails = () => {
 
       {/* Insights */}
       <InsightsCard
-        data={data}
-        loading={loading}
-        zooName={data?.site_name}
-        subtitle={data?.site_description}
-        description={data?.incharges[0]?.full_name}
-        userName={data?.incharges[0]?.role_name}
-        userImage={data?.incharges[0]?.user_profile_pic}
+        data={data?.data}
+        loading={isLoading}
+        zooName={data?.data?.site_name}
+        subtitle={data?.data?.site_description}
+        description={data?.data?.incharges[0]?.full_name}
+        userName={data?.data?.incharges[0]?.role_name}
+        userImage={data?.data?.incharges[0]?.user_profile_pic}
         // actions={{
         //   onEdit: () => console.log('Edit'),
         //   onDelete: () => console.log('Delete'),
@@ -98,7 +98,7 @@ const SiteDetails = () => {
         //   onTimeClick: () => console.log('Time clicked')
         // }}
         onCallClick={() => {
-          const phoneNumber = data?.incharges?.[0]?.user_mobile_number || '' // Adjust path as needed
+          const phoneNumber = data?.data?.incharges?.[0]?.user_mobile_number || '' // Adjust path as needed
           if (phoneNumber) {
             // window.location.href = `tel:${phoneNumber}`
           } else {
@@ -107,10 +107,10 @@ const SiteDetails = () => {
         }}
         // onMessageClick={() => console.log('Message clicked')}
         error={error}
-        speciesCount={data?.species_count || 0}
-        animalCount={data?.animal_count || 0}
-        enclosuresCount={data?.enclosure_count || 0}
-        sectionsCount={data?.section_count || 0}
+        speciesCount={data?.data?.species_count || 0}
+        animalCount={data?.data?.animal_count || 0}
+        enclosuresCount={data?.data?.enclosure_count || 0}
+        sectionsCount={data?.data?.section_count || 0}
         onInfoClick={{
           species: () => setSelectedTab('species'),
           animal: () => console.log('animal'),

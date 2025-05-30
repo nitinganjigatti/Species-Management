@@ -1,139 +1,160 @@
 import { useTheme } from '@emotion/react'
-import { Avatar, Box, Grid, Typography } from '@mui/material'
-import { useCallback, useEffect, useState } from 'react'
+import { Box, Grid, Typography } from '@mui/material'
+import React, { useState, useCallback, useMemo, useEffect } from 'react'
+import { useQuery } from '@tanstack/react-query'
 import debounce from 'lodash/debounce'
-import { useDispatch, useSelector } from 'react-redux'
+
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import Search from 'src/views/utility/Search'
-import { fetchSites, setParams } from 'src/store/slices/housing/sitesSlice'
 import UserInfoCard from 'src/views/utility/insights/UserInfoCard'
 import ListingHeader from '../../views/pages/housing/utils/ListingHeader'
 import { useRouter } from 'next/router'
 import { ExportButton } from 'src/views/utility/render-snippets'
 import RenderUtility, { CellInfo } from 'src/utility/render'
 import SectionsDrawer from 'src/views/pages/housing/section/SectionsDrawer'
+import { CellInfo } from 'src/utility/render'
+import SectionsDrawer from './SectionsDrawer'
 import SpeciesDrawer from 'src/views/pages/housing/species/SpeciesDrawer'
 import AnimalsDrawer from 'src/views/pages/housing/animals/AnimalDrawer'
-
-const mockDrawerData = {
-  cluster_name: 'Rainforest Habitat Cluster',
-  cluster_type: 'Rainforest Type',
-  sections: [
-    {
-      id: 1,
-      name: 'Tropical Zone A',
-      incharge: 'John Doe',
-      image: 'https://via.placeholder.com/80x80.png?text=Zone+A',
-      species_count: 12,
-      animals_count: 34,
-      enclosure_count: 5,
-      sub_enclosure_count: 2
-    },
-    {
-      id: 2,
-      name: 'Tropical Zone B',
-      incharge: 'Jane Smith',
-      image: '',
-      species_count: 8,
-      animals_count: 21,
-      enclosure_count: 3,
-      sub_enclosure_count: 1
-    },
-    {
-      id: 3,
-      name: 'Rainforest Central',
-      incharge: 'David Green',
-      image: 'https://via.placeholder.com/80x80.png?text=Central',
-      species_count: 15,
-      animals_count: 40,
-      enclosure_count: 7,
-      sub_enclosure_count: 4
-    }
-  ]
-}
+import { getAllSites } from 'src/lib/api/housing'
 
 const Listing = () => {
-  const [downloading, setDownloading] = useState(false)
+  const theme = useTheme()
+  const router = useRouter()
+  const { query } = router
+
+  const [inputValue, setInputValue] = useState('')
+
+  const [filters, setFilters] = useState({
+    page: 1,
+    pageSize: 10,
+    search: '',
+    sortBy: '',
+    sortOrder: 'asc'
+  })
+
   const [drawerType, setDrawerType] = useState(null)
   const [drawerData, setDrawerData] = useState(null)
+  const [downloading, setDownloading] = useState(false)
 
-  const router = useRouter()
-  const theme = useTheme()
-  const dispatch = useDispatch()
-
-  const {
-    list: siteList,
-    loading,
-    total,
-    page,
-    pageSize,
-    sortBy,
-    sortOrder,
-    search
-  } = useSelector(state => state.sites)
-
-  // Debounced fetchSites call whenever parameters change
-  const debouncedFetch = useCallback(
-    debounce(() => {
-      dispatch(fetchSites())
-    }, 500),
-    [dispatch, page, pageSize, sortBy, sortOrder, search]
-  )
-
+  // Populate filters from query string on mount
   useEffect(() => {
-    debouncedFetch()
+    const { page = '1', pageSize = '10', search = '', sortBy = '', sortOrder = 'asc' } = query
 
-    return () => debouncedFetch.cancel()
-  }, [debouncedFetch])
+    setFilters({
+      page: parseInt(page),
+      pageSize: parseInt(pageSize),
+      search,
+      sortBy,
+      sortOrder
+    })
 
-  // useEffect(() => {
-  //   // Simulate drawer open on mount for testing
-  //   setDrawerType('sections')
-  //   setDrawerData(mockDrawerData)
-  // }, [])
+    setInputValue(search)
+  }, [query])
+
+  const { data, isFetching } = useQuery({
+    queryKey: ['sites', filters],
+    queryFn: () =>
+      getAllSites({
+        page_no: filters.page,
+        limit: filters.pageSize,
+        q: filters.search,
+        sort_by: filters.sortBy,
+        sort_order: filters.sortOrder
+      })
+  })
+
+  const total = data?.data?.total_count || 0
+  const siteList = data?.data?.result || []
+
+  const updateUrlParams = updatedFilters => {
+    const params = new URLSearchParams()
+    Object.entries(updatedFilters).forEach(([key, value]) => {
+      if (value !== '' && value !== null && value !== undefined) {
+        params.set(key, value.toString())
+      }
+    })
+    router.replace({ query: params.toString() }, undefined, { shallow: true })
+  }
 
   const handlePaginationModelChange = model => {
-    const newPage = model.page + 1
-    const newPageSize = model.pageSize
-
-    if (newPage !== page || newPageSize !== pageSize) {
-      dispatch(setParams({ page: newPage, pageSize: newPageSize }))
+    const updated = {
+      ...filters,
+      page: model.page + 1,
+      pageSize: model.pageSize
     }
+    setFilters(updated)
+    updateUrlParams(updated)
   }
+
+  const debouncedSearch = useMemo(
+    () =>
+      debounce(value => {
+        const updated = {
+          ...filters,
+          search: value,
+          page: 1
+        }
+        setFilters(updated)
+        updateUrlParams(updated)
+      }, 500),
+    [filters]
+  )
 
   const handleSearch = useCallback(
     value => {
-      dispatch(setParams({ search: value, page: 1 }))
+      setInputValue(value)
+      debouncedSearch(value)
     },
-    [dispatch]
+    [debouncedSearch]
   )
 
   const handleSortModelChange = sortModel => {
-    console.log('sortModel', sortModel)
+    let updated
     if (sortModel.length > 0) {
       const { field, sort } = sortModel[0]
-      dispatch(setParams({ sortBy: field, sortOrder: sort, page: 1 }))
+      updated = {
+        ...filters,
+        sortBy: field,
+        sortOrder: sort,
+        page: 1
+      }
     } else {
-      dispatch(setParams({ sortBy: '', sortOrder: '' }))
+      updated = {
+        ...filters,
+        sortBy: '',
+        sortOrder: 'asc'
+      }
     }
+    setFilters(updated)
+    updateUrlParams(updated)
+  }
+
+  const getSlNo = index => (filters.page - 1) * filters.pageSize + index + 1
+
+  const indexedRows = siteList.map((row, index) => ({
+    ...row,
+    id: +row.site_id,
+    sl_no: getSlNo(index)
+  }))
+
+  const handleRowClick = params => {
+    const detailUrl = {
+      pathname: `/housing/sites/${params.row.site_id}`,
+      query: {
+        ...filters
+      } // preserve current filters
+    }
+    router.push(detailUrl)
   }
 
   const handleDownload = () => {
     console.log('Downloading...')
   }
 
-  const getSlNo = index => (page - 1) * pageSize + index + 1
-
-  const indexedRows = siteList?.map((row, index) => ({
-    ...row,
-    id: +row?.site_id, // convert string to number
-    sl_no: getSlNo(index)
-  }))
-
-  const handleRowClick = params => {
-    router.push({
-      pathname: `/housing/sites/${params.row.site_id}`
-    })
+  const handleDrawerClose = () => {
+    setDrawerType(null)
+    setDrawerData(null)
   }
 
   const columns = [
@@ -154,10 +175,10 @@ const Listing = () => {
       renderCell: params => (
         <CellInfo
           value={params.row.site_name}
-          subtitle={''}
+          subtitle=''
           imgUrl={params.row.images?.[0]?.file}
-          avatarUrl={''}
-          inchargeName={''}
+          avatarUrl=''
+          inchargeName=''
         />
       )
     },
@@ -174,9 +195,9 @@ const Listing = () => {
             e.stopPropagation()
             setDrawerType('species')
             setDrawerData({
-              id: params.row?.site_id,
-              name: params.row?.site_name,
-              image: params.row?.images?.[0]?.file
+              id: params.row.site_id,
+              name: params.row.site_name,
+              image: params.row.images?.[0]?.file
             })
           }}
         >
@@ -197,9 +218,9 @@ const Listing = () => {
             e.stopPropagation()
             setDrawerType('animals')
             setDrawerData({
-              id: params.row?.site_id,
-              name: params.row?.site_name,
-              image: params.row?.images?.[0]?.file
+              id: params.row.site_id,
+              name: params.row.site_name,
+              image: params.row.images?.[0]?.file
             })
           }}
         >
@@ -219,7 +240,6 @@ const Listing = () => {
           onClick={e => {
             e.stopPropagation()
             setDrawerType('enclosures')
-            console.log('params.row', params.row)
           }}
         >
           {params.row.enclosure_count}
@@ -301,7 +321,7 @@ const Listing = () => {
       <Box>
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 4 }}>
           <Search
-            value={search}
+            value={inputValue}
             onChange={e => handleSearch(e.target.value)}
             onClear={() => handleSearch('')}
             placeholder='Search…'
@@ -311,11 +331,7 @@ const Listing = () => {
         </Box>
         <Grid
           sx={{
-            '& .MuiDataGrid-cell': {
-              pt: 4,
-              py: 4, // vertical padding (theme spacing, equivalent to padding-top and padding-bottom)
-              px: 4 // horizontal padding
-            },
+            '& .MuiDataGrid-cell': { pt: 4, py: 4, px: 4 },
             '& .MuiDataGrid-columnHeaderTitle': {
               color: theme.palette.customColors.OnSurfaceVariant,
               fontSize: '12px',
@@ -326,53 +342,30 @@ const Listing = () => {
           <CommonTable
             onRowClick={handleRowClick}
             indexedRows={indexedRows}
-            total={+total}
+            total={total}
             columns={columns}
             pageSizeOptions={[10]}
-            paginationModel={{
-              page: page - 1,
-              pageSize: pageSize
-            }}
+            paginationModel={{ page: filters.page - 1, pageSize: filters.pageSize }}
             setPaginationModel={handlePaginationModelChange}
             handleSortModel={handleSortModelChange}
-            loading={loading}
+            loading={isFetching}
             searchValue=''
             maxHeight='80vh'
           />
         </Grid>
       </Box>
+
       {drawerType === 'sections' && (
-        <SectionsDrawer
-          open={!!drawerData}
-          onClose={() => {
-            setDrawerType(null)
-            setDrawerData(null)
-          }}
-          data={drawerData}
-        />
+        <SectionsDrawer open={!!drawerData} onClose={handleDrawerClose} data={drawerData} />
       )}
       {drawerType === 'species' && (
-        <SpeciesDrawer
-          open={!!drawerData}
-          onClose={() => {
-            setDrawerType(null)
-            setDrawerData(null)
-          }}
-          data={drawerData}
-        />
+        <SpeciesDrawer open={!!drawerData} onClose={handleDrawerClose} data={drawerData} />
       )}
       {drawerType === 'animals' && (
-        <AnimalsDrawer
-          open={!!drawerData}
-          onClose={() => {
-            setDrawerType(null)
-            setDrawerData(null)
-          }}
-          data={drawerData}
-        />
+        <AnimalsDrawer open={!!drawerData} onClose={handleDrawerClose} data={drawerData} />
       )}
     </>
   )
 }
 
-export default Listing
+export default React.memo(Listing)

@@ -1,82 +1,112 @@
 import { useTheme } from '@emotion/react'
-import { Avatar, Box, Grid, Typography } from '@mui/material'
+import { Box, Grid, Typography } from '@mui/material'
 import { useRouter } from 'next/router'
-import { useCallback, useEffect, useState } from 'react'
-import { useDispatch, useSelector } from 'react-redux'
-import { debounce } from 'lodash'
-import { fetchSections, setParams } from 'src/store/slices/housing/sectionSlice'
+import React, { useEffect, useMemo, useState } from 'react'
+import { useQuery } from '@tanstack/react-query'
+import debounce from 'lodash/debounce'
+import { getAllSections } from 'src/lib/api/housing'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import UserInfoCard from 'src/views/utility/insights/UserInfoCard'
 import Search from 'src/views/utility/Search'
 import ListingHeader from '../../views/pages/housing/utils/ListingHeader'
 import { ExportButton } from 'src/views/utility/render-snippets'
 import RenderUtility, { CellInfo, SectionCellRenderer } from 'src/utility/render'
+import { CellInfo } from 'src/utility/render'
 
 const SectionListing = () => {
-  const [downloading, setDownloading] = useState(false)
-
   const router = useRouter()
   const { id } = router.query
   const theme = useTheme()
-  const dispatch = useDispatch()
 
-  const {
-    list: sectionList,
-    loading,
-    total,
-    page,
-    pageSize,
-    sortBy,
-    sortOrder,
-    search
-  } = useSelector(state => state.section)
+  const [downloading, setDownloading] = useState(false)
+  const [inputValue, setInputValue] = useState('')
 
-  // Debounced fetchSections call whenever parameters change
-  const debouncedFetch = useCallback(
-    debounce(() => {
-      dispatch(
-        fetchSections({
-          site_id: id
-        })
-      )
-    }, 500),
-    [dispatch, page, pageSize, sortBy, sortOrder, search, id]
-  )
+  const [filters, setFilters] = useState({
+    page: 1,
+    pageSize: 10,
+    search: '',
+    sortBy: '',
+    sortOrder: 'asc'
+  })
 
-  useEffect(() => {
-    if (id) debouncedFetch()
+  const { data, isFetching } = useQuery({
+    queryKey: ['sections', id, filters],
+    queryFn: () =>
+      getAllSections({
+        site_id: id,
+        page_no: filters.page,
+        limit: filters.pageSize,
+        q: filters.search,
+        sort_by: filters.sortBy,
+        sort_order: filters.sortOrder
+      }),
+    enabled: !!id
+  })
 
-    return () => debouncedFetch.cancel()
-  }, [debouncedFetch, id])
+  const sectionList = data?.data?.result || []
+  const total = data?.data?.total_count || 0
+
+  const getSlNo = index => (filters.page - 1) * filters.pageSize + index + 1
+
+  const indexedRows = sectionList.map((row, index) => ({
+    ...row,
+    id: +row?.section_id,
+    sl_no: getSlNo(index)
+  }))
 
   const handlePaginationModelChange = model => {
     const newPage = model.page + 1
     const newPageSize = model.pageSize
 
-    if (newPage !== page || newPageSize !== pageSize) {
-      dispatch(setParams({ page: newPage, pageSize: newPageSize }))
+    if (newPage !== filters.page || newPageSize !== filters.pageSize) {
+      setFilters(prev => ({
+        ...prev,
+        page: newPage,
+        pageSize: newPageSize
+      }))
     }
   }
 
-  const handleSearch = useCallback(
-    value => {
-      dispatch(setParams({ search: value, page: 1 }))
-    },
-    [dispatch]
-  )
-
   const handleSortModelChange = sortModel => {
-    console.log('sortModel', sortModel)
     if (sortModel.length > 0) {
       const { field, sort } = sortModel[0]
-      dispatch(setParams({ sortBy: field, sortOrder: sort, page: 1 }))
+      setFilters(prev => ({
+        ...prev,
+        sortBy: field,
+        sortOrder: sort,
+        page: 1
+      }))
     } else {
-      dispatch(setParams({ sortBy: '', sortOrder: '' }))
+      setFilters(prev => ({
+        ...prev,
+        sortBy: '',
+        sortOrder: 'asc'
+      }))
     }
+  }
+
+  const debouncedSearch = useMemo(
+    () =>
+      debounce(value => {
+        setFilters(prev => ({
+          ...prev,
+          search: value,
+          page: 1
+        }))
+      }, 500),
+    []
+  )
+
+  useEffect(() => {
+    return () => debouncedSearch.cancel()
+  }, [debouncedSearch])
+
+  const handleSearch = value => {
+    setInputValue(value)
+    debouncedSearch(value)
   }
 
   const handleDownload = () => {
-    // TODO: Once the API is available update to have a download endpoint
     if (!indexedRows || indexedRows.length === 0) return
 
     setDownloading(true)
@@ -89,7 +119,7 @@ const SectionListing = () => {
       row.species_count || 0,
       row.animal_count || 0,
       row.enclosure_count || 0,
-      `"${row.incharge_name || 'NA'}"`
+      `"${row.incharge_name || '-'}"`
     ])
 
     const csvContent = [csvHeader.join(','), ...csvRows.map(row => row.join(','))].join('\n')
@@ -106,14 +136,6 @@ const SectionListing = () => {
 
     setDownloading(false)
   }
-
-  const getSlNo = index => (page - 1) * pageSize + index + 1
-
-  const indexedRows = sectionList?.map((row, index) => ({
-    ...row,
-    id: +row?.section_id, //convert string to number
-    sl_no: getSlNo(index)
-  }))
 
   const handleRowClick = params => {
     router.push({
@@ -150,41 +172,32 @@ const SectionListing = () => {
       width: 200,
       field: 'species',
       headerName: 'Species',
-      align: 'left',
-      headerAlign: 'left',
       renderCell: params => (
         <Typography sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600 }}>
           {params.row.species_count || 0}
         </Typography>
       )
     },
-
     {
       width: 150,
       field: 'animals',
       headerName: 'Animals',
-      align: 'left',
-      headerAlign: 'left',
       renderCell: params => (
         <Typography sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600 }}>
           {params.row.animal_count || 0}
         </Typography>
       )
     },
-
     {
       width: 150,
       field: 'enclosures',
       headerName: 'Enclosures',
-      align: 'left',
-      headerAlign: 'left',
       renderCell: params => (
         <Typography sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600 }}>
           {params.row.enclosure_count}
         </Typography>
       )
     },
-
     {
       width: 180,
       field: 'incharge',
@@ -199,13 +212,11 @@ const SectionListing = () => {
           //  theme.palette.customColors.OnSurfaceVariant,
         )
     },
-
     {
       width: 150,
       field: 'actions',
       headerName: 'Actions',
       align: 'center',
-      headerAlign: 'center',
       renderCell: params => (
         <>
           {params.row.incharge_name ? (
@@ -237,7 +248,7 @@ const SectionListing = () => {
       <Box>
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 4 }}>
           <Search
-            value={search}
+            value={inputValue}
             onChange={e => handleSearch(e.target.value)}
             onClear={() => handleSearch('')}
             placeholder='Search…'
@@ -245,12 +256,13 @@ const SectionListing = () => {
           />
           <ExportButton loading={downloading} onClick={handleDownload} />
         </Box>
+
         <Grid
           sx={{
             '& .MuiDataGrid-cell': {
               pt: 4,
-              py: 4, // vertical padding (theme spacing, equivalent to padding-top and padding-bottom)
-              px: 4 // horizontal padding
+              py: 4,
+              px: 4
             },
             '& .MuiDataGrid-columnHeaderTitle': {
               color: theme.palette.customColors.OnSurfaceVariant,
@@ -266,12 +278,12 @@ const SectionListing = () => {
             columns={columns}
             pageSizeOptions={[10]}
             paginationModel={{
-              page: page - 1,
-              pageSize
+              page: filters.page - 1,
+              pageSize: filters.pageSize
             }}
             setPaginationModel={handlePaginationModelChange}
             handleSortModel={handleSortModelChange}
-            loading={loading}
+            loading={isFetching}
             searchValue=''
             maxHeight='80vh'
           />
@@ -281,4 +293,4 @@ const SectionListing = () => {
   )
 }
 
-export default SectionListing
+export default React.memo(SectionListing)
