@@ -47,23 +47,52 @@ export const pageTitle = title => (
   </Typography>
 )
 
-export function renderUserAvatarDetails(image, userName, date) {
+export function renderUserAvatarDetails(image, userName, date, textColor, fontSize, description) {
   return (
-    <Box sx={{ display: 'flex', alignItems: 'center' }}>
-      {image ? (
-        <CustomAvatar src={image} sx={{ mr: '16px', width: '40px', height: '40px' }} />
+    <>
+      {userName ? (
+        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+          {image ? (
+            <CustomAvatar src={image} sx={{ mr: '16px', width: '40px', height: '40px' }} />
+          ) : (
+            <CustomAvatar sx={{ mr: '16px', width: '40px', height: '40px', fontSize: '.8rem' }}></CustomAvatar>
+          )}
+          <Box sx={{ display: 'flex', flexDirection: 'column' }}>
+            <Tooltip title={userName}>
+              <Typography
+                variant='subtitle2'
+                sx={{
+                  color: textColor ?? 'text.primary',
+                  fontSize: fontSize,
+                  whiteSpace: 'nowrap',
+                  overflow: 'hidden', // required for ellipsis
+                  textOverflow: 'ellipsis', // required for ellipsis
+                  maxWidth: 100 // triggers the truncation
+                }}
+              >
+                {userName ? userName : 'NA'}
+              </Typography>
+              {description && (
+                <>
+                  <Tooltip title={description}>
+                    <Typography sx={{ color: theme => textColor ?? theme.palette.common.white }} variant='body2'>
+                      {description}
+                    </Typography>
+                  </Tooltip>
+                </>
+              )}
+            </Tooltip>
+            <Typography variant='caption' sx={{ lineHeight: 1.6667 }}>
+              {date ? Utility?.formatDisplayDate(date) : ''}
+            </Typography>
+          </Box>
+        </Box>
       ) : (
-        <CustomAvatar sx={{ mr: '16px', width: '40px', height: '40px', fontSize: '.8rem' }}></CustomAvatar>
+        <Typography variant='subtitle2' sx={{ color: 'text.primary', ml: 3 }}>
+          -
+        </Typography>
       )}
-      <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-        <Typography variant='subtitle2' sx={{ color: 'text.primary' }}>
-          {userName ? userName : 'NA'}
-        </Typography>
-        <Typography variant='caption' sx={{ lineHeight: 1.6667 }}>
-          {date ? Utility?.formatDisplayDate(date) : 'NA'}
-        </Typography>
-      </Box>
-    </Box>
+    </>
   )
 }
 

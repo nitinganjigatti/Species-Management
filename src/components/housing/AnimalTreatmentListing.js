@@ -14,6 +14,7 @@ import { debounce } from 'lodash'
 import ListingHeader from '../../views/pages/housing/utils/ListingHeader'
 import { fetchAnimals, setParams } from 'src/store/slices/housing/animalTreatmentSlice'
 import { GenderInfoCard, IdentifierInfoCard } from 'src/utility/render'
+import SpeciesCard from 'src/views/utility/SpeciesCard'
 
 const AnimalTreatmentListing = () => {
   const [downloading, setDownloading] = useState(false)
@@ -113,17 +114,16 @@ const AnimalTreatmentListing = () => {
     },
 
     {
-      width: 300,
+      width: 300, 
       field: 'common_name',
-      headerName: 'SPECIES',
+      headerName: 'SPECIES', 
       renderCell: params => (
-        <UserInfoCard
-          avatarUrl={params.row.default_icon}
-          textColor={theme.palette.customColors.OnSurfaceVariant}
-          name={params.row.scientific_name}
-          description={params.row.common_name}
-          fontWeight={500}
-          round
+        <SpeciesCard
+          species={{ 
+            common_name: params.row.common_name,
+            scientific_name: params.row.scientific_name,
+            default_icon: params.row.default_icon
+          }}
         />
       )
     },

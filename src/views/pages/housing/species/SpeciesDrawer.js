@@ -142,7 +142,7 @@ const SpeciesDrawer = ({ open, onClose, data }) => {
         )}
 
         {!hasMore && list.length > 0 && (
-          <Typography sx={{ textAlign: 'center', mt: 2, color: theme.palette.text.disabled }}>
+          <Typography sx={{ textAlign: 'center', mt: 2, color: theme.palette.text.disabled, p:2,mb:1 }}>
             No more species to load
           </Typography>
         )}

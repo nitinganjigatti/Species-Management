@@ -133,13 +133,13 @@ const AnimalsDrawer = ({ open, onClose, data }) => {
 
         {!loading && list.length === 0 && (
           <Typography sx={{ textAlign: 'center', mt: 2, color: theme.palette.text.secondary }}>
-            No sections found
+            No animals found
           </Typography>
         )}
 
         {!hasMore && list.length > 0 && (
           <Typography sx={{ textAlign: 'center', mt: 2, color: theme.palette.text.disabled }}>
-            No more sections to load
+            No more animals to load
           </Typography>
         )}
       </Box>

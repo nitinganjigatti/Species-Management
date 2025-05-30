@@ -10,7 +10,7 @@ import UserInfoCard from 'src/views/utility/insights/UserInfoCard'
 import Search from 'src/views/utility/Search'
 import ListingHeader from '../../views/pages/housing/utils/ListingHeader'
 import { ExportButton } from 'src/views/utility/render-snippets'
-import { CellInfo, SectionCellRenderer } from 'src/utility/render'
+import RenderUtility, { CellInfo, SectionCellRenderer } from 'src/utility/render'
 
 const SectionListing = () => {
   const [downloading, setDownloading] = useState(false)
@@ -189,13 +189,15 @@ const SectionListing = () => {
       width: 180,
       field: 'incharge',
       headerName: 'In-Charge',
-      renderCell: params => (
-        <UserInfoCard
-          textColor={theme.palette.customColors.OnSurfaceVariant}
-          avatarUrl={params.row.incharge_avatar} // Replace with correct avatar field if different
-          name={params.row.incharge_name}
-        />
-      )
+      renderCell: params =>
+        RenderUtility.renderUserAvatarDetails(
+          params.row.incharge_image,
+          params.row.incharge_name,
+          '',
+          theme.palette.customColors.OnSurfaceVariant,
+           "14px"
+          //  theme.palette.customColors.OnSurfaceVariant,
+        )
     },
 
     {

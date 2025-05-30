@@ -15,7 +15,7 @@ function SpeciesCard({ species }) {
             },
             borderRadius:
               species?.default_icon && species.default_icon.includes('.svg')
-                ? 'unset'
+                ? '50%'
                 : species?.default_icon
                 ? '50%'
                 : 'unset'

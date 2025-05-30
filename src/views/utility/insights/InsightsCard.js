@@ -7,6 +7,7 @@ import { useTheme } from '@mui/material/styles'
 import CallOutlinedIcon from '@mui/icons-material/CallOutlined'
 import InsertCommentOutlinedIcon from '@mui/icons-material/InsertCommentOutlined'
 import InsightsOutlinedIcon from '@mui/icons-material/InsightsOutlined'
+import RenderUtility from 'src/utility/render'
 
 const InsightsCard = ({
   data,

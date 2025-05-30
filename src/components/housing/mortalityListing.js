@@ -12,6 +12,7 @@ import { debounce } from 'lodash'
 import ListingHeader from '../../views/pages/housing/utils/ListingHeader'
 import { fetchMortality, setParams } from 'src/store/slices/housing/mortalitySlice'
 import { DateInfoDisplay, IdentifierInfoCard } from 'src/utility/render'
+import SpeciesCard from 'src/views/utility/SpeciesCard'
 
 const MortalityListing = () => {
   const [downloading, setDownloading] = useState(false)
@@ -115,13 +116,12 @@ const MortalityListing = () => {
       field: 'common_name',
       headerName: 'SPECIES',
       renderCell: params => (
-        <UserInfoCard
-          avatarUrl={params.row.default_icon}
-          textColor={theme.palette.customColors.OnSurfaceVariant}
-          name={params.row.scientific_name}
-          description={params.row.common_name}
-          fontWeight={500}
-          round
+        <SpeciesCard
+          species={{
+            common_name: params.row.common_name,
+            scientific_name: params.row.scientific_name,
+            default_icon: params.row.default_icon
+          }}
         />
       )
     },
@@ -196,15 +196,11 @@ const MortalityListing = () => {
             placeholder='Search…'
             sx={{ justifyContent: 'flex-end' }}
           />
-          <ExportButton loading={downloading} onClick={handleDownload} />
+          <ExportButton loading={downloading} onClick={handleDownload} /> 
         </Box>
         <Grid
           sx={{
-            '& .MuiDataGrid-cell': {
-              pt: 4,
-              py: 4, // vertical padding (theme spacing, equivalent to padding-top and padding-bottom)
-              px: 4 // horizontal padding
-            },
+           
             '& .MuiDataGrid-columnHeaderTitle': {
               color: theme.palette.customColors.OnSurfaceVariant,
               fontSize: '12px',

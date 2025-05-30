@@ -132,14 +132,6 @@ const SpeciesListing = () => {
             default_icon: params.row.default_icon
           }}
         />
-        // <UserInfoCard
-        //   avatarUrl={params.row.default_icon}
-        //   textColor={theme.palette.customColors.OnSurfaceVariant}
-        //   name={params.row.common_name}
-        //   description={params.row.complete_name}
-        //   fontWeight={500}
-        //   round
-        // />
       )
     },
     {

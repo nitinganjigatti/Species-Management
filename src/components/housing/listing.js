@@ -10,7 +10,7 @@ import UserInfoCard from 'src/views/utility/insights/UserInfoCard'
 import ListingHeader from '../../views/pages/housing/utils/ListingHeader'
 import { useRouter } from 'next/router'
 import { ExportButton } from 'src/views/utility/render-snippets'
-import { CellInfo } from 'src/utility/render'
+import RenderUtility, { CellInfo } from 'src/utility/render'
 import SectionsDrawer from 'src/views/pages/housing/section/SectionsDrawer'
 import SpeciesDrawer from 'src/views/pages/housing/species/SpeciesDrawer'
 import AnimalsDrawer from 'src/views/pages/housing/animals/AnimalDrawer'
@@ -148,7 +148,7 @@ const Listing = () => {
       )
     },
     {
-      width: 250,
+      width: 200,
       field: 'site_name',
       headerName: 'Site Name',
       renderCell: params => (
@@ -162,11 +162,11 @@ const Listing = () => {
       )
     },
     {
-      width: 200,
+      width: 150,
       field: 'species',
       headerName: 'Species',
-      align: 'left',
-      headerAlign: 'left',
+      align: 'center',
+      headerAlign: 'center',
       renderCell: params => (
         <Typography
           sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600 }}
@@ -188,8 +188,8 @@ const Listing = () => {
       width: 150,
       field: 'animals',
       headerName: 'Animals',
-      align: 'left',
-      headerAlign: 'left',
+      align: 'center',
+      headerAlign: 'center',
       renderCell: params => (
         <Typography
           sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600 }}
@@ -211,8 +211,8 @@ const Listing = () => {
       width: 150,
       field: 'enclosures',
       headerName: 'Enclosures',
-      align: 'left',
-      headerAlign: 'left',
+      align: 'center',
+      headerAlign: 'center',
       renderCell: params => (
         <Typography
           sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600 }}
@@ -230,8 +230,8 @@ const Listing = () => {
       width: 150,
       field: 'sections',
       headerName: 'Sections',
-      align: 'left',
-      headerAlign: 'left',
+      align: 'center',
+      headerAlign: 'center',
       renderCell: params => (
         <Typography
           sx={{ cursor: 'pointer', fontWeight: 600, fontSize: '16px', color: theme.palette.primary.OnSurface }}
@@ -253,25 +253,24 @@ const Listing = () => {
       width: 180,
       field: 'incharge',
       headerName: 'In-Charge',
-      renderCell: params => (
-        <Box display='flex' alignItems='center' width='100%'>
-          <UserInfoCard
-            avatarUrl={params.row.incharge_image}
-            name={params.row.incharge_name}
-            textColor={theme.palette.customColors.OnSurfaceVariant}
-            fontWeight={500}
-            fallbackChar={params.row.incharge_name?.charAt(0)}
-          />
-        </Box>
-      )
+       align: 'center',
+      headerAlign: 'left',
+      renderCell: params =>
+        RenderUtility.renderUserAvatarDetails(
+          params.row.incharge_image,
+          params.row.incharge_name,
+          '',
+          theme.palette.customColors.OnSurfaceVariant,
+          '14px'
+        )
     },
     {
-      width: 150, 
+      width: 150,
       field: 'actions',
       headerName: 'Actions',
       align: 'center',
       headerAlign: 'center',
-      renderCell: (params) => (
+      renderCell: params => (
         <>
           {params.row.incharge_name ? (
             <Box display='flex' justifyContent='center' alignItems='center' gap={3}>

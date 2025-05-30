@@ -170,7 +170,7 @@ const SectionListing = () => {
       headerAlign: 'left',
       renderCell: params => (
         <Typography sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600 }}>
-          {params.row.enclosure_count}
+          {params.row.enclosure_count} 
         </Typography>
       )
     },
@@ -180,11 +180,19 @@ const SectionListing = () => {
       field: 'incharge',
       headerName: 'In-Charge',
       renderCell: params => (
-        <UserInfoCard
-          textColor={theme.palette.customColors.OnSurfaceVariant}
-          avatarUrl={params.row.incharge_avatar} // Replace with correct avatar field if different
-          name={params.row.incharge_name || '-'}
-        />
+        RenderUtility.renderUserAvatarDetails(
+          params.row.incharge_image,
+          params.row.incharge_name,
+          '',
+          theme.palette.customColors.OnSurfaceVariant,
+           "14px"
+          //  theme.palette.customColors.OnSurfaceVariant,
+        )
+        // <UserInfoCard
+        //   textColor={theme.palette.customColors.OnSurfaceVariant}
+        //   avatarUrl={params.row.incharge_avatar} // Replace with correct avatar field if different
+        //   name={params.row.incharge_name || '-'}
+        // />
       )
     },
 
