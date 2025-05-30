@@ -511,3 +511,7 @@ export const GET_ANIMAL_TREATMENT = 'site-wise-animal-medical-data'
 export const GET_MEDIA = 'zoos/all-type-media-list'
 
 export const GET_ANIMAL = 'v1/animal/listing'
+
+export const GET_CLUSTERS_LIST = `cluster/get-cluster-list`
+
+export const GET_SPECIFIC_CLUSTER_ANALYTICS = `/cluster/get-cluster-header-details`

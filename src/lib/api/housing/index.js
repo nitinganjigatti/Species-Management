@@ -9,7 +9,9 @@ import {
   GET_MORTALITY,
   GET_ANIMAL_TREATMENT,
   GET_MEDIA,
-  GET_ANIMAL
+  GET_ANIMAL,
+  GET_CLUSTERS_LIST,
+  GET_SPECIFIC_CLUSTER_ANALYTICS
 } from 'src/constants/ApiConstant'
 
 export async function getSiteAnalytics(id) {
@@ -68,5 +70,18 @@ export async function getAnimalTreatmentList(params) {
 
 export async function getAllAnimalList(params) {
   const response = await axiosGet({ url: `${GET_ANIMAL}`, params })
+
+  return response.data
+}
+
+export async function getClusterList(params) {
+  const response = await axiosGet({ url: `${GET_CLUSTERS_LIST}`, params })
+
+  return response.data
+}
+
+export async function getSpecificClusterAnalytics(params) {
+  const response = await axiosGet({ url: `${GET_SPECIFIC_CLUSTER_ANALYTICS}`, params })
+
   return response.data
 }
