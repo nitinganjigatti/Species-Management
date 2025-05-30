@@ -58,30 +58,37 @@ export function renderUserAvatarDetails(image, userName, date, textColor, fontSi
             <CustomAvatar sx={{ mr: '16px', width: '40px', height: '40px', fontSize: '.8rem' }}></CustomAvatar>
           )}
           <Box sx={{ display: 'flex', flexDirection: 'column' }}>
-            <Tooltip title={userName}>
-              <Typography
-                variant='subtitle2'
-                sx={{
-                  color: textColor ?? 'text.primary',
-                  fontSize: fontSize,
-                  whiteSpace: 'nowrap',
-                  overflow: 'hidden', // required for ellipsis
-                  textOverflow: 'ellipsis', // required for ellipsis
-                  maxWidth: 100 // triggers the truncation
-                }}
-              >
-                {userName ? userName : 'NA'}
-              </Typography>
-              {description && (
-                <>
-                  <Tooltip title={description}>
-                    <Typography sx={{ color: theme => textColor ?? theme.palette.common.white }} variant='body2'>
-                      {description}
-                    </Typography>
-                  </Tooltip>
-                </>
-              )}
-            </Tooltip>
+            {userName && (
+              <>
+                <Tooltip title={userName}>
+                  <Typography
+                    variant='subtitle2'
+                    sx={{
+                      color: textColor ?? 'text.primary',
+                      fontSize: fontSize,
+                      whiteSpace: 'nowrap',
+                      overflow: 'hidden', // required for ellipsis
+                      textOverflow: 'ellipsis', // required for ellipsis
+                      maxWidth: 100 // triggers the truncation
+                    }}
+                    // component={'span'}
+                  >
+                    {userName ? userName : 'NA'}
+                  </Typography>
+                </Tooltip>
+
+                {description && (
+                  <>
+                    <Tooltip title={description}>
+                      <Typography sx={{ color: theme => textColor ?? theme.palette.common.white }} variant='body2'>
+                        {description}
+                      </Typography>
+                    </Tooltip>
+                  </>
+                )}
+              </>
+            )}
+
             <Typography variant='caption' sx={{ lineHeight: 1.6667 }}>
               {date ? Utility?.formatDisplayDate(date) : ''}
             </Typography>
@@ -148,9 +155,13 @@ export const attachedFiles = args => {
 
 export const getToolTipForText = text => {
   return (
-    <Tooltip title={text} arrow>
-      <span>{text}</span>
-    </Tooltip>
+    <>
+      {text && (
+        <Tooltip title={text} arrow>
+          <span>{text}</span>
+        </Tooltip>
+      )}
+    </>
   )
 }
 
@@ -283,19 +294,21 @@ export const CellInfo = ({ value, subtitle, color, subtitleColor, imgUrl, avatar
         alignSelf={hasExtraInfo ? 'flex-start' : 'center'}
         mt={hasExtraInfo ? 0.25 : 0}
       >
-        <Tooltip title={value}>
-          <Typography
-            noWrap
-            sx={{
-              fontSize: '16px',
-              ml: 1,
-              fontWeight: 600,
-              color: color ?? theme.palette.text.primary
-            }}
-          >
-            {value}
-          </Typography>
-        </Tooltip>
+        {value && (
+          <Tooltip title={value}>
+            <Typography
+              noWrap
+              sx={{
+                fontSize: '16px',
+                ml: 1,
+                fontWeight: 600,
+                color: color ?? theme.palette.text.primary
+              }}
+            >
+              {value}
+            </Typography>
+          </Tooltip>
+        )}
 
         {subtitle && (
           <>

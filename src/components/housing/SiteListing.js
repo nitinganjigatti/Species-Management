@@ -11,8 +11,6 @@ import ListingHeader from '../../views/pages/housing/utils/ListingHeader'
 import { useRouter } from 'next/router'
 import { ExportButton } from 'src/views/utility/render-snippets'
 import RenderUtility, { CellInfo } from 'src/utility/render'
-import SectionsDrawer from 'src/views/pages/housing/section/SectionsDrawer'
-import { CellInfo } from 'src/utility/render'
 import SectionsDrawer from './SectionsDrawer'
 import SpeciesDrawer from 'src/views/pages/housing/species/SpeciesDrawer'
 import AnimalsDrawer from 'src/views/pages/housing/animals/AnimalDrawer'
@@ -273,7 +271,7 @@ const Listing = () => {
       width: 180,
       field: 'incharge',
       headerName: 'In-Charge',
-       align: 'center',
+      align: 'center',
       headerAlign: 'left',
       renderCell: params =>
         RenderUtility.renderUserAvatarDetails(
@@ -358,12 +356,8 @@ const Listing = () => {
       {drawerType === 'sections' && (
         <SectionsDrawer open={!!drawerData} onClose={handleDrawerClose} data={drawerData} />
       )}
-      {drawerType === 'species' && (
-        <SpeciesDrawer open={!!drawerData} onClose={handleDrawerClose} data={drawerData} />
-      )}
-      {drawerType === 'animals' && (
-        <AnimalsDrawer open={!!drawerData} onClose={handleDrawerClose} data={drawerData} />
-      )}
+      {drawerType === 'species' && <SpeciesDrawer open={!!drawerData} onClose={handleDrawerClose} data={drawerData} />}
+      {drawerType === 'animals' && <AnimalsDrawer open={!!drawerData} onClose={handleDrawerClose} data={drawerData} />}
     </>
   )
 }

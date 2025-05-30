@@ -11,7 +11,6 @@ import Search from 'src/views/utility/Search'
 import ListingHeader from '../../views/pages/housing/utils/ListingHeader'
 import { ExportButton } from 'src/views/utility/render-snippets'
 import RenderUtility, { CellInfo, SectionCellRenderer } from 'src/utility/render'
-import { CellInfo } from 'src/utility/render'
 
 const SectionListing = () => {
   const router = useRouter()
@@ -208,7 +207,7 @@ const SectionListing = () => {
           params.row.incharge_name,
           '',
           theme.palette.customColors.OnSurfaceVariant,
-           "14px"
+          '14px'
           //  theme.palette.customColors.OnSurfaceVariant,
         )
     },
