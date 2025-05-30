@@ -1,98 +1,115 @@
 import { useTheme } from '@emotion/react'
-import { Avatar, Box, Grid, Typography } from '@mui/material'
+import { Box, Grid, Typography } from '@mui/material'
 import { useRouter } from 'next/router'
-import { useCallback, useEffect, useState } from 'react'
-import { useDispatch, useSelector } from 'react-redux'
+import { useEffect, useMemo, useState } from 'react'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import UserInfoCard from 'src/views/utility/insights/UserInfoCard'
 import Search from 'src/views/utility/Search'
-import { format, formatDistanceToNow } from 'date-fns'
 
 // import { fetchMortality, setParams } from 'src/store/slices/housing/speciesSlice'
 import { ExportButton } from 'src/views/utility/render-snippets'
 import { debounce } from 'lodash'
 import ListingHeader from '../../views/pages/housing/utils/ListingHeader'
-import { fetchAnimals, setParams } from 'src/store/slices/housing/animalTreatmentSlice'
 import { GenderInfoCard, IdentifierInfoCard } from 'src/utility/render'
+import { getAnimalTreatmentList } from 'src/lib/api/housing'
+import { useQuery } from '@tanstack/react-query'
 
 const AnimalTreatmentListing = () => {
-  const [downloading, setDownloading] = useState(false)
-
   const router = useRouter()
   const { id } = router.query
   const theme = useTheme()
-  const dispatch = useDispatch()
 
-  const {
-    list: animalTreatmentList,
-    loading,
-    total,
-    page,
-    pageSize,
-    sortBy,
-    sortOrder,
-    search
-  } = useSelector(state => state.animalTreatment)
+  const [downloading, setDownloading] = useState(false)
+  const [inputValue, setInputValue] = useState('')
 
-  useEffect(() => {
-    console.log('animalTreatmentList', animalTreatmentList)
-  }, [animalTreatmentList])
+  const [filters, setFilters] = useState({
+    page: 1,
+    pageSize: 10,
+    search: '',
+    sortBy: '',
+    sortOrder: 'asc'
+  })
 
-  // Debounced fetchSpecies call whenever parameters change
-  const debouncedFetch = useCallback(
-    debounce(() => {
-      dispatch(
-        fetchAnimals({
-          site_id: id
-        })
-      )
-    }, 500),
-    [dispatch, page, pageSize, sortBy, sortOrder, search, id]
-  )
+  const { data, isFetching } = useQuery({
+    queryKey: ['aminal-treatment-listing', id, filters],
+    queryFn: () =>
+      getAnimalTreatmentList({
+        site_id: id,
+        page_no: filters.page,
+        limit: filters.pageSize,
+        q: filters.search,
+        sort_by: filters.sortBy,
+        sort_order: filters.sortOrder
+      }),
+    enabled: !!id
+  })
 
-  useEffect(() => {
-    if (id) debouncedFetch()
+  const animalTreatmentList = data?.data?.result || []
+  const total = data?.data?.total_count || 0
 
-    return () => debouncedFetch.cancel()
-  }, [debouncedFetch, id, page])
+  const getSlNo = index => (filters.page - 1) * filters.pageSize + index + 1
+
+  const indexedRows = animalTreatmentList.map((row, index) => ({
+    ...row,
+    id: +row?.animal_id,
+    sl_no: getSlNo(index)
+  }))
 
   const handlePaginationModelChange = model => {
     const newPage = model.page + 1
     const newPageSize = model.pageSize
 
-    if (newPage !== page || newPageSize !== pageSize) {
-      dispatch(setParams({ page: newPage, pageSize: newPageSize }))
+    if (newPage !== filters.page || newPageSize !== filters.pageSize) {
+      setFilters(prev => ({
+        ...prev,
+        page: newPage,
+        pageSize: newPageSize
+      }))
     }
   }
 
-  const handleSearch = useCallback(
-    value => {
-      dispatch(setParams({ search: value, page: 1 }))
-    },
-    [dispatch]
-  )
-
   const handleSortModelChange = sortModel => {
-    console.log('sortModel', sortModel)
     if (sortModel.length > 0) {
       const { field, sort } = sortModel[0]
-      dispatch(setParams({ sortBy: field, sortOrder: sort, page: 1 }))
+      setFilters(prev => ({
+        ...prev,
+        sortBy: field,
+        sortOrder: sort,
+        page: 1
+      }))
     } else {
-      dispatch(setParams({ sortBy: '', sortOrder: '' }))
+      setFilters(prev => ({
+        ...prev,
+        sortBy: '',
+        sortOrder: 'asc'
+      }))
     }
+  }
+
+  const debouncedSearch = useMemo(
+    () =>
+      debounce(value => {
+        setFilters(prev => ({
+          ...prev,
+          search: value,
+          page: 1
+        }))
+      }, 500),
+    []
+  )
+
+  useEffect(() => {
+    return () => debouncedSearch.cancel()
+  }, [debouncedSearch])
+
+  const handleSearch = value => {
+    setInputValue(value)
+    debouncedSearch(value)
   }
 
   const handleDownload = () => {
     console.log('Downloading...')
   }
-
-  const getSlNo = index => (page - 1) * pageSize + index + 1
-
-  const indexedRows = animalTreatmentList?.map((row, index) => ({
-    ...row,
-    id: row?.animal_id,
-    sl_no: getSlNo(index)
-  }))
 
   const handleRowClick = params => {
     // router.push({
@@ -234,7 +251,7 @@ const AnimalTreatmentListing = () => {
       <Box>
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 4 }}>
           <Search
-            value={search}
+            value={inputValue}
             onChange={e => handleSearch(e.target.value)}
             onClear={() => handleSearch('')}
             placeholder='Search…'
@@ -263,13 +280,13 @@ const AnimalTreatmentListing = () => {
             columns={columns}
             pageSizeOptions={[10]}
             paginationModel={{
-              page: page - 1,
-              pageSize
+              page: filters.page - 1,
+              pageSize: filters.pageSize
             }}
             setPaginationModel={handlePaginationModelChange}
             handleSortModel={handleSortModelChange}
-            loading={loading}
-            searchValue={search}
+            loading={isFetching}
+            searchValue={filters.inputValue}
             maxHeight='80vh'
           />
         </Grid>
