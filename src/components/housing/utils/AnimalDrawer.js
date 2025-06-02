@@ -1,5 +1,5 @@
 import React, { useEffect, useMemo, useState, useCallback, useRef } from 'react'
-import { Typography, Box, CircularProgress } from '@mui/material'
+import { Typography, Box, CircularProgress, Card } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import debounce from 'lodash/debounce'
 import { useInView } from 'react-intersection-observer'
@@ -10,6 +10,7 @@ import Search from 'src/views/utility/Search'
 import { getAllAnimalList } from 'src/lib/api/housing'
 import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query'
 import AnimalCard from 'src/views/pages/housing/animals/AnimalCard'
+import SpeciesInnerCard from 'src/views/pages/housing/species/SpeciesInnerCard'
 
 const AnimalsDrawer = ({ open, onClose, data }) => {
   debugger
@@ -132,12 +133,27 @@ const AnimalsDrawer = ({ open, onClose, data }) => {
           borderRadius: '8px'
         }}
       >
-        <CellInfo
-          value={data?.name}
-          imgUrl={data?.image}
-          color={theme.palette.customColors.OnSurfaceVariant}
-          subtitleColor={theme.palette.customColors.secondaryBg}
-        />
+        {data?.queryKey === 'cluster-animals-drawer' ? (
+          <>
+            
+              <SpeciesInnerCard
+               
+                completeName={data?.complete_name}
+                imgUrl={data?.default_icon}
+                commonName={data?.common_name}
+                sex={data?.sex_data}
+                animalCount={data?.animal_count}
+              />
+            
+          </>
+        ) : (
+          <CellInfo
+            value={data?.name}
+            imgUrl={data?.image}
+            color={theme.palette.customColors.OnSurfaceVariant}
+            subtitleColor={theme.palette.customColors.secondaryBg}
+          />
+        )}
       </Box>
 
       <Typography sx={{ fontSize: '1.25rem', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}>

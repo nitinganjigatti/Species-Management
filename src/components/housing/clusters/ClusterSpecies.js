@@ -145,6 +145,12 @@ const ClusterSpecies = () => {
     setOpenDrawer(true)
     setDrawerData({
       queryKey: 'cluster-animals-drawer',
+      id: id,
+      complete_name: params.row.complete_name,
+      common_name: params.row.common_name,
+      animal_count: params.row.animal_count,
+      default_icon: params.row.default_icon,
+      sex_data: params.row.sex_data,
       params: {
         id: id,
         taxonomy_id: params.row.tsn_id
@@ -307,7 +313,7 @@ const ClusterSpecies = () => {
           />
         </Grid>
       </Box>
-      {openDrawer && <AnimalDrawer open={openDrawer} drawerData={drawerData} onClose={handleClose} />}
+      {openDrawer && <AnimalDrawer open={!!drawerData} onClose={handleClose} data={drawerData} />}
     </>
   )
 }
