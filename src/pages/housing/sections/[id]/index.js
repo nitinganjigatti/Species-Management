@@ -40,18 +40,42 @@ const SectionDetails = () => {
     enabled: !!id
   })
 
-  useEffect(() => {
-    console.log('data', data)
-  }, [data])
+  console.log('Section Details Data:', data)
 
   const handleTabChange = (event, newValue) => {
     setSelectedTab(newValue)
   }
 
-  const handleHousingClick = () => {
-    router.push('/housing/sites', {
-      ...router.query
-    })
+  const statsData = [
+    {
+      label: 'Species',
+      value: data?.data?.species_count || 0,
+      imagePath: '/images/housing/species.svg',
+      onClick: () => console.log('Species')
+    },
+    {
+      label: 'Animals',
+      value: data?.data?.animal_count || 0,
+      imagePath: '/images/housing/animals.svg',
+      onClick: () => console.log('Animals')
+    },
+    {
+      label: 'Sections',
+      value: data?.data?.section_count || 0,
+      imagePath: '/images/housing/sections.svg',
+      onClick: () => console.log('Sections')
+    },
+
+    {
+      label: 'Enclosures',
+      value: data?.data?.enclosure_count || 0,
+      imagePath: '/images/housing/enclosures.svg',
+      onClick: () => console.log('Enclosures')
+    }
+  ]
+
+  const handleSectionListingClick = () => {
+    router.back()
   }
 
   const selected = tabConfig.find(tab => tab.value === selectedTab)
@@ -61,8 +85,8 @@ const SectionDetails = () => {
     <Box>
       {/* Breadcrumb */}
       <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
-        <Typography color='inherit' sx={{ cursor: 'pointer' }} onClick={handleHousingClick}>
-          section
+        <Typography color='inherit' sx={{ cursor: 'pointer' }} onClick={handleSectionListingClick}>
+          section Listing
         </Typography>
         <Typography color='text.primary'>Section Details</Typography>
       </Breadcrumbs>
@@ -76,6 +100,7 @@ const SectionDetails = () => {
         description={data?.data?.incharges?.[0]?.full_name}
         userName={data?.data?.incharges?.[0]?.role_name}
         userImage={data?.data?.incharges?.[0]?.user_profile_pic}
+
         // actions={{
         //   onEdit: () => console.log('Edit'),
         //   onDelete: () => console.log('Delete'),
@@ -90,18 +115,21 @@ const SectionDetails = () => {
             return
           }
         }}
+
         // onMessageClick={() => console.log('Message clicked')}
         error={error}
-        speciesCount={data?.data?.species_count || 0}
-        animalCount={data?.data?.animal_count || 0}
-        enclosuresCount={data?.data?.enclosure_count || 0}
-        sectionsCount={data?.data?.section_count || 0}
+
+        // speciesCount={data?.data?.species_count || 0}
+        // animalCount={data?.data?.animal_count || 0}
+        // enclosuresCount={data?.data?.enclosure_count || 0}
+        // sectionsCount={data?.data?.section_count || 0}
         onInfoClick={{
           species: () => setSelectedTab('species'),
           animal: () => console.log('animal'),
           enclosures: () => console.log('enclosures'),
           sections: () => setSelectedTab('sections')
         }}
+        statsData={statsData}
       />
 
       {/* Tabs */}

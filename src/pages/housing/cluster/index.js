@@ -5,7 +5,8 @@ import { useQuery } from '@tanstack/react-query'
 import { debounce } from 'lodash'
 import { useRouter } from 'next/router'
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
-import { getClusterList } from 'src/lib/api/housing'
+import { useAuth } from 'src/hooks/useAuth'
+import { getClusterList, getSiteAnalytics } from 'src/lib/api/housing'
 import { CellInfo } from 'src/utility/render'
 import ListingHeader from 'src/views/pages/housing/utils/ListingHeader'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
@@ -18,6 +19,9 @@ const Clusters = () => {
   const theme = useTheme()
   const router = useRouter()
   const { query } = router
+
+  const auth = useAuth()
+  const zooId = auth?.userData?.user?.zoos?.[0]?.zoo_id
 
   const [serachValue, setSearchValue] = useState('')
   const [downloading, setDownloading] = useState(false)
@@ -56,7 +60,43 @@ const Clusters = () => {
       })
   })
 
-  console.log(data, 'data')
+  const {
+    data: statsData,
+    isFetching: statsFetching,
+    error: statsError
+  } = useQuery({
+    queryKey: ['clusters-insights', zooId],
+    queryFn: () => getSiteAnalytics(zooId),
+    enabled: !!zooId
+  })
+
+  const clusterStats = [
+    {
+      label: 'Species',
+      value: statsData?.data?.zoo_stats?.total_species || 0,
+      imagePath: '/images/housing/species.svg',
+      onClick: () => console.log('Species')
+    },
+    {
+      label: 'Animals',
+      value: statsData?.data?.zoo_stats?.total_animals || 0,
+      imagePath: '/images/housing/animals.svg',
+      onClick: () => console.log('Animals')
+    },
+    {
+      label: 'Sections',
+      value: statsData?.data?.zoo_stats?.total_sections || 0,
+      imagePath: '/images/housing/sections.svg',
+      onClick: () => console.log('Sections')
+    },
+
+    {
+      label: 'Enclosures',
+      value: statsData?.data?.zoo_stats?.total_enclosures || 0,
+      imagePath: '/images/housing/enclosures.svg',
+      onClick: () => console.log('Enclosures')
+    }
+  ]
 
   const total = data?.data?.total_count || 0
   const clustersList = data?.data?.result || []
@@ -295,7 +335,14 @@ const Clusters = () => {
           </Typography>
         </Breadcrumbs>
         <Box>
-          <InsightsCard pageTitle={'All Cluster Insights'} />
+          <InsightsCard
+            pageTitle={'All Cluster Insights'}
+            data={statsData}
+            loading={statsFetching}
+            error={statsError}
+            isListingPage
+            statsData={clusterStats}
+          />
           <Box sx={{ mt: 6 }}>
             <Card sx={{ p: { xs: 3, md: 5 } }}>
               <ListingHeader title='All Clusters' totalCount={total} />
