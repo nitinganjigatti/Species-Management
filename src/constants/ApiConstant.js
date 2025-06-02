@@ -515,3 +515,5 @@ export const GET_ANIMAL = 'v1/animal/listing'
 export const GET_CLUSTERS_LIST = `cluster/get-cluster-list`
 
 export const GET_SPECIFIC_CLUSTER_ANALYTICS = `/cluster/get-cluster-header-details`
+
+export const GET_ENCLOSURE_LIST_SECTION_WISE = `v1/enclosure/sub/listing`

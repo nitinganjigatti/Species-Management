@@ -11,9 +11,11 @@ import MediaListing from 'src/components/housing/sites/MediaListing'
 
 import { useQuery } from '@tanstack/react-query'
 import { getSpecificSiteAnalytics } from 'src/lib/api/housing'
+import EnclosureListing from 'src/components/housing/sites/EnclosureListing'
 
 const tabConfig = [
   { label: 'Species', value: 'species', component: SpeciesListing }, // TODO: Update component as it is copied from site detail
+  { label: 'Enclosures', value: 'enclosures', component: EnclosureListing },
   { label: 'Media', value: 'media', component: MediaListing }, // TODO: Update component as it is copied from site detail
   { label: 'Mortality', value: 'mortality', component: MortalityListing }, // TODO: Update component as it is copied from site detail
   {
@@ -48,7 +50,7 @@ const SectionDetails = () => {
 
   const handleHousingClick = () => {
     router.push('/housing/sites', {
-        ...router.query,
+      ...router.query
     })
   }
 
@@ -71,9 +73,9 @@ const SectionDetails = () => {
         loading={isLoading}
         zooName={data?.data?.site_name}
         subtitle={data?.data?.site_description}
-        description={data?.data?.incharges?.[0]?.full_name}
-        userName={data?.data?.incharges?.[0]?.role_name}
-        userImage={data?.data?.incharges?.[0]?.user_profile_pic}
+        description={data?.data?.incharges[0]?.full_name}
+        userName={data?.data?.incharges[0]?.role_name}
+        userImage={data?.data?.incharges[0]?.user_profile_pic}
         // actions={{
         //   onEdit: () => console.log('Edit'),
         //   onDelete: () => console.log('Delete'),
