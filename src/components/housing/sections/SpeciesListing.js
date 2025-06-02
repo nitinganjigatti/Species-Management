@@ -1,27 +1,25 @@
 import { useTheme } from '@emotion/react'
-import { Box, debounce, Grid, Typography } from '@mui/material'
-import { useQuery } from '@tanstack/react-query'
+import { Box, Grid, Typography } from '@mui/material'
 import { useRouter } from 'next/router'
-import React, { useEffect, useMemo, useState } from 'react'
-import { getAllAnimalList, getAllSites, getAllSpeciesList } from 'src/lib/api/housing'
-import RenderUtility, { CellInfo, GenderInfoCard } from 'src/utility/render'
-import AnimalCard from 'src/views/pages/housing/animals/AnimalCard'
-import ListingHeader from 'src/views/pages/housing/utils/ListingHeader'
+import React, { useMemo, useState, useEffect } from 'react'
+import { useQuery } from '@tanstack/react-query'
+import { debounce } from 'lodash'
+
 import CommonTable from 'src/views/table/data-grid/CommonTable'
+import SpeciesDrawer from 'src/components/housing/utils/SpeciesDrawer'
+import ListingHeader from 'src/views/pages/housing/utils/ListingHeader'
 import { ExportButton } from 'src/views/utility/render-snippets'
 import Search from 'src/views/utility/Search'
 import SpeciesCard from 'src/views/utility/SpeciesCard'
-import AnimalDrawer from '../utils/AnimalDrawer'
+import { GenderInfoCard } from 'src/utility/render'
+import { getAllSpeciesList } from 'src/lib/api/housing'
 
-const ClusterSpecies = () => {
+const SpeciesListing = () => {
+  const theme = useTheme()
   const router = useRouter()
   const { id } = router.query
-  const theme = useTheme()
-
-  const [downloading, setDownloading] = useState(false)
-  const [inputValue, setInputValue] = useState('')
   const [openDrawer, setOpenDrawer] = useState(false)
-  const [drawerData, setDrawerData] = useState(null)
+  const [specieName, setSpecieName] = useState('')
 
   const [filters, setFilters] = useState({
     page: 1,
@@ -31,62 +29,38 @@ const ClusterSpecies = () => {
     sortOrder: 'asc'
   })
 
-  const { data, isFetching } = useQuery({
-    queryKey: ['clusterspecies', id, filters],
+  const [inputValue, setInputValue] = useState('')
+  const [downloading, setDownloading] = useState(false)
+
+  const { data, isLoading } = useQuery({
+    queryKey: ['species', id, filters],
     queryFn: () =>
       getAllSpeciesList({
-        cluster_id: id,
+        section_id: id,
         page_no: filters.page,
         limit: filters.pageSize,
         q: filters.search,
         sort_by: filters.sortBy,
         sort_order: filters.sortOrder
       }),
-    enabled: !!id
+    enabled: !!id,
+    keepPreviousData: true
   })
 
-  const speciesListing = data?.data?.listing || []
-  console.log('Species >>', speciesListing)
+  const listing = data?.data?.listing || []
   const total = data?.data?.total_scies_count || 0
 
   const getSlNo = index => (filters.page - 1) * filters.pageSize + index + 1
 
-  const indexedRows = speciesListing.map((row, index) => ({
-    ...row,
-    id: +row?.tsn_id,
-    sl_no: getSlNo(index)
-  }))
-
-  const handlePaginationModelChange = model => {
-    const newPage = model.page + 1
-    const newPageSize = model.pageSize
-
-    if (newPage !== filters.page || newPageSize !== filters.pageSize) {
-      setFilters(prev => ({
-        ...prev,
-        page: newPage,
-        pageSize: newPageSize
-      }))
-    }
-  }
-
-  const handleSortModelChange = sortModel => {
-    if (sortModel.length > 0) {
-      const { field, sort } = sortModel[0]
-      setFilters(prev => ({
-        ...prev,
-        sortBy: field,
-        sortOrder: sort,
-        page: 1
-      }))
-    } else {
-      setFilters(prev => ({
-        ...prev,
-        sortBy: '',
-        sortOrder: 'asc'
-      }))
-    }
-  }
+  const indexedRows = useMemo(
+    () =>
+      listing.map((row, index) => ({
+        ...row,
+        id: +row?.tsn_id,
+        sl_no: getSlNo(index)
+      })),
+    [listing, filters.page, filters.pageSize]
+  )
 
   const debouncedSearch = useMemo(
     () =>
@@ -100,67 +74,51 @@ const ClusterSpecies = () => {
     []
   )
 
-  // useEffect(() => {
-  //   return () => debouncedSearch.cancel()
-  // }, [debouncedSearch])
+  useEffect(() => {
+    return () => debouncedSearch.cancel()
+  }, [debouncedSearch])
 
   const handleSearch = value => {
     setInputValue(value)
     debouncedSearch(value)
   }
 
-  const handleDownload = () => {
-    if (!indexedRows || indexedRows.length === 0) return
+  const handleSortModelChange = model => {
+    if (model.length > 0) {
+      const { field, sort } = model[0]
+      setFilters(prev => ({
+        ...prev,
+        sortBy: field,
+        sortOrder: sort,
+        page: 1
+      }))
+    } else {
+      setFilters(prev => ({
+        ...prev,
+        sortBy: '',
+        sortOrder: '',
+        page: 1
+      }))
+    }
+  }
 
-    setDownloading(true)
-
-    const csvHeader = ['SL.NO', 'Section Name', 'Species Count', 'Animal Count', 'Enclosure Count', 'In-Charge']
-
-    const csvRows = indexedRows.map(row => [
-      row.sl_no,
-      `"${row.section_name}"`,
-      row.species_count || 0,
-      row.animal_count || 0,
-      row.enclosure_count || 0,
-      `"${row.incharge_name || '-'}"`
-    ])
-
-    const csvContent = [csvHeader.join(','), ...csvRows.map(row => row.join(','))].join('\n')
-
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
-    const url = URL.createObjectURL(blob)
-
-    const link = document.createElement('a')
-    link.href = url
-    link.setAttribute('download', `sections_export_${new Date().toISOString()}.csv`)
-    document.body.appendChild(link)
-    link.click()
-    document.body.removeChild(link)
-
-    setDownloading(false)
+  const handlePaginationModelChange = model => {
+    setFilters(prev => ({
+      ...prev,
+      page: model.page + 1,
+      pageSize: model.pageSize
+    }))
   }
 
   const handleRowClick = params => {
-    
     setOpenDrawer(true)
-    setDrawerData({
-      queryKey: 'cluster-animals-drawer',
-      id: id,
-      complete_name: params.row.complete_name,
-      common_name: params.row.common_name,
-      animal_count: params.row.animal_count,
-      default_icon: params.row.default_icon,
-      sex_data: params.row.sex_data,
-      params: {
-        id: id,
-        taxonomy_id: params.row.tsn_id
-      }
-    })
+    setSpecieName(params.row.common_name)
   }
 
-  const handleClose = () => {
-    setOpenDrawer(false)
-    setDrawerData(null)
+  const handleClose = () => setOpenDrawer(false)
+
+  const handleDownload = () => {
+    console.log('Downloading...')
   }
 
   const columns = [
@@ -266,6 +224,7 @@ const ClusterSpecies = () => {
       )
     }
   ]
+
   return (
     <>
       <ListingHeader title='All Species' totalCount={total} />
@@ -285,8 +244,8 @@ const ClusterSpecies = () => {
           sx={{
             '& .MuiDataGrid-cell': {
               pt: 4,
-              py: 4,
-              px: 4
+              py: 6,
+              px: 6
             },
             '& .MuiDataGrid-columnHeaderTitle': {
               color: theme.palette.customColors.OnSurfaceVariant,
@@ -307,15 +266,16 @@ const ClusterSpecies = () => {
             }}
             setPaginationModel={handlePaginationModelChange}
             handleSortModel={handleSortModelChange}
-            loading={isFetching}
-            searchValue=''
+            loading={isLoading}
+            searchValue={filters.search}
             maxHeight='80vh'
           />
         </Grid>
       </Box>
-      {openDrawer && <AnimalDrawer open={!!drawerData} onClose={handleClose} data={drawerData} />}
+
+      {openDrawer && <SpeciesDrawer open={openDrawer} onClose={handleClose} specieName={specieName} />}
     </>
   )
 }
 
-export default ClusterSpecies
+export default React.memo(SpeciesListing)

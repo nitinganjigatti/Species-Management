@@ -69,9 +69,14 @@ export async function getAnimalTreatmentList(params) {
 
   return response.data
 }
+export async function getSectionAnimalTreatmentList(params) {
+  const response = await axiosGet({ url: `${GET_ANIMAL_TREATMENT}/${params?.section_id}`, params })
+
+  return response.data
+}
 
 export async function getAllAnimalList(params) {
-  debugger
+
   const response = await axiosGet({ url: `${GET_ANIMAL}`, params })
 
   return response.data

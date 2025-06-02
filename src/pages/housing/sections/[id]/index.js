@@ -4,14 +4,14 @@ import React, { useEffect, useState } from 'react'
 import InsightsCard from 'src/views/utility/insights/InsightsCard'
 
 // Listing Components
-import SpeciesListing from 'src/components/housing/sites/speciesListing'
-import MortalityListing from 'src/components/housing/sites/mortalityListing'
-import AnimalTreatmentListing from 'src/components/housing/sites/AnimalTreatmentListing'
-import MediaListing from 'src/components/housing/sites/MediaListing'
+import SpeciesListing from 'src/components/housing/sections/SpeciesListing'
 
 import { useQuery } from '@tanstack/react-query'
 import { getSpecificSiteAnalytics } from 'src/lib/api/housing'
-import EnclosureListing from 'src/components/housing/sites/EnclosureListing'
+import EnclosureListing from 'src/components/housing/sections/EnclosureListing'
+import MediaListing from 'src/components/housing/sections/MediaListing'
+import MortalityListing from 'src/components/housing/sections/MortalityListing'
+import AnimalTreatmentListing from 'src/components/housing/sections/AnimalTreatmentListing'
 
 const tabConfig = [
   { label: 'Species', value: 'species', component: SpeciesListing }, // TODO: Update component as it is copied from site detail
