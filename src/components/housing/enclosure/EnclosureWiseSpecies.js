@@ -5,14 +5,15 @@ import { useQuery } from '@tanstack/react-query'
 import { debounce } from 'lodash'
 import { useRouter } from 'next/router'
 import React, { useEffect, useMemo, useState } from 'react'
-import { getEnclosureListSectionWise } from 'src/lib/api/housing'
+import { getEnclosureWiseSpecies } from 'src/lib/api/housing'
+import { GenderInfoCard } from 'src/utility/render'
 import ListingHeader from 'src/views/pages/housing/utils/ListingHeader'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import { ExportButton } from 'src/views/utility/render-snippets'
 import Search from 'src/views/utility/Search'
 import SpeciesCard from 'src/views/utility/SpeciesCard'
 
-const EnclosureListing = () => {
+const EnclosureWiseSpecies = () => {
   const theme = useTheme()
   const router = useRouter()
   const { id } = router.query
@@ -28,23 +29,26 @@ const EnclosureListing = () => {
     sortOrder: 'asc'
   })
 
-  const { data, isLoading } = useQuery({
-    queryKey: ['enclosures', id, filters],
+  const { data, isLoading, error } = useQuery({
+    queryKey: ['enclosure-wise-species', id, filters],
     queryFn: () =>
-      getEnclosureListSectionWise({
-        section_id: id,
-        page_no: filters.page,
-        limit: filters.pageSize,
-        q: filters.search,
-        sort_by: filters.sortBy,
-        sort_order: filters.sortOrder
-      }),
+      getEnclosureWiseSpecies(
+        {
+          include_sub_enclosure: 1,
+          page_no: filters.page,
+          limit: filters.pageSize,
+          q: filters.search,
+          sort_by: filters.sortBy,
+          sort_order: filters.sortOrder
+        },
+        id
+      ),
     enabled: !!id,
     keepPreviousData: true
   })
 
-  const listing = data?.data?.list_items || []
-  const total = data?.data?.total_count || 0
+  const listing = data?.data?.listing || []
+  const total = data?.data?.listing?.length || 0
 
   const getSlNo = index => (filters.page - 1) * filters.pageSize + index + 1
 
@@ -120,62 +124,81 @@ const EnclosureListing = () => {
     },
     {
       width: 280,
-      field: 'user_enclosure_name',
+      field: 'common_name',
       headerAlign: 'center',
       headerName: 'Species',
       sortable: false,
       renderCell: params => (
         <SpeciesCard
           species={{
-            common_name: params.row.user_enclosure_name,
-            scientific_name: params.row.parent_enclosure_name ? `P. Encl: ${params.row.parent_enclosure_name}` : '',
-            default_icon: params.row.image
+            common_name: params.row.common_name,
+            scientific_name: params.row.complete_name,
+            default_icon: params.row.default_icon
           }}
         />
       )
     },
     {
       width: 180,
-      field: 'species_count',
-      headerName: 'SPECIES',
+      field: 'animals',
+      headerName: 'Population',
       sortable: false,
       renderCell: params => (
         <Typography sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600 }}>
-          {params.row.species_count || 0}
+          {params.row.animal_count || 0}
         </Typography>
       )
     },
     {
-      width: 180,
-      field: 'enclosure_wise_animal_count',
-      headerName: 'ANIMALS',
+      width: 160,
+      field: 'male',
+      headerName: 'MALE',
       sortable: false,
       renderCell: params => (
-        <Typography sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600 }}>
-          {params.row.enclosure_wise_animal_count || 0}
-        </Typography>
+        <GenderInfoCard
+          value={params.row.sex_data?.male || 0}
+          bgcolor={`${theme.palette.customColors.SecondaryContainer}80`}
+          color={theme.palette.customColors.addPrimary}
+        />
       )
     },
     {
-      width: 180,
-      field: 'sub_enclosure_count',
-      headerName: 'SUB ENCLOSURES',
+      width: 160,
+      field: 'female',
+      headerName: 'FEMALE',
       sortable: false,
       renderCell: params => (
-        <Typography sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600 }}>
-          {params.row.sub_enclosure_count || 0}
-        </Typography>
+        <GenderInfoCard
+          value={params.row.sex_data?.female || 0}
+          bgcolor={`${theme.palette.customColors.customDropdownColor}4D`}
+          color={theme.palette.customColors.customDropdownColor}
+        />
       )
     },
     {
-      width: 180,
-      field: 'site_name',
-      headerName: 'SITE',
+      width: 160,
+      field: 'undetermined',
+      headerName: 'UNDETERMINED',
       sortable: false,
       renderCell: params => (
-        <Typography sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600 }}>
-          {params.row.site_name || ''}
-        </Typography>
+        <GenderInfoCard
+          value={params.row.sex_data?.undetermined || 0}
+          bgcolor={theme.palette.customColors.SurfaceVariant}
+          color={theme.palette.customColors.Error}
+        />
+      )
+    },
+    {
+      width: 160,
+      field: 'indeterminate',
+      headerName: 'INDETERMINATE',
+      sortable: false,
+      renderCell: params => (
+        <GenderInfoCard
+          value={params.row.sex_data?.indeterminate || 0}
+          bgcolor={theme.palette.customColors.displaybgSecondary}
+          color={theme.palette.customColors.OnPrimaryContainer}
+        />
       )
     },
     {
@@ -203,15 +226,11 @@ const EnclosureListing = () => {
     console.log('Download button clicked')
   }
 
-  const onRowClick = params => {
-    router.replace(`/housing/enclosure/${params.row.enclosure_id}`, undefined, { shallow: true })
-  }
-
   return (
     <>
-      <ListingHeader title='All Enclosures' totalCount={total} />
+      <ListingHeader title='All Species' totalCount={total} />
       <Box>
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 4, flexWrap: 'wrap' }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 4 }}>
           <Search
             value={inputValue}
             onChange={e => handleSearch(e.target.value)}
@@ -221,7 +240,6 @@ const EnclosureListing = () => {
           />
           <ExportButton loading={downloading} onClick={handleDownload} />
         </Box>
-
         <Grid
           sx={{
             '& .MuiDataGrid-cell': {
@@ -237,7 +255,6 @@ const EnclosureListing = () => {
           }}
         >
           <CommonTable
-            onRowClick={onRowClick}
             indexedRows={indexedRows}
             total={total}
             columns={columns}
@@ -258,4 +275,4 @@ const EnclosureListing = () => {
   )
 }
 
-export default React.memo(EnclosureListing)
+export default React.memo(EnclosureWiseSpecies)

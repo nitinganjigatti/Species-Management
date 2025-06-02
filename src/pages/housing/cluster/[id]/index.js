@@ -30,6 +30,8 @@ const ClusterDetails = () => {
     enabled: !!id
   })
 
+  console.log('Cluster Details Data:', data)
+
   const handleTabChange = (event, newValue) => {
     // Find reset action for previous tab
     // const prevTab = tabConfig.find(tab => tab.value === selectedTab)

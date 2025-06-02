@@ -13,7 +13,9 @@ import {
   GET_ANIMAL,
   GET_CLUSTERS_LIST,
   GET_SPECIFIC_CLUSTER_ANALYTICS,
-  GET_ENCLOSURE_LIST_SECTION_WISE
+  GET_ENCLOSURE_LIST_SECTION_WISE,
+  GET_ENCLOSURE_WISE_STATS,
+  GET_ENCLOSURE_WISE_SPECIES
 } from 'src/constants/ApiConstant'
 
 export async function getSiteAnalytics(id) {
@@ -69,6 +71,7 @@ export async function getAnimalTreatmentList(params) {
 
   return response.data
 }
+
 export async function getSectionAnimalTreatmentList(params) {
   const response = await axiosGet({ url: `${GET_ANIMAL_TREATMENT}/${params?.section_id}`, params })
 
@@ -76,7 +79,6 @@ export async function getSectionAnimalTreatmentList(params) {
 }
 
 export async function getAllAnimalList(params) {
-
   const response = await axiosGet({ url: `${GET_ANIMAL}`, params })
 
   return response.data
@@ -98,4 +100,16 @@ export async function getEnclosureListSectionWise(params) {
   const response = await axiosGet({ url: `${GET_ENCLOSURE_LIST_SECTION_WISE}`, params })
 
   return response.data
+}
+
+export async function getEnclosureWiseStat(params) {
+  const response = await axiosGet({ url: `${GET_ENCLOSURE_WISE_STATS}/${params?.enclosure_id}` })
+
+  return response?.data
+}
+
+export async function getEnclosureWiseSpecies(params = {}, id) {
+  const response = await axiosGet({ url: `${GET_ENCLOSURE_WISE_SPECIES}/${id}`, params })
+
+  return response?.data
 }

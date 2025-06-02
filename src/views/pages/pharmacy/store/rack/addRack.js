@@ -34,7 +34,8 @@ import { getRackListById } from 'src/lib/api/pharmacy/getRackList'
 const schema = yup.object().shape({
   name: yup.string().required('Rack name is required'),
   position: yup.string().required('Position is required'),
-  store_id: yup.string().required('Store is required'),
+
+  // store_id: yup.string().required('Store is required'),
   shelf: yup.string().required('Shelf is required'),
   status: yup.string().nullable()
 })
