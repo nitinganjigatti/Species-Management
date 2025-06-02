@@ -7,13 +7,13 @@ import debounce from 'lodash/debounce'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import Search from 'src/views/utility/Search'
 import UserInfoCard from 'src/views/utility/insights/UserInfoCard'
-import ListingHeader from '../../views/pages/housing/utils/ListingHeader'
+import ListingHeader from '../../../views/pages/housing/utils/ListingHeader'
 import { useRouter } from 'next/router'
 import { ExportButton } from 'src/views/utility/render-snippets'
 import RenderUtility, { CellInfo } from 'src/utility/render'
-import SectionsDrawer from './SectionsDrawer'
-import SpeciesDrawer from 'src/components/housing/SpeciesDrawer'
-import AnimalsDrawer from 'src/components/housing/AnimalDrawer'
+import SectionsDrawer from '../utils/SectionsDrawer'
+import SpeciesDrawer from 'src/components/housing/utils/SpeciesDrawer'
+import AnimalsDrawer from 'src/components/housing/utils/AnimalDrawer'
 import { getAllSites } from 'src/lib/api/housing'
 
 const Listing = () => {
@@ -68,7 +68,7 @@ const Listing = () => {
   const updateUrlParams = updatedFilters => {
     const params = new URLSearchParams()
     Object.entries(updatedFilters).forEach(([key, value]) => {
-      if (value !== '' && value !== null && value !== undefined) {
+      if (value) {
         params.set(key, value.toString())
       }
     })

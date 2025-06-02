@@ -1,4 +1,4 @@
-import CustomDrawer from '../../views/pages/housing/utils/CustomDrawer'
+import CustomDrawer from '../../../views/pages/housing/utils/CustomDrawer'
 import { Typography, Divider, CircularProgress } from '@mui/material'
 
 // import SectionCard from './SectionCard'
@@ -6,7 +6,7 @@ import { useTheme } from '@mui/material/styles'
 import { CellInfo } from 'src/utility/render'
 import { Box, height, width } from '@mui/system'
 import Search from 'src/views/utility/Search'
-import SpeciesCard from '../../views/pages/housing/species/HousingSpeciesCard'
+import SpeciesCard from '../../../views/pages/housing/species/HousingSpeciesCard'
 import { useDispatch, useSelector } from 'react-redux'
 import {
   fetchSpeciesPages,
@@ -16,7 +16,7 @@ import {
 import debounce from 'lodash/debounce'
 import { useCallback, useEffect, useMemo, useState } from 'react'
 import useInfiniteScroll from 'src/hooks/useInfiniteScroll'
-import HousingSpeciesCard from '../../views/pages/housing/species/HousingSpeciesCard'
+import HousingSpeciesCard from '../../../views/pages/housing/species/HousingSpeciesCard'
 
 const SpeciesDrawer = ({ open, onClose, data }) => {
   const theme = useTheme()

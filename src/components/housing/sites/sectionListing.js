@@ -8,7 +8,7 @@ import { getAllSections } from 'src/lib/api/housing'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import UserInfoCard from 'src/views/utility/insights/UserInfoCard'
 import Search from 'src/views/utility/Search'
-import ListingHeader from '../../views/pages/housing/utils/ListingHeader'
+import ListingHeader from '../../../views/pages/housing/utils/ListingHeader'
 import { ExportButton } from 'src/views/utility/render-snippets'
 import RenderUtility, { CellInfo, SectionCellRenderer } from 'src/utility/render'
 
@@ -45,6 +45,30 @@ const SectionListing = () => {
   const sectionList = data?.data?.result || []
   const total = data?.data?.total_count || 0
 
+  const updateUrlParams = updatedFilters => {
+    const currentQuery = { ...router.query }
+
+    // Update only the section-related filter keys
+    const updatedQuery = {
+      ...currentQuery,
+      sectionPage: updatedFilters.page,
+      sectionPageSize: updatedFilters.pageSize,
+      sectionSearch: updatedFilters.search,
+      sectionSortBy: updatedFilters.sortBy,
+      sectionSortOrder: updatedFilters.sortOrder
+    }
+
+    router.replace(
+      {
+        pathname: router.pathname,
+        query: updatedQuery
+      },
+      undefined,
+      { shallow: true }
+    )
+  }
+  
+
   const getSlNo = index => (filters.page - 1) * filters.pageSize + index + 1
 
   const indexedRows = sectionList.map((row, index) => ({
@@ -54,44 +78,46 @@ const SectionListing = () => {
   }))
 
   const handlePaginationModelChange = model => {
-    const newPage = model.page + 1
-    const newPageSize = model.pageSize
-
-    if (newPage !== filters.page || newPageSize !== filters.pageSize) {
-      setFilters(prev => ({
-        ...prev,
-        page: newPage,
-        pageSize: newPageSize
-      }))
+    const updated = {
+      ...filters,
+      page: model.page + 1,
+      pageSize: model.pageSize
     }
+    setFilters(updated)
+    updateUrlParams(updated)
   }
 
   const handleSortModelChange = sortModel => {
+    let updated
     if (sortModel.length > 0) {
       const { field, sort } = sortModel[0]
-      setFilters(prev => ({
-        ...prev,
+      updated = {
+        ...filters,
         sortBy: field,
         sortOrder: sort,
         page: 1
-      }))
+      }
     } else {
-      setFilters(prev => ({
-        ...prev,
+      updated = {
+        ...filters,
         sortBy: '',
         sortOrder: 'asc'
-      }))
+      }
     }
+    setFilters(updated)
+    updateUrlParams(updated)
   }
 
   const debouncedSearch = useMemo(
     () =>
       debounce(value => {
-        setFilters(prev => ({
-          ...prev,
+        const updated = {
+          ...filters,
           search: value,
           page: 1
-        }))
+        }
+        setFilters(updated)
+        updateUrlParams(updated)
       }, 500),
     []
   )
@@ -138,9 +164,34 @@ const SectionListing = () => {
 
   const handleRowClick = params => {
     router.push({
-      pathname: `/housing/sections/${params.row.section_id}`
+      pathname: `/housing/sections/${params.row.section_id}`,
+      query: {
+        ...router.query,
+        sectionPage: filters.page,
+        sectionPageSize: filters.pageSize,
+        sectionSearch: filters.search,
+        sectionSortBy: filters.sortBy,
+        sectionSortOrder: filters.sortOrder
+      }
     })
   }
+
+  useEffect(() => {
+    setFilters(prev => ({
+      page: Number(router.query.sectionPage) || 1,
+      pageSize: Number(router.query.sectionPageSize) || 10,
+      search: router.query.sectionSearch || '',
+      sortBy: router.query.sectionSortBy || '',
+      sortOrder: router.query.sectionSortOrder || 'asc'
+    }))
+    setInputValue(router.query.sectionSearch || '')
+  }, [
+    router.query.sectionPage,
+    router.query.sectionPageSize,
+    router.query.sectionSearch,
+    router.query.sectionSortBy,
+    router.query.sectionSortOrder
+  ])
 
   const columns = [
     {
@@ -208,6 +259,7 @@ const SectionListing = () => {
           '',
           theme.palette.customColors.OnSurfaceVariant,
           '14px'
+
           //  theme.palette.customColors.OnSurfaceVariant,
         )
     },

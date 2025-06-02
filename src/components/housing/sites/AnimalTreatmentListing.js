@@ -2,21 +2,23 @@ import { useTheme } from '@emotion/react'
 import { Box, Grid, Typography } from '@mui/material'
 import { useRouter } from 'next/router'
 import { useEffect, useMemo, useState } from 'react'
-import { useQuery } from '@tanstack/react-query'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import UserInfoCard from 'src/views/utility/insights/UserInfoCard'
 import Search from 'src/views/utility/Search'
-import { ExportButton } from 'src/views/utility/render-snippets'
-import ListingHeader from '../../views/pages/housing/utils/ListingHeader'
-import { DateInfoDisplay, IdentifierInfoCard } from 'src/utility/render'
-import SpeciesCard from 'src/views/utility/SpeciesCard'
-import { getMortalityList } from 'src/lib/api/housing'
-import { debounce } from 'lodash'
 
-const MortalityListing = () => {
-  const theme = useTheme()
+// import { fetchMortality, setParams } from 'src/store/slices/housing/speciesSlice'
+import { ExportButton } from 'src/views/utility/render-snippets'
+import { debounce } from 'lodash'
+import ListingHeader from '../../../views/pages/housing/utils/ListingHeader'
+import { GenderInfoCard, IdentifierInfoCard } from 'src/utility/render'
+import SpeciesCard from 'src/views/utility/SpeciesCard'
+import { getAnimalTreatmentList } from 'src/lib/api/housing'
+import { useQuery } from '@tanstack/react-query'
+
+const AnimalTreatmentListing = () => {
   const router = useRouter()
   const { id } = router.query
+  const theme = useTheme()
 
   const [downloading, setDownloading] = useState(false)
   const [inputValue, setInputValue] = useState('')
@@ -30,26 +32,25 @@ const MortalityListing = () => {
   })
 
   const { data, isFetching } = useQuery({
-    queryKey: ['mortality-list', id, filters],
+    queryKey: ['aminal-treatment-listing', id, filters],
     queryFn: () =>
-      getMortalityList({
+      getAnimalTreatmentList({
+        site_id: id,
         page_no: filters.page,
         limit: filters.pageSize,
-        sort_by: filters.sortBy,
-        sort_order: filters.sortOrder,
         q: filters.search,
-        site_id: id,
-        type: 'animals'
+        sort_by: filters.sortBy,
+        sort_order: filters.sortOrder
       }),
     enabled: !!id
   })
 
-  const sectionList = data?.data?.result || []
+  const animalTreatmentList = data?.data?.result || []
   const total = data?.data?.total_count || 0
 
   const getSlNo = index => (filters.page - 1) * filters.pageSize + index + 1
 
-  const indexedRows = sectionList.map((row, index) => ({
+  const indexedRows = animalTreatmentList.map((row, index) => ({
     ...row,
     id: +row?.animal_id,
     sl_no: getSlNo(index)
@@ -112,7 +113,9 @@ const MortalityListing = () => {
   }
 
   const handleRowClick = params => {
-    // router.push({ pathname: `/housing/sites/${params.row.site_id}` })
+    // router.push({
+    //   pathname: `/housing/sites/${params.row.site_id}`
+    // })
   }
 
   const columns = [
@@ -126,13 +129,14 @@ const MortalityListing = () => {
         </Typography>
       )
     },
+
     {
-      width: 300,
+      width: 300, 
       field: 'common_name',
-      headerName: 'SPECIES',
+      headerName: 'SPECIES', 
       renderCell: params => (
         <SpeciesCard
-          species={{
+          species={{ 
             common_name: params.row.common_name,
             scientific_name: params.row.scientific_name,
             default_icon: params.row.default_icon
@@ -140,6 +144,7 @@ const MortalityListing = () => {
         />
       )
     },
+
     {
       width: 250,
       field: 'identifier',
@@ -147,12 +152,55 @@ const MortalityListing = () => {
       renderCell: params => (
         <IdentifierInfoCard
           animalId={params.row.animal_id}
-          total={data?.data?.total_count || 0}
+          total={total}
           localIdentifierName={params.row.local_identifier_name}
           localIdentifierValue={params.row.local_identifier_value}
         />
       )
     },
+
+    {
+      width: 160,
+      field: 'sex',
+      headerName: 'Gender',
+      renderCell: params => {
+        const gender = params.row.sex?.toLowerCase()
+
+        // Define style mapping
+        const genderStyles = {
+          male: {
+            bgcolor: `${theme.palette.customColors.SecondaryContainer}80`,
+            color: theme.palette.customColors.addPrimary
+          },
+          female: {
+            bgcolor: `${theme.palette.customColors.customDropdownColor}4D`,
+            color: theme.palette.customColors.customDropdownColor
+          },
+          undetermined: {
+            bgcolor: theme.palette.customColors.SurfaceVariant,
+            color: theme.palette.customColors.Error
+          },
+          indeterminate: {
+            bgcolor: theme.palette.customColors.displaybgSecondary,
+            color: theme.palette.customColors.OnPrimaryContainer
+          }
+        }
+
+        // Short display labels
+        const genderLabels = {
+          male: 'M',
+          female: 'F',
+          undetermined: 'UD',
+          indeterminate: 'ID'
+        }
+
+        const { bgcolor, color } = genderStyles[gender] || genderStyles.indeterminate
+        const label = genderLabels[gender] || 'ID'
+
+        return <GenderInfoCard value={label} bgcolor={bgcolor} color={color} />
+      }
+    },
+
     {
       width: 250,
       field: 'animal_name',
@@ -163,35 +211,35 @@ const MortalityListing = () => {
         </Typography>
       )
     },
+
     {
-      field: 'died_on',
-      headerName: 'DIED ON',
       width: 250,
-      renderCell: params => <DateInfoDisplay date={params.row.discovered_date} showRelativeTime />
-    },
-    {
-      field: 'reported_on',
-      headerName: 'REPORTED ON',
-      width: 250,
-      renderCell: params => <DateInfoDisplay title={params.row.user_enclosure_name} date={params.row.discovered_date} />
-    },
-    {
-      width: 300,
-      field: 'reason',
-      headerName: 'REASON',
+      field: 'section_name',
+      headerName: 'Section Name',
       renderCell: params => (
-        <Typography
-          sx={{
-            fontSize: '16px',
-            fontWeight: 400,
-            color: theme.palette.customColors.OnSurfaceVariant,
-            textOverflow: 'ellipsis',
-            overflow: 'hidden',
-            whiteSpace: 'nowrap',
-            maxWidth: '100%'
-          }}
-        >
-          {params.row.reason_name}
+        <Typography sx={{ fontWeight: 400, fontSize: '16px', color: theme.palette.customColors.OnSurfaceVariant }}>
+          {params.row.section_name}
+        </Typography>
+      )
+    },
+    {
+      width: 250,
+      field: 'site_name',
+      headerName: 'Site Name',
+      renderCell: params => (
+        <Typography sx={{ fontWeight: 400, fontSize: '16px', color: theme.palette.customColors.OnSurfaceVariant }}>
+          {params.row.site_name}
+        </Typography>
+      )
+    },
+
+    {
+      width: 250,
+      field: 'user_enclosure_name',
+      headerName: 'Enclosure Name',
+      renderCell: params => (
+        <Typography sx={{ fontWeight: 400, fontSize: '16px', color: theme.palette.customColors.OnSurfaceVariant }}>
+          {params.row.user_enclosure_name}
         </Typography>
       )
     }
@@ -199,7 +247,7 @@ const MortalityListing = () => {
 
   return (
     <>
-      <ListingHeader title='Mortality' totalCount={total} />
+      <ListingHeader title='All Species' totalCount={total} />
       <Box>
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 4 }}>
           <Search
@@ -209,12 +257,15 @@ const MortalityListing = () => {
             placeholder='Search…'
             sx={{ justifyContent: 'flex-end' }}
           />
-          <ExportButton loading={downloading} onClick={handleDownload} /> 
+          <ExportButton loading={downloading} onClick={handleDownload} />
         </Box>
-
         <Grid
           sx={{
-           
+            '& .MuiDataGrid-cell': {
+              pt: 4,
+              py: 4, // vertical padding (theme spacing, equivalent to padding-top and padding-bottom)
+              px: 4 // horizontal padding
+            },
             '& .MuiDataGrid-columnHeaderTitle': {
               color: theme.palette.customColors.OnSurfaceVariant,
               fontSize: '12px',
@@ -225,7 +276,7 @@ const MortalityListing = () => {
           <CommonTable
             onRowClick={handleRowClick}
             indexedRows={indexedRows}
-            total={data?.data?.total_count || 0}
+            total={total}
             columns={columns}
             pageSizeOptions={[10]}
             paginationModel={{
@@ -244,4 +295,4 @@ const MortalityListing = () => {
   )
 }
 
-export default MortalityListing
+export default AnimalTreatmentListing

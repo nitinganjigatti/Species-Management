@@ -6,7 +6,7 @@ import { useQuery } from '@tanstack/react-query'
 import { debounce } from 'lodash'
 
 import CommonTable from 'src/views/table/data-grid/CommonTable'
-import SpeciesDrawer from 'src/components/housing/SpeciesDrawer'
+import SpeciesDrawer from 'src/components/housing/utils/SpeciesDrawer'
 import ListingHeader from 'src/views/pages/housing/utils/ListingHeader'
 import { ExportButton } from 'src/views/utility/render-snippets'
 import Search from 'src/views/utility/Search'
