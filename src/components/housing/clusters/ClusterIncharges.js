@@ -207,6 +207,7 @@ const ClusterIncharges = () => {
           '',
           theme.palette.customColors.OnSurfaceVariant,
           '14px'
+
           //  theme.palette.customColors.OnSurfaceVariant,
         )
     },
@@ -244,7 +245,7 @@ const ClusterIncharges = () => {
     <>
       <ListingHeader title='All Sites' totalCount={total} />
       <Box>
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 4 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 4, flexWrap: 'wrap' }}>
           <Search
             value={inputValue}
             onChange={e => handleSearch(e.target.value)}

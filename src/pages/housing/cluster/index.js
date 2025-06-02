@@ -347,7 +347,9 @@ const Clusters = () => {
             <Card sx={{ p: { xs: 3, md: 5 } }}>
               <ListingHeader title='All Clusters' totalCount={total} />
               <Box>
-                <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 4 }}>
+                <Box
+                  sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 4, flexWrap: 'wrap' }}
+                >
                   <Search
                     value={serachValue}
                     onChange={e => handleSearch(e.target.value)}

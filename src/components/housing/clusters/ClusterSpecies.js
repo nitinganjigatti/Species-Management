@@ -141,7 +141,6 @@ const ClusterSpecies = () => {
   }
 
   const handleRowClick = params => {
-    
     setOpenDrawer(true)
     setDrawerData({
       queryKey: 'cluster-animals-drawer',
@@ -266,56 +265,57 @@ const ClusterSpecies = () => {
       )
     }
   ]
-  return (
-    <>
-      <ListingHeader title='All Species' totalCount={total} />
-      <Box>
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 4 }}>
-          <Search
-            value={inputValue}
-            onChange={e => handleSearch(e.target.value)}
-            onClear={() => handleSearch('')}
-            placeholder='Search…'
-            sx={{ justifyContent: 'flex-end' }}
-          />
-          <ExportButton loading={downloading} onClick={handleDownload} />
-        </Box>
 
-        <Grid
-          sx={{
-            '& .MuiDataGrid-cell': {
-              pt: 4,
-              py: 4,
-              px: 4
-            },
-            '& .MuiDataGrid-columnHeaderTitle': {
-              color: theme.palette.customColors.OnSurfaceVariant,
-              fontSize: '12px',
-              fontWeight: 600
-            }
-          }}
-        >
-          <CommonTable
-            onRowClick={handleRowClick}
-            indexedRows={indexedRows}
-            total={total}
-            columns={columns}
-            pageSizeOptions={[10]}
-            paginationModel={{
-              page: filters.page - 1,
-              pageSize: filters.pageSize
-            }}
-            setPaginationModel={handlePaginationModelChange}
-            handleSortModel={handleSortModelChange}
-            loading={isFetching}
-            searchValue=''
-            maxHeight='80vh'
-          />
-        </Grid>
+  return (
+  <>
+    <ListingHeader title='All Species' totalCount={total} />
+    <Box>
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 4, flexWrap: 'wrap' }}>
+        <Search
+          value={inputValue}
+          onChange={e => handleSearch(e.target.value)}
+          onClear={() => handleSearch('')}
+          placeholder='Search…'
+          sx={{ justifyContent: 'flex-end' }}
+        />
+        <ExportButton loading={downloading} onClick={handleDownload} />
       </Box>
-      {openDrawer && <AnimalDrawer open={!!drawerData} onClose={handleClose} data={drawerData} />}
-    </>
-  )
+
+      <Grid
+        sx={{
+          '& .MuiDataGrid-cell': {
+            pt: 4,
+            py: 4,
+            px: 4
+          },
+          '& .MuiDataGrid-columnHeaderTitle': {
+            color: theme.palette.customColors.OnSurfaceVariant,
+            fontSize: '12px',
+            fontWeight: 600
+          }
+        }}
+      >
+        <CommonTable
+          onRowClick={handleRowClick}
+          indexedRows={indexedRows}
+          total={total}
+          columns={columns}
+          pageSizeOptions={[10]}
+          paginationModel={{
+            page: filters.page - 1,
+            pageSize: filters.pageSize
+          }}
+          setPaginationModel={handlePaginationModelChange}
+          handleSortModel={handleSortModelChange}
+          loading={isFetching}
+          searchValue=''
+          maxHeight='80vh'
+        />
+      </Grid>
+    </Box>
+    {openDrawer && <AnimalDrawer open={!!drawerData} onClose={handleClose} data={drawerData} />}
+  </>
+)
 }
 
 export default ClusterSpecies

@@ -201,7 +201,7 @@ const MortalityListing = () => {
     <>
       <ListingHeader title='Mortality' totalCount={total} />
       <Box>
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 4 }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 4, flexWrap: 'wrap' }}>
           <Search
             value={inputValue}
             onChange={e => handleSearch(e.target.value)}
@@ -209,12 +209,11 @@ const MortalityListing = () => {
             placeholder='Search…'
             sx={{ justifyContent: 'flex-end' }}
           />
-          <ExportButton loading={downloading} onClick={handleDownload} /> 
+          <ExportButton loading={downloading} onClick={handleDownload} />
         </Box>
 
         <Grid
           sx={{
-           
             '& .MuiDataGrid-columnHeaderTitle': {
               color: theme.palette.customColors.OnSurfaceVariant,
               fontSize: '12px',
