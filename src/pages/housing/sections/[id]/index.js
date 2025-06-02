@@ -40,8 +40,6 @@ const SectionDetails = () => {
     enabled: !!id
   })
 
-  console.log('Section Details Data:', data)
-
   const handleTabChange = (event, newValue) => {
     setSelectedTab(newValue)
   }
@@ -100,7 +98,6 @@ const SectionDetails = () => {
         description={data?.data?.incharges?.[0]?.full_name}
         userName={data?.data?.incharges?.[0]?.role_name}
         userImage={data?.data?.incharges?.[0]?.user_profile_pic}
-
         // actions={{
         //   onEdit: () => console.log('Edit'),
         //   onDelete: () => console.log('Delete'),
@@ -115,10 +112,8 @@ const SectionDetails = () => {
             return
           }
         }}
-
         // onMessageClick={() => console.log('Message clicked')}
         error={error}
-
         // speciesCount={data?.data?.species_count || 0}
         // animalCount={data?.data?.animal_count || 0}
         // enclosuresCount={data?.data?.enclosure_count || 0}
