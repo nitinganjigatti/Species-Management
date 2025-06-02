@@ -153,16 +153,16 @@ const InsightsCard = ({
               WebkitBackdropFilter: 'blur(0.5rem)'
             }}
           >
-            <Grid container spacing={3} justifyContent={statsData.length < 4 ? 'center' : 'flex-start'}>
+            <Grid container spacing={3} justifyContent={'flex-start'}>
               {statsData.map((item, index) => (
                 <Grid
                   item
-                  xs={12}
+                  xs={6}
                   sm={statsData.length === 1 ? 6 : 12 / Math.min(2, statsData.length)}
                   md={statsData.length === 4 ? 3 : 12 / statsData.length}
                   key={index}
                   display='flex'
-                  justifyContent={statsData.length < 4 ? 'center' : 'flex-start'}
+                  justifyContent={'flex-start'}
                 >
                   <InfoStatCard
                     imagePath={item.imagePath}
@@ -173,25 +173,6 @@ const InsightsCard = ({
                 </Grid>
               ))}
             </Grid>
-
-            {/* <Grid container spacing={3}>
-              {statsData?.map((item, index) => (
-                <Grid
-                  item
-                  xs={12}
-                  sm={12 / Math.min(2, statsData.length)}
-                  md={12 / Math.min(4, statsData.length)}
-                  key={index}
-                >
-                  <InfoStatCard
-                    imagePath={item.imagePath}
-                    value={item.value}
-                    label={item.label}
-                    onClick={item.onClick}
-                  />
-                </Grid>
-              ))}
-            </Grid> */}
           </Box>
         )}
       </Box>
