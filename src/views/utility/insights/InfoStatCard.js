@@ -18,27 +18,43 @@ const InfoStatCard = ({ icon: Icon, imagePath, value, label, onClick }) => {
     <Box
       elevation={3}
       sx={{
-        p: 2,
-        borderRadius: 3,
+        p: { xs: 1.25, sm: 2 },
+        borderRadius: { xs: 2, sm: 3 },
         display: 'flex',
         alignItems: 'center',
-        gap: 4,
+        gap: { xs: 2, sm: 4 },
         color: 'white',
         cursor: 'pointer',
-        minWidth: 150
+        minWidth: { xs: 120, sm: 150 }
       }}
       onClick={onClick}
     >
-      <IconBox icon={Icon} imagePath={imagePath} />
+      <IconBox
+        icon={Icon}
+        imagePath={imagePath}
+        size={{ xs: 'small', sm: 'large' }}
+        imageSize={{ xs: 24, sm: 32 }}
+        padding={{ xs: 1.5, sm: 3 }}
+      />
       <Box>
         <Typography
-          sx={{ fontWeight: '600', fontSize: '1.5rem', color: theme.palette.customColors.PrimaryContainer }}
-          color='success.main'
+          sx={{
+            fontWeight: 600,
+            fontSize: { xs: '1rem', sm: '1.5rem' },
+            color: theme.palette.customColors.PrimaryContainer
+          }}
         >
           {formatNumber(value)}
         </Typography>
         {label && (
-          <Typography sx={{ fontSize: '0.875rem', color: theme => theme.palette.common.white }}>{label}</Typography>
+          <Typography
+            sx={{
+              fontSize: { xs: '0.75rem', sm: '0.875rem' },
+              color: theme => theme.palette.common.white
+            }}
+          >
+            {label}
+          </Typography>
         )}
       </Box>
     </Box>

@@ -105,8 +105,8 @@ const SiteDetails = () => {
         loading={isLoading}
         zooName={data?.data?.site_name}
         subtitle={data?.data?.site_description}
-        description={data?.data?.incharges?.[0]?.full_name}
-        userName={data?.data?.incharges?.[0]?.role_name}
+        userName={data?.data?.incharges?.[0]?.full_name}
+        description={data?.data?.incharges?.[0]?.role_name}
         userImage={data?.data?.incharges?.[0]?.user_profile_pic}
         onCallClick={() => {
           const phoneNumber = data?.data?.incharges?.[0]?.user_mobile_number || '' // Adjust path as needed

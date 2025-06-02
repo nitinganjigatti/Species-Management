@@ -35,9 +35,7 @@ const UserInfoCard = ({ avatarUrl, name, description, textColor, fontWeight }) =
         <Typography
           sx={{ ml: 3, color: theme => textColor ?? theme.palette.common.white }}
           fontWeight={fontWeight ?? 600}
-        >
-          -
-        </Typography>
+        ></Typography>
       )}
     </Box>
   )
