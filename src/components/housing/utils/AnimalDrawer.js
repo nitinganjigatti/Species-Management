@@ -38,10 +38,10 @@ const AnimalsDrawer = ({ open, onClose, data }) => {
     isFetchingNextPage,
     remove
   } = useInfiniteQuery({
-    queryKey: ['animals', data?.id, search, open],
+    queryKey: [data?.queryKey, data?.id, search, open],
     queryFn: async ({ pageParam = 1 }) => {
       const res = await getAllAnimalList({
-        site_id: data?.id,
+        ...data?.params,
         page_no: pageParam,
         limit: PAGE_SIZE,
         q: search
@@ -54,7 +54,7 @@ const AnimalsDrawer = ({ open, onClose, data }) => {
       }
     },
     getNextPageParam: lastPage => lastPage.nextPage,
-    enabled: open && !!data?.id
+    enabled: Boolean(open && !!data?.id && !!data?.queryKey)
   })
 
   // Reset local state on open
@@ -67,7 +67,7 @@ const AnimalsDrawer = ({ open, onClose, data }) => {
 
   useEffect(() => {
     if (!open) {
-      queryClient.cancelQueries({ queryKey: ['animals', data?.id, search] })
+      queryClient.cancelQueries({ queryKey: [data?.queryKey, data?.id, search] })
       remove()
       cooldownRef.current = false // reset cooldown on close
     }

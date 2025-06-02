@@ -249,6 +249,7 @@ function formatAmountCompactDisplay(value) {
       compactDisplay: 'short'
     })
   }
+
   return `${Number(roundedNum)}`
 }
 
@@ -260,15 +261,18 @@ const encryptData = data => {
 
 const decryptData = cipherText => {
   const bytes = CryptoJS.AES.decrypt(cipherText, SECRET_KEY)
+
   return JSON.parse(bytes.toString(CryptoJS.enc.Utf8))
 }
 
 function hexToHex8(hex, opacity) {
   debugger
   hex = hex.replace('#', '')
+
   let alpha = Math.round(opacity * 255)
     .toString(16)
     .padStart(2, '0')
+
   return `#${hex}${alpha}`
 }
 

@@ -1,87 +1,101 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import React, { useCallback, useEffect, useMemo, useState, useRef } from 'react'
 import { Box, Grid, Typography, Tabs, Tab, CircularProgress } from '@mui/material'
-import { useDispatch, useSelector } from 'react-redux'
 import { useRouter } from 'next/router'
-import { fetchMedia, setParams } from 'src/store/slices/housing/mediaSlice'
+import { useInView } from 'react-intersection-observer'
+import debounce from 'lodash/debounce'
+
 import Search from 'src/views/utility/Search'
-import ListingHeader from 'src/views/pages/housing/utils/ListingHeader'
-import { ExportButton } from 'src/views/utility/render-snippets'
-import { debounce } from 'lodash'
-import useInfiniteScroll from 'src/hooks/useInfiniteScroll'
 import MediaCard from 'src/views/utility/MediaCard'
+import { getAllMedia, getMediaList } from 'src/lib/api/housing' // Replace with your actual API function
+import { useInfiniteQuery } from '@tanstack/react-query'
 
 const MediaListing = () => {
   const [activeTab, setActiveTab] = useState('image')
-  const { list: media, total, loading, page, pageSize, search } = useSelector(state => state.media)
-  const dispatch = useDispatch()
-  const router = useRouter()
-  const { id } = router.query
+  const [localSearch, setLocalSearch] = useState('')
+  const [search, setSearch] = useState('')
+  const { id } = useRouter().query
 
-  const hasMore = media.length < total
+  const { ref: loaderRef, inView } = useInView({ threshold: 0 })
 
-  const onLoadMore = () => {
-    if (!loading && hasMore) {
-      dispatch(setParams({ page: page + 1 }))
-    }
-  }
+  const PAGE_SIZE = 10
 
-  const loaderRef = useInfiniteScroll(onLoadMore, loading, hasMore)
+  // Debounce search input
+  const debouncedSearch = useMemo(() => debounce(setSearch, 500), [])
 
   useEffect(() => {
-    if (!id) return
+    return () => {
+      debouncedSearch.cancel()
+    }
+  }, [debouncedSearch])
 
-    const handler = () =>
-      dispatch(
-        fetchMedia({
-          ref_id: id,
-          ref_type: 'site',
-          filter_type: activeTab,
-          page,
-          pageSize,
-          search
-        })
-      )
+  const { data, fetchNextPage, hasNextPage, isFetching, isFetchingNextPage, refetch, remove } = useInfiniteQuery({
+    queryKey: ['media', id, activeTab, search],
+    queryFn: async ({ pageParam = 1 }) => {
+      const res = await getAllMedia({
+        ref_id: id,
+        ref_type: 'site',
+        filter_type: activeTab,
+        page_no: pageParam,
+        limit: PAGE_SIZE,
+        q: search
+      })
 
-    handler()
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dispatch, id, activeTab, page, pageSize])
+      return {
+        result: res?.data?.result || [],
+        nextPage: res?.data?.result?.length === PAGE_SIZE ? pageParam + 1 : undefined,
+        total: res?.data?.total_count || 0
+      }
+    },
+    getNextPageParam: lastPage => lastPage.nextPage,
+    enabled: !!id
+  })
 
-  const handleTabChange = (event, newValue) => {
-    console.log('newValue', newValue)
+  // Clean up on tab/search change
+  // useEffect(() => {
+  //   return () => remove()
+  // }, [activeTab, search, remove])
 
+  const media = useMemo(() => data?.pages.flatMap(page => page.result) || [], [data])
+  const total = useMemo(() => data?.pages?.[0]?.total || 0, [data])
+
+  const cooldownRef = useRef(false)
+
+  const loadMore = useCallback(() => {
+    if (cooldownRef.current || !hasNextPage || isFetchingNextPage) return
+    cooldownRef.current = true
+    fetchNextPage().finally(() => {
+      setTimeout(() => {
+        cooldownRef.current = false
+      }, 300)
+    })
+  }, [fetchNextPage, isFetchingNextPage, hasNextPage])
+
+  useEffect(() => {
+    if (inView) loadMore()
+  }, [inView, loadMore])
+
+  const handleTabChange = (_, newValue) => {
     setActiveTab(newValue)
-    dispatch(setParams({ page: 1, list: [] }))
+    setSearch('')
+    setLocalSearch('')
   }
 
-  // Debounced search handler (to avoid too many dispatches)
-  const debouncedSearch = useCallback(
-    debounce(value => {
-      dispatch(setParams({ search: value, page: 1, list: [] }))
-    }, 500),
-    [dispatch]
-  )
-
-  // Call debounced search on input change
-  const handleSearch = value => {
+  const handleSearchChange = e => {
+    const value = e.target.value
+    setLocalSearch(value)
     debouncedSearch(value)
   }
 
-  // useInfiniteScroll({
-  //   targetRef: loaderRef,
-  //   onIntersect: () => {
-  //     if (!loading && hasMore) {
-  //       dispatch(setParams({ page: page + 1 }))
-  //     }
-  //   },
-  //   enabled: hasMore
-  // })
+  const handleSearchClear = () => {
+    setLocalSearch('')
+    debouncedSearch('')
+  }
 
-  const getTabLabel = (tabKey, label) => {
-    if (activeTab !== tabKey) return label
+  const getTabLabel = (key, label) => {
+    if (activeTab !== key) return label
+    if (isFetching && !data) return label
 
-    if (loading) return label
-
-    return total > 0 ? `${label} (${total})` : label
+    return total ? `${label} (${total})` : label
   }
 
   return (
@@ -94,19 +108,16 @@ const MediaListing = () => {
         </Tabs>
       </Box>
 
-      {/* <ListingHeader title='Media Library' totalCount={total} /> */}
+      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 4, mt: 2 }}>
+        <Search
+          value={localSearch}
+          onChange={handleSearchChange}
+          onClear={handleSearchClear}
+          placeholder='Search media…'
+        />
+      </Box>
 
-      {/* <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 4, mt: 2 }}>
-          <Search
-            value={search}
-            onChange={e => handleSearch(e.target.value)}
-            onClear={() => handleSearch('')}
-            placeholder='Search media…'
-          />
-          <ExportButton loading={false} onClick={() => {}} />
-        </Box> */}
-
-      <Box p={2} sx={{ p: 2, mt: 4 }}>
+      <Box sx={{ mt: 6 }}>
         <Grid container spacing={6}>
           {media.map(file => (
             <Grid item xs={12} sm={6} md={4} lg={3} key={file.id}>
@@ -115,20 +126,26 @@ const MediaListing = () => {
           ))}
         </Grid>
 
-        {!loading && media.length === 0 && (
-          <Typography variant='body2' align='center' sx={{ mt: 6 }}>
+        {isFetching && media.length === 0 && (
+          <Box display='flex' justifyContent='center' p={2}>
+            <CircularProgress />
+          </Box>
+        )}
+
+        {media.length === 0 && !isFetching && (
+          <Typography align='center' sx={{ mt: 6 }}>
             No media found.
           </Typography>
         )}
 
-        {hasMore && (
+        {(isFetchingNextPage || hasNextPage) && media.length > 0 && (
           <Box ref={loaderRef} display='flex' justifyContent='center' p={2}>
             <CircularProgress />
           </Box>
         )}
 
-        {!loading && !hasMore && media.length > 0 && (
-          <Typography variant='body2' align='center' sx={{ mt: 6 }}>
+        {!hasNextPage && media.length > 0 && (
+          <Typography align='center' sx={{ mt: 6, color: 'text.disabled' }}>
             No more media files to load.
           </Typography>
         )}
@@ -137,4 +154,4 @@ const MediaListing = () => {
   )
 }
 
-export default MediaListing
+export default React.memo(MediaListing)

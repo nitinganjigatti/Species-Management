@@ -193,9 +193,13 @@ const Listing = () => {
             e.stopPropagation()
             setDrawerType('species')
             setDrawerData({
+              queryKey: 'site-species-drawer',
               id: params.row.site_id,
               name: params.row.site_name,
-              image: params.row.images?.[0]?.file
+              image: params.row.images?.[0]?.file,
+              params: {
+                site_id: params.row.site_id
+              }
             })
           }}
         >
@@ -216,9 +220,13 @@ const Listing = () => {
             e.stopPropagation()
             setDrawerType('animals')
             setDrawerData({
+              queryKey: 'site-animals-drawer',
               id: params.row.site_id,
               name: params.row.site_name,
-              image: params.row.images?.[0]?.file
+              image: params.row.images?.[0]?.file,
+              params: {
+                site_id: params.row.site_id
+              }
             })
           }}
         >
@@ -257,9 +265,13 @@ const Listing = () => {
             e.stopPropagation()
             setDrawerType('sections')
             setDrawerData({
+              queryKey: 'site-sections-drawer',
               id: params.row?.site_id,
               name: params.row?.site_name,
-              image: params.row?.images?.[0]?.file
+              image: params.row?.images?.[0]?.file,
+              params: {
+                site_id: params.row?.site_id
+              }
             })
           }}
         >

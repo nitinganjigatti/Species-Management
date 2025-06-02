@@ -38,10 +38,10 @@ const SectionsDrawer = ({ open, onClose, data }) => {
     isFetchingNextPage,
     remove
   } = useInfiniteQuery({
-    queryKey: ['sections', data?.id, search, open],
+    queryKey: [data?.queryKey, data?.id, search, open],
     queryFn: async ({ pageParam = 1 }) => {
       const res = await getAllSections({
-        site_id: data?.id,
+        ...data?.params,
         page_no: pageParam,
         limit: PAGE_SIZE,
         q: search
@@ -54,7 +54,7 @@ const SectionsDrawer = ({ open, onClose, data }) => {
       }
     },
     getNextPageParam: lastPage => lastPage.nextPage,
-    enabled: open && !!data?.id
+    enabled: Boolean(open && !!data?.id && data?.queryKey)
   })
 
   // Reset local state on open
@@ -67,7 +67,7 @@ const SectionsDrawer = ({ open, onClose, data }) => {
 
   useEffect(() => {
     if (!open) {
-      queryClient.cancelQueries({ queryKey: ['sections', data?.id, search, open] })
+      queryClient.cancelQueries({ queryKey: [data?.queryKey, data?.id, search, open] })
       remove()
       cooldownRef.current = false // reset cooldown on close
     }
@@ -154,6 +154,7 @@ const SectionsDrawer = ({ open, onClose, data }) => {
           value={localSearch}
           onChange={handleSearchChange}
           onClear={handleSearchClear}
+          backgroundColor={theme.palette.common.white}
         />
       </Box>
 
