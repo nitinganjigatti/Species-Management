@@ -11,7 +11,7 @@ const Sites = () => {
   const router = useRouter()
 
   const auth = useAuth()
-  const zooId = auth?.userData?.user?.zoos[0]?.zoo_id
+  const zooId = auth?.userData?.user?.zoos?.[0]?.zoo_id
 
   const { data, isLoading, error } = useQuery({
     queryKey: ['site-insights', zooId],
@@ -26,7 +26,7 @@ const Sites = () => {
   const statsData = [
     {
       label: 'Species',
-      value: data?.data?.zoo_stats?.total_sections || 0,
+      value: data?.data?.zoo_stats?.total_species || 0,
       imagePath: '/images/housing/species.svg',
       onClick: () => console.log('Species')
     },
@@ -38,7 +38,7 @@ const Sites = () => {
     },
     {
       label: 'Sections',
-      value: data?.data?.zoo_stats?.total_species || 0,
+      value: data?.data?.zoo_stats?.total_sections || 0,
       imagePath: '/images/housing/sections.svg',
       onClick: () => console.log('Sections')
     },

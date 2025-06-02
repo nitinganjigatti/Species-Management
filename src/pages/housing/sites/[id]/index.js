@@ -54,6 +54,34 @@ const SiteDetails = () => {
     setSelectedTab(newValue)
   }
 
+  const statsData = [
+    {
+      label: 'Species',
+      value: data?.data?.species_count || 0,
+      imagePath: '/images/housing/species.svg',
+      onClick: () => setSelectedTab('species')
+    },
+    {
+      label: 'Animals',
+      value: data?.data?.animal_count || 0,
+      imagePath: '/images/housing/animals.svg',
+      onClick: () => console.log('animals')
+    },
+    {
+      label: 'Sections',
+      value: data?.data?.section_count || 0,
+      imagePath: '/images/housing/sections.svg',
+      onClick: () => setSelectedTab('sections')
+    },
+
+    {
+      label: 'Enclosures',
+      value: data?.data?.enclosure_count || 0,
+      imagePath: '/images/housing/enclosures.svg',
+      onClick: () => console.log('enclosures')
+    }
+  ]
+
   const handleHousingClick = () => {
     router.push('/housing/sites')
   }
@@ -80,12 +108,6 @@ const SiteDetails = () => {
         description={data?.data?.incharges?.[0]?.full_name}
         userName={data?.data?.incharges?.[0]?.role_name}
         userImage={data?.data?.incharges?.[0]?.user_profile_pic}
-        // actions={{
-        //   onEdit: () => console.log('Edit'),
-        //   onDelete: () => console.log('Delete'),
-        //   onAddNew: () => console.log('Add new'),
-        //   onTimeClick: () => console.log('Time clicked')
-        // }}
         onCallClick={() => {
           const phoneNumber = data?.data?.incharges?.[0]?.user_mobile_number || '' // Adjust path as needed
           if (phoneNumber) {
@@ -96,16 +118,7 @@ const SiteDetails = () => {
         }}
         // onMessageClick={() => console.log('Message clicked')}
         error={error}
-        speciesCount={data?.data?.species_count || 0}
-        animalCount={data?.data?.animal_count || 0}
-        enclosuresCount={data?.data?.enclosure_count || 0}
-        sectionsCount={data?.data?.section_count || 0}
-        onInfoClick={{
-          species: () => setSelectedTab('species'),
-          animal: () => console.log('animal'),
-          enclosures: () => console.log('enclosures'),
-          sections: () => setSelectedTab('sections')
-        }}
+        statsData={statsData}
       />
 
       {/* Tabs */}
