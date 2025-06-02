@@ -41,7 +41,6 @@ const AnimalsDrawer = ({ open, onClose, data }) => {
   } = useInfiniteQuery({
     queryKey: [data?.queryKey, data?.id, search, open],
     queryFn: async ({ pageParam = 1 }) => {
-      debugger
       const res = await getAllAnimalList({
         ...data?.params,
         page_no: pageParam,
@@ -134,16 +133,13 @@ const AnimalsDrawer = ({ open, onClose, data }) => {
       >
         {data?.queryKey === 'cluster-animals-drawer' ? (
           <>
-            
-              <SpeciesInnerCard
-               
-                completeName={data?.complete_name}
-                imgUrl={data?.default_icon}
-                commonName={data?.common_name}
-                sex={data?.sex_data}
-                animalCount={data?.animal_count}
-              />
-            
+            <SpeciesInnerCard
+              completeName={data?.complete_name}
+              imgUrl={data?.default_icon}
+              commonName={data?.common_name}
+              sex={data?.sex_data}
+              animalCount={data?.animal_count}
+            />
           </>
         ) : (
           <CellInfo
