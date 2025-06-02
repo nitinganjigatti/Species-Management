@@ -3,13 +3,15 @@ import { Box, debounce, Grid, Typography } from '@mui/material'
 import { useQuery } from '@tanstack/react-query'
 import { useRouter } from 'next/router'
 import React, { useEffect, useMemo, useState } from 'react'
-import { getAllSites, getAllSpeciesList } from 'src/lib/api/housing'
+import { getAllAnimalList, getAllSites, getAllSpeciesList } from 'src/lib/api/housing'
 import RenderUtility, { CellInfo, GenderInfoCard } from 'src/utility/render'
+import AnimalCard from 'src/views/pages/housing/animals/AnimalCard'
 import ListingHeader from 'src/views/pages/housing/utils/ListingHeader'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import { ExportButton } from 'src/views/utility/render-snippets'
 import Search from 'src/views/utility/Search'
 import SpeciesCard from 'src/views/utility/SpeciesCard'
+import AnimalDrawer from '../utils/AnimalDrawer'
 
 const ClusterSpecies = () => {
   const router = useRouter()
@@ -18,6 +20,8 @@ const ClusterSpecies = () => {
 
   const [downloading, setDownloading] = useState(false)
   const [inputValue, setInputValue] = useState('')
+  const [openDrawer, setOpenDrawer] = useState(false)
+  const [drawerData, setDrawerData] = useState(null)
 
   const [filters, setFilters] = useState({
     page: 1,
@@ -137,9 +141,20 @@ const ClusterSpecies = () => {
   }
 
   const handleRowClick = params => {
-    router.push({
-      pathname: `/housing/sites/${params.row.tsn_id}`
+    debugger
+    setOpenDrawer(true)
+    setDrawerData({
+      queryKey: 'cluster-animals-drawer',
+      params: {
+        id: id,
+        taxonomy_id: params.row.tsn_id
+      }
     })
+  }
+
+  const handleClose = () => {
+    setOpenDrawer(false)
+    setDrawerData(null)
   }
 
   const columns = [
@@ -292,6 +307,7 @@ const ClusterSpecies = () => {
           />
         </Grid>
       </Box>
+      {openDrawer && <AnimalDrawer open={openDrawer} drawerData={drawerData} onClose={handleClose} />}
     </>
   )
 }

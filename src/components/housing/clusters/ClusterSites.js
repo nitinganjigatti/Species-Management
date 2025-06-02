@@ -136,9 +136,13 @@ const ClusterSites = () => {
   }
 
   const handleRowClick = params => {
-    router.push({
-      pathname: `/housing/sites/${params.row.site_id}`
-    })
+    const detailUrl = {
+      pathname: `/housing/sites/${params.row.site_id}`,
+      query: {
+        ...filters
+      }
+    }
+    router.push(detailUrl)
   }
 
   const columns = [

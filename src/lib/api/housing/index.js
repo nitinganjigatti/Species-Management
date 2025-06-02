@@ -21,7 +21,6 @@ export async function getSiteAnalytics(id) {
 }
 
 export async function getAllSites(params) {
-
   const response = await axiosGet({ url: `${GET_SITES}`, params })
 
   return response.data
@@ -70,6 +69,7 @@ export async function getAnimalTreatmentList(params) {
 }
 
 export async function getAllAnimalList(params) {
+  debugger
   const response = await axiosGet({ url: `${GET_ANIMAL}`, params })
 
   return response.data

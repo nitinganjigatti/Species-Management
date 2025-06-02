@@ -12,6 +12,7 @@ import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query'
 import AnimalCard from 'src/views/pages/housing/animals/AnimalCard'
 
 const AnimalsDrawer = ({ open, onClose, data }) => {
+  debugger
   const theme = useTheme()
   const queryClient = useQueryClient()
 
@@ -40,6 +41,7 @@ const AnimalsDrawer = ({ open, onClose, data }) => {
   } = useInfiniteQuery({
     queryKey: [data?.queryKey, data?.id, search, open],
     queryFn: async ({ pageParam = 1 }) => {
+      debugger
       const res = await getAllAnimalList({
         ...data?.params,
         page_no: pageParam,

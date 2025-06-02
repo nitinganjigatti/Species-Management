@@ -357,7 +357,7 @@ const Listing = () => {
             pageSizeOptions={[10]}
             paginationModel={{ page: filters.page - 1, pageSize: filters.pageSize }}
             setPaginationModel={handlePaginationModelChange}
-            handleSortModel={handleSortModelChange}
+            handleSortModel={handleSortModelChange} 
             loading={isFetching}
             searchValue=''
             maxHeight='80vh'
