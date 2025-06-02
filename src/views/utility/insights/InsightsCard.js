@@ -18,17 +18,13 @@ const InsightsCard = ({
   actions = {},
   onCallClick,
   onMessageClick,
-  onInfoClick = {},
   zooName,
   subtitle,
   userName,
   description,
   userImage,
   image = '/images/housing/testInDev.jpg',
-  speciesCount,
-  animalCount,
-  sectionsCount,
-  enclosuresCount
+  statsData = []
 }) => {
   const theme = useTheme()
 
@@ -145,52 +141,59 @@ const InsightsCard = ({
           </Box>
         )}
 
-        <Box
-          sx={{
-            mt: 10,
-            p: { xs: 1.5, sm: 2 },
-            border: `1px solid ${alpha(theme.palette.common.white, 0.2)}`,
-            borderRadius: 1,
-            backgroundColor: alpha(theme.palette.common.black, 0.3),
-            backdropFilter: 'blur(0.5rem)',
-            WebkitBackdropFilter: 'blur(0.5rem)'
-          }}
-        >
-          <Grid container spacing={3}>
-            <Grid item xs={12} sm={6} md={3}>
-              <InfoStatCard
-                imagePath={'/images/housing/species.svg'}
-                value={speciesCount}
-                label='Species'
-                onClick={onInfoClick?.species}
-              />
+        {Array.isArray(statsData) && statsData.length > 0 && (
+          <Box
+            sx={{
+              mt: 10,
+              p: { xs: 1.5, sm: 2 },
+              border: `1px solid ${alpha(theme.palette.common.white, 0.2)}`,
+              borderRadius: 1,
+              backgroundColor: alpha(theme.palette.common.black, 0.3),
+              backdropFilter: 'blur(0.5rem)',
+              WebkitBackdropFilter: 'blur(0.5rem)'
+            }}
+          >
+            <Grid container spacing={3} justifyContent={statsData.length < 4 ? 'center' : 'flex-start'}>
+              {statsData.map((item, index) => (
+                <Grid
+                  item
+                  xs={12}
+                  sm={statsData.length === 1 ? 6 : 12 / Math.min(2, statsData.length)}
+                  md={statsData.length === 4 ? 3 : 12 / statsData.length}
+                  key={index}
+                  display='flex'
+                  justifyContent={statsData.length < 4 ? 'center' : 'flex-start'}
+                >
+                  <InfoStatCard
+                    imagePath={item.imagePath}
+                    value={item.value}
+                    label={item.label}
+                    onClick={item.onClick}
+                  />
+                </Grid>
+              ))}
             </Grid>
-            <Grid item xs={12} sm={6} md={3}>
-              <InfoStatCard
-                imagePath={'/images/housing/animals.svg'}
-                value={animalCount}
-                label='Animals'
-                onClick={onInfoClick?.animals}
-              />
-            </Grid>
-            <Grid item xs={12} sm={6} md={3}>
-              <InfoStatCard
-                imagePath={'/images/housing/sections.svg'}
-                value={sectionsCount}
-                label='Sections'
-                onClick={onInfoClick?.sections}
-              />
-            </Grid>
-            <Grid item xs={12} sm={6} md={3}>
-              <InfoStatCard
-                imagePath={'/images/housing/enclosures.svg'}
-                value={enclosuresCount}
-                label='Enclosures'
-                onClick={onInfoClick?.enclosures}
-              />
-            </Grid>
-          </Grid>
-        </Box>
+
+            {/* <Grid container spacing={3}>
+              {statsData?.map((item, index) => (
+                <Grid
+                  item
+                  xs={12}
+                  sm={12 / Math.min(2, statsData.length)}
+                  md={12 / Math.min(4, statsData.length)}
+                  key={index}
+                >
+                  <InfoStatCard
+                    imagePath={item.imagePath}
+                    value={item.value}
+                    label={item.label}
+                    onClick={item.onClick}
+                  />
+                </Grid>
+              ))}
+            </Grid> */}
+          </Box>
+        )}
       </Box>
     </Box>
   )

@@ -4,36 +4,25 @@ import React, { useEffect, useState } from 'react'
 import InsightsCard from 'src/views/utility/insights/InsightsCard'
 
 // Listing Components
-import SectionListing from 'src/components/housing/sectionListing'
-import NotesListng from 'src/components/housing/notesListng'
-import SpeciesListing from 'src/components/housing/speciesListing'
-import MortalityListing from 'src/components/housing/mortalityListing'
-import AnimalTreatmentListing from 'src/components/housing/AnimalTreatmentListing'
-import MediaListing from 'src/components/housing/MediaListing'
+import SectionListing from 'src/components/housing/sites/sectionListing'
+import SpeciesListing from 'src/components/housing/sites/speciesListing'
+import MortalityListing from 'src/components/housing/sites/mortalityListing'
+import AnimalTreatmentListing from 'src/components/housing/sites/AnimalTreatmentListing'
+import MediaListing from 'src/components/housing/sites/MediaListing'
 
-// Reset actions
-import { clearSection as resetSectionState } from 'src/store/slices/housing/sectionSlice'
-import { clearNotes as resetNotesState } from 'src/store/slices/housing/notesSlice'
-import { clearSpecies as resetSpeciesState } from 'src/store/slices/housing/speciesSlice'
-import { clearMedia as resetMediaState } from 'src/store/slices/housing/mediaSlice'
-import { clearMortality as resetMortalityState } from 'src/store/slices/housing/mortalitySlice'
-import { clearAnimalTreatment as resetAnimalTreatmentState } from 'src/store/slices/housing/mortalitySlice'
 import { useQuery } from '@tanstack/react-query'
 import { getSpecificSiteAnalytics } from 'src/lib/api/housing'
 
 const tabConfig = [
-  { label: 'Sections', value: 'sections', component: SectionListing, resetAction: resetSectionState },
-  { label: 'Species', value: 'species', component: SpeciesListing, resetAction: resetSpeciesState },
-  { label: 'Media', value: 'media', component: MediaListing, resetAction: resetMediaState },
-  { label: 'Mortality', value: 'mortality', component: MortalityListing, resetAction: resetMortalityState },
+  { label: 'Sections', value: 'sections', component: SectionListing },
+  { label: 'Species', value: 'species', component: SpeciesListing },
+  { label: 'Media', value: 'media', component: MediaListing },
+  { label: 'Mortality', value: 'mortality', component: MortalityListing },
   {
     label: 'Animals Under Treatment',
     value: 'animalTreatment',
-    component: AnimalTreatmentListing,
-    resetAction: resetAnimalTreatmentState
+    component: AnimalTreatmentListing
   }
-
-  // { label: 'Notes', value: 'notes', component: NotesListng, resetAction: resetNotesState },
 ]
 
 const SiteDetails = () => {

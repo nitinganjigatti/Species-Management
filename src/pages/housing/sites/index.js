@@ -1,8 +1,8 @@
 import { Box, Breadcrumbs, Card, Typography } from '@mui/material'
 import { useRouter } from 'next/router'
-import React, { useEffect } from 'react'
+import React from 'react'
 import { useAuth } from 'src/hooks/useAuth'
-import SiteListing from 'src/components/housing/SiteListing'
+import SiteListing from 'src/components/housing/sites/SiteListing'
 import InsightsCard from 'src/views/utility/insights/InsightsCard'
 import { getSiteAnalytics } from 'src/lib/api/housing'
 import { useQuery } from '@tanstack/react-query'
@@ -22,6 +22,34 @@ const Sites = () => {
   const handleHousingClick = () => {
     // router.push('/housing')
   }
+
+  const statsData = [
+    {
+      label: 'Species',
+      value: data?.data?.zoo_stats?.total_sections || 0,
+      imagePath: '/images/housing/species.svg',
+      onClick: () => console.log('Species')
+    },
+    {
+      label: 'Animals',
+      value: data?.data?.zoo_stats?.total_animals || 0,
+      imagePath: '/images/housing/animals.svg',
+      onClick: () => console.log('Animals')
+    },
+    {
+      label: 'Sections',
+      value: data?.data?.zoo_stats?.total_species || 0,
+      imagePath: '/images/housing/sections.svg',
+      onClick: () => console.log('Sections')
+    },
+
+    {
+      label: 'Enclosures',
+      value: data?.data?.zoo_stats?.total_enclosures || 0,
+      imagePath: '/images/housing/enclosures.svg',
+      onClick: () => console.log('Enclosures')
+    }
+  ]
 
   return (
     <Box>
@@ -58,12 +86,7 @@ const Sites = () => {
           }}
           onCallClick={() => console.log('Call clicked')}
           onMessageClick={() => console.log('Message clicked')}
-          onInfoClick={{
-            species: () => console.log('Species clicked'), 
-            animals: () => console.log('Animals clicked'),
-            sections: () => console.log('Sections clicked'),
-            enclosures: () => console.log('Enclosures clicked')
-          }}
+          statasData={statsData}
         /> */}
         <InsightsCard
           data={data?.data}
@@ -72,10 +95,7 @@ const Sites = () => {
           isListingPage
           error={error}
           isAllSites
-          sectionsCount={data?.data?.zoo_stats?.total_sections}
-          animalCount={data?.data?.zoo_stats?.total_animals}
-          speciesCount={data?.data?.zoo_stats?.total_species}
-          enclosuresCount={data?.data?.zoo_stats?.total_enclosures}
+          statsData={statsData}
         />
         <Box sx={{ mt: 6 }}>
           <Card sx={{ p: { xs: 3, md: 5 } }}>
