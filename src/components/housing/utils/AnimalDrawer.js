@@ -13,7 +13,6 @@ import AnimalCard from 'src/views/pages/housing/animals/AnimalCard'
 import SpeciesInnerCard from 'src/views/pages/housing/species/SpeciesInnerCard'
 
 const AnimalsDrawer = ({ open, onClose, data }) => {
-  debugger
   const theme = useTheme()
   const queryClient = useQueryClient()
 
