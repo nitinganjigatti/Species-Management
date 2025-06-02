@@ -40,7 +40,8 @@ const composeHousingNavigation = () => {
   housingParent.children.push(dashboard)
   housingParent.children.push(sites)
   housingParent.children.push(clusters)
-  housingParent.children.push(sections)
+
+  // housingParent.children.push(sections)
 
   const housingNavigationArray = []
 
