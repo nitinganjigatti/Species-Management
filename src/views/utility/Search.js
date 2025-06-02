@@ -53,6 +53,9 @@ const Search = ({
         sx={{
           width: width,
           ...textFielsSX,
+          '& .MuiBox-root': {
+            backgroundColor: 'transparent'
+          },
           '& .MuiInputBase-root': {
             backgroundColor: backgroundColor || 'transparent',
             borderRadius: borderRadius || '8px',
