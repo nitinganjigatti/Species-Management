@@ -273,7 +273,7 @@ const SpeciesListing = () => {
         </Grid>
       </Box>
 
-      {openDrawer && <SpeciesDrawer open={openDrawer} onClose={handleClose} specieName={specieName} />}
+      {/* {openDrawer && <SpeciesDrawer open={openDrawer} onClose={handleClose} specieName={specieName} />} */}
     </>
   )
 }
