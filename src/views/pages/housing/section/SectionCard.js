@@ -27,13 +27,16 @@ const SectionCard = ({ section }) => {
         padding: 4,
         width: '100%',
         display: 'flex',
-        alignItems: 'center',
         borderRadius: '8px',
         flexDirection: 'column',
         gap: 4
       }}
     >
-      <CellInfo value={section?.section_name} imgUrl={section?.images[0]?.file} inchagename={section?.incharge_name} />
+      <CellInfo
+        value={section?.section_name}
+        imgUrl={section?.images[0]?.file}
+        inchagename={section?.incharge_name || ''}
+      />
 
       <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
         <Stat label='Species' value={section.species_count} />

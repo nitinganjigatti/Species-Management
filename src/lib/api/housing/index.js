@@ -1,3 +1,4 @@
+import axios from 'axios'
 import { axiosGet } from '../utility'
 import {
   GET_ALL_SECTIONS,
@@ -11,7 +12,8 @@ import {
   GET_MEDIA,
   GET_ANIMAL,
   GET_CLUSTERS_LIST,
-  GET_SPECIFIC_CLUSTER_ANALYTICS
+  GET_SPECIFIC_CLUSTER_ANALYTICS,
+  GET_ENCLOSURE_LIST_SECTION_WISE
 } from 'src/constants/ApiConstant'
 
 export async function getSiteAnalytics(id) {
@@ -83,6 +85,12 @@ export async function getClusterList(params) {
 
 export async function getSpecificClusterAnalytics(params) {
   const response = await axiosGet({ url: `${GET_SPECIFIC_CLUSTER_ANALYTICS}`, params })
+
+  return response.data
+}
+
+export async function getEnclosureListSectionWise(params) {
+  const response = await axiosGet({ url: `${GET_ENCLOSURE_LIST_SECTION_WISE}`, params })
 
   return response.data
 }
