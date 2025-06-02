@@ -74,10 +74,8 @@ const SectionDetails = () => {
     }
   ]
 
-  const handleHousingClick = () => {
-    router.push('/housing/sites', {
-      ...router.query
-    })
+  const handleSectionListingClick = () => {
+    router.back()
   }
 
   const selected = tabConfig.find(tab => tab.value === selectedTab)
@@ -87,8 +85,8 @@ const SectionDetails = () => {
     <Box>
       {/* Breadcrumb */}
       <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
-        <Typography color='inherit' sx={{ cursor: 'pointer' }} onClick={handleHousingClick}>
-          section
+        <Typography color='inherit' sx={{ cursor: 'pointer' }} onClick={handleSectionListingClick}>
+          section Listing
         </Typography>
         <Typography color='text.primary'>Section Details</Typography>
       </Breadcrumbs>
@@ -102,6 +100,7 @@ const SectionDetails = () => {
         description={data?.data?.incharges?.[0]?.full_name}
         userName={data?.data?.incharges?.[0]?.role_name}
         userImage={data?.data?.incharges?.[0]?.user_profile_pic}
+
         // actions={{
         //   onEdit: () => console.log('Edit'),
         //   onDelete: () => console.log('Delete'),
@@ -116,8 +115,10 @@ const SectionDetails = () => {
             return
           }
         }}
+
         // onMessageClick={() => console.log('Message clicked')}
         error={error}
+
         // speciesCount={data?.data?.species_count || 0}
         // animalCount={data?.data?.animal_count || 0}
         // enclosuresCount={data?.data?.enclosure_count || 0}

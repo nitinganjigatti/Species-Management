@@ -83,7 +83,7 @@ const SiteDetails = () => {
   ]
 
   const handleHousingClick = () => {
-    router.push('/housing/sites')
+    router.back()
   }
 
   const selected = tabConfig.find(tab => tab.value === selectedTab)
