@@ -73,9 +73,9 @@ const SectionDetails = () => {
         loading={isLoading}
         zooName={data?.data?.site_name}
         subtitle={data?.data?.site_description}
-        description={data?.data?.incharges[0]?.full_name}
-        userName={data?.data?.incharges[0]?.role_name}
-        userImage={data?.data?.incharges[0]?.user_profile_pic}
+        description={data?.data?.incharges?.[0]?.full_name}
+        userName={data?.data?.incharges?.[0]?.role_name}
+        userImage={data?.data?.incharges?.[0]?.user_profile_pic}
         // actions={{
         //   onEdit: () => console.log('Edit'),
         //   onDelete: () => console.log('Delete'),
