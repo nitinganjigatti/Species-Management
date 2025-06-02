@@ -1,32 +1,28 @@
-import React, { useEffect, useMemo, useState, useCallback } from 'react'
+import React, { useEffect, useMemo, useState, useCallback, useRef } from 'react'
 import { Typography, Box, CircularProgress } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import debounce from 'lodash/debounce'
+import { useInView } from 'react-intersection-observer'
 
 import CustomDrawer from '../../../views/pages/housing/utils/CustomDrawer'
-import SectionCard from '../../../views/pages/housing/section/SectionCard'
 import { CellInfo } from 'src/utility/render'
 import Search from 'src/views/utility/Search'
-import useInfiniteScroll from 'src/hooks/useInfiniteScroll'
 import { getAllSections } from 'src/lib/api/housing'
-import { useInfiniteQuery } from '@tanstack/react-query'
+import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query'
+import SectionCard from 'src/views/pages/housing/section/SectionCard'
 
 const SectionsDrawer = ({ open, onClose, data }) => {
   const theme = useTheme()
+  const queryClient = useQueryClient()
 
   const [localSearch, setLocalSearch] = useState('')
   const [search, setSearch] = useState('')
 
   const PAGE_SIZE = 10
 
-  // Debounced search handler
-  const debouncedSearch = useMemo(
-    () =>
-      debounce(value => {
-        setSearch(value)
-      }, 500),
-    []
-  )
+  const { ref: loaderRef, inView } = useInView({ threshold: 0 })
+
+  const debouncedSearch = useMemo(() => debounce(setSearch, 500), [])
 
   useEffect(() => {
     return () => {
@@ -42,7 +38,7 @@ const SectionsDrawer = ({ open, onClose, data }) => {
     isFetchingNextPage,
     remove
   } = useInfiniteQuery({
-    queryKey: ['sections', data?.id, search, open], // Include `open` to reset on re-open
+    queryKey: ['sections', data?.id, search, open],
     queryFn: async ({ pageParam = 1 }) => {
       const res = await getAllSections({
         site_id: data?.id,
@@ -69,24 +65,38 @@ const SectionsDrawer = ({ open, onClose, data }) => {
     }
   }, [open, data?.id])
 
-  // Clean up query data on drawer close
   useEffect(() => {
     if (!open) {
+      queryClient.cancelQueries({ queryKey: ['sections', data?.id, search, open] })
       remove()
+      cooldownRef.current = false // reset cooldown on close
     }
-  }, [open, remove])
+  }, [open, data?.id, search, queryClient, remove])
 
-  const list = useMemo(() => queryData?.pages?.flatMap(page => page.result) || [], [queryData])
-
+  const list = useMemo(() => queryData?.pages?.flatMap(page => page?.result) || [], [queryData])
   const total = useMemo(() => queryData?.pages?.[0]?.total || 0, [queryData])
 
+  // cooldownRef to prevent multiple rapid calls
+  const cooldownRef = useRef(false)
+
   const loadMore = useCallback(() => {
+    if (cooldownRef.current) return
     if (!isFetchingNextPage && hasNextPage) {
-      fetchNextPage()
+      cooldownRef.current = true
+      fetchNextPage().finally(() => {
+        // add 300ms cooldown before allowing next fetch
+        setTimeout(() => {
+          cooldownRef.current = false
+        }, 300)
+      })
     }
   }, [isFetchingNextPage, hasNextPage, fetchNextPage])
 
-  const loaderRef = useInfiniteScroll(loadMore, isFetchingNextPage, hasNextPage)
+  useEffect(() => {
+    if (inView) {
+      loadMore()
+    }
+  }, [inView, loadMore])
 
   const handleSearchChange = e => {
     const value = e.target.value
@@ -120,28 +130,36 @@ const SectionsDrawer = ({ open, onClose, data }) => {
           borderRadius: '8px'
         }}
       >
-        <CellInfo value={data?.name} imgUrl={data?.image} />
+        <CellInfo
+          value={data?.name}
+          imgUrl={data?.image}
+          color={theme.palette.customColors.OnSurfaceVariant}
+          subtitleColor={theme.palette.customColors.secondaryBg}
+        />
       </Box>
 
       <Typography sx={{ fontSize: '1.25rem', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}>
         Sections {total ? `(${total})` : ''}
       </Typography>
-
-      <Box sx={{ mt: 2, mb: 3 }}>
+      <Box sx={{ my: 2, backgroundColor: theme.palette.common.white }}>
         <Search
           sx={{ width: '100%' }}
-          textFielsSX={{ width: '100%', height: 52 }}
+          textFielsSX={{
+            width: '100%',
+            height: 52,
+            borderRadius: '8px',
+            backgroundColor: theme.palette.common.white
+          }}
           placeholder='Search for a section'
           value={localSearch}
           onChange={handleSearchChange}
           onClear={handleSearchClear}
-          backgroundColor={theme.palette.common.white}
         />
       </Box>
 
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4, pb: 4 }}>
         {list.map(section => (
-          <Box key={section.id}>
+          <Box key={section?.section_id}>
             <SectionCard section={section} />
           </Box>
         ))}

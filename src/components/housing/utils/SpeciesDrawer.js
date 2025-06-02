@@ -1,79 +1,113 @@
-import CustomDrawer from '../../../views/pages/housing/utils/CustomDrawer'
-import { Typography, Divider, CircularProgress } from '@mui/material'
-
-// import SectionCard from './SectionCard'
+import React, { useEffect, useMemo, useState, useCallback, useRef } from 'react'
+import { Typography, Box, CircularProgress } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
-import { CellInfo } from 'src/utility/render'
-import { Box, height, width } from '@mui/system'
-import Search from 'src/views/utility/Search'
-import SpeciesCard from '../../../views/pages/housing/species/HousingSpeciesCard'
-import { useDispatch, useSelector } from 'react-redux'
-import {
-  fetchSpeciesPages,
-  resetSpeciesInfiniteScroll,
-  updateSpeciesSearch
-} from 'src/store/slices/housing/speciesInfiniteScrollSlice'
 import debounce from 'lodash/debounce'
-import { useCallback, useEffect, useMemo, useState } from 'react'
-import useInfiniteScroll from 'src/hooks/useInfiniteScroll'
-import HousingSpeciesCard from '../../../views/pages/housing/species/HousingSpeciesCard'
+import { useInView } from 'react-intersection-observer'
+
+import CustomDrawer from '../../../views/pages/housing/utils/CustomDrawer'
+import { CellInfo } from 'src/utility/render'
+import Search from 'src/views/utility/Search'
+import { getAllSpeciesList } from 'src/lib/api/housing'
+import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query'
+import HousingSpeciesCard from 'src/views/pages/housing/species/HousingSpeciesCard'
 
 const SpeciesDrawer = ({ open, onClose, data }) => {
   const theme = useTheme()
+  const queryClient = useQueryClient()
 
-  const dispatch = useDispatch()
+  const [localSearch, setLocalSearch] = useState('')
+  const [search, setSearch] = useState('')
 
-  const { list = [], loading, hasMore, search, total } = useSelector(state => state.speciesInfiniteScroll || {})
+  const PAGE_SIZE = 10
 
-  const [localSearch, setLocalSearch] = useState(search || '')
+  const { ref: loaderRef, inView } = useInView({ threshold: 0 })
 
-  // Sync search value into local input when drawer opens
-  useEffect(() => {
-    if (open) setLocalSearch(search || '')
-  }, [open, search])
-
-  // Load more on scroll
-  const loadMore = useCallback(() => {
-    if (!loading && hasMore) {
-      dispatch(fetchSpeciesPages({ site_id: data.id })) 
-    }
-  }, [dispatch, data.id, loading, hasMore])
-
-  const loaderRef = useInfiniteScroll(loadMore, loading, hasMore)
-
-  // Reset and fetch when drawer opens
-  useEffect(() => {
-    if (open) {
-      dispatch(resetSpeciesInfiniteScroll())
-      dispatch(fetchSpeciesPages({ site_id: data.id }))
-    }
-  }, [open, data.id, dispatch])
-
-  // Debounced handler that updates search and fetches
-  const debouncedUpdate = useMemo(
-    () =>
-      debounce(value => {
-        dispatch(updateSpeciesSearch(value))
-        dispatch(fetchSpeciesPages({ site_id: data.id }))
-      }, 500),
-    [dispatch, data.id]
-  )
+  const debouncedSearch = useMemo(() => debounce(setSearch, 500), [])
 
   useEffect(() => {
     return () => {
-      debouncedUpdate.cancel()
+      debouncedSearch.cancel()
     }
-  }, [debouncedUpdate])
+  }, [debouncedSearch])
+
+  const {
+    data: queryData,
+    fetchNextPage,
+    hasNextPage,
+    isFetching,
+    isFetchingNextPage,
+    remove
+  } = useInfiniteQuery({
+    queryKey: ['species-drawer', data?.id, search, open],
+    queryFn: async ({ pageParam = 1 }) => {
+      const res = await getAllSpeciesList({
+        site_id: data?.id,
+        page_no: pageParam,
+        limit: PAGE_SIZE,
+        q: search
+      })
+
+      return {
+        result: res?.data?.listing || [],
+        nextPage: res?.data?.listing?.length === PAGE_SIZE ? pageParam + 1 : undefined,
+        total: res?.data?.total_scies_count || 0
+      }
+    },
+    getNextPageParam: lastPage => lastPage.nextPage,
+    enabled: open && !!data?.id,
+    staleTime: 5 * 60 * 1000
+  })
+
+  // Reset local state on open
+  useEffect(() => {
+    if (open) {
+      setLocalSearch('')
+      setSearch('')
+    }
+  }, [open, data?.id])
+
+  useEffect(() => {
+    if (!open) {
+      queryClient.cancelQueries({ queryKey: ['species-drawer', data?.id, search] })
+      remove()
+      cooldownRef.current = false // reset cooldown on close
+    }
+  }, [open, data?.id, search, queryClient, remove])
+
+  const list = useMemo(() => queryData?.pages?.flatMap(page => page?.result) || [], [queryData])
+  const total = useMemo(() => queryData?.pages?.[0]?.total || 0, [queryData])
+
+  // cooldownRef to prevent multiple rapid calls
+  const cooldownRef = useRef(false)
+
+  const loadMore = useCallback(() => {
+    if (cooldownRef.current) return
+    if (!isFetchingNextPage && hasNextPage) {
+      cooldownRef.current = true
+      fetchNextPage().finally(() => {
+        // add 300ms cooldown before allowing next fetch
+        setTimeout(() => {
+          cooldownRef.current = false
+        }, 300)
+      })
+    }
+  }, [isFetchingNextPage, hasNextPage, fetchNextPage])
+
+  useEffect(() => {
+    if (inView) {
+      loadMore()
+    }
+  }, [inView, loadMore])
 
   const handleSearchChange = e => {
     const value = e.target.value
     setLocalSearch(value)
-    debouncedUpdate(value)
+    debouncedSearch(value)
   }
 
   const handleSearchClear = () => {
     setLocalSearch('')
-    debouncedUpdate('')
+    debouncedSearch('')
   }
 
   return (
@@ -88,7 +122,8 @@ const SpeciesDrawer = ({ open, onClose, data }) => {
         sx={{
           border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
           backgroundColor: theme.palette.common.white,
-          padding: '12px',
+          paddingX: 4,
+          paddingY: 3,
           marginY: 6,
           width: '100%',
           display: 'flex',
@@ -104,7 +139,7 @@ const SpeciesDrawer = ({ open, onClose, data }) => {
         />
       </Box>
 
-      <Typography sx={{ fontSize: '20px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}>
+      <Typography sx={{ fontSize: '1.25rem', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}>
         Species {total ? `(${total})` : ''}
       </Typography>
       <Box sx={{ my: 2, backgroundColor: theme.palette.common.white }}>
@@ -123,7 +158,7 @@ const SpeciesDrawer = ({ open, onClose, data }) => {
         />
       </Box>
 
-      <Box sx={{ mt: 5, display: 'flex', flexDirection: 'column', gap: 3 }}>
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4, pb: 4 }}>
         {list.map(species => (
           <HousingSpeciesCard
             key={species.id}
@@ -131,19 +166,27 @@ const SpeciesDrawer = ({ open, onClose, data }) => {
             textColor={theme.palette.customColors.OnSurfaceVariant}
           />
         ))}
-        {(loading || hasMore) && (
-          <Box ref={loaderRef} display='flex' justifyContent='center' p={2} mt={2}>
-            {loading && <CircularProgress />}
+
+        {isFetching && list.length === 0 && (
+          <Box display='flex' justifyContent='center' p={2} mt={2}>
+            <CircularProgress />
           </Box>
         )}
-        {!loading && list.length === 0 && (
+
+        {(isFetchingNextPage || hasNextPage) && list.length > 0 && (
+          <Box ref={loaderRef} display='flex' justifyContent='center' p={2} mt={2}>
+            <CircularProgress />
+          </Box>
+        )}
+
+        {!isFetching && list.length === 0 && (
           <Typography sx={{ textAlign: 'center', mt: 2, color: theme.palette.text.secondary }}>
             No species found
           </Typography>
         )}
 
-        {!hasMore && list.length > 0 && (
-          <Typography sx={{ textAlign: 'center', mt: 2, color: theme.palette.text.disabled, p:2,mb:1 }}>
+        {!hasNextPage && list.length > 0 && (
+          <Typography sx={{ textAlign: 'center', mt: 2, color: theme.palette.text.disabled }}>
             No more species to load
           </Typography>
         )}
@@ -152,4 +195,4 @@ const SpeciesDrawer = ({ open, onClose, data }) => {
   )
 }
 
-export default SpeciesDrawer
+export default React.memo(SpeciesDrawer)
