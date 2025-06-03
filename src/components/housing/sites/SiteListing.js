@@ -137,13 +137,15 @@ const Listing = () => {
   }))
 
   const handleRowClick = params => {
-    const detailUrl = {
-      pathname: `/housing/sites/${params.row.site_id}`,
-      query: {
-        ...filters
-      } // preserve current filters
+    if (params.field !== 'actions' && params.field !== 'id') {
+      const detailUrl = {
+        pathname: `/housing/sites/${params.row.site_id}`,
+        query: {
+          ...filters
+        } // preserve current filters
+      }
+      router.push(detailUrl)
     }
-    router.push(detailUrl)
   }
 
   const handleDownload = () => {
@@ -403,7 +405,7 @@ const Listing = () => {
           }}
         >
           <CommonTable
-            onRowClick={handleRowClick}
+            onCellClick={handleRowClick}
             indexedRows={indexedRows}
             total={total}
             columns={columns}

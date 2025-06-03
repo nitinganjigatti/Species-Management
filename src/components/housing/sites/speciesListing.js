@@ -111,8 +111,10 @@ const SpeciesListing = () => {
   }
 
   const handleRowClick = params => {
-    setOpenDrawer(true)
-    setSpecieName(params.row.common_name)
+    if (params.field !== 'id' && params.field !== 'actions') {
+      setOpenDrawer(true)
+      setSpecieName(params.row.common_name)
+    }
   }
 
   const handleClose = () => setOpenDrawer(false)
@@ -263,7 +265,7 @@ const SpeciesListing = () => {
           }}
         >
           <CommonTable
-            onRowClick={handleRowClick}
+            onCellClick={handleRowClick}
             indexedRows={indexedRows}
             total={total}
             columns={columns}
