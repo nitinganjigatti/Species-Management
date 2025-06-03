@@ -501,7 +501,6 @@ const ListOfStocks = () => {
     },
 
     {
-      // flex: 0.2,
       minWidth: 160,
       field: 'stock_qty',
       headerName: 'QTY IN STORE',
@@ -523,7 +522,6 @@ const ListOfStocks = () => {
     },
 
     {
-      // flex: 0.2,
       minWidth: 160,
       field: 'total_cost',
       headerName: 'Value(₹)',
@@ -537,7 +535,6 @@ const ListOfStocks = () => {
     },
 
     {
-      // flex: 0.2,
       minWidth: 160,
       field: 'stock_item_id',
       headerName: 'Average Price(₹)',
@@ -555,7 +552,6 @@ const ListOfStocks = () => {
       )
     },
     {
-      // flex: 0.4,
       width: 260,
       field: 'package',
       headerName: 'PACKAGE',
@@ -621,7 +617,6 @@ const ListOfStocks = () => {
       })
     },
     {
-      // flex: 0.2,
       minWidth: 160,
       field: 'stock_qty',
       headerName: 'QTY IN STORE',
@@ -635,10 +630,9 @@ const ListOfStocks = () => {
     },
 
     {
-      // flex: 0.2,
-      minWidth: 160,
+      minWidth: 200,
       field: 'unit_price',
-      headerName: 'Unit Price(₹)',
+      headerName: 'Net Unit Price(₹)',
       type: 'number',
       align: 'right',
       renderCell: params => (
@@ -649,7 +643,6 @@ const ListOfStocks = () => {
     },
 
     {
-      // flex: 0.2,
       minWidth: 160,
       field: 'total_cost',
       headerName: 'Value(₹)',
@@ -663,7 +656,6 @@ const ListOfStocks = () => {
       )
     },
     {
-      // flex: 0.2,
       minWidth: 160,
       field: 'batch_no',
       type: 'text',
@@ -677,7 +669,6 @@ const ListOfStocks = () => {
     },
 
     {
-      // flex: 0.2,
       minWidth: 160,
       field: 'expiry_date',
       headerName: 'EXPIRY DATE',

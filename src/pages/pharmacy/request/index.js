@@ -515,25 +515,24 @@ const RequestList = () => {
     //   )
     // },
 
-    // {
-    //   flex: 0.2,
-    //   minWidth: 20,
-    //   field: 'last_shipping_date',
-    //   headerName: 'Recent shipping',
-    //   renderCell: params => (
-    //     <Typography
-    //       variant='body2'
-    //       sx={{
-    //         color: theme.palette.customColors.customHeadingTextColor,
-    //         fontSize: '14px',
-    //         fontWeight: 500,
-    //         fontFamily: 'Inter'
-    //       }}
-    //     >
-    //       {params.row.last_shipping_date ? Utility.formatDisplayDate(params.row.last_shipping_date) : 'NA'}
-    //     </Typography>
-    //   )
-    // },
+    {
+      minWidth: 160,
+      field: 'last_shipping_date',
+      headerName: 'Recent shipping',
+      renderCell: params => (
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
+          {Utility.formatDisplayDate(params?.row?.last_shipping_date)}
+        </Typography>
+      )
+    },
 
     {
       minWidth: 120,

@@ -385,7 +385,8 @@ function OrderReceiveForm({ orderId, requestId, requestedFrom }) {
             request_item_id: el?.request_item_id ? el?.request_item_id : '',
             dispute_id: el?.dispute_id,
             shipment_id: el?.shipment_id,
-            total_deny_comments: el?.total_deny_comments
+            total_deny_comments: el?.total_deny_comments,
+            expiry_date: el?.expiry
           }
 
           return data
@@ -904,7 +905,7 @@ function OrderReceiveForm({ orderId, requestId, requestedFrom }) {
       )
     },
     {
-      minWidth: 200,
+      minWidth: 150,
       field: 'batch_no',
       headerName: 'Batch',
       renderCell: params => (
@@ -913,7 +914,27 @@ function OrderReceiveForm({ orderId, requestId, requestedFrom }) {
         </Typography>
       )
     },
+    {
+      minWidth: 150,
+      field: 'expiry_date',
+      headerName: 'Expiry Date',
+      align: 'center',
+      headerAlign: 'center',
+      renderCell: params => (
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
 
+            fontFamily: 'Inter'
+          }}
+        >
+          {Utility.formatDisplayDate(params?.row?.expiry_date)}
+        </Typography>
+      )
+    },
     {
       minWidth: 100,
       field: 'count',

@@ -137,9 +137,9 @@ function Purchase({ tabValue, updateUrlParams }) {
       )
     },
     {
-      width: 130,
+      width: 200,
       field: 'unit_price',
-      headerName: 'UNIT PRICE (₹)',
+      headerName: 'NET UNIT PRICE (₹)',
       renderCell: params => (
         <Typography
           variant='body2'

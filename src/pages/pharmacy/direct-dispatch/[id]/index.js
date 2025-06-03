@@ -427,10 +427,10 @@ const IndividualRequest = () => {
       )
     },
     {
-      width: 150,
-      minWidth: 150,
+      width: 200,
+      minWidth: 200,
       field: 'unit_price',
-      headerName: 'unit price(₹)',
+      headerName: 'Net Unit price(₹)',
       type: 'number',
       align: 'right',
       renderCell: params => (
@@ -657,9 +657,9 @@ const IndividualRequest = () => {
       )
     },
     {
-      width: 140,
+      width: 200,
       field: 'unit_price',
-      headerName: 'unit price(₹)',
+      headerName: 'Net Unit Price(₹)',
       align: 'right',
       headerAlign: 'right',
 
