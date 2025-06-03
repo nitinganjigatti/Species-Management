@@ -1178,8 +1178,8 @@ const Overview = props => {
       )}
 
       <CommonDrawerBox
-        imageUrl={'https://img.freepik.com/free-photo/colorful-design-with-spiral-design_188544-9588.jpg'}
-        title='Dolo 650 Tablet'
+        imageUrl={productDetails?.image}
+        title={productDetails?.name}
         drawerStatus={isAlternativeMedicinesDrawerOpen}
         close={() => setAlternativeMedicinesDrawerOpen(false)}
         contentComponent={
