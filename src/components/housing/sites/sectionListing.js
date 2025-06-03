@@ -198,6 +198,7 @@ const SectionListing = () => {
       width: 100,
       field: 'id',
       headerName: 'SL.NO',
+       sortable: false,
       renderCell: params => (
         <Typography sx={{ color: theme.palette.customColors.neutralSecondary, fontSize: '14px', fontWeight: 500 }}>
           {parseInt(params.row.sl_no) + '.'}
@@ -208,6 +209,7 @@ const SectionListing = () => {
       width: 250,
       field: 'section_name',
       headerName: 'Section Name',
+       sortable: false,
       renderCell: params => (
         <CellInfo
           value={params.row.section_name}
@@ -222,6 +224,7 @@ const SectionListing = () => {
       width: 200,
       field: 'species',
       headerName: 'Species',
+       sortable: false,
       renderCell: params => (
         <Typography sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600 }}>
           {params.row.species_count || 0}
@@ -232,6 +235,7 @@ const SectionListing = () => {
       width: 150,
       field: 'animals',
       headerName: 'Animals',
+       sortable: false,
       renderCell: params => (
         <Typography sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600 }}>
           {params.row.animal_count || 0}
@@ -242,6 +246,7 @@ const SectionListing = () => {
       width: 150,
       field: 'enclosures',
       headerName: 'Enclosures',
+       sortable: false,
       renderCell: params => (
         <Typography sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600 }}>
           {params.row.enclosure_count}
@@ -252,6 +257,7 @@ const SectionListing = () => {
       width: 180,
       field: 'incharge',
       headerName: 'In-Charge',
+       sortable: false,
       renderCell: params =>
         RenderUtility.renderUserAvatarDetails(
           params.row.incharge_image,
@@ -267,6 +273,7 @@ const SectionListing = () => {
       width: 150,
       field: 'actions',
       headerName: 'Actions',
+       sortable: false,
       align: 'center',
       renderCell: params => (
         <>

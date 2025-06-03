@@ -126,6 +126,7 @@ const SpeciesListing = () => {
       width: 100,
       field: 'id',
       headerName: 'SL.NO',
+      sortable: false,
       renderCell: params => (
         <Typography sx={{ color: theme.palette.customColors.neutralSecondary, fontSize: '14px', fontWeight: 500 }}>
           {params.row.sl_no}.
@@ -137,6 +138,7 @@ const SpeciesListing = () => {
       field: 'common_name',
       headerAlign: 'center',
       headerName: 'Species',
+      sortable: false,
       renderCell: params => (
         <SpeciesCard
           species={{
@@ -151,6 +153,7 @@ const SpeciesListing = () => {
       width: 180,
       field: 'animals',
       headerName: 'Population',
+      sortable: false,
       renderCell: params => (
         <Typography sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600 }}>
           {params.row.animal_count || 0}
@@ -161,6 +164,7 @@ const SpeciesListing = () => {
       width: 160,
       field: 'male',
       headerName: 'MALE',
+      sortable: false,
       renderCell: params => (
         <GenderInfoCard
           value={params.row.sex_data?.male || 0}
@@ -173,6 +177,7 @@ const SpeciesListing = () => {
       width: 160,
       field: 'female',
       headerName: 'FEMALE',
+      sortable: false,
       renderCell: params => (
         <GenderInfoCard
           value={params.row.sex_data?.female || 0}
@@ -185,6 +190,7 @@ const SpeciesListing = () => {
       width: 160,
       field: 'undetermined',
       headerName: 'UNDETERMINED',
+      sortable: false,
       renderCell: params => (
         <GenderInfoCard
           value={params.row.sex_data?.undetermined || 0}
@@ -197,6 +203,7 @@ const SpeciesListing = () => {
       width: 160,
       field: 'indeterminate',
       headerName: 'INDETERMINATE',
+      sortable: false,
       renderCell: params => (
         <GenderInfoCard
           value={params.row.sex_data?.indeterminate || 0}
@@ -211,6 +218,7 @@ const SpeciesListing = () => {
       headerName: 'Actions',
       align: 'center',
       headerAlign: 'center',
+      sortable: false,
       renderCell: () => (
         <Box display='flex' justifyContent='center' alignItems='center' gap={3}>
           <Box component='img' src='/images/call.png' alt='Phone' sx={{ width: 20, height: 20, cursor: 'pointer' }} />

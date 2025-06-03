@@ -123,6 +123,7 @@ const AnimalTreatmentListing = () => {
       width: 100,
       field: 'sl_no',
       headerName: 'NO',
+      sortable: false,
       renderCell: params => (
         <Typography sx={{ color: theme.palette.customColors.neutralSecondary, fontSize: '14px', fontWeight: 500 }}>
           {parseInt(params.row.sl_no) + '.'}
@@ -131,12 +132,13 @@ const AnimalTreatmentListing = () => {
     },
 
     {
-      width: 300, 
+      width: 300,
       field: 'common_name',
-      headerName: 'SPECIES', 
+      headerName: 'SPECIES',
+      sortable: false,
       renderCell: params => (
         <SpeciesCard
-          species={{ 
+          species={{
             common_name: params.row.common_name,
             scientific_name: params.row.scientific_name,
             default_icon: params.row.default_icon
@@ -149,6 +151,7 @@ const AnimalTreatmentListing = () => {
       width: 250,
       field: 'identifier',
       headerName: 'IDENTIFIER',
+      sortable: false,
       renderCell: params => (
         <IdentifierInfoCard
           animalId={params.row.animal_id}
@@ -163,6 +166,7 @@ const AnimalTreatmentListing = () => {
       width: 160,
       field: 'sex',
       headerName: 'Gender',
+      sortable: false,
       renderCell: params => {
         const gender = params.row.sex?.toLowerCase()
 
@@ -205,6 +209,7 @@ const AnimalTreatmentListing = () => {
       width: 250,
       field: 'animal_name',
       headerName: 'ANIMAL NAME',
+      sortable: false,
       renderCell: params => (
         <Typography sx={{ fontWeight: 400, fontSize: '16px', color: theme.palette.customColors.OnSurfaceVariant }}>
           {params.row.common_name}
@@ -216,6 +221,7 @@ const AnimalTreatmentListing = () => {
       width: 250,
       field: 'section_name',
       headerName: 'Section Name',
+      sortable: false,
       renderCell: params => (
         <Typography sx={{ fontWeight: 400, fontSize: '16px', color: theme.palette.customColors.OnSurfaceVariant }}>
           {params.row.section_name}
@@ -226,6 +232,7 @@ const AnimalTreatmentListing = () => {
       width: 250,
       field: 'site_name',
       headerName: 'Site Name',
+      sortable: false,
       renderCell: params => (
         <Typography sx={{ fontWeight: 400, fontSize: '16px', color: theme.palette.customColors.OnSurfaceVariant }}>
           {params.row.site_name}
@@ -237,6 +244,7 @@ const AnimalTreatmentListing = () => {
       width: 250,
       field: 'user_enclosure_name',
       headerName: 'Enclosure Name',
+      sortable: false,
       renderCell: params => (
         <Typography sx={{ fontWeight: 400, fontSize: '16px', color: theme.palette.customColors.OnSurfaceVariant }}>
           {params.row.user_enclosure_name}

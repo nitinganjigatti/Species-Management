@@ -167,6 +167,7 @@ const ClusterSpecies = () => {
       width: 100,
       field: 'id',
       headerName: 'SL.NO',
+      sortable: false,
       renderCell: params => (
         <Typography sx={{ color: theme.palette.customColors.neutralSecondary, fontSize: '14px', fontWeight: 500 }}>
           {params.row.sl_no}.
@@ -177,6 +178,7 @@ const ClusterSpecies = () => {
       width: 280,
       field: 'common_name',
       headerAlign: 'center',
+      sortable: false,
       headerName: 'Species',
       renderCell: params => (
         <SpeciesCard
@@ -192,6 +194,7 @@ const ClusterSpecies = () => {
       width: 180,
       field: 'animals',
       headerName: 'Population',
+      sortable: false,
       renderCell: params => (
         <Typography sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600 }}>
           {params.row.animal_count || 0}
@@ -202,6 +205,7 @@ const ClusterSpecies = () => {
       width: 160,
       field: 'male',
       headerName: 'MALE',
+      sortable: false,
       renderCell: params => (
         <GenderInfoCard
           value={params.row.sex_data?.male || 0}
@@ -214,6 +218,7 @@ const ClusterSpecies = () => {
       width: 160,
       field: 'female',
       headerName: 'FEMALE',
+      sortable: false,
       renderCell: params => (
         <GenderInfoCard
           value={params.row.sex_data?.female || 0}
@@ -226,6 +231,7 @@ const ClusterSpecies = () => {
       width: 160,
       field: 'undetermined',
       headerName: 'UNDETERMINED',
+      sortable: false,
       renderCell: params => (
         <GenderInfoCard
           value={params.row.sex_data?.undetermined || 0}
@@ -238,6 +244,7 @@ const ClusterSpecies = () => {
       width: 160,
       field: 'indeterminate',
       headerName: 'INDETERMINATE',
+      sortable: false,
       renderCell: params => (
         <GenderInfoCard
           value={params.row.sex_data?.indeterminate || 0}
@@ -251,6 +258,7 @@ const ClusterSpecies = () => {
       field: 'actions',
       headerName: 'Actions',
       align: 'center',
+      sortable: false,
       headerAlign: 'center',
       renderCell: () => (
         <Box display='flex' justifyContent='center' alignItems='center' gap={3}>
@@ -267,55 +275,55 @@ const ClusterSpecies = () => {
   ]
 
   return (
-  <>
-    <ListingHeader title='All Species' totalCount={total} />
-    <Box>
-      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 4, flexWrap: 'wrap' }}>
-        {/* <Search
+    <>
+      <ListingHeader title='All Species' totalCount={total} />
+      <Box>
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 4, flexWrap: 'wrap' }}>
+          {/* <Search
           value={inputValue}
           onChange={e => handleSearch(e.target.value)}
           onClear={() => handleSearch('')}
           placeholder='Search…'
           sx={{ justifyContent: 'flex-end' }}
         /> */}
-        {/* <ExportButton loading={downloading} onClick={handleDownload} /> */}
-      </Box>
+          {/* <ExportButton loading={downloading} onClick={handleDownload} /> */}
+        </Box>
 
-      <Grid
-        sx={{
-          '& .MuiDataGrid-cell': {
-            pt: 4,
-            py: 4,
-            px: 4
-          },
-          '& .MuiDataGrid-columnHeaderTitle': {
-            color: theme.palette.customColors.OnSurfaceVariant,
-            fontSize: '12px',
-            fontWeight: 600
-          }
-        }}
-      >
-        <CommonTable
-          onRowClick={handleRowClick}
-          indexedRows={indexedRows}
-          total={total}
-          columns={columns}
-          pageSizeOptions={[10]}
-          paginationModel={{
-            page: filters.page - 1,
-            pageSize: filters.pageSize
+        <Grid
+          sx={{
+            '& .MuiDataGrid-cell': {
+              pt: 4,
+              py: 4,
+              px: 4
+            },
+            '& .MuiDataGrid-columnHeaderTitle': {
+              color: theme.palette.customColors.OnSurfaceVariant,
+              fontSize: '12px',
+              fontWeight: 600
+            }
           }}
-          setPaginationModel={handlePaginationModelChange}
-          handleSortModel={handleSortModelChange}
-          loading={isFetching}
-          searchValue=''
-          maxHeight='80vh'
-        />
-      </Grid>
-    </Box>
-    {openDrawer && <AnimalDrawer open={!!drawerData} onClose={handleClose} data={drawerData} />}
-  </>
-)
+        >
+          <CommonTable
+            onRowClick={handleRowClick}
+            indexedRows={indexedRows}
+            total={total}
+            columns={columns}
+            pageSizeOptions={[10]}
+            paginationModel={{
+              page: filters.page - 1,
+              pageSize: filters.pageSize
+            }}
+            setPaginationModel={handlePaginationModelChange}
+            handleSortModel={handleSortModelChange}
+            loading={isFetching}
+            searchValue=''
+            maxHeight='80vh'
+          />
+        </Grid>
+      </Box>
+      {openDrawer && <AnimalDrawer open={!!drawerData} onClose={handleClose} data={drawerData} />}
+    </>
+  )
 }
 
 export default ClusterSpecies

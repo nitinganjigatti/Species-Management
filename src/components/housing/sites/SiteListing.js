@@ -160,6 +160,7 @@ const Listing = () => {
       width: 100,
       field: 'id',
       headerName: 'SL.NO',
+       sortable: false,
       renderCell: params => (
         <Typography sx={{ color: theme.palette.customColors.neutralSecondary, fontSize: '14px', fontWeight: 500 }}>
           {parseInt(params.row.sl_no) + '.'}
@@ -170,6 +171,7 @@ const Listing = () => {
       width: 200,
       field: 'site_name',
       headerName: 'Site Name',
+      sortable: false,
       renderCell: params => (
         <CellInfo
           value={params.row.site_name}
@@ -186,6 +188,7 @@ const Listing = () => {
       headerName: 'Species',
       align: 'center',
       headerAlign: 'center',
+      sortable: false,
       renderCell: params => (
         <Typography
           sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600 }}
@@ -213,6 +216,7 @@ const Listing = () => {
       headerName: 'Animals',
       align: 'center',
       headerAlign: 'center',
+      sortable: false,
       renderCell: params => (
         <Typography
           sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600 }}
@@ -240,6 +244,7 @@ const Listing = () => {
       headerName: 'Enclosures',
       align: 'center',
       headerAlign: 'center',
+      sortable: false,
       renderCell: params => (
         <Typography
           sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600 }}
@@ -258,6 +263,7 @@ const Listing = () => {
       headerName: 'Sections',
       align: 'center',
       headerAlign: 'center',
+      sortable: false,
       renderCell: params => (
         <Typography
           sx={{ cursor: 'pointer', fontWeight: 600, fontSize: '16px', color: theme.palette.primary.OnSurface }}
@@ -285,6 +291,7 @@ const Listing = () => {
       headerName: 'In-Charge',
       align: 'center',
       headerAlign: 'left',
+      sortable: false,
       renderCell: params =>
         RenderUtility.renderUserAvatarDetails(
           params.row.incharge_image,
@@ -300,6 +307,7 @@ const Listing = () => {
       headerName: 'Actions',
       align: 'center',
       headerAlign: 'center',
+      sortable: false,
       renderCell: params => (
         <>
           {params.row.incharge_name ? (
@@ -337,7 +345,7 @@ const Listing = () => {
             placeholder='Search…'
             sx={{ justifyContent: 'flex-end' }}
           />
-          {/* <ExportButton loading={downloading} onClick={handleDownload} /> */} 
+          {/* <ExportButton loading={downloading} onClick={handleDownload} /> */}
         </Box>
         <Grid
           sx={{

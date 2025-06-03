@@ -120,6 +120,7 @@ const MortalityListing = () => {
       width: 100,
       field: 'sl_no',
       headerName: 'NO',
+      sortable: false,
       renderCell: params => (
         <Typography sx={{ color: theme.palette.customColors.neutralSecondary, fontSize: '14px', fontWeight: 500 }}>
           {parseInt(params.row.sl_no) + '.'}
@@ -130,6 +131,7 @@ const MortalityListing = () => {
       width: 300,
       field: 'common_name',
       headerName: 'SPECIES',
+      sortable: false,
       renderCell: params => (
         <SpeciesCard
           species={{
@@ -144,6 +146,7 @@ const MortalityListing = () => {
       width: 250,
       field: 'identifier',
       headerName: 'IDENTIFIER',
+      sortable: false,
       renderCell: params => (
         <IdentifierInfoCard
           animalId={params.row.animal_id}
@@ -157,6 +160,7 @@ const MortalityListing = () => {
       width: 250,
       field: 'animal_name',
       headerName: 'ANIMAL NAME',
+      sortable: false,
       renderCell: params => (
         <Typography sx={{ fontWeight: 400, fontSize: '16px', color: theme.palette.customColors.OnSurfaceVariant }}>
           {params.row.common_name}
@@ -166,12 +170,14 @@ const MortalityListing = () => {
     {
       field: 'died_on',
       headerName: 'DIED ON',
+      sortable: false,
       width: 250,
       renderCell: params => <DateInfoDisplay date={params.row.discovered_date} showRelativeTime />
     },
     {
       field: 'reported_on',
       headerName: 'REPORTED ON',
+      sortable: false,
       width: 250,
       renderCell: params => <DateInfoDisplay title={params.row.user_enclosure_name} date={params.row.discovered_date} />
     },
@@ -179,6 +185,7 @@ const MortalityListing = () => {
       width: 300,
       field: 'reason',
       headerName: 'REASON',
+      sortable: false,
       renderCell: params => (
         <Typography
           sx={{

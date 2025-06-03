@@ -208,6 +208,7 @@ const Clusters = () => {
       width: 250,
       field: 'cluster_name',
       headerName: 'Cluster Name',
+      sortable: false,
       renderCell: params => (
         <CellInfo
           value={params.row.cluster_name}
@@ -222,6 +223,7 @@ const Clusters = () => {
       width: 200,
       field: 'species_count',
       headerName: 'Species',
+      sortable: false,
       renderCell: params => (
         <Typography
           sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600 }}
@@ -244,6 +246,7 @@ const Clusters = () => {
       width: 150,
       field: 'animal_count',
       headerName: 'Animals',
+      sortable: false,
       renderCell: params => (
         <Typography
           sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600 }}
@@ -266,6 +269,7 @@ const Clusters = () => {
       width: 150,
       field: 'site_count',
       headerName: 'Sites',
+      sortable: false,
       renderCell: params => (
         <Typography
           sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600 }}
