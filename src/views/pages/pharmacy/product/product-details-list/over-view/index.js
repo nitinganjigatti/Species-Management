@@ -920,7 +920,7 @@ const Overview = props => {
         </Grid>
 
         {/* Apply similar structure to the rest of the cards */}
-        <Grid item xs={12} md={6} sx={{ flexDirection: 'column' }}>
+        <Grid item xs={12} md={6} sx={{ flexDirection: 'column' }} style={{ display: 'none' }}>
           <Card sx={{ height: '100%' }}>
             <CardContent sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
               {/* Header Section */}
