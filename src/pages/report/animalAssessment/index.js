@@ -257,7 +257,9 @@ const AnimalAssessment = () => {
             </Typography>
           </Box>
         ) : (
-          <Box sx={{ flex: 1, backgroundColor: '#f2f2f2', height: '100%' }}></Box>
+          <Box
+            sx={{ flex: 1, backgroundColor: '#f2f2f2', height: '100%', mr: headerList.length === i + 1 ? '-20px' : 0 }}
+          ></Box>
         )
       }
     }
