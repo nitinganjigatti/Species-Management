@@ -229,7 +229,7 @@ const SpeciesListing = () => {
     <>
       <ListingHeader title='All Species' totalCount={total} />
       <Box>
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 4, flexWrap: 'wrap' }}>
+        {/* <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 4, flexWrap: 'wrap' }}>
           <Search
             value={inputValue}
             onChange={e => handleSearch(e.target.value)}
@@ -238,7 +238,7 @@ const SpeciesListing = () => {
             sx={{ justifyContent: 'flex-end' }}
           />
           <ExportButton loading={downloading} onClick={handleDownload} />
-        </Box>
+        </Box> */}
 
         <Grid
           sx={{

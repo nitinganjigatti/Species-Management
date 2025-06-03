@@ -347,7 +347,7 @@ const Clusters = () => {
             <Card sx={{ p: { xs: 3, md: 5 } }}>
               <ListingHeader title='All Clusters' totalCount={total} />
               <Box>
-                <Box
+                {/* <Box
                   sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 4, flexWrap: 'wrap' }}
                 >
                   <Search
@@ -358,7 +358,7 @@ const Clusters = () => {
                     sx={{ justifyContent: 'flex-end' }}
                   />
                   <ExportButton loading={downloading} onClick={handleDownload} />
-                </Box>
+                </Box> */}
                 <Grid
                   sx={{
                     '& .MuiDataGrid-cell': { pt: 4, py: 4, px: 4 },

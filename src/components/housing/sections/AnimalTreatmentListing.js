@@ -257,7 +257,7 @@ const AnimalTreatmentListing = () => {
             placeholder='Search…'
             sx={{ justifyContent: 'flex-end' }}
           />
-          <ExportButton loading={downloading} onClick={handleDownload} />
+          {/* <ExportButton loading={downloading} onClick={handleDownload} /> */}
         </Box>
         <Grid
           sx={{

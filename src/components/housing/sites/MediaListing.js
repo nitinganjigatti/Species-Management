@@ -108,14 +108,14 @@ const MediaListing = () => {
         </Tabs>
       </Box>
 
-      <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 4, mt: 2 }}>
+      {/* <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 4, mt: 2 }}>
         <Search
           value={localSearch}
           onChange={handleSearchChange}
           onClear={handleSearchClear}
           placeholder='Search media…'
         />
-      </Box>
+      </Box> */}
 
       <Box sx={{ mt: 6 }}>
         <Grid container spacing={6}>
