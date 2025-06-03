@@ -5,10 +5,14 @@ import { useQuery } from '@tanstack/react-query'
 import { useRouter } from 'next/router'
 import React, { useState } from 'react'
 import EnclosureWiseSpecies from 'src/components/housing/enclosure/EnclosureWiseSpecies'
+import MediaListing from 'src/components/housing/enclosure/MediaListing'
 import { getEnclosureWiseStat } from 'src/lib/api/housing'
 import InsightsCard from 'src/views/utility/insights/InsightsCard'
 
-const tabConfig = [{ label: 'Species', value: 'species', component: EnclosureWiseSpecies }]
+const tabConfig = [
+  { label: 'Species', value: 'species', component: EnclosureWiseSpecies },
+  { label: 'Media', value: 'media', component: MediaListing }
+]
 
 const EnclsouerDetails = () => {
   const theme = useTheme()

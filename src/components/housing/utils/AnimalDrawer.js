@@ -131,7 +131,7 @@ const AnimalsDrawer = ({ open, onClose, data }) => {
           borderRadius: '8px'
         }}
       >
-        {data?.queryKey === 'cluster-animals-drawer' ? (
+        {data?.queryKey === 'cluster-animals-drawer' || data?.queryKey === 'enclosure-wise-species-drawer' ? (
           <>
             <SpeciesInnerCard
               completeName={data?.complete_name}
