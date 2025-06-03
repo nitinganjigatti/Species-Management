@@ -121,7 +121,7 @@ const EnclosureListing = () => {
     {
       width: 280,
       field: 'user_enclosure_name',
-      headerAlign: 'center',
+      headerAlign: 'left',
       headerName: 'Species',
       sortable: false,
       renderCell: params => (
@@ -232,7 +232,8 @@ const EnclosureListing = () => {
             '& .MuiDataGrid-columnHeaderTitle': {
               color: theme.palette.customColors.OnSurfaceVariant,
               fontSize: '12px',
-              fontWeight: 600
+              fontWeight: 600,
+              ml: 2
             }
           }}
         >

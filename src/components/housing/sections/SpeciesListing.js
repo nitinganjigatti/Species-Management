@@ -136,7 +136,8 @@ const SpeciesListing = () => {
     {
       width: 280,
       field: 'common_name',
-      headerAlign: 'center',
+      headerAlign: 'left',
+      align: 'left',
       headerName: 'Species',
       sortable: false,
       renderCell: params => (
@@ -164,6 +165,8 @@ const SpeciesListing = () => {
       width: 160,
       field: 'male',
       headerName: 'MALE',
+      headerAlign:"left",
+      align:"left",
       sortable: false,
       renderCell: params => (
         <GenderInfoCard
@@ -177,6 +180,8 @@ const SpeciesListing = () => {
       width: 160,
       field: 'female',
       headerName: 'FEMALE',
+      headerAlign:"left",
+      align:"left",
       sortable: false,
       renderCell: params => (
         <GenderInfoCard
@@ -190,6 +195,8 @@ const SpeciesListing = () => {
       width: 160,
       field: 'undetermined',
       headerName: 'UNDETERMINED',
+      headerAlign:"left",
+      align:"left",
       sortable: false,
       renderCell: params => (
         <GenderInfoCard
@@ -202,6 +209,8 @@ const SpeciesListing = () => {
     {
       width: 160,
       field: 'indeterminate',
+      headerAlign:"left",
+      align:"left",
       headerName: 'INDETERMINATE',
       sortable: false,
       renderCell: params => (
@@ -216,8 +225,8 @@ const SpeciesListing = () => {
       width: 160,
       field: 'actions',
       headerName: 'Actions',
-      align: 'center',
-      headerAlign: 'center',
+     headerAlign:"left",
+      align:"left",
       sortable: false,
       renderCell: () => (
         <Box display='flex' justifyContent='center' alignItems='center' gap={3}>
@@ -258,7 +267,8 @@ const SpeciesListing = () => {
             '& .MuiDataGrid-columnHeaderTitle': {
               color: theme.palette.customColors.OnSurfaceVariant,
               fontSize: '12px',
-              fontWeight: 600
+              fontWeight: 600,
+              ml:2 
             }
           }}
         >

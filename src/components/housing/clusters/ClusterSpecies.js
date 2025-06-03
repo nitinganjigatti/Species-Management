@@ -177,7 +177,8 @@ const ClusterSpecies = () => {
     {
       width: 280,
       field: 'common_name',
-      headerAlign: 'center',
+      align: 'left',
+      headerAlign: 'left',
       sortable: false,
       headerName: 'Species',
       renderCell: params => (
@@ -194,6 +195,8 @@ const ClusterSpecies = () => {
       width: 180,
       field: 'animals',
       headerName: 'Population',
+      align: 'left',
+      headerAlign: 'left',
       sortable: false,
       renderCell: params => (
         <Typography sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600 }}>
@@ -205,6 +208,8 @@ const ClusterSpecies = () => {
       width: 160,
       field: 'male',
       headerName: 'MALE',
+      align: 'left',
+      headerAlign: 'left',
       sortable: false,
       renderCell: params => (
         <GenderInfoCard
@@ -218,6 +223,8 @@ const ClusterSpecies = () => {
       width: 160,
       field: 'female',
       headerName: 'FEMALE',
+      align: 'left',
+      headerAlign: 'left',
       sortable: false,
       renderCell: params => (
         <GenderInfoCard
@@ -231,6 +238,8 @@ const ClusterSpecies = () => {
       width: 160,
       field: 'undetermined',
       headerName: 'UNDETERMINED',
+      align: 'left',
+      headerAlign: 'left',
       sortable: false,
       renderCell: params => (
         <GenderInfoCard
@@ -243,6 +252,8 @@ const ClusterSpecies = () => {
     {
       width: 160,
       field: 'indeterminate',
+      align: 'left',
+      headerAlign: 'left',
       headerName: 'INDETERMINATE',
       sortable: false,
       renderCell: params => (
@@ -299,7 +310,8 @@ const ClusterSpecies = () => {
             '& .MuiDataGrid-columnHeaderTitle': {
               color: theme.palette.customColors.OnSurfaceVariant,
               fontSize: '12px',
-              fontWeight: 600
+              fontWeight: 600,
+              ml: 1
             }
           }}
         >

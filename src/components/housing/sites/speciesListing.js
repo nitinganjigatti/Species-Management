@@ -136,7 +136,8 @@ const SpeciesListing = () => {
     {
       width: 280,
       field: 'common_name',
-      headerAlign: 'center',
+      headerAlign: 'left',
+      align: 'left',
       headerName: 'Species',
       sortable: false,
       renderCell: params => (
@@ -152,6 +153,8 @@ const SpeciesListing = () => {
     {
       width: 180,
       field: 'animals',
+      align: 'left',
+      headerAlign: 'left',
       headerName: 'Population',
       sortable: false,
       renderCell: params => (
@@ -164,19 +167,33 @@ const SpeciesListing = () => {
       width: 160,
       field: 'male',
       headerName: 'MALE',
+      align: 'left',
+      headerAlign: 'left',
       sortable: false,
       renderCell: params => (
-        <GenderInfoCard
-          value={params.row.sex_data?.male || 0}
-          bgcolor={`${theme.palette.customColors.SecondaryContainer}80`}
-          color={theme.palette.customColors.addPrimary}
-        />
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center', // vertical alignment
+            justifyContent: 'flex-start', // horizontal alignment (left)
+            height: '100%', // ensures full cell height
+            width: '100%' // ensures full cell width
+          }}
+        >
+          <GenderInfoCard
+            value={params.row.sex_data?.male || 0}
+            bgcolor={`${theme.palette.customColors.SecondaryContainer}80`}
+            color={theme.palette.customColors.addPrimary}
+          />
+        </Box>
       )
     },
     {
       width: 160,
       field: 'female',
       headerName: 'FEMALE',
+      align: 'left',
+      headerAlign: 'left',
       sortable: false,
       renderCell: params => (
         <GenderInfoCard
@@ -190,6 +207,8 @@ const SpeciesListing = () => {
       width: 160,
       field: 'undetermined',
       headerName: 'UNDETERMINED',
+      align: 'left',
+      headerAlign: 'left',
       sortable: false,
       renderCell: params => (
         <GenderInfoCard
@@ -203,6 +222,8 @@ const SpeciesListing = () => {
       width: 160,
       field: 'indeterminate',
       headerName: 'INDETERMINATE',
+      align: 'left',
+      headerAlign: 'left',
       sortable: false,
       renderCell: params => (
         <GenderInfoCard
@@ -216,8 +237,8 @@ const SpeciesListing = () => {
       width: 160,
       field: 'actions',
       headerName: 'Actions',
-      align: 'center',
-      headerAlign: 'center',
+      align: 'left',
+      headerAlign: 'left',
       sortable: false,
       renderCell: () => (
         <Box display='flex' justifyContent='center' alignItems='center' gap={3}>
@@ -258,7 +279,8 @@ const SpeciesListing = () => {
             '& .MuiDataGrid-columnHeaderTitle': {
               color: theme.palette.customColors.OnSurfaceVariant,
               fontSize: '12px',
-              fontWeight: 600
+              fontWeight: 600,
+              ml:2
             }
           }}
         >

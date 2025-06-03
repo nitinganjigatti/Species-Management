@@ -131,6 +131,8 @@ const MortalityListing = () => {
       width: 300,
       field: 'common_name',
       headerName: 'SPECIES',
+      headerAlign: 'left',
+      align:"left",
       sortable: false,
       renderCell: params => (
         <SpeciesCard
@@ -146,6 +148,8 @@ const MortalityListing = () => {
       width: 250,
       field: 'identifier',
       headerName: 'IDENTIFIER',
+      headerAlign: 'left',
+      align:"left",
       sortable: false,
       renderCell: params => (
         <IdentifierInfoCard
@@ -160,7 +164,9 @@ const MortalityListing = () => {
       width: 250,
       field: 'animal_name',
       headerName: 'ANIMAL NAME',
+      headerAlign: 'left',
       sortable: false,
+      align:"left",
       renderCell: params => (
         <Typography sx={{ fontWeight: 400, fontSize: '16px', color: theme.palette.customColors.OnSurfaceVariant }}>
           {params.row.common_name}
@@ -170,6 +176,8 @@ const MortalityListing = () => {
     {
       field: 'died_on',
       headerName: 'DIED ON',
+      headerAlign: 'left',
+      align:"left",
       sortable: false,
       width: 250,
       renderCell: params => <DateInfoDisplay date={params.row.discovered_date} showRelativeTime />
@@ -177,6 +185,8 @@ const MortalityListing = () => {
     {
       field: 'reported_on',
       headerName: 'REPORTED ON',
+      headerAlign: 'left',
+      align:"left",
       sortable: false,
       width: 250,
       renderCell: params => <DateInfoDisplay title={params.row.user_enclosure_name} date={params.row.discovered_date} />
@@ -185,6 +195,8 @@ const MortalityListing = () => {
       width: 300,
       field: 'reason',
       headerName: 'REASON',
+      headerAlign: 'left',
+      align:"left",
       sortable: false,
       renderCell: params => (
         <Typography
@@ -224,7 +236,8 @@ const MortalityListing = () => {
             '& .MuiDataGrid-columnHeaderTitle': {
               color: theme.palette.customColors.OnSurfaceVariant,
               fontSize: '12px',
-              fontWeight: 600
+              fontWeight: 600,
+              ml: 1
             }
           }}
         >

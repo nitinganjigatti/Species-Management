@@ -208,6 +208,8 @@ const Clusters = () => {
       width: 250,
       field: 'cluster_name',
       headerName: 'Cluster Name',
+      headerAlign: 'left',
+      align: 'left',
       sortable: false,
       renderCell: params => (
         <CellInfo
@@ -223,6 +225,8 @@ const Clusters = () => {
       width: 200,
       field: 'species_count',
       headerName: 'Species',
+      headerAlign: 'left',
+      align: 'left',
       sortable: false,
       renderCell: params => (
         <Typography
@@ -245,6 +249,8 @@ const Clusters = () => {
     {
       width: 150,
       field: 'animal_count',
+      headerAlign: 'left',
+      align: 'left',
       headerName: 'Animals',
       sortable: false,
       renderCell: params => (
@@ -269,6 +275,8 @@ const Clusters = () => {
       width: 150,
       field: 'site_count',
       headerName: 'Sites',
+      headerAlign: 'left',
+      align: 'left',
       sortable: false,
       renderCell: params => (
         <Typography
@@ -289,19 +297,21 @@ const Clusters = () => {
       )
     },
     {
-      width: 180,
+      width: 180, 
       field: 'incharge',
       headerName: 'In-Charge',
+      headerAlign: 'left',
+      align: 'left',
       sortable: false,
       renderCell: params => (
         <Box display='flex' alignItems='center' width='100%'>
-          <UserInfoCard
+          {/* <UserInfoCard
             avatarUrl={params.row.incharge_image}
             name={params.row.incharge_name}
             textColor={theme.palette.customColors.OnSurfaceVariant}
             fontWeight={500}
             fallbackChar={params.row.incharge_name?.charAt(0)}
-          />
+          /> */}
         </Box>
       )
     },
@@ -309,8 +319,8 @@ const Clusters = () => {
       width: 150,
       field: 'actions',
       headerName: 'Actions',
-      align: 'right',
-      headerAlign: 'right',
+      headerAlign: 'left',
+      align: 'left',
       sortable: false,
       renderCell: () => (
         <Box display='flex' justifyContent='center' alignItems='center' gap={3}>
@@ -369,7 +379,8 @@ const Clusters = () => {
                     '& .MuiDataGrid-columnHeaderTitle': {
                       color: theme.palette.customColors.OnSurfaceVariant,
                       fontSize: '12px',
-                      fontWeight: 600
+                      fontWeight: 600,
+                      ml: 1
                     }
                   }}
                 >

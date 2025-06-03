@@ -151,6 +151,8 @@ const AnimalTreatmentListing = () => {
       width: 250,
       field: 'identifier',
       headerName: 'IDENTIFIER',
+      align: 'left',
+      headerAlign: 'left',
       sortable: false,
       renderCell: params => (
         <IdentifierInfoCard
@@ -166,6 +168,8 @@ const AnimalTreatmentListing = () => {
       width: 160,
       field: 'sex',
       headerName: 'Gender',
+      align: 'left',
+      headerAlign: 'left',
       sortable: false,
       renderCell: params => {
         const gender = params.row.sex?.toLowerCase()
@@ -208,6 +212,8 @@ const AnimalTreatmentListing = () => {
     {
       width: 250,
       field: 'animal_name',
+      align: 'left',
+      headerAlign: 'left',
       headerName: 'ANIMAL NAME',
       sortable: false,
       renderCell: params => (
@@ -221,6 +227,8 @@ const AnimalTreatmentListing = () => {
       width: 250,
       field: 'section_name',
       headerName: 'Section Name',
+      align: 'left',
+      headerAlign: 'left',
       sortable: false,
       renderCell: params => (
         <Typography sx={{ fontWeight: 400, fontSize: '16px', color: theme.palette.customColors.OnSurfaceVariant }}>
@@ -228,21 +236,25 @@ const AnimalTreatmentListing = () => {
         </Typography>
       )
     },
-    {
-      width: 250,
-      field: 'site_name',
-      headerName: 'Site Name',
-      sortable: false,
-      renderCell: params => (
-        <Typography sx={{ fontWeight: 400, fontSize: '16px', color: theme.palette.customColors.OnSurfaceVariant }}>
-          {params.row.site_name}
-        </Typography>
-      )
-    },
+    // {
+    //   width: 250,
+    //   field: 'site_name',
+    //   headerName: 'Site Name',
+    //   align: 'left',
+    //   headerAlign: 'left',
+    //   sortable: false,
+    //   renderCell: params => (
+    //     <Typography sx={{ fontWeight: 400, fontSize: '16px', color: theme.palette.customColors.OnSurfaceVariant }}>
+    //       {params.row.site_name}
+    //     </Typography>
+    //   )
+    // },
 
     {
       width: 250,
       field: 'user_enclosure_name',
+      align:"left",
+      headerAlign: 'left',
       headerName: 'Enclosure Name',
       sortable: false,
       renderCell: params => (

@@ -150,6 +150,8 @@ const ClusterSites = () => {
       width: 100,
       field: 'id',
       headerName: 'SL.NO',
+      headerAlign: 'left',
+      align: 'left',
       sortable: false,
       renderCell: params => (
         <Typography sx={{ color: theme.palette.customColors.neutralSecondary, fontSize: '14px', fontWeight: 500 }}>
@@ -161,6 +163,8 @@ const ClusterSites = () => {
       width: 250,
       field: 'site_name',
       headerName: 'Site Name',
+      align: 'left',
+      headerAlign: 'left',
       sortable: false,
       renderCell: params => (
         <CellInfo
@@ -176,6 +180,8 @@ const ClusterSites = () => {
       width: 200,
       field: 'species',
       headerName: 'Species',
+      align: 'left',
+      headerAlign: 'left',
       sortable: false,
       renderCell: params => (
         <Typography sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600 }}>
@@ -197,6 +203,8 @@ const ClusterSites = () => {
     {
       width: 150,
       field: 'enclosures',
+      align: 'left',
+      headerAlign: 'left',
       headerName: 'Enclosures',
       sortable: false,
       renderCell: params => (
@@ -209,6 +217,8 @@ const ClusterSites = () => {
       width: 180,
       field: 'incharge',
       headerName: 'In-Charge',
+      align: 'left',
+      headerAlign: 'left',
       sortable: false,
       renderCell: params =>
         RenderUtility.renderUserAvatarDetails(
@@ -225,7 +235,8 @@ const ClusterSites = () => {
       width: 150,
       field: 'actions',
       headerName: 'Actions',
-      align: 'center',
+      align: 'left',
+      headerAlign: 'left',
       sortable: false,
       renderCell: params => (
         <>
@@ -277,7 +288,8 @@ const ClusterSites = () => {
             '& .MuiDataGrid-columnHeaderTitle': {
               color: theme.palette.customColors.OnSurfaceVariant,
               fontSize: '12px',
-              fontWeight: 600
+              fontWeight: 600,
+              ml: 1
             }
           }}
         >

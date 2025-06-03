@@ -167,9 +167,11 @@ const Listing = () => {
         </Typography>
       )
     },
+    
     {
-      width: 200,
+      width: 300,
       field: 'site_name',
+      align:"left",
       headerName: 'Site Name',
       sortable: false,
       renderCell: params => (
@@ -186,8 +188,8 @@ const Listing = () => {
       width: 150,
       field: 'species',
       headerName: 'Species',
-      align: 'center',
-      headerAlign: 'center',
+      align:"left",
+      headerAlign: 'left',
       sortable: false,
       renderCell: params => (
         <Typography
@@ -214,8 +216,8 @@ const Listing = () => {
       width: 150,
       field: 'animals',
       headerName: 'Animals',
-      align: 'center',
-      headerAlign: 'center',
+      align:"left",
+      headerAlign: 'left',
       sortable: false,
       renderCell: params => (
         <Typography
@@ -242,8 +244,8 @@ const Listing = () => {
       width: 150,
       field: 'enclosures',
       headerName: 'Enclosures',
-      align: 'center',
-      headerAlign: 'center',
+       align:"left",
+      headerAlign: 'left',
       sortable: false,
       renderCell: params => (
         <Typography
@@ -261,8 +263,8 @@ const Listing = () => {
       width: 150,
       field: 'sections',
       headerName: 'Sections',
-      align: 'center',
-      headerAlign: 'center',
+       align:"left",
+      headerAlign: 'left',
       sortable: false,
       renderCell: params => (
         <Typography
@@ -289,7 +291,7 @@ const Listing = () => {
       width: 180,
       field: 'incharge',
       headerName: 'In-Charge',
-      align: 'center',
+       align:"left",
       headerAlign: 'left',
       sortable: false,
       renderCell: params =>
@@ -305,8 +307,8 @@ const Listing = () => {
       width: 150,
       field: 'actions',
       headerName: 'Actions',
-      align: 'center',
-      headerAlign: 'center',
+      align:"left",
+      headerAlign: 'left',
       sortable: false,
       renderCell: params => (
         <>

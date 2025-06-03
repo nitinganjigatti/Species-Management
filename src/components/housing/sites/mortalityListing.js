@@ -146,6 +146,8 @@ const MortalityListing = () => {
       width: 250,
       field: 'identifier',
       headerName: 'IDENTIFIER',
+      align:"left",
+      headerAlign: 'left',
       sortable: false,
       renderCell: params => (
         <IdentifierInfoCard
@@ -159,6 +161,8 @@ const MortalityListing = () => {
     {
       width: 250,
       field: 'animal_name',
+      align:"left",
+      headerAlign: 'left',
       sortable: false,
       headerName: 'ANIMAL NAME',
       renderCell: params => (
@@ -170,6 +174,8 @@ const MortalityListing = () => {
     {
       field: 'died_on',
       headerName: 'DIED ON',
+      align:"left",
+      headerAlign: 'left',
       sortable: false,
       width: 250,
       renderCell: params => <DateInfoDisplay date={params.row.discovered_date} showRelativeTime />
@@ -177,6 +183,8 @@ const MortalityListing = () => {
     {
       field: 'reported_on',
       headerName: 'REPORTED ON',
+      align:"left",
+      headerAlign: 'left',
       sortable: false,
       width: 250,
       renderCell: params => <DateInfoDisplay title={params.row.user_enclosure_name} date={params.row.discovered_date} />
@@ -185,6 +193,8 @@ const MortalityListing = () => {
       width: 300,
       field: 'reason',
       headerName: 'REASON',
+      align:"left",
+      headerAlign: 'left',
       sortable: false,
       renderCell: params => (
         <Typography

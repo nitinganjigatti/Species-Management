@@ -135,6 +135,8 @@ const AnimalTreatmentListing = () => {
       width: 300,
       field: 'common_name',
       headerName: 'SPECIES',
+      headerAlign: 'left',
+      align: 'left',
       sortable: false,
       renderCell: params => (
         <SpeciesCard
@@ -151,6 +153,8 @@ const AnimalTreatmentListing = () => {
       width: 250,
       field: 'identifier',
       headerName: 'IDENTIFIER',
+      headerAlign: 'left',
+      align: 'left',
       sortable: false,
       renderCell: params => (
         <IdentifierInfoCard
@@ -209,6 +213,8 @@ const AnimalTreatmentListing = () => {
       width: 250,
       field: 'animal_name',
       headerName: 'ANIMAL NAME',
+      headerAlign: 'left',
+      align: 'left',
       sortable: false,
       renderCell: params => (
         <Typography sx={{ fontWeight: 400, fontSize: '16px', color: theme.palette.customColors.OnSurfaceVariant }}>
@@ -221,6 +227,8 @@ const AnimalTreatmentListing = () => {
       width: 250,
       field: 'section_name',
       headerName: 'Section Name',
+      headerAlign: 'left',
+      align: 'left',
       sortable: false,
       renderCell: params => (
         <Typography sx={{ fontWeight: 400, fontSize: '16px', color: theme.palette.customColors.OnSurfaceVariant }}>
@@ -232,6 +240,8 @@ const AnimalTreatmentListing = () => {
       width: 250,
       field: 'site_name',
       headerName: 'Site Name',
+      headerAlign: 'left',
+      align: 'left',
       sortable: false,
       renderCell: params => (
         <Typography sx={{ fontWeight: 400, fontSize: '16px', color: theme.palette.customColors.OnSurfaceVariant }}>
@@ -244,6 +254,8 @@ const AnimalTreatmentListing = () => {
       width: 250,
       field: 'user_enclosure_name',
       headerName: 'Enclosure Name',
+      headerAlign: 'left',
+      align: 'left',
       sortable: false,
       renderCell: params => (
         <Typography sx={{ fontWeight: 400, fontSize: '16px', color: theme.palette.customColors.OnSurfaceVariant }}>
@@ -277,7 +289,8 @@ const AnimalTreatmentListing = () => {
             '& .MuiDataGrid-columnHeaderTitle': {
               color: theme.palette.customColors.OnSurfaceVariant,
               fontSize: '12px',
-              fontWeight: 600
+              fontWeight: 600,
+              ml: 2
             }
           }}
         >
