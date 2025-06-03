@@ -34,7 +34,8 @@ import { getRackListById } from 'src/lib/api/pharmacy/getRackList'
 const schema = yup.object().shape({
   name: yup.string().required('Rack name is required'),
   position: yup.string().required('Position is required'),
-  store_id: yup.string().required('Store is required'),
+
+  // store_id: yup.string().required('Store is required'),
   shelf: yup.string().required('Shelf is required'),
   status: yup.string().nullable()
 })
@@ -42,14 +43,23 @@ const schema = yup.object().shape({
 const defaultValues = {
   name: '',
   position: '',
-  store_id: '',
+
+  // store_id: '',
   shelf: '',
   status: 'active'
 }
 
 const AddRack = props => {
   // ** Props
-  const { addEventSidebarOpen, handleSidebarClose, handleSubmitData, resetForm, submitLoader, editParams } = props
+  const {
+    addEventSidebarOpen,
+    handleSidebarClose,
+    handleSubmitData,
+    resetForm,
+    submitLoader,
+    editParams,
+    selectedPharmacy
+  } = props
   console.log('props', props)
 
   // ** States
@@ -77,7 +87,7 @@ const AddRack = props => {
     const payload = {
       name,
       position,
-      store_id,
+      store_id: selectedPharmacy?.id,
       shelf,
       status
     }
