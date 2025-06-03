@@ -1,17 +1,18 @@
 import { Box, Breadcrumbs, Typography, Tabs, Tab, Card } from '@mui/material'
 import { useRouter } from 'next/router'
-import React, { useEffect, useState } from 'react'
+import React, { useState } from 'react'
 import InsightsCard from 'src/views/utility/insights/InsightsCard'
 
 // Listing Components
 import SpeciesListing from 'src/components/housing/sections/SpeciesListing'
 
 import { useQuery } from '@tanstack/react-query'
-import { getSpecificSiteAnalytics } from 'src/lib/api/housing'
+import { getSectionAnalytics } from 'src/lib/api/housing'
 import EnclosureListing from 'src/components/housing/sections/EnclosureListing'
 import MediaListing from 'src/components/housing/sections/MediaListing'
 import MortalityListing from 'src/components/housing/sections/MortalityListing'
 import AnimalTreatmentListing from 'src/components/housing/sections/AnimalTreatmentListing'
+import { useAuth } from 'src/hooks/useAuth'
 
 const tabConfig = [
   { label: 'Species', value: 'species', component: SpeciesListing }, // TODO: Update component as it is copied from site detail
@@ -30,14 +31,18 @@ const SectionDetails = () => {
   const { id } = router.query
 
   const [selectedTab, setSelectedTab] = useState(tabConfig[0].value)
+  const auth = useAuth()
+
+  const zooId = auth?.userData?.user?.zoos?.[0]?.zoo_id
 
   const { data, isLoading, error } = useQuery({
-    queryKey: ['site-detail', id],
+    queryKey: ['section-insights', id],
     queryFn: () =>
-      getSpecificSiteAnalytics({
-        site_id: id
+      getSectionAnalytics({
+        section_id: +id,
+        zoo_id: zooId
       }),
-    enabled: !!id
+    enabled: !!id && !!zooId
   })
 
   const handleTabChange = (event, newValue) => {
@@ -47,28 +52,29 @@ const SectionDetails = () => {
   const statsData = [
     {
       label: 'Species',
-      value: data?.data?.species_count || 0,
+      value: data?.data?.total_species || 0,
       imagePath: '/images/housing/species.svg',
-      onClick: () => console.log('Species')
+      onClick: () => setSelectedTab('species')
     },
     {
       label: 'Animals',
-      value: data?.data?.animal_count || 0,
+      value: data?.data?.total_animals || 0,
       imagePath: '/images/housing/animals.svg',
       onClick: () => console.log('Animals')
     },
-    {
-      label: 'Sections',
-      value: data?.data?.section_count || 0,
-      imagePath: '/images/housing/sections.svg',
-      onClick: () => console.log('Sections')
-    },
+
+    // {
+    //   label: 'Sections',
+    //   value: data?.data?.section_count || 0,
+    //   imagePath: '/images/housing/sections.svg',
+    //   onClick: () => console.log('Sections')
+    // },
 
     {
       label: 'Enclosures',
-      value: data?.data?.enclosure_count || 0,
+      value: data?.data?.total_enclosures || 0,
       imagePath: '/images/housing/enclosures.svg',
-      onClick: () => console.log('Enclosures')
+      onClick: () => setSelectedTab('enclosures')
     }
   ]
 
@@ -93,11 +99,13 @@ const SectionDetails = () => {
       <InsightsCard
         data={data?.data}
         loading={isLoading}
-        zooName={data?.data?.site_name}
-        subtitle={data?.data?.site_description}
-        description={data?.data?.incharges?.[0]?.full_name}
-        userName={data?.data?.incharges?.[0]?.role_name}
-        userImage={data?.data?.incharges?.[0]?.user_profile_pic}
+        zooName={data?.data?.section_name}
+
+        // subtitle={data?.data?.site_description}
+        userName={data?.data?.incharge_name}
+
+        // description={data?.data?.incharges?.[0]?.full_name}
+        // userImage={data?.data?.incharges?.[0]?.user_profile_pic}
         // actions={{
         //   onEdit: () => console.log('Edit'),
         //   onDelete: () => console.log('Delete'),
@@ -105,25 +113,16 @@ const SectionDetails = () => {
         //   onTimeClick: () => console.log('Time clicked')
         // }}
         onCallClick={() => {
-          const phoneNumber = data?.data?.incharges?.[0]?.user_mobile_number || '' // Adjust path as needed
+          const phoneNumber = data?.data?.incharge_phone_number || '' // Adjust path as needed
           if (phoneNumber) {
             // window.location.href = `tel:${phoneNumber}`
           } else {
             return
           }
         }}
+
         // onMessageClick={() => console.log('Message clicked')}
         error={error}
-        // speciesCount={data?.data?.species_count || 0}
-        // animalCount={data?.data?.animal_count || 0}
-        // enclosuresCount={data?.data?.enclosure_count || 0}
-        // sectionsCount={data?.data?.section_count || 0}
-        onInfoClick={{
-          species: () => setSelectedTab('species'),
-          animal: () => console.log('animal'),
-          enclosures: () => console.log('enclosures'),
-          sections: () => setSelectedTab('sections')
-        }}
         statsData={statsData}
       />
 

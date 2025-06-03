@@ -500,6 +500,8 @@ export const SITE_DETAILS = 'site-details'
 
 export const GET_ALL_SECTIONS = 'get-site-wise-section-list'
 
+export const SECTION_INSIGHTS = 'zoos/section/details'
+
 export const GET_ALL_NOTES = 'v1/get-observation-by-type-id'
 
 export const GET_ALL_SPECIES = 'v1/species/listing'

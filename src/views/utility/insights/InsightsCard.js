@@ -153,7 +153,40 @@ const InsightsCard = ({
               WebkitBackdropFilter: 'blur(0.5rem)'
             }}
           >
-            <Grid container spacing={3} justifyContent={'flex-start'}>
+            <Grid container spacing={3} justifyContent='flex-start'>
+              {statsData.map((item, index) => {
+                const length = statsData.length
+
+                let xs = 6
+                let sm = 6
+                let md = 12 / length
+
+                // Special handling when there are exactly 2 items
+                if (length === 2) {
+                  xs = 6 // still stack on extra small screens
+                  sm = 3 // 25% width
+                  md = 3
+                } else if (length === 1) {
+                  sm = 6
+                  md = 6
+                } else if (length === 4) {
+                  md = 3
+                }
+
+                return (
+                  <Grid item xs={xs} sm={sm} md={md} key={index} display='flex' justifyContent='flex-start'>
+                    <InfoStatCard
+                      imagePath={item.imagePath}
+                      value={item.value}
+                      label={item.label}
+                      onClick={item.onClick}
+                    />
+                  </Grid>
+                )
+              })}
+            </Grid>
+
+            {/* <Grid container spacing={3} justifyContent={'flex-start'}>
               {statsData.map((item, index) => (
                 <Grid
                   item
@@ -172,7 +205,7 @@ const InsightsCard = ({
                   />
                 </Grid>
               ))}
-            </Grid>
+            </Grid> */}
           </Box>
         )}
       </Box>

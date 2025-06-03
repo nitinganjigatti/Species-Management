@@ -71,6 +71,7 @@ export function renderUserAvatarDetails(image, userName, date, textColor, fontSi
                       textOverflow: 'ellipsis', // required for ellipsis
                       maxWidth: 100 // triggers the truncation
                     }}
+
                     // component={'span'}
                   >
                     {userName ? userName : 'NA'}
@@ -267,7 +268,7 @@ export const CellInfo = ({ value, subtitle, color, subtitleColor, imgUrl, avatar
           sx={{
             width: 40,
             height: 40,
-            borderRadius: 1,
+            borderRadius: '4px',
             objectFit: 'cover'
           }}
         />
@@ -277,7 +278,7 @@ export const CellInfo = ({ value, subtitle, color, subtitleColor, imgUrl, avatar
           sx={{
             width: 40,
             height: 40,
-            borderRadius: 1,
+            borderRadius: '4px',
             fontSize: 18,
             bgcolor: theme.palette.primary.main
           }}
