@@ -270,25 +270,6 @@ const Listing = () => {
     },
     {
       width: 150,
-      field: 'enclosures',
-      headerName: 'Enclosures',
-      align: 'center',
-      headerAlign: 'center',
-      sortable: false,
-      renderCell: params => (
-        <Typography
-          sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600 }}
-          onClick={e => {
-            e.stopPropagation()
-            setDrawerType('enclosures')
-          }}
-        >
-          {params.row.enclosure_count}
-        </Typography>
-      )
-    },
-    {
-      width: 150,
       field: 'sections',
       headerName: 'Sections',
       align: 'center',
@@ -328,6 +309,25 @@ const Listing = () => {
             {params.row.section_count}
           </Typography>
         </Box>
+      )
+    },
+    {
+      width: 150,
+      field: 'enclosures',
+      headerName: 'Enclosures',
+      align: 'center',
+      headerAlign: 'center',
+      sortable: false,
+      renderCell: params => (
+        <Typography
+          sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600 }}
+          onClick={e => {
+            e.stopPropagation()
+            setDrawerType('enclosures')
+          }}
+        >
+          {params.row.enclosure_count}
+        </Typography>
       )
     },
     {
