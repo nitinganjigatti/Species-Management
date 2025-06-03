@@ -1,6 +1,6 @@
 import { Box, Breadcrumbs, Typography, Tabs, Tab, Card } from '@mui/material'
 import { useRouter } from 'next/router'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 import InsightsCard from 'src/views/utility/insights/InsightsCard'
 
 // Listing Components
@@ -84,6 +84,14 @@ const SectionDetails = () => {
 
   const selected = tabConfig.find(tab => tab.value === selectedTab)
   const SelectedComponent = selected?.component || (() => <Box>No component found</Box>)
+
+  // useEffect(() => {
+  //   const tabFromQuery = router.query?.enclosureTab
+  //   const isValidTab = tabConfig.some(tab => tab.value === tabFromQuery)
+  //   if (isValidTab && selectedTab !== tabFromQuery) {
+  //     setSelectedTab(tabFromQuery)
+  //   }
+  // }, [router.query?.enclosureTab])
 
   return (
     <Box>

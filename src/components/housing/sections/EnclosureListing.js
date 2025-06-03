@@ -46,6 +46,29 @@ const EnclosureListing = () => {
   const listing = data?.data?.list_items || []
   const total = data?.data?.total_count || 0
 
+  const updateUrlParams = updatedFilters => {
+    const currentQuery = { ...router.query }
+
+    // Update only the section-related filter keys
+    const updatedQuery = {
+      ...currentQuery,
+      enclosurePage: updatedFilters.page,
+      enclosurePageSize: updatedFilters.pageSize,
+      enclosureSearch: updatedFilters.search,
+      enclosureSortBy: updatedFilters.sortBy,
+      enclosureSortOrder: updatedFilters.sortOrder
+    }
+
+    router.replace(
+      {
+        pathname: router.pathname,
+        query: updatedQuery
+      },
+      undefined,
+      { shallow: true }
+    )
+  }
+
   const getSlNo = index => (filters.page - 1) * filters.pageSize + index + 1
 
   const indexedRows = useMemo(
@@ -61,11 +84,13 @@ const EnclosureListing = () => {
   const debouncedSearch = useMemo(
     () =>
       debounce(value => {
-        setFilters(prev => ({
-          ...prev,
+        const updated = {
+          ...filters,
           search: value,
           page: 1
-        }))
+        }
+        setFilters(updated)
+        updateUrlParams(updated)
       }, 500),
     []
   )
@@ -80,31 +105,52 @@ const EnclosureListing = () => {
   }
 
   const handleSortModelChange = model => {
-    if (model.length > 0) {
-      const { field, sort } = model[0]
-      setFilters(prev => ({
-        ...prev,
+    let updated
+    if (sortModel.length > 0) {
+      const { field, sort } = sortModel[0]
+      updated = {
+        ...filters,
         sortBy: field,
         sortOrder: sort,
         page: 1
-      }))
+      }
     } else {
-      setFilters(prev => ({
-        ...prev,
+      updated = {
+        ...filters,
         sortBy: '',
-        sortOrder: '',
-        page: 1
-      }))
+        sortOrder: 'asc'
+      }
     }
+    setFilters(updated)
+    updateUrlParams(updated)
   }
 
   const handlePaginationModelChange = model => {
-    setFilters(prev => ({
-      ...prev,
+    const updated = {
+      ...filters,
       page: model.page + 1,
       pageSize: model.pageSize
-    }))
+    }
+    setFilters(updated)
+    updateUrlParams(updated)
   }
+
+  useEffect(() => {
+    setFilters(prev => ({
+      page: Number(router.query.enclosurePage) || 1,
+      pageSize: Number(router.query.enclosurePageSize) || 10,
+      search: router.query.enclosureSearch || '',
+      sortBy: router.query.enclosureSortBy || '',
+      sortOrder: router.query.enclosureSortOrder || 'asc'
+    }))
+    setInputValue(router.query.enclosureSearch || '')
+  }, [
+    router.query.enclosurePage,
+    router.query.enclosurePageSize,
+    router.query.enclosureSearch,
+    router.query.enclosureSortBy,
+    router.query.enclosureSortOrder
+  ])
 
   const columns = [
     {
@@ -204,7 +250,13 @@ const EnclosureListing = () => {
   }
 
   const onRowClick = params => {
-    router.replace(`/housing/enclosure/${params.row.enclosure_id}`, undefined, { shallow: true })
+    router.push({
+      pathname: `/housing/enclosure/${params.row.enclosure_id}`,
+      query: {
+        ...router.query,
+        enclosureTab: 'enclosures'
+      }
+    })
   }
 
   return (
