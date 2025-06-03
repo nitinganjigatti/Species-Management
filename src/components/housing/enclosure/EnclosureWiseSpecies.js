@@ -12,6 +12,7 @@ import CommonTable from 'src/views/table/data-grid/CommonTable'
 import { ExportButton } from 'src/views/utility/render-snippets'
 import Search from 'src/views/utility/Search'
 import SpeciesCard from 'src/views/utility/SpeciesCard'
+import AnimalDrawer from '../utils/AnimalDrawer'
 
 const EnclosureWiseSpecies = () => {
   const theme = useTheme()
@@ -20,6 +21,8 @@ const EnclosureWiseSpecies = () => {
 
   const [inputValue, setInputValue] = useState('')
   const [downloading, setDownloading] = useState(false)
+  const [openDrawer, setOpenDrawer] = useState(false)
+  const [drawerData, setDrawerData] = useState(null)
 
   const [filters, setFilters] = useState({
     page: 1,
@@ -49,6 +52,8 @@ const EnclosureWiseSpecies = () => {
 
   const listing = data?.data?.listing || []
   const total = data?.data?.listing?.length || 0
+
+  console.log(data)
 
   const getSlNo = index => (filters.page - 1) * filters.pageSize + index + 1
 
@@ -226,6 +231,30 @@ const EnclosureWiseSpecies = () => {
     console.log('Download button clicked')
   }
 
+  const handleRowClick = params => {
+    setOpenDrawer(true)
+    setDrawerData({
+      queryKey: 'enclosure-wise-species-drawer',
+      id: id,
+      complete_name: params.row.complete_name,
+      common_name: params.row.common_name,
+      animal_count: params.row.animal_count,
+      default_icon: params.row.default_icon,
+      sex_data: params.row.sex_data,
+      params: {
+        enclosure_id: id,
+        taxonomy_id: params.row.tsn_id
+      }
+    })
+  }
+
+  console.log(drawerData)
+
+  const handleClose = () => {
+    setOpenDrawer(false)
+    setDrawerData(null)
+  }
+
   return (
     <>
       <ListingHeader title='All Species' totalCount={total} />
@@ -255,6 +284,7 @@ const EnclosureWiseSpecies = () => {
           }}
         >
           <CommonTable
+            onRowClick={handleRowClick}
             indexedRows={indexedRows}
             total={total}
             columns={columns}
@@ -271,6 +301,7 @@ const EnclosureWiseSpecies = () => {
           />
         </Grid>
       </Box>
+      {openDrawer && <AnimalDrawer open={!!drawerData} onClose={handleClose} data={drawerData} />}
     </>
   )
 }
