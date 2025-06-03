@@ -1,5 +1,5 @@
 import axios from 'axios'
-import { axiosGet } from '../utility'
+import { axiosGet, axiosPost } from '../utility'
 import {
   GET_ALL_SECTIONS,
   GET_SITES,
@@ -15,7 +15,8 @@ import {
   GET_SPECIFIC_CLUSTER_ANALYTICS,
   GET_ENCLOSURE_LIST_SECTION_WISE,
   GET_ENCLOSURE_WISE_STATS,
-  GET_ENCLOSURE_WISE_SPECIES
+  GET_ENCLOSURE_WISE_SPECIES,
+  SECTION_INSIGHTS
 } from 'src/constants/ApiConstant'
 
 export async function getSiteAnalytics(id) {
@@ -68,6 +69,12 @@ export async function getAllMedia(params) {
 
 export async function getAnimalTreatmentList(params) {
   const response = await axiosGet({ url: `${GET_ANIMAL_TREATMENT}/${params?.site_id}`, params })
+
+  return response.data
+}
+
+export async function getSectionAnalytics(body) {
+  const response = await axiosPost({ url: `${SECTION_INSIGHTS}`, body: JSON.stringify(body) })
 
   return response.data
 }

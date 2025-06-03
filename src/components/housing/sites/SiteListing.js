@@ -137,13 +137,15 @@ const Listing = () => {
   }))
 
   const handleRowClick = params => {
-    const detailUrl = {
-      pathname: `/housing/sites/${params.row.site_id}`,
-      query: {
-        ...filters
-      } // preserve current filters
+    if (params.field !== 'actions' && params.field !== 'id') {
+      const detailUrl = {
+        pathname: `/housing/sites/${params.row.site_id}`,
+        query: {
+          ...filters
+        } // preserve current filters
+      }
+      router.push(detailUrl)
     }
-    router.push(detailUrl)
   }
 
   const handleDownload = () => {
@@ -160,7 +162,7 @@ const Listing = () => {
       width: 100,
       field: 'id',
       headerName: 'SL.NO',
-       sortable: false,
+      sortable: false,
       renderCell: params => (
         <Typography sx={{ color: theme.palette.customColors.neutralSecondary, fontSize: '14px', fontWeight: 500 }}>
           {parseInt(params.row.sl_no) + '.'}
@@ -192,8 +194,15 @@ const Listing = () => {
       headerAlign: 'left',
       sortable: false,
       renderCell: params => (
-        <Typography
-          sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600 }}
+        <Box
+          sx={{
+            width: '100%',
+            height: '100%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            cursor: 'pointer'
+          }}
           onClick={e => {
             e.stopPropagation()
             setDrawerType('species')
@@ -208,8 +217,16 @@ const Listing = () => {
             })
           }}
         >
-          {params.row.species_count || 0}
-        </Typography>
+          <Typography
+            sx={{
+              color: theme.palette.primary.OnSurface,
+              fontSize: '16px',
+              fontWeight: 600
+            }}
+          >
+            {params.row.species_count || 0}
+          </Typography>
+        </Box>
       )
     },
     {
@@ -220,8 +237,15 @@ const Listing = () => {
       headerAlign: 'left',
       sortable: false,
       renderCell: params => (
-        <Typography
-          sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600 }}
+        <Box
+          sx={{
+            width: '100%',
+            height: '100%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            cursor: 'pointer'
+          }}
           onClick={e => {
             e.stopPropagation()
             setDrawerType('animals')
@@ -236,8 +260,59 @@ const Listing = () => {
             })
           }}
         >
-          {params.row.animal_count || 0}
-        </Typography>
+          <Typography
+            sx={{
+              color: theme.palette.primary.OnSurface,
+              fontSize: '16px',
+              fontWeight: 600
+            }}
+          >
+            {params.row.animal_count || 0}
+          </Typography>
+        </Box>
+      )
+    },
+    {
+      width: 150,
+      field: 'sections',
+      headerName: 'Sections',
+      align: 'center',
+      headerAlign: 'center',
+      sortable: false,
+      renderCell: params => (
+        <Box
+          sx={{
+            width: '100%',
+            height: '100%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            cursor: 'pointer'
+          }}
+          onClick={e => {
+            e.stopPropagation()
+            setDrawerType('sections')
+            setDrawerData({
+              queryKey: 'site-sections-drawer',
+              id: params.row?.site_id,
+              name: params.row?.site_name,
+              image: params.row?.images?.[0]?.file,
+              params: {
+                site_id: params.row?.site_id
+              }
+            })
+          }}
+        >
+          <Typography
+            sx={{
+              fontWeight: 600,
+              fontSize: '16px',
+              color: theme.palette.primary.OnSurface
+            }}
+          >
+            {params.row.section_count}
+          </Typography>
+        </Box>
       )
     },
     {
@@ -360,7 +435,7 @@ const Listing = () => {
           }}
         >
           <CommonTable
-            onRowClick={handleRowClick}
+            onCellClick={handleRowClick}
             indexedRows={indexedRows}
             total={total}
             columns={columns}

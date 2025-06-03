@@ -162,17 +162,19 @@ const SectionListing = () => {
   }
 
   const handleRowClick = params => {
-    router.push({
-      pathname: `/housing/sections/${params.row.section_id}`,
-      query: {
-        ...router.query,
-        sectionPage: filters.page,
-        sectionPageSize: filters.pageSize,
-        sectionSearch: filters.search,
-        sectionSortBy: filters.sortBy,
-        sectionSortOrder: filters.sortOrder
-      }
-    })
+    if (params.field !== 'actions' && params.field !== 'id') {
+      router.push({
+        pathname: `/housing/sections/${params.row.section_id}`,
+        query: {
+          ...router.query,
+          sectionPage: filters.page,
+          sectionPageSize: filters.pageSize,
+          sectionSearch: filters.search,
+          sectionSortBy: filters.sortBy,
+          sectionSortOrder: filters.sortOrder
+        }
+      })
+    }
   }
 
   useEffect(() => {
@@ -339,7 +341,7 @@ const SectionListing = () => {
           }}
         >
           <CommonTable
-            onRowClick={handleRowClick}
+            onCellClick={handleRowClick}
             indexedRows={indexedRows}
             total={total}
             columns={columns}

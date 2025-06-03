@@ -73,9 +73,10 @@ const queryClient = new QueryClient({
       staleTime: 5 * 60 * 1000, // 5 minutes (data will be considered fresh for 5 minutes)
       gcTime: 10 * 60 * 1000, // 10 minutes (cache data will be garbage collected after 10 minutes of inactivity)
       refetchOnWindowFocus: false, // Prevent refetching on window focus
-    },
-  },
-});
+      retry: false // Disable retrying failed queries
+    }
+  }
+})
 
 
 const clientSideEmotionCache = createEmotionCache()

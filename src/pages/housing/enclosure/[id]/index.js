@@ -57,6 +57,10 @@ const EnclsouerDetails = () => {
     setSelectedTab(newValue)
   }
 
+  const handleEnclosureListingClick = () => {
+    router.back()
+  }
+
   const selected = tabConfig.find(tab => tab.value === selectedTab)
   const SelectedComponent = selected?.component || (() => <Box>No component found</Box>)
 
@@ -64,7 +68,7 @@ const EnclsouerDetails = () => {
     <>
       <Box>
         <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
-          <Typography color='inherit' sx={{ cursor: 'pointer' }}>
+          <Typography color='inherit' sx={{ cursor: 'pointer' }} onClick={handleEnclosureListingClick}>
             Enclosures
           </Typography>
           <Typography color='text.primary'>Enclosure Details</Typography>
