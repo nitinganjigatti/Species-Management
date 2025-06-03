@@ -75,9 +75,10 @@ export async function getMedicalReport(params) {
   return response.data
 }
 
-export async function getAnimalAssessmentReport(params) {
+export async function getAnimalAssessmentReport(params, payload) {
   const response = await axiosPost({
-    url: `${ASSESSMENT_REPORT}?page=${params.page}&limit=${params.limit}`
+    url: `${ASSESSMENT_REPORT}?page=${params.page}&limit=${params.limit}`,
+    body: payload
   })
 
   return response.data
@@ -91,6 +92,24 @@ export async function getAnimalAssessment(params) {
 
 export async function getEnclosureAssessment(params) {
   const response = await axiosGet({ url: `v1/enclosure/assessment/report`, params })
+
+  return response.data
+}
+
+export async function getTaxonomyListForReport(params) {
+  const response = await axiosPost({ url: `v1/collection/animalspecies/listing`, body: params })
+
+  return response.data
+}
+
+export async function getAssessmentCategoriesList(params) {
+  const response = await axiosGet({ url: `v1/assessment/category/list`, params })
+
+  return response.data
+}
+
+export async function getAssessmentTypesList(params) {
+  const response = await axiosGet({ url: `v1/assessment/type/list`, params })
 
   return response.data
 }
