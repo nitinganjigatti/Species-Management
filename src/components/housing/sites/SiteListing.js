@@ -160,7 +160,7 @@ const Listing = () => {
       width: 100,
       field: 'id',
       headerName: 'SL.NO',
-       sortable: false,
+      sortable: false,
       renderCell: params => (
         <Typography sx={{ color: theme.palette.customColors.neutralSecondary, fontSize: '14px', fontWeight: 500 }}>
           {parseInt(params.row.sl_no) + '.'}
@@ -190,8 +190,15 @@ const Listing = () => {
       headerAlign: 'center',
       sortable: false,
       renderCell: params => (
-        <Typography
-          sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600 }}
+        <Box
+          sx={{
+            width: '100%',
+            height: '100%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            cursor: 'pointer'
+          }}
           onClick={e => {
             e.stopPropagation()
             setDrawerType('species')
@@ -206,8 +213,16 @@ const Listing = () => {
             })
           }}
         >
-          {params.row.species_count || 0}
-        </Typography>
+          <Typography
+            sx={{
+              color: theme.palette.primary.OnSurface,
+              fontSize: '16px',
+              fontWeight: 600
+            }}
+          >
+            {params.row.species_count || 0}
+          </Typography>
+        </Box>
       )
     },
     {
@@ -218,8 +233,15 @@ const Listing = () => {
       headerAlign: 'center',
       sortable: false,
       renderCell: params => (
-        <Typography
-          sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600 }}
+        <Box
+          sx={{
+            width: '100%',
+            height: '100%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            cursor: 'pointer'
+          }}
           onClick={e => {
             e.stopPropagation()
             setDrawerType('animals')
@@ -234,8 +256,16 @@ const Listing = () => {
             })
           }}
         >
-          {params.row.animal_count || 0}
-        </Typography>
+          <Typography
+            sx={{
+              color: theme.palette.primary.OnSurface,
+              fontSize: '16px',
+              fontWeight: 600
+            }}
+          >
+            {params.row.animal_count || 0}
+          </Typography>
+        </Box>
       )
     },
     {
@@ -265,8 +295,15 @@ const Listing = () => {
       headerAlign: 'center',
       sortable: false,
       renderCell: params => (
-        <Typography
-          sx={{ cursor: 'pointer', fontWeight: 600, fontSize: '16px', color: theme.palette.primary.OnSurface }}
+        <Box
+          sx={{
+            width: '100%',
+            height: '100%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            cursor: 'pointer'
+          }}
           onClick={e => {
             e.stopPropagation()
             setDrawerType('sections')
@@ -281,8 +318,16 @@ const Listing = () => {
             })
           }}
         >
-          {params.row.section_count}
-        </Typography>
+          <Typography
+            sx={{
+              fontWeight: 600,
+              fontSize: '16px',
+              color: theme.palette.primary.OnSurface
+            }}
+          >
+            {params.row.section_count}
+          </Typography>
+        </Box>
       )
     },
     {
