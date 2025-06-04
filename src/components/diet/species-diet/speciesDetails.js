@@ -25,7 +25,7 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
   const getSpecieDetail = async () => {
     setDetailsLoader(true)
     try {
-      const res = await getSpecieDetailById(speciesId)
+      const res = await getSpecieDetailById(speciesId, { uploaded_diet_section: true })
       setSpecieDetails(res.data.data)
     } catch (error) {
       Toaster({ type: 'error', message: error.message || 'Failed to fetch data' })
@@ -49,6 +49,7 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
           species_id: `${speciesId}`,
           attachment_id: `${attachment_id}`
         })
+
         // Toaster({ type: 'success', message: res.message || 'Attachment removed successfully' })
         Toaster({ type: 'success', message: 'Diet Deactivated Successfully' })
         await fetchTableData()
@@ -70,6 +71,7 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
           species_id: `${speciesId}`,
           attachment_id: `${attachmentId}`
         })
+
         // Toaster({ type: 'success', message: 'Diet has been set as the primary diet successfully' })
         Toaster({ type: 'success', message: 'Diet Activated Successfully' })
         await fetchTableData()
@@ -81,6 +83,7 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
       }
     }
   }
+
   const DietitianAvatar = ({ item }) => {
     const [imgError, setImgError] = useState(false)
 
@@ -249,6 +252,7 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
                         textOverflow: 'ellipsis',
                         whiteSpace: 'nowrap',
                         width: 'calc(100% - 120px)'
+
                         // minWidth: 150
                       }}
                     >
@@ -291,6 +295,7 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
                         overflow: 'hidden',
                         textOverflow: 'ellipsis',
                         whiteSpace: 'nowrap'
+
                         // maxWidth: 100
                       }}
                     >
@@ -395,6 +400,7 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
   const handleChange = (event, newValue) => {
     setStatus(newValue)
   }
+
   const TabBadge = ({ label }) => (
     <div style={{ display: 'flex', alignItems: 'center', justifyItems: 'center', justifyContent: 'space-between' }}>
       {label}
@@ -549,6 +555,7 @@ function SpeciesDetails({ speciesDetailsDrawer, setSpeciesDetailsDrawer, species
             setspeciesId(specieDetails.species_id)
             setUploadDietDrawer(true)
           }}
+
           // loading={loader}
         >
           UPLOAD NEW
