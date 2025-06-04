@@ -21,7 +21,7 @@ const SpeciesInnerCard = ({ species, completeName, commonName, animalCount, imgU
       {/* Bottom Row: Chips on left, Count on right */}
       <Box display='flex' justifyContent='space-between' alignItems='center' sx={{ mt: 1, px: 2 }}>
         {/* Left: Chips */}
-        <Box display='flex' flexWrap='wrap' gap={2} sx={{ ml: 8 }}>
+        <Box display='flex' flexWrap='wrap' gap={2} sx={{ ml: 12 }}>
           {(sex?.male || species?.sex_data?.male) && (
             <Chip
               label={`M - ${sex?.male ?? species?.sex_data?.male}`}

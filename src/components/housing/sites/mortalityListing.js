@@ -173,13 +173,14 @@ const MortalityListing = () => {
           <Typography
             sx={{
               fontSize: '12px',
+              cursor: 'default',
               color: theme.palette.customColors.secondaryBg
             }}
           >
             {localIdentifierName} : {localIdentifierValue}
           </Typography>
         ) : (
-          <Typography sx={{ml:10}}>-</Typography>
+          <Typography sx={{ ml: 10, cursor: 'default' }}>-</Typography>
         )
       }
     },
@@ -214,6 +215,7 @@ const MortalityListing = () => {
           sx={{
             fontSize: '16px',
             fontWeight: 400,
+            cursor: 'default',
             color: theme.palette.customColors.OnSurfaceVariant,
             textOverflow: 'ellipsis',
             overflow: 'hidden',

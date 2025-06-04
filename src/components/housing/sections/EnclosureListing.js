@@ -154,7 +154,7 @@ const EnclosureListing = () => {
 
   const columns = [
     {
-      width: 80,
+      width: 100,
       field: 'id',
       headerName: 'SL.NO',
       sortable: false,

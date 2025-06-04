@@ -126,7 +126,7 @@ const SpeciesListing = () => {
 
   const columns = [
     {
-      width: 80,
+      width: 100,
       field: 'id',
       headerName: 'SL.NO',
       sortable: false,
@@ -158,8 +158,8 @@ const SpeciesListing = () => {
       align: 'left',
       headerAlign: 'left',
       headerName: 'Population',
-      headerAlign: 'center',
-      align: 'center',
+      headerAlign: 'left',
+      align: 'left',
       sortable: false,
       renderCell: params => (
         <Typography
@@ -182,9 +182,9 @@ const SpeciesListing = () => {
             cursor: 'default',
             display: 'flex',
             alignItems: 'center', // vertical alignment
-            justifyContent: 'flex-start', // horizontal alignment (left)
-            height: '100%', // ensures full cell height
-            width: '100%' // ensures full cell width
+            justifyContent: 'flex-start' // horizontal alignment (left)
+            // height: '100%', // ensures full cell height
+            // width: '100%' // ensures full cell width
           }}
         >
           <GenderInfoCard
@@ -229,8 +229,8 @@ const SpeciesListing = () => {
       width: 160,
       field: 'indeterminate',
       headerName: 'INDETERMINATE',
-      headerAlign: 'center',
-      align: 'center',
+      headerAlign: 'left',
+      align: 'left',
       sortable: false,
       renderCell: params => (
         <GenderInfoCard
@@ -301,7 +301,7 @@ const SpeciesListing = () => {
               color: theme.palette.customColors.OnSurfaceVariant,
               fontSize: '12px',
               fontWeight: 600,
-              ml: 2
+              mr: 2
             }
           }}
         >

@@ -164,13 +164,28 @@ const AnimalTreatmentListing = () => {
     {
       width: 250,
       field: 'animal_name',
-      headerName: 'PRIMARY IDENTIDIER',
+      align: 'left',
+      headerAlign: 'left',
       sortable: false,
-      renderCell: params => (
-        <Typography sx={{ fontWeight: 400, fontSize: '16px', color: theme.palette.customColors.OnSurfaceVariant }}>
-          {params.row.common_name}
-        </Typography>
-      )
+      headerName: 'Primary Identifier',
+      renderCell: params => {
+        const localIdentifierName = params.row.local_identifier_name
+        const localIdentifierValue = params.row.local_identifier_value
+
+        return localIdentifierName ? (
+          <Typography
+            sx={{
+              fontSize: '12px',
+              cursor: 'default',
+              color: theme.palette.customColors.secondaryBg
+            }}
+          >
+            {localIdentifierName} : {localIdentifierValue}
+          </Typography>
+        ) : (
+          <Typography sx={{ ml: 10, cursor: 'default' }}>-</Typography>
+        )
+      }
     },
 
     {
@@ -226,7 +241,14 @@ const AnimalTreatmentListing = () => {
       headerAlign: 'left',
       sortable: false,
       renderCell: params => (
-        <Typography sx={{ fontWeight: 400, fontSize: '16px', color: theme.palette.customColors.OnSurfaceVariant }}>
+        <Typography
+          sx={{
+            fontWeight: 400,
+            fontSize: '16px',
+            color: theme.palette.customColors.OnSurfaceVariant,
+            cursor: 'default'
+          }}
+        >
           {params.row.section_name}
         </Typography>
       )
@@ -252,7 +274,14 @@ const AnimalTreatmentListing = () => {
       headerName: 'Enclosure Name',
       sortable: false,
       renderCell: params => (
-        <Typography sx={{ fontWeight: 400, fontSize: '16px', color: theme.palette.customColors.OnSurfaceVariant }}>
+        <Typography
+          sx={{
+            fontWeight: 400,
+            fontSize: '16px',
+            color: theme.palette.customColors.OnSurfaceVariant,
+            cursor: 'default'
+          }}
+        >
           {params.row.user_enclosure_name}
         </Typography>
       )
@@ -283,7 +312,8 @@ const AnimalTreatmentListing = () => {
             '& .MuiDataGrid-columnHeaderTitle': {
               color: theme.palette.customColors.OnSurfaceVariant,
               fontSize: '12px',
-              fontWeight: 600
+              fontWeight: 600,
+              mr: 2
             }
           }}
         >

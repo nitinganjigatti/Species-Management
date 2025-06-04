@@ -4,6 +4,7 @@ import Utility from 'src/utility'
 import Icon from 'src/@core/components/icon'
 import { format, formatDistanceToNow } from 'date-fns'
 import { useTheme } from '@emotion/react'
+import moment from 'moment'
 
 export const getEllipsisStyleForText = width => {
   return {
@@ -51,7 +52,7 @@ export function renderUserAvatarDetails(image, userName, date, textColor, fontSi
   return (
     <>
       {userName ? (
-        <Box sx={{ display: 'flex', alignItems: 'center' }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', cursor: 'default' }}>
           {image ? (
             <CustomAvatar src={image} sx={{ mr: '16px', width: '40px', height: '40px' }} />
           ) : (
@@ -96,7 +97,7 @@ export function renderUserAvatarDetails(image, userName, date, textColor, fontSi
           </Box>
         </Box>
       ) : (
-        <Typography variant='subtitle2' sx={{ color: 'text.primary', ml: 3 }}>
+        <Typography variant='subtitle2' sx={{ color: 'text.primary', ml: 3, cursor: 'default' }}>
           -
         </Typography>
       )}
@@ -368,57 +369,113 @@ export const CellInfo = ({ value, subtitle, color, subtitleColor, imgUrl, avatar
   )
 }
 
-export const DateInfoDisplay = ({ title, date, showRelativeTime = false }) => {
+export const DateInfoDisplay = ({ date }) => {
   const theme = useTheme()
 
   if (!date) return null
 
-  const parsedDate = new Date(date)
-  const formattedDate = format(parsedDate, 'dd MMM yyyy • hh:mm a').toUpperCase()
-  const relativeTime = showRelativeTime ? formatDistanceToNow(parsedDate, { addSuffix: true }) : null
+  const parsedDate = moment(date)
+  const now = moment()
+
+  // Calculate difference in months (integer)
+  const monthsDiff = now.diff(parsedDate, 'months')
+
+  // Move parsedDate forward by monthsDiff months to calculate remaining diff
+  const datePlusMonths = parsedDate.clone().add(monthsDiff, 'months')
+
+  // Calculate remaining difference in milliseconds
+  const remainingMs = now.diff(datePlusMonths)
+
+  // Convert remainingMs to duration for days, hours, minutes
+  const duration = moment.duration(remainingMs)
+
+  const days = duration.days()
+  const hours = duration.hours()
+  const minutes = duration.minutes()
+
+  // Format the discovered date as per your requirement
+  const formattedDateRaw = parsedDate.format('DD MMM YYYY • hh:mm A')
+  const formattedDate = formattedDateRaw.replace(
+    /([A-Za-z]{3})/,
+    match => match.charAt(0).toUpperCase() + match.slice(1).toLowerCase()
+  )
 
   return (
-    <Box display='flex' flexDirection='column'>
-      {title && (
-        <Typography
-          sx={{
-            fontSize: '14px',
-            color: theme.palette.customColors.OnSurfaceVariant,
-            fontWeight: 500
-          }}
-        >
-          {title}
-        </Typography>
-      )}
+    <Box display='flex' flexDirection='column' sx={{ cursor: 'default' }}>
       <Typography
         sx={{
-          fontSize: showRelativeTime ? '14px' : '12px',
+          fontSize: '14px',
           color: theme.palette.customColors.OnSurfaceVariant,
           fontWeight: 400
         }}
       >
-        {showRelativeTime ? relativeTime : formattedDate}
+        {/* Display difference like "about 1 month, 12 days, 6 hours, 30 minutes ago" */}
+        {`About ${monthsDiff} month${monthsDiff !== 1 ? 's' : ''} ago`}
       </Typography>
-      {showRelativeTime && (
-        <Typography
-          sx={{
-            fontSize: '14px',
-            color: theme.palette.customColors.OnSurfaceVariant,
-            fontWeight: 400
-          }}
-        >
-          {formattedDate}
-        </Typography>
-      )}
+      <Typography
+        sx={{
+          fontSize: '14px',
+          color: theme.palette.customColors.OnSurfaceVariant,
+          fontWeight: 400
+        }}
+      >
+        {formattedDate}
+      </Typography>
     </Box>
   )
 }
+
+// export const DateInfoDisplay = ({ title, date, showRelativeTime = false }) => {
+//   const theme = useTheme()
+
+//   if (!date) return null
+
+//   const parsedDate = new Date(date)
+//   const formattedDate = format(parsedDate, 'dd MMM yyyy • hh:mm a').toUpperCase()
+//   const relativeTime = showRelativeTime ? formatDistanceToNow(parsedDate, { addSuffix: true }) : null
+
+//   return (
+//     <Box display='flex' flexDirection='column'>
+//       {title && (
+//         <Typography
+//           sx={{
+//             fontSize: '14px',
+//             color: theme.palette.customColors.OnSurfaceVariant,
+//             fontWeight: 500
+//           }}
+//         >
+//           {title}
+//         </Typography>
+//       )}
+//       <Typography
+//         sx={{
+//           fontSize: showRelativeTime ? '14px' : '12px',
+//           color: theme.palette.customColors.OnSurfaceVariant,
+//           fontWeight: 400
+//         }}
+//       >
+//         {showRelativeTime ? relativeTime : formattedDate}
+//       </Typography>
+//       {showRelativeTime && (
+//         <Typography
+//           sx={{
+//             fontSize: '14px',
+//             color: theme.palette.customColors.OnSurfaceVariant,
+//             fontWeight: 400
+//           }}
+//         >
+//           {formattedDate}
+//         </Typography>
+//       )}
+//     </Box>
+//   )
+// }
 
 export const IdentifierInfoCard = ({ animalId, total, localIdentifierName, localIdentifierValue }) => {
   const theme = useTheme()
 
   return (
-    <Box>
+    <Box sx={{ cursor: 'default' }}>
       <Typography
         sx={{
           fontWeight: 500,
@@ -429,7 +486,7 @@ export const IdentifierInfoCard = ({ animalId, total, localIdentifierName, local
         AAID : {`${animalId}/${total}`}
       </Typography>
 
-      {localIdentifierName && (
+      {/* {localIdentifierName && (
         <Typography
           sx={{
             fontSize: '12px',
@@ -438,7 +495,7 @@ export const IdentifierInfoCard = ({ animalId, total, localIdentifierName, local
         >
           {localIdentifierName} : {localIdentifierValue}
         </Typography>
-      )}
+      )} */}
     </Box>
   )
 }
@@ -451,6 +508,7 @@ export const GenderInfoCard = ({ value, bgcolor, color }) => {
         py: 0.5,
         width: '48px',
         height: '25px',
+        cursor: 'default',
         borderRadius: '4px',
         bgcolor: bgcolor, // light gray-green
         color: color, // maroonish-red

@@ -139,7 +139,14 @@ const Listing = () => {
   }))
 
   const handleRowClick = params => {
-    if (params.field !== 'actions' && params.field !== 'id') {
+    if (
+      params.field !== 'actions' &&
+      params.field !== 'id' &&
+      params.field !== 'species' &&
+      params.field !== 'animals' &&
+      params.field !== 'sections' &&
+      params.field !== 'enclosures'
+    ) {
       const detailUrl = {
         pathname: `/housing/sites/${params.row.site_id}`,
         query: {
@@ -151,7 +158,7 @@ const Listing = () => {
   }
 
   const handleDownload = () => {
-    console.log('Downloading...')
+    console.log('Downloading...') 
   }
 
   const handleDrawerClose = () => {
@@ -161,7 +168,7 @@ const Listing = () => {
 
   const columns = [
     {
-      width: 80,
+      width: 100,
       field: 'id',
       headerName: 'SL.NO',
       sortable: false,

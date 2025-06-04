@@ -193,14 +193,14 @@ const Clusters = () => {
 
   const columns = [
     {
-      width: 80,
+      width: 100,
       field: 'id',
       headerName: 'SL.NO',
       sortable: false,
       align: 'center',
       headerAlign: 'center',
       renderCell: params => (
-        <Typography sx={{ color: theme.palette.customColors.neutralSecondary, fontSize: '14px', fontWeight: 500 }}>
+        <Typography sx={{ color: theme.palette.customColors.neutralSecondary, fontSize: '14px', fontWeight: 500, cursor:"default" }}>
           {parseInt(params.row.sl_no) + '.'}
         </Typography>
       )
@@ -226,12 +226,12 @@ const Clusters = () => {
       width: 160,
       field: 'species_count',
       headerName: 'Species',
-      headerAlign: 'center',
-      align: 'center',
+      headerAlign: 'left',
+      align: 'left',
       sortable: false,
       renderCell: params => (
         <Typography
-          sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600 }}
+          sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600, cursor:"default" }}
 
           // onClick={e => {
           //   e.stopPropagation()
@@ -253,12 +253,12 @@ const Clusters = () => {
       headerAlign: 'left',
       align: 'left',
       headerName: 'Animals',
-      headerAlign: 'center',
-      align: 'center',
+      headerAlign: 'left',
+      align: 'left',
       sortable: false,
       renderCell: params => (
         <Typography
-          sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600 }}
+          sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600, cursor:"default" }}
 
           // onClick={e => {
           //   e.stopPropagation()
@@ -278,12 +278,12 @@ const Clusters = () => {
       width: 150,
       field: 'site_count',
       headerName: 'Sites',
-      headerAlign: 'center',
-      align: 'center',
+      headerAlign: 'left',
+      align: 'left',
       sortable: false,
       renderCell: params => (
         <Typography
-          sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600 }}
+          sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600, cursor:"default" }}
 
           // onClick={e => {
           //   e.stopPropagation()
@@ -407,7 +407,7 @@ const Clusters = () => {
                       color: theme.palette.customColors.OnSurfaceVariant,
                       fontSize: '12px',
                       fontWeight: 600,
-                      ml: 1
+                      mr:2
                     }
                   }}
                 >

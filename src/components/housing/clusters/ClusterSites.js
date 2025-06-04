@@ -148,14 +148,21 @@ const ClusterSites = () => {
 
   const columns = [
     {
-      width: 80,
+      width: 100,
       field: 'id',
       headerName: 'SL.NO',
       headerAlign: 'left',
       align: 'left',
       sortable: false,
       renderCell: params => (
-        <Typography sx={{ color: theme.palette.customColors.neutralSecondary, fontSize: '14px', fontWeight: 500 }}>
+        <Typography
+          sx={{
+            color: theme.palette.customColors.neutralSecondary,
+            fontSize: '14px',
+            fontWeight: 500,
+            cursor: 'default'
+          }}
+        >
           {parseInt(params.row.sl_no) + '.'}
         </Typography>
       )
@@ -170,7 +177,7 @@ const ClusterSites = () => {
       renderCell: params => (
         <CellInfo
           value={params.row.site_name}
-          subtitle={''}
+          subtitle={''} 
           imgUrl={params.row.images?.[0]?.file}
           avatarUrl={''}
           inchagename={''}
@@ -181,11 +188,13 @@ const ClusterSites = () => {
       width: 160,
       field: 'species',
       headerName: 'Species',
-      headerAlign: 'center',
-      align: 'center',
+      headerAlign: 'left',
+      align: 'left',
       sortable: false,
       renderCell: params => (
-        <Typography sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600 }}>
+        <Typography
+          sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600, cursor: 'default' }}
+        >
           {params.row.species_count || 0}
         </Typography>
       )
@@ -194,11 +203,13 @@ const ClusterSites = () => {
       width: 150,
       field: 'animals',
       headerName: 'Animals',
-      headerAlign: 'center',
-      align: 'center',
+      headerAlign: 'left',
+      align: 'left',
       sortable: false,
       renderCell: params => (
-        <Typography sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600 }}>
+        <Typography
+          sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600, cursor: 'default' }}
+        >
           {params.row.animal_count || 0}
         </Typography>
       )
@@ -209,11 +220,13 @@ const ClusterSites = () => {
       align: 'left',
       headerAlign: 'left',
       headerName: 'Enclosures',
-      headerAlign: 'center',
-      align: 'center',
+      headerAlign: 'left',
+      align: 'left',
       sortable: false,
       renderCell: params => (
-        <Typography sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600 }}>
+        <Typography
+          sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600, cursor: 'default' }}
+        >
           {params.row.enclosure_count}
         </Typography>
       )
@@ -295,7 +308,7 @@ const ClusterSites = () => {
               color: theme.palette.customColors.OnSurfaceVariant,
               fontSize: '12px',
               fontWeight: 600,
-              ml: 1
+              mr: 2
             }
           }}
         >

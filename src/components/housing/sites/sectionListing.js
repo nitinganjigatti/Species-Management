@@ -164,7 +164,14 @@ const SectionListing = () => {
   }
 
   const handleRowClick = params => {
-    if (params.field !== 'actions' && params.field !== 'id') {
+    if (
+      params.field !== 'actions' &&
+      params.field !== 'id' &&
+      params.field !== 'species' &&
+      params.field !== 'animals' &&
+      params.field !== 'sections' &&
+      params.field !== 'enclosures'
+    ) {
       router.push({
         pathname: `/housing/sections/${params.row.section_id}`,
         query: {
@@ -198,7 +205,7 @@ const SectionListing = () => {
 
   const columns = [
     {
-      width: 80,
+      width: 100,
       field: 'id',
       headerName: 'SL.NO',
       sortable: false,
@@ -226,14 +233,14 @@ const SectionListing = () => {
     {
       width: 180,
       field: 'species',
-      headerAlign: 'center',
-      align: 'center',
       headerName: 'Species',
       align: 'left',
       headerAlign: 'left',
       sortable: false,
       renderCell: params => (
-        <Typography sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600,cursor:"default" }}>
+        <Typography
+          sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600, cursor: 'default' }}
+        >
           {params.row.species_count || 0}
         </Typography>
       )
@@ -242,11 +249,13 @@ const SectionListing = () => {
       width: 150,
       field: 'animals',
       headerName: 'Animals',
-      headerAlign: 'center',
-      align: 'center',
+      headerAlign: 'left',
+      align: 'left',
       sortable: false,
       renderCell: params => (
-        <Typography sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600, cursor:"default" }}>
+        <Typography
+          sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600, cursor: 'default' }}
+        >
           {params.row.animal_count || 0}
         </Typography>
       )
@@ -255,11 +264,13 @@ const SectionListing = () => {
       width: 150,
       field: 'enclosures',
       headerName: 'Enclosures',
-      headerAlign: 'center',
-      align: 'center',
+      headerAlign: 'left',
+      align: 'left',
       sortable: false,
       renderCell: params => (
-        <Typography sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600,cursor:"default" }}>
+        <Typography
+          sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600, cursor: 'default' }}
+        >
           {params.row.enclosure_count}
         </Typography>
       )
@@ -287,7 +298,8 @@ const SectionListing = () => {
       field: 'actions',
       headerName: 'Actions',
       sortable: false,
-      align: 'center',
+      headerAlign: 'left',
+      align: 'left',
       renderCell: params => {
         if (!isSmallScreen) {
           // Show mobile number on small and extra small devices
@@ -303,7 +315,7 @@ const SectionListing = () => {
               component='img'
               src='/images/call.png'
               alt='Phone'
-              sx={{ width: 20, height: 20, cursor: 'pointer' }}
+              sx={{ width: 20, height: 20, cursor: 'default' }}
               onClick={() => {
                 // window.open(`tel:${params.row.incharge_mobile_no}`)
                 console.log(`Calling ${params.row.incharge_mobile_no}`)
@@ -341,7 +353,7 @@ const SectionListing = () => {
               color: theme.palette.customColors.OnSurfaceVariant,
               fontSize: '12px',
               fontWeight: 600,
-              mr:2
+              mr: 2
             }
           }}
         >

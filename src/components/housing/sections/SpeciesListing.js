@@ -123,7 +123,7 @@ const SpeciesListing = () => {
 
   const columns = [
     {
-      width: 80,
+      width: 100,
       field: 'id',
       headerName: 'SL.NO',
       sortable: false,
@@ -272,7 +272,7 @@ const SpeciesListing = () => {
               color: theme.palette.customColors.OnSurfaceVariant,
               fontSize: '12px',
               fontWeight: 600,
-              ml: 2
+              mr:2
             }
           }}
         >

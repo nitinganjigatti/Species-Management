@@ -164,12 +164,12 @@ const ClusterSpecies = () => {
 
   const columns = [
     {
-      width: 80,
+      width: 100,
       field: 'id',
       headerName: 'SL.NO',
       sortable: false,
       renderCell: params => (
-        <Typography sx={{ color: theme.palette.customColors.neutralSecondary, fontSize: '14px', fontWeight: 500 }}>
+        <Typography sx={{ color: theme.palette.customColors.neutralSecondary, fontSize: '14px', fontWeight: 500 ,cursor: 'default' }}>
           {params.row.sl_no}.
         </Typography>
       )
@@ -194,11 +194,11 @@ const ClusterSpecies = () => {
       width: 160,
       field: 'animals',
       headerName: 'Population',
-      headerAlign: 'center',
-      align: 'center',
+      headerAlign: 'left',
+      align: 'left',
       sortable: false,
       renderCell: params => (
-        <Typography sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600 }}>
+        <Typography sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600,cursor: 'default' }}>
           {params.row.animal_count || 0}
         </Typography>
       )
@@ -207,8 +207,8 @@ const ClusterSpecies = () => {
       width: 160,
       field: 'male',
       headerName: 'MALE',
-      headerAlign: 'center',
-      align: 'center',
+      headerAlign: 'left',
+      align: 'left',
       sortable: false,
       renderCell: params => (
         <GenderInfoCard
@@ -225,8 +225,8 @@ const ClusterSpecies = () => {
       align: 'left',
       headerAlign: 'left',
       sortable: false,
-      headerAlign: 'center',
-      align: 'center',
+      headerAlign: 'left',
+      align: 'left',
       renderCell: params => (
         <GenderInfoCard
           value={params.row.sex_data?.female || 0}
@@ -239,8 +239,8 @@ const ClusterSpecies = () => {
       width: 160,
       field: 'undetermined',
       headerName: 'UNDETERMINED',
-      headerAlign: 'center',
-      align: 'center',
+      headerAlign: 'left',
+      align: 'left',
       sortable: false,
       renderCell: params => (
         <GenderInfoCard
@@ -256,8 +256,7 @@ const ClusterSpecies = () => {
       align: 'left',
       headerAlign: 'left',
       headerName: 'INDETERMINATE',
-      headerAlign: 'center',
-      align: 'center',
+     
       sortable: false,
       renderCell: params => (
         <GenderInfoCard
@@ -315,7 +314,7 @@ const ClusterSpecies = () => {
               color: theme.palette.customColors.OnSurfaceVariant,
               fontSize: '12px',
               fontWeight: 600,
-              ml: 1
+              mr:2
             }
           }}
         >

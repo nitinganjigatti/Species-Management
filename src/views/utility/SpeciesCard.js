@@ -6,7 +6,7 @@ import { useTheme } from '@mui/material/styles'
 function SpeciesCard({ species }) {
   const theme = useTheme()
   return (
-    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+    <Box sx={{ display: 'flex', alignItems: 'center', gap: 2, cursor: 'default' }}>
       {species?.default_icon && (
         <Avatar
           sx={{
