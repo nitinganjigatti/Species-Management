@@ -381,11 +381,11 @@ const AddLocalDispatch = () => {
       const params = {
         sort: 'asc',
         q: searchText,
-        limit: 20
+        limit: 20,
+        is_specific: true
       }
 
       const searchResults = await getMedicineList({ params: params })
-      console.log('searchResults', searchResults)
       if (searchResults?.data?.list_items.length > 0) {
         setOptionsMedicineList(
           searchResults?.data?.list_items?.map(item => ({
