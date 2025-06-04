@@ -1,5 +1,5 @@
 import React from 'react'
-import { Box, Typography } from '@mui/material'
+import { Box, Tooltip, Typography } from '@mui/material'
 import IconBox from './IconBox'
 import { useTheme } from '@mui/material/styles'
 
@@ -24,7 +24,7 @@ const InfoStatCard = ({ icon: Icon, imagePath, value, label, onClick }) => {
         alignItems: 'center',
         gap: { xs: 2, sm: 4 },
         color: 'white',
-        cursor: 'pointer',
+        cursor: onClick && 'pointer',
         minWidth: { xs: 120, sm: 150 }
       }}
       onClick={onClick}
@@ -37,15 +37,17 @@ const InfoStatCard = ({ icon: Icon, imagePath, value, label, onClick }) => {
         padding={{ xs: 1.5, sm: 3 }}
       />
       <Box>
-        <Typography
-          sx={{
-            fontWeight: 600,
-            fontSize: { xs: '1rem', sm: '1.5rem' },
-            color: theme.palette.customColors.PrimaryContainer
-          }}
-        >
-          {formatNumber(value)}
-        </Typography>
+        <Tooltip title={value?.toLocaleString?.() || value} arrow placement='top'>
+          <Typography
+            sx={{
+              fontWeight: 600,
+              fontSize: { xs: '1rem', sm: '1.5rem' },
+              color: theme.palette.customColors.PrimaryContainer
+            }}
+          >
+            {formatNumber(value)}
+          </Typography>
+        </Tooltip>
         {label && (
           <Typography
             sx={{

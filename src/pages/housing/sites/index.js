@@ -27,27 +27,22 @@ const Sites = () => {
     {
       label: 'Species',
       value: data?.data?.zoo_stats?.total_species || 0,
-      imagePath: '/images/housing/species.svg',
-      onClick: () => console.log('Species')
+      imagePath: '/images/housing/species.svg'
     },
     {
       label: 'Animals',
       value: data?.data?.zoo_stats?.total_animals || 0,
-      imagePath: '/images/housing/animals.svg',
-      onClick: () => console.log('Animals')
+      imagePath: '/images/housing/animals.svg'
     },
     {
       label: 'Sections',
       value: data?.data?.zoo_stats?.total_sections || 0,
-      imagePath: '/images/housing/sections.svg',
-      onClick: () => console.log('Sections')
+      imagePath: '/images/housing/sections.svg'
     },
-
     {
       label: 'Enclosures',
       value: data?.data?.zoo_stats?.total_enclosures || 0,
-      imagePath: '/images/housing/enclosures.svg',
-      onClick: () => console.log('Enclosures')
+      imagePath: '/images/housing/enclosures.svg'
     }
   ]
 

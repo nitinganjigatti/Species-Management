@@ -154,7 +154,7 @@ const AnimalsDrawer = ({ open, onClose, data }) => {
       <Typography sx={{ fontSize: '1.25rem', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}>
         Animals {total ? `(${total})` : ''}
       </Typography>
-      <Box sx={{ my: 2, backgroundColor: theme.palette.common.white }}>
+      <Box sx={{ my: 2 }}>
         <Search
           sx={{ width: '100%' }}
           textFielsSX={{
@@ -167,6 +167,7 @@ const AnimalsDrawer = ({ open, onClose, data }) => {
           value={localSearch}
           onChange={handleSearchChange}
           onClear={handleSearchClear}
+          backgroundColor={theme.palette.common.white}
         />
       </Box>
 

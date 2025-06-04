@@ -141,7 +141,7 @@ const SectionsDrawer = ({ open, onClose, data }) => {
       <Typography sx={{ fontSize: '1.25rem', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}>
         Sections {total ? `(${total})` : ''}
       </Typography>
-      <Box sx={{ my: 2, backgroundColor: theme.palette.common.white }}>
+      <Box sx={{ my: 2 }}>
         <Search
           sx={{ width: '100%' }}
           textFielsSX={{

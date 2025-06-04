@@ -1,13 +1,13 @@
 import React from 'react'
 import HeaderCard from './InsightsHeaderCard'
 import InfoStatCard from './InfoStatCard'
-import { alpha, Box, Card, CircularProgress, Grid, IconButton, Typography } from '@mui/material'
+import { alpha, Box, Card, Grid, IconButton, Typography } from '@mui/material'
 import UserInfoCard from './UserInfoCard'
 import { useTheme } from '@mui/material/styles'
 import CallOutlinedIcon from '@mui/icons-material/CallOutlined'
 import InsertCommentOutlinedIcon from '@mui/icons-material/InsertCommentOutlined'
 import InsightsOutlinedIcon from '@mui/icons-material/InsightsOutlined'
-import RenderUtility from 'src/utility/render'
+import InsightsCardSkeleton from './InsightsCardSkeleton'
 
 const InsightsCard = ({
   data,
@@ -23,18 +23,12 @@ const InsightsCard = ({
   userName,
   description,
   userImage,
-  image = '/images/housing/testInDev.jpg',
+  image,
   statsData = []
 }) => {
   const theme = useTheme()
 
-  if (loading) {
-    return (
-      <Box display='flex' justifyContent='center' alignItems='center' minHeight='150px'>
-        <CircularProgress />
-      </Box>
-    )
-  }
+  if (loading) return <InsightsCardSkeleton />
 
   if (error) {
     return (
@@ -185,27 +179,6 @@ const InsightsCard = ({
                 )
               })}
             </Grid>
-
-            {/* <Grid container spacing={3} justifyContent={'flex-start'}>
-              {statsData.map((item, index) => (
-                <Grid
-                  item
-                  xs={6}
-                  sm={statsData.length === 1 ? 6 : 12 / Math.min(2, statsData.length)}
-                  md={statsData.length === 4 ? 3 : 12 / statsData.length}
-                  key={index}
-                  display='flex'
-                  justifyContent={'flex-start'}
-                >
-                  <InfoStatCard
-                    imagePath={item.imagePath}
-                    value={item.value}
-                    label={item.label}
-                    onClick={item.onClick}
-                  />
-                </Grid>
-              ))}
-            </Grid> */}
           </Box>
         )}
       </Box>

@@ -298,12 +298,18 @@ export const CellInfo = ({ value, subtitle, color, subtitleColor, imgUrl, avatar
         {value && (
           <Tooltip title={value}>
             <Typography
-              noWrap
               sx={{
                 fontSize: '16px',
                 ml: 1,
                 fontWeight: 600,
-                color: color ?? theme.palette.text.primary
+                color: color ?? theme.palette.text.primary,
+                display: '-webkit-box',
+                WebkitBoxOrient: 'vertical',
+                WebkitLineClamp: subtitle ? 1 : 2,
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+                whiteSpace: 'normal',
+                maxWidth: '100%'
               }}
             >
               {value}
