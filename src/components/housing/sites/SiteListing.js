@@ -171,11 +171,11 @@ const Listing = () => {
         </Typography>
       )
     },
-    
+
     {
       width: 300,
       field: 'site_name',
-      align:"left",
+      align: 'left',
       headerName: 'Site Name',
       sortable: false,
       renderCell: params => (
@@ -192,7 +192,7 @@ const Listing = () => {
       width: 150,
       field: 'species',
       headerName: 'Species',
-      align:"left",
+      align: 'left',
       headerAlign: 'left',
       sortable: false,
       renderCell: params => (
@@ -202,7 +202,6 @@ const Listing = () => {
             height: '100%',
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'center',
             cursor: 'pointer'
           }}
           onClick={e => {
@@ -235,7 +234,7 @@ const Listing = () => {
       width: 150,
       field: 'animals',
       headerName: 'Animals',
-      align:"left",
+      align: 'left',
       headerAlign: 'left',
       sortable: false,
       renderCell: params => (
@@ -245,7 +244,6 @@ const Listing = () => {
             height: '100%',
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'center',
             cursor: 'pointer'
           }}
           onClick={e => {
@@ -278,8 +276,8 @@ const Listing = () => {
       width: 150,
       field: 'sections',
       headerName: 'Sections',
-      align: 'center',
-      headerAlign: 'center',
+      align: 'left',
+      headerAlign: 'left',
       sortable: false,
       renderCell: params => (
         <Box
@@ -288,7 +286,6 @@ const Listing = () => {
             height: '100%',
             display: 'flex',
             alignItems: 'center',
-            justifyContent: 'center',
             cursor: 'pointer'
           }}
           onClick={e => {
@@ -321,12 +318,12 @@ const Listing = () => {
       width: 150,
       field: 'enclosures',
       headerName: 'Enclosures',
-       align:"left",
+      align: 'left',
       headerAlign: 'left',
       sortable: false,
       renderCell: params => (
         <Typography
-          sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600 }}
+          sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600, cursor: 'default' }}
           onClick={e => {
             e.stopPropagation()
             setDrawerType('enclosures')
@@ -336,39 +333,12 @@ const Listing = () => {
         </Typography>
       )
     },
-    {
-      width: 150,
-      field: 'sections',
-      headerName: 'Sections',
-       align:"left",
-      headerAlign: 'left',
-      sortable: false,
-      renderCell: params => (
-        <Typography
-          sx={{ cursor: 'pointer', fontWeight: 600, fontSize: '16px', color: theme.palette.primary.OnSurface }}
-          onClick={e => {
-            e.stopPropagation()
-            setDrawerType('sections')
-            setDrawerData({
-              queryKey: 'site-sections-drawer',
-              id: params.row?.site_id,
-              name: params.row?.site_name,
-              image: params.row?.images?.[0]?.file,
-              params: {
-                site_id: params.row?.site_id
-              }
-            })
-          }}
-        >
-          {params.row.section_count}
-        </Typography>
-      )
-    },
+
     {
       width: 180,
       field: 'incharge',
       headerName: 'In-Charge',
-       align:"left",
+      align: 'left',
       headerAlign: 'left',
       sortable: false,
       renderCell: params =>
@@ -384,7 +354,7 @@ const Listing = () => {
       width: 150,
       field: 'actions',
       headerName: 'Actions',
-      align:"left",
+      align: 'left',
       headerAlign: 'left',
       sortable: false,
       renderCell: params => {
@@ -434,7 +404,8 @@ const Listing = () => {
             '& .MuiDataGrid-columnHeaderTitle': {
               color: theme.palette.customColors.OnSurfaceVariant,
               fontSize: '12px',
-              fontWeight: 600
+              fontWeight: 600,
+              mr: 2
             }
           }}
         >

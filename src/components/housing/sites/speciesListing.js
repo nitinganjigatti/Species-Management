@@ -162,7 +162,9 @@ const SpeciesListing = () => {
       align: 'center',
       sortable: false,
       renderCell: params => (
-        <Typography sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600 }}>
+        <Typography
+          sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600, cursor: 'default' }}
+        >
           {params.row.animal_count || 0}
         </Typography>
       )
@@ -177,6 +179,7 @@ const SpeciesListing = () => {
       renderCell: params => (
         <Box
           sx={{
+            cursor: 'default',
             display: 'flex',
             alignItems: 'center', // vertical alignment
             justifyContent: 'flex-start', // horizontal alignment (left)
@@ -321,7 +324,7 @@ const SpeciesListing = () => {
         </Grid>
       </Box>
 
-      {openDrawer && <SpeciesDrawer open={openDrawer} onClose={handleClose} specieName={specieName} />}
+      {/* {openDrawer && <SpeciesDrawer open={openDrawer} onClose={handleClose} specieName={specieName} />} */}
     </>
   )
 }

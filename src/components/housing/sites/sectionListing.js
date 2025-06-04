@@ -233,7 +233,7 @@ const SectionListing = () => {
       headerAlign: 'left',
       sortable: false,
       renderCell: params => (
-        <Typography sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600 }}>
+        <Typography sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600,cursor:"default" }}>
           {params.row.species_count || 0}
         </Typography>
       )
@@ -246,7 +246,7 @@ const SectionListing = () => {
       align: 'center',
       sortable: false,
       renderCell: params => (
-        <Typography sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600 }}>
+        <Typography sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600, cursor:"default" }}>
           {params.row.animal_count || 0}
         </Typography>
       )
@@ -259,7 +259,7 @@ const SectionListing = () => {
       align: 'center',
       sortable: false,
       renderCell: params => (
-        <Typography sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600 }}>
+        <Typography sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600,cursor:"default" }}>
           {params.row.enclosure_count}
         </Typography>
       )
@@ -340,7 +340,8 @@ const SectionListing = () => {
             '& .MuiDataGrid-columnHeaderTitle': {
               color: theme.palette.customColors.OnSurfaceVariant,
               fontSize: '12px',
-              fontWeight: 600
+              fontWeight: 600,
+              mr:2
             }
           }}
         >

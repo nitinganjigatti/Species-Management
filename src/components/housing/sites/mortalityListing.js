@@ -120,7 +120,7 @@ const MortalityListing = () => {
       width: 100,
       field: 'sl_no',
       sortable: false,
-      headerName: 'NO',
+      headerName: 'SL.NO',
       renderCell: params => (
         <Typography sx={{ color: theme.palette.customColors.neutralSecondary, fontSize: '14px', fontWeight: 500 }}>
           {parseInt(params.row.sl_no) + '.'}
@@ -145,8 +145,8 @@ const MortalityListing = () => {
     {
       width: 250,
       field: 'identifier',
-      headerName: 'IDENTIFIER',
-      align:"left",
+      headerName: 'ANTZ Animal ID',
+      align: 'left',
       headerAlign: 'left',
       sortable: false,
       renderCell: params => (
@@ -161,20 +161,33 @@ const MortalityListing = () => {
     {
       width: 250,
       field: 'animal_name',
-      align:"left",
+      align: 'left',
       headerAlign: 'left',
       sortable: false,
-      headerName: 'ANIMAL NAME',
-      renderCell: params => (
-        <Typography sx={{ fontWeight: 400, fontSize: '16px', color: theme.palette.customColors.OnSurfaceVariant }}>
-          {params.row.common_name}
-        </Typography>
-      )
+      headerName: 'Primary Identifier',
+      renderCell: params => {
+        const localIdentifierName = params.row.local_identifier_name
+        const localIdentifierValue = params.row.local_identifier_value
+
+        return localIdentifierName ? (
+          <Typography
+            sx={{
+              fontSize: '12px',
+              color: theme.palette.customColors.secondaryBg
+            }}
+          >
+            {localIdentifierName} : {localIdentifierValue}
+          </Typography>
+        ) : (
+          <Typography sx={{ml:10}}>-</Typography>
+        )
+      }
     },
+
     {
       field: 'died_on',
       headerName: 'DIED ON',
-      align:"left",
+      align: 'left',
       headerAlign: 'left',
       sortable: false,
       width: 250,
@@ -183,7 +196,7 @@ const MortalityListing = () => {
     {
       field: 'reported_on',
       headerName: 'REPORTED ON',
-      align:"left",
+      align: 'left',
       headerAlign: 'left',
       sortable: false,
       width: 250,
@@ -193,7 +206,7 @@ const MortalityListing = () => {
       width: 300,
       field: 'reason',
       headerName: 'REASON',
-      align:"left",
+      align: 'left',
       headerAlign: 'left',
       sortable: false,
       renderCell: params => (
