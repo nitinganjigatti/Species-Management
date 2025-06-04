@@ -15,10 +15,13 @@ import SectionsDrawer from '../utils/SectionsDrawer'
 import SpeciesDrawer from 'src/components/housing/utils/SpeciesDrawer'
 import AnimalsDrawer from 'src/components/housing/utils/AnimalDrawer'
 import { getAllSites } from 'src/lib/api/housing'
+import EnclosureDrawer from '../utils/EnclosureDrawer'
+import { useAuth } from 'src/hooks/useAuth'
 
 const Listing = () => {
   const theme = useTheme()
   const router = useRouter()
+  const auth = useAuth()
   const { query } = router
 
   const [inputValue, setInputValue] = useState('')
@@ -36,6 +39,8 @@ const Listing = () => {
   const [drawerType, setDrawerType] = useState(null)
   const [drawerData, setDrawerData] = useState(null)
   const [downloading, setDownloading] = useState(false)
+
+  const zooId = auth?.userData?.user?.zoos?.[0]?.zoo_id
 
   // Populate filters from query string on mount
   useEffect(() => {
@@ -66,8 +71,6 @@ const Listing = () => {
 
   const total = data?.data?.total_count || 0
   const siteList = data?.data?.result || []
-
-  console.log('Site List:', siteList)
 
   useEffect(() => {
     if (siteList.length === 1) {
@@ -341,15 +344,42 @@ const Listing = () => {
       headerAlign: 'left',
       sortable: false,
       renderCell: params => (
-        <Typography
-          sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600, cursor: 'default' }}
+        <Box
+          sx={{
+            width: '100%',
+            height: '100%',
+            display: 'flex',
+            alignItems: 'center',
+            cursor: 'pointer'
+          }}
           onClick={e => {
             e.stopPropagation()
-            setDrawerType('enclosures')
+
+            // setDrawerType('enclosures')
+            // setDrawerData({
+            //   queryKey: 'site-enclosures-insights-drawer',
+            //   id: params.row?.site_id,
+            //   name: params.row?.site_name,
+            //   image: params.row?.images?.[0]?.file,
+            //   params: {
+            //     ref_type: 'zoo',
+            //     data_type: 'enclosure',
+            //     ref_id: zooId,
+            //     site_id: params.row?.site_id
+            //   }
+            // })
           }}
         >
-          {params.row.enclosure_count}
-        </Typography>
+          <Typography
+            sx={{
+              fontWeight: 600,
+              fontSize: '16px',
+              color: theme.palette.primary.OnSurface
+            }}
+          >
+            {params.row.enclosure_count}
+          </Typography>
+        </Box>
       )
     },
 
@@ -414,7 +444,6 @@ const Listing = () => {
 
   return (
     <>
-      <>
         <ListingHeader title='All Sites' totalCount={total} />
         <Box>
           <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 4, flexWrap: 'wrap' }}>
@@ -463,52 +492,10 @@ const Listing = () => {
         {drawerType === 'animals' && (
           <AnimalsDrawer open={!!drawerData} onClose={handleDrawerClose} data={drawerData} />
         )}
+        {drawerType === 'enclosures' && (
+          <EnclosureDrawer open={!!drawerData} onClose={handleDrawerClose} data={drawerData} />
+        )}
       </>
-      {/* <ListingHeader title='All Sites' totalCount={total} />
-      <Box>
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 4, flexWrap: 'wrap' }}>
-          <Search
-            value={inputValue}
-            onChange={e => handleSearch(e.target.value)}
-            onClear={() => handleSearch('')}
-            placeholder='Search…'
-            sx={{ justifyContent: 'flex-end' }}
-          /> */}
-      {/* <ExportButton loading={downloading} onClick={handleDownload} />
-        </Box>
-        <Grid
-          sx={{
-            '& .MuiDataGrid-cell': { pt: 4, py: 4, px: 4 },
-            '& .MuiDataGrid-columnHeaderTitle': {
-              color: theme.palette.customColors.OnSurfaceVariant,
-              fontSize: '12px',
-              fontWeight: 600,
-              mr: 1
-            }
-          }}
-        >
-          <CommonTable
-            onCellClick={handleRowClick}
-            indexedRows={indexedRows}
-            total={total}
-            columns={columns}
-            pageSizeOptions={[10]}
-            paginationModel={{ page: filters.page - 1, pageSize: filters.pageSize }}
-            setPaginationModel={handlePaginationModelChange}
-            handleSortModel={handleSortModelChange}
-            loading={isFetching}
-            searchValue=''
-            maxHeight='80vh'
-          />
-        </Grid>
-      </Box>
-
-      {drawerType === 'sections' && (
-        <SectionsDrawer open={!!drawerData} onClose={handleDrawerClose} data={drawerData} />
-      )}
-      {drawerType === 'species' && <SpeciesDrawer open={!!drawerData} onClose={handleDrawerClose} data={drawerData} />}
-      {drawerType === 'animals' && <AnimalsDrawer open={!!drawerData} onClose={handleDrawerClose} data={drawerData} />} */}
-    </>
   )
 }
 

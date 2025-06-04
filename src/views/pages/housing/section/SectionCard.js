@@ -34,7 +34,7 @@ const SectionCard = ({ section }) => {
     >
       <CellInfo
         value={section?.section_name}
-        imgUrl={section?.images[0]?.file}
+        imgUrl={section?.images?.[0]?.file}
         inchagename={section?.incharge_name || ''}
       />
 
