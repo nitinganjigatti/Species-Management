@@ -1,10 +1,7 @@
-import { useTheme } from '@emotion/react'
 import {
-  Avatar,
   Card,
   Drawer,
   IconButton,
-  Paper,
   Table,
   TableBody,
   TableCell,
@@ -16,33 +13,17 @@ import {
 import { Box } from '@mui/system'
 import React from 'react'
 import Icon from 'src/@core/components/icon'
+import NoDataFound from 'src/views/utility/NoDataFound'
 import PharmacyProductCard from 'src/views/utility/PharmacyProductCard'
 
-const StockDetailDrawer = ({ openDrawer, stockDetail, setDrawerClose }) => {
-  const theme = useTheme()
-  console.log(stockDetail)
-
-  const groupedRacks = React.useMemo(() => {
-    if (!stockDetail?.racks) return []
-
-    const map = new Map()
-
-    stockDetail.racks.forEach(({ rack_id, rack_name, shelf_name }) => {
-      if (!map.has(rack_id)) {
-        map.set(rack_id, { rack_name, shelves: [shelf_name] })
-      } else {
-        map.get(rack_id).shelves.push(shelf_name)
-      }
-    })
-
-    return Array.from(map.values())
-  }, [stockDetail])
+const StockConfigDetails = ({ open, configMed, setConfigMed, close }) => {
+  console.log(configMed)
 
   return (
     <Drawer
       anchor='right'
-      open={openDrawer}
-      onClose={setDrawerClose}
+      open={open}
+      onClose={close}
       PaperProps={{
         sx: {
           width: {
@@ -71,7 +52,7 @@ const StockDetailDrawer = ({ openDrawer, stockDetail, setDrawerClose }) => {
           <Typography variant='h6' fontWeight='bold'>
             Rack and Shelves
           </Typography>
-          <IconButton onClick={setDrawerClose}>
+          <IconButton onClick={close}>
             <Icon icon='mdi:close' />
           </IconButton>
         </Box>
@@ -82,22 +63,21 @@ const StockDetailDrawer = ({ openDrawer, stockDetail, setDrawerClose }) => {
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
-            padding: '18px',
+            padding: '20px',
             borderRadius: '8px',
             mt: 1,
             backgroundColor: 'customColors.neutral05'
           }}
         >
           <PharmacyProductCard
-            title={stockDetail?.stock_name}
-            subTitle={stockDetail?.generic_name ? stockDetail?.generic_name : 'NA'}
-            icon={stockDetail?.image}
+            title={configMed?.stock_items_name}
+            subTitle={configMed?.generic_name ? configMed?.generic_name : 'NA'}
+            icon={configMed?.image}
           />
           <Typography sx={{ fontSize: '14px' }}>
-            Reorder-Level: <strong>{stockDetail?.min_qty ? stockDetail?.min_qty : 0}</strong>
+            Reorder-Level: <strong>{configMed?.min_qty ? configMed?.min_qty : 0}</strong>
           </Typography>
         </Box>
-
         <Card
           sx={{
             p: 4,
@@ -121,10 +101,53 @@ const StockDetailDrawer = ({ openDrawer, stockDetail, setDrawerClose }) => {
               // m: 6,
               border: '1px solid',
               borderColor: 'customColors.customTableBorderBg',
-              boxShadow: 'none'
+              boxShadow: 'none',
+              p: 2
             }}
           >
-            <TableContainer component={Paper}>
+            {configMed?.stock_config?.length > 0 ? (
+              <TableContainer component={'paper'}>
+                <Table aria-label='rack and shelves table'>
+                  <TableHead>
+                    <TableRow>
+                      <TableCell>
+                        <strong>Rack</strong>
+                      </TableCell>
+                      <TableCell>
+                        <strong>Shelves</strong>
+                      </TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    {configMed.stock_config.map(config =>
+                      config.racks.map(rack =>
+                        rack.shelf_configs.map(shelf => (
+                          <TableRow key={`${rack.id}-${shelf.id}`}>
+                            <TableCell>{rack.rack}</TableCell>
+                            <TableCell>{shelf.name}</TableCell>
+                          </TableRow>
+                        ))
+                      )
+                    )}
+                  </TableBody>
+                </Table>
+              </TableContainer>
+            ) : (
+              <Box
+                sx={{
+                  display: 'flex',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  height: 200,
+                  flexDirection: 'column',
+                  p: 4,
+                  mt: 6
+                }}
+              >
+                <NoDataFound variant='Meerkat' height={250} width={250} />
+              </Box>
+            )}
+            {/* <TableContainer component={'paper'}>
               <Table aria-label='rack and shelves table'>
                 <TableHead>
                   <TableRow>
@@ -137,30 +160,27 @@ const StockDetailDrawer = ({ openDrawer, stockDetail, setDrawerClose }) => {
                   </TableRow>
                 </TableHead>
                 <TableBody>
-                  {groupedRacks.length === 0 ? (
+                  {configMed?.stock_config?.length > 0 ? (
+                    configMed.stock_config.map(config =>
+                      config.racks.map(rack =>
+                        rack.shelf_configs.map(shelf => (
+                          <TableRow key={`${rack.id}-${shelf.id}`}>
+                            <TableCell>{rack.rack}</TableCell>
+                            <TableCell>{shelf.name}</TableCell>
+                          </TableRow>
+                        ))
+                      )
+                    )
+                  ) : (
                     <TableRow>
                       <TableCell colSpan={2} align='center'>
-                        No rack data available
+                        No rack and shelf configuration available
                       </TableCell>
                     </TableRow>
-                  ) : (
-                    groupedRacks.map(({ rack_name, shelves }, index) => (
-                      <TableRow
-                        key={index}
-                        sx={{
-                          '&:last-child td, &:last-child th': {
-                            borderBottom: 0
-                          }
-                        }}
-                      >
-                        <TableCell>{rack_name}</TableCell>
-                        <TableCell>{shelves.join(', ')}</TableCell>
-                      </TableRow>
-                    ))
                   )}
                 </TableBody>
               </Table>
-            </TableContainer>
+            </TableContainer> */}
           </Card>
         </Card>
       </Box>
@@ -168,4 +188,4 @@ const StockDetailDrawer = ({ openDrawer, stockDetail, setDrawerClose }) => {
   )
 }
 
-export default StockDetailDrawer
+export default StockConfigDetails
