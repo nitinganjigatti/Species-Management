@@ -5,6 +5,7 @@ import React from 'react'
 
 const AnimalParentCard = ({ data, backgroundColor, size, animal = false }) => {
   const theme = useTheme()
+  console.log('AnimalParentCard data:', data)
 
   return (
     <>
@@ -63,9 +64,11 @@ const AnimalParentCard = ({ data, backgroundColor, size, animal = false }) => {
                 height: 24,
                 display: 'flex',
                 justifyContent: 'center',
-                alignItems: 'center'
+                alignItems: 'center',
+                borderRadius: '4px'
               }}
-              variant='rounded'
+
+              // variant='rounded'
             >
               {data?.type === 'group' ? (
                 <Typography sx={{ fontSize: 14, color: '#fff', fontWeight: 500 }}>G</Typography>
@@ -114,6 +117,22 @@ const AnimalParentCard = ({ data, backgroundColor, size, animal = false }) => {
               AID : {data?.animal_id}
               {/* {Utility?.toPascalSentenceCase(data?.common_name)} */}
             </Typography>
+
+            {data?.type === 'group' && (
+              <Typography
+                variant='caption'
+                sx={{
+                  color: theme.palette.customColors.OnSurfaceVariant,
+                  fontSize: '14px',
+                  bgcolor: '#DDEBE9',
+                  padding: '2px 4px',
+                  borderRadius: '4px',
+                  width: 'fit-content'
+                }}
+              >
+                Count <strong>{data?.total_animal}</strong>
+              </Typography>
+            )}
 
             <Typography
               sx={{

@@ -1,5 +1,5 @@
 import { useTheme } from '@emotion/react'
-import { Box, Grid, Typography, useMediaQuery } from '@mui/material'
+import { Box, CircularProgress, Grid, Typography, useMediaQuery } from '@mui/material'
 import React, { useState, useCallback, useMemo, useEffect } from 'react'
 import { useQuery } from '@tanstack/react-query'
 import debounce from 'lodash/debounce'
@@ -66,6 +66,17 @@ const Listing = () => {
 
   const total = data?.data?.total_count || 0
   const siteList = data?.data?.result || []
+
+  console.log('Site List:', siteList)
+
+  useEffect(() => {
+    if (siteList.length === 1) {
+      router.replace({
+        pathname: `/housing/sites/${siteList[0].site_id}`,
+        query: { ...filters }
+      })
+    }
+  }, [siteList, router])
 
   const updateUrlParams = updatedFilters => {
     const params = new URLSearchParams()
@@ -393,7 +404,64 @@ const Listing = () => {
 
   return (
     <>
-      <ListingHeader title='All Sites' totalCount={total} />
+      {siteList.length === 1 && (
+        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 10 }}>
+          <CircularProgress />
+        </Box>
+      )}
+      {siteList.length > 1 && (
+        <>
+          <ListingHeader title='All Sites' totalCount={total} />
+          <Box>
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 4, flexWrap: 'wrap' }}>
+              <Search
+                value={inputValue}
+                onChange={e => handleSearch(e.target.value)}
+                onClear={() => handleSearch('')}
+                placeholder='Search…'
+                sx={{ justifyContent: 'flex-end' }}
+              />
+              {/* <ExportButton loading={downloading} onClick={handleDownload} /> */}
+            </Box>
+            <Grid
+              sx={{
+                '& .MuiDataGrid-cell': { pt: 4, py: 4, px: 4 },
+                '& .MuiDataGrid-columnHeaderTitle': {
+                  color: theme.palette.customColors.OnSurfaceVariant,
+                  fontSize: '12px',
+                  fontWeight: 600,
+                  mr: 2
+                }
+              }}
+            >
+              <CommonTable
+                onCellClick={handleRowClick}
+                indexedRows={indexedRows}
+                total={total}
+                columns={columns}
+                pageSizeOptions={[10]}
+                paginationModel={{ page: filters.page - 1, pageSize: filters.pageSize }}
+                setPaginationModel={handlePaginationModelChange}
+                handleSortModel={handleSortModelChange}
+                loading={isFetching}
+                searchValue=''
+                maxHeight='80vh'
+              />
+            </Grid>
+          </Box>
+
+          {drawerType === 'sections' && (
+            <SectionsDrawer open={!!drawerData} onClose={handleDrawerClose} data={drawerData} />
+          )}
+          {drawerType === 'species' && (
+            <SpeciesDrawer open={!!drawerData} onClose={handleDrawerClose} data={drawerData} />
+          )}
+          {drawerType === 'animals' && (
+            <AnimalsDrawer open={!!drawerData} onClose={handleDrawerClose} data={drawerData} />
+          )}
+        </>
+      )}
+      {/* <ListingHeader title='All Sites' totalCount={total} />
       <Box>
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 4, flexWrap: 'wrap' }}>
           <Search
@@ -402,8 +470,8 @@ const Listing = () => {
             onClear={() => handleSearch('')}
             placeholder='Search…'
             sx={{ justifyContent: 'flex-end' }}
-          />
-          {/* <ExportButton loading={downloading} onClick={handleDownload} /> */}
+          /> */}
+      {/* <ExportButton loading={downloading} onClick={handleDownload} />
         </Box>
         <Grid
           sx={{
@@ -436,7 +504,7 @@ const Listing = () => {
         <SectionsDrawer open={!!drawerData} onClose={handleDrawerClose} data={drawerData} />
       )}
       {drawerType === 'species' && <SpeciesDrawer open={!!drawerData} onClose={handleDrawerClose} data={drawerData} />}
-      {drawerType === 'animals' && <AnimalsDrawer open={!!drawerData} onClose={handleDrawerClose} data={drawerData} />}
+      {drawerType === 'animals' && <AnimalsDrawer open={!!drawerData} onClose={handleDrawerClose} data={drawerData} />} */}
     </>
   )
 }
