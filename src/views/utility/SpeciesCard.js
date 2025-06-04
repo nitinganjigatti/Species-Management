@@ -1,4 +1,4 @@
-import { Avatar, CircularProgress, Tooltip, Typography } from '@mui/material'
+import { Avatar, CircularProgress, Skeleton, Tooltip, Typography } from '@mui/material'
 import { Box } from '@mui/system'
 import React, { useState } from 'react'
 import { useTheme } from '@mui/material/styles'
@@ -64,18 +64,8 @@ function SpeciesCard({ species }) {
     <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
       {species?.default_icon && (
         <Box sx={{ position: 'relative', width: 40, height: 40 }}>
-          {loading && (
-            <Box
-              sx={{
-                position: 'absolute',
-                top: '50%',
-                left: '50%',
-                transform: 'translate(-50%, -50%)'
-              }}
-            >
-              <CircularProgress size={20} />
-            </Box>
-          )}
+          {loading && <Skeleton variant='circular' width={40} height={40} animation='wave' />}
+
           <Avatar
             sx={{
               width: 40,

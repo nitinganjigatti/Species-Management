@@ -169,7 +169,7 @@ const Listing = () => {
   }
 
   const handleDownload = () => {
-    console.log('Downloading...') 
+    console.log('Downloading...')
   }
 
   const handleDrawerClose = () => {
@@ -402,65 +402,67 @@ const Listing = () => {
     }
   ]
 
+  if (siteList.length === 1) {
+    // Loader while redirecting to details page
+    return (
+      <Box sx={{ display: 'flex', justifyContent: 'center', mt: 10 }}>
+        <CircularProgress />
+      </Box>
+    )
+  }
+
   return (
     <>
-      {siteList.length === 1 && (
-        <Box sx={{ display: 'flex', justifyContent: 'center', mt: 10 }}>
-          <CircularProgress />
-        </Box>
-      )}
-      {siteList.length > 1 && (
-        <>
-          <ListingHeader title='All Sites' totalCount={total} />
-          <Box>
-            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 4, flexWrap: 'wrap' }}>
-              <Search
-                value={inputValue}
-                onChange={e => handleSearch(e.target.value)}
-                onClear={() => handleSearch('')}
-                placeholder='Search…'
-                sx={{ justifyContent: 'flex-end' }}
-              />
-              {/* <ExportButton loading={downloading} onClick={handleDownload} /> */}
-            </Box>
-            <Grid
-              sx={{
-                '& .MuiDataGrid-cell': { pt: 4, py: 4, px: 4 },
-                '& .MuiDataGrid-columnHeaderTitle': {
-                  color: theme.palette.customColors.OnSurfaceVariant,
-                  fontSize: '12px',
-                  fontWeight: 600,
-                  mr: 2
-                }
-              }}
-            >
-              <CommonTable
-                onCellClick={handleRowClick}
-                indexedRows={indexedRows}
-                total={total}
-                columns={columns}
-                pageSizeOptions={[10]}
-                paginationModel={{ page: filters.page - 1, pageSize: filters.pageSize }}
-                setPaginationModel={handlePaginationModelChange}
-                handleSortModel={handleSortModelChange}
-                loading={isFetching}
-                searchValue=''
-                maxHeight='80vh'
-              />
-            </Grid>
+      <>
+        <ListingHeader title='All Sites' totalCount={total} />
+        <Box>
+          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 4, flexWrap: 'wrap' }}>
+            <Search
+              value={inputValue}
+              onChange={e => handleSearch(e.target.value)}
+              onClear={() => handleSearch('')}
+              placeholder='Search…'
+              sx={{ justifyContent: 'flex-end' }}
+            />
+            {/* <ExportButton loading={downloading} onClick={handleDownload} /> */}
           </Box>
+          <Grid
+            sx={{
+              '& .MuiDataGrid-cell': { pt: 4, py: 4, px: 4 },
+              '& .MuiDataGrid-columnHeaderTitle': {
+                color: theme.palette.customColors.OnSurfaceVariant,
+                fontSize: '12px',
+                fontWeight: 600,
+                mr: 2
+              }
+            }}
+          >
+            <CommonTable
+              onCellClick={handleRowClick}
+              indexedRows={indexedRows}
+              total={total}
+              columns={columns}
+              pageSizeOptions={[10]}
+              paginationModel={{ page: filters.page - 1, pageSize: filters.pageSize }}
+              setPaginationModel={handlePaginationModelChange}
+              handleSortModel={handleSortModelChange}
+              loading={isFetching}
+              searchValue=''
+              maxHeight='80vh'
+            />
+          </Grid>
+        </Box>
 
-          {drawerType === 'sections' && (
-            <SectionsDrawer open={!!drawerData} onClose={handleDrawerClose} data={drawerData} />
-          )}
-          {drawerType === 'species' && (
-            <SpeciesDrawer open={!!drawerData} onClose={handleDrawerClose} data={drawerData} />
-          )}
-          {drawerType === 'animals' && (
-            <AnimalsDrawer open={!!drawerData} onClose={handleDrawerClose} data={drawerData} />
-          )}
-        </>
-      )}
+        {drawerType === 'sections' && (
+          <SectionsDrawer open={!!drawerData} onClose={handleDrawerClose} data={drawerData} />
+        )}
+        {drawerType === 'species' && (
+          <SpeciesDrawer open={!!drawerData} onClose={handleDrawerClose} data={drawerData} />
+        )}
+        {drawerType === 'animals' && (
+          <AnimalsDrawer open={!!drawerData} onClose={handleDrawerClose} data={drawerData} />
+        )}
+      </>
       {/* <ListingHeader title='All Sites' totalCount={total} />
       <Box>
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 4, flexWrap: 'wrap' }}>
