@@ -177,7 +177,7 @@ const ClusterSites = () => {
       renderCell: params => (
         <CellInfo
           value={params.row.site_name}
-          subtitle={''} 
+          subtitle={''}
           imgUrl={params.row.images?.[0]?.file}
           avatarUrl={''}
           inchagename={''}
@@ -266,16 +266,22 @@ const ClusterSites = () => {
         } else {
           // Show phone icon on medium and larger devices
           return (
-            <Box
-              component='img'
-              src='/images/call.png'
-              alt='Phone'
-              sx={{ width: 20, height: 20, cursor: 'pointer' }}
-              onClick={() => {
-                // window.open(`tel:${params.row.incharge_mobile_no}`)
-                console.log(`Calling ${params.row.incharge_mobile_no}`)
-              }}
-            />
+            <>
+              {params.row.incharge_mobile_no ? (
+                <Box
+                  component='img'
+                  src='/images/call.png'
+                  alt='Phone'
+                  sx={{ width: 20, height: 20, cursor: 'pointer' }}
+                  onClick={() => {
+                    // window.open(`tel:${params.row.incharge_mobile_no}`)
+                    console.log(`Calling ${params.row.incharge_mobile_no}`)
+                  }}
+                />
+              ) : (
+                '-'
+              )}
+            </>
           )
         }
       }

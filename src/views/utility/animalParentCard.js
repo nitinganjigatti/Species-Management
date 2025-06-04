@@ -5,7 +5,6 @@ import React from 'react'
 
 const AnimalParentCard = ({ data, backgroundColor, size, animal = false }) => {
   const theme = useTheme()
-  console.log('AnimalParentCard data:', data)
 
   return (
     <>

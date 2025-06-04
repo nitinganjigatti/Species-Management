@@ -160,7 +160,7 @@ const Listing = () => {
       params.field !== 'animals' &&
       params.field !== 'sections' &&
       params.field !== 'enclosures' &&
-       params.field !== 'incharge'
+      params.field !== 'incharge'
     ) {
       const detailUrl = {
         pathname: `/housing/sites/${params.row.site_id}`,
@@ -417,16 +417,22 @@ const Listing = () => {
         } else {
           // Show phone icon on larger devices
           return (
-            <Box
-              component='img'
-              src='/images/call.png'
-              alt='Phone'
-              sx={{ width: 20, height: 20, cursor: 'pointer' }}
-              onClick={() => {
-                // window.open(`tel:${params.row.incharge_mobile_no}`)
-                console.log(`Calling ${params.row.incharge_mobile_no}`)
-              }}
-            />
+            <>
+              {params.row.incharge_mobile_no ? (
+                <Box
+                  component='img'
+                  src='/images/call.png'
+                  alt='Phone'
+                  sx={{ width: 20, height: 20, cursor: 'pointer' }}
+                  onClick={() => {
+                    // window.open(`tel:${params.row.incharge_mobile_no}`)
+                    console.log(`Calling ${params.row.incharge_mobile_no}`)
+                  }}
+                />
+              ) : (
+                '-'
+              )}
+            </>
           )
         }
       }

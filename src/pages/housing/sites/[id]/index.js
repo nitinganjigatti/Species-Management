@@ -40,10 +40,6 @@ const SiteDetails = () => {
     enabled: !!id
   })
 
-  useEffect(() => {
-    console.log('data', data)
-  }, [data])
-
   const handleTabChange = (event, newValue) => {
     // Find reset action for previous tab
     // const prevTab = tabConfig.find(tab => tab.value === selectedTab)

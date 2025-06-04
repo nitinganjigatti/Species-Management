@@ -30,8 +30,6 @@ const ClusterDetails = () => {
     enabled: !!id
   })
 
-  console.log('Cluster Details Data:', data)
-
   const handleTabChange = (event, newValue) => {
     // Find reset action for previous tab
     // const prevTab = tabConfig.find(tab => tab.value === selectedTab)
@@ -59,7 +57,7 @@ const ClusterDetails = () => {
       label: 'Sites',
       value: data?.data?.cluster_stats?.sites || 0,
       imagePath: '/images/housing/Site.svg',
-      onClick: () => console.log('Sites')
+      onClick: () => setSelectedTab('sites')
     }
   ]
 

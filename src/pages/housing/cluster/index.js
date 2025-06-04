@@ -200,7 +200,14 @@ const Clusters = () => {
       align: 'center',
       headerAlign: 'center',
       renderCell: params => (
-        <Typography sx={{ color: theme.palette.customColors.neutralSecondary, fontSize: '14px', fontWeight: 500, cursor:"default" }}>
+        <Typography
+          sx={{
+            color: theme.palette.customColors.neutralSecondary,
+            fontSize: '14px',
+            fontWeight: 500,
+            cursor: 'default'
+          }}
+        >
           {parseInt(params.row.sl_no) + '.'}
         </Typography>
       )
@@ -231,7 +238,7 @@ const Clusters = () => {
       sortable: false,
       renderCell: params => (
         <Typography
-          sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600, cursor:"default" }}
+          sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600, cursor: 'default' }}
 
           // onClick={e => {
           //   e.stopPropagation()
@@ -258,7 +265,7 @@ const Clusters = () => {
       sortable: false,
       renderCell: params => (
         <Typography
-          sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600, cursor:"default" }}
+          sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600, cursor: 'default' }}
 
           // onClick={e => {
           //   e.stopPropagation()
@@ -283,7 +290,7 @@ const Clusters = () => {
       sortable: false,
       renderCell: params => (
         <Typography
-          sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600, cursor:"default" }}
+          sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600, cursor: 'default' }}
 
           // onClick={e => {
           //   e.stopPropagation()
@@ -347,16 +354,22 @@ const Clusters = () => {
         } else {
           // Show phone icon on medium and larger devices
           return (
-            <Box
-              component='img'
-              src='/images/call.png'
-              alt='Phone'
-              sx={{ width: 20, height: 20, cursor: 'pointer' }}
-              onClick={() => {
-                // window.open(`tel:${params.row.incharge_mobile_no}`)
-                console.log(`Calling ${params.row.incharge_mobile_no}`)
-              }}
-            />
+            <>
+              {params.row.incharge_mobile_no ? (
+                <Box
+                  component='img'
+                  src='/images/call.png'
+                  alt='Phone'
+                  sx={{ width: 20, height: 20, cursor: 'pointer' }}
+                  onClick={() => {
+                    // window.open(`tel:${params.row.incharge_mobile_no}`)
+                    console.log(`Calling ${params.row.incharge_mobile_no}`)
+                  }}
+                />
+              ) : (
+                '-'
+              )}
+            </>
           )
         }
       }
@@ -407,7 +420,7 @@ const Clusters = () => {
                       color: theme.palette.customColors.OnSurfaceVariant,
                       fontSize: '12px',
                       fontWeight: 600,
-                      mr:2
+                      mr: 2
                     }
                   }}
                 >

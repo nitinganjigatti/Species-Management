@@ -50,7 +50,7 @@ const EnclsouerDetails = () => {
       label: 'Species',
       value: data?.data?.total_species || 0,
       imagePath: '/images/housing/species.svg',
-      onClick: () => console.log('Species')
+      onClick: () => setSelectedTab('species')
     },
     {
       label: 'Animals',
