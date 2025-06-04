@@ -268,16 +268,16 @@ const EnclosureWiseSpecies = () => {
     <>
       <ListingHeader title='All Species' totalCount={total} />
       <Box>
-        {/* <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 4 }}>
-          <Search
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 4 }}>
+          {/* <Search
             value={inputValue}
             onChange={e => handleSearch(e.target.value)}
             onClear={() => handleSearch('')}
             placeholder='Search…'
             sx={{ justifyContent: 'flex-end' }}
-          />
-          <ExportButton loading={downloading} onClick={handleDownload} />
-        </Box> */}
+          /> */}
+          {/* <ExportButton loading={downloading} onClick={handleDownload} /> */}
+        </Box>
         <Grid
           sx={{
             '& .MuiDataGrid-cell': {

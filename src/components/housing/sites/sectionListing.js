@@ -37,7 +37,7 @@ const SectionListing = () => {
         site_id: id,
         page_no: filters.page,
         limit: filters.pageSize,
-        q: filters.search,
+        search: filters.search,
         sort_by: filters.sortBy,
         sort_order: filters.sortOrder
       }),
@@ -337,7 +337,7 @@ const SectionListing = () => {
     <>
       <ListingHeader title='All Sections' totalCount={total} />
       <Box>
-        {/* <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 4, flexWrap: 'wrap' }}>
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 4, flexWrap: 'wrap' }}>
           <Search
             value={inputValue}
             onChange={e => handleSearch(e.target.value)}
@@ -345,8 +345,8 @@ const SectionListing = () => {
             placeholder='Search…'
             sx={{ justifyContent: 'flex-end' }}
           />
-          <ExportButton loading={downloading} onClick={handleDownload} />
-        </Box> */}
+          {/* <ExportButton loading={downloading} onClick={handleDownload} /> */}
+        </Box>
 
         <Grid
           sx={{
