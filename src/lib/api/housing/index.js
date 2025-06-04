@@ -16,7 +16,8 @@ import {
   GET_ENCLOSURE_LIST_SECTION_WISE,
   GET_ENCLOSURE_WISE_STATS,
   GET_ENCLOSURE_WISE_SPECIES,
-  SECTION_INSIGHTS
+  SECTION_INSIGHTS,
+  SECTION_GET_ANIMAL_TREATMENT
 } from 'src/constants/ApiConstant'
 
 export async function getSiteAnalytics(id) {
@@ -80,7 +81,7 @@ export async function getSectionAnalytics(body) {
 }
 
 export async function getSectionAnimalTreatmentList(params) {
-  const response = await axiosGet({ url: `${GET_ANIMAL_TREATMENT}/${params?.section_id}`, params })
+  const response = await axiosGet({ url: `${SECTION_GET_ANIMAL_TREATMENT}/${params?.section_id}`, params })
 
   return response.data
 }

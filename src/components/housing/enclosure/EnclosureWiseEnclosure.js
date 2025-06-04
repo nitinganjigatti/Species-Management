@@ -154,12 +154,12 @@ const EnclosureWiseEnclosure = () => {
 
   const columns = [
     {
-      width: 80,
+      width: 100,
       field: 'id',
       headerName: 'SL.NO',
       sortable: false,
       renderCell: params => (
-        <Typography sx={{ color: theme.palette.customColors.neutralSecondary, fontSize: '14px', fontWeight: 500 }}>
+        <Typography sx={{ color: theme.palette.customColors.neutralSecondary, fontSize: '14px', fontWeight: 500, cursor:"default" }}>
           {params.row.sl_no}.
         </Typography>
       )
@@ -188,7 +188,7 @@ const EnclosureWiseEnclosure = () => {
       align: 'center',
       sortable: false,
       renderCell: params => (
-        <Typography sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600 }}>
+        <Typography sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600 ,cursor:"default"}}>
           {params.row.species_count || '-'}
         </Typography>
       )
@@ -201,7 +201,7 @@ const EnclosureWiseEnclosure = () => {
       align: 'center',
       sortable: false,
       renderCell: params => (
-        <Typography sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600 }}>
+        <Typography sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600 , cursor:"default"}}>
           {params.row.enclosure_wise_animal_count || 0}
         </Typography>
       )
@@ -214,7 +214,7 @@ const EnclosureWiseEnclosure = () => {
       align: 'center',
       sortable: false,
       renderCell: params => (
-        <Typography sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600 }}>
+        <Typography sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600 , cursor:"default"}}>
           {params.row.sub_enclosure_count || 0}
         </Typography>
       )
@@ -225,7 +225,7 @@ const EnclosureWiseEnclosure = () => {
       headerName: 'SITE',
       sortable: false,
       renderCell: params => (
-        <Typography sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600 }}>
+        <Typography sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600,cursor:"default" }}>
           {params.row.site_name || ''}
         </Typography>
       )

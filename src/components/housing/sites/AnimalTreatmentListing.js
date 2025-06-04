@@ -120,7 +120,7 @@ const AnimalTreatmentListing = () => {
 
   const columns = [
     {
-      width: 80,
+      width: 100,
       field: 'sl_no',
       headerName: 'SL.NO',
       sortable: false,
@@ -290,7 +290,7 @@ const AnimalTreatmentListing = () => {
 
   return (
     <>
-      <ListingHeader title='All Species' totalCount={total} />
+      <ListingHeader title='Animals Under Treatment' totalCount={total} />
       <Box>
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 4, flexWrap: 'wrap' }}>
           <Search

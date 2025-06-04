@@ -159,7 +159,14 @@ const EnclosureListing = () => {
       headerName: 'SL.NO',
       sortable: false,
       renderCell: params => (
-        <Typography sx={{ color: theme.palette.customColors.neutralSecondary, fontSize: '14px', fontWeight: 500 }}>
+        <Typography
+          sx={{
+            color: theme.palette.customColors.neutralSecondary,
+            fontSize: '14px',
+            fontWeight: 500,
+            cursor: 'default'
+          }}
+        >
           {params.row.sl_no}.
         </Typography>
       )
@@ -168,6 +175,7 @@ const EnclosureListing = () => {
       width: 330,
       field: 'user_enclosure_name',
       headerAlign: 'left',
+      align: 'left',
       headerName: 'Enclosures',
       sortable: false,
       renderCell: params => (
@@ -184,11 +192,13 @@ const EnclosureListing = () => {
       width: 160,
       field: 'species_count',
       headerName: 'SPECIES',
-      headerAlign: 'center',
-      align: 'center',
+      headerAlign: 'left',
+      align: 'left',
       sortable: false,
       renderCell: params => (
-        <Typography sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600 }}>
+        <Typography
+          sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600, cursor: 'default' }}
+        >
           {params.row.species_count || '-'}
         </Typography>
       )
@@ -197,11 +207,13 @@ const EnclosureListing = () => {
       width: 160,
       field: 'enclosure_wise_animal_count',
       headerName: 'ANIMALS',
-      headerAlign: 'center',
-      align: 'center',
+      headerAlign: 'left',
+      align: 'left',
       sortable: false,
       renderCell: params => (
-        <Typography sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600 }}>
+        <Typography
+          sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600, cursor: 'default' }}
+        >
           {params.row.enclosure_wise_animal_count || 0}
         </Typography>
       )
@@ -210,11 +222,13 @@ const EnclosureListing = () => {
       width: 160,
       field: 'sub_enclosure_count',
       headerName: 'SUB ENCLOSURES',
-      headerAlign: 'center',
-      align: 'center',
+      headerAlign: 'left',
+      align: 'left',
       sortable: false,
       renderCell: params => (
-        <Typography sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600 }}>
+        <Typography
+          sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600, cursor: 'default' }}
+        >
           {params.row.sub_enclosure_count || 0}
         </Typography>
       )
@@ -225,7 +239,9 @@ const EnclosureListing = () => {
       headerName: 'SITE',
       sortable: false,
       renderCell: params => (
-        <Typography sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600 }}>
+        <Typography
+          sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600, cursor: 'default' }}
+        >
           {params.row.site_name || ''}
         </Typography>
       )
@@ -257,13 +273,21 @@ const EnclosureListing = () => {
   }
 
   const onRowClick = params => {
-    router.push({
-      pathname: `/housing/enclosure/${params.row.enclosure_id}`,
-      query: {
-        ...router.query,
-        enclosureTab: 'enclosures'
-      }
-    })
+    if (
+      params.field !== 'id' &&
+      params.field !== 'species_count' &&
+      params.field !== 'enclosure_wise_animal_count' &&
+      params.field !== 'sub_enclosure_count' &&
+      params.field !== 'site_name'
+    ) {
+      router.push({
+        pathname: `/housing/enclosure/${params.row.enclosure_id}`,
+        query: {
+          ...router.query,
+          enclosureTab: 'enclosures'
+        }
+      })
+    }
   }
 
   return (
@@ -292,12 +316,12 @@ const EnclosureListing = () => {
               color: theme.palette.customColors.OnSurfaceVariant,
               fontSize: '12px',
               fontWeight: 600,
-              ml: 2
+              mr: 1
             }
           }}
         >
           <CommonTable
-            onRowClick={onRowClick}
+            onCellClick={onRowClick}
             indexedRows={indexedRows}
             total={total}
             columns={columns}

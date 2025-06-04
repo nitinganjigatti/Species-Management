@@ -119,10 +119,17 @@ const MortalityListing = () => {
     {
       width: 100,
       field: 'sl_no',
-      headerName: 'NO',
+      headerName: 'SL.NO',
       sortable: false,
       renderCell: params => (
-        <Typography sx={{ color: theme.palette.customColors.neutralSecondary, fontSize: '14px', fontWeight: 500 }}>
+        <Typography
+          sx={{
+            color: theme.palette.customColors.neutralSecondary,
+            fontSize: '14px',
+            fontWeight: 500,
+            cursor: 'default'
+          }}
+        >
           {parseInt(params.row.sl_no) + '.'}
         </Typography>
       )
@@ -132,7 +139,7 @@ const MortalityListing = () => {
       field: 'common_name',
       headerName: 'SPECIES',
       headerAlign: 'left',
-      align:"left",
+      align: 'left',
       sortable: false,
       renderCell: params => (
         <SpeciesCard
@@ -149,7 +156,7 @@ const MortalityListing = () => {
       field: 'identifier',
       headerName: 'IDENTIFIER',
       headerAlign: 'left',
-      align:"left",
+      align: 'left',
       sortable: false,
       renderCell: params => (
         <IdentifierInfoCard
@@ -163,21 +170,34 @@ const MortalityListing = () => {
     {
       width: 250,
       field: 'animal_name',
-      headerName: 'ANIMAL NAME',
+      align: 'left',
       headerAlign: 'left',
       sortable: false,
-      align:"left",
-      renderCell: params => (
-        <Typography sx={{ fontWeight: 400, fontSize: '16px', color: theme.palette.customColors.OnSurfaceVariant }}>
-          {params.row.common_name}
-        </Typography>
-      )
+      headerName: 'Primary Identifier',
+      renderCell: params => {
+        const localIdentifierName = params.row.local_identifier_name
+        const localIdentifierValue = params.row.local_identifier_value
+
+        return localIdentifierName ? (
+          <Typography
+            sx={{
+              fontSize: '12px',
+              cursor: 'default',
+              color: theme.palette.customColors.secondaryBg
+            }}
+          >
+            {localIdentifierName} : {localIdentifierValue}
+          </Typography>
+        ) : (
+          <Typography sx={{ ml: 10, cursor: 'default' }}>-</Typography>
+        )
+      }
     },
     {
       field: 'died_on',
       headerName: 'DIED ON',
       headerAlign: 'left',
-      align:"left",
+      align: 'left',
       sortable: false,
       width: 250,
       renderCell: params => <DateInfoDisplay date={params.row.discovered_date} showRelativeTime />
@@ -186,7 +206,7 @@ const MortalityListing = () => {
       field: 'reported_on',
       headerName: 'REPORTED ON',
       headerAlign: 'left',
-      align:"left",
+      align: 'left',
       sortable: false,
       width: 250,
       renderCell: params => <DateInfoDisplay title={params.row.user_enclosure_name} date={params.row.discovered_date} />
@@ -196,12 +216,13 @@ const MortalityListing = () => {
       field: 'reason',
       headerName: 'REASON',
       headerAlign: 'left',
-      align:"left",
+      align: 'left',
       sortable: false,
       renderCell: params => (
         <Typography
           sx={{
             fontSize: '16px',
+            cursor: 'default',
             fontWeight: 400,
             color: theme.palette.customColors.OnSurfaceVariant,
             textOverflow: 'ellipsis',
@@ -237,7 +258,7 @@ const MortalityListing = () => {
               color: theme.palette.customColors.OnSurfaceVariant,
               fontSize: '12px',
               fontWeight: 600,
-              ml: 1
+              mr: 1
             }
           }}
         >

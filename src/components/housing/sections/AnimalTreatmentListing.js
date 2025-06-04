@@ -120,7 +120,7 @@ const AnimalTreatmentListing = () => {
 
   const columns = [
     {
-      width: 80,
+      width: 100,
       field: 'sl_no',
       headerName: 'SL.NO',
       sortable: false,
@@ -166,13 +166,28 @@ const AnimalTreatmentListing = () => {
     {
       width: 250,
       field: 'animal_name',
-      headerName: 'PRIMARY IDENTIFIER',
+      align: 'left',
+      headerAlign: 'left',
       sortable: false,
-      renderCell: params => (
-        <Typography sx={{ fontWeight: 400, fontSize: '16px', color: theme.palette.customColors.OnSurfaceVariant }}>
-          {params.row.common_name}
-        </Typography>
-      )
+      headerName: 'Primary Identifier',
+      renderCell: params => {
+        const localIdentifierName = params.row.local_identifier_name
+        const localIdentifierValue = params.row.local_identifier_value
+
+        return localIdentifierName ? (
+          <Typography
+            sx={{
+              fontSize: '12px',
+              cursor: 'default',
+              color: theme.palette.customColors.secondaryBg
+            }}
+          >
+            {localIdentifierName} : {localIdentifierValue}
+          </Typography>
+        ) : (
+          <Typography sx={{ ml: 10, cursor: 'default' }}>-</Typography>
+        )
+      }
     },
     {
       width: 160,
@@ -260,7 +275,7 @@ const AnimalTreatmentListing = () => {
 
   return (
     <>
-      <ListingHeader title='All Species' totalCount={total} />
+      <ListingHeader title='Animals Under Treatment' totalCount={total} />
       <Box>
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 4, flexWrap: 'wrap' }}>
           <Search
@@ -283,7 +298,7 @@ const AnimalTreatmentListing = () => {
               color: theme.palette.customColors.OnSurfaceVariant,
               fontSize: '12px',
               fontWeight: 600,
-              ml: 2
+              mr:2
             }
           }}
         >

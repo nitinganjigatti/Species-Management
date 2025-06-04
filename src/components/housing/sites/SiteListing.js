@@ -156,7 +156,8 @@ const Listing = () => {
       params.field !== 'species' &&
       params.field !== 'animals' &&
       params.field !== 'sections' &&
-      params.field !== 'enclosures'
+      params.field !== 'enclosures' &&
+       params.field !== 'incharge'
     ) {
       const detailUrl = {
         pathname: `/housing/sites/${params.row.site_id}`,
@@ -482,7 +483,7 @@ const Listing = () => {
               color: theme.palette.customColors.OnSurfaceVariant,
               fontSize: '12px',
               fontWeight: 600,
-              mr: 2
+              mr: 1
             }
           }}
         >

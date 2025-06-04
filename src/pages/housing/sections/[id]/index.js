@@ -98,7 +98,7 @@ const SectionDetails = () => {
       {/* Breadcrumb */}
       <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
         <Typography color='inherit' sx={{ cursor: 'pointer' }} onClick={handleSectionListingClick}>
-          section Listing
+          Section Listing
         </Typography>
         <Typography color='text.primary'>Section Details</Typography>
       </Breadcrumbs>
@@ -108,10 +108,8 @@ const SectionDetails = () => {
         data={data?.data}
         loading={isLoading}
         zooName={data?.data?.section_name}
-
         // subtitle={data?.data?.site_description}
         userName={data?.data?.incharge_name}
-
         // description={data?.data?.incharges?.[0]?.full_name}
         // userImage={data?.data?.incharges?.[0]?.user_profile_pic}
         // actions={{
@@ -128,7 +126,6 @@ const SectionDetails = () => {
             return
           }
         }}
-
         // onMessageClick={() => console.log('Message clicked')}
         error={error}
         statsData={statsData}

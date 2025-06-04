@@ -353,7 +353,7 @@ const SectionListing = () => {
               color: theme.palette.customColors.OnSurfaceVariant,
               fontSize: '12px',
               fontWeight: 600,
-              mr: 2
+              mr: 1
             }
           }}
         >

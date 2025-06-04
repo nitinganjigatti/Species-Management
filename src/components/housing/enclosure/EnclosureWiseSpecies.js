@@ -115,12 +115,12 @@ const EnclosureWiseSpecies = () => {
 
   const columns = [
     {
-      width: 80,
+      width: 100,
       field: 'id',
       headerName: 'SL.NO',
       sortable: false,
       renderCell: params => (
-        <Typography sx={{ color: theme.palette.customColors.neutralSecondary, fontSize: '14px', fontWeight: 500 }}>
+        <Typography sx={{ color: theme.palette.customColors.neutralSecondary, fontSize: '14px', fontWeight: 500,cursor:"default" }}>
           {params.row.sl_no}.
         </Typography>
       )
@@ -268,7 +268,7 @@ const EnclosureWiseSpecies = () => {
     <>
       <ListingHeader title='All Species' totalCount={total} />
       <Box>
-        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 4 }}>
+        {/* <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 4 }}>
           <Search
             value={inputValue}
             onChange={e => handleSearch(e.target.value)}
@@ -277,7 +277,7 @@ const EnclosureWiseSpecies = () => {
             sx={{ justifyContent: 'flex-end' }}
           />
           <ExportButton loading={downloading} onClick={handleDownload} />
-        </Box>
+        </Box> */}
         <Grid
           sx={{
             '& .MuiDataGrid-cell': {

@@ -122,7 +122,14 @@ const MortalityListing = () => {
       sortable: false,
       headerName: 'SL.NO',
       renderCell: params => (
-        <Typography sx={{ color: theme.palette.customColors.neutralSecondary, fontSize: '14px', fontWeight: 500 }}>
+        <Typography
+          sx={{
+            color: theme.palette.customColors.neutralSecondary,
+            fontSize: '14px',
+            fontWeight: 500,
+            cursor: 'default'
+          }}
+        >
           {parseInt(params.row.sl_no) + '.'}
         </Typography>
       )

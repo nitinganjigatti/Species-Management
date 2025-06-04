@@ -131,7 +131,14 @@ const SpeciesListing = () => {
       headerName: 'SL.NO',
       sortable: false,
       renderCell: params => (
-        <Typography sx={{ color: theme.palette.customColors.neutralSecondary, fontSize: '14px', fontWeight: 500 }}>
+        <Typography
+          sx={{
+            color: theme.palette.customColors.neutralSecondary,
+            fontSize: '14px',
+            fontWeight: 500,
+            cursor: 'default'
+          }}
+        >
           {params.row.sl_no}.
         </Typography>
       )
