@@ -153,8 +153,8 @@ const SpeciesListing = () => {
       width: 160,
       field: 'animals',
       headerName: 'Population',
-      headerAlign: 'center',
-      align: 'center',
+      headerAlign: 'left',
+      align: 'left',
       sortable: false,
       renderCell: params => (
         <Typography sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600 }}>

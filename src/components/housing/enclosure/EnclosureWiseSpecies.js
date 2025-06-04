@@ -145,8 +145,8 @@ const EnclosureWiseSpecies = () => {
       width: 180,
       field: 'animals',
       headerName: 'Population',
-      headerAlign: 'center',
-      align: 'center',
+      headerAlign: 'left',
+      align: 'left',
       sortable: false,
       renderCell: params => (
         <Typography sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600 }}>
@@ -158,8 +158,8 @@ const EnclosureWiseSpecies = () => {
       width: 160,
       field: 'male',
       headerName: 'MALE',
-      headerAlign: 'center',
-      align: 'center',
+      headerAlign: 'left',
+      align: 'left',
       sortable: false,
       renderCell: params => (
         <GenderInfoCard
@@ -173,8 +173,8 @@ const EnclosureWiseSpecies = () => {
       width: 160,
       field: 'female',
       headerName: 'FEMALE',
-      headerAlign: 'center',
-      align: 'center',
+      headerAlign: 'left',
+      align: 'left',
       sortable: false,
       renderCell: params => (
         <GenderInfoCard
@@ -188,8 +188,8 @@ const EnclosureWiseSpecies = () => {
       width: 160,
       field: 'undetermined',
       headerName: 'UNDETERMINED',
-      headerAlign: 'center',
-      align: 'center',
+      headerAlign: 'left',
+      align: 'left',
       sortable: false,
       renderCell: params => (
         <GenderInfoCard
@@ -203,8 +203,8 @@ const EnclosureWiseSpecies = () => {
       width: 160,
       field: 'indeterminate',
       headerName: 'INDETERMINATE',
-      headerAlign: 'center',
-      align: 'center',
+      headerAlign: 'left',
+      align: 'left',
       sortable: false,
       renderCell: params => (
         <GenderInfoCard
@@ -288,7 +288,8 @@ const EnclosureWiseSpecies = () => {
             '& .MuiDataGrid-columnHeaderTitle': {
               color: theme.palette.customColors.OnSurfaceVariant,
               fontSize: '12px',
-              fontWeight: 600
+              fontWeight: 600,
+              mr:2
             }
           }}
         >

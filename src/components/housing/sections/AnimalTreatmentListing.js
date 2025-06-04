@@ -177,9 +177,10 @@ const AnimalTreatmentListing = () => {
         return localIdentifierName ? (
           <Typography
             sx={{
-              fontSize: '12px',
+              fontSize: '16px',
               cursor: 'default',
-              color: theme.palette.customColors.secondaryBg
+              fontWeight: 500,
+              color: theme.palette.customColors.OnSurfaceVariant
             }}
           >
             {localIdentifierName} : {localIdentifierValue}
@@ -298,7 +299,7 @@ const AnimalTreatmentListing = () => {
               color: theme.palette.customColors.OnSurfaceVariant,
               fontSize: '12px',
               fontWeight: 600,
-              mr:2
+              mr: 2
             }
           }}
         >

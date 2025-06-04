@@ -175,9 +175,10 @@ const AnimalTreatmentListing = () => {
         return localIdentifierName ? (
           <Typography
             sx={{
-              fontSize: '12px',
+            fontSize: '16px',
               cursor: 'default',
-              color: theme.palette.customColors.secondaryBg
+              fontWeight:500,
+             color: theme.palette.customColors.OnSurfaceVariant
             }}
           >
             {localIdentifierName} : {localIdentifierValue}

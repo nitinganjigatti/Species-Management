@@ -184,8 +184,8 @@ const EnclosureWiseEnclosure = () => {
       width: 160,
       field: 'species_count',
       headerName: 'SPECIES',
-      headerAlign: 'center',
-      align: 'center',
+      headerAlign: 'left',
+      align: 'left',
       sortable: false,
       renderCell: params => (
         <Typography sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600 ,cursor:"default"}}>
@@ -197,8 +197,8 @@ const EnclosureWiseEnclosure = () => {
       width: 160,
       field: 'enclosure_wise_animal_count',
       headerName: 'ANIMALS',
-      headerAlign: 'center',
-      align: 'center',
+      headerAlign: 'left',
+      align: 'left',
       sortable: false,
       renderCell: params => (
         <Typography sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600 , cursor:"default"}}>
@@ -210,8 +210,8 @@ const EnclosureWiseEnclosure = () => {
       width: 160,
       field: 'sub_enclosure_count',
       headerName: 'SUB ENCLOSURES',
-      headerAlign: 'center',
-      align: 'center',
+      headerAlign: 'left',
+      align: 'left',
       sortable: false,
       renderCell: params => (
         <Typography sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600 , cursor:"default"}}>
