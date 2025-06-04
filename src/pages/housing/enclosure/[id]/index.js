@@ -3,31 +3,17 @@ import { Breadcrumbs, Card, Tab, Tabs, Typography } from '@mui/material'
 import { Box } from '@mui/system'
 import { useQuery } from '@tanstack/react-query'
 import { useRouter } from 'next/router'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
+import EnclosureWiseEnclosure from 'src/components/housing/enclosure/EnclosureWiseEnclosure'
 import EnclosureWiseSpecies from 'src/components/housing/enclosure/EnclosureWiseSpecies'
 import MediaListing from 'src/components/housing/enclosure/MediaListing'
 import { getEnclosureWiseStat } from 'src/lib/api/housing'
 import InsightsCard from 'src/views/utility/insights/InsightsCard'
 
-const tabConfig = [
-  { label: 'Species', value: 'species', component: EnclosureWiseSpecies },
-  { label: 'Media', value: 'media', component: MediaListing }
-]
-
 const EnclsouerDetails = () => {
   const theme = useTheme()
   const router = useRouter()
   const { id } = router.query
-
-  const [selectedTab, setSelectedTab] = useState(tabConfig[0].value)
-
-  // const { data, isLoading, error } = useQuery({
-  //   queryKey: [`enclosure-stats-data`, id],
-  //   queryFn: () => {
-  //     getEnclosureWiseStat(id)
-  //   },
-  //   enabled: !!id
-  // })
 
   const { data, isLoading, error } = useQuery({
     queryKey: ['site-detail', id],
@@ -37,6 +23,27 @@ const EnclsouerDetails = () => {
       }),
     enabled: !!id
   })
+
+  const tabConfig = [
+    { label: 'Species', value: 'species', component: EnclosureWiseSpecies },
+    { label: 'Media', value: 'media', component: MediaListing }
+  ]
+
+  if (data?.data?.total_sub_enclosure_count > 0) {
+    tabConfig.push({
+      label: 'Enclosures',
+      value: 'enclosures',
+      component: EnclosureWiseEnclosure
+    })
+  }
+
+  useEffect(() => {
+    if (!tabConfig.some(tab => tab.value === selectedTab)) {
+      setSelectedTab(tabConfig[0].value)
+    }
+  }, [data])
+
+  const [selectedTab, setSelectedTab] = useState(tabConfig[0].value)
 
   const statsData = [
     {
