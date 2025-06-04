@@ -120,9 +120,9 @@ const AnimalTreatmentListing = () => {
 
   const columns = [
     {
-      width: 100,
+      width: 80,
       field: 'sl_no',
-      headerName: 'NO',
+      headerName: 'SL.NO',
       sortable: false,
       renderCell: params => (
         <Typography sx={{ color: theme.palette.customColors.neutralSecondary, fontSize: '14px', fontWeight: 500 }}>
@@ -132,7 +132,7 @@ const AnimalTreatmentListing = () => {
     },
 
     {
-      width: 300,
+      width: 350,
       field: 'common_name',
       headerName: 'SPECIES',
       headerAlign: 'left',
@@ -152,9 +152,7 @@ const AnimalTreatmentListing = () => {
     {
       width: 250,
       field: 'identifier',
-      headerName: 'IDENTIFIER',
-      headerAlign: 'left',
-      align: 'left',
+      headerName: 'ANTZ ANIMAL ID',
       sortable: false,
       renderCell: params => (
         <IdentifierInfoCard
@@ -165,7 +163,17 @@ const AnimalTreatmentListing = () => {
         />
       )
     },
-
+    {
+      width: 250,
+      field: 'animal_name',
+      headerName: 'PRIMARY IDENTIFIER',
+      sortable: false,
+      renderCell: params => (
+        <Typography sx={{ fontWeight: 400, fontSize: '16px', color: theme.palette.customColors.OnSurfaceVariant }}>
+          {params.row.common_name}
+        </Typography>
+      )
+    },
     {
       width: 160,
       field: 'sex',
@@ -211,20 +219,6 @@ const AnimalTreatmentListing = () => {
 
     {
       width: 250,
-      field: 'animal_name',
-      headerName: 'ANIMAL NAME',
-      headerAlign: 'left',
-      align: 'left',
-      sortable: false,
-      renderCell: params => (
-        <Typography sx={{ fontWeight: 400, fontSize: '16px', color: theme.palette.customColors.OnSurfaceVariant }}>
-          {params.row.common_name}
-        </Typography>
-      )
-    },
-
-    {
-      width: 250,
       field: 'section_name',
       headerName: 'Section Name',
       headerAlign: 'left',
@@ -236,19 +230,18 @@ const AnimalTreatmentListing = () => {
         </Typography>
       )
     },
-    {
-      width: 250,
-      field: 'site_name',
-      headerName: 'Site Name',
-      headerAlign: 'left',
-      align: 'left',
-      sortable: false,
-      renderCell: params => (
-        <Typography sx={{ fontWeight: 400, fontSize: '16px', color: theme.palette.customColors.OnSurfaceVariant }}>
-          {params.row.site_name}
-        </Typography>
-      )
-    },
+
+    // {
+    //   width: 250,
+    //   field: 'site_name',
+    //   headerName: 'Site Name',
+    //   sortable: false,
+    //   renderCell: params => (
+    //     <Typography sx={{ fontWeight: 400, fontSize: '16px', color: theme.palette.customColors.OnSurfaceVariant }}>
+    //       {params.row.site_name}
+    //     </Typography>
+    //   )
+    // },
 
     {
       width: 250,

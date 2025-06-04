@@ -1,5 +1,5 @@
 import { useTheme } from '@emotion/react'
-import { Box, debounce, Grid, Typography } from '@mui/material'
+import { Box, debounce, Grid, Typography, useMediaQuery } from '@mui/material'
 import { useQuery } from '@tanstack/react-query'
 import { useRouter } from 'next/router'
 import React, { useEffect, useMemo, useState } from 'react'
@@ -14,6 +14,7 @@ const ClusterSites = () => {
   const router = useRouter()
   const { id } = router.query
   const theme = useTheme()
+  const isSmallScreen = useMediaQuery(theme.breakpoints.down('md'))
 
   const [downloading, setDownloading] = useState(false)
   const [inputValue, setInputValue] = useState('')
@@ -147,7 +148,7 @@ const ClusterSites = () => {
 
   const columns = [
     {
-      width: 100,
+      width: 80,
       field: 'id',
       headerName: 'SL.NO',
       headerAlign: 'left',
@@ -160,7 +161,7 @@ const ClusterSites = () => {
       )
     },
     {
-      width: 250,
+      width: 300,
       field: 'site_name',
       headerName: 'Site Name',
       align: 'left',
@@ -177,11 +178,11 @@ const ClusterSites = () => {
       )
     },
     {
-      width: 200,
+      width: 160,
       field: 'species',
       headerName: 'Species',
-      align: 'left',
-      headerAlign: 'left',
+      headerAlign: 'center',
+      align: 'center',
       sortable: false,
       renderCell: params => (
         <Typography sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600 }}>
@@ -193,6 +194,8 @@ const ClusterSites = () => {
       width: 150,
       field: 'animals',
       headerName: 'Animals',
+      headerAlign: 'center',
+      align: 'center',
       sortable: false,
       renderCell: params => (
         <Typography sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600 }}>
@@ -206,6 +209,8 @@ const ClusterSites = () => {
       align: 'left',
       headerAlign: 'left',
       headerName: 'Enclosures',
+      headerAlign: 'center',
+      align: 'center',
       sortable: false,
       renderCell: params => (
         <Typography sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600 }}>
@@ -214,7 +219,7 @@ const ClusterSites = () => {
       )
     },
     {
-      width: 180,
+      width: 200,
       field: 'incharge',
       headerName: 'In-Charge',
       align: 'left',
@@ -236,30 +241,31 @@ const ClusterSites = () => {
       field: 'actions',
       headerName: 'Actions',
       align: 'left',
-      headerAlign: 'left',
       sortable: false,
-      renderCell: params => (
-        <>
-          {params.row.incharge_name ? (
-            <Box display='flex' justifyContent='center' alignItems='center' gap={3}>
-              <Box
-                component='img'
-                src='/images/call.png'
-                alt='Phone'
-                sx={{ width: 20, height: 20, cursor: 'pointer' }}
-              />
-              <Box
-                component='img'
-                src='/images/message.png'
-                alt='Message'
-                sx={{ width: 20, height: 20, cursor: 'pointer' }}
-              />
-            </Box>
-          ) : (
-            '-'
-          )}
-        </>
-      )
+      renderCell: params => {
+        if (!isSmallScreen) {
+          // Show mobile number on small and extra small devices
+          return (
+            <Typography sx={{ fontSize: '14px', fontWeight: 500, cursor: 'default' }}>
+              {params.row.incharge_mobile_no || '-'}
+            </Typography>
+          )
+        } else {
+          // Show phone icon on medium and larger devices
+          return (
+            <Box
+              component='img'
+              src='/images/call.png'
+              alt='Phone'
+              sx={{ width: 20, height: 20, cursor: 'pointer' }}
+              onClick={() => {
+                // window.open(`tel:${params.row.incharge_mobile_no}`)
+                console.log(`Calling ${params.row.incharge_mobile_no}`)
+              }}
+            />
+          )
+        }
+      }
     }
   ]
 

@@ -68,7 +68,7 @@ const EnclsouerDetails = () => {
     <>
       <Box>
         <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
-          <Typography color='inherit' sx={{ cursor: 'pointer' }} onClick={handleEnclosureListingClick}>
+          <Typography color='inherit' sx={{ cursor: 'pointer' }} onClick={() => router.back()}>
             Enclosures
           </Typography>
           <Typography color='text.primary'>Enclosure Details</Typography>

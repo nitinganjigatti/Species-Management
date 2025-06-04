@@ -154,7 +154,7 @@ const EnclosureListing = () => {
 
   const columns = [
     {
-      width: 100,
+      width: 80,
       field: 'id',
       headerName: 'SL.NO',
       sortable: false,
@@ -165,10 +165,10 @@ const EnclosureListing = () => {
       )
     },
     {
-      width: 280,
+      width: 330,
       field: 'user_enclosure_name',
       headerAlign: 'left',
-      headerName: 'Species',
+      headerName: 'Enclosures',
       sortable: false,
       renderCell: params => (
         <SpeciesCard
@@ -181,20 +181,24 @@ const EnclosureListing = () => {
       )
     },
     {
-      width: 180,
+      width: 160,
       field: 'species_count',
       headerName: 'SPECIES',
+      headerAlign: 'center',
+      align: 'center',
       sortable: false,
       renderCell: params => (
         <Typography sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600 }}>
-          {params.row.species_count || 0}
+          {params.row.species_count || '-'}
         </Typography>
       )
     },
     {
-      width: 180,
+      width: 160,
       field: 'enclosure_wise_animal_count',
       headerName: 'ANIMALS',
+      headerAlign: 'center',
+      align: 'center',
       sortable: false,
       renderCell: params => (
         <Typography sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600 }}>
@@ -203,9 +207,11 @@ const EnclosureListing = () => {
       )
     },
     {
-      width: 180,
+      width: 160,
       field: 'sub_enclosure_count',
       headerName: 'SUB ENCLOSURES',
+      headerAlign: 'center',
+      align: 'center',
       sortable: false,
       renderCell: params => (
         <Typography sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600 }}>
@@ -214,7 +220,7 @@ const EnclosureListing = () => {
       )
     },
     {
-      width: 180,
+      width: 250,
       field: 'site_name',
       headerName: 'SITE',
       sortable: false,
@@ -223,26 +229,27 @@ const EnclosureListing = () => {
           {params.row.site_name || ''}
         </Typography>
       )
-    },
-    {
-      width: 160,
-      field: 'actions',
-      headerName: 'Actions',
-      align: 'center',
-      headerAlign: 'center',
-      sortable: false,
-      renderCell: () => (
-        <Box display='flex' justifyContent='center' alignItems='center' gap={3}>
-          <Box component='img' src='/images/call.png' alt='Phone' sx={{ width: 20, height: 20, cursor: 'pointer' }} />
-          <Box
-            component='img'
-            src='/images/message.png'
-            alt='Message'
-            sx={{ width: 20, height: 20, cursor: 'pointer' }}
-          />
-        </Box>
-      )
     }
+
+    // {
+    //   width: 160,
+    //   field: 'actions',
+    //   headerName: 'Actions',
+    //   align: 'center',
+    //   headerAlign: 'center',
+    //   sortable: false,
+    //   renderCell: () => (
+    //     <Box display='flex' justifyContent='center' alignItems='center' gap={3}>
+    //       <Box component='img' src='/images/call.png' alt='Phone' sx={{ width: 20, height: 20, cursor: 'pointer' }} />
+    //       <Box
+    //         component='img'
+    //         src='/images/message.png'
+    //         alt='Message'
+    //         sx={{ width: 20, height: 20, cursor: 'pointer' }}
+    //       />
+    //     </Box>
+    //   )
+    // }
   ]
 
   const handleDownload = () => {

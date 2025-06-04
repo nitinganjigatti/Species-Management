@@ -1,5 +1,5 @@
 import { useTheme } from '@emotion/react'
-import { Box, Grid, Typography } from '@mui/material'
+import { Box, Grid, Typography, useMediaQuery } from '@mui/material'
 import { useRouter } from 'next/router'
 import React, { useEffect, useMemo, useState } from 'react'
 import { useQuery } from '@tanstack/react-query'
@@ -16,6 +16,8 @@ const SectionListing = () => {
   const router = useRouter()
   const { id } = router.query
   const theme = useTheme()
+
+  const isSmallScreen = useMediaQuery(theme.breakpoints.down('md'))
 
   const [downloading, setDownloading] = useState(false)
   const [inputValue, setInputValue] = useState('')
@@ -196,7 +198,7 @@ const SectionListing = () => {
 
   const columns = [
     {
-      width: 100,
+      width: 80,
       field: 'id',
       headerName: 'SL.NO',
       sortable: false,
@@ -207,7 +209,7 @@ const SectionListing = () => {
       )
     },
     {
-      width: 260,
+      width: 300,
       field: 'section_name',
       headerName: 'Section Name',
       sortable: false,
@@ -224,6 +226,8 @@ const SectionListing = () => {
     {
       width: 180,
       field: 'species',
+      headerAlign: 'center',
+      align: 'center',
       headerName: 'Species',
       align: 'left',
       headerAlign: 'left',
@@ -238,8 +242,8 @@ const SectionListing = () => {
       width: 150,
       field: 'animals',
       headerName: 'Animals',
-      align: 'left',
-      headerAlign: 'left',
+      headerAlign: 'center',
+      align: 'center',
       sortable: false,
       renderCell: params => (
         <Typography sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600 }}>
@@ -251,8 +255,8 @@ const SectionListing = () => {
       width: 150,
       field: 'enclosures',
       headerName: 'Enclosures',
-      align: 'left',
-      headerAlign: 'left',
+      headerAlign: 'center',
+      align: 'center',
       sortable: false,
       renderCell: params => (
         <Typography sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600 }}>
@@ -283,31 +287,31 @@ const SectionListing = () => {
       field: 'actions',
       headerName: 'Actions',
       sortable: false,
-      align: 'left',
-      headerAlign: 'left',
-
-      renderCell: params => (
-        <>
-          {params.row.incharge_name ? (
-            <Box display='flex' justifyContent='center' alignItems='center' gap={3}>
-              <Box
-                component='img'
-                src='/images/call.png'
-                alt='Phone'
-                sx={{ width: 20, height: 20, cursor: 'pointer' }}
-              />
-              <Box
-                component='img'
-                src='/images/message.png'
-                alt='Message'
-                sx={{ width: 20, height: 20, cursor: 'pointer' }}
-              />
-            </Box>
-          ) : (
-            '-'
-          )}
-        </>
-      )
+      align: 'center',
+      renderCell: params => {
+        if (!isSmallScreen) {
+          // Show mobile number on small and extra small devices
+          return (
+            <Typography sx={{ fontSize: '14px', fontWeight: 500, cursor: 'default' }}>
+              {params.row.incharge_mobile_no || '-'}
+            </Typography>
+          )
+        } else {
+          // Show phone icon on medium and larger devices
+          return (
+            <Box
+              component='img'
+              src='/images/call.png'
+              alt='Phone'
+              sx={{ width: 20, height: 20, cursor: 'pointer' }}
+              onClick={() => {
+                // window.open(`tel:${params.row.incharge_mobile_no}`)
+                console.log(`Calling ${params.row.incharge_mobile_no}`)
+              }}
+            />
+          )
+        }
+      }
     }
   ]
 

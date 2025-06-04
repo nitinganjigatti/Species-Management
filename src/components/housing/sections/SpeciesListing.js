@@ -123,7 +123,7 @@ const SpeciesListing = () => {
 
   const columns = [
     {
-      width: 100,
+      width: 80,
       field: 'id',
       headerName: 'SL.NO',
       sortable: false,
@@ -134,10 +134,9 @@ const SpeciesListing = () => {
       )
     },
     {
-      width: 280,
+      width: 350,
       field: 'common_name',
       headerAlign: 'left',
-      align: 'left',
       headerName: 'Species',
       sortable: false,
       renderCell: params => (
@@ -151,9 +150,11 @@ const SpeciesListing = () => {
       )
     },
     {
-      width: 180,
+      width: 160,
       field: 'animals',
       headerName: 'Population',
+      headerAlign: 'center',
+      align: 'center',
       sortable: false,
       renderCell: params => (
         <Typography sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600 }}>
@@ -165,8 +166,8 @@ const SpeciesListing = () => {
       width: 160,
       field: 'male',
       headerName: 'MALE',
-      headerAlign:"left",
-      align:"left",
+      headerAlign: 'center',
+      align: 'center',
       sortable: false,
       renderCell: params => (
         <GenderInfoCard
@@ -180,8 +181,8 @@ const SpeciesListing = () => {
       width: 160,
       field: 'female',
       headerName: 'FEMALE',
-      headerAlign:"left",
-      align:"left",
+      headerAlign: 'center',
+      align: 'center',
       sortable: false,
       renderCell: params => (
         <GenderInfoCard
@@ -195,8 +196,8 @@ const SpeciesListing = () => {
       width: 160,
       field: 'undetermined',
       headerName: 'UNDETERMINED',
-      headerAlign:"left",
-      align:"left",
+      headerAlign: 'center',
+      align: 'center',
       sortable: false,
       renderCell: params => (
         <GenderInfoCard
@@ -209,9 +210,11 @@ const SpeciesListing = () => {
     {
       width: 160,
       field: 'indeterminate',
-      headerAlign:"left",
-      align:"left",
+      headerAlign: 'left',
+      align: 'left',
       headerName: 'INDETERMINATE',
+      headerAlign: 'center',
+      align: 'center',
       sortable: false,
       renderCell: params => (
         <GenderInfoCard
@@ -220,26 +223,27 @@ const SpeciesListing = () => {
           color={theme.palette.customColors.OnPrimaryContainer}
         />
       )
-    },
-    {
-      width: 160,
-      field: 'actions',
-      headerName: 'Actions',
-     headerAlign:"left",
-      align:"left",
-      sortable: false,
-      renderCell: () => (
-        <Box display='flex' justifyContent='center' alignItems='center' gap={3}>
-          <Box component='img' src='/images/call.png' alt='Phone' sx={{ width: 20, height: 20, cursor: 'pointer' }} />
-          <Box
-            component='img'
-            src='/images/message.png'
-            alt='Message'
-            sx={{ width: 20, height: 20, cursor: 'pointer' }}
-          />
-        </Box>
-      )
     }
+
+    // {
+    //   width: 160,
+    //   field: 'actions',
+    //   headerName: 'Actions',
+    //   align: 'center',
+    //   headerAlign: 'center',
+    //   sortable: false,
+    //   renderCell: () => (
+    //     <Box display='flex' justifyContent='center' alignItems='center' gap={3}>
+    //       <Box component='img' src='/images/call.png' alt='Phone' sx={{ width: 20, height: 20, cursor: 'pointer' }} />
+    //       <Box
+    //         component='img'
+    //         src='/images/message.png'
+    //         alt='Message'
+    //         sx={{ width: 20, height: 20, cursor: 'pointer' }}
+    //       />
+    //     </Box>
+    //   )
+    // }
   ]
 
   return (
@@ -268,7 +272,7 @@ const SpeciesListing = () => {
               color: theme.palette.customColors.OnSurfaceVariant,
               fontSize: '12px',
               fontWeight: 600,
-              ml:2 
+              ml: 2
             }
           }}
         >

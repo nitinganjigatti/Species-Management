@@ -1,5 +1,5 @@
 import { useTheme } from '@emotion/react'
-import { Breadcrumbs, Card, Grid, Typography } from '@mui/material'
+import { Breadcrumbs, Card, Grid, Typography, useMediaQuery } from '@mui/material'
 import { Box } from '@mui/system'
 import { useQuery } from '@tanstack/react-query'
 import { debounce } from 'lodash'
@@ -7,7 +7,7 @@ import { useRouter } from 'next/router'
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
 import { useAuth } from 'src/hooks/useAuth'
 import { getClusterList, getSiteAnalytics } from 'src/lib/api/housing'
-import { CellInfo } from 'src/utility/render'
+import RenderUtility, { CellInfo } from 'src/utility/render'
 import ListingHeader from 'src/views/pages/housing/utils/ListingHeader'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import InsightsCard from 'src/views/utility/insights/InsightsCard'
@@ -19,6 +19,7 @@ const Clusters = () => {
   const theme = useTheme()
   const router = useRouter()
   const { query } = router
+  const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'))
 
   const auth = useAuth()
   const zooId = auth?.userData?.user?.zoos?.[0]?.zoo_id
@@ -192,7 +193,7 @@ const Clusters = () => {
 
   const columns = [
     {
-      width: 100,
+      width: 80,
       field: 'id',
       headerName: 'SL.NO',
       sortable: false,
@@ -205,7 +206,7 @@ const Clusters = () => {
       )
     },
     {
-      width: 250,
+      width: 280,
       field: 'cluster_name',
       headerName: 'Cluster Name',
       headerAlign: 'left',
@@ -222,11 +223,11 @@ const Clusters = () => {
       )
     },
     {
-      width: 200,
+      width: 160,
       field: 'species_count',
       headerName: 'Species',
-      headerAlign: 'left',
-      align: 'left',
+      headerAlign: 'center',
+      align: 'center',
       sortable: false,
       renderCell: params => (
         <Typography
@@ -252,6 +253,8 @@ const Clusters = () => {
       headerAlign: 'left',
       align: 'left',
       headerName: 'Animals',
+      headerAlign: 'center',
+      align: 'center',
       sortable: false,
       renderCell: params => (
         <Typography
@@ -275,8 +278,8 @@ const Clusters = () => {
       width: 150,
       field: 'site_count',
       headerName: 'Sites',
-      headerAlign: 'left',
-      align: 'left',
+      headerAlign: 'center',
+      align: 'center',
       sortable: false,
       renderCell: params => (
         <Typography
@@ -297,42 +300,66 @@ const Clusters = () => {
       )
     },
     {
-      width: 180, 
+      width: 180,
       field: 'incharge',
       headerName: 'In-Charge',
       headerAlign: 'left',
       align: 'left',
       sortable: false,
-      renderCell: params => (
-        <Box display='flex' alignItems='center' width='100%'>
-          {/* <UserInfoCard
-            avatarUrl={params.row.incharge_image}
-            name={params.row.incharge_name}
-            textColor={theme.palette.customColors.OnSurfaceVariant}
-            fontWeight={500}
-            fallbackChar={params.row.incharge_name?.charAt(0)}
-          /> */}
-        </Box>
-      )
+
+      // renderCell: params => (
+      //   <Box display='flex' alignItems='center' width='100%'>
+      //     <UserInfoCard
+      //       avatarUrl={params.row.incharge_image}
+      //       name={params.row.incharge_name}
+      //       textColor={theme.palette.customColors.OnSurfaceVariant}
+      //       fontWeight={500}
+      //       fallbackChar={params.row.incharge_name?.charAt(0)}
+      //     />
+      //   </Box>
+      // )
+      renderCell: params =>
+        RenderUtility.renderUserAvatarDetails(
+          params.row.incharge_image,
+          params.row.incharge_name,
+          '',
+          theme.palette.customColors.OnSurfaceVariant,
+          '14px'
+
+          //  theme.palette.customColors.OnSurfaceVariant,
+        )
     },
     {
       width: 150,
       field: 'actions',
       headerName: 'Actions',
-      headerAlign: 'left',
       align: 'left',
+      headerAlign: 'left',
       sortable: false,
-      renderCell: () => (
-        <Box display='flex' justifyContent='center' alignItems='center' gap={3}>
-          <Box component='img' src='/images/call.png' alt='Phone' sx={{ width: 20, height: 20, cursor: 'pointer' }} />
-          <Box
-            component='img'
-            src='/images/message.png'
-            alt='Message'
-            sx={{ width: 20, height: 20, cursor: 'pointer' }}
-          />
-        </Box>
-      )
+      renderCell: params => {
+        if (!isSmallScreen) {
+          // Show mobile number on small and extra small devices
+          return (
+            <Typography sx={{ fontSize: '14px', fontWeight: 500, cursor: 'default' }}>
+              {params.row.incharge_mobile_no || '-'}
+            </Typography>
+          )
+        } else {
+          // Show phone icon on medium and larger devices
+          return (
+            <Box
+              component='img'
+              src='/images/call.png'
+              alt='Phone'
+              sx={{ width: 20, height: 20, cursor: 'pointer' }}
+              onClick={() => {
+                // window.open(`tel:${params.row.incharge_mobile_no}`)
+                console.log(`Calling ${params.row.incharge_mobile_no}`)
+              }}
+            />
+          )
+        }
+      }
     }
   ]
 

@@ -164,7 +164,7 @@ const ClusterSpecies = () => {
 
   const columns = [
     {
-      width: 100,
+      width: 80,
       field: 'id',
       headerName: 'SL.NO',
       sortable: false,
@@ -177,7 +177,6 @@ const ClusterSpecies = () => {
     {
       width: 280,
       field: 'common_name',
-      align: 'left',
       headerAlign: 'left',
       sortable: false,
       headerName: 'Species',
@@ -192,11 +191,11 @@ const ClusterSpecies = () => {
       )
     },
     {
-      width: 180,
+      width: 160,
       field: 'animals',
       headerName: 'Population',
-      align: 'left',
-      headerAlign: 'left',
+      headerAlign: 'center',
+      align: 'center',
       sortable: false,
       renderCell: params => (
         <Typography sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600 }}>
@@ -208,8 +207,8 @@ const ClusterSpecies = () => {
       width: 160,
       field: 'male',
       headerName: 'MALE',
-      align: 'left',
-      headerAlign: 'left',
+      headerAlign: 'center',
+      align: 'center',
       sortable: false,
       renderCell: params => (
         <GenderInfoCard
@@ -226,6 +225,8 @@ const ClusterSpecies = () => {
       align: 'left',
       headerAlign: 'left',
       sortable: false,
+      headerAlign: 'center',
+      align: 'center',
       renderCell: params => (
         <GenderInfoCard
           value={params.row.sex_data?.female || 0}
@@ -238,8 +239,8 @@ const ClusterSpecies = () => {
       width: 160,
       field: 'undetermined',
       headerName: 'UNDETERMINED',
-      align: 'left',
-      headerAlign: 'left',
+      headerAlign: 'center',
+      align: 'center',
       sortable: false,
       renderCell: params => (
         <GenderInfoCard
@@ -255,6 +256,8 @@ const ClusterSpecies = () => {
       align: 'left',
       headerAlign: 'left',
       headerName: 'INDETERMINATE',
+      headerAlign: 'center',
+      align: 'center',
       sortable: false,
       renderCell: params => (
         <GenderInfoCard
@@ -263,26 +266,27 @@ const ClusterSpecies = () => {
           color={theme.palette.customColors.OnPrimaryContainer}
         />
       )
-    },
-    {
-      width: 160,
-      field: 'actions',
-      headerName: 'Actions',
-      align: 'center',
-      sortable: false,
-      headerAlign: 'center',
-      renderCell: () => (
-        <Box display='flex' justifyContent='center' alignItems='center' gap={3}>
-          <Box component='img' src='/images/call.png' alt='Phone' sx={{ width: 20, height: 20, cursor: 'pointer' }} />
-          <Box
-            component='img'
-            src='/images/message.png'
-            alt='Message'
-            sx={{ width: 20, height: 20, cursor: 'pointer' }}
-          />
-        </Box>
-      )
     }
+
+    // {
+    //   width: 160,
+    //   field: 'actions',
+    //   headerName: 'Actions',
+    //   align: 'center',
+    //   sortable: false,
+    //   headerAlign: 'center',
+    //   renderCell: () => (
+    //     <Box display='flex' justifyContent='center' alignItems='center' gap={3}>
+    //       <Box component='img' src='/images/call.png' alt='Phone' sx={{ width: 20, height: 20, cursor: 'pointer' }} />
+    //       <Box
+    //         component='img'
+    //         src='/images/message.png'
+    //         alt='Message'
+    //         sx={{ width: 20, height: 20, cursor: 'pointer' }}
+    //       />
+    //     </Box>
+    //   )
+    // }
   ]
 
   return (

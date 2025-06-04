@@ -37,7 +37,7 @@ const composeHousingNavigation = () => {
     // icon: 'mdi:rabbit-variant-outline'
   }
 
-  housingParent.children.push(dashboard)
+  // housingParent.children.push(dashboard)
   housingParent.children.push(sites)
   housingParent.children.push(clusters)
 

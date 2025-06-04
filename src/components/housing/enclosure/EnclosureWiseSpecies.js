@@ -53,8 +53,6 @@ const EnclosureWiseSpecies = () => {
   const listing = data?.data?.listing || []
   const total = data?.data?.listing?.length || 0
 
-  console.log(data)
-
   const getSlNo = index => (filters.page - 1) * filters.pageSize + index + 1
 
   const indexedRows = useMemo(
@@ -117,7 +115,7 @@ const EnclosureWiseSpecies = () => {
 
   const columns = [
     {
-      width: 100,
+      width: 80,
       field: 'id',
       headerName: 'SL.NO',
       sortable: false,
@@ -128,9 +126,9 @@ const EnclosureWiseSpecies = () => {
       )
     },
     {
-      width: 280,
+      width: 350,
       field: 'common_name',
-      headerAlign: 'center',
+      headerAlign: 'left',
       headerName: 'Species',
       sortable: false,
       renderCell: params => (
@@ -147,6 +145,8 @@ const EnclosureWiseSpecies = () => {
       width: 180,
       field: 'animals',
       headerName: 'Population',
+      headerAlign: 'center',
+      align: 'center',
       sortable: false,
       renderCell: params => (
         <Typography sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600 }}>
@@ -158,6 +158,8 @@ const EnclosureWiseSpecies = () => {
       width: 160,
       field: 'male',
       headerName: 'MALE',
+      headerAlign: 'center',
+      align: 'center',
       sortable: false,
       renderCell: params => (
         <GenderInfoCard
@@ -171,6 +173,8 @@ const EnclosureWiseSpecies = () => {
       width: 160,
       field: 'female',
       headerName: 'FEMALE',
+      headerAlign: 'center',
+      align: 'center',
       sortable: false,
       renderCell: params => (
         <GenderInfoCard
@@ -184,6 +188,8 @@ const EnclosureWiseSpecies = () => {
       width: 160,
       field: 'undetermined',
       headerName: 'UNDETERMINED',
+      headerAlign: 'center',
+      align: 'center',
       sortable: false,
       renderCell: params => (
         <GenderInfoCard
@@ -197,6 +203,8 @@ const EnclosureWiseSpecies = () => {
       width: 160,
       field: 'indeterminate',
       headerName: 'INDETERMINATE',
+      headerAlign: 'center',
+      align: 'center',
       sortable: false,
       renderCell: params => (
         <GenderInfoCard
@@ -205,26 +213,27 @@ const EnclosureWiseSpecies = () => {
           color={theme.palette.customColors.OnPrimaryContainer}
         />
       )
-    },
-    {
-      width: 160,
-      field: 'actions',
-      headerName: 'Actions',
-      align: 'center',
-      headerAlign: 'center',
-      sortable: false,
-      renderCell: () => (
-        <Box display='flex' justifyContent='center' alignItems='center' gap={3}>
-          <Box component='img' src='/images/call.png' alt='Phone' sx={{ width: 20, height: 20, cursor: 'pointer' }} />
-          <Box
-            component='img'
-            src='/images/message.png'
-            alt='Message'
-            sx={{ width: 20, height: 20, cursor: 'pointer' }}
-          />
-        </Box>
-      )
     }
+
+    // {
+    //   width: 160,
+    //   field: 'actions',
+    //   headerName: 'Actions',
+    //   align: 'center',
+    //   headerAlign: 'center',
+    //   sortable: false,
+    //   renderCell: () => (
+    //     <Box display='flex' justifyContent='center' alignItems='center' gap={3}>
+    //       <Box component='img' src='/images/call.png' alt='Phone' sx={{ width: 20, height: 20, cursor: 'pointer' }} />
+    //       <Box
+    //         component='img'
+    //         src='/images/message.png'
+    //         alt='Message'
+    //         sx={{ width: 20, height: 20, cursor: 'pointer' }}
+    //       />
+    //     </Box>
+    //   )
+    // }
   ]
 
   const handleDownload = () => {

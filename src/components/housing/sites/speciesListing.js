@@ -1,5 +1,5 @@
 import { useTheme } from '@emotion/react'
-import { Box, Grid, Typography } from '@mui/material'
+import { Box, Grid, Typography, useMediaQuery } from '@mui/material'
 import { useRouter } from 'next/router'
 import React, { useMemo, useState, useEffect } from 'react'
 import { useQuery } from '@tanstack/react-query'
@@ -18,6 +18,7 @@ const SpeciesListing = () => {
   const theme = useTheme()
   const router = useRouter()
   const { id } = router.query
+  const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'))
   const [openDrawer, setOpenDrawer] = useState(false)
   const [specieName, setSpecieName] = useState('')
 
@@ -125,7 +126,7 @@ const SpeciesListing = () => {
 
   const columns = [
     {
-      width: 100,
+      width: 80,
       field: 'id',
       headerName: 'SL.NO',
       sortable: false,
@@ -136,10 +137,9 @@ const SpeciesListing = () => {
       )
     },
     {
-      width: 280,
+      width: 350,
       field: 'common_name',
       headerAlign: 'left',
-      align: 'left',
       headerName: 'Species',
       sortable: false,
       renderCell: params => (
@@ -158,6 +158,8 @@ const SpeciesListing = () => {
       align: 'left',
       headerAlign: 'left',
       headerName: 'Population',
+      headerAlign: 'center',
+      align: 'center',
       sortable: false,
       renderCell: params => (
         <Typography sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600 }}>
@@ -169,8 +171,8 @@ const SpeciesListing = () => {
       width: 160,
       field: 'male',
       headerName: 'MALE',
-      align: 'left',
-      headerAlign: 'left',
+      headerAlign: 'center',
+      align: 'center',
       sortable: false,
       renderCell: params => (
         <Box
@@ -194,8 +196,8 @@ const SpeciesListing = () => {
       width: 160,
       field: 'female',
       headerName: 'FEMALE',
-      align: 'left',
-      headerAlign: 'left',
+      headerAlign: 'center',
+      align: 'center',
       sortable: false,
       renderCell: params => (
         <GenderInfoCard
@@ -209,8 +211,8 @@ const SpeciesListing = () => {
       width: 160,
       field: 'undetermined',
       headerName: 'UNDETERMINED',
-      align: 'left',
-      headerAlign: 'left',
+      headerAlign: 'center',
+      align: 'center',
       sortable: false,
       renderCell: params => (
         <GenderInfoCard
@@ -224,8 +226,8 @@ const SpeciesListing = () => {
       width: 160,
       field: 'indeterminate',
       headerName: 'INDETERMINATE',
-      align: 'left',
-      headerAlign: 'left',
+      headerAlign: 'center',
+      align: 'center',
       sortable: false,
       renderCell: params => (
         <GenderInfoCard
@@ -234,26 +236,40 @@ const SpeciesListing = () => {
           color={theme.palette.customColors.OnPrimaryContainer}
         />
       )
-    },
-    {
-      width: 160,
-      field: 'actions',
-      headerName: 'Actions',
-      align: 'left',
-      headerAlign: 'left',
-      sortable: false,
-      renderCell: () => (
-        <Box display='flex' justifyContent='center' alignItems='center' gap={3}>
-          <Box component='img' src='/images/call.png' alt='Phone' sx={{ width: 20, height: 20, cursor: 'pointer' }} />
-          <Box
-            component='img'
-            src='/images/message.png'
-            alt='Message'
-            sx={{ width: 20, height: 20, cursor: 'pointer' }}
-          />
-        </Box>
-      )
     }
+
+    // {
+    //   width: 160,
+    //   field: 'actions',
+    //   headerName: 'Actions',
+    //   align: 'center',
+    //   headerAlign: 'center',
+    //   sortable: false,
+    //   renderCell: params => {
+    //     if (!isSmallScreen) {
+    //       // Show mobile number on small and extra small devices
+    //       return (
+    //         <Typography sx={{ fontSize: '14px', fontWeight: 500, cursor: 'default' }}>
+    //           {params.row.incharge_mobile_no || '-'}
+    //         </Typography>
+    //       )
+    //     } else {
+    //       // Show phone icon on larger devices
+    //       return (
+    //         <Box
+    //           component='img'
+    //           src='/images/call.png'
+    //           alt='Phone'
+    //           sx={{ width: 20, height: 20, cursor: 'pointer' }}
+    //           onClick={() => {
+    //             // Optional: handle click to call or show details
+    //             window.open(`tel:${params.row.incharge_mobile_no}`)
+    //           }}
+    //         />
+    //       )
+    //     }
+    //   }
+    // }
   ]
 
   return (
@@ -282,7 +298,7 @@ const SpeciesListing = () => {
               color: theme.palette.customColors.OnSurfaceVariant,
               fontSize: '12px',
               fontWeight: 600,
-              ml:2
+              ml: 2
             }
           }}
         >
