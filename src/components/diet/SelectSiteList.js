@@ -96,10 +96,10 @@ const SelectSiteList = ({
         {/* Header */}
         <Box sx={{ p: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <Box>
-            <Typography variant='h6' fontWeight='500' sx={{ color: '#1F515B' }}>
+            <Typography variant='h6' fontWeight='500' sx={{ color: theme.palette.customColors.OnPrimaryContainer }}>
               Choose Site
             </Typography>
-            <Typography variant='body2' sx={{ color: '#44544A' }}>
+            <Typography variant='body2' sx={{ color: theme.palette.customColors.OnSurfaceVariant }}>
               Select a site from the list below
             </Typography>
           </Box>
@@ -120,7 +120,7 @@ const SelectSiteList = ({
             InputProps={{
               startAdornment: (
                 <InputAdornment position='start'>
-                  <SearchIcon sx={{ color: '#1F515B' }} />
+                  <SearchIcon sx={{ color: theme.palette.customColors.OnPrimaryContainer }} />
                 </InputAdornment>
               ),
               endAdornment: searchTerm && (
@@ -136,14 +136,19 @@ const SelectSiteList = ({
                   </IconButton>
                 </InputAdornment>
               ),
-              style: { background: '#EFF5F2', borderRadius: '4px', padding: '4px 8px', color: '#1F515B' }
+              style: {
+                background: theme.palette.customColors.bodyBg,
+                borderRadius: '4px',
+                padding: '4px 8px',
+                color: theme.palette.customColors.OnPrimaryContainer
+              }
             }}
           />
         </Box>
 
         {/* Selected Count */}
         <Box sx={{ p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Typography variant='body2' sx={{ color: '#44544A' }}>
+          <Typography variant='body2' sx={{ color: theme.palette.customColors.OnSurfaceVariant }}>
             Selected {pendingSelections?.Site?.length} / {items?.Site?.length}
           </Typography>
           <Box
@@ -155,7 +160,10 @@ const SelectSiteList = ({
             <Button
               size='small'
               sx={{
-                color: pendingSelections?.Site?.length === items?.Site?.length ? theme.palette.primary.main : '#44544A',
+                color:
+                  pendingSelections?.Site?.length === items?.Site?.length
+                    ? theme.palette.primary.main
+                    : theme.palette.customColors.OnSurfaceVariant,
                 fontSize: '12px',
                 fontWeight: 600,
                 textTransform: 'none',
@@ -221,9 +229,13 @@ const SelectSiteList = ({
                   pl: 3,
                   mb: 4,
                   border: '1px solid',
-                  borderColor: pendingSelections.Site.includes(site.site_id) ? '#80E0A3' : '#C3CEC7',
+                  borderColor: pendingSelections.Site.includes(site.site_id)
+                    ? '#80E0A3'
+                    : theme.palette.customColors.OutlineVariant,
                   borderRadius: '8px',
-                  bgcolor: pendingSelections.Site.includes(site.site_id) ? '#E1F9ED' : 'transparent',
+                  bgcolor: pendingSelections.Site.includes(site.site_id)
+                    ? theme.palette.customColors.OnBackground
+                    : 'transparent',
                   height: '70px'
                 }}
               >
@@ -233,8 +245,8 @@ const SelectSiteList = ({
                 <ListItemText
                   primary={site.site_name}
                   //secondary={site.location || '-'}
-                  primaryTypographyProps={{ fontWeight: 'bold', color: '#1F515B' }}
-                  secondaryTypographyProps={{ color: '#44544A' }}
+                  primaryTypographyProps={{ fontWeight: 'bold', color: theme.palette.customColors.OnPrimaryContainer }}
+                  secondaryTypographyProps={{ color: theme.palette.customColors.OnSurfaceVariant }}
                 />
                 <Checkbox
                   checked={pendingSelections.Site.includes(site.site_id)}

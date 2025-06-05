@@ -11,7 +11,7 @@ const composeDietNavigation = () => {
   }
 
   const ingredientsList = {
-    title: 'Ingredient',
+    title: 'Item',
     path: '/diet/ingredient',
     icon: <img src='/icons/ingredient.png' alt='Grocery Icon' />,
     activeIcon: <img src='/icons/icon_ingredient_white.png' alt='Grocery Icon' />
