@@ -172,22 +172,6 @@ const AnimalParentCard = ({ data, backgroundColor, size, animal = false }) => {
               </Typography>
             )}
 
-            {data?.type === 'group' && (
-              <Typography
-                variant='caption'
-                sx={{
-                  color: theme.palette.customColors.OnSurfaceVariant,
-                  fontSize: '14px',
-                  bgcolor: '#DDEBE9',
-                  padding: '2px 4px',
-                  borderRadius: '4px',
-                  width: 'fit-content'
-                }}
-              >
-                Count <strong>{data?.total_animal}</strong>
-              </Typography>
-            )}
-
             <Typography
               sx={{
                 fontSize: '16px',
@@ -210,6 +194,21 @@ const AnimalParentCard = ({ data, backgroundColor, size, animal = false }) => {
               {data?.scientific_name}
               {/* {Utility?.toPascalSentenceCase(data?.scientific_name)} */}
             </Typography>
+            {data?.type === 'group' && (
+              <Typography
+                variant='caption'
+                sx={{
+                  color: theme.palette.customColors.OnSurfaceVariant,
+                  fontSize: '14px',
+                  bgcolor: '#DDEBE9',
+                  padding: '2px 4px',
+                  borderRadius: '4px',
+                  width: 'fit-content'
+                }}
+              >
+                Count <strong>{data?.total_animal}</strong>
+              </Typography>
+            )}
             {/* {data?.breed_name && ( */}
             {!animal && (
               <Typography
