@@ -19,7 +19,7 @@ const Clusters = () => {
   const theme = useTheme()
   const router = useRouter()
   const { query } = router
-  const isSmallScreen = useMediaQuery(theme.breakpoints.down('sm'))
+  const isSmallScreen = useMediaQuery(theme.breakpoints.down('md'))
 
   const auth = useAuth()
   const zooId = auth?.userData?.user?.zoos?.[0]?.zoo_id

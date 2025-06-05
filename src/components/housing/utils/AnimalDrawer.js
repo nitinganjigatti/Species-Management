@@ -118,38 +118,40 @@ const AnimalsDrawer = ({ open, onClose, data }) => {
       icon='/images/housing/Enclosure icon.png'
       iconColor={theme.palette.primary.main}
     >
-      <Box
-        sx={{
-          border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-          backgroundColor: theme.palette.common.white,
-          paddingX: 4,
-          paddingY: 3,
-          marginY: 6,
-          width: '100%',
-          display: 'flex',
-          alignItems: 'center',
-          borderRadius: '8px'
-        }}
-      >
-        {data?.queryKey === 'cluster-animals-drawer' || data?.queryKey === 'enclosure-wise-species-drawer' ? (
-          <>
-            <SpeciesInnerCard
-              completeName={data?.complete_name}
-              imgUrl={data?.default_icon}
-              commonName={data?.common_name}
-              sex={data?.sex_data}
-              animalCount={data?.animal_count}
+      {data?.name && (
+        <Box
+          sx={{
+            border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+            backgroundColor: theme.palette.common.white,
+            paddingX: 4,
+            paddingY: 3,
+            marginY: 6,
+            width: '100%',
+            display: 'flex',
+            alignItems: 'center',
+            borderRadius: '8px'
+          }}
+        >
+          {data?.queryKey === 'cluster-animals-drawer' || data?.queryKey === 'enclosure-wise-species-drawer' ? (
+            <>
+              <SpeciesInnerCard
+                completeName={data?.complete_name}
+                imgUrl={data?.default_icon}
+                commonName={data?.common_name}
+                sex={data?.sex_data}
+                animalCount={data?.animal_count}
+              />
+            </>
+          ) : (
+            <CellInfo
+              value={data?.name}
+              imgUrl={data?.image}
+              color={theme.palette.customColors.OnSurfaceVariant}
+              subtitleColor={theme.palette.customColors.secondaryBg}
             />
-          </>
-        ) : (
-          <CellInfo
-            value={data?.name}
-            imgUrl={data?.image}
-            color={theme.palette.customColors.OnSurfaceVariant}
-            subtitleColor={theme.palette.customColors.secondaryBg}
-          />
-        )}
-      </Box>
+          )}
+        </Box>
+      )}
 
       <Typography sx={{ fontSize: '1.25rem', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}>
         Animals {total ? `(${total})` : ''}

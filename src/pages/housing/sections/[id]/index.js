@@ -13,6 +13,8 @@ import MediaListing from 'src/components/housing/sections/MediaListing'
 import MortalityListing from 'src/components/housing/sections/MortalityListing'
 import AnimalTreatmentListing from 'src/components/housing/sections/AnimalTreatmentListing'
 import { useAuth } from 'src/hooks/useAuth'
+import AnimalDrawer from 'src/components/housing/utils/AnimalDrawer'
+import EnclosureDrawer from 'src/components/housing/utils/EnclosureDrawer'
 
 const tabConfig = [
   { label: 'Species', value: 'species', component: SpeciesListing }, // TODO: Update component as it is copied from site detail
@@ -31,6 +33,8 @@ const SectionDetails = () => {
   const { id } = router.query
 
   const [selectedTab, setSelectedTab] = useState(tabConfig[0].value)
+  const [drawerType, setDrawerType] = useState(null)
+  const [drawerData, setDrawerData] = useState(null)
   const auth = useAuth()
 
   const zooId = auth?.userData?.user?.zoos?.[0]?.zoo_id
@@ -49,6 +53,43 @@ const SectionDetails = () => {
     setSelectedTab(newValue)
   }
 
+  const handleEnclosureInsightClick = () => {
+    setDrawerType('enclosures')
+    setDrawerData({
+      queryKey: 'insights-enclosures-section-drawer',
+      id: zooId,
+
+      // name: params.row?.site_name,
+      // image: params.row?.images?.[0]?.file,
+      params: {
+        ref_type: 'zoo',
+        data_type: 'enclosure',
+        ref_id: zooId,
+        site_id: id
+      }
+    })
+  }
+
+  const handleAmimalsInsightClick = () => {
+    setDrawerType('animals')
+    setDrawerData({
+      queryKey: 'insights-animals-section-drawer',
+      id: zooId,
+
+      name: data?.data?.section_name,
+
+      // image: params.row?.images?.[0]?.file,
+      params: {
+        section_id: id
+      }
+    })
+  }
+
+  const handleDrawerClose = () => {
+    setDrawerType(null)
+    setDrawerData(null)
+  }
+
   const statsData = [
     {
       label: 'Species',
@@ -60,7 +101,7 @@ const SectionDetails = () => {
       label: 'Animals',
       value: data?.data?.total_animals || 0,
       imagePath: '/images/housing/animals.svg',
-      onClick: () => console.log('Animals')
+      onClick: handleAmimalsInsightClick
     },
 
     // {
@@ -143,9 +184,20 @@ const SectionDetails = () => {
 
         {/* Selected Tab Content */}
         <Box>
-          <SelectedComponent />
+          <SelectedComponent
+            selectedTab={selectedTab}
+            setSelectedTab={setSelectedTab}
+            drawerType={drawerType}
+            setDrawerType={setDrawerType}
+            drawerData={drawerData}
+            setDrawerData={setDrawerData}
+          />
         </Box>
       </Card>
+      {drawerType === 'animals' && <AnimalDrawer open={!!drawerData} onClose={handleDrawerClose} data={drawerData} />}
+      {drawerType === 'enclosures' && (
+        <EnclosureDrawer open={!!drawerData} onClose={handleDrawerClose} data={drawerData} />
+      )}
     </Box>
   )
 }

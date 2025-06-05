@@ -15,6 +15,9 @@ const EnclsouerDetails = () => {
   const router = useRouter()
   const { id } = router.query
 
+  const [drawerType, setDrawerType] = useState(null)
+  const [drawerData, setDrawerData] = useState(null)
+
   const { data, isLoading, error } = useQuery({
     queryKey: ['site-detail', id],
     queryFn: () =>
@@ -108,7 +111,14 @@ const EnclsouerDetails = () => {
 
           {/* Selected Tab Content */}
           <Box>
-            <SelectedComponent />
+            <SelectedComponent
+              selectedTab={selectedTab}
+              setSelectedTab={setSelectedTab}
+              drawerType={drawerType}
+              setDrawerType={setDrawerType}
+              drawerData={drawerData}
+              setDrawerData={setDrawerData}
+            />
           </Box>
         </Card>
       </Box>

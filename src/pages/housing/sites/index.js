@@ -1,14 +1,37 @@
 import { Box, Breadcrumbs, Card, Typography } from '@mui/material'
 import { useRouter } from 'next/router'
-import React from 'react'
+import React, { useState } from 'react'
 import { useAuth } from 'src/hooks/useAuth'
 import SiteListing from 'src/components/housing/sites/SiteListing'
 import InsightsCard from 'src/views/utility/insights/InsightsCard'
 import { getSiteAnalytics } from 'src/lib/api/housing'
 import { useQuery } from '@tanstack/react-query'
+import { on } from 'geolocation'
 
 const Sites = () => {
   const router = useRouter()
+
+  const [drawerType, setDrawerType] = useState(null)
+  const [drawerData, setDrawerData] = useState(null)
+
+  const handleEnclosureInsightClick = () => {
+    setDrawerType('enclosures')
+    setDrawerData({
+      queryKey: 'insights-enclosures-sites-drawer',
+
+      id: zooId,
+
+      // name: params.row?.site_name,
+      // image: params.row?.images?.[0]?.file,
+      params: {
+        ref_type: 'zoo',
+        data_type: 'enclosure',
+        ref_id: zooId
+
+        // site_id: params.row?.site_id
+      }
+    })
+  }
 
   const auth = useAuth()
   const zooId = auth?.userData?.user?.zoos?.[0]?.zoo_id
@@ -42,7 +65,8 @@ const Sites = () => {
     {
       label: 'Enclosures',
       value: data?.data?.zoo_stats?.total_enclosures || 0,
-      imagePath: '/images/housing/enclosures.svg'
+      imagePath: '/images/housing/enclosures.svg',
+      onClick: handleEnclosureInsightClick
     }
   ]
 
@@ -94,7 +118,12 @@ const Sites = () => {
         />
         <Box sx={{ mt: 6 }}>
           <Card sx={{ p: { xs: 3, md: 5 } }}>
-            <SiteListing />
+            <SiteListing
+              drawerType={drawerType}
+              setDrawerType={setDrawerType}
+              drawerData={drawerData}
+              setDrawerData={setDrawerData}
+            />
           </Card>
         </Box>
       </Box>

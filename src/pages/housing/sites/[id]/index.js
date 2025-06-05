@@ -12,6 +12,9 @@ import MediaListing from 'src/components/housing/sites/MediaListing'
 
 import { useQuery } from '@tanstack/react-query'
 import { getSpecificSiteAnalytics } from 'src/lib/api/housing'
+import AnimalDrawer from 'src/components/housing/utils/AnimalDrawer'
+import EnclosureDrawer from 'src/components/housing/utils/EnclosureDrawer'
+import { useAuth } from 'src/hooks/useAuth'
 
 const tabConfig = [
   { label: 'Sections', value: 'sections', component: SectionListing },
@@ -28,8 +31,13 @@ const tabConfig = [
 const SiteDetails = () => {
   const router = useRouter()
   const { id } = router.query
+  const auth = useAuth()
+
+  const zooId = auth?.userData?.user?.zoos?.[0]?.zoo_id
 
   const [selectedTab, setSelectedTab] = useState(tabConfig[0].value)
+  const [drawerType, setDrawerType] = useState(null)
+  const [drawerData, setDrawerData] = useState(null)
 
   const { data, isLoading, error } = useQuery({
     queryKey: ['site-detail', id],
@@ -50,6 +58,43 @@ const SiteDetails = () => {
     setSelectedTab(newValue)
   }
 
+  const handleEnclosureInsightClick = () => {
+    setDrawerType('enclosures')
+    setDrawerData({
+      queryKey: 'insights-enclosures-section-drawer',
+      id: zooId,
+
+      // name: params.row?.site_name,
+      // image: params.row?.images?.[0]?.file,
+      params: {
+        ref_type: 'zoo',
+        data_type: 'enclosure',
+        ref_id: zooId,
+        site_id: id
+      }
+    })
+  }
+
+  const handleAmimalsInsightClick = () => {
+    setDrawerType('animals')
+    setDrawerData({
+      queryKey: 'insights-animals-section-drawer',
+      id: zooId,
+
+      name: data?.data?.site_name,
+
+      // image: params.row?.images?.[0]?.file,
+      params: {
+        site_id: id
+      }
+    })
+  }
+
+  const handleDrawerClose = () => {
+    setDrawerType(null)
+    setDrawerData(null)
+  }
+
   const statsData = [
     {
       label: 'Species',
@@ -61,7 +106,7 @@ const SiteDetails = () => {
       label: 'Animals',
       value: data?.data?.animal_count || 0,
       imagePath: '/images/housing/animals.svg',
-      onClick: () => console.log('animals')
+      onClick: handleAmimalsInsightClick
     },
     {
       label: 'Sections',
@@ -74,7 +119,7 @@ const SiteDetails = () => {
       label: 'Enclosures',
       value: data?.data?.enclosure_count || 0,
       imagePath: '/images/housing/enclosures.svg',
-      onClick: () => console.log('enclosures')
+      onClick: handleEnclosureInsightClick
     }
   ]
 
@@ -129,9 +174,20 @@ const SiteDetails = () => {
 
         {/* Selected Tab Content */}
         <Box>
-          <SelectedComponent />
+          <SelectedComponent
+            selectedTab={selectedTab}
+            setSelectedTab={setSelectedTab}
+            drawerType={drawerType}
+            setDrawerType={setDrawerType}
+            drawerData={drawerData}
+            setDrawerData={setDrawerData}
+          />
         </Box>
       </Card>
+      {drawerType === 'animals' && <AnimalDrawer open={!!drawerData} onClose={handleDrawerClose} data={drawerData} />}
+      {drawerType === 'enclosures' && (
+        <EnclosureDrawer open={!!drawerData} onClose={handleDrawerClose} data={drawerData} />
+      )}
     </Box>
   )
 }

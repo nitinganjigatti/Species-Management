@@ -10,6 +10,7 @@ import Search from 'src/views/utility/Search'
 import { getAllEnclosures } from 'src/lib/api/housing'
 import { useInfiniteQuery, useQueryClient } from '@tanstack/react-query'
 import SectionCard from 'src/views/pages/housing/section/SectionCard'
+import EnclosureCard from 'src/views/pages/housing/enclosures/EnclosureCard'
 
 const EnclosureDrawer = ({ open, onClose, data }) => {
   const theme = useTheme()
@@ -117,26 +118,28 @@ const EnclosureDrawer = ({ open, onClose, data }) => {
       icon='/images/housing/enclosure-icon-colored.svg'
       iconColor={theme.palette.primary.main}
     >
-      <Box
-        sx={{
-          border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-          backgroundColor: theme.palette.common.white,
-          paddingX: 4,
-          paddingY: 3,
-          marginY: 6,
-          width: '100%',
-          display: 'flex',
-          alignItems: 'center',
-          borderRadius: '8px'
-        }}
-      >
-        <CellInfo
-          value={data?.name}
-          imgUrl={data?.image}
-          color={theme.palette.customColors.OnSurfaceVariant}
-          subtitleColor={theme.palette.customColors.secondaryBg}
-        />
-      </Box>
+      {data?.name && (
+        <Box
+          sx={{
+            border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+            backgroundColor: theme.palette.common.white,
+            paddingX: 4,
+            paddingY: 3,
+            marginY: 6,
+            width: '100%',
+            display: 'flex',
+            alignItems: 'center',
+            borderRadius: '8px'
+          }}
+        >
+          <CellInfo
+            value={data?.name}
+            imgUrl={data?.image}
+            color={theme.palette.customColors.OnSurfaceVariant}
+            subtitleColor={theme.palette.customColors.secondaryBg}
+          />
+        </Box>
+      )}
 
       <Typography sx={{ fontSize: '1.25rem', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}>
         Enclosures {total ? `(${total})` : ''}
@@ -161,7 +164,7 @@ const EnclosureDrawer = ({ open, onClose, data }) => {
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4, pb: 4 }}>
         {list.map(enclosure => (
           <Box key={enclosure?.enclosure_id}>
-            <SectionCard section={enclosure} />
+            <EnclosureCard enclosure={enclosure} />
           </Box>
         ))}
 

@@ -11,8 +11,11 @@ import Search from 'src/views/utility/Search'
 import ListingHeader from '../../../views/pages/housing/utils/ListingHeader'
 import { ExportButton } from 'src/views/utility/render-snippets'
 import RenderUtility, { CellInfo, SectionCellRenderer } from 'src/utility/render'
+import EnclosureDrawer from '../utils/EnclosureDrawer'
+import SpeciesDrawer from '../utils/SpeciesDrawer'
+import AnimalDrawer from '../utils/AnimalDrawer'
 
-const SectionListing = () => {
+const SectionListing = ({ selectedTab, setSelectedTab, drawerType, setDrawerType, drawerData, setDrawerData }) => {
   const router = useRouter()
   const { id } = router.query
   const theme = useTheme()
@@ -203,6 +206,11 @@ const SectionListing = () => {
     router.query.sectionSortOrder
   ])
 
+  const handleDrawerClose = () => {
+    setDrawerType(null)
+    setDrawerData(null)
+  }
+
   const columns = [
     {
       width: 100,
@@ -238,11 +246,38 @@ const SectionListing = () => {
       headerAlign: 'left',
       sortable: false,
       renderCell: params => (
-        <Typography
-          sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600, cursor: 'default' }}
+        <Box
+          sx={{
+            width: '100%',
+            height: '100%',
+            display: 'flex',
+            alignItems: 'center',
+            cursor: 'pointer'
+          }}
+          onClick={e => {
+            e.stopPropagation()
+            setDrawerType('species')
+            setDrawerData({
+              queryKey: 'section-species-drawer',
+              id: params.row.section_id,
+              name: params.row.section_name,
+              image: params.row.images?.[0]?.file,
+              params: {
+                section_id: params.row.section_id
+              }
+            })
+          }}
         >
-          {params.row.species_count || 0}
-        </Typography>
+          <Typography
+            sx={{
+              color: theme.palette.primary.OnSurface,
+              fontSize: '16px',
+              fontWeight: 600
+            }}
+          >
+            {params.row.species_count || 0}
+          </Typography>
+        </Box>
       )
     },
     {
@@ -253,11 +288,38 @@ const SectionListing = () => {
       align: 'left',
       sortable: false,
       renderCell: params => (
-        <Typography
-          sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600, cursor: 'default' }}
+        <Box
+          sx={{
+            width: '100%',
+            height: '100%',
+            display: 'flex',
+            alignItems: 'center',
+            cursor: 'pointer'
+          }}
+          onClick={e => {
+            e.stopPropagation()
+            setDrawerType('animals')
+            setDrawerData({
+              queryKey: 'section-animals-drawer',
+              id: params.row.section_id,
+              name: params.row.section_name,
+              image: params.row.images?.[0]?.file,
+              params: {
+                section_id: params.row.section_id
+              }
+            })
+          }}
         >
-          {params.row.animal_count || 0}
-        </Typography>
+          <Typography
+            sx={{
+              color: theme.palette.primary.OnSurface,
+              fontSize: '16px',
+              fontWeight: 600
+            }}
+          >
+            {params.row.animal_count || 0}
+          </Typography>
+        </Box>
       )
     },
     {
@@ -268,11 +330,39 @@ const SectionListing = () => {
       align: 'left',
       sortable: false,
       renderCell: params => (
-        <Typography
-          sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600, cursor: 'default' }}
+        <Box
+          sx={{
+            width: '100%',
+            height: '100%',
+            display: 'flex',
+            alignItems: 'center',
+            cursor: 'pointer'
+          }}
+          onClick={e => {
+            e.stopPropagation()
+
+            // setDrawerType('enclosures')
+            // setDrawerData({
+            //   queryKey: 'section-enclosures-drawer',
+            //   id: params.row.section_id,
+            //   name: params.row.section_name,
+            //   image: params.row.images?.[0]?.file,
+            //   params: {
+            //     section_id: params.row.section_id
+            //   }
+            // })
+          }}
         >
-          {params.row.enclosure_count}
-        </Typography>
+          <Typography
+            sx={{
+              color: theme.palette.primary.OnSurface,
+              fontSize: '16px',
+              fontWeight: 600
+            }}
+          >
+            {params.row.enclosure_count || 0}
+          </Typography>
+        </Box>
       )
     },
     {
@@ -401,6 +491,11 @@ const SectionListing = () => {
           />
         </Grid>
       </Box>
+      {drawerType === 'species' && <SpeciesDrawer open={!!drawerData} onClose={handleDrawerClose} data={drawerData} />}
+      {drawerType === 'animals' && <AnimalDrawer open={!!drawerData} onClose={handleDrawerClose} data={drawerData} />}
+      {drawerType === 'enclosures' && (
+        <EnclosureDrawer open={!!drawerData} onClose={handleDrawerClose} data={drawerData} />
+      )}
     </>
   )
 }

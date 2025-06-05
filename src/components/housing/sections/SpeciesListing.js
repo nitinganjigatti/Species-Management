@@ -13,13 +13,12 @@ import Search from 'src/views/utility/Search'
 import SpeciesCard from 'src/views/utility/SpeciesCard'
 import { GenderInfoCard } from 'src/utility/render'
 import { getAllSpeciesList } from 'src/lib/api/housing'
+import AnimalDrawer from '../utils/AnimalDrawer'
 
-const SpeciesListing = () => {
+const SpeciesListing = ({ selectedTab, setSelectedTab, drawerType, setDrawerType, drawerData, setDrawerData }) => {
   const theme = useTheme()
   const router = useRouter()
   const { id } = router.query
-  const [openDrawer, setOpenDrawer] = useState(false)
-  const [specieName, setSpecieName] = useState('')
 
   const [filters, setFilters] = useState({
     page: 1,
@@ -110,15 +109,13 @@ const SpeciesListing = () => {
     }))
   }
 
-  const handleRowClick = params => {
-    setOpenDrawer(true)
-    setSpecieName(params.row.common_name)
-  }
-
-  const handleClose = () => setOpenDrawer(false)
-
   const handleDownload = () => {
     console.log('Downloading...')
+  }
+
+  const handleDrawerClose = () => {
+    setDrawerType(null)
+    setDrawerData(null)
   }
 
   const columns = [
@@ -157,9 +154,40 @@ const SpeciesListing = () => {
       align: 'left',
       sortable: false,
       renderCell: params => (
-        <Typography sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600 , cursor:"default"}}>
-          {params.row.animal_count || 0}
-        </Typography>
+        <Box
+          sx={{
+            width: '100%',
+            height: '100%',
+            display: 'flex',
+            alignItems: 'center',
+            cursor: 'pointer'
+          }}
+          onClick={e => {
+            e.stopPropagation()
+            console.log('params', params.row)
+            setDrawerType('animals')
+            setDrawerData({
+              queryKey: 'section-details-species-animals-drawer',
+              id: params.row.id,
+              name: params.row.common_name,
+              image: params.row.images?.[0]?.file,
+              params: {
+                id: params.row.id,
+                section_id: id
+              }
+            })
+          }}
+        >
+          <Typography
+            sx={{
+              color: theme.palette.primary.OnSurface,
+              fontSize: '16px',
+              fontWeight: 600
+            }}
+          >
+            {params.row.animal_count || 0}
+          </Typography>
+        </Box>
       )
     },
     {
@@ -277,7 +305,6 @@ const SpeciesListing = () => {
           }}
         >
           <CommonTable
-            onRowClick={handleRowClick}
             indexedRows={indexedRows}
             total={total}
             columns={columns}
@@ -294,8 +321,7 @@ const SpeciesListing = () => {
           />
         </Grid>
       </Box>
-
-      {/* {openDrawer && <SpeciesDrawer open={openDrawer} onClose={handleClose} specieName={specieName} />} */}
+      {drawerType === 'animals' && <AnimalDrawer open={!!drawerData} onClose={handleDrawerClose} data={drawerData} />}
     </>
   )
 }

@@ -11,11 +11,17 @@ import CommonTable from 'src/views/table/data-grid/CommonTable'
 import { ExportButton } from 'src/views/utility/render-snippets'
 import Search from 'src/views/utility/Search'
 import SpeciesCard from 'src/views/utility/SpeciesCard'
+import AnimalDrawer from '../utils/AnimalDrawer'
+import EnclosureDrawer from '../utils/EnclosureDrawer'
+import { useAuth } from 'src/hooks/useAuth'
 
-const EnclosureListing = () => {
+const EnclosureListing = ({ selectedTab, setSelectedTab, drawerType, setDrawerType, drawerData, setDrawerData }) => {
   const theme = useTheme()
   const router = useRouter()
   const { id } = router.query
+  const auth = useAuth()
+
+  const zooId = auth?.userData?.user?.zoos?.[0]?.zoo_id
 
   const [inputValue, setInputValue] = useState('')
   const [downloading, setDownloading] = useState(false)
@@ -211,11 +217,38 @@ const EnclosureListing = () => {
       align: 'left',
       sortable: false,
       renderCell: params => (
-        <Typography
-          sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600, cursor: 'default' }}
+        <Box
+          sx={{
+            width: '100%',
+            height: '100%',
+            display: 'flex',
+            alignItems: 'center',
+            cursor: 'pointer'
+          }}
+          onClick={e => {
+            e.stopPropagation()
+            setDrawerType('animals')
+            setDrawerData({
+              queryKey: 'section-detail-enclosure-animals-drawer',
+              id: params.row.enclosure_id,
+              name: params.row.user_enclosure_name,
+              image: params.row.image,
+              params: {
+                enclosure_id: params.row.enclosure_id
+              }
+            })
+          }}
         >
-          {params.row.enclosure_wise_animal_count || 0}
-        </Typography>
+          <Typography
+            sx={{
+              color: theme.palette.primary.OnSurface,
+              fontSize: '16px',
+              fontWeight: 600
+            }}
+          >
+            {params.row.enclosure_wise_animal_count || 0}
+          </Typography>
+        </Box>
       )
     },
     {
@@ -226,11 +259,46 @@ const EnclosureListing = () => {
       align: 'left',
       sortable: false,
       renderCell: params => (
-        <Typography
-          sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600, cursor: 'default' }}
+        <Box
+          sx={{
+            width: '100%',
+            height: '100%',
+            display: 'flex',
+            alignItems: 'center',
+            cursor: 'pointer'
+          }}
+          onClick={e => {
+            e.stopPropagation()
+
+            // Need taxanomy id to display
+
+            // setDrawerType('sub-enclosures')
+            // setDrawerData({
+            //   queryKey: 'section-detail-sub-enclosures-drawer',
+            //   id: params.row.enclosure_id,
+            //   name: params.row.user_enclosure_name,
+            //   image: params.row.image,
+            //   params: {
+            //     ref_type: 'zoo',
+            //     data_type: 'enclosure',
+            //     ref_id: zooId,
+            //     taxonomy_id: '',
+            //     enclosure_id: params.row.enclosure_id,
+            //     include_sub_enclosure: 1
+            //   }
+            // })
+          }}
         >
-          {params.row.sub_enclosure_count || 0}
-        </Typography>
+          <Typography
+            sx={{
+              color: theme.palette.primary.OnSurface,
+              fontSize: '16px',
+              fontWeight: 600
+            }}
+          >
+            {params.row.sub_enclosure_count || 0}
+          </Typography>
+        </Box>
       )
     },
     {
@@ -270,6 +338,11 @@ const EnclosureListing = () => {
 
   const handleDownload = () => {
     console.log('Download button clicked')
+  }
+
+  const handleDrawerClose = () => {
+    setDrawerType(null)
+    setDrawerData(null)
   }
 
   const onRowClick = params => {
@@ -338,6 +411,10 @@ const EnclosureListing = () => {
           />
         </Grid>
       </Box>
+      {drawerType === 'animals' && <AnimalDrawer open={!!drawerData} onClose={handleDrawerClose} data={drawerData} />}
+      {drawerType === 'sub-enclosures' && (
+        <EnclosureDrawer open={!!drawerData} onClose={handleDrawerClose} data={drawerData} />
+      )}
     </>
   )
 }

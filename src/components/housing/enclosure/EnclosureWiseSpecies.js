@@ -14,15 +14,20 @@ import Search from 'src/views/utility/Search'
 import SpeciesCard from 'src/views/utility/SpeciesCard'
 import AnimalDrawer from '../utils/AnimalDrawer'
 
-const EnclosureWiseSpecies = () => {
+const EnclosureWiseSpecies = ({
+  selectedTab,
+  setSelectedTab,
+  drawerType,
+  setDrawerType,
+  drawerData,
+  setDrawerData
+}) => {
   const theme = useTheme()
   const router = useRouter()
   const { id } = router.query
 
   const [inputValue, setInputValue] = useState('')
   const [downloading, setDownloading] = useState(false)
-  const [openDrawer, setOpenDrawer] = useState(false)
-  const [drawerData, setDrawerData] = useState(null)
 
   const [filters, setFilters] = useState({
     page: 1,
@@ -113,6 +118,11 @@ const EnclosureWiseSpecies = () => {
     }))
   }
 
+  const handleDrawerClose = () => {
+    setDrawerType(null)
+    setDrawerData(null)
+  }
+
   const columns = [
     {
       width: 100,
@@ -120,7 +130,14 @@ const EnclosureWiseSpecies = () => {
       headerName: 'SL.NO',
       sortable: false,
       renderCell: params => (
-        <Typography sx={{ color: theme.palette.customColors.neutralSecondary, fontSize: '14px', fontWeight: 500,cursor:"default" }}>
+        <Typography
+          sx={{
+            color: theme.palette.customColors.neutralSecondary,
+            fontSize: '14px',
+            fontWeight: 500,
+            cursor: 'default'
+          }}
+        >
           {params.row.sl_no}.
         </Typography>
       )
@@ -149,9 +166,42 @@ const EnclosureWiseSpecies = () => {
       align: 'left',
       sortable: false,
       renderCell: params => (
-        <Typography sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600 }}>
-          {params.row.animal_count || 0}
-        </Typography>
+        <Box
+          sx={{
+            width: '100%',
+            height: '100%',
+            display: 'flex',
+            alignItems: 'center',
+            cursor: 'pointer'
+          }}
+          onClick={e => {
+            e.stopPropagation()
+            setDrawerType('animals')
+            setDrawerData({
+              queryKey: 'enclosure-wise-species-drawer',
+              id: id,
+              complete_name: params.row.complete_name,
+              common_name: params.row.common_name,
+              animal_count: params.row.animal_count,
+              default_icon: params.row.default_icon,
+              sex_data: params.row.sex_data,
+              params: {
+                enclosure_id: id,
+                taxonomy_id: params.row.tsn_id
+              }
+            })
+          }}
+        >
+          <Typography
+            sx={{
+              color: theme.palette.primary.OnSurface,
+              fontSize: '16px',
+              fontWeight: 600
+            }}
+          >
+            {params.row.animal_count || 0}
+          </Typography>
+        </Box>
       )
     },
     {
@@ -289,12 +339,12 @@ const EnclosureWiseSpecies = () => {
               color: theme.palette.customColors.OnSurfaceVariant,
               fontSize: '12px',
               fontWeight: 600,
-              mr:2
+              mr: 2
             }
           }}
         >
           <CommonTable
-            onRowClick={handleRowClick}
+            // onRowClick={handleRowClick}
             indexedRows={indexedRows}
             total={total}
             columns={columns}
@@ -311,7 +361,7 @@ const EnclosureWiseSpecies = () => {
           />
         </Grid>
       </Box>
-      {openDrawer && <AnimalDrawer open={!!drawerData} onClose={handleClose} data={drawerData} />}
+      {drawerType === 'animals' && <AnimalDrawer open={!!drawerData} onClose={handleDrawerClose} data={drawerData} />}
     </>
   )
 }

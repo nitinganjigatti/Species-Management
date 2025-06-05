@@ -18,7 +18,7 @@ import { getAllSites } from 'src/lib/api/housing'
 import EnclosureDrawer from '../utils/EnclosureDrawer'
 import { useAuth } from 'src/hooks/useAuth'
 
-const Listing = () => {
+const Listing = ({ drawerType, setDrawerType, drawerData, setDrawerData }) => {
   const theme = useTheme()
   const router = useRouter()
   const auth = useAuth()
@@ -36,8 +36,6 @@ const Listing = () => {
     sortOrder: 'asc'
   })
 
-  const [drawerType, setDrawerType] = useState(null)
-  const [drawerData, setDrawerData] = useState(null)
   const [downloading, setDownloading] = useState(false)
 
   const zooId = auth?.userData?.user?.zoos?.[0]?.zoo_id
