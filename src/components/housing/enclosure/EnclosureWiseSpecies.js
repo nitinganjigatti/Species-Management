@@ -125,21 +125,32 @@ const EnclosureWiseSpecies = ({
 
   const columns = [
     {
-      width: 100,
+      width: 90,
       field: 'id',
       headerName: 'SL.NO',
       sortable: false,
       renderCell: params => (
-        <Typography
+        <Box
           sx={{
-            color: theme.palette.customColors.neutralSecondary,
-            fontSize: '14px',
-            fontWeight: 500,
-            cursor: 'default'
+            width: '100%',
+            height: '100%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'left',
+            pl: 2
           }}
         >
-          {params.row.sl_no}.
-        </Typography>
+          <Typography
+            sx={{
+              color: theme.palette.customColors.neutralSecondary,
+              fontSize: '14px',
+              fontWeight: 500,
+              cursor: 'default'
+            }}
+          >
+            {params.row.sl_no}.
+          </Typography>
+        </Box>
       )
     },
     {
@@ -149,13 +160,23 @@ const EnclosureWiseSpecies = ({
       headerName: 'Species',
       sortable: false,
       renderCell: params => (
-        <SpeciesCard
-          species={{
-            common_name: params.row.common_name,
-            scientific_name: params.row.complete_name,
-            default_icon: params.row.default_icon
+        <Box
+          sx={{
+            width: '100%',
+            height: '100%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'left'
           }}
-        />
+        >
+          <SpeciesCard
+            species={{
+              common_name: params.row.common_name,
+              scientific_name: params.row.complete_name,
+              default_icon: params.row.default_icon
+            }}
+          />
+        </Box>
       )
     },
     {
@@ -172,7 +193,9 @@ const EnclosureWiseSpecies = ({
             height: '100%',
             display: 'flex',
             alignItems: 'center',
-            cursor: 'pointer'
+            cursor: 'pointer',
+            justifyContent: 'left',
+            pl: 2
           }}
           onClick={e => {
             e.stopPropagation()
@@ -212,11 +235,21 @@ const EnclosureWiseSpecies = ({
       align: 'left',
       sortable: false,
       renderCell: params => (
-        <GenderInfoCard
-          value={params.row.sex_data?.male || 0}
-          bgcolor={`${theme.palette.customColors.SecondaryContainer}80`}
-          color={theme.palette.customColors.addPrimary}
-        />
+        <Box
+          sx={{
+            width: '100%',
+            height: '100%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'left'
+          }}
+        >
+          <GenderInfoCard
+            value={params.row.sex_data?.male || 0}
+            bgcolor={`${theme.palette.customColors.SecondaryContainer}80`}
+            color={theme.palette.customColors.addPrimary}
+          />
+        </Box>
       )
     },
     {
@@ -227,11 +260,21 @@ const EnclosureWiseSpecies = ({
       align: 'left',
       sortable: false,
       renderCell: params => (
-        <GenderInfoCard
-          value={params.row.sex_data?.female || 0}
-          bgcolor={`${theme.palette.customColors.customDropdownColor}4D`}
-          color={theme.palette.customColors.customDropdownColor}
-        />
+        <Box
+          sx={{
+            width: '100%',
+            height: '100%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'left'
+          }}
+        >
+          <GenderInfoCard
+            value={params.row.sex_data?.female || 0}
+            bgcolor={`${theme.palette.customColors.customDropdownColor}4D`}
+            color={theme.palette.customColors.customDropdownColor}
+          />
+        </Box>
       )
     },
     {
@@ -242,11 +285,21 @@ const EnclosureWiseSpecies = ({
       align: 'left',
       sortable: false,
       renderCell: params => (
-        <GenderInfoCard
-          value={params.row.sex_data?.undetermined || 0}
-          bgcolor={theme.palette.customColors.SurfaceVariant}
-          color={theme.palette.customColors.Error}
-        />
+        <Box
+          sx={{
+            width: '100%',
+            height: '100%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'left'
+          }}
+        >
+          <GenderInfoCard
+            value={params.row.sex_data?.undetermined || 0}
+            bgcolor={theme.palette.customColors.SurfaceVariant}
+            color={theme.palette.customColors.Error}
+          />
+        </Box>
       )
     },
     {
@@ -257,14 +310,25 @@ const EnclosureWiseSpecies = ({
       align: 'left',
       sortable: false,
       renderCell: params => (
-        <GenderInfoCard
-          value={params.row.sex_data?.indeterminate || 0}
-          bgcolor={theme.palette.customColors.displaybgSecondary}
-          color={theme.palette.customColors.OnPrimaryContainer}
-        />
+        <Box
+          sx={{
+            width: '100%',
+            height: '100%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'left'
+          }}
+        >
+          <GenderInfoCard
+            value={params.row.sex_data?.indeterminate || 0}
+            bgcolor={theme.palette.customColors.displaybgSecondary}
+            color={theme.palette.customColors.OnPrimaryContainer}
+          />
+        </Box>
       )
     }
 
+    // Uncomment if you want to add the actions column
     // {
     //   width: 160,
     //   field: 'actions',
@@ -319,13 +383,13 @@ const EnclosureWiseSpecies = ({
       <ListingHeader title='All Species' totalCount={total} />
       <Box>
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 4 }}>
-          {/* <Search
+          <Search
             value={inputValue}
             onChange={e => handleSearch(e.target.value)}
             onClear={() => handleSearch('')}
             placeholder='Search…'
             sx={{ justifyContent: 'flex-end' }}
-          /> */}
+          />
           {/* <ExportButton loading={downloading} onClick={handleDownload} /> */}
         </Box>
         <Grid

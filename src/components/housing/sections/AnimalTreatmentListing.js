@@ -120,14 +120,25 @@ const AnimalTreatmentListing = () => {
 
   const columns = [
     {
-      width: 100,
+      width: 90,
       field: 'sl_no',
       headerName: 'SL.NO',
       sortable: false,
       renderCell: params => (
-        <Typography sx={{ color: theme.palette.customColors.neutralSecondary, fontSize: '14px', fontWeight: 500 }}>
-          {parseInt(params.row.sl_no) + '.'}
-        </Typography>
+        <Box
+          sx={{
+            width: '100%',
+            height: '100%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'left',
+            pl: 2
+          }}
+        >
+          <Typography sx={{ color: theme.palette.customColors.neutralSecondary, fontSize: '14px', fontWeight: 500 }}>
+            {parseInt(params.row.sl_no) + '.'}
+          </Typography>
+        </Box>
       )
     },
 
@@ -139,13 +150,24 @@ const AnimalTreatmentListing = () => {
       align: 'left',
       sortable: false,
       renderCell: params => (
-        <SpeciesCard
-          species={{
-            common_name: params.row.common_name,
-            scientific_name: params.row.scientific_name,
-            default_icon: params.row.default_icon
+        <Box
+          sx={{
+            width: '100%',
+            height: '100%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'left',
+            pl: 2
           }}
-        />
+        >
+          <SpeciesCard
+            species={{
+              common_name: params.row.common_name,
+              scientific_name: params.row.scientific_name,
+              default_icon: params.row.default_icon
+            }}
+          />
+        </Box>
       )
     },
 
@@ -155,14 +177,26 @@ const AnimalTreatmentListing = () => {
       headerName: 'ANTZ ANIMAL ID',
       sortable: false,
       renderCell: params => (
-        <IdentifierInfoCard
-          animalId={params.row.animal_id}
-          total={total}
-          localIdentifierName={params.row.local_identifier_name}
-          localIdentifierValue={params.row.local_identifier_value}
-        />
+        <Box
+          sx={{
+            width: '100%',
+            height: '100%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'left',
+            pl: 2
+          }}
+        >
+          <IdentifierInfoCard
+            animalId={params.row.animal_id}
+            total={total}
+            localIdentifierName={params.row.local_identifier_name}
+            localIdentifierValue={params.row.local_identifier_value}
+          />
+        </Box>
       )
     },
+
     {
       width: 250,
       field: 'animal_name',
@@ -174,22 +208,36 @@ const AnimalTreatmentListing = () => {
         const localIdentifierName = params.row.local_identifier_name
         const localIdentifierValue = params.row.local_identifier_value
 
-        return localIdentifierName ? (
-          <Typography
+        return (
+          <Box
             sx={{
-              fontSize: '16px',
-              cursor: 'default',
-              fontWeight: 500,
-              color: theme.palette.customColors.OnSurfaceVariant
+              width: '100%',
+              height: '100%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'left',
+              pl: 2
             }}
           >
-            {localIdentifierName} : {localIdentifierValue}
-          </Typography>
-        ) : (
-          <Typography sx={{ ml: 10, cursor: 'default' }}>-</Typography>
+            {localIdentifierName ? (
+              <Typography
+                sx={{
+                  fontSize: '16px',
+                  cursor: 'default',
+                  fontWeight: 500,
+                  color: theme.palette.customColors.OnSurfaceVariant
+                }}
+              >
+                {localIdentifierName} : {localIdentifierValue}
+              </Typography>
+            ) : (
+              <Typography sx={{ ml: 10, cursor: 'default' }}>-</Typography>
+            )}
+          </Box>
         )
       }
     },
+
     {
       width: 160,
       field: 'sex',
@@ -229,7 +277,20 @@ const AnimalTreatmentListing = () => {
         const { bgcolor, color } = genderStyles[gender] || genderStyles.indeterminate
         const label = genderLabels[gender] || 'ID'
 
-        return <GenderInfoCard value={label} bgcolor={bgcolor} color={color} />
+        return (
+          <Box
+            sx={{
+              width: '100%',
+              height: '100%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'left',
+              pl: 2
+            }}
+          >
+            <GenderInfoCard value={label} bgcolor={bgcolor} color={color} />
+          </Box>
+        )
       }
     },
 
@@ -241,23 +302,22 @@ const AnimalTreatmentListing = () => {
       align: 'left',
       sortable: false,
       renderCell: params => (
-        <Typography sx={{ fontWeight: 400, fontSize: '16px', color: theme.palette.customColors.OnSurfaceVariant }}>
-          {params.row.section_name}
-        </Typography>
+        <Box
+          sx={{
+            width: '100%',
+            height: '100%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'left',
+            pl: 2
+          }}
+        >
+          <Typography sx={{ fontWeight: 400, fontSize: '16px', color: theme.palette.customColors.OnSurfaceVariant }}>
+            {params.row.section_name}
+          </Typography>
+        </Box>
       )
     },
-
-    // {
-    //   width: 250,
-    //   field: 'site_name',
-    //   headerName: 'Site Name',
-    //   sortable: false,
-    //   renderCell: params => (
-    //     <Typography sx={{ fontWeight: 400, fontSize: '16px', color: theme.palette.customColors.OnSurfaceVariant }}>
-    //       {params.row.site_name}
-    //     </Typography>
-    //   )
-    // },
 
     {
       width: 250,
@@ -267,9 +327,20 @@ const AnimalTreatmentListing = () => {
       align: 'left',
       sortable: false,
       renderCell: params => (
-        <Typography sx={{ fontWeight: 400, fontSize: '16px', color: theme.palette.customColors.OnSurfaceVariant }}>
-          {params.row.user_enclosure_name}
-        </Typography>
+        <Box
+          sx={{
+            width: '100%',
+            height: '100%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'left',
+            pl: 2
+          }}
+        >
+          <Typography sx={{ fontWeight: 400, fontSize: '16px', color: theme.palette.customColors.OnSurfaceVariant }}>
+            {params.row.user_enclosure_name}
+          </Typography>
+        </Box>
       )
     }
   ]

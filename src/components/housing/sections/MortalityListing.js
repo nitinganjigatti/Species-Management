@@ -117,25 +117,37 @@ const MortalityListing = () => {
 
   const columns = [
     {
-      width: 100,
-      field: 'sl_no',
+      width: 90,
+      field: 'id',
       headerName: 'SL.NO',
+      align: 'left',
+      headerAlign: 'left',
       sortable: false,
       renderCell: params => (
-        <Typography
+        <Box
           sx={{
-            color: theme.palette.customColors.neutralSecondary,
-            fontSize: '14px',
-            fontWeight: 500,
-            cursor: 'default'
+            width: '100%',
+            height: '100%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'left',
+            pl: 2
           }}
         >
-          {parseInt(params.row.sl_no) + '.'}
-        </Typography>
+          <Typography
+            sx={{
+              color: theme.palette.customColors.neutralSecondary,
+              fontSize: '14px',
+              fontWeight: 500
+            }}
+          >
+            {parseInt(params.row.sl_no) + '.'}
+          </Typography>
+        </Box>
       )
     },
     {
-      width: 300,
+      width: 350,
       field: 'common_name',
       headerName: 'SPECIES',
       headerAlign: 'left',
@@ -159,12 +171,23 @@ const MortalityListing = () => {
       align: 'left',
       sortable: false,
       renderCell: params => (
-        <IdentifierInfoCard
-          animalId={params.row.animal_id}
-          total={data?.data?.total_count || 0}
-          localIdentifierName={params.row.local_identifier_name}
-          localIdentifierValue={params.row.local_identifier_value}
-        />
+        <Box
+          sx={{
+            width: '100%',
+            height: '100%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'left',
+            pl: 2
+          }}
+        >
+          <IdentifierInfoCard
+            animalId={params.row.animal_id}
+            total={data?.data?.total_count || 0}
+            localIdentifierName={params.row.local_identifier_name}
+            localIdentifierValue={params.row.local_identifier_value}
+          />
+        </Box>
       )
     },
     {
@@ -178,19 +201,32 @@ const MortalityListing = () => {
         const localIdentifierName = params.row.local_identifier_name
         const localIdentifierValue = params.row.local_identifier_value
 
-        return localIdentifierName ? (
-          <Typography
+        return (
+          <Box
             sx={{
-              fontSize: '16px',
-              cursor: 'default',
-              fontWeight:500,
-             color: theme.palette.customColors.OnSurfaceVariant
+              width: '100%',
+              height: '100%',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'left',
+              pl: 2
             }}
           >
-            {localIdentifierName} : {localIdentifierValue}
-          </Typography>
-        ) : (
-          <Typography sx={{ ml: 10, cursor: 'default' }}>-</Typography>
+            {localIdentifierName ? (
+              <Typography
+                sx={{
+                  fontSize: '16px',
+                  cursor: 'default',
+                  fontWeight: 500,
+                  color: theme.palette.customColors.OnSurfaceVariant
+                }}
+              >
+                {localIdentifierName} : {localIdentifierValue}
+              </Typography>
+            ) : (
+              <Typography sx={{ ml: 10, cursor: 'default' }}>-</Typography>
+            )}
+          </Box>
         )
       }
     },
@@ -201,7 +237,20 @@ const MortalityListing = () => {
       align: 'left',
       sortable: false,
       width: 250,
-      renderCell: params => <DateInfoDisplay date={params.row.discovered_date} showRelativeTime />
+      renderCell: params => (
+        <Box
+          sx={{
+            width: '100%',
+            height: '100%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'left',
+            pl: 2
+          }}
+        >
+          <DateInfoDisplay date={params.row.discovered_date} showRelativeTime />
+        </Box>
+      )
     },
     {
       field: 'reported_on',
@@ -210,7 +259,20 @@ const MortalityListing = () => {
       align: 'left',
       sortable: false,
       width: 250,
-      renderCell: params => <DateInfoDisplay title={params.row.user_enclosure_name} date={params.row.discovered_date} />
+      renderCell: params => (
+        <Box
+          sx={{
+            width: '100%',
+            height: '100%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'left',
+            pl: 2
+          }}
+        >
+          <DateInfoDisplay title={params.row.user_enclosure_name} date={params.row.discovered_date} />
+        </Box>
+      )
     },
     {
       width: 300,
@@ -220,20 +282,31 @@ const MortalityListing = () => {
       align: 'left',
       sortable: false,
       renderCell: params => (
-        <Typography
+        <Box
           sx={{
-            fontSize: '16px',
-            cursor: 'default',
-            fontWeight: 400,
-            color: theme.palette.customColors.OnSurfaceVariant,
-            textOverflow: 'ellipsis',
-            overflow: 'hidden',
-            whiteSpace: 'nowrap',
-            maxWidth: '100%'
+            width: '100%',
+            height: '100%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'left',
+            pl: 2
           }}
         >
-          {params.row.reason_name}
-        </Typography>
+          <Typography
+            sx={{
+              fontSize: '16px',
+              cursor: 'default',
+              fontWeight: 400,
+              color: theme.palette.customColors.OnSurfaceVariant,
+              textOverflow: 'ellipsis',
+              overflow: 'hidden',
+              whiteSpace: 'nowrap',
+              maxWidth: '100%'
+            }}
+          >
+            {params.row.reason_name}
+          </Typography>
+        </Box>
       )
     }
   ]

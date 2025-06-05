@@ -184,16 +184,35 @@ const Listing = ({ drawerType, setDrawerType, drawerData, setDrawerData }) => {
       width: 100,
       field: 'id',
       headerName: 'SL.NO',
+      align: 'left',
+      headerAlign: 'left',
       sortable: false,
       renderCell: params => (
-        <Typography sx={{ color: theme.palette.customColors.neutralSecondary, fontSize: '14px', fontWeight: 500 }}>
-          {parseInt(params.row.sl_no) + '.'}
-        </Typography>
+        <Box
+          sx={{
+            width: '100%',
+            height: '100%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'left',
+            pl: 2
+          }}
+        >
+          <Typography
+            sx={{
+              color: theme.palette.customColors.neutralSecondary,
+              fontSize: '14px',
+              fontWeight: 500
+            }}
+          >
+            {parseInt(params.row.sl_no) + '.'}
+          </Typography>
+        </Box>
       )
     },
 
     {
-      width: 300,
+      width: 330,
       field: 'site_name',
       align: 'left',
       headerName: 'Site Name',
@@ -209,11 +228,11 @@ const Listing = ({ drawerType, setDrawerType, drawerData, setDrawerData }) => {
       )
     },
     {
-      width: 150,
+      width: 170,
       field: 'species',
       headerName: 'Species',
-      align: 'left',
-      headerAlign: 'left',
+      align: 'left', // Align cell content
+      headerAlign: 'left', // Align header text
       sortable: false,
       renderCell: params => (
         <Box
@@ -222,6 +241,8 @@ const Listing = ({ drawerType, setDrawerType, drawerData, setDrawerData }) => {
             height: '100%',
             display: 'flex',
             alignItems: 'center',
+            pl: 2,
+            justifyContent: 'left', // Center the number
             cursor: 'pointer'
           }}
           onClick={e => {
@@ -250,6 +271,7 @@ const Listing = ({ drawerType, setDrawerType, drawerData, setDrawerData }) => {
         </Box>
       )
     },
+
     {
       width: 150,
       field: 'animals',
@@ -264,6 +286,8 @@ const Listing = ({ drawerType, setDrawerType, drawerData, setDrawerData }) => {
             height: '100%',
             display: 'flex',
             alignItems: 'center',
+            justifyContent: 'left',
+            pl: 2,
             cursor: 'pointer'
           }}
           onClick={e => {
@@ -306,6 +330,8 @@ const Listing = ({ drawerType, setDrawerType, drawerData, setDrawerData }) => {
             height: '100%',
             display: 'flex',
             alignItems: 'center',
+            justifyContent: 'left',
+            pl: 2,
             cursor: 'pointer'
           }}
           onClick={e => {
@@ -347,26 +373,14 @@ const Listing = ({ drawerType, setDrawerType, drawerData, setDrawerData }) => {
             width: '100%',
             height: '100%',
             display: 'flex',
-            alignItems: 'center'
-
-            // cursor: 'pointer'
+            alignItems: 'center',
+            justifyContent: 'left',
+            pl: 2,
+            cursor: 'default' // Enable if needed
           }}
           onClick={e => {
             e.stopPropagation()
-
-            // setDrawerType('enclosures')
-            // setDrawerData({
-            //   queryKey: 'site-enclosures-insights-drawer',
-            //   id: params.row?.site_id,
-            //   name: params.row?.site_name,
-            //   image: params.row?.images?.[0]?.file,
-            //   params: {
-            //     ref_type: 'zoo',
-            //     data_type: 'enclosure',
-            //     ref_id: zooId,
-            //     site_id: params.row?.site_id
-            //   }
-            // })
+            // Add logic if needed
           }}
         >
           <Typography
@@ -389,15 +403,28 @@ const Listing = ({ drawerType, setDrawerType, drawerData, setDrawerData }) => {
       align: 'left',
       headerAlign: 'left',
       sortable: false,
-      renderCell: params =>
-        RenderUtility.renderUserAvatarDetails(
-          params.row.incharge_image,
-          params.row.incharge_name,
-          '',
-          theme.palette.customColors.OnSurfaceVariant,
-          '14px'
-        )
+      renderCell: params => (
+        <Box
+          sx={{
+            width: '100%',
+            height: '100%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'left',
+            pl: 2
+          }}
+        >
+          {RenderUtility.renderUserAvatarDetails(
+            params.row.incharge_image,
+            params.row.incharge_name,
+            '',
+            theme.palette.customColors.OnSurfaceVariant,
+            '14px'
+          )}
+        </Box>
+      )
     },
+
     {
       width: 150,
       field: 'actions',
@@ -426,7 +453,18 @@ const Listing = ({ drawerType, setDrawerType, drawerData, setDrawerData }) => {
 
         return isSmallScreen ? (
           phoneNumber ? (
-            <Box display='flex' gap={4}>
+            <Box
+              display='flex'
+              gap={4}
+              sx={{
+                width: '100%',
+                height: '100%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'left',
+                pl: 2
+              }}
+            >
               {/* Call Icon */}
               <Box
                 component='img'
@@ -483,12 +521,10 @@ const Listing = ({ drawerType, setDrawerType, drawerData, setDrawerData }) => {
         </Box>
         <Grid
           sx={{
-            '& .MuiDataGrid-cell': { pt: 4, py: 4, px: 4 },
             '& .MuiDataGrid-columnHeaderTitle': {
               color: theme.palette.customColors.OnSurfaceVariant,
               fontSize: '12px',
-              fontWeight: 600,
-              mr: 2
+              fontWeight: 600
             }
           }}
         >

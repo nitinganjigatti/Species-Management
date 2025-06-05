@@ -120,14 +120,33 @@ const SpeciesListing = ({ selectedTab, setSelectedTab, drawerType, setDrawerType
 
   const columns = [
     {
-      width: 100,
+      width: 90,
       field: 'id',
       headerName: 'SL.NO',
+      align: 'left',
+      headerAlign: 'left',
       sortable: false,
       renderCell: params => (
-        <Typography sx={{ color: theme.palette.customColors.neutralSecondary, fontSize: '14px', fontWeight: 500 }}>
-          {params.row.sl_no}.
-        </Typography>
+        <Box
+          sx={{
+            width: '100%',
+            height: '100%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'left',
+            pl: 2
+          }}
+        >
+          <Typography
+            sx={{
+              color: theme.palette.customColors.neutralSecondary,
+              fontSize: '14px',
+              fontWeight: 500
+            }}
+          >
+            {parseInt(params.row.sl_no) + '.'}
+          </Typography>
+        </Box>
       )
     },
     {
@@ -300,7 +319,7 @@ const SpeciesListing = ({ selectedTab, setSelectedTab, drawerType, setDrawerType
               color: theme.palette.customColors.OnSurfaceVariant,
               fontSize: '12px',
               fontWeight: 600,
-              mr:2
+              mr: 2
             }
           }}
         >

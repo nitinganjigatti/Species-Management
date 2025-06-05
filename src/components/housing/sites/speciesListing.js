@@ -131,45 +131,91 @@ const SpeciesListing = ({ selectedTab, setSelectedTab, drawerType, setDrawerType
   }
 
   const columns = [
+    // {
+    //   width: 100,
+    //   field: 'id',
+    //   headerName: 'SL.NO',
+    //   sortable: false,
+    //   renderCell: params => (
+    //     <Box
+    //       sx={{
+    //         width: '100%',
+    //         height: '100%',
+    //         display: 'flex',
+    //         alignItems: 'center',
+    //         pl: 2,
+    //         justifyContent: 'left',
+    //         cursor: 'default'
+    //       }}
+    //     >
+    //       <Typography sx={{ color: theme.palette.customColors.neutralSecondary, fontSize: '14px', fontWeight: 500 }}>
+    //         {params.row.sl_no}.
+    //       </Typography>
+    //     </Box>
+    //   )
+    // },
     {
-      width: 100,
+      width: 90,
       field: 'id',
       headerName: 'SL.NO',
+      align: 'left',
+      headerAlign: 'left',
       sortable: false,
       renderCell: params => (
-        <Typography
+        <Box
           sx={{
-            color: theme.palette.customColors.neutralSecondary,
-            fontSize: '14px',
-            fontWeight: 500,
-            cursor: 'default'
+            width: '100%',
+            height: '100%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'left',
+            pl: 2
           }}
         >
-          {params.row.sl_no}.
-        </Typography>
+          <Typography
+            sx={{
+              color: theme.palette.customColors.neutralSecondary,
+              fontSize: '14px',
+              fontWeight: 500
+            }}
+          >
+            {parseInt(params.row.sl_no) + '.'}
+          </Typography>
+        </Box>
       )
     },
     {
       width: 350,
       field: 'common_name',
-      headerAlign: 'left',
       headerName: 'Species',
+      headerAlign: 'left',
+      align: 'left',
       sortable: false,
       renderCell: params => (
-        <SpeciesCard
-          species={{
-            common_name: params.row.common_name,
-            scientific_name: params.row.complete_name,
-            default_icon: params.row.default_icon
+        <Box
+          sx={{
+            width: '100%',
+            height: '100%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'left',
+            cursor: 'default'
           }}
-        />
+        >
+          <SpeciesCard
+            species={{
+              common_name: params.row.common_name,
+              scientific_name: params.row.complete_name,
+              default_icon: params.row.default_icon
+            }}
+          />
+        </Box>
       )
     },
+
     {
       width: 180,
       field: 'animals',
-      align: 'left',
-      headerAlign: 'left',
       headerName: 'Population',
       headerAlign: 'left',
       align: 'left',
@@ -181,7 +227,9 @@ const SpeciesListing = ({ selectedTab, setSelectedTab, drawerType, setDrawerType
             height: '100%',
             display: 'flex',
             alignItems: 'center',
-            cursor: 'pointer'
+            cursor: 'pointer',
+            pl: 2,
+            justifyContent: 'left'
           }}
           onClick={e => {
             e.stopPropagation()
@@ -211,22 +259,22 @@ const SpeciesListing = ({ selectedTab, setSelectedTab, drawerType, setDrawerType
         </Box>
       )
     },
+
     {
       width: 160,
       field: 'male',
       headerName: 'MALE',
       headerAlign: 'center',
-      align: 'center',
+      align: 'left',
       sortable: false,
       renderCell: params => (
         <Box
           sx={{
-            cursor: 'default',
+            width: '100%',
+            height: '100%',
             display: 'flex',
-            alignItems: 'center', // vertical alignment
-            justifyContent: 'flex-start' // horizontal alignment (left)
-            // height: '100%', // ensures full cell height
-            // width: '100%' // ensures full cell width
+            alignItems: 'center',
+            justifyContent: 'center'
           }}
         >
           <GenderInfoCard
@@ -245,11 +293,21 @@ const SpeciesListing = ({ selectedTab, setSelectedTab, drawerType, setDrawerType
       align: 'center',
       sortable: false,
       renderCell: params => (
-        <GenderInfoCard
-          value={params.row.sex_data?.female || 0}
-          bgcolor={`${theme.palette.customColors.customDropdownColor}4D`}
-          color={theme.palette.customColors.customDropdownColor}
-        />
+        <Box
+          sx={{
+            width: '100%',
+            height: '100%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
+          }}
+        >
+          <GenderInfoCard
+            value={params.row.sex_data?.female || 0}
+            bgcolor={`${theme.palette.customColors.customDropdownColor}4D`}
+            color={theme.palette.customColors.customDropdownColor}
+          />
+        </Box>
       )
     },
     {
@@ -260,11 +318,21 @@ const SpeciesListing = ({ selectedTab, setSelectedTab, drawerType, setDrawerType
       align: 'center',
       sortable: false,
       renderCell: params => (
-        <GenderInfoCard
-          value={params.row.sex_data?.undetermined || 0}
-          bgcolor={theme.palette.customColors.SurfaceVariant}
-          color={theme.palette.customColors.Error}
-        />
+        <Box
+          sx={{
+            width: '100%',
+            height: '100%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center'
+          }}
+        >
+          <GenderInfoCard
+            value={params.row.sex_data?.undetermined || 0}
+            bgcolor={theme.palette.customColors.SurfaceVariant}
+            color={theme.palette.customColors.Error}
+          />
+        </Box>
       )
     },
     {
@@ -275,46 +343,24 @@ const SpeciesListing = ({ selectedTab, setSelectedTab, drawerType, setDrawerType
       align: 'left',
       sortable: false,
       renderCell: params => (
-        <GenderInfoCard
-          value={params.row.sex_data?.indeterminate || 0}
-          bgcolor={theme.palette.customColors.displaybgSecondary}
-          color={theme.palette.customColors.OnPrimaryContainer}
-        />
+        <Box
+          sx={{
+            width: '100%',
+            height: '100%',
+            display: 'flex',
+            alignItems: 'center',
+            pl: 2,
+            justifyContent: 'left'
+          }}
+        >
+          <GenderInfoCard
+            value={params.row.sex_data?.indeterminate || 0}
+            bgcolor={theme.palette.customColors.displaybgSecondary}
+            color={theme.palette.customColors.OnPrimaryContainer}
+          />
+        </Box>
       )
     }
-
-    // {
-    //   width: 160,
-    //   field: 'actions',
-    //   headerName: 'Actions',
-    //   align: 'center',
-    //   headerAlign: 'center',
-    //   sortable: false,
-    //   renderCell: params => {
-    //     if (!isSmallScreen) {
-    //       // Show mobile number on small and extra small devices
-    //       return (
-    //         <Typography sx={{ fontSize: '14px', fontWeight: 500, cursor: 'default' }}>
-    //           {params.row.incharge_mobile_no || '-'}
-    //         </Typography>
-    //       )
-    //     } else {
-    //       // Show phone icon on larger devices
-    //       return (
-    //         <Box
-    //           component='img'
-    //           src='/images/call.png'
-    //           alt='Phone'
-    //           sx={{ width: 20, height: 20, cursor: 'pointer' }}
-    //           onClick={() => {
-    //             // Optional: handle click to call or show details
-    //             window.open(`tel:${params.row.incharge_mobile_no}`)
-    //           }}
-    //         />
-    //       )
-    //     }
-    //   }
-    // }
   ]
 
   return (

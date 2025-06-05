@@ -213,18 +213,37 @@ const SectionListing = ({ selectedTab, setSelectedTab, drawerType, setDrawerType
 
   const columns = [
     {
-      width: 100,
+      width: 90,
       field: 'id',
       headerName: 'SL.NO',
+      align: 'left',
+      headerAlign: 'left',
       sortable: false,
       renderCell: params => (
-        <Typography sx={{ color: theme.palette.customColors.neutralSecondary, fontSize: '14px', fontWeight: 500 }}>
-          {parseInt(params.row.sl_no) + '.'}
-        </Typography>
+        <Box
+          sx={{
+            width: '100%',
+            height: '100%',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'left',
+            pl: 2
+          }}
+        >
+          <Typography
+            sx={{
+              color: theme.palette.customColors.neutralSecondary,
+              fontSize: '14px',
+              fontWeight: 500
+            }}
+          >
+            {parseInt(params.row.sl_no) + '.'}
+          </Typography>
+        </Box>
       )
     },
     {
-      width: 300,
+      width: 350,
       field: 'section_name',
       headerName: 'Section Name',
       sortable: false,
@@ -252,7 +271,9 @@ const SectionListing = ({ selectedTab, setSelectedTab, drawerType, setDrawerType
             height: '100%',
             display: 'flex',
             alignItems: 'center',
-            cursor: 'pointer'
+            cursor: 'pointer',
+            justifyContent: 'left',
+            pl: 2
           }}
           onClick={e => {
             e.stopPropagation()
@@ -280,6 +301,7 @@ const SectionListing = ({ selectedTab, setSelectedTab, drawerType, setDrawerType
         </Box>
       )
     },
+
     {
       width: 150,
       field: 'animals',
@@ -294,7 +316,9 @@ const SectionListing = ({ selectedTab, setSelectedTab, drawerType, setDrawerType
             height: '100%',
             display: 'flex',
             alignItems: 'center',
-            cursor: 'pointer'
+            cursor: 'pointer',
+            justifyContent: 'left',
+            pl: 2
           }}
           onClick={e => {
             e.stopPropagation()
@@ -336,7 +360,9 @@ const SectionListing = ({ selectedTab, setSelectedTab, drawerType, setDrawerType
             height: '100%',
             display: 'flex',
             alignItems: 'center',
-            cursor: 'pointer'
+            cursor: 'default',
+            justifyContent: 'left',
+            pl: 2
           }}
           onClick={e => {
             e.stopPropagation()
@@ -357,7 +383,8 @@ const SectionListing = ({ selectedTab, setSelectedTab, drawerType, setDrawerType
             sx={{
               color: theme.palette.primary.OnSurface,
               fontSize: '16px',
-              fontWeight: 600
+              fontWeight: 600,
+              cursor: 'default'
             }}
           >
             {params.row.enclosure_count || 0}
@@ -379,8 +406,6 @@ const SectionListing = ({ selectedTab, setSelectedTab, drawerType, setDrawerType
           '',
           theme.palette.customColors.OnSurfaceVariant,
           '14px'
-
-          //  theme.palette.customColors.OnSurfaceVariant,
         )
     },
     {
@@ -411,7 +436,18 @@ const SectionListing = ({ selectedTab, setSelectedTab, drawerType, setDrawerType
 
         return isSmallScreen ? (
           phoneNumber ? (
-            <Box display='flex' gap={4}>
+            <Box
+              display='flex'
+              gap={4}
+              sx={{
+                width: '100%',
+                height: '100%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'left',
+                pl: 2
+              }}
+            >
               {/* Call Icon */}
               <Box
                 component='img'

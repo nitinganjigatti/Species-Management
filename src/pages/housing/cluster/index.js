@@ -193,23 +193,25 @@ const Clusters = () => {
 
   const columns = [
     {
-      width: 100,
+      width: 90,
       field: 'id',
       headerName: 'SL.NO',
       sortable: false,
-      align: 'center',
-      headerAlign: 'center',
+      align: 'left',
+      headerAlign: 'left',
       renderCell: params => (
-        <Typography
-          sx={{
-            color: theme.palette.customColors.neutralSecondary,
-            fontSize: '14px',
-            fontWeight: 500,
-            cursor: 'default'
-          }}
-        >
-          {parseInt(params.row.sl_no) + '.'}
-        </Typography>
+        <Box sx={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'left' }}>
+          <Typography
+            sx={{
+              color: theme.palette.customColors.neutralSecondary,
+              fontSize: '14px',
+              fontWeight: 500,
+              cursor: 'default'
+            }}
+          >
+            {parseInt(params.row.sl_no) + '.'}
+          </Typography>
+        </Box>
       )
     },
     {
@@ -220,13 +222,17 @@ const Clusters = () => {
       align: 'left',
       sortable: false,
       renderCell: params => (
-        <CellInfo
-          value={params.row.cluster_name}
-          subtitle={params.row.cluster_desc}
-          imgUrl={params.row.images?.[0]?.file}
-          avatarUrl=''
-          inchargeName=''
-        />
+        <Box
+          sx={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'left', pl: 2 }}
+        >
+          <CellInfo
+            value={params.row.cluster_name}
+            subtitle={params.row.cluster_desc}
+            imgUrl={params.row.images?.[0]?.file}
+            avatarUrl=''
+            inchargeName=''
+          />
+        </Box>
       )
     },
     {
@@ -237,48 +243,34 @@ const Clusters = () => {
       align: 'left',
       sortable: false,
       renderCell: params => (
-        <Typography
-          sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600, cursor: 'default' }}
-
-          // onClick={e => {
-          //   e.stopPropagation()
-          //   setDrawerType('species')
-          //   setDrawerData({
-          //     id: params.row.site_id,
-          //     name: params.row.site_name,
-          //     image: params.row.images?.[0]?.file
-          //   })
-          // }}
+        <Box
+          sx={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'left', pl: 2 }}
         >
-          {params.row.species_count || 0}
-        </Typography>
+          <Typography
+            sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600, cursor: 'default' }}
+          >
+            {params.row.species_count || 0}
+          </Typography>
+        </Box>
       )
     },
     {
       width: 150,
       field: 'animal_count',
-      headerAlign: 'left',
-      align: 'left',
       headerName: 'Animals',
       headerAlign: 'left',
       align: 'left',
       sortable: false,
       renderCell: params => (
-        <Typography
-          sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600, cursor: 'default' }}
-
-          // onClick={e => {
-          //   e.stopPropagation()
-          //   setDrawerType('animals')
-          //   setDrawerData({
-          //     id: params.row.site_id,
-          //     name: params.row.site_name,
-          //     image: params.row.images?.[0]?.file
-          //   })
-          // }}
+        <Box
+          sx={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'left', pl: 2 }}
         >
-          {params.row.animal_count || 0}
-        </Typography>
+          <Typography
+            sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600, cursor: 'default' }}
+          >
+            {params.row.animal_count || 0}
+          </Typography>
+        </Box>
       )
     },
     {
@@ -289,21 +281,15 @@ const Clusters = () => {
       align: 'left',
       sortable: false,
       renderCell: params => (
-        <Typography
-          sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600, cursor: 'default' }}
-
-          // onClick={e => {
-          //   e.stopPropagation()
-          //   setDrawerType('animals')
-          //   setDrawerData({
-          //     id: params.row.site_id,
-          //     name: params.row.site_name,
-          //     image: params.row.images?.[0]?.file
-          //   })
-          // }}
+        <Box
+          sx={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'left', pl: 2 }}
         >
-          {params.row.site_count || 0}
-        </Typography>
+          <Typography
+            sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600, cursor: 'default' }}
+          >
+            {params.row.site_count || 0}
+          </Typography>
+        </Box>
       )
     },
     {
@@ -313,28 +299,19 @@ const Clusters = () => {
       headerAlign: 'left',
       align: 'left',
       sortable: false,
-
-      // renderCell: params => (
-      //   <Box display='flex' alignItems='center' width='100%'>
-      //     <UserInfoCard
-      //       avatarUrl={params.row.incharge_image}
-      //       name={params.row.incharge_name}
-      //       textColor={theme.palette.customColors.OnSurfaceVariant}
-      //       fontWeight={500}
-      //       fallbackChar={params.row.incharge_name?.charAt(0)}
-      //     />
-      //   </Box>
-      // )
-      renderCell: params =>
-        RenderUtility.renderUserAvatarDetails(
-          params.row.incharge_image,
-          params.row.incharge_name,
-          '',
-          theme.palette.customColors.OnSurfaceVariant,
-          '14px'
-
-          //  theme.palette.customColors.OnSurfaceVariant,
-        )
+      renderCell: params => (
+        <Box
+          sx={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'left', pl: 2 }}
+        >
+          {RenderUtility.renderUserAvatarDetails(
+            params.row.incharge_image,
+            params.row.incharge_name,
+            '',
+            theme.palette.customColors.OnSurfaceVariant,
+            '14px'
+          )}
+        </Box>
+      )
     },
     {
       width: 150,
@@ -364,7 +341,18 @@ const Clusters = () => {
 
         return isSmallScreen ? (
           phoneNumber ? (
-            <Box display='flex' gap={4}>
+            <Box
+              display='flex'
+              gap={4}
+              sx={{
+                width: '100%',
+                height: '100%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'left',
+                pl: 2
+              }}
+            >
               {/* Call Icon */}
               <Box
                 component='img'

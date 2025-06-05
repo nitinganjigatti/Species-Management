@@ -106,12 +106,12 @@ const MediaListing = () => {
         </Box>
 
         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 4, mt: 2 }}>
-          <Search
+          {/* <Search
             value={localSearch}
             onChange={handleSearchChange}
             onClear={handleSearchClear}
             placeholder='Search media…'
-          />
+          /> */}
         </Box>
 
         <Box sx={{ mt: 6 }}>
