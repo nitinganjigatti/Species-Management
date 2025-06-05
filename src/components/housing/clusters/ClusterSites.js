@@ -96,9 +96,9 @@ const ClusterSites = () => {
     []
   )
 
-  // useEffect(() => {
-  //   return () => debouncedSearch.cancel()
-  // }, [debouncedSearch])
+  useEffect(() => {
+    return () => debouncedSearch.cancel()
+  }, [debouncedSearch])
 
   const handleSearch = value => {
     setInputValue(value)
@@ -138,7 +138,7 @@ const ClusterSites = () => {
 
   const handleRowClick = params => {
     const detailUrl = {
-      pathname: `/housing/sites/${params.row.site_id}`,
+      pathname: `/housing/sites/${params.row.id}`,
       query: {
         ...filters
       }
