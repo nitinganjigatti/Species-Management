@@ -413,13 +413,13 @@ const AllStoresRequestList = () => {
       let stockStatus = ''
       switch (newValue) {
         case '2':
-          stockStatus = 'Available'
-          break
-        case '3':
           stockStatus = 'NotAvailable'
           break
-        default:
+        case '3':
           stockStatus = ''
+          break
+        default:
+          stockStatus = 'Available'
       }
 
       fetchUniquePendingData({
@@ -445,10 +445,10 @@ const AllStoresRequestList = () => {
         let stockStatus = ''
 
         switch (activeTab) {
-          case '2':
+          case '1':
             stockStatus = 'Available'
             break
-          case '3':
+          case '2':
             stockStatus = 'NotAvailable'
             break
         }
@@ -472,13 +472,13 @@ const AllStoresRequestList = () => {
     let stockStatus = ''
     switch (activeTab) {
       case '2':
-        stockStatus = 'Available'
-        break
-      case '3':
         stockStatus = 'NotAvailable'
         break
-      default:
+      case '3':
         stockStatus = ''
+        break
+      default:
+        stockStatus = 'Available'
     }
 
     resetStates()
@@ -585,13 +585,13 @@ const AllStoresRequestList = () => {
               let stockStatus = ''
               switch (activeTab) {
                 case '2':
-                  stockStatus = 'Available'
-                  break
-                case '3':
                   stockStatus = 'NotAvailable'
                   break
-                default:
+                case '3':
                   stockStatus = ''
+                  break
+                default:
+                  stockStatus = 'Available'
               }
 
               // Use the debounced search function
