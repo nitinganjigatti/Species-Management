@@ -410,18 +410,6 @@ const AllStoresRequestList = () => {
       setActiveTab(newValue)
       setDrawerSearchValue('')
 
-      let stockStatus = ''
-      switch (newValue) {
-        case '2':
-          stockStatus = 'Available'
-          break
-        case '3':
-          stockStatus = 'NotAvailable'
-          break
-        default:
-          stockStatus = ''
-      }
-
       fetchUniquePendingData({
         stock_status: newValue,
         page: 1,
@@ -442,16 +430,6 @@ const AllStoresRequestList = () => {
 
       if (isNearBottom) {
         const nextPage = currentPageRef.current + 1
-        let stockStatus = ''
-
-        switch (activeTab) {
-          case '2':
-            stockStatus = 'Available'
-            break
-          case '3':
-            stockStatus = 'NotAvailable'
-            break
-        }
 
         currentPageRef.current = nextPage
         setPage(nextPage)
@@ -468,18 +446,7 @@ const AllStoresRequestList = () => {
 
   const handleButtonClick = useCallback(() => {
     setIsDrawerOpen(true)
-    setActiveTab('1')
-    let stockStatus = ''
-    switch (activeTab) {
-      case '2':
-        stockStatus = 'Available'
-        break
-      case '3':
-        stockStatus = 'NotAvailable'
-        break
-      default:
-        stockStatus = ''
-    }
+    setActiveTab('Available')
 
     resetStates()
     fetchUniquePendingData({
@@ -567,19 +534,6 @@ const AllStoresRequestList = () => {
             onChange={e => {
               const value = e.target.value
               setDrawerSearchValue(value)
-
-              // Get stock status based on active tab
-              let stockStatus = ''
-              switch (activeTab) {
-                case '2':
-                  stockStatus = 'Available'
-                  break
-                case '3':
-                  stockStatus = 'NotAvailable'
-                  break
-                default:
-                  stockStatus = ''
-              }
 
               // Use the debounced search function
               searchDrawerData({
