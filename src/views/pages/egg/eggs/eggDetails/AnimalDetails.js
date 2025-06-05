@@ -72,7 +72,7 @@ const AnimalDetails = ({ eggDetails }) => {
                       width: '100%'
                     }}
                   >
-                    {eggDetails?.animal_data?.common_name || '-'} sb sdsdnja dha s
+                    {eggDetails?.animal_data?.common_name || '-'}
                   </Typography>
                   <Typography
                     sx={{
