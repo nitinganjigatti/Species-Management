@@ -44,7 +44,7 @@ const SpeciesDrawer = ({ open, onClose, data }) => {
         ...data?.params,
         page_no: pageParam,
         limit: PAGE_SIZE,
-        q: search
+        search
       })
 
       return {

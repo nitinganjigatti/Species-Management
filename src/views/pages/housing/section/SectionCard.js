@@ -39,9 +39,9 @@ const SectionCard = ({ section }) => {
       />
 
       <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
-        <Stat label='Species' value={section.species_count} />
-        <Stat label='Animals' value={section.animals_count} />
-        <Stat label='Enclosures' value={section.enclosure_count} />
+        {section.species_count && <Stat label='Species' value={section.species_count} />}
+        {section.animals_count && <Stat label='Animals' value={section.animals_count} />}
+        {section.enclosure_count && <Stat label='Enclosures' value={section.enclosure_count} />}
         {/* <Stat label='Sub enclosures' value={section.sub_enclosure_count} /> */}
       </Box>
     </Box>

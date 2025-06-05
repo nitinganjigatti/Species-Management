@@ -96,9 +96,9 @@ const ClusterSites = () => {
     []
   )
 
-  useEffect(() => {
-    return () => debouncedSearch.cancel()
-  }, [debouncedSearch])
+  // useEffect(() => {
+  //   return () => debouncedSearch.cancel()
+  // }, [debouncedSearch])
 
   const handleSearch = value => {
     setInputValue(value)

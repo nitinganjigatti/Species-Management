@@ -349,8 +349,9 @@ const Listing = () => {
             width: '100%',
             height: '100%',
             display: 'flex',
-            alignItems: 'center',
-            cursor: 'pointer'
+            alignItems: 'center'
+
+            // cursor: 'pointer'
           }}
           onClick={e => {
             e.stopPropagation()

@@ -57,7 +57,7 @@ const InsightsCard = ({
         position: 'relative',
         borderRadius: 1.5,
         backgroundImage: image && `url(${image})`,
-        background: !image && 'var(--Gradients-lightdark, linear-gradient(180deg, #37BD69 0%, #1F415B 100%))',
+        background: !image && 'linear-gradient(180deg, #37BD69 0%, #1F415B 100%)',
         backgroundSize: 'cover',
         backgroundPosition: 'center',
         overflow: 'hidden',
@@ -65,21 +65,23 @@ const InsightsCard = ({
       }}
     >
       {/* Black overlay */}
-      <Box
-        sx={{
-          position: 'absolute',
-          inset: 0,
-          backgroundColor: theme.palette.common.black,
-          opacity: 0.4,
-          zIndex: 1
-        }}
-      />
+      {image && (
+        <Box
+          sx={{
+            position: 'absolute',
+            inset: 0,
+            backgroundColor: theme.palette.common.black,
+            opacity: 0.4,
+            zIndex: 1
+          }}
+        />
+      )}
 
       {/* Foreground content */}
       <Box sx={{ position: 'relative', zIndex: 2, p: 6 }}>
         {isListingPage && (
           <Box sx={{ display: 'flex', gap: 4, alignItems: 'center' }}>
-            <Box
+            {/* <Box
               sx={{
                 p: 2,
                 borderRadius: '50%',
@@ -93,7 +95,7 @@ const InsightsCard = ({
               }}
             >
               <InsightsOutlinedIcon />
-            </Box>
+            </Box> */}
             <Typography sx={{ color: theme => theme.palette.common.white, fontSize: '1.5rem' }} fontWeight={600}>
               {pageTitle || ''}
             </Typography>

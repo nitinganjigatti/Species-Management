@@ -302,7 +302,8 @@ export const CellInfo = ({ value, subtitle, color, subtitleColor, imgUrl, avatar
               sx={{
                 fontSize: '16px',
                 ml: 1,
-                fontWeight: 600,
+
+                // fontWeight: 600,
                 color: color ?? theme.palette.text.primary,
                 display: '-webkit-box',
                 WebkitBoxOrient: 'vertical',
@@ -395,6 +396,7 @@ export const DateInfoDisplay = ({ date }) => {
 
   // Format the discovered date as per your requirement
   const formattedDateRaw = parsedDate.format('DD MMM YYYY • hh:mm A')
+
   const formattedDate = formattedDateRaw.replace(
     /([A-Za-z]{3})/,
     match => match.charAt(0).toUpperCase() + match.slice(1).toLowerCase()
