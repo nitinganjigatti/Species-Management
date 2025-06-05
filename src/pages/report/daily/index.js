@@ -28,6 +28,7 @@ import { AuthContext } from 'src/context/AuthContext'
 import Error404 from 'src/pages/404'
 import { useTheme } from '@emotion/react'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
+import Toaster from 'src/components/Toaster'
 
 const Animal = () => {
   const theme = useTheme()
@@ -155,10 +156,12 @@ const Animal = () => {
       if (response?.success) {
         downloadNewCSVFile(response?.data)
       } else {
+        Toaster({ type: 'error', message: response?.message || 'no assessments are recorded' })
         console.warn('No  data available to export')
       }
     } catch (error) {
-      console.error('Error exporting data:', error)
+      Toaster({ type: 'error', message: 'Error on exporting data' })
+      console.log('Error exporting data:', error)
     }
   }
 
@@ -264,6 +267,7 @@ const Animal = () => {
         return (
           <Button
             variant='contained'
+            disabled={downloadingRowId === params.row.id}
             onClick={() => handleExport(params)}
             sx={{
               width: '120px',
