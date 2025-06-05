@@ -7,6 +7,8 @@ import { getAssessmentCategoriesList, getAssessmentTypesList } from 'src/lib/api
 import { AuthContext } from 'src/context/AuthContext'
 
 function AssessmentTypeFilter({
+  selectedCategory,
+  setSelectedCategory,
   selectedAssessmentType,
   setSelectedAssessmentType,
   openassessmentFilter,
@@ -15,6 +17,7 @@ function AssessmentTypeFilter({
   const theme = useTheme()
   const drawerContentRef = useRef(null)
 
+  const [tempSelectedCategory, setTempSelectedCategory] = useState(selectedCategory || 0)
   const [tempSelectedAssessmentType, setTempSelectedAssessmentType] = useState(selectedAssessmentType || null)
 
   const [assessmentcategoryLoading, setAssessmentCategoryLoading] = useState(false)
@@ -23,7 +26,6 @@ function AssessmentTypeFilter({
   const [assessmenttypeLoading, setAssessmentTypeLoading] = useState(false)
   const [assessmentTypeList, setAssessmentTypeList] = useState([])
   const [assessmentTypeCount, setAssessmentTypeCount] = useState(0)
-  const [selectedCategory, setSelectedCategory] = useState(0)
 
   const fetchAssessmentCategories = async () => {
     setAssessmentCategoryLoading(true)
@@ -52,7 +54,7 @@ function AssessmentTypeFilter({
     try {
       const res = await getAssessmentTypesList({
         ref_type: 'animal',
-        cat_id: selectedCategory,
+        cat_id: tempSelectedCategory,
         q
         // limit: 10,
         // page_no: pageNum
@@ -74,10 +76,11 @@ function AssessmentTypeFilter({
 
   useEffect(() => {
     fetchAssessmentTypes()
-  }, [selectedCategory])
+  }, [tempSelectedCategory])
 
   const handleCloseDrawer = () => {
     setSelectedAssessmentType(tempSelectedAssessmentType)
+    setSelectedCategory(tempSelectedCategory)
     setOpenAssessmentFilter(false)
     setTempSelectedAssessmentType(null)
   }
@@ -174,7 +177,7 @@ function AssessmentTypeFilter({
                 <Chip
                   key={category?.assessment_category_id}
                   label={category?.label}
-                  onClick={() => setSelectedCategory(category?.assessment_category_id)}
+                  onClick={() => setTempSelectedCategory(category?.assessment_category_id)}
                   sx={{
                     px: 2,
                     py: 1.5,
@@ -182,8 +185,14 @@ function AssessmentTypeFilter({
                     fontWeight: 400,
                     fontSize: '16px',
                     whiteSpace: 'nowrap',
-                    bgcolor: selectedCategory === category?.assessment_category_id ? '#1F515B' : '#FFFFFFBF',
-                    color: selectedCategory === category?.assessment_category_id ? '#FFFFFF' : '#1F515B',
+                    bgcolor:
+                      tempSelectedCategory === category?.assessment_category_id
+                        ? theme.palette.primary.light
+                        : '#FFFFFFBF',
+                    color:
+                      tempSelectedCategory === category?.assessment_category_id
+                        ? theme.palette.primary.contrastText
+                        : theme.palette.primary.light,
                     '&:hover': {
                       cursor: 'pointer',
                       opacity: 0.9
@@ -208,7 +217,7 @@ function AssessmentTypeFilter({
                     key={index}
                     onClick={() => setTempSelectedAssessmentType(item)}
                     sx={{
-                      bgcolor: '#FFFFFF',
+                      bgcolor: theme.palette.primary.contrastText,
                       borderRadius: '8px',
                       display: 'flex',
                       justifyContent: 'space-between',
@@ -216,7 +225,7 @@ function AssessmentTypeFilter({
                       height: '56px',
                       pl: 4,
                       cursor: 'pointer',
-                      border: isSelected ? '1px solid #37BD69' : '0px'
+                      border: isSelected ? `1px solid ${theme.palette.primary.main}` : '0px'
                     }}
                   >
                     <Typography
@@ -231,7 +240,7 @@ function AssessmentTypeFilter({
                     </Typography>
                     <Box
                       sx={{
-                        bgcolor: '#F2FFF8',
+                        bgcolor: theme.palette.customColors.Surface,
                         width: '56px',
                         height: '100%',
                         display: 'flex',
@@ -250,7 +259,9 @@ function AssessmentTypeFilter({
                           display: 'flex',
                           justifyContent: 'center',
                           alignItems: 'center',
-                          border: `1.5px solid ${isSelected ? '#37BD69' : '#7A8684'}`
+                          border: `1.5px solid ${
+                            isSelected ? theme.palette.primary.main : theme.palette.customColors.neutralSecondary
+                          }`
                         }}
                       >
                         {isSelected && (
@@ -259,8 +270,10 @@ function AssessmentTypeFilter({
                               height: '10px',
                               width: '10px',
                               borderRadius: '50%',
-                              border: `1.5px solid ${isSelected ? '#37BD69' : '#7A8684'}`,
-                              bgcolor: isSelected ? '#37BD69' : 'transparent'
+                              border: `1.5px solid ${
+                                isSelected ? theme.palette.primary.main : theme.palette.customColors.neutralSecondary
+                              }`,
+                              bgcolor: isSelected ? theme.palette.primary.main : 'transparent'
                             }}
                           ></Box>
                         )}

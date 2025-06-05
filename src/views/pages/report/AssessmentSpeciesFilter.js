@@ -1,547 +1,3 @@
-// import { LoadingButton } from '@mui/lab'
-// import { Drawer, IconButton, TextField, Typography } from '@mui/material'
-// import Icon from 'src/@core/components/icon'
-// import React, { useState } from 'react'
-// import { Box } from '@mui/system'
-// import { useTheme } from '@mui/material/styles'
-// import SpeciesCard from 'src/views/utility/SpeciesCard'
-
-// function AssessmentSpeciesFilter({ openspeciesFilter, setOpenspeciesFilter }) {
-//   const theme = useTheme()
-//   const [searchValue, setSearchValue] = useState('')
-
-//   const handleCancelClick = () => {}
-//   const handleCloseDrawer = () => {
-//     setOpenspeciesFilter(false)
-//   }
-//   const handleSearchChange = e => {
-//     const value = e.target.value
-//     setSearchValue(value)
-//     debouncedSearch(value)
-//   }
-//   return (
-//     <Drawer
-//       anchor='right'
-//       open={openspeciesFilter}
-//       sx={{
-//         '& .MuiDrawer-paper': { width: ['100%', '562px'], height: '100vh' },
-//         position: 'relative',
-//         display: 'flex',
-//         flexDirection: 'column',
-//         gap: '24px',
-//         backgroundColor: 'background.default'
-//       }}
-//     >
-//       <Box
-//         className='sidebar-header'
-//         sx={{
-//           display: 'flex',
-//           alignItems: 'center',
-//           justifyContent: 'space-between',
-//           backgroundColor: 'background.default',
-//           p: theme => theme.spacing(3, 3.255, 3, 5.255)
-//         }}
-//       >
-//         <Box sx={{ mt: 2, display: 'flex', flexDirection: 'row', gap: 2, alignItems: 'center' }}>
-//           <Typography sx={{ fontSize: '24px', fontWeight: 500 }}>Select Species</Typography>
-//         </Box>
-
-//         <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end' }}>
-//           <IconButton size='small' sx={{ color: 'text.primary' }} onClick={handleCloseDrawer}>
-//             <Icon icon='mdi:close' fontSize={24} />
-//           </IconButton>
-//         </Box>
-//       </Box>
-
-//       <Box
-//         sx={{
-//           '& .MuiDrawer-paper': { width: ['100%', '562px'] },
-//           backgroundColor: 'background.default',
-//           height: '100%'
-//         }}
-//       >
-//         <Box sx={{ bgcolor: 'background.default', p: theme => theme.spacing(3, 3.255, 3, 5.255) }}>
-//           <TextField
-//             value={searchValue}
-//             fullWidth
-//             InputProps={{
-//               startAdornment: (
-//                 <Icon
-//                   style={{ marginRight: 10, color: theme.palette.customColors.OnSurfaceVariant }}
-//                   icon={'ion:search-outline'}
-//                 />
-//               ),
-//               endAdornment: searchValue && (
-//                 <IconButton onClick={handleCancelClick} size='small' sx={{ padding: 0 }}>
-//                   <Icon icon={'ion:close-outline'} style={{ color: theme.palette.customColors.OnSurfaceVariant }} />
-//                 </IconButton>
-//               )
-//             }}
-//             placeholder='Search by species name or scientific name'
-//             onChange={handleSearchChange}
-//             sx={{
-//               bgcolor: '#fff',
-//               border: '1px solid #C3CEC7',
-//               borderRadius: '8px',
-//               '& .MuiOutlinedInput-root': {
-//                 border: 'none',
-//                 borderColor: theme.palette.customColors.Outline,
-//                 '& fieldset': {
-//                   border: 'none',
-//                   borderColor: theme.palette.customColors.Outline
-//                 },
-//                 '& .MuiInputBase-input::placeholder': {
-//                   color: '#C3CEC7',
-//                   fontSize: '14px',
-//                   fontWeight: '400' // Important: to ensure color applies correctly
-//                 }
-//               }
-//             }}
-//           />
-//           <Box sx={{ mt: 4, display: 'flex', flexDirection: 'column', gap: '12px' }}>
-//             <Typography
-//               sx={{ fontSize: '16px', fontWeight: 600, color: '#44544A', letterSpacing: 0, lineHeight: '100%' }}
-//             >
-//               Species (120)
-//             </Typography>
-//             {[
-//               {
-//                 scientific_name: 'dfgh',
-//                 common_name: 'fghjk',
-//                 default_icon:
-//                   '	https://api.dev.antzsystems.com/api/image/download…loads/species_images/6718f5b20f2021729689010.jpeg'
-//               },
-//               {
-//                 scientific_name: 'dfgh',
-//                 common_name: 'fghjk',
-//                 default_icon:
-//                   '	https://api.dev.antzsystems.com/api/image/download…loads/species_images/6718f5b20f2021729689010.jpeg'
-//               },
-//               {
-//                 scientific_name: 'dfgh',
-//                 common_name: 'fghjk',
-//                 default_icon:
-//                   '	https://api.dev.antzsystems.com/api/image/download…loads/species_images/6718f5b20f2021729689010.jpeg'
-//               },
-//               {
-//                 scientific_name: 'dfgh',
-//                 common_name: 'fghjk',
-//                 default_icon:
-//                   '	https://api.dev.antzsystems.com/api/image/download…loads/species_images/6718f5b20f2021729689010.jpeg'
-//               },
-//               {
-//                 scientific_name: 'dfgh',
-//                 common_name: 'fghjk',
-//                 default_icon:
-//                   '	https://api.dev.antzsystems.com/api/image/download…loads/species_images/6718f5b20f2021729689010.jpeg'
-//               },
-//               {
-//                 scientific_name: 'dfgh',
-//                 common_name: 'fghjk',
-//                 default_icon:
-//                   '	https://api.dev.antzsystems.com/api/image/download…loads/species_images/6718f5b20f2021729689010.jpeg'
-//               },
-//               {
-//                 scientific_name: 'dfgh',
-//                 common_name: 'fghjk',
-//                 default_icon:
-//                   '	https://api.dev.antzsystems.com/api/image/download…loads/species_images/6718f5b20f2021729689010.jpeg'
-//               },
-//               {
-//                 scientific_name: 'dfgh',
-//                 common_name: 'fghjk',
-//                 default_icon:
-//                   '	https://api.dev.antzsystems.com/api/image/download…loads/species_images/6718f5b20f2021729689010.jpeg'
-//               },
-//               {
-//                 scientific_name: 'dfgh',
-//                 common_name: 'fghjk',
-//                 default_icon:
-//                   '	https://api.dev.antzsystems.com/api/image/download…loads/species_images/6718f5b20f2021729689010.jpeg'
-//               },
-//               {
-//                 scientific_name: 'dfgh',
-//                 common_name: 'fghjk',
-//                 default_icon:
-//                   '	https://api.dev.antzsystems.com/api/image/download…loads/species_images/6718f5b20f2021729689010.jpeg'
-//               },
-//               {
-//                 scientific_name: 'dfgh',
-//                 common_name: 'fghjk',
-//                 default_icon:
-//                   '	https://api.dev.antzsystems.com/api/image/download…loads/species_images/6718f5b20f2021729689010.jpeg'
-//               },
-//               {
-//                 scientific_name: 'dfgh',
-//                 common_name: 'fghjk',
-//                 default_icon:
-//                   '	https://api.dev.antzsystems.com/api/image/download…loads/species_images/6718f5b20f2021729689010.jpeg'
-//               },
-//               {
-//                 scientific_name: 'dfgh',
-//                 common_name: 'fghjk',
-//                 default_icon:
-//                   '	https://api.dev.antzsystems.com/api/image/download…loads/species_images/6718f5b20f2021729689010.jpeg'
-//               },
-//               {
-//                 scientific_name: 'dfgh',
-//                 common_name: 'fghjk',
-//                 default_icon:
-//                   '	https://api.dev.antzsystems.com/api/image/download…loads/species_images/6718f5b20f2021729689010.jpeg'
-//               },
-//               {
-//                 scientific_name: 'dfgh',
-//                 common_name: 'fghjk',
-//                 default_icon:
-//                   '	https://api.dev.antzsystems.com/api/image/download…loads/species_images/6718f5b20f2021729689010.jpeg'
-//               },
-//               {
-//                 scientific_name: 'dfgh',
-//                 common_name: 'fghjk',
-//                 default_icon:
-//                   '	https://api.dev.antzsystems.com/api/image/download…loads/species_images/6718f5b20f2021729689010.jpeg'
-//               },
-//               {
-//                 scientific_name: 'dfgh',
-//                 common_name: 'fghjk',
-//                 default_icon:
-//                   '	https://api.dev.antzsystems.com/api/image/download…loads/species_images/6718f5b20f2021729689010.jpeg'
-//               },
-//               {
-//                 scientific_name: 'dfgh',
-//                 common_name: 'fghjk',
-//                 default_icon:
-//                   '	https://api.dev.antzsystems.com/api/image/download…loads/species_images/6718f5b20f2021729689010.jpeg'
-//               },
-//               {
-//                 scientific_name: 'dfgh',
-//                 common_name: 'fghjk',
-//                 default_icon:
-//                   '	https://api.dev.antzsystems.com/api/image/download…loads/species_images/6718f5b20f2021729689010.jpeg'
-//               },
-//               {
-//                 scientific_name: 'dfgh',
-//                 common_name: 'fghjk',
-//                 default_icon:
-//                   '	https://api.dev.antzsystems.com/api/image/download…loads/species_images/6718f5b20f2021729689010.jpeg'
-//               },
-//               {
-//                 scientific_name: 'dfgh',
-//                 common_name: 'fghjk',
-//                 default_icon:
-//                   '	https://api.dev.antzsystems.com/api/image/download…loads/species_images/6718f5b20f2021729689010.jpeg'
-//               },
-//               {
-//                 scientific_name: 'dfgh',
-//                 common_name: 'fghjk',
-//                 default_icon:
-//                   '	https://api.dev.antzsystems.com/api/image/download…loads/species_images/6718f5b20f2021729689010.jpeg'
-//               },
-//               {
-//                 scientific_name: 'dfgh',
-//                 common_name: 'fghjk',
-//                 default_icon:
-//                   '	https://api.dev.antzsystems.com/api/image/download…loads/species_images/6718f5b20f2021729689010.jpeg'
-//               },
-//               {
-//                 scientific_name: 'dfgh',
-//                 common_name: 'fghjk',
-//                 default_icon:
-//                   '	https://api.dev.antzsystems.com/api/image/download…loads/species_images/6718f5b20f2021729689010.jpeg'
-//               },
-//               {
-//                 scientific_name: 'dfgh',
-//                 common_name: 'fghjk',
-//                 default_icon:
-//                   '	https://api.dev.antzsystems.com/api/image/download…loads/species_images/6718f5b20f2021729689010.jpeg'
-//               },
-//               {
-//                 scientific_name: 'dfgh',
-//                 common_name: 'fghjk',
-//                 default_icon:
-//                   '	https://api.dev.antzsystems.com/api/image/download…loads/species_images/6718f5b20f2021729689010.jpeg'
-//               },
-//               {
-//                 scientific_name: 'dfgh',
-//                 common_name: 'fghjk',
-//                 default_icon:
-//                   '	https://api.dev.antzsystems.com/api/image/download…loads/species_images/6718f5b20f2021729689010.jpeg'
-//               },
-//               {
-//                 scientific_name: 'dfgh',
-//                 common_name: 'fghjk',
-//                 default_icon:
-//                   '	https://api.dev.antzsystems.com/api/image/download…loads/species_images/6718f5b20f2021729689010.jpeg'
-//               },
-//               {
-//                 scientific_name: 'dfgh',
-//                 common_name: 'fghjk',
-//                 default_icon:
-//                   '	https://api.dev.antzsystems.com/api/image/download…loads/species_images/6718f5b20f2021729689010.jpeg'
-//               },
-//               {
-//                 scientific_name: 'dfgh',
-//                 common_name: 'fghjk',
-//                 default_icon:
-//                   '	https://api.dev.antzsystems.com/api/image/download…loads/species_images/6718f5b20f2021729689010.jpeg'
-//               },
-//               {
-//                 scientific_name: 'dfgh',
-//                 common_name: 'fghjk',
-//                 default_icon:
-//                   '	https://api.dev.antzsystems.com/api/image/download…loads/species_images/6718f5b20f2021729689010.jpeg'
-//               },
-//               {
-//                 scientific_name: 'dfgh',
-//                 common_name: 'fghjk',
-//                 default_icon:
-//                   '	https://api.dev.antzsystems.com/api/image/download…loads/species_images/6718f5b20f2021729689010.jpeg'
-//               },
-//               {
-//                 scientific_name: 'dfgh',
-//                 common_name: 'fghjk',
-//                 default_icon:
-//                   '	https://api.dev.antzsystems.com/api/image/download…loads/species_images/6718f5b20f2021729689010.jpeg'
-//               },
-//               {
-//                 scientific_name: 'dfgh',
-//                 common_name: 'fghjk',
-//                 default_icon:
-//                   '	https://api.dev.antzsystems.com/api/image/download…loads/species_images/6718f5b20f2021729689010.jpeg'
-//               },
-//               {
-//                 scientific_name: 'dfgh',
-//                 common_name: 'fghjk',
-//                 default_icon:
-//                   '	https://api.dev.antzsystems.com/api/image/download…loads/species_images/6718f5b20f2021729689010.jpeg'
-//               },
-//               {
-//                 scientific_name: 'dfgh',
-//                 common_name: 'fghjk',
-//                 default_icon:
-//                   '	https://api.dev.antzsystems.com/api/image/download…loads/species_images/6718f5b20f2021729689010.jpeg'
-//               },
-//               {
-//                 scientific_name: 'dfgh',
-//                 common_name: 'fghjk',
-//                 default_icon:
-//                   '	https://api.dev.antzsystems.com/api/image/download…loads/species_images/6718f5b20f2021729689010.jpeg'
-//               },
-//               {
-//                 scientific_name: 'dfgh',
-//                 common_name: 'fghjk',
-//                 default_icon:
-//                   '	https://api.dev.antzsystems.com/api/image/download…loads/species_images/6718f5b20f2021729689010.jpeg'
-//               },
-//               {
-//                 scientific_name: 'dfgh',
-//                 common_name: 'fghjk',
-//                 default_icon:
-//                   '	https://api.dev.antzsystems.com/api/image/download…loads/species_images/6718f5b20f2021729689010.jpeg'
-//               },
-//               {
-//                 scientific_name: 'dfgh',
-//                 common_name: 'fghjk',
-//                 default_icon:
-//                   '	https://api.dev.antzsystems.com/api/image/download…loads/species_images/6718f5b20f2021729689010.jpeg'
-//               },
-//               {
-//                 scientific_name: 'dfgh',
-//                 common_name: 'fghjk',
-//                 default_icon:
-//                   '	https://api.dev.antzsystems.com/api/image/download…loads/species_images/6718f5b20f2021729689010.jpeg'
-//               },
-//               {
-//                 scientific_name: 'dfgh',
-//                 common_name: 'fghjk',
-//                 default_icon:
-//                   '	https://api.dev.antzsystems.com/api/image/download…loads/species_images/6718f5b20f2021729689010.jpeg'
-//               },
-//               {
-//                 scientific_name: 'dfgh',
-//                 common_name: 'fghjk',
-//                 default_icon:
-//                   '	https://api.dev.antzsystems.com/api/image/download…loads/species_images/6718f5b20f2021729689010.jpeg'
-//               },
-//               {
-//                 scientific_name: 'dfgh',
-//                 common_name: 'fghjk',
-//                 default_icon:
-//                   '	https://api.dev.antzsystems.com/api/image/download…loads/species_images/6718f5b20f2021729689010.jpeg'
-//               },
-//               {
-//                 scientific_name: 'dfgh',
-//                 common_name: 'fghjk',
-//                 default_icon:
-//                   '	https://api.dev.antzsystems.com/api/image/download…loads/species_images/6718f5b20f2021729689010.jpeg'
-//               },
-//               {
-//                 scientific_name: 'dfgh',
-//                 common_name: 'fghjk',
-//                 default_icon:
-//                   '	https://api.dev.antzsystems.com/api/image/download…loads/species_images/6718f5b20f2021729689010.jpeg'
-//               },
-//               {
-//                 scientific_name: 'dfgh',
-//                 common_name: 'fghjk',
-//                 default_icon:
-//                   '	https://api.dev.antzsystems.com/api/image/download…loads/species_images/6718f5b20f2021729689010.jpeg'
-//               },
-//               {
-//                 scientific_name: 'dfgh',
-//                 common_name: 'fghjk',
-//                 default_icon:
-//                   '	https://api.dev.antzsystems.com/api/image/download…loads/species_images/6718f5b20f2021729689010.jpeg'
-//               },
-//               {
-//                 scientific_name: 'dfgh',
-//                 common_name: 'fghjk',
-//                 default_icon:
-//                   '	https://api.dev.antzsystems.com/api/image/download…loads/species_images/6718f5b20f2021729689010.jpeg'
-//               },
-//               {
-//                 scientific_name: 'dfgh',
-//                 common_name: 'fghjk',
-//                 default_icon:
-//                   '	https://api.dev.antzsystems.com/api/image/download…loads/species_images/6718f5b20f2021729689010.jpeg'
-//               },
-//               {
-//                 scientific_name: 'dfgh',
-//                 common_name: 'fghjk',
-//                 default_icon:
-//                   '	https://api.dev.antzsystems.com/api/image/download…loads/species_images/6718f5b20f2021729689010.jpeg'
-//               },
-//               {
-//                 scientific_name: 'dfgh',
-//                 common_name: 'fghjk',
-//                 default_icon:
-//                   '	https://api.dev.antzsystems.com/api/image/download…loads/species_images/6718f5b20f2021729689010.jpeg'
-//               },
-//               {
-//                 scientific_name: 'dfgh',
-//                 common_name: 'fghjk',
-//                 default_icon:
-//                   '	https://api.dev.antzsystems.com/api/image/download…loads/species_images/6718f5b20f2021729689010.jpeg'
-//               },
-//               {
-//                 scientific_name: 'dfgh',
-//                 common_name: 'fghjk',
-//                 default_icon:
-//                   '	https://api.dev.antzsystems.com/api/image/download…loads/species_images/6718f5b20f2021729689010.jpeg'
-//               },
-//               {
-//                 scientific_name: 'dfgh',
-//                 common_name: 'fghjk',
-//                 default_icon:
-//                   '	https://api.dev.antzsystems.com/api/image/download…loads/species_images/6718f5b20f2021729689010.jpeg'
-//               },
-//               {
-//                 scientific_name: 'dfgh',
-//                 common_name: 'fghjk',
-//                 default_icon:
-//                   '	https://api.dev.antzsystems.com/api/image/download…loads/species_images/6718f5b20f2021729689010.jpeg'
-//               },
-//               {
-//                 scientific_name: 'dfgh',
-//                 common_name: 'fghjk',
-//                 default_icon:
-//                   '	https://api.dev.antzsystems.com/api/image/download…loads/species_images/6718f5b20f2021729689010.jpeg'
-//               },
-//               {
-//                 scientific_name: 'dfgh',
-//                 common_name: 'fghjk',
-//                 default_icon:
-//                   '	https://api.dev.antzsystems.com/api/image/download…loads/species_images/6718f5b20f2021729689010.jpeg'
-//               },
-//               {
-//                 scientific_name: 'dfgh',
-//                 common_name: 'fghjk',
-//                 default_icon:
-//                   '	https://api.dev.antzsystems.com/api/image/download…loads/species_images/6718f5b20f2021729689010.jpeg'
-//               },
-//               {
-//                 scientific_name: 'dfgh',
-//                 common_name: 'fghjk',
-//                 default_icon:
-//                   '	https://api.dev.antzsystems.com/api/image/download…loads/species_images/6718f5b20f2021729689010.jpeg'
-//               },
-//               {
-//                 scientific_name: 'dfgh',
-//                 common_name: 'fghjk',
-//                 default_icon:
-//                   '	https://api.dev.antzsystems.com/api/image/download…loads/species_images/6718f5b20f2021729689010.jpeg'
-//               },
-//               {
-//                 scientific_name: 'dfgh',
-//                 common_name: 'fghjk',
-//                 default_icon:
-//                   '	https://api.dev.antzsystems.com/api/image/download…loads/species_images/6718f5b20f2021729689010.jpeg'
-//               },
-//               {
-//                 scientific_name: 'dfgh',
-//                 common_name: 'fghjk',
-//                 default_icon:
-//                   '	https://api.dev.antzsystems.com/api/image/download…loads/species_images/6718f5b20f2021729689010.jpeg'
-//               }
-//             ].map(item => (
-//               <Box
-//                 sx={{
-//                   bgcolor: '#FFFFFF',
-//                   borderRadius: '8px',
-//                   display: 'flex',
-//                   justifyContent: 'space-between',
-//                   height: '76px',
-//                   pl: 4
-//                 }}
-//               >
-//                 <SpeciesCard species={item} />
-//                 <Box
-//                   sx={{
-//                     bgcolor: '#F2FFF8',
-//                     width: '56px',
-//                     display: 'flex',
-//                     justifyContent: 'center',
-//                     alignItems: 'center',
-//                     borderTopRightRadius: '8px',
-//                     borderBottomRightRadius: '8px'
-//                   }}
-//                 >
-//                   <Box sx={{ height: '18px', width: '18px', borderRadius: '50%', border: '1.5px solid #7A8684' }}></Box>
-//                 </Box>
-//               </Box>
-//             ))}
-//           </Box>
-//         </Box>
-//       </Box>
-
-//       {/* bottom buttons */}
-//       <Box
-//         sx={{
-//           height: '106px',
-//           width: '100%',
-//           maxWidth: '562px',
-//           position: 'fixed',
-//           bottom: 0,
-//           px: 4,
-//           bgcolor: 'white',
-//           alignItems: 'center',
-//           justifyContent: 'center',
-//           gap: 5,
-//           display: 'flex',
-//           boxShadow: '0px -4px 10px rgba(0, 0, 0, 0.2)',
-//           zIndex: 123
-//         }}
-//       >
-//         <LoadingButton sx={{ height: '58px  ' }} fullWidth variant='contained' size='large' onClick={() => {}}>
-//           DONE
-//         </LoadingButton>
-//       </Box>
-//     </Drawer>
-//   )
-// }
-
-// export default AssessmentSpeciesFilter
-
 import { LoadingButton } from '@mui/lab'
 import { Drawer, IconButton, TextField, Typography, CircularProgress } from '@mui/material'
 import Icon from 'src/@core/components/icon'
@@ -704,8 +160,8 @@ function AssessmentSpeciesFilter({ selectedSpecie, setSelectedSpecie, openspecie
             placeholder='Search by species name or scientific name'
             onChange={handleSearchChange}
             sx={{
-              bgcolor: '#fff',
-              border: '1px solid #C3CEC7',
+              bgcolor: theme.palette.primary.contrastText,
+              border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
               borderRadius: '8px',
               '& .MuiOutlinedInput-root': {
                 border: 'none',
@@ -715,7 +171,7 @@ function AssessmentSpeciesFilter({ selectedSpecie, setSelectedSpecie, openspecie
                   borderColor: theme.palette.customColors.Outline
                 },
                 '& .MuiInputBase-input::placeholder': {
-                  color: '#C3CEC7',
+                  color: theme.palette.customColors.OutlineVariant,
                   fontSize: '14px',
                   fontWeight: '400'
                 }
@@ -725,7 +181,13 @@ function AssessmentSpeciesFilter({ selectedSpecie, setSelectedSpecie, openspecie
 
           <Box sx={{ pb: 25, mt: 4, display: 'flex', flexDirection: 'column', gap: '12px' }}>
             <Typography
-              sx={{ fontSize: '16px', fontWeight: 600, color: '#44544A', letterSpacing: 0, lineHeight: '100%' }}
+              sx={{
+                fontSize: '16px',
+                fontWeight: 600,
+                color: theme.palette.customColors.OnSurfaceVariant,
+                letterSpacing: 0,
+                lineHeight: '100%'
+              }}
             >
               Species{totalCount > 0 && ` (${totalCount})`}
             </Typography>
@@ -739,20 +201,20 @@ function AssessmentSpeciesFilter({ selectedSpecie, setSelectedSpecie, openspecie
                     key={index}
                     onClick={() => setTempSelectedSpecie(item)}
                     sx={{
-                      bgcolor: '#FFFFFF',
+                      bgcolor: theme.palette.primary.contrastText,
                       borderRadius: '8px',
                       display: 'flex',
                       justifyContent: 'space-between',
                       height: '76px',
                       pl: 4,
                       cursor: 'pointer',
-                      border: isSelected ? '1px solid #37BD69' : '0px'
+                      border: isSelected ? `1px solid ${theme.palette.primary.main}` : '0px'
                     }}
                   >
                     <SpeciesCard species={item} />
                     <Box
                       sx={{
-                        bgcolor: '#F2FFF8',
+                        bgcolor: theme.palette.customColors.Surface,
                         width: '56px',
                         display: 'flex',
                         justifyContent: 'center',
@@ -770,7 +232,9 @@ function AssessmentSpeciesFilter({ selectedSpecie, setSelectedSpecie, openspecie
                           display: 'flex',
                           justifyContent: 'center',
                           alignItems: 'center',
-                          border: `1.5px solid ${isSelected ? '#37BD69' : '#7A8684'}`
+                          border: `1.5px solid ${
+                            isSelected ? theme.palette.primary.main : theme.palette.customColors.neutralSecondary
+                          }`
                         }}
                       >
                         {isSelected && (
@@ -779,8 +243,10 @@ function AssessmentSpeciesFilter({ selectedSpecie, setSelectedSpecie, openspecie
                               height: '10px',
                               width: '10px',
                               borderRadius: '50%',
-                              border: `1.5px solid ${isSelected ? '#37BD69' : '#7A8684'}`,
-                              bgcolor: isSelected ? '#37BD69' : 'transparent'
+                              border: `1.5px solid ${
+                                isSelected ? theme.palette.primary.main : theme.palette.customColors.neutralSecondary
+                              }`,
+                              bgcolor: isSelected ? theme.palette.primary.main : 'transparent'
                             }}
                           ></Box>
                         )}

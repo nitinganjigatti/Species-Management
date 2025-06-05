@@ -256,7 +256,7 @@ const AssessmentReportFilterDrawer = ({
           <Grid item md={8} sm={8} xs={8}>
             <Box
               sx={{
-                bgcolor: '#FFFFFF',
+                bgcolor: theme.palette.primary.contrastText,
                 p: '16px',
                 borderRadius: '8px',
                 width: '345px',
@@ -272,7 +272,7 @@ const AssessmentReportFilterDrawer = ({
             >
               {activeTab === 'Site, Sec or Encl.' && (
                 <>
-                  <Card sx={{ border: '1px solid #C3CEC7', boxShadow: 'none' }}>
+                  <Card sx={{ border: `1px solid ${theme.palette.customColors.OutlineVariant}`, boxShadow: 'none' }}>
                     <CardHeader
                       title='Select Site'
                       onClick={() => {
@@ -282,14 +282,20 @@ const AssessmentReportFilterDrawer = ({
                       }}
                       disabled={tempSelectedItems?.Section?.length > 0}
                       sx={{
-                        background: tempSelectedItems?.Section?.length > 0 ? '#0000000D' : '#E8F4F2',
+                        background:
+                          tempSelectedItems?.Section?.length > 0
+                            ? theme.palette.customColors.mdAntzNeutral
+                            : theme.palette.customColors.tableHeaderBg,
                         p: 2,
                         pl: 4,
                         pr: 2,
                         '.MuiCardHeader-title': {
                           fontWeight: '500',
                           fontSize: '16px',
-                          color: tempSelectedItems?.Section?.length > 0 ? '#44544A' : '#1F515B',
+                          color:
+                            tempSelectedItems?.Section?.length > 0
+                              ? theme.palette.customColors.OnSurfaceVariant
+                              : theme.palette.primary.light,
                           cursor: tempSelectedItems?.Section?.length > 0 ? '' : 'pointer'
                         }
                       }}
@@ -298,7 +304,7 @@ const AssessmentReportFilterDrawer = ({
                           size='small'
                           aria-label='collapse'
                           sx={{
-                            color: '#44544A'
+                            color: theme.palette.customColors.OnSurfaceVariant
                           }}
                           onClick={e => {
                             // e.stopPropagation()
@@ -333,7 +339,7 @@ const AssessmentReportFilterDrawer = ({
                                 mb: 2
                               }}
                             >
-                              <Typography variant='body2' sx={{ color: '#000000' }}>
+                              <Typography variant='body2' sx={{ color: theme.palette.customColors.deepDark }}>
                                 {site.site_name}
                               </Typography>
                               <IconButton
@@ -355,7 +361,13 @@ const AssessmentReportFilterDrawer = ({
 
                   {/* Display selected sections */}
                   {tempSelectedItems?.Site?.length === 1 && (
-                    <Card sx={{ border: '1px solid #C3CEC7', boxShadow: 'none', mt: '6%' }}>
+                    <Card
+                      sx={{
+                        border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+                        boxShadow: 'none',
+                        mt: '6%'
+                      }}
+                    >
                       <CardHeader
                         title='Select Sections'
                         onClick={() => {
@@ -365,14 +377,20 @@ const AssessmentReportFilterDrawer = ({
                         }}
                         disabled={tempSelectedItems?.Enclosure?.length > 0}
                         sx={{
-                          background: tempSelectedItems?.Enclosure?.length > 0 ? '#0000000D' : '#E8F4F2',
+                          background:
+                            tempSelectedItems?.Enclosure?.length > 0
+                              ? theme.palette.customColors.mdAntzNeutral
+                              : theme.palette.customColors.tableHeaderBg,
                           p: 2,
                           pl: 4,
                           pr: 2,
                           '.MuiCardHeader-title': {
                             fontWeight: '500',
                             fontSize: '16px',
-                            color: tempSelectedItems?.Enclosure?.length > 0 ? '#44544A' : '#1F515B',
+                            color:
+                              tempSelectedItems?.Enclosure?.length > 0
+                                ? theme.palette.customColors.OnSurfaceVariant
+                                : theme.palette.primary.light,
                             cursor: tempSelectedItems?.Enclosure?.length > 0 ? '' : 'pointer'
                           }
                         }}
@@ -380,7 +398,7 @@ const AssessmentReportFilterDrawer = ({
                           <IconButton
                             size='small'
                             aria-label='collapse'
-                            sx={{ color: '#44544A' }}
+                            sx={{ color: theme.palette.customColors.OnSurfaceVariant }}
                             disabled={tempSelectedItems?.Enclosure?.length > 0}
                           >
                             <Icon
@@ -412,7 +430,7 @@ const AssessmentReportFilterDrawer = ({
                                     mb: 2
                                   }}
                                 >
-                                  <Typography variant='body2' sx={{ color: '#000000' }}>
+                                  <Typography variant='body2' sx={{ color: theme.palette.customColors.deepDark }}>
                                     {section.section_name}
                                   </Typography>
                                   <IconButton
@@ -437,24 +455,38 @@ const AssessmentReportFilterDrawer = ({
 
                   {/* Display selected enclosures */}
                   {tempSelectedItems?.Section?.length === 1 && (
-                    <Card sx={{ border: '1px solid #C3CEC7', boxShadow: 'none', mt: '6%', mb: 4 }}>
+                    <Card
+                      sx={{
+                        border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
+                        boxShadow: 'none',
+                        mt: '6%',
+                        mb: 4
+                      }}
+                    >
                       <CardHeader
                         title='Select Enclosures'
                         onClick={() => setOpenEnclosureListDrawer(true)}
                         sx={{
-                          background: '#E8F4F2',
+                          background: theme.palette.customColors.tableHeaderBg,
                           p: 2,
                           pl: 4,
                           pr: 2,
                           '.MuiCardHeader-title': {
                             fontWeight: '500',
                             fontSize: '16px',
-                            color: tempSelectedItems?.Section?.length > 0 ? '#44544A' : '#1F515B',
+                            color:
+                              tempSelectedItems?.Section?.length > 0
+                                ? theme.palette.customColors.OnSurfaceVariant
+                                : theme.palette.primary.light,
                             cursor: 'pointer'
                           }
                         }}
                         action={
-                          <IconButton size='small' aria-label='collapse' sx={{ color: '#44544A' }}>
+                          <IconButton
+                            size='small'
+                            aria-label='collapse'
+                            sx={{ color: theme.palette.customColors.OnSurfaceVariant }}
+                          >
                             <Icon fontSize={20} icon={collapsed ? 'mdi:chevron-down' : 'mdi:chevron-up'} />
                           </IconButton>
                         }
@@ -476,7 +508,7 @@ const AssessmentReportFilterDrawer = ({
                                     mb: 2
                                   }}
                                 >
-                                  <Typography variant='body2' sx={{ color: '#000000' }}>
+                                  <Typography variant='body2' sx={{ color: theme.palette.customColors.deepDark }}>
                                     {enclosure.user_enclosure_name}
                                   </Typography>
                                   <IconButton
@@ -688,7 +720,7 @@ export default AssessmentReportFilterDrawer
                       sx={{
                         display: 'flex',
                         alignItems: 'center',
-                        border: '1px solid #C3CEC7',
+                        border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                         borderRadius: '4px',
                         padding: '0 8px',
                         height: '40px',

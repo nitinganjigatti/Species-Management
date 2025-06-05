@@ -4,11 +4,9 @@ import {
   Box,
   Button,
   Card,
-  CardHeader,
   CircularProgress,
   debounce,
   Dialog,
-  DialogTitle,
   IconButton,
   InputAdornment,
   TextField,
@@ -30,7 +28,6 @@ import AssessmentSpeciesFilter from 'src/views/pages/report/AssessmentSpeciesFil
 import AssessmentTypeFilter from 'src/views/pages/report/AssessmentTypeFilter'
 
 import { getAnimalAssessment, getAnimalAssessmentReport } from 'src/lib/api/report'
-import { LoadingButton } from '@mui/lab'
 
 const AnimalAssessment = () => {
   const theme = useTheme()
@@ -38,6 +35,7 @@ const AnimalAssessment = () => {
 
   const [selectedSpecie, setSelectedSpecie] = useState(null)
   const [openspeciesFilter, setOpenspeciesFilter] = useState(false)
+  const [selectedCategory, setSelectedCategory] = useState(0)
   const [selectedAssessmentType, setSelectedAssessmentType] = useState(null)
   const [openassessmentFilter, setOpenAssessmentFilter] = useState(false)
 
@@ -155,7 +153,6 @@ const AnimalAssessment = () => {
               moment().diff(moment(animal.birth_date), 'months') % 12
             }m`
           : '-'
-
       const recordMap = {}
       animal.assessment_data.assessments.forEach((assessment, index) => {
         recordMap[`record_${index}`] = {
@@ -178,7 +175,8 @@ const AnimalAssessment = () => {
         common_name: animal.common_name,
         scientific_name: animal.scientific_name,
         age,
-        site: animal.site
+        site: animal.site,
+        sex: animal.sex
       }
     })
 
@@ -202,6 +200,137 @@ const AnimalAssessment = () => {
     setHeaderList(headers)
   }
 
+  const AnimalCard = ({ animalData }) => (
+    <Box
+      sx={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: '12px'
+      }}
+    >
+      <Box
+        sx={{
+          display: 'flex',
+          flexDirection: 'column',
+          gap: '10px',
+          alignItems: 'center'
+        }}
+      >
+        <Avatar
+          sx={{
+            '& > img': {
+              objectFit:
+                animalData?.default_icon?.includes('class_images') && animalData?.default_icon?.endsWith('.svg')
+                  ? 'contain'
+                  : 'cover',
+              padding:
+                animalData?.default_icon?.includes('class_images') && animalData?.default_icon.endsWith('.svg')
+                  ? '3px'
+                  : 0
+            },
+            width: 32,
+            height: 32
+          }}
+          alt={animalData?.default_icon}
+          src={animalData?.default_icon}
+        />
+        <Avatar
+          sx={{
+            width: 22.22,
+            height: 20.15,
+            bgcolor:
+              animalData?.type === 'group'
+                ? theme.palette.customColors.addPrimary
+                : animalData?.sex === 'male'
+                ? theme.palette.customColors.SecondaryContainer
+                : animalData?.sex === 'female'
+                ? theme.palette.customColors.AntzTertiary
+                : animalData?.sex === 'undetermined' || animalData?.sex === 'indeterminate'
+                ? theme.palette.customColors.displaybgSecondary
+                : theme.palette.customColors.SecondaryContainer,
+            objectFit: 'contain',
+            pt: 0.2,
+            height: 24,
+            display: 'flex',
+            justifyContent: 'center',
+            alignItems: 'center'
+          }}
+          variant='rounded'
+        >
+          {animalData?.type === 'group' ? (
+            <Typography sx={{ fontSize: 14, color: theme.palette.primary.contrastText, fontWeight: 500 }}>G</Typography>
+          ) : animalData?.sex === 'male' ? (
+            <Typography sx={{ fontSize: 14, fontWeight: 500, color: theme.palette.customColors.OnSecondaryContainer }}>
+              M
+            </Typography>
+          ) : animalData?.sex === 'female' ? (
+            <Typography sx={{ fontSize: 14, fontWeight: 500, color: '#4A0415' }}>F</Typography>
+          ) : animalData?.sex === 'undetermined' ? (
+            <Typography sx={{ fontSize: 14, fontWeight: 500, color: theme.palette.customColors.Error }}>UD</Typography>
+          ) : animalData?.sex === 'indeterminate' ? (
+            <Typography sx={{ fontSize: 14, fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}>
+              ID
+            </Typography>
+          ) : (
+            <Typography sx={{ fontSize: 14 }}>-</Typography>
+          )}
+        </Avatar>
+      </Box>
+      <Box>
+        <Typography
+          sx={{
+            fontSize: '12px',
+            fontWeight: 600,
+            letterSpacing: 0,
+            color: theme.palette.customColors.OnSurfaceVariant
+          }}
+        >
+          AID: {animalData?.primary_animal_id}
+        </Typography>
+        <Typography
+          sx={{
+            fontSize: '14px',
+            fontWeight: 500,
+            letterSpacing: 0,
+            color: theme.palette.customColors.OnSurfaceVariant
+          }}
+        >
+          {animalData?.common_name}
+        </Typography>
+        <Typography
+          sx={{
+            fontSize: '14px',
+            fontWeight: 400,
+            letterSpacing: 0,
+            color: theme.palette.customColors.OnSurfaceVariant
+          }}
+        >
+          {animalData?.scientific_name}
+        </Typography>
+        <Typography
+          sx={{
+            fontSize: '14px',
+            fontWeight: 400,
+            letterSpacing: 0,
+            color: theme.palette.customColors.OnSurfaceVariant
+          }}
+        >
+          Age : {animalData?.age}
+        </Typography>
+        <Typography
+          sx={{
+            fontSize: '14px',
+            fontWeight: 400,
+            letterSpacing: 0,
+            color: theme.palette.customColors.OnSurfaceVariant
+          }}
+        >
+          Site : {animalData?.site}
+        </Typography>
+      </Box>
+    </Box>
+  )
+
   const columns = headerList.map((header, i) => {
     if (header.key === 'default_icon') {
       return {
@@ -224,117 +353,11 @@ const AnimalAssessment = () => {
         renderCell: params => (
           <Box
             sx={{
-              display: 'flex',
-              alignItems: 'center',
-              gap: '12px',
-              minHeight: '121px',
-              // bgcolor: '#EFF5F2',
-              // borderRadius: '8px',
               paddingLeft: '20px'
             }}
           >
-            <Box
-              sx={{
-                display: 'flex',
-                flexDirection: 'column',
-                gap: '10px',
-                alignItems: 'center'
-              }}
-            >
-              <Avatar
-                sx={{
-                  '& > img': {
-                    objectFit:
-                      params.row.default_icon?.includes('class_images') && params.row.default_icon?.endsWith('.svg')
-                        ? 'contain'
-                        : 'cover',
-                    padding:
-                      params.row.default_icon?.includes('class_images') && params.row.default_icon.endsWith('.svg')
-                        ? '3px'
-                        : 0
-                  },
-                  width: 32,
-                  height: 32
-                }}
-                alt={params.row.default_icon}
-                src={params.row.default_icon}
-              />
-              <Avatar
-                sx={{
-                  width: 22.22,
-                  height: 20.15,
-                  bgcolor:
-                    animalDetailsData?.type === 'group'
-                      ? '#00AFD6'
-                      : animalDetailsData?.sex === 'male'
-                      ? '#AFEFEB'
-                      : animalDetailsData?.sex === 'female'
-                      ? '#FFD3D3'
-                      : animalDetailsData?.sex === 'undetermined' || animalDetailsData?.sex === 'indeterminate'
-                      ? '#DDEBE9'
-                      : '#AFEFEB',
-                  objectFit: 'contain',
-                  pt: 0.2,
-                  height: 24,
-                  display: 'flex',
-                  justifyContent: 'center',
-                  alignItems: 'center'
-                }}
-                variant='rounded'
-              >
-                {animalDetailsData?.type === 'group' ? (
-                  <Typography sx={{ fontSize: 14, color: '#fff', fontWeight: 500 }}>G</Typography>
-                ) : animalDetailsData?.sex === 'male' ? (
-                  <Typography sx={{ fontSize: 14, fontWeight: 500, color: '#1F415B' }}>M</Typography>
-                ) : animalDetailsData?.sex === 'female' ? (
-                  <Typography sx={{ fontSize: 14, fontWeight: 500, color: '#4A0415' }}>F</Typography>
-                ) : animalDetailsData?.sex === 'undetermined' ? (
-                  <Typography sx={{ fontSize: 14, fontWeight: 500, color: '#E93353' }}>UD</Typography>
-                ) : animalDetailsData?.sex === 'indeterminate' ? (
-                  <Typography sx={{ fontSize: 14, fontWeight: 500, color: '#44544A' }}>ID</Typography>
-                ) : (
-                  <Typography sx={{ fontSize: 14 }}>-</Typography>
-                )}
-              </Avatar>
-            </Box>
-            <Box>
-              <Typography sx={{ fontSize: '12px', fontWeight: 600, letterSpacing: 0, color: '#44544A' }}>
-                AID: {params.row.primary_animal_id}
-              </Typography>
-              <Typography sx={{ fontSize: '14px', fontWeight: 500, letterSpacing: 0, color: '#44544A' }}>
-                {params.row.common_name}
-              </Typography>
-              <Typography sx={{ fontSize: '14px', fontWeight: 400, letterSpacing: 0, color: '#44544A' }}>
-                {params.row.scientific_name}
-              </Typography>
-              <Typography sx={{ fontSize: '14px', fontWeight: 400, letterSpacing: 0, color: '#44544A' }}>
-                Age : {params.row.age}
-              </Typography>
-              <Typography sx={{ fontSize: '14px', fontWeight: 400, letterSpacing: 0, color: '#44544A' }}>
-                Site : {params.row.site}
-              </Typography>
-            </Box>
+            <AnimalCard animalData={params?.row} />
           </Box>
-          // <CardHeader
-          //   avatar={<img src={params.row.default_icon} alt='' style={{ width: 40, height: 40, borderRadius: '50%' }} />}
-          //   title={
-          //     <Typography fontWeight={600} fontSize={14} color={theme.palette.primary.OnSurface}>
-          //       AID: {params.row.primary_animal_id}
-          //     </Typography>
-          //   }
-          //   subheader={
-          //     <>
-          //       <Typography fontSize={13} fontWeight={500}>
-          //         {params.row.common_name}
-          //       </Typography>
-          //       <Typography fontSize={13} fontStyle='italic'>
-          //         {params.row.scientific_name}
-          //       </Typography>
-          //       <Typography fontSize={13}>Age: {params.row.age}</Typography>
-          //       <Typography fontSize={13}>Site: {params.row.site}</Typography>
-          //     </>
-          //   }
-          // />
         )
       }
     }
@@ -365,7 +388,8 @@ const AnimalAssessment = () => {
                 common_name: params?.row.common_name,
                 scientific_name: params?.row.scientific_name,
                 age: params.row.age,
-                site: params?.row.site
+                site: params?.row.site,
+                sex: params.row.sex
               })
               setShowDetailsPopUp(true)
             }}
@@ -382,7 +406,7 @@ const AnimalAssessment = () => {
           <Box
             sx={{
               flex: 1,
-              backgroundColor: '#f2f2f2',
+              backgroundColor: theme.palette.customColors.cardHeaderBg,
               height: '100%'
               // mr: headerList.length === i + 1 ? '-20px' : 0
             }}
@@ -476,223 +500,143 @@ const AnimalAssessment = () => {
     }
   }
 
-  const DetailsDialog = ({ animalDetailsData }) => (
-    <>
-      <Dialog open={showDetailsPopUp}>
-        {/* <DialogTitle>
-          <IconButton
-            aria-label='close'
-            onClick={() => setShowDetailsPopUp(false)}
-            sx={{ top: 10, right: 10, position: 'absolute', color: 'grey.500' }}
-          >
-            <Icon icon='mdi:close' />
-          </IconButton>
+  const DetailsDialog = ({ animalDetailsData }) => {
+    // console.log('animalDetailsData', animalDetailsData)
+    return (
+      <>
+        <Dialog open={showDetailsPopUp}>
           <Box
-            sx={{
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '32px',
-              alignItems: 'center'
-            }}
-          >
-            <Box
-              sx={{
-                padding: '16px',
-                borderRadius: '12px',
-                backgroundColor: theme?.palette?.customColors?.mdAntzNeutral || 'transparent'
-              }}
-            >
-              <Icon width='70px' height='70px' color={'#ff3838'} icon={'mdi:delete'} />
-            </Box>
-            <Box>
-              <Typography sx={{ fontWeight: 600, fontSize: 24, textAlign: 'center', mb: '12px' }}>{'sdcf'}</Typography>
-            </Box>
-          </Box>
-        </DialogTitle> */}
-        <Box sx={{ bgcolor: '#fff', height: '416px', width: '560px', borderRadius: '8px' }}>
-          <Box
-            sx={{
-              display: 'flex',
-              justifyContent: 'space-between',
-              height: '52px',
-              padding: '16px',
-              bgcolor: '#DDEBE9'
-            }}
-          >
-            <Typography sx={{ fontSize: '16px', fontWeight: 500, letterSpacing: 0, color: '#000000' }}>
-              Assessment Details
-            </Typography>
-            <IconButton
-              aria-label='close'
-              onClick={() => setShowDetailsPopUp(false)}
-              sx={{ top: 10, right: 10, position: 'absolute', color: 'grey.500' }}
-            >
-              <Icon color={'#1F515B'} icon='mdi:close' />
-            </IconButton>
-          </Box>
-          <Box
-            sx={{
-              height: '364px',
-              padding: '24px',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '24px',
-              overflowY: 'auto',
-              '&::-webkit-scrollbar': {
-                width: '4px'
-              },
-              '&::-webkit-scrollbar-thumb': {
-                backgroundColor: 'rgba(0,0,0,0.4)',
-                borderRadius: '9px'
-              },
-              '&::-webkit-scrollbar-track': {
-                backgroundColor: 'transparent'
-              }
-            }}
+            sx={{ bgcolor: theme.palette.primary.contrastText, height: '416px', width: '560px', borderRadius: '8px' }}
           >
             <Box
               sx={{
                 display: 'flex',
-                alignItems: 'center',
-                gap: '12px',
-                minHeight: '121px',
-                bgcolor: '#EFF5F2',
-                borderRadius: '8px',
-                paddingLeft: '20px'
+                justifyContent: 'space-between',
+                height: '52px',
+                padding: '16px',
+                bgcolor: theme.palette.customColors.displaybgSecondary
+              }}
+            >
+              <Typography
+                sx={{ fontSize: '16px', fontWeight: 500, letterSpacing: 0, color: theme.palette.customColors.deepDark }}
+              >
+                Assessment Details
+              </Typography>
+              <IconButton
+                aria-label='close'
+                onClick={() => setShowDetailsPopUp(false)}
+                sx={{ top: 10, right: 10, position: 'absolute', color: 'grey.500' }}
+              >
+                <Icon color={theme.palette.primary.light} icon='mdi:close' />
+              </IconButton>
+            </Box>
+            <Box
+              sx={{
+                height: '364px',
+                padding: '24px',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '24px',
+                overflowY: 'auto',
+                '&::-webkit-scrollbar': {
+                  width: '4px'
+                },
+                '&::-webkit-scrollbar-thumb': {
+                  backgroundColor: 'rgba(0,0,0,0.4)',
+                  borderRadius: '9px'
+                },
+                '&::-webkit-scrollbar-track': {
+                  backgroundColor: 'transparent'
+                }
               }}
             >
               <Box
                 sx={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '10px',
-                  alignItems: 'center'
+                  minHeight: '121px',
+                  bgcolor: theme.palette.customColors.lightBg,
+                  borderRadius: '8px',
+                  padding: '10px',
+                  paddingLeft: '20px'
                 }}
               >
-                <Avatar
-                  sx={{
-                    '& > img': {
-                      objectFit:
-                        animalDetailsData?.default_icon?.includes('class_images') &&
-                        animalDetailsData?.default_icon?.endsWith('.svg')
-                          ? 'contain'
-                          : 'cover',
-                      padding:
-                        animalDetailsData?.default_icon?.includes('class_images') &&
-                        animalDetailsData?.default_icon.endsWith('.svg')
-                          ? '3px'
-                          : 0
-                    },
-                    width: 32,
-                    height: 32
-                  }}
-                  alt={animalDetailsData?.default_icon}
-                  src={animalDetailsData?.default_icon}
-                />
-                <Avatar
-                  sx={{
-                    width: 22.22,
-                    height: 20.15,
-                    bgcolor:
-                      animalDetailsData?.type === 'group'
-                        ? '#00AFD6'
-                        : animalDetailsData?.sex === 'male'
-                        ? '#AFEFEB'
-                        : animalDetailsData?.sex === 'female'
-                        ? '#FFD3D3'
-                        : animalDetailsData?.sex === 'undetermined' || animalDetailsData?.sex === 'indeterminate'
-                        ? '#DDEBE9'
-                        : '#AFEFEB',
-                    objectFit: 'contain',
-                    pt: 0.2,
-                    height: 24,
-                    display: 'flex',
-                    justifyContent: 'center',
-                    alignItems: 'center'
-                  }}
-                  variant='rounded'
-                >
-                  {animalDetailsData?.type === 'group' ? (
-                    <Typography sx={{ fontSize: 14, color: '#fff', fontWeight: 500 }}>G</Typography>
-                  ) : animalDetailsData?.sex === 'male' ? (
-                    <Typography sx={{ fontSize: 14, fontWeight: 500, color: '#1F415B' }}>M</Typography>
-                  ) : animalDetailsData?.sex === 'female' ? (
-                    <Typography sx={{ fontSize: 14, fontWeight: 500, color: '#4A0415' }}>F</Typography>
-                  ) : animalDetailsData?.sex === 'undetermined' ? (
-                    <Typography sx={{ fontSize: 14, fontWeight: 500, color: '#E93353' }}>UD</Typography>
-                  ) : animalDetailsData?.sex === 'indeterminate' ? (
-                    <Typography sx={{ fontSize: 14, fontWeight: 500, color: '#44544A' }}>ID</Typography>
-                  ) : (
-                    <Typography sx={{ fontSize: 14 }}>-</Typography>
-                  )}
-                </Avatar>
+                <AnimalCard animalData={animalDetailsData} />
               </Box>
-              <Box>
-                <Typography sx={{ fontSize: '12px', fontWeight: 600, letterSpacing: 0, color: '#44544A' }}>
-                  AID: {animalDetailsData?.primary_animal_id}
-                </Typography>
-                <Typography sx={{ fontSize: '14px', fontWeight: 500, letterSpacing: 0, color: '#44544A' }}>
-                  {animalDetailsData?.common_name}
-                </Typography>
-                <Typography sx={{ fontSize: '14px', fontWeight: 400, letterSpacing: 0, color: '#44544A' }}>
-                  {animalDetailsData?.scientific_name}
-                </Typography>
-                <Typography sx={{ fontSize: '14px', fontWeight: 400, letterSpacing: 0, color: '#44544A' }}>
-                  Age : {animalDetailsData?.age}
-                </Typography>
-                <Typography sx={{ fontSize: '14px', fontWeight: 400, letterSpacing: 0, color: '#44544A' }}>
-                  Site : {animalDetailsData?.site}
-                </Typography>
-              </Box>
-            </Box>
-            <Box sx={{ gap: '8px', display: 'flex', flexDirection: 'column' }}>
-              <Typography sx={{ fontSize: '14px', fontWeight: 600, letterSpacing: 0, color: '#44544A' }}>
-                {selectedAssessmentType?.assessments_type_label}
-              </Typography>
-              <Box
-                sx={{
-                  padding: '12px',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '24px',
-                  bgcolor: '#0000000D',
-                  borderRadius: '8px'
-                }}
-              >
+
+              <Box sx={{ gap: '8px', display: 'flex', flexDirection: 'column' }}>
                 <Typography
-                  sx={{ fontSize: '16px', fontWeight: 400, letterSpacing: 0, lineHeight: '20px', color: '#44544A' }}
+                  sx={{
+                    fontSize: '14px',
+                    fontWeight: 600,
+                    letterSpacing: 0,
+                    color: theme.palette.customColors.OnSurfaceVariant
+                  }}
                 >
-                  Lorem ipsum dolor sit amet consectetur adipisicing elit. Aliquam nostrum voluptatum ipsa voluptas ut
-                  facere fugit, odit, dignissimos quo, itaque molestiae officia a e
+                  {selectedAssessmentType?.assessments_type_label}
                 </Typography>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                  <Box sx={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
-                    <Avatar
+                <Box
+                  sx={{
+                    padding: '12px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '24px',
+                    bgcolor: theme.palette.customColors.mdAntzNeutral,
+                    borderRadius: '8px'
+                  }}
+                >
+                  <Typography
+                    sx={{
+                      fontSize: '16px',
+                      fontWeight: 400,
+                      letterSpacing: 0,
+                      lineHeight: '20px',
+                      color: theme.palette.customColors.OnSurfaceVariant
+                    }}
+                  >
+                    {animalDetailsData.value}
+                  </Typography>
+                  <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      <Avatar
+                        sx={{
+                          '& > img': {
+                            objectFit: 'contain'
+                          },
+                          width: 24,
+                          height: 24
+                        }}
+                        alt={animalDetailsData?.user?.profile_image}
+                        src={animalDetailsData?.user?.profile_image}
+                      />
+                      <Typography
+                        sx={{
+                          fontSize: '14px',
+                          fontWeight: 400,
+                          letterSpacing: 0,
+                          color: theme.palette.customColors.OnSurfaceVariant
+                        }}
+                      >
+                        {animalDetailsData?.user?.user_first_name} {animalDetailsData?.user.user_last_name}
+                      </Typography>
+                    </Box>
+                    <Typography
                       sx={{
-                        '& > img': {
-                          objectFit: 'contain'
-                        },
-                        width: 24,
-                        height: 24
+                        fontSize: '14px',
+                        fontWeight: 400,
+                        letterSpacing: 0,
+                        color: theme.palette.customColors.OnSurfaceVariant
                       }}
-                      alt={animalDetailsData?.user?.profile_image}
-                      src={animalDetailsData?.user?.profile_image}
-                    />
-                    <Typography sx={{ fontSize: '14px', fontWeight: 400, letterSpacing: 0, color: '#44544A' }}>
-                      {animalDetailsData?.user?.user_first_name} {animalDetailsData?.user.user_last_name}
+                    >
+                      {animalDetailsData.time} • {animalDetailsData.date}
                     </Typography>
                   </Box>
-                  <Typography sx={{ fontSize: '14px', fontWeight: 400, letterSpacing: 0, color: '#44544A' }}>
-                    {animalDetailsData.time} • {animalDetailsData.date}
-                  </Typography>
                 </Box>
               </Box>
             </Box>
           </Box>
-        </Box>
-      </Dialog>
-    </>
-  )
+        </Dialog>
+      </>
+    )
+  }
 
   return (
     <>
@@ -706,7 +650,7 @@ const AnimalAssessment = () => {
 
           <Box
             sx={{
-              backgroundColor: '#E8F4F2',
+              backgroundColor: theme.palette.customColors.tableHeaderBg,
               borderRadius: '8px',
               padding: '24px',
               display: 'flex',
@@ -721,20 +665,26 @@ const AnimalAssessment = () => {
               sx={{ cursor: 'pointer', flex: 1, display: 'flex', flexDirection: 'column', gap: '8px', minWidth: 200 }}
             >
               <Typography
-                sx={{ fontWeight: 600, fontSize: '14px', lineHeight: '100%', letterSpacing: '0%', color: '#44544A' }}
+                sx={{
+                  fontWeight: 600,
+                  fontSize: '14px',
+                  lineHeight: '100%',
+                  letterSpacing: '0%',
+                  color: theme.palette.customColors.OnSurfaceVariant
+                }}
               >
                 Species
               </Typography>
               <Box
                 sx={{
-                  bgcolor: '#FFFFFF',
+                  bgcolor: theme.palette.primary.contrastText,
                   display: 'flex',
                   justifyContent: 'space-between',
                   alignItems: 'center',
                   padding: '16px',
                   height: '56px',
                   borderRadius: '8px',
-                  border: '1px solid #C3CEC7'
+                  border: `1px solid ${theme.palette.customColors.OutlineVariant}`
                 }}
               >
                 {selectedSpecie?.tsn_id ? (
@@ -744,7 +694,7 @@ const AnimalAssessment = () => {
                       fontSize: '16px',
                       lineHeight: '100%',
                       letterSpacing: '0%',
-                      color: '#1F515B',
+                      color: theme.palette.primary.light,
                       overflow: 'hidden',
                       textOverflow: 'ellipsis',
                       whiteSpace: 'nowrap'
@@ -759,7 +709,7 @@ const AnimalAssessment = () => {
                       fontSize: '16px',
                       lineHeight: '100%',
                       letterSpacing: '0%',
-                      color: '#7A8684',
+                      color: theme.palette.customColors.neutralSecondary,
                       overflow: 'hidden',
                       textOverflow: 'ellipsis',
                       whiteSpace: 'nowrap'
@@ -769,7 +719,7 @@ const AnimalAssessment = () => {
                   </Typography>
                 )}
                 <IconButton sx={{ mr: -4, width: '37px' }}>
-                  <Icon icon='fa:angle-right' fontSize={20} color={'#1F515B'} />
+                  <Icon icon='fa:angle-right' fontSize={20} color={theme.palette.primary.light} />
                 </IconButton>
               </Box>
             </Box>
@@ -780,20 +730,26 @@ const AnimalAssessment = () => {
               sx={{ cursor: 'pointer', flex: 1, display: 'flex', flexDirection: 'column', gap: '8px', minWidth: 200 }}
             >
               <Typography
-                sx={{ fontWeight: 600, fontSize: '14px', lineHeight: '100%', letterSpacing: '0%', color: '#44544A' }}
+                sx={{
+                  fontWeight: 600,
+                  fontSize: '14px',
+                  lineHeight: '100%',
+                  letterSpacing: '0%',
+                  color: theme.palette.customColors.OnSurfaceVariant
+                }}
               >
                 Assessment Type
               </Typography>
               <Box
                 sx={{
-                  bgcolor: '#FFFFFF',
+                  bgcolor: theme.palette.primary.contrastText,
                   display: 'flex',
                   justifyContent: 'space-between',
                   alignItems: 'center',
                   padding: '16px',
                   height: '56px',
                   borderRadius: '8px',
-                  border: '1px solid #C3CEC7'
+                  border: `1px solid ${theme.palette.customColors.OutlineVariant}`
                 }}
               >
                 {selectedAssessmentType?.assessments_type_label ? (
@@ -802,7 +758,7 @@ const AnimalAssessment = () => {
                       fontWeight: 500,
                       fontSize: '16px',
                       letterSpacing: '0%',
-                      color: '#1F515B',
+                      color: theme.palette.primary.light,
                       overflow: 'hidden',
                       textOverflow: 'ellipsis',
                       whiteSpace: 'nowrap'
@@ -816,7 +772,7 @@ const AnimalAssessment = () => {
                       fontWeight: 400,
                       fontSize: '16px',
                       letterSpacing: '0%',
-                      color: '#7A8684',
+                      color: theme.palette.customColors.neutralSecondary,
                       overflow: 'hidden',
                       textOverflow: 'ellipsis',
                       whiteSpace: 'nowrap'
@@ -827,7 +783,7 @@ const AnimalAssessment = () => {
                 )}
 
                 <IconButton sx={{ mr: -4, width: '37px' }}>
-                  <Icon icon='fa:angle-right' fontSize={20} color={'#1F515B'} />
+                  <Icon icon='fa:angle-right' fontSize={20} color={theme.palette.primary.light} />
                 </IconButton>
               </Box>
             </Box>
@@ -866,7 +822,7 @@ const AnimalAssessment = () => {
                     }}
                     sx={{
                       width: '240px',
-                      backgroundColor: '#fff',
+                      backgroundColor: theme.palette.primary.contrastText,
                       borderRadius: '4px', // Applies to the container
                       '& .MuiOutlinedInput-root': {
                         borderRadius: '4px' // Applies to the input field
@@ -906,8 +862,8 @@ const AnimalAssessment = () => {
                           height: '27px',
                           paddingX: 2,
                           borderRadius: '14px',
-                          backgroundColor: '#1F515B',
-                          color: '#FFFFFF',
+                          backgroundColor: theme.palette.primary.light,
+                          color: theme.palette.primary.contrastText,
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
@@ -973,7 +929,7 @@ const AnimalAssessment = () => {
         <Box
           sx={{
             mt: 4,
-            bgcolor: '#F2FFF8',
+            bgcolor: theme.palette.customColors.Surface,
             height: '216px',
             borderRadius: '8px',
             display: 'flex',
@@ -985,7 +941,13 @@ const AnimalAssessment = () => {
             <CircularProgress color='success' size={30} />
           ) : (
             <Typography
-              sx={{ fontSize: '20px', fontWeight: 500, lineHeight: '100%', letterSpacing: 0, color: '#1F515B' }}
+              sx={{
+                fontSize: '20px',
+                fontWeight: 500,
+                lineHeight: '100%',
+                letterSpacing: 0,
+                color: theme.palette.primary.light
+              }}
             >
               Select Species and Assessment Type to Generate Report
             </Typography>
@@ -1032,6 +994,8 @@ const AnimalAssessment = () => {
       )}
       {openassessmentFilter && (
         <AssessmentTypeFilter
+          selectedCategory={selectedCategory}
+          setSelectedCategory={setSelectedCategory}
           selectedAssessmentType={selectedAssessmentType}
           setSelectedAssessmentType={setSelectedAssessmentType}
           openassessmentFilter={openassessmentFilter}
@@ -1081,7 +1045,7 @@ export default AnimalAssessment
                       />
 
                       <Typography
-                        sx={{ color: '#1F515B', textTransform: 'capitalize', mr: 8, fontSize: '16px', fontWeight: 400 }}
+                        sx={{ color: theme.palette.primary.light, textTransform: 'capitalize', mr: 8, fontSize: '16px', fontWeight: 400 }}
                       >
                         Filter
                       </Typography>
@@ -1094,8 +1058,8 @@ export default AnimalAssessment
                           width: '29px',
                           height: '27px',
                           borderRadius: '69%',
-                          backgroundColor: '#1F515B',
-                          color: '#FFFFFF',
+                          backgroundColor: theme.palette.primary.light,
+                          color: theme.palette.primary.contrastText,
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
