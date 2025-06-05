@@ -372,7 +372,7 @@ const Overview = props => {
                         </TableRow>
                       ) : (
                         <>
-                          {data?.local.map(store => (
+                          {data?.local?.map(store => (
                             <TableRow
                               key={store?.store_id}
                               sx={{
