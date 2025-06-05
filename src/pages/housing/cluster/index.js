@@ -5,6 +5,8 @@ import { useQuery } from '@tanstack/react-query'
 import { debounce } from 'lodash'
 import { useRouter } from 'next/router'
 import React, { useCallback, useEffect, useMemo, useState } from 'react'
+import SpeciesDrawer from 'src/components/housing/utils/SpeciesDrawer'
+import AnimalsDrawer from 'src/components/housing/utils/AnimalDrawer'
 import { useAuth } from 'src/hooks/useAuth'
 import { getClusterList, getSiteAnalytics } from 'src/lib/api/housing'
 import RenderUtility, { CellInfo } from 'src/utility/render'
@@ -14,6 +16,7 @@ import InsightsCard from 'src/views/utility/insights/InsightsCard'
 import UserInfoCard from 'src/views/utility/insights/UserInfoCard'
 import { ExportButton } from 'src/views/utility/render-snippets'
 import Search from 'src/views/utility/Search'
+import EnclosureDrawer from 'src/components/housing/utils/EnclosureDrawer'
 
 const Clusters = () => {
   const theme = useTheme()
@@ -34,6 +37,28 @@ const Clusters = () => {
     sortBy: '',
     sortOrder: 'asc'
   })
+
+  const [drawerType, setDrawerType] = useState(null)
+  const [drawerData, setDrawerData] = useState(null)
+
+  const handleClusterInsightClick = () => {
+    setDrawerType('enclosures')
+    setDrawerData({
+      queryKey: 'insights-enclosures-cluster-drawer',
+
+      id: zooId,
+
+      // name: params.row?.site_name,
+      // image: params.row?.images?.[0]?.file,
+      params: {
+        ref_type: 'zoo',
+        data_type: 'enclosure',
+        ref_id: zooId
+
+        // site_id: params.row?.site_id
+      }
+    })
+  }
 
   useEffect(() => {
     const { page = '1', pageSize = '10', search = '', sortBy = '', sortOrder = 'asc' } = query
@@ -95,7 +120,7 @@ const Clusters = () => {
       label: 'Enclosures',
       value: statsData?.data?.zoo_stats?.total_enclosures || 0,
       imagePath: '/images/housing/enclosures.svg',
-      onClick: () => console.log('Enclosures')
+      onClick: handleClusterInsightClick
     }
   ]
 
@@ -178,17 +203,31 @@ const Clusters = () => {
   }
 
   const handleRowClick = params => {
-    const detailUrl = {
-      pathname: `/housing/cluster/${params.row.cluster_id}`,
-      query: {
-        ...filters
-      } // preserve current filters
+    if (
+      params.field !== 'id' &&
+      params?.field !== 'actions' &&
+      params?.field !== 'species_count' &&
+      params?.field !== 'animal_count' &&
+      params?.field !== 'site_count' &&
+      params?.field !== 'incharge'
+    ) {
+      const detailUrl = {
+        pathname: `/housing/cluster/${params.row.cluster_id}`,
+        query: {
+          ...filters
+        } // preserve current filters
+      }
+      router.push(detailUrl)
     }
-    router.push(detailUrl)
   }
 
   const handleDownload = () => {
     console.log('Downloading...')
+  }
+
+  const handleDrawerClose = () => {
+    setDrawerType(null)
+    setDrawerData(null)
   }
 
   const columns = [
@@ -244,7 +283,20 @@ const Clusters = () => {
       sortable: false,
       renderCell: params => (
         <Box
-          sx={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'left', pl: 2 }}
+          sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600, cursor: 'default', pl: 2 }}
+          onClick={e => {
+            e.stopPropagation()
+            setDrawerType('species')
+            setDrawerData({
+              queryKey: 'cluster-species-drawer',
+              id: params.row.cluster_id,
+              name: params.row.cluster_name,
+              image: params.row.images?.[0]?.file,
+              params: {
+                cluster_id: params.row.cluster_id
+              }
+            })
+          }}
         >
           <Typography
             sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600, cursor: 'default' }}
@@ -264,6 +316,19 @@ const Clusters = () => {
       renderCell: params => (
         <Box
           sx={{ width: '100%', height: '100%', display: 'flex', alignItems: 'center', justifyContent: 'left', pl: 2 }}
+          onClick={e => {
+            e.stopPropagation()
+            setDrawerType('animals')
+            setDrawerData({
+              queryKey: 'cluster-animal-drawer',
+              id: params.row.cluster_id,
+              name: params.row.cluster_name,
+              image: params.row.images?.[0]?.file,
+              params: {
+                cluster_id: params.row.cluster_id
+              }
+            })
+          }}
         >
           <Typography
             sx={{ color: theme.palette.primary.OnSurface, fontSize: '16px', fontWeight: 600, cursor: 'default' }}
@@ -433,7 +498,7 @@ const Clusters = () => {
                   }}
                 >
                   <CommonTable
-                    onRowClick={handleRowClick}
+                    onCellClick={handleRowClick}
                     indexedRows={indexedRows}
                     total={total}
                     columns={columns}
@@ -451,6 +516,11 @@ const Clusters = () => {
           </Box>
         </Box>
       </Box>
+      {drawerType === 'species' && <SpeciesDrawer open={!!drawerData} onClose={handleDrawerClose} data={drawerData} />}
+      {drawerType === 'animals' && <AnimalsDrawer open={!!drawerData} onClose={handleDrawerClose} data={drawerData} />}
+      {drawerType === 'enclosures' && (
+        <EnclosureDrawer open={!!drawerData} onClose={handleDrawerClose} data={drawerData} />
+      )}
     </>
   )
 }
