@@ -1,10 +1,11 @@
-import { Typography, Box, Avatar, Tooltip } from '@mui/material'
+import { Typography, Box, Avatar, Tooltip, Skeleton } from '@mui/material'
 import CustomAvatar from 'src/@core/components/mui/avatar'
 import Utility from 'src/utility'
 import Icon from 'src/@core/components/icon'
 import { format, formatDistanceToNow } from 'date-fns'
 import { useTheme } from '@emotion/react'
 import moment from 'moment'
+import { useState } from 'react'
 
 export const getEllipsisStyleForText = width => {
   return {
@@ -256,36 +257,48 @@ export const getToolTipForText = text => {
 export const CellInfo = ({ value, subtitle, color, subtitleColor, imgUrl, avatarUrl, inchagename }) => {
   const theme = useTheme()
 
+  const [imgLoaded, setImgLoaded] = useState(false)
+  const [imgError, setImgError] = useState(false)
+  const showSkeleton = imgUrl && !imgLoaded && !imgError
   const hasExtraInfo = subtitle || inchagename
 
   return (
     <Box display='flex' alignItems='center' gap={2} width='100%'>
       {/* Thumbnail Image */}
-      {imgUrl ? (
-        <Box
-          component='img'
-          src={imgUrl}
-          alt={value}
-          sx={{
-            width: 40,
-            height: 40,
-            borderRadius: '4px',
-            objectFit: 'cover'
-          }}
-        />
+      {imgUrl && !imgError ? (
+        <>
+          {showSkeleton && <Skeleton variant='rectangular' width={40} height={40} sx={{ borderRadius: '4px' }} />}
+          <Box
+            component='img'
+            src={imgUrl}
+            alt={value}
+            onLoad={() => setImgLoaded(true)}
+            onError={() => setImgError(true)}
+            sx={{
+              width: 40,
+              height: 40,
+              borderRadius: '4px',
+              objectFit: 'cover',
+              display: imgLoaded ? 'block' : 'none'
+            }}
+          />
+        </>
       ) : (
         <Avatar
           variant='square'
+          src='/images/housing/section-icon-colored.png'
+          alt='sections'
           sx={{
             width: 40,
             height: 40,
             borderRadius: '4px',
             fontSize: 18,
-            bgcolor: theme.palette.primary.main
+            bgcolor: theme.palette.customColors.displaybgSecondary,
+            p: '6px'
+
+            // color: theme.palette.customColors.OnPrimaryContainer
           }}
-        >
-          {value?.charAt(0).toUpperCase() || '?'}
-        </Avatar>
+        />
       )}
 
       {/* Text Info */}

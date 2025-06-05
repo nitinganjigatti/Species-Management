@@ -344,34 +344,54 @@ const Clusters = () => {
       headerAlign: 'left',
       sortable: false,
       renderCell: params => {
-        if (!isSmallScreen) {
-          // Show mobile number on small and extra small devices
-          return (
-            <Typography sx={{ fontSize: '14px', fontWeight: 500, cursor: 'default' }}>
-              {params.row.incharge_mobile_no || '-'}
-            </Typography>
-          )
-        } else {
-          // Show phone icon on medium and larger devices
-          return (
-            <>
-              {params.row.incharge_mobile_no ? (
-                <Box
-                  component='img'
-                  src='/images/call.png'
-                  alt='Phone'
-                  sx={{ width: 20, height: 20, cursor: 'pointer' }}
-                  onClick={() => {
-                    // window.open(`tel:${params.row.incharge_mobile_no}`)
-                    console.log(`Calling ${params.row.incharge_mobile_no}`)
-                  }}
-                />
-              ) : (
-                '-'
-              )}
-            </>
-          )
+        const phoneNumber = params.row.incharge_mobile_no
+        let pressTimer
+
+        const handleLongPress = () => {
+          if (phoneNumber) {
+            navigator.clipboard.writeText(phoneNumber)
+            alert('Number copied to clipboard')
+          }
         }
+
+        const handleMouseDown = () => {
+          pressTimer = setTimeout(handleLongPress, 700)
+        }
+
+        const handleMouseUp = () => {
+          clearTimeout(pressTimer)
+        }
+
+        return isSmallScreen ? (
+          phoneNumber ? (
+            <Box display='flex' gap={4}>
+              {/* Call Icon */}
+              <Box
+                component='img'
+                src='/images/call.png'
+                alt='Call'
+                sx={{ width: 20, height: 20, cursor: 'pointer' }}
+                onClick={() => window.open(`tel:${phoneNumber}`)}
+                onTouchStart={handleMouseDown}
+                onTouchEnd={handleMouseUp}
+                onMouseDown={handleMouseDown}
+                onMouseUp={handleMouseUp}
+              />
+              {/* Message Icon */}
+              <Box
+                component='img'
+                src='/images/message.png' // <-- Replace with your message icon path
+                alt='Message'
+                sx={{ width: 20, height: 20, cursor: 'pointer' }}
+                onClick={() => window.open(`sms:${phoneNumber}`)}
+              />
+            </Box>
+          ) : (
+            '-'
+          )
+        ) : (
+          <Typography sx={{ fontSize: '14px', fontWeight: 500, cursor: 'default' }}>{phoneNumber || '-'}</Typography>
+        )
       }
     }
   ]

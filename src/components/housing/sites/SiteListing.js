@@ -408,34 +408,54 @@ const Listing = () => {
       headerAlign: 'left',
       sortable: false,
       renderCell: params => {
-        if (!isSmallScreen) {
-          // Show mobile number on small and extra small devices
-          return (
-            <Typography sx={{ fontSize: '14px', fontWeight: 500, cursor: 'default' }}>
-              {params.row.incharge_mobile_no || '-'}
-            </Typography>
-          )
-        } else {
-          // Show phone icon on larger devices
-          return (
-            <>
-              {params.row.incharge_mobile_no ? (
-                <Box
-                  component='img'
-                  src='/images/call.png'
-                  alt='Phone'
-                  sx={{ width: 20, height: 20, cursor: 'pointer' }}
-                  onClick={() => {
-                    // window.open(`tel:${params.row.incharge_mobile_no}`)
-                    console.log(`Calling ${params.row.incharge_mobile_no}`)
-                  }}
-                />
-              ) : (
-                '-'
-              )}
-            </>
-          )
+        const phoneNumber = params.row.incharge_mobile_no
+        let pressTimer
+
+        const handleLongPress = () => {
+          if (phoneNumber) {
+            navigator.clipboard.writeText(phoneNumber)
+            alert('Number copied to clipboard')
+          }
         }
+
+        const handleMouseDown = () => {
+          pressTimer = setTimeout(handleLongPress, 700)
+        }
+
+        const handleMouseUp = () => {
+          clearTimeout(pressTimer)
+        }
+
+        return isSmallScreen ? (
+          phoneNumber ? (
+            <Box display='flex' gap={4}>
+              {/* Call Icon */}
+              <Box
+                component='img'
+                src='/images/call.png'
+                alt='Call'
+                sx={{ width: 20, height: 20, cursor: 'pointer' }}
+                onClick={() => window.open(`tel:${phoneNumber}`)}
+                onTouchStart={handleMouseDown}
+                onTouchEnd={handleMouseUp}
+                onMouseDown={handleMouseDown}
+                onMouseUp={handleMouseUp}
+              />
+              {/* Message Icon */}
+              <Box
+                component='img'
+                src='/images/message.png' // <-- Replace with your message icon path
+                alt='Message'
+                sx={{ width: 20, height: 20, cursor: 'pointer' }}
+                onClick={() => window.open(`sms:${phoneNumber}`)}
+              />
+            </Box>
+          ) : (
+            '-'
+          )
+        ) : (
+          <Typography sx={{ fontSize: '14px', fontWeight: 500, cursor: 'default' }}>{phoneNumber || '-'}</Typography>
+        )
       }
     }
   ]
@@ -451,58 +471,54 @@ const Listing = () => {
 
   return (
     <>
-        <ListingHeader title='All Sites' totalCount={total} />
-        <Box>
-          <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 4, flexWrap: 'wrap' }}>
-            <Search
-              value={inputValue}
-              onChange={e => handleSearch(e.target.value)}
-              onClear={() => handleSearch('')}
-              placeholder='Search…'
-              sx={{ justifyContent: 'flex-end' }}
-            />
-            {/* <ExportButton loading={downloading} onClick={handleDownload} /> */}
-          </Box>
-          <Grid
-            sx={{
-              '& .MuiDataGrid-cell': { pt: 4, py: 4, px: 4 },
-              '& .MuiDataGrid-columnHeaderTitle': {
-                color: theme.palette.customColors.OnSurfaceVariant,
-                fontSize: '12px',
-                fontWeight: 600,
-                mr: 2
-              }
-            }}
-          >
-            <CommonTable
-              onCellClick={handleRowClick}
-              indexedRows={indexedRows}
-              total={total}
-              columns={columns}
-              pageSizeOptions={[10]}
-              paginationModel={{ page: filters.page - 1, pageSize: filters.pageSize }}
-              setPaginationModel={handlePaginationModelChange}
-              handleSortModel={handleSortModelChange}
-              loading={isFetching}
-              searchValue=''
-              maxHeight='80vh'
-            />
-          </Grid>
+      <ListingHeader title='All Sites' totalCount={total} />
+      <Box>
+        <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: 4, flexWrap: 'wrap' }}>
+          <Search
+            value={inputValue}
+            onChange={e => handleSearch(e.target.value)}
+            onClear={() => handleSearch('')}
+            placeholder='Search…'
+            sx={{ justifyContent: 'flex-end' }}
+          />
+          {/* <ExportButton loading={downloading} onClick={handleDownload} /> */}
         </Box>
+        <Grid
+          sx={{
+            '& .MuiDataGrid-cell': { pt: 4, py: 4, px: 4 },
+            '& .MuiDataGrid-columnHeaderTitle': {
+              color: theme.palette.customColors.OnSurfaceVariant,
+              fontSize: '12px',
+              fontWeight: 600,
+              mr: 2
+            }
+          }}
+        >
+          <CommonTable
+            onCellClick={handleRowClick}
+            indexedRows={indexedRows}
+            total={total}
+            columns={columns}
+            pageSizeOptions={[10]}
+            paginationModel={{ page: filters.page - 1, pageSize: filters.pageSize }}
+            setPaginationModel={handlePaginationModelChange}
+            handleSortModel={handleSortModelChange}
+            loading={isFetching}
+            searchValue=''
+            maxHeight='80vh'
+          />
+        </Grid>
+      </Box>
 
-        {drawerType === 'sections' && (
-          <SectionsDrawer open={!!drawerData} onClose={handleDrawerClose} data={drawerData} />
-        )}
-        {drawerType === 'species' && (
-          <SpeciesDrawer open={!!drawerData} onClose={handleDrawerClose} data={drawerData} />
-        )}
-        {drawerType === 'animals' && (
-          <AnimalsDrawer open={!!drawerData} onClose={handleDrawerClose} data={drawerData} />
-        )}
-        {drawerType === 'enclosures' && (
-          <EnclosureDrawer open={!!drawerData} onClose={handleDrawerClose} data={drawerData} />
-        )}
-      </>
+      {drawerType === 'sections' && (
+        <SectionsDrawer open={!!drawerData} onClose={handleDrawerClose} data={drawerData} />
+      )}
+      {drawerType === 'species' && <SpeciesDrawer open={!!drawerData} onClose={handleDrawerClose} data={drawerData} />}
+      {drawerType === 'animals' && <AnimalsDrawer open={!!drawerData} onClose={handleDrawerClose} data={drawerData} />}
+      {drawerType === 'enclosures' && (
+        <EnclosureDrawer open={!!drawerData} onClose={handleDrawerClose} data={drawerData} />
+      )}
+    </>
   )
 }
 

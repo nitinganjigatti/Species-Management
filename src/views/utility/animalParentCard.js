@@ -1,10 +1,50 @@
-import { Avatar, Typography } from '@mui/material'
+import { Avatar, Skeleton, Typography } from '@mui/material'
 import { Box } from '@mui/system'
 import { useTheme } from '@mui/material/styles'
-import React from 'react'
+import React, { useEffect, useState } from 'react'
 
 const AnimalParentCard = ({ data, backgroundColor, size, animal = false }) => {
   const theme = useTheme()
+
+  const [imageLoading, setImageLoading] = useState(true)
+
+  // const handleImageLoad = () => {
+  //   setImageLoading(false)
+  // }
+
+  useEffect(() => {
+    const img = new Image()
+    img.src = data?.default_icon
+
+    img.onload = () => {
+      setImageLoading(false)
+    }
+
+    img.onerror = () => {
+      setImageLoading(false) // Handle image loading errors as well
+    }
+  }, [data?.default_icon])
+
+  const avatarContent = imageLoading ? (
+    <Skeleton variant='circular' width={44} height={44} />
+  ) : (
+    <Avatar
+      sx={{
+        '& > img': {
+          objectFit:
+            data?.default_icon?.includes('class_images') && data?.default_icon?.endsWith('.svg') ? 'contain' : 'cover'
+        },
+        padding: data?.default_icon?.includes('class_images') && data?.default_icon?.endsWith('.svg') ? 0.4 : 0,
+        width: 44,
+        height: 44,
+        border: '1px solid #C3CEC7'
+      }}
+      alt={data?.default_icon}
+      src={data?.default_icon}
+
+      // onLoad={handleImageLoad}
+    />
+  )
 
   return (
     <>
@@ -28,7 +68,7 @@ const AnimalParentCard = ({ data, backgroundColor, size, animal = false }) => {
               alignItems: 'center'
             }}
           >
-            <Avatar
+            {/* <Avatar
               sx={{
                 '& > img': {
                   objectFit:
@@ -43,7 +83,8 @@ const AnimalParentCard = ({ data, backgroundColor, size, animal = false }) => {
               }}
               alt={data?.default_icon}
               src={data?.default_icon}
-            />
+            /> */}
+            {avatarContent}
             <Avatar
               sx={{
                 width: 24,
@@ -105,17 +146,31 @@ const AnimalParentCard = ({ data, backgroundColor, size, animal = false }) => {
               </Typography>
             )}
 
-            <Typography
-              sx={{
-                fontSize: size ?? '16px',
-                fontWeight: 600,
-                lineHeight: '19.36px',
-                color: theme.palette.customColors.OnSurfaceVariant
-              }}
-            >
-              AID : {data?.animal_id}
-              {/* {Utility?.toPascalSentenceCase(data?.common_name)} */}
-            </Typography>
+            {data?.local_identifier_name !== null ? (
+              <Typography
+                sx={{
+                  fontSize: size ?? '16px',
+                  fontWeight: 600,
+                  lineHeight: '19.36px',
+                  color: theme.palette.customColors.OnSurfaceVariant
+                }}
+              >
+                NAME : {data?.local_identifier_name}
+                {/* {Utility?.toPascalSentenceCase(data?.common_name)} */}
+              </Typography>
+            ) : (
+              <Typography
+                sx={{
+                  fontSize: size ?? '16px',
+                  fontWeight: 600,
+                  lineHeight: '19.36px',
+                  color: theme.palette.customColors.OnSurfaceVariant
+                }}
+              >
+                AID : {data?.animal_id}
+                {/* {Utility?.toPascalSentenceCase(data?.common_name)} */}
+              </Typography>
+            )}
 
             {data?.type === 'group' && (
               <Typography
@@ -188,63 +243,61 @@ const AnimalParentCard = ({ data, backgroundColor, size, animal = false }) => {
               </Typography>
             )}
 
-            {!animal && (
-              <>
-                {data?.breed_name && (
-                  <Typography
-                    sx={{
-                      fontSize: '16px',
-                      fontWeight: 600,
-                      lineHeight: '19.36px',
-                      color: theme.palette.customColors.OnSurfaceVariant
-                    }}
-                  >
-                    Breed : {data?.breed_name}
-                  </Typography>
-                )}
+            <>
+              {/* {data?.breed_name && (
+                <Typography
+                  sx={{
+                    fontSize: '16px',
+                    fontWeight: 600,
+                    lineHeight: '19.36px',
+                    color: theme.palette.customColors.OnSurfaceVariant
+                  }}
+                >
+                  Breed : {data?.breed_name}
+                </Typography>
+              )}
 
-                {data?.morph_name && (
-                  <Typography
-                    sx={{
-                      fontSize: '16px',
-                      fontWeight: 600,
-                      lineHeight: '19.36px',
-                      color: theme.palette.customColors.OnSurfaceVariant
-                    }}
-                  >
-                    Variant : {data?.morph_name}
-                  </Typography>
-                )}
+              {data?.morph_name && (
+                <Typography
+                  sx={{
+                    fontSize: '16px',
+                    fontWeight: 600,
+                    lineHeight: '19.36px',
+                    color: theme.palette.customColors.OnSurfaceVariant
+                  }}
+                >
+                  Variant : {data?.morph_name}
+                </Typography>
+              )} */}
 
-                {data?.breed_name && (
-                  <Typography
-                    sx={{
-                      fontSize: '14px',
-                      fontWeight: 600,
-                      lineHeight: '16.94px',
-                      color: theme.palette.customColors.OnSurfaceVariant
-                    }}
-                  >
-                    <span style={{ fontWeight: 400 }}>Breed : </span>
-                    {data?.breed_name}
-                  </Typography>
-                )}
+              {data?.breed_name && (
+                <Typography
+                  sx={{
+                    fontSize: '14px',
+                    fontWeight: 600,
+                    lineHeight: '16.94px',
+                    color: theme.palette.customColors.OnSurfaceVariant
+                  }}
+                >
+                  <span style={{ fontWeight: 400 }}>Breed : </span>
+                  {data?.breed_name}
+                </Typography>
+              )}
 
-                {data?.morph_name && (
-                  <Typography
-                    sx={{
-                      fontSize: '14px',
-                      fontWeight: 600,
-                      lineHeight: '16.94px',
-                      color: theme.palette.customColors.OnSurfaceVariant
-                    }}
-                  >
-                    <span style={{ fontWeight: 400 }}>Variant: </span>
-                    {data?.morph_name}
-                  </Typography>
-                )}
-              </>
-            )}
+              {data?.morph_name && (
+                <Typography
+                  sx={{
+                    fontSize: '14px',
+                    fontWeight: 600,
+                    lineHeight: '16.94px',
+                    color: theme.palette.customColors.OnSurfaceVariant
+                  }}
+                >
+                  <span style={{ fontWeight: 400 }}>Variant: </span>
+                  {data?.morph_name}
+                </Typography>
+              )}
+            </>
 
             <Typography
               sx={{
