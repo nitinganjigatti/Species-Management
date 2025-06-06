@@ -17,6 +17,12 @@ const ComposeReportNavigation = ({
     icon: 'mdi:paw-outline'
   }
 
+  const AnimalAssessment = {
+    title: 'Animal Assessment',
+    path: '/report/animalAssessment',
+    icon: 'mdi:paw-outline'
+  }
+
   const animal = {
     title: 'Daily Report',
     path: '/report/daily',
@@ -34,16 +40,8 @@ const ComposeReportNavigation = ({
     reportNavigationArray.push(reportTitle)
   }
 
-  if (enable_specie_report) {
-    reportNavigationArray.push(report)
-  }
-  if (enable_daily_report) {
-    reportNavigationArray.push(animal)
-  }
-
-  if (enable_animal_report) {
-    reportNavigationArray.push(animalList)
-  }
+  reportNavigationArray.push(reportTitle)
+  reportNavigationArray.push(report, animal, animalList, AnimalAssessment)
 
   return reportNavigationArray
 }

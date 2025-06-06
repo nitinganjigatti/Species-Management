@@ -456,6 +456,8 @@ export const USER_REPORT = 'v1/user/report'
 
 export const MEDICAL_REPORT = 'v1/medical/report'
 
+export const ASSESSMENT_REPORT = 'v1/animal/batch/assessments'
+
 export const All_ANIMAL_LIST = 'v1/all/animal/report'
 
 export const REPORT_TYPE = 'v1/report/daily/report/type'
@@ -467,6 +469,8 @@ export const DELETE_ATTACHMENT_FOR_ANIMAL = 'v1/parivesh/species/site/deleteatta
 export const DOWNLOAD_CSV_FOR_BATCH_DATA = 'v1/parivesh/animal/site/downloadcsvforbatchdata'
 
 export const SPECIES_LIST = 'species-list-egg-wise'
+
+export const SPECIES_FILTER = 'egg/get-species-list'
 
 export const GET_SECTIONS = 'master/zoos/getsections'
 

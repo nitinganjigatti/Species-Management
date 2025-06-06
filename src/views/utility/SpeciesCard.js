@@ -21,7 +21,7 @@ function SpeciesCard({ species }) {
                 : 'unset'
           }}
           src={species.default_icon ? species.default_icon : '/icons/species.svg'}
-          alt={species.scientific_name}
+          alt={species.scientific_name || species.complete_name}
         />
       )}
       <Box>
@@ -42,7 +42,7 @@ function SpeciesCard({ species }) {
             fontWeight: 600
           }}
         >
-          {species.scientific_name ? species.scientific_name : '-'}
+          {species.scientific_name ? species.scientific_name : species.complete_name ? species.complete_name : '-'}
         </Typography>
       </Box>
     </Box>

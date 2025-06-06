@@ -271,6 +271,30 @@ const UserThemeOptions = () => {
             border: '1px solid #8080806b'
           }
         }
+      },
+      MuiTableRow: {
+        styleOverrides: {
+          root: {
+            '&:hover': {
+              backgroundColor: '#F2FFF8',
+              boxShadow: '0px 1px 8px 0px #0000001A'
+            }
+          }
+        }
+      },
+      MuiTableCell: {
+        styleOverrides: {
+          root: {
+            borderBottom: '0.5px solid #839D8D'
+          }
+        }
+      },
+      MuiTableHead: {
+        styleOverrides: {
+          root: {
+            backgroundColor: '#C1D3D0' // Ensures the header row gets the background color
+          }
+        }
       }
     }
 
