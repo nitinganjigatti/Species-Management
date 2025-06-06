@@ -372,7 +372,7 @@ const Overview = props => {
                         </TableRow>
                       ) : (
                         <>
-                          {data?.local.map(store => (
+                          {data?.local?.map(store => (
                             <TableRow
                               key={store?.store_id}
                               sx={{
@@ -1178,8 +1178,8 @@ const Overview = props => {
       )}
 
       <CommonDrawerBox
-        imageUrl={'https://img.freepik.com/free-photo/colorful-design-with-spiral-design_188544-9588.jpg'}
-        title='Dolo 650 Tablet'
+        imageUrl={productDetails?.image}
+        title={productDetails?.name}
         drawerStatus={isAlternativeMedicinesDrawerOpen}
         close={() => setAlternativeMedicinesDrawerOpen(false)}
         contentComponent={

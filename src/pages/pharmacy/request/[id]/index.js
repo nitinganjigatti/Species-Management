@@ -1467,6 +1467,10 @@ const IndividualRequest = () => {
     }
   }, [dispatchedItems?.length > 0, shippedItems?.length > 0])
 
+  const allShippedLineItems =
+    shippedItems.length > 0 &&
+    shippedItems?.flatMap(shipment => shipment?.shipment_item_details?.map(item => ({ ...item })))
+
   return (
     <>
       {loader ? (
@@ -2433,8 +2437,8 @@ const IndividualRequest = () => {
                       paddingTop: 3
                     }}
                   >
-                    {shippedItems[0]?.shipment_item_details?.length ? (
-                      shippedItems[0]?.shipment_item_details?.map((ship, index) => (
+                    {shippedItems?.length ? (
+                      allShippedLineItems?.map((ship, index) => (
                         <Card
                           key={index}
                           sx={{

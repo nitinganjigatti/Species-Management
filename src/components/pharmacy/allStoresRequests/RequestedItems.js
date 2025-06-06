@@ -341,6 +341,23 @@ export default function RequestedItems({ selectedStoreDetails, setSelectedStoreD
     },
     {
       width: 200,
+      field: 'latest_requested_date',
+      headerName: 'Recent requested date',
+      renderCell: params => (
+        <Typography
+          sx={{
+            color: theme.palette.customColors.OnSurfaceVariant,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
+          {Utility?.formatDisplayDate(params.row.latest_requested_date)}
+        </Typography>
+      )
+    },
+    {
+      width: 200,
       field: 'requested_date',
       headerName: 'Earliest request date',
       renderCell: params => (

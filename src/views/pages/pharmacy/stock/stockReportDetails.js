@@ -173,7 +173,7 @@ const StockReportDetails = props => {
                     >
                       <div>
                         <Typography sx={{ fontSize: '14px', fontWeight: 400 }}>
-                          Unit Price: {detail.unit_price}
+                          Net Unit Price: {detail.unit_price}
                         </Typography>
                         <Typography sx={{ fontSize: '14px', fontWeight: 400 }}>Quantity: {detail.qty}</Typography>
                       </div>
