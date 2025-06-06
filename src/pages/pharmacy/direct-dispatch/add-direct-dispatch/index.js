@@ -721,8 +721,8 @@ const AddDirectDispatch = () => {
           Router.replace(`/pharmacy/direct-dispatch/`)
         } else {
           toast.error(result?.data?.data)
-          setDeleteDialog(false)
-          setDeleteItemId(null)
+          // setDeleteDialog(false)
+          // setDeleteItemId(null)
         }
       } catch (error) {
         toast.error(error.data)
@@ -1079,7 +1079,7 @@ const AddDirectDispatch = () => {
                         <TableCell>Batch No</TableCell>
                         <TableCell>Expiry Date</TableCell>
                         <TableCell>Quantity</TableCell>
-                        <TableCell>Unit Price</TableCell>
+                        <TableCell>Net Unit Price</TableCell>
                         <TableCell>Total Value</TableCell>
                         <TableCell>Action</TableCell>
                       </TableRow>

@@ -18,7 +18,7 @@ import React from 'react'
 import Icon from 'src/@core/components/icon'
 import PharmacyProductCard from 'src/views/utility/PharmacyProductCard'
 
-const StockDetailDrawer = ({ openDrawer, setOpenDrawer, stockDetail }) => {
+const StockDetailDrawer = ({ openDrawer, stockDetail, setDrawerClose }) => {
   const theme = useTheme()
   console.log(stockDetail)
 
@@ -42,7 +42,7 @@ const StockDetailDrawer = ({ openDrawer, setOpenDrawer, stockDetail }) => {
     <Drawer
       anchor='right'
       open={openDrawer}
-      onClose={() => setOpenDrawer(false)}
+      onClose={setDrawerClose}
       PaperProps={{
         sx: {
           width: {
@@ -71,7 +71,7 @@ const StockDetailDrawer = ({ openDrawer, setOpenDrawer, stockDetail }) => {
           <Typography variant='h6' fontWeight='bold'>
             Rack and Shelves
           </Typography>
-          <IconButton onClick={() => setOpenDrawer(false)}>
+          <IconButton onClick={setDrawerClose}>
             <Icon icon='mdi:close' />
           </IconButton>
         </Box>
@@ -82,9 +82,9 @@ const StockDetailDrawer = ({ openDrawer, setOpenDrawer, stockDetail }) => {
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
-            padding: '20px',
+            padding: '18px',
             borderRadius: '8px',
-            mt: 2,
+            mt: 1,
             backgroundColor: 'customColors.neutral05'
           }}
         >
@@ -104,7 +104,7 @@ const StockDetailDrawer = ({ openDrawer, setOpenDrawer, stockDetail }) => {
             backgroundColor: '#FFFFFF',
             borderRadius: '8px',
             marginBottom: 2,
-            marginTop: 8,
+            marginTop: 6,
 
             boxShadow: 'none'
           }}

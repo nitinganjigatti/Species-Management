@@ -29,7 +29,6 @@ const CommonDateRangePickers = ({
   useCustomText = false,
   customText = ''
 }) => {
-  debugger
   const theme = useTheme()
   const router = useRouter()
   const today = new Date()

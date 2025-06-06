@@ -132,6 +132,7 @@ const IndividualRequest = () => {
   const [status, setStatus] = useState('Pending')
   const [detailsTab, setDetailsTab] = useState(router?.query?.detailsTab || 'Pending')
   const [shipmentTab, setShipmentTab] = useState(router?.query?.shipmentTab || 'Ready To Ship')
+
   const theme = useTheme()
 
   const TabBadge = ({ label, totalCount }) => (
@@ -272,10 +273,12 @@ const IndividualRequest = () => {
 
         return items
       })
+
       var dispatches = data?.filter(item => item.dispatch_status !== 'Shipped' && item.dispatch_status !== 'PickedUp')
       responseData['dispatch_items'] = dispatches
 
       setDispatchedItems(responseData.dispatch_items)
+
       setLoader(false)
     } else {
       setLoader(false)
@@ -374,10 +377,23 @@ const IndividualRequest = () => {
   const init = async id => {
     if (id !== undefined) {
       await getRequestItemLists(id)
+
       await getDispatchedItems(id)
       await getShippedItems(id)
     }
   }
+
+  // useEffect(() => {
+  //   if (router?.query?.detailsTab === 'Shipped') {
+  //     getDispatchedItems(id)
+  //   }
+  // }, [router?.query?.detailsTab, getDispatchedItems, id])
+
+  // useEffect(() => {
+  //   if (router?.query?.shipmentTab === 'Shipped') {
+  //     getShippedItems(id)
+  //   }
+  // }, [router?.query?.shipmentTab, getShippedItems, id])
 
   useEffect(() => {
     if (id !== undefined) {
@@ -1451,6 +1467,10 @@ const IndividualRequest = () => {
     }
   }, [dispatchedItems?.length > 0, shippedItems?.length > 0])
 
+  const allShippedLineItems =
+    shippedItems.length > 0 &&
+    shippedItems?.flatMap(shipment => shipment?.shipment_item_details?.map(item => ({ ...item })))
+
   return (
     <>
       {loader ? (
@@ -1563,7 +1583,7 @@ const IndividualRequest = () => {
                             color: 'customColors.neutralSecondary'
                           }}
                         >
-                          Requested By:
+                          Requested By :
                           <Box
                             component='span'
                             sx={{
@@ -1655,16 +1675,29 @@ const IndividualRequest = () => {
                             </Box>
                           </Typography>
                         )}
-
-                        <Typography
+                        <Box
                           sx={{
-                            fontSize: '14px',
-                            fontWeight: '400',
-                            lineHeight: '16.94px',
-                            color: 'customColors.neutralSecondary'
+                            display: 'flex',
+                            alignItems: 'center',
+                            marginLeft: { xs: 0, md: 0, sm: '47px' }
+
+                            // overflow: 'hidden' // optional, if you want to clip long content
                           }}
                         >
-                          Total Requested Value:
+                          <Typography
+                            component='span'
+                            sx={{
+                              fontSize: '14px',
+                              fontWeight: '400',
+                              lineHeight: '16.94px',
+                              color: 'customColors.neutralSecondary',
+                              whiteSpace: 'nowrap' // optional if this label might wrap
+                              // ml: { xs: 0, sm: 0 }
+                            }}
+                          >
+                            Total Requested Value:
+                          </Typography>
+
                           <Tooltip title={Utility.formatAmountToReadableDigit(requestItems?.requested_amount)}>
                             <Box
                               component='span'
@@ -1673,20 +1706,15 @@ const IndividualRequest = () => {
                                 fontSize: '16px',
                                 color: 'primary.light',
                                 lineHeight: '19.36px',
-                                mx: 2,
-                                [theme.breakpoints.up('lg')]: {
-                                  ...RenderUtility?.getEllipsisStyleForText('140')
-                                }
+                                whiteSpace: 'nowrap',
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis'
                               }}
                             >
                               {Utility.formatAmountToReadableDigit(requestItems?.requested_amount)}
-                              {/* ₹
-                              {RenderUtility?.getToolTipForText(
-                                Utility.formatNumberToDisplay(requestItems?.requested_amount)
-                              )} */}
                             </Box>
                           </Tooltip>
-                        </Typography>
+                        </Box>
 
                         {/* <Typography
                           sx={{
@@ -1701,12 +1729,12 @@ const IndividualRequest = () => {
                             component='span'
                             sx={{
                               fontWeight: '500',
+                          >
                               fontSize: '16px',
                               color: 'primary.OnSurface',
                               lineHeight: '19.36px',
                               mx: 2
                             }}
-                          >
                             {requestItems?.shipped_qty}
                           </Box>
                         </Typography> */}
@@ -2404,8 +2432,8 @@ const IndividualRequest = () => {
                       paddingTop: 3
                     }}
                   >
-                    {shippedItems[0]?.shipment_item_details?.length ? (
-                      shippedItems[0]?.shipment_item_details?.map((ship, index) => (
+                    {shippedItems?.length ? (
+                      allShippedLineItems?.map((ship, index) => (
                         <Card
                           key={index}
                           sx={{
@@ -2737,4 +2765,4 @@ const IndividualRequest = () => {
   )
 }
 
-export default IndividualRequest
+export default React.memo(IndividualRequest)

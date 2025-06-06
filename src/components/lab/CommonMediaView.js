@@ -16,13 +16,22 @@ import {
 import { useTheme } from '@mui/material/styles'
 import Icon from 'src/@core/components/icon'
 import moment from 'moment'
+import { LoadingButton } from '@mui/lab'
 
-const CommonMediaView = ({ type, image, document, handleDeleteImg, fileViews, permissions, allCompleted }) => {
+const CommonMediaView = ({
+  type,
+  image,
+  document,
+  handleDeleteImg,
+  fileViews,
+  permissions,
+  deleteAttachmentLoader
+}) => {
   const theme = useTheme()
   const [openConfirmDialog, setOpenConfirmDialog] = useState(false)
-  const [uploadAnotherDialog, setUploadAnotherDialog] = useState(false)
   const [selectedItem, setSelectedItem] = useState(null)
   const [error, setError] = useState(false)
+  const [uploadAnotherDialog, setUploadAnotherDialog] = useState(false)
 
   function extractHoursAndMinutes(date) {
     return moment(date).format('hh:mm A')
@@ -38,24 +47,12 @@ const CommonMediaView = ({ type, image, document, handleDeleteImg, fileViews, pe
   const handleConfirmDialog = (e, item) => {
     e.preventDefault()
     e.stopPropagation()
-    let attachments = image !== undefined ? image : document !== undefined ? document : []
     setSelectedItem(item)
-    if (image?.length === 1) {
+    if (Number(image?.length || 0) + Number(document?.length || 0) == 1) {
+      setError(true)
       setOpenConfirmDialog(true)
-      if (allCompleted) {
-        setError(true)
-
-        return
-      }
     } else {
       setOpenConfirmDialog(true)
-
-      // Check if total rows are equal to total attachments
-      // if (allCompleted && ) {
-      //   setError(true)
-
-      //   return
-      // }
     }
   }
 
@@ -65,6 +62,13 @@ const CommonMediaView = ({ type, image, document, handleDeleteImg, fileViews, pe
       setOpenConfirmDialog(false)
       setSelectedItem(null) // Reset after deletion
     }
+  }
+
+  const closeConfirmDialoge = () => {
+    setOpenConfirmDialog(false)
+    setTimeout(() => {
+      setError(false)
+    }, 1000)
   }
 
   return (
@@ -220,6 +224,7 @@ const CommonMediaView = ({ type, image, document, handleDeleteImg, fileViews, pe
                         fontWeight: '400',
                         lineHeight: '19.36px',
                         overflow: 'hidden',
+                        whiteSpace: 'nowrap',
                         textOverflow: 'ellipsis',
                         p: 2
                       }}
@@ -295,9 +300,8 @@ const CommonMediaView = ({ type, image, document, handleDeleteImg, fileViews, pe
             </a>
           ))}
       </>
-      <Dialog open={openConfirmDialog} onClose={() => setOpenConfirmDialog(false)} fullWidth>
+      <Dialog open={openConfirmDialog} onClose={() => closeConfirmDialoge()} fullWidth>
         <DialogTitle sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-          {/* <DeleteOutlineIcon sx={{ color: "red" }} /> */}
           <Icon
             icon='material-symbols:delete-outline'
             width='24'
@@ -319,19 +323,9 @@ const CommonMediaView = ({ type, image, document, handleDeleteImg, fileViews, pe
               </DialogContentText>
             </DialogContent>
             <DialogActions>
-              {/* <Button
-            onClick={() => {
-              setOpenConfirmDialog(false)
-              setError(false)
-            }}
-            variant='outlined'
-          >
-            CANCEL
-          </Button>
-          */}
               <Button
                 sx={{ backgroundColor: theme.palette.primary.main }}
-                onClick={() => setOpenConfirmDialog(false)}
+                onClick={() => closeConfirmDialoge()}
                 variant='contained'
               >
                 OK
@@ -350,7 +344,8 @@ const CommonMediaView = ({ type, image, document, handleDeleteImg, fileViews, pe
               </DialogContentText>
             </DialogContent>
             <DialogActions>
-              <Button
+              <LoadingButton
+                disabled={deleteAttachmentLoader}
                 onClick={() => {
                   setOpenConfirmDialog(false)
                   setError(false)
@@ -358,12 +353,10 @@ const CommonMediaView = ({ type, image, document, handleDeleteImg, fileViews, pe
                 variant='outlined'
               >
                 CANCEL
-              </Button>
-              {/* {!error && !allCompleted && ( */}
-              <Button onClick={handleDelete} variant='contained' color='error'>
+              </LoadingButton>
+              <LoadingButton loading={deleteAttachmentLoader} onClick={handleDelete} variant='contained' color='error'>
                 DELETE
-              </Button>
-              {/* )} */}
+              </LoadingButton>
             </DialogActions>
           </>
         )}

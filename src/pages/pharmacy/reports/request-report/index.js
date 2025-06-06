@@ -224,9 +224,11 @@ const RequestReport = () => {
       field: 'id',
       sortable: false,
       headerName: 'SL.NO',
+      align: 'center',
+      headerAlign: 'center',
 
       renderCell: params => (
-        <Box sx={{ minWidth: 40 }}>
+        <Box sx={{ minWidth: 40, textAlign: 'center' }}>
           <Typography sx={{ color: 'text.primary', fontSize: '14px', fontWeight: '400px' }}>
             {params.row.id + '.'}
           </Typography>
@@ -242,34 +244,6 @@ const RequestReport = () => {
       sortable: false,
       renderCell: params => <Box>{RenderUtility.getPriorityIcons(params.row.priority)}</Box>
     },
-
-    // {
-    //   width: 5,
-    //   field: 'label',
-    //   headerName: '',
-    //   sortable: false,
-    //   renderCell: params => (
-    //     <Typography
-    //       sx={{
-    //         color: 'customColors.OnSecondaryContainer',
-    //         display: 'flex',
-    //         alignItems: 'center',
-    //         fontWeight: 500,
-    //         fontSize: '14px',
-    //         ...RenderUtility?.getEllipsisStyleForText()
-    //       }}
-    //     >
-    //       {RenderUtility?.renderControlLabel(
-    //         !isNaN(params.row?.controlled_substance) && parseInt(params.row?.controlled_substance) === 1,
-    //         'CS'
-    //       )}
-    //       {RenderUtility?.renderControlLabel(
-    //         !isNaN(params.row?.prescription_required) && parseInt(params.row?.prescription_required) === 1,
-    //         'PR'
-    //       )}
-    //     </Typography>
-    //   )
-    // },
     {
       minWidth: 20,
       width: 180,
@@ -291,7 +265,7 @@ const RequestReport = () => {
       )
     },
     {
-      width: 260,
+      width: 340,
       minWidth: 20,
       field: 'product_name',
       align: 'left',
@@ -300,66 +274,13 @@ const RequestReport = () => {
 
       renderCell: params => (
         <Box>
-          {/* <StyleWithIconCardComponent
-            value={
-              <>
-                <Typography sx={{ display: 'flex', alignItems: 'center' }}>
-                  <Typography
-                    sx={{
-                      color: 'customColors.OnSecondaryContainer',
-                      display: 'flex',
-
-                      alignItems: 'center',
-                      fontWeight: 500,
-                      fontSize: '14px'
-
-                      // ...RenderUtility?.getEllipsisStyleForText()
-                    }}
-                  >
-                    {RenderUtility?.renderControlLabel(
-                      !isNaN(params.row?.controlled_substance) && parseInt(params.row?.controlled_substance) === 1,
-                      'CS'
-                    )}
-                    {RenderUtility?.renderPrescriptionLabel(
-                      !isNaN(params.row?.prescription_required) && parseInt(params.row?.prescription_required) === 1,
-                      'PR'
-                    )}
-                  </Typography>
-                  <Typography
-                    sx={{
-                      color: 'customColors.customHeadingTextColor',
-                      fontWeight: 500,
-                      fontSize: '14px',
-                      overflow: 'hidden',
-                      whiteSpace: 'nowrap',
-                      textOverflow: 'ellipsis',
-                      maxWidth: 250
-                    }}
-                  >
-                    {params.row.product_name}
-                  </Typography>
-                </Typography>
-              </>
-            }
-            description={params.row.generic_name ? params.row.generic_name : 'NA'}
-            icon={params.row.product_image ? `${params.row.product_image}` : '/images/Medicine_Icon.png'}
-            showIcon={false}
-            customCss={{
-              p: '0px',
-              width: '100%',
-              height: '100%',
-              fontSize: '14px',
-              avtBorderRadius: '10px',
-              iconWidth: '44px',
-              iconHeight: '44px'
-            }}
-          /> */}
           <PharmacyProductCard
             title={params?.row?.product_name}
             subTitle={params?.row?.generic_name ? params?.row?.generic_name : 'NA'}
             icon={params?.row?.product_image}
             controlSubstance={params?.row?.controlled_substance === '1' && true}
             prescriptionRequired={params?.row?.prescription_required === '1' && true}
+            rowWidth={320}
           />
         </Box>
       )

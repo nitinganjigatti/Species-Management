@@ -643,7 +643,7 @@ const ComboCard = ({
                           {item?.ingredients_count}&nbsp;
                           <span style={{ color: '#e55b3e' }}> ({calculateTotalQuantity(item?.by_percentage)}%)</span>
                         </Typography>
-                        <Typography sx={{ fontSize: '10px', width: '100px' }}>Ingredients by %</Typography>
+                        <Typography sx={{ fontSize: '10px', width: '100px' }}>Items by %</Typography>
                       </Box>
                       {/* <Divider sx={{ borderLeft: '1px solid #D9D9D9', height: 30, mr: 2, mt: 3 }}></Divider>
                     <Box>
@@ -672,7 +672,7 @@ const ComboCard = ({
                       <Typography
                         sx={{ fontWeight: '500', color: theme.palette.customColors.neutral_50, fontSize: '16px' }}
                       >
-                        Ingredients
+                        Items
                       </Typography>
                       <Typography
                         sx={{
@@ -891,14 +891,22 @@ const ComboCard = ({
         <Box
           sx={{
             display: 'flex',
+            flexDirection: 'column',
             justifyContent: 'center',
             alignItems: 'center',
-            marginTop: '14%',
-            color: theme.palette.customColors.statusText,
-            fontSize: '16px'
+            height: '70%',
+            textAlign: 'center'
           }}
         >
-          No records to show
+          <img src='/images/no_data_animal_2.png' alt='Grocery Icon' width='250px' />
+          <Box
+            sx={{
+              color: theme.palette.customColors.statusText,
+              fontSize: '16px'
+            }}
+          >
+            No records to show
+          </Box>
         </Box>
       )}
       {/* {selectedCardCombo?.length > 0 && ( */}

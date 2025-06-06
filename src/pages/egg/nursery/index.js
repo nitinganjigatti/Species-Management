@@ -1,3 +1,5 @@
+import React, { useCallback, useContext, useEffect, useState } from 'react'
+import { useRouter } from 'next/router'
 import {
   Autocomplete,
   Avatar,
@@ -12,24 +14,26 @@ import {
   Typography,
   debounce
 } from '@mui/material'
-import Icon from 'src/@core/components/icon'
-import React, { useCallback, useContext, useEffect, useState } from 'react'
 import { DataGrid } from '@mui/x-data-grid'
-import ServerSideToolbarWithFilter from 'src/views/table/data-grid/ServerSideToolbarWithFilter'
-import { AddNursery, GetNurseryList } from 'src/lib/api/egg/nursery'
-import moment from 'moment'
-import CustomChip from 'src/@core/components/mui/chip'
-import NurseryAddComponent from 'src/components/egg/NurseryAddComponent'
-import { useRouter } from 'next/router'
-import { styled, width } from '@mui/system'
 import { useTheme } from '@mui/material/styles'
+
 import Utility from 'src/utility'
-import ErrorScreen from 'src/pages/Error'
 import { AuthContext } from 'src/context/AuthContext'
+import Icon from 'src/@core/components/icon'
+import CustomChip from 'src/@core/components/mui/chip'
+
+import NurseryAddComponent from 'src/components/egg/NurseryAddComponent'
+import ErrorScreen from 'src/pages/Error'
+import { GetNurseryList } from 'src/lib/api/egg/nursery'
 
 const NurseryList = () => {
   const theme = useTheme()
   const router = useRouter()
+  const authData = useContext(AuthContext)
+
+  const egg_nursery_permission = authData?.userData?.permission?.user_settings?.add_nursery_permisson
+  const egg_collection_permission = authData?.userData?.roles?.settings?.enable_egg_collection_module
+
   const [openDrawer, setOpenDrawer] = useState(false)
   const [searchValue, setSearchValue] = useState('')
   const [sort, setSort] = useState('desc')
@@ -38,68 +42,105 @@ const NurseryList = () => {
   const [rows, setRows] = useState([])
   const [loading, setLoading] = useState(false)
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
-
   const [defaultSite, setDefaultSite] = useState(null)
-
-  const authData = useContext(AuthContext)
-  const egg_nursery_permission = authData?.userData?.permission?.user_settings?.add_nursery_permisson
-  const egg_collection_permission = authData?.userData?.roles?.settings?.enable_egg_collection_module
 
   function loadServerRows(currentPage, data) {
     return data
   }
 
+  // const fetchTableData = useCallback(
+  //   async (q, siteId) => {
+  //     try {
+  //       setLoading(true)
+
+  //       const params = {
+  //         sort,
+  //         search: q || '',
+  //         site_id: siteId,
+  //         type: 'all',
+  //         page: paginationModel.page + 1,
+  //         limit: paginationModel.pageSize
+  //       }
+
+  //       await GetNurseryList({ params: params }).then(res => {
+  //         setTotal(parseInt(res?.data?.total_count))
+  //         setRows(loadServerRows(paginationModel.page, res?.data?.result))
+  //       })
+  //       setLoading(false)
+  //     } catch (e) {
+  //       setLoading(false)
+  //     }
+  //   },
+  //   [paginationModel]
+  // )
+
   const fetchTableData = useCallback(
-    async (q, siteId) => {
+    async (q = '', siteId) => {
+      setLoading(true)
+
+      const params = {
+        sort,
+        search: q || '',
+        site_id: siteId,
+        type: 'all',
+        page: paginationModel.page + 1,
+        limit: paginationModel.pageSize
+      }
+
       try {
-        setLoading(true)
+        const res = await GetNurseryList({ params })
+        const { total_count, result } = res?.data || {}
 
-        const params = {
-          sort,
-          search: q || '',
-          site_id: siteId,
-          type: 'all',
-          page: paginationModel.page + 1,
-          limit: paginationModel.pageSize
-        }
-
-        await GetNurseryList({ params: params }).then(res => {
-          setTotal(parseInt(res?.data?.total_count))
-          setRows(loadServerRows(paginationModel.page, res?.data?.result))
-        })
-        setLoading(false)
-      } catch (e) {
+        setTotal(parseInt(total_count || 0))
+        setRows(loadServerRows(paginationModel.page, result || []))
+      } catch (error) {
+        console.error('Failed to fetch data:', error) // Optional for debugging
+      } finally {
         setLoading(false)
       }
     },
-    [paginationModel]
+    [paginationModel, sort]
   )
+
+  // useEffect(() => {
+  //   if (egg_nursery_permission || egg_collection_permission) {
+  //     fetchTableData(searchValue, defaultSite?.site_id)
+  //   }
+  // }, [fetchTableData])
 
   useEffect(() => {
     if (egg_nursery_permission || egg_collection_permission) {
       fetchTableData(searchValue, defaultSite?.site_id)
     }
-  }, [fetchTableData])
+  }, [fetchTableData, egg_nursery_permission, egg_collection_permission, defaultSite?.site_id, searchValue])
 
   const handleSortModel = newModel => {
     if (newModel.length) {
-      setSort(newModel[0].sort)
-      setSortColumn(newModel[0].field)
-      fetchTableData(searchValue, newModel[0].field, status)
-    } else {
+      const { sort: newSort, field: newField } = newModel[0]
+      setSort(newSort)
+      setSortColumn(newField)
+      fetchTableData(searchValue, defaultSite?.site_id)
     }
   }
+
+  // const searchTableData = useCallback(
+  //   debounce(async (q, siteId) => {
+  //     setSearchValue(q)
+  //     try {
+  //       await fetchTableData(q, siteId)
+  //     } catch (error) {
+  //       console.error(error)
+  //     }
+  //   }, 1000),
+  //   []
+  // )
 
   const searchTableData = useCallback(
     debounce(async (q, siteId) => {
       setSearchValue(q)
-      try {
-        await fetchTableData(q, siteId)
-      } catch (error) {
-        console.error(error)
-      }
+      await fetchTableData(q, siteId)
     }, 1000),
-    []
+    [fetchTableData]
   )
 
   const handleSearch = (value, siteId) => {
@@ -107,18 +148,7 @@ const NurseryList = () => {
     searchTableData(value, siteId)
   }
 
-  const addEventSidebarOpen = () => {
-    setOpenDrawer(true)
-  }
-
-  const closeSideSheet = () => {
-    setOpenDrawer(false)
-  }
-
-  const StyledRow = styled('div')({
-    borderBottom: '1px solid #ccc'
-  })
-
+  const addEventSidebarOpen = () => setOpenDrawer(true)
   const columns = [
     {
       minWidth: 80,
@@ -140,7 +170,6 @@ const NurseryList = () => {
         </Typography>
       )
     },
-
     {
       flex: 0.3,
       minWidth: 30,
@@ -163,7 +192,6 @@ const NurseryList = () => {
         </Typography>
       )
     },
-
     {
       flex: 0.2,
       minWidth: 20,
@@ -185,7 +213,6 @@ const NurseryList = () => {
         </Typography>
       )
     },
-
     {
       flex: 0.24,
       minWidth: 20,
@@ -207,7 +234,6 @@ const NurseryList = () => {
         </Typography>
       )
     },
-
     {
       flex: 0.23,
       minWidth: 20,
@@ -375,11 +401,6 @@ const NurseryList = () => {
                   <TextField
                     variant='outlined'
                     placeholder='Search...'
-                    InputProps={
-                      {
-                        // disableUnderline: true
-                      }
-                    }
                     onChange={e => handleSearch(e.target.value, defaultSite?.site_id)}
                     sx={{
                       '& .MuiOutlinedInput-root': {
@@ -432,7 +453,7 @@ const NurseryList = () => {
                           }
                         }}
                         onChange={e => {
-                          // searchSite(e.target.value)
+                          // searchNursery(e.target.value)
                         }}
                         {...params}
                         label='Site'
@@ -482,19 +503,8 @@ const NurseryList = () => {
               rowHeight={64}
               paginationModel={paginationModel}
               onSortModelChange={handleSortModel}
-              // slots={{ toolbar: ServerSideToolbarWithFilter }}
               onPaginationModelChange={setPaginationModel}
               loading={loading}
-              // slotProps={{
-              //   baseButton: {
-              //     variant: 'outlined'
-              //   },
-              //   toolbar: {
-              //     value: searchValue,
-              //     clearSearch: () => handleSearch(''),
-              //     onChange: event => handleSearch(event.target.value)
-              //   }
-              // }}
               onCellClick={handleCellClick}
             />
           </Card>

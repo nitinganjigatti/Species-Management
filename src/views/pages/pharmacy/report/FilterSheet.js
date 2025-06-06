@@ -1,5 +1,5 @@
-import React, { useState } from 'react'
-import { Box, Drawer, Checkbox, Typography, TextField, IconButton, Grid, Divider } from '@mui/material'
+import React, { useEffect, useState } from 'react'
+import { Box, Drawer, Checkbox, Typography, TextField, IconButton, Grid, Divider, CircularProgress } from '@mui/material'
 import Icon from 'src/@core/components/icon'
 import { useTheme } from '@emotion/react'
 import { LoadingButton } from '@mui/lab'
@@ -9,19 +9,40 @@ const FilterSheet = ({
   setOpenFilterDrawer,
   categories,
   options,
+  animalId,
   selectedOptions,
   setSelectedOptions,
+  selectedSites,
   handleSelection,
+  activeTab,
+  isLoader,
   getTotalSelectedFilters
 }) => {
   const theme = useTheme()
   const [activeCategory, setActiveCategory] = useState(categories[0])
   const [searchValue, setSearchValue] = useState('')
 
+  // useEffect(() => {
+  //   if (open) {
+  //     setSelectedOptions(prev => ({
+  //       ...prev,
+  //       Site: selectedSites
+  //     }))
+  //   }
+  // }, [open, selectedSites])
+  useEffect(() => {
+    if (open && animalId) {
+      setSelectedOptions(prev => ({
+        ...prev,
+        Site: selectedSites.length ? selectedSites : []
+      }))
+    }
+  }, [open])
+
   const handleSelectAll = event => {
     if (event.target.checked) {
       const currentOptions = options[activeCategory]?.map(option =>
-        activeCategory === 'Site' ? option.site_id : option.id
+        activeCategory === 'Site' ? option.site_id : option.taxonomy_id
       )
       setSelectedOptions(prev => ({
         ...prev,
@@ -54,13 +75,14 @@ const FilterSheet = ({
   }
 
   const handleConfirmSelection = () => {
+    debugger
     // Handle Sites
     const selectedSiteIDs = selectedOptions.Site || []
     handleSelection(selectedSiteIDs, 'Site')
 
     // Handle Organizations
-    const selectedOrganizationIDs = selectedOptions.Organization || []
-    handleSelection(selectedOrganizationIDs, 'Organization')
+    const selectedOrganizationIDs = selectedOptions.Species || []
+    handleSelection(selectedOrganizationIDs, 'Species')
 
     // Close the drawer
     setOpenFilterDrawer(false)
@@ -76,8 +98,8 @@ const FilterSheet = ({
         return option?.site_name?.toLowerCase().includes(searchValue.toLowerCase())
       }
 
-      if (activeCategory === 'Organization') {
-        return option?.organization_name?.toLowerCase().includes(searchValue.toLowerCase())
+      if (activeCategory === 'Species') {
+        return option?.default_common_name?.toLowerCase().includes(searchValue.toLowerCase())
       }
     }) || []
 
@@ -85,6 +107,8 @@ const FilterSheet = ({
     setActiveCategory(category)
     setSearchValue('')
   }
+
+  // console.log('Filter oPTIONS >', filteredOptions)
 
   return (
     <Drawer
@@ -122,6 +146,7 @@ const FilterSheet = ({
             sx={{ color: 'text.primary' }}
             onClick={() => {
               setOpenFilterDrawer(false)
+              handleClearFilter()
             }}
           >
             <Icon icon='mdi:close' fontSize={24} />
@@ -131,7 +156,7 @@ const FilterSheet = ({
 
       {/* Drawer Content */}
 
-      <Box sx={{ width: '562px', height: '753px', display: 'flex', backgroundColor: 'background.default' }}>
+      <Box sx={{ height: '753px', display: 'flex', backgroundColor: 'background.default' }}>
         <Box sx={{ width: '180px', height: '900px', backgroundColor: 'background.default' }}>
           <Grid container>
             <Grid item size={{ xs: 4, sm: 4, md: 4 }}>
@@ -229,21 +254,35 @@ const FilterSheet = ({
           <Divider sx={{ m: 3 }} />
           <Box sx={{ ml: 2, height: '750px', overflowY: 'auto' }}>
             <Box sx={{ ml: 2, overflowX: 'hidden' }}>
-              {filteredOptions.map((option, index) => (
-                <Box key={index} sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
-                  <Checkbox
-                    checked={(selectedOptions[activeCategory] || []).includes(
-                      activeCategory === 'Site' ? option.site_id : option.id
-                    )}
-                    onChange={() =>
-                      handleToggleOption(activeCategory === 'Site' ? option.site_id : option.id, activeCategory)
-                    }
-                  />
-                  <Typography sx={{ fontSize: '14px', color: theme.palette.customColors.OnSurfaceVariant }}>
-                    {activeCategory === 'Site' ? option.site_name : option.organization_name}
-                  </Typography>
+              {activeCategory === 'Site' ? (
+                filteredOptions.map((option, index) => (
+                  <Box key={index} sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                    <Checkbox
+                      checked={(selectedOptions[activeCategory] || []).includes(option.site_id)}
+                      onChange={() => handleToggleOption(option.site_id, activeCategory)}
+                    />
+                    <Typography sx={{ fontSize: '14px', color: theme.palette.customColors.OnSurfaceVariant }}>
+                      {option.site_name}
+                    </Typography>
+                  </Box>
+                ))
+              ) : isLoader ? (
+                <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100px' }}>
+                  <CircularProgress />
                 </Box>
-              ))}
+              ) : (
+                filteredOptions.map((option, index) => (
+                  <Box key={index} sx={{ display: 'flex', alignItems: 'center', mb: 2 }}>
+                    <Checkbox
+                      checked={(selectedOptions[activeCategory] || []).includes(option.taxonomy_id)}
+                      onChange={() => handleToggleOption(option.taxonomy_id, activeCategory)}
+                    />
+                    <Typography sx={{ fontSize: '14px', color: theme.palette.customColors.OnSurfaceVariant }}>
+                      {option.default_common_name}
+                    </Typography>
+                  </Box>
+                ))
+              )}
             </Box>
           </Box>
         </Box>

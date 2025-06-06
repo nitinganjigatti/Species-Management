@@ -625,6 +625,19 @@ const AddIngredients = props => {
       const updatedSelectedCard = [...selectedCard]
       updatedSelectedCard.splice(cardIndex, 1)
       setSelectedCard(updatedSelectedCard)
+
+      // Remove only the matching item from selectFeed and size
+      setSelectFeed(prev => {
+        const newFeed = { ...prev }
+        delete newFeed[itemId]
+        return newFeed
+      })
+
+      setSize(prev => {
+        const newSize = { ...prev }
+        delete newSize[itemId]
+        return newSize
+      })
     }
   }
 
@@ -665,7 +678,7 @@ const AddIngredients = props => {
             <Box sx={{ gap: 2, display: 'flex', flexDirection: 'row', alignItems: 'center' }}>
               <img src='/icons/Activity.svg' alt='Grocery Icon' width='35px' />
               <Typography variant='h6' sx={{ color: theme.palette.customColors.OnSurfaceVariant }}>
-                Add Ingredients
+                Add Items
               </Typography>
             </Box>
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
@@ -699,7 +712,7 @@ const AddIngredients = props => {
                       </IconButton>
                     )
                   }}
-                  placeholder='Search ingredient'
+                  placeholder='Search item'
                   onChange={handleSearchChange}
                   sx={{
                     '& .MuiOutlinedInput-root': {
@@ -873,7 +886,7 @@ const AddIngredients = props => {
                       direction='row'
                       sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 2, mt: 1 }}
                     >
-                      <Typography>Id - {item?.id}</Typography>
+                      <Typography>ING - {item?.id}</Typography>
                       <Typography
                         sx={{
                           mr: 3,
@@ -1105,14 +1118,22 @@ const AddIngredients = props => {
             <Box
               sx={{
                 display: 'flex',
+                flexDirection: 'column',
                 justifyContent: 'center',
                 alignItems: 'center',
-                height: '40%',
-                color: theme.palette.customColors.statusText,
-                fontSize: '16px'
+                height: '70%',
+                textAlign: 'center'
               }}
             >
-              No records to show
+              <img src='/images/no_data_animal_2.png' alt='Grocery Icon' width='250px' />
+              <Box
+                sx={{
+                  color: theme.palette.customColors.statusText,
+                  fontSize: '16px'
+                }}
+              >
+                No records to show
+              </Box>
             </Box>
           ) : null}
           {!loading && reachedEnd ? (
@@ -1138,11 +1159,11 @@ const AddIngredients = props => {
         >
           {fromrow === 'rowedit_ingredient' ? (
             <Button fullWidth variant='contained' size='large' onClick={() => handleAllSelect()}>
-              ADD INGREDIENT
+              ADD ITEM
             </Button>
           ) : (
             <Button fullWidth variant='contained' size='large' onClick={() => handleAllSelect()}>
-              ADD INGREDIENT - {selectedCard?.length} SELECTED
+              ADD ITEM - {selectedCard?.length} SELECTED
             </Button>
           )}
         </Box>

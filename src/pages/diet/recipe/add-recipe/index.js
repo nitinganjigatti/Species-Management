@@ -29,7 +29,7 @@ const steps = [
     subtitle: 'Enter details'
   },
   {
-    title: 'Add Ingredients',
+    title: 'Add Items',
     subtitle: 'Enter details'
   },
   {
@@ -557,8 +557,8 @@ const AddRecipe = () => {
                 {id ? 'Edit Recipe' : 'Add New Recipe'}
               </Typography>
               <Typography sx={{ mb: 1, fontSize: 14 }}>
-                Please provide the nutritional values, unit of measurement,water percentage, and dry ingredient
-                proportions for this <br /> ingredient prior to processing.
+                Please provide the nutritional values, unit of measurement,water percentage, and dry item proportions
+                for this <br /> item prior to processing.
               </Typography>
             </div>
           </div>

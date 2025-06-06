@@ -486,6 +486,7 @@ const ListOfRacks = () => {
             resetForm={resetForm}
             submitLoader={submitLoader}
             editParams={editParams}
+            selectedPharmacy={selectedPharmacy}
           />
           {openSnackbar?.open ? (
             <UserSnackbar severity={openSnackbar?.severity} status={true} message={openSnackbar?.message} />

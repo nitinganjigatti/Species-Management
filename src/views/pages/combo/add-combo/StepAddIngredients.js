@@ -110,7 +110,7 @@ const StepAddIngredients = ({
   handleIngredientChange
 }) => {
   const ingredients = [
-    { label: ' Ingredients' },
+    { label: ' Items' },
     { label: 'Quantity' },
     { label: 'Preparation Type' }
 
@@ -195,7 +195,7 @@ const StepAddIngredients = ({
           }}
         >
           <Icon icon='material-symbols:add' />
-          ADD NEW INGREDIENT
+          ADD NEW ITEM
         </Typography>
       </>
     )
@@ -234,7 +234,7 @@ const StepAddIngredients = ({
         }}
       >
         <Icon icon='material-symbols:add' />
-        ADD NEW INGREDIENT
+        ADD NEW ITEM
       </Typography>
     )
   }
@@ -688,7 +688,7 @@ const StepAddIngredients = ({
           <Grid container spacing={5} sx={{ px: 5, pt: 6 }}>
             <Grid item size={{ xs: 12 }}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4, mt: 2, mr: 4 }}>
-                <Typography variant='h6'>Add Ingredient - by Percentage</Typography>
+                <Typography variant='h6'>Add Item - by Percentage</Typography>
                 {/* <AddButton title='Add Cut Size' action={() => addEventSidebarOpen()} /> */}
               </Box>
             </Grid>
@@ -777,7 +777,7 @@ const StepAddIngredients = ({
                               renderInput={params => (
                                 <TextField
                                   {...params}
-                                  label='Select Ingredient*'
+                                  label='Select Item*'
                                   placeholder='Search & Select'
                                   error={
                                     errors.by_percentage &&

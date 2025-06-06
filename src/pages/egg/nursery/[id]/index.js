@@ -41,6 +41,13 @@ import { GetNurseryDetailsById, GetRoomByNursery } from 'src/lib/api/egg/nursery
 
 const NurseryDetails = () => {
   const theme = useTheme()
+  const router = useRouter()
+  const { id } = router.query
+  const authData = useContext(AuthContext)
+
+  const egg_nursery_permission = authData?.userData?.permission?.user_settings?.add_nursery_permisson
+  const egg_collection_permission = authData?.userData?.roles?.settings?.enable_egg_collection_module
+
   const [nurseryData, setNurseryData] = useState({})
   const [editName, setEditName] = useState('')
   const [editSite, setEditSite] = useState('')
@@ -67,176 +74,272 @@ const NurseryDetails = () => {
 
   const [openRedirectionDialog, setOpenRedirectionDialog] = useState(false)
   const [editMessage, setEditMessage] = useState('')
-
-  const router = useRouter()
-  const { id } = router.query
   const [active, setActive] = useState(false)
 
-  const authData = useContext(AuthContext)
-  const egg_nursery_permission = authData?.userData?.permission?.user_settings?.add_nursery_permisson
-  const egg_collection_permission = authData?.userData?.roles?.settings?.enable_egg_collection_module
-
-  // console.log('egg_nursery_permission', egg_nursery_permission)
-  // console.log('egg_collection_permission', egg_collection_permission)
+  function loadServerRows(currentPage, data) {
+    return data
+  }
 
   const EditRedirectionFunc = () => {
     setOpenDrawer(true)
     setOpenRedirectionDialog(false)
   }
 
-  const hatcheryStatusFunc = () => {
+  // const toggleHatcheryStatus = () => {
+  //   setStatusLoading(true)
+  //   try {
+  //     hatcheryStatus({
+  //       ref_type: 'nursery',
+  //       ref_id: id,
+  //       status: active ? 'deactivate' : 'activate'
+  //     }).then(response => {
+  //       if (response.success) {
+  //         Toaster({ type: 'success', message: response.message })
+  //         setOpenStatusDialog(false)
+  //         setStatusLoading(false)
+  //         setActive(!active)
+  //         fetchNurseryDetails()
+  //       } else {
+  //         Toaster({ type: 'error', message: response.message })
+  //         setEditMessage(response?.message)
+  //         setOpenRedirectionDialog(true)
+  //         fetchNurseryDetails()
+  //         setOpenStatusDialog(false)
+  //         setStatusLoading(false)
+  //       }
+  //     })
+  //   } catch (error) {
+  //     setOpenStatusDialog(false)
+  //     setStatusLoading(false)
+  //     Toaster({ type: 'error', message: response.message })
+  //   }
+  // }
+
+  // API Call: Toggle Active Status
+  const toggleHatcheryStatus = async () => {
     setStatusLoading(true)
     try {
-      hatcheryStatus({
+      const response = await hatcheryStatus({
         ref_type: 'nursery',
         ref_id: id,
         status: active ? 'deactivate' : 'activate'
-      }).then(response => {
-        if (response.success) {
-          Toaster({ type: 'success', message: response.message })
-          setOpenStatusDialog(false)
-          setStatusLoading(false)
-          setActive(!active)
-          fetchNurseryById()
-        } else {
-          Toaster({ type: 'error', message: response.message })
-          setEditMessage(response?.message)
-          setOpenRedirectionDialog(true)
-          fetchNurseryById()
-          setOpenStatusDialog(false)
-          setStatusLoading(false)
-        }
       })
+
+      if (response.success) {
+        Toaster({ type: 'success', message: response.message })
+        setActive(!active)
+      } else {
+        Toaster({ type: 'error', message: response.message })
+        setEditMessage(response?.message)
+        setOpenRedirectionDialog(true)
+      }
+
+      fetchNurseryDetails()
     } catch (error) {
+      Toaster({ type: 'error', message: error.message || 'Status update failed' })
+    } finally {
       setOpenStatusDialog(false)
       setStatusLoading(false)
-      Toaster({ type: 'error', message: response.message })
     }
   }
 
-  const fetchNurseryById = () => {
+  // const fetchNurseryDetails = () => {
+  //   try {
+  //     GetNurseryDetailsById(id).then(res => {
+  //       if (res?.success) {
+  //         setIncubatorNo(res?.data?.no_of_incubators)
+  //         setNurseryData({
+  //           list: {
+  //             'Nursery Name': res?.data?.nursery_name,
+  //             Room: res?.data?.no_of_rooms,
+  //             Site: res?.data?.site_name,
+  //             Incubator: res?.data?.no_of_incubators,
+  //             'Eggs in Nursery': res?.data?.no_of_eggs
+  //           },
+  //           Avatar: {
+  //             profile_Pic: res?.data?.user_profile_pic,
+  //             user_Name: res?.data?.user_full_name,
+  //             create_at: res?.data?.created_at,
+  //             site_id: res?.data?.site_id
+  //           }
+  //         })
+  //         setActive(Boolean(Number(res?.data?.active)))
+  //         setIsPreFilled(res?.data)
+  //         setdisabledAddRoomBtn(false)
+  //         setEditNurseryId(id)
+  //         setEditName(res.data?.nursery_name)
+  //         setEditSite(res?.data?.site_id)
+  //         setEditSiteName(res?.data?.site_name)
+  //       } else {
+  //         Toaster({ message: res.message, type: 'error' })
+  //       }
+  //     })
+  //   } catch (error) {
+  //     Toaster({ message: res.message, type: 'error' })
+  //   }
+  // }
+
+  // API Call: Fetch Nursery Details
+  const fetchNurseryDetails = async () => {
     try {
-      GetNurseryDetailsById(id).then(res => {
-        if (res?.success) {
-          setIncubatorNo(res?.data?.no_of_incubators)
-          setNurseryData({
-            list: {
-              'Nursery Name': res?.data?.nursery_name,
-              Room: res?.data?.no_of_rooms,
-              Site: res?.data?.site_name,
-              Incubator: res?.data?.no_of_incubators,
-              'Eggs in Nursery': res?.data?.no_of_eggs
-            },
-            Avatar: {
-              profile_Pic: res?.data?.user_profile_pic,
-              user_Name: res?.data?.user_full_name,
-              create_at: res?.data?.created_at,
-              site_id: res?.data?.site_id
-            }
-          })
-          setActive(Boolean(Number(res?.data?.active)))
-          setIsPreFilled(res?.data)
-          setdisabledAddRoomBtn(false)
-          setEditNurseryId(id)
-          setEditName(res.data?.nursery_name)
-          setEditSite(res?.data?.site_id)
-          setEditSiteName(res?.data?.site_name)
-        } else {
-          Toaster({ message: res.message, type: 'error' })
-        }
-      })
+      const res = await GetNurseryDetailsById(id)
+
+      if (res?.success) {
+        const data = res.data
+
+        setIncubatorNo(data?.no_of_incubators)
+        setNurseryData({
+          list: {
+            'Nursery Name': data?.nursery_name,
+            Room: data?.no_of_rooms,
+            Site: data?.site_name,
+            Incubator: data?.no_of_incubators,
+            'Eggs in Nursery': data?.no_of_eggs
+          },
+          Avatar: {
+            profile_Pic: data?.user_profile_pic,
+            user_Name: data?.user_full_name,
+            create_at: data?.created_at,
+            site_id: data?.site_id
+          }
+        })
+
+        setActive(Boolean(Number(data?.active)))
+        setIsPreFilled(data)
+        setdisabledAddRoomBtn(false)
+        setEditNurseryId(id)
+        setEditName(data?.nursery_name)
+        setEditSite(data?.site_id)
+        setEditSiteName(data?.site_name)
+      } else {
+        Toaster({ type: 'error', message: res.message })
+      }
     } catch (error) {
-      Toaster({ message: res.message, type: 'error' })
+      Toaster({ type: 'error', message: error.message || 'Failed to fetch nursery details' })
     }
   }
 
   useEffect(() => {
     if (egg_nursery_permission || egg_collection_permission) {
-      fetchNurseryById()
+      fetchNurseryDetails()
     }
   }, [])
 
-  function loadServerRows(currentPage, data) {
-    return data
-  }
-
-  const closeSideSheet = () => {
-    setOpenDrawer(false)
-  }
-
+  // API Call: Fetch Room Table Data
   const fetchTableData = useCallback(
-    async (q, column, status) => {
+    async (search = '', column, status) => {
+      setLoading(true)
       try {
-        setLoading(true)
-
         const params = {
           sort,
-          search: q || '',
+          search,
           column,
           status,
           page: paginationModel.page + 1,
           limit: paginationModel.pageSize
         }
 
-        await GetRoomByNursery(id, params).then(res => {
-          setTotal(parseInt(res?.data?.total_count))
-          setRows(loadServerRows(paginationModel.page, res?.data?.result))
-        })
-        setLoading(false)
-      } catch (e) {
+        const res = await GetRoomByNursery(id, params)
+        setTotal(parseInt(res?.data?.total_count || 0))
+        setRows(loadServerRows(paginationModel.page, res?.data?.result || []))
+      } catch (error) {
+        console.error('Failed to fetch room data', error)
+      } finally {
         setLoading(false)
       }
     },
-    [paginationModel]
+    [paginationModel, sort]
   )
 
-  useEffect(() => {
-    if (egg_nursery_permission || egg_collection_permission) {
-      fetchTableData(searchValue, sortColumn, defaultStatus?.key)
-    }
-  }, [fetchTableData])
+  // const fetchTableData = useCallback(
+  //   async (q, column, status) => {
+  //     try {
+  //       setLoading(true)
+
+  //       const params = {
+  //         sort,
+  //         search: q || '',
+  //         column,
+  //         status,
+  //         page: paginationModel.page + 1,
+  //         limit: paginationModel.pageSize
+  //       }
+
+  //       await GetRoomByNursery(id, params).then(res => {
+  //         setTotal(parseInt(res?.data?.total_count))
+  //         setRows(loadServerRows(paginationModel.page, res?.data?.result))
+  //       })
+  //       setLoading(false)
+  //     } catch (e) {
+  //       setLoading(false)
+  //     }
+  //   },
+  //   [paginationModel]
+  // )
 
   const searchTableData = useCallback(
-    debounce(async (q, column, status) => {
-      setSearchValue(q)
-      try {
-        await fetchTableData(q, column, status)
-      } catch (error) {
-        console.error(error)
-      }
+    debounce(async (value, column, status) => {
+      setSearchValue(value)
+      await fetchTableData(value, column, status)
     }, 1000),
-    []
+    [fetchTableData]
   )
 
+  // Search Input Handler
   const handleSearch = (value, status) => {
     setSearchValue(value)
     searchTableData(value, sortColumn, status)
   }
 
+  // Sort Change Handler
   const handleSortModel = newModel => {
     if (newModel.length) {
-      setSort(newModel[0].sort)
-      setSortColumn(newModel[0].field)
-      fetchTableData(newModel[0].sort, searchValue, newModel[0].field)
-    } else {
+      const { sort: newSort, field } = newModel[0]
+      setSort(newSort)
+      setSortColumn(field)
+      fetchTableData(searchValue, field, defaultStatus?.key)
     }
   }
 
-  // setDetailsListData({
-  //   list: {
-  //     Room: res?.data?.room_name,
-  //     NurseryName: res?.data?.nursery_name,
-  //     Site: res?.data?.site_name,
-  //     Incubator: res?.data?.no_of_incubators,
-  //     Eggs: res?.data?.no_of_eggs
-  //   },
-  //   Avatar: {
-  //     profile_Pic: res?.data?.user_profile_pic,
-  //     user_Name: res?.data?.user_full_name,
-  //     create_at: res?.data?.created_at,
-  //     site_id: res?.data?.site_id
+  // Effect: Initial Fetch on Load
+  useEffect(() => {
+    if (egg_nursery_permission || egg_collection_permission) {
+      fetchNurseryDetails()
+      fetchTableData(searchValue, sortColumn, defaultStatus?.key)
+    }
+  }, [])
+
+  // useEffect(() => {
+  //   if (egg_nursery_permission || egg_collection_permission) {
+  //     fetchTableData(searchValue, sortColumn, defaultStatus?.key)
   //   }
-  // })
+  // }, [fetchTableData])
+
+  // const searchTableData = useCallback(
+  //   debounce(async (q, column, status) => {
+  //     setSearchValue(q)
+  //     try {
+  //       await fetchTableData(q, column, status)
+  //     } catch (error) {
+  //       console.error(error)
+  //     }
+  //   }, 1000),
+  //   []
+  // )
+
+  // const handleSearch = (value, status) => {
+  //   setSearchValue(value)
+  //   searchTableData(value, sortColumn, status)
+  // }
+
+  // const handleSortModel = newModel => {
+  //   if (newModel.length) {
+  //     setSort(newModel[0].sort)
+  //     setSortColumn(newModel[0].field)
+  //     fetchTableData(newModel[0].sort, searchValue, newModel[0].field)
+  //   } else {
+  //   }
+  // }
 
   const columns = [
     {
@@ -438,25 +541,6 @@ const NurseryDetails = () => {
     router.push(`/egg/incubator-rooms/${params.row.id}`)
   }
 
-  // const headerAction = (
-  //   <>
-  //     <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-  //       <IconButton size='small' sx={{ mr: 4 }} aria-label='Edit' onClick={() => setOpenDrawer(true)}>
-  //         <Icon
-  //           icon='mdi:pencil-outline'
-  //           fontSize={28}
-  //           color={theme.palette.customColors.OnSurfaceVariant}
-  //           onClick={() => setOpenDrawer(true)}
-  //         />
-  //       </IconButton>
-  //       <Button size='medium' variant='contained' onClick={() => setIsOpen(true)}>
-  //         <Icon icon='mdi:add' fontSize={20} />
-  //         &nbsp; ADD ROOM
-  //       </Button>
-  //     </Box>
-  //   </>
-  // )
-
   return (
     <>
       {egg_nursery_permission || egg_collection_permission ? (
@@ -657,7 +741,6 @@ const NurseryDetails = () => {
               disableMultipleColumnsSorting={true}
               columns={columns}
               sortingMode='server'
-              // slots={{ toolbar: ServerSideToolbarWithFilter }}
               paginationMode='server'
               pageSizeOptions={[7, 10, 25, 50]}
               paginationModel={paginationModel}
@@ -665,16 +748,6 @@ const NurseryDetails = () => {
               onPaginationModelChange={setPaginationModel}
               rowHeight={64}
               loading={loading}
-              // slotProps={{
-              //   baseButton: {
-              //     variant: 'outlined'
-              //   },
-              //   toolbar: {
-              //     value: searchValue,
-              //     clearSearch: () => handleSearch(''),
-              //     onChange: event => handleSearch(event.target.value)
-              //   }
-              // }}
               onCellClick={onCellClick}
             />
             {openDrawer && (
@@ -683,7 +756,7 @@ const NurseryDetails = () => {
                 setOpenDrawer={setOpenDrawer}
                 editName={editName}
                 fetchTableData={fetchTableData}
-                callApi={fetchNurseryById}
+                callApi={fetchNurseryDetails}
                 editSite={editSite}
                 editSiteName={editSiteName}
                 editNurseryId={editNurseryId}
@@ -691,7 +764,7 @@ const NurseryDetails = () => {
             )}
             <AddIncubatorRoom
               callTableApi={fetchTableData}
-              callApi={fetchNurseryById}
+              callApi={fetchNurseryDetails}
               isOpen={isOpen}
               setIsOpen={setIsOpen}
               isPreFilled={isPreFilled}
@@ -703,7 +776,7 @@ const NurseryDetails = () => {
               setOpenStatusDialog={setOpenStatusDialog}
               elements={incubatorNo}
               statusLoading={statusLoading}
-              hatcheryStatusFunc={hatcheryStatusFunc}
+              toggleHatcheryStatus={toggleHatcheryStatus}
             />
             <EditRedirectionDialog
               refType={'nursery'}

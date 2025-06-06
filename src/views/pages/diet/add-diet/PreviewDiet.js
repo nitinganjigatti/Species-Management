@@ -981,6 +981,12 @@ const StepPreviewDiet = ({
                   <span style={{ fontWeight: 600 }}>{formData.diet_type_name ? formData.diet_type_name : '-'}</span>
                 </Typography>
               </div>
+              <div>
+                <Typography>
+                  <span>Dietician Name : </span>
+                  <span style={{ fontWeight: 600 }}>{formData.dietitian_name}</span>
+                </Typography>
+              </div>
               <Grid sx={{ mt: 5 }}>
                 <div>
                   <Typography variant='h6' sx={{ mb: 2 }}>
@@ -1600,7 +1606,7 @@ const StepPreviewDiet = ({
                                                     mb: 1
                                                   }}
                                                 >
-                                                  Ingredients used
+                                                  Items used
                                                 </Typography>
                                                 {item?.ingredients?.length > 0 && (
                                                   <Box
@@ -2282,7 +2288,7 @@ const StepPreviewDiet = ({
                                                     mb: 1
                                                   }}
                                                 >
-                                                  Ingredients used
+                                                  Items used
                                                 </Typography>
                                                 {item?.ingredients?.length > 0 && (
                                                   <Box
@@ -2869,7 +2875,7 @@ const StepPreviewDiet = ({
                                                       width: '100%'
                                                     }}
                                                   >
-                                                    Ingredient
+                                                    Item
                                                   </Typography>
                                                 )}
                                                 <Box sx={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap' }}>
@@ -3455,7 +3461,7 @@ const StepPreviewDiet = ({
                                                 mb: 0
                                               }}
                                             >
-                                              Ingredients using
+                                              Items using
                                             </Typography>
                                             {item?.ingredientList?.length > 0 && (
                                               <Box

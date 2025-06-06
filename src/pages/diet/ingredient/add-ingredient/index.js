@@ -100,7 +100,7 @@ const AddIngredient = () => {
   }
 
   const schema = yup.object().shape({
-    ingredientName: yup.string().required('Ingredient Name is Required'),
+    ingredientName: yup.string().required('Item Name is Required'),
     feedType: yup.string().nullable().required('Feed Type is Required'),
 
     // uom: yup.string().nullable().required('UOM is Required'),
@@ -341,7 +341,7 @@ const AddIngredient = () => {
         await updateIngredients(payload, id).then(res => {
           setSubmitLoader(false)
           if (res?.success) {
-            Toaster({ type: 'success', message: 'Ingredients' + ' ' + res?.message })
+            Toaster({ type: 'success', message: 'Items' + ' ' + res?.message })
 
             // Router.push({ pathname: `/diet/ingredient` })
 
@@ -363,7 +363,7 @@ const AddIngredient = () => {
         await addIngredients(payload).then(res => {
           if (res?.success) {
             setSubmitLoader(false)
-            Toaster({ type: 'success', message: 'Ingredients' + ' ' + res?.message })
+            Toaster({ type: 'success', message: 'Items' + ' ' + res?.message })
 
             Router.push({ pathname: `/diet/ingredient/${res?.data?.ingredient_id}` })
 
@@ -462,9 +462,9 @@ const AddIngredient = () => {
           <Box>
             <Breadcrumbs aria-label='breadcrumb'>
               <Typography sx={{ cursor: 'pointer' }} color='inherit' onClick={() => Router.push('/diet/ingredient')}>
-                Ingredients
+                Items
               </Typography>
-              <Typography color='text.primary'>{id ? 'Update' : 'Add'} new ingredient</Typography>
+              <Typography color='text.primary'>{id ? 'Update' : 'Add'} new item</Typography>
             </Breadcrumbs>
           </Box>
           {loading ? (
@@ -476,13 +476,13 @@ const AddIngredient = () => {
               <Card sx={{ mt: 3 }}>
                 <CardHeader
                   sx={{ paddingBottom: 0, marginX: 1 }}
-                  title={id ? 'Update Ingredient' : 'Add New Ingredient'}
+                  title={id ? 'Update Item' : 'Add New Item'}
                   action={id ? headerAction : null}
                 />
                 <CardContent>
                   <Typography sx={{ width: '70%', fontSize: 14 }}>
-                    Please provide the standard unit, unit of measurement, water percentage, and dry ingredient
-                    proportions for this ingredient prior to processing.
+                    Please provide the standard unit, unit of measurement, water percentage, and dry item proportions
+                    for this item prior to processing.
                   </Typography>
                   <Box sx={{ my: '24px' }}>
                     <Divider />
@@ -507,7 +507,7 @@ const AddIngredient = () => {
 
                   <Box>
                     <Typography sx={{ mt: '32px', mb: '20px', fontSize: 20, fontWeight: 500 }}>
-                      1. Ingredient details
+                      1. Item details
                     </Typography>
                     <Grid container sx={{ justifyContent: 'space-between', rowGap: '20px' }}>
                       <Grid item size={{ xs: 12, md: 3.9, sm: 3.9 }}>
@@ -518,10 +518,10 @@ const AddIngredient = () => {
                             rules={{ required: true }}
                             render={({ field: { value, onChange } }) => (
                               <TextField
-                                label='Ingredient Name *'
+                                label='Item Name *'
                                 value={value}
                                 onChange={onChange}
-                                placeholder='Ingredient Name'
+                                placeholder='Item Name'
                                 error={Boolean(errors.ingredientName)}
                                 name='ingredientName'
                               />
@@ -543,7 +543,7 @@ const AddIngredient = () => {
                             rules={{ required: true }}
                             render={({ field: { value, onChange } }) => (
                               <TextField
-                                label='Ingredient Alias'
+                                label='Item Alias'
                                 value={value}
                                 onChange={onChange}
                                 placeholder='Ingredient Alias'

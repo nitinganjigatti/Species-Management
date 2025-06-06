@@ -258,9 +258,19 @@ const AddIngredientswithChoice = props => {
         duration: 1000
       })
     } else if (selectedCardIngchoice.length >= 1) {
-      setShowDays(true)
-      const allDayIds = Day.map(day => day.id)
-      setSelectedDays(allDayIds)
+      if (allIngredientchoiceSelectedValues.some(all => all.mealid === checkid) && ingType === 'addingIndex') {
+        const selectedValuesWithCheckId = allIngredientchoiceSelectedValues?.filter((item, index) => {
+          return index === ingredientChoiceIndex && item?.mealid === checkid
+        })
+        const daysOfWeek = selectedValuesWithCheckId.flatMap(item => item.days_of_week)
+        setShowDays(true)
+        setSelectedDays(daysOfWeek)
+      } else {
+        const allDayIds = Day.map(day => day.id)
+        console.log(allDayIds, 'allDayIds')
+        setShowDays(true)
+        setSelectedDays(allDayIds)
+      }
     }
   }
 
@@ -437,9 +447,9 @@ const AddIngredientswithChoice = props => {
         const minChoices = selectedValuesWithCheckId.flatMap(item => item.no_of_component_required)
 
         setSelectedCardIngredientchoice(ingredientLists)
-
+        console.log(daysOfWeek, 'daysOfWeek')
         setSelectedDays(daysOfWeek)
-        setShowDays(true)
+        setShowDays(false)
         setCount(Math.max(...minChoices))
         //setListOfIngredient(selectedValuesWithCheckId)
 
@@ -525,6 +535,19 @@ const AddIngredientswithChoice = props => {
       const updatedSelectedCard = [...selectedCardIngchoice]
       updatedSelectedCard.splice(cardIndex, 1)
       setSelectedCardIngredientchoice(updatedSelectedCard)
+
+      // Remove only the matching item from selectFeed and size
+      setSelectFeed(prev => {
+        const newFeed = { ...prev }
+        delete newFeed[itemId]
+        return newFeed
+      })
+
+      setSize(prev => {
+        const newSize = { ...prev }
+        delete newSize[itemId]
+        return newSize
+      })
     }
   }
 
@@ -635,28 +658,44 @@ const AddIngredientswithChoice = props => {
         mealid: checkid
       }
 
-      // Check if any ingredient with the same preparation_type and ingredient_id already exists for the same mealid
-      const matchedIngredient = listOfIngredient.find(item => {
-        return (
-          item.mealid === checkid && // Check if the mealid matches
-          item.ingredientList.some(ingredient => {
-            return selectedCardIngchoice.some(
-              selectedIngredient =>
-                selectedIngredient.preparation_type === ingredient.preparation_type &&
-                selectedIngredient.ingredient_id === ingredient.ingredient_id
+      // Find all duplicate ingredients (matching ingredient_id and preparation_type)
+      const duplicateIngredients = listOfIngredient
+        .filter(item => item.mealid === checkid)
+        .flatMap(item =>
+          item.ingredientList.filter(existingIng =>
+            selectedCardIngchoice.some(
+              newIng =>
+                newIng.ingredient_id === existingIng.ingredient_id &&
+                newIng.preparation_type === existingIng.preparation_type
             )
-          })
+          )
         )
-      })
 
-      if (matchedIngredient) {
-        const daysMatch = selectedDays.every(day => matchedIngredient.days_of_week.includes(day))
-        if (daysMatch) {
-          // If days_of_week arrays partially match, do not add
-          const matchedIngredientName = matchedIngredient.ingredientList.map(ingredient => ingredient.name).join(', ')
+      // Check if any duplicates exist
+      if (duplicateIngredients.length > 0) {
+        // Check for overlapping days
+        const hasDayOverlap = listOfIngredient.some(
+          item =>
+            item.mealid === checkid &&
+            item.days_of_week.some(day => selectedDays.includes(day)) &&
+            item.ingredientList.some(existingIng =>
+              selectedCardIngchoice.some(
+                newIng =>
+                  newIng.ingredient_id === existingIng.ingredient_id &&
+                  newIng.preparation_type === existingIng.preparation_type
+              )
+            )
+        )
+
+        if (hasDayOverlap) {
+          // Get names of all duplicate ingredients
+          console.log(duplicateIngredients, 'duplicateIngredients')
+          const duplicateNames = duplicateIngredients
+            .map(ing => ing.ingredient_name)
+            .filter((name, index, self) => self.indexOf(name) === index) // Remove duplicates
 
           toast.error(
-            `Ingredient(s) ${matchedIngredientName} already exist(s) with same preparation type and days of the week`
+            `Ingredient ${duplicateNames.join(', ')} already exist's with same preparation type and days of the week`
           )
 
           return
@@ -684,6 +723,10 @@ const AddIngredientswithChoice = props => {
     sortedIngredientList = sortedIngredientList.filter(
       item => ingredientwithChoiceId.includes(item.id) && ingredientwithChoiceName.includes(item.ingredient_name)
     )
+  }
+
+  const handleClose = () => {
+    setShowDays(false)
   }
 
   return (
@@ -743,7 +786,7 @@ const AddIngredientswithChoice = props => {
                     </IconButton>
                   )
                 }}
-                placeholder='Search ingredient'
+                placeholder='Search item'
                 onChange={handleSearchChange}
                 sx={{
                   '& .MuiOutlinedInput-root': {
@@ -907,7 +950,7 @@ const AddIngredientswithChoice = props => {
                       direction='row'
                       sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 2, mt: 1 }}
                     >
-                      <Typography>Id - {item?.id}</Typography>
+                      <Typography>ING - {item?.id}</Typography>
                       <Typography
                         sx={{
                           mr: 3,
@@ -1068,14 +1111,22 @@ const AddIngredientswithChoice = props => {
             <Box
               sx={{
                 display: 'flex',
+                flexDirection: 'column',
                 justifyContent: 'center',
                 alignItems: 'center',
-                height: '40%',
-                color: theme.palette.customColors.statusText,
-                fontSize: '16px'
+                height: '70%',
+                textAlign: 'center'
               }}
             >
-              No records to show
+              <img src='/images/no_data_animal_2.png' alt='Grocery Icon' width='250px' />
+              <Box
+                sx={{
+                  color: theme.palette.customColors.statusText,
+                  fontSize: '16px'
+                }}
+              >
+                No records to show
+              </Box>
             </Box>
           ) : null}
           {!loading && reachedEnd ? (
@@ -1108,7 +1159,7 @@ const AddIngredientswithChoice = props => {
                 <Typography sx={{ fontWeight: 'bold', fontSize: '20px' }}>
                   {selectedCardIngchoice?.length} Items Selected
                 </Typography>
-                <IconButton size='small' onClick={() => setShowDays(false)} sx={{ color: 'text.primary' }}>
+                <IconButton size='small' onClick={handleClose} sx={{ color: 'text.primary' }}>
                   <Icon icon='mdi:close' fontSize={25} />
                 </IconButton>
               </Stack>

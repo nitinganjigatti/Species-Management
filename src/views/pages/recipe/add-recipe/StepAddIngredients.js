@@ -97,15 +97,10 @@ const StepAddIngredients = ({
   onCancelIconClick,
   handleIngredientChange
 }) => {
-  const ingredients = [
-    { label: ' Ingredients' },
-    { label: 'Quantity' },
-    { label: 'Preparation Type' },
-    { label: 'Cut Size' }
-  ]
+  const ingredients = [{ label: ' Items' }, { label: 'Quantity' }, { label: 'Preparation Type' }, { label: 'Cut Size' }]
 
   const ingredientsbyqun = [
-    { label: ' Ingredients' },
+    { label: ' Items' },
     { label: 'Quantity' },
     { label: 'Unit of Measurement' },
     { label: 'Preparation Type' },
@@ -180,7 +175,7 @@ const StepAddIngredients = ({
           }}
         >
           <Icon icon='material-symbols:add' />
-          ADD NEW INGREDIENT
+          ADD NEW ITEM
         </Typography>
       </>
     )
@@ -204,7 +199,7 @@ const StepAddIngredients = ({
           mt: 4,
 
           //float: 'left',
-          color: '#37BD69',
+          color: theme.palette.primary.main,
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'flex-start',
@@ -221,7 +216,7 @@ const StepAddIngredients = ({
         }}
       >
         <Icon icon='material-symbols:add' />
-        ADD NEW INGREDIENT
+        ADD NEW ITEM
       </Grid>
     )
   }
@@ -426,7 +421,7 @@ const StepAddIngredients = ({
                   Alert!
                 </Typography>
                 <Divider sx={{ my: 2 }} />
-                <Typography variant='body2' sx={{ color: '#44544A' }}>
+                <Typography variant='body2' sx={{ color: theme.palette.customColors.OnSurfaceVariant }}>
                   Please review and adjust percentages before adding new ingredients
                 </Typography>
               </div>
@@ -459,7 +454,7 @@ const StepAddIngredients = ({
                   Alert!
                 </Typography>
                 <Divider sx={{ my: 2 }} />
-                <Typography variant='body2' sx={{ color: '#44544A' }}>
+                <Typography variant='body2' sx={{ color: theme.palette.customColors.OnSurfaceVariant }}>
                   Percentage added should be equal to 100%
                 </Typography>
               </div>
@@ -866,7 +861,7 @@ const StepAddIngredients = ({
             </Grid> */}
             <Grid item size={{ xs: 12 }}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4, mt: 2, mr: 4 }}>
-                <Typography variant='h6'>Add Ingredient- by Quantity</Typography>
+                <Typography variant='h6'>Add Item - by Quantity</Typography>
                 <AddButton title='Add Cut Size' action={() => addEventSidebarOpen()} />
               </Box>
             </Grid>
@@ -886,7 +881,17 @@ const StepAddIngredients = ({
                   minWidth: 'max-content' // Ensure the container doesn't shrink
                 }}
               >
-                <Grid container spacing={5} sx={{ px: 5, background: '#E8F4F2', my: 2, borderRadius: 0.5, mx: 4 }}>
+                <Grid
+                  container
+                  spacing={5}
+                  sx={{
+                    px: 5,
+                    background: theme.palette.customColors.displaybgPrimary,
+                    my: 2,
+                    borderRadius: 0.5,
+                    mx: 4
+                  }}
+                >
                   {ingredientsbyqun.map((ingredient, index) => (
                     <Grid
                       item
@@ -952,7 +957,7 @@ const StepAddIngredients = ({
                                 renderInput={params => (
                                   <TextField
                                     {...params}
-                                    label='Select Ingredient*'
+                                    label='Select Item*'
                                     placeholder='Search & Select'
                                     error={
                                       errors.by_quantity &&

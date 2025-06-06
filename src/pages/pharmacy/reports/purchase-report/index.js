@@ -226,9 +226,10 @@ const PurchaseReport = () => {
       field: 'id',
       sortable: false,
       headerName: 'SL.NO',
-
+      align: 'center',
+      headerAlign: 'center',
       renderCell: params => (
-        <Box sx={{ minWidth: 40 }}>
+        <Box sx={{ minWidth: 40, textAlign: 'center' }}>
           <Typography sx={{ color: 'text.primary', fontSize: '14px', fontWeight: '400px' }}>
             {params.row.id + '.'}
           </Typography>
@@ -255,36 +256,8 @@ const PurchaseReport = () => {
         </Typography>
       )
     },
-
-    // {
-    //   width: 5,
-    //   field: 'label',
-    //   headerName: '',
-    //   sortable: false,
-    //   renderCell: params => (
-    //     <Typography
-    //       sx={{
-    //         color: 'customColors.OnSecondaryContainer',
-    //         display: 'flex',
-    //         alignItems: 'center',
-    //         fontWeight: 500,
-    //         fontSize: '14px',
-    //         ...RenderUtility?.getEllipsisStyleForText()
-    //       }}
-    //     >
-    //       {RenderUtility?.renderControlLabel(
-    //         !isNaN(params.row?.controlled_substance) && parseInt(params.row?.controlled_substance) === 1,
-    //         'CS'
-    //       )}
-    //       {RenderUtility?.renderControlLabel(
-    //         !isNaN(params.row?.prescription_required) && parseInt(params.row?.prescription_required) === 1,
-    //         'PR'
-    //       )}
-    //     </Typography>
-    //   )
-    // },
     {
-      width: 260,
+      width: 340,
       minWidth: 20,
       field: 'stock_name',
       align: 'left',
@@ -293,66 +266,13 @@ const PurchaseReport = () => {
 
       renderCell: params => (
         <Box>
-          {/* <StyleWithIconCardComponent
-            value={
-              <>
-                <Typography sx={{ display: 'flex', alignItems: 'center' }}>
-                  <Typography
-                    sx={{
-                      color: 'customColors.OnSecondaryContainer',
-                      display: 'flex',
-
-                      alignItems: 'center',
-                      fontWeight: 500,
-                      fontSize: '14px'
-
-                      // ...RenderUtility?.getEllipsisStyleForText()
-                    }}
-                  >
-                    {RenderUtility?.renderControlLabel(
-                      !isNaN(params.row?.controlled_substance) && parseInt(params.row?.controlled_substance) === 1,
-                      'CS'
-                    )}
-                    {RenderUtility?.renderPrescriptionLabel(
-                      !isNaN(params.row?.prescription_required) && parseInt(params.row?.prescription_required) === 1,
-                      'PR'
-                    )}
-                  </Typography>
-                  <Typography
-                    sx={{
-                      color: 'customColors.customHeadingTextColor',
-                      fontWeight: 500,
-                      fontSize: '14px',
-                      overflow: 'hidden',
-                      whiteSpace: 'nowrap',
-                      textOverflow: 'ellipsis',
-                      maxWidth: 250
-                    }}
-                  >
-                    {params.row.stock_name}
-                  </Typography>
-                </Typography>
-              </>
-            }
-            description={params.row.generic_name ? params.row.generic_name : 'NA'}
-            icon={params.row.image ? `${params.row.image}` : '/images/Medicine_Icon.png'}
-            showIcon={false}
-            customCss={{
-              p: '0px',
-              width: '100%',
-              height: '100%',
-              fontSize: '14px',
-              avtBorderRadius: '10px',
-              iconWidth: '44px',
-              iconHeight: '44px'
-            }}
-          /> */}
           <PharmacyProductCard
             title={params?.row?.stock_name}
             subTitle={params?.row?.generic_name ? params?.row?.generic_name : 'NA'}
             icon={params?.row?.image}
             controlSubstance={params?.row?.controlled_substance === '1' && true}
             prescriptionRequired={params?.row?.prescription_required === '1' && true}
+            rowWidth={320}
           />
         </Box>
       )
@@ -537,23 +457,51 @@ const PurchaseReport = () => {
     },
     {
       minWidth: 20,
-      width: 180,
+      width: 200,
       field: 'requested_by',
       sortable: true,
       headerName: 'REQUESTED BY',
-      renderCell: params => (
-        <Typography
-          variant='body2'
-          sx={{
-            color: theme.palette.customColors.customHeadingTextColor,
-            fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
-          }}
-        >
-          {params.row.requested_by ? params.row.requested_by : '-'}
-        </Typography>
-      )
+      renderCell: params => {
+        const requestedBy = params.row.requested_by
+
+        return (
+          <Tooltip title={requestedBy}>
+            {requestedBy ? (
+              <Typography
+                variant='body2'
+                sx={{
+                  color: theme.palette.customColors.customHeadingTextColor,
+                  fontSize: '14px',
+                  fontWeight: 400,
+                  fontFamily: 'Inter',
+                  overflow: 'hidden',
+                  whiteSpace: 'nowrap',
+                  textOverflow: 'ellipsis',
+                  maxWidth: 200
+                }}
+              >
+                {requestedBy}
+              </Typography>
+            ) : (
+              <Box
+                sx={{
+                  display: 'flex',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  height: '100%',
+                  width: '100%',
+                  fontSize: '14px',
+                  color: theme.palette.text.secondary,
+                  fontFamily: 'Inter',
+                  fontWeight: 400
+                }}
+              >
+                -
+              </Box>
+            )}
+          </Tooltip>
+        )
+      }
     },
 
     {
@@ -592,25 +540,47 @@ const PurchaseReport = () => {
       field: 'comment',
       sortable: false,
       headerName: 'COMMENTS',
-      renderCell: params => (
-        <Tooltip title={params.row.comment}>
-          <Typography
-            variant='body2'
-            sx={{
-              color: theme.palette.customColors.customHeadingTextColor,
-              fontSize: '14px',
-              fontWeight: 400,
-              fontFamily: 'Inter',
-              overflow: 'hidden',
-              whiteSpace: 'nowrap',
-              textOverflow: 'ellipsis',
-              maxWidth: 200
-            }}
-          >
-            <span alt={params.row.comment}> {params.row.comment ? params.row.comment : '-'}</span>
-          </Typography>
-        </Tooltip>
-      )
+      renderCell: params => {
+        const comment = params.row.comment
+
+        return (
+          <Tooltip title={comment}>
+            {comment ? (
+              <Typography
+                variant='body2'
+                sx={{
+                  color: theme.palette.customColors.customHeadingTextColor,
+                  fontSize: '14px',
+                  fontWeight: 400,
+                  fontFamily: 'Inter',
+                  overflow: 'hidden',
+                  whiteSpace: 'nowrap',
+                  textOverflow: 'ellipsis',
+                  maxWidth: 200
+                }}
+              >
+                {comment}
+              </Typography>
+            ) : (
+              <Box
+                sx={{
+                  display: 'flex',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  height: '100%',
+                  width: '100%',
+                  fontSize: '14px',
+                  color: theme.palette.text.secondary,
+                  fontFamily: 'Inter',
+                  fontWeight: 400
+                }}
+              >
+                -
+              </Box>
+            )}
+          </Tooltip>
+        )
+      }
     },
 
     {

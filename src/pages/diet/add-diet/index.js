@@ -37,6 +37,8 @@ import { getCutsizeList } from 'src/lib/api/diet/settings/cutSizes'
 import { getFeedTypeList } from 'src/lib/api/diet/feedType'
 import { getUnitsForRecipe } from 'src/lib/api/diet/recipe'
 import Error404 from 'src/pages/404'
+import { readAsync } from 'src/lib/windows/utils'
+import { getUserList } from 'src/lib/api/pharmacy/dispenseProduct'
 
 const steps = [
   {
@@ -54,6 +56,7 @@ const AddDiet = () => {
   const { id, name } = router.query
   const [activeStep, setActiveStep] = useState(0)
   const [uomList, setUomList] = useState([])
+  const [dieticianList, setDieticianList] = useState([])
   const [uomprevnew, setUomprevnew] = useState([])
   const [IngredientTypeList, setIngredientTypeList] = useState([])
   const [selectedCard, setSelectedCard] = useState([])
@@ -74,6 +77,8 @@ const AddDiet = () => {
     diet_name: '',
     diet_type_name: '',
     diet_type_id: '',
+    dietitian_name: '',
+    dietitian_id: null,
     child: '',
     diet_image: '',
     desc: '',
@@ -144,6 +149,27 @@ const AddDiet = () => {
       })
     } catch (e) {
       console.log(e)
+    }
+  }
+
+  const getDieticianList = async () => {
+    try {
+      const userDetails = await readAsync('userDetails')
+      if (userDetails?.user?.zoos.length > 0) {
+        let zoo_id = userDetails?.user?.zoos[0].zoo_id
+        await getUserList({ zoo_id }).then(res => {
+          if (res?.data?.length > 0) {
+            setDieticianList(
+              res?.data?.map(item => ({
+                label: item?.user_name,
+                value: item?.user_id
+              }))
+            )
+          }
+        })
+      }
+    } catch (error) {
+      console.log('user error', error)
     }
   }
 
@@ -238,6 +264,7 @@ const AddDiet = () => {
           diet_name: urlType === 'copy' ? name : data.diet_name,
           diet_type_name: data.diet_type_name,
           diet_type_id: data.diet_type_id,
+          dietitian_id: data?.dietitian_id,
           child: data.child,
           diet_image: data.diet_image,
           desc: data.desc,
@@ -315,6 +342,7 @@ const AddDiet = () => {
     getcutsizeListFromApi()
     fetchData()
     getUnitsListuom()
+    getDieticianList()
 
     // callIngredientTypeList({ status: 1, page: 1, limit: 10 })
   }, [])
@@ -612,6 +640,7 @@ const AddDiet = () => {
             formData={formData}
             updateFormData={updateFormData}
             uomList={uomList}
+            dieticianList={dieticianList}
             setSelectedCardRecipe={handleSelectedCardChange}
             setSelectedCardCombo={handleSelectedCardChangeCombo}
             selectedCardRecipe={selectedCardRecipe}
@@ -634,6 +663,7 @@ const AddDiet = () => {
             updateFormData={updateFormData}
             formData={formData}
             uomList={uomList}
+            dieticianList={dieticianList}
             IngredientTypeList={IngredientTypeList}
             IngredientTypeListSearch={IngredientTypeListSearch}
             onCancelIconClick={handleCancelIconClick}

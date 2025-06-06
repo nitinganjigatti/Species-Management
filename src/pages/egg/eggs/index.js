@@ -1340,7 +1340,8 @@ const EggList = () => {
                   color: theme.palette.customColors.OnSurfaceVariant,
                   fontSize: '14px',
                   fontWeight: '500',
-                  lineHeight: '16.94px'
+                  lineHeight: '16.94px',
+                  mb: 0.7
                 }}
               >
                 {params.row.user_full_name ? params.row.user_full_name : '-'}
@@ -1946,6 +1947,8 @@ const EggList = () => {
       }
     )
   }
+  console.log('tab_Value', tab_Value)
+  console.log('subTab_value', subTab_value)
 
   const fetchTableData = useCallback(
     async (sort, search, statusRecived, discardedTab, selectedFiltersOptions = {}, filterByNurseryId) => {
@@ -1973,6 +1976,7 @@ const EggList = () => {
           : ''
 
         // console.log('status', status)
+        console.log('first')
         // console.log('isDiscarded', isDiscarded)
         const params = {
           sort,
@@ -2000,9 +2004,8 @@ const EggList = () => {
           //   : subTab_value === 'eggs_discarded_at_nursery'
           //   ? { discarded_date: collectedDate || '' }
           //   : { collected_date: collectedDate || '' }),
-          ...(status === 'eggs_ready_to_be_discarded_at_nursery'
-            ? { discarded_date: collectedDate || '' }
-            : isDiscarded === 'eggs_discarded_at_nursery'
+
+          ...(status === 'eggs_ready_to_be_discarded_at_nursery' || status === 'eggs_discarded'
             ? { discarded_date: collectedDate || '' }
             : { collected_date: collectedDate || '' }),
 

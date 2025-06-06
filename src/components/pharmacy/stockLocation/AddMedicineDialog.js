@@ -690,6 +690,7 @@ const AddMedicineDialog = ({ close, setDialogCheck, productData, selectedPharmac
                     variant='contained'
                     color='primary'
                     type='submit'
+                    size='large'
                     fullWidth
                     disabled={submitLoader || Object.values(configErrors).some(Boolean)}
                   >

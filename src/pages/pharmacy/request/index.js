@@ -515,25 +515,24 @@ const RequestList = () => {
     //   )
     // },
 
-    // {
-    //   flex: 0.2,
-    //   minWidth: 20,
-    //   field: 'last_shipping_date',
-    //   headerName: 'Recent shipping',
-    //   renderCell: params => (
-    //     <Typography
-    //       variant='body2'
-    //       sx={{
-    //         color: theme.palette.customColors.customHeadingTextColor,
-    //         fontSize: '14px',
-    //         fontWeight: 500,
-    //         fontFamily: 'Inter'
-    //       }}
-    //     >
-    //       {params.row.last_shipping_date ? Utility.formatDisplayDate(params.row.last_shipping_date) : 'NA'}
-    //     </Typography>
-    //   )
-    // },
+    {
+      minWidth: 160,
+      field: 'last_shipping_date',
+      headerName: 'Recent shipping',
+      renderCell: params => (
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
+          {Utility.formatDisplayDate(params?.row?.last_shipping_date)}
+        </Typography>
+      )
+    },
 
     {
       minWidth: 120,
@@ -913,10 +912,12 @@ const RequestList = () => {
               value='disputed'
               label={<TabBadge label='Disputes' totalCount={status === 'disputed' ? total : null} />}
             />
-            <Tab
-              value='cancel'
-              label={<TabBadge label='Cancelled' totalCount={status === 'cancel' ? total : null} />}
-            />
+            {selectedPharmacy?.type === 'local' && (
+              <Tab
+                value='cancel'
+                label={<TabBadge label='Cancelled' totalCount={status === 'cancel' ? total : null} />}
+              />
+            )}
             <Tab
               value={'all' ? 'all' : 'completed'}
               label={<TabBadge label='All' totalCount={['all', 'completed'].includes(status) ? total : null} />}
@@ -927,7 +928,7 @@ const RequestList = () => {
           <TabPanel value='shipped'>{tableData()}</TabPanel>
 
           <TabPanel value='disputed'>{tableData()}</TabPanel>
-          <TabPanel value='cancel'>{tableData()}</TabPanel>
+          {selectedPharmacy?.type === 'local' && <TabPanel value='cancel'>{tableData()}</TabPanel>}
           {status === 'all' ? (
             <TabPanel value='all'>{tableData()}</TabPanel>
           ) : (

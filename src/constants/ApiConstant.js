@@ -216,6 +216,10 @@ export const PURCHASE_BY_PRODUCT = 'v1/pharma/purchase/getPurchaseListByProduct'
 
 export const VARIANTS_MAPPING = 'variantMapping'
 
+export const ALTERNATE_LIST = 'AlternateList'
+
+export const ALTERNATE_MAPPING = 'AlternateMapping'
+
 export const VALIDATE_PURCHASE = 'validate'
 
 export const REQUEST_PENDING_PRODUCTS = 'v1/pharmacy/request-pending-products'
@@ -452,6 +456,8 @@ export const USER_REPORT = 'v1/user/report'
 
 export const MEDICAL_REPORT = 'v1/medical/report'
 
+export const ASSESSMENT_REPORT = 'v1/animal/batch/assessments'
+
 export const All_ANIMAL_LIST = 'v1/all/animal/report'
 
 export const REPORT_TYPE = 'v1/report/daily/report/type'
@@ -463,6 +469,8 @@ export const DELETE_ATTACHMENT_FOR_ANIMAL = 'v1/parivesh/species/site/deleteatta
 export const DOWNLOAD_CSV_FOR_BATCH_DATA = 'v1/parivesh/animal/site/downloadcsvforbatchdata'
 
 export const SPECIES_LIST = 'species-list-egg-wise'
+
+export const SPECIES_FILTER = 'egg/get-species-list'
 
 export const GET_SECTIONS = 'master/zoos/getsections'
 
@@ -489,3 +497,45 @@ export const GET_STATS = '/diet/get-meal-group-site-wise-stats'
 export const GET_SECTION = '/master/zoos/getsections'
 
 export const GET_SPECIES = '/diet/species'
+
+// Housing
+
+export const HOUSING_SITE_ANALYTICS = 'zoo/home'
+
+export const GET_SITES = 'site-list'
+
+export const SITE_DETAILS = 'site-details'
+
+export const GET_ALL_SECTIONS = 'get-site-wise-section-list'
+
+export const GET_ALL_ENCLOSURES = 'housing-listing'
+
+export const SECTION_INSIGHTS = 'zoos/section/details'
+
+export const GET_ALL_NOTES = 'v1/get-observation-by-type-id'
+
+export const GET_ALL_SPECIES = 'v1/species/listing'
+
+export const GET_MORTALITY = 'animal/get-mortality-listing-type-wise'
+
+export const GET_ANIMAL_TREATMENT = 'site-wise-animal-medical-data'
+
+export const SECTION_GET_ANIMAL_TREATMENT = 'section-wise-animal-medical-data'
+
+export const GET_MEDIA = 'zoos/all-type-media-list'
+
+export const GET_ANIMAL = 'v1/animal/listing'
+
+export const GET_CLUSTERS_LIST = `cluster/get-cluster-list`
+
+export const GET_SPECIFIC_CLUSTER_ANALYTICS = `/cluster/get-cluster-header-details`
+
+export const GET_ENCLOSURE_LIST_SECTION_WISE = `v1/enclosure/sub/listing`
+
+export const GET_ENCLOSURE_WISE_STATS = `enclosure/get-enclosure`
+
+export const GET_ENCLOSURE_WISE_SPECIES = `v1/enclosure/species/listing`
+
+export const STORE_WISE_SHIPMENT_PDF = 'shipment-store-item/shipped/print/'
+
+export const REQUEST_SHIPMENT_DETAILS_PDF = 'shipment/shipped/print/'

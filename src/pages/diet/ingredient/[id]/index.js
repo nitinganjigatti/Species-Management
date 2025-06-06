@@ -186,11 +186,11 @@ const IngredientDetail = () => {
                       }
                     }}
                     color='inherit'
-                    onClick={() => router.back()}
+                    onClick={() => Router.push('/diet/ingredient')}
                   >
-                    Ingredients
+                    Items
                   </Typography>
-                  <Typography color='text.primary'>Ingredient Details</Typography>
+                  <Typography color='text.primary'>Item Details</Typography>
                 </Breadcrumbs>
                 {Object.keys(IngredientsDetailsval).length !== 0 ? (
                   <Card>

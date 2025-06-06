@@ -47,6 +47,8 @@ const defaultValues = {
   diet_name: '',
   diet_type_name: '',
   diet_type_id: '',
+  dietitian_name: '',
+  dietitian_id: null,
   child: '',
   diet_image: '',
   desc: '',
@@ -71,6 +73,7 @@ const schema = yup.object().shape({
 
   //diet_type_name: yup.string().required('Diet type is required'),
   diet_type_id: yup.string().required('Diet type is required'),
+  dietitian_id: yup.number().required('Dietician name is required'),
   meal_data: yup.array().of(
     yup.object().shape({
       meal_name: yup.string().required('Meal name is required'),
@@ -88,6 +91,7 @@ const StepBasicDetails = ({
   handleNext,
   formData,
   uomList,
+  dieticianList,
   selectedCard,
   setSelectedCard,
   setSelectedCardRecipe,
@@ -143,7 +147,7 @@ const StepBasicDetails = ({
   const recipes = [
     // { label: 'No' },
     { label: 'Recipe' },
-    { label: 'Ingredients' },
+    { label: 'Items' },
     { label: 'Feeding days' },
     { label: 'Remarks' }
   ]
@@ -151,14 +155,14 @@ const StepBasicDetails = ({
   const combos = [
     // { label: 'No' },
     { label: 'Combo' },
-    { label: 'Ingredients' },
+    { label: 'Items' },
     { label: 'Feeding days' },
     { label: 'Remarks' }
   ]
 
   const ingredients = [
     // { label: 'No' },
-    { label: 'Ingredient' },
+    { label: 'Item' },
     { label: 'Prep types' },
     { label: 'Feeding days' },
     { label: 'Remarks' }
@@ -666,9 +670,7 @@ const StepBasicDetails = ({
 
       if (invalidIndexes.length > 0) {
         invalidIndexes.forEach(index => {
-          toast.error(
-            `Meal ${index + 1} must contain at least one of ingredient, recipe, combo or ingredients with choice.`
-          )
+          toast.error(`Meal ${index + 1} must contain at least one of item, recipe, combo or items with choice.`)
         })
 
         return
@@ -728,7 +730,7 @@ const StepBasicDetails = ({
   }
 
   const cancelBack = () => {
-    Router.push('/diet/diet/')
+    Router.push(`/diet/diet/${id}`)
   }
 
   const addIngredientsButton = () => {
@@ -828,7 +830,7 @@ const StepBasicDetails = ({
     })
   }
 
-  const removeingClicking = (indexToRemove, val) => {
+  const removeingClicking = (indexToRemove, val, value) => {
     setingType('')
     setIngredientchoiceChildStateValue(prevSelectedCard => {
       // Filter out the entire ingredient object based on the index of prevSelectedCard
@@ -842,15 +844,25 @@ const StepBasicDetails = ({
         return updatedAllSelectedValues
       })
 
-      // Update fieldsIngredients by removing the ingredient based on the indexToRemove
+      // Update fieldsIngredients by removing the matching ingredient objects
       const updatedFieldsIngredients = fieldsIngredients.map(field => {
         if (field?.mealid === val) {
-          field.ingredientwithchoice = field.ingredientwithchoice?.filter((_, ingIndex) => ingIndex !== indexToRemove)
-        }
+          field.ingredientwithchoice = field.ingredientwithchoice?.filter(ingWithChoice => {
+            // Check if this ingWithChoice's ingredientList contains any object that matches all criteria
+            const hasMatchingIngredient = ingWithChoice.ingredientList?.some(ing => {
+              return value.ingredientList?.some(
+                valIng =>
+                  String(valIng.preparation_type_id) === String(ing.preparation_type_id) &&
+                  String(valIng.mealid) === String(ing.mealid) &&
+                  String(valIng.ingredient_id) === String(ing.ingredient_id)
+              )
+            })
 
+            return !hasMatchingIngredient
+          })
+        }
         return field
       })
-
       setfinalvalueingredientchoice(updatedFieldsIngredients)
 
       return filteredChildStateValue
@@ -886,7 +898,6 @@ const StepBasicDetails = ({
 
   const removeingClickCombo = (recipeIdToRemove, val) => {
     setComboChildStateValue(prevSelectedCard => {
-      console.log(prevSelectedCard, 'prevSelectedCard')
       const filteredChildStateValue = prevSelectedCard.filter(recipe => recipe.recipe_id !== recipeIdToRemove)
 
       setAllComboSelectedValues(prevAllSelectedValues => {
@@ -912,21 +923,21 @@ const StepBasicDetails = ({
     })
   }
 
-  const removeingClickingwithChoice = (ingredientIdToRemove, val) => {
+  const removeingClickingwithChoice = (ingredientIdToRemove, val, index, value) => {
     setIngredientchoiceChildStateValue(prevSelectedCard => {
       const filteredChildStateValue = prevSelectedCard.filter(ingredient =>
         ingredient.ingredientList.some(ing => ing.ingredient_id !== ingredientIdToRemove)
       )
 
       setAllIngredientchoiceSelectedValues(prevAllSelectedValues => {
-        // Filter out objects based on conditions
-
         const updatedAllSelectedValues = prevAllSelectedValues
-          .map(ingredient => {
-            if (ingredient?.mealid === val) {
-              ingredient.ingredientList = ingredient.ingredientList.filter(
-                ing => ing?.ingredient_id !== ingredientIdToRemove
-              )
+          .map((ingredient, i) => {
+            // Check both index and checkid === mealid
+            if (i === index && ingredient?.mealid === val) {
+              return {
+                ...ingredient,
+                ingredientList: ingredient.ingredientList.filter(ing => ing?.ingredient_id !== ingredientIdToRemove)
+              }
             }
 
             return ingredient
@@ -936,20 +947,31 @@ const StepBasicDetails = ({
         return updatedAllSelectedValues
       })
 
-      // Update fieldsIngredients by filtering out ingredients based on ingredientIdToRemove
       const updatedFieldsIngredients = fieldsIngredients.map(field => {
-        field.ingredientwithchoice = field.ingredientwithchoice
-          ?.map(ing => {
-            if (ing?.mealid === val) {
-              ing.ingredientList = ing?.ingredientList?.filter(
-                item => String(item.ingredient_id) !== ingredientIdToRemove
-              )
-            }
+        if (field?.mealid === val) {
+          const updatedIngredientWithChoice = field.ingredientwithchoice
+            ?.map(ingWithChoice => {
+              // Filter out only the exact matching ingredient from ingredientList
+              const updatedIngredientList = ingWithChoice.ingredientList?.filter(ing => {
+                return !(
+                  String(value.preparation_type_id) === String(ing.preparation_type_id) &&
+                  String(value.mealid) === String(ing.mealid) &&
+                  String(value.ingredient_id) === String(ing.ingredient_id)
+                )
+              })
 
-            return ing
-          })
-          .filter(ing => ing?.ingredientList && ing?.ingredientList.length > 0)
+              return {
+                ...ingWithChoice,
+                ingredientList: updatedIngredientList?.length > 0 ? updatedIngredientList : undefined
+              }
+            })
+            .filter(ingWithChoice => ingWithChoice.ingredientList) // Remove entries with empty ingredientList
 
+          return {
+            ...field,
+            ingredientwithchoice: updatedIngredientWithChoice?.length > 0 ? updatedIngredientWithChoice : undefined
+          }
+        }
         return field
       })
 
@@ -977,7 +999,7 @@ const StepBasicDetails = ({
             </Box>
             <ScrollToFieldError errors={errors} />
             <Grid container spacing={5} sx={{ px: 5 }}>
-              <Grid item size={{ xs: 12, sm: 6 }}>
+              <Grid item xs={12} sm={4}>
                 <FormControl fullWidth>
                   <Controller
                     name='diet_name'
@@ -999,7 +1021,7 @@ const StepBasicDetails = ({
                 </FormControl>
               </Grid>
 
-              <Grid item size={{ xs: 12, sm: 6 }}>
+              <Grid item xs={12} sm={4}>
                 <FormControl fullWidth>
                   {/* <InputLabel id='uom'> Select unit of measurement (UOM)</InputLabel> */}
 
@@ -1050,6 +1072,96 @@ const StepBasicDetails = ({
 
                   {errors?.diet_type_id && (
                     <FormHelperText sx={{ color: 'error.main' }}>{errors?.diet_type_id?.message}</FormHelperText>
+                  )}
+                </FormControl>
+              </Grid>
+
+              <Grid item xs={12} sm={4}>
+                <FormControl fullWidth>
+                  <Controller
+                    name='dietitian_id'
+                    control={control}
+                    rules={{ required: true }}
+                    render={({ field: { value, onChange } }) => {
+                      console.log(value)
+
+                      return (
+                        <Autocomplete
+                          id='dietitian_id'
+                          value={dieticianList?.find(option => option.value === value) || null}
+                          options={dieticianList || []}
+                          getOptionLabel={option => option.label}
+                          isOptionEqualToValue={(option, value) => option?.value === value}
+                          onChange={(e, val) => {
+                            if (val === null) {
+                              setFormValue('dietitian_id', '')
+                              setFormValue('dietitian_name', '')
+                            } else {
+                              setFormValue('dietitian_id', val.value)
+                              setFormValue('dietitian_name', val.label)
+                              trigger('dietitian_id')
+                            }
+                          }}
+                          renderInput={params => (
+                            <TextField
+                              {...params}
+                              label='Dietician *'
+                              placeholder='Search & Select'
+                              error={Boolean(errors.dietitian_id)}
+                              name='dietitian_id'
+                            />
+                          )}
+                        />
+                      )
+                    }}
+                  />
+                  {errors?.dietitian_id && (
+                    <FormHelperText sx={{ color: 'error.main' }}>{errors?.dietitian_id?.message}</FormHelperText>
+                  )}
+                </FormControl>
+              </Grid>
+
+              <Grid item xs={12} sm={4}>
+                <FormControl fullWidth>
+                  <Controller
+                    name='dietitian_id'
+                    control={control}
+                    rules={{ required: true }}
+                    render={({ field: { value, onChange } }) => {
+                      console.log(value)
+
+                      return (
+                        <Autocomplete
+                          id='dietitian_id'
+                          value={dieticianList?.find(option => option.value === value) || null}
+                          options={dieticianList || []}
+                          getOptionLabel={option => option.label}
+                          isOptionEqualToValue={(option, value) => option?.value === value}
+                          onChange={(e, val) => {
+                            if (val === null) {
+                              setFormValue('dietitian_id', '')
+                              setFormValue('dietitian_name', '')
+                            } else {
+                              setFormValue('dietitian_id', val.value)
+                              setFormValue('dietitian_name', val.label)
+                              trigger('dietitian_id')
+                            }
+                          }}
+                          renderInput={params => (
+                            <TextField
+                              {...params}
+                              label='Dietician *'
+                              placeholder='Search & Select'
+                              error={Boolean(errors.dietitian_id)}
+                              name='dietitian_id'
+                            />
+                          )}
+                        />
+                      )
+                    }}
+                  />
+                  {errors?.dietitian_id && (
+                    <FormHelperText sx={{ color: 'error.main' }}>{errors?.dietitian_id?.message}</FormHelperText>
                   )}
                 </FormControl>
               </Grid>
@@ -1238,25 +1350,25 @@ const StepBasicDetails = ({
                         {recipes.map((recipe, index) => (
                           <Grid
                             item
-                            size={{
-                              xs: 12,
-                              sm:
-                                recipe.label === 'No'
-                                  ? 0.5
-                                  : recipe.label === 'Recipe'
-                                  ? 2.2
-                                  : recipe.label === 'Ingredients'
-                                  ? 1.9
-                                  : 3.7,
-                              md:
-                                recipe.label === 'No'
-                                  ? 0.5
-                                  : recipe.label === 'Recipe'
-                                  ? 2.2
-                                  : recipe.label === 'Ingredients'
-                                  ? 1.5
-                                  : 3.7
-                            }}
+                            xs={12}
+                            sm={
+                              recipe.label === 'No'
+                                ? 0.5
+                                : recipe.label === 'Recipe'
+                                ? 2.2
+                                : recipe.label === 'Items'
+                                ? 1.9
+                                : 3.7
+                            }
+                            md={
+                              recipe.label === 'No'
+                                ? 0.5
+                                : recipe.label === 'Recipe'
+                                ? 2.3
+                                : recipe.label === 'Items'
+                                ? 1.5
+                                : 3.5
+                            }
                             key={index}
                             sx={{ py: 4, px: 2, textAlign: 'center' }}
                           >
@@ -1299,7 +1411,7 @@ const StepBasicDetails = ({
                                     src={all.recipe_image ? all.recipe_image : '/icons/icon_diet_fill.png'}
                                   ></Avatar>
                                 </Grid>
-                                <Grid item size={{ xs: 12, sm: 2.2, md: 2.2 }}>
+                                <Grid item xs={12} sm={2.2} md={2.1}>
                                   <Tooltip title={all.recipe_name}>
                                     <Typography
                                       className='recipe_name'
@@ -1319,7 +1431,7 @@ const StepBasicDetails = ({
                                   </Typography>
                                 </Grid>
 
-                                <Grid item size={{ xs: 12, sm: 1.4, md: 1.0 }} sx={{ pl: 2 }}>
+                                <Grid item xs={12} sm={1.4} md={1.0}>
                                   <Typography>{all?.ingredients_count}</Typography>
                                   {/* {all?.ingredients ? (
                                   <Typography>{all?.ingredients?.length}</Typography>
@@ -1423,25 +1535,25 @@ const StepBasicDetails = ({
                         {combos.map((recipe, index) => (
                           <Grid
                             item
-                            size={{
-                              xs: 12,
-                              sm:
-                                recipe.label === 'No'
-                                  ? 0.5
-                                  : recipe.label === 'Combo'
-                                  ? 2.2
-                                  : recipe.label === 'Ingredients'
-                                  ? 1.9
-                                  : 3.7,
-                              md:
-                                recipe.label === 'No'
-                                  ? 0.5
-                                  : recipe.label === 'Combo'
-                                  ? 2.2
-                                  : recipe.label === 'Ingredients'
-                                  ? 1.5
-                                  : 3.7
-                            }}
+                            xs={12}
+                            sm={
+                              recipe.label === 'No'
+                                ? 0.5
+                                : recipe.label === 'Combo'
+                                ? 2.2
+                                : recipe.label === 'Items'
+                                ? 1.9
+                                : 3.7
+                            }
+                            md={
+                              recipe.label === 'No'
+                                ? 0.5
+                                : recipe.label === 'Combo'
+                                ? 2.3
+                                : recipe.label === 'Items'
+                                ? 1.5
+                                : 3.5
+                            }
                             key={index}
                             sx={{ py: 4, px: 2, textAlign: 'center' }}
                           >
@@ -1504,7 +1616,7 @@ const StepBasicDetails = ({
                                   </Typography>
                                 </Grid>
 
-                                <Grid item size={{ xs: 12, sm: 1.4, md: 1.0 }} sx={{ pl: 2 }}>
+                                <Grid item xs={12} sm={1.4} md={1.0}>
                                   <Typography>{all?.ingredients_count}</Typography>
                                   {/* {all?.ingredients ? (
                                   <Typography>{all?.ingredients?.length}</Typography>
@@ -1578,7 +1690,7 @@ const StepBasicDetails = ({
                 {allSelectedValues?.length > 0 && allSelectedValues.some(value => value?.mealid === field.mealid) ? (
                   <Grid container spacing={5} sx={{ px: 5, pt: 10 }}>
                     <Box sx={{ mb: 10, mt: 2, float: 'left' }}>
-                      <Typography variant='h6'>Ingredients</Typography>
+                      <Typography variant='h6'>Items</Typography>
                     </Box>
 
                     <Grid
@@ -1600,25 +1712,25 @@ const StepBasicDetails = ({
                         {ingredients.map((ingredient, index) => (
                           <Grid
                             item
-                            size={{
-                              xs: 12,
-                              sm:
-                                ingredient.label === 'No'
-                                  ? 0.5
-                                  : ingredient.label === 'Ingredient'
-                                  ? 2.4
-                                  : ingredient.label === 'Prep types'
-                                  ? 2.0
-                                  : 3.3,
-                              md:
-                                ingredient.label === 'No'
-                                  ? 0.5
-                                  : ingredient.label === 'Ingredient'
-                                  ? 2.2
-                                  : ingredient.label === 'Prep types'
-                                  ? 1.5
-                                  : 3.8
-                            }}
+                            xs={12}
+                            sm={
+                              ingredient.label === 'No'
+                                ? 0.5
+                                : ingredient.label === 'Item'
+                                ? 2.4
+                                : ingredient.label === 'Prep types'
+                                ? 2.0
+                                : 3.3
+                            }
+                            md={
+                              ingredient.label === 'No'
+                                ? 0.5
+                                : ingredient.label === 'Item'
+                                ? 2.2
+                                : ingredient.label === 'Prep types'
+                                ? 1.5
+                                : 3.8
+                            }
                             key={index}
                             sx={{ py: 4, px: 2, textAlign: 'center' }}
                           >
@@ -1722,7 +1834,7 @@ const StepBasicDetails = ({
                                 />
                                 <Icon
                                   onClick={() => removeingClick(all.ingredient_id, all.mealid)}
-                                  style={{ position: 'relative', left: '1%' }}
+                                  style={{ position: 'relative', left: '1%', cursor: 'pointer' }}
                                   icon='iconoir:cancel'
                                 />
                               </Grid>
@@ -1744,7 +1856,7 @@ const StepBasicDetails = ({
                 allIngredientchoiceSelectedValues.some(value => value?.mealid === field.mealid) ? (
                   <Grid container spacing={5} sx={{ px: 5, pt: 10 }}>
                     <Box sx={{ mb: 10, mt: 2, float: 'left' }}>
-                      <Typography variant='h6'>Ingredients with choice</Typography>
+                      <Typography variant='h6'>Items with choice</Typography>
                     </Box>
 
                     <Grid
@@ -1766,17 +1878,16 @@ const StepBasicDetails = ({
                         {ingredients.map((ingredient, index) => (
                           <Grid
                             item
-                            size={{
-                              xs: 12,
-                              sm:
-                                ingredient.label === 'Ingredient'
-                                  ? 2.2
-                                  : ingredient.label === 'Prep types'
-                                  ? 2.3
-                                  : ingredient.label === 'Feeding days'
-                                  ? 2.7
-                                  : 3.9
-                            }}
+                            xs={12}
+                            sm={
+                              ingredient.label === 'Item'
+                                ? 2.2
+                                : ingredient.label === 'Prep types'
+                                ? 2.3
+                                : ingredient.label === 'Feeding days'
+                                ? 2.7
+                                : 3.9
+                            }
                             key={index}
                             sx={{ py: 4, px: 2, textAlign: 'center' }}
                           >
@@ -1878,8 +1989,8 @@ const StepBasicDetails = ({
                                   icon='bx:pencil'
                                 />
                                 <Icon
-                                  onClick={() => removeingClicking(index, all.mealid)}
-                                  style={{ position: 'relative', left: '1%' }}
+                                  onClick={() => removeingClicking(index, all.mealid, all)}
+                                  style={{ position: 'relative', left: '1%', cursor: 'pointer' }}
                                   icon='iconoir:cancel'
                                 />
 
@@ -1892,9 +2003,9 @@ const StepBasicDetails = ({
                                     mt: 3
                                   }}
                                 >
-                                  {all?.ingredientList?.map((all, index) => {
+                                  {all?.ingredientList?.map((all, i) => {
                                     return (
-                                      <Grid item key={index}>
+                                      <Grid item key={i}>
                                         <Card sx={{ width: '280px', height: '90px', mr: 4, boxShadow: 'none', mt: 3 }}>
                                           <CardContent
                                             sx={{
@@ -1956,8 +2067,10 @@ const StepBasicDetails = ({
                                             </Box>
 
                                             <Icon
-                                              onClick={() => removeingClickingwithChoice(all.ingredient_id, all.mealid)}
-                                              style={{ position: 'relative', left: '0%' }}
+                                              onClick={() =>
+                                                removeingClickingwithChoice(all.ingredient_id, all.mealid, index, all)
+                                              }
+                                              style={{ position: 'relative', left: '0%', cursor: 'pointer' }}
                                               icon='iconoir:cancel'
                                             />
                                           </CardContent>
@@ -2075,7 +2188,7 @@ const StepBasicDetails = ({
                     onClick={() => handleAddIngerdient(field, index)}
                   >
                     <Icon icon='material-symbols:add' />
-                    ADD INGREDIENT
+                    ADD ITEM
                   </Typography>
 
                   <Typography
@@ -2094,7 +2207,7 @@ const StepBasicDetails = ({
                     onClick={() => handleAddIngerdientChoice(field, index, 'addingd')}
                   >
                     <Icon icon='material-symbols:add' />
-                    ADD INGREDIENT WITH CHOICE
+                    ADD ITEM WITH CHOICE
                   </Typography>
                 </Grid>
 

@@ -234,7 +234,7 @@ const DietCategory = () => {
             onChange={e => handleSearch(e.target.value)}
             onClear={() => handleSearch('')}
             placeholder='Search…'
-            sx={{ mt: 2 }}
+            sx={{ mt: 2, justifyContent: 'flex-end' }}
           />
           <CommonTable
             columnVisibilityModel={{ id: false }}

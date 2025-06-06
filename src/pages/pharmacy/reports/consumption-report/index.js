@@ -223,9 +223,11 @@ const ConsumptionReport = () => {
       field: 'id',
       sortable: false,
       headerName: 'SL.NO',
+      align: 'center',
+      headerAlign: 'center',
 
       renderCell: params => (
-        <Box sx={{ minWidth: 40 }}>
+        <Box sx={{ minWidth: 40, textAlign: 'center' }}>
           <Typography sx={{ color: 'text.primary', fontSize: '14px', fontWeight: '400px' }}>
             {params.row.id + '.'}
           </Typography>
@@ -234,7 +236,7 @@ const ConsumptionReport = () => {
     },
     {
       minWidth: 20,
-      width: 260,
+      width: 340,
       field: 'stock_name',
       headerName: 'PRODUCT NAME',
       sortable: true,
@@ -245,6 +247,7 @@ const ConsumptionReport = () => {
             icon={params?.row?.image}
             controlSubstance={params?.row?.controlled_substance === '1' && true}
             prescriptionRequired={params?.row?.prescription_required === '1' && true}
+            rowWidth={320}
           />
         </>
       )
@@ -253,27 +256,49 @@ const ConsumptionReport = () => {
       minWidth: 20,
       width: 200,
       field: 'generic_name',
-      headerName: 'GENERIC NAME',
       sortable: true,
-      renderCell: params => (
-        <Tooltip title={params.row.generic_name}>
-          <Typography
-            variant='body2'
-            sx={{
-              color: theme.palette.customColors.customHeadingTextColor,
-              fontSize: '14px',
-              fontWeight: 400,
-              fontFamily: 'Inter',
-              overflow: 'hidden',
-              whiteSpace: 'nowrap',
-              textOverflow: 'ellipsis',
-              maxWidth: 200
-            }}
-          >
-            {params.row.generic_name ? <span alt={params.row.generic_name}> {params.row.generic_name}</span> : 'NA'}
-          </Typography>
-        </Tooltip>
-      )
+      headerName: 'GENERIC NAME',
+      renderCell: params => {
+        const genericName = params.row.generic_name
+
+        return (
+          <Tooltip title={genericName || '-'}>
+            {genericName ? (
+              <Typography
+                variant='body2'
+                sx={{
+                  color: theme.palette.customColors.customHeadingTextColor,
+                  fontSize: '14px',
+                  fontWeight: 400,
+                  fontFamily: 'Inter',
+                  overflow: 'hidden',
+                  whiteSpace: 'nowrap',
+                  textOverflow: 'ellipsis',
+                  maxWidth: 200
+                }}
+              >
+                {genericName}
+              </Typography>
+            ) : (
+              <Box
+                sx={{
+                  display: 'flex',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  height: '100%',
+                  width: '100%',
+                  fontSize: '14px',
+                  color: theme.palette.text.secondary,
+                  fontFamily: 'Inter',
+                  fontWeight: 400
+                }}
+              >
+                -
+              </Box>
+            )}
+          </Tooltip>
+        )
+      }
     },
     {
       minWidth: 20,
@@ -318,6 +343,7 @@ const ConsumptionReport = () => {
       headerName: '',
       sortable: true,
       align: 'right',
+      headerAlign: 'right',
       renderHeader: () => (
         <div
           style={{
@@ -349,11 +375,12 @@ const ConsumptionReport = () => {
     },
     {
       minWidth: 20,
-      width: 170,
+      width: 190,
       field: 'available_qty',
       headerName: '',
       sortable: true,
       align: 'center',
+      headerAlign: 'center',
       renderHeader: () => (
         <div
           style={{

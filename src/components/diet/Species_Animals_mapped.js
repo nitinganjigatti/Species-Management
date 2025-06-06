@@ -299,7 +299,7 @@ const SpeciesAnimalsMapped = ({
                             position: 'absolute',
                             top: '-7px',
                             right: '-5px',
-                            backgroundColor: '#FA6140',
+                            backgroundColor: theme.palette.customColors.customDropdownColor,
                             color: 'white',
                             borderRadius: '50%',
                             width: '20px',
@@ -340,18 +340,29 @@ const SpeciesAnimalsMapped = ({
               onScroll={handleScroll}
             >
               {!loading && speciesData?.length === 0 && searchQuery !== '' ? (
-                <Typography
-                  variant='body2'
+                <Box
                   sx={{
-                    color: theme.palette.secondary.dark,
-                    fontSize: '16px',
-                    fontWeight: 400,
-                    textAlign: 'center',
-                    mt: 4
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    height: '70%',
+                    textAlign: 'center'
                   }}
                 >
-                  No Species assigned
-                </Typography>
+                  <img src='/images/no_data_animal_2.png' alt='Grocery Icon' width='250px' />
+                  <Typography
+                    variant='body2'
+                    sx={{
+                      color: theme.palette.secondary.dark,
+                      fontSize: '16px',
+                      fontWeight: 400,
+                      textAlign: 'center'
+                    }}
+                  >
+                    No Species assigned
+                  </Typography>
+                </Box>
               ) : (
                 <>
                   {!loading ? (
@@ -517,7 +528,7 @@ const SpeciesAnimalsMapped = ({
                             position: 'absolute',
                             top: '-7px',
                             right: '-5px',
-                            backgroundColor: '#FA6140',
+                            backgroundColor: theme.palette.customColors.customDropdownColor,
                             color: 'white',
                             borderRadius: '50%',
                             width: '20px',
@@ -558,18 +569,29 @@ const SpeciesAnimalsMapped = ({
               onScroll={handleScroll}
             >
               {!loading && speciesData?.length === 0 && searchQuery !== '' ? (
-                <Typography
-                  variant='body2'
+                <Box
                   sx={{
-                    color: theme.palette.secondary.dark,
-                    fontSize: '16px',
-                    fontWeight: 400,
-                    textAlign: 'center',
-                    mt: 4
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'center',
+                    alignItems: 'center',
+                    height: '70%',
+                    textAlign: 'center'
                   }}
                 >
-                  No Animals assigned
-                </Typography>
+                  <img src='/images/no_data_animal_2.png' alt='Grocery Icon' width='250px' />
+                  <Typography
+                    variant='body2'
+                    sx={{
+                      color: theme.palette.secondary.dark,
+                      fontSize: '16px',
+                      fontWeight: 400,
+                      textAlign: 'center'
+                    }}
+                  >
+                    No Animals assigned
+                  </Typography>
+                </Box>
               ) : (
                 <>
                   {!loading ? (

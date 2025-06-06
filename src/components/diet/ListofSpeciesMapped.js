@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useState, Fragment } from 'react'
 import {
   Box,
   Drawer,
@@ -14,7 +14,14 @@ import {
   CardContent,
   CircularProgress,
   Switch,
-  Button
+  Button,
+  FormControl,
+  FormHelperText,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+  DialogContentText
 } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
 import { LoadingButton } from '@mui/lab'
@@ -23,6 +30,8 @@ import { deleteSpeciesFromDiet } from 'src/lib/api/diet/dietList'
 import Toaster from 'src/components/Toaster'
 import { useMediaQuery } from '@mui/material'
 import { addAssigntoDiet } from 'src/lib/api/diet/dietList'
+import SingleDatePicker from '../SingleDatePicker'
+import { format } from 'date-fns'
 
 const ListOfSpeciesMapped = ({
   isOpennew,
@@ -55,6 +64,14 @@ const ListOfSpeciesMapped = ({
   const isSmallDevice = useMediaQuery(theme.breakpoints.down('md'))
   const [loader, setLoader] = useState(false)
   const [primaryStatus, setPrimaryStatus] = useState({})
+  const [startDate, setStartDate] = useState(null)
+  const [endDate, setEndDate] = useState(null)
+  const [errors, setErrors] = useState({})
+  const [openModal, setOpenModal] = useState(false)
+  const handleClickOpen = () => {
+    setOpenModal(true)
+  }
+  const handleClose = () => setOpenModal(false)
 
   const handleSearch = event => {
     setSearchQuery(event.target.value)
@@ -111,7 +128,8 @@ const ListOfSpeciesMapped = ({
 
     //refreshDietDetails()
     setspeciesview('')
-
+    setStartDate(null)
+    setEndDate(null)
     //setSearchQuery('')
     // setPrimaryStatus({}) // Reset primary status when closing
   }
@@ -142,6 +160,8 @@ const ListOfSpeciesMapped = ({
 
     const payload = {
       diet_id: dietId,
+      start_date: formatDisplayDate(startDate),
+      end_date: formatDisplayDate(endDate),
       [selectionType === 'species' ? 'species_ids' : 'animal_ids']: JSON.stringify(payloadData)
     }
 
@@ -164,6 +184,9 @@ const ListOfSpeciesMapped = ({
         setSearchQuery('')
         setPrimaryStatus({})
         setLoader(false)
+        setOpenModal(false)
+        setStartDate(null)
+        setEndDate(null)
       } else {
         Toaster({
           type: 'error',
@@ -175,6 +198,29 @@ const ListOfSpeciesMapped = ({
       console.error('Error adding species to diet:', error)
       setLoader(false)
     }
+  }
+  // Handle date changes
+  const handleStartDateChange = date => {
+    setStartDate(date)
+    if (endDate && date > endDate) {
+      setErrors({ ...errors, startDate: 'Start date cannot be after end date' })
+    } else {
+      setErrors({ ...errors, startDate: null })
+    }
+  }
+
+  const handleEndDateChange = date => {
+    setEndDate(date)
+    if (startDate && date < startDate) {
+      setErrors({ ...errors, endDate: 'End date cannot be before start date' })
+    } else {
+      setErrors({ ...errors, endDate: null })
+    }
+  }
+
+  // Format date for display in TextField
+  const formatDisplayDate = date => {
+    return date ? format(date, 'yyyy-MM-dd') : ''
   }
 
   const mappedSpecies =
@@ -350,6 +396,104 @@ const ListOfSpeciesMapped = ({
               ''
             )}
             <>
+              <Box
+                sx={{
+                  display: 'flex',
+                  flexWrap: 'wrap',
+                  justifyContent: 'flex-end',
+                  px: '16px',
+                  mb: '26px',
+                  mt: '26px',
+                  mr: '30px'
+                }}
+              >
+                <Box sx={{ display: 'flex', gap: 5 }}>
+                  <FormControl sx={{ width: '200px' }}>
+                    <SingleDatePicker
+                      selected={startDate}
+                      onChange={handleStartDateChange}
+                      customInput={
+                        <TextField
+                          label='From Date'
+                          value={formatDisplayDate(startDate)}
+                          error={Boolean(errors.startDate)}
+                          InputLabelProps={{
+                            shrink: true,
+                            sx: {
+                              color: '#44544A'
+                            }
+                          }}
+                          InputProps={{
+                            sx: {
+                              mt: 1,
+                              height: '40px',
+                              padding: '0 14px',
+                              alignItems: 'center'
+                            }
+                          }}
+                          sx={{
+                            '& .MuiInputBase-input': {
+                              padding: '14px'
+                            },
+                            '& .MuiOutlinedInput-root': {
+                              '& fieldset': {
+                                borderColor: '#44544a82'
+                              }
+                            },
+                            width: '100%'
+                          }}
+                        />
+                      }
+                      maxDate={endDate || new Date()}
+                    />
+                    {errors.startDate && (
+                      <FormHelperText sx={{ color: 'error.main' }}>{errors.startDate}</FormHelperText>
+                    )}
+                  </FormControl>
+
+                  <FormControl sx={{ width: '200px' }}>
+                    <SingleDatePicker
+                      selected={endDate}
+                      onChange={handleEndDateChange}
+                      customInput={
+                        <TextField
+                          label='To Date'
+                          value={formatDisplayDate(endDate)}
+                          error={Boolean(errors.endDate)}
+                          InputLabelProps={{
+                            shrink: true,
+                            sx: {
+                              color: '#44544A'
+                            }
+                          }}
+                          InputProps={{
+                            sx: {
+                              mt: 1,
+                              height: '40px',
+                              padding: '0 14px',
+                              alignItems: 'center'
+                            }
+                          }}
+                          sx={{
+                            '& .MuiInputBase-input': {
+                              padding: '14px'
+                            },
+                            '& .MuiOutlinedInput-root': {
+                              '& fieldset': {
+                                borderColor: '#44544a82'
+                              }
+                            },
+                            width: '100%'
+                          }}
+                        />
+                      }
+                      minDate={startDate}
+                      maxDate={new Date()}
+                    />
+                    {errors.endDate && <FormHelperText sx={{ color: 'error.main' }}>{errors.endDate}</FormHelperText>}
+                  </FormControl>
+                </Box>
+              </Box>
               {!loading ? (
                 speciesview === 'select' ? (
                   <Typography
@@ -694,7 +838,7 @@ const ListOfSpeciesMapped = ({
         sx={{
           width: '100%',
           maxWidth: '562px',
-          height: '150px',
+          height: '127px',
           position: isSmallDevice ? 'absolute' : 'fixed',
           bottom: isSmallDevice ? 75 : 0,
           px: 4,
@@ -704,48 +848,10 @@ const ListOfSpeciesMapped = ({
           alignItems: 'center',
           boxShadow: '0px -4px 10px rgba(0, 0, 0, 0.2)',
           zIndex: 123,
-          py: 2
+          py: 9
         }}
       >
         {/* Informational Text */}
-        <Box
-          sx={{
-            width: '100%',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'flex-start',
-            textAlign: 'left',
-            fontSize: '14px',
-            fontWeight: 500,
-            color: theme.palette.customColors.OnTertiaryContainer,
-            mb: 3,
-            mt: 2,
-            pt: 2,
-            pb: 2,
-            background: '#FFBDA833',
-            borderRadius: '6px',
-            px: 2
-          }}
-        >
-          {/* Icon */}
-          <Icon
-            icon='material-symbols:warning-outline-rounded'
-            fontSize={24}
-            color={theme.palette.customColors.Tertiary}
-            style={{ marginRight: '4px', position: 'relative', top: '-12px' }}
-          />
-
-          {/* Text */}
-          <Typography
-            sx={{
-              fontSize: '16px',
-              fontWeight: 400,
-              color: theme.palette.customColors.OnTertiaryContainer
-            }}
-          >
-            This diet will override any previously set primary diet for the selected species
-          </Typography>
-        </Box>
 
         {/* Buttons Container */}
         <Box
@@ -774,21 +880,111 @@ const ListOfSpeciesMapped = ({
           <LoadingButton
             variant='contained'
             size='large'
-            disabled={tempSelectedSpecies?.length === 0}
-            onClick={handleAdd}
-            loading={loader}
+            disabled={tempSelectedSpecies?.length === 0 || (startDate && !endDate)}
+            //onClick={handleAdd}
+            onClick={handleClickOpen}
             sx={{ flex: 1, height: '45px' }}
-            loadingIndicator={
-              <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                ASSIGN DIET
-                <CircularProgress size={20} sx={{ color: '#ccc' }} />
-              </span>
-            }
           >
-            {!loader && 'ASSIGN DIET'}
+            ASSIGN DIET
           </LoadingButton>
         </Box>
       </Box>
+      <Fragment>
+        <Dialog
+          open={openModal}
+          disableEscapeKeyDown
+          aria-labelledby='alert-dialog-title'
+          aria-describedby='alert-dialog-description'
+          onClose={(event, reason) => {
+            if (reason !== 'backdropClick') {
+              handleClose()
+            }
+          }}
+        >
+          {/* <DialogTitle id='alert-dialog-title'></DialogTitle> */}
+          <DialogContent style={{ paddingBottom: '5px' }}>
+            <DialogContentText id='alert-dialog-description'>
+              <Box
+                sx={{
+                  width: '100%',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'flex-start',
+                  textAlign: 'left',
+                  fontSize: '14px',
+                  fontWeight: 500,
+                  color: theme.palette.customColors.OnTertiaryContainer,
+                  mb: 3,
+                  mt: 2,
+                  pt: 4,
+                  pb: 4,
+                  background: '#FFBDA833',
+                  borderRadius: '6px',
+                  px: 2
+                }}
+              >
+                {/* Icon */}
+                <Icon
+                  icon='material-symbols:warning-outline-rounded'
+                  fontSize={24}
+                  color={theme.palette.customColors.Tertiary}
+                  style={{ marginRight: '4px', position: 'relative', top: '-12px' }}
+                />
+
+                {/* Text */}
+                <Typography
+                  sx={{
+                    fontSize: '16px',
+                    fontWeight: 400,
+                    color: theme.palette.customColors.OnTertiaryContainer
+                  }}
+                >
+                  This diet will override any previously set primary diet for the selected species
+                </Typography>
+              </Box>
+            </DialogContentText>
+          </DialogContent>
+          <DialogActions
+            //className='dialog-actions-dense'
+            style={{ paddingBottom: '25px', justifyContent: 'center' }}
+          >
+            <LoadingButton
+              variant='outlined'
+              onClick={handleClose}
+              sx={{
+                color: theme.palette.primary.main,
+                borderColor: theme.palette.primary.main,
+                mr: 4,
+                width: '120px',
+                height: '40px'
+              }}
+            >
+              Cancel
+            </LoadingButton>
+            <LoadingButton
+              variant='contained'
+              onClick={handleAdd}
+              sx={{
+                height: '40px',
+                mr: 4,
+                width: '120px',
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center'
+              }}
+              loading={loader}
+              loadingIndicator={
+                <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  Proceed
+                  <CircularProgress size={20} sx={{ color: '#ccc' }} />
+                </span>
+              }
+            >
+              {!loader && 'Proceed'}
+            </LoadingButton>
+          </DialogActions>
+        </Dialog>
+      </Fragment>
     </Drawer>
   )
 }

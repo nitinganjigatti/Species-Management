@@ -224,7 +224,7 @@ const FeedOverview = ({ isActive, setIsActive, FeedDetailsValue, permission }) =
               >
                 <Box sx={{ mr: 2, display: 'flex', flexDirection: 'column' }}>
                   <Typography variant='body2' sx={{ mb: 0.5, fontWeight: 600, color: 'text.primary' }}>
-                    Ingredients used
+                    Items used
                   </Typography>
                 </Box>
                 <Box sx={{ display: 'flex', alignItems: 'center' }}>

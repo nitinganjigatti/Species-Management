@@ -306,7 +306,7 @@ const RecipeList = () => {
       //flex: 0.4,
       width: 200,
       field: 'ingredient_name',
-      headerName: 'NO OF INGREDIENTS',
+      headerName: 'NO OF ITEMS',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary', pl: 3 }}>
           <Tooltip
@@ -477,6 +477,7 @@ const RecipeList = () => {
                 }}
                 hideFooterSelectedRowCount
                 disableColumnSelector={true}
+                disableColumnMenu
                 autoHeight
                 pagination
                 rows={indexedRows === undefined ? [] : indexedRows}

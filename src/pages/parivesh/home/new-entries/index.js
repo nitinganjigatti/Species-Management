@@ -247,6 +247,7 @@ const NewEntry = ({}) => {
   const searchTableData = useCallback(
     debounce(async (sort, q, sortColumn, status) => {
       setSearchValue(q)
+
       try {
         await fetchTableData(sort, q, sortColumn, status)
       } catch (error) {

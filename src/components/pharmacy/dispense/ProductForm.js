@@ -514,7 +514,9 @@ function ProductForm({
                 status: item?.active === '0' ? 0 : 1,
                 manufacture: item?.manufacturer_name,
                 packageDetails: `${item?.package} of ${item?.package_qty} ${item?.package_uom_label} ${item?.product_form_label}`,
-                control_substance: item.controlled_substance === '1' ? true : false
+                control_substance: item?.controlled_substance === '1' ? true : false,
+                generic_name: item?.generic_name,
+                image: item?.image
               }))
             )
           }

@@ -79,19 +79,25 @@ const schema = yup.object().shape({
     })
     .required('Product Name is required'),
 
-  // request_item_batch_no: yup.object().shape({
-  //   label: yup.string().required('Batch no is required'),
-  //   value: yup.string().required('Batch no is required'),
-  //   expiry_date: yup.string().required('Batch no is required')
-  // }),
   request_item_batch_no: yup
-    .mixed()
+    .object()
+    .transform((value, originalValue) => (originalValue === '' ? null : value))
+    .nullable()
     .required('Batch number is required')
-    .test('is-object-with-properties', 'Batch number is required', value => {
-      return (
-        value !== null && typeof value === 'object' && 'label' in value && 'value' in value && 'expiry_date' in value
-      )
+    .test('is-valid-object', 'Batch number is required', value => {
+      return value !== null && typeof value === 'object' && value.label && value.value && value.expiry_date
     }),
+
+  // request_item_batch_no: yup
+  //   .mixed()
+  //   .required('Batch number is required')
+  //   .test('is-object-with-properties', 'Batch number is required', value => {
+  //     debugger
+
+  //     return (
+  //       value !== null && typeof value === 'object' && 'label' in value && 'value' in value && 'expiry_date' in value
+  //     )
+  //   }),
   request_item_qty: yup
     .number()
     .typeError('Quantity must be a positive number')
@@ -314,7 +320,9 @@ export const AddItemsForm = ({
       nestedItemQuantity = nestedMedicine?.request_item_qty
     }
 
-    const available_qty = parseInt(totalQuantity) - (totalCount - nestedItemQuantity + enteredCount)
+    const available_qty = parseInt(totalQuantity)
+
+    //  - (totalCount - nestedItemQuantity + enteredCount)
 
     setTotalAvailableCount(available_qty)
   }
@@ -409,13 +417,16 @@ export const AddItemsForm = ({
                     }}
                     onChange={(e, value) => {
                       setValue('request_item', value, { shouldValidate: true })
-                      setValue('request_item_batch_no', '', { shouldValidate: true })
-                      setValue('expiry_date', '', { shouldValidate: true })
-                      setValue('available_item_qty', '')
-                      setValue('stock_type', '')
-                      setValue('packageDetails', '')
-                      setValue('manufacture', '')
-                      setValue('unit_price', '')
+                      if (!value) {
+                        setValue('request_item', value, { shouldValidate: true })
+                        setValue('request_item_batch_no', '', { shouldValidate: true })
+                        setValue('expiry_date', '', { shouldValidate: true })
+                        setValue('available_item_qty', '')
+                        setValue('stock_type', '')
+                        setValue('packageDetails', '')
+                        setValue('manufacture', '')
+                        setValue('unit_price', '')
+                      }
 
                       if (value === null || value.status === 0) {
                         return onChange(null)
@@ -685,7 +696,6 @@ export const AddItemsForm = ({
                 Available Quantity:{getValues('available_item_qty')}
               </Typography>
             ) : null} */}
-
             <FormControl fullWidth>
               <Controller
                 name='request_item_batch_no'

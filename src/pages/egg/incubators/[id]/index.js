@@ -1,8 +1,6 @@
 import React, { useCallback, useEffect, useState, useContext } from 'react'
 import { useRouter } from 'next/router'
 import Router from 'next/router'
-import dayjs from 'dayjs'
-import moment from 'moment'
 
 // MUI components
 import {
@@ -27,27 +25,29 @@ import { LocalizationProvider } from '@mui/x-date-pickers/LocalizationProvider'
 import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
 import { DatePicker } from '@mui/x-date-pickers'
 
+import dayjs from 'dayjs'
+import moment from 'moment'
+
 // Custom Components and Utility
+import { AuthContext } from 'src/context/AuthContext'
+import Utility from 'src/utility'
+import ErrorScreen from 'src/pages/Error'
+
 import Icon from 'src/@core/components/icon'
-import AddIncubators from 'src/views/pages/egg/incubator/addIncubators'
 import ActivityLogs from 'src/components/diet/activityLogs'
 import DetailCard from 'src/components/egg/DetailCard'
 import Toaster from 'src/components/Toaster'
+import { SpeciesImageCard } from 'src/components/egg/imageTextCard'
+import AddIncubators from 'src/views/pages/egg/incubator/addIncubators'
 import StatusDialogBox from 'src/views/pages/egg/eggs/eggDetails/StatusDialogBox'
 import TransferIncubator from 'src/views/pages/egg/eggs/eggDetails/TransferIncubator'
 import EditRedirectionDialog from 'src/views/pages/egg/eggs/eggDetails/EditRedirectionDialog'
-import { SpeciesImageCard } from 'src/components/egg/imageTextCard'
-import ErrorScreen from 'src/pages/Error'
-import Utility from 'src/utility'
 
 // API calls
+import { getSpeciesList } from 'src/lib/api/egg/dashboard'
 import { getIncubatorDetail } from 'src/lib/api/egg/incubator'
 import { GetEggList } from 'src/lib/api/egg/egg'
 import { hatcheryStatus } from 'src/lib/api/egg'
-
-// Context
-import { AuthContext } from 'src/context/AuthContext'
-import { getSpeciesList } from 'src/lib/api/egg/dashboard'
 
 // Styled DataGrid Component
 const CustomDataGrid = styled(DataGrid)(({ theme }) => ({
@@ -80,6 +80,11 @@ const IncubatorDetails = () => {
   const theme = useTheme()
   const router = useRouter()
   const { id } = router.query
+  const authData = useContext(AuthContext)
+
+  // Permissions
+  const egg_nursery_permission = authData?.userData?.permission?.user_settings?.add_nursery_permisson
+  const egg_collection_permission = authData?.userData?.roles?.settings?.enable_egg_collection_module
 
   const [total, setTotal] = useState(0)
   const [sort, setSort] = useState('desc')
@@ -107,11 +112,6 @@ const IncubatorDetails = () => {
 
   const [openRedirectionDialog, setOpenRedirectionDialog] = useState(false)
   const [editMessage, setEditMessage] = useState('')
-
-  // Permissions
-  const authData = useContext(AuthContext)
-  const egg_nursery_permission = authData?.userData?.permission?.user_settings?.add_nursery_permisson
-  const egg_collection_permission = authData?.userData?.roles?.settings?.enable_egg_collection_module
 
   // Utility Functions
   const calculatePercentageChange = (value1, value2) => {
@@ -145,36 +145,67 @@ const IncubatorDetails = () => {
     return data
   }
 
-  const hatcheryStatusFunc = () => {
+  // const hatcheryStatusFunc = () => {
+  //   setStatusLoading(true)
+  //   try {
+  //     hatcheryStatus({
+  //       ref_type: 'incubator',
+  //       ref_id: id,
+  //       status: active ? 'deactivate' : 'activate'
+  //     }).then(response => {
+  //       if (response.success) {
+  //         Toaster({
+  //           type: 'success',
+  //           message: active ? 'Incubator Deactivated Successfully' : 'Incubator Activated Successfully'
+  //         })
+  //         setOpenStatusDialog(false)
+  //         setStatusLoading(false)
+  //         setActive(!active)
+  //         getIncubatorDetailFunc()
+  //       } else {
+  //         Toaster({ type: 'error', message: response.message })
+  //         setEditMessage(response?.message)
+  //         setOpenRedirectionDialog(true)
+  //         getIncubatorDetailFunc()
+  //         setOpenStatusDialog(false)
+  //         setStatusLoading(false)
+  //       }
+  //     })
+  //   } catch (error) {
+  //     setOpenStatusDialog(false)
+  //     setStatusLoading(false)
+  //     Toaster({ type: 'error', message: response.message })
+  //   }
+  // }
+
+  const hatcheryStatusFunc = async () => {
     setStatusLoading(true)
+
     try {
-      hatcheryStatus({
+      const response = await hatcheryStatus({
         ref_type: 'incubator',
         ref_id: id,
         status: active ? 'deactivate' : 'activate'
-      }).then(response => {
-        if (response.success) {
-          Toaster({
-            type: 'success',
-            message: active ? 'Incubator Deactivated Successfully' : 'Incubator Activated Successfully'
-          })
-          setOpenStatusDialog(false)
-          setStatusLoading(false)
-          setActive(!active)
-          getIncubatorDetailFunc()
-        } else {
-          Toaster({ type: 'error', message: response.message })
-          setEditMessage(response?.message)
-          setOpenRedirectionDialog(true)
-          getIncubatorDetailFunc()
-          setOpenStatusDialog(false)
-          setStatusLoading(false)
-        }
       })
+
+      if (response.success) {
+        Toaster({
+          type: 'success',
+          message: active ? 'Incubator Deactivated Successfully' : 'Incubator Activated Successfully'
+        })
+        setActive(!active)
+      } else {
+        Toaster({ type: 'error', message: response.message })
+        setEditMessage(response?.message)
+        setOpenRedirectionDialog(true)
+      }
+
+      getIncubatorDetailFunc()
     } catch (error) {
+      Toaster({ type: 'error', message: error.message || 'Something went wrong while updating status' })
+    } finally {
       setOpenStatusDialog(false)
       setStatusLoading(false)
-      Toaster({ type: 'error', message: response.message })
     }
   }
 
@@ -588,31 +619,30 @@ const IncubatorDetails = () => {
     }
   ]
 
-  const getspeciesFunc = q => {
-    const params = {
-      q
-    }
+  const getspeciesFunc = async q => {
     try {
-      getSpeciesList(params).then(res => {
-        if (res?.data?.success) {
-          let listWithId = res?.data?.data?.result?.map((el, i) => {
-            return { ...el, id: i + 1 }
-          })
-          setSpeciesList(loadServerRows(paginationModel.page, listWithId))
-        } else {
-          setSpeciesList([])
-        }
-      })
-    } catch (e) {
-      console.log(e)
+      const res = await getSpeciesList({ q })
+
+      if (res?.data?.success) {
+        let listWithId = res?.data?.data?.result?.map((el, i) => {
+          return { ...el, id: i + 1 }
+        })
+        setSpeciesList(loadServerRows(paginationModel.page, listWithId))
+      } else {
+        setSpeciesList([])
+      }
+    } catch (error) {
+      setSpeciesList([])
+      Toaster({ type: 'error', message: error.message || 'Something went wrong while updating status' })
     }
   }
 
   const searchSpecies = useCallback(
-    debounce(query => {
+    debounce(async query => {
       if (!query) return
+
       try {
-        getspeciesFunc(query) // No need for await if it's not asynchronous
+        await getspeciesFunc(query)
       } catch (error) {
         console.error('Error fetching species:', error)
       }
@@ -624,47 +654,79 @@ const IncubatorDetails = () => {
     getspeciesFunc()
   }, [])
 
+  // const fetchTableData = useCallback(
+  //   async (sort, q, status, allocation_date, collected_date, taxonomy_id) => {
+  //     try {
+  //       setLoading(true)
+
+  //       const params = {
+  //         sort,
+  //         q,
+  //         page_no: paginationModel.page + 1,
+  //         limit: paginationModel.pageSize,
+  //         nursery_id: '',
+  //         type: 'eggs_incubation',
+  //         allocate_date: allocation_date,
+  //         collected_date,
+  //         taxonomy_id,
+  //         incubator_id: id
+  //       }
+
+  //       await GetEggList({ params: params }).then(res => {
+  //         if (res?.data?.result) {
+  //           // Generate uid field based on the index
+  //           let listWithId = res.data.result.map((el, i) => {
+  //             return { ...el, uid: i + 1 }
+  //           })
+  //           setTotal(parseInt(res?.data?.total_count))
+  //           setRows(loadServerRows(paginationModel.page, listWithId))
+  //         } else {
+  //           setTotal(parseInt(res?.data?.total_count))
+  //           setRows([])
+  //         }
+  //       })
+  //       setLoading(false)
+  //     } catch (e) {
+  //       console.log(e)
+  //       setLoading(false)
+  //     }
+  //   },
+  //   [paginationModel]
+  // )
+
   const fetchTableData = useCallback(
     async (sort, q, status, allocation_date, collected_date, taxonomy_id) => {
+      setLoading(true)
+
+      const params = {
+        sort,
+        q,
+        page_no: paginationModel.page + 1,
+        limit: paginationModel.pageSize,
+        nursery_id: '',
+        type: 'eggs_incubation',
+        allocate_date: allocation_date,
+        collected_date,
+        taxonomy_id,
+        incubator_id: id
+      }
+
       try {
-        setLoading(true)
+        const res = await GetEggList({ params: params })
+        const total = parseInt(res?.data?.total_count || 0)
+        const result = res?.data?.result || []
 
-        const params = {
-          sort,
-          q,
-          page_no: paginationModel.page + 1,
-          limit: paginationModel.pageSize,
-          nursery_id: '',
-          type: 'eggs_incubation',
-          allocate_date: allocation_date,
-          collected_date,
-          taxonomy_id,
-
-          // type:
-          //   status === undefined
-          //     ? 'eggs_received'
-          //     : status === 'eggs_ready_to_be_discarded_at_nursery'
-          //     ? isDiscarded
-          //     : status,
-          incubator_id: id
-        }
-
-        await GetEggList({ params: params }).then(res => {
-          if (res?.data?.result) {
-            // Generate uid field based on the index
-            let listWithId = res.data.result.map((el, i) => {
-              return { ...el, uid: i + 1 }
-            })
-            setTotal(parseInt(res?.data?.total_count))
-            setRows(loadServerRows(paginationModel.page, listWithId))
-          } else {
-            setTotal(parseInt(res?.data?.total_count))
-            setRows([])
-          }
-        })
-        setLoading(false)
-      } catch (e) {
-        console.log(e)
+        const listWithId = result.map((el, i) => ({
+          ...el,
+          uid: i + 1
+        }))
+        setTotal(total)
+        setRows(loadServerRows(paginationModel.page, listWithId))
+      } catch (error) {
+        setTotal(0)
+        setRows([])
+        Toaster({ type: 'error', message: error.message || 'Failed to fetch egg list' })
+      } finally {
         setLoading(false)
       }
     },
@@ -741,7 +803,6 @@ const IncubatorDetails = () => {
   }
 
   const onCellClick = params => {
-    // console.log(params, 'params')
     const clickedColumn = params.field !== 'switch'
     if (clickedColumn) {
       const data = params.row

@@ -41,8 +41,6 @@ function Purchase({ tabValue, updateUrlParams }) {
   const router = useRouter()
   const theme = useTheme()
 
-  console.log(router.query, 'router.queryP')
-
   const [loading, setLoading] = useState(false)
   const [sort, setSort] = useState(router.query.sort || 'desc')
 
@@ -92,7 +90,7 @@ function Purchase({ tabValue, updateUrlParams }) {
 
   const columns = [
     {
-      width: 70,
+      width: 90,
       field: 'sl_no',
       headerName: 'SL.NO',
       sortable: false,
@@ -139,9 +137,9 @@ function Purchase({ tabValue, updateUrlParams }) {
       )
     },
     {
-      width: 130,
+      width: 200,
       field: 'unit_price',
-      headerName: 'UNIT PRICE (₹)',
+      headerName: 'NET UNIT PRICE (₹)',
       renderCell: params => (
         <Typography
           variant='body2'
@@ -215,8 +213,8 @@ function Purchase({ tabValue, updateUrlParams }) {
     },
     {
       width: 140,
-      field: 'created_at',
-      headerName: 'ENTRY DATE',
+      field: 'expiry_date',
+      headerName: 'EXPIRE DATE',
       renderCell: params => (
         <Typography
           variant='body2'
@@ -227,7 +225,7 @@ function Purchase({ tabValue, updateUrlParams }) {
             fontFamily: 'Inter'
           }}
         >
-          {Utility.formatDisplayDate(Utility.convertUTCToLocal(params.row.created_at))}
+          {Utility.formatDisplayDate(Utility.convertUTCToLocal(params.row.expiry_date))}
           {/* -{' '}
           {Utility.extractHoursAndMinutes(Utility.convertUTCToLocal(params.row.entry_date))} */}
         </Typography>
@@ -398,8 +396,6 @@ function Purchase({ tabValue, updateUrlParams }) {
     }
   })
 
-  console.log(indexedRows)
-
   const searchTableData = useCallback(
     debounce(async ({ sort, q, column }) => {
       setSearchValue(q)
@@ -433,7 +429,6 @@ function Purchase({ tabValue, updateUrlParams }) {
 
   const onRowClick = params => {
     var data = params.row
-    console.log(data, 'data123')
     Router.push({
       pathname: `/pharmacy/medicine/${id}/purchase-details`,
       query: { p_id: data?.uuid, po_no: data.po_no, action: 'edit' }
