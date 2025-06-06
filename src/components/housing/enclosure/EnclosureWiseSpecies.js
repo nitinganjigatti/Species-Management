@@ -64,7 +64,7 @@ const EnclosureWiseSpecies = ({
     () =>
       listing.map((row, index) => ({
         ...row,
-        id: +row?.enclosure_id,
+        id: +row?.taxonomy_id,
         sl_no: getSlNo(index)
       })),
     [listing, filters.page, filters.pageSize]
@@ -200,6 +200,7 @@ const EnclosureWiseSpecies = ({
           onClick={e => {
             e.stopPropagation()
             setDrawerType('animals')
+            console.log(params.row)
             setDrawerData({
               queryKey: 'enclosure-wise-species-drawer',
               id: id,

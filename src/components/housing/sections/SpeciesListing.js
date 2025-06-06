@@ -191,7 +191,7 @@ const SpeciesListing = ({ selectedTab, setSelectedTab, drawerType, setDrawerType
               name: params.row.common_name,
               image: params.row.images?.[0]?.file,
               params: {
-                id: params.row.id,
+                taxonomy_id: params.row.id,
                 section_id: id
               }
             })
