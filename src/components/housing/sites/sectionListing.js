@@ -252,6 +252,8 @@ const SectionListing = ({ selectedTab, setSelectedTab, drawerType, setDrawerType
           value={params.row.section_name}
           subtitle={''}
           imgUrl={params.row.images?.[0]?.file}
+          defaultImage={'/images/housing/section-icon-colored.png'}
+          defaultImageAlt={'Section'}
           avatarUrl={''}
           inchagename={''}
         />

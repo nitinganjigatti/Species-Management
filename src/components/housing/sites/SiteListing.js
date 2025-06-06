@@ -222,6 +222,8 @@ const Listing = ({ drawerType, setDrawerType, drawerData, setDrawerData }) => {
           value={params.row.site_name}
           subtitle=''
           imgUrl={params.row.images?.[0]?.file}
+          defaultImage={'/images/housing/site-icon-colored.svg'}
+          defaultImageAlt={'Site'}
           avatarUrl=''
           inchargeName=''
         />
@@ -380,6 +382,7 @@ const Listing = ({ drawerType, setDrawerType, drawerData, setDrawerData }) => {
           }}
           onClick={e => {
             e.stopPropagation()
+
             // Add logic if needed
           }}
         >

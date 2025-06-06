@@ -254,7 +254,17 @@ export const getToolTipForText = text => {
 //   )
 // }
 
-export const CellInfo = ({ value, subtitle, color, subtitleColor, imgUrl, avatarUrl, inchagename }) => {
+export const CellInfo = ({
+  value,
+  subtitle,
+  color,
+  subtitleColor,
+  imgUrl,
+  avatarUrl,
+  inchagename,
+  defaultImage,
+  defaultImageAlt
+}) => {
   const theme = useTheme()
 
   const [imgLoaded, setImgLoaded] = useState(false)
@@ -286,8 +296,8 @@ export const CellInfo = ({ value, subtitle, color, subtitleColor, imgUrl, avatar
       ) : (
         <Avatar
           variant='square'
-          src='/images/housing/section-icon-colored.png'
-          alt='sections'
+          src={defaultImage}
+          alt={defaultImageAlt}
           sx={{
             width: 40,
             height: 40,

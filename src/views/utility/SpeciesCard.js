@@ -6,6 +6,7 @@ import { useTheme } from '@mui/material/styles'
 function SpeciesCard({ species }) {
   const theme = useTheme()
   const [loading, setLoading] = useState(true)
+  const [imgSrc, setImgSrc] = useState(species?.default_icon)
 
   const handleImageLoad = () => {
     setLoading(false)
@@ -13,6 +14,7 @@ function SpeciesCard({ species }) {
 
   const handleImageError = () => {
     setLoading(false)
+    setImgSrc('/images/housing/species-icon-colored.svg')
   }
 
   return (
@@ -80,7 +82,7 @@ function SpeciesCard({ species }) {
                   ? '50%'
                   : 'unset'
             }}
-            src={species.default_icon || '/icons/species.svg'}
+            src={imgSrc}
             alt={species.scientific_name}
             imgProps={{
               onLoad: handleImageLoad,
