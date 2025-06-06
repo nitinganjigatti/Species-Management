@@ -104,6 +104,7 @@ const UserThemeOptions = () => {
         antzInfo60: '#32bfdd',
         customHeadingTextColor: '#44544A',
         customTextColorGray2: '#44544ADE',
+        PrimaryContainer: '#52F990',
 
         // *** name required
         customTableHeaderBg: '#C1D3D0',
@@ -159,7 +160,9 @@ const UserThemeOptions = () => {
         mainBg: '#20DE67',
         antzSecondaryBg: '#dff9f7',
         statusText: '#7A7A7A',
-        Antz_Body_Medium: '#FFC300'
+        Antz_Body_Medium: '#FFC300',
+        grey700: 'grey.700',
+        grey800: 'grey.800'
       },
       primary: {
         // light: '#20DE67',

@@ -498,6 +498,44 @@ export const GET_SECTION = '/master/zoos/getsections'
 
 export const GET_SPECIES = '/diet/species'
 
+// Housing
+
+export const HOUSING_SITE_ANALYTICS = 'zoo/home'
+
+export const GET_SITES = 'site-list'
+
+export const SITE_DETAILS = 'site-details'
+
+export const GET_ALL_SECTIONS = 'get-site-wise-section-list'
+
+export const GET_ALL_ENCLOSURES = 'housing-listing'
+
+export const SECTION_INSIGHTS = 'zoos/section/details'
+
+export const GET_ALL_NOTES = 'v1/get-observation-by-type-id'
+
+export const GET_ALL_SPECIES = 'v1/species/listing'
+
+export const GET_MORTALITY = 'animal/get-mortality-listing-type-wise'
+
+export const GET_ANIMAL_TREATMENT = 'site-wise-animal-medical-data'
+
+export const SECTION_GET_ANIMAL_TREATMENT = 'section-wise-animal-medical-data'
+
+export const GET_MEDIA = 'zoos/all-type-media-list'
+
+export const GET_ANIMAL = 'v1/animal/listing'
+
+export const GET_CLUSTERS_LIST = `cluster/get-cluster-list`
+
+export const GET_SPECIFIC_CLUSTER_ANALYTICS = `/cluster/get-cluster-header-details`
+
+export const GET_ENCLOSURE_LIST_SECTION_WISE = `v1/enclosure/sub/listing`
+
+export const GET_ENCLOSURE_WISE_STATS = `enclosure/get-enclosure`
+
+export const GET_ENCLOSURE_WISE_SPECIES = `v1/enclosure/species/listing`
+
 export const STORE_WISE_SHIPMENT_PDF = 'shipment-store-item/shipped/print/'
 
 export const REQUEST_SHIPMENT_DETAILS_PDF = 'shipment/shipped/print/'
