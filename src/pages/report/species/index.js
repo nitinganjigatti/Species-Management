@@ -154,449 +154,394 @@ const SpeciesReport = () => {
   // }
 
   // debugger
-}
 
-const title = (
-  <>
-    <Typography
-      sx={{
-        fontSize: '24px',
-        fontWeight: 500,
-        fontFamily: 'Inter',
-        color: theme.palette.customColors.OnSurfaceVariant
-      }}
-    >
-      Species General Report
-    </Typography>
-  </>
-)
+  const title = (
+    <>
+      <Typography
+        sx={{
+          fontSize: '24px',
+          fontWeight: 500,
+          fontFamily: 'Inter',
+          color: theme.palette.customColors.OnSurfaceVariant
+        }}
+      >
+        Species General Report
+      </Typography>
+    </>
+  )
 
-const fetchAndSetDataList = async (params, options = {}) => {
-  const { setHeaders = false, setTotalCount = false, responseType = 'json' } = options
-  try {
-    setIsLoading(true)
-    const response = await getReportFilterList(params)
-    const parsedParams = apiFilterParams || {}
-    if (selectedSites.includes('All Sites')) {
-      let updatedParams = { ...parsedParams }
-      delete updatedParams.site_ids
+  const fetchAndSetDataList = async (params, options = {}) => {
+    const { setHeaders = false, setTotalCount = false, responseType = 'json' } = options
+    try {
+      setIsLoading(true)
+      const response = await getReportFilterList(params)
+      const parsedParams = apiFilterParams || {}
+      if (selectedSites.includes('All Sites')) {
+        let updatedParams = { ...parsedParams }
+        delete updatedParams.site_ids
 
-      // Update context with the modified params (without site_ids)
-      setApiFilterParams(updatedParams) // Update context instead of sessionStorage
-      setSelectedSites([])
-    }
+        // Update context with the modified params (without site_ids)
+        setApiFilterParams(updatedParams) // Update context instead of sessionStorage
+        setSelectedSites([])
+      }
 
-    if (responseType === 'csv' && response && response.data) {
-      const csvUrl = response.data
-      const link = document.createElement('a')
-      link.href = csvUrl
-      document.body.appendChild(link)
-      link.click()
-      document.body.removeChild(link)
-      URL.revokeObjectURL(csvUrl)
-    } else if (response.success) {
-      const { header, datalist, total_count } = response.data || {}
+      if (responseType === 'csv' && response && response.data) {
+        const csvUrl = response.data
+        const link = document.createElement('a')
+        link.href = csvUrl
+        document.body.appendChild(link)
+        link.click()
+        document.body.removeChild(link)
+        URL.revokeObjectURL(csvUrl)
+      } else if (response.success) {
+        const { header, datalist, total_count } = response.data || {}
 
-      // setDataList(datalist || [])
-      // if (setHeaders) setHeaderList(header)
-      setTotal(total_count)
+        // setDataList(datalist || [])
+        // if (setHeaders) setHeaderList(header)
+        setTotal(total_count)
 
+        setIsLoading(false)
+
+        setHeaderList(header)
+        setAnchorEl(null)
+
+        // setDataList(datalist)
+
+        setDataList(loadServerRows(paginationModel.page, datalist))
+      } else {
+        toast.error('Something went wrong')
+      }
+    } catch (error) {
+      toast.error('Error connecting to the server')
+    } finally {
       setIsLoading(false)
-
-      setHeaderList(header)
-      setAnchorEl(null)
-
-      // setDataList(datalist)
-
-      setDataList(loadServerRows(paginationModel.page, datalist))
-    } else {
-      toast.error('Something went wrong')
     }
-  } catch (error) {
-    toast.error('Error connecting to the server')
-  } finally {
-    setIsLoading(false)
   }
-}
 
-const fetchDownList = async (params, options = {}) => {
-  const { responseType = 'json' } = options
-  try {
-    setIsDownloading(true)
-    const response = await getReportFilterList(params)
-    if (responseType === 'csv' && response && response.data) {
-      handleCsvResponse(response.data)
-    } else if (response.success) {
-      const { header, animal_list, total_animal } = response.data || {}
+  const fetchDownList = async (params, options = {}) => {
+    const { responseType = 'json' } = options
+    try {
+      setIsDownloading(true)
+      const response = await getReportFilterList(params)
+      if (responseType === 'csv' && response && response.data) {
+        handleCsvResponse(response.data)
+      } else if (response.success) {
+        const { header, animal_list, total_animal } = response.data || {}
 
-      setTotal(total_animal)
+        setTotal(total_animal)
+        setIsDownloading(false)
+      }
+    } catch (error) {
+      toast.error('Error connecting to the server')
+    } finally {
       setIsDownloading(false)
     }
-  } catch (error) {
-    toast.error('Error connecting to the server')
-  } finally {
-    setIsDownloading(false)
   }
-}
 
-const handleCsvResponse = csvUrl => {
-  const link = document.createElement('a')
-  link.href = csvUrl
-  document.body.appendChild(link)
-  link.click()
-  document.body.removeChild(link)
-  URL.revokeObjectURL(csvUrl)
-}
+  const handleCsvResponse = csvUrl => {
+    const link = document.createElement('a')
+    link.href = csvUrl
+    document.body.appendChild(link)
+    link.click()
+    document.body.removeChild(link)
+    URL.revokeObjectURL(csvUrl)
+  }
 
-const handleOptionChange = (category, itemIndex) => {
-  setPopoverData(prevData => {
-    const updatedData = {
-      ...prevData,
-      [category]: prevData[category].map((el, index) => (index === itemIndex ? { ...el, checked: !el.checked } : el))
+  const handleOptionChange = (category, itemIndex) => {
+    setPopoverData(prevData => {
+      const updatedData = {
+        ...prevData,
+        [category]: prevData[category].map((el, index) => (index === itemIndex ? { ...el, checked: !el.checked } : el))
+      }
+
+      return updatedData
+    })
+  }
+
+  function loadServerRows(currentPage, data) {
+    return data
+  }
+
+  const [headerList, setHeaderList] = useState([])
+  const [isLoading, setIsLoading] = useState(false)
+
+  const initialLoad = useRef(true)
+
+  const fetchData = useCallback(
+    async (param, q, paginationModel) => {
+      let params = {
+        page: paginationModel?.page + 1,
+        limit: paginationModel?.pageSize,
+        q,
+        ...param
+      }
+
+      // Reset site filtering ONLY when switching from "Detail" back to "Listing"
+
+      setIsLoading(true)
+
+      await fetchAndSetDataList(params, { setHeaders: true, setTotalCount: true })
+
+      initialLoad.current = false
+    },
+    [paginationModel]
+  )
+
+  useEffect(() => {
+    if (router.pathname === '/report/species') {
+      // console.log('Before apiFilterParams', apiFilterParams)
+      setSelectedSites([])
+      setSelectedOptions({})
+      setApiFilterParams(() => initialFilterParams) // Ensures the update happens correctly
+      if (reports_module && enable_specie_report) {
+        fetchData(apiFilterParams, paginationModel)
+      }
     }
+  }, [router.pathname])
 
-    return updatedData
-  })
-}
-
-function loadServerRows(currentPage, data) {
-  return data
-}
-
-const [headerList, setHeaderList] = useState([])
-const [isLoading, setIsLoading] = useState(false)
-
-const initialLoad = useRef(true)
-
-const fetchData = useCallback(
-  async (param, q, paginationModel) => {
-    let params = {
-      page: paginationModel.page + 1,
-      limit: paginationModel.pageSize,
-      q,
-      ...param
-    }
-
-    // Reset site filtering ONLY when switching from "Detail" back to "Listing"
-
-    setIsLoading(true)
-
-    await fetchAndSetDataList(params, { setHeaders: true, setTotalCount: true })
-
-    initialLoad.current = false
-  },
-  [paginationModel]
-)
-
-useEffect(() => {
-  if (router.pathname === '/report/species') {
-    // console.log('Before apiFilterParams', apiFilterParams)
-    setSelectedSites([])
-    setSelectedOptions({})
-    setApiFilterParams(() => initialFilterParams) // Ensures the update happens correctly
+  useEffect(() => {
     if (reports_module && enable_specie_report) {
-      fetchData(apiFilterParams, paginationModel)
+      fetchData(apiFilterParams, searchValue, paginationModel)
     }
-  }
-}, [router.pathname])
+  }, [fetchData, apiFilterParams])
 
-useEffect(() => {
-  if (reports_module && enable_specie_report) {
-    fetchData(apiFilterParams, searchValue, paginationModel)
-  }
-}, [fetchData, apiFilterParams])
+  const columns = headerList.map(header => {
+    if (header.key.includes('default_icon')) {
+      return {
+        field: 'speciesAndCommonName',
+        headerName: header.label,
+        isAvatar: true,
+        pinned: 'left',
+        sortable: false,
+        disableColumnMenu: true,
+        width: 320,
+        renderCell: params => (
+          <CardHeader
+            sx={{ paddingX: 0 }}
+            avatar={
+              <img
+                src={params.row.default_icon}
+                alt={params.row.common_name}
+                style={{ width: 40, height: 40, borderRadius: '50%' }}
+              />
+            }
+            title={
+              <Typography sx={{ fontSize: '16px', fontWeight: 500, fontFamily: 'Inter', color: '#006D35' }}>
+                {params.row.common_name}
+              </Typography>
+            }
+            subheader={
+              <Typography
+                sx={{ fontSize: '14px', fontWeight: 400, fontFamily: 'Inter', fontStyle: 'italic', color: '#006D35' }}
+                variant='body2'
+              >
+                {params.row.scientific_name}
+              </Typography>
+            }
+          />
+        )
+      }
+    }
 
-const columns = headerList.map(header => {
-  if (header.key.includes('default_icon')) {
     return {
-      field: 'speciesAndCommonName',
+      field: header.key,
       headerName: header.label,
-      isAvatar: true,
-      pinned: 'left',
+      minWidth: 200,
       sortable: false,
       disableColumnMenu: true,
-      width: 320,
+      textAlign: 'center',
       renderCell: params => (
-        <CardHeader
-          sx={{ paddingX: 0 }}
-          avatar={
-            <img
-              src={params.row.default_icon}
-              alt={params.row.common_name}
-              style={{ width: 40, height: 40, borderRadius: '50%' }}
-            />
-          }
+        <Tooltip
           title={
-            <Typography sx={{ fontSize: '16px', fontWeight: 500, fontFamily: 'Inter', color: '#006D35' }}>
-              {params.row.common_name}
-            </Typography>
-          }
-          subheader={
-            <Typography
-              sx={{ fontSize: '14px', fontWeight: 400, fontFamily: 'Inter', fontStyle: 'italic', color: '#006D35' }}
-              variant='body2'
-            >
-              {params.row.scientific_name}
-            </Typography>
-          }
-        />
-      )
-    }
-  }
-
-  return {
-    field: header.key,
-    headerName: header.label,
-    minWidth: 200,
-    sortable: false,
-    disableColumnMenu: true,
-    textAlign: 'center',
-    renderCell: params => (
-      <Tooltip
-        title={
-          params?.row
-            ? params?.row[header.key]
-            : ['Male', 'Female', 'Indeterminate', 'Undetermined', 'Total'].includes(header.label) &&
-              params?.row[header.key] === undefined
-            ? 0
-            : '-'
-        }
-      >
-        <Box
-          sx={{
-            // width: ['Male', 'Female', 'Indeterminate', 'Undetermined'].includes(header.label) ? '50px' : '140px',
-            width: '140px',
-            height: '25px',
-            display: 'flex',
-            alignItems: 'center',
-            // justifyContent: ['Male', 'Female', 'Indeterminate', 'Undetermined'].includes(header.label)
-            // ? 'center'
-            // : header.label === 'total'
-            // ? 'flex-end'
-            // : 'flex-start',
-
-            position: 'relative',
-            cursor: 'pointer'
-          }}
-        >
-          <Typography
-            sx={{
-              color: getCellTextColor(header.label),
-              backgroundColor: getCellBackgroundColor(header.label),
-              borderRadius: '4px',
-              padding: '4px 16px', // Thoda padding de diya better UX ke liye
-              fontWeight: 400,
-              // textAlign: ['Male', 'Female', 'Indeterminate', 'Undetermined'].includes(header.label)
-              //   ? 'center'
-              //   : header.label === 'total'
-              //   ? 'right'
-              //   : 'left',
-              textAlign: 'left',
-              overflow: 'hidden',
-              whiteSpace: 'nowrap',
-              textOverflow: 'ellipsis'
-            }}
-          >
-            {params?.row
+            params?.row
               ? params?.row[header.key]
               : ['Male', 'Female', 'Indeterminate', 'Undetermined', 'Total'].includes(header.label) &&
                 params?.row[header.key] === undefined
               ? 0
-              : '-'}
-          </Typography>
-        </Box>
-      </Tooltip>
-    )
+              : '-'
+          }
+        >
+          <Box
+            sx={{
+              // width: ['Male', 'Female', 'Indeterminate', 'Undetermined'].includes(header.label) ? '50px' : '140px',
+              width: '140px',
+              height: '25px',
+              display: 'flex',
+              alignItems: 'center',
+              // justifyContent: ['Male', 'Female', 'Indeterminate', 'Undetermined'].includes(header.label)
+              // ? 'center'
+              // : header.label === 'total'
+              // ? 'flex-end'
+              // : 'flex-start',
+
+              position: 'relative',
+              cursor: 'pointer'
+            }}
+          >
+            <Typography
+              sx={{
+                color: getCellTextColor(header.label),
+                backgroundColor: getCellBackgroundColor(header.label),
+                borderRadius: '4px',
+                padding: '4px 16px', // Thoda padding de diya better UX ke liye
+                fontWeight: 400,
+                // textAlign: ['Male', 'Female', 'Indeterminate', 'Undetermined'].includes(header.label)
+                //   ? 'center'
+                //   : header.label === 'total'
+                //   ? 'right'
+                //   : 'left',
+                textAlign: 'left',
+                overflow: 'hidden',
+                whiteSpace: 'nowrap',
+                textOverflow: 'ellipsis'
+              }}
+            >
+              {params?.row
+                ? params?.row[header.key]
+                : ['Male', 'Female', 'Indeterminate', 'Undetermined', 'Total'].includes(header.label) &&
+                  params?.row[header.key] === undefined
+                ? 0
+                : '-'}
+            </Typography>
+          </Box>
+        </Tooltip>
+      )
+    }
+  })
+
+  const getCellBackgroundColor = label => {
+    switch (label) {
+      case 'Male':
+        return '#AFEFEB'
+      case 'Female':
+        return '#FFD3D3'
+      case 'Undetermined':
+        return '#DDEBE9'
+      case 'Indeterminate':
+        return '#DDEBE9'
+      default:
+        return 'transparent'
+    }
   }
-})
 
-const getCellBackgroundColor = label => {
-  switch (label) {
-    case 'Male':
-      return '#AFEFEB'
-    case 'Female':
-      return '#FFD3D3'
-    case 'Undetermined':
-      return '#DDEBE9'
-    case 'Indeterminate':
-      return '#DDEBE9'
-    default:
-      return 'transparent'
+  const getCellTextColor = label => {
+    switch (label) {
+      case 'Male':
+      case 'Female':
+        return '#1F415B'
+      case 'Undetermined':
+        return '#E93353'
+      case 'Indeterminate':
+        return '#44544A'
+      default:
+        return '#44544A'
+    }
   }
-}
 
-const getCellTextColor = label => {
-  switch (label) {
-    case 'Male':
-    case 'Female':
-      return '#1F415B'
-    case 'Undetermined':
-      return '#E93353'
-    case 'Indeterminate':
-      return '#44544A'
-    default:
-      return '#44544A'
-  }
-}
+  const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
-const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
+  const reportRows = dataList?.map((item, index) => ({
+    id: index + 1,
+    ...item,
+    sl_no: getSlNo(index)
+  }))
 
-const reportRows = dataList?.map((item, index) => ({
-  id: index + 1,
-  ...item,
-  sl_no: getSlNo(index)
-}))
+  const handleConfirm = async () => {
+    let updatedApiParams = { ...apiFilterParams }
 
-const handleConfirm = async () => {
-  let updatedApiParams = { ...apiFilterParams }
-
-  // Process `popoverData` to extract selected options
-  Object.keys(popoverData).forEach(category => {
-    popoverData[category].forEach(option => {
-      updatedApiParams[option.key] = option.checked ? 1 : 0 // Add only selected options
+    // Process `popoverData` to extract selected options
+    Object.keys(popoverData).forEach(category => {
+      popoverData[category].forEach(option => {
+        updatedApiParams[option.key] = option.checked ? 1 : 0 // Add only selected options
+      })
     })
-  })
 
-  // Update API parameters and reset pagination
-  setApiFilterParams(updatedApiParams)
-  setPaginationModel({ ...paginationModel, page: 0 })
-}
-
-// const handleRowClick = params => {
-//   console.log('Params >', params)
-//   router.push({
-//     pathname: `/report/animalList/${params.row?.tsn_id}`
-//   })
-// }
-
-// const handleRowClick = params => {
-//   console.log('Params >', params)
-
-//   const hasFilterChanged = JSON.stringify(apiFilterParams) !== JSON.stringify(initialFilterParams)
-//   const hasSitesChanged = JSON.stringify(selectedSites) !== JSON.stringify(sites)
-
-//   // Store additional data in sessionStorage
-//   sessionStorage.setItem(
-//     'animalListData',
-//     JSON.stringify({
-//       default_icon: params.row?.default_icon,
-//       scientific_name: params.row?.scientific_name,
-//       common_name: params.row?.common_name,
-//       apiFilterParams: hasFilterChanged ? apiFilterParams : null, // Store only if changed
-//       selectedSites: hasSitesChanged ? selectedSites : null, // Store only if changed
-//       filterChanged: hasFilterChanged, // Boolean flag
-//       sitesChanged: hasSitesChanged // Boolean flag for sites
-//     })
-//   )
-
-//   // Navigate to the new page
-//   router.push(`/report/animalList/${params.row?.tsn_id}`)
-// }
-
-const handleRowClick = params => {
-  // console.log('Params >', params)
-  // const { setSelectedAnimal, setApiFilterParams, setSelectedSites } = useAnimalContext();
-
-  const hasFilterChanged = JSON.stringify(apiFilterParams) !== JSON.stringify(initialFilterParams)
-  const hasSitesChanged = JSON.stringify(selectedSites) !== JSON.stringify(sites)
-
-  // Store values in Context instead of sessionStorage
-  setSelectedAnimal({
-    default_icon: params?.default_icon,
-    scientific_name: params?.scientific_name,
-    common_name: params?.common_name
-  })
-
-  if (hasFilterChanged) setApiFilterParams(apiFilterParams)
-  if (hasSitesChanged) setSelectedSites(selectedSites)
-
-  setSelectedOptions(prev => ({
-    ...prev,
-    Site: selectedSites ? selectedSites : ''
-  }))
-
-  router.push(`/report/animalList?animalId=${params?.tsn_id}`)
-}
-
-const handleSelection = async (selectedIDs, category) => {
-  let params = {}
-  const isAllSelected = category === 'Site' ? 'All Sites' : 'All Organizations'
-  const key = category === 'Site' ? 'sids' : 'oids'
-  const stateSetter = category === 'Site' ? setSelectedSites : setSelectedOptions
-
-  if (selectedIDs.includes(isAllSelected)) {
-    // "All Sites/All Organizations" selected
-    if (category === 'Site' && !selectedSites.includes(isAllSelected)) {
-      stateSetter(['All Sites'])
-      params[key] = '' // Reset to empty for all sites
-    } else if (category === 'Organization' && !selectedOptions.Organization.includes(isAllSelected)) {
-      stateSetter(prev => ({ ...prev, Organization: ['All Organizations'] }))
-      params[key] = '' // Reset to empty for all organizations
-    } else {
-      // If "All Sites/All Organizations" is re-selected, use filtered IDs
-      const filteredIDs = selectedIDs.filter(id => id !== isAllSelected)
-      params[key] = filteredIDs.toString()
-      stateSetter(filteredIDs)
-    }
-  } else if (selectedIDs.length === 0) {
-    // No items selected, reset the parameter
-    params[key] = ''
-  } else {
-    // Specific IDs selected
-    params[key] = selectedIDs.toString()
-    if (category === 'Site') {
-      stateSetter(selectedIDs)
-    } else {
-      stateSetter(prev => ({ ...prev, Organization: selectedIDs }))
-    }
+    // Update API parameters and reset pagination
+    setApiFilterParams(updatedApiParams)
+    setPaginationModel({ ...paginationModel, page: 0 })
   }
 
-  // Reset pagination and update filter parameters
-  setPaginationModel(prev => ({ ...prev, page: 0 }))
-  setApiFilterParams(prev => ({
-    ...prev,
-    [key]: params[key] // Update only the relevant key
-  }))
-}
+  // const handleRowClick = params => {
+  //   console.log('Params >', params)
+  //   router.push({
+  //     pathname: `/report/animalList/${params.row?.tsn_id}`
+  //   })
+  // }
 
-const handleSpeciesSelection = async (selectedIDs, category) => {
-  let params = {}
-  const isAllSelected = category === 'Site' ? 'All Sites' : 'All Organizations'
-  const key = category === 'Site' ? 'site_ids' : 'oids'
-  const stateSetter = category === 'Site' ? setSelectedSites : setSelectedOptions
+  // const handleRowClick = params => {
+  //   console.log('Params >', params)
 
-  if (selectedIDs.includes(isAllSelected)) {
-    // "All Sites/All Organizations" selected
-    if (category === 'Site') {
-      if (!selectedSites.includes(isAllSelected)) {
-        stateSetter(['All Sites']) // Store the selection
-        params[key] = '' // Reset filter
-      } else {
-        const filteredIDs = selectedIDs.filter(id => id !== isAllSelected)
-        stateSetter(filteredIDs)
-        params[key] = filteredIDs.toString()
-      }
-    } else {
-      if (!selectedOptions.Organization.includes(isAllSelected)) {
+  //   const hasFilterChanged = JSON.stringify(apiFilterParams) !== JSON.stringify(initialFilterParams)
+  //   const hasSitesChanged = JSON.stringify(selectedSites) !== JSON.stringify(sites)
+
+  //   // Store additional data in sessionStorage
+  //   sessionStorage.setItem(
+  //     'animalListData',
+  //     JSON.stringify({
+  //       default_icon: params.row?.default_icon,
+  //       scientific_name: params.row?.scientific_name,
+  //       common_name: params.row?.common_name,
+  //       apiFilterParams: hasFilterChanged ? apiFilterParams : null, // Store only if changed
+  //       selectedSites: hasSitesChanged ? selectedSites : null, // Store only if changed
+  //       filterChanged: hasFilterChanged, // Boolean flag
+  //       sitesChanged: hasSitesChanged // Boolean flag for sites
+  //     })
+  //   )
+
+  //   // Navigate to the new page
+  //   router.push(`/report/animalList/${params.row?.tsn_id}`)
+  // }
+
+  const handleRowClick = params => {
+    // console.log('Params >', params)
+    // const { setSelectedAnimal, setApiFilterParams, setSelectedSites } = useAnimalContext();
+
+    const hasFilterChanged = JSON.stringify(apiFilterParams) !== JSON.stringify(initialFilterParams)
+    const hasSitesChanged = JSON.stringify(selectedSites) !== JSON.stringify(sites)
+
+    // Store values in Context instead of sessionStorage
+    setSelectedAnimal({
+      default_icon: params?.default_icon,
+      scientific_name: params?.scientific_name,
+      common_name: params?.common_name
+    })
+
+    if (hasFilterChanged) setApiFilterParams(apiFilterParams)
+    if (hasSitesChanged) setSelectedSites(selectedSites)
+
+    setSelectedOptions(prev => ({
+      ...prev,
+      Site: selectedSites ? selectedSites : ''
+    }))
+
+    router.push(`/report/animalList?animalId=${params?.tsn_id}`)
+  }
+
+  const handleSelection = async (selectedIDs, category) => {
+    let params = {}
+    const isAllSelected = category === 'Site' ? 'All Sites' : 'All Organizations'
+    const key = category === 'Site' ? 'sids' : 'oids'
+    const stateSetter = category === 'Site' ? setSelectedSites : setSelectedOptions
+
+    if (selectedIDs.includes(isAllSelected)) {
+      // "All Sites/All Organizations" selected
+      if (category === 'Site' && !selectedSites.includes(isAllSelected)) {
+        stateSetter(['All Sites'])
+        params[key] = '' // Reset to empty for all sites
+      } else if (category === 'Organization' && !selectedOptions.Organization.includes(isAllSelected)) {
         stateSetter(prev => ({ ...prev, Organization: ['All Organizations'] }))
-        params[key] = ''
+        params[key] = '' // Reset to empty for all organizations
       } else {
+        // If "All Sites/All Organizations" is re-selected, use filtered IDs
         const filteredIDs = selectedIDs.filter(id => id !== isAllSelected)
-        stateSetter(prev => ({ ...prev, Organization: filteredIDs }))
         params[key] = filteredIDs.toString()
+        stateSetter(filteredIDs)
       }
-    }
-  } else {
-    if (selectedIDs.length === 0) {
-      // If no sites/orgs are selected, reset
+    } else if (selectedIDs.length === 0) {
+      // No items selected, reset the parameter
       params[key] = ''
-      if (category === 'Site') {
-        stateSetter([]) // Clear selection
-      } else {
-        stateSetter(prev => ({ ...prev, Organization: [] }))
-      }
     } else {
-      // Normal selection of specific sites/orgs
+      // Specific IDs selected
       params[key] = selectedIDs.toString()
       if (category === 'Site') {
         stateSetter(selectedIDs)
@@ -604,70 +549,124 @@ const handleSpeciesSelection = async (selectedIDs, category) => {
         stateSetter(prev => ({ ...prev, Organization: selectedIDs }))
       }
     }
+
+    // Reset pagination and update filter parameters
+    setPaginationModel(prev => ({ ...prev, page: 0 }))
+    setApiFilterParams(prev => ({
+      ...prev,
+      [key]: params[key] // Update only the relevant key
+    }))
   }
 
-  // Reset pagination and update API filter parameters
-  setPaginationModel(prev => ({ ...prev, page: 0 }))
-  setApiFilterParams(prev => ({
-    ...prev,
-    [key]: params[key] // Update only the relevant key
-  }))
-}
+  const handleSpeciesSelection = async (selectedIDs, category) => {
+    let params = {}
+    const isAllSelected = category === 'Site' ? 'All Sites' : 'All Organizations'
+    const key = category === 'Site' ? 'site_ids' : 'oids'
+    const stateSetter = category === 'Site' ? setSelectedSites : setSelectedOptions
 
-const getTotalSelectedFilters = selectedOptions => {
-  // Use Object.values to extract arrays of selected items
-  return Object.values(selectedOptions)
-    .flat() // Flatten to combine all selected items into a single array
-    .filter(item => item !== 'All Sites' && item !== 'All Organizations').length // Exclude "All" selections if needed // Count the total number of items
-}
-
-const handleFilterSection = () => {
-  setOpenFilterDrawer(true)
-}
-
-const searchTableData = useCallback(
-  debounce(async q => {
-    setSearchValue(q)
-    setPaginationModel({ ...paginationModel, page: 0 })
-    try {
-      await fetchData(apiFilterParams, q, paginationModel)
-    } catch (error) {
-      console.error(error)
+    if (selectedIDs.includes(isAllSelected)) {
+      // "All Sites/All Organizations" selected
+      if (category === 'Site') {
+        if (!selectedSites.includes(isAllSelected)) {
+          stateSetter(['All Sites']) // Store the selection
+          params[key] = '' // Reset filter
+        } else {
+          const filteredIDs = selectedIDs.filter(id => id !== isAllSelected)
+          stateSetter(filteredIDs)
+          params[key] = filteredIDs.toString()
+        }
+      } else {
+        if (!selectedOptions.Organization.includes(isAllSelected)) {
+          stateSetter(prev => ({ ...prev, Organization: ['All Organizations'] }))
+          params[key] = ''
+        } else {
+          const filteredIDs = selectedIDs.filter(id => id !== isAllSelected)
+          stateSetter(prev => ({ ...prev, Organization: filteredIDs }))
+          params[key] = filteredIDs.toString()
+        }
+      }
+    } else {
+      if (selectedIDs.length === 0) {
+        // If no sites/orgs are selected, reset
+        params[key] = ''
+        if (category === 'Site') {
+          stateSetter([]) // Clear selection
+        } else {
+          stateSetter(prev => ({ ...prev, Organization: [] }))
+        }
+      } else {
+        // Normal selection of specific sites/orgs
+        params[key] = selectedIDs.toString()
+        if (category === 'Site') {
+          stateSetter(selectedIDs)
+        } else {
+          stateSetter(prev => ({ ...prev, Organization: selectedIDs }))
+        }
+      }
     }
-  }, 1000),
-  []
-)
 
-const handleSearch = value => {
-  setSearchValue(value)
-  searchTableData(value)
-}
+    // Reset pagination and update API filter parameters
+    setPaginationModel(prev => ({ ...prev, page: 0 }))
+    setApiFilterParams(prev => ({
+      ...prev,
+      [key]: params[key] // Update only the relevant key
+    }))
+  }
 
-return (
-  <>
-    {reports_module && enable_specie_report ? (
-      <>
-        <Card>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', px: 2, pt: 2 }}>
-            <CardHeader title={title} />
-            <Typography
-              onClick={() => getStatisticsDataToExport()}
-              sx={{
-                fontSize: '20px',
-                fontWeight: '400',
-                fontFamily: 'Inter',
-                color: '#006D35',
-                display: 'flex',
-                alignItems: 'center',
-                cursor: 'pointer',
-                mr: 4
-              }}
-            >
-              Download report
-              <img src='/images/download1.svg' alt='download icon' style={{ marginLeft: 8, width: 30, height: 30 }} />
-            </Typography>
+  const getTotalSelectedFilters = selectedOptions => {
+    // Use Object.values to extract arrays of selected items
+    return Object.values(selectedOptions)
+      .flat() // Flatten to combine all selected items into a single array
+      .filter(item => item !== 'All Sites' && item !== 'All Organizations').length // Exclude "All" selections if needed // Count the total number of items
+  }
 
-            {/* <Button
+  const handleFilterSection = () => {
+    setOpenFilterDrawer(true)
+  }
+
+  const searchTableData = useCallback(
+    debounce(async q => {
+      setSearchValue(q)
+      setPaginationModel({ ...paginationModel, page: 0 })
+      try {
+        await fetchData(apiFilterParams, q, paginationModel)
+      } catch (error) {
+        console.error(error)
+      }
+    }, 1000),
+    []
+  )
+
+  const handleSearch = value => {
+    setSearchValue(value)
+    searchTableData(value)
+  }
+
+  return (
+    <>
+      {reports_module && enable_specie_report ? (
+        <>
+          <Card>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', px: 2, pt: 2 }}>
+              <CardHeader title={title} />
+              <Typography
+                onClick={() => getStatisticsDataToExport()}
+                sx={{
+                  fontSize: '20px',
+                  fontWeight: '400',
+                  fontFamily: 'Inter',
+                  color: '#006D35',
+                  display: 'flex',
+                  alignItems: 'center',
+                  cursor: 'pointer',
+                  mr: 4
+                }}
+              >
+                Download report
+                <img src='/images/download1.svg' alt='download icon' style={{ marginLeft: 8, width: 30, height: 30 }} />
+              </Typography>
+
+              {/* <Button
                 onClick={() => getStatisticsDataToExport()}
                 variant='contained'
                 sx={{
@@ -691,14 +690,14 @@ return (
                   </>
                 )}
               </Button> */}
-          </Box>
+            </Box>
 
-          <TabContext value={status}>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', px: 2, pt: 2 }}>
-              {/* Tabs on the left */}
-              {/* <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+            <TabContext value={status}>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', px: 2, pt: 2 }}>
+                {/* Tabs on the left */}
+                {/* <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
                   {/* Search Field */}
-              {/* <TextField
+                {/* <TextField
                   variant='outlined'
                   placeholder='Search...'
                   size='small'
@@ -713,51 +712,51 @@ return (
                   onChange={e => handleSearch(e?.target?.value)}
                 /> */}
 
-              {/* Tabs */}
-
-              {/* </Box> */}
-              <Box sx={{ display: 'flex', alignItems: 'center', gap: 0 }}>
-                {/* Search Box */}
-                <TextField
-                  variant='outlined'
-                  size='small'
-                  value={searchValue}
-                  onChange={e => handleSearch(e?.target?.value)}
-                  placeholder='Search'
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position='start'>
-                        <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
-                      </InputAdornment>
-                    )
-                  }}
-                  sx={{
-                    width: '320px',
-                    backgroundColor: '#fff',
-                    ml: 4,
-                    mt: 3,
-                    borderRadius: '4px', // Applies to the container
-                    '& .MuiOutlinedInput-root': {
-                      borderRadius: '4px' // Applies to the input field
-                    }
-                  }}
-                />
                 {/* Tabs */}
-                <TabList onChange={''}></TabList> {/* Add `handleTabChange` for tab switching */}
-              </Box>
 
-              {authData?.userData?.user?.zoos[0]?.sites.length > 0 && (
-                <Box
-                  sx={{
-                    display: 'flex',
-                    flexDirection: { xs: 'column', sm: 'row' },
-                    alignItems: 'center',
-                    borderRadius: '8px',
-                    gap: 4,
-                    mr: 2
-                  }}
-                >
-                  {/* <FormControl fullWidth sx={{ maxWidth: '200px' }}>
+                {/* </Box> */}
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0 }}>
+                  {/* Search Box */}
+                  <TextField
+                    variant='outlined'
+                    size='small'
+                    value={searchValue}
+                    onChange={e => handleSearch(e?.target?.value)}
+                    placeholder='Search'
+                    InputProps={{
+                      startAdornment: (
+                        <InputAdornment position='start'>
+                          <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
+                        </InputAdornment>
+                      )
+                    }}
+                    sx={{
+                      width: '320px',
+                      backgroundColor: '#fff',
+                      ml: 4,
+                      mt: 3,
+                      borderRadius: '4px', // Applies to the container
+                      '& .MuiOutlinedInput-root': {
+                        borderRadius: '4px' // Applies to the input field
+                      }
+                    }}
+                  />
+                  {/* Tabs */}
+                  <TabList onChange={''}></TabList> {/* Add `handleTabChange` for tab switching */}
+                </Box>
+
+                {authData?.userData?.user?.zoos[0]?.sites.length > 0 && (
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      flexDirection: { xs: 'column', sm: 'row' },
+                      alignItems: 'center',
+                      borderRadius: '8px',
+                      gap: 4,
+                      mr: 2
+                    }}
+                  >
+                    {/* <FormControl fullWidth sx={{ maxWidth: '200px' }}>
                       <InputLabel
                         sx={{
                           fontSize: '14px',
@@ -793,7 +792,7 @@ return (
                       </Select>
                     </FormControl> */}
 
-                  {/* <FormControl fullWidth sx={{ maxWidth: '200px', mt: 2 }}>
+                    {/* <FormControl fullWidth sx={{ maxWidth: '200px', mt: 2 }}>
                       <Button
                         variant='outlined'
                         onClick={() => setOpenSiteDrawer(true)}
@@ -866,189 +865,189 @@ return (
                       handleSelectedSite={handleSelectedSite}
                     /> */}
 
-                  <Button
-                    onClick={() => handleFilterSection()}
-                    variant='outlined'
-                    sx={{
-                      width: '129px',
-                      height: '40px',
-                      mt: 2,
-
-                      display: 'flex',
-                      color: '#44544A',
-                      borderRadius: '4px',
-                      fontWeight: 400,
-                      fontSize: '16px',
-                      fontFamily: 'Inter',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      gap: 2,
-                      minWidth: '100px'
-                    }}
-                  >
-                    <img
-                      src={`/images/${
-                        getTotalSelectedFilters(selectedOptions) > 0 ? 'filterIconActive' : 'filterIcon'
-                      }.svg`}
-                      style={{ width: '30px', height: '30px', marginBottom: '3px', marginTop: '7px' }}
-                      alt='Filter Icon'
-                    />
-
-                    <Typography
+                    <Button
+                      onClick={() => handleFilterSection()}
+                      variant='outlined'
                       sx={{
-                        color: getTotalSelectedFilters(selectedOptions) > 0 ? '#1F515B' : '#44544A',
-                        textTransform: 'capitalize',
-                        mr: 8,
+                        width: '129px',
+                        height: '40px',
+                        mt: 2,
+
+                        display: 'flex',
+                        color: '#44544A',
+                        borderRadius: '4px',
+                        fontWeight: 400,
                         fontSize: '16px',
-                        fontWeight: 400
+                        fontFamily: 'Inter',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: 2,
+                        minWidth: '100px'
                       }}
                     >
-                      Filter
-                    </Typography>
+                      <img
+                        src={`/images/${
+                          getTotalSelectedFilters(selectedOptions) > 0 ? 'filterIconActive' : 'filterIcon'
+                        }.svg`}
+                        style={{ width: '30px', height: '30px', marginBottom: '3px', marginTop: '7px' }}
+                        alt='Filter Icon'
+                      />
 
-                    {getTotalSelectedFilters(selectedOptions) > 0 && (
+                      <Typography
+                        sx={{
+                          color: getTotalSelectedFilters(selectedOptions) > 0 ? '#1F515B' : '#44544A',
+                          textTransform: 'capitalize',
+                          mr: 8,
+                          fontSize: '16px',
+                          fontWeight: 400
+                        }}
+                      >
+                        Filter
+                      </Typography>
+
+                      {getTotalSelectedFilters(selectedOptions) > 0 && (
+                        <Box
+                          sx={{
+                            position: 'absolute',
+                            top: '5px',
+                            right: '6px',
+                            width: '29px',
+                            height: '27px',
+                            borderRadius: '69%',
+                            backgroundColor: '#1F515B',
+                            color: '#FFFFFF',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            fontSize: '12px',
+                            fontWeight: 500
+                          }}
+                        >
+                          {getTotalSelectedFilters(selectedOptions)}
+                          {/* Replace this with the actual count from your state */}
+                        </Box>
+                      )}
+                    </Button>
+                    {
+                      <FilterSheet
+                        open={openFilterDrawer}
+                        setOpenFilterDrawer={setOpenFilterDrawer}
+                        categories={categories}
+                        sites={sites}
+                        setSites={setSites}
+                        isLoader={isLoader}
+                        selectedSites={selectedSites}
+                        setSelectedSites={setSelectedSites}
+                        options={options}
+                        selectedOptions={selectedOptions}
+                        setSelectedOptions={setSelectedOptions}
+                        handleSelection={handleSpeciesSelection}
+                        getTotalSelectedFilters={getTotalSelectedFilters}
+                      />
+                    }
+
+                    <Button
+                      onClick={handleClick}
+                      variant='outlined'
+                      sx={{
+                        width: '150px',
+                        height: '40px',
+                        mt: 2,
+                        display: 'flex',
+                        borderRadius: '4px',
+                        color: '#44544A',
+                        fontWeight: 400,
+                        fontSize: '16px',
+                        fontFamily: 'Inter',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+
+                        // mr: 2,
+                        gap: 1,
+                        minWidth: '100px'
+                      }}
+                    >
+                      <img
+                        src='/images/show_popup.png'
+                        style={{
+                          width: '24px',
+                          height: '24px',
+                          marginBottom: '2px',
+                          marginRight: '3px',
+                          marginTop: '2px'
+                        }}
+                        alt='Filter Icon'
+                      />
+                      <Typography sx={{ color: '#1F515B', textTransform: 'capitalize' }}>Show/Hide</Typography>
+                    </Button>
+                    <Popover
+                      id={id}
+                      open={open}
+                      anchorEl={anchorEl}
+                      onClose={handleClose}
+                      anchorOrigin={{
+                        vertical: 'bottom',
+                        horizontal: 'left'
+                      }}
+                      transformOrigin={{
+                        vertical: 'top',
+                        horizontal: 'left'
+                      }}
+                    >
+                      <Box sx={{ p: 2, width: 300 }}>
+                        {Object.keys(popoverData).map(category => (
+                          <Box key={category}>
+                            <Typography variant='h6'>{category}</Typography>
+                            {popoverData[category].map((item, index) => (
+                              <Box key={item.key} sx={{ display: 'flex', alignItems: 'center' }}>
+                                <Checkbox checked={item.checked} onChange={() => handleOptionChange(category, index)} />
+                                <Typography>{item.label}</Typography>
+                              </Box>
+                            ))}
+                          </Box>
+                        ))}
+                      </Box>
                       <Box
                         sx={{
-                          position: 'absolute',
-                          top: '5px',
-                          right: '6px',
-                          width: '29px',
-                          height: '27px',
-                          borderRadius: '69%',
-                          backgroundColor: '#1F515B',
-                          color: '#FFFFFF',
                           display: 'flex',
+                          justifyContent: 'flex-end',
                           alignItems: 'center',
-                          justifyContent: 'center',
-                          fontSize: '12px',
-                          fontWeight: 500
+                          gap: 2,
+                          mb: 5,
+                          mr: 14
                         }}
                       >
-                        {getTotalSelectedFilters(selectedOptions)}
-                        {/* Replace this with the actual count from your state */}
+                        <Button
+                          variant='outlined'
+                          onClick={() => {
+                            setAnchorEl(null)
+                          }}
+                          sx={{
+                            minWidth: '100px',
+                            padding: '6px 16px'
+                          }}
+                        >
+                          Cancel
+                        </Button>
+                        <Button
+                          variant='contained'
+                          onClick={handleConfirm}
+                          sx={{
+                            minWidth: '100px',
+                            padding: '6px 16px'
+                          }}
+                        >
+                          Confirm
+                        </Button>
                       </Box>
-                    )}
-                  </Button>
-                  {
-                    <FilterSheet
-                      open={openFilterDrawer}
-                      setOpenFilterDrawer={setOpenFilterDrawer}
-                      categories={categories}
-                      sites={sites}
-                      setSites={setSites}
-                      isLoader={isLoader}
-                      selectedSites={selectedSites}
-                      setSelectedSites={setSelectedSites}
-                      options={options}
-                      selectedOptions={selectedOptions}
-                      setSelectedOptions={setSelectedOptions}
-                      handleSelection={handleSpeciesSelection}
-                      getTotalSelectedFilters={getTotalSelectedFilters}
-                    />
-                  }
+                    </Popover>
+                  </Box>
+                )}
+              </Box>
 
-                  <Button
-                    onClick={handleClick}
-                    variant='outlined'
-                    sx={{
-                      width: '150px',
-                      height: '40px',
-                      mt: 2,
-                      display: 'flex',
-                      borderRadius: '4px',
-                      color: '#44544A',
-                      fontWeight: 400,
-                      fontSize: '16px',
-                      fontFamily: 'Inter',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-
-                      // mr: 2,
-                      gap: 1,
-                      minWidth: '100px'
-                    }}
-                  >
-                    <img
-                      src='/images/show_popup.png'
-                      style={{
-                        width: '24px',
-                        height: '24px',
-                        marginBottom: '2px',
-                        marginRight: '3px',
-                        marginTop: '2px'
-                      }}
-                      alt='Filter Icon'
-                    />
-                    <Typography sx={{ color: '#1F515B', textTransform: 'capitalize' }}>Show/Hide</Typography>
-                  </Button>
-                  <Popover
-                    id={id}
-                    open={open}
-                    anchorEl={anchorEl}
-                    onClose={handleClose}
-                    anchorOrigin={{
-                      vertical: 'bottom',
-                      horizontal: 'left'
-                    }}
-                    transformOrigin={{
-                      vertical: 'top',
-                      horizontal: 'left'
-                    }}
-                  >
-                    <Box sx={{ p: 2, width: 300 }}>
-                      {Object.keys(popoverData).map(category => (
-                        <Box key={category}>
-                          <Typography variant='h6'>{category}</Typography>
-                          {popoverData[category].map((item, index) => (
-                            <Box key={item.key} sx={{ display: 'flex', alignItems: 'center' }}>
-                              <Checkbox checked={item.checked} onChange={() => handleOptionChange(category, index)} />
-                              <Typography>{item.label}</Typography>
-                            </Box>
-                          ))}
-                        </Box>
-                      ))}
-                    </Box>
-                    <Box
-                      sx={{
-                        display: 'flex',
-                        justifyContent: 'flex-end',
-                        alignItems: 'center',
-                        gap: 2,
-                        mb: 5,
-                        mr: 14
-                      }}
-                    >
-                      <Button
-                        variant='outlined'
-                        onClick={() => {
-                          setAnchorEl(null)
-                        }}
-                        sx={{
-                          minWidth: '100px',
-                          padding: '6px 16px'
-                        }}
-                      >
-                        Cancel
-                      </Button>
-                      <Button
-                        variant='contained'
-                        onClick={handleConfirm}
-                        sx={{
-                          minWidth: '100px',
-                          padding: '6px 16px'
-                        }}
-                      >
-                        Confirm
-                      </Button>
-                    </Box>
-                  </Popover>
-                </Box>
-              )}
-            </Box>
-
-            <Box sx={{ width: '98%', margin: 4 }}>
-              <Box sx={{ borderRadius: '8px' }}>
-                {/* <DataGrid
+              <Box sx={{ width: '98%', margin: 4 }}>
+                <Box sx={{ borderRadius: '8px' }}>
+                  {/* <DataGrid
                     sx={{
                       mt: 3,
                       borderRadius: '8px',
@@ -1102,45 +1101,46 @@ return (
                     rowHeight={70}
                     scrollbarSize={10}
                   /> */}
-                {columns.length > 0 && (
-                  <StickyTable
-                    rows={reportRows}
-                    rowCount={total}
-                    rowHeight={70}
-                    headerHeight={47}
-                    pagination={true}
-                    columns={columns.length && columns}
-                    pageSizeOptions={[7, 10, 25, 50]}
-                    rowsInView={10}
-                    rowsInViewOptions={[5, 7, 10, 25, 50]}
-                    paginationModel={paginationModel}
-                    onPaginationModelChange={setPaginationModel}
-                    loading={isLoading}
-                    // sortConfig={sortModel}
-                    // onSortChange={handleSortModelChange}
-                    // onCellClick={onCellClick}
-                    onRowClick={handleRowClick}
-                    // rowSelection
-                    // onRowSelect={onRowSelect}
-                    downloadExcel
-                    // modifyColumnPinning
-                    headerName='Species'
-                    searchMode='server'
+                  {columns.length > 0 && (
+                    <StickyTable
+                      rows={reportRows}
+                      rowCount={total}
+                      rowHeight={70}
+                      headerHeight={47}
+                      pagination={true}
+                      columns={columns.length && columns}
+                      pageSizeOptions={[7, 10, 25, 50]}
+                      rowsInView={10}
+                      rowsInViewOptions={[5, 7, 10, 25, 50]}
+                      paginationModel={paginationModel}
+                      onPaginationModelChange={setPaginationModel}
+                      loading={isLoading}
+                      // sortConfig={sortModel}
+                      // onSortChange={handleSortModelChange}
+                      // onCellClick={onCellClick}
+                      onRowClick={handleRowClick}
+                      // rowSelection
+                      // onRowSelect={onRowSelect}
+                      downloadExcel
+                      // modifyColumnPinning
+                      headerName='Species'
+                      searchMode='server'
 
-                    // onSearch={onSearch}
-                  />
-                )}
+                      // onSearch={onSearch}
+                    />
+                  )}
+                </Box>
               </Box>
-            </Box>
-          </TabContext>
-        </Card>
-      </>
-    ) : (
-      <>
-        <Error404></Error404>
-      </>
-    )}
-  </>
-)
+            </TabContext>
+          </Card>
+        </>
+      ) : (
+        <>
+          <Error404></Error404>
+        </>
+      )}
+    </>
+  )
+}
 
 export default SpeciesReport
