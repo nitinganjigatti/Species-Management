@@ -18,7 +18,7 @@ const InsightsCardSkeleton = () => {
       }}
     >
       {/* Overlay */}
-      <Box
+      {/* <Box
         sx={{
           position: 'absolute',
           inset: 0,
@@ -26,7 +26,7 @@ const InsightsCardSkeleton = () => {
           opacity: 0.4,
           zIndex: 1
         }}
-      />
+      /> */}
 
       {/* Shimmer Foreground */}
       <Box sx={{ position: 'relative', zIndex: 2 }}>
@@ -39,7 +39,12 @@ const InsightsCardSkeleton = () => {
           <Box sx={{ display: 'flex', gap: 2, alignItems: 'center' }}>
             <Skeleton variant='circular' width={56} height={56} sx={{ bgcolor: theme.palette.customColors?.grey800 }} />
             <Box>
-              <Skeleton variant='text' width={120} height={20} sx={{ mb: 1, bgcolor: theme.palette.customColors?.grey800 }} />
+              <Skeleton
+                variant='text'
+                width={120}
+                height={20}
+                sx={{ mb: 1, bgcolor: theme.palette.customColors?.grey800 }}
+              />
               <Skeleton variant='text' width={80} height={16} sx={{ bgcolor: theme.palette.customColors?.grey800 }} />
             </Box>
           </Box>
