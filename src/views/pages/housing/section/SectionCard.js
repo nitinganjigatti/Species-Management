@@ -35,6 +35,8 @@ const SectionCard = ({ section }) => {
       <CellInfo
         value={section?.section_name}
         imgUrl={section?.images?.[0]?.file}
+        defaultImage={'/images/housing/section-icon-colored.png'}
+        defaultImageAlt={'section image'}
         inchagename={section?.incharge_name || ''}
       />
 

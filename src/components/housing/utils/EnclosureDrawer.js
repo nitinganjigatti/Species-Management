@@ -135,6 +135,8 @@ const EnclosureDrawer = ({ open, onClose, data }) => {
           <CellInfo
             value={data?.name}
             imgUrl={data?.image}
+            defaultImage={'/images/housing/enclosure-icon-colored.svg'}
+            defaultImageAlt={'Enclosure'}
             color={theme.palette.customColors.OnSurfaceVariant}
             subtitleColor={theme.palette.customColors.secondaryBg}
           />
