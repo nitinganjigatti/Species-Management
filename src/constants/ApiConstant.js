@@ -497,3 +497,5 @@ export const GET_SPECIES = '/diet/species'
 export const STORE_WISE_SHIPMENT_PDF = 'shipment-store-item/shipped/print/'
 
 export const REQUEST_SHIPMENT_DETAILS_PDF = 'shipment/shipped/print/'
+
+export const GET_ALL_SHIPMENTS = 'shipment/receive/show'

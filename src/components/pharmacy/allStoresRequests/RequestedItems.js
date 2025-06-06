@@ -400,7 +400,7 @@ export default function RequestedItems({ selectedStoreDetails, setSelectedStoreD
         //   setLoading(false)
         // }
         if (res?.success === true && res?.data?.list_items?.length > 0) {
-          const updatedListItems = res?.data?.list_items.map(item => {
+          const updatedListItems = res?.data?.list_items?.map(item => {
             const parentQuantityStatus = generateQuantityStats(item)
 
             const altParentStats =

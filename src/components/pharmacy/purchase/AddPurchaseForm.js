@@ -211,6 +211,7 @@ const AddPurchaseForm = () => {
     setTotalFreightCharges(0)
     setAdditionalCharges(0)
     setFileSrc('')
+    setRoundUpValue('')
   }
 
   const schema = yup.object().shape({
@@ -812,7 +813,6 @@ const AddPurchaseForm = () => {
       setExpiryDateLoader(true)
       // setProductExpiryDate('')
       const response = await getBatchExpiry({ batch: batch, stock_id: product_id })
-
       if (response?.success && response?.data !== null) {
         setNestedRowMedicine(prevState => ({
           ...prevState,
