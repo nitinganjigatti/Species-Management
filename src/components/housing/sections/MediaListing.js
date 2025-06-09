@@ -120,7 +120,7 @@ const MediaListing = () => {
       <Box sx={{ mt: 6 }}>
         <Grid container spacing={6}>
           {media.map(file => (
-            <Grid item xs={12} sm={6} md={4} lg={3} key={file.id}>
+            <Grid size={{ xs: 12, sm: 6, md: 4, lg: 3 }} key={file.id}>
               <MediaCard media={file} isBorderedCard />
             </Grid>
           ))}
