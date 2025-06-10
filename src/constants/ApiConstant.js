@@ -539,3 +539,14 @@ export const GET_ENCLOSURE_WISE_SPECIES = `v1/enclosure/species/listing`
 export const STORE_WISE_SHIPMENT_PDF = 'shipment-store-item/shipped/print/'
 
 export const REQUEST_SHIPMENT_DETAILS_PDF = 'shipment/shipped/print/'
+
+// Compliance  module
+
+export const GET_DOCUMENT_TYPE_LIST = 'v1/document-types'
+
+export const CREATE_DOCUMENT_TYPE = 'v1/document-types'
+
+export const UPDATE_DOCUMENT_TYPE = 'v1/document-types' // Add `/id` dynamically
+
+export const GET_TRADE_CONTEXT_TYPE = 'v1/trade/context/types' // Add `/id` dynamically
+

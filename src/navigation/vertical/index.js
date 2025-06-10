@@ -5,6 +5,7 @@ import pharmacyNavigation from 'src/components/navigation/pharmacy'
 import labNavigation from 'src/components/navigation/lab'
 import dashboardNavigation from 'src/components/navigation/dashboard'
 import dietNavigation from 'src/components/navigation/diet'
+import complianceNavigation from 'src/components/navigation/compliance'
 import mastersNavigation from 'src/components/navigation/masters'
 import eggNavigation from 'src/components/navigation/egg'
 import pariveshNavigation from 'src/components/navigation/parivesh/index'
@@ -84,6 +85,9 @@ const ComposeNavigation = () => {
     userSettings
   })
   navigationArray.push(...medicalNav)
+
+  const complianceNav = complianceNavigation()
+  navigationArray.push(...complianceNav)
 
   return navigationArray
 }
