@@ -275,7 +275,7 @@ const SectionListing = ({ selectedTab, setSelectedTab, drawerType, setDrawerType
             alignItems: 'center',
             cursor: 'pointer',
             justifyContent: 'left',
-            pl: 2
+          
           }}
           onClick={e => {
             e.stopPropagation()
@@ -320,7 +320,7 @@ const SectionListing = ({ selectedTab, setSelectedTab, drawerType, setDrawerType
             alignItems: 'center',
             cursor: 'pointer',
             justifyContent: 'left',
-            pl: 2
+         
           }}
           onClick={e => {
             e.stopPropagation()
@@ -364,7 +364,7 @@ const SectionListing = ({ selectedTab, setSelectedTab, drawerType, setDrawerType
             alignItems: 'center',
             cursor: 'default',
             justifyContent: 'left',
-            pl: 2
+           
           }}
           onClick={e => {
             e.stopPropagation()
