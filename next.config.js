@@ -15,6 +15,9 @@ module.exports = {
     // your project has ESLint errors.
     ignoreDuringBuilds: true
   },
+  images: {
+    domains: ['api.dev.antzsystems.com']
+  },
   webpack: config => {
     config.resolve.alias = {
       ...config.resolve.alias,

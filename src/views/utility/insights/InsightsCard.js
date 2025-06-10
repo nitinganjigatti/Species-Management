@@ -32,8 +32,8 @@ const InsightsCard = ({
 
   if (error) {
     return (
-      <Card sx={{ p: 3, bgcolor: '#ffe6e6' }}>
-        <Typography color='error' variant='body1'>
+      <Card sx={{ p: 3, bgcolor: 'error' }}>
+        <Typography sx={{ color: 'error' }} variant='body1'>
           {error}
         </Typography>
       </Card>
@@ -170,7 +170,7 @@ const InsightsCard = ({
                 }
 
                 return (
-                  <Grid item xs={xs} sm={sm} md={md} key={index} display='flex' justifyContent='flex-start'>
+                  <Grid size={{ xs: xs, sm: sm, md: md }} key={index} display='flex' justifyContent='flex-start'>
                     <InfoStatCard
                       imagePath={item.imagePath}
                       value={item.value}

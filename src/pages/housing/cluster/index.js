@@ -453,7 +453,7 @@ const Clusters = () => {
     <>
       <Box>
         <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
-          <Typography color='inherit' sx={{ cursor: 'pointer' }} onClick={handleHousingClick}>
+          <Typography sx={{ cursor: 'pointer', color: 'inherit' }} onClick={handleHousingClick}>
             Housing
           </Typography>
 

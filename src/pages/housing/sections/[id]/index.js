@@ -138,10 +138,10 @@ const SectionDetails = () => {
     <Box>
       {/* Breadcrumb */}
       <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
-        <Typography color='inherit' sx={{ cursor: 'pointer' }} onClick={handleSectionListingClick}>
+        <Typography sx={{ cursor: 'pointer', color: 'inherit' }} onClick={handleSectionListingClick}>
           Section Listing
         </Typography>
-        <Typography color='text.primary'>Section Details</Typography>
+        <Typography sx={{ color: 'text.primary' }}>Section Details</Typography>
       </Breadcrumbs>
 
       {/* Insights */}
