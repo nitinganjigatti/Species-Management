@@ -996,6 +996,12 @@ const IncubatorDetails = () => {
                           '& .MuiInputLabel-root': {
                             top: allocationDate ? -0 : -7
                           },
+                          '& .MuiInputLabel-root': {
+                            top: -7
+                          },
+                          '& .MuiInputLabel-shrink': {
+                            top: 0
+                          },
                           '& input': {
                             // position: 'relative'
                             // top: -7
@@ -1078,6 +1084,13 @@ const IncubatorDetails = () => {
                           },
                           '& .MuiInputLabel-root': {
                             top: collectedDate ? -0 : -7
+                          },
+
+                          '& .MuiInputLabel-root': {
+                            top: -7
+                          },
+                          '& .MuiInputLabel-shrink': {
+                            top: 0
                           },
                           '& input': {
                             // position: 'relative'
@@ -1182,9 +1195,12 @@ const IncubatorDetails = () => {
                             '& .MuiInputLabel-root': {
                               top: -7
                             },
+                            '& .MuiInputLabel-shrink': {
+                              top: 0
+                            },
                             '& input': {
                               position: 'relative',
-                              top: -7
+                              top: -0
                             }
                           }}
                           onChange={e => {
@@ -1263,7 +1279,7 @@ const IncubatorDetails = () => {
                     setOpenStatusDialog={setOpenStatusDialog}
                     elements={total}
                     statusLoading={statusLoading}
-                    hatcheryStatusFunc={hatcheryStatusFunc}
+                    toggleHatcheryStatus={hatcheryStatusFunc}
                   />
                   {transferIncubatorSideBar && (
                     <TransferIncubator

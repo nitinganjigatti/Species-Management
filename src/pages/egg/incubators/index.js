@@ -131,7 +131,10 @@ const IncubatorsList = () => {
   // 🔁 Fetch on mount (availability + initial table data)
   useEffect(() => {
     fetchAvailabilityList()
+  }, [])
 
+  // }, [fetchTableData])  // use this line if there happen any issue while fetching table data
+  useEffect(() => {
     if (egg_nursery_permission || egg_collection_permission) {
       fetchTableData(
         searchValue,
@@ -141,7 +144,7 @@ const IncubatorsList = () => {
         defaultStatus?.key
       )
     }
-  }, [])
+  }, [paginationModel])
   // }, [fetchTableData])  // use this line if there happen any issue while fetching table data
 
   const columns = [
@@ -487,12 +490,16 @@ const IncubatorsList = () => {
                               height: 40,
                               borderRadius: '4px'
                             },
+
                             '& .MuiInputLabel-root': {
                               top: -7
                             },
+                            '& .MuiInputLabel-shrink': {
+                              top: 0
+                            },
                             '& input': {
                               position: 'relative',
-                              top: -7
+                              top: -0
                             }
                           }}
                           onChange={e => {
