@@ -220,8 +220,7 @@ const RecipeDetail = () => {
                                 width: '100%',
                                 height: '100%',
                                 borderRadius: '8px',
-                                cursor: 'pointer',
-                                marginLeft: '10px'
+                                cursor: 'pointer'
                               }}
                               src={'/icons/icon_copy.svg'}
                               variant='square'
@@ -247,8 +246,7 @@ const RecipeDetail = () => {
                                   width: '100%',
                                   height: '100%',
                                   borderRadius: '8px',
-                                  cursor: 'pointer',
-                                  marginLeft: '10px'
+                                  cursor: 'pointer'
                                 }}
                                 src={'/icons/pencil_outlined.svg'}
                                 variant='square'
@@ -286,8 +284,7 @@ const RecipeDetail = () => {
                                   width: '100%',
                                   height: '100%',
                                   borderRadius: '8px',
-                                  cursor: 'pointer',
-                                  marginLeft: '10px'
+                                  cursor: 'pointer'
                                 }}
                                 src={'/icons/delete_outlined.svg'}
                                 variant='square'

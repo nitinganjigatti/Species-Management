@@ -155,8 +155,6 @@ const StepAddIngredients = ({
       <>
         <Typography
           sx={{
-            mb: 1,
-            px: 4,
             mt: 6,
             float: 'left',
             color: '#37BD69',
@@ -195,7 +193,7 @@ const StepAddIngredients = ({
         container
         sx={{
           mb: 5,
-          px: 4,
+          //px: 4,
           mt: 4,
 
           //float: 'left',
@@ -626,7 +624,7 @@ const StepAddIngredients = ({
             ))}
           </Grid> */}
 
-          <Grid container spacing={5} sx={{ px: 5, py: 5 }}>
+          <Grid container spacing={5} sx={{ px: 1, py: 3 }}>
             {/* <Grid container spacing={5} sx={{ px: 5, py: 5 }}>
               {fieldsIngredients.map((field, index) => (
                 <Grid container spacing={5} sx={{ px: 5, py: 5 }} key={field.id} id={'test' + index}>
@@ -859,8 +857,8 @@ const StepAddIngredients = ({
                 </Grid>
               ))}
             </Grid> */}
-            <Grid item size={{ xs: 12 }}>
-              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 4, mt: 2, mr: 4 }}>
+            <Grid size={{ xs: 12 }}>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2, mt: 0, mr: 4 }}>
                 <Typography variant='h6'>Add Item - by Quantity</Typography>
                 <AddButton title='Add Cut Size' action={() => addEventSidebarOpen()} />
               </Box>
@@ -869,8 +867,8 @@ const StepAddIngredients = ({
             <Box
               sx={{
                 width: '100%', // Full width
-                overflowX: 'auto', // Horizontal scrolling for the entire container
-                padding: '10px'
+                overflowX: 'auto' // Horizontal scrolling for the entire container
+                //padding: '10px'
               }}
             >
               <Box
@@ -887,18 +885,14 @@ const StepAddIngredients = ({
                   sx={{
                     px: 5,
                     background: theme.palette.customColors.displaybgPrimary,
-                    my: 2,
+                    //my: 2,
                     borderRadius: 0.5,
-                    mx: 4
+                    //mx: 4
+                    mb: '1.25rem'
                   }}
                 >
                   {ingredientsbyqun.map((ingredient, index) => (
-                    <Grid
-                      item
-                      size={{ xs: 12, sm: ingredient.label !== 'Quantity' ? 2.4 : 2 }}
-                      key={index}
-                      sx={{ py: 4 }}
-                    >
+                    <Grid size={{ xs: 12, sm: ingredient.label !== 'Quantity' ? 2.4 : 2 }} key={index} sx={{ py: 4 }}>
                       <Typography sx={{ textTransform: 'uppercase', fontSize: 14, fontWeight: 600 }}>
                         {ingredient.label}
                       </Typography>
@@ -910,7 +904,7 @@ const StepAddIngredients = ({
                     <Grid
                       container
                       spacing={5}
-                      sx={{ px: 5, py: 2, flexWrap: 'nowrap', minWidth: 'max-content' }}
+                      sx={{ px: 0, py: 2, flexWrap: 'nowrap', minWidth: 'max-content' }}
                       id={'testnew' + index}
                     >
                       <ScrollToFieldError errors={errors} index={index} />
@@ -1182,8 +1176,8 @@ const StepAddIngredients = ({
               </Box>
             </Box>
 
-            <Grid container sx={{ px: 5, py: 3 }}>
-              <Box sx={{ mb: 4, float: 'left' }}>
+            <Grid container>
+              <Box sx={{ mb: 2, float: 'left' }}>
                 <Typography variant='h6'>Add Description</Typography>
               </Box>
               <Grid item size={{ xs: 12 }}>

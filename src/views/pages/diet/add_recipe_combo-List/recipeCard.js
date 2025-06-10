@@ -731,10 +731,10 @@ const RecipeCard = ({
                           sx={{
                             fontSize: 11,
                             fontWeight: 'bold',
-                            bgcolor: selectedDays.find(
+                            bgcolor: selectedDays?.find(
                               selectedDay =>
                                 selectedDay.cardId === item.id &&
-                                selectedDay.days.find(d => d.id === day.id && d.isActive)
+                                selectedDay?.days?.find(d => d.id === day.id && d.isActive)
                             )
                               ? '#203e56'
                               : '#dedede',
@@ -744,10 +744,10 @@ const RecipeCard = ({
                             alignItems: 'center',
                             cursor: 'pointer',
 
-                            color: selectedDays.find(
+                            color: selectedDays?.find(
                               selectedDay =>
                                 selectedDay.cardId === item.id &&
-                                selectedDay.days.find(d => d.id === day.id && d.isActive)
+                                selectedDay?.days?.find(d => d.id === day.id && d.isActive)
                             )
                               ? 'white'
                               : 'black'

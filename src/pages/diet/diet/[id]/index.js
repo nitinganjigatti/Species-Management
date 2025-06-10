@@ -696,17 +696,34 @@ const DietDetail = () => {
                                         No records to show
                                       </div>
                                     ) : (
-                                      <TableHead>
-                                        <TableRow>
+                                      <TableHead
+                                        sx={{
+                                          backgroundColor: theme.palette.secondary.contrastText,
+                                          '&:hover': {
+                                            backgroundColor: theme.palette.secondary.contrastText
+                                          }
+                                        }}
+                                      >
+                                        <TableRow
+                                          sx={{
+                                            '&:hover': {
+                                              backgroundColor: theme.palette.secondary.contrastText,
+                                              boxShadow: 'none'
+                                            }
+                                          }}
+                                        >
                                           <TableCell
                                             style={{ padding: '0px' }}
                                             sx={{
                                               border: 'none',
                                               height: '40px',
-                                              backgroundColor: theme.palette.primary.contrastText,
+                                              backgroundColor: theme.palette.secondary.contrastText,
                                               width: '160px',
                                               position: isSmallDevice ? '' : 'sticky ',
-                                              left: 0
+                                              left: 0,
+                                              '&:hover': {
+                                                backgroundColor: theme.palette.secondary.contrastText
+                                              }
                                             }}
                                             className={classes.sticky}
                                           >
@@ -1546,7 +1563,15 @@ const DietDetail = () => {
                                                   No records to show
                                                 </Typography>
                                               ) : (
-                                                <TableRow key={index}>
+                                                <TableRow
+                                                  key={index}
+                                                  sx={{
+                                                    '&:hover': {
+                                                      backgroundColor: theme.palette.secondary.contrastText,
+                                                      boxShadow: 'none'
+                                                    }
+                                                  }}
+                                                >
                                                   <TableCell
                                                     sx={{
                                                       position: isSmallDevice ? 'relative' : 'sticky ',
@@ -1557,7 +1582,7 @@ const DietDetail = () => {
                                                       pr: '36px',
                                                       background: theme.palette.primary.contrastText,
                                                       height: '185px',
-
+                                                      pl: '1rem !important',
                                                       //display: 'flex',
                                                       //flexDirection: 'column',
                                                       justifyContent: 'center',
@@ -1649,7 +1674,15 @@ const DietDetail = () => {
                                                     {itemd?.recipe?.length > 0 &&
                                                       itemd?.recipe?.map((item, index) => {
                                                         return (
-                                                          <TableRow key={index}>
+                                                          <TableRow
+                                                            key={index}
+                                                            sx={{
+                                                              '&:hover': {
+                                                                backgroundColor: theme.palette.secondary.contrastText,
+                                                                boxShadow: 'none'
+                                                              }
+                                                            }}
+                                                          >
                                                             <TableCell
                                                               style={{ paddingLeft: '0px' }}
                                                               sx={{
@@ -2183,7 +2216,15 @@ const DietDetail = () => {
                                                     {itemd?.combo?.length > 0 &&
                                                       itemd?.combo?.map((item, index) => {
                                                         return (
-                                                          <TableRow key={index}>
+                                                          <TableRow
+                                                            key={index}
+                                                            sx={{
+                                                              '&:hover': {
+                                                                backgroundColor: theme.palette.secondary.contrastText,
+                                                                boxShadow: 'none'
+                                                              }
+                                                            }}
+                                                          >
                                                             <TableCell
                                                               style={{ paddingLeft: '0px' }}
                                                               sx={{
@@ -2735,7 +2776,15 @@ const DietDetail = () => {
                                                     {itemd?.ingredient?.length > 0 &&
                                                       itemd?.ingredient?.map((item, index) => {
                                                         return (
-                                                          <TableRow key={index}>
+                                                          <TableRow
+                                                            key={index}
+                                                            sx={{
+                                                              '&:hover': {
+                                                                backgroundColor: theme.palette.secondary.contrastText,
+                                                                boxShadow: 'none'
+                                                              }
+                                                            }}
+                                                          >
                                                             <TableCell
                                                               style={{ paddingLeft: '0px' }}
                                                               sx={{
@@ -3193,7 +3242,15 @@ const DietDetail = () => {
                                                   <>
                                                     {itemd?.ingredientwithchoice?.map((item, index) => {
                                                       return (
-                                                        <TableRow key={index}>
+                                                        <TableRow
+                                                          key={index}
+                                                          sx={{
+                                                            '&:hover': {
+                                                              backgroundColor: theme.palette.secondary.contrastText,
+                                                              boxShadow: 'none'
+                                                            }
+                                                          }}
+                                                        >
                                                           <TableCell
                                                             style={{ paddingLeft: '0px' }}
                                                             sx={{
@@ -3595,7 +3652,11 @@ const DietDetail = () => {
                                                 sx={{
                                                   width: '100%',
                                                   borderBottom: `1px solid ${theme.palette.customColors.OutlineVariant}`,
-                                                  pb: 3
+                                                  pb: 3,
+                                                  '&:hover': {
+                                                    backgroundColor: theme.palette.secondary.contrastText,
+                                                    boxShadow: 'none'
+                                                  }
                                                 }}
                                               >
                                                 <TableCell

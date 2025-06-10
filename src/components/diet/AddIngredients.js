@@ -696,21 +696,23 @@ const AddIngredients = props => {
                 <TextField
                   value={searchValue}
                   fullWidth
-                  InputProps={{
-                    startAdornment: (
-                      <Icon
-                        style={{ marginRight: 10, color: theme.palette.customColors.OnSurfaceVariant }}
-                        icon={'ion:search-outline'}
-                      />
-                    ),
-                    endAdornment: searchValue && (
-                      <IconButton onClick={handleCancelClick} size='small' sx={{ padding: 0 }}>
+                  slotProps={{
+                    input: {
+                      startAdornment: (
                         <Icon
-                          icon={'ion:close-outline'}
-                          style={{ color: theme.palette.customColors.OnSurfaceVariant }}
+                          style={{ marginRight: 10, color: theme.palette.customColors.OnSurfaceVariant }}
+                          icon={'ion:search-outline'}
                         />
-                      </IconButton>
-                    )
+                      ),
+                      endAdornment: searchValue && (
+                        <IconButton onClick={handleCancelClick} size='small' sx={{ padding: 0 }}>
+                          <Icon
+                            icon={'ion:close-outline'}
+                            style={{ color: theme.palette.customColors.OnSurfaceVariant }}
+                          />
+                        </IconButton>
+                      )
+                    }
                   }}
                   placeholder='Search item'
                   onChange={handleSearchChange}
@@ -822,7 +824,7 @@ const AddIngredients = props => {
                 >
                   {selectedCard.some(card => card.ingredient_id === item.id) ? (
                     // Render checkbox icon if card is selected
-                    (<Box
+                    <Box
                       onClick={event => removeSelectedCard(event, item.id)}
                       sx={{
                         width: '68px',
@@ -839,10 +841,10 @@ const AddIngredients = props => {
                       }}
                     >
                       <Checkbox checked sx={{ '& .MuiSvgIcon-root': { fontSize: 80 } }} />
-                    </Box>)
+                    </Box>
                   ) : (
                     // Render image if card is not selected
-                    (<Box
+                    <Box
                       sx={{
                         width: '68px',
                         height: '68px',
@@ -871,7 +873,7 @@ const AddIngredients = props => {
                       >
                         {item?.image ? null : <Icon icon='healthicons:fruits-outline' />}
                       </Avatar>
-                    </Box>)
+                    </Box>
                   )}
                   <Box sx={{ pt: 3, paddingRight: 4, paddingBottom: 4, width: '100%' }}>
                     <Tooltip title={item?.ingredient_name?.length > 50 ? item?.ingredient_name : ''}>
@@ -1102,7 +1104,12 @@ const AddIngredients = props => {
                             id='demo-simple-select-label'
                             placeholder='Add Remarks (optional)'
                             variant='standard'
-                            InputProps={{ disableUnderline: true }}
+                            // InputProps={{ disableUnderline: true }}
+                            slotProps={{
+                              input: {
+                                disableUnderline: true
+                              }
+                            }}
                             value={remarks[item.id]?.remarks || ''}
                             onChange={event => handleAddRemarks(event, item)}
                           />
@@ -1169,7 +1176,7 @@ const AddIngredients = props => {
         </Box>
       </Drawer>
     </>
-  );
+  )
 }
 
 export default AddIngredients

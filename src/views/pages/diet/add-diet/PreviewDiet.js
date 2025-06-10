@@ -922,8 +922,7 @@ const StepPreviewDiet = ({
             <Grid item size={{ xs: 12, sm: 4 }}>
               <div
                 item
-                md={3}
-                xs={12}
+                size={{ xs: 12, md: 3 }}
                 style={{ borderRight: 'none', marginLeft: 'auto', marginRight: 'auto', textAlign: 'center' }}
               >
                 <CardContent
@@ -1054,8 +1053,22 @@ const StepPreviewDiet = ({
                   }}
                 >
                   <Table aria-label='simple table' style={{ tableLayout: 'fixed' }}>
-                    <TableHead>
-                      <TableRow>
+                    <TableHead
+                      sx={{
+                        backgroundColor: theme.palette.secondary.contrastText,
+                        '&:hover': {
+                          backgroundColor: theme.palette.secondary.contrastText
+                        }
+                      }}
+                    >
+                      <TableRow
+                        sx={{
+                          '&:hover': {
+                            backgroundColor: theme.palette.secondary.contrastText,
+                            boxShadow: 'none'
+                          }
+                        }}
+                      >
                         <TableCell
                           sx={{
                             border: 'none',
@@ -1066,7 +1079,10 @@ const StepPreviewDiet = ({
                             width: '180px',
                             position: isSmallDevice ? '' : 'sticky ',
                             left: 0,
-                            paddingRight: '0px'
+                            paddingRight: '0px',
+                            '&:hover': {
+                              backgroundColor: theme.palette.secondary.contrastText
+                            }
                           }}
                           className={classes.sticky}
                         >
@@ -1339,14 +1355,23 @@ const StepPreviewDiet = ({
 
                         return (
                           <>
-                            <TableRow key={index} className=''>
+                            <TableRow
+                              key={index}
+                              className=''
+                              sx={{
+                                '&:hover': {
+                                  backgroundColor: theme.palette.secondary.contrastText,
+                                  boxShadow: 'none'
+                                }
+                              }}
+                            >
                               <TableCell
                                 sx={{
                                   position: isSmallDevice ? 'relative' : 'sticky ',
                                   left: 0,
                                   width: '180px',
                                   border: 'none',
-                                  pl: 0,
+                                  pl: '1.25rem !important',
                                   pr: '36px',
                                   background: theme.palette.secondary.contrastText,
                                   height: '185px',
@@ -1442,14 +1467,23 @@ const StepPreviewDiet = ({
                               <>
                                 {itemd?.recipe?.map((item, index) => {
                                   return (
-                                    <TableRow key={index} className='tablerowi'>
+                                    <TableRow
+                                      key={index}
+                                      className='tablerowi'
+                                      sx={{
+                                        '&:hover': {
+                                          backgroundColor: theme.palette.secondary.contrastText,
+                                          boxShadow: 'none'
+                                        }
+                                      }}
+                                    >
                                       <TableCell
                                         sx={{
                                           position: isSmallDevice ? '' : 'sticky ',
                                           left: '180px',
                                           border: 'none',
-                                          backgroundColor: theme.palette.secondary.contrastText
-
+                                          backgroundColor: theme.palette.secondary.contrastText,
+                                          pl: '1.25rem !important'
                                           //float: 'left',
                                           // display: 'flex',
                                           // flexDirection: 'row'
@@ -2097,14 +2131,23 @@ const StepPreviewDiet = ({
                               <>
                                 {itemd?.combo?.map((item, index) => {
                                   return (
-                                    <TableRow key={index} className='tablerowi'>
+                                    <TableRow
+                                      key={index}
+                                      className='tablerowi'
+                                      sx={{
+                                        '&:hover': {
+                                          backgroundColor: theme.palette.secondary.contrastText,
+                                          boxShadow: 'none'
+                                        }
+                                      }}
+                                    >
                                       <TableCell
                                         sx={{
                                           position: isSmallDevice ? '' : 'sticky ',
                                           left: '180px',
                                           border: 'none',
-                                          backgroundColor: theme.palette.secondary.contrastText
-
+                                          backgroundColor: theme.palette.secondary.contrastText,
+                                          pl: '1.25rem !important'
                                           //float: 'left',
                                           // display: 'flex',
                                           // flexDirection: 'row'
@@ -2779,14 +2822,23 @@ const StepPreviewDiet = ({
                               <>
                                 {itemd?.ingredient?.map((item, index) => {
                                   return (
-                                    <TableRow key={index} className='tablerowi'>
+                                    <TableRow
+                                      key={index}
+                                      className='tablerowi'
+                                      sx={{
+                                        '&:hover': {
+                                          backgroundColor: theme.palette.secondary.contrastText,
+                                          boxShadow: 'none'
+                                        }
+                                      }}
+                                    >
                                       <TableCell
                                         sx={{
                                           position: isSmallDevice ? '' : 'sticky ',
                                           left: '180px',
                                           border: 'none',
-                                          backgroundColor: theme.palette.secondary.contrastText
-
+                                          backgroundColor: theme.palette.secondary.contrastText,
+                                          pl: '1.25rem !important'
                                           //float: 'left',
                                           // display: 'flex',
                                           // flexDirection: 'row'
@@ -3355,14 +3407,23 @@ const StepPreviewDiet = ({
                               <>
                                 {itemd?.ingredientwithchoice?.map((item, index) => {
                                   return (
-                                    <TableRow key={index} className='tablerowi'>
+                                    <TableRow
+                                      key={index}
+                                      className='tablerowi'
+                                      sx={{
+                                        '&:hover': {
+                                          backgroundColor: theme.palette.secondary.contrastText,
+                                          boxShadow: 'none'
+                                        }
+                                      }}
+                                    >
                                       <TableCell
                                         sx={{
                                           position: isSmallDevice ? '' : 'sticky ',
                                           left: '180px',
                                           border: 'none',
-                                          backgroundColor: theme.palette.secondary.contrastText
-
+                                          backgroundColor: theme.palette.secondary.contrastText,
+                                          pl: '1.25rem !important'
                                           //float: 'left',
                                           // display: 'flex',
                                           // flexDirection: 'row'
@@ -3899,7 +3960,11 @@ const StepPreviewDiet = ({
                                 width: '100%', // Ensure the row spans the full width of the table
                                 borderBottom: `1px solid ${theme.palette.customColors.OutlineVariant}`, // Add border directly to the row
                                 minHeight: '48px', // Optional: set a minimum height for the row
-                                display: 'table-row' // Default behavior for TableRow
+                                display: 'table-row', // Default behavior for TableRow
+                                '&:hover': {
+                                  backgroundColor: theme.palette.secondary.contrastText,
+                                  boxShadow: 'none'
+                                }
                               }}
                             >
                               <TableCell colSpan={12} sx={{ borderBottom: 'none', padding: '8px 16px' }}>

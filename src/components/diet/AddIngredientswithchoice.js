@@ -773,18 +773,23 @@ const AddIngredientswithChoice = props => {
               <TextField
                 value={searchValue}
                 fullWidth
-                InputProps={{
-                  startAdornment: (
-                    <Icon
-                      style={{ marginRight: 10, color: theme.palette.customColors.OnSurfaceVariant }}
-                      icon={'ion:search-outline'}
-                    />
-                  ),
-                  endAdornment: searchValue && (
-                    <IconButton onClick={handleCancelClick} size='small' sx={{ padding: 0 }}>
-                      <Icon icon={'ion:close-outline'} style={{ color: theme.palette.customColors.OnSurfaceVariant }} />
-                    </IconButton>
-                  )
+                slotProps={{
+                  input: {
+                    startAdornment: (
+                      <Icon
+                        style={{ marginRight: 10, color: theme.palette.customColors.OnSurfaceVariant }}
+                        icon={'ion:search-outline'}
+                      />
+                    ),
+                    endAdornment: searchValue && (
+                      <IconButton onClick={handleCancelClick} size='small' sx={{ padding: 0 }}>
+                        <Icon
+                          icon={'ion:close-outline'}
+                          style={{ color: theme.palette.customColors.OnSurfaceVariant }}
+                        />
+                      </IconButton>
+                    )
+                  }
                 }}
                 placeholder='Search item'
                 onChange={handleSearchChange}
@@ -1224,7 +1229,11 @@ const AddIngredientswithChoice = props => {
                       id='demo-simple-select-label'
                       placeholder='Add Remarks (optional)'
                       variant='standard'
-                      InputProps={{ disableUnderline: true }}
+                      slotProps={{
+                        input: {
+                          disableUnderline: true
+                        }
+                      }}
                       value={remarks}
                       onChange={handleAddRemarks}
                     />

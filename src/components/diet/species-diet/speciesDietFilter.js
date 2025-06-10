@@ -347,9 +347,14 @@ const DashboardFilter = ({
                       placeholder='Search'
                       value={searchQuery}
                       onChange={handleSearchChange}
-                      InputProps={{
-                        disableUnderline: false
+                      slotProps={{
+                        input: {
+                          disableUnderline: false
+                        }
                       }}
+                      // InputProps={{
+                      //   disableUnderline: false
+                      // }}
                       sx={{
                         '& .MuiOutlinedInput-root': {
                           border: 'none',
@@ -367,7 +372,13 @@ const DashboardFilter = ({
                   <Checkbox
                     checked={selectAll}
                     onChange={handleSelectAllChange}
-                    inputProps={{ 'aria-label': 'controlled' }}
+                    slotProps={{
+                      input: {
+                        'aria-label': 'controlled'
+                      }
+                    }}
+
+                    //inputProps={{ 'aria-label': 'controlled' }}
                   />
                   <Typography sx={{ fontSize: '16px', fontWeight: 400, color: '#839D8D' }}>Select All</Typography>
                 </Box>
@@ -381,7 +392,12 @@ const DashboardFilter = ({
                       <Checkbox
                         checked={selectedOptions[selectedMenu.name]?.some(item => item.id === option.id)}
                         onChange={() => handleCheckboxChange(option.id, option.name)}
-                        inputProps={{ 'aria-label': 'controlled' }}
+                        slotProps={{
+                          input: {
+                            'aria-label': 'controlled'
+                          }
+                        }}
+                        //inputProps={{ 'aria-label': 'controlled' }}
                       />
                       <Typography
                         sx={{ fontSize: '16px', fontWeight: 400, color: '#839D8D', textTransform: 'capitalize' }}
