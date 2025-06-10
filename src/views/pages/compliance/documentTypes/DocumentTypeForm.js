@@ -17,10 +17,16 @@ import { LoadingButton } from '@mui/lab'
 import ControlledTextField from 'src/views/forms/form-fields/ControlledTextField'
 
 const schema = yup.object().shape({
-  name: yup.string().required('Document Name is required').transform(val => val?.trim()),
-  description: yup.string().transform(val => val?.trim()).nullable(),
+  name: yup
+    .string()
+    .required('Document Name is required')
+    .transform(val => val?.trim()),
+  description: yup
+    .string()
+    .transform(val => val?.trim())
+    .nullable(),
   contexts: yup.array().min(1, 'Select at least one context'),
-  status: yup.string().required('Status is required')
+  active: yup.string().required('Status is required')
 })
 
 export const useDocumentTypeForm = defaultValues =>
@@ -42,14 +48,13 @@ const DocumentTypeForm = ({
   tradeContextTypes = [],
   contextLoading = false
 }) => (
-  <Box component='form' autoComplete='off' onSubmit={handleSubmit(onSubmit)} sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-    <ControlledTextField
-      name='name'
-      label='Document Name'
-      control={control}
-      errors={errors}
-      required
-    />
+  <Box
+    component='form'
+    autoComplete='off'
+    onSubmit={handleSubmit(onSubmit)}
+    sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}
+  >
+    <ControlledTextField name='name' label='Document Name' control={control} errors={errors} required />
 
     <ControlledTextField
       name='description'
@@ -100,16 +105,16 @@ const DocumentTypeForm = ({
     <FormControl fullWidth>
       <FormLabel>Status</FormLabel>
       <Controller
-        name='status'
+        name='active'
         control={control}
         render={({ field }) => (
           <RadioGroup row {...field}>
-            <FormControlLabel value='active' control={<Radio />} label='Active' />
-            <FormControlLabel value='inactive' control={<Radio />} label='Inactive' />
+            <FormControlLabel value='1' control={<Radio />} label='Active' />
+            <FormControlLabel value='0' control={<Radio />} label='Inactive' />
           </RadioGroup>
         )}
       />
-      {errors.status && <FormHelperText error>{errors.status.message}</FormHelperText>}
+      {errors.active && <FormHelperText error>{errors.active.message}</FormHelperText>}
     </FormControl>
 
     <LoadingButton type='submit' variant='contained' loading={submitLoader} fullWidth>

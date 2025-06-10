@@ -9,7 +9,7 @@ const defaultValues = {
   name: '',
   description: '',
   contexts: [],
-  status: 'active'
+  active: '0'
 }
 
 const AddDocumentType = ({

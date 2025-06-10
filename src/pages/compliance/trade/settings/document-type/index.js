@@ -64,7 +64,13 @@ const DocumentTypes = () => {
   }
 
   const handleEdit = async row => {
-    setEditParams({ id: row.id, name: row.name, description: row.description, contexts: (row.context_ids || []).map(Number), status: row.active === "1" ? 'active': 'inactive' })
+    setEditParams({
+      id: row.id,
+      name: row.name,
+      description: row.description,
+      contexts: (row.context_ids || []).map(Number),
+      active: row.active
+    })
     setOpenDrawer(true)
     if(!tradeContextTypes.length)
       await fetchTradeContextTypes()
