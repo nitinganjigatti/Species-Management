@@ -280,7 +280,11 @@ const MortalityReason = () => {
               rows={rows || []}
               headerActions={headerAction}
             /> */}
-            <CardHeader title={'Mortality Reason'} action={headerAction !== undefined ? headerAction : null} />
+            <CardHeader
+              title={'Mortality Reason'}
+              sx={{ paddingX: 5 }}
+              action={headerAction !== undefined ? headerAction : null}
+            />
             <DataGrid
               sx={{
                 '.MuiDataGrid-cell:focus': {

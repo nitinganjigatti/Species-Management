@@ -64,6 +64,8 @@ const AnimalList = () => {
     setSelectedOptions
   } = useAnimalContext()
 
+  console.log('selected >', selectedAnimal)
+
   const [sites, setSites] = useState(
     authData?.userData?.user?.zoos[0]?.sites?.slice().sort((a, b) => a.site_name.localeCompare(b.site_name)) || [] || []
   )

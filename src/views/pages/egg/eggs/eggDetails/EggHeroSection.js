@@ -403,10 +403,7 @@ const EggHeroSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGaller
                 pr: { xl: '24px', lg: '10px', md: '24px', alignSelf: eggDetails?.egg_images?.length ? 'end' : '' }
               }}
               item
-              xs={12}
-              md={6}
-              lg={2.7}
-              xl={3}
+              size={{ xs: 12, md: 6, lg: 2.7, xl: 3 }}
             >
               <Box
                 sx={{

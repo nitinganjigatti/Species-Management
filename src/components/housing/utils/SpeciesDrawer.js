@@ -161,7 +161,7 @@ const SpeciesDrawer = ({ open, onClose, data }) => {
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4, pb: 4 }}>
         {list.map(species => (
           <HousingSpeciesCard
-            key={species.id}
+            key={species.tsn_id}
             species={species}
             textColor={theme.palette.customColors.OnSurfaceVariant}
           />

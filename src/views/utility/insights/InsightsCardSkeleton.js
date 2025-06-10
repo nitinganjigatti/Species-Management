@@ -64,7 +64,7 @@ const InsightsCardSkeleton = () => {
         >
           <Grid container spacing={3}>
             {[1, 2, 3, 4].map(i => (
-              <Grid item xs={6} sm={3} md={3} key={i}>
+              <Grid size={{ xs: 6, sm: 3, md: 3 }} key={i}>
                 <Box
                   sx={{
                     p: { xs: 1.25, sm: 2 },

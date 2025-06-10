@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import { yupResolver } from '@hookform/resolvers/yup'
 import { LoadingButton } from '@mui/lab'
 import {
@@ -266,6 +266,14 @@ const AddTest = props => {
     fetchSampleTypesData()
   }, [fetchSampleTypesData, searchValue])
 
+  const inputRef = useRef()
+
+  useEffect(() => {
+    if (inputRef.current && control._formValues.test_name) {
+      inputRef.current.focus()
+    }
+  }, [control._formValues.test_name])
+
   return (
     <>
       <Drawer
@@ -339,6 +347,7 @@ const AddTest = props => {
                   render={({ field: { value, onChange } }) => (
                     <TextField
                       label='Test Name*'
+                      inputRef={inputRef}
                       value={value}
                       onChange={onChange}
                       placeholder='Test Name'
@@ -470,6 +479,7 @@ const AddTest = props => {
                             <IconButton
                               onClick={() => addSubTest(field.value)}
                               edge='end'
+                              disabled={submitLoader}
                               sx={{
                                 backgroundColor: '#4CAF50',
                                 borderRadius: '0 8px 8px 0',
@@ -562,6 +572,7 @@ const AddTest = props => {
                       size='large'
                       type='reset'
                       color='error'
+                      disabled={submitLoader}
                       variant='outlined'
                     >
                       Cancel

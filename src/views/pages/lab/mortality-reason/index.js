@@ -1,4 +1,4 @@
-import { useCallback, useEffect, Fragment } from 'react'
+import { useCallback, useEffect, Fragment, useRef } from 'react'
 import { yupResolver } from '@hookform/resolvers/yup'
 import { LoadingButton } from '@mui/lab'
 import {
@@ -90,6 +90,14 @@ const AddMortalityReasons = props => {
     await handleSubmitData(payload)
   }
 
+  const inputRef = useRef()
+
+  useEffect(() => {
+    if (inputRef.current && control._formValues.name) {
+      inputRef.current.focus()
+    }
+  }, [control._formValues.name])
+
   const RenderSidebarFooter = () => {
     return (
       <Fragment>
@@ -137,6 +145,7 @@ const AddMortalityReasons = props => {
                   <TextField
                     label='Reason*'
                     value={value}
+                    inputRef={inputRef}
                     onChange={onChange}
                     placeholder='Reason'
                     error={Boolean(errors.name)}
