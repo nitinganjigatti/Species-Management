@@ -30,22 +30,23 @@ const CommonDrawerBox = ({
       anchor='right'
       open={drawerStatus}
       onClose={() => close()}
-      PaperProps={{
-        sx: {
-          width: {
-            xs: '100%',
-            sm: '80%',
-            md: width || 560
-          },
-          backgroundColor: style ? style : 'customColors.Background',
-          display: 'flex',
-          flexDirection: 'column',
-          height: '100%'
+      slotProps={{
+        paper: {
+          sx: {
+            width: {
+              xs: '100%',
+              sm: '80%',
+              md: width || 560
+            },
+            backgroundColor: style ? style : 'customColors.Background',
+            display: 'flex',
+            flexDirection: 'column',
+            height: '100%'
+          }
         }
       }}
     >
       {/* Header Section */}
-
       <Box
         sx={{
           p: 4,
@@ -116,7 +117,6 @@ const CommonDrawerBox = ({
           </Box>
         )}
       </Box>
-
       {/* Content Section */}
       <Box sx={{ p: 4, overflowY: 'auto', flexGrow: 1 }}>{contentComponent ? contentComponent : null}</Box>
     </Drawer>

@@ -84,9 +84,11 @@ function SpeciesCard({ species }) {
             }}
             src={imgSrc}
             alt={species.scientific_name}
-            imgProps={{
-              onLoad: handleImageLoad,
-              onError: handleImageError
+            slotProps={{
+              img: {
+                onLoad: handleImageLoad,
+                onError: handleImageError
+              }
             }}
           />
         </Box>
@@ -117,7 +119,7 @@ function SpeciesCard({ species }) {
         </Tooltip>
       </Box>
     </Box>
-  )
+  );
 }
 
 export default SpeciesCard

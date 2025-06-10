@@ -466,15 +466,11 @@ const CustomOptionDateRangePickers = ({
           <Box sx={{ display: { xs: 'block', md: 'inline' } }}>{selectedRange?.split(' - ').slice(1).join(' - ')}</Box>
         </Typography>
       </Box>
-
       <Menu
         id='date-range-menu'
         anchorEl={anchorEl}
         open={open}
         onClose={handleClose}
-        MenuListProps={{
-          'aria-labelledby': 'date-range-button'
-        }}
         PaperProps={{
           elevation: 3,
           sx: {
@@ -491,6 +487,11 @@ const CustomOptionDateRangePickers = ({
         }}
         transformOrigin={{ horizontal: 'left', vertical: 'top' }}
         anchorOrigin={{ horizontal: 'left', vertical: 'bottom' }}
+        slotProps={{
+          list: {
+            'aria-labelledby': 'date-range-button'
+          }
+        }}
       >
         {dateRanges.map((range, index) => (
           <Box key={range.label}>
@@ -664,7 +665,7 @@ const CustomOptionDateRangePickers = ({
         </DialogActions>
       </Dialog>
     </>
-  )
+  );
 }
 
 export default CustomOptionDateRangePickers
