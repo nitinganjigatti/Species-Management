@@ -399,7 +399,7 @@ const IncubatorsList = () => {
             <Card>
               <CardHeader title='Incubator List' action={headerAction} />
 
-              <Grid sx={{ ml: -2, mb: 6, mt: -4 }} container columns={15} spacing={6}>
+              <Grid sx={{ ml: 4, mb: 6, mt: -2 }} container columns={15} spacing={6}>
                 <Grid item xs={3}>
                   <Box
                     sx={{
