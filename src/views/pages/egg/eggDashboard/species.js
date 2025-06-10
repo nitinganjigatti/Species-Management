@@ -1944,7 +1944,10 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
 
     return (
       <>
-        <Box sx={{ display: 'flex', justifyContent: 'space-between', gap: 6, mb: '24px' }} container>
+        <Box
+          sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', gap: 6, mb: '24px' }}
+          container
+        >
           {/* Search Box */}
           <Box
             sx={{
@@ -1958,6 +1961,7 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
           >
             <Icon icon='mi:search' color={theme.palette.customColors.OnSurfaceVariant} />
             <TextField
+              disabled={loading}
               variant='outlined'
               placeholder='Search'
               onChange={handleSearchChange}
@@ -2184,7 +2188,7 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
     <Box
       sx={{
         backgroundColor: '#fff',
-        padding: '24px',
+        padding: '16px',
         paddingBottom: '0px',
         display: 'flex',
         flexDirection: 'column',
@@ -2195,14 +2199,20 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
     >
       <TabContext value={status}>
         <TabList onChange={handleChange}>
-          <Tab value='species' label={'Eggs by species'} />
+          <Tab sx={{ pl: 0 }} value='species' label={'Eggs by species'} />
           <Tab value='site' label={'Eggs by sites'} />
           <Tab value='nursery' label={'Eggs by nurseries'} />
         </TabList>
 
-        <TabPanel value='species'>{tableData()}</TabPanel>
-        <TabPanel value='site'>{tableData()}</TabPanel>
-        <TabPanel value='nursery'>{tableData()}</TabPanel>
+        <TabPanel sx={{ p: 0 }} value='species'>
+          {tableData()}
+        </TabPanel>
+        <TabPanel sx={{ p: 0 }} value='site'>
+          {tableData()}
+        </TabPanel>
+        <TabPanel sx={{ p: 0 }} value='nursery'>
+          {tableData()}
+        </TabPanel>
       </TabContext>
       {openDrawer && (
         <DashboardSlider

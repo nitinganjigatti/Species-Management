@@ -86,7 +86,9 @@ const DashboardFilter = ({
     const allOptions = getOptionsForMenu(menu)
 
     // Always update selectAll based on the new selection state
-    setSelectAll(() => selectedOptions[menu?.name]?.length === allOptions.length)
+    if (allOptions?.length > 0) {
+      setSelectAll(() => selectedOptions[menu?.name]?.length === allOptions?.length)
+    }
   }
 
   const NurseryList = async q => {
