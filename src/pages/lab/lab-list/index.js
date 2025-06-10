@@ -310,7 +310,7 @@ const ListOfLab = () => {
                 <Typography color='text.primary'>Lab list</Typography>
               </Breadcrumbs>
               <Card>
-                <CardHeader title='Lab List' action={headerAction} />
+                <CardHeader title='Lab List' sx={{ paddingX: 5 }} action={headerAction} />
                 <DataGrid
                   autoHeight
                   pagination

@@ -325,7 +325,7 @@ const LabSamples = () => {
             </Typography>
           </Breadcrumbs>
           <Card>
-            <CardHeader title='Lab Samples' action={headerAction} />
+            <CardHeader title='Lab Samples' sx={{ paddingX: 5 }} action={headerAction} />
 
             <DataGrid
               sx={{
