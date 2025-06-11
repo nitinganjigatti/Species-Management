@@ -447,9 +447,12 @@ const NurseryList = () => {
                           '& .MuiInputLabel-root': {
                             top: -7
                           },
+                          '& .MuiInputLabel-shrink': {
+                            top: 0
+                          },
                           '& input': {
                             position: 'relative',
-                            top: -7
+                            top: -0
                           }
                         }}
                         onChange={e => {

@@ -406,13 +406,21 @@ const SpeciesReport = () => {
               />
             }
             title={
-              <Typography sx={{ fontSize: '16px', fontWeight: 500, fontFamily: 'Inter', color: '#006D35' }}>
+              <Typography
+                sx={{ fontSize: '16px', fontWeight: 500, fontFamily: 'Inter', color: theme.palette.primary.onSurface }}
+              >
                 {params.row.common_name || ''}
               </Typography>
             }
             subheader={
               <Typography
-                sx={{ fontSize: '14px', fontWeight: 400, fontFamily: 'Inter', fontStyle: 'italic', color: '#006D35' }}
+                sx={{
+                  fontSize: '14px',
+                  fontWeight: 400,
+                  fontFamily: 'Inter',
+                  fontStyle: 'italic',
+                  color: theme.palette.primary.onSurface
+                }}
                 variant='body2'
               >
                 {params.row.scientific_name || ''}
@@ -495,13 +503,13 @@ const SpeciesReport = () => {
   const getCellBackgroundColor = label => {
     switch (label) {
       case 'Male':
-        return '#AFEFEB'
+        return theme.palette.customColors.SecondaryContainer
       case 'Female':
-        return '#FFD3D3'
+        return theme.palette.customColors.AntzTertiary
       case 'Undetermined':
-        return '#DDEBE9'
+        return theme.palette.customColors.displaybgSecondary
       case 'Indeterminate':
-        return '#DDEBE9'
+        return theme.palette.customColors.displaybgSecondary
       default:
         return 'transparent'
     }
@@ -511,13 +519,13 @@ const SpeciesReport = () => {
     switch (label) {
       case 'Male':
       case 'Female':
-        return '#1F415B'
+        return theme.palette.customColors.OnSecondaryContainer
       case 'Undetermined':
-        return '#E93353'
+        return theme.palette.customColors.Error
       case 'Indeterminate':
-        return '#44544A'
+        return theme.palette.customColors.OnSurfaceVariant
       default:
-        return '#44544A'
+        return theme.palette.customColors.OnSurfaceVariant
     }
   }
 
@@ -576,13 +584,9 @@ const SpeciesReport = () => {
   // }
 
   const handleRowClick = params => {
-    // console.log('Params >', params)
-    // const { setSelectedAnimal, setApiFilterParams, setSelectedSites } = useAnimalContext();
-
     const hasFilterChanged = JSON.stringify(apiFilterParams) !== JSON.stringify(initialFilterParams)
     const hasSitesChanged = JSON.stringify(selectedSites) !== JSON.stringify(sites)
 
-    // Store values in Context instead of sessionStorage
     setSelectedAnimal({
       default_icon: params?.default_icon,
       scientific_name: params?.scientific_name,
@@ -738,7 +742,7 @@ const SpeciesReport = () => {
                   fontSize: '20px',
                   fontWeight: '400',
                   fontFamily: 'Inter',
-                  color: '#006D35',
+                  color: theme.palette.primary.OnSurface,
                   display: 'flex',
                   alignItems: 'center',
                   cursor: 'pointer',
@@ -806,7 +810,7 @@ const SpeciesReport = () => {
                     value={searchValue}
                     onChange={e => handleSearch(e?.target?.value)}
                     placeholder='Search'
-                    InputProps={{
+                    slotProps={{
                       startAdornment: (
                         <InputAdornment position='start'>
                           <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
@@ -955,9 +959,8 @@ const SpeciesReport = () => {
                         width: '129px',
                         height: '40px',
                         mt: 2,
-
                         display: 'flex',
-                        color: '#44544A',
+                        color: theme.palette.customColors.OnSurfaceVariant,
                         borderRadius: '4px',
                         fontWeight: 400,
                         fontSize: '16px',
@@ -978,7 +981,10 @@ const SpeciesReport = () => {
 
                       <Typography
                         sx={{
-                          color: getTotalSelectedFilters(selectedOptions) > 0 ? '#1F515B' : '#44544A',
+                          color:
+                            getTotalSelectedFilters(selectedOptions) > 0
+                              ? theme.palette.customColors.OnPrimaryContainer
+                              : theme.palette.customColors.OnSurfaceVariant,
                           textTransform: 'capitalize',
                           mr: 8,
                           fontSize: '16px',
@@ -997,8 +1003,8 @@ const SpeciesReport = () => {
                             width: '29px',
                             height: '27px',
                             borderRadius: '69%',
-                            backgroundColor: '#1F515B',
-                            color: '#FFFFFF',
+                            backgroundColor: theme.palette.customColors.OnPrimaryContainer,
+                            color: theme.palette.customColors.OnPrimary,
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
@@ -1038,7 +1044,7 @@ const SpeciesReport = () => {
                         mt: 2,
                         display: 'flex',
                         borderRadius: '4px',
-                        color: '#44544A',
+                        color: theme.palette.customColors.OnSurfaceVariant,
                         fontWeight: 400,
                         fontSize: '16px',
                         fontFamily: 'Inter',
@@ -1061,7 +1067,11 @@ const SpeciesReport = () => {
                         }}
                         alt='Filter Icon'
                       />
-                      <Typography sx={{ color: '#1F515B', textTransform: 'capitalize' }}>Show/Hide</Typography>
+                      <Typography
+                        sx={{ color: theme.palette.customColors.OnPrimaryContainer, textTransform: 'capitalize' }}
+                      >
+                        Show/Hide
+                      </Typography>
                     </Button>
                     <Popover
                       id={id}

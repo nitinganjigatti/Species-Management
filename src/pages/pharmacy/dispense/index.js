@@ -42,6 +42,7 @@ function Dispense() {
   const [loading, setLoading] = useState(false)
   const [sort, setSort] = useState(router.query.sort || 'desc')
   const [rows, setRows] = useState([])
+  const [filterSwitch, setFilterSwitch] = useState(false)
 
   const [searchValue, setSearchValue] = useState(router.query.q || '')
   const [sortColumn, setSortColumn] = useState(router.query.column || 'dispense_id')
