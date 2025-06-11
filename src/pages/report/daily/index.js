@@ -382,7 +382,7 @@ const Animal = () => {
                     height: '45px', // Height of Show/Hide button
                     display: 'flex',
                     borderRadius: '8px',
-                    color: '#44544A',
+                    color: theme.palette.customColors.OnSurfaceVariant,
                     fontWeight: 400,
                     fontSize: '16px',
                     fontFamily: 'Inter',
@@ -402,7 +402,7 @@ const Animal = () => {
                     }}
                     alt='Filter Icon'
                   />
-                  <Typography sx={{ color: '#1F515B', textTransform: 'capitalize' }}>Show/Hide</Typography>
+                  <Typography sx={{ color: theme.palette.customColors.OnPrimaryContainer, textTransform: 'capitalize' }}>Show/Hide</Typography>
                 </Button>
                 <Popover
                   id={id}
@@ -521,6 +521,7 @@ const Animal = () => {
               <CommonTable
                 setPaginationModel={setPaginationModel}
                 indexedRows={reportRows}
+                total={''}
                 disableColumnSorting={true}
                 columns={columns}
                 paginationModel={paginationModel}

@@ -756,13 +756,16 @@ const AnimalList = () => {
                     variant='outlined'
                     size='small'
                     placeholder='Search'
-                    InputProps={{
-                      startAdornment: (
-                        <InputAdornment position='start'>
-                          <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
-                        </InputAdornment>
-                      )
-                    }}
+                    slotProps={
+                      <InputAdornment position='start'>
+                        <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
+                      </InputAdornment>
+                    }
+                    // InputProps={{
+                    //   startAdornment: (
+
+                    //   )
+                    // }}
                     sx={{
                       width: '320px',
                       backgroundColor: '#fff',
@@ -874,7 +877,13 @@ const AnimalList = () => {
                       />
 
                       <Typography
-                        sx={{ color: '#1F515B', textTransform: 'capitalize', mr: 8, fontSize: '16px', fontWeight: 400 }}
+                        sx={{
+                          color: theme.palette.customColors.OnPrimaryContainer,
+                          textTransform: 'capitalize',
+                          mr: 8,
+                          fontSize: '16px',
+                          fontWeight: 400
+                        }}
                       >
                         Filter
                       </Typography>
@@ -887,8 +896,8 @@ const AnimalList = () => {
                           width: '29px',
                           height: '27px',
                           borderRadius: '69%',
-                          backgroundColor: '#1F515B',
-                          color: '#FFFFFF',
+                          backgroundColor: theme.palette.customColors.OnPrimaryContainer,
+                          color: theme.palette.customColors.OnPrimary,
                           display: 'flex',
                           alignItems: 'center',
                           justifyContent: 'center',
@@ -930,7 +939,7 @@ const AnimalList = () => {
                         mt: 2,
                         display: 'flex',
                         borderRadius: '4px',
-                        color: '#44544A',
+                        color: theme.palette.customColors.OnSurfaceVariant,
                         fontWeight: 400,
                         fontSize: '16px',
                         fontFamily: 'Inter',
@@ -952,7 +961,7 @@ const AnimalList = () => {
                         }}
                         alt='Filter Icon'
                       />
-                      <Typography sx={{ color: '#1F515B', textTransform: 'capitalize' }}>Show/Hide</Typography>
+                      <Typography sx={{ color: theme.palette.customColors.OnPrimaryContainer, textTransform: 'capitalize' }}>Show/Hide</Typography>
                     </Button>
                     <Popover
                       id={id}
