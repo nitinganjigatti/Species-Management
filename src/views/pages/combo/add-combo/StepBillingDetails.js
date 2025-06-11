@@ -163,7 +163,7 @@ const StepBillingDetails = ({ handlePrev, formData, handleSubmit, loader }) => {
   return (
     <>
       <Grid container spacing={5} sx={{ px: 5, pt: 6 }}>
-        <Box sx={{ mb: 1, px: 5, mt: 2, float: 'left' }}>
+        <Box sx={{ float: 'left' }}>
           <Typography variant='h6'>Preview</Typography>
         </Box>
 
@@ -172,7 +172,7 @@ const StepBillingDetails = ({ handlePrev, formData, handleSubmit, loader }) => {
           <Grid item size={{ xs: 12 }}>
             <>
               <Card sx={{ boxShadow: 'none' }}>
-                <CardContent sx={{ mt: 0 }}>
+                <CardContent sx={{ px: 0, py: 0 }}>
                   <Grid container spacing={6}>
                     <Grid item size={{ xs: 4 }}>
                       <Card sx={{ boxShadow: 'none', background: '#EFF5F2' }}>
@@ -306,9 +306,9 @@ const StepBillingDetails = ({ handlePrev, formData, handleSubmit, loader }) => {
               </Card>
 
               <Card sx={{ boxShadow: 'none' }}>
-                <CardContent sx={{ mb: 5, mt: 2 }}>
+                <CardContent sx={{ px: 0, py: 0 }}>
                   <Card sx={{ boxShadow: 'none' }}>
-                    <CardHeader title='Item by percentage' />
+                    <CardHeader title='Item by percentage' sx={{ px: 0, py: 4 }} />
 
                     <DataGrid
                       sx={{

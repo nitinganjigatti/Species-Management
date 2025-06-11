@@ -64,8 +64,19 @@
   width: 580px;
 }
 @media (min-width: 768px) and (max-width: 1023px) {
+  .item_cls {
+    margin-right: 25px !important;
+  }
   .recipe_name {
     width: 100px;
+  }
+  .pencil_diet {
+    position: absolute !important;
+    right: 11% !important;
+  }
+  .del_diet {
+    position: absolute !important;
+    right: 7% !important;
   }
   .diet_steps .MuiStepper-root {
     display: -webkit-inline-box;
