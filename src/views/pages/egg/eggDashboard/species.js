@@ -111,7 +111,10 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
   const CustomTooltip = ({ title, children, placement = 'bottom', disableHoverListener }) => (
     <Tooltip
       disableHoverListener={disableHoverListener || false}
-      TransitionComponent={Fade}
+      slots={{
+        transition: Fade
+      }}
+      //TransitionComponent={Fade}
       title={
         <Box
           sx={{
@@ -150,7 +153,7 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
       }
       arrow
       placement={placement}
-      componentsProps={{
+      slotProps={{
         tooltip: {
           sx: {
             border: '0.1px solid #C3CEC7',
