@@ -994,12 +994,12 @@ const StepBasicDetails = ({
       ) : (
         <form onSubmit={handleSubmit(onSubmit)}>
           <Card sx={{ boxShadow: 'none', borderTopLeftRadius: 0, borderTopRightRadius: 0 }}>
-            <Box sx={{ mb: 1, px: 5, mt: 5, float: 'left' }}>
+            <Box sx={{ mb: 8, px: 5, mt: 5, float: 'left' }}>
               <Typography variant='h6'>Basic Information</Typography>
             </Box>
             <ScrollToFieldError errors={errors} />
             <Grid container spacing={5} sx={{ px: 5 }}>
-              <Grid item xs={12} sm={4}>
+              <Grid item size={{ xs: 12, sm: 4 }}>
                 <FormControl fullWidth>
                   <Controller
                     name='diet_name'
@@ -1021,7 +1021,7 @@ const StepBasicDetails = ({
                 </FormControl>
               </Grid>
 
-              <Grid item xs={12} sm={4}>
+              <Grid item size={{ xs: 12, sm: 4 }}>
                 <FormControl fullWidth>
                   {/* <InputLabel id='uom'> Select unit of measurement (UOM)</InputLabel> */}
 
@@ -1076,7 +1076,7 @@ const StepBasicDetails = ({
                 </FormControl>
               </Grid>
 
-              <Grid item xs={12} sm={4}>
+              <Grid item size={{ xs: 12, sm: 4 }}>
                 <FormControl fullWidth>
                   <Controller
                     name='dietitian_id'
@@ -1121,7 +1121,7 @@ const StepBasicDetails = ({
                 </FormControl>
               </Grid>
 
-              <Grid item xs={12} sm={4}>
+              {/* <Grid item size={{ xs: 12, sm: 4 }}>
                 <FormControl fullWidth>
                   <Controller
                     name='dietitian_id'
@@ -1164,7 +1164,7 @@ const StepBasicDetails = ({
                     <FormHelperText sx={{ color: 'error.main' }}>{errors?.dietitian_id?.message}</FormHelperText>
                   )}
                 </FormControl>
-              </Grid>
+              </Grid> */}
 
               <Grid item size={{ xs: 6 }}>
                 <CardContent sx={{ px: 0, paddingTop: 2 }}>
@@ -1197,7 +1197,7 @@ const StepBasicDetails = ({
 
           {fieldsIngredients.map((field, index) => (
             <Card sx={{ mt: 7 }} key={field.id}>
-              <CardHeader title={`Add Meal ${index + 1}`} sx={{ float: 'left', width: '50%' }} />
+              <CardHeader title={`Add Meal ${index + 1}`} sx={{ float: 'left', width: '50%', mb: 5 }} />
               {(fieldsIngredients.length - 1 === index && index > 0) ||
               (!index <= 0 && !fieldsIngredients.length - 1 <= 0) ? (
                 <Grid sx={{ float: 'right', width: '4%', marginRight: '24px', cursor: 'pointer' }}>
@@ -1320,8 +1320,8 @@ const StepBasicDetails = ({
 
                 {allRecipeSelectedValues?.length > 0 &&
                 allRecipeSelectedValues.some(value => value?.mealid === field.mealid) ? (
-                  <Grid container spacing={5} sx={{ px: 5, pt: 10 }}>
-                    <Box sx={{ mb: 10, mt: 2, float: 'left' }}>
+                  <Grid container spacing={5} sx={{ px: 0, pt: 5 }}>
+                    <Box sx={{ mb: 0, mt: 2, float: 'left' }}>
                       <Typography variant='h6'>Recipes</Typography>
                     </Box>
 
@@ -1350,27 +1350,27 @@ const StepBasicDetails = ({
                         {recipes.map((recipe, index) => (
                           <Grid
                             item
-                            xs={12}
-                            sm={
-                              recipe.label === 'No'
-                                ? 0.5
-                                : recipe.label === 'Recipe'
-                                ? 2.2
-                                : recipe.label === 'Items'
-                                ? 1.9
-                                : 3.7
-                            }
-                            md={
-                              recipe.label === 'No'
-                                ? 0.5
-                                : recipe.label === 'Recipe'
-                                ? 2.3
-                                : recipe.label === 'Items'
-                                ? 1.5
-                                : 3.5
-                            }
+                            size={{
+                              xs: 12,
+                              sm:
+                                recipe.label === 'No'
+                                  ? 0.5
+                                  : recipe.label === 'Recipe'
+                                  ? 2.2
+                                  : recipe.label === 'Items'
+                                  ? 1.9
+                                  : 3.7,
+                              md:
+                                recipe.label === 'No'
+                                  ? 0.5
+                                  : recipe.label === 'Recipe'
+                                  ? 2.3
+                                  : recipe.label === 'Items'
+                                  ? 1.5
+                                  : 3.5
+                            }}
                             key={index}
-                            sx={{ py: 4, px: 2, textAlign: 'center' }}
+                            sx={{ py: 4, px: 6, textAlign: 'center' }}
                           >
                             <Typography sx={{ textTransform: 'uppercase', fontSize: 14, fontWeight: 600 }}>
                               <div style={{ display: 'flex', alignItems: 'center' }}>{recipe.label} </div>
@@ -1389,7 +1389,8 @@ const StepBasicDetails = ({
                                 container
                                 sx={{
                                   px: 5,
-                                  py: 5,
+                                  pb: 5,
+                                  pt: 0,
                                   borderBottom: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                                   borderRadius: '7px'
                                 }}
@@ -1411,7 +1412,7 @@ const StepBasicDetails = ({
                                     src={all.recipe_image ? all.recipe_image : '/icons/icon_diet_fill.png'}
                                   ></Avatar>
                                 </Grid>
-                                <Grid item xs={12} sm={2.2} md={2.1}>
+                                <Grid item size={{ xs: 12, sm: 2.2, md: 2.1 }}>
                                   <Tooltip title={all.recipe_name}>
                                     <Typography
                                       className='recipe_name'
@@ -1431,7 +1432,7 @@ const StepBasicDetails = ({
                                   </Typography>
                                 </Grid>
 
-                                <Grid item xs={12} sm={1.4} md={1.0}>
+                                <Grid item size={{ xs: 12, sm: 1.4, md: 1.0 }}>
                                   <Typography>{all?.ingredients_count}</Typography>
                                   {/* {all?.ingredients ? (
                                   <Typography>{all?.ingredients?.length}</Typography>
@@ -1457,7 +1458,7 @@ const StepBasicDetails = ({
                                     ))}
                                   </Grid>
                                 </Grid>
-                                <Grid item size={{ xs: 12, sm: 3.3, md: 3.9 }}>
+                                <Grid item size={{ xs: 12, sm: 3.3, md: 3.5 }}>
                                   <Grid sx={{ pl: 7 }}>
                                     <Typography className='w_280'>
                                       <Tooltip title={all?.remarks} arrow placement='bottom'>
@@ -1505,8 +1506,8 @@ const StepBasicDetails = ({
 
                 {allComboSelectedValues?.length > 0 &&
                 allComboSelectedValues.some(value => value?.mealid === field.mealid) ? (
-                  <Grid container spacing={5} sx={{ px: 5, pt: 10 }}>
-                    <Box sx={{ mb: 10, mt: 2, float: 'left' }}>
+                  <Grid container spacing={5} sx={{ px: 0, pt: 5 }}>
+                    <Box sx={{ mb: 0, mt: 2, float: 'left' }}>
                       <Typography variant='h6'>Combo</Typography>
                     </Box>
 
@@ -1535,27 +1536,27 @@ const StepBasicDetails = ({
                         {combos.map((recipe, index) => (
                           <Grid
                             item
-                            xs={12}
-                            sm={
-                              recipe.label === 'No'
-                                ? 0.5
-                                : recipe.label === 'Combo'
-                                ? 2.2
-                                : recipe.label === 'Items'
-                                ? 1.9
-                                : 3.7
-                            }
-                            md={
-                              recipe.label === 'No'
-                                ? 0.5
-                                : recipe.label === 'Combo'
-                                ? 2.3
-                                : recipe.label === 'Items'
-                                ? 1.5
-                                : 3.5
-                            }
+                            size={{
+                              xs: 12,
+                              sm:
+                                recipe.label === 'No'
+                                  ? 0.5
+                                  : recipe.label === 'Combo'
+                                  ? 2.2
+                                  : recipe.label === 'Items'
+                                  ? 1.9
+                                  : 3.7,
+                              md:
+                                recipe.label === 'No'
+                                  ? 0.5
+                                  : recipe.label === 'Combo'
+                                  ? 2.3
+                                  : recipe.label === 'Items'
+                                  ? 1.5
+                                  : 3.5
+                            }}
                             key={index}
-                            sx={{ py: 4, px: 2, textAlign: 'center' }}
+                            sx={{ py: 4, px: 6, textAlign: 'center' }}
                           >
                             <Typography sx={{ textTransform: 'uppercase', fontSize: 14, fontWeight: 600 }}>
                               <div style={{ display: 'flex', alignItems: 'center' }}>{recipe.label} </div>
@@ -1574,7 +1575,8 @@ const StepBasicDetails = ({
                                 container
                                 sx={{
                                   px: 5,
-                                  py: 5,
+                                  pb: 5,
+                                  pt: 0,
                                   borderBottom: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                                   borderRadius: '7px'
                                 }}
@@ -1596,7 +1598,7 @@ const StepBasicDetails = ({
                                     src={all.recipe_image ? all.recipe_image : '/icons/icon_diet_fill.png'}
                                   ></Avatar>
                                 </Grid>
-                                <Grid item size={{ xs: 12, sm: 2.2, md: 2.2 }}>
+                                <Grid item size={{ xs: 12, sm: 2.2, md: 2.1 }}>
                                   <Tooltip title={all.recipe_name}>
                                     <Typography
                                       className='recipe_name'
@@ -1616,7 +1618,7 @@ const StepBasicDetails = ({
                                   </Typography>
                                 </Grid>
 
-                                <Grid item xs={12} sm={1.4} md={1.0}>
+                                <Grid item size={{ xs: 12, sm: 1.4, md: 1.0 }}>
                                   <Typography>{all?.ingredients_count}</Typography>
                                   {/* {all?.ingredients ? (
                                   <Typography>{all?.ingredients?.length}</Typography>
@@ -1642,8 +1644,8 @@ const StepBasicDetails = ({
                                     ))}
                                   </Grid>
                                 </Grid>
-                                <Grid item size={{ xs: 12, sm: 3.3, md: 3.9 }}>
-                                  <Grid sx={{ pl: 7 }}>
+                                <Grid item size={{ xs: 12, sm: 3.3, md: 3.5 }}>
+                                  <Grid sx={{ pl: 5 }}>
                                     <Typography className='w_280'>
                                       <Tooltip title={all?.remarks} arrow placement='bottom'>
                                         <span className='text_overflow_moduled'>
@@ -1688,8 +1690,8 @@ const StepBasicDetails = ({
                 ) : null}
 
                 {allSelectedValues?.length > 0 && allSelectedValues.some(value => value?.mealid === field.mealid) ? (
-                  <Grid container spacing={5} sx={{ px: 5, pt: 10 }}>
-                    <Box sx={{ mb: 10, mt: 2, float: 'left' }}>
+                  <Grid container spacing={5} sx={{ px: 0, pt: 5 }}>
+                    <Box sx={{ mb: 0, mt: 2, float: 'left' }}>
                       <Typography variant='h6'>Items</Typography>
                     </Box>
 
@@ -1712,27 +1714,27 @@ const StepBasicDetails = ({
                         {ingredients.map((ingredient, index) => (
                           <Grid
                             item
-                            xs={12}
-                            sm={
-                              ingredient.label === 'No'
-                                ? 0.5
-                                : ingredient.label === 'Item'
-                                ? 2.4
-                                : ingredient.label === 'Prep types'
-                                ? 2.0
-                                : 3.3
-                            }
-                            md={
-                              ingredient.label === 'No'
-                                ? 0.5
-                                : ingredient.label === 'Item'
-                                ? 2.2
-                                : ingredient.label === 'Prep types'
-                                ? 1.5
-                                : 3.8
-                            }
+                            size={{
+                              xs: 12,
+                              sm:
+                                ingredient.label === 'No'
+                                  ? 0.5
+                                  : ingredient.label === 'Item'
+                                  ? 2.4
+                                  : ingredient.label === 'Prep types'
+                                  ? 2.0
+                                  : 3.3,
+                              md:
+                                ingredient.label === 'No'
+                                  ? 0.5
+                                  : ingredient.label === 'Item'
+                                  ? 2.2
+                                  : ingredient.label === 'Prep types'
+                                  ? 2.0
+                                  : 3.3
+                            }}
                             key={index}
-                            sx={{ py: 4, px: 2, textAlign: 'center' }}
+                            sx={{ py: 4, px: 6, textAlign: 'center' }}
                           >
                             <Typography sx={{ textTransform: 'uppercase', fontSize: 14, fontWeight: 600 }}>
                               <div style={{ display: 'flex', alignItems: 'center' }}>{ingredient.label} </div>
@@ -1750,7 +1752,8 @@ const StepBasicDetails = ({
                                 container
                                 sx={{
                                   px: 5,
-                                  py: 5,
+                                  pb: 5,
+                                  pt: 0,
                                   borderBottom: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                                   borderRadius: '7px'
                                 }}
@@ -1805,8 +1808,8 @@ const StepBasicDetails = ({
                                     ))}
                                   </Grid>
                                 </Grid>
-                                <Grid item size={{ xs: 12, sm: 3.3, md: 3.9 }}>
-                                  <Grid sx={{ pl: 7 }}>
+                                <Grid item size={{ xs: 12, sm: 3.3, md: 3.5 }}>
+                                  <Grid sx={{ pl: 8 }}>
                                     <Typography className='w_280'>
                                       <Tooltip title={all?.remarks} arrow placement='bottom'>
                                         <span className='text_overflow_moduled'>
@@ -1854,8 +1857,8 @@ const StepBasicDetails = ({
 
                 {allIngredientchoiceSelectedValues?.length > 0 &&
                 allIngredientchoiceSelectedValues.some(value => value?.mealid === field.mealid) ? (
-                  <Grid container spacing={5} sx={{ px: 5, pt: 10 }}>
-                    <Box sx={{ mb: 10, mt: 2, float: 'left' }}>
+                  <Grid container spacing={5} sx={{ px: 0, pt: 5 }}>
+                    <Box sx={{ mb: 0, mt: 2, float: 'left' }}>
                       <Typography variant='h6'>Items with choice</Typography>
                     </Box>
 
@@ -1878,18 +1881,19 @@ const StepBasicDetails = ({
                         {ingredients.map((ingredient, index) => (
                           <Grid
                             item
-                            xs={12}
-                            sm={
-                              ingredient.label === 'Item'
-                                ? 2.2
-                                : ingredient.label === 'Prep types'
-                                ? 2.3
-                                : ingredient.label === 'Feeding days'
-                                ? 2.7
-                                : 3.9
-                            }
+                            size={{
+                              xs: 12,
+                              sm:
+                                ingredient.label === 'Item'
+                                  ? 2.2
+                                  : ingredient.label === 'Prep types'
+                                  ? 2.3
+                                  : ingredient.label === 'Feeding days'
+                                  ? 2.7
+                                  : 3.9
+                            }}
                             key={index}
-                            sx={{ py: 4, px: 2, textAlign: 'center' }}
+                            sx={{ py: 4, px: 6, textAlign: 'center' }}
                           >
                             <Typography sx={{ textTransform: 'uppercase', fontSize: 14, fontWeight: 600 }}>
                               <div style={{ display: 'flex', alignItems: 'center' }}>{ingredient.label} </div>
@@ -1907,7 +1911,8 @@ const StepBasicDetails = ({
                                 container
                                 sx={{
                                   px: 5,
-                                  py: 5,
+                                  pb: 5,
+                                  pt: 0,
                                   borderBottom: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                                   borderRadius: '7px'
                                 }}
@@ -1938,7 +1943,7 @@ const StepBasicDetails = ({
                                     </Tooltip>
                                   </Typography>
                                 </Grid>
-                                <Grid item size={{ xs: 12, sm: 2.7 }}>
+                                <Grid item size={{ xs: 12, sm: 2.8 }}>
                                   <Grid container spacing={1} sx={{ pl: isSmallDevice ? 11 : 1 }}>
                                     {days.map((day, index) => (
                                       <Grid item key={day}>
@@ -1956,7 +1961,7 @@ const StepBasicDetails = ({
                                     ))}
                                   </Grid>
                                 </Grid>
-                                <Grid item size={{ xs: 12, sm: 3.7, md: 4.2 }}>
+                                <Grid item size={{ xs: 12, sm: 3.7, md: 3.6 }}>
                                   <Grid sx={{ pl: 7 }}>
                                     <Typography className='w_280'>
                                       <Tooltip title={all?.remarks} arrow placement='bottom'>
@@ -2006,7 +2011,7 @@ const StepBasicDetails = ({
                                   {all?.ingredientList?.map((all, i) => {
                                     return (
                                       <Grid item key={i}>
-                                        <Card sx={{ width: '280px', height: '90px', mr: 4, boxShadow: 'none', mt: 3 }}>
+                                        <Card sx={{ width: '280px', height: '90px', mr: 0, boxShadow: 'none', mt: 3 }}>
                                           <CardContent
                                             sx={{
                                               gap: 3,

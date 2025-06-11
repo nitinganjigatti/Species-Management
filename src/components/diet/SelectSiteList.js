@@ -245,8 +245,21 @@ const SelectSiteList = ({
                 <ListItemText
                   primary={site.site_name}
                   //secondary={site.location || '-'}
-                  primaryTypographyProps={{ fontWeight: 'bold', color: theme.palette.customColors.OnPrimaryContainer }}
-                  secondaryTypographyProps={{ color: theme.palette.customColors.OnSurfaceVariant }}
+                  slotProps={{
+                    secondary: {
+                      sx: {
+                        color: theme.palette.customColors.OnSurfaceVariant
+                      }
+                    },
+                    primary: {
+                      sx: {
+                        fontWeight: 'bold',
+                        color: theme.palette.customColors.OnPrimaryContainer
+                      }
+                    }
+                  }}
+                  // primaryTypographyProps={{ fontWeight: 'bold', color: theme.palette.customColors.OnPrimaryContainer }}
+                  // secondaryTypographyProps={{ color: theme.palette.customColors.OnSurfaceVariant }}
                 />
                 <Checkbox
                   checked={pendingSelections.Site.includes(site.site_id)}

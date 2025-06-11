@@ -337,14 +337,14 @@ const StepBasicDetails = ({ handleNext, formData, uomList }) => {
             </Grid>
           </Grid> */}
 
-          <Divider sx={{ mb: 2, mx: 3, pb: 1, mt: 8, width: '98%', ml: 5 }} />
+          <Divider sx={{ width: '98%' }} />
 
-          <Box sx={{ mb: 0, px: 5, mt: 3, float: 'left', width: '100%' }}>
+          <Box sx={{ mb: 0, px: 0, mt: 0, float: 'left', width: '100%' }}>
             <Typography variant='h6'>Add image</Typography>
           </Box>
           {console.log(uploadedImage, 'uploadedImage')}
           <Grid item size={{ xs: 6 }} sx={{ pt: 0 }}>
-            <CardContent sx={{ px: 0, paddingTop: 2 }}>
+            <CardContent sx={{ px: 0, paddingTop: 0 }}>
               <CustomFileUploaderSingle onImageUpload={handleImageUpload} uploadedImagenew={uploadedImage} />
             </CardContent>
           </Grid>

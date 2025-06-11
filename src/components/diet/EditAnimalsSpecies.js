@@ -408,8 +408,14 @@ const EditAnimalSpeciesMapped = ({
                       </ListItemAvatar>
                       <ListItemText
                         primary={dietDetails.diet_name}
-                        primaryTypographyProps={{
-                          sx: { color: theme.palette.customColors.OnSurfaceVariant, fontSize: '16px', fontWeight: 600 }
+                        slotProps={{
+                          primary: {
+                            sx: {
+                              color: theme.palette.customColors.OnSurfaceVariant,
+                              fontSize: '16px',
+                              fontWeight: 600
+                            }
+                          }
                         }}
                         secondary={
                           <Typography
@@ -580,12 +586,14 @@ const EditAnimalSpeciesMapped = ({
                                       </Typography>
                                     }
                                     secondary={species.scientific_name ? species.scientific_name : '-'}
-                                    secondaryTypographyProps={{
-                                      sx: {
-                                        color: theme.palette.customColors.OnSurfaceVariant,
-                                        fontSize: '16px',
-                                        fontWeight: 600,
-                                        lineHeight: 1.2
+                                    slotProps={{
+                                      secondary: {
+                                        sx: {
+                                          color: theme.palette.customColors.OnSurfaceVariant,
+                                          fontSize: '16px',
+                                          fontWeight: 600,
+                                          lineHeight: 1.2
+                                        }
                                       }
                                     }}
                                   />
@@ -847,11 +855,13 @@ const EditAnimalSpeciesMapped = ({
                                         </Typography>
                                       </>
                                     }
-                                    primaryTypographyProps={{
-                                      sx: {
-                                        color: theme.palette.customColors.OnSurfaceVariant,
-                                        fontSize: '16px',
-                                        fontWeight: 600
+                                    slotProps={{
+                                      primary: {
+                                        sx: {
+                                          color: theme.palette.customColors.OnSurfaceVariant,
+                                          fontSize: '16px',
+                                          fontWeight: 600
+                                        }
                                       }
                                     }}
                                     secondary={

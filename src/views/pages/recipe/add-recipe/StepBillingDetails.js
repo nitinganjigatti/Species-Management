@@ -173,8 +173,8 @@ const StepBillingDetails = ({ handlePrev, formData, handleSubmit, loader }) => {
 
   return (
     <>
-      <Grid container spacing={5} sx={{ px: 5, pt: 6 }}>
-        <Box sx={{ mb: 1, px: 5, mt: 2, float: 'left' }}>
+      <Grid container spacing={5} sx={{ px: 0, pt: 3 }}>
+        <Box sx={{ px: 5, float: 'left' }}>
           <Typography variant='h6'>Preview</Typography>
         </Box>
 
@@ -183,9 +183,9 @@ const StepBillingDetails = ({ handlePrev, formData, handleSubmit, loader }) => {
           <Grid item size={{ xs: 12 }}>
             <>
               <Card sx={{ boxShadow: 'none' }}>
-                <CardContent sx={{ mt: 0 }}>
+                <CardContent sx={{ pt: 0 }}>
                   <Grid container spacing={6}>
-                    <Grid item xs={4}>
+                    <Grid item size={{ xs: 4 }}>
                       <Card sx={{ boxShadow: 'none', background: theme.palette.customColors.bodyBg }}>
                         <div
                           item
@@ -344,7 +344,7 @@ const StepBillingDetails = ({ handlePrev, formData, handleSubmit, loader }) => {
                       hideFooter={true}
                     /> */}
 
-                    <CardHeader title='Item by Quantity' />
+                    <CardHeader title='Item by Quantity' sx={{ pl: 0 }} />
                     <DataGrid
                       sx={{
                         '.MuiDataGrid-cell:focus': {
@@ -381,7 +381,7 @@ const StepBillingDetails = ({ handlePrev, formData, handleSubmit, loader }) => {
           </Grid>
 
           <Grid item size={{ xs: 12 }}>
-            <Box sx={{ display: 'flex', justifyContent: 'flex-end', my: 12 }}>
+            <Box sx={{ display: 'flex', justifyContent: 'flex-end', my: 12, mx: 5 }}>
               <Button
                 color='secondary'
                 variant='outlined'

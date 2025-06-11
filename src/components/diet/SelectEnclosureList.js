@@ -304,11 +304,24 @@ const SelectEnclosureList = ({
                   <ListItemText
                     primary={enclosure.user_enclosure_name}
                     //secondary={enclosure.location || '-'}
-                    primaryTypographyProps={{
-                      fontWeight: 'bold',
-                      color: theme.palette.customColors.OnPrimaryContainer
+                    slotProps={{
+                      primary: {
+                        sx: {
+                          fontWeight: 'bold',
+                          color: theme.palette.customColors.OnPrimaryContainer
+                        }
+                      },
+                      secondary: {
+                        sx: {
+                          color: theme.palette.customColors.OnSurfaceVariant
+                        }
+                      }
                     }}
-                    secondaryTypographyProps={{ color: theme.palette.customColors.OnSurfaceVariant }}
+                    // primaryTypographyProps={{
+                    //   fontWeight: 'bold',
+                    //   color: theme.palette.customColors.OnPrimaryContainer
+                    // }}
+                    // secondaryTypographyProps={{ color: theme.palette.customColors.OnSurfaceVariant }}
                   />
                   <Checkbox
                     checked={selectedEnclosures.includes(enclosure.enclosure_id)}

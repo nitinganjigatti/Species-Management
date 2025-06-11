@@ -278,7 +278,7 @@ const IngredientsListforRecipeDetail = ({ IngredientsDetailsval }) => {
           <FallbackSpinner />
         ) : (
           <Card sx={{ boxShadow: 'none' }}>
-            <CardHeader title='Item by percentage' />
+            <CardHeader title='Item by percentage' sx={{ pl: 0 }} />
 
             <DataGrid
               sx={{

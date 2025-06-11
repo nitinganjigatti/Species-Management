@@ -16,22 +16,22 @@ const Button = () => {
             ownerState.variant === 'text' && {
               padding: `${theme.spacing(1.75, 3)}`
             }),
-          '&.MuiButton-textPrimary:hover': {
+          '&.MuiButton-text.MuiButton-colorPrimary:hover': {
             backgroundColor: hexToRGBA(theme.palette.primary.main, 0.08)
           },
-          '&.MuiButton-textSecondary:hover': {
+          '&.MuiButton-text.MuiButton-colorSecondary:hover': {
             backgroundColor: hexToRGBA(theme.palette.secondary.main, 0.08)
           },
-          '&.MuiButton-textSuccess:hover': {
+          '&.MuiButton-text.MuiButton-colorSuccess:hover': {
             backgroundColor: hexToRGBA(theme.palette.success.main, 0.08)
           },
-          '&.MuiButton-textError:hover': {
+          '&.MuiButton-text.MuiButton-colorError:hover': {
             backgroundColor: hexToRGBA(theme.palette.error.main, 0.08)
           },
-          '&.MuiButton-textWarning:hover': {
+          '&.MuiButton-text.MuiButton-colorWarning:hover': {
             backgroundColor: hexToRGBA(theme.palette.warning.main, 0.08)
           },
-          '&.MuiButton-textInfo:hover': {
+          '&.MuiButton-text.MuiButton-colorInfo:hover': {
             backgroundColor: hexToRGBA(theme.palette.info.main, 0.08)
           }
         }),
@@ -42,22 +42,22 @@ const Button = () => {
         outlined: ({ theme }) => ({
           lineHeight: 1.572,
           padding: `${theme.spacing(1.75, 5.25)}`,
-          '&.MuiButton-outlinedPrimary:hover': {
+          '&.MuiButton-outlined.MuiButton-colorPrimary:hover': {
             backgroundColor: hexToRGBA(theme.palette.primary.main, 0.08)
           },
-          '&.MuiButton-outlinedSecondary:hover': {
+          '&.MuiButton-outlined.MuiButton-colorSecondary:hover': {
             backgroundColor: hexToRGBA(theme.palette.secondary.main, 0.08)
           },
-          '&.MuiButton-outlinedSuccess:hover': {
+          '&.MuiButton-outlined.MuiButton-colorSuccess:hover': {
             backgroundColor: hexToRGBA(theme.palette.success.main, 0.08)
           },
-          '&.MuiButton-outlinedError:hover': {
+          '&.MuiButton-outlined.MuiButton-colorError:hover': {
             backgroundColor: hexToRGBA(theme.palette.error.main, 0.08)
           },
-          '&.MuiButton-outlinedWarning:hover': {
+          '&.MuiButton-outlined.MuiButton-colorWarning:hover': {
             backgroundColor: hexToRGBA(theme.palette.warning.main, 0.08)
           },
-          '&.MuiButton-outlinedInfo:hover': {
+          '&.MuiButton-outlined.MuiButton-colorInfo:hover': {
             backgroundColor: hexToRGBA(theme.palette.info.main, 0.08)
           }
         }),
