@@ -176,9 +176,13 @@ const CustomAccordion = ({
                 <Icon style={{ color: '#fff', marginRight: '0.1rem', padding: '3px' }} icon={summaryIcon} /> {title}
               </Typography>
               <Box sx={{ margin: '1rem 1rem 1rem 0' }}>
-                <Grid container spacing={2} sx={{
-                  alignItems: 'center'
-                }}>
+                <Grid
+                  container
+                  spacing={2}
+                  sx={{
+                    alignItems: 'center'
+                  }}
+                >
                   {data?.map((item, index) => (
                     <Grid item key={index} xs>
                       <Box
@@ -387,7 +391,7 @@ const CustomAccordion = ({
         </AccordionDetails>
       </StyledAccordion>
     </>
-  );
+  )
 }
 
 export default CustomAccordion
