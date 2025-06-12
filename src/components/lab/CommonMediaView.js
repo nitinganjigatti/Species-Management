@@ -39,7 +39,8 @@ const CommonMediaView = ({
 
   function convertUTCToLocal(date) {
     var stillUtc = moment.utc(date).toDate()
-    var local = moment(stillUtc).local(true).format('YYYY-MM-DD HH:mm:ss')
+    // var local = moment(stillUtc).local(true).format('YYYY-MM-DD HH:mm:ss')
+    var local = moment(stillUtc).local(true).format('DD-MMM-YYY')
 
     return local
   }
@@ -90,7 +91,7 @@ const CommonMediaView = ({
                   flexDirection: 'column',
                   gap: '8px',
                   width: '271px',
-                  height: '224px'
+                  height: '244px'
                 }}
               >
                 <Box
@@ -159,7 +160,7 @@ const CommonMediaView = ({
                     <Tooltip title={item?.user_profile?.name || ''}>
                       <Typography
                         sx={{
-                          width: 120,
+                          width: '212px',
                           fontSize: '16px',
                           fontWeight: '400',
                           lineHeight: '19.36px',
@@ -172,20 +173,30 @@ const CommonMediaView = ({
                       </Typography>
                     </Tooltip>
                   </Box>
-                  <Box>
-                    <Typography
-                      sx={{
-                        width: 76,
-                        fontSize: '16px',
-                        fontWeight: '400',
-                        lineHeight: '19.36px',
-                        overflow: 'hidden',
-                        textOverflow: 'ellipsis'
-                      }}
-                    >
-                      {extractHoursAndMinutes(convertUTCToLocal(item?.user_profile?.created_at))}
-                    </Typography>
-                  </Box>
+                </Box>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <Typography
+                    sx={{
+                      fontSize: '16px',
+                      fontWeight: '400',
+                      lineHeight: '19.36px',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis'
+                    }}
+                  >
+                    {convertUTCToLocal(item?.user_profile?.created_at)}
+                  </Typography>
+                  <Typography
+                    sx={{
+                      fontSize: '16px',
+                      fontWeight: '400',
+                      lineHeight: '19.36px',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis'
+                    }}
+                  >
+                    {extractHoursAndMinutes(convertUTCToLocal(item?.user_profile?.created_at))}
+                  </Typography>
                 </Box>
               </Card>
             </a>
@@ -206,7 +217,7 @@ const CommonMediaView = ({
                   flexDirection: 'column',
                   gap: '8px',
                   width: '271px',
-                  height: '224px'
+                  height: '244px'
                 }}
               >
                 <Box
@@ -262,7 +273,6 @@ const CommonMediaView = ({
                     mt: -2
                   }}
                 >
-                  {/* {console.log('item?.file_original_name :>> ', item?.file_type)} */}
                   <img
                     src={
                       item?.file_type === 'application/pdf'
@@ -284,6 +294,7 @@ const CommonMediaView = ({
                     <Avatar src={item?.user_profile?.user_profile_pic} sx={{ width: '24px', height: '24px' }} />
                     <Typography
                       sx={{
+                        width: '212px',
                         fontSize: '16px',
                         fontWeight: '400',
                         lineHeight: '19.36px',
@@ -294,7 +305,30 @@ const CommonMediaView = ({
                       {item?.user_profile?.name}
                     </Typography>
                   </Box>
-                  <Box>{extractHoursAndMinutes(convertUTCToLocal(item?.user_profile?.created_at))}</Box>
+                </Box>
+                <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
+                  <Typography
+                    sx={{
+                      fontSize: '16px',
+                      fontWeight: '400',
+                      lineHeight: '19.36px',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis'
+                    }}
+                  >
+                    {convertUTCToLocal(item?.user_profile?.created_at)}
+                  </Typography>
+                  <Typography
+                    sx={{
+                      fontSize: '16px',
+                      fontWeight: '400',
+                      lineHeight: '19.36px',
+                      overflow: 'hidden',
+                      textOverflow: 'ellipsis'
+                    }}
+                  >
+                    {extractHoursAndMinutes(convertUTCToLocal(item?.user_profile?.created_at))}
+                  </Typography>
                 </Box>
               </Card>
             </a>
