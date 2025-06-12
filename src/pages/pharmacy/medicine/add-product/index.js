@@ -870,7 +870,7 @@ const AddMedicine = () => {
           icon='material-symbols-light:close'
         />
       </Box>
-    )
+    );
   }
 
   const clearSaltFields = index => {
@@ -901,7 +901,7 @@ const AddMedicine = () => {
           icon='material-symbols-light:close'
         />
       </Box>
-    )
+    );
   }
 
   const handleAddRemoveSalts = (fields, index) => {

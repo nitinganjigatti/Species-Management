@@ -316,7 +316,6 @@ function AlternativeMedicine({ parentId, updateRequestItems, existingListItems, 
         </CardContent>
       </Card>
       <Divider />
-
       <Grid sx={{ my: 6 }} size={{ xs: 12 }}>
         <Grid
           item
@@ -1140,17 +1139,19 @@ function AlternativeMedicine({ parentId, updateRequestItems, existingListItems, 
                 <TextField
                   onClick={handleClick}
                   placeholder='Add Prescription *'
-                  InputProps={{
-                    readOnly: true,
-
-                    startAdornment: (
-                      <IconButton component='label' htmlFor='file-upload'>
-                        <Icon icon='material-symbols-light:attach-file-add-rounded' width='24' height='24' />
-                      </IconButton>
-                    )
-                  }}
                   error={Boolean(itemErrors.prescription_required_file)}
                   readOnly
+                  slotProps={{
+                    input: {
+                      readOnly: true,
+
+                      startAdornment: (
+                        <IconButton component='label' htmlFor='file-upload'>
+                          <Icon icon='material-symbols-light:attach-file-add-rounded' width='24' height='24' />
+                        </IconButton>
+                      )
+                    }
+                  }}
                 />
 
                 {itemErrors?.prescription_required_file && (
@@ -1187,7 +1188,7 @@ function AlternativeMedicine({ parentId, updateRequestItems, existingListItems, 
         </LoadingButton>
       </Grid>
     </form>
-  )
+  );
 }
 
 export default React.memo(AlternativeMedicine)

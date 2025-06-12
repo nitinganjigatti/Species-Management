@@ -153,7 +153,9 @@ const AddVariant = props => {
                   placeholder='Unit Multiplier'
                   error={Boolean(errors.unit_multiplier)}
                   name='unit_multiplier'
-                  inputProps={{ min: 0 }} // Prevents entering negative values using native HTML validation
+                  slotProps={{
+                    htmlInput: { min: 0 }
+                  }}
                 />
               )}
             />
@@ -221,7 +223,7 @@ const AddVariant = props => {
         </form>
       </Box>
     </Drawer>
-  )
+  );
 }
 
 export default AddVariant

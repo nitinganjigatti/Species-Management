@@ -981,7 +981,6 @@ function Ledger({ tabValue, updateUrlParams }) {
           </Box>
         </Grid>
       </Grid>
-
       <Box sx={{ mt: 5 }}>
         {/* Tabs */}
         <Grid
@@ -1190,7 +1189,6 @@ function Ledger({ tabValue, updateUrlParams }) {
           searchValue={searchValue}
         />
       </Grid>
-
       <FilterDrawer
         open={open}
         onClose={toggleDrawer}
@@ -1229,23 +1227,25 @@ function Ledger({ tabValue, updateUrlParams }) {
                   size='small'
                   value={batchSearchTerm}
                   onChange={e => handleBatchSearch(e.target.value)}
-                  InputProps={{
-                    endAdornment: (
-                      <InputAdornment position='end'>
-                        {batchSearchTerm && (
-                          <IconButton
-                            size='small'
-                            aria-label='clear search'
-                            onClick={() => {
-                              handleBatchSearch('')
-                            }}
-                            edge='end'
-                          >
-                            <ClearIcon />
-                          </IconButton>
-                        )}
-                      </InputAdornment>
-                    )
+                  slotProps={{
+                    input: {
+                      endAdornment: (
+                        <InputAdornment position='end'>
+                          {batchSearchTerm && (
+                            <IconButton
+                              size='small'
+                              aria-label='clear search'
+                              onClick={() => {
+                                handleBatchSearch('')
+                              }}
+                              edge='end'
+                            >
+                              <ClearIcon />
+                            </IconButton>
+                          )}
+                        </InputAdornment>
+                      )
+                    }
                   }}
                 />
               </Box>
@@ -1517,10 +1517,9 @@ function Ledger({ tabValue, updateUrlParams }) {
           </>
         )} */}
       </FilterDrawer>
-
       <>{/* <Error404></Error404> */}</>
     </>
-  )
+  );
 }
 
 export default Ledger

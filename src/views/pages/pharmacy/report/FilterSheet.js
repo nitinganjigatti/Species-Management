@@ -153,9 +153,7 @@ const FilterSheet = ({
           </IconButton>
         </Box>
       </Box>
-
       {/* Drawer Content */}
-
       <Box sx={{ height: '753px', display: 'flex', backgroundColor: 'background.default' }}>
         <Box sx={{ width: '180px', height: '900px', backgroundColor: 'background.default' }}>
           <Grid container>
@@ -229,9 +227,6 @@ const FilterSheet = ({
               placeholder='Search'
               value={searchValue}
               onChange={e => setSearchValue(e.target.value)}
-              InputProps={{
-                disableUnderline: false
-              }}
               sx={{
                 '& .MuiOutlinedInput-root': {
                   border: 'none',
@@ -239,6 +234,11 @@ const FilterSheet = ({
                   '& fieldset': {
                     border: 'none'
                   }
+                }
+              }}
+              slotProps={{
+                input: {
+                  disableUnderline: false
                 }
               }}
             />
@@ -287,7 +287,6 @@ const FilterSheet = ({
           </Box>
         </Box>
       </Box>
-
       {/* bottom buttons */}
       <Box
         sx={{
@@ -314,7 +313,7 @@ const FilterSheet = ({
         </LoadingButton>
       </Box>
     </Drawer>
-  )
+  );
 }
 
 export default FilterSheet

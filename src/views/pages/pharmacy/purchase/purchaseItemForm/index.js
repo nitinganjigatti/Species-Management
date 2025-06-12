@@ -1446,7 +1446,9 @@ const PurchaseItemForm = props => {
                   label='Gross Amount*'
                   variant='outlined'
                   error={Boolean(errors.purchase_gross_amount)}
-                  InputProps={{ readOnly: true }}
+                  slotProps={{
+                    input: { readOnly: true }
+                  }}
                 />
               )}
             />
@@ -1650,7 +1652,7 @@ const PurchaseItemForm = props => {
         </Grid>
       </Grid>
     </form>
-  )
+  );
 }
 
 export default React.memo(PurchaseItemForm)

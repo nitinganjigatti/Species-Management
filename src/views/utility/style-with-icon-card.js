@@ -49,7 +49,7 @@ const StyleWithIconCardComponent = ({ value, description, icon, bgColor, onClick
           {value && (
             <Tooltip
               title={value}
-              componentsProps={{
+              slotProps={{
                 tooltip: {
                   sx: {
                     bgcolor: '#ededed', // Background color
@@ -105,7 +105,7 @@ const StyleWithIconCardComponent = ({ value, description, icon, bgColor, onClick
         )}
       </Box>
     </Grid>
-  )
+  );
 }
 
 export default StyleWithIconCardComponent

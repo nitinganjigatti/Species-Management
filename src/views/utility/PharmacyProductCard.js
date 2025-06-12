@@ -22,7 +22,7 @@ const PharmacyProductCard = ({
     return (
       <Tooltip
         title={title}
-        componentsProps={{
+        slotProps={{
           tooltip: {
             sx: {
               backgroundColor: '#ededed',
@@ -118,14 +118,14 @@ const PharmacyProductCard = ({
         {secondSubTitle && (
           <ToolTip title={secondSubTitle}>
             <Typography
+              component='div'
               sx={{
                 color: 'customColors.neutralSecondary',
                 fontWeight: 400,
                 fontSize: '14px',
-                overflow: 'hidden', // Hide overflowing text
-                whiteSpace: 'nowrap', // Prevent wrapping to the next line
-                textOverflow: 'ellipsis', // Add ellipsis when text overflows
-                // maxWidth: 250
+                overflow: 'hidden',
+                whiteSpace: 'nowrap',
+                textOverflow: 'ellipsis',
                 width: `${rowWidth - (marginLeft * 4 + 44 + 8)}px`
               }}
             >

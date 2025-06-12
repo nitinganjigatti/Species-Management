@@ -428,18 +428,23 @@ const ExistingPurchaseForm = props => {
                   options={optionsMedicineList}
                   value={value}
                   getOptionLabel={option => option.label}
-                  renderOption={(props, option) => (
-                    <li
-                      {...props}
-                      style={{ opacity: option.status ? 1 : 0.5, pointerEvents: option.status ? 'auto' : 'none' }}
-                    >
-                      <Box>
-                        <Typography>{option.label}</Typography>
-                        <Typography variant='body2'>{option.package_details}</Typography>
-                        <Typography variant='body2'>{option.manufacture}</Typography>
-                      </Box>
-                    </li>
-                  )}
+                  renderOption={(props, option) => {
+                    const { key, ...otherProps } = props
+
+                    return (
+                      <li
+                        key={`${key}-${option.value}`}
+                        {...otherProps}
+                        style={{ opacity: option.status ? 1 : 0.5, pointerEvents: option.status ? 'auto' : 'none' }}
+                      >
+                        <Box>
+                          <Typography>{option.label}</Typography>
+                          <Typography variant='body2'>{option.package_details}</Typography>
+                          <Typography variant='body2'>{option.manufacture}</Typography>
+                        </Box>
+                      </li>
+                    )
+                  }}
                   isOptionEqualToValue={(option, value) => option.value === value.value}
                   onChange={(e, val) => {
                     if (val === null) {

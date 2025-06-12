@@ -634,7 +634,7 @@ const ListOfStores = () => {
                         icon='material-symbols:delete-outline-rounded'
                       />
                     ) : (
-                      <>
+                      (<>
                         <Icon
                           style={{
                             cursor: 'pointer',
@@ -657,7 +657,7 @@ const ListOfStores = () => {
                           }}
                           icon='heroicons:no-symbol-16-solid'
                         />
-                      </>
+                      </>)
 
                       // <Icon
                       //   style={{
@@ -807,7 +807,7 @@ const ListOfStores = () => {
         </>
       )}
     </>
-  )
+  );
 }
 
 export default ListOfStores

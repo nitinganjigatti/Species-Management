@@ -648,6 +648,7 @@ const AddRequestForm = () => {
   const createForm = () => {
     return (
       // <CardContent>
+      // </CardContent>
       <form style={{ width: '100%' }}>
         <Grid container spacing={5} size={{ xs: 12 }}>
           <Grid item size={{ xs: 12, sm: 11 / 2 }}>
@@ -1137,8 +1138,7 @@ const AddRequestForm = () => {
           </Grid>
         </Grid>
       </form>
-      // </CardContent>
-    )
+    );
   }
 
   return (

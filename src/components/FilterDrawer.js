@@ -20,12 +20,14 @@ const FilterDrawer = ({
       anchor='right'
       open={open}
       onClose={onClose}
-      PaperProps={{
-        sx: {
-          width: { xs: '100%', sm: 560 },
-          backgroundColor: 'customColors.Background',
-          display: 'flex',
-          flexDirection: 'column'
+      slotProps={{
+        paper: {
+          sx: {
+            width: { xs: '100%', sm: 560 },
+            backgroundColor: 'customColors.Background',
+            display: 'flex',
+            flexDirection: 'column'
+          }
         }
       }}
     >
@@ -127,7 +129,7 @@ const FilterDrawer = ({
         </Button>
       </Box>
     </Drawer>
-  )
+  );
 }
 
 export default FilterDrawer

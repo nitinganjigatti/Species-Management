@@ -335,13 +335,13 @@ const ListOfPurchase = () => {
       field: 'created_by',
       headerName: 'Created by ',
       renderCell: params => (
-        <>
+        (<>
           {RenderUtility?.renderUserAvatarDetails(
             params?.row?.user_created_profile_pic,
             params?.row?.created_by_user_name,
             params?.row?.created_at
           )}
-        </>
+        </>)
 
         // <Box sx={{ display: 'flex', alignItems: 'center' }}>
         //   {Utility.renderUserAvatar(params.row.user_created_profile_pic)}
@@ -362,13 +362,13 @@ const ListOfPurchase = () => {
       field: 'updated_by',
       headerName: 'Updated by',
       renderCell: params => (
-        <>
+        (<>
           {RenderUtility?.renderUserAvatarDetails(
             params?.row?.user_updated_profile_pic,
             params?.row?.updated_by_user_name,
             params?.row?.updated_at
           )}
-        </>
+        </>)
 
         // <Box sx={{ display: 'flex', alignItems: 'center' }}>
         //   {Utility.renderUserAvatar(params.row.user_updated_profile_pic)}
@@ -571,19 +571,21 @@ const ListOfPurchase = () => {
                           value={searchValue}
                           onChange={e => handleSearch(e.target.value)}
                           fullWidth
-                          InputProps={{
-                            startAdornment: (
-                              <InputAdornment position='start'>
-                                <Icon
-                                  icon='mi:search'
-                                  fontSize={24}
-                                  color={theme.palette.customColors.neutralSecondary}
-                                />
-                              </InputAdornment>
-                            )
-                          }}
                           sx={{
                             borderRadius: '8px'
+                          }}
+                          slotProps={{
+                            input: {
+                              startAdornment: (
+                                <InputAdornment position='start'>
+                                  <Icon
+                                    icon='mi:search'
+                                    fontSize={24}
+                                    color={theme.palette.customColors.neutralSecondary}
+                                  />
+                                </InputAdornment>
+                              )
+                            }
                           }}
                         />
                       </Grid>
@@ -687,7 +689,7 @@ const ListOfPurchase = () => {
         )
       ) : null}
     </>
-  )
+  );
 }
 
 export default ListOfPurchase

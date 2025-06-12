@@ -263,12 +263,14 @@ const ValidateImportPurchase = () => {
                         error={Boolean(errors.upload_file)}
                         helperText={errors.upload_file?.message}
                         onChange={handleFileChange}
-                        InputProps={{
-                          endAdornment: (
-                            <InputAdornment position='end'>
-                              {loader ? <IconButton edge='end'>{<LoaderIcon size={40} />}</IconButton> : null}
-                            </InputAdornment>
-                          )
+                        slotProps={{
+                          input: {
+                            endAdornment: (
+                              <InputAdornment position='end'>
+                                {loader ? <IconButton edge='end'>{<LoaderIcon size={40} />}</IconButton> : null}
+                              </InputAdornment>
+                            )
+                          }
                         }}
                       />
                     </FormControl>
@@ -467,7 +469,7 @@ const ValidateImportPurchase = () => {
         <Error404 />
       )}
     </>
-  )
+  );
 }
 
 export default ValidateImportPurchase

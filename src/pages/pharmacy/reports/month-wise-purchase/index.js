@@ -703,11 +703,13 @@ const MonthWisePurchase = () => {
         inputRef={ref}
         {...props}
         sx={{ width: '100%' }}
-        InputProps={{
-          autoComplete: 'off'
+        slotProps={{
+          input: {
+            autoComplete: 'off'
+          }
         }}
       />
-    )
+    );
   })
 
   return (

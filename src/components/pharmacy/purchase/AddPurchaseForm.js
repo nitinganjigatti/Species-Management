@@ -2267,85 +2267,49 @@ const AddPurchaseForm = () => {
                   >
                     Gross Amount
                   </TableCell>
-                  <TableCell
-                    sx={{
-                      minWidth: 130,
-                      textAlign: 'center'
-                    }}
-                  >
-                    CGST
-                    <Grid container>
-                      <Grid
-                        item
-                        xs={6}
-                        sx={{
-                          textAlign: 'center'
-                        }}
-                      >
-                        Rate
+
+                  <TableCell sx={{ minWidth: 130, textAlign: 'center' }}>
+                    <Box>
+                      CGST
+                      <Grid container justifyContent='space-between'>
+                        <Grid item xs={6} sx={{ textAlign: 'center' }}>
+                          Rate
+                        </Grid>
+                        <Grid item xs={6} sx={{ textAlign: 'center' }}>
+                          Amount
+                        </Grid>
                       </Grid>
-                      <Grid
-                        item
-                        xs={6}
-                        sx={{
-                          textAlign: 'center'
-                        }}
-                      >
-                        Amount
-                      </Grid>
-                    </Grid>
+                    </Box>
                   </TableCell>
-                  <TableCell
-                    sx={{
-                      textAlign: 'center',
-                      minWidth: 130
-                    }}
-                  >
-                    SGST
-                    <Grid container>
-                      <Grid
-                        item
-                        xs={6}
-                        sx={{
-                          textAlign: 'center'
-                        }}
-                      >
-                        Rate
+
+                  <TableCell sx={{ minWidth: 130, textAlign: 'center' }}>
+                    <Box>
+                      SGST
+                      <Grid container justifyContent='space-between'>
+                        <Grid item xs={6} sx={{ textAlign: 'center' }}>
+                          Rate
+                        </Grid>
+                        <Grid item xs={6} sx={{ textAlign: 'center' }}>
+                          Amount
+                        </Grid>
                       </Grid>
-                      <Grid
-                        item
-                        xs={6}
-                        sx={{
-                          textAlign: 'center'
-                        }}
-                      >
-                        Amount
-                      </Grid>
-                    </Grid>
+                    </Box>
                   </TableCell>
-                  <TableCell sx={{ textAlign: 'center', minWidth: 130 }}>
-                    IGST
-                    <Grid container>
-                      <Grid
-                        item
-                        xs={6}
-                        sx={{
-                          textAlign: 'center'
-                        }}
-                      >
-                        Rate
+
+                  <TableCell sx={{ minWidth: 130, textAlign: 'center' }}>
+                    <Box>
+                      IGST
+                      <Grid container justifyContent='space-between'>
+                        <Grid item xs={6} sx={{ textAlign: 'center' }}>
+                          Rate
+                        </Grid>
+                        <Grid item xs={6} sx={{ textAlign: 'center' }}>
+                          Amount
+                        </Grid>
                       </Grid>
-                      <Grid
-                        item
-                        xs={6}
-                        sx={{
-                          textAlign: 'center'
-                        }}
-                      >
-                        Amount
-                      </Grid>
-                    </Grid>
+                    </Box>
                   </TableCell>
+
                   <TableCell align='right'>Action</TableCell>
                 </TableRow>
               </TableHead>
@@ -2353,7 +2317,7 @@ const AddPurchaseForm = () => {
                 {editParams?.purchase_details
                   ? editParams?.purchase_details.map((el, index) => {
                       return (
-                        <TableRow key={index} sx={{ overflowX: 'scroll' }}>
+                        <TableRow key={`${index}${el?.medicine_name}`} sx={{ overflowX: 'scroll' }}>
                           <TableCell>
                             <Typography variant='body2'>{index + 1}</Typography>
                           </TableCell>
@@ -2415,7 +2379,7 @@ const AddPurchaseForm = () => {
                             <TableCell sx={{ borderBottom: 'none', backgroundColor: 'transparent' }}>
                               {Utility.formatAmountToReadableDigit(el?.purchase_sgst_amount)}
                             </TableCell>
-                          </TableCell>{' '}
+                          </TableCell>
                           <TableCell
                             sx={{
                               textAlign: 'center'

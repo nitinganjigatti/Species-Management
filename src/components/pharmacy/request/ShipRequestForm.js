@@ -98,7 +98,7 @@ const ShipRequest = ({ dispatchedItems, storeDetails, resetForm }) => {
           .string()
           .required('Mobile Number is required')
           .test('is-valid-number', 'Only numbers are allowed', value => {
-            return /^\d*$/.test(value)
+            return /^\d*$/.test(value);
           })
           .test('is-valid-length', 'Mobile Number must be exactly 10 digits', value => {
             return value?.length === 10
@@ -127,7 +127,7 @@ const ShipRequest = ({ dispatchedItems, storeDetails, resetForm }) => {
           .string()
           .required('Mobile Number is required')
           .test('is-valid-number', 'Only numbers are allowed', value => {
-            return /^\d*$/.test(value)
+            return /^\d*$/.test(value);
           })
           .test('is-valid-length', 'Mobile Number must be exactly 10 digits', value => {
             return value?.length === 10
@@ -265,11 +265,13 @@ const ShipRequest = ({ dispatchedItems, storeDetails, resetForm }) => {
         inputRef={ref}
         {...props}
         sx={{ width: '100%' }}
-        InputProps={{
-          autoComplete: 'off'
+        slotProps={{
+          input: {
+            autoComplete: 'off'
+          }
         }}
       />
-    )
+    );
   })
 
   const columns = [
@@ -680,7 +682,9 @@ const ShipRequest = ({ dispatchedItems, storeDetails, resetForm }) => {
                               placeholder=''
                               error={Boolean(errors.person_shipping)}
                               name='person_shipping'
-                              InputLabelProps={{ shrink: true }}
+                              slotProps={{
+                                inputLabel: { shrink: true }
+                              }}
                             />
                           )}
                         />
@@ -732,7 +736,9 @@ const ShipRequest = ({ dispatchedItems, storeDetails, resetForm }) => {
                           placeholder=''
                           error={Boolean(errors.phone_number)}
                           name='phone_number'
-                          InputLabelProps={{ shrink: true }}
+                          slotProps={{
+                            inputLabel: { shrink: true }
+                          }}
                         />
                       )}
                     />
@@ -757,7 +763,9 @@ const ShipRequest = ({ dispatchedItems, storeDetails, resetForm }) => {
                               placeholder=''
                               error={Boolean(errors.vehicle_no)}
                               name='vehicle_no'
-                              InputLabelProps={{ shrink: true }}
+                              slotProps={{
+                                inputLabel: { shrink: true }
+                              }}
                             />
                           )}
                         />
@@ -828,7 +836,9 @@ const ShipRequest = ({ dispatchedItems, storeDetails, resetForm }) => {
                               placeholder=''
                               error={Boolean(errors.receiver_name)}
                               name='receiver_name'
-                              InputLabelProps={{ shrink: true }}
+                              slotProps={{
+                                inputLabel: { shrink: true }
+                              }}
                             />
                           )}
                         />
@@ -854,7 +864,9 @@ const ShipRequest = ({ dispatchedItems, storeDetails, resetForm }) => {
                           placeholder=''
                           error={Boolean(errors.carton_box)}
                           name='carton_box'
-                          InputLabelProps={{ shrink: true }}
+                          slotProps={{
+                            inputLabel: { shrink: true }
+                          }}
                         />
                       )}
                     />
@@ -1035,7 +1047,7 @@ const ShipRequest = ({ dispatchedItems, storeDetails, resetForm }) => {
         </Grid>
       </Grid>
     </>
-  )
+  );
 }
 
 export default ShipRequest

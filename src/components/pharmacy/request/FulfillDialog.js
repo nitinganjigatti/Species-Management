@@ -463,11 +463,24 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
           icon='si:add-duotone'
         />
       </Box>
-    )
+    );
   }
 
   const removeSaltButton = index => {
     return (
+      // <Button
+      //   variant='outlined'
+      //   color='error'
+      //   startIcon={<Icon icon='material-symbols-light:close' />}
+      //   onClick={() => {
+      //     var tempDefaultSalts = defaultSalts
+      //     tempDefaultSalts.splice(index, 1)
+      //     setDefaultSalts(tempDefaultSalts)
+      //     remove(index)
+      //   }}
+      // >
+      //   {/* Remove */}
+      // </Button>
       <Box
         sx={{
           display: 'flex',
@@ -499,21 +512,7 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
           icon='material-symbols-light:close-small'
         />
       </Box>
-
-      // <Button
-      //   variant='outlined'
-      //   color='error'
-      //   startIcon={<Icon icon='material-symbols-light:close' />}
-      //   onClick={() => {
-      //     var tempDefaultSalts = defaultSalts
-      //     tempDefaultSalts.splice(index, 1)
-      //     setDefaultSalts(tempDefaultSalts)
-      //     remove(index)
-      //   }}
-      // >
-      //   {/* Remove */}
-      // </Button>
-    )
+    );
   }
 
   const clearSaltFields = index => {
@@ -586,7 +585,7 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
           icon='material-symbols-light:close-small'
         />
       </Box>
-    )
+    );
   }
 
   const getAllQuantityValues = () => {
@@ -1151,7 +1150,9 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
                                 sx={{ backgroundColor: 'white', borderRadius: 1 }}
                                 error={Boolean(errors?.product_batches?.[index]?.multiplier)}
                                 name={`product_batches[${index}].multiplier`}
-                                InputLabelProps={{ shrink: true }}
+                                slotProps={{
+                                  inputLabel: { shrink: true }
+                                }}
                               />
                             )}
                           />
@@ -1560,7 +1561,7 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
         </Box>
       )}
     </>
-  )
+  );
 }
 
 export default FulfillDialog

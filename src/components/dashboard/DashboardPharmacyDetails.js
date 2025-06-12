@@ -60,7 +60,7 @@ const Slides = ({ sliderData }) => {
     return str
       .replace(/_/g, ' ') // Replace underscores with spaces
       .toLowerCase() // Convert the entire string to lowercase
-      .replace(/\b\w/g, char => char.toUpperCase()) // Capitalize the first letter of each word
+      .replace(/\b\w/g, char => char.toUpperCase()); // Capitalize the first letter of each word
   }
 
   return (
@@ -174,11 +174,6 @@ const DashboardPharmacyDetails = ({ pharmacyData }) => {
             {pharmacyData[currentSlide]?.title}
           </Typography>
         }
-        titleTypographyProps={{
-          variant: 'h6',
-          sx: { letterSpacing: '0.15px' },
-          textAlign: 'start'
-        }}
         sx={{ '& .swiper-dots': { mt: 0.75, mr: -1.75 } }}
         subheader={
           <Box sx={{ display: 'flex', alignItems: 'center', '& svg': { color: 'success.main' } }}>
@@ -227,6 +222,13 @@ const DashboardPharmacyDetails = ({ pharmacyData }) => {
             </Box>
           )
         }
+        slotProps={{
+          title: {
+            variant: 'h6',
+            sx: { letterSpacing: '0.15px' },
+            textAlign: 'start'
+          }
+        }}
       />
       <CardContent>
         {pharmacyData.length > 0 && (
@@ -236,7 +238,7 @@ const DashboardPharmacyDetails = ({ pharmacyData }) => {
         )}
       </CardContent>
     </Card>
-  )
+  );
 }
 
 export default DashboardPharmacyDetails

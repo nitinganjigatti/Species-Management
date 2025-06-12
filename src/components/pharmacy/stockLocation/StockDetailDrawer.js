@@ -43,17 +43,19 @@ const StockDetailDrawer = ({ openDrawer, stockDetail, setDrawerClose }) => {
       anchor='right'
       open={openDrawer}
       onClose={setDrawerClose}
-      PaperProps={{
-        sx: {
-          width: {
-            xs: '100%',
-            sm: '80%',
-            md: 560
-          },
-          backgroundColor: 'customColors.Background',
-          display: 'flex',
-          flexDirection: 'column',
-          height: '100%'
+      slotProps={{
+        paper: {
+          sx: {
+            width: {
+              xs: '100%',
+              sm: '80%',
+              md: 560
+            },
+            backgroundColor: 'customColors.Background',
+            display: 'flex',
+            flexDirection: 'column',
+            height: '100%'
+          }
         }
       }}
     >
@@ -165,7 +167,7 @@ const StockDetailDrawer = ({ openDrawer, stockDetail, setDrawerClose }) => {
         </Card>
       </Box>
     </Drawer>
-  )
+  );
 }
 
 export default StockDetailDrawer

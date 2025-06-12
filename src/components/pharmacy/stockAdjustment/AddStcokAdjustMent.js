@@ -411,7 +411,7 @@ const AddStockAdjustment = () => {
                 render={({ field: { value, onChange } }) => (
                   <Select
                     name='reason'
-                    value={value}
+                    value={value || ''}
                     label='Select reason*'
                     onChange={onChange}
                     error={Boolean(errors?.reason)}
@@ -562,7 +562,6 @@ const AddStockAdjustment = () => {
           title={id ? 'Stock Adjustment' : 'Add Stock Adjustment'}
         />
       </Grid>
-
       <CardContent>
         <form>
           <Grid container spacing={5}>
@@ -577,15 +576,19 @@ const AddStockAdjustment = () => {
                   <Autocomplete
                     id='autocomplete-controlled'
                     options={optionsMedicineList}
-                    renderOption={(props, option) => (
-                      <li {...props}>
-                        <Box>
-                          <Typography>{option.name}</Typography>
-                          <Typography variant='body2'>{option.package}</Typography>
-                          <Typography variant='body2'>{option.manufacture}</Typography>
-                        </Box>
-                      </li>
-                    )}
+                    renderOption={(props, option) => {
+                      const { key, ...otherProps } = props
+
+                      return (
+                        <li key={key} {...otherProps}>
+                          <Box>
+                            <Typography>{option.name}</Typography>
+                            <Typography variant='body2'>{option.package}</Typography>
+                            <Typography variant='body2'>{option.manufacture}</Typography>
+                          </Box>
+                        </li>
+                      )
+                    }}
                     // value={value}
                     onChange={(event, newValue) => {
                       if (newValue?.value && newValue?.stockType) {
@@ -607,9 +610,13 @@ const AddStockAdjustment = () => {
                         {...params}
                         placeholder='Search & Select'
                         label='Product Name*'
-                        InputProps={{
-                          ...params.InputProps,
-                          endAdornment: <InputAdornment position='end'>{params.InputProps.endAdornment}</InputAdornment>
+                        slotProps={{
+                          input: {
+                            ...params.InputProps,
+                            endAdornment: (
+                              <InputAdornment position='end'>{params.InputProps.endAdornment}</InputAdornment>
+                            )
+                          }
                         }}
                       />
                     )}
@@ -697,7 +704,6 @@ const AddStockAdjustment = () => {
           </TableContainer>
         </Card>
       ) : null}
-
       <Grid container>
         <CommonDialogBox
           title={'Add Stock Adjustment Details'}

@@ -378,18 +378,6 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
 
   const removeSaltButton = index => {
     return (
-      <Box>
-        <Icon
-          onClick={() => {
-            // var tempDefaultSalts = defaultSalts
-            // tempDefaultSalts.splice(index, 1)
-            // setDefaultSalts(tempDefaultSalts)
-            remove(index)
-          }}
-          icon='material-symbols-light:close'
-        />
-      </Box>
-
       // <Button
       //   variant='outlined'
       //   color='error'
@@ -403,7 +391,18 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
       // >
       //   {/* Remove */}
       // </Button>
-    )
+      <Box>
+        <Icon
+          onClick={() => {
+            // var tempDefaultSalts = defaultSalts
+            // tempDefaultSalts.splice(index, 1)
+            // setDefaultSalts(tempDefaultSalts)
+            remove(index)
+          }}
+          icon='material-symbols-light:close'
+        />
+      </Box>
+    );
   }
 
   const clearSaltFields = index => {
@@ -434,7 +433,7 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
           icon='material-symbols-light:close'
         />
       </Box>
-    )
+    );
   }
 
   const getAllQuantityValues = () => {

@@ -168,26 +168,28 @@ const SelectShelfListDrawer = ({
               size='small'
               value={searchTerm}
               onChange={handleSearchChange}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position='start'>
-                    <SearchIcon sx={{ color: '#1F515B' }} />
-                  </InputAdornment>
-                ),
-                endAdornment: searchTerm && (
-                  <InputAdornment position='end'>
-                    <IconButton
-                      size='small'
-                      onClick={() => {
-                        setSearchTerm('')
-                        fetchSections('')
-                      }}
-                    >
-                      <Icon icon='mdi:close' fontSize={20} />
-                    </IconButton>
-                  </InputAdornment>
-                ),
-                style: { background: '#EFF5F2', borderRadius: '4px', padding: '4px 8px', color: '#1F515B' }
+              slotProps={{
+                input: {
+                  startAdornment: (
+                    <InputAdornment position='start'>
+                      <SearchIcon sx={{ color: '#1F515B' }} />
+                    </InputAdornment>
+                  ),
+                  endAdornment: searchTerm && (
+                    <InputAdornment position='end'>
+                      <IconButton
+                        size='small'
+                        onClick={() => {
+                          setSearchTerm('')
+                          fetchSections('')
+                        }}
+                      >
+                        <Icon icon='mdi:close' fontSize={20} />
+                      </IconButton>
+                    </InputAdornment>
+                  ),
+                  style: { background: '#EFF5F2', borderRadius: '4px', padding: '4px 8px', color: '#1F515B' }
+                }
               }}
             />
           </Box>
@@ -282,9 +284,10 @@ const SelectShelfListDrawer = ({
                   >
                     <ListItemText
                       primary={shelf.name}
-                      primaryTypographyProps={{ fontWeight: 'bold', color: '#1F515B' }}
-                      secondaryTypographyProps={{ color: '#44544A' }}
-                    />
+                      slotProps={{
+                        primary: { fontWeight: 'bold', color: '#1F515B' },
+                        secondary: { color: '#44544A' }
+                      }} />
                     <Checkbox
                       checked={selectedShelves.includes(shelf.id)}
                       onChange={() => handleShelfCheckboxChange(shelf.id)}
@@ -325,7 +328,7 @@ const SelectShelfListDrawer = ({
         </Box>
       </Drawer>
     </>
-  )
+  );
 }
 
 export default SelectShelfListDrawer

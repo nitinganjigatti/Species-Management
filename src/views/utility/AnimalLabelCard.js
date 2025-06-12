@@ -19,7 +19,7 @@ const AnimalLabelCard = ({
     return (
       <Tooltip
         title={title}
-        componentsProps={{
+        slotProps={{
           tooltip: {
             sx: {
               backgroundColor: '#ededed',
@@ -34,7 +34,7 @@ const AnimalLabelCard = ({
       >
         {children}
       </Tooltip>
-    )
+    );
   }
 
   return (

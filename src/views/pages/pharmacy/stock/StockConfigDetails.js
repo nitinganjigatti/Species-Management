@@ -24,17 +24,19 @@ const StockConfigDetails = ({ open, configMed, setConfigMed, close }) => {
       anchor='right'
       open={open}
       onClose={close}
-      PaperProps={{
-        sx: {
-          width: {
-            xs: '100%',
-            sm: '80%',
-            md: 560
-          },
-          backgroundColor: 'customColors.Background',
-          display: 'flex',
-          flexDirection: 'column',
-          height: '100%'
+      slotProps={{
+        paper: {
+          sx: {
+            width: {
+              xs: '100%',
+              sm: '80%',
+              md: 560
+            },
+            backgroundColor: 'customColors.Background',
+            display: 'flex',
+            flexDirection: 'column',
+            height: '100%'
+          }
         }
       }}
     >
@@ -185,7 +187,7 @@ const StockConfigDetails = ({ open, configMed, setConfigMed, close }) => {
         </Card>
       </Box>
     </Drawer>
-  )
+  );
 }
 
 export default StockConfigDetails

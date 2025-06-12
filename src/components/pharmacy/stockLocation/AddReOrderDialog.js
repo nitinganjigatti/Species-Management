@@ -93,17 +93,19 @@ const AddReOrderDialog = ({
         setOpenDrawer(false)
         setStockDetails(null)
       }}
-      PaperProps={{
-        sx: {
-          width: {
-            xs: '100%',
-            sm: '80%',
-            md: 560
-          },
-          backgroundColor: 'customColors.Background',
-          display: 'flex',
-          flexDirection: 'column',
-          height: '100%'
+      slotProps={{
+        paper: {
+          sx: {
+            width: {
+              xs: '100%',
+              sm: '80%',
+              md: 560
+            },
+            backgroundColor: 'customColors.Background',
+            display: 'flex',
+            flexDirection: 'column',
+            height: '100%'
+          }
         }
       }}
     >
@@ -190,7 +192,7 @@ const AddReOrderDialog = ({
         </Card>
       </Box>
     </Drawer>
-  )
+  );
 }
 
 export default AddReOrderDialog

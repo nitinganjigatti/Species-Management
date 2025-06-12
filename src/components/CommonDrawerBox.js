@@ -120,7 +120,7 @@ const CommonDrawerBox = ({
       {/* Content Section */}
       <Box sx={{ p: 4, overflowY: 'auto', flexGrow: 1 }}>{contentComponent ? contentComponent : null}</Box>
     </Drawer>
-  )
+  );
 }
 
 export default CommonDrawerBox

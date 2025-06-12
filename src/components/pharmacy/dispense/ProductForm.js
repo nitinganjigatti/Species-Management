@@ -939,21 +939,23 @@ function ProductForm({
                                 </Box>
                               </Box>
                             )}
-                            PaperComponent={({ children, ...props }) => (
-                              <Paper
-                                {...props}
-                                elevation={3}
-                                sx={{
-                                  mt: 1,
-                                  '& .MuiAutocomplete-listbox': {
-                                    p: 0,
-                                    maxHeight: '300px'
-                                  }
-                                }}
-                              >
-                                {children}
-                              </Paper>
-                            )}
+                            slots={{
+                              paper: ({ children, ...props }) => (
+                                <Paper
+                                  {...props}
+                                  elevation={3}
+                                  sx={{
+                                    mt: 1,
+                                    '& .MuiAutocomplete-listbox': {
+                                      p: 0,
+                                      maxHeight: '300px'
+                                    }
+                                  }}
+                                >
+                                  {children}
+                                </Paper>
+                              )
+                            }}
                           />
                           {errors?.product_batches?.[index]?.batch_no && (
                             <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
@@ -987,7 +989,6 @@ function ProductForm({
                           disabled
                           type='text'
                           value={value || ''}
-                          InputLabelProps={{ shrink: true }}
                           label='Product Variant'
                           error={Boolean(errors?.product_batches?.[index]?.multiplier)}
                           name={`product_batches[${index}].multiplier`}
@@ -999,6 +1000,9 @@ function ProductForm({
                             }
                           }}
                           sx={{ backgroundColor: 'white', borderRadius: 1 }}
+                          slotProps={{
+                            inputLabel: { shrink: true }
+                          }}
                         />
                       )}
                     ></Controller>
@@ -1239,7 +1243,7 @@ function ProductForm({
         </Grid>
       </form>
     </Box>
-  )
+  );
 }
 
 export default ProductForm
