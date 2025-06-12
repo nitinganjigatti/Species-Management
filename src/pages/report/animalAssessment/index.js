@@ -813,7 +813,7 @@ const AnimalAssessment = () => {
                     disabled={isLoading}
                     size='small'
                     placeholder='Search'
-                    InputProps={{
+                    slotProps={{
                       startAdornment: (
                         <InputAdornment position='start'>
                           <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />

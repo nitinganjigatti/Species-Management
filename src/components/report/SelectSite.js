@@ -96,10 +96,10 @@ const SelectSites = ({
         {/* Header */}
         <Box sx={{ p: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <Box>
-            <Typography variant='h6' fontWeight='500' sx={{ color: '#1F515B' }}>
+            <Typography variant='h6' fontWeight='500' sx={{ color: theme.palette.customColors.OnPrimaryContainer }}>
               Choose Site
             </Typography>
-            <Typography variant='body2' sx={{ color: '#44544A' }}>
+            <Typography variant='body2' sx={{ color: theme.palette.customColors.onSurfaceVariant }}>
               Select a site from the list below
             </Typography>
           </Box>
@@ -121,7 +121,7 @@ const SelectSites = ({
               input: {
                 startAdornment: (
                   <InputAdornment position='start'>
-                    <SearchIcon sx={{ color: '#1F515B' }} />
+                    <SearchIcon sx={{ color: theme.palette.customColors.OnPrimaryContainer }} />
                   </InputAdornment>
                 ),
                 endAdornment: searchTerm && (
@@ -136,7 +136,12 @@ const SelectSites = ({
                     </IconButton>
                   </InputAdornment>
                 ),
-                style: { background: '#EFF5F2', borderRadius: '4px', padding: '4px 8px', color: '#1F515B' }
+                style: {
+                  background: theme.palette.customColors.lightBg,
+                  borderRadius: '4px',
+                  padding: '4px 8px',
+                  color: theme.palette.customColors.OnPrimaryContainer
+                }
               }
             }}
           />
@@ -144,7 +149,7 @@ const SelectSites = ({
 
         {/* Selected Count */}
         <Box sx={{ p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Typography variant='body2' sx={{ color: '#44544A' }}>
+          <Typography variant='body2' sx={{ color: theme.palette.customColors.onSurfaceVariant }}>
             Selected {pendingSelections?.Site?.length} / {siteData?.length}
           </Typography>
           <Box
@@ -156,7 +161,10 @@ const SelectSites = ({
             <Button
               size='small'
               sx={{
-                color: pendingSelections?.Site?.length === siteData?.length ? theme.palette.primary.main : '#44544A',
+                color:
+                  pendingSelections?.Site?.length === siteData?.length
+                    ? theme.palette.primary.main
+                    : theme.palette.customColors.onSurfaceVariant,
                 fontSize: '12px',
                 fontWeight: 600,
                 textTransform: 'none',
@@ -170,7 +178,9 @@ const SelectSites = ({
             <Checkbox
               checked={pendingSelections?.Site?.length === siteData?.length}
               onChange={handleSelectAllSites}
-              inputProps={{ 'aria-label': 'Select all species' }}
+              slotProps={{
+                'aria-label': 'Select all species'
+              }}
               sx={{
                 '&.Mui-checked': {
                   color: theme.palette.primary.main
@@ -212,21 +222,26 @@ const SelectSites = ({
                   pl: 3,
                   mb: 4,
                   border: '1px solid',
-                  borderColor: pendingSelections?.Site?.includes(site.site_id) ? '#80E0A3' : '#C3CEC7',
+                  borderColor: pendingSelections?.Site?.includes(site.site_id)
+                    ? '#80E0A3'
+                    : theme.palette.customColors.OutlineVariant,
                   borderRadius: '8px',
-                  bgcolor: pendingSelections?.Site?.includes(site.site_id) ? '#E1F9ED' : 'transparent',
+                  bgcolor: pendingSelections?.Site?.includes(site.site_id)
+                    ? theme.palette.customColors.OnBackground
+                    : 'transparent',
                   height: '70px'
                 }}
               >
                 <ListItemAvatar>
-                  <Avatar src={site.image || '/default-site.jpg'} variant='rounded' />
+                  <Avatar src={site.image || '/images/housing/site-icon-colored.svg'} variant='rounded' />
                 </ListItemAvatar>
                 <ListItemText
                   primary={site.site_name}
                   slotProps={{
-                    primary: { fontWeight: 'bold', color: '#1F515B' },
-                    secondary: { color: '#44544A' }
-                  }} />
+                    primary: { fontWeight: 'bold', color: theme.palette.customColors.OnPrimaryContainer },
+                    secondary: { color: theme.palette.customColors.onSurfaceVariant }
+                  }}
+                />
                 <Checkbox
                   checked={pendingSelections?.Site?.includes(site.site_id)}
                   onChange={() => handleSiteCheckboxChange(site)}
@@ -262,7 +277,7 @@ const SelectSites = ({
         </Box>
       </Box>
     </Drawer>
-  );
+  )
 }
 
 export default SelectSites
