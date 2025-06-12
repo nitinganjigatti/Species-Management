@@ -117,7 +117,6 @@ const CustomAccordion = ({
           </Typography>
         </Box>
       )}
-
       <StyledAccordion expanded={expanded} onChange={handleChange} slotProps={{ heading: { component: 'h4' } }}>
         <AccordionSummary
           id='panel-header-1'
@@ -148,6 +147,7 @@ const CustomAccordion = ({
                                 <Typography variant='body2' sx={{ color: '#fff' }}>
                                   <Typography
                                     variant='body2'
+                                    component={'span'}
                                     sx={{
                                       color: '#fff',
                                       display: 'inline-block',
@@ -176,7 +176,9 @@ const CustomAccordion = ({
                 <Icon style={{ color: '#fff', marginRight: '0.1rem', padding: '3px' }} icon={summaryIcon} /> {title}
               </Typography>
               <Box sx={{ margin: '1rem 1rem 1rem 0' }}>
-                <Grid container spacing={2} alignItems='center'>
+                <Grid container spacing={2} sx={{
+                  alignItems: 'center'
+                }}>
                   {data?.map((item, index) => (
                     <Grid item key={index} xs>
                       <Box
@@ -359,6 +361,7 @@ const CustomAccordion = ({
                               <Typography variant='body2' sx={{ color: '#fff' }}>
                                 <Typography
                                   variant='body2'
+                                  component={'span'}
                                   sx={{
                                     color: '#fff',
                                     display: 'inline-block',
@@ -384,7 +387,7 @@ const CustomAccordion = ({
         </AccordionDetails>
       </StyledAccordion>
     </>
-  )
+  );
 }
 
 export default CustomAccordion
