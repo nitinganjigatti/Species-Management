@@ -1001,6 +1001,7 @@ const SpeciesDietList = () => {
               speciesData={speciesData}
               setspeciesId={setspeciesId}
               uploadDietDrawer={uploadDietDrawer}
+              handleSearch={handleSearch}
               setUploadDietDrawer={setUploadDietDrawer}
             />
           )}
