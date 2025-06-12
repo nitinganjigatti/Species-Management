@@ -40,7 +40,7 @@ const ComposeReportNavigation = ({
     reportNavigationArray.push(reportTitle)
   }
 
-  reportNavigationArray.push(reportTitle)
+  // reportNavigationArray.push(reportTitle)
   reportNavigationArray.push(report, animal, animalList, AnimalAssessment)
 
   return reportNavigationArray

@@ -1,5 +1,15 @@
 import React, { useEffect, useState } from 'react'
-import { Box, Drawer, Checkbox, Typography, TextField, IconButton, Grid, Divider, CircularProgress } from '@mui/material'
+import {
+  Box,
+  Drawer,
+  Checkbox,
+  Typography,
+  TextField,
+  IconButton,
+  Grid,
+  Divider,
+  CircularProgress
+} from '@mui/material'
 import Icon from 'src/@core/components/icon'
 import { useTheme } from '@emotion/react'
 import { LoadingButton } from '@mui/lab'
@@ -22,14 +32,6 @@ const FilterSheet = ({
   const [activeCategory, setActiveCategory] = useState(categories[0])
   const [searchValue, setSearchValue] = useState('')
 
-  // useEffect(() => {
-  //   if (open) {
-  //     setSelectedOptions(prev => ({
-  //       ...prev,
-  //       Site: selectedSites
-  //     }))
-  //   }
-  // }, [open, selectedSites])
   useEffect(() => {
     if (open && animalId) {
       setSelectedOptions(prev => ({
@@ -75,7 +77,6 @@ const FilterSheet = ({
   }
 
   const handleConfirmSelection = () => {
-    debugger
     // Handle Sites
     const selectedSiteIDs = selectedOptions.Site || []
     handleSelection(selectedSiteIDs, 'Site')
@@ -169,6 +170,7 @@ const FilterSheet = ({
               >
                 {categories?.map((item, index) => (
                   <Box
+                    key={index}
                     onClick={() => handleCategoryClick(item)}
                     sx={{
                       mb: 4,
@@ -195,7 +197,6 @@ const FilterSheet = ({
                         fontFamily: 'Inter',
                         fontWeight: 400
                       }}
-                      key={index}
                       variant='body2'
                       onClick={() => handleCategoryClick(item)}
                     >
@@ -213,7 +214,7 @@ const FilterSheet = ({
               display: 'flex',
               width: '330px',
               alignItems: 'center',
-              border: '1px solid #C3CEC7',
+              border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
               borderRadius: '4px',
               padding: '0 8px',
               height: '40px',
@@ -222,11 +223,16 @@ const FilterSheet = ({
             }}
           >
             <Icon icon='mi:search' color={theme.palette.customColors.OnSurfaceVariant} />
-            <TextField
+            {/* <TextField
               variant='outlined'
               placeholder='Search'
               value={searchValue}
               onChange={e => setSearchValue(e.target.value)}
+              // slotProps={{
+              //   input: {
+              //     disableUnderline: false // ✅ this works on Input / InputBase
+              //   }
+              // }}
               sx={{
                 '& .MuiOutlinedInput-root': {
                   border: 'none',
@@ -236,9 +242,34 @@ const FilterSheet = ({
                   }
                 }
               }}
-              slotProps={{
-                input: {
-                  disableUnderline: false
+            /> */}
+
+            <TextField
+              variant='outlined'
+              placeholder='Search'
+              value={searchValue}
+              onChange={e => setSearchValue(e.target.value)}
+              sx={{
+                '& .MuiOutlinedInput-root': {
+                  border: 'none',
+
+                  padding: '0',
+
+                  '& fieldset': {
+                    border: 'none'
+                  }
+                },
+
+                '& .MuiInputBase-input': {
+                  // Add this to remove underline
+
+                  '&::before': {
+                    borderBottom: 'none !important'
+                  },
+
+                  '&:hover::before': {
+                    borderBottom: 'none !important'
+                  }
                 }
               }}
             />
@@ -247,9 +278,15 @@ const FilterSheet = ({
             <Checkbox
               checked={selectedOptions[activeCategory]?.length === options[activeCategory]?.length}
               onChange={handleSelectAll}
-              inputProps={{ 'aria-label': 'controlled' }}
+              slotProps={{
+                input: {
+                  'aria-label': 'controlled'
+                }
+              }}
             />
-            <Typography sx={{ fontSize: '16px', fontWeight: 400, color: '#839D8D' }}>Select All</Typography>
+            <Typography sx={{ fontSize: '16px', fontWeight: 400, color: theme.palette.customColors.Outline }}>
+              Select All
+            </Typography>
           </Box>
           <Divider sx={{ m: 3 }} />
           <Box sx={{ ml: 2, height: '750px', overflowY: 'auto' }}>
@@ -313,7 +350,7 @@ const FilterSheet = ({
         </LoadingButton>
       </Box>
     </Drawer>
-  );
+  )
 }
 
 export default FilterSheet

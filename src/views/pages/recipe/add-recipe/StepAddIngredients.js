@@ -892,8 +892,8 @@ const StepAddIngredients = ({
                   }}
                 >
                   {ingredientsbyqun.map((ingredient, index) => (
-                    <Grid size={{ xs: 12, sm: ingredient.label !== 'Quantity' ? 2.4 : 2 }} key={index} sx={{ py: 4 }}>
-                      <Typography sx={{ textTransform: 'uppercase', fontSize: 14, fontWeight: 600 }}>
+                    <Grid size={{ xs: 12, sm: ingredient.label !== 'Quantity' ? 2.4 : 2.2 }} key={index} sx={{ py: 4 }}>
+                      <Typography sx={{ textTransform: 'uppercase', fontSize: 14, fontWeight: 600, pl: 4 }}>
                         {ingredient.label}
                       </Typography>
                     </Grid>
@@ -904,7 +904,7 @@ const StepAddIngredients = ({
                     <Grid
                       container
                       spacing={5}
-                      sx={{ px: 0, py: 2, flexWrap: 'nowrap', minWidth: 'max-content' }}
+                      sx={{ px: 0, py: 3, flexWrap: 'nowrap', minWidth: 'max-content' }}
                       id={'testnew' + index}
                     >
                       <ScrollToFieldError errors={errors} index={index} />

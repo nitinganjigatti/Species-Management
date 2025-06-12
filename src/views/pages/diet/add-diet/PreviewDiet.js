@@ -913,7 +913,7 @@ const StepPreviewDiet = ({
     <>
       <form onSubmit={handleSubmit(onSubmit)}>
         <Card sx={{ boxShadow: 'none', borderTopLeftRadius: 0, borderTopRightRadius: 0 }}>
-          <Box sx={{ px: 5, mt: 2, float: 'left' }}>
+          <Box sx={{ px: 5, mt: 2, pb: 3, float: 'left' }}>
             <Typography variant='h6'>Preview</Typography>
           </Box>
 

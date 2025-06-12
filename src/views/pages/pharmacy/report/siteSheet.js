@@ -22,7 +22,6 @@ const SiteSheet = ({
 
   useEffect(() => {
     if (openSiteDrawer) {
-      debugger
       // Use context's selectedSites directly instead of apiFilterParams
       const storedSiteIds = selectedSites.includes('All Sites')
         ? ['All Sites'] // Keep 'All Sites' if selected
@@ -42,7 +41,6 @@ const SiteSheet = ({
 
   const handleToggleSite = siteId => {
     if (tempSelectedSites.includes(siteId)) {
-      debugger
       setTempSelectedSites(tempSelectedSites.filter(id => id !== siteId))
     } else {
       setTempSelectedSites([...tempSelectedSites, siteId])
@@ -52,7 +50,6 @@ const SiteSheet = ({
   const filteredSites = sites.filter(site => site.site_name.toLowerCase().includes(searchValue.toLowerCase()))
 
   const handleConfirmSelection = () => {
-    debugger
     const totalSites = [...sites] // Assuming sites is an array of objects
     const selectedArr = [...tempSelectedSites] // Array of selected site IDs
 
@@ -153,7 +150,14 @@ const SiteSheet = ({
                 />
               }
               label={
-                <Typography sx={{ color: '#839D8D', fontSize: '16px', fontFamily: 'Inter', fontWeight: 400 }}>
+                <Typography
+                  sx={{
+                    color: theme.palette.customColors.Outline,
+                    fontSize: '16px',
+                    fontFamily: 'Inter',
+                    fontWeight: 400
+                  }}
+                >
                   Select All
                 </Typography>
               }
@@ -197,7 +201,7 @@ const SiteSheet = ({
                   sx={{
                     fontWeight: 400,
                     fontFamily: 'Inter',
-                    color: '#839D8D',
+                    color: theme.palette.customColors.Outline,
                     fontSize: '16px',
                     flex: 1 // Allows text to grow naturally while respecting spacing
                   }}

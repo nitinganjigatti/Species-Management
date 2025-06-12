@@ -574,7 +574,11 @@ const AddRecipe = () => {
             {steps.map((step, index) => {
               return (
                 <Step key={index}>
-                  <StepLabel StepIconComponent={StepperCustomDot}>
+                  <StepLabel
+                    slots={{
+                      icon: StepperCustomDot
+                    }}
+                  >
                     <div className='step-label'>
                       {/* <Typography className='step-number'>{`0${index + 1}`}</Typography> */}
                       <div>

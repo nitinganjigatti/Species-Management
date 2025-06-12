@@ -861,7 +861,7 @@ const ComboCard = ({
                       <Divider />
                       <TextField
                         multiline
-                        rows={expandedIndex.includes(index) ? 3 : 1}
+                        rows={expandedIndex.includes(index) ? 2 : 2}
                         onChange={e => handleAddRemarks(e, item.id)}
                         placeholder={expandedIndex.includes(index) ? 'Remarks' : 'Add remarks (optional)'}
                         value={remarks[item.id] || ''}
@@ -875,7 +875,9 @@ const ComboCard = ({
                           },
                           transition: 'max-height 0.5s ease-in-out',
                           overflow: 'hidden',
-                          maxHeight: expandedIndex.includes(index) ? '100px' : '56px'
+                          maxHeight: expandedIndex.includes(index) ? '100px' : '70px',
+                          pl: 4,
+                          pt: 3
                         }}
                       />
                     </Box>

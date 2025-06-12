@@ -660,13 +660,17 @@ const DietDetail = () => {
                         className='tabs_diet_dtl'
                       >
                         {tabs.map((item, index) => (
-                          <Tab key={index} value={item.value} label={item.label} />
+                          <Tab key={item?.value} value={item.value} label={item.label} />
                         ))}
                       </TabList>
                       {tabs.map((item, index) => (
                         <>
                           {item?.value === value && (
-                            <TabPanel sx={{ overflowX: 'auto', pb: 0, pl: '0px' }} key={index} value={item?.value}>
+                            <TabPanel
+                              sx={{ overflowX: 'auto', pb: 0, pl: '0px' }}
+                              key={item?.value}
+                              value={item?.value}
+                            >
                               {loaderTwo ? (
                                 <Box
                                   sx={{
@@ -3356,56 +3360,54 @@ const DietDetail = () => {
                                                                     }}
                                                                   >
                                                                     {item?.ingredientList?.map((item, index) => (
-                                                                      <>
-                                                                        <Box
-                                                                          key={index}
+                                                                      <Box
+                                                                        key={index}
+                                                                        sx={{
+                                                                          height: '32px',
+                                                                          borderRadius: '16px',
+                                                                          backgroundColor: '#1F415B1A',
+                                                                          display: 'center',
+                                                                          px: 2,
+                                                                          justifyContent: 'center',
+                                                                          alignItems: 'center'
+                                                                        }}
+                                                                      >
+                                                                        <Typography
                                                                           sx={{
-                                                                            height: '32px',
-                                                                            borderRadius: '16px',
-                                                                            backgroundColor: '#1F415B1A',
-                                                                            display: 'center',
-                                                                            px: 2,
-                                                                            justifyContent: 'center',
-                                                                            alignItems: 'center'
+                                                                            fontWeight: 600,
+                                                                            fontSize: '14px',
+                                                                            lineHeight: '16.94px',
+                                                                            color: theme.palette.secondary.dark
                                                                           }}
                                                                         >
+                                                                          {item?.ingredient_name}
+                                                                        </Typography>
+                                                                        {item?.master_cut_size ? (
                                                                           <Typography
                                                                             sx={{
-                                                                              fontWeight: 600,
+                                                                              fontWeight: 400,
                                                                               fontSize: '14px',
-                                                                              lineHeight: '16.94px',
+                                                                              lineHeight: '18px',
                                                                               color: theme.palette.secondary.dark
                                                                             }}
                                                                           >
-                                                                            {item?.ingredient_name}
+                                                                            &nbsp;-&nbsp; {item?.preparation_type}
+                                                                            &nbsp;-&nbsp;
+                                                                            {item?.master_cut_size}
                                                                           </Typography>
-                                                                          {item?.master_cut_size ? (
-                                                                            <Typography
-                                                                              sx={{
-                                                                                fontWeight: 400,
-                                                                                fontSize: '14px',
-                                                                                lineHeight: '18px',
-                                                                                color: theme.palette.secondary.dark
-                                                                              }}
-                                                                            >
-                                                                              &nbsp;-&nbsp; {item?.preparation_type}
-                                                                              &nbsp;-&nbsp;
-                                                                              {item?.master_cut_size}
-                                                                            </Typography>
-                                                                          ) : (
-                                                                            <Typography
-                                                                              sx={{
-                                                                                fontWeight: 400,
-                                                                                fontSize: '14px',
-                                                                                lineHeight: '18px',
-                                                                                color: theme.palette.secondary.dark
-                                                                              }}
-                                                                            >
-                                                                              &nbsp;-&nbsp; {item?.preparation_type}
-                                                                            </Typography>
-                                                                          )}
-                                                                        </Box>
-                                                                      </>
+                                                                        ) : (
+                                                                          <Typography
+                                                                            sx={{
+                                                                              fontWeight: 400,
+                                                                              fontSize: '14px',
+                                                                              lineHeight: '18px',
+                                                                              color: theme.palette.secondary.dark
+                                                                            }}
+                                                                          >
+                                                                            &nbsp;-&nbsp; {item?.preparation_type}
+                                                                          </Typography>
+                                                                        )}
+                                                                      </Box>
                                                                     ))}
                                                                   </Box>
                                                                 )}
