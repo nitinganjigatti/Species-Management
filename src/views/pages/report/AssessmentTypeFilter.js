@@ -188,7 +188,7 @@ function AssessmentTypeFilter({
                     bgcolor:
                       tempSelectedCategory === category?.assessment_category_id
                         ? theme.palette.primary.light
-                        : '#FFFFFFBF',
+                        : theme.palette.customColors.OnPrimary50,
                     color:
                       tempSelectedCategory === category?.assessment_category_id
                         ? theme.palette.primary.contrastText

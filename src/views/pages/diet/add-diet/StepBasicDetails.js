@@ -1369,7 +1369,7 @@ const StepBasicDetails = ({
                             sx={{ py: 4, px: 6, textAlign: 'center' }}
                           >
                             <Typography sx={{ textTransform: 'uppercase', fontSize: 14, fontWeight: 600 }}>
-                              <div style={{ display: 'flex', alignItems: 'center' }}>{recipe.label} </div>
+                              <span style={{ display: 'flex', alignItems: 'center' }}>{recipe.label} </span>
                             </Typography>
                           </Grid>
                         ))}
@@ -1556,7 +1556,7 @@ const StepBasicDetails = ({
                             sx={{ py: 4, px: 6, textAlign: 'center' }}
                           >
                             <Typography sx={{ textTransform: 'uppercase', fontSize: 14, fontWeight: 600 }}>
-                              <div style={{ display: 'flex', alignItems: 'center' }}>{recipe.label} </div>
+                              <span style={{ display: 'flex', alignItems: 'center' }}>{recipe.label} </span>
                             </Typography>
                           </Grid>
                         ))}

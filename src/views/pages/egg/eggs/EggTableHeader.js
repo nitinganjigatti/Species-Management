@@ -335,7 +335,7 @@ const EggTableHeader = ({
               placeholder='Search'
               value={searchQuery}
               InputProps={{
-                disableUnderline: true
+                disableunderline: true
               }}
               onChange={e => {
                 setSearchQuery(e.target.value)

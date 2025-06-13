@@ -620,7 +620,7 @@ const DietDetail = () => {
               </Box>
             </CardContent>
           ) : (
-            <Box container spacing={6}>
+            <Box spacing={6}>
               <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
                 <Typography color='inherit'>Diet</Typography>
                 <Typography sx={{ cursor: 'pointer' }} color='inherit' onClick={() => router.back()}>

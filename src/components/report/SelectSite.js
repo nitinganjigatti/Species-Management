@@ -109,7 +109,7 @@ const SelectSites = ({
         </Box>
 
         {/* Search */}
-        <Box sx={{ p: 2, borderBottom: '1px solid #E0E0E0' }}>
+        <Box sx={{ p: 2, borderBottom: `1px solid ${theme.palette.customColors.OutlineVariant}` }}>
           <TextField
             fullWidth
             placeholder='Search'
@@ -223,7 +223,7 @@ const SelectSites = ({
                   mb: 4,
                   border: '1px solid',
                   borderColor: pendingSelections?.Site?.includes(site.site_id)
-                    ? '#80E0A3'
+                    ? theme.palette.primary.main
                     : theme.palette.customColors.OutlineVariant,
                   borderRadius: '8px',
                   bgcolor: pendingSelections?.Site?.includes(site.site_id)
@@ -236,9 +236,13 @@ const SelectSites = ({
                   <Avatar src={site.image || '/images/housing/site-icon-colored.svg'} variant='rounded' />
                 </ListItemAvatar>
                 <ListItemText
+                  sx={{ wordWrap: 'break-word' }}
                   primary={site.site_name}
                   slotProps={{
-                    primary: { fontWeight: 'bold', color: theme.palette.customColors.OnPrimaryContainer },
+                    primary: {
+                      fontWeight: 'bold',
+                      color: theme.palette.customColors.OnPrimaryContainer
+                    },
                     secondary: { color: theme.palette.customColors.onSurfaceVariant }
                   }}
                 />
@@ -269,11 +273,10 @@ const SelectSites = ({
             variant='contained'
             fullWidth
             sx={{
-              bgcolor: '#28A745',
               color: theme.palette.primary.contrastText,
               p: 2,
-              borderRadius: '8px',
-              '&:hover': { bgcolor: '#218838' }
+              borderRadius: '8px'
+              // height: '58px' // to be this value according to figma but using continue 3 component from 2 place and there has different value, need to be samea at all the places
             }}
             onClick={handleCloseDrawer}
             disabled={pendingSelections?.Site?.length === 0}
