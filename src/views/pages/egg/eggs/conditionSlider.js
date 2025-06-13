@@ -485,7 +485,7 @@ const ConditionSlider = ({
           } else {
             setLoader(false)
             // setDefaultSpecies(null)
-            Toaster({ type: 'error', message: res.message })
+            Toaster({ type: 'error', message: res?.message })
           }
         })
       } else {
