@@ -236,9 +236,13 @@ const SelectSites = ({
                   <Avatar src={site.image || '/images/housing/site-icon-colored.svg'} variant='rounded' />
                 </ListItemAvatar>
                 <ListItemText
+                  sx={{ wordWrap: 'break-word' }}
                   primary={site.site_name}
                   slotProps={{
-                    primary: { fontWeight: 'bold', color: theme.palette.customColors.OnPrimaryContainer },
+                    primary: {
+                      fontWeight: 'bold',
+                      color: theme.palette.customColors.OnPrimaryContainer
+                    },
                     secondary: { color: theme.palette.customColors.onSurfaceVariant }
                   }}
                 />
@@ -269,11 +273,11 @@ const SelectSites = ({
             variant='contained'
             fullWidth
             sx={{
-              bgcolor: '#28A745',
+              // bgcolor: '#28A745',
               color: theme.palette.primary.contrastText,
               p: 2,
-              borderRadius: '8px',
-              '&:hover': { bgcolor: '#218838' }
+              borderRadius: '8px'
+              // '&:hover': { bgcolor: '#218838' }
             }}
             onClick={handleCloseDrawer}
             disabled={pendingSelections?.Site?.length === 0}
