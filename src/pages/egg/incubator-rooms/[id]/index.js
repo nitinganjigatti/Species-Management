@@ -646,7 +646,7 @@ const RoomDetails = () => {
                         variant='outlined'
                         placeholder='Search...'
                         InputProps={{
-                          disableUnderline: true
+                          disableunderline: true
                         }}
                         onChange={e => handleSearch(e.target.value, defaultAvailibility?.key)}
                         sx={{

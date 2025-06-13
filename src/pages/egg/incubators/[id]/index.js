@@ -1173,6 +1173,11 @@ const IncubatorDetails = () => {
                       options={speciesList?.length > 0 ? speciesList : []}
                       getOptionLabel={option => option.default_common_name}
                       isOptionEqualToValue={(option, value) => option?.taxonomy_id === value?.taxonomy_id}
+                      renderOption={(props, option) => (
+                        <li {...props} key={option.taxonomy_id}>
+                          {option.default_common_name}
+                        </li>
+                      )}
                       onChange={(e, val) => {
                         if (val === null) {
                           setDefaultSpecie(null)
