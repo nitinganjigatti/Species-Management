@@ -725,7 +725,7 @@ const SpeciesReport = () => {
                 {/* </Box> */}
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 0 }}>
                   {/* Search Box */}
-                  <TextField
+                  {/* <TextField
                     variant='outlined'
                     size='small'
                     value={searchValue}
@@ -748,7 +748,7 @@ const SpeciesReport = () => {
                         borderRadius: '4px' // Applies to the input field
                       }
                     }}
-                  />
+                  /> */}
                   {/* Tabs */}
                   <TabList onChange={''}></TabList> {/* Add `handleTabChange` for tab switching */}
                 </Box>
