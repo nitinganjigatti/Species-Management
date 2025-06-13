@@ -367,7 +367,7 @@ const AddTest = props => {
                 </Typography>
                 <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
                   {selectedSampleIds?.map(sample => (
-                    <>
+                    <Box key={sample.id}>
                       {editParams?.id ? (
                         <Chip
                           key={sample.id}
@@ -394,7 +394,7 @@ const AddTest = props => {
                           }}
                         />
                       )}
-                    </>
+                    </Box>
                   ))}
                 </Box>
               </Box>

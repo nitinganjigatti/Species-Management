@@ -18,7 +18,7 @@ import ExpandMoreIcon from '@mui/icons-material/ExpandMore'
 import { useTheme } from '@mui/material/styles'
 
 const Tests = ({ labTest }) => {
-  console.log('labTest', labTest)
+  // console.log('labTest', labTest)
   const theme = useTheme()
 
   const columns = [
@@ -145,7 +145,7 @@ const Tests = ({ labTest }) => {
             </Typography>
             {list?.tests?.map((parent, index) =>
               parent?.child_tests?.length > 0 ? (
-                <>
+                <Box key={index}>
                   <Box
                     sx={{
                       bgcolor: theme.palette.customColors.displaybgPrimary,
@@ -235,7 +235,7 @@ const Tests = ({ labTest }) => {
                       })}
                     </AccordionDetails>
                   </Accordion> */}
-                </>
+                </Box>
               ) : (
                 <>
                   <Box

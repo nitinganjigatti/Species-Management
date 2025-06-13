@@ -1513,7 +1513,7 @@ const AddLab = () => {
               {/* drawer */}
               <Stack sx={{ p: 5 }} spacing={3}>
                 {TestData?.map((sample, index) => (
-                  <>
+                  <Box key={index}>
                     <Stack
                       key={index}
                       direction='row'
@@ -1643,7 +1643,7 @@ const AddLab = () => {
                         </Card>
                       )
                     )}
-                  </>
+                  </Box>
                 ))}
               </Stack>
             </div>

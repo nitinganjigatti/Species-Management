@@ -70,7 +70,6 @@ import {
   getLabListByMultipleIds
 } from 'src/lib/api/lab/getLabRequest'
 import AttachmentSheet from 'src/views/pages/lab/AttachmentSheet'
-import { borderRadius, height, width } from '@mui/system'
 
 const RequestDetails = () => {
   const theme = useTheme()
@@ -167,7 +166,6 @@ const RequestDetails = () => {
     const labObject = localLabData?.find(item => item?.lab_id === lab_id)
 
     // console.log('labObject', labObject)
-
     if (labObject && labObject.permission) {
       setPermissions(labObject.permission)
     }
@@ -1319,52 +1317,50 @@ const RequestDetails = () => {
           <Card sx={{ p: 5 }}>
             <CardHeader sx={{ py: 0, ml: -4 }} title='Request Details Page' />
             {request?.map((item, index) => (
-              <>
-                <Box sx={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap' }}>
-                  <HeaderCard key={index} item={item} handleClickOpen={handleClickOpen} />
+              <Box key={index} sx={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap' }}>
+                <HeaderCard key={index} item={item} handleClickOpen={handleClickOpen} />
 
-                  <Box
-                    sx={{
-                      minWidth: '400px',
-                      display: 'flex',
-                      flexDirection: 'row',
-                      justifyContent: 'center',
-                      backgroundColor: theme.palette.customColors.cardHeaderBg,
-                      borderRadius: '8px',
-                      alignItems: ''
-                    }}
-                  >
-                    <AnimalParentCard
-                      data={item?.animal_details[0]}
-                      backgroundColor={theme.palette.customColors.cardHeaderBg}
-                    />
-                    {item?.animal_details?.length > 1 && (
-                      <Box
-                        onClick={() => setOpenAnimalSheet(true)}
-                        sx={{
-                          display: 'flex',
-                          gap: 2,
-                          bgcolor: 'rgba(0, 128, 0, 0.1)',
-                          cursor: 'pointer',
-                          borderRadius: '50%',
-                          fontSize: '20px',
-                          fontWeight: 500,
-                          display: 'flex',
-                          justifyContent: 'center',
-                          alignItems: 'center',
-                          color: theme.palette.primary.main,
-                          m: 3,
-                          p: 3,
-                          width: '50px',
-                          height: '50px'
-                        }}
-                      >
-                        +{item?.animal_details?.length - 1}
-                      </Box>
-                    )}
-                  </Box>
+                <Box
+                  sx={{
+                    minWidth: '400px',
+                    display: 'flex',
+                    flexDirection: 'row',
+                    justifyContent: 'center',
+                    backgroundColor: theme.palette.customColors.cardHeaderBg,
+                    borderRadius: '8px',
+                    alignItems: ''
+                  }}
+                >
+                  <AnimalParentCard
+                    data={item?.animal_details[0]}
+                    backgroundColor={theme.palette.customColors.cardHeaderBg}
+                  />
+                  {item?.animal_details?.length > 1 && (
+                    <Box
+                      onClick={() => setOpenAnimalSheet(true)}
+                      sx={{
+                        display: 'flex',
+                        gap: 2,
+                        bgcolor: 'rgba(0, 128, 0, 0.1)',
+                        cursor: 'pointer',
+                        borderRadius: '50%',
+                        fontSize: '20px',
+                        fontWeight: 500,
+                        display: 'flex',
+                        justifyContent: 'center',
+                        alignItems: 'center',
+                        color: theme.palette.primary.main,
+                        m: 3,
+                        p: 3,
+                        width: '50px',
+                        height: '50px'
+                      }}
+                    >
+                      +{item?.animal_details?.length - 1}
+                    </Box>
+                  )}
                 </Box>
-              </>
+              </Box>
             ))}
           </Card>
 
