@@ -80,45 +80,26 @@ const PharmacyProductCard = ({
       <Box flex='1' ml={marginLeft}>
         {title && (
           <ToolTip title={title}>
-            <Typography
+            <Box
               sx={{
                 color: 'customColors.OnSurfaceVariant',
                 fontWeight: 500,
                 fontSize: '14px',
-                overflow: 'hidden', // Hide overflowing text
-                whiteSpace: 'nowrap', // Prevent wrapping to the next line
-                textOverflow: 'ellipsis', // Add ellipsis when text overflows
+                overflow: 'hidden',
+                whiteSpace: 'nowrap',
+                textOverflow: 'ellipsis',
                 width: `${rowWidth - (marginLeft * 4 + 44 + 8)}px`
               }}
             >
               {RenderUtility?.renderControlLabel(controlSubstance, 'CS')}
               {RenderUtility?.renderPrescriptionLabel(prescriptionRequired, 'PR')} {title ? title : ''}
-            </Typography>
+            </Box>
           </ToolTip>
         )}
 
         {subTitle && (
           <ToolTip title={subTitle}>
-            <Typography
-              sx={{
-                color: 'customColors.neutralSecondary',
-                fontWeight: 400,
-                fontSize: '14px',
-                overflow: 'hidden', // Hide overflowing text
-                whiteSpace: 'nowrap', // Prevent wrapping to the next line
-                textOverflow: 'ellipsis', // Add ellipsis when text overflows
-                // maxWidth: 250
-                width: `${rowWidth - (marginLeft * 4 + 44 + 8)}px`
-              }}
-            >
-              <span>{subTitle ? subTitle : null}</span>
-            </Typography>
-          </ToolTip>
-        )}
-        {secondSubTitle && (
-          <ToolTip title={secondSubTitle}>
-            <Typography
-              component='div'
+            <Box
               sx={{
                 color: 'customColors.neutralSecondary',
                 fontWeight: 400,
@@ -129,8 +110,25 @@ const PharmacyProductCard = ({
                 width: `${rowWidth - (marginLeft * 4 + 44 + 8)}px`
               }}
             >
-              <span>{secondSubTitle ? secondSubTitle : null}</span>
-            </Typography>
+              {subTitle ? subTitle : null}
+            </Box>
+          </ToolTip>
+        )}
+        {secondSubTitle && (
+          <ToolTip title={secondSubTitle}>
+            <Box
+              sx={{
+                color: 'customColors.neutralSecondary',
+                fontWeight: 400,
+                fontSize: '14px',
+                overflow: 'hidden',
+                whiteSpace: 'nowrap',
+                textOverflow: 'ellipsis',
+                width: `${rowWidth - (marginLeft * 4 + 44 + 8)}px`
+              }}
+            >
+              {secondSubTitle ? secondSubTitle : null}
+            </Box>
           </ToolTip>
         )}
       </Box>

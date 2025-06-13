@@ -1876,7 +1876,7 @@ const AddPurchaseForm = () => {
                 icon='fluent:subtract-circle-48-regular'
                 width='20px'
                 height='20px'
-                margineTop={-2}
+                // margineTop={-2}
                 color={theme.palette.customColors.addPrimary}
                 onClick={() => setShowFreight(false)}
               />

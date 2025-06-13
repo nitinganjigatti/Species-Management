@@ -870,7 +870,7 @@ const AddMedicine = () => {
           icon='material-symbols-light:close'
         />
       </Box>
-    );
+    )
   }
 
   const clearSaltFields = index => {
@@ -901,7 +901,7 @@ const AddMedicine = () => {
           icon='material-symbols-light:close'
         />
       </Box>
-    );
+    )
   }
 
   const handleAddRemoveSalts = (fields, index) => {
@@ -1880,7 +1880,7 @@ const AddMedicine = () => {
                                 rules={{ required: true }}
                                 render={({ field: { value, onChange } }) => (
                                   <TextField
-                                    value={value}
+                                    value={value || ''}
                                     label='Reference URL'
                                     name='safety_advice'
                                     onChange={onChange}

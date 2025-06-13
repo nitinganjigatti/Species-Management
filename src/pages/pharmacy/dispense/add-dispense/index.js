@@ -322,15 +322,24 @@ function AddDispense() {
                         <>
                           <Autocomplete
                             forcePopupIcon={false}
-                            inputProps={{ tabIndex: '6' }}
                             disablePortal
                             value={field?.value}
                             options={users}
                             noOptionsText='Type to search'
                             getOptionLabel={option => option?.label || ''}
+                            isOptionEqualToValue={(option, value) => option.value === value.value}
+                            renderOption={(props, option) => (
+                              <li {...props} key={option.value}>
+                                {option.label}
+                              </li>
+                            )}
                             renderInput={params => (
                               <TextField
                                 {...params}
+                                slotProps={{
+                                  ...params.inputProps,
+                                  tabIndex: 6
+                                }}
                                 label='Dispense To*'
                                 placeholder='Search & Select'
                                 error={Boolean(errors.user_id)}
@@ -450,7 +459,7 @@ function AddDispense() {
 
                           return (
                             <TableRow
-                              key={index}
+                              key={`${el?.stock_id}${index}`}
                               sx={{
                                 borderColor: 'customColors.customTableBorderBg',
                                 '&:last-child td, &:last-child th': { borderBottom: 'none' }
@@ -554,7 +563,7 @@ function AddDispense() {
                       ? animals_s.map((elmnt, index) => {
                           return (
                             <TableRow
-                              key={index}
+                              key={`${elmnt?.animal_id}${index}`}
                               sx={{
                                 borderColor: 'customColors.customTableBorderBg',
                                 '&:last-child td, &:last-child th': { borderBottom: 'none' }
@@ -592,7 +601,7 @@ function AddDispense() {
             </Card>
             <CardContent>
               <Grid item size={{ xs: 12, sm: 12, md: 6 }}>
-                <Grid Grid sx={{ height: '100%' }} alignItems='flex-end' justifyContent='flex-end' container>
+                <Grid container sx={{ height: '100%' }} alignItems='flex-end' justifyContent='flex-end'>
                   <Button
                     sx={{ width: '100px', height: '40px' }}
                     disabled={productArrayUi?.length === 0 || errors.user_id || submitLoading}

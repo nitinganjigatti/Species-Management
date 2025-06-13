@@ -11,7 +11,6 @@ import {
   List,
   ListItem,
   CardHeader,
-  Drawer,
   alpha,
   CircularProgress
 } from '@mui/material'
@@ -307,7 +306,7 @@ const Overview = props => {
                 {selectedPharmacy.name}
                 {/* Central Pharmacy */}
               </Typography>
-              <Typography variant='body1' component='div'>
+              <Box>
                 <Typography
                   component='span'
                   sx={{ color: 'customColors.neutralSecondary', fontSize: '14px', fontWeight: 400 }}
@@ -320,7 +319,7 @@ const Overview = props => {
                 >
                   {totalCentralQty}
                 </Typography>
-              </Typography>{' '}
+              </Box>
             </Box>
 
             {/* Table Section */}
@@ -925,38 +924,37 @@ const Overview = props => {
             <CardContent sx={{ display: 'flex', flexDirection: 'column', height: '100%' }}>
               {/* Header Section */}
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <Typography
-                  variant='body1'
+                <Box
                   sx={{
                     color: 'customColors.customHeadingTextColor',
                     fontSize: '16px',
-                    fontWeight: 500
+                    fontWeight: 500,
+                    display: 'flex',
+                    alignItems: 'center'
                   }}
                 >
-                  <Box display='flex' alignItems='center'>
-                    <Box
-                      sx={{
-                        display: 'flex',
-                        justifyContent: 'center',
-                        alignItems: 'center',
-                        bgcolor: 'customColors.Tertiary',
-                        borderRadius: '4px',
-                        width: '30px',
-                        height: '24px',
-                        marginRight: '8px'
-                      }}
-                    >
-                      <Icon
-                        icon='clarity:child-arrow-line'
-                        style={{ color: '#FFFFFF', fontSize: '18px', fontWeight: 'bold' }} // Icon color and size
-                      />
-                    </Box>
-                    Alternative Medicines{' '}
-                    {alternativeMedicinesList?.active?.total_count
-                      ? `(${alternativeMedicinesList?.active?.total_count})`
-                      : null}
+                  <Box
+                    sx={{
+                      display: 'flex',
+                      justifyContent: 'center',
+                      alignItems: 'center',
+                      bgcolor: 'customColors.Tertiary',
+                      borderRadius: '4px',
+                      width: '30px',
+                      height: '24px',
+                      marginRight: '8px'
+                    }}
+                  >
+                    <Icon
+                      icon='clarity:child-arrow-line'
+                      style={{ color: '#FFFFFF', fontSize: '18px', fontWeight: 'bold' }}
+                    />
                   </Box>
-                </Typography>
+                  Alternative Medicines{' '}
+                  {alternativeMedicinesList?.active?.total_count
+                    ? `(${alternativeMedicinesList?.active?.total_count})`
+                    : null}
+                </Box>
 
                 <CardHeader
                   sx={{ p: 0, m: 0 }}
