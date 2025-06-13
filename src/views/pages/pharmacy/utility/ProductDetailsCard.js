@@ -31,9 +31,13 @@ const InfoRow = ({ label, value }) => (
   <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
     <Typography
       component='span'
-      color='customColors.neutralSecondary'
-      sx={{ fontWeight: 400, fontFamily: 'Inter', fontSize: '0.75rem', mb: 1 }}
-    >
+      sx={{
+        color: 'customColors.neutralSecondary',
+        fontWeight: 400,
+        fontFamily: 'Inter',
+        fontSize: '0.75rem',
+        mb: 1
+      }}>
       {label}
     </Typography>
     <Typography

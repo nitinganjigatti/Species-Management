@@ -971,10 +971,14 @@ const AddLocalDispatch = () => {
                                   {/* {el.control_substance ? (
                                     <CustomChip label='CS' skin='light' color='success' size='small' />
                                   ) : null} */}
-                                  <Typography variant='body2' color='customColors.customHeadingTextColor'>
+                                  <Typography variant='body2' sx={{
+                                    color: 'customColors.customHeadingTextColor'
+                                  }}>
                                     {el.packageDetails}
                                   </Typography>
-                                  <Typography variant='body2' color='customColors.customHeadingTextColor'>
+                                  <Typography variant='body2' sx={{
+                                    color: 'customColors.customHeadingTextColor'
+                                  }}>
                                     {el.manufacture}
                                   </Typography>
                                 </TableCell>
@@ -983,7 +987,6 @@ const AddLocalDispatch = () => {
                                     {el.request_item_batch_no}
                                   </Typography>
                                 </TableCell>
-
                                 <TableCell>
                                   <Typography variant='body2' sx={{ color: 'text.primary' }}>
                                     {el?.stock_type === 'non_medical'
@@ -992,7 +995,6 @@ const AddLocalDispatch = () => {
                                   </Typography>
                                 </TableCell>
                                 <TableCell>{el.priority_item}</TableCell>
-
                                 <TableCell>{el.request_item_qty}</TableCell>
                                 <TableCell sx={{ borderBottomColor: 'customColors.customTableBorderBg' }}>
                                   {Utility.formatAmountToReadableDigit(el.unit_price)}
@@ -1000,7 +1002,6 @@ const AddLocalDispatch = () => {
                                 <TableCell sx={{ borderBottomColor: 'customColors.customTableBorderBg' }}>
                                   {Utility.formatAmountToReadableDigit(el.request_item_qty * el.unit_price)}
                                 </TableCell>
-
                                 <TableCell>
                                   <IconButton
                                     size='small'
@@ -1029,7 +1030,7 @@ const AddLocalDispatch = () => {
                                   </IconButton>
                                 </TableCell>
                               </TableRow>
-                            )
+                            );
                           })
                         : null}
                     </TableBody>

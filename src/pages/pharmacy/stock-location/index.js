@@ -444,7 +444,13 @@ const StockLocation = () => {
         />
         <CardContent sx={{ paddingTop: '4px' }}>
           <Box sx={{ mx: 1, mb: 2 }}>
-            <Grid container spacing={2} justifyContent='flex-end' alignItems='center'>
+            <Grid
+              container
+              spacing={2}
+              sx={{
+                justifyContent: 'flex-end',
+                alignItems: 'center'
+              }}>
               <Grid item size={{ xs: 12, sm: 6, md: 4, lg: 3 }}>
                 <TextField
                   variant='outlined'

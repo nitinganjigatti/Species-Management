@@ -724,7 +724,9 @@ const DoctorWiseRequest = () => {
                     >
                       Pharmacy Dashboard
                     </Typography>
-                    <Typography color='text.primary'>Doctorwise Request</Typography>
+                    <Typography sx={{
+                      color: 'text.primary'
+                    }}>Doctorwise Request</Typography>
                   </Breadcrumbs>
                 </Box>
               )}
@@ -914,7 +916,7 @@ const DoctorWiseRequest = () => {
         </>
       )}
     </>
-  )
+  );
 }
 
 export default DoctorWiseRequest

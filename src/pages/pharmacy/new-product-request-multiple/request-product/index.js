@@ -452,14 +452,13 @@ export default function AddProduct() {
               <Grid
                 size={{ sm: 12 }}
                 spacing={6}
-                mt={4}
                 item
                 sx={{
+                  mt: 4,
                   display: 'flex',
                   justifyContent: 'flex-end',
                   alignItems: 'center'
-                }}
-              >
+                }}>
                 <LoadingButton type='submit' sx={{ marginRight: '8px' }} size='large' variant='contained'>
                   Save
                 </LoadingButton>
@@ -496,5 +495,5 @@ export default function AddProduct() {
         </Card>
       </Grid>
     </Grid>
-  )
+  );
 }

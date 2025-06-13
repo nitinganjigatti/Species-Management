@@ -105,7 +105,12 @@ const SelectRacksListDrawer = ({
         >
           <Box sx={{ p: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
             <Box>
-              <Typography variant='h6' fontWeight='500' sx={{ color: '#1F515B' }}>
+              <Typography
+                variant='h6'
+                sx={{
+                  fontWeight: '500',
+                  color: '#1F515B'
+                }}>
                 Choose Rack
               </Typography>
               <Typography variant='body2' sx={{ color: '#44544A' }}>

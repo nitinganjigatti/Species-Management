@@ -892,7 +892,6 @@ const AddDiscardProducts = () => {
                                 {el.batch_no}
                               </Typography>
                             </TableCell>
-
                             <TableCell>
                               <Typography variant='body2' sx={{ color: 'text.primary' }}>
                                 {Utility?.formatDisplayDate(el?.expiry_date)}
@@ -910,7 +909,6 @@ const AddDiscardProducts = () => {
 
                               <Typography variant='body2'>{el.comments ? el.comments : ''}</Typography>
                             </TableCell> */}
-
                             {/* <TableCell
                               sx={{ cursor: el.comments ? 'pointer' : 'default' }}
                               onClick={() => el.comments && handleOpenCommentDrawer(el)}
@@ -951,7 +949,6 @@ const AddDiscardProducts = () => {
                                 </Box>
                               </Typography>
                             </TableCell> */}
-
                             <TableCell
                               sx={{ cursor: el.comments ? 'pointer' : 'default' }}
                               onClick={() => el.comments && handleOpenCommentDrawer(el)}
@@ -977,14 +974,13 @@ const AddDiscardProducts = () => {
                               </Typography>
                               <Typography
                                 variant='body2'
-                                mt={0.5}
                                 sx={{
+                                  mt: 0.5,
                                   display: 'flex',
                                   alignItems: 'center',
                                   gap: 1,
                                   overflow: 'hidden'
-                                }}
-                              >
+                                }}>
                                 {el.comments && <Icon icon='pepicons-pop:file' width='0.7em' height='0.7em' />}
                                 <span
                                   style={{
@@ -1002,7 +998,6 @@ const AddDiscardProducts = () => {
                                 </span>
                               </Typography>
                             </TableCell>
-
                             {id ? null : (
                               <TableCell>
                                 <IconButton
@@ -1031,7 +1026,7 @@ const AddDiscardProducts = () => {
                               </TableCell>
                             )}
                           </TableRow>
-                        )
+                        );
                       })
                     : null}
                 </TableBody>
@@ -1105,7 +1100,6 @@ const AddDiscardProducts = () => {
           <Error404></Error404>
         </>
       )}
-
       <Drawer anchor='right' open={commentDrawerOpen} onClose={handleCloseCommentDrawer}>
         <Box
           sx={{
@@ -1186,7 +1180,7 @@ const AddDiscardProducts = () => {
         </Box>
       </Drawer>
     </>
-  )
+  );
 }
 
 export default AddDiscardProducts

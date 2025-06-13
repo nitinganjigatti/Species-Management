@@ -27,6 +27,7 @@ import FilterListIcon from '@mui/icons-material/FilterList'
 import { getPurchaseDetailsList } from 'src/lib/api/pharmacy/getMedicineList'
 import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDateRangePickers'
 import { v4 as uuidv4 } from 'uuid'
+import RenderUtility from 'src/utility/render'
 
 const formatDate = dateString => {
   const date = new Date(dateString)
@@ -272,48 +273,18 @@ function Purchase({ tabValue, updateUrlParams }) {
         </>
       )
     },
-    {
-      width: 200,
 
-      // field: 'veterinarian',
-      // headerName: 'VETERINARIAN',
+    {
+      minWidth: 250,
       field: 'created_by_user_name',
       headerName: 'created by',
-
       renderCell: params => (
         <>
-          <Avatar
-            sx={{
-              '& > img': {
-                objectFit: 'contain'
-              },
-              width: 40,
-              height: 40,
-              mr: 4
-            }}
-            variant='circular'
-            alt={params?.row?.user_created_profile_pic}
-            src={params?.row?.user_created_profile_pic}
-          />
-          <Typography
-            variant='body2'
-            sx={{
-              color: theme.palette.customColors.customHeadingTextColor,
-              fontSize: '14px',
-              fontWeight: 500,
-              fontFamily: 'Inter'
-            }}
-          >
-            {params.row.created_by_user_name}
-            <Typography
-              sx={{
-                fontSize: '12px',
-                fontWeight: 400
-              }}
-            >
-              {Utility.formatDisplayDate(Utility.convertUTCToLocal(params.row.created_at))}
-            </Typography>
-          </Typography>
+          {RenderUtility?.renderUserAvatarDetails(
+            params?.row?.user_created_profile_pic,
+            params?.row?.created_by_user_name,
+            params?.row?.created_at
+          )}
         </>
       )
     }
@@ -470,8 +441,8 @@ function Purchase({ tabValue, updateUrlParams }) {
     <>
       <Grid
         container
-        gap={5}
         sx={{
+          gap: 5,
           mt: 5,
           flexWrap: 'wrap',
           display: 'flex',
@@ -514,7 +485,6 @@ function Purchase({ tabValue, updateUrlParams }) {
           </Box>
         </Grid>
       </Grid>
-
       <Grid>
         <CommonTable
           onRowClick={onRowClick}

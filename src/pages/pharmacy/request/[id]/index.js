@@ -2512,9 +2512,11 @@ const IndividualRequest = () => {
                               <Box>
                                 <Typography
                                   variant='body2'
-                                  color='customColors.neutralSecondary'
-                                  sx={{ fontSize: '12px', fontWeight: 400 }}
-                                >
+                                  sx={{
+                                    color: 'customColors.neutralSecondary',
+                                    fontSize: '12px',
+                                    fontWeight: 400
+                                  }}>
                                   Shipping ID:
                                 </Typography>
                                 <Typography
@@ -2531,9 +2533,11 @@ const IndividualRequest = () => {
                               <Box>
                                 <Typography
                                   variant='body2'
-                                  color='customColors.neutralSecondary'
-                                  sx={{ fontSize: '12px', fontWeight: 400 }}
-                                >
+                                  sx={{
+                                    color: 'customColors.neutralSecondary',
+                                    fontSize: '12px',
+                                    fontWeight: 400
+                                  }}>
                                   Batch No:
                                 </Typography>
                                 <Typography
@@ -2550,9 +2554,11 @@ const IndividualRequest = () => {
                               <Box>
                                 <Typography
                                   variant='body2'
-                                  color='customColors.neutralSecondary'
-                                  sx={{ fontSize: '12px', fontWeight: 400 }}
-                                >
+                                  sx={{
+                                    color: 'customColors.neutralSecondary',
+                                    fontSize: '12px',
+                                    fontWeight: 400
+                                  }}>
                                   Shipped Quantity:
                                 </Typography>
                                 <Typography
@@ -2762,7 +2768,7 @@ const IndividualRequest = () => {
         </>
       )}
     </>
-  )
+  );
 }
 
 export default React.memo(IndividualRequest)

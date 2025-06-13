@@ -468,11 +468,12 @@ export const AddItemsForm = ({
         onSubmit={handleSubmit(onSubmit)}
         style={{ width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center' }}
       >
-        <Grid container rowSpacing={4} columnSpacing={2} xs={12}>
-          <Grid item xs={12} sm={12} lg={12}>
+        <Grid container rowSpacing={4} columnSpacing={2} size={{ xs: 12, sm: 12 }}>
+          <Grid item size={{ xs: 12, sm: 12, lg: 12 }}>
             <ControlledAutocomplete
               name='request_item'
               label='Product Name*'
+              fullWidth={true}
               control={control}
               errors={errors}
               options={productList}
@@ -480,7 +481,11 @@ export const AddItemsForm = ({
               onKeyUp={e => searchMedicineData(e.target.value)}
               onChangeOverride={handleProductChange}
               onBlur={() => searchMedicineData(nestedMedicine?.stock_id, nestedMedicine?.stock_type)}
-              renderOption={(props, option) => <ProductOption option={option} {...props} />}
+              renderOption={(props, option) => {
+                const { key, ...otherProps } = props
+
+                return <ProductOption key={key} option={option} {...otherProps} />
+              }}
             />
 
             {watch('packageDetails') && (
@@ -500,7 +505,11 @@ export const AddItemsForm = ({
               {getValues('stock_type') === 'non_medical' ? 'Batch No' : 'Batch No and Expiry Date'}
             </Typography>
           </Grid>
-          <Grid item xs={12} sm={getValues('stock_type') === 'non_medical' ? 6 : 4}>
+          <Grid
+            item
+            size={{ xs: 12, sm: getValues('stock_type') === 'non_medical' ? 6 : 4 }}
+            sm={getValues('stock_type') === 'non_medical' ? 6 : 4}
+          >
             <ControlledAutocomplete
               name='request_item_batch_no'
               label='Batch No*'
@@ -511,7 +520,11 @@ export const AddItemsForm = ({
               getOptionLabel={option => option.label || ''}
               isOptionEqualToValue={(option, value) => option.value === value?.value}
               onChangeOverride={handleBatchChange}
-              renderOption={(props, option) => <BatchOption option={option} {...props} />}
+              renderOption={(props, option) => {
+                const { key, ...otherProps } = props
+
+                return <BatchOption key={key} option={option} {...otherProps} />
+              }}
               PaperProps={{
                 elevation: 3,
                 sx: {
@@ -532,7 +545,7 @@ export const AddItemsForm = ({
               }}
             />
           </Grid>
-          <Grid item xs={12} sm={getValues('stock_type') === 'non_medical' ? 6 : 4}>
+          <Grid item size={{ xs: 12, sm: getValues('stock_type') === 'non_medical' ? 6 : 4 }}>
             <ControlledTextField
               name='multiplier'
               label='Product Variant'
@@ -542,7 +555,7 @@ export const AddItemsForm = ({
             />
           </Grid>
           {getValues('stock_type') === 'non_medical' ? null : (
-            <Grid item xs={12} sm={4}>
+            <Grid item size={{ xs: 12, sm: 4 }}>
               <ControlledTextField
                 name='expiry_date'
                 label='Expiry Date*'
@@ -561,7 +574,7 @@ export const AddItemsForm = ({
               Quantity
             </Typography>
           </Grid>
-          <Grid item xs={12} sm={12}>
+          <Grid item size={{ xs: 12, sm: getValues('stock_type') === 'non_medical' ? 6 : 12 }}>
             <ControlledTextField
               name='request_item_qty'
               label='Quantity*'
@@ -578,10 +591,24 @@ export const AddItemsForm = ({
 
           {quantityError && (
             <Grid item size={{ xs: 12 }}>
-              <Typography color={'error.main'}>Quantity should be lesser than available Quantity.</Typography>
+              <Typography
+                sx={{
+                  color: 'error.main'
+                }}
+              >
+                Quantity should be lesser than available Quantity.
+              </Typography>
             </Grid>
           )}
-          <Grid item size={{ xs: 12 }} display={'flex'} justifyContent={'flex-end'} gap={4}>
+          <Grid
+            item
+            size={{ xs: 12 }}
+            sx={{
+              display: 'flex',
+              justifyContent: 'flex-end',
+              gap: 4
+            }}
+          >
             <Button variant='outlined' onClick={() => closeDialog()}>
               Cancel
             </Button>

@@ -604,7 +604,9 @@ const StoreWiseDispatch = () => {
                     >
                       Pharmacy Dashboard
                     </Typography>
-                    <Typography color='text.primary'>Store wise dispatch</Typography>
+                    <Typography sx={{
+                      color: 'text.primary'
+                    }}>Store wise dispatch</Typography>
                   </Breadcrumbs>
                 </Box>
               )}
@@ -780,7 +782,7 @@ const StoreWiseDispatch = () => {
         </>
       )}
     </>
-  )
+  );
 }
 
 export default StoreWiseDispatch

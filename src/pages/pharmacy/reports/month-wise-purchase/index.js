@@ -732,7 +732,9 @@ const MonthWisePurchase = () => {
                     >
                       Pharmacy Dashboard
                     </Typography>
-                    <Typography color='text.primary'>Month wise purchase</Typography>
+                    <Typography sx={{
+                      color: 'text.primary'
+                    }}>Month wise purchase</Typography>
                   </Breadcrumbs>
                 </Box>
               )}
@@ -922,7 +924,7 @@ const MonthWisePurchase = () => {
         </>
       )}
     </>
-  )
+  );
 }
 
 export default MonthWisePurchase

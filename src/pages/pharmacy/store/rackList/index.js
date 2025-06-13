@@ -405,7 +405,12 @@ const ListOfRacks = () => {
           <Card sx={{ cursor: 'pointer' }}>
             <CardHeader title={RenderUtility?.pageTitle('Rack List')} action={addRackButton} />
 
-            <Box display='flex' justifyContent='space-between' alignItems='center'>
+            <Box
+              sx={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center'
+              }}>
               {/* Left Box (Search Field) */}
               <Grid item size={{ xs: 8 }} sx={{ width: { xs: '100%', sm: '240px' } }}>
                 <Box
@@ -494,7 +499,7 @@ const ListOfRacks = () => {
         </>
       )}
     </>
-  )
+  );
 }
 
 export default ListOfRacks

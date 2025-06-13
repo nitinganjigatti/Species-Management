@@ -412,7 +412,9 @@ export const AddRequestLineItemsForm = ({
 
           <Grid item size={{ xs: 12, sm: 12 }}>
             <FormGroup>
-              <Grid container item size={{ xs: 12, sm: 12 }} alignItems='center' spacing={2}>
+              <Grid container item size={{ xs: 12, sm: 12 }} spacing={2} sx={{
+                alignItems: 'center'
+              }}>
                 <Grid item size={{ xs: 6 }}>
                   <span style={{ marginRight: '10px' }}>Salt Composition</span>
                 </Grid>
@@ -461,16 +463,12 @@ export const AddRequestLineItemsForm = ({
                   <Grid
                     item
                     size={{ xs: 4 }}
-                    // eslint-disable-next-line lines-around-comment
-                    // justifyContent='flex-end'
-
-                    alignSelf='center'
                     sx={{
+                      alignSelf: 'center',
                       display: 'flex',
                       justifyItems: 'center',
                       alignItems: 'center'
-                    }}
-                  >
+                    }}>
                     {handleAddRemoveSalts(fields, index)}
                   </Grid>
                 </Grid>
@@ -478,7 +476,13 @@ export const AddRequestLineItemsForm = ({
             </FormGroup>
           </Grid>
 
-          <Grid item size={{ xs: 12 }} display={'flex'} justifyContent={'flex-end'}>
+          <Grid
+            item
+            size={{ xs: 12 }}
+            sx={{
+              display: 'flex',
+              justifyContent: 'flex-end'
+            }}>
             {!editValues ? (
               <Button type='submit' variant='contained'>
                 Save
@@ -500,5 +504,5 @@ export const AddRequestLineItemsForm = ({
       </form>
       {/* </CardContent> */}
     </>
-  )
+  );
 }

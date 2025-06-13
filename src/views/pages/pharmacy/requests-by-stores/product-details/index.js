@@ -92,7 +92,9 @@ const RequestedProductDetails = props => {
       <Box>
         {requestedProducts?.alt_parent?.length > 0 &&
           requestedProducts?.alt_parent?.map((nestedChildElm, index) => (
-            <Grid key={index} item size={{ xs: 12, sm: 12 }} mb={2}>
+            <Grid key={index} item size={{ xs: 12, sm: 12 }} sx={{
+              mb: 2
+            }}>
               <Card
                 sx={{
                   border: `0.5px solid${theme.palette.customColors.Notes}`,
@@ -621,7 +623,9 @@ const RequestedProductDetails = props => {
 
               {requestedProducts?.list_items?.length > 0 &&
                 requestedProducts?.list_items?.map((parentItems, index) => (
-                  <Grid key={index} item size={{ xs: 12, sm: 12 }} mb={2}>
+                  <Grid key={index} item size={{ xs: 12, sm: 12 }} sx={{
+                    mb: 2
+                  }}>
                     <Card
                       sx={{
                         padding: '16px',

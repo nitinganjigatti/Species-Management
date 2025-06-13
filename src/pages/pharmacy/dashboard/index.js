@@ -117,7 +117,9 @@ const NewDashboard = () => {
   return (
     <ApexChartWrapper>
       <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', pb: 5 }}>
-        <Typography variant='h5' color='#44544A'>
+        <Typography variant='h5' sx={{
+          color: '#44544A'
+        }}>
           Welcome to your pharmacy's control center!
         </Typography>
         {/* <LoadingButton size='medium' variant='contained' endIcon={<Icon icon='material-symbols:download' />}>

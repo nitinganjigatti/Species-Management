@@ -36,8 +36,20 @@ const AddAlternativeMedicineDrawer = ({
     }}
   >
     {/* Header */}
-    <Box display='flex' justifyContent='space-between' alignItems='center' sx={{ p: 4 }}>
-      <Typography variant='h6' fontWeight='bold'>
+    <Box
+      sx={{
+        display: 'flex',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+        p: 4
+      }}
+    >
+      <Typography
+        variant='h6'
+        sx={{
+          fontWeight: 'bold'
+        }}
+      >
         Add New Alternative Medicine
       </Typography>
       <IconButton onClick={onClose}>
@@ -47,12 +59,31 @@ const AddAlternativeMedicineDrawer = ({
     <Divider />
 
     {/* Content */}
-    <Box p={4} sx={{ flex: 1, overflowY: 'auto' }}>
+    <Box
+      sx={{
+        p: 4,
+        flex: 1,
+        overflowY: 'auto'
+      }}
+    >
       <Card sx={{ p: 4 }}>
         <form onSubmit={handleSubmit(onSubmit)}>
-          <Box display='flex' flexDirection='column' gap={6}>
+          <Box
+            sx={{
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 6
+            }}
+          >
             {alternatives?.map((alt, index) => (
-              <Box key={index} display='flex' flexDirection='column' gap={2}>
+              <Box
+                key={index}
+                sx={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: 2
+                }}
+              >
                 <ControlledAutocomplete
                   name={`alternatives[${index}].productName`}
                   label='Product Name*'
@@ -62,7 +93,11 @@ const AddAlternativeMedicineDrawer = ({
                   loading={productLoading}
                   onKeyUp={e => searchMedicineData(e.target.value)}
                   onChangeOverride={value => handleProductChange(value, index)}
-                  renderOption={(props, option) => <ProductOption option={option} {...props} />}
+                  renderOption={(props, option) => {
+                    const { key, ...otherProps } = props
+
+                    return <ProductOption key={option.value} option={option} {...otherProps} />
+                  }}
                 />
                 <ControlledTextField
                   name={`alternatives[${index}].manufacturerName`}
@@ -74,7 +109,13 @@ const AddAlternativeMedicineDrawer = ({
                 />
               </Box>
             ))}
-            <Box display='flex' justifyContent='flex-end' gap={2}>
+            <Box
+              sx={{
+                display: 'flex',
+                justifyContent: 'flex-end',
+                gap: 2
+              }}
+            >
               <Button
                 variant='text'
                 color='error'
@@ -102,5 +143,4 @@ const AddAlternativeMedicineDrawer = ({
   </Drawer>
 )
 
-  export default React.memo(AddAlternativeMedicineDrawer)
-  
+export default React.memo(AddAlternativeMedicineDrawer)

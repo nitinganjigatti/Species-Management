@@ -119,8 +119,15 @@ const AddReOrderDialog = ({
           borderBottom: '1px solid #e0e0e0'
         }}
       >
-        <Box display='flex' justifyContent='space-between' alignItems='center'>
-          <Typography variant='h6' fontWeight='bold'>
+        <Box
+          sx={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center'
+          }}>
+          <Typography variant='h6' sx={{
+            fontWeight: 'bold'
+          }}>
             Add Reorder Level
           </Typography>
           <IconButton

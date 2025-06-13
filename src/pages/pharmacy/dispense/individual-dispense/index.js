@@ -142,7 +142,13 @@ const IndividualDispense = () => {
       {selectedPharmacy.permission.pharmacy_module === 'allow_full_access' ||
       selectedPharmacy.permission.dispense_medicine === true ? (
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-          <Grid container gap={3} justifyContent={'space-between'} alignItems={'stretch'}>
+          <Grid
+            container
+            sx={{
+              gap: 3,
+              justifyContent: 'space-between',
+              alignItems: 'stretch'
+            }}>
             <Grid item size={{ xs: 12, md: 6.4 }}>
               <Card>
                 <CardHeader
@@ -268,7 +274,7 @@ const IndividualDispense = () => {
         </>
       )}
     </>
-  )
+  );
 }
 
 export default IndividualDispense

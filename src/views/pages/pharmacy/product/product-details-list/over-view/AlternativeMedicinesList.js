@@ -10,7 +10,12 @@ const AlternativeMedicinesList = ({ data = [], isLoading = false, onLoadMore, ha
   return (
     <Paper elevation={3}>
       {data?.list_items?.length === 0 && !isLoading ? (
-        <Box p={2} textAlign='center' color='customColors.neutralSecondary'>
+        <Box
+          sx={{
+            p: 2,
+            textAlign: 'center',
+            color: 'customColors.neutralSecondary'
+          }}>
           No items found.
         </Box>
       ) : (
@@ -43,7 +48,13 @@ const AlternativeMedicinesList = ({ data = [], isLoading = false, onLoadMore, ha
             </ListItem>
           ))}
           {hasMore && (
-            <Box ref={loaderRef} p={2} display='flex' justifyContent='center'>
+            <Box
+              ref={loaderRef}
+              sx={{
+                p: 2,
+                display: 'flex',
+                justifyContent: 'center'
+              }}>
               <CircularProgress />
             </Box>
           )}

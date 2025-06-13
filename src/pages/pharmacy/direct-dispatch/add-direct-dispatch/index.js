@@ -10,7 +10,7 @@ import TableBody from '@mui/material/TableBody'
 import Typography from '@mui/material/Typography'
 import Box from '@mui/material/Box'
 import CardContent from '@mui/material/CardContent'
-import { styled, useTheme } from '@mui/material/styles'
+import { styled } from '@mui/material/styles'
 import TableContainer from '@mui/material/TableContainer'
 import TableCell from '@mui/material/TableCell'
 import { Button, CardHeader } from '@mui/material'
@@ -30,18 +30,13 @@ import Router from 'next/router'
 import { useRouter } from 'next/router'
 import { LoadingButton } from '@mui/lab'
 import toast from 'react-hot-toast'
-import Chip from '@mui/material/Chip'
-import Avatar from '@mui/material/Avatar'
+
 // ** React Imports
 import { forwardRef, useState, useEffect, useCallback } from 'react'
-import ToggleButton from '@mui/material/ToggleButton'
-import ToggleButtonGroup from '@mui/material/ToggleButtonGroup'
-import CustomChip from 'src/@core/components/mui/chip'
 
 import { v4 as uuidv4 } from 'uuid'
 
 import CommonDialogBox from 'src/components/CommonDialogBox'
-import SingleDatePicker from 'src/components/SingleDatePicker'
 import { debounce } from 'lodash'
 
 import { getStoreList } from 'src/lib/api/pharmacy/getStoreList'
@@ -74,8 +69,8 @@ const CalcWrapper = styled(Box)(({ theme }) => ({
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
-import { boolean } from 'yup'
-import { AddButton, RequestCancelButton } from 'src/components/Buttons'
+
+import { RequestCancelButton } from 'src/components/Buttons'
 import { AddButtonContained } from 'src/components/ButtonContained'
 import { Stack } from '@mui/system'
 import RenderUtility from 'src/utility/render'
@@ -875,6 +870,11 @@ const AddDirectDispatch = () => {
                     onKeyUp={e => {
                       searchUsersList(e.target.value)
                     }}
+                    renderOption={(props, option) => (
+                      <li {...props} key={option.value}>
+                        {option.label}
+                      </li>
+                    )}
                     renderInput={params => (
                       <TextField
                         fullWidth
@@ -1104,10 +1104,20 @@ const AddDirectDispatch = () => {
                                   {/* {el.control_substance ? (
                                      <CustomChip label='CS' skin='light' color='success' size='small' />
                                    ) : null} */}
-                                  <Typography variant='body2' color='customColors.customHeadingTextColor'>
+                                  <Typography
+                                    variant='body2'
+                                    sx={{
+                                      color: 'customColors.customHeadingTextColor'
+                                    }}
+                                  >
                                     {el.packageDetails}
                                   </Typography>
-                                  <Typography variant='body2' color='customColors.customHeadingTextColor'>
+                                  <Typography
+                                    variant='body2'
+                                    sx={{
+                                      color: 'customColors.customHeadingTextColor'
+                                    }}
+                                  >
                                     {el.manufacture}
                                   </Typography>
                                 </TableCell>
@@ -1116,7 +1126,6 @@ const AddDirectDispatch = () => {
                                     {el.request_item_batch_no}
                                   </Typography>
                                 </TableCell>
-
                                 <TableCell sx={{ borderBottomColor: 'customColors.customTableBorderBg' }}>
                                   <Typography variant='body2' sx={{ color: 'text.primary' }}>
                                     {el?.stock_type === 'non_medical'
@@ -1124,7 +1133,6 @@ const AddDirectDispatch = () => {
                                       : Utility?.formatDisplayDate(el?.expiry_date)}
                                   </Typography>
                                 </TableCell>
-
                                 <TableCell sx={{ borderBottomColor: 'customColors.customTableBorderBg' }}>
                                   {el.request_item_qty}
                                 </TableCell>
@@ -1134,7 +1142,6 @@ const AddDirectDispatch = () => {
                                 <TableCell sx={{ borderBottomColor: 'customColors.customTableBorderBg' }}>
                                   {Utility.formatAmountToReadableDigit(el.request_item_qty * el.unit_price)}
                                 </TableCell>
-
                                 <TableCell sx={{ borderBottomColor: 'customColors.customTableBorderBg' }}>
                                   <IconButton
                                     size='small'

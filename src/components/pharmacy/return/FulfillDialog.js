@@ -688,16 +688,12 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
                         <Grid
                           item
                           size={{ xs: 3 }}
-                          // eslint-disable-next-line lines-around-comment
-                          // justifyContent='flex-end'
-
-                          alignSelf='center'
                           sx={{
+                            alignSelf: 'center',
                             display: 'flex',
                             justifyItems: 'center',
                             alignItems: 'center'
-                          }}
-                        >
+                          }}>
                           {handleAddRemoveSalts(fields, index)}
                         </Grid>
                       </Grid>
@@ -860,7 +856,7 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
         </>
       )}
     </>
-  )
+  );
 }
 
 export default FulfillDialog

@@ -708,7 +708,9 @@ const ReceivedMedicinesReport = () => {
                     >
                       Pharmacy Dashboard
                     </Typography>
-                    <Typography color='text.primary'>Received medicines</Typography>
+                    <Typography sx={{
+                      color: 'text.primary'
+                    }}>Received medicines</Typography>
                   </Breadcrumbs>
                 </Box>
               )}
@@ -899,7 +901,7 @@ const ReceivedMedicinesReport = () => {
         </>
       )}
     </>
-  )
+  );
 }
 
 export default ReceivedMedicinesReport

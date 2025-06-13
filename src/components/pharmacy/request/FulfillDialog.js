@@ -1228,15 +1228,14 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
                       <Grid
                         item
                         size={{ xs: 12, sm: batchItems[index]?.stock_type === 'non_medical' ? 1.6 : 1.6 }}
-                        alignSelf={errors?.product_batches?.[index] ? 'flex-start' : 'center'}
                         sx={{
+                          alignSelf: errors?.product_batches?.[index] ? 'flex-start' : 'center',
                           display: 'flex',
                           justifyItems: 'center',
                           alignItems: errors?.product_batches?.[index] ? 'flex-start' : 'center',
                           justifyContent: { xs: 'center', sm: 'flex-end' },
                           mt: errors?.product_batches?.[index] ? { xs: '0', sm: '7px' } : '0px'
-                        }}
-                      >
+                        }}>
                         {handleAddRemoveSalts(fields, index)}
                       </Grid>
                     </Grid>
@@ -1274,12 +1273,16 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
               ) : null}
               {quantityError && (
                 <Grid item size={{ xs: 12 }}>
-                  <Typography color={'error.main'}>Quantity should be lesser than available Quantity.</Typography>
+                  <Typography sx={{
+                    color: 'error.main'
+                  }}>Quantity should be lesser than available Quantity.</Typography>
                 </Grid>
               )}
               {batchItems.length === 0 ? (
                 <Grid item size={{ xs: 12 }} sx={{ my: 2 }}>
-                  <Typography color={'error.main'}>This product is out of stock</Typography>
+                  <Typography sx={{
+                    color: 'error.main'
+                  }}>This product is out of stock</Typography>
                 </Grid>
               ) : null}
               <Grid item size={{ xs: 12 }} style={{ alignSelf: 'flex-end', marginTop: '10px' }}>

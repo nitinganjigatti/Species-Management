@@ -584,7 +584,9 @@ const ShipRequest = ({ dispatchedItems, storeDetails, resetForm }) => {
                   Shipment Details
                 </Typography>
                 {deliveryType.Ship ? (
-                  <Grid item size={{ xs: 12, sm: 3 }} mb={6}>
+                  <Grid item size={{ xs: 12, sm: 3 }} sx={{
+                    mb: 6
+                  }}>
                     <FormControl fullWidth>
                       <Controller
                         name='name'
@@ -668,7 +670,9 @@ const ShipRequest = ({ dispatchedItems, storeDetails, resetForm }) => {
                   //     )}
                   //   </FormControl>
                   // </Grid> */}
-                    <Grid item size={{ xs: 12, sm: 3 }} mb={6}>
+                    <Grid item size={{ xs: 12, sm: 3 }} sx={{
+                      mb: 6
+                    }}>
                       <FormControl fullWidth>
                         <Controller
                           name='person_shipping'
@@ -696,7 +700,9 @@ const ShipRequest = ({ dispatchedItems, storeDetails, resetForm }) => {
                   </>
                 )}
                 {!deliveryType.Ship && (
-                  <Grid item size={{ xs: 12, sm: 6 }} mb={6}>
+                  <Grid item size={{ xs: 12, sm: 6 }} sx={{
+                    mb: 6
+                  }}>
                     <FormControl fullWidth>
                       <SingleDatePicker
                         fullWidth
@@ -718,7 +724,9 @@ const ShipRequest = ({ dispatchedItems, storeDetails, resetForm }) => {
                     </FormControl>
                   </Grid>
                 )}
-                <Grid item size={{ xs: 12, sm: deliveryType.Ship ? 3 : 6 }} mb={6}>
+                <Grid item size={{ xs: 12, sm: deliveryType.Ship ? 3 : 6 }} sx={{
+                  mb: 6
+                }}>
                   <FormControl fullWidth>
                     <Controller
                       name='phone_number'
@@ -749,7 +757,9 @@ const ShipRequest = ({ dispatchedItems, storeDetails, resetForm }) => {
                 </Grid>
                 {deliveryType.Ship ? (
                   <>
-                    <Grid item size={{ xs: 12, sm: 3 }} mb={6}>
+                    <Grid item size={{ xs: 12, sm: 3 }} sx={{
+                      mb: 6
+                    }}>
                       <FormControl fullWidth>
                         <Controller
                           name='vehicle_no'
@@ -774,7 +784,9 @@ const ShipRequest = ({ dispatchedItems, storeDetails, resetForm }) => {
                         )}
                       </FormControl>
                     </Grid>
-                    <Grid item size={{ xs: 12, sm: 6 }} mb={6}>
+                    <Grid item size={{ xs: 12, sm: 6 }} sx={{
+                      mb: 6
+                    }}>
                       <FormControl fullWidth>
                         <SingleDatePicker
                           fullWidth

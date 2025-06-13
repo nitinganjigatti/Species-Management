@@ -506,10 +506,19 @@ export const AddItemsForm = ({
         </Grid>
         {quantityError && (
           <Grid item size={{ xs: 12 }}>
-            <Typography color={'error.main'}>Quantity should be lesser than available Quantity.</Typography>
+            <Typography sx={{
+              color: 'error.main'
+            }}>Quantity should be lesser than available Quantity.</Typography>
           </Grid>
         )}
-        <Grid item size={{ xs: 12 }} display={'flex'} justifyContent={'flex-end'} gap={3}>
+        <Grid
+          item
+          size={{ xs: 12 }}
+          sx={{
+            display: 'flex',
+            justifyContent: 'flex-end',
+            gap: 3
+          }}>
           <Button variant='outlined' onClick={closeDialog}>
             Cancel
           </Button>
@@ -519,5 +528,5 @@ export const AddItemsForm = ({
         </Grid>
       </Grid>
     </form>
-  )
+  );
 }

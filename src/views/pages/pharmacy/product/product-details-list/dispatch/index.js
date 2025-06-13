@@ -516,13 +516,12 @@ function Dispatch({ tabValue, updateUrlParams }) {
       <Grid
         container
         spacing={2}
-        justifyContent='flex-end'
-        alignItems='center'
         sx={{
+          justifyContent: 'flex-end',
+          alignItems: 'center',
           mt: 3,
           flexWrap: 'wrap'
-        }}
-      >
+        }}>
         <Grid item size={{ xs: 12, sm: 12, md: 3, lg: 3 }}>
           <Box
             sx={{
@@ -569,7 +568,9 @@ function Dispatch({ tabValue, updateUrlParams }) {
           container
           spacing={2}
           direction={{ xs: 'column', sm: 'row' }}
-          justifyContent={{ xs: 'center', sm: 'space-between' }}
+          sx={{
+            justifyContent: { xs: 'center', sm: 'space-between' }
+          }}
         >
           {/* Date Picker */}
           <Grid item size={{ xs: 12, sm: 'auto' }}>
@@ -583,9 +584,11 @@ function Dispatch({ tabValue, updateUrlParams }) {
             spacing={2}
             xs={12}
             sm
-            justifyContent={{ xs: 'center', sm: 'flex-end' }}
             direction={{ xs: 'column', sm: 'row' }}
             wrap='nowrap'
+            sx={{
+              justifyContent: { xs: 'center', sm: 'flex-end' }
+            }}
           >
             {/* Reference Type */}
             <Grid item size={{ xs: 12, sm: 4, md: 3 }}>
@@ -658,10 +661,9 @@ function Dispatch({ tabValue, updateUrlParams }) {
           searchValue={searchValue}
         />
       </Grid>
-
       <>{/* <Error404></Error404> */}</>
     </>
-  )
+  );
 }
 
 export default Dispatch

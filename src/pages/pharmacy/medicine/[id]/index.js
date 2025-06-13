@@ -300,7 +300,13 @@ const ProductDetailsList = () => {
             <>
               <Card sx={{ p: 6, mb: 4 }}>
                 <Grid container spacing={2}>
-                  <Grid item size={{ xs: 12 }} mb={6}>
+                  <Grid
+                    item
+                    size={{ xs: 12 }}
+                    sx={{
+                      mb: 6
+                    }}
+                  >
                     <CardHeader
                       sx={{ p: 0, m: 0 }}
                       avatar={
@@ -333,7 +339,13 @@ const ProductDetailsList = () => {
 
                 <Grid container spacing={4}>
                   {/* Image Section */}
-                  <Grid item size={{ xs: 12, sm: 3 }} mb={6}>
+                  <Grid
+                    item
+                    size={{ xs: 12, sm: 3 }}
+                    sx={{
+                      mb: 6
+                    }}
+                  >
                     <Avatar
                       variant='square'
                       src={uploadedImage}
@@ -350,13 +362,25 @@ const ProductDetailsList = () => {
 
                   {/* Details Section */}
                   <Grid item size={{ xs: 12, sm: 9 }}>
-                    <Grid container spacing={4} mb={6}>
+                    <Grid
+                      container
+                      spacing={4}
+                      sx={{
+                        mb: 6
+                      }}
+                    >
                       <Grid item size={{ xs: 6 }}>
                         <Box>
                           <Typography sx={{ color: 'secondary.dark', fontWeight: 500, fontSize: '20px' }}>
                             {productDetails?.name}
                           </Typography>
-                          <Typography variant='body2' component='div' color='text.secondary'>
+                          <Typography
+                            variant='body2'
+                            component='div'
+                            sx={{
+                              color: 'text.secondary'
+                            }}
+                          >
                             <Box
                               component='span'
                               sx={{ color: 'customColors.neutralSecondary', fontWeight: 400, fontSize: '14px' }}
@@ -373,8 +397,12 @@ const ProductDetailsList = () => {
                           </Typography>
                           <Typography
                             variant='body2'
-                            sx={{ color: 'customColors.customHeadingTextColor', fontWeight: 400, fontSize: '14px' }}
-                            mt={0.5}
+                            sx={{
+                              mt: 0.5,
+                              color: 'customColors.customHeadingTextColor',
+                              fontWeight: 400,
+                              fontSize: '14px'
+                            }}
                           >
                             Composition -{' '}
                             {productDetails?.salts && productDetails?.salts?.length > 0
@@ -393,7 +421,14 @@ const ProductDetailsList = () => {
                       <Grid item size={{ xs: 12, sm: 6 }}>
                         <Box>
                           {/* Row with Available Packages and Add Variant Button */}
-                          <Box display='flex' justifyContent='space-between' alignItems='center' mb={2}>
+                          <Box
+                            sx={{
+                              display: 'flex',
+                              justifyContent: 'space-between',
+                              alignItems: 'center',
+                              mb: 2
+                            }}
+                          >
                             <Typography variant='body2' component='div'>
                               <Box
                                 component='span'
@@ -433,7 +468,14 @@ const ProductDetailsList = () => {
                               )}
                           </Box>
                           {/* Chips for Variant List */}
-                          <Box mt={1} display='flex' gap={1} flexWrap='wrap'>
+                          <Box
+                            sx={{
+                              mt: 1,
+                              display: 'flex',
+                              gap: 1,
+                              flexWrap: 'wrap'
+                            }}
+                          >
                             {variantProductList.map((option, inx) => (
                               <Chip
                                 key={option?.id}
@@ -583,7 +625,13 @@ const ProductDetailsList = () => {
                 py: 2
               }}
             >
-              <Box display='flex' justifyContent='space-between' alignItems='center'>
+              <Box
+                sx={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center'
+                }}
+              >
                 <Typography variant='h6'>Select Variants</Typography>
                 <IconButton onClick={handleDrawerClose}>
                   <CloseIcon />
@@ -645,7 +693,12 @@ const ProductDetailsList = () => {
                   </List>
                 ) : (
                   <Box sx={{ textAlign: 'center', m: 4 }}>
-                    <Typography variant='body2' color='text.secondary'>
+                    <Typography
+                      variant='body2'
+                      sx={{
+                        color: 'text.secondary'
+                      }}
+                    >
                       No data found
                     </Typography>
                   </Box>
@@ -681,7 +734,7 @@ const ProductDetailsList = () => {
         <Error404></Error404>
       )}
     </>
-  );
+  )
 }
 
 export default ProductDetailsList

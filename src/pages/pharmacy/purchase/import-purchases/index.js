@@ -358,12 +358,13 @@ const ImportPurchase = () => {
                                               borderRight: '1px solid #ccc'
                                             }}
                                           >
-                                            <Typography variant='subtitle2' color='error.main'>
+                                            <Typography variant='subtitle2' sx={{
+                                              color: 'error.main'
+                                            }}>
                                               Row {el.key}, {el.value}
                                             </Typography>
                                           </TableCell>
                                         )}
-
                                         <TableCell>
                                           <TableHead>
                                             <TableCell sx={{ backgroundColor: 'transparent', minWidth: 130 }}>
@@ -489,7 +490,7 @@ const ImportPurchase = () => {
                                         <TableCell></TableCell>
                                         {/*  <TableCell>{el.purchase_date}</TableCell> */}
                                       </TableRow>
-                                    )
+                                    );
                                   })
                                 : null}
                             </TableBody>

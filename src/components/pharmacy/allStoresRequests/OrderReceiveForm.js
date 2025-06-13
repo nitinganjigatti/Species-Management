@@ -1656,7 +1656,9 @@ function OrderReceiveForm({ shipmentId }) {
       ) : (
         <div>
           <Box sx={{ pb: 6 }}>
-            <Grid container justifyContent='space-between'>
+            <Grid container sx={{
+              justifyContent: 'space-between'
+            }}>
               <Grid item size={{ xs: 12 }} sm='auto'>
                 <CardHeader
                   sx={{ padding: 0 }}
@@ -1730,7 +1732,7 @@ function OrderReceiveForm({ shipmentId }) {
         </div>
       )}
     </>
-  )
+  );
 }
 
 export default OrderReceiveForm

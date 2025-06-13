@@ -2271,7 +2271,9 @@ const AddPurchaseForm = () => {
                   <TableCell sx={{ minWidth: 130, textAlign: 'center' }}>
                     <Box>
                       CGST
-                      <Grid container justifyContent='space-between'>
+                      <Grid container sx={{
+                        justifyContent: 'space-between'
+                      }}>
                         <Grid item xs={6} sx={{ textAlign: 'center' }}>
                           Rate
                         </Grid>
@@ -2285,7 +2287,9 @@ const AddPurchaseForm = () => {
                   <TableCell sx={{ minWidth: 130, textAlign: 'center' }}>
                     <Box>
                       SGST
-                      <Grid container justifyContent='space-between'>
+                      <Grid container sx={{
+                        justifyContent: 'space-between'
+                      }}>
                         <Grid item xs={6} sx={{ textAlign: 'center' }}>
                           Rate
                         </Grid>
@@ -2299,7 +2303,9 @@ const AddPurchaseForm = () => {
                   <TableCell sx={{ minWidth: 130, textAlign: 'center' }}>
                     <Box>
                       IGST
-                      <Grid container justifyContent='space-between'>
+                      <Grid container sx={{
+                        justifyContent: 'space-between'
+                      }}>
                         <Grid item xs={6} sx={{ textAlign: 'center' }}>
                           Rate
                         </Grid>
@@ -3006,7 +3012,7 @@ const AddPurchaseForm = () => {
         }}
       />
     </Card>
-  )
+  );
 }
 
 export default AddPurchaseForm
