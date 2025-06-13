@@ -313,7 +313,7 @@ const RecipeList = () => {
       field: 'ingredient_name',
       headerName: 'NO OF ITEMS',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary', pl: 3 }}>
+        <Box variant='body2' sx={{ color: 'text.primary', pl: 3 }}>
           <Tooltip
             title={
               params.row.ingredients && params.row.ingredients.length > 0
@@ -331,7 +331,7 @@ const RecipeList = () => {
           >
             <Typography>{params.row.ingredients_count ? params.row.ingredients_count : '-'}</Typography>
           </Tooltip>
-        </Typography>
+        </Box>
       )
     },
     {

@@ -194,7 +194,7 @@ const DietDetailCard = ({
           }}
           container
         >
-          <Grid size={{ xs: 12, md: 3.8 }} item>
+          <Grid size={{ xs: 12, md: 3.8 }}>
             {/* <Box item sx={{ borderTopLeftRadius: 36, borderTopRightRadius: 36 }}>
               <Avatar
                 variant='square'
@@ -313,7 +313,7 @@ const DietDetailCard = ({
                 {/* Species and Animals Details */}
                 <Grid container spacing={2}>
                   {/* Species Section */}
-                  <Grid item size={{ xs: 12 }}>
+                  <Grid size={{ xs: 12 }}>
                     {dietDetails?.total_species !== '0' ? (
                       <Box display='flex' justifyContent='space-between' alignItems='center'>
                         {/* Label */}
@@ -354,7 +354,7 @@ const DietDetailCard = ({
                   </Grid>
 
                   {/* Animals Section */}
-                  <Grid item size={{ xs: 12 }}>
+                  <Grid size={{ xs: 12 }}>
                     {dietDetails?.total_animals !== '0' ? (
                       <Box
                         display='flex'
@@ -399,7 +399,7 @@ const DietDetailCard = ({
               </Box>
             </Box>
           </Grid>
-          <Grid item size={{ xs: 12, md: 7.8 }}>
+          <Grid size={{ xs: 12, md: 7.8 }}>
             <Box sx={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
               <Box
                 sx={{

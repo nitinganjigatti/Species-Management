@@ -908,7 +908,7 @@ const StepAddIngredients = ({
                       id={'testnew' + index}
                     >
                       <ScrollToFieldError errors={errors} index={index} />
-                      <Grid item size={{ xs: 12, sm: 2.3 }}>
+                      <Grid size={{ xs: 12, sm: 2.3 }}>
                         <FormControl fullWidth>
                           <Controller
                             name={`by_quantity[${index}].ingredient_id`}
@@ -973,7 +973,7 @@ const StepAddIngredients = ({
                         </FormControl>
                       </Grid>
 
-                      <Grid item size={{ xs: 12, sm: 2.3 }}>
+                      <Grid size={{ xs: 12, sm: 2.3 }}>
                         <FormControl fullWidth>
                           <Controller
                             name={`by_quantity[${index}].quantity`}
@@ -1010,7 +1010,7 @@ const StepAddIngredients = ({
                           )}
                         </FormControl>
                       </Grid>
-                      <Grid item size={{ xs: 12, sm: 2.3 }}>
+                      <Grid size={{ xs: 12, sm: 2.3 }}>
                         <FormControl fullWidth>
                           <Controller
                             name={`by_quantity[${index}].uom_id`}
@@ -1066,7 +1066,7 @@ const StepAddIngredients = ({
                           )}
                         </FormControl>
                       </Grid>
-                      <Grid item size={{ xs: 12, sm: 2.3 }}>
+                      <Grid size={{ xs: 12, sm: 2.3 }}>
                         <FormControl fullWidth>
                           <Controller
                             name={`by_quantity[${index}].preparation_type_id`}
@@ -1120,7 +1120,7 @@ const StepAddIngredients = ({
                         </FormControl>
                       </Grid>
 
-                      <Grid item size={{ xs: 12, sm: 2.3 }}>
+                      <Grid size={{ xs: 12, sm: 2.3 }}>
                         <FormControl fullWidth>
                           <Controller
                             name={`by_quantity[${index}].cut_size`}
@@ -1180,7 +1180,7 @@ const StepAddIngredients = ({
               <Box sx={{ mb: 2, float: 'left' }}>
                 <Typography variant='h6'>Add Description</Typography>
               </Box>
-              <Grid item size={{ xs: 12 }}>
+              <Grid size={{ xs: 12 }}>
                 <Controller
                   name='desc'
                   control={control}
@@ -1203,7 +1203,7 @@ const StepAddIngredients = ({
             </Grid>
           </Grid>
 
-          <Grid item size={{ xs: 12 }}>
+          <Grid size={{ xs: 12 }}>
             <Box sx={{ display: 'flex', justifyContent: 'flex-end', my: 12 }}>
               <Button
                 color='secondary'

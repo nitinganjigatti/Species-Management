@@ -649,7 +649,7 @@ const StepAddIngredients = ({
           </Box>
           <ScrollToFieldError errors={errors} />
           <Grid container spacing={5} sx={{ px: 5 }}>
-            <Grid item size={{ xs: 12, sm: 6 }}>
+            <Grid size={{ xs: 12, sm: 6 }}>
               <FormControl fullWidth>
                 <Controller
                   name='recipe_name'
@@ -677,14 +677,14 @@ const StepAddIngredients = ({
               <Typography variant='h6'>Add image</Typography>
             </Box>
             {console.log(uploadedImage, 'uploadedImage')}
-            <Grid item size={{ xs: 6 }} sx={{ pt: 0 }}>
+            <Grid size={{ xs: 6 }} sx={{ pt: 0 }}>
               <CardContent sx={{ px: 0, pt: 0 }}>
                 <CustomFileUploaderSingle onImageUpload={handleImageUpload} uploadedImagenew={uploadedImage} />
               </CardContent>
             </Grid>
           </Grid>
           <Grid container spacing={5} sx={{ px: 5, pt: 0 }}>
-            <Grid item size={{ xs: 12 }}>
+            <Grid size={{ xs: 12 }}>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0, mt: 2, mr: 4 }}>
                 <Typography variant='h6'>Add Item - by Percentage</Typography>
                 {/* <AddButton title='Add Cut Size' action={() => addEventSidebarOpen()} /> */}
@@ -692,9 +692,9 @@ const StepAddIngredients = ({
             </Grid>
             <Grid container spacing={5} sx={{ px: 5, background: '#E8F4F2', borderRadius: 0.5, mx: 0 }}>
               {ingredients.map((ingredient, index) => (
-                <Grid item size={{ xs: 12, sm: 4 }} key={index} sx={{ py: 4 }}>
+                <Grid size={{ xs: 12, sm: 4 }} key={index} sx={{ py: 4 }}>
                   <Typography sx={{ textTransform: 'uppercase', fontSize: 14, fontWeight: 600 }}>
-                    <div style={{ display: 'flex', alignItems: 'center' }}>
+                    <span style={{ display: 'flex', alignItems: 'center' }}>
                       {ingredient.label}{' '}
                       <span style={{ fontSize: '12px', color: '#588980db', textTransform: 'lowercase' }}>
                         {' '}
@@ -713,7 +713,7 @@ const StepAddIngredients = ({
                         )}
                       </span>
                       {ingredient.label === 'Quantity' && <Icon icon='mdi:equal-box' onClick={handleEquilizerClick} />}
-                    </div>
+                    </span>
                   </Typography>
                 </Grid>
               ))}
@@ -725,7 +725,7 @@ const StepAddIngredients = ({
                   <Grid container spacing={5} sx={{ px: 0, py: 1 }} key={field.id} id={'test' + index}>
                     <ScrollToFieldError errors={errors} index={index} />
 
-                    <Grid item size={{ xs: 12, sm: 3.6 }}>
+                    <Grid size={{ xs: 12, sm: 3.6 }}>
                       <FormControl fullWidth>
                         <Controller
                           name={`by_percentage[${index}].ingredient_id`}
@@ -798,7 +798,7 @@ const StepAddIngredients = ({
                       </FormControl>
                     </Grid>
 
-                    <Grid item size={{ xs: 12, sm: 3.7 }}>
+                    <Grid size={{ xs: 12, sm: 3.7 }}>
                       <FormControl fullWidth>
                         <Controller
                           name={`by_percentage[${index}].quantity`}
@@ -844,7 +844,7 @@ const StepAddIngredients = ({
                           </FormHelperText>
                         )}
                         {index === fieldsIngredients.length - 1 && (
-                          <Grid item size={{ xs: 12, sm: 12 }}>
+                          <Grid size={{ xs: 12, sm: 12 }}>
                             <span
                               style={{
                                 paddingTop: '15px',
@@ -865,7 +865,7 @@ const StepAddIngredients = ({
                       </FormControl>
                     </Grid>
 
-                    <Grid item size={{ xs: 12, sm: 3.7 }}>
+                    <Grid size={{ xs: 12, sm: 3.7 }}>
                       <FormControl fullWidth>
                         <Controller
                           name={`by_percentage[${index}].preparation_type_id`}
@@ -1218,7 +1218,7 @@ const StepAddIngredients = ({
                 <Box sx={{ mb: 0, float: 'left' }}>
                   <Typography variant='h6'>Add Description</Typography>
                 </Box>
-                <Grid item size={{ xs: 12 }}>
+                <Grid size={{ xs: 12 }}>
                   <Controller
                     name='desc'
                     control={control}
@@ -1241,7 +1241,7 @@ const StepAddIngredients = ({
               </Grid>
             </Grid>
 
-            <Grid item size={{ xs: 12 }}>
+            <Grid size={{ xs: 12 }}>
               <Box sx={{ display: 'flex', justifyContent: 'flex-end', my: 12 }}>
                 <Button
                   color='secondary'
