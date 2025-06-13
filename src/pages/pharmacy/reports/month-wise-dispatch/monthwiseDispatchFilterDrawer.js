@@ -141,9 +141,6 @@ const MonthWisedispatchFilter = ({
                     placeholder='Search'
                     value={filtersearchValue}
                     onChange={handleSearchChange}
-                    InputProps={{
-                      disableUnderline: false
-                    }}
                     sx={{
                       flex: 1,
                       mx: 1,
@@ -153,6 +150,11 @@ const MonthWisedispatchFilter = ({
                         '& fieldset': {
                           border: 'none'
                         }
+                      }
+                    }}
+                    slotProps={{
+                      input: {
+                        disableUnderline: false
                       }
                     }}
                   />
@@ -232,7 +234,7 @@ const MonthWisedispatchFilter = ({
         </LoadingButton>
       </Box>
     </Drawer>
-  )
+  );
 }
 
 export default MonthWisedispatchFilter

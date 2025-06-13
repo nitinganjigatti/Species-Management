@@ -252,7 +252,6 @@ const AddAnimals = ({ drawerWidth, animals_s, setAnimals_s, user, addEventSideba
       sx={{ '& .MuiDrawer-paper': { width: ['100%', 500] }, height: '100vh' }}
     >
       <Snackbar open={open} autoHideDuration={6000} onClose={handleClose} message='All animals Found' action={action} />
-
       <Dialog
         open={showFilterDialog}
         maxWidth='md'
@@ -377,25 +376,27 @@ const AddAnimals = ({ drawerWidth, animals_s, setAnimals_s, user, addEventSideba
               value={searchValue}
               onChange={e => setSearchValue(e.target.value)}
               onKeyUp={() => searchAnimalData(searchValue)}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position='start' sx={{ ml: 1 }}>
-                    <SearchIcon color='action' />
-                  </InputAdornment>
-                ),
+              slotProps={{
+                input: {
+                  startAdornment: (
+                    <InputAdornment position='start' sx={{ ml: 1 }}>
+                      <SearchIcon color='action' />
+                    </InputAdornment>
+                  ),
 
-                endAdornment: (
-                  <InputAdornment position='end'>
-                    {isSearching ? (
-                      <CircularProgress size={20} color='primary' />
-                    ) : searchValue ? (
-                      <IconButton edge='end' onClick={handleClear} size='small'>
-                        &#10005;
-                      </IconButton>
-                    ) : null}
-                  </InputAdornment>
-                ),
-                disableUnderline: true
+                  endAdornment: (
+                    <InputAdornment position='end'>
+                      {isSearching ? (
+                        <CircularProgress size={20} color='primary' />
+                      ) : searchValue ? (
+                        <IconButton edge='end' onClick={handleClear} size='small'>
+                          &#10005;
+                        </IconButton>
+                      ) : null}
+                    </InputAdornment>
+                  ),
+                  disableUnderline: true
+                }
               }}
             />
           </Box>
@@ -424,7 +425,6 @@ const AddAnimals = ({ drawerWidth, animals_s, setAnimals_s, user, addEventSideba
           </Box> */}
         </Box>
       </Box>
-
       <Box
         sx={{ height: '90%', overflowY: 'auto', mt: '130px', p: 5, backgroundColor: 'customColors.bodyBg' }}
         onScroll={handleScroll}
@@ -511,7 +511,7 @@ const AddAnimals = ({ drawerWidth, animals_s, setAnimals_s, user, addEventSideba
         <RenderSidebarFooter />
       </Box>
     </Drawer>
-  )
+  );
 }
 
 export default AddAnimals

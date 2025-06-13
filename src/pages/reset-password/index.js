@@ -241,7 +241,7 @@ const ResetPassword = () => {
         </CustomButton>
       </form>
     </CommonCard>
-  )
+  );
 }
 
 ResetPassword.guestGuard = true

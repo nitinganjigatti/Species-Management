@@ -387,7 +387,12 @@ export const AddItemsForm = ({
             onKeyUp={e => searchMedicineData(e.target.value)}
             onChangeOverride={handleProductChange}
             onBlur={() => searchMedicineData(nestedMedicine?.stock_id, nestedMedicine?.stock_type)}
-            renderOption={(props, option) => <ProductOption option={option} {...props} />}
+            // renderOption={(props, option) => <ProductOption option={option} {...props} />}
+            renderOption={(props, option) => {
+              const { key, ...otherProps } = props
+
+              return <ProductOption key={key} option={option} {...otherProps} />
+            }}
           />
 
           {watch('packageDetails') && (
@@ -415,7 +420,12 @@ export const AddItemsForm = ({
             getOptionLabel={option => option.label || ''}
             isOptionEqualToValue={(option, value) => option.value === value?.value}
             onChangeOverride={handleBatchChange}
-            renderOption={(props, option) => <BatchOption option={option} {...props} />}
+            // renderOption={(props, option) => <BatchOption option={option} {...props} />}
+            renderOption={(props, option) => {
+              const { key, ...otherProps } = props
+
+              return <BatchOption key={key} option={option} {...otherProps} />
+            }}
             PaperProps={{
               elevation: 3,
               sx: {

@@ -44,9 +44,16 @@ export const renderControlLabel = (condition, label) =>
   ) : null
 
 export const pageTitle = title => (
-  <Typography sx={{ fontSize: { xs: '20px', md: '24px' }, fontFamily: 'Inter', fontWeight: 500, ml: 1 }}>
+  <Box
+    sx={{
+      fontSize: { xs: '20px', md: '24px' },
+      fontFamily: 'Inter',
+      fontWeight: 500,
+      ml: 1
+    }}
+  >
     {title}
-  </Typography>
+  </Box>
 )
 
 export function renderUserAvatarDetails(image, userName, date, textColor, fontSize, description) {

@@ -683,7 +683,7 @@ const AddLocalDispatch = () => {
     <>
       {selectedPharmacy.type === 'local' ? (
         // (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') ? (
-        <Card>
+        (<Card>
           <Grid
             container
             size={{ xs: 12, sm: 12 }}
@@ -1196,14 +1196,14 @@ const AddLocalDispatch = () => {
               </Box>
             }
           />
-        </Card>
+        </Card>)
       ) : (
         <>
           <Error404></Error404>
         </>
       )}
     </>
-  )
+  );
 }
 
 export default AddLocalDispatch

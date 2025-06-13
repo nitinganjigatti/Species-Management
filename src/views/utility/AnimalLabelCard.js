@@ -34,7 +34,7 @@ const AnimalLabelCard = ({
       >
         {children}
       </Tooltip>
-    )
+    );
   }
 
   return (

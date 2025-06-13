@@ -154,9 +154,7 @@ const FilterSheet = ({
           </IconButton>
         </Box>
       </Box>
-
       {/* Drawer Content */}
-
       <Box sx={{ height: '753px', display: 'flex', backgroundColor: 'background.default' }}>
         <Box sx={{ width: '180px', height: '900px', backgroundColor: 'background.default' }}>
           <Grid container>
@@ -326,7 +324,6 @@ const FilterSheet = ({
           </Box>
         </Box>
       </Box>
-
       {/* bottom buttons */}
       <Box
         sx={{

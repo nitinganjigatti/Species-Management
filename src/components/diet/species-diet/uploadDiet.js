@@ -46,6 +46,7 @@ function UploadDiet({
   fetchTableData,
   speciesData,
   getSpecieDetail,
+  handleSearch,
   speciesDetailsDrawer
 }) {
   const theme = useTheme()
@@ -129,6 +130,7 @@ function UploadDiet({
       setDefaultPreparedBy(null)
       setSelectedFileName(null)
       setSelectedFile(null)
+      handleSearch('')
       if (speciesDetailsDrawer) {
         getSpecieDetail(speciesId)
       }

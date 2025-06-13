@@ -334,9 +334,6 @@ const ReturnReportDrawer = ({
                       placeholder='Search'
                       value={searchQuery}
                       onChange={handleSearch}
-                      InputProps={{
-                        disableUnderline: false
-                      }}
                       sx={{
                         '& .MuiOutlinedInput-root': {
                           border: 'none',
@@ -344,6 +341,11 @@ const ReturnReportDrawer = ({
                           '& fieldset': {
                             border: 'none'
                           }
+                        }
+                      }}
+                      slotProps={{
+                        input: {
+                          disableUnderline: false
                         }
                       }}
                     />
@@ -450,7 +452,7 @@ const ReturnReportDrawer = ({
         </LoadingButton>
       </Box>
     </Drawer>
-  )
+  );
 }
 
 export default ReturnReportDrawer

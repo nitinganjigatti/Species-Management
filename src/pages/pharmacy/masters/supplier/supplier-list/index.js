@@ -266,7 +266,7 @@ const Supplier = () => {
           {loader ? (
             <FallbackSpinner />
           ) : (
-            <Card>
+            (<Card>
               <CardHeader
                 sx={{
                   display: 'flex',
@@ -331,7 +331,7 @@ const Supplier = () => {
                   setPaginationModel={setPaginationModel}
                 />
               </Grid>
-            </Card>
+            </Card>)
 
             // <TableWithFilter
             //   TableTitle={title}
@@ -356,7 +356,7 @@ const Supplier = () => {
         </>
       )}
     </>
-  )
+  );
 }
 
 export default Supplier

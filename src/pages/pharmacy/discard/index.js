@@ -325,13 +325,13 @@ const ListOfDiscardProducts = () => {
       field: 'created_at',
       headerName: 'Discarded by ',
       renderCell: params => (
-        <>
+        (<>
           {RenderUtility?.renderUserAvatarDetails(
             params?.row?.user_profile_pic,
             params?.row?.created_by_user_name,
             params?.row?.created_at
           )}
-        </>
+        </>)
 
         // <Box sx={{ display: 'flex', alignItems: 'center' }}>
         //   {Utility.renderUserAvatar(params.row.user_profile_pic)}
@@ -611,19 +611,21 @@ const ListOfDiscardProducts = () => {
                           value={searchValue}
                           onChange={e => handleSearch(e.target.value)}
                           fullWidth
-                          InputProps={{
-                            startAdornment: (
-                              <InputAdornment position='start'>
-                                <Icon
-                                  icon='mi:search'
-                                  fontSize={24}
-                                  color={theme.palette.customColors.neutralSecondary}
-                                />
-                              </InputAdornment>
-                            )
-                          }}
                           sx={{
                             borderRadius: '8px'
+                          }}
+                          slotProps={{
+                            input: {
+                              startAdornment: (
+                                <InputAdornment position='start'>
+                                  <Icon
+                                    icon='mi:search'
+                                    fontSize={24}
+                                    color={theme.palette.customColors.neutralSecondary}
+                                  />
+                                </InputAdornment>
+                              )
+                            }
                           }}
                         />
                       </Grid>
@@ -719,7 +721,7 @@ const ListOfDiscardProducts = () => {
         <Error404 />
       )}
     </>
-  )
+  );
 }
 
 export default ListOfDiscardProducts

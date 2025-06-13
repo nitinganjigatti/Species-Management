@@ -234,6 +234,11 @@ const NurseryAddComponent = ({
                       options={authData?.userData?.user?.zoos[0].sites}
                       getOptionLabel={option => option.site_name}
                       isOptionEqualToValue={(option, value) => option?.site_id === value?.site_id}
+                      renderOption={(props, option) => (
+                        <li {...props} key={option.site_id}>
+                          {option.site_name}
+                        </li>
+                      )}
                       onChange={(e, val) => {
                         if (val === null) {
                           setDefaultSite(null)

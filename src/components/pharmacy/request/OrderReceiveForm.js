@@ -1203,7 +1203,9 @@ function OrderReceiveForm({ orderId, requestId, requestedFrom }) {
                             })
                           }
                         }}
-                        inputProps={{ style: { fontSize: 12 } }}
+                        slotProps={{
+                          htmlInput: { style: { fontSize: 12 } }
+                        }}
                       />
                     </Grid>
                     <Grid
@@ -1336,7 +1338,9 @@ function OrderReceiveForm({ orderId, requestId, requestedFrom }) {
                                       })
                                     }
                                   }}
-                                  inputProps={{ style: { fontSize: 12 } }}
+                                  slotProps={{
+                                    htmlInput: { style: { fontSize: 12 } }
+                                  }}
                                 />
                               ) : (
                                 <Typography sx={{ color: 'error.main' }}> Denied</Typography>
@@ -1464,7 +1468,7 @@ function OrderReceiveForm({ orderId, requestId, requestedFrom }) {
               </>
             )}
           </>
-        )
+        );
       }
     }
   ]

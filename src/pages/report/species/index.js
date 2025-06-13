@@ -16,13 +16,11 @@ import { DataGrid } from '@mui/x-data-grid'
 import { TabContext, TabList } from '@mui/lab'
 import { useTheme } from '@emotion/react'
 import { AuthContext } from 'src/context/AuthContext'
-import { Popover, List, ListItem, ListItemIcon, ListItemText } from '@mui/material'
-import CheckIcon from '@mui/icons-material/Check'
+import { Popover } from '@mui/material'
 import toast from 'react-hot-toast'
-import { getReportFilterList, getSpeciesList, getSpeciesListing } from 'src/lib/api/report'
+import { getReportFilterList, getSpeciesListing } from 'src/lib/api/report'
 import { useRouter } from 'next/router'
 import Error404 from 'src/pages/404'
-import SiteSheet from 'src/views/pages/pharmacy/report/siteSheet'
 import FilterSheet from 'src/views/pages/pharmacy/report/FilterSheet'
 import StickyTable from 'src/views/table/sticky-table'
 import Icon from 'src/@core/components/icon'
@@ -306,83 +304,6 @@ const SpeciesReport = () => {
       fetchData(apiFilterParams, searchValue, paginationModel)
     }
   }, [fetchData, apiFilterParams])
-
-  // const columns = headerList.map(header => {
-  //   if (header.key.includes('default_icon')) {
-  //     return {
-  //       field: 'speciesAndCommonName',
-  //       headerName: header.label,
-  //       isAvatar: true,
-  //       sortable: false,
-  //       disableColumnMenu: true,
-  //       width: 400,
-  //       renderCell: params => (
-  //         <CardHeader
-  //           avatar={
-  //             <img
-  //               src={params.row.default_icon}
-  //               alt={params.row.common_name}
-  //               style={{ width: 40, height: 40, borderRadius: '50%' }}
-  //             />
-  //           }
-  //           title={
-  //             <Typography sx={{ fontSize: '16px', fontWeight: 500, fontFamily: 'Inter', color: '#006D35' }}>
-  //               {params.row.common_name}
-  //             </Typography>
-  //           }
-  //           subheader={
-  //             <Typography
-  //               sx={{ fontSize: '14px', fontWeight: 400, fontFamily: 'Inter', fontStyle: 'italic', color: '#006D35' }}
-  //               variant='body2'
-  //             >
-  //               {params.row.scientific_name}
-  //             </Typography>
-  //           }
-  //         />
-  //       )
-  //     }
-  //   }
-
-  //   return {
-  //     field: header.key,
-  //     headerName: header.label,
-  //     width: 200,
-  //     sortable: false,
-  //     disableColumnMenu: true,
-  //     textAlign: 'center',
-  //     renderCell: params => (
-  //       <Box
-  //         sx={{
-  //           width: ['Male', 'Female', 'Indeterminate', 'Undetermined'].includes(header.label) ? '50px' : '90px',
-  //           height: '25px',
-  //           backgroundColor: getCellBackgroundColor(header.label),
-  //           color: getCellTextColor(header.label),
-  //           fontWeight: 400,
-  //           borderRadius: '4px',
-  //           display: 'flex',
-  //           alignItems: 'center',
-  //           justifyContent: ['Male', 'Female', 'Indeterminate', 'Undetermined'].includes(header.label)
-  //             ? 'center'
-  //             : header.label === 'total'
-  //             ? 'flex-end'
-  //             : 'flex-start',
-  //           textAlign: ['Male', 'Female', 'Indeterminate', 'Undetermined'].includes(header.label)
-  //             ? 'center'
-  //             : header.label === 'total'
-  //             ? 'right'
-  //             : 'left'
-  //         }}
-  //       >
-  //         {params?.value
-  //           ? params?.value
-  //           : ['Male', 'Female', 'Indeterminate', 'Undetermined', 'Total'].includes(header.label) &&
-  //             params?.value === undefined
-  //           ? 0
-  //           : '-'}
-  //       </Box>
-  //     )
-  //   }
-  // })
 
   const columns = headerList.map((header, index) => {
     // Check if this is the species column (contains default_icon)
@@ -804,7 +725,7 @@ const SpeciesReport = () => {
                 {/* </Box> */}
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 0 }}>
                   {/* Search Box */}
-                  <TextField
+                  {/* <TextField
                     variant='outlined'
                     size='small'
                     value={searchValue}
@@ -827,7 +748,7 @@ const SpeciesReport = () => {
                         borderRadius: '4px' // Applies to the input field
                       }
                     }}
-                  />
+                  /> */}
                   {/* Tabs */}
                   <TabList onChange={''}></TabList> {/* Add `handleTabChange` for tab switching */}
                 </Box>
@@ -1140,61 +1061,7 @@ const SpeciesReport = () => {
 
               <Box sx={{ width: '98%', margin: 4 }}>
                 <Box sx={{ borderRadius: '8px' }}>
-                  {/* <DataGrid
-                    sx={{
-                      mt: 3,
-                      borderRadius: '8px',
-
-                      // '.MuiDataGrid-cell:focus': {
-                      //   outline: 'none'
-                      // },
-                      '& .MuiDataGrid-columnHeader': {
-                        backgroundColor: '#DDEBE9',
-                        color: '#1F415B',
-                        fontWeight: 600,
-                        fontSize: '12px',
-                        fontFamily: 'Inter',
-                        textTransform: 'capitalize',
-                        borderBottom: '2px solid #C3CEC7'
-                      },
-                      '.MuiDataGrid-main': {
-                        borderLeft: '1px solid #C3CEC7',
-                        borderRight: '1px solid #C3CEC7',
-                        borderTop: '1px solid #C3CEC7',
-                        borderBottom: '1px solid #C3CEC7',
-                        borderRadius: '8px',
-                        overflow: 'hidden'
-                      },
-                      '& .MuiDataGrid-footerContainer': {
-                        borderTop: 'none'
-                      },
-
-                      '& .MuiDataGrid-cell': {
-                        fontFamily: 'Inter',
-                        fontSize: '14px',
-                        fontWeight: 400,
-                        lineHeight: '16.94px',
-                        textAlign: 'left',
-                        color: '#44544A'
-                      }
-                    }}
-                    rows={reportRows}
-                    disableColumnSorting={true}
-                    rowCount={total}
-                    columns={columns}
-                    sortingMode='server'
-                    paginationMode='server'
-                    pageSizeOptions={[7, 10, 25, 50]}
-                    paginationModel={paginationModel}
-                    onPaginationModelChange={setPaginationModel}
-                    loading={isLoading}
-                    onRowClick={handleRowClick}
-                    autoHeight
-                    disableColumnFilter={false}
-                    hideFooterSelectedRowCount
-                    rowHeight={70}
-                    scrollbarSize={10}
-                  /> */}
+                  
                   {columns.length > 0 && (
                     <StickyTable
                       rows={reportRows}

@@ -763,21 +763,23 @@ export const AddItemsForm = ({
                         </Box>
                       </Box>
                     )}
-                    PaperComponent={({ children, ...props }) => (
-                      <Paper
-                        {...props}
-                        elevation={3}
-                        sx={{
-                          mt: 1,
-                          '& .MuiAutocomplete-listbox': {
-                            p: 0,
-                            maxHeight: '300px'
-                          }
-                        }}
-                      >
-                        {children}
-                      </Paper>
-                    )}
+                    slots={{
+                      paper: ({ children, ...props }) => (
+                        <Paper
+                          {...props}
+                          elevation={3}
+                          sx={{
+                            mt: 1,
+                            '& .MuiAutocomplete-listbox': {
+                              p: 0,
+                              maxHeight: '300px'
+                            }
+                          }}
+                        >
+                          {children}
+                        </Paper>
+                      )
+                    }}
                   />
                 )}
               />
@@ -833,10 +835,10 @@ export const AddItemsForm = ({
                       slotProps={{
                         textField: {
                           error: Boolean(errors.expiry_date)
-                        }
-                      }}
-                      inputProps={{ disabled: true }}
-                    />
+                        },
+
+                        htmlInput: { disabled: true }
+                      }} />
                   )}
                 />
                 {errors.expiry_date && (
@@ -922,5 +924,5 @@ export const AddItemsForm = ({
         </Grid>
       </form>
     </>
-  )
+  );
 }

@@ -158,17 +158,6 @@ const DoctorsWiseMedicineList = ({
                     placeholder='Search by doctors'
                     value={searchbyDoctorname} // controlled input for search value
                     onChange={e => handleSearchDoctors(e.target.value)} // handle search change
-                    InputProps={{
-                      disableUnderline: false,
-                      endAdornment: searchbyDoctorname && (
-                        <IconButton
-                          onClick={() => handleSearchDoctors('')} // Clear search value on cancel
-                          sx={{ position: 'absolute', right: '-145%' }}
-                        >
-                          <Icon icon='mdi:close' />
-                        </IconButton>
-                      )
-                    }}
                     sx={{
                       '& .MuiOutlinedInput-root': {
                         border: 'none',
@@ -176,6 +165,19 @@ const DoctorsWiseMedicineList = ({
                         '& fieldset': {
                           border: 'none'
                         }
+                      }
+                    }}
+                    slotProps={{
+                      input: {
+                        disableUnderline: false,
+                        endAdornment: searchbyDoctorname && (
+                          <IconButton
+                            onClick={() => handleSearchDoctors('')} // Clear search value on cancel
+                            sx={{ position: 'absolute', right: '-145%' }}
+                          >
+                            <Icon icon='mdi:close' />
+                          </IconButton>
+                        )
                       }
                     }}
                   />
@@ -249,7 +251,7 @@ const DoctorsWiseMedicineList = ({
         </Grid>
       </Box>
     </Drawer>
-  )
+  );
 }
 
 export default DoctorsWiseMedicineList

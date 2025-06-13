@@ -280,25 +280,27 @@ const ImportPurchase = () => {
                         onChange={e => {
                           handleFileChange(e)
                         }}
-                        InputProps={{
-                          endAdornment: (
-                            <InputAdornment position='end'>
-                              {loader ? (
-                                <IconButton edge='end'>{<LoaderIcon size={40} />}</IconButton>
-                              ) : getValues('upload_file') !== '' ? (
-                                <Icon
-                                  color='error.main'
-                                  onClick={() => {
-                                    reset(defaultValues)
-                                    setFileUploadErrors([])
-                                    setUploadedFileData([])
-                                    setLoader(false)
-                                  }}
-                                  icon='mdi:close'
-                                />
-                              ) : null}
-                            </InputAdornment>
-                          )
+                        slotProps={{
+                          input: {
+                            endAdornment: (
+                              <InputAdornment position='end'>
+                                {loader ? (
+                                  <IconButton edge='end'>{<LoaderIcon size={40} />}</IconButton>
+                                ) : getValues('upload_file') !== '' ? (
+                                  <Icon
+                                    color='error.main'
+                                    onClick={() => {
+                                      reset(defaultValues)
+                                      setFileUploadErrors([])
+                                      setUploadedFileData([])
+                                      setLoader(false)
+                                    }}
+                                    icon='mdi:close'
+                                  />
+                                ) : null}
+                              </InputAdornment>
+                            )
+                          }
                         }}
                       />
                     </FormControl>
@@ -708,7 +710,7 @@ const ImportPurchase = () => {
         <Error404 />
       )}
     </>
-  )
+  );
 }
 
 export default ImportPurchase

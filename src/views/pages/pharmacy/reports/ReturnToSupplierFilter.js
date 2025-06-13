@@ -250,9 +250,6 @@ const ReturnToSupplierFilter = ({
                       placeholder='Search'
                       value={searchQuery}
                       onChange={handleSearch}
-                      InputProps={{
-                        disableUnderline: false
-                      }}
                       sx={{
                         '& .MuiOutlinedInput-root': {
                           border: 'none',
@@ -260,6 +257,11 @@ const ReturnToSupplierFilter = ({
                           '& fieldset': {
                             border: 'none'
                           }
+                        }
+                      }}
+                      slotProps={{
+                        input: {
+                          disableUnderline: false
                         }
                       }}
                     />
@@ -306,9 +308,6 @@ const ReturnToSupplierFilter = ({
                       placeholder='Search'
                       value={searchQuery}
                       onChange={handleSearch}
-                      InputProps={{
-                        disableUnderline: false
-                      }}
                       sx={{
                         '& .MuiOutlinedInput-root': {
                           border: 'none',
@@ -316,6 +315,11 @@ const ReturnToSupplierFilter = ({
                           '& fieldset': {
                             border: 'none'
                           }
+                        }
+                      }}
+                      slotProps={{
+                        input: {
+                          disableUnderline: false
                         }
                       }}
                     />
@@ -401,7 +405,7 @@ const ReturnToSupplierFilter = ({
         </LoadingButton>
       </Box>
     </Drawer>
-  )
+  );
 }
 
 export default ReturnToSupplierFilter

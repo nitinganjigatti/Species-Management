@@ -387,13 +387,13 @@ const DirectDispatchList = () => {
       field: 'created_by_user_name',
       headerName: 'Dispatched by ',
       renderCell: params => (
-        <>
+        (<>
           {RenderUtility?.renderUserAvatarDetails(
             params?.row?.user_created_profile_pic,
             params?.row?.created_by_user_name,
             params?.row?.request_date
           )}
-        </>
+        </>)
 
         // <Box sx={{ display: 'flex', alignItems: 'center' }}>
         //   {Utility.renderUserAvatar(params.row.user_created_profile_pic)}

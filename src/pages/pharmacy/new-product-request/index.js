@@ -710,12 +710,14 @@ export default function NewProductList() {
 
                   // mt: { xs: 3, sm: 0 }
                 }}
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position='start'>
-                      <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
-                    </InputAdornment>
-                  )
+                slotProps={{
+                  input: {
+                    startAdornment: (
+                      <InputAdornment position='start'>
+                        <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
+                      </InputAdornment>
+                    )
+                  }
                 }}
               />
 
@@ -872,7 +874,6 @@ export default function NewProductList() {
             />
           </Grid>
         </Card>
-
         {show && (
           <>
             <CardContent>
@@ -941,7 +942,7 @@ export default function NewProductList() {
           </>
         )}
       </>
-    )
+    );
   }
 
   return (

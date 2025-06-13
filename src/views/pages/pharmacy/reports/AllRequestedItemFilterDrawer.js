@@ -197,7 +197,6 @@ const AllRequestedItemFilterDrawer = ({
           </IconButton>
         </Box>
       </Box>
-
       <Box
         sx={{
           '& .MuiDrawer-paper': { width: ['100%', '562px'] },
@@ -272,9 +271,6 @@ const AllRequestedItemFilterDrawer = ({
                       placeholder='Search'
                       value={searchQuery}
                       onChange={handleSearch}
-                      InputProps={{
-                        disableUnderline: false
-                      }}
                       sx={{
                         '& .MuiOutlinedInput-root': {
                           border: 'none',
@@ -282,6 +278,11 @@ const AllRequestedItemFilterDrawer = ({
                           '& fieldset': {
                             border: 'none'
                           }
+                        }
+                      }}
+                      slotProps={{
+                        input: {
+                          disableUnderline: false
                         }
                       }}
                     />
@@ -328,9 +329,6 @@ const AllRequestedItemFilterDrawer = ({
                       placeholder='Search'
                       value={searchQuery}
                       onChange={handleSearch}
-                      InputProps={{
-                        disableUnderline: false
-                      }}
                       sx={{
                         '& .MuiOutlinedInput-root': {
                           border: 'none',
@@ -338,6 +336,11 @@ const AllRequestedItemFilterDrawer = ({
                           '& fieldset': {
                             border: 'none'
                           }
+                        }
+                      }}
+                      slotProps={{
+                        input: {
+                          disableUnderline: false
                         }
                       }}
                     />
@@ -453,7 +456,7 @@ const AllRequestedItemFilterDrawer = ({
         </LoadingButton>
       </Box>
     </Drawer>
-  )
+  );
 }
 
 export default AllRequestedItemFilterDrawer

@@ -1887,17 +1887,19 @@ const AddRequestForm = () => {
                     // id='file-upload'
                     onClick={handleClick}
                     placeholder='Add Prescription *'
-                    InputProps={{
-                      readOnly: true,
-
-                      startAdornment: (
-                        <IconButton component='label' htmlFor='file-upload'>
-                          <Icon icon='material-symbols-light:attach-file-add-rounded' width='24' height='24' />
-                        </IconButton>
-                      )
-                    }}
                     error={Boolean(itemErrors.prescription_required_file)}
                     readOnly
+                    slotProps={{
+                      input: {
+                        readOnly: true,
+
+                        startAdornment: (
+                          <IconButton component='label' htmlFor='file-upload'>
+                            <Icon icon='material-symbols-light:attach-file-add-rounded' width='24' height='24' />
+                          </IconButton>
+                        )
+                      }
+                    }}
                   />
 
                   {itemErrors?.prescription_required_file && (

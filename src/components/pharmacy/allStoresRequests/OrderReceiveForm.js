@@ -717,9 +717,9 @@ function OrderReceiveForm({ shipmentId }) {
                     </Box>
                   ))
                 ) : (
-                  <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+                  (<Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
                     <CircularProgress />
-                  </Box>
+                  </Box>)
 
                   // <Typography sx={{ px: 2 }}>No comments found for this request</Typography>
                   // <FallbackSpinner />
@@ -793,7 +793,7 @@ function OrderReceiveForm({ shipmentId }) {
           //  </Box>
         }
       />
-    )
+    );
   }
 
   const columns = [
@@ -1158,7 +1158,9 @@ function OrderReceiveForm({ shipmentId }) {
                             })
                           }
                         }}
-                        inputProps={{ style: { fontSize: 12 } }}
+                        slotProps={{
+                          htmlInput: { style: { fontSize: 12 } }
+                        }}
                       />
                     </Grid>
                     <Grid
@@ -1300,7 +1302,9 @@ function OrderReceiveForm({ shipmentId }) {
                                       })
                                     }
                                   }}
-                                  inputProps={{ style: { fontSize: 12 } }}
+                                  slotProps={{
+                                    htmlInput: { style: { fontSize: 12 } }
+                                  }}
                                 />
                               ) : (
                                 <Typography sx={{ color: 'error.main' }}> Denied</Typography>
@@ -1452,7 +1456,7 @@ function OrderReceiveForm({ shipmentId }) {
               </>
             )}
           </>
-        )
+        );
       }
     }
   ]

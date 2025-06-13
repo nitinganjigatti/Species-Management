@@ -1,34 +1,13 @@
-import {
-  Avatar,
-  Box,
-  Card,
-  CardHeader,
-  Grid,
-  TextField,
-  Typography,
-  debounce,
-  FormControlLabel,
-  Switch,
-  Select,
-  MenuItem,
-  Button,
-  FormControl,
-  InputLabel,
-  Autocomplete,
-  Paper
-} from '@mui/material'
-import { DataGrid } from '@mui/x-data-grid'
+import { Avatar, Box, Grid, TextField, Typography, debounce, FormControl, Autocomplete } from '@mui/material'
 import { useRouter } from 'next/router'
-import React, { useCallback, useEffect, useState, useRef } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 
 // ** Icon Imports
 import { usePharmacyContext } from 'src/context/PharmacyContext'
-import Error404 from 'src/pages/404'
 import Utility from 'src/utility'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import { Icon } from '@iconify/react'
 import { useTheme } from '@emotion/react'
-import FilterListIcon from '@mui/icons-material/FilterList'
 import { getDispatchList } from 'src/lib/api/pharmacy/getMedicineList'
 import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDateRangePickers'
 
@@ -101,8 +80,18 @@ function Dispatch({ tabValue, updateUrlParams }) {
       headerName: 'SL.NO',
       sortable: false,
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {params.row.sl_no + '.'}
+        <Typography component='div' variant='body2' sx={{ color: 'text.primary' }}>
+          <Typography
+            variant='body2'
+            sx={{
+              color: theme.palette.customColors.customHeadingTextColor,
+              fontSize: '14px',
+              fontWeight: 500,
+              fontFamily: 'Inter'
+            }}
+          >
+            {params.row.sl_no + '.'}
+          </Typography>
         </Typography>
       )
     },
@@ -112,6 +101,7 @@ function Dispatch({ tabValue, updateUrlParams }) {
       headerName: 'REFERENCE ID',
       renderCell: params => (
         <Typography
+          component='div'
           variant='body2'
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
@@ -120,7 +110,17 @@ function Dispatch({ tabValue, updateUrlParams }) {
             fontFamily: 'Inter'
           }}
         >
-          {params.row.ro_no}
+          <Typography
+            variant='body2'
+            sx={{
+              color: theme.palette.customColors.customHeadingTextColor,
+              fontSize: '14px',
+              fontWeight: 500,
+              fontFamily: 'Inter'
+            }}
+          >
+            {params.row.ro_no}
+          </Typography>
         </Typography>
       )
     },
@@ -130,6 +130,7 @@ function Dispatch({ tabValue, updateUrlParams }) {
       headerName: 'SHIPMENT ID',
       renderCell: params => (
         <Typography
+          component='div'
           variant='body2'
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
@@ -138,7 +139,17 @@ function Dispatch({ tabValue, updateUrlParams }) {
             fontFamily: 'Inter'
           }}
         >
-          {params.row.shipment_id}
+          <Typography
+            variant='body2'
+            sx={{
+              color: theme.palette.customColors.customHeadingTextColor,
+              fontSize: '14px',
+              fontWeight: 500,
+              fontFamily: 'Inter'
+            }}
+          >
+            {params.row.shipment_id}
+          </Typography>
         </Typography>
       )
     },
@@ -148,6 +159,7 @@ function Dispatch({ tabValue, updateUrlParams }) {
       headerName: 'DISPATCH TO',
       renderCell: params => (
         <Typography
+          component='div'
           variant='body2'
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
@@ -156,7 +168,17 @@ function Dispatch({ tabValue, updateUrlParams }) {
             fontFamily: 'Inter'
           }}
         >
-          {params.row.dispatched_to}
+          <Typography
+            variant='body2'
+            sx={{
+              color: theme.palette.customColors.customHeadingTextColor,
+              fontSize: '14px',
+              fontWeight: 500,
+              fontFamily: 'Inter'
+            }}
+          >
+            {params.row.dispatched_to}
+          </Typography>
         </Typography>
       )
     },
@@ -167,6 +189,7 @@ function Dispatch({ tabValue, updateUrlParams }) {
       headerName: 'QUANTITY',
       renderCell: params => (
         <Typography
+          component='div'
           variant='body2'
           sx={{
             color: theme.palette.customColors.customHeadingTextColor,
@@ -175,7 +198,17 @@ function Dispatch({ tabValue, updateUrlParams }) {
             fontFamily: 'Inter'
           }}
         >
-          {params.row.quantity}
+          <Typography
+            variant='body2'
+            sx={{
+              color: theme.palette.customColors.customHeadingTextColor,
+              fontSize: '14px',
+              fontWeight: 500,
+              fontFamily: 'Inter'
+            }}
+          >
+            {params.row.quantity}
+          </Typography>
         </Typography>
       )
     },
@@ -208,6 +241,7 @@ function Dispatch({ tabValue, updateUrlParams }) {
 
         return (
           <Typography
+            component='div'
             variant='body2'
             sx={{
               color: theme.palette.customColors.customHeadingTextColor,
@@ -216,7 +250,17 @@ function Dispatch({ tabValue, updateUrlParams }) {
               fontFamily: 'Inter'
             }}
           >
-            {Utility.formatAmountToReadableDigit(totalValue)}
+            <Typography
+              variant='body2'
+              sx={{
+                color: theme.palette.customColors.customHeadingTextColor,
+                fontSize: '14px',
+                fontWeight: 500,
+                fontFamily: 'Inter'
+              }}
+            >
+              {Utility.formatAmountToReadableDigit(totalValue)}
+            </Typography>
           </Typography>
         )
       }
@@ -242,6 +286,7 @@ function Dispatch({ tabValue, updateUrlParams }) {
             src={params?.row?.created_by_profile_pic}
           />
           <Typography
+            component='div'
             variant='body2'
             sx={{
               color: theme.palette.customColors.customHeadingTextColor,
@@ -250,7 +295,17 @@ function Dispatch({ tabValue, updateUrlParams }) {
               fontFamily: 'Inter'
             }}
           >
-            {params.row.requested_by}
+            <Typography
+              variant='body2'
+              sx={{
+                color: theme.palette.customColors.customHeadingTextColor,
+                fontSize: '14px',
+                fontWeight: 500,
+                fontFamily: 'Inter'
+              }}
+            >
+              {params.row.requested_by}
+            </Typography>
             <Typography
               sx={{
                 fontSize: '12px',

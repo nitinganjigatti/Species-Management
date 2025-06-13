@@ -541,16 +541,18 @@ const AllStoresRequestList = () => {
                 q: value
               })
             }}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position='start'>
-                  <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
-                </InputAdornment>
-              )
-            }}
             sx={{
               borderRadius: '8px',
               width: '90%'
+            }}
+            slotProps={{
+              input: {
+                startAdornment: (
+                  <InputAdornment position='start'>
+                    <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
+                  </InputAdornment>
+                )
+              }
             }}
           />
           <Box sx={{ border: '1px', borderColor: '#000', ml: 'auto' }}>
@@ -561,7 +563,6 @@ const AllStoresRequestList = () => {
             />
           </Box>
         </Box>
-
         {isLoadingMore && isInitialLoadRef.current ? (
           <Box sx={{ display: 'flex', justifyContent: 'center', mt: 4 }}>
             <CircularProgress size={24} />
@@ -596,7 +597,7 @@ const AllStoresRequestList = () => {
           </Box>
         )}
       </>
-    )
+    );
   }
 
   return (
@@ -633,16 +634,18 @@ const AllStoresRequestList = () => {
                 value={searchValue}
                 onChange={e => handleSearch(e.target.value)}
                 fullWidth
-                InputProps={{
-                  startAdornment: (
-                    <InputAdornment position='start'>
-                      <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
-                    </InputAdornment>
-                  )
-                }}
                 sx={{
                   borderRadius: '8px',
                   width: { xs: '100%', md: '290px' }
+                }}
+                slotProps={{
+                  input: {
+                    startAdornment: (
+                      <InputAdornment position='start'>
+                        <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
+                      </InputAdornment>
+                    )
+                  }
                 }}
               />
             }
@@ -681,17 +684,19 @@ const AllStoresRequestList = () => {
             anchor='right'
             open={isDrawerOpen}
             onClose={handleDrawerClose}
-            PaperProps={{
-              sx: {
-                width: {
-                  xs: '80%', // Full width on extra small screens
-                  sm: '80%',
-                  md: 560
-                },
-                backgroundColor: 'customColors.Background',
-                display: 'flex',
-                flexDirection: 'column',
-                height: '100%'
+            slotProps={{
+              paper: {
+                sx: {
+                  width: {
+                    xs: '80%', // Full width on extra small screens
+                    sm: '80%',
+                    md: 560
+                  },
+                  backgroundColor: 'customColors.Background',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  height: '100%'
+                }
               }
             }}
           >
@@ -787,7 +792,7 @@ const AllStoresRequestList = () => {
         <Error404></Error404>
       )}
     </>
-  )
+  );
 }
 
 export default AllStoresRequestList

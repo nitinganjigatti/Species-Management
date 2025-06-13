@@ -560,13 +560,15 @@ const ProductDetailsList = () => {
             anchor='right'
             open={isDrawerOpen}
             onClose={handleDrawerClose}
-            PaperProps={{
-              sx: {
-                width: 460,
-                backgroundColor: '#F5F9F6',
-                display: 'flex',
-                flexDirection: 'column',
-                height: '100%'
+            slotProps={{
+              paper: {
+                sx: {
+                  width: 460,
+                  backgroundColor: '#F5F9F6',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  height: '100%'
+                }
               }
             }}
           >
@@ -595,12 +597,14 @@ const ProductDetailsList = () => {
                   placeholder='Search Variants...'
                   value={searchQuery}
                   onChange={handleSearchChange}
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position='start'>
-                        <SearchIcon />
-                      </InputAdornment>
-                    )
+                  slotProps={{
+                    input: {
+                      startAdornment: (
+                        <InputAdornment position='start'>
+                          <SearchIcon />
+                        </InputAdornment>
+                      )
+                    }
                   }}
                 />
               </Box>
@@ -677,7 +681,7 @@ const ProductDetailsList = () => {
         <Error404></Error404>
       )}
     </>
-  )
+  );
 }
 
 export default ProductDetailsList

@@ -783,14 +783,16 @@ export default function RequestedItems({ selectedStoreDetails, setSelectedStoreD
                   value={searchValue}
                   onChange={e => handleSearch(e.target.value)}
                   fullWidth
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position='start'>
-                        <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
-                      </InputAdornment>
-                    )
-                  }}
                   sx={{ borderRadius: '8px', flexGrow: 1 }}
+                  slotProps={{
+                    input: {
+                      startAdornment: (
+                        <InputAdornment position='start'>
+                          <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
+                        </InputAdornment>
+                      )
+                    }
+                  }}
                 />
                 <ExportButton loading={exportLoading} onClick={handleExport} disabled={total === 0 ? true : false} />
               </Box>
@@ -915,7 +917,7 @@ export default function RequestedItems({ selectedStoreDetails, setSelectedStoreD
           />
         </Grid>
       </Box>
-    )
+    );
   }
 
   useEffect(() => {

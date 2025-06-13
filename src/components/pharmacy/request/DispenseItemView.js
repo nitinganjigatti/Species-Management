@@ -1,11 +1,11 @@
 /* eslint-disable lines-around-comment */
 import React, { forwardRef, useState, useEffect } from 'react'
+import dynamic from 'next/dynamic'
 import TableBasic from 'src/views/table/data-grid/TableBasic'
 
 import { Grid, Tooltip } from '@mui/material'
 
 // ** MUI Imports
-
 import Typography from '@mui/material/Typography'
 import Fade from '@mui/material/Fade'
 
@@ -17,6 +17,7 @@ const Transition = forwardRef(function Transition(props, ref) {
 
 function DispenseItemView({ dispenseId }) {
   const [dispenseItem, setDispenseItem] = useState([])
+  const [mounted, setMounted] = useState(false)
 
   const viewSingleDispenseItem = async dispenseId => {
     try {
@@ -30,18 +31,18 @@ function DispenseItemView({ dispenseId }) {
       }))
 
       responseData['dispense_item_details'] = mappedWithUid
-      // setDispenseItem(result.data)
       setDispenseItem(responseData)
     } catch (error) {
       console.log('error', error)
     }
   }
+
   useEffect(() => {
+    setMounted(true)
     if (dispenseId) {
       viewSingleDispenseItem(dispenseId)
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [dispenseId])
 
   const dispenseItemsColumns = [
     {
@@ -49,7 +50,7 @@ function DispenseItemView({ dispenseId }) {
       Width: 40,
       field: 'uid',
       headerName: 'SL',
-      renderCell: (params, rowId) => (
+      renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.uid}
         </Typography>
@@ -60,34 +61,29 @@ function DispenseItemView({ dispenseId }) {
       Width: 40,
       field: 'stock_name',
       headerName: 'Medicine Name',
-      renderCell: (params, rowId) => (
+      renderCell: params => (
         <div>
           <Tooltip title={params.row.stock_name} placement='top'>
             <Typography variant='body2' sx={{ color: 'text.primary' }}>
               {params.row.stock_name}
             </Typography>
           </Tooltip>
-          {/* <Typography variant='body2' sx={{ color: 'text.primary' }}>
-            <div>{params.row.stock_name}</div>
-          </Typography> */}
         </div>
       )
     },
-
     {
       flex: 0.2,
       Width: 40,
       field: 'given_count',
       headerName: 'Quantity',
-      renderCell: (params, rowId) => (
+      renderCell: params => (
         <div>
           <Typography variant='body2' sx={{ color: 'text.primary' }}>
-            <div>{params.row.given_count}</div>
+            {params.row.given_count}
           </Typography>
         </div>
       )
     },
-
     {
       flex: 0.2,
       minWidth: 20,
@@ -99,7 +95,6 @@ function DispenseItemView({ dispenseId }) {
         </Typography>
       )
     },
-
     {
       flex: 0.2,
       minWidth: 20,
@@ -113,21 +108,29 @@ function DispenseItemView({ dispenseId }) {
     }
   ]
 
+  // Prevent hydration mismatch by not rendering until mounted
+  if (!mounted) {
+    return null
+  }
+
   return (
-    <Grid size={{ xs: 12 }}>
+    <Grid container>
       {dispenseItem?.dispense_item_details?.length > 0 ? (
-        <Grid size={{ xs: 12, sm: 12, md: 12 }} sx={{ my: 2 }}>
-          <TableBasic columns={dispenseItemsColumns} rows={dispenseItem?.dispense_item_details}></TableBasic>
+        <Grid item xs={12} sm={12} md={12} sx={{ my: 2 }}>
+          <TableBasic columns={dispenseItemsColumns} rows={dispenseItem?.dispense_item_details} />
         </Grid>
       ) : null}
       {dispenseItem[0]?.comments ? (
-        <Grid item>
-          <h5 style={{ marginBottom: '0px' }}>Comments</h5>
-          <p>{dispenseItem[0]?.comments}</p>
+        <Grid item xs={12}>
+          <Typography variant='h6' sx={{ mb: 1 }}>
+            Comments
+          </Typography>
+          <Typography variant='body1'>{dispenseItem[0]?.comments}</Typography>
         </Grid>
       ) : null}
     </Grid>
   )
 }
 
-export default DispenseItemView
+// Export with no SSR to prevent hydration issues
+export default dynamic(() => Promise.resolve(DispenseItemView), { ssr: false })

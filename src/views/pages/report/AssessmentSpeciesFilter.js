@@ -144,7 +144,7 @@ function AssessmentSpeciesFilter({ selectedSpecie, setSelectedSpecie, openspecie
           <TextField
             value={searchValue}
             fullWidth
-            InputProps={{
+            slotProps={{
               startAdornment: (
                 <Icon
                   style={{ marginRight: 10, color: theme.palette.customColors.OnSurfaceVariant }}
@@ -157,6 +157,7 @@ function AssessmentSpeciesFilter({ selectedSpecie, setSelectedSpecie, openspecie
                 </IconButton>
               )
             }}
+            // InputProps={{}}
             placeholder='Search by species name or scientific name'
             onChange={handleSearchChange}
             sx={{

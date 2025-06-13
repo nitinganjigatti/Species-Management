@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useContext, useState } from 'react'
 import { useRouter } from 'next/router'
+import dynamic from 'next/dynamic'
 
 import MenuItem from '@mui/material/MenuItem'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
@@ -22,7 +23,8 @@ function SelectPharmacy() {
   // ** States
   const [options, setOptions] = useState([])
   const [open, setOpen] = useState(false)
-  const [selectedStore, setSelectedStore] = useState()
+  const [selectedStore, setSelectedStore] = useState(null)
+  const [mounted, setMounted] = useState(false)
 
   const { selectedPharmacy, setSelectedPharmacy } = usePharmacyContext()
   const authData = useContext(AuthContext)
@@ -35,7 +37,7 @@ function SelectPharmacy() {
       a?.name?.localeCompare(b?.name)
     )
 
-    setOptions(options)
+    setOptions(options || [])
     const storedPharmacy = await readAsync('selectedStore')
 
     const foundStored = () => {
@@ -56,7 +58,6 @@ function SelectPharmacy() {
 
       if (areArraysEqual === false) {
         write('selectedStore', foundPharmacy)
-
         setSelectedPharmacy(foundPharmacy)
       }
     }
@@ -68,7 +69,6 @@ function SelectPharmacy() {
         setSelectedStore(pharmacy)
         write('selectedStore', pharmacy)
         setSelectedPharmacy(pharmacy)
-      } else {
       }
     } else {
       setSelectedStore(storedPharmacy)
@@ -88,8 +88,6 @@ function SelectPharmacy() {
     write('selectedStore', selected[0])
     setSelectedPharmacy(selected[0])
     setOpen(false)
-
-    // router.reload()
   }
 
   const handleToggle = () => {
@@ -99,11 +97,16 @@ function SelectPharmacy() {
   const handleClose = () => {
     setOpen(false)
   }
-  useEffect(() => {
-    getStoreData()
 
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    setMounted(true)
+    getStoreData()
   }, [])
+
+  // Prevent hydration mismatch by not rendering until mounted
+  if (!mounted) {
+    return null
+  }
 
   return (
     <Box sx={{ minWidth: 200 }}>
@@ -114,7 +117,7 @@ function SelectPharmacy() {
           }}
           onClick={handleClick}
         >
-          {selectedStore?.name}
+          {selectedStore?.name || 'Select Pharmacy'}
         </Button>
 
         <Button
@@ -139,9 +142,9 @@ function SelectPharmacy() {
                 <MenuList id='split-button-menu' sx={{ maxHeight: 200, overflowY: 'scroll', overflowX: 'hidden' }}>
                   {options?.map((option, index) => (
                     <MenuItem
-                      key={index}
-                      selected={selectedStore ? selectedStore?.name : null}
-                      onClick={event => handleMenuItemClick(option.id)}
+                      key={option.id || index}
+                      selected={selectedStore?.id === option.id}
+                      onClick={() => handleMenuItemClick(option.id)}
                     >
                       {option?.name}
                     </MenuItem>
@@ -156,4 +159,5 @@ function SelectPharmacy() {
   )
 }
 
-export default SelectPharmacy
+// Export with no SSR to prevent hydration issues
+export default dynamic(() => Promise.resolve(SelectPharmacy), { ssr: false })

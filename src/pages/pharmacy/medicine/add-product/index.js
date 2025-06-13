@@ -1880,7 +1880,7 @@ const AddMedicine = () => {
                                 rules={{ required: true }}
                                 render={({ field: { value, onChange } }) => (
                                   <TextField
-                                    value={value}
+                                    value={value || ''}
                                     label='Reference URL'
                                     name='safety_advice'
                                     onChange={onChange}

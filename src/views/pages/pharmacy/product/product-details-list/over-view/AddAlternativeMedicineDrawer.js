@@ -24,12 +24,14 @@ const AddAlternativeMedicineDrawer = ({
     anchor='right'
     open={open}
     onClose={onClose}
-    PaperProps={{
-      sx: {
-        width: 500,
-        display: 'flex',
-        flexDirection: 'column',
-        backgroundColor: 'customColors.Background'
+    slotProps={{
+      paper: {
+        sx: {
+          width: 500,
+          display: 'flex',
+          flexDirection: 'column',
+          backgroundColor: 'customColors.Background'
+        }
       }
     }}
   >

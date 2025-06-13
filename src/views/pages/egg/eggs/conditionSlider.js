@@ -188,7 +188,7 @@ const ConditionSlider = ({
           enclosure_id: yup.string().required('Enclosure is required'),
           sextype: yup.string().required('Sex type is required'),
           birthDate: yup.string().required('Birth date is required'),
-          enclosure_id: yup.string().required('Enclosure is required'),
+          localIdentifierType: yup.string().required('Local identifier type is required'),
           localIdentifier: yup
             .string()
             .test(

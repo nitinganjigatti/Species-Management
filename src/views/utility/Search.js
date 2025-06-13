@@ -36,20 +36,6 @@ const Search = ({
         onChange={onChange}
         placeholder={placeholder}
         fullWidth
-        InputProps={{
-          startAdornment: (
-            <InputAdornment position='start'>
-              <SearchIcon fontSize='small' color={iconColor} />
-            </InputAdornment>
-          ),
-          endAdornment: value ? (
-            <InputAdornment position='end'>
-              <IconButton size='small' onClick={onClear} aria-label='clear search'>
-                <ClearIcon fontSize='small' color={iconColor} />
-              </IconButton>
-            </InputAdornment>
-          ) : null
-        }}
         sx={{
           width: width,
           ...textFielsSX,
@@ -69,9 +55,25 @@ const Search = ({
             padding: '10px 8px'
           }
         }}
+        slotProps={{
+          input: {
+            startAdornment: (
+              <InputAdornment position='start'>
+                <SearchIcon fontSize='small' color={iconColor} />
+              </InputAdornment>
+            ),
+            endAdornment: value ? (
+              <InputAdornment position='end'>
+                <IconButton size='small' onClick={onClear} aria-label='clear search'>
+                  <ClearIcon fontSize='small' color={iconColor} />
+                </IconButton>
+              </InputAdornment>
+            ) : null
+          }
+        }}
       />
     </Box>
-  )
+  );
 }
 
 export default React.memo(Search)

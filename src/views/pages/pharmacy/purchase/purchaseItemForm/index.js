@@ -622,18 +622,23 @@ const PurchaseItemForm = props => {
                   options={optionsMedicineList}
                   value={getValues('product')?.value ? value : null}
                   getOptionDisabled={option => !option.status}
-                  renderOption={(props, option) => (
-                    <li
-                      {...props}
-                      style={{ opacity: option.status ? 1 : 0.5, pointerEvents: option.status ? 'auto' : 'none' }}
-                    >
-                      <Box>
-                        <Typography>{option?.value ? option?.label : ''}</Typography>
-                        <Typography variant='body2'>{option.package_details}</Typography>
-                        <Typography variant='body2'>{option.manufacture}</Typography>
-                      </Box>
-                    </li>
-                  )}
+                  renderOption={(props, option) => {
+                    const { key, ...otherProps } = props
+
+                    return (
+                      <li
+                        key={option?.value}
+                        {...otherProps}
+                        style={{ opacity: option.status ? 1 : 0.5, pointerEvents: option.status ? 'auto' : 'none' }}
+                      >
+                        <Box>
+                          <Typography>{option?.value ? option?.label : ''}</Typography>
+                          <Typography variant='body2'>{option.package_details}</Typography>
+                          <Typography variant='body2'>{option.manufacture}</Typography>
+                        </Box>
+                      </li>
+                    )
+                  }}
                   getOptionLabel={option => option.label}
                   isOptionEqualToValue={(option, value) => option.value === value.value}
                   onChange={(e, val) => {
@@ -1446,7 +1451,9 @@ const PurchaseItemForm = props => {
                   label='Gross Amount*'
                   variant='outlined'
                   error={Boolean(errors.purchase_gross_amount)}
-                  InputProps={{ readOnly: true }}
+                  slotProps={{
+                    input: { readOnly: true }
+                  }}
                 />
               )}
             />
@@ -1640,7 +1647,6 @@ const PurchaseItemForm = props => {
                   }}
                   size='large'
                   variant='outlined'
-                  git
                 >
                   Reset
                 </Button>

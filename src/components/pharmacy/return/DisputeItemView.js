@@ -100,13 +100,13 @@ function DisputeItemView({ disputeId }) {
         // <Typography variant='body2' sx={{ color: 'text.primary' }}>
         //   {params.row.to_store_name}
         // </Typography>
-        <div>
+        (<div>
           <Tooltip title={params.row.to_store_name} placement='top'>
             <Typography variant='body2' sx={{ color: 'text.primary' }}>
               {params.row.to_store_name}
             </Typography>
           </Tooltip>
-        </div>
+        </div>)
       )
     },
 

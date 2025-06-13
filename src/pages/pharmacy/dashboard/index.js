@@ -233,13 +233,15 @@ const NewDashboard = () => {
               <Card>
                 <CardHeader
                   title='Products'
-                  titleTypographyProps={{ sx: { lineHeight: '2rem !important', letterSpacing: '0.15px !important' } }}
                   action={
                     <OptionsMenu
                       options={['Refresh']}
                       iconButtonProps={{ size: 'small', className: 'card-more-options' }}
                     />
                   }
+                  slotProps={{
+                    title: { sx: { lineHeight: '2rem !important', letterSpacing: '0.15px !important' } }
+                  }}
                 />
                 <TabContext value={value}>
                   <TabList onChange={handleChange} aria-label='card navigation example'>
@@ -276,13 +278,15 @@ const NewDashboard = () => {
               <Card>
                 <CardHeader
                   title='Products'
-                  titleTypographyProps={{ sx: { lineHeight: '2rem !important', letterSpacing: '0.15px !important' } }}
                   action={
                     <OptionsMenu
                       options={['Refresh']}
                       iconButtonProps={{ size: 'small', className: 'card-more-options' }}
                     />
                   }
+                  slotProps={{
+                    title: { sx: { lineHeight: '2rem !important', letterSpacing: '0.15px !important' } }
+                  }}
                 />
                 <TabContext value={value}>
                   <TabList onChange={handleChange} aria-label='card navigation example'>
@@ -304,7 +308,7 @@ const NewDashboard = () => {
         ) : null}
       </Grid>
     </ApexChartWrapper>
-  )
+  );
 }
 
 export default NewDashboard

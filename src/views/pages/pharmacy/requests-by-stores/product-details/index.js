@@ -224,7 +224,6 @@ const RequestedProductDetails = props => {
                       </Box>
                     </Box>
                   }
-                  titleTypographyProps={{ variant: 'h6' }}
                   action={
                     parseInt(nestedChildElm?.requested_qty) - parseInt(nestedChildElm?.dispatch_qty) >= 1 &&
                     nestedChildElm?.request_status !== 'Alternate' &&
@@ -233,12 +232,15 @@ const RequestedProductDetails = props => {
                     selectedPharmacy.type !== 'local' && (
                       // eslint-disable-next-line lines-around-comment
 
-                      <MenuWithDots
+                      (<MenuWithDots
                         options={generateOptions(nestedChildElm, nestedChildElm?.id)}
                         disabled={selectedPharmacy.type === 'local'}
-                      />
+                      />)
                     )
                   }
+                  slotProps={{
+                    title: { variant: 'h6' }
+                  }}
                 />
 
                 <Box>
@@ -367,7 +369,7 @@ const RequestedProductDetails = props => {
             </Grid>
           ))}
       </Box>
-    )
+    );
   }
 
   return (
@@ -707,7 +709,6 @@ const RequestedProductDetails = props => {
                             </>
                           </>
                         }
-                        titleTypographyProps={{ variant: 'h6' }}
                         action={
                           parseInt(parentItems?.requested_qty) - parseInt(parentItems?.dispatch_qty) >= 1 &&
                           parentItems?.request_status !== 'Alternate' &&
@@ -719,12 +720,15 @@ const RequestedProductDetails = props => {
                             //   options={['Add Alternative', 'Decline Request', 'Supply Stopped']}
                             //   iconButtonProps={{ size: 'small', className: 'card-more-options' }}
                             // />
-                            <MenuWithDots
+                            (<MenuWithDots
                               options={generateOptions(parentItems, parentItems?.id)}
                               disabled={selectedPharmacy.type === 'local'}
-                            />
+                            />)
                           )
                         }
+                        slotProps={{
+                          title: { variant: 'h6' }
+                        }}
                       />
                       <Divider
                         orientation='horizontal'
@@ -872,7 +876,7 @@ const RequestedProductDetails = props => {
         </>
       )}
     </Drawer>
-  )
+  );
 }
 
 export default RequestedProductDetails

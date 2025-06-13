@@ -140,9 +140,6 @@ const StoreWisedispatchFilter = ({
                     placeholder='Search'
                     value={filtersearchValue}
                     onChange={handleSearchChange}
-                    InputProps={{
-                      disableUnderline: false
-                    }}
                     sx={{
                       flex: 1,
                       mx: 1,
@@ -152,6 +149,11 @@ const StoreWisedispatchFilter = ({
                         '& fieldset': {
                           border: 'none'
                         }
+                      }
+                    }}
+                    slotProps={{
+                      input: {
+                        disableUnderline: false
                       }
                     }}
                   />
@@ -231,7 +233,7 @@ const StoreWisedispatchFilter = ({
         </LoadingButton>
       </Box>
     </Drawer>
-  )
+  );
 }
 
 export default StoreWisedispatchFilter

@@ -81,7 +81,7 @@ const SelectSites = ({
       {/* header */}
       <Box
         sx={{
-          bgcolor: '#FFF',
+          bgcolor: theme.palette.primary.contrastText,
           borderRadius: '8px',
           overflow: 'hidden',
           width: '100%',
@@ -96,10 +96,10 @@ const SelectSites = ({
         {/* Header */}
         <Box sx={{ p: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <Box>
-            <Typography variant='h6' fontWeight='500' sx={{ color: '#1F515B' }}>
+            <Typography variant='h6' fontWeight='500' sx={{ color: theme.palette.customColors.OnPrimaryContainer }}>
               Choose Site
             </Typography>
-            <Typography variant='body2' sx={{ color: '#44544A' }}>
+            <Typography variant='body2' sx={{ color: theme.palette.customColors.onSurfaceVariant }}>
               Select a site from the list below
             </Typography>
           </Box>
@@ -109,7 +109,7 @@ const SelectSites = ({
         </Box>
 
         {/* Search */}
-        <Box sx={{ p: 2, borderBottom: '1px solid #E0E0E0' }}>
+        <Box sx={{ p: 2, borderBottom: `1px solid ${theme.palette.customColors.OutlineVariant}` }}>
           <TextField
             fullWidth
             placeholder='Search'
@@ -117,32 +117,39 @@ const SelectSites = ({
             size='small'
             value={searchTerm}
             onChange={e => setSearchTerm(e.target.value)}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position='start'>
-                  <SearchIcon sx={{ color: '#1F515B' }} />
-                </InputAdornment>
-              ),
-              endAdornment: searchTerm && (
-                <InputAdornment position='end'>
-                  <IconButton
-                    size='small'
-                    onClick={() => {
-                      setSearchTerm('')
-                    }}
-                  >
-                    <Icon icon='mdi:close' fontSize={20} />
-                  </IconButton>
-                </InputAdornment>
-              ),
-              style: { background: '#EFF5F2', borderRadius: '4px', padding: '4px 8px', color: '#1F515B' }
+            slotProps={{
+              input: {
+                startAdornment: (
+                  <InputAdornment position='start'>
+                    <SearchIcon sx={{ color: theme.palette.customColors.OnPrimaryContainer }} />
+                  </InputAdornment>
+                ),
+                endAdornment: searchTerm && (
+                  <InputAdornment position='end'>
+                    <IconButton
+                      size='small'
+                      onClick={() => {
+                        setSearchTerm('')
+                      }}
+                    >
+                      <Icon icon='mdi:close' fontSize={20} />
+                    </IconButton>
+                  </InputAdornment>
+                ),
+                style: {
+                  background: theme.palette.customColors.lightBg,
+                  borderRadius: '4px',
+                  padding: '4px 8px',
+                  color: theme.palette.customColors.OnPrimaryContainer
+                }
+              }
             }}
           />
         </Box>
 
         {/* Selected Count */}
         <Box sx={{ p: 2, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <Typography variant='body2' sx={{ color: '#44544A' }}>
+          <Typography variant='body2' sx={{ color: theme.palette.customColors.onSurfaceVariant }}>
             Selected {pendingSelections?.Site?.length} / {siteData?.length}
           </Typography>
           <Box
@@ -154,7 +161,10 @@ const SelectSites = ({
             <Button
               size='small'
               sx={{
-                color: pendingSelections?.Site?.length === siteData?.length ? theme.palette.primary.main : '#44544A',
+                color:
+                  pendingSelections?.Site?.length === siteData?.length
+                    ? theme.palette.primary.main
+                    : theme.palette.customColors.onSurfaceVariant,
                 fontSize: '12px',
                 fontWeight: 600,
                 textTransform: 'none',
@@ -168,7 +178,9 @@ const SelectSites = ({
             <Checkbox
               checked={pendingSelections?.Site?.length === siteData?.length}
               onChange={handleSelectAllSites}
-              inputProps={{ 'aria-label': 'Select all species' }}
+              slotProps={{
+                'aria-label': 'Select all species'
+              }}
               sx={{
                 '&.Mui-checked': {
                   color: theme.palette.primary.main
@@ -210,19 +222,29 @@ const SelectSites = ({
                   pl: 3,
                   mb: 4,
                   border: '1px solid',
-                  borderColor: pendingSelections?.Site?.includes(site.site_id) ? '#80E0A3' : '#C3CEC7',
+                  borderColor: pendingSelections?.Site?.includes(site.site_id)
+                    ? theme.palette.primary.main
+                    : theme.palette.customColors.OutlineVariant,
                   borderRadius: '8px',
-                  bgcolor: pendingSelections?.Site?.includes(site.site_id) ? '#E1F9ED' : 'transparent',
+                  bgcolor: pendingSelections?.Site?.includes(site.site_id)
+                    ? theme.palette.customColors.OnBackground
+                    : 'transparent',
                   height: '70px'
                 }}
               >
                 <ListItemAvatar>
-                  <Avatar src={site.image || '/default-site.jpg'} variant='rounded' />
+                  <Avatar src={site.image || '/images/housing/site-icon-colored.svg'} variant='rounded' />
                 </ListItemAvatar>
                 <ListItemText
+                  sx={{ wordWrap: 'break-word' }}
                   primary={site.site_name}
-                  primaryTypographyProps={{ fontWeight: 'bold', color: '#1F515B' }}
-                  secondaryTypographyProps={{ color: '#44544A' }}
+                  slotProps={{
+                    primary: {
+                      fontWeight: 'bold',
+                      color: theme.palette.customColors.OnPrimaryContainer
+                    },
+                    secondary: { color: theme.palette.customColors.onSurfaceVariant }
+                  }}
                 />
                 <Checkbox
                   checked={pendingSelections?.Site?.includes(site.site_id)}
@@ -242,7 +264,7 @@ const SelectSites = ({
             pt: 4,
             position: 'sticky',
             bottom: 0,
-            background: '#FFF',
+            background: theme.palette.primary.contrastText,
             zIndex: 1,
             pb: 4
           }}
@@ -250,7 +272,12 @@ const SelectSites = ({
           <Button
             variant='contained'
             fullWidth
-            sx={{ bgcolor: '#28A745', color: '#FFF', p: 2, borderRadius: '8px', '&:hover': { bgcolor: '#218838' } }}
+            sx={{
+              color: theme.palette.primary.contrastText,
+              p: 2,
+              borderRadius: '8px'
+              // height: '58px' // to be this value according to figma but using continue 3 component from 2 place and there has different value, need to be samea at all the places
+            }}
             onClick={handleCloseDrawer}
             disabled={pendingSelections?.Site?.length === 0}
           >

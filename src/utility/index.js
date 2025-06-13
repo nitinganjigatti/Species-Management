@@ -221,7 +221,7 @@ const downloadFileFromURL = async (fileUrl, title = '') => {
 }
 
 const formatText = text => {
-  return text.replace(/_/g, ' ').replace(/\b\w/g, char => char.toUpperCase())
+  return text.replace(/_/g, ' ').replace(/\b\w/g, char => char.toUpperCase());
 }
 
 function toPascalSentenceCase(str) {
@@ -231,7 +231,7 @@ function toPascalSentenceCase(str) {
     .trim()
     .split(' ')
     .map(word => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase()) // Capitalize the first letter of each word
-    .join(' ')
+    .join(' ');
 }
 
 function formatAmountCompactDisplay(value) {

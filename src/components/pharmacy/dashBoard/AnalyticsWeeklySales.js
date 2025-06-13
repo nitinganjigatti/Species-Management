@@ -110,15 +110,16 @@ const AnalyticsWeeklySales = () => {
       <CardHeader
         title='Weekly Sales'
         subheader='Total 85.4k Sales'
-        subheaderTypographyProps={{ sx: { lineHeight: 1.429 } }}
-        titleTypographyProps={{ sx: { letterSpacing: '0.15px' } }}
         action={
           <OptionsMenu
             options={['Refresh', 'Edit', 'Share']}
             iconButtonProps={{ size: 'small', className: 'card-more-options' }}
           />
         }
-      />
+        slotProps={{
+          title: { sx: { letterSpacing: '0.15px' } },
+          subheader: { sx: { lineHeight: 1.429 } }
+        }} />
       <CardContent
         sx={{
           '& .apexcharts-series[rel="2"]': { transform: 'translateY(-8px)' },
@@ -154,7 +155,7 @@ const AnalyticsWeeklySales = () => {
         {/* <ReactApexcharts type='line' height={251} series={series} options={options} /> */}
       </CardContent>
     </Card>
-  )
+  );
 }
 
 export default AnalyticsWeeklySales

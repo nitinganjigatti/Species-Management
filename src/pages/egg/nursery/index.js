@@ -423,7 +423,7 @@ const NurseryList = () => {
                     disablePortal
                     id='site'
                     options={authData?.userData?.user?.zoos[0].sites}
-                    getOptionLabel={option => option.site_name}
+                    getOptionLabel={option => option?.site_name || ''}
                     isOptionEqualToValue={(option, value) => option?.site_id === value?.site_id}
                     onChange={(e, val) => {
                       if (val === null) {
@@ -434,6 +434,11 @@ const NurseryList = () => {
                         fetchTableData(searchValue, val?.site_id)
                       }
                     }}
+                    renderOption={(props, option) => (
+                      <li {...props} key={option.site_id}>
+                        {option.site_name}
+                      </li>
+                    )}
                     renderInput={params => (
                       <TextField
                         sx={{

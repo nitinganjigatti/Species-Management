@@ -86,7 +86,7 @@ const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
           .string()
           .required('Mobile Number is required')
           .test('is-valid-number', 'Only numbers are allowed', value => {
-            return /^\d*$/.test(value)
+            return /^\d*$/.test(value);
           })
           .test('is-valid-length', 'Mobile Number must be exactly 10 digits', value => {
             return value?.length === 10
@@ -116,7 +116,7 @@ const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
           .string()
           .required('Mobile Number is required')
           .test('is-valid-number', 'Only numbers are allowed', value => {
-            return /^\d*$/.test(value)
+            return /^\d*$/.test(value);
           })
           .test('is-valid-length', 'Mobile Number must be exactly 10 digits', value => {
             return value?.length === 10
@@ -216,11 +216,13 @@ const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
         inputRef={ref}
         {...props}
         sx={{ width: '100%' }}
-        InputProps={{
-          autoComplete: 'off'
+        slotProps={{
+          input: {
+            autoComplete: 'off'
+          }
         }}
       />
-    )
+    );
   })
 
   const columns = [
@@ -407,7 +409,6 @@ const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
         }
         sx={{ p: 0 }}
       /> */}
-
       <Grid container spacing={6} className='match-height'>
         <Grid item size={{ xs: 12 }}>
           <CardContent>
@@ -677,7 +678,9 @@ const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
                           placeholder=''
                           error={Boolean(errors.carton_box)}
                           name='carton_box'
-                          InputLabelProps={{ shrink: true }}
+                          slotProps={{
+                            inputLabel: { shrink: true }
+                          }}
                         />
                       )}
                     />
@@ -720,7 +723,7 @@ const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
         </Grid>
       </Grid>
     </>
-  )
+  );
 }
 
 export default ShipRequest
