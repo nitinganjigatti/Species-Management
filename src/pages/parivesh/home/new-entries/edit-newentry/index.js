@@ -624,7 +624,13 @@ const EditNewEntry = () => {
                 <Typography sx={{ cursor: 'pointer' }} color='inherit' onClick={() => router.back()}>
                   {isEditMode ? 'New Entries' : 'New Entries'}
                 </Typography>
-                <Typography color='text.primary'>{isEditMode ? 'Edit New Entry' : 'Add New Entry'}</Typography>
+                <Typography
+                  sx={{
+                    color: 'text.primary'
+                  }}
+                >
+                  {isEditMode ? 'Edit New Entry' : 'Add New Entry'}
+                </Typography>
               </Breadcrumbs>
             </Box>
 

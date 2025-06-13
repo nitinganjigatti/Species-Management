@@ -777,7 +777,13 @@ const SpeciesDetails = () => {
               <Typography sx={{ cursor: 'pointer' }} color='inherit' onClick={() => Router.push('/parivesh/species')}>
                 Species
               </Typography>
-              <Typography color='text.primary'>{speciesDetails?.common_name}</Typography>
+              <Typography
+                sx={{
+                  color: 'text.primary'
+                }}
+              >
+                {speciesDetails?.common_name}
+              </Typography>
             </Breadcrumbs>
           </Box>
           {!organizationCountList.length > 0 &&

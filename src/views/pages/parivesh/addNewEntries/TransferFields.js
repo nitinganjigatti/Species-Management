@@ -142,7 +142,11 @@ const TransferFields = ({
       </Grid>
       <Divider />
       <Grid item size={{ xs: 12 }}>
-        <Box mt={6}>
+        <Box
+          sx={{
+            mt: 6
+          }}
+        >
           <Typography variant='h5' gutterBottom>
             Gender
           </Typography>
@@ -297,7 +301,7 @@ const TransferFields = ({
         </Grid>
       </Grid> */}
     </>
-  );
+  )
 }
 
 export default TransferFields

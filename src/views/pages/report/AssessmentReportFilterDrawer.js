@@ -231,7 +231,7 @@ const AssessmentReportFilterDrawer = ({
         }}
       >
         <Grid container sx={{ px: 5 }}>
-          <Grid item md={4} sm={4} xs={4}>
+          <Grid item size={{ xs: 4, sm: 4, md: 4 }}>
             {tabsforfilter.map(menu => (
               <Box
                 key={menu}
@@ -253,7 +253,7 @@ const AssessmentReportFilterDrawer = ({
               </Box>
             ))}
           </Grid>
-          <Grid item md={8} sm={8} xs={8}>
+          <Grid item size={{ xs: 8, sm: 8, md: 8 }}>
             <Box
               sx={{
                 bgcolor: theme.palette.primary.contrastText,
@@ -591,7 +591,9 @@ const AssessmentReportFilterDrawer = ({
                     <Checkbox
                       checked={selectAllGender}
                       onChange={handleSelectAllGender}
-                      inputProps={{ 'aria-label': 'controlled' }}
+                      slotProps={{
+                        'aria-label': 'controlled'
+                      }}
                     />
                     <Typography sx={{ fontSize: '16px', fontWeight: 400, color: theme.palette.customColors.Outline }}>
                       Select All
@@ -604,7 +606,9 @@ const AssessmentReportFilterDrawer = ({
                       <Checkbox
                         checked={tempSelectedItems.gender.includes(option.key)}
                         onChange={() => handleGenderCheckboxChange(option.key, option.name)}
-                        inputProps={{ 'aria-label': 'controlled' }}
+                        slotProps={{
+                          'aria-label': 'controlled'
+                        }}
                       />
                       <Typography sx={{ fontSize: '16px', fontWeight: 400, color: theme.palette.customColors.Outline }}>
                         {option.name}

@@ -670,7 +670,12 @@ const BatchDetails = ({ params, searchParams }) => {
         <>
           <Card>
             <Box sx={{ p: 6, pb: 0 }}>
-              <Grid container justifyContent='space-between'>
+              <Grid
+                container
+                sx={{
+                  justifyContent: 'space-between'
+                }}
+              >
                 <Grid item size={{ xs: 12, sm: 'auto' }}>
                   <CardHeader
                     sx={{ padding: 0 }}
@@ -741,7 +746,7 @@ const BatchDetails = ({ params, searchParams }) => {
                             ? 'Approved'
                             : batchDetails.status === 'rejected'
                             ? 'Rejected'
-                            : NA}
+                            : 'NA'}
                         </Typography>
                       )}
                     </Typography>
@@ -1019,7 +1024,7 @@ const BatchDetails = ({ params, searchParams }) => {
                               style={{ textDecoration: 'none', color: 'inherit' }}
                             >
                               <Tooltip title={filePreview.attachment_name} arrow>
-                                <Typography variant='body2' sx={{ m: 2 }}>
+                                <Typography component={'div'} variant='body2' sx={{ m: 2 }}>
                                   <div style={{ display: 'flex', alignItems: 'center' }}>
                                     {/* <Image src={pdfIcon} alt='' width={50} height={50} /> */}
                                     <Image

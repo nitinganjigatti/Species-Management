@@ -264,7 +264,9 @@ const AnimalAssessment = () => {
               M
             </Typography>
           ) : animalData?.sex === 'female' ? (
-            <Typography sx={{ fontSize: 14, fontWeight: 500, color: '#4A0415' }}>F</Typography>
+            <Typography sx={{ fontSize: 14, fontWeight: 500, color: theme.palette.customColors.Tertiary }}>
+              F
+            </Typography>
           ) : animalData?.sex === 'undetermined' ? (
             <Typography sx={{ fontSize: 14, fontWeight: 500, color: theme.palette.customColors.Error }}>UD</Typography>
           ) : animalData?.sex === 'indeterminate' ? (
@@ -813,7 +815,7 @@ const AnimalAssessment = () => {
                     disabled={isLoading}
                     size='small'
                     placeholder='Search'
-                    InputProps={{
+                    slotProps={{
                       startAdornment: (
                         <InputAdornment position='start'>
                           <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />

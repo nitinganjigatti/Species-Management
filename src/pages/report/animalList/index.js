@@ -752,7 +752,7 @@ const AnimalList = () => {
                 {/* Search box and Tabs */}
                 <Box sx={{ display: 'flex', alignItems: 'center', gap: 0 }}>
                   {/* Search Box */}
-                  <TextField
+                  {/* <TextField
                     variant='outlined'
                     size='small'
                     placeholder='Search'
@@ -776,7 +776,7 @@ const AnimalList = () => {
                         borderRadius: '4px' // Applies to the input field
                       }
                     }}
-                  />
+                  /> */}
                   {/* Tabs */}
                   <TabList onChange={''}></TabList> {/* Add `handleTabChange` for tab switching */}
                 </Box>
@@ -961,7 +961,11 @@ const AnimalList = () => {
                         }}
                         alt='Filter Icon'
                       />
-                      <Typography sx={{ color: theme.palette.customColors.OnPrimaryContainer, textTransform: 'capitalize' }}>Show/Hide</Typography>
+                      <Typography
+                        sx={{ color: theme.palette.customColors.OnPrimaryContainer, textTransform: 'capitalize' }}
+                      >
+                        Show/Hide
+                      </Typography>
                     </Button>
                     <Popover
                       id={id}

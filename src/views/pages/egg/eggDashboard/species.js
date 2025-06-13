@@ -1949,7 +1949,7 @@ const Species = ({ openDiscard, setOpenDiscard }) => {
       <>
         <Box
           sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', gap: 6, mb: '24px' }}
-          container
+          // container
         >
           {/* Search Box */}
           <Box

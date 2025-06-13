@@ -426,7 +426,7 @@ function Dispense() {
             </Grid>
 
             {/* Switch */}
-            {status === 'all' || status === 'completed' ? (
+            {/* {status === 'all' || status === 'completed' ? (
               <Grid
                 item
                 size={{ xs: 12, sm: 'auto' }}
@@ -438,7 +438,7 @@ function Dispense() {
                   labelPlacement='end'
                 />
               </Grid>
-            ) : null}
+            ) : null} */}
           </Grid>
 
           {/* Table */}

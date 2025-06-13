@@ -30,9 +30,8 @@ const AnimalDetails = ({ eggDetails }) => {
   return (
     <Card sx={{ backgroundColor: theme.palette.primary.contrastText }}>
       <CardHeader
-        sx={{ pb: 0 }}
+        sx={{ pb: 0, pl: 5 }}
         title={'Animal Details'}
-
         // action={headerAction}
       />
       <CardContent sx={{ pt: 2 }}>
@@ -58,61 +57,65 @@ const AnimalDetails = ({ eggDetails }) => {
                 />
 
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: '4px' }}>
-                  <Typography
-                    sx={{
-                      color: theme.palette.primary.light,
-                      fontSize: '16px',
-                      fontWeight: '500',
-                      lineHeight: '19.36px',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-
-                      // whiteSpace: 'nowrap',
-                      // whiteSpace: 'normal', // Change this to allow wrapping
-                      wordWrap: 'break-word',
-                      wordBreak: 'break-word', // Change this to 'break-word'
-                      width: '100%'
-                    }}
-                  >
-                    {eggDetails?.animal_data?.common_name || '-'}
-                  </Typography>
-                  <Typography
-                    sx={{
-                      color: theme.palette.primary.light,
-                      fontSize: '14px',
-                      fontWeight: '400',
-                      lineHeight: '16.94px',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                      whiteSpace: 'nowrap',
-                      whiteSpace: 'normal', // Change this to allow wrapping
-                      wordWrap: 'break-word',
-                      wordBreak: 'break-word', // Change this to 'break-word'
-                      width: '100%'
-                    }}
-                  >
-                    {eggDetails?.animal_data?.scientific_name || '-'}
-                  </Typography>
-                  <Typography
-                    sx={{
-                      color: theme.palette.primary.light,
-                      fontSize: '14px',
-                      fontWeight: '400',
-                      lineHeight: '16.94px',
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                      whiteSpace: 'nowrap',
-                      whiteSpace: 'normal', // Change this to allow wrapping
-                      wordWrap: 'break-word',
-                      wordBreak: 'break-word', // Change this to 'break-word'
-                      width: '100%'
-                    }}
-                  >
-                    {(eggDetails?.animal_data?.local_identifier_name &&
-                      eggDetails?.animal_data?.local_identifier_value &&
-                      `${eggDetails?.animal_data?.local_identifier_name}:${eggDetails?.animal_data?.local_identifier_value}`) ||
-                      '-'}
-                  </Typography>
+                  {eggDetails?.animal_data?.common_name && (
+                    <Typography
+                      sx={{
+                        color: theme.palette.primary.light,
+                        fontSize: '16px',
+                        fontWeight: '500',
+                        lineHeight: '19.36px',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        wordWrap: 'break-word',
+                        wordBreak: 'break-word', // Change this to 'break-word'
+                        width: '100%'
+                      }}
+                    >
+                      {eggDetails?.animal_data?.common_name || '-'}
+                    </Typography>
+                  )}
+                  {eggDetails?.animal_data?.scientific_name && (
+                    <Typography
+                      sx={{
+                        color: theme.palette.primary.light,
+                        fontSize: '14px',
+                        fontWeight: '400',
+                        lineHeight: '16.94px',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
+                        whiteSpace: 'normal', // Change this to allow wrapping
+                        wordWrap: 'break-word',
+                        wordBreak: 'break-word', // Change this to 'break-word'
+                        width: '100%'
+                      }}
+                    >
+                      {eggDetails?.animal_data?.scientific_name || '-'}
+                    </Typography>
+                  )}
+                  {eggDetails?.animal_data?.local_identifier_name &&
+                    eggDetails?.animal_data?.local_identifier_value && (
+                      <Typography
+                        sx={{
+                          color: theme.palette.primary.light,
+                          fontSize: '14px',
+                          fontWeight: '400',
+                          lineHeight: '16.94px',
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap',
+                          whiteSpace: 'normal', // Change this to allow wrapping
+                          wordWrap: 'break-word',
+                          wordBreak: 'break-word', // Change this to 'break-word'
+                          width: '100%'
+                        }}
+                      >
+                        {(eggDetails?.animal_data?.local_identifier_name &&
+                          eggDetails?.animal_data?.local_identifier_value &&
+                          `${eggDetails?.animal_data?.local_identifier_name}:${eggDetails?.animal_data?.local_identifier_value}`) ||
+                          '-'}
+                      </Typography>
+                    )}
                 </Box>
               </Box>
             </Grid>
