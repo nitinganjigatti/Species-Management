@@ -691,14 +691,11 @@ function ProductForm({
                   <>
                     <Autocomplete
                       forcePopupIcon={false}
-                      inputProps={{ tabIndex: '6' }}
                       noOptionsText='Type to search'
                       id='autocomplete-controlled'
                       options={products}
                       value={field?.value}
                       onChange={(event, newValue) => {
-                        console.log(newValue, 'newValue')
-
                         field.onChange(newValue)
                         callBatchesApi(newValue?.value, newValue?.stock_type)
                         setValue('batch_no', '')
@@ -707,29 +704,38 @@ function ProductForm({
                       onKeyUp={e => {
                         searchProductData(e?.target?.value)
                       }}
+                      slotProps={{
+                        input: {
+                          tabIndex: '6'
+                        }
+                      }}
                       renderInput={params => (
                         <TextField
                           {...params}
-                          label='
-                          Product Name*'
+                          label='Product Name*'
                           placeholder='Search & Select'
                           error={Boolean(errors?.stock_id)}
                         />
                       )}
-                      renderOption={(props, option) => (
-                        <li
-                          {...props}
-                          style={{ opacity: option.status ? 1 : 0.5, pointerEvents: option.status ? 'auto' : 'none' }}
-                        >
-                          <Box>
-                            <Typography>{option.label}</Typography>
-                            <Typography variant='body2'>{option.packageDetails}</Typography>
-                            <Typography variant='body2'>{option.manufacture}</Typography>
-                            {RenderUtility?.renderControlLabel(option.control_substance === true, 'CS')}
-                            {RenderUtility?.renderPrescriptionLabel(option.prescription_required === true, 'PR')}
-                          </Box>
-                        </li>
-                      )}
+                      renderOption={(props, option) => {
+                        const { key, ...otherProps } = props
+
+                        return (
+                          <li
+                            key={key}
+                            {...otherProps}
+                            style={{ opacity: option.status ? 1 : 0.5, pointerEvents: option.status ? 'auto' : 'none' }}
+                          >
+                            <Box>
+                              <Typography>{option.label}</Typography>
+                              <Typography variant='body2'>{option.packageDetails}</Typography>
+                              <Typography variant='body2'>{option.manufacture}</Typography>
+                              {RenderUtility?.renderControlLabel(option.control_substance === true, 'CS')}
+                              {RenderUtility?.renderPrescriptionLabel(option.prescription_required === true, 'PR')}
+                            </Box>
+                          </li>
+                        )
+                      }}
                     />
                     {errors?.stock_id && (
                       <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
@@ -878,7 +884,6 @@ function ProductForm({
                         <>
                           <Autocomplete
                             forcePopupIcon={false}
-                            inputProps={{ tabIndex: '6' }}
                             id={`product_batches[${index}].batch_no`}
                             options={batches}
                             getOptionLabel={option => option?.label || ''}
@@ -893,8 +898,12 @@ function ProductForm({
                             value={field?.value}
                             onChange={(event, newValue) => {
                               field.onChange(newValue)
-
                               handleBatchChange(event, newValue, index)
+                            }}
+                            slotProps={{
+                              input: {
+                                tabIndex: '6'
+                              }
                             }}
                             renderInput={params => (
                               <TextField
@@ -905,40 +914,44 @@ function ProductForm({
                                 sx={{ backgroundColor: 'white', borderRadius: 1 }}
                               />
                             )}
-                            renderOption={(props, option) => (
-                              <Box
-                                component='li'
-                                {...props}
-                                sx={{
-                                  border: '1px solid transparent',
-                                  '&:last-child': {
-                                    borderBottom: 'none'
-                                  },
-                                  m: 3,
-                                  '&:hover': {
-                                    border: `1px solid ${theme.palette.customColors.neutral05}`
-                                  },
+                            renderOption={(props, option) => {
+                              const { key, ...otherProps } = props
 
-                                  borderRadius: '2px'
-                                }}
-                              >
-                                <Box sx={{ p: 1 }}>
-                                  <Typography
-                                    variant='body2'
-                                    color='customColors.customHeadingTextColor'
-                                    sx={{ fontWeight: 600 }}
-                                  >
-                                    {option.label}
-                                  </Typography>
-                                  <Typography variant='body2' color='customColors.neutralSecondary'>
-                                    Expiry Date: {Utility.formatDisplayDate(option?.expiry_date)}
-                                  </Typography>
-                                  <Typography variant='body2' color='primary.main'>
-                                    Availability: {option?.qty}
-                                  </Typography>
+                              return (
+                                <Box
+                                  component='li'
+                                  key={key}
+                                  {...otherProps}
+                                  sx={{
+                                    border: '1px solid transparent',
+                                    '&:last-child': {
+                                      borderBottom: 'none'
+                                    },
+                                    m: 3,
+                                    '&:hover': {
+                                      border: `1px solid ${theme.palette.customColors.neutral05}`
+                                    },
+                                    borderRadius: '2px'
+                                  }}
+                                >
+                                  <Box sx={{ p: 1 }}>
+                                    <Typography
+                                      variant='body2'
+                                      color='customColors.customHeadingTextColor'
+                                      sx={{ fontWeight: 600 }}
+                                    >
+                                      {option.label}
+                                    </Typography>
+                                    <Typography variant='body2' color='customColors.neutralSecondary'>
+                                      Expiry Date: {Utility.formatDisplayDate(option?.expiry_date)}
+                                    </Typography>
+                                    <Typography variant='body2' color='primary.main'>
+                                      Availability: {option?.qty}
+                                    </Typography>
+                                  </Box>
                                 </Box>
-                              </Box>
-                            )}
+                              )
+                            }}
                             slots={{
                               paper: ({ children, ...props }) => (
                                 <Paper
@@ -1080,12 +1093,16 @@ function ProductForm({
                     <>
                       <Autocomplete
                         forcePopupIcon={false}
-                        inputProps={{ tabIndex: '6' }}
                         disablePortal
                         disabled={batches?.length === 0 ? true : false}
                         value={field?.value}
                         options={batches}
                         getOptionLabel={option => option?.label || ''}
+                        slotProps={{
+                          input: {
+                            tabIndex: '6'
+                          }
+                        }}
                         renderInput={params => (
                           <TextField
                             {...params}
@@ -1096,8 +1113,6 @@ function ProductForm({
                         )}
                         onChange={(event, newValue) => {
                           field.onChange(newValue)
-
-                          // clearErrors('product_batches')
                           clearErrors('qty')
                           setEditBatchQty(newValue?.qty)
                           if (parseFloat(newValue?.qty) < parseFloat(getValues('qty'))) {
@@ -1107,40 +1122,44 @@ function ProductForm({
                             })
                           }
                         }}
-                        renderOption={(props, option) => (
-                          <Box
-                            component='li'
-                            {...props}
-                            sx={{
-                              border: '1px solid transparent',
-                              '&:last-child': {
-                                borderBottom: 'none'
-                              },
-                              m: 3,
-                              '&:hover': {
-                                border: `1px solid ${theme.palette.customColors.neutral05}`
-                              },
+                        renderOption={(props, option) => {
+                          const { key, ...otherProps } = props
 
-                              borderRadius: '2px'
-                            }}
-                          >
-                            <Box sx={{ p: 1 }}>
-                              <Typography
-                                variant='body2'
-                                color='customColors.customHeadingTextColor'
-                                sx={{ fontWeight: 600 }}
-                              >
-                                {option.label}
-                              </Typography>
-                              <Typography variant='body2' color='customColors.neutralSecondary'>
-                                Expiry Date: {Utility.formatDisplayDate(option?.expiry_date)}
-                              </Typography>
-                              <Typography variant='body2' color='primary.main'>
-                                Availability: {option?.qty}
-                              </Typography>
+                          return (
+                            <Box
+                              component='li'
+                              key={key}
+                              {...otherProps}
+                              sx={{
+                                border: '1px solid transparent',
+                                '&:last-child': {
+                                  borderBottom: 'none'
+                                },
+                                m: 3,
+                                '&:hover': {
+                                  border: `1px solid ${theme.palette.customColors.neutral05}`
+                                },
+                                borderRadius: '2px'
+                              }}
+                            >
+                              <Box sx={{ p: 1 }}>
+                                <Typography
+                                  variant='body2'
+                                  color='customColors.customHeadingTextColor'
+                                  sx={{ fontWeight: 600 }}
+                                >
+                                  {option.label}
+                                </Typography>
+                                <Typography variant='body2' color='customColors.neutralSecondary'>
+                                  Expiry Date: {Utility.formatDisplayDate(option?.expiry_date)}
+                                </Typography>
+                                <Typography variant='body2' color='primary.main'>
+                                  Availability: {option?.qty}
+                                </Typography>
+                              </Box>
                             </Box>
-                          </Box>
-                        )}
+                          )
+                        }}
                       />
                       {errors.batch_no && (
                         <FormHelperText sx={{ color: 'error.main' }} id='validation-basic-first-name'>
@@ -1229,7 +1248,7 @@ function ProductForm({
           </FormHelperText>
         )}
         <Grid item size={{ xs: 12, sm: 12 }} sx={{ mt: '40px' }}>
-          <Grid Grid sx={{ height: '100%' }} alignItems='flex-end' justifyContent='flex-end' container>
+          <Grid sx={{ height: '100%' }} alignItems='flex-end' justifyContent='flex-end' container>
             {editMode ? (
               <Button type='submit' variant='contained'>
                 Update
@@ -1243,7 +1262,7 @@ function ProductForm({
         </Grid>
       </form>
     </Box>
-  );
+  )
 }
 
 export default ProductForm
