@@ -10,6 +10,7 @@ import {
   IconButton,
   InputAdornment,
   TextField,
+  Tooltip,
   Typography
 } from '@mui/material'
 import { useTheme } from '@mui/material/styles'
@@ -156,8 +157,8 @@ const AnimalAssessment = () => {
       const recordMap = {}
       animal.assessment_data.assessments.forEach((assessment, index) => {
         recordMap[`record_${index}`] = {
-          value: `${assessment.assessment_value} ${assessment?.uom_abbr ?? assessment.assessment_type}${
-            Number(assessment?.assessment_value) > 1 ? 's' : ''
+          value: `${assessment.assessment_value} ${assessment?.uom ? assessment.assessment_type : ''}${
+            Number(assessment?.assessment_value) > 1 && assessment?.uom ? 's' : ''
           }`,
           date: moment(assessment.assessment_recorded_date).format('DD MMM YYYY'),
           time: moment(assessment.assessment_recorded_time, 'HH:mm:ss').format('hh:mm A'),
@@ -397,9 +398,21 @@ const AnimalAssessment = () => {
             }}
             sx={{ p: 4 }}
           >
-            <Typography fontSize={14} fontWeight={600}>
-              {record.value}
-            </Typography>
+            <Tooltip title={record.value} placement='top'>
+              <Typography
+                fontSize={14}
+                fontWeight={600}
+                sx={{
+                  display: '-webkit-box',
+                  WebkitLineClamp: 2,
+                  WebkitBoxOrient: 'vertical',
+                  overflow: 'hidden',
+                  textOverflow: 'ellipsis'
+                }}
+              >
+                {record.value}
+              </Typography>
+            </Tooltip>
             <Typography fontSize={12} color='textSecondary'>
               {record.date}
             </Typography>
