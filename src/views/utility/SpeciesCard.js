@@ -5,6 +5,7 @@ import { useTheme } from '@mui/material/styles'
 
 function SpeciesCard({ species }) {
   const theme = useTheme()
+
   return (
     <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
       {species?.default_icon && (
@@ -29,8 +30,7 @@ function SpeciesCard({ species }) {
           sx={{
             color: theme.palette.customColors.OnSurfaceVariant,
             fontSize: '16px',
-            fontWeight: 400,
-            fontStyle: 'italic'
+            fontWeight: 600
           }}
         >
           {species.common_name ? species.common_name : '-'}
@@ -39,7 +39,8 @@ function SpeciesCard({ species }) {
           sx={{
             color: theme.palette.customColors.OnSurfaceVariant,
             fontSize: '16px',
-            fontWeight: 600
+            fontWeight: 400,
+            fontStyle: 'italic'
           }}
         >
           {species.scientific_name ? species.scientific_name : '-'}

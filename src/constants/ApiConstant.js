@@ -454,6 +454,8 @@ export const ANIMAL_REPORT = 'v1/animal/report'
 
 export const USER_REPORT = 'v1/user/report'
 
+export const ASSESSMENT_REPORT = 'v1/animal/batch/assessments'
+
 export const MEDICAL_REPORT = 'v1/medical/report'
 
 export const All_ANIMAL_LIST = 'v1/all/animal/report'
