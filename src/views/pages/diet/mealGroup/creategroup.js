@@ -14,12 +14,13 @@ import {
 import { useTheme } from '@emotion/react'
 import Icon from 'src/@core/components/icon'
 import { LoadingButton } from '@mui/lab'
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useContext, useEffect, useRef, useState } from 'react'
 import { createMealGroup, getEnclosureListByGroup, updateMealGroup } from 'src/lib/api/diet/mealgroup'
 import toast from 'react-hot-toast'
 import { debounce } from 'lodash'
 import { fontSize } from '@mui/system'
 import { object } from 'yup'
+import Error404 from 'src/pages/404'
 
 const CreateMealGroup = ({
   openDrawer,
@@ -197,6 +198,8 @@ const CreateMealGroup = ({
   // }
 
   const theme = useTheme()
+  const authData = useContext(AuthContext)
+  const dietModule = authData?.userData?.roles?.settings?.diet_module
 
   const RenderSidebarFooter = () => {
     return (
@@ -234,7 +237,7 @@ const CreateMealGroup = ({
     )
   }
 
-  return (
+  return dietModule ? (
     <>
       <Drawer
         anchor='right'
@@ -651,6 +654,8 @@ const CreateMealGroup = ({
         {mealType.type !== 'view' && <RenderSidebarFooter />}
       </Drawer>
     </>
+  ) : (
+    <Error404 />
   )
 }
 export default CreateMealGroup

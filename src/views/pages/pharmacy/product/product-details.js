@@ -61,27 +61,26 @@ export const ProductDetail = ({
                 <Typography variant='subtitle2' sx={{ mr: 2, color: 'text.primary' }}>
                   Product Type
                 </Typography>
-                <Typography variant='body2'>
-                  {item.product_type.replace(/_/g, ' ').replace(/\b\w/g, char => char.toUpperCase())}
-                </Typography>
+
+                {item.product_type.replace(/_/g, ' ').replace(/\b\w/g, char => char.toUpperCase())}
               </Grid>
               <Grid item size={{ xs: 6 }}>
                 <Typography variant='subtitle2' sx={{ mr: 2, color: 'text.primary' }}>
                   Product Name
                 </Typography>
-                <Typography variant='body2'>{item.product_name}</Typography>
+                {item.product_name}
               </Grid>
               <Grid item size={{ xs: 6 }}>
                 <Typography variant='subtitle2' sx={{ mr: 2, color: 'text.primary' }}>
                   Generic Name
                 </Typography>
-                <Typography variant='body2'>{item.generic_name ? item.generic_name : 'NA'}</Typography>
+                {item.generic_name ? item.generic_name : 'NA'}
               </Grid>
               <Grid item size={{ xs: 6 }}>
                 <Typography variant='subtitle2' sx={{ mr: 2, color: 'text.primary' }}>
                   Quantity
                 </Typography>
-                <Typography variant='body2'>{item.quantity}</Typography>
+                {item.quantity}
               </Grid>
               <Grid item size={{ xs: 6 }}>
                 <Typography variant='subtitle2' sx={{ mr: 2, color: 'text.primary' }}>
@@ -101,7 +100,7 @@ export const ProductDetail = ({
                   <Typography variant='subtitle2' sx={{ mr: 2, color: 'text.primary' }}>
                     Status
                   </Typography>
-                  <Typography variant='body2'>{productDetails?.status}</Typography>
+                  {productDetails?.status}
                 </Grid>
               )}
               {item?.product_image && (
@@ -153,9 +152,8 @@ export const ProductDetail = ({
                 <Typography variant='subtitle2' sx={{ mr: 2, color: 'text.primary' }}>
                   Comments
                 </Typography>
-                <Typography sx={{ m: '2px' }} variant='body2'>
-                  {productDetails?.comments ? productDetails?.comments : 'NA'}
-                </Typography>
+
+                {productDetails?.comments ? productDetails?.comments : 'NA'}
               </Grid>
 
               <Grid
@@ -267,8 +265,8 @@ export const ProductDetail = ({
               )}
             </Grid>
           </div>
-        );
+        )
       })}
     </Grid>
-  );
+  )
 }

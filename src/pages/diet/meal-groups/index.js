@@ -47,10 +47,12 @@ import { debounce } from 'lodash'
 import select from 'src/@core/theme/overrides/select'
 import FixedFooterWrapper from 'src/components/diet/FixedFooterWrapper'
 import TextEllipsisWithModal from 'src/components/TextEllipsisWithModal'
+import Error404 from 'src/pages/404'
 
 const MealGroup = () => {
   const router = useRouter()
   const authData = useContext(AuthContext)
+  const dietModule = authData?.userData?.roles?.settings?.diet_module
   const theme = useTheme()
   const firstSite = authData?.userData?.user?.zoos[0]?.sites?.[0] || null
 
@@ -76,7 +78,7 @@ const MealGroup = () => {
   const [Loader, setLoader] = useState(false)
   const [paginationModel, setPaginationModel] = useState({
     page: parseInt(router.query.page) || 0,
-    pageSize: parseInt(router.query.limit) || 10
+    pageSize: parseInt(router.query.limit) || 50
   })
   const [originalItems, setOriginalItems] = useState([])
   const [selectedItems, setSelectedItems] = useState([])
@@ -1252,7 +1254,7 @@ const MealGroup = () => {
     }
   }
 
-  return (
+  return dietModule ? (
     <React.Fragment>
       <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
         <Typography color='inherit'>Diet</Typography>
@@ -1693,7 +1695,7 @@ const MealGroup = () => {
               </Box>
             </Box>
           </Box>
-        </FixedFooterWrapper> 
+        </FixedFooterWrapper>
       )}
 
       {openDrawer && (
@@ -1743,6 +1745,6 @@ const MealGroup = () => {
         />
       )}
     </React.Fragment>
-  )
+  ) : <Error404/>
 }
 export default MealGroup
