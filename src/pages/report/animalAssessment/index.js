@@ -396,7 +396,7 @@ const AnimalAssessment = () => {
               })
               setShowDetailsPopUp(true)
             }}
-            sx={{ p: 4 }}
+            sx={{ p: 4, cursor: 'poiner' }}
           >
             <Tooltip title={record.value} placement='top'>
               <Typography
@@ -404,9 +404,10 @@ const AnimalAssessment = () => {
                 fontWeight={600}
                 sx={{
                   display: '-webkit-box',
-                  WebkitLineClamp: 2,
+                  WebkitLineClamp: 3,
                   WebkitBoxOrient: 'vertical',
                   overflow: 'hidden',
+                  mb: '16px',
                   textOverflow: 'ellipsis'
                 }}
               >
