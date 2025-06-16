@@ -14,11 +14,12 @@ import {
 } from '@mui/material'
 import Icon from 'src/@core/components/icon'
 import { useTheme } from '@emotion/react'
-import { useEffect, useState } from 'react'
+import { useContext, useEffect, useState } from 'react'
 import toast from 'react-hot-toast'
 import { AddEnclosureToExistng, getMealGroupList } from 'src/lib/api/diet/mealgroup'
 import SelectedEnclosure from './selectedEnclosure'
 import { hexToRGBA } from 'src/@core/utils/hex-to-rgba'
+import Error404 from 'src/pages/404'
 
 const CreateEnclosure = ({
   enclosureDrawer,
@@ -45,6 +46,9 @@ const CreateEnclosure = ({
   const [groupList, setGroupList] = useState([])
   const [mealGroupError, setMealGroupError] = useState(false)
   const [selectedEnclosureDrawer, setSelectedEnclosureDrawer] = useState(false)
+
+  const authData = useContext(AuthContext)
+  const dietModule = authData?.userData?.roles?.settings?.diet_module
 
   useEffect(() => {
     if (checkedRows) {
@@ -218,7 +222,7 @@ const CreateEnclosure = ({
     setSelectedEnclosureIds(prev => (prev.includes(id) ? prev.filter(eId => eId !== id) : [...prev, id]))
   }
 
-  return (
+  return dietModule ? (
     <>
       <Drawer
         anchor='right'
@@ -472,6 +476,8 @@ const CreateEnclosure = ({
         />
       )}
     </>
+  ) : (
+    <Error404 />
   )
 }
 export default CreateEnclosure
