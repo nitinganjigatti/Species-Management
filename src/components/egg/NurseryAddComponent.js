@@ -191,10 +191,10 @@ const NurseryAddComponent = ({
                 display: 'flex',
                 flexDirection: 'column',
                 gap: '24px',
-                backgroundColor: '#fff',
+                backgroundColor: theme.palette.primary.contrastText,
                 borderRadius: '8px',
                 border: 1,
-                borderColor: '#c3cec7'
+                borderColor: theme.palette.customColors.OutlineVariant
               }}
             >
               <FormControl fullWidth>

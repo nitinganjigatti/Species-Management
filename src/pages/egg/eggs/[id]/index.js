@@ -1,44 +1,42 @@
-import { Box } from '@mui/system'
 import React, { useEffect, useState, useContext } from 'react'
-import EggFirstSection from 'src/views/pages/egg/eggs/eggDetails/EggFirstSection'
+import { useRouter } from 'next/router'
+
+import { Box } from '@mui/system'
+import { Breadcrumbs, Typography } from '@mui/material'
+
+import { assessment_type_string_id } from 'src/constants/Constants'
+import { AuthContext } from 'src/context/AuthContext'
+
+import FallbackSpinner from 'src/@core/components/spinner'
+import ErrorScreen from 'src/pages/Error'
+
+import EggHeroSection from 'src/views/pages/egg/eggs/eggDetails/EggHeroSection'
 import EggSecondSecion from 'src/views/pages/egg/eggs/eggDetails/EggSecondSecion'
-import { GetEggDetails, getActivityLogs, getDefaultEggAssesment } from 'src/lib/api/egg/egg'
+import AnimalDetails from 'src/views/pages/egg/eggs/eggDetails/AnimalDetails'
 import EggImageGallery from 'src/views/pages/egg/eggs/eggDetails/EggImageGallery'
 import EggComment from 'src/views/pages/egg/eggs/eggDetails/EggComment'
-import Router, { useRouter } from 'next/router'
-import { assessment_type_string_id } from 'src/constants/Constants'
-import FallbackSpinner from 'src/@core/components/spinner'
-import { Breadcrumbs, Typography } from '@mui/material'
-import { getGalleryImgList } from 'src/lib/api/egg/egg'
-import AnimalDetails from 'src/views/pages/egg/eggs/eggDetails/AnimalDetails'
 
-import { AuthContext } from 'src/context/AuthContext'
-import ErrorScreen from 'src/pages/Error'
+import { GetEggDetails, getActivityLogs, getDefaultEggAssesment, getGalleryImgList } from 'src/lib/api/egg/egg'
 
 const EggDetail = () => {
   const router = useRouter()
   const { id } = router.query
-
-  const [eggDetails, setEggDetails] = useState({})
-  const [defaultEggAssesment, setDefaultEggAssesment] = useState({})
-  const [loader, setLoader] = useState(true)
-
-  const [galleryList, setGalleryList] = useState([])
-
-  const [activtyLogData, setActivtyLogData] = useState([])
-  const [activtyLogCount, setActivtyLogCount] = useState(0)
-
   const authData = useContext(AuthContext)
   const egg_collection_permission = authData?.userData?.roles?.settings?.enable_egg_collection_module
-  const [queryParams, setQueryParams] = useState({})
 
-  // console.log('queryParams :>> ', queryParams)
+  const [queryParams, setQueryParams] = useState({})
+  const [loader, setLoader] = useState(true)
+  const [eggDetails, setEggDetails] = useState({})
+
+  const [galleryList, setGalleryList] = useState([])
+  const [defaultEggAssesment, setDefaultEggAssesment] = useState({})
+  const [activtyLogCount, setActivtyLogCount] = useState(0)
+  const [activtyLogData, setActivtyLogData] = useState([])
 
   useEffect(() => {
     if (router.query) {
       setQueryParams(router.query)
     }
-
     router.beforePopState(({ url, as, options }) => {
       // Intercept the back button and append query parameters
       if (as.startsWith('/egg/eggs')) {
@@ -46,10 +44,8 @@ const EggDetail = () => {
           pathname: '/egg/eggs',
           query: queryParams
         })
-
         return false // Prevent the default back action
       }
-
       return true
     })
 
@@ -73,7 +69,6 @@ const EggDetail = () => {
   }
 
   const getDetails = id => {
-    // setLoader(true)
     try {
       GetEggDetails(id).then(res => {
         if (res.success) {
@@ -147,7 +142,7 @@ const EggDetail = () => {
               </Typography>
               <Typography color='text.primary'>Egg Details</Typography>
             </Breadcrumbs>
-            <EggFirstSection
+            <EggHeroSection
               getActivityLogsFunc={getActivityLogsFunc}
               GetGalleryImgList={GetGalleryImgListFunc}
               getDetails={getDetails}

@@ -60,7 +60,7 @@ export default function DetailsTable({ ...props }) {
               !isNaN(el?.control_substance) && parseInt(el?.control_substance) === 1,
               'CS'
             )}
-            {RenderUtility?.renderControlLabel(
+            {RenderUtility?.renderPrescriptionLabel(
               !isNaN(el?.prescription_required) && parseInt(el?.prescription_required) === 1,
               'PR'
             )}
@@ -121,7 +121,7 @@ export default function DetailsTable({ ...props }) {
     >
       <TableContainer
         sx={{
-          border: `0.5px solid ${theme.palette.customColors.OutlineVariant} !important`,
+          border: `0.5px solid ${theme?.palette?.customColors?.OutlineVariant} !important`,
 
           // border: `0.5px solid ${theme.palette.customColors.OnSurfaceVariant}`,
           borderRadius: '10px !important'
@@ -142,12 +142,14 @@ export default function DetailsTable({ ...props }) {
                 sx={{
                   color: 'customColors.customTextColorGray2',
                   fontSize: '12px',
-                  fontWeight: 600
+                  fontWeight: 600,
+                  textAlign: 'left',
+                  maxWidth: 5
                 }}
               >
-                S.NO
+                SL.NO
               </TableCell>
-              <TableCell></TableCell>
+              <TableCell sx={{ textAlign: 'center', maxWidth: 10 }}>Priority</TableCell>
               <TableCell>PRODUCT NAME</TableCell>
 
               <TableCell>QUANTITY</TableCell>
@@ -169,7 +171,8 @@ export default function DetailsTable({ ...props }) {
                       <TableCell
                         sx={{
                           backgroundColor: props?.getCellBgColor(el),
-                          verticalAlign: 'top'
+                          verticalAlign: 'top',
+                          textAlign: 'left'
                         }}
                       >
                         <Typography
@@ -182,7 +185,7 @@ export default function DetailsTable({ ...props }) {
                             flexDirection: 'column',
                             justifyContent: 'center',
                             alignContent: 'top',
-                            alignItems: 'center'
+                            alignItems: 'start'
                           }}
                         >
                           {/* {el.sl_no}. */}
@@ -192,7 +195,8 @@ export default function DetailsTable({ ...props }) {
                       <TableCell
                         sx={{
                           backgroundColor: props?.getCellBgColor(el),
-                          verticalAlign: 'top'
+                          verticalAlign: 'top',
+                          alignContent: 'center'
                         }}
                       >
                         {/* {console.log('items', paginatedItems)} */}
@@ -462,15 +466,6 @@ export default function DetailsTable({ ...props }) {
                                   width: 100,
                                   ...props?.strikeOutTextStyle(el.request_status)
                                 }}
-                                // disabled={
-                                //   parseInt(el.requested_qty) - parseInt(el.dispatch_qty) >= 1 &&
-                                //   props?.requestItems.status !== 'Cancelled' &&
-                                //   el.request_status !== 'Alternate' &&
-                                //   el.request_status !== 'Not Available' &&
-                                //   el.request_status !== 'Rejected'
-                                //     ? false
-                                //     : true
-                                // }
                                 disabled={
                                   props?.selectedPharmacy?.permission?.key === 'VIEW' ||
                                   (parseInt(el.requested_qty) - parseInt(el.dispatch_qty) >= 1 &&
@@ -816,74 +811,73 @@ export default function DetailsTable({ ...props }) {
                                   )
                                 })
                             : null}
-                          {el?.alt_parent?.length > 0
-                            ? el.alt_parent?.map(nestElt => {
-                                return (
-                                  <>
-                                    {nestElt?.request_status === 'Not Available' && (
-                                      <Grid
+                          {el?.alt_parent?.length > 0 &&
+                            el?.alt_parent?.map(nestElt => {
+                              return (
+                                <>
+                                  {nestElt?.request_status === 'Not Available' && (
+                                    <Grid
+                                      sx={{
+                                        minHeight: 104,
+                                        maxHeight: 104,
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        justifyContent: 'center'
+                                      }}
+                                    >
+                                      <Typography
+                                        variant='body1'
                                         sx={{
-                                          minHeight: 104,
-                                          maxHeight: 104,
-                                          display: 'flex',
-                                          flexDirection: 'column',
-                                          justifyContent: 'center'
+                                          color: 'error.main',
+                                          textAlign: 'left',
+                                          fontSize: '14px !important',
+                                          fontWeight: 400
                                         }}
                                       >
-                                        <Typography
-                                          variant='body1'
-                                          sx={{
-                                            color: 'error.main',
-                                            textAlign: 'left',
-                                            fontSize: '14px !important',
-                                            fontWeight: 400
-                                          }}
-                                        >
-                                          Stock Stopped
-                                        </Typography>
-                                        {nestElt?.alternate_comments && (
-                                          <TextEllipsisWithModal
-                                            text={nestElt?.alternate_comments}
-                                            icon={'material-symbols:sticky-note-2-outline-sharp'}
-                                            style={{ opacity: 0.5 }}
-                                          />
-                                        )}
-                                      </Grid>
-                                    )}
-                                    {nestElt?.request_status === 'Rejected' && (
-                                      <Grid
+                                        Stock Stopped
+                                      </Typography>
+                                      {nestElt?.alternate_comments && (
+                                        <TextEllipsisWithModal
+                                          text={nestElt?.alternate_comments}
+                                          icon={'material-symbols:sticky-note-2-outline-sharp'}
+                                          style={{ opacity: 0.5 }}
+                                        />
+                                      )}
+                                    </Grid>
+                                  )}
+                                  {nestElt?.request_status === 'Rejected' && (
+                                    <Grid
+                                      sx={{
+                                        minHeight: 104,
+                                        maxHeight: 104,
+                                        display: 'flex',
+                                        flexDirection: 'column',
+                                        justifyContent: 'center'
+                                      }}
+                                    >
+                                      <Typography
+                                        variant='body1'
                                         sx={{
-                                          minHeight: 104,
-                                          maxHeight: 104,
-                                          display: 'flex',
-                                          flexDirection: 'column',
-                                          justifyContent: 'center'
+                                          color: 'customColors.Tertiary',
+                                          textAlign: 'left',
+                                          fontSize: '14px !important',
+                                          fontWeight: 400
                                         }}
                                       >
-                                        <Typography
-                                          variant='body1'
-                                          sx={{
-                                            color: 'customColors.Tertiary',
-                                            textAlign: 'left',
-                                            fontSize: '14px !important',
-                                            fontWeight: 400
-                                          }}
-                                        >
-                                          Request Declined
-                                        </Typography>
-                                        {nestElt?.alternate_comments && (
-                                          <TextEllipsisWithModal
-                                            text={nestElt?.alternate_comments}
-                                            icon={'material-symbols:sticky-note-2-outline-sharp'}
-                                            style={{ opacity: 0.5 }}
-                                          />
-                                        )}
-                                      </Grid>
-                                    )}
-                                  </>
-                                )
-                              })
-                            : null}
+                                        Request Declined
+                                      </Typography>
+                                      {nestElt?.alternate_comments && (
+                                        <TextEllipsisWithModal
+                                          text={nestElt?.alternate_comments}
+                                          icon={'material-symbols:sticky-note-2-outline-sharp'}
+                                          style={{ opacity: 0.5 }}
+                                        />
+                                      )}
+                                    </Grid>
+                                  )}
+                                </>
+                              )
+                            })}
                           {el?.request_status === 'Not Available' && (
                             <Grid
                               sx={{

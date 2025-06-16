@@ -34,7 +34,8 @@ const CommentSideSheet = ({ openCommentSheet, setOpenCommentSheet, CommentData, 
       if (res?.status) {
         setLoading(false)
         setOpenCommentSheet(false)
-        Toaster({ type: 'success', message: res.message })
+        // Toaster({ type: 'success', message: res.message })
+        Toaster({ type: 'success', message: isEdit ? 'Notes updated successfully' : 'Notes added successfully' })
         api()
         setIsEdit(false)
       }

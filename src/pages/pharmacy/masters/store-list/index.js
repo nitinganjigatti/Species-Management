@@ -109,7 +109,7 @@ const ListOfStores = () => {
     {
       minWidth: 100,
       field: 'sl_no',
-      headerName: 'S.NO',
+      headerName: 'SL.NO',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.sl_no + '.'}
@@ -235,18 +235,19 @@ const ListOfStores = () => {
       renderCell: params => (
         <>
           {/* {(selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') && ( */}
-          {pharmacyRole && params?.row?.type === 'local' && (
-            <Box sx={{ display: 'flex', alignItems: 'right', textAlign: 'right' }}>
-              {/* <IconButton size='small' sx={{ mr: 0.5 }}>
+          {/* {pharmacyRole && params?.row?.type === 'local' && ( */}
+          <Box sx={{ display: 'flex', alignItems: 'right', textAlign: 'right' }}>
+            {/* <IconButton size='small' sx={{ mr: 0.5 }}>
             <Icon icon='mdi:eye-outline' />
           </IconButton> */}
-              <IconButton
-                size='small'
-                sx={{ mr: 0.5 }}
-                onClick={() => handleEdit(params?.row.id, params?.row.name, params?.row.status)}
-              >
-                <Icon icon='mdi:pencil-outline' />
-              </IconButton>
+            <IconButton
+              size='small'
+              sx={{ mr: 0.5 }}
+              onClick={() => handleEdit(params?.row.id, params?.row.name, params?.row.status)}
+            >
+              <Icon icon='mdi:pencil-outline' />
+            </IconButton>
+            {pharmacyRole && params?.row?.type === 'local' && (
               <IconButton
                 size='small'
                 sx={{ mr: 0.5 }}
@@ -259,8 +260,9 @@ const ListOfStores = () => {
               >
                 <Icon icon='mdi:delete-outline' />
               </IconButton>
-            </Box>
-          )}
+            )}
+          </Box>
+          {/* )} */}
         </>
       )
     }

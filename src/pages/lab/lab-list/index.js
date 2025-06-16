@@ -1,36 +1,29 @@
 import React, { useState, useEffect, useCallback, useContext } from 'react'
-
 import { getLabList } from 'src/lib/api/lab/addLab'
-import { IMAGE_BASE_URL } from 'src/constants/ApiConstant'
-
 import Button from '@mui/material/Button'
 import FallbackSpinner from 'src/@core/components/spinner/index'
-
 // ** MUI Imports
-
 import Typography from '@mui/material/Typography'
 import CardHeader from '@mui/material/CardHeader'
 import { DataGrid } from '@mui/x-data-grid'
 import Card from '@mui/material/Card'
 import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
 import { debounce } from 'lodash'
-import { useTheme } from '@emotion/react'
-
+import { useTheme } from '@mui/material/styles'
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
-import { Box, Avatar, Badge, Breadcrumbs, Tooltip } from '@mui/material'
+import { Box, Badge, Breadcrumbs, Tooltip } from '@mui/material'
 import IconButton from '@mui/material/IconButton'
-import Router from 'next/router'
+import Router, { useRouter } from 'next/router'
 import CommonDialogBox from 'src/components/CommonDialogBox'
 import MedicineConfigure from 'src/components/pharmacy/medicine/MedicineConfigure'
-import Utility from 'src/utility'
-
 import { AuthContext } from 'src/context/AuthContext'
 import ErrorScreen from 'src/pages/Error'
-import { left } from '@popperjs/core'
 
 const ListOfLab = () => {
   const theme = useTheme()
+  const router = useRouter()
+
   const [loader, setLoader] = useState(false)
   const [show, setShow] = useState(false)
   const [configureMedId, setConfigureMedId] = useState('')
@@ -55,7 +48,13 @@ const ListOfLab = () => {
 
     Router.push({
       pathname: '/lab/lab-list/add-Lab',
-      query: { id: params.row.id, action: 'edit' }
+      query: {
+        id: params.row.id,
+        action: 'edit',
+        page: router.query?.page,
+        pageSize: router.query?.pageSize,
+        q: router.query.q
+      }
     })
   }
 
@@ -64,7 +63,7 @@ const ListOfLab = () => {
     //   flex: 0.05,
     //   Width: 40,
     //   field: 'id',
-    //   headerName: 'SL ',
+    //    headerName:'SL.NO',
     //   renderCell: params => (
     //     <Typography variant='body2' sx={{ color: 'text.primary' }}>
     //       {parseInt(params.row.sl_no)}
@@ -86,20 +85,12 @@ const ListOfLab = () => {
             </Box>
           </Typography>
 
-          <Typography
-            variant='body2'
-            sx={{ color: 'text.primary', textTransform: 'capitalize', cursor: 'pointer' }}
-
-            // onClick={() =>
-
-            // }
-          >
+          <Typography variant='body2' sx={{ color: 'text.primary', textTransform: 'capitalize', cursor: 'pointer' }}>
             {params.row.lab_name}{' '}
           </Typography>
         </Box>
       )
     },
-
     {
       flex: 0.2,
       minWidth: 20,
@@ -135,7 +126,6 @@ const ListOfLab = () => {
         </Tooltip>
       )
     },
-
     // {
     //   flex: 0.2,
     //   minWidth: 20,
@@ -147,7 +137,6 @@ const ListOfLab = () => {
     //     </Typography>
     //   )
     // },
-
     authData?.userData?.roles?.settings?.add_lab
       ? {
           flex: 0.2,
@@ -168,13 +157,15 @@ const ListOfLab = () => {
 
   /***** Serverside pagination */
   const [total, setTotal] = useState(0)
-
   const [sort, setSort] = useState('ASC')
   const [rows, setRows] = useState([])
 
-  const [searchValue, setSearchValue] = useState('')
+  const [searchValue, setSearchValue] = useState(router.query.q || '')
   const [sortColumn, setSortColumn] = useState('name')
-  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
+  const [paginationModel, setPaginationModel] = useState({
+    page: router?.query?.page ? parseInt(router?.query?.page) : 0,
+    pageSize: router?.query?.pageSize ? parseInt(router?.query?.pageSize) : 10
+  })
   const [loading, setLoading] = useState(false)
   function loadServerRows(currentPage, data) {
     return data
@@ -195,7 +186,6 @@ const ListOfLab = () => {
 
         await getLabList({ params: params }).then(res => {
           setTotal(parseInt(res?.data?.total_count))
-
           setRows(loadServerRows(paginationModel.page, res?.data?.result))
         })
         setLoading(false)
@@ -207,9 +197,25 @@ const ListOfLab = () => {
     [paginationModel]
   )
 
+  const handlePaginationModelChange = async data => {
+    updateUrlParams({
+      q: searchValue,
+      page: data.page,
+      pageSize: data.pageSize
+    })
+
+    setPaginationModel(data)
+  }
+
   const searchTableData = useCallback(
     debounce(async ({ sort, q, column }) => {
       setSearchValue(q)
+      updateUrlParams({
+        page: 0,
+        pageSize: 10,
+        q: q
+      })
+      setPaginationModel({ page: 0, pageSize: 10 })
       try {
         await fetchTableData({ sort, q, column })
       } catch (error) {
@@ -232,6 +238,12 @@ const ListOfLab = () => {
 
   const handleSearch = async value => {
     setSearchValue(value)
+    updateUrlParams({
+      page: 0,
+      pageSize: 10,
+      q: value
+    })
+    setPaginationModel({ page: 0, pageSize: 10 })
     await searchTableData({ sort, q: value, column: sortColumn })
   }
 
@@ -243,7 +255,11 @@ const ListOfLab = () => {
             size='big'
             variant='outlined'
             onClick={() => {
-              Router.push('/lab/lab-list/add-Lab')
+              Router.push({
+                pathname: '/lab/lab-list/add-Lab',
+                // query: { id: data?.id, page: router.query?.page, pageSize: router.query?.pageSize, q: searchValue }
+                query: { page: router.query?.page, pageSize: router.query?.pageSize, q: searchValue }
+              })
             }}
           >
             Add Lab
@@ -265,8 +281,13 @@ const ListOfLab = () => {
 
     Router.push({
       pathname: '/lab/lab-list/lab-details',
-      query: { id: data?.id }
+      query: { id: data?.id, page: router.query?.page, pageSize: router.query?.pageSize, q: searchValue }
     })
+  }
+
+  const updateUrlParams = params => {
+    const query = { ...router.query, ...params }
+    router.replace({ pathname: router.pathname, query }, undefined, { shallow: true })
   }
 
   return (
@@ -285,9 +306,6 @@ const ListOfLab = () => {
             show={showDialog}
           /> */}
               <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
-                {/* <Typography sx={{ cursor: 'pointer' }} color='inherit'>
-      Lab
-    </Typography> */}
                 <Typography color='inherit'>Lab</Typography>
                 <Typography color='text.primary'>Lab list</Typography>
               </Breadcrumbs>
@@ -305,7 +323,7 @@ const ListOfLab = () => {
                   paginationModel={paginationModel}
                   onSortModelChange={handleSortModel}
                   slots={{ toolbar: ServerSideToolbar }}
-                  onPaginationModelChange={setPaginationModel}
+                  onPaginationModelChange={handlePaginationModelChange}
                   loading={loading}
                   onCellClick={onCellClick}
                   slotProps={{

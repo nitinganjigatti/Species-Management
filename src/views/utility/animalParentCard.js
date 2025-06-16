@@ -16,8 +16,6 @@ const AnimalParentCard = ({ data, backgroundColor }) => {
             borderRadius: '8px',
             paddingY: '20px',
             paddingX: '16px',
-
-            // border: '1px solid #C3CEC7',
             display: 'flex',
             gap: '10px'
           }}
@@ -33,7 +31,12 @@ const AnimalParentCard = ({ data, backgroundColor }) => {
             <Avatar
               sx={{
                 '& > img': {
-                  objectFit: data?.default_icon?.endsWith('.svg') ? 'contain' : 'cover'
+                  objectFit:
+                    data?.default_icon?.includes('class_images') && data?.default_icon?.endsWith('.svg')
+                      ? 'contain'
+                      : 'cover',
+                  padding:
+                    data?.default_icon?.includes('class_images') && data?.default_icon.endsWith('.svg') ? '3px' : 0
                 },
                 width: 44,
                 height: 44,
@@ -101,17 +104,64 @@ const AnimalParentCard = ({ data, backgroundColor }) => {
               </Typography>
             )}
 
-            <Typography
-              sx={{
-                fontSize: '16px',
-                fontWeight: 600,
-                lineHeight: '19.36px',
-                color: theme.palette.customColors.OnSurfaceVariant
-              }}
-            >
-              AID : {data?.animal_id}
-              {/* {Utility?.toPascalSentenceCase(data?.common_name)} */}
-            </Typography>
+            {data?.animal_id && (
+              <Typography
+                sx={{
+                  fontSize: '16px',
+                  fontWeight: 600,
+                  lineHeight: '19.36px',
+                  color: theme.palette.customColors.OnSurfaceVariant
+                }}
+              >
+                AID : {data?.animal_id}
+              </Typography>
+            )}
+
+            {data?.common_name ||
+              (data?.default_common_name && (
+                <Typography
+                  sx={{
+                    fontSize: '16px',
+                    fontWeight: 600,
+                    lineHeight: '19.36px',
+                    color: theme.palette.customColors.OnSurfaceVariant
+                  }}
+                >
+                  {data?.common_name || data?.default_common_name}
+                </Typography>
+              ))}
+
+            {data?.scientific_name && (
+              <Typography
+                sx={{
+                  fontSize: '13px',
+                  fontWeight: 500,
+                  fontStyle: 'italic',
+                  color: theme.palette.customColors.OnSurfaceVariant
+                }}
+              >
+                {data?.scientific_name}
+              </Typography>
+            )}
+            {data?.type === 'group' && (
+              <Typography
+                sx={{
+                  width: '250px',
+                  paddingY: '4px',
+                  borderRadius: '5px',
+                  backgroundColor: theme.palette.customColors.mdAntzNeutral,
+                  textAlign: 'center',
+                  fontSize: '16px',
+                  fontWeight: 500,
+                  lineHeight: '19.36px',
+                  color: 'black'
+                }}
+              >
+                <span style={{ fontWeight: 400 }}>Count: </span>
+                {data?.total_animal}
+              </Typography>
+            )}
+
             {data?.breed_name && (
               <Typography
                 sx={{
@@ -134,84 +184,77 @@ const AnimalParentCard = ({ data, backgroundColor }) => {
                   color: theme.palette.customColors.OnSurfaceVariant
                 }}
               >
-                Morph : {data?.morph_name}
+                Variant : {data?.morph_name}
                 {/* {Utility?.toPascalSentenceCase(data?.common_name)} */}
               </Typography>
             )}
-            <Typography
-              sx={{
-                fontSize: '16px',
-                fontWeight: 600,
-                lineHeight: '19.36px',
-                color: theme.palette.customColors.OnSurfaceVariant
-              }}
-            >
-              {data?.common_name || data?.default_common_name}
-              {/* {Utility?.toPascalSentenceCase(data?.common_name)} */}
-            </Typography>
-            <Typography
-              sx={{
-                fontSize: '13px',
-                fontWeight: 500,
-                fontStyle: 'italic',
-                color: theme.palette.customColors.OnSurfaceVariant
-              }}
-            >
-              {data?.scientific_name}
-              {/* {Utility?.toPascalSentenceCase(data?.scientific_name)} */}
-            </Typography>
-            {data?.type === 'group' && (
+
+            {data?.breed_name && (
               <Typography
                 sx={{
-                  width: '250px',
-                  paddingY: '4px',
-                  borderRadius: '5px',
-                  backgroundColor: theme.palette.customColors.mdAntzNeutral,
-                  textAlign: 'center',
-                  fontSize: '16px',
-                  fontWeight: 500,
-                  lineHeight: '19.36px',
-                  color: 'black'
+                  fontSize: '14px',
+                  fontWeight: 600,
+                  lineHeight: '16.94px',
+                  color: theme.palette.customColors.OnSurfaceVariant
                 }}
               >
-                Count {data?.total_animal}
+                <span style={{ fontWeight: 400 }}> Breed : </span>
+                {data?.breed_name}
               </Typography>
             )}
-            <Typography
-              sx={{
-                fontSize: '14px',
-                fontWeight: 600,
-                lineHeight: '16.94px',
-                color: theme.palette.customColors.OnSurfaceVariant
-              }}
-            >
-              <span style={{ fontWeight: 400 }}> Encl: </span>
-              {data?.user_enclosure_name}
-              {/* {Utility?.toPascalSentenceCase(data?.user_enclosure_name)} */}
-            </Typography>
-            <Typography
-              sx={{
-                fontSize: '14px',
-                fontWeight: 600,
-                lineHeight: '16.94px',
-                color: theme.palette.customColors.OnSurfaceVariant
-              }}
-            >
-              <span style={{ fontWeight: 400 }}>Sec: </span> {data?.section_name}
-              {/* {Utility?.toPascalSentenceCase(data?.section_name)} */}
-            </Typography>
-            <Typography
-              sx={{
-                fontSize: '14px',
-                fontWeight: 600,
-                lineHeight: '16.94px',
-                color: theme.palette.customColors.OnSurfaceVariant
-              }}
-            >
-              <span style={{ fontWeight: 400 }}>Site: </span>
-              {data?.site_name}
-              {/* {Utility?.toPascalSentenceCase(data?.site_name)} */}
-            </Typography>
+            {data?.morph_name && (
+              <Typography
+                sx={{
+                  fontSize: '14px',
+                  fontWeight: 600,
+                  lineHeight: '16.94px',
+                  color: theme.palette.customColors.OnSurfaceVariant
+                }}
+              >
+                <span style={{ fontWeight: 400 }}> Variant: </span>
+                {data?.morph_name}
+              </Typography>
+            )}
+
+            {data?.user_enclosure_name && (
+              <Typography
+                sx={{
+                  fontSize: '14px',
+                  fontWeight: 600,
+                  lineHeight: '16.94px',
+                  color: theme.palette.customColors.OnSurfaceVariant
+                }}
+              >
+                <span style={{ fontWeight: 400 }}> Encl: </span>
+                {data?.user_enclosure_name}
+              </Typography>
+            )}
+            {data?.section_name && (
+              <Typography
+                sx={{
+                  fontSize: '14px',
+                  fontWeight: 600,
+                  lineHeight: '16.94px',
+                  color: theme.palette.customColors.OnSurfaceVariant
+                }}
+              >
+                <span style={{ fontWeight: 400 }}>Sec: </span> {data?.section_name}
+              </Typography>
+            )}
+            {data?.site_name && (
+              <Typography
+                sx={{
+                  fontSize: '14px',
+                  fontWeight: 600,
+                  lineHeight: '16.94px',
+                  color: theme.palette.customColors.OnSurfaceVariant
+                }}
+              >
+                <span style={{ fontWeight: 400 }}>Site: </span>
+                {data?.site_name}
+                {/* {Utility?.toPascalSentenceCase(data?.site_name)} */}
+              </Typography>
+            )}
           </Box>
         </Box>
       )}

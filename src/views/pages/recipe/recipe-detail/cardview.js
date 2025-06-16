@@ -19,13 +19,16 @@ import { updateRecipeStatus } from 'src/lib/api/diet/recipe'
 import DeleteDialogConfirmation from 'src/components/utility/DeleteDialogConfirmation'
 import ToasterforSuccess from 'src/components/SuccessToaster'
 import Toaster from 'src/components/Toaster'
+import { auto } from '@popperjs/core'
 
 const RecipeDetailCardview = ({ IngredientsDetailsval, permission, getRecipeDetailval, isActive, setIsActive }) => {
   const router = useRouter()
   const [deleteDialogBox, setDeleteDialogBox] = useState(false)
   const [activePayload, setActivePayload] = useState(IngredientsDetailsval?.active || false)
+
   const handleClosenew = () => {
     setDeleteDialogBox(false)
+
     //setIsActive(IngredientsDetailsval.active)
   }
 
@@ -42,6 +45,7 @@ const RecipeDetailCardview = ({ IngredientsDetailsval, permission, getRecipeDeta
   const confirmDeleteAction = async () => {
     try {
       setDeleteDialogBox(false)
+
       const response = await updateRecipeStatus(IngredientsDetailsval?.id, {
         status: activePayload,
         meal_type: 'recipe'
@@ -49,6 +53,7 @@ const RecipeDetailCardview = ({ IngredientsDetailsval, permission, getRecipeDeta
       if (response.success === true) {
         //Router.push(`/diet/recipe`)
         getRecipeDetailval(IngredientsDetailsval?.id)
+
         //return toast(t => <ToasterforSuccess isActive={isActive} type='Recipe' id={IngredientsDetailsval.id} t={t} />)
         return Toaster({ type: 'success', message: response?.message })
       } else {
@@ -58,7 +63,7 @@ const RecipeDetailCardview = ({ IngredientsDetailsval, permission, getRecipeDeta
   }
 
   return (
-    <Grid item xs={4}>
+    <Grid item md={4} xs={6.5} sx={{ marginLeft: 'auto', marginRight: 'auto', textAlign: 'center' }}>
       <Card sx={{ boxShadow: 'none', background: '#EFF5F2' }}>
         <div
           item
@@ -124,6 +129,7 @@ const RecipeDetailCardview = ({ IngredientsDetailsval, permission, getRecipeDeta
                   }
                   labelPlacement='start'
                   label={isActive === '1' ? 'Active' : 'InActive'}
+                  disabled={!permission}
                 />
               </Grid>
             </Box>

@@ -6,14 +6,10 @@ import FormHelperText from '@mui/material/FormHelperText'
 import TextField from '@mui/material/TextField'
 import FormControl from '@mui/material/FormControl'
 import Autocomplete from '@mui/material/Autocomplete'
-import Radio from '@mui/material/Radio'
-import RadioGroup from '@mui/material/RadioGroup'
-import FormControlLabel from '@mui/material/FormControlLabel'
 import { LoadingButton } from '@mui/lab'
 import toast from 'react-hot-toast'
 import Chip from '@mui/material/Chip'
-import Avatar from '@mui/material/Avatar'
-import { Button, Tooltip } from '@mui/material'
+
 import { CardContent, Card } from '@mui/material'
 import Divider from '@mui/material/Divider'
 import Image from 'next/image'
@@ -28,11 +24,11 @@ import { addAlternativeMedicine } from 'src/lib/api/pharmacy/getRequestItemsList
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
-import { AddButton, RequestCancelButton } from 'src/components/Buttons'
-import CustomChip from 'src/@core/components/mui/chip'
+
 import RenderUtility from 'src/utility/render'
 import IconButton from '@mui/material/IconButton'
 import { useTheme } from '@emotion/react'
+import Utility from 'src/utility'
 
 function AlternativeMedicine({ parentId, updateRequestItems, existingListItems, closeAlternativeMedicineDialog }) {
   const initialNestedRowMedicine = {
@@ -61,6 +57,7 @@ function AlternativeMedicine({ parentId, updateRequestItems, existingListItems, 
   const [submitLoader, setSubmitLoader] = useState(false)
   const [tabStatus, setTabStatus] = useState('By product')
   const [existingMedicinesList, setExistingMedicinesList] = useState([])
+  const [optionsGenericMedicineList, setOptionsGenericMedicineList] = useState([])
 
   // for handle file upload input filed
   const fileInputRef = useRef(null)
@@ -104,9 +101,10 @@ function AlternativeMedicine({ parentId, updateRequestItems, existingListItems, 
   }
 
   const getOptionStyle = options => {
-    const sameMedicine = existingMedicinesList.find(item => item.stock_item_id === options)
+    const sameMedicine = existingMedicinesList.find(item => item.stock_item_id === options.value)
+    const result = sameMedicine || Number(options?.availAbleQty) === 0 ? true : false
 
-    return sameMedicine ? true : false
+    return result
   }
 
   //  ****** debounce
@@ -170,8 +168,10 @@ function AlternativeMedicine({ parentId, updateRequestItems, existingListItems, 
 
       const searchResults = await getGenericMedicineList({ params: params })
       if (searchResults?.data?.list_items.length > 0) {
-        setOptionsMedicineList(
-          searchResults?.data?.list_items?.map(item => ({
+        const medicalProducts = searchResults?.data?.list_items?.filter(el => el.stock_type != 'Non Medical')
+        console.log('medicalProducts', medicalProducts)
+        setOptionsGenericMedicineList(
+          medicalProducts?.map(item => ({
             value: item.id,
             genericName: item?.generic_name,
             name: item?.name,
@@ -180,14 +180,9 @@ function AlternativeMedicine({ parentId, updateRequestItems, existingListItems, 
             manufacture: item.manufacturer_name,
             control_substance: item.controlled_substance === '1' ? true : false,
             status: item?.active === '0' ? 0 : 1,
-
-            // prescription_required: item?.prescription_required === '1' ? true : false,
-            // making prescription true if product is control substance
-
             prescription_required:
               item?.controlled_substance === '1' ? true : item?.prescription_required === '1' ? true : false,
-            unit_price: item?.unit_price ? item?.unit_price : 0,
-            availAbleQty: item?.available_qty
+            unit_price: item?.unit_price ? item?.unit_price : 0
           }))
         )
         setItemErrors({})
@@ -226,9 +221,9 @@ function AlternativeMedicine({ parentId, updateRequestItems, existingListItems, 
       }
     })
 
-    console.log('exixting', requestItemsArray)
     setExistingMedicinesList(requestItemsArray)
     fetchMedicineData('')
+    fetchGenericMedicineData('')
   }, [])
 
   //  ****** debounce
@@ -365,34 +360,17 @@ function AlternativeMedicine({ parentId, updateRequestItems, existingListItems, 
                   <li
                     {...props}
                     style={{
-                      opacity: getOptionStyle(option.value) === false ? 1 : 0.5,
+                      opacity: getOptionStyle(option) === false ? 1 : 0.5,
 
-                      pointerEvents: getOptionStyle(option.value) === false ? 'auto' : 'none'
+                      pointerEvents: getOptionStyle(option) === false ? 'auto' : 'none'
                     }}
                   >
                     <Box>
-                      <Typography>{option.name}</Typography>
-                      <Typography variant='body2'>{option.package}</Typography>
-                      <Typography variant='body2'>{option.manufacture}</Typography>
-                      {option.control_substance === true && (
-                        <CustomChip label='CS' skin='light' color='success' size='small' />
-                      )}{' '}
-                      {option.prescription_required === true && (
-                        <CustomChip label='PR' skin='light' color='success' size='small' />
-                      )}
-                      {/* <Typography
-                        sx={{
-                          color: 'customColors.OnSecondaryContainer',
-                          display: 'flex',
-                          alignItems: 'center',
-                          fontSize: '16px',
-                          fontWeight: 400
-                        }}
-                      >
-                        {RenderUtility?.renderControlLabel(option.control_substance === true, 'CS')}
-                        {RenderUtility?.renderControlLabel(option.prescription_required === true, 'PR')}
-                        {option.name}({option.package})
-                      </Typography> */}
+                      <Typography>{option?.name}</Typography>
+                      <Typography variant='body2'>{option?.package}</Typography>
+                      <Typography variant='body2'>{option?.manufacture}</Typography>
+                      {RenderUtility?.renderControlLabel(option?.control_substance === true, 'CS')}
+                      {RenderUtility?.renderPrescriptionLabel(option?.prescription_required === true, 'PR')}
                     </Box>
                   </li>
                 )}
@@ -469,14 +447,14 @@ function AlternativeMedicine({ parentId, updateRequestItems, existingListItems, 
             <FormControl fullWidth>
               <Autocomplete
                 id='autocomplete-controlled'
-                options={optionsMedicineList}
+                options={optionsGenericMedicineList}
                 renderOption={(props, option) => (
                   <li
                     {...props}
                     style={{
-                      opacity: getOptionStyle(option.value) === false ? 1 : 0.5,
+                      opacity: getOptionStyle(option) === false ? 1 : 0.5,
 
-                      pointerEvents: getOptionStyle(option.value) === false ? 'auto' : 'none'
+                      pointerEvents: getOptionStyle(option) === false ? 'auto' : 'none'
                     }}
                   >
                     <Box>
@@ -484,12 +462,14 @@ function AlternativeMedicine({ parentId, updateRequestItems, existingListItems, 
                       <Typography variant='body2'>{`Product - ${option.name}`}</Typography>
                       <Typography variant='body2'>{option.package}</Typography>
                       <Typography variant='body2'>{option.manufacture}</Typography>
-                      {option.control_substance === true && (
+                      {/* {option.control_substance === true && (
                         <CustomChip label='CS' skin='light' color='success' size='small' />
-                      )}
-                      {option.prescription_required === true && (
+                      )} */}
+                      {RenderUtility?.renderControlLabel(option.control_substance === true, 'CS')}
+                      {RenderUtility?.renderPrescriptionLabel(option.prescription_required === true, 'PR')}
+                      {/* {option.prescription_required === true && (
                         <CustomChip label='PR' skin='light' color='success' size='small' />
-                      )}
+                      )} */}
                       {/* <Typography
                         sx={{
                           color: 'customColors.OnSecondaryContainer',
@@ -592,7 +572,7 @@ function AlternativeMedicine({ parentId, updateRequestItems, existingListItems, 
             }}
           >
             <Typography sx={{ fontWeight: 400, fontFamily: 'Inter', fontSize: '12px', mb: 1 }}>
-              Available Packing:{' '}
+              Package:{' '}
               <span style={{ fontWeight: 400, fontSize: '12px', color: 'primary.light' }}>
                 {nestedRowMedicine?.package}
               </span>
@@ -621,6 +601,7 @@ function AlternativeMedicine({ parentId, updateRequestItems, existingListItems, 
               value={nestedRowMedicine.request_item_qty}
               error={Boolean(itemErrors.request_item_qty)}
               label='Quantity*'
+              onWheel={event => event.target.blur()}
               onChange={event => {
                 setNestedRowMedicine({ ...nestedRowMedicine, request_item_qty: event.target.value })
                 setItemErrors({})
@@ -633,33 +614,39 @@ function AlternativeMedicine({ parentId, updateRequestItems, existingListItems, 
               </FormHelperText>
             )}
 
-            {nestedRowMedicine.unit_price > 0 ? (
-              <Box sx={{ mx: 1, my: 2, display: 'flex', gap: 2 }}>
+            {nestedRowMedicine?.unit_price > 0 ? (
+              <Box sx={{ mx: 1, my: 2, display: 'flex' }}>
                 <Chip
-                  label={`Unit Price - ${nestedRowMedicine.unit_price}`}
+                  label={`Unit Price - ${Utility?.formatAmountToReadableDigit(Number(nestedRowMedicine?.unit_price))}`}
                   variant='outlined'
                   size='sm'
                   sx={{
                     mr: 2,
-                    fontSize: 12,
+                    fontSize: '13px',
                     height: '32px',
-                    borderRadius: '16px',
+                    fontWeight: 400,
+                    verticalAlign: 'middle',
                     backgroundColor: 'customColors.Surface',
                     color: 'customColors.OnSurfaceVariant',
                     border: `0.5px solid ${theme.palette.primary.main} !important`
+
+                    // border: '0.5px solid #37BD69 !important'
                   }}
                 />
                 <Chip
-                  label={`Total Quantity Price - ${nestedRowMedicine.unit_price * nestedRowMedicine.request_item_qty}`}
+                  label={`Total QTY Price - ${Utility?.formatAmountToReadableDigit(
+                    Number(nestedRowMedicine?.unit_price * nestedRowMedicine?.request_item_qty)
+                  )}`}
                   variant='outlined'
                   size='sm'
                   sx={{
-                    mr: 2,
-                    fontSize: 12,
+                    fontSize: '13px',
                     height: '32px',
-                    borderRadius: '16px',
+                    fontWeight: 400,
+                    verticalAlign: 'middle',
                     backgroundColor: 'customColors.Surface',
                     color: 'customColors.OnSurfaceVariant',
+
                     border: `0.5px solid ${theme.palette.primary.main} !important`
                   }}
                 />
@@ -1199,4 +1186,4 @@ function AlternativeMedicine({ parentId, updateRequestItems, existingListItems, 
   )
 }
 
-export default AlternativeMedicine
+export default React.memo(AlternativeMedicine)

@@ -120,6 +120,8 @@ export const PHARMACY_MASTER_BASE_URL = 'v1/master/pharma/'
 
 export const PHARMACY_BASE_URL = 'v1/pharma/'
 
+export const BASE_URL_Pharmacy = 'v1/pharmacy/' //From now onwards use this constant
+
 export const UPDATE_PURCHASE_BASE_URL = 'v2/pharma/'
 
 export const RETURN_REQUEST = 'return-item'
@@ -143,6 +145,8 @@ export const PRODUCT_LIST = 'v1/pharma/stock/list'
 export const BATCH_LIST = 'batch-details'
 
 export const ANIMAL_LIST = 'v1/collection/animal/list'
+
+export const ANIMAL_LISTS = 'animal-list'
 
 export const SUBMIT_DISPENSE = 'dispense-item'
 
@@ -212,6 +216,10 @@ export const PURCHASE_BY_PRODUCT = 'v1/pharma/purchase/getPurchaseListByProduct'
 
 export const VARIANTS_MAPPING = 'variantMapping'
 
+export const ALTERNATE_LIST = 'AlternateList'
+
+export const ALTERNATE_MAPPING = 'AlternateMapping'
+
 export const VALIDATE_PURCHASE = 'validate'
 
 export const REQUEST_PENDING_PRODUCTS = 'v1/pharmacy/request-pending-products'
@@ -260,6 +268,14 @@ export const SHIPMENT_REPORT = 'shipment-report'
 
 export const RETURN_TO_SUPPLIER = 'return-supplier-report'
 
+export const ALL_REQUESTED_ITEMS_REPORT = 'all-requested-items'
+
+export const PRODUCT_MAPPING_FOR_ML = 'v1/public/pharmacy/ml/product-mapping/bulkInsert'
+
+export const STOCK_LIST = 'stock-item'
+
+export const VARIANTS_MAPPING_FOR_BATCH = 'variantMappingBatch'
+
 export const FEED_DETAILS = 'details'
 
 export const FEED = 'feed'
@@ -275,6 +291,8 @@ export const UPDATE_FEED_TYPE = 'diet/feed/update'
 export const INGREDIENT_LIST = 'ingredient-list'
 
 export const LIST = 'list'
+
+export const ANIMAL = 'animal'
 
 export const INGREDIENTS = 'ingredients'
 
@@ -406,11 +424,23 @@ export const UPDATE_CUT_SIZE = 'diet/recipes/master/cutsizeupdate'
 
 export const GET_CUT_SIZEBY_ID = 'diet/recipes/master/cutsizeList'
 
+export const DIET_CATEGORIES_LIST = 'v1/diet/dietcategories/list'
+
+export const ADD_DIET_CATEGORY = 'v1/diet/dietcategories'
+
+export const UPDATE_DIET_CATEGORY = 'v1/diet/dietcategories'
+
+export const GET_DIET_CATEGORY_BY_ID = 'v1/diet/dietcategories'
+
 export const RECIPE_PARTOF_DIET_LIST = 'recipe_ingredient_part_of_diet_list'
 
 export const SPECIES = 'species'
 
 export const ASSIGN_TO_SPECIES = 'assign-to-species'
+
+export const ASSIGN_TO_ANIMALS = 'assign-to-animal'
+
+export const ASSIGN_EDIT = 'assign-edit'
 
 export const DELETE_SPECIES = 'delete-species'
 
@@ -437,3 +467,33 @@ export const DELETE_ATTACHMENT_FOR_ANIMAL = 'v1/parivesh/species/site/deleteatta
 export const DOWNLOAD_CSV_FOR_BATCH_DATA = 'v1/parivesh/animal/site/downloadcsvforbatchdata'
 
 export const SPECIES_LIST = 'species-list-egg-wise'
+
+export const GET_SECTIONS = 'master/zoos/getsections'
+
+export const GET_ENCLOSURES = 'master/enclosure/details'
+
+export const GET_TAXONOMYLIST = 'v1/taxonomyunits'
+
+export const GET_ENCLOSURELIST = '/diet/get-enclosure-list-for-diet'
+
+export const CREATE_GROUP = '/diet/create-meal-group'
+
+export const GET_GROUPLIST = '/diet/get-meal-group-list'
+
+export const REMOVE_MEAL_GROUP = '/diet/remove-meal-group'
+
+export const GET_ENCLOSURE_LIST = '/diet/get-enclosure-list-for-diet'
+
+export const ADD_ENCLOSURE = '/diet/add-enclosure-to-meal-group'
+
+export const UPDATE_GROUP = '/diet/edit-meal-group'
+
+export const GET_STATS = '/diet/get-meal-group-site-wise-stats'
+
+export const GET_SECTION = '/master/zoos/getsections'
+
+export const GET_SPECIES = '/diet/species'
+
+export const STORE_WISE_SHIPMENT_PDF = 'shipment-store-item/shipped/print/'
+
+export const REQUEST_SHIPMENT_DETAILS_PDF = 'shipment/shipped/print/'

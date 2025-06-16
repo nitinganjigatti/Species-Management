@@ -123,7 +123,7 @@ const Supplier = () => {
       minWidth: 100,
       alignItems: 'right',
       field: 'uid',
-      headerName: 'SL ',
+      headerName: 'SL.NO ',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.uid + '.'}

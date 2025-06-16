@@ -17,7 +17,10 @@ const CommonTable = ({
   checkBoxOption,
   onRowSelectionModelChange,
   selectedRows,
-  disablePagination = false // New prop to control pagination
+  disablePagination = false, // New prop to control pagination
+  maxHeight,
+  rowHeight = 52,
+  externalTableStyle
 }) => {
   const theme = useTheme()
 
@@ -38,7 +41,8 @@ const CommonTable = ({
         },
         '.MuiDataGrid-virtualScroller': {
           // overflow: 'hidden',
-          overflowX: 'auto'
+
+          ...(maxHeight && { maxHeight: maxHeight, overflowY: 'auto !important' })
         },
         '.MuiDataGrid-main': {
           // margin: '2px',
@@ -57,7 +61,8 @@ const CommonTable = ({
 
         '& .MuiDataGrid-row:last-of-type .MuiDataGrid-cell': {
           borderBottom: 'none' // Make sure no extra bottom border is applie
-        }
+        },
+        ...(externalTableStyle || {})
       }}
       columnVisibilityModel={columnVisibilityModel ? columnVisibilityModel : {}}
       hideFooterSelectedRowCount
@@ -70,6 +75,7 @@ const CommonTable = ({
       rowCount={disablePagination ? undefined : total}
       columns={columns}
       sortingMode='server'
+      rowHeight={rowHeight}
       // paginationMode='server'
       // pageSizeOptions={[7, 10, 25, 50]}
       paginationMode={disablePagination ? undefined : 'server'}

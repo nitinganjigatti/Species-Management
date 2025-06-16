@@ -14,7 +14,7 @@ import {
 import { Box } from '@mui/system'
 import { debounce } from 'lodash'
 import { useRouter } from 'next/router'
-import React, { useCallback, useEffect, useState } from 'react'
+import React, { useCallback, useEffect, useRef, useState } from 'react'
 import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDateRangePickers'
 import { getConsumptionReport } from 'src/lib/api/pharmacy/reports'
 import Utility from 'src/utility'
@@ -22,11 +22,12 @@ import Icon from 'src/@core/components/icon'
 import RenderUtility from 'src/utility/render'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import { getStoreList } from 'src/lib/api/pharmacy/getStoreList'
-import ConsumptionReportDrawer from 'src/views/pages/pharmacy/reports/consumptionReportDrawer'
+import ConsumptionReportDrawer from 'src/views/pages/pharmacy/reports/ConsumptionReportDrawer'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import { format, subMonths } from 'date-fns'
-import StyleWithIconCardComponent from 'src/views/utility/style-with-icon-card'
 import { ExportButton, FilterButton } from 'src/views/utility/render-snippets'
+import StyleWithIconCardComponent from 'src/views/utility/style-with-icon-card'
+import PharmacyProductCard from 'src/views/utility/PharmacyProductCard'
 
 const productTypes = [
   { id: 'allopathy', name: 'Allopathy' },
@@ -80,14 +81,14 @@ const ConsumptionReport = () => {
   })
 
   useEffect(() => {
+    setFilteredData({
+      pharmacy: []
+    })
+
     setSelectedOptions({
       Pharmacy: [],
       'Product Type': [],
       'Drug Type': 'all'
-    })
-
-    setFilteredData({
-      pharmacy: []
     })
   }, [selectedPharmacy?.id])
 
@@ -187,7 +188,7 @@ const ConsumptionReport = () => {
         setLoading(false)
       }
     },
-    [paginationModel, filterDates]
+    [paginationModel, filterDates, filteredData]
   )
 
   useEffect(() => {
@@ -196,8 +197,7 @@ const ConsumptionReport = () => {
       q: searchValue,
       column: sortColumn,
       page: paginationModel?.page,
-      limit: paginationModel?.pageSize,
-      filteredData: filteredData
+      limit: paginationModel?.pageSize
     })
     updateUrlParams({
       sort,
@@ -208,15 +208,7 @@ const ConsumptionReport = () => {
       startDate: filterDates?.startDate,
       endDate: filterDates?.endDate
     })
-  }, [
-    paginationModel.page,
-    paginationModel.pageSize,
-    sort,
-    sortColumn,
-    filterDates,
-    filteredData,
-    selectedPharmacy?.id
-  ])
+  }, [paginationModel.page, paginationModel.pageSize, sort, sortColumn, filterDates, selectedPharmacy?.id])
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
@@ -231,10 +223,12 @@ const ConsumptionReport = () => {
       minWidth: 20,
       field: 'id',
       sortable: false,
-      headerName: 'SL NO',
+      headerName: 'SL.NO',
+      align: 'center',
+      headerAlign: 'center',
 
       renderCell: params => (
-        <Box sx={{ minWidth: 40 }}>
+        <Box sx={{ minWidth: 40, textAlign: 'center' }}>
           <Typography sx={{ color: 'text.primary', fontSize: '14px', fontWeight: '400px' }}>
             {params.row.id + '.'}
           </Typography>
@@ -243,63 +237,18 @@ const ConsumptionReport = () => {
     },
     {
       minWidth: 20,
-      width: 200,
+      width: 340,
       field: 'stock_name',
       headerName: 'PRODUCT NAME',
       sortable: true,
       renderCell: params => (
         <>
-          <StyleWithIconCardComponent
-            value={
-              <Box>
-                <Typography sx={{ display: 'flex', alignItems: 'center' }}>
-                  <Typography
-                    sx={{
-                      color: 'customColors.OnSecondaryContainer',
-                      display: 'flex',
-
-                      alignItems: 'center',
-                      fontWeight: 500,
-                      fontSize: '14px',
-                      ...RenderUtility?.getEllipsisStyleForText()
-                    }}
-                  >
-                    {RenderUtility?.renderControlLabel(
-                      !isNaN(params.row?.controlled_substance) && parseInt(params.row?.controlled_substance) === 1,
-                      'CS'
-                    )}
-                    {RenderUtility?.renderControlLabel(
-                      !isNaN(params.row?.prescription_required) && parseInt(params.row?.prescription_required) === 1,
-                      'PR'
-                    )}
-                  </Typography>
-                  <Typography
-                    sx={{
-                      color: 'customColors.customHeadingTextColor',
-                      fontWeight: 500,
-                      fontSize: '14px',
-                      overflow: 'hidden',
-                      whiteSpace: 'nowrap',
-                      textOverflow: 'ellipsis',
-                      maxWidth: 250
-                    }}
-                  >
-                    {params.row.stock_name}
-                  </Typography>
-                </Typography>
-              </Box>
-            }
-            icon={params.row.image ? `${params.row.image}` : '/images/Medicine_Icon.png'}
-            showIcon={false}
-            customCss={{
-              p: '0px',
-              width: '100%',
-              height: '100%',
-              fontSize: '14px',
-              avtBorderRadius: '10px',
-              iconWidth: '44px',
-              iconHeight: '44px'
-            }}
+          <PharmacyProductCard
+            title={params?.row?.stock_name}
+            icon={params?.row?.image}
+            controlSubstance={params?.row?.controlled_substance === '1' && true}
+            prescriptionRequired={params?.row?.prescription_required === '1' && true}
+            rowWidth={320}
           />
         </>
       )
@@ -308,27 +257,49 @@ const ConsumptionReport = () => {
       minWidth: 20,
       width: 200,
       field: 'generic_name',
-      headerName: 'GENERIC NAME',
       sortable: true,
-      renderCell: params => (
-        <Tooltip title={params.row.generic_name}>
-          <Typography
-            variant='body2'
-            sx={{
-              color: theme.palette.customColors.customHeadingTextColor,
-              fontSize: '14px',
-              fontWeight: 400,
-              fontFamily: 'Inter',
-              overflow: 'hidden',
-              whiteSpace: 'nowrap',
-              textOverflow: 'ellipsis',
-              maxWidth: 200
-            }}
-          >
-            {params.row.generic_name ? <span alt={params.row.generic_name}> {params.row.generic_name}</span> : 'NA'}
-          </Typography>
-        </Tooltip>
-      )
+      headerName: 'GENERIC NAME',
+      renderCell: params => {
+        const genericName = params.row.generic_name
+
+        return (
+          <Tooltip title={genericName || '-'}>
+            {genericName ? (
+              <Typography
+                variant='body2'
+                sx={{
+                  color: theme.palette.customColors.customHeadingTextColor,
+                  fontSize: '14px',
+                  fontWeight: 400,
+                  fontFamily: 'Inter',
+                  overflow: 'hidden',
+                  whiteSpace: 'nowrap',
+                  textOverflow: 'ellipsis',
+                  maxWidth: 200
+                }}
+              >
+                {genericName}
+              </Typography>
+            ) : (
+              <Box
+                sx={{
+                  display: 'flex',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  height: '100%',
+                  width: '100%',
+                  fontSize: '14px',
+                  color: theme.palette.text.secondary,
+                  fontFamily: 'Inter',
+                  fontWeight: 400
+                }}
+              >
+                -
+              </Box>
+            )}
+          </Tooltip>
+        )
+      }
     },
     {
       minWidth: 20,
@@ -373,6 +344,7 @@ const ConsumptionReport = () => {
       headerName: '',
       sortable: true,
       align: 'right',
+      headerAlign: 'right',
       renderHeader: () => (
         <div
           style={{
@@ -404,11 +376,12 @@ const ConsumptionReport = () => {
     },
     {
       minWidth: 20,
-      width: 170,
+      width: 190,
       field: 'available_qty',
       headerName: '',
       sortable: true,
       align: 'center',
+      headerAlign: 'center',
       renderHeader: () => (
         <div
           style={{
@@ -530,14 +503,15 @@ const ConsumptionReport = () => {
     if (newModel.length) {
       setSort(newModel[0].sort)
       setSortColumn(newModel[0].field)
-      fetchTableData({
-        sort: newModel[0].sort,
-        q: searchValue,
-        column: newModel[0].field,
-        page: paginationModel?.page,
-        limit: paginationModel?.pageSize,
-        filteredData: filteredData
-      })
+
+      // fetchTableData({
+      //   sort: newModel[0].sort,
+      //   q: searchValue,
+      //   column: newModel[0].field,
+      //   page: paginationModel?.page,
+      //   limit: paginationModel?.pageSize,
+      //   filteredData: filteredData
+      // })
       updateUrlParams({
         sort: newModel[0].sort,
         q: searchValue,
@@ -627,6 +601,18 @@ const ConsumptionReport = () => {
     }
   }
 
+  const handleFilter = async filterList => {
+    setFilteredData(filterList)
+    await fetchTableData({
+      sort: sort,
+      q: searchValue,
+      column: sortColumn,
+      page: paginationModel?.page,
+      limit: paginationModel?.pageSize,
+      filteredData: filterList
+    })
+  }
+
   const calculateAppliedFiltersCount = () => {
     let count = 0
 
@@ -712,7 +698,11 @@ const ConsumptionReport = () => {
                       justifyContent: { sm: 'flex-end', xs: 'flex-end' }
                     }}
                   >
-                    <ExportButton loading={loading || exportLoading} onClick={handleExport} />
+                    <ExportButton
+                      loading={loading || exportLoading}
+                      onClick={handleExport}
+                      disabled={total === 0 ? true : false}
+                    />
                     <FilterButton onClick={() => setOpenFilterDrawer(true)} appliedFiltersCount={appliedFiltersCount} />
                   </Grid>
                 </Grid>
@@ -751,7 +741,7 @@ const ConsumptionReport = () => {
         <ConsumptionReportDrawer
           setOpenFilterDrawer={setOpenFilterDrawer}
           openFilterDrawer={openFilterDrawer}
-          onApplyFilter={filterList => setFilteredData(filterList)}
+          onApplyFilter={handleFilter}
           selectedOptions={selectedOptions}
           setSelectedOptions={setSelectedOptions}
           pharmacyList={pharmacyList}

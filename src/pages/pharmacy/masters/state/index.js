@@ -138,7 +138,7 @@ const ListOfStates = () => {
     {
       minWidth: 90,
       field: 'uid',
-      headerName: 'S.NO',
+      headerName: 'SL.NO',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {parseInt(params.row.sl_no) + '.'}
@@ -221,7 +221,9 @@ const ListOfStates = () => {
             fontFamily: 'Inter'
           }}
         >
-          {params.row.status}
+          {params.row.status
+            ? params.row.status.charAt(0).toUpperCase() + params.row.status.slice(1).toLowerCase()
+            : ''}
         </Typography>
       )
     },

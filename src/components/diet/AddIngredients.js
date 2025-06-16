@@ -41,7 +41,10 @@ const AddIngredients = props => {
     setSelectedIngredient,
     setUomprevnew,
     uom,
-    feedType
+    feedType,
+    ingredientId,
+    fromrow,
+    ingredientName
   } = props
   const theme = useTheme()
   const [feed, setFeed] = React.useState('')
@@ -116,7 +119,7 @@ const AddIngredients = props => {
     setSearchValue('')
     parentHandleSidebarClose()
     setFeed('')
-    debouncedSearch('')
+    //debouncedSearch('')
   }
 
   const handleChangeTopFeed = async event => {
@@ -375,7 +378,13 @@ const AddIngredients = props => {
     setReachedEnd(true)
 
     try {
-      const params = { page: ingredientPage, q: searchValue, sort, limit: 20, status: 1 }
+      const params = {
+        page: ingredientPage,
+        q: fromrow !== 'rowedit_ingredient' ? searchValue : ingredientName,
+        sort,
+        limit: 20,
+        status: 1
+      }
       getIngredientList({ params }).then(res => {
         if (res?.data?.result?.length > 0) {
           const newResults = res.data.result.filter(
@@ -396,7 +405,7 @@ const AddIngredients = props => {
     } catch (error) {
       console.error(error)
     }
-  }, [])
+  }, [ingredientId])
 
   // Top Feed Type
   // const fetchData = async () => {
@@ -448,11 +457,13 @@ const AddIngredients = props => {
 
   const handleScroll = async e => {
     const container = e.target
-
+    const threshold = 20
     // Check if the user has reached the bottom
 
     if (totalCount > ingredientList.length) {
-      if (container.scrollHeight - Math.round(container.scrollTop) === container.clientHeight) {
+      const isNearBottom =
+        container.scrollHeight - Math.round(container.scrollTop) <= container.clientHeight + threshold
+      if (isNearBottom) {
         // User has reached the bottom, perform your action here
 
         setIngredientPage(++ingredientPage)
@@ -554,6 +565,7 @@ const AddIngredients = props => {
     debounce(async search => {
       try {
         setLoading(true)
+        console.log(feed, 'feed')
         const params = { page: 1, q: search, sort, status: 1, limit: 20, feed_type: feed }
         const res = await getIngredientList({ params })
         if (res?.data?.result.length > 0) {
@@ -569,7 +581,7 @@ const AddIngredients = props => {
         setLoading(false)
       }
     }, 500),
-    []
+    [ingredientList]
   )
 
   const handleSearchChange = e => {
@@ -613,10 +625,30 @@ const AddIngredients = props => {
       const updatedSelectedCard = [...selectedCard]
       updatedSelectedCard.splice(cardIndex, 1)
       setSelectedCard(updatedSelectedCard)
+
+      // Remove only the matching item from selectFeed and size
+      setSelectFeed(prev => {
+        const newFeed = { ...prev }
+        delete newFeed[itemId]
+        return newFeed
+      })
+
+      setSize(prev => {
+        const newSize = { ...prev }
+        delete newSize[itemId]
+        return newSize
+      })
     }
   }
 
-  const sortedIngredientList = [...ingredientList]?.sort((a, b) => a.ingredient_name.localeCompare(b.ingredient_name))
+  let sortedIngredientList = [...ingredientList]?.sort((a, b) => a.ingredient_name.localeCompare(b.ingredient_name))
+
+  // Filter sortedIngredientList based on remarks and fromrow condition
+  if (fromrow !== '' && fromrow === 'rowedit_ingredient') {
+    sortedIngredientList = sortedIngredientList.filter(
+      item => item.id === ingredientId && item.ingredient_name === ingredientName
+    ) // Compare with ingredientId state
+  }
 
   return (
     <>
@@ -655,94 +687,110 @@ const AddIngredients = props => {
               </IconButton>
             </Box>
           </Box>
-          <Box
-            sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 2, p: 4, px: '24px' }}
-          >
-            <Box sx={{ width: '306px' }}>
-              <TextField
-                value={searchValue}
-                fullWidth
-                InputProps={{
-                  startAdornment: (
-                    <Icon
-                      style={{ marginRight: 10, color: theme.palette.customColors.OnSurfaceVariant }}
-                      icon={'ion:search-outline'}
-                    />
-                  ),
-                  endAdornment: searchValue && (
-                    <IconButton onClick={handleCancelClick} size='small' sx={{ padding: 0 }}>
-                      <Icon icon={'ion:close-outline'} style={{ color: theme.palette.customColors.OnSurfaceVariant }} />
-                    </IconButton>
-                  )
-                }}
-                placeholder='Search ingredient'
-                onChange={handleSearchChange}
-                sx={{
-                  '& .MuiOutlinedInput-root': {
-                    borderColor: theme.palette.customColors.Outline,
-                    '& fieldset': {
-                      borderColor: theme.palette.customColors.Outline
-                    }
-                  }
-                }}
-              />
-            </Box>
-            <Box sx={{ width: '184px' }}>
-              <FormControl fullWidth>
-                <InputLabel id='demo-simple-select-label'>Feed</InputLabel>
-                <Select
-                  labelId='demo-simple-select-label'
-                  id='demo-simple-select'
-                  value={feed}
-                  label='Feed'
-                  onChange={handleChangeTopFeed}
-                  sx={{
-                    '& .MuiOutlinedInput-notchedOutline': {
-                      borderColor: theme.palette.customColors.Outline
-                    },
-                    '&:hover .MuiOutlinedInput-notchedOutline': {
-                      borderColor: theme.palette.customColors.Outline
-                    },
-                    '& .MuiOutlinedInput-root': {
-                      borderRadius: '0px'
-                    }
+
+          {fromrow !== 'rowedit_ingredient' ? (
+            <Box
+              sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 2, p: 4, px: '24px' }}
+            >
+              <Box sx={{ width: '306px' }}>
+                <TextField
+                  value={searchValue}
+                  fullWidth
+                  InputProps={{
+                    startAdornment: (
+                      <Icon
+                        style={{ marginRight: 10, color: theme.palette.customColors.OnSurfaceVariant }}
+                        icon={'ion:search-outline'}
+                      />
+                    ),
+                    endAdornment: searchValue && (
+                      <IconButton onClick={handleCancelClick} size='small' sx={{ padding: 0 }}>
+                        <Icon
+                          icon={'ion:close-outline'}
+                          style={{ color: theme.palette.customColors.OnSurfaceVariant }}
+                        />
+                      </IconButton>
+                    )
                   }}
-                  MenuProps={{
-                    PaperProps: {
-                      style: {
-                        maxHeight: 300
+                  placeholder='Search ingredient'
+                  onChange={handleSearchChange}
+                  sx={{
+                    '& .MuiOutlinedInput-root': {
+                      borderColor: theme.palette.customColors.Outline,
+                      '& fieldset': {
+                        borderColor: theme.palette.customColors.Outline
                       }
                     }
                   }}
-                  endAdornment={
-                    feed ? (
-                      <InputAdornment position='end' sx={{ position: 'absolute', right: '30px' }}>
-                        <IconButton aria-label='clear feed selection' onClick={handleClearFeed} edge='end'>
-                          <ClearIcon />
-                        </IconButton>
-                      </InputAdornment>
-                    ) : (
-                      ''
-                    )
-                  }
-                >
-                  {feedType?.map(feedList => (
-                    <MenuItem key={feedList?.key} value={feedList?.id}>
-                      {feedList?.feed_type_name}
-                    </MenuItem>
-                  ))}
-                </Select>
-              </FormControl>
+                />
+              </Box>
+              <Box sx={{ width: '184px' }}>
+                <FormControl fullWidth>
+                  <InputLabel id='demo-simple-select-label'>Feed</InputLabel>
+                  <Select
+                    labelId='demo-simple-select-label'
+                    id='demo-simple-select'
+                    value={feed}
+                    label='Feed'
+                    onChange={handleChangeTopFeed}
+                    sx={{
+                      '& .MuiOutlinedInput-notchedOutline': {
+                        borderColor: theme.palette.customColors.Outline
+                      },
+                      '&:hover .MuiOutlinedInput-notchedOutline': {
+                        borderColor: theme.palette.customColors.Outline
+                      },
+                      '& .MuiOutlinedInput-root': {
+                        borderRadius: '0px'
+                      }
+                    }}
+                    MenuProps={{
+                      PaperProps: {
+                        style: {
+                          maxHeight: 300
+                        }
+                      }
+                    }}
+                    endAdornment={
+                      feed ? (
+                        <InputAdornment position='end' sx={{ position: 'absolute', right: '30px' }}>
+                          <IconButton aria-label='clear feed selection' onClick={handleClearFeed} edge='end'>
+                            <ClearIcon />
+                          </IconButton>
+                        </InputAdornment>
+                      ) : (
+                        ''
+                      )
+                    }
+                  >
+                    {feedType?.map(feedList => (
+                      <MenuItem key={feedList?.key} value={feedList?.id}>
+                        {feedList?.feed_type_name}
+                      </MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              </Box>
             </Box>
-          </Box>
+          ) : (
+            ''
+          )}
         </Box>
 
         {/* Card View */}
 
         <Box
           key={feed}
-          sx={{ marginTop: 35, height: '65%', overflowY: 'auto', bgcolor: theme.palette.customColors.bodyBg }}
-          onScroll={handleScroll}
+          sx={{
+            marginTop: fromrow === 'rowedit_ingredient' ? 0 : 35,
+            paddingTop: fromrow !== 'rowedit_ingredient' ? 0 : 20,
+            //height: fromrow !== 'rowedit_ingredient' ? '65%' : '85%',
+            height: fromrow !== 'rowedit_ingredient' ? 'calc(100vh - 245px)' : '85%',
+            overflowY: 'auto',
+            bgcolor: theme.palette.customColors.bodyBg
+          }}
+          //onScroll={handleScroll}
+          onScroll={fromrow !== 'rowedit_ingredient' ? handleScroll : undefined}
         >
           {loading ? (
             <Box sx={{ display: 'flex', justifyContent: 'center', mt: 20 }}>
@@ -838,8 +886,34 @@ const AddIngredients = props => {
                       direction='row'
                       sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 2, mt: 1 }}
                     >
-                      <Typography>Id - {item?.id}</Typography>
-                      <Typography>Feed Type - {item?.feed_type_label}</Typography>
+                      <Typography>ING - {item?.id}</Typography>
+                      <Typography
+                        sx={{
+                          mr: 3,
+                          maxWidth: 180,
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap',
+                          display: 'flex',
+                          alignItems: 'center'
+                        }}
+                        noWrap
+                      >
+                        Feed Type -&nbsp;
+                        <Tooltip title={item?.feed_type_label || ''}>
+                          <span
+                            style={{
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                              whiteSpace: 'nowrap',
+                              display: 'inline-block',
+                              maxWidth: '100%'
+                            }}
+                          >
+                            {item?.feed_type_label}
+                          </span>
+                        </Tooltip>
+                      </Typography>
                     </Stack>
                     <Stack
                       direction='row'
@@ -1044,14 +1118,22 @@ const AddIngredients = props => {
             <Box
               sx={{
                 display: 'flex',
+                flexDirection: 'column',
                 justifyContent: 'center',
                 alignItems: 'center',
-                height: '40%',
-                color: theme.palette.customColors.statusText,
-                fontSize: '16px'
+                height: '70%',
+                textAlign: 'center'
               }}
             >
-              No records to show
+              <img src='/images/no_data_animal_2.png' alt='Grocery Icon' width='250px' />
+              <Box
+                sx={{
+                  color: theme.palette.customColors.statusText,
+                  fontSize: '16px'
+                }}
+              >
+                No records to show
+              </Box>
             </Box>
           ) : null}
           {!loading && reachedEnd ? (
@@ -1075,9 +1157,15 @@ const AddIngredients = props => {
             display: 'flex'
           }}
         >
-          <Button fullWidth variant='contained' size='large' onClick={() => handleAllSelect()}>
-            ADD INGREDIENT - {selectedCard?.length} SELECTED
-          </Button>
+          {fromrow === 'rowedit_ingredient' ? (
+            <Button fullWidth variant='contained' size='large' onClick={() => handleAllSelect()}>
+              ADD INGREDIENT
+            </Button>
+          ) : (
+            <Button fullWidth variant='contained' size='large' onClick={() => handleAllSelect()}>
+              ADD INGREDIENT - {selectedCard?.length} SELECTED
+            </Button>
+          )}
         </Box>
       </Drawer>
     </>

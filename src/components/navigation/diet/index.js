@@ -6,7 +6,8 @@ const composeDietNavigation = () => {
   const feedTypes = {
     title: 'Feed Types',
     path: '/diet/feed',
-    icon: 'material-symbols:inventory-2-outline'
+    icon: <img src='/icons/feedtypes_dark.svg' alt='Grocery Icon' />,
+    activeIcon: <img src='/icons/feedtypes_white.svg' alt='Grocery Icon' />
   }
 
   const ingredientsList = {
@@ -44,8 +45,15 @@ const composeDietNavigation = () => {
     activeIcon: <img src='/icons/icon_recipe_white.png' alt='Grocery Icon' />
   }
 
+  const mealGroups = {
+    title: 'Meal Groups',
+    path: '/diet/meal-groups',
+    icon: <img src='/icons/icon_diet_black.png' alt='Grocery Icon' />,
+    activeIcon: <img src='/icons/icon_diet_white.png' alt='Grocery Icon' />
+  }
+
   const settingsParent = {
-    title: 'Setting',
+    title: 'Settings',
     path: '/diet/settings',
     icon: 'uil:setting',
     children: []
@@ -61,7 +69,26 @@ const composeDietNavigation = () => {
     path: '/diet/settings/cut-sizes'
   }
 
-  settingsParent.children.push(preparationTypes, cutSize)
+  const dietCategory = {
+    title: 'Diet Category',
+    path: '/diet/settings/diet-category'
+  }
+
+  const kitchenParent = {
+    title: 'Kitchen',
+    path: '/diet/kitchen/diet-report',
+    icon: 'uil:box',
+    children: []
+  }
+
+  const dietReport = {
+    title: 'Diet Report',
+    path: '/diet/kitchen/diet-report'
+  }
+
+  kitchenParent.children.push(dietReport)
+
+  settingsParent.children.push(preparationTypes, cutSize, dietCategory)
 
   const dietNavigation = [
     pharmacyTitle,
@@ -71,6 +98,8 @@ const composeDietNavigation = () => {
     dietList,
     recipeList,
     comboList,
+    mealGroups,
+    kitchenParent,
     settingsParent
   ]
 

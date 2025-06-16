@@ -52,7 +52,7 @@ function PurchaseDetails() {
     {
       width: 70,
       field: 'sl',
-      headerName: 'S.NO',
+      headerName: 'SL.NO',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
           {params.row.sl_no + '.'}
@@ -178,7 +178,6 @@ function PurchaseDetails() {
       // Call the API to fetch data with the sorting and other params
       await getPurchaseBatchDetailsList(p_id, params).then(res => {
         if (res?.success) {
-          console.log(res, 'resqwer')
           setTotal(parseInt(res?.data?.purchase_detailss?.length))
           setRows(loadServerRows(paginationModel.page, res?.data?.purchase_detailss))
         } else {
@@ -205,8 +204,6 @@ function PurchaseDetails() {
     id: `${row.id}`,
     sl_no: getSlNo(index)
   }))
-
-  console.log(indexedRows)
 
   const handleSearch = useCallback(
     debounce(value => {
@@ -239,6 +236,7 @@ function PurchaseDetails() {
       })
     }
   }
+
   // const onRowClick = params => {
   //   var data = params.row
   //   console.log(data, 'data')
@@ -326,12 +324,8 @@ function PurchaseDetails() {
             onRowClick={onRowClick}
             indexedRows={indexedRows}
             total={total}
-            // handleSortModel={handleSortModel}
             columns={columns}
-            // paginationModel={paginationModel}
-            // setPaginationModel={setPaginationModel}
             loading={loading}
-            // searchValue={searchValue}
             disablePagination={true}
           />
         </Grid>

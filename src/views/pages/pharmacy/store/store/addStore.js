@@ -232,6 +232,14 @@ const AddStore = props => {
                     onChange={onChange}
                     error={Boolean(errors?.gst_slab)}
                     labelId='site_id'
+                    MenuProps={{
+                      PaperProps: {
+                        style: {
+                          maxHeight: 300,
+                          width: 'auto'
+                        }
+                      }
+                    }}
                   >
                     {authData?.userData?.user?.zoos[0].sites?.map((item, index) => {
                       return (

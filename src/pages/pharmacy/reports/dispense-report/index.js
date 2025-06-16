@@ -26,10 +26,10 @@ import CommonTable from 'src/views/table/data-grid/CommonTable'
 import Icon from 'src/@core/components/icon'
 import DispenseReportFilterDrawer from 'src/views/pages/pharmacy/reports/DispenseReportFilterDrawer'
 import { getStoreList } from 'src/lib/api/pharmacy/getStoreList'
-import StyleWithIconCardComponent from 'src/views/utility/style-with-icon-card'
 import { getUserList } from 'src/lib/api/pharmacy/dispenseProduct'
 import { readAsync } from 'src/lib/windows/utils'
 import { ExportButton, FilterButton } from 'src/views/utility/render-snippets'
+import PharmacyProductCard from 'src/views/utility/PharmacyProductCard'
 
 const DispenseReport = () => {
   const router = useRouter()
@@ -66,48 +66,26 @@ const DispenseReport = () => {
   })
 
   const [filteredData, setFilteredData] = useState({
-    pharmacy: []
+    user: []
   })
 
   const [selectedOptions, setSelectedOptions] = useState({
-    Pharmacy: [],
     User: [],
     'Drug Type': 'all'
   })
 
   useEffect(() => {
     setSelectedOptions({
-      Pharmacy: [],
       User: [],
       'Drug Type': 'all'
     })
 
     setFilteredData({
-      pharmacy: []
+      user: []
     })
   }, [selectedPharmacy?.id])
 
   useEffect(() => {
-    const pharmacyList = async () => {
-      try {
-        const params = {
-          type: 'local'
-        }
-        const response = await getStoreList({ params })
-        const result = response?.data
-
-        if (response?.success) {
-          let pharmacies = result?.list_items.map(({ id, name }) => ({ id, name })) || []
-
-          pharmacies = pharmacies.filter(pharmacy => pharmacy.id !== selectedPharmacy?.id)
-
-          setPharmacyList(pharmacies)
-        }
-      } catch (error) {
-        console.log(error)
-      }
-    }
-
     const getUserLists = async () => {
       try {
         const userDetails = await readAsync('userDetails')
@@ -128,25 +106,8 @@ const DispenseReport = () => {
         console.log('user error', error)
       }
     }
-
-    pharmacyList()
     getUserLists()
-  }, [selectedPharmacy])
-
-  const handleSelectAllPharmacy = () => {
-    setSelectAllPharmacy(!selectAllPharmacy)
-    if (!selectAllPharmacy) {
-      setSelectedOptions({
-        ...selectedOptions,
-        Pharmacy: pharmacyList.map(p => p.id)
-      })
-    } else {
-      setSelectedOptions({
-        ...selectedOptions,
-        Pharmacy: []
-      })
-    }
-  }
+  }, [])
 
   const handleSelectAllUser = () => {
     setSelectAllUser(!selectAllUser)
@@ -181,9 +142,6 @@ const DispenseReport = () => {
           ...(filterDates?.startDate !== '' && { from_date: filterDates?.startDate }),
           ...(filterDates?.endDate !== '' && { to_date: filterDates?.endDate }),
           ...(filteredData &&
-            filteredData.pharmacy &&
-            filteredData.pharmacy.length > 0 && { store_id: filteredData.pharmacy.join(',') }),
-          ...(filteredData &&
             filteredData.user &&
             filteredData.user.length > 0 && { user_id: filteredData.user.join(',') }),
           ...(filteredData && filteredData.controlled && { controlled: filteredData.controlled }),
@@ -204,7 +162,7 @@ const DispenseReport = () => {
         setLoading(false)
       }
     },
-    [paginationModel, filterDates]
+    [paginationModel, filterDates, filteredData]
   )
 
   useEffect(() => {
@@ -213,8 +171,9 @@ const DispenseReport = () => {
       q: searchValue,
       column: sortColumn,
       page: paginationModel?.page,
-      limit: paginationModel?.pageSize,
-      filteredData: filteredData
+      limit: paginationModel?.pageSize
+
+      // filteredData: filteredData
     })
 
     updateUrlParams({
@@ -226,15 +185,7 @@ const DispenseReport = () => {
       startDate: filterDates?.startDate,
       endDate: filterDates?.endDate
     })
-  }, [
-    paginationModel.page,
-    paginationModel.pageSize,
-    sort,
-    sortColumn,
-    filterDates,
-    filteredData,
-    selectedPharmacy?.id
-  ])
+  }, [paginationModel.page, paginationModel.pageSize, sort, sortColumn, filterDates, selectedPharmacy?.id])
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
@@ -249,10 +200,12 @@ const DispenseReport = () => {
       minWidth: 20,
       field: 'id',
       sortable: false,
-      headerName: 'SL NO',
+      align: 'center',
+      headerAlign: 'center',
+      headerName: 'SL.NO',
 
       renderCell: params => (
-        <Box sx={{ minWidth: 40 }}>
+        <Box sx={{ minWidth: 40, textAlign: 'center' }}>
           <Typography sx={{ color: 'text.primary', fontSize: '14px', fontWeight: '400px' }}>
             {params.row.id + '.'}
           </Typography>
@@ -279,36 +232,8 @@ const DispenseReport = () => {
         </Typography>
       )
     },
-
-    // {
-    //   width: 5,
-    //   field: 'label',
-    //   headerName: '',
-    //   sortable: false,
-    //   renderCell: params => (
-    //     <Typography
-    //       sx={{
-    //         color: 'customColors.OnSecondaryContainer',
-    //         display: 'flex',
-    //         alignItems: 'center',
-    //         fontWeight: 500,
-    //         fontSize: '14px',
-    //         ...RenderUtility?.getEllipsisStyleForText()
-    //       }}
-    //     >
-    //       {RenderUtility?.renderControlLabel(
-    //         !isNaN(params.row?.controlled_substance) && parseInt(params.row?.controlled_substance) === 1,
-    //         'CS'
-    //       )}
-    //       {RenderUtility?.renderControlLabel(
-    //         !isNaN(params.row?.prescription_required) && parseInt(params.row?.prescription_required) === 1,
-    //         'PR'
-    //       )}
-    //     </Typography>
-    //   )
-    // },
     {
-      width: 250,
+      width: 340,
       minWidth: 20,
       field: 'stock_name',
       align: 'left',
@@ -317,58 +242,13 @@ const DispenseReport = () => {
 
       renderCell: params => (
         <Box>
-          <StyleWithIconCardComponent
-            value={
-              <>
-                <Typography sx={{ display: 'flex', alignItems: 'center' }}>
-                  <Typography
-                    sx={{
-                      color: 'customColors.OnSecondaryContainer',
-                      display: 'flex',
-
-                      alignItems: 'center',
-                      fontWeight: 500,
-                      fontSize: '14px',
-                      ...RenderUtility?.getEllipsisStyleForText()
-                    }}
-                  >
-                    {RenderUtility?.renderControlLabel(
-                      !isNaN(params.row?.controlled_substance) && parseInt(params.row?.controlled_substance) === 1,
-                      'CS'
-                    )}
-                    {RenderUtility?.renderControlLabel(
-                      !isNaN(params.row?.prescription_required) && parseInt(params.row?.prescription_required) === 1,
-                      'PR'
-                    )}
-                  </Typography>
-                  <Typography
-                    sx={{
-                      color: 'customColors.customHeadingTextColor',
-                      fontWeight: 500,
-                      fontSize: '14px',
-                      overflow: 'hidden',
-                      whiteSpace: 'nowrap',
-                      textOverflow: 'ellipsis',
-                      maxWidth: 250
-                    }}
-                  >
-                    {params.row.stock_name}
-                  </Typography>
-                </Typography>
-              </>
-            }
-            description={params.row.generic_name ? params.row.generic_name : 'NA'}
-            icon={params.row.image ? `${params.row.image}` : '/images/Medicine_Icon.png'}
-            showIcon={false}
-            customCss={{
-              p: '0px',
-              width: '100%',
-              height: '100%',
-              fontSize: '14px',
-              avtBorderRadius: '10px',
-              iconWidth: '44px',
-              iconHeight: '44px'
-            }}
+          <PharmacyProductCard
+            title={params?.row?.stock_name}
+            subTitle={params?.row?.generic_name ? params?.row?.generic_name : 'NA'}
+            icon={params?.row?.image}
+            controlSubstance={params?.row?.controlled_substance === '1' && true}
+            prescriptionRequired={params?.row?.prescription_required === '1' && true}
+            rowWidth={320}
           />
         </Box>
       )
@@ -395,6 +275,26 @@ const DispenseReport = () => {
     },
     {
       minWidth: 20,
+      width: 160,
+      field: 'expiry_date',
+      headerName: 'EXPIRY DATE',
+      sortable: true,
+      renderCell: params => (
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
+          {Utility.formatDisplayDate(params.row.expiry_date)}
+        </Typography>
+      )
+    },
+    {
+      minWidth: 20,
       width: 170,
       field: 'dispense_qty',
       headerName: 'DISPENSE QUANTITY',
@@ -416,7 +316,7 @@ const DispenseReport = () => {
     },
     {
       minWidth: 20,
-      width: 180,
+      width: 170,
       field: 'net_unit_price',
       headerName: 'NET UNIT PRICE',
       sortable: true,
@@ -491,17 +391,23 @@ const DispenseReport = () => {
       sortable: true,
       headerName: 'FROM STORE',
       renderCell: params => (
-        <Typography
-          variant='body2'
-          sx={{
-            color: theme.palette.customColors.customHeadingTextColor,
-            fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
-          }}
-        >
-          {params.row.from_store}
-        </Typography>
+        <Tooltip title={params.row.from_store}>
+          <Typography
+            variant='body2'
+            sx={{
+              color: theme.palette.customColors.customHeadingTextColor,
+              fontSize: '14px',
+              fontWeight: 400,
+              fontFamily: 'Inter',
+              overflow: 'hidden',
+              whiteSpace: 'nowrap',
+              textOverflow: 'ellipsis',
+              maxWidth: 200
+            }}
+          >
+            <span alt={params.row.from_store}> {params.row.from_store}</span>
+          </Typography>
+        </Tooltip>
       )
     },
     {
@@ -596,14 +502,15 @@ const DispenseReport = () => {
     if (newModel.length) {
       setSort(newModel[0].sort)
       setSortColumn(newModel[0].field)
-      fetchTableData({
-        sort: newModel[0].sort,
-        q: searchValue,
-        column: newModel[0].field,
-        page: paginationModel?.page,
-        limit: paginationModel?.pageSize,
-        filteredData: filteredData
-      })
+
+      // fetchTableData({
+      //   sort: newModel[0].sort,
+      //   q: searchValue,
+      //   column: newModel[0].field,
+      //   page: paginationModel?.page,
+      //   limit: paginationModel?.pageSize,
+      //   filteredData: filteredData
+      // })
       updateUrlParams({
         sort: newModel[0].sort,
         q: searchValue,
@@ -673,9 +580,6 @@ const DispenseReport = () => {
         ...(filterDates?.startDate !== '' && { from_date: filterDates?.startDate }),
         ...(filterDates?.endDate !== '' && { to_date: filterDates?.endDate }),
         ...(filteredData &&
-          filteredData.pharmacy &&
-          filteredData.pharmacy.length > 0 && { store_id: filteredData.pharmacy.join(',') }),
-        ...(filteredData &&
           filteredData.user &&
           filteredData.user.length > 0 && { user_id: filteredData.user.join(',') }),
         ...(filteredData && filteredData.controlled && { controlled: filteredData.controlled }),
@@ -693,12 +597,20 @@ const DispenseReport = () => {
     }
   }
 
+  const handleFilter = async filterList => {
+    setFilteredData(filterList)
+    await fetchTableData({
+      sort: sort,
+      q: searchValue,
+      column: sortColumn,
+      page: paginationModel?.page,
+      limit: paginationModel?.pageSize,
+      filteredData: filterList
+    })
+  }
+
   const calculateAppliedFiltersCount = () => {
     let count = 0
-
-    if (filteredData && filteredData.pharmacy && filteredData.pharmacy.length > 0) {
-      count++
-    }
 
     if (filteredData && filteredData.user && filteredData.user.length > 0) {
       count++
@@ -817,11 +729,9 @@ const DispenseReport = () => {
         <DispenseReportFilterDrawer
           setOpenFilterDrawer={setOpenFilterDrawer}
           openFilterDrawer={openFilterDrawer}
-          onApplyFilter={filterList => setFilteredData(filterList)}
+          onApplyFilter={handleFilter}
           selectedOptions={selectedOptions}
           setSelectedOptions={setSelectedOptions}
-          pharmacyList={pharmacyList}
-          handleSelectAllPharmacy={handleSelectAllPharmacy}
           users={users}
           handleSelectAllUser={handleSelectAllUser}
         />

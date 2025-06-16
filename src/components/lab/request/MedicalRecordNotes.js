@@ -1,11 +1,14 @@
 import { Typography, Box, Avatar } from '@mui/material'
 import { format } from 'date-fns'
+import { useTheme } from '@mui/material/styles'
+import Utility from 'src/utility'
 
 const MedicalRecordNotes = ({ notes }) => {
+  const theme = useTheme()
   if (!notes?.length) {
     return (
       <Box sx={{ py: 4, textAlign: 'center' }}>
-        <Typography sx={{ color: '#6F7F75' }}>Empty Notes</Typography>
+        <Typography sx={{ color: theme.palette.customColors.antzNeturalBg }}>Empty Notes</Typography>
       </Box>
     )
   }
@@ -29,18 +32,21 @@ const MedicalRecordNotes = ({ notes }) => {
 
           <Box sx={{ flex: 1 }}>
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
-              <Typography sx={{ fontSize: '15px', fontWeight: 500, color: '#1F515B' }}>
+              <Typography sx={{ fontSize: '15px', fontWeight: 500, color: theme.palette.primary.light }}>
                 {`${note.user_profile.first_name} ${note.user_profile.last_name}`}
               </Typography>
-              <Typography sx={{ fontSize: '12px', color: '#6F7F75' }}>
-                {format(new Date(note.modified_at ? note.modified_at : note.created_at), 'MMM dd, yyyy hh:mm a')}
+              <Typography sx={{ fontSize: '12px', color: theme.palette.customColors.antzNeturalBg }}>
+                {format(
+                  new Date(Utility.convertUTCToLocal(note.modified_at ? note.modified_at : note.created_at)),
+                  'MMM dd, yyyy hh:mm a'
+                )}{' '}
               </Typography>
             </Box>
 
             <Typography
               sx={{
                 fontSize: '14px',
-                color: '#44544A',
+                color: theme.palette.customColors.OnSurfaceVariant,
                 backgroundColor: 'rgba(68, 84, 74, 0.05)',
                 p: 2,
                 borderRadius: '8px',

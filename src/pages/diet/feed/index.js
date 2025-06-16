@@ -22,7 +22,7 @@ import ServerSideToolbarWithFilter from 'src/views/table/data-grid/ServerSideToo
 import { TabContext, TabList, TabPanel } from '@mui/lab'
 import toast from 'react-hot-toast'
 import Tooltip from '@mui/material/Tooltip'
-
+import { useTheme } from '@mui/material/styles'
 import Error404 from 'src/pages/404'
 
 import { AuthContext } from 'src/context/AuthContext'
@@ -30,6 +30,7 @@ import Toaster from 'src/components/Toaster'
 
 const FeedTypes = () => {
   const router = useRouter()
+  const theme = useTheme()
   const { query } = router
   const [rows, setRows] = useState([])
   const [total, setTotal] = useState(0)
@@ -130,8 +131,8 @@ const FeedTypes = () => {
 
   const columns = [
     {
-      flex: 0.1,
-      minWidth: 30,
+      //flex: 0.1,
+      width: 70,
       field: 'id',
       headerName: 'SL',
       renderCell: params => (
@@ -141,8 +142,8 @@ const FeedTypes = () => {
       )
     },
     {
-      flex: 0.2,
-      minWidth: 30,
+      //flex: 0.5,
+      width: 250,
       field: 'feed_type_name',
       headerName: 'FEEDS',
       renderCell: params => (
@@ -161,7 +162,7 @@ const FeedTypes = () => {
       )
     },
     {
-      flex: 0.7,
+      flex: 0.5,
       minWidth: 10,
       field: 'desc',
       headerName: 'DESCRIPTION',
@@ -263,53 +264,77 @@ const FeedTypes = () => {
   const tableData = () => {
     return (
       <Card>
-        <CardHeader title='Feed Types' action={headerAction} />
-        <DataGrid
-          sx={{
-            '.MuiDataGrid-cell:focus': {
-              outline: 'none'
-            },
+        <CardHeader title='Feed Types' action={headerAction} sx={{ px: 5 }} />
+        <Box sx={{ width: '100%', overflowX: 'auto' }}>
+          <DataGrid
+            sx={{
+              height: 700,
+              '.MuiDataGrid-cell:focus': {
+                outline: 'none'
+              },
+              '& .MuiDataGrid-row:hover': {
+                cursor: 'pointer'
+              },
+              '& .MuiDataGrid-columnHeaders': {
+                backgroundColor: theme.palette.customColors.customTableHeaderBg,
+                color: theme.palette.customColors.customHeadingTextColor
+              },
+              '.MuiDataGrid-virtualScroller': {
+                overflowX: 'auto'
+              },
+              '.MuiDataGrid-main': {
+                borderLeft: '1px solid #0000000D',
+                borderRight: '1px solid #0000000D',
+                marginLeft: '20px',
+                marginRight: '20px',
+                borderRadius: '8px',
+                border: '1px solid rgba(233, 233, 236, 1)'
+              },
+              '& .MuiDataGrid-footerContainer': {
+                borderTop: 'none'
+              },
 
-            '& .MuiDataGrid-row:hover': {
-              cursor: 'pointer'
-            }
-          }}
-          columnVisibilityModel={{
-            sl_no: false
-          }}
-          hideFooterSelectedRowCount
-          disableColumnSelector={true}
-          autoHeight
-          pagination
-          rows={indexedRows === undefined ? [] : indexedRows}
-          rowCount={total}
-          columns={columns}
-          sortingMode='server'
-          paginationMode='server'
-          pageSizeOptions={[7, 10, 25, 50]}
-          paginationModel={paginationModel}
-          onSortModelChange={handleSortModel}
-          slots={{ toolbar: ServerSideToolbarWithFilter }}
-          onPaginationModelChange={newPaginationModel => {
-            updateQueryParams({
-              page: newPaginationModel.page,
-              pageSize: newPaginationModel.pageSize
-            })
-            setPaginationModel(newPaginationModel)
-          }}
-          loading={loading}
-          slotProps={{
-            baseButton: {
-              variant: 'outlined'
-            },
-            toolbar: {
-              value: searchValue,
-              clearSearch: () => handleSearch(''),
-              onChange: event => handleSearch(event.target.value)
-            }
-          }}
-          onCellClick={onCellClick}
-        />
+              '& .MuiDataGrid-row:last-of-type .MuiDataGrid-cell': {
+                borderBottom: 'none'
+              }
+            }}
+            columnVisibilityModel={{
+              sl_no: false
+            }}
+            hideFooterSelectedRowCount
+            disableColumnSelector={true}
+            autoHeight
+            pagination
+            rows={indexedRows === undefined ? [] : indexedRows}
+            rowCount={total}
+            columns={columns}
+            sortingMode='server'
+            paginationMode='server'
+            pageSizeOptions={[7, 10, 25, 50]}
+            paginationModel={paginationModel}
+            onSortModelChange={handleSortModel}
+            slots={{ toolbar: ServerSideToolbarWithFilter }}
+            onPaginationModelChange={newPaginationModel => {
+              updateQueryParams({
+                page: newPaginationModel.page,
+                pageSize: newPaginationModel.pageSize
+              })
+              setPaginationModel(newPaginationModel)
+            }}
+            loading={loading}
+            slotProps={{
+              baseButton: {
+                variant: 'outlined'
+              },
+              toolbar: {
+                value: searchValue,
+                clearSearch: () => handleSearch(''),
+                onChange: event => handleSearch(event.target.value)
+              }
+            }}
+            onCellClick={onCellClick}
+          />
+        </Box>
       </Card>
     )
   }

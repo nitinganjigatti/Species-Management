@@ -9,7 +9,13 @@ import {
   DELETE_SPECIES,
   TYPE,
   ADD,
-  UPDATE
+  UPDATE,
+  ANIMAL_LISTS,
+  ASSIGN_EDIT,
+  ASSIGN_TO_ANIMALS,
+  GET_SECTIONS,
+  GET_ENCLOSURES,
+  GET_TAXONOMYLIST
 } from 'src/constants/ApiConstant'
 import { axiosFormPost, axiosGet, axiosPost } from '../utility'
 
@@ -31,6 +37,54 @@ export async function getSpeciesList(params) {
   return response.data
 }
 
+export async function getAnimalsList(params) {
+  const response = await axiosGet({ url: `${DIET}/${ANIMAL_LISTS}`, params })
+
+  return response?.data
+}
+
+export async function getSectionsList(payload) {
+  try {
+    const response = await axiosFormPost({ url: `${GET_SECTIONS}`, body: payload })
+
+    return response?.data
+  } catch (error) {
+    if (error.response) {
+      console.error(error.response.data)
+    }
+
+    return error
+  }
+}
+
+export async function getEnclosureList(params) {
+  try {
+    const response = await axiosGet({ url: `${GET_ENCLOSURES}`, params })
+
+    return response?.data
+  } catch (error) {
+    if (error.response) {
+      console.error(error.response.data)
+    }
+
+    return error
+  }
+}
+
+export async function getTaxonomyList(params) {
+  try {
+    const response = await axiosGet({ url: `${GET_TAXONOMYLIST}`, params })
+
+    return response?.data
+  } catch (error) {
+    if (error.response) {
+      console.error(error.response.data)
+    }
+
+    return error
+  }
+}
+
 export async function deleteSpeciesFromDiet(payload) {
   try {
     const response = await axiosFormPost({ url: `${DIET}/${DELETE_SPECIES}`, body: payload })
@@ -45,9 +99,24 @@ export async function deleteSpeciesFromDiet(payload) {
   }
 }
 
-export async function addSpeciestoDiet(payload) {
+export async function addAssigntoDiet(payload, selectionType) {
+  const endpoint = selectionType === 'species' ? ASSIGN_TO_SPECIES : ASSIGN_TO_ANIMALS
   try {
-    const response = await axiosPost({ url: `${DIET}/${ASSIGN_TO_SPECIES}`, body: payload })
+    const response = await axiosFormPost({ url: `${DIET}/${endpoint}`, body: payload })
+
+    return response?.data
+  } catch (error) {
+    if (error.response) {
+      console.error(error.response.data)
+    }
+
+    return error
+  }
+}
+
+export async function editAssigntoDiet(payload) {
+  try {
+    const response = await axiosFormPost({ url: `${DIET}/${ASSIGN_EDIT}`, body: payload })
 
     return response?.data
   } catch (error) {

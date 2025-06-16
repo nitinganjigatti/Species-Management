@@ -19,6 +19,7 @@ import { updateIngredientStatus } from 'src/lib/api/diet/getIngredients'
 import DeleteDialogConfirmation from 'src/components/utility/DeleteDialogConfirmation'
 import ToasterforSuccess from 'src/components/SuccessToaster'
 import Toaster from 'src/components/Toaster'
+import { useTheme } from '@mui/material/styles'
 
 const IngredientDetailCardview = ({
   isActive,
@@ -28,6 +29,7 @@ const IngredientDetailCardview = ({
   getIngredientsDetailval
 }) => {
   const router = useRouter()
+  const theme = useTheme()
   const [activePayload, setActivePayload] = useState(IngredientsDetailsval?.active || false)
   const [deleteDialogBox, setDeleteDialogBox] = useState(false)
 
@@ -72,8 +74,8 @@ const IngredientDetailCardview = ({
   }
 
   return (
-    <Grid item xs={4}>
-      <Card sx={{ boxShadow: 'none', background: '#EFF5F2' }}>
+    <Grid item md={4} xs={6.5} sx={{ marginLeft: 'auto', marginRight: 'auto', textAlign: 'center' }}>
+      <Card sx={{ boxShadow: 'none', background: theme.palette.customColors.bodyBg }}>
         <div
           item
           md={3}
@@ -89,7 +91,7 @@ const IngredientDetailCardview = ({
           >
             <div
               style={{
-                background: '#fff',
+                background: theme.palette.primary.contrastText,
                 borderRadius: '8px',
                 padding: '18px',
                 width: '120px',
@@ -105,7 +107,7 @@ const IngredientDetailCardview = ({
                 sx={{
                   width: 70,
                   height: 70,
-                  background: '#fff'
+                  background: theme.palette.primary.contrastText
                 }}
                 src={IngredientsDetailsval.image ? IngredientsDetailsval.image : '/icons/icon_ingredient_fill.png'}
               >
@@ -115,7 +117,9 @@ const IngredientDetailCardview = ({
           </CardContent>
 
           <Grid item>
-            <Typography sx={{ mb: 1, color: '#000', fontWeight: 500 }}>{'ING' + IngredientsDetailsval.id}</Typography>
+            <Typography sx={{ mb: 1, color: theme.palette.customColors.neutralPrimary, fontWeight: 500 }}>
+              {'ING' + IngredientsDetailsval.id}
+            </Typography>
             <FormControlLabel
               control={
                 <Switch
@@ -126,10 +130,11 @@ const IngredientDetailCardview = ({
               }
               labelPlacement='start'
               label={isActive === '1' ? 'Active' : 'InActive'}
+              disabled={!permission}
             />
           </Grid>
         </div>
-        <Divider sx={{ mt: 3, mx: 4, borderColor: '#C3CEC7' }} />
+        <Divider sx={{ mt: 3, mx: 4, borderColor: theme.palette.customColors.OutlineVariant }} />
         <CardContent>
           <Box
             sx={{
@@ -146,7 +151,7 @@ const IngredientDetailCardview = ({
               </Typography>
             </Box>
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
-              <Typography variant='body2' sx={{ mr: 1.5, color: '#7A8684' }}>
+              <Typography variant='body2' sx={{ mr: 1.5, color: theme.palette.customColors.secondaryBg }}>
                 {IngredientsDetailsval.feed_type_label}
               </Typography>
             </Box>
@@ -167,7 +172,7 @@ const IngredientDetailCardview = ({
               </Typography>
             </Box>
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
-              <Typography variant='body2' sx={{ mr: 1.5, color: '#7A8684' }}>
+              <Typography variant='body2' sx={{ mr: 1.5, color: theme.palette.customColors.secondaryBg }}>
                 {IngredientsDetailsval.uom === 'gm'
                   ? 'Gram (g)'
                   : IngredientsDetailsval.uom === null
@@ -192,7 +197,7 @@ const IngredientDetailCardview = ({
               </Typography>
             </Box>
             <Box sx={{ display: 'flex', alignItems: 'center' }}>
-              <Typography variant='body2' sx={{ mr: 1.5, color: '#7A8684' }}>
+              <Typography variant='body2' sx={{ mr: 1.5, color: theme.palette.customColors.secondaryBg }}>
                 {IngredientsDetailsval.standard_unit}
               </Typography>
             </Box>

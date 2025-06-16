@@ -27,17 +27,36 @@ const RequestDetailsScreen = () => {
     storeName: ''
   })
 
-  const updateUrlParams = useCallback(params => {
-    // debugger
-    const newQuery = { ...router.query, ...params }
-    router.replace({ pathname: router.pathname, query: newQuery }, undefined)
-  }, [])
+  const updateUrlParams = useCallback(
+    params => {
+      const newQuery = { ...router.query, ...params }
+      router.replace({ pathname: router.pathname, query: newQuery }, undefined, { shallow: true })
+    },
+    [router]
+  )
+
+  // useEffect(() => {
+  //   if (detailsTab !== router.query.mainTab) {
+  //     // debugger
+  //     updateUrlParams({
+  //       mainTab: detailsTab
+  //     })
+  //   }
+  // }, [detailsTab])
 
   useEffect(() => {
-    updateUrlParams({
-      mainTab: detailsTab
-    })
-  }, [detailsTab])
+    if (router.isReady) {
+      if (router.query.mainTab && typeof router.query.mainTab === 'string') {
+        setDetailsTab(router.query.mainTab)
+      }
+    }
+  }, [router.isReady])
+
+  useEffect(() => {
+    if (detailsTab && detailsTab !== router.query.mainTab) {
+      updateUrlParams({ mainTab: detailsTab })
+    }
+  }, [updateUrlParams, detailsTab])
 
   const TabBadge = ({ label, totalCount }) => (
     <div style={{ display: 'flex', alignItems: 'center', justifyItems: 'center', justifyContent: 'space-between' }}>
@@ -75,7 +94,6 @@ const RequestDetailsScreen = () => {
         )}
 
         <Grid
-          spacing={2}
           sx={{
             px: 6,
             display: 'flex',
@@ -86,13 +104,16 @@ const RequestDetailsScreen = () => {
         >
           <TabContext value={detailsTab}>
             <TabList
+              variant='scrollable'
+              allowScrollButtonsMobile
               sx={{ borderBottom: `1px solid ${theme.palette.customColors.neutral05} !important` }}
               onChange={(event, newValue) => {
                 console.log('new tab value: ', newValue)
                 setDetailsTab(newValue)
-                updateUrlParams({
-                  mainTab: newValue
-                })
+
+                // updateUrlParams({
+                //   mainTab: newValue
+                // })
               }}
             >
               <Tab
@@ -145,4 +166,4 @@ const RequestDetailsScreen = () => {
   )
 }
 
-export default RequestDetailsScreen
+export default React.memo(RequestDetailsScreen)

@@ -63,9 +63,10 @@ const UserThemeOptions = () => {
         trackBg: '#F2F2F4',
         avatarBg: '#F1F1F3',
         tooltipBg: '#262732',
-
+        OnTertiaryContainer: '#250E01',
         displaybgPrimary: '#E8F4F2',
         tableHeaderBg: '#E8F4F2',
+        cardHeaderBg: '#F2F2F2',
         Secondary: '#00D6C9',
         Surface: '#F2FFF8',
         Outline: '#839D8D',
@@ -73,10 +74,21 @@ const UserThemeOptions = () => {
         // *** name required
 
         secondaryBg: '#7A8684',
+        secondaryBg70: '#dae7df',
         mdAntzNeutral: '#0000000D',
+        antzNotes: '#FCF4AE',
+        antzNotesLight: '#FCF4AEB2',
+        antzNotes80: '#FFE86E',
+        antzNotes40: '#fdfad7',
         OnSurfaceVariant: '#44544A',
         OnSurfaceVariant60: '#44544A99',
+        neutralSecondary: '#7A8684',
+        antzNeturalBg: '#6F7F75',
         textLabel: '#00ABAB',
+
+        // **
+        OnSurfaceVariant: '#44544A',
+        LightTypographyBody1: '#44544A61',
 
         // *** name required
         customTableCellBg: '#FCF4AE33',
@@ -86,6 +98,10 @@ const UserThemeOptions = () => {
         customCardBorder: '#00ABAB',
         OnSecondaryContainer: '#1F415B',
         neutralSecondary: '#7A8684',
+        neutralTeritary: '#00000033',
+        antzInfoLight: '#AFEFEB4D',
+        antzInfo70: '#AFEFEBB2',
+        antzInfo60: '#32bfdd',
         customHeadingTextColor: '#44544A',
         customTextColorGray2: '#44544ADE',
 
@@ -96,15 +112,38 @@ const UserThemeOptions = () => {
         customDropdownColor: '#FA6140',
 
         errorText: '#FF4D49',
+        shadowColor: '#0000001A',
+        avatarBackground: '#FFD3D34D',
 
         // **
         moderateSecondary: '#E4B819',
+
+        // antzNotesLight: '#FCF4AEB2',
+        // antzNotes80: '#FFE86E',
+        // antzNotes40: '#fdfad7',
+
+        // neutralTeritary: '#00000033',
+        // antzInfoLight: '#AFEFEB4D',
+        // antzInfoText: '#32bfdd',
+        // antzInfo70: '#AFEFEBB2',
+
+        TertiaryLight: '#FFD3D399',
+        Tertiary30: '#FFBDA84D',
+        OnBackground: '#E1F9ED',
+        BgTeritary: '#ffebe5',
+        Primary10: '#37BD691A',
+
+        // border
+        InnerAlignment: '#006D354D',
+
+        deepDark: '#000000',
         neutral_50: '#00000066',
         Tertiary: '#FA6140',
         neutralPrimary: '#000000',
         OnPrimaryContainer: '#1F515B',
         TertiaryContainer: '#FFBDA8',
         OutlineVariant: '#C3CEC7',
+        OutlineSecondary: '#D8D8DD',
         OnPrimarycontainer10: '#1F515B0D',
         Notes: '#FCF4AE',
         Background: '#EFF5F2',
@@ -112,16 +151,21 @@ const UserThemeOptions = () => {
         SecondaryContainer: '#AFEFEB',
         Error: '#E93353',
         ErrorContainer: '#FFD3D3',
+        AntzTertiary: '#FFD3D3',
         addPrimary: '#00AFD6',
         displaybgSecondary: '#DDEBE9',
         SurfaceVariant: '#DAE7DF',
         OnPrimary: '#FFFFFF',
-        statusText: '#7A7A7A'
+        mainBg: '#20DE67',
+        antzSecondaryBg: '#dff9f7',
+        statusText: '#7A7A7A',
+        Antz_Body_Medium: '#FFC300'
       },
       primary: {
         // light: '#20DE67',
         light: '#1F515B',
         main: '#37BD69',
+        deepDark: '#000000',
         dark: '#006D35',
         OnSurface: '#006D35',
         contrastText: '#FFF'

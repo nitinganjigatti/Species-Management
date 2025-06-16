@@ -3,8 +3,10 @@ import { Box, Card, CardHeader, IconButton, Typography, TextField } from '@mui/m
 import { DataGrid } from '@mui/x-data-grid'
 import React, { useEffect, useState } from 'react'
 import { GetLabUsersById } from 'src/lib/api/lab/labDetails'
+import { useTheme } from '@mui/material/styles'
 
 const Users = ({ labId }) => {
+  const theme = useTheme()
   const [total, setTotal] = useState(0)
   const [sortModel, setSortModel] = useState([{ field: 'users', sort: 'asc' }])
   const [rows, setRows] = useState([])

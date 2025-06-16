@@ -97,7 +97,7 @@ const initialNestedRowMedicine = {
   medicine_name: '',
   request_item_qty: '',
   request_item_leaf_id: '',
-  priority_item: '',
+  priority_item: 'normal',
   control_substance: false,
   control_substance_file: '',
   prescription_required: false,
@@ -120,6 +120,7 @@ const AddRequestForm = () => {
   const [fromStocks, setFromStocks] = useState([])
   const [editParams, setEditParams] = useState(editParamsInitialState)
   const [optionsMedicineList, setOptionsMedicineList] = useState([])
+  const [optionsGenericMedicineList, setOptionsGenericMedicineList] = useState([])
   const [show, setShow] = useState(false)
   const [errors, setErrors] = useState({})
   const [itemErrors, setItemErrors] = useState({})
@@ -486,9 +487,11 @@ const AddRequestForm = () => {
       }
 
       const searchResults = await getGenericMedicineList({ params: params })
-      if (searchResults?.data?.list_items.length > 0) {
-        setOptionsMedicineList(
-          searchResults?.data?.list_items?.map(item => ({
+      if (searchResults?.data?.list_items?.length > 0) {
+        const medicalProducts = searchResults?.data?.list_items?.filter(el => el.stock_type != 'Non Medical')
+        console.log('medicalProducts', medicalProducts)
+        setOptionsGenericMedicineList(
+          medicalProducts?.map(item => ({
             value: item.id,
             genericName: item?.generic_name,
             name: item?.name,
@@ -497,7 +500,6 @@ const AddRequestForm = () => {
             manufacture: item.manufacturer_name,
             control_substance: item.controlled_substance === '1' ? true : false,
             status: item?.active === '0' ? 0 : 1,
-            // prescription_required: item?.prescription_required === '1' ? true : false,
             prescription_required:
               item?.controlled_substance === '1' ? true : item?.prescription_required === '1' ? true : false,
             unit_price: item?.unit_price ? item?.unit_price : 0
@@ -556,6 +558,7 @@ const AddRequestForm = () => {
   useEffect(() => {
     getStoresLists()
     fetchMedicineData('')
+    fetchGenericMedicineData('')
   }, [])
   //  ****** debounce
 
@@ -628,6 +631,7 @@ const AddRequestForm = () => {
         genericName: getItems[0].genericName,
         notes: getItems[0].notes
       })
+      showDialog()
     } else {
       const getItems = editParams.request_item_details.filter(el => {
         return el.request_item_medicine_id === itemId
@@ -653,6 +657,7 @@ const AddRequestForm = () => {
         genericName: getItems[0].genericName,
         notes: getItems[0].notes
       })
+      showDialog()
     }
   }
 
@@ -752,7 +757,7 @@ const AddRequestForm = () => {
         if (result?.data?.success === true) {
           closeCancelDialog()
           toast.success(result?.data?.data)
-          Router.push(`/pharmacy/request/request-list/`)
+          Router.push(`/pharmacy/request/`)
         } else {
           closeCancelDialog()
           toast.error(result?.data?.data)
@@ -844,12 +849,14 @@ const AddRequestForm = () => {
                         <Typography>{option.name}</Typography>
                         <Typography variant='body2'>{option.package}</Typography>
                         <Typography variant='body2'>{option.manufacture}</Typography>
-                        {option.control_substance === true && (
+                        {/* {option.control_substance === true && (
                           <CustomChip label='CS' skin='light' color='success' size='small' />
-                        )}{' '}
-                        {option.prescription_required === true && (
+                        )}{' '} */}
+                        {RenderUtility?.renderControlLabel(option.control_substance === true, 'CS')}
+                        {RenderUtility?.renderPrescriptionLabel(option.prescription_required === true, 'PR')}
+                        {/* {option.prescription_required === true && (
                           <CustomChip label='PR' skin='light' color='success' size='small' />
-                        )}
+                        )} */}
                         {/* <Typography
                           sx={{
                             color: 'customColors.OnSecondaryContainer',
@@ -971,7 +978,7 @@ const AddRequestForm = () => {
                   // inputProps={{ tabIndex: '6' }}
                   // disablePortal
                   id='autocomplete-controlled'
-                  options={optionsMedicineList}
+                  options={optionsGenericMedicineList}
                   renderOption={(props, option) => (
                     <li
                       {...props}
@@ -1023,7 +1030,6 @@ const AddRequestForm = () => {
                   }}
                   onKeyUp={e => {
                     searchGenericMedicineData(e.target.value)
-
                     setItemErrors({})
                   }}
                   onBlur={() => {}}
@@ -1077,7 +1083,7 @@ const AddRequestForm = () => {
               }}
             >
               <Typography sx={{ fontWeight: 400, fontFamily: 'Inter', fontSize: '12px', mb: 1 }}>
-                Available Packing:{' '}
+                Package:{' '}
                 <span style={{ fontWeight: 400, fontSize: '12px', color: 'customColors.OnPrimaryContainer' }}>
                   {nestedRowMedicine?.package}
                 </span>
@@ -1139,6 +1145,7 @@ const AddRequestForm = () => {
             <FormControl fullWidth>
               <TextField
                 type='number'
+                onWheel={event => event.target.blur()}
                 value={nestedRowMedicine.request_item_qty}
                 error={Boolean(itemErrors.request_item_qty)}
                 label='Quantity*'
@@ -1157,7 +1164,9 @@ const AddRequestForm = () => {
               {nestedRowMedicine?.unit_price > 0 ? (
                 <Box sx={{ mx: 1, my: 2, display: 'flex' }}>
                   <Chip
-                    label={`Unit Price - ${nestedRowMedicine?.unit_price}`}
+                    label={`Unit Price - ${Utility?.formatAmountToReadableDigit(
+                      Number(nestedRowMedicine?.unit_price)
+                    )}`}
                     variant='outlined'
                     size='sm'
                     sx={{
@@ -1174,7 +1183,9 @@ const AddRequestForm = () => {
                     }}
                   />
                   <Chip
-                    label={`Total QTY Price - ${nestedRowMedicine?.unit_price * nestedRowMedicine?.request_item_qty}`}
+                    label={`Total QTY Price - ${Utility?.formatAmountToReadableDigit(
+                      Number(nestedRowMedicine?.unit_price * nestedRowMedicine?.request_item_qty)
+                    )}`}
                     variant='outlined'
                     size='sm'
                     sx={{
@@ -1294,6 +1305,52 @@ const AddRequestForm = () => {
                   borderRadius: '8px',
                   boxShadow: 'none',
                   backgroundColor:
+                    nestedRowMedicine.priority_item === 'normal' ? `${theme.palette.primary.main}30` : 'white',
+                  color:
+                    nestedRowMedicine.priority_item === 'normal'
+                      ? `${theme.palette.customColors.TertiaryContainer}60`
+                      : theme.palette.customColors.customHeadingTextColor,
+                  opacity: nestedRowMedicine.priority_item === 'normal' && 2,
+                  border:
+                    nestedRowMedicine.priority_item === 'normal'
+                      ? `1px solid ${theme.palette.customColors.displaybgSecondary}`
+                      : `1.5px solid ${theme.palette.customColors.OutlineVariant}60 !important`,
+
+                  '&:hover': {
+                    backgroundColor:
+                      nestedRowMedicine.priority_item === 'normal'
+                        ? `${theme.palette.primary.main}30 !important`
+                        : 'transparent !important'
+                  }
+                }}
+                onClick={() => {
+                  setNestedRowMedicine({
+                    ...nestedRowMedicine,
+                    priority_item: 'normal'
+                  })
+                }}
+              >
+                <Typography
+                  sx={{
+                    fontSize: '16px',
+                    fontWeight: 500,
+                    color:
+                      nestedRowMedicine.priority_item === 'normal'
+                        ? theme.palette.customColors.customHeadingTextColor
+                        : theme.palette.customColors.neutral_50
+                  }}
+                >
+                  Normal
+                </Typography>
+              </Button>
+              <Button
+                // variant='contained'
+                sx={{
+                  width: '192px',
+                  height: '46px',
+                  borderRadius: '8px',
+                  boxShadow: 'none',
+                  backgroundColor:
                     nestedRowMedicine.priority_item === 'high'
                       ? `${theme.palette.customColors.TertiaryContainer}20`
                       : 'white',
@@ -1316,7 +1373,7 @@ const AddRequestForm = () => {
                 onClick={() => {
                   setNestedRowMedicine({
                     ...nestedRowMedicine,
-                    priority_item: nestedRowMedicine.priority_item === 'high' ? '' : 'high'
+                    priority_item: 'high'
                   })
                 }}
               >
@@ -1368,7 +1425,7 @@ const AddRequestForm = () => {
                 onClick={() => {
                   setNestedRowMedicine({
                     ...nestedRowMedicine,
-                    priority_item: nestedRowMedicine.priority_item === 'emergency' ? '' : 'emergency'
+                    priority_item: 'emergency'
                   })
                 }}
               >
@@ -1620,6 +1677,12 @@ const AddRequestForm = () => {
                   nestedRowMedicine.prescription_required_file?.type === 'image/jpeg' ? (
                   <>
                     <Chip
+                      onClick={() => {
+                        if (nestedRowMedicine.prescription_required_file) {
+                          const previewUrl = URL.createObjectURL(nestedRowMedicine.prescription_required_file)
+                          window.open(previewUrl, '_blank')
+                        }
+                      }}
                       sx={{
                         backgroundColor: 'customColors.lightBg',
                         height: '56px',
@@ -1627,7 +1690,8 @@ const AddRequestForm = () => {
                         borderRadius: '8px',
                         fontSize: '14px',
                         fontWeight: '400',
-                        position: 'relative'
+                        position: 'relative',
+                        cursor: 'pointer'
                       }}
                       label={
                         <Typography
@@ -1942,7 +2006,7 @@ const AddRequestForm = () => {
             <Icon
               style={{ cursor: 'pointer' }}
               onClick={() => {
-                Router.push('/pharmacy/request/request-list/')
+                Router.push('/pharmacy/request/')
               }}
               icon='ep:back'
             />
@@ -1953,7 +2017,7 @@ const AddRequestForm = () => {
       <CardContent>
         <Grid container>
           <CommonDialogBox
-            title={'Add Request Item'}
+            title={'Add Request Item '}
             dialogBoxStatus={show}
             formComponent={createForm()}
             close={closeDialog}
@@ -2198,8 +2262,15 @@ const AddRequestForm = () => {
             <TableHead sx={{ backgroundColor: 'customColors.customTableHeaderBg' }}>
               <TableRow>
                 <TableCell>S.No</TableCell>
-                <TableCell>Product Name</TableCell>
-                {/* <TableCell>Priority</TableCell> */}
+                <TableCell
+                  sx={{
+                    textAlign: 'center'
+                  }}
+                >
+                  Priority
+                </TableCell>
+
+                <TableCell>Product Names</TableCell>
                 {/* <TableCell>Quantity</TableCell> */}
                 <TableCell>request qty</TableCell>
                 <TableCell>Unit price</TableCell>
@@ -2217,8 +2288,16 @@ const AddRequestForm = () => {
                     return (
                       <TableRow key={index}>
                         <TableCell align='left'>
-                          <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>
-                            {index + 1}.{RenderUtility.getPriorityIcons(el?.priority_item)}
+                          <Box sx={{ display: 'flex', justifyContent: 'space-between' }}>{index + 1}.</Box>
+                        </TableCell>
+                        <TableCell>
+                          <Box
+                            sx={{
+                              display: 'flex',
+                              justifyContent: 'center'
+                            }}
+                          >
+                            {RenderUtility.getPriorityIcons(el?.priority_item)}
                           </Box>
                         </TableCell>
                         {/* <TableCell>
@@ -2238,41 +2317,7 @@ const AddRequestForm = () => {
                           {/* Name and chips in a flex container */}
                           <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 0.5 }}>
                             {RenderUtility?.renderControlLabel(el.control_substance === true, 'CS')}
-                            {RenderUtility?.renderControlLabel(el.prescription_required === true, 'PR')}
-                            {/* {el.control_substance ? (
-                              <CustomChip
-                                label='CS'
-                                skin='filled'
-                                // color='error'
-                                size='small'
-                                sx={{
-                                  borderRadius: '2px',
-                                  background: 'linear-gradient(180deg, #FA6140 0%, #E93353 100%)',
-                                  '& .MuiChip-label': {
-                                    color: 'white',
-                                    paddingLeft: '4px',
-                                    paddingRight: '4px'
-                                  }
-                                }}
-                              />
-                            ) : null} */}
-                            {/* {el.prescription_required ? (
-                              <CustomChip
-                                label='PR'
-                                skin='light'
-                                // color='success'
-                                size='small'
-                                sx={{
-                                  borderRadius: '2px',
-                                  background: 'linear-gradient(180deg, #FA6140 0%, #E93353 100%)',
-                                  '& .MuiChip-label': {
-                                    color: 'white',
-                                    paddingLeft: '4px',
-                                    paddingRight: '4px'
-                                  }
-                                }}
-                              />
-                            ) : null} */}
+                            {RenderUtility?.renderPrescriptionLabel(el.prescription_required === true, 'PR')}
                             <Typography
                               variant='body2'
                               sx={{ color: 'customColors.OnPrimaryContainer', fontSize: '16px', fontWeight: 600 }}
@@ -2436,7 +2481,7 @@ const AddRequestForm = () => {
                                 editTableData(el?.request_item_medicine_id, 'new')
                               }
                               // editTableData(el?.request_item_medicine_id)
-                              showDialog()
+                              // showDialog()
                             }}
                           >
                             <Icon icon='mdi:pencil-outline' />

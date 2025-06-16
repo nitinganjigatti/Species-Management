@@ -26,6 +26,7 @@ import TextEllipsisWithModal from 'src/components/TextEllipsisWithModal'
 import Utility from 'src/utility'
 import MenuWithDots from 'src/components/MenuWithDots'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
+import PharmacyProductCard from 'src/views/utility/PharmacyProductCard'
 
 // ** Icon Imports
 
@@ -213,7 +214,7 @@ const RequestedProductDetails = props => {
                                 color: theme.palette.customColors.OnSurfaceVariant,
                                 fontSize: '12px',
                                 fontWeight: 400,
-                                maxWidth: '50%'
+                                maxWidth: '70%'
                               }}
                               limit='150'
                               iconColor={theme.palette.customColors.moderateSecondary}
@@ -418,7 +419,51 @@ const RequestedProductDetails = props => {
             >
               <Grid container>
                 <Grid item xs={11} sm={11} sx={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
-                  <Box
+                  <PharmacyProductCard
+                    title={requestedProducts?.stock_name ? requestedProducts?.stock_name : 'NA'}
+                    subTitle={
+                      requestedProducts?.package ||
+                      requestedProducts?.package_qty ||
+                      requestedProducts?.package_uom_label ||
+                      requestedProducts?.product_form_label
+                        ? `${requestedProducts?.package} of ${Utility.formatNumber(requestedProducts?.package_qty)} ${
+                            requestedProducts?.package_uom_label
+                          } `
+                        : 'NA'
+                    }
+                    secondSubTitle={
+                      selectedPharmacy.type === 'central' && (
+                        <Typography
+                          sx={{
+                            color: theme.palette.customColors.OnSurfaceVariant,
+                            fontSize: '12px',
+                            fontWeight: 400,
+                            fontFamily: 'Inter'
+                          }}
+                        >
+                          Available Quantity:
+                          <Typography
+                            component='span'
+                            sx={{
+                              color: theme.palette.customColors.neutralPrimary,
+                              fontSize: '14px',
+                              fontWeight: 400,
+                              fontFamily: 'Inter'
+                            }}
+                          >
+                            {requestedProducts?.total_available_quantity
+                              ? requestedProducts?.total_available_quantity
+                              : '0'}
+                          </Typography>
+                        </Typography>
+                      )
+                    }
+                    icon={requestedProducts?.image}
+                    heoImageDimension='66'
+                    controlSubstance={requestedProducts?.controlled_substance === '1' && true}
+                    prescriptionRequired={requestedProducts?.prescription_required === '1' && true}
+                  />
+                  {/* <Box
                     sx={{
                       backgroundColor: theme => alpha(theme.palette.customColors.neutral05, 0.05),
                       width: '66px',
@@ -433,12 +478,12 @@ const RequestedProductDetails = props => {
                     <Avatar
                       variant='square'
                       src={requestedProducts?.image || 'images/square'}
-                      alt='Medicine Image'
+                      alt={requestedProducts?.stock_name || 'Medicine Image'}
                       sx={{ width: '52px', height: '52px', borderRadius: '2px', p: 0 }}
                     />
                   </Box>
                   <Box>
-                    <Typography
+                  <Typography
                       sx={{
                         color: theme.palette.customColors.OnSurfaceVariant,
                         fontSize: '20px',
@@ -448,7 +493,8 @@ const RequestedProductDetails = props => {
                     >
                       {requestedProducts?.stock_name ? requestedProducts?.stock_name : 'NA'}
                     </Typography>
-                    <Typography
+
+                  <Typography
                       sx={{
                         color: theme.palette.customColors.neutralSecondary,
                         fontSize: '14px',
@@ -465,7 +511,7 @@ const RequestedProductDetails = props => {
                           } `
                         : 'NA'}
                     </Typography>
-                    {selectedPharmacy.type === 'central' && (
+                  {selectedPharmacy.type === 'central' && (
                       <Typography
                         sx={{
                           color: theme.palette.customColors.OnSurfaceVariant,
@@ -486,11 +532,11 @@ const RequestedProductDetails = props => {
                         >
                           {requestedProducts?.total_available_quantity
                             ? requestedProducts?.total_available_quantity
-                            : 'NA'}
+                            : '0'}
                         </Typography>
                       </Typography>
                     )}
-                  </Box>
+                  </Box> */}
                 </Grid>
                 <Grid item xs={1} sm={1} sx={{ float: 'right', textAlign: 'right', height: 'auto' }}>
                   <IconButton size='small' onClick={handleSidebarClose} sx={{ color: 'text.primary' }}>
@@ -519,7 +565,7 @@ const RequestedProductDetails = props => {
                       padding: '8px'
                     }}
                   >
-                    Pending Items -
+                    Pending Quantity -
                     <Typography
                       component='span'
                       sx={{
@@ -530,7 +576,7 @@ const RequestedProductDetails = props => {
                       }}
                     >
                       {' '}
-                      {requestedProducts?.total_pending_items ? requestedProducts?.total_pending_items : 'NA'}
+                      {requestedProducts?.total_pending_items ? requestedProducts?.total_pending_items : '0'}
                     </Typography>
                   </Typography>
                 </Grid>
@@ -569,7 +615,7 @@ const RequestedProductDetails = props => {
                   }}
                 >
                   Pending Requests - {''}
-                  {requestedProducts?.total_pending_requests ? requestedProducts?.total_pending_requests : 'NA'}
+                  {requestedProducts?.total_pending_requests ? requestedProducts?.total_pending_requests : '0'}
                 </Typography>
               </Grid>
 

@@ -22,9 +22,11 @@ const defaultProvider = {
   user: null,
   userData: null,
   loading: true,
+  loginLoading: false,
   setUserData: () => null,
   setUser: () => null,
   setLoading: () => Boolean,
+  setLoginLoading: () => Boolean,
   login: () => Promise.resolve(),
   logout: () => Promise.resolve()
 }
@@ -37,6 +39,7 @@ const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(defaultProvider.user)
   const [userData, setUserData] = useState(defaultProvider.userData)
   const [loading, setLoading] = useState(defaultProvider.loading)
+  const [loginLoading, setLoginLoading] = useState(defaultProvider.loginLoading)
   const { setSelectedParivesh, setOrganizationList } = usePariveshContext()
   const { selectedPharmacy, setSelectedPharmacy } = usePharmacyContext()
 
@@ -75,6 +78,7 @@ const AuthProvider = ({ children }) => {
       // eslint-disable-next-line react-hooks/exhaustive-deps
       const storedToken = window.localStorage.getItem(authConfig?.storageTokenKeyName)
       if (storedToken) {
+        // setLoading(true)
         const userObj = read('userData')
         if (userObj) {
           try {
@@ -180,6 +184,7 @@ const AuthProvider = ({ children }) => {
 
   const handleLogin = (params, errorCallback) => {
     // dispatch(fetchData(params))
+    setLoginLoading(true)
 
     const url = `${base_url}v1/auth/login`
 
@@ -202,6 +207,7 @@ const AuthProvider = ({ children }) => {
     axios
       .post(url, params)
       .then(async response => {
+        setLoginLoading(false)
         if (response?.data?.message !== 'Invalid Username/Email or Password') {
           console.log('login response', response?.data)
           window.localStorage.setItem(authConfig?.storageTokenKeyName, response?.data?.token)
@@ -273,6 +279,7 @@ const AuthProvider = ({ children }) => {
         }
       })
       .catch(err => {
+        setLoginLoading(false)
         if (errorCallback) errorCallback(err)
       })
   }
@@ -298,9 +305,11 @@ const AuthProvider = ({ children }) => {
     user,
     userData,
     loading,
+    loginLoading,
     setUser,
     setUserData,
     setLoading,
+    setLoginLoading,
     login: handleLogin,
     logout: handleLogout
   }

@@ -79,10 +79,6 @@ const ReturnReportDrawer = ({
   const isAllPharmaciesSelected =
     pharmacyList?.length > 0 && selectedOptions['Pharmacy']?.length === pharmacyList?.length
 
-  const MEDICINE_ALL = 'all'
-  const MEDICINE_CONTROLLED = 'controlled'
-  const MEDICINE_PRESCRIPTION = 'prescription'
-
   const handleCloseDrawer = () => {
     setOpenFilterDrawer(false)
   }

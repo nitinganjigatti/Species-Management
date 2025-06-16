@@ -3,8 +3,11 @@ import { Box } from '@mui/system'
 import Icon from 'src/@core/components/icon'
 import React from 'react'
 import AnimalParentCard from '../../../../utility/animalParentCard'
+import { useTheme } from '@mui/material/styles'
 
 const ProbableParent = ({ probableParentSideBar, setProbableParentSideBar, parent, parentList }) => {
+  const theme = useTheme()
+
   return (
     <Drawer
       anchor='right'
@@ -54,7 +57,10 @@ const ProbableParent = ({ probableParentSideBar, setProbableParentSideBar, paren
             pb: '24px'
           }}
         >
-          {parentList?.length && parentList?.map((item, i) => <AnimalParentCard key={i} data={item} />)}
+          {parentList?.length &&
+            parentList?.map((item, i) => (
+              <AnimalParentCard backgroundColor={theme.palette.primary.contrastText} key={i} data={item} />
+            ))}
         </Box>
       </Box>
     </Drawer>

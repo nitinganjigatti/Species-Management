@@ -13,7 +13,8 @@ import { DataGrid } from '@mui/x-data-grid'
 import Card from '@mui/material/Card'
 import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
 import { debounce } from 'lodash'
-import { useTheme } from '@emotion/react'
+// import { useTheme } from '@emotion/react'
+import { useTheme } from '@mui/material/styles'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
@@ -37,6 +38,7 @@ import moment from 'moment'
 const ListOfRequest = () => {
   const theme = useTheme()
   const router = useRouter()
+
   const [loader, setLoader] = useState(false)
   const [selectLoader, setSelectLoader] = useState(false)
   const [labSelected, setLabSelected] = useState()
@@ -53,7 +55,12 @@ const ListOfRequest = () => {
     const id = params.row.lab_test_id
     router.push({
       pathname: `/lab/request/${id}`,
-      query: { lab_id: params.row.lab_id }
+      query: {
+        lab_id: params.row.lab_id,
+        page: router.query?.page,
+        pageSize: router.query?.pageSize,
+        q: router.query.q
+      }
     })
   }
 
@@ -62,7 +69,7 @@ const ListOfRequest = () => {
     //   flex: 0.05,
     //   Width: 40,
     //   field: 'id',
-    //   headerName: 'SL ',
+    //    headerName:'SL.NO',
     //   renderCell: params => (
     //     <Typography variant='body2' sx={{ color: 'text.primary' }}>
     //       {parseInt(params.row.sl_no)}
@@ -143,11 +150,12 @@ const ListOfRequest = () => {
           {params.row.total_tests_pending > 0 && (
             <Box
               sx={{
-                bgcolor: '#FA6140 ',
+                bgcolor: theme.palette.customColors.Tertiary,
                 color: 'white',
                 borderRadius: '50px',
                 height: 20,
-                width: 20,
+                minWidth: 20,
+                paddingX: 1.4,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center'
@@ -160,11 +168,12 @@ const ListOfRequest = () => {
           {params.row.total_tests_inprogress > 0 && (
             <Box
               sx={{
-                bgcolor: '#E4B819',
+                bgcolor: theme.palette.customColors.moderateSecondary,
                 color: 'white',
                 borderRadius: '50px',
                 height: 20,
-                width: 20,
+                minWidth: 20,
+                paddingX: 1.4,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center'
@@ -177,11 +186,12 @@ const ListOfRequest = () => {
           {params.row.total_tests_completed > 0 && (
             <Box
               sx={{
-                bgcolor: '#37BD69',
+                bgcolor: theme.palette.primary.main,
                 color: 'white',
                 borderRadius: '50px',
                 height: 20,
-                width: 20,
+                minWidth: 20,
+                paddingX: 1.4,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center'
@@ -232,9 +242,12 @@ const ListOfRequest = () => {
   const [total, setTotal] = useState(0)
   const [sort, setSort] = useState('asc')
   const [rows, setRows] = useState([])
-  const [searchValue, setSearchValue] = useState('')
+  const [searchValue, setSearchValue] = useState(router.query.q || '')
   const [sortColumn, setSortColumn] = useState('name')
-  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
+  const [paginationModel, setPaginationModel] = useState({
+    page: router?.query?.page ? parseInt(router?.query?.page) : 0,
+    pageSize: router?.query?.pageSize ? parseInt(router?.query?.pageSize) : 10
+  })
   const [loading, setLoading] = useState(false)
 
   function loadServerRows(currentPage, data) {
@@ -245,7 +258,14 @@ const ListOfRequest = () => {
     debounce(async ({ sort, q, column, lab_id }) => {
       setSearchValue(q)
       try {
-        await fetchData({ sort, q, column, lab_id })
+        await fetchData({
+          sort,
+          q,
+          column,
+          lab_id,
+          page: paginationModel.page + 1,
+          pageSize: paginationModel.pageSize
+        })
       } catch (error) {
         console.error(error)
       }
@@ -372,6 +392,11 @@ const ListOfRequest = () => {
     } else {
       setSelectedLab(value)
     }
+    // updateUrlParams({
+    //   q: searchValue,
+    //   page: paginationModel.page + 1,
+    //   pageSize: paginationModel.pageSize
+    // })
 
     const params = {
       sort,
@@ -396,6 +421,11 @@ const ListOfRequest = () => {
       limit: data.pageSize,
       lab_id: selectedLab
     }
+    updateUrlParams({
+      q: searchValue,
+      page: data.page,
+      pageSize: data.pageSize
+    })
 
     setPaginationModel(data)
 
@@ -408,6 +438,12 @@ const ListOfRequest = () => {
 
   const handleSearch = async value => {
     setSearchValue(value)
+    updateUrlParams({
+      page: 0,
+      pageSize: 10,
+      q: value
+    })
+    setPaginationModel({ page: 0, pageSize: 10 })
     await searchTableData({ sort, q: value, column: sortColumn, lab_id: selectedLab })
   }
 
@@ -431,6 +467,11 @@ const ListOfRequest = () => {
     ...row,
     sl_no: getSlNo(index)
   }))
+
+  const updateUrlParams = params => {
+    const query = { ...router.query, ...params }
+    router.replace({ pathname: router.pathname, query }, undefined, { shallow: true })
+  }
 
   useEffect(() => {
     oldstoredData()
@@ -487,10 +528,9 @@ const ListOfRequest = () => {
 
             <Box
               sx={{
-                bgcolor: '#F2F2F2',
+                bgcolor: theme.palette.customColors.cardHeaderBg,
                 p: 2,
                 mt: 3,
-
                 ml: 5,
                 mr: 5,
                 borderRadius: '5px'
@@ -503,21 +543,46 @@ const ListOfRequest = () => {
                 sx={{ display: 'flex', alignItems: 'center' }}
               >
                 <Typography>
-                  Total Requests - <span style={{ color: '#37BD69', fontWeight: 'bold' }}>{stats?.total_requests}</span>
+                  Total Requests -{' '}
+                  <span style={{ color: theme.palette.primary.main, fontWeight: 'bold' }}>{stats?.total_requests}</span>
                 </Typography>
 
-                <Box sx={{ border: '1px solid', borderColor: '#FA6140', borderRadius: '15px', px: 3, py: 1 }}>
-                  <Typography sx={{ color: '#FA6140', fontSize: '12px' }}>
+                <Box
+                  sx={{
+                    border: '1px solid',
+                    borderColor: theme.palette.customColors.customDropdownColor,
+                    borderRadius: '15px',
+                    px: 3,
+                    py: 1
+                  }}
+                >
+                  <Typography sx={{ color: theme.palette.customColors.customDropdownColor, fontSize: '12px' }}>
                     Pending Tests - {stats?.total_tests_pending}
                   </Typography>
                 </Box>
-                <Box sx={{ border: '1px solid', borderColor: '#E4B819 ', borderRadius: '15px', px: 3, py: 1 }}>
-                  <Typography sx={{ color: '#E4B819 ', fontSize: '12px' }}>
+                <Box
+                  sx={{
+                    border: '1px solid',
+                    borderColor: theme.palette.customColors.moderateSecondary,
+                    borderRadius: '15px',
+                    px: 3,
+                    py: 1
+                  }}
+                >
+                  <Typography sx={{ color: theme.palette.customColors.moderateSecondary, fontSize: '12px' }}>
                     Tests in Progress - {stats?.total_tests_inprogress}
                   </Typography>
                 </Box>
-                <Box sx={{ border: '1px solid', borderColor: '#37BD69', borderRadius: '15px', px: 3, py: 1 }}>
-                  <Typography sx={{ color: '#2A9D0D', fontSize: '12px' }}>
+                <Box
+                  sx={{
+                    border: '1px solid',
+                    borderColor: theme.palette.primary.main,
+                    borderRadius: '15px',
+                    px: 3,
+                    py: 1
+                  }}
+                >
+                  <Typography sx={{ color: theme.palette.primary.main, fontSize: '12px' }}>
                     Completed Tests - {stats?.total_tests_completed}
                   </Typography>
                 </Box>
@@ -534,15 +599,15 @@ const ListOfRequest = () => {
                 <Typography sx={{ fontWeight: 'bold' }}>Status : </Typography>
               </>
               <Box gap={1} sx={{ display: 'flex', alignItems: 'center' }}>
-                <Icon icon='ic:baseline-circle' fontSize={15} color={'#FA6140'} />
+                <Icon icon='ic:baseline-circle' fontSize={15} color={theme.palette.customColors.customDropdownColor} />
                 <Typography variant='subtitle1'>Pending</Typography>
               </Box>
               <Box gap={1} sx={{ display: 'flex', alignItems: 'center' }}>
-                <Icon icon='ic:baseline-circle' fontSize={15} color={'#E4B819 '} />
+                <Icon icon='ic:baseline-circle' fontSize={15} color={theme.palette.customColors.moderateSecondary} />
                 <Typography variant='subtitle1'>In Progress</Typography>
               </Box>
               <Box gap={1} sx={{ display: 'flex', alignItems: 'center' }}>
-                <Icon icon='ic:baseline-circle' fontSize={15} color={'#37BD69'} />
+                <Icon icon='ic:baseline-circle' fontSize={15} color={theme.palette.primary.main} />
                 <Typography variant='subtitle1'>Completed</Typography>
               </Box>
             </Stack>

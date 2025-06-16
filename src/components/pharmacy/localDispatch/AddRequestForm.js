@@ -632,7 +632,7 @@ const AddRequestForm = () => {
         const result = await cancelRequestItems(id)
         if (result?.data?.success === true) {
           toast.success(result?.data?.data)
-          Router.push(`/pharmacy/request/request-list/`)
+          Router.push(`/pharmacy/request/`)
         } else {
           closeCancelDialog()
           toast.error(result?.data?.data)

@@ -394,7 +394,7 @@ const AddExistingPurchase = () => {
       toast.success(response.message)
       setEditParams(editParamsInitialState)
       setSubmitLoader(false)
-      Router.push('/pharmacy/purchase/purchase-list/')
+      Router.push('/pharmacy/purchase/')
     } else {
       setSubmitLoader(false)
       if (response.data?.po_no) {
@@ -733,7 +733,7 @@ const AddExistingPurchase = () => {
         toast.success(response.message)
         setSubmitLoader(false)
         // getListOfItemsById(id)
-        Router.push('/pharmacy/purchase/purchase-list/')
+        Router.push('/pharmacy/purchase/')
       } else {
         setSubmitLoader(false)
         toast.error(response.message)
@@ -744,7 +744,7 @@ const AddExistingPurchase = () => {
         toast.success(response.message)
         setEditParams(editParamsInitialState)
         setSubmitLoader(false)
-        Router.push('/pharmacy/purchase/purchase-list/')
+        Router.push('/pharmacy/purchase/')
       } else {
         setSubmitLoader(false)
         if (response.data?.po_no) {

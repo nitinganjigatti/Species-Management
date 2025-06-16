@@ -70,6 +70,18 @@ export async function getMedicalReport(params) {
   return response.data
 }
 
+export async function getAnimalAssessment(params) {
+  const response = await axiosGet({ url: `v1/animal/assessment/report`, params })
+
+  return response.data
+}
+
+export async function getEnclosureAssessment(params) {
+  const response = await axiosGet({ url: `v1/enclosure/assessment/report`, params })
+
+  return response.data
+}
+
 // export async function getMortalityList(params) {
 //   const response = await axiosGet({ url: `${ANIMAL_REPORT}`, params })
 //   return response.data

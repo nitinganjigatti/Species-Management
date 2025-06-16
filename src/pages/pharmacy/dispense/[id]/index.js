@@ -10,6 +10,8 @@ import Error404 from 'src/pages/404'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import Utility from 'src/utility'
 import TableBasic from 'src/views/table/data-grid/TableBasic'
+import PharmacyProductCard from 'src/views/utility/PharmacyProductCard'
+import AnimalLabelCard from 'src/views/utility/AnimalLabelCard'
 
 const IndividualDispense = () => {
   const [dispenseData, setDispenseData] = useState({})
@@ -37,9 +39,13 @@ const IndividualDispense = () => {
       headerName: 'PRODUCT NAME',
       renderCell: params => {
         return (
-          <Typography variant='body2' sx={{ color: 'text.primary' }}>
-            {params?.row?.name}
-          </Typography>
+          <PharmacyProductCard
+            title={params?.row?.name}
+            subTitle={params?.row?.generic_name}
+            icon={params?.row?.image}
+            controlSubstance={params?.row?.controlled_substance === '1' && true}
+            prescriptionRequired={params?.row?.prescription_required === '1' && true}
+          />
         )
       }
     },
@@ -68,7 +74,7 @@ const IndividualDispense = () => {
       headerName: 'Unit Price',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary' }}>
-          {Utility.formatAmountToReadableDigit(params.row.unit_price)}
+          {Utility.formatAmountToReadableDigit(params.row.unit_price ? params.row.unit_price : 0)}
         </Typography>
       )
     },
@@ -87,23 +93,15 @@ const IndividualDispense = () => {
 
   const animalsColumns = [
     {
-      flex: 0.1,
-      field: ' ',
-      headerName: '',
+      width: 300,
+      headerName: 'Animal Name',
       sortable: false,
       renderCell: params => (
-        <Box sx={{ p: 1.4 }}>
-          <Avatar
-            sx={{
-              '& > img': {
-                objectFit: 'contain'
-              },
-              width: '100%',
-              height: '100%'
-            }}
-            variant='circular'
-            alt={params?.row?.default_icon}
-            src={params?.row?.default_icon}
+        <Box sx={{ py: 3 }}>
+          <AnimalLabelCard
+            title={params.row.common_name}
+            subTitle={params.row.scientific_name}
+            icon={params?.row?.default_icon}
           />
         </Box>
       )
@@ -118,18 +116,7 @@ const IndividualDispense = () => {
         </Typography>
       )
     },
-    {
-      flex: 0.25,
-      field: 'common_name',
-      headerName: 'Animal Name',
-      renderCell: params => {
-        return (
-          <Typography variant='body2' sx={{ color: 'text.primary' }}>
-            {params.row.common_name}
-          </Typography>
-        )
-      }
-    },
+
     {
       flex: 0.25,
       field: 'enclosure_id',
@@ -167,6 +154,7 @@ const IndividualDispense = () => {
     id: `${row.id}`,
     sl_no: index + 1
   }))
+
   const animalDispenseRows = dispenseData?.animal_details?.map((row, index) => ({
     ...row,
     id: `${row.animal_id}`,
@@ -293,12 +281,7 @@ const IndividualDispense = () => {
                     Dispense List
                   </Typography>
 
-                  <Stack
-                    direction='row'
-                    spacing={2}
-                    // divider={<Divider orientation='vertical' flexItem />}
-                    sx={{ textAlign: 'center' }}
-                  >
+                  <Stack direction='row' spacing={2} sx={{ textAlign: 'center' }}>
                     <Typography
                       variant='body2'
                       sx={{ color: 'customColors.neutralSecondary', fontSize: '14px', fontWeight: 400 }}

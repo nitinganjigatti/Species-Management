@@ -16,7 +16,8 @@ import {
   Select,
   TextField,
   Typography,
-  debounce
+  debounce,
+  useTheme
 } from '@mui/material'
 import React, { useCallback, useEffect, useState } from 'react'
 
@@ -30,6 +31,7 @@ import { GetRoomList } from 'src/lib/api/egg/room/getRoom'
 import * as yup from 'yup'
 
 const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi, allocationValues, getDetails }) => {
+  const theme = useTheme()
   // const [nurseryName, setNurseryName] = useState([])
   // const [roomName, setRoomName] = useState([])
   const [incubatorList, setIncubatorList] = useState([])
@@ -302,7 +304,7 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi, allocationVal
                   backgroundColor: 'background.default',
                   height: '120%',
                   overflowY: 'scroll',
-                  border: '1px solid #ccc'
+                  border: `1px solid ${theme.palette.customColors.OutlineVariant}`
                 }
               : {
                   backgroundColor: 'background.default',
@@ -320,10 +322,10 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi, allocationVal
                 sx={{
                   mt: 3,
                   px: 0.5,
-                  bgcolor: '#fff',
+                  bgcolor: theme.palette.primary.contrastText,
                   borderRadius: '8px',
                   padding: '20px, 16px, 20px, 16px',
-                  border: '1px solid #C3CEC7'
+                  border: `1px solid ${theme.palette.customColors.OutlineVariant}`
                 }}
               >
                 <FormControl fullWidth sx={{ width: '95%', ml: 3, mt: 2 }}>
@@ -574,7 +576,13 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi, allocationVal
             ) : (
               <Card
                 fullWidth
-                sx={{ mt: 2, mx: 4, marginBottom: '122px', boxShadow: 'none', border: '1px solid #C3CEC7' }}
+                sx={{
+                  mt: 2,
+                  mx: 4,
+                  marginBottom: '122px',
+                  boxShadow: 'none',
+                  border: `1px solid ${theme.palette.customColors.OutlineVariant}`
+                }}
               >
                 <CardContent sx={{ mt: '-1px' }}>
                   {fields.map((measurement, index) => (
@@ -589,8 +597,8 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi, allocationVal
                                 <TextField
                                   sx={{ borderRadius: '4px' }}
                                   label={`${
-                                    measurement.assessment_type_string_id.charAt(0).toUpperCase() +
-                                    measurement.assessment_type_string_id.slice(1)
+                                    measurement?.assessment_type_string_id?.charAt(0)?.toUpperCase() +
+                                    measurement?.assessment_type_string_id?.slice(1)
                                   }*`}
                                   value={value}
                                   onChange={e => {
@@ -631,7 +639,7 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi, allocationVal
                       <Grid item xs={6}>
                         <FormControl fullWidth sx={{ mt: 3 }}>
                           <InputLabel error={Boolean(errors?.site_id)} id={`unit_label_${index}`}>
-                            {measurement?.unit_name.charAt(0).toUpperCase() + measurement?.unit_name.slice(1)}
+                            {measurement?.unit_name?.charAt(0)?.toUpperCase() + measurement?.unit_name.slice(1)}
                           </InputLabel>
 
                           <Controller

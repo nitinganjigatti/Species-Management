@@ -90,7 +90,7 @@ const DashboardSlider = ({
                 key={index}
                 sx={{
                   background: theme.palette.primary.contrastText,
-                  border: '1px solid #C3CEC7',
+                  border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                   borderRadius: '8px',
                   px: '20px',
                   py: '16px'
@@ -105,9 +105,9 @@ const DashboardSlider = ({
                         width: 44,
                         height: 44,
                         mr: 4,
-                        border: '1px solid #C3CEC7',
+                        border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                         borderRadius: '50%',
-                        background: '#E8F4F2',
+                        background: theme.palette.customColors.displaybgPrimary,
                         overflow: 'hidden'
                       }}
                     >

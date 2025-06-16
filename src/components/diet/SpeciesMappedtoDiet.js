@@ -1,4 +1,4 @@
-import React, { useRef, useState } from 'react'
+import React, { useRef } from 'react'
 import { useTheme } from '@mui/material/styles'
 import {
   Box,
@@ -20,24 +20,21 @@ import {
 import { LoadingButton } from '@mui/lab'
 import Toaster from 'src/components/Toaster'
 import Icon from 'src/@core/components/icon'
-import { addSpeciestoDiet } from 'src/lib/api/diet/dietList'
 import { useMediaQuery } from '@mui/material'
+import SpeciesCardItem from 'src/views/utility/SpeciesCardItem'
+import AnimalCardItem from 'src/views/utility/AnimalsCardItem'
 
 const SpeciesMappedtoDiet = ({
   isOpen,
   setIsOpen,
   setIsOpennew,
   speciesData,
-  onSelectedSpeciesChange,
   selectedSpecies,
   setspeciesview,
   speciestotalcount,
   setOpenFilterDrawer,
   selectedItems,
-  dietId,
-  dietname,
   refreshSpeciesData,
-  refreshDietDetails,
   searchQuery,
   setSearchQuery,
   handleScroll,
@@ -46,73 +43,51 @@ const SpeciesMappedtoDiet = ({
   isLoadingMore,
   pageNo,
   tempSelectedSpecies,
-  setTempSelectedSpecies
+  setTempSelectedSpecies,
+  selectionType,
+  items,
+  tempSelectedItems,
+  setTempSelectedItems,
+  setSelectedItems,
+  debouncedSearch,
+  setFilterState,
+  setActiveTab,
+  applyfilterCheck,
+  setSelectedSections,
+  setSelectedEnclosures,
+  setSelectedSpeciesIds,
+  setSelectedTaxonomyIds,
+  speciesview
 }) => {
   const listInnerRef = useRef(null)
   const theme = useTheme()
-  const [loader, setLoader] = useState(false)
   const isSmallDevice = useMediaQuery(theme.breakpoints.down('md'))
+
   const handleSearch = event => {
-    setSearchQuery(event.target.value)
+    const value = event.target.value
+    setSearchQuery(value)
+    debouncedSearch(value)
   }
 
-  const handleToggle = species => {
-    const isAlreadySelected = tempSelectedSpecies.includes(species.species_id)
+  const handleToggle = item => {
+    const idField = selectionType === 'species' ? 'species_id' : 'animal_id'
+    const isAlreadySelected = tempSelectedSpecies.includes(item[idField])
 
     const updatedTempSelectedSpecies = isAlreadySelected
-      ? tempSelectedSpecies.filter(id => id !== species.species_id)
-      : [...tempSelectedSpecies, species.species_id]
+      ? tempSelectedSpecies.filter(id => id !== item[idField])
+      : [...tempSelectedSpecies, item[idField]]
 
     setTempSelectedSpecies(updatedTempSelectedSpecies)
   }
 
   const handleSelectAll = () => {
-    if (tempSelectedSpecies?.length === speciesData.filter(species => !species.mapped_to_diet).length) {
+    const idField = selectionType === 'species' ? 'species_id' : 'animal_id'
+
+    if (tempSelectedSpecies?.length === speciesData.filter(item => !item.mapped_to_diet).length) {
       setTempSelectedSpecies([])
     } else {
-      const updatedTempSelectedSpecies = speciesData
-        .filter(species => !species.mapped_to_diet)
-        .map(species => species.species_id)
+      const updatedTempSelectedSpecies = speciesData.filter(item => !item.mapped_to_diet).map(item => item[idField])
       setTempSelectedSpecies(updatedTempSelectedSpecies)
-    }
-  }
-
-  const handleAdd = async () => {
-    const updatedSpeciesIds = tempSelectedSpecies
-    const speciesIdsNumbers = updatedSpeciesIds.map(id => Number(id))
-    setLoader(true)
-    const payload = {
-      diet_id: dietId,
-      species_ids: JSON.stringify(speciesIdsNumbers)
-    }
-
-    try {
-      const response = await addSpeciestoDiet(payload)
-      console.log('API Response:', response)
-      if (response.success === true) {
-        Toaster({
-          type: 'success',
-          //message: tempSelectedSpecies?.length + ' ' + `Species successfully added to ${dietname} diet`,
-          message: response.message
-        })
-        onSelectedSpeciesChange(updatedSpeciesIds)
-        refreshDietDetails()
-        setIsOpen(false)
-        refreshSpeciesData()
-        setspeciesview('')
-        setTempSelectedSpecies([])
-        setPageNo(1)
-        setSearchQuery('')
-        setLoader(false)
-      } else {
-        Toaster({
-          type: 'error',
-          message: response?.message
-        })
-        setLoader(false)
-      }
-    } catch (error) {
-      console.error('Error adding species to diet:', error)
     }
   }
 
@@ -120,12 +95,17 @@ const SpeciesMappedtoDiet = ({
     setTempSelectedSpecies(selectedSpecies)
     setIsOpen(false)
     setSearchQuery('')
+    setSelectedItems([])
+    setSelectedSections([])
+    setSelectedEnclosures([])
+    setSelectedSpeciesIds([])
+    setSelectedTaxonomyIds([])
   }
 
   const handleSelectedclick = val => {
-    console.log(tempSelectedSpecies, 'ppp')
     if (val === 'select') {
       setIsOpennew(true)
+
       // setIsOpen(false)
       setspeciesview(val)
     } else {
@@ -138,10 +118,50 @@ const SpeciesMappedtoDiet = ({
 
   const handleFilter = () => {
     setOpenFilterDrawer(true)
+    setActiveTab('Site')
+    if (applyfilterCheck === false) {
+      setTempSelectedItems({
+        Site: [],
+        Section: [],
+        Enclosure: [],
+        Taxonomy: [],
+        Species: []
+      })
+      setSelectedItems({ Site: [], Section: [], Enclosure: [], Taxonomy: [], Species: [] })
+    }
+    //setItems({ Site: [], Section: [], Enclosure: [], Taxonomy: [], Species: [] })
+    if (selectionType === 'animals') {
+      setFilterState('species')
+      // refreshSpeciesData('')
+      setPageNo(1)
+    } else {
+      setFilterState('')
+    }
   }
 
   const searchClose = () => {
     setSearchQuery('')
+    debouncedSearch('')
+  }
+
+  const handleRemove = siteId => {
+    if (siteId) {
+      setTempSelectedItems(prev => ({
+        ...prev,
+        Site: prev.Site.filter(id => id !== siteId),
+        Section: [],
+        Enclosure: []
+      }))
+      setSelectedItems(prev => ({
+        ...prev,
+        Site: prev.Site.filter(id => id !== siteId),
+        Section: [],
+        Enclosure: []
+      }))
+    }
+    setSelectedEnclosures([])
+    setSelectedSections([])
+    //refreshSpeciesData('')
   }
 
   return (
@@ -157,7 +177,6 @@ const SpeciesMappedtoDiet = ({
         backgroundColor: 'background.default'
       }}
     >
-      {console.log(theme, 'theme')}
       <Box
         className='sidebar-header'
         sx={{
@@ -169,9 +188,15 @@ const SpeciesMappedtoDiet = ({
         }}
       >
         <Box sx={{ mt: 2, display: 'flex', flexDirection: 'row', gap: 2, alignItems: 'center' }}>
-          <img src='/icons/Activity.svg' alt='Grocery Icon' width='35px' />
+          <IconButton size='medium' sx={{ color: theme.palette.primary.light }} onClick={handelClose}>
+            <Icon icon='mingcute:arrow-left-line' fontSize={28} />
+          </IconButton>
           <Typography sx={{ fontSize: '24px', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}>
-            Assign species
+            {selectionType === 'species'
+              ? 'Select the Species'
+              : selectionType === 'animals'
+              ? 'Select the Animals'
+              : ''}
           </Typography>
         </Box>
 
@@ -193,7 +218,7 @@ const SpeciesMappedtoDiet = ({
             bgcolor: theme.palette.background.paper,
             p: '16px',
             borderRadius: '8px',
-            width: '575px',
+            width: '562px',
             overflowY: 'auto',
             '&::-webkit-scrollbar': { width: 0, height: 0 },
             '-ms-overflow-style': 'none',
@@ -217,11 +242,12 @@ const SpeciesMappedtoDiet = ({
                   border: '1px solid #C3CEC7',
                   borderRadius: '4px',
                   padding: '0 8px',
-                  height: '40px',
+                  height: '44px',
                   mb: 0,
                   backgroundColor: theme.palette.background.paper,
-                  width: '100%',
-                  mr: 5
+                  width: '80%',
+                  mr: 5,
+                  ml: 2
                 }}
               >
                 <Icon icon='mi:search' />
@@ -245,40 +271,57 @@ const SpeciesMappedtoDiet = ({
                     }
                   }}
                 />
-                {searchQuery ? <Icon icon='mdi:close' onClick={searchClose} /> : ''}
+                {searchQuery ? <Icon icon='mdi:close' onClick={searchClose} style={{ cursor: 'pointer' }} /> : ''}
               </Box>
-              {/* <LoadingButton
+              <LoadingButton
                 size='medium'
                 variant={
                   selectedItems && Object.values(selectedItems).some(array => array.length > 0)
-                    ? theme.palette.primary.dark
-                    : 'outlined'
+                    ? 'outlined'
+                    : theme.palette.primary.dark
                 }
-                startIcon={<Icon icon='bi:filter' />}
-                //onClick={handlefilterButton}
-                sx={{
-                  lineHeight: '2',
-                  backgroundColor:
-                    selectedItems && Object.values(selectedItems).some(array => array.length > 0)
-                      ? theme.palette.primary.dark
-                      : '',
-                  color:
-                    selectedItems && Object.values(selectedItems).some(array => array.length > 0)
-                      ? '#fff'
-                      : theme.palette.customColors.OnSurfaceVariant,
-                  '&:hover': {
-                    backgroundColor:
-                      selectedItems && Object.values(selectedItems).some(array => array.length > 0)
-                        ? theme.palette.primary.main
-                        : ''
-                  }
-                }}
+                startIcon={<Icon icon='mage:filter' style={{ fontSize: '30px' }} />}
                 onClick={handleFilter}
+                sx={{
+                  position: 'relative',
+                  height: '45px',
+                  pr: '6px',
+
+                  border:
+                    selectedItems && Object.values(selectedItems).some(array => array.length > 0)
+                      ? `1px solid ${theme.palette.primary.main}`
+                      : '1px solid #C3CEC7',
+                  mr: '10px'
+                }}
               >
-                {selectedItems && Object.values(selectedItems).some(array => array.length > 0)
-                  ? Object.values(selectedItems).reduce((total, array) => total + array.length, 0)
-                  : '0'}
-              </LoadingButton> */}
+                {selectedItems && Object.values(selectedItems).some(array => array.length > 0) && (
+                  <span
+                    style={{
+                      position: 'absolute',
+                      top: '-7px',
+                      right: '-5px',
+                      backgroundColor: '#FA6140',
+                      color: 'white',
+                      borderRadius: '50%',
+                      width: '20px',
+                      height: '20px',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: '12px',
+                      fontWeight: 'bold'
+                    }}
+                  >
+                    {(() => {
+                      const siteCount = selectedItems.Site?.length || 0
+                      const speciesCount = selectedItems.Species?.length || 0
+                      const taxonomyCount = selectedItems.Taxonomy?.length || 0
+
+                      return speciesCount > 0 ? siteCount + speciesCount : siteCount + taxonomyCount
+                    })()}
+                  </span>
+                )}
+              </LoadingButton>
             </Box>
           </>
         </Box>
@@ -300,6 +343,36 @@ const SpeciesMappedtoDiet = ({
         }}
         onScroll={handleScroll}
       >
+        <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 2 }}>
+          {selectedItems &&
+            Object.values(selectedItems).some(array => array.length > 0) &&
+            items.Site?.filter(site => tempSelectedItems.Site?.includes(site.site_id)).map(site => (
+              <Box
+                key={site.site_id}
+                sx={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  px: 4,
+                  py: 1,
+                  borderRadius: '10px',
+                  background: '#EAF5EC',
+                  border: '1px solid #0000000D'
+                }}
+              >
+                <Typography variant='body2' sx={{ color: '#006D35', fontWeight: 600 }}>
+                  {site.site_name}
+                </Typography>
+                <IconButton
+                  edge='end'
+                  onClick={() => handleRemove(site.site_id)}
+                  sx={{ color: '#1F515B', padding: '4px' }}
+                >
+                  <Icon icon='material-symbols:close-rounded' fontSize={20} />
+                </IconButton>
+              </Box>
+            ))}
+        </Box>
+
         <Box
           sx={{
             display: 'flex',
@@ -317,57 +390,71 @@ const SpeciesMappedtoDiet = ({
               fontWeight: 600
             }}
           >
-            All species ({speciestotalcount})
+            {tempSelectedSpecies.length > 0 && speciesData.length > 0
+              ? `Selected ${tempSelectedSpecies.length} / ${speciestotalcount}`
+              : selectionType === 'species'
+              ? `All species${!loading && speciestotalcount ? ` (${speciestotalcount})` : ''}`
+              : `All animals${!loading && speciestotalcount ? ` (${speciestotalcount})` : ''}`}
           </Typography>
-          <Box
-            sx={{
-              display: 'flex',
-              alignItems: 'center'
-            }}
-          >
-            <Button
-              size='small'
+          {speciesData?.length ? (
+            <Box
               sx={{
-                color:
-                  tempSelectedSpecies?.length === speciesData.filter(species => !species.mapped_to_diet).length
-                    ? theme.palette.primary.main
-                    : '#44544A',
-                fontSize: '12px',
-                fontWeight: 600,
-                textTransform: 'none',
-                p: 0
+                display: 'flex',
+                alignItems: 'center'
               }}
-              onClick={handleSelectAll}
             >
-              {tempSelectedSpecies?.length === speciesData.length ? 'Select all' : 'Select all'}
-            </Button>
-
-            <Checkbox
-              //disabled={tempSelectedSpecies?.length === speciesData.filter(species => !species.mapped_to_diet).length}
-              checked={tempSelectedSpecies?.length === speciesData.filter(species => !species.mapped_to_diet).length}
-              onChange={handleSelectAll}
-              inputProps={{ 'aria-label': 'Select all species' }}
-              sx={{
-                '&.Mui-checked': {
-                  color: theme.palette.primary.main
-                },
-                '& .MuiSvgIcon-root': {
-                  width: '19px',
-                  height: '19px',
-                  border: '2px dotted',
-                  borderColor:
+              <Button
+                size='small'
+                sx={{
+                  color:
+                    !loading &&
                     tempSelectedSpecies?.length === speciesData.filter(species => !species.mapped_to_diet).length
                       ? theme.palette.primary.main
                       : '#44544A',
-                  color:
-                    tempSelectedSpecies?.length === speciesData.filter(species => !species.mapped_to_diet).length
-                      ? theme.palette.primary.main
-                      : '#44544A'
-                },
-                mr: 1
-              }}
-            />
-          </Box>
+                  fontSize: '12px',
+                  fontWeight: 600,
+                  textTransform: 'none',
+                  p: 0
+                }}
+                onClick={handleSelectAll}
+              >
+                {tempSelectedSpecies?.length === speciesData.length ? 'Select all' : 'Select all'}
+              </Button>
+
+              <Checkbox
+                //disabled={tempSelectedSpecies?.length === speciesData.filter(species => !species.mapped_to_diet).length}
+                checked={
+                  !loading &&
+                  tempSelectedSpecies?.length === speciesData.filter(species => !species.mapped_to_diet).length
+                }
+                onChange={handleSelectAll}
+                inputProps={{ 'aria-label': 'Select all species' }}
+                sx={{
+                  '&.Mui-checked': {
+                    color: theme.palette.primary.main
+                  },
+                  '& .MuiSvgIcon-root': {
+                    width: '19px',
+                    height: '19px',
+                    border: '2px dotted',
+                    borderColor:
+                      !loading &&
+                      tempSelectedSpecies?.length === speciesData.filter(species => !species.mapped_to_diet).length
+                        ? theme.palette.primary.main
+                        : '#44544A',
+                    color:
+                      !loading &&
+                      tempSelectedSpecies?.length === speciesData.filter(species => !species.mapped_to_diet).length
+                        ? theme.palette.primary.main
+                        : '#44544A'
+                  },
+                  mr: 1
+                }}
+              />
+            </Box>
+          ) : (
+            ''
+          )}
         </Box>
 
         {loading && pageNo === 1 ? (
@@ -376,92 +463,118 @@ const SpeciesMappedtoDiet = ({
               <CircularProgress />
             </Box>
           </CardContent>
-        ) : (
+        ) : selectionType === 'species' ? (
           <List>
-            {speciesData.map(species => (
-              <ListItem
-                key={species.id}
-                secondaryAction={
-                  <Box
+            {speciesData.length > 0 ? (
+              speciesData.map(species => (
+                <SpeciesCardItem
+                  species={species}
+                  theme={theme}
+                  tempSelectedSpecies={tempSelectedSpecies}
+                  selectionType={selectionType}
+                  speciesview={speciesview}
+                >
+                  <Checkbox
+                    disabled={species.mapped_to_diet}
+                    edge='end'
+                    checked={
+                      selectionType === 'species'
+                        ? tempSelectedSpecies.includes(species.species_id) || species.mapped_to_diet
+                        : tempSelectedSpecies.includes(species.animal_id) || species.mapped_to_diet
+                    }
+                    onChange={() => handleToggle(species)}
                     sx={{
-                      backgroundColor: species.mapped_to_diet ? '' : '#F2FFF8',
-                      pl: 3,
-                      pr: 4,
-                      py: 4.3,
-                      borderTopRightRadius: 8,
-                      borderBottomRightRadius: 8,
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center'
-                    }}
-                  >
-                    <Checkbox
-                      disabled={species.mapped_to_diet}
-                      edge='end'
-                      checked={tempSelectedSpecies.includes(species.species_id) || species.mapped_to_diet}
-                      onChange={() => handleToggle(species)}
-                      sx={{
-                        '&.Mui-checked': {
-                          color: theme.palette.primary.main
-                        },
-                        '& .MuiSvgIcon-root': {
-                          borderRadius: '4px',
-                          width: '22px',
-                          height: '22px',
-                          color: species.mapped_to_diet ? '#7A8684' : theme.palette.primary.main
-                        }
-                      }}
-                    />
-                  </Box>
-                }
-                sx={{
-                  background: species.mapped_to_diet ? '#DAE7DF' : theme.palette.background.paper,
-                  borderRadius: '8px',
-                  border: tempSelectedSpecies.includes(species.species_id)
-                    ? '1px solid' + theme.palette.primary.main
-                    : '',
-                  mb: 3,
-
-                  '& .MuiListItemSecondaryAction-root': {
-                    right: 0
-                  }
-                }}
-              >
-                {console.log(species, 'species')}
-                <ListItemAvatar>
-                  <Avatar
-                    sx={{
-                      '& img': {
-                        objectFit: 'inherit'
+                      '&.Mui-checked': {
+                        color: theme.palette.primary.main
+                      },
+                      '& .MuiSvgIcon-root': {
+                        borderRadius: '4px',
+                        width: '22px',
+                        height: '22px',
+                        color: species.mapped_to_diet ? '#7A8684' : theme.palette.primary.main
                       }
                     }}
-                    src={species.default_icon}
-                    alt={species.scientific_name}
                   />
-                </ListItemAvatar>
-                <ListItemText
-                  primary={species.scientific_name ? species.scientific_name : '-'}
-                  primaryTypographyProps={{
-                    sx: { color: theme.palette.customColors.OnSurfaceVariant, fontSize: '16px', fontWeight: 600 }
-                  }}
-                  secondary={
-                    <>
-                      <Typography
-                        variant='body2'
-                        sx={{
-                          color: theme.palette.customColors.OnSurfaceVariant,
-                          fontSize: '16px',
-                          fontWeight: 400,
-                          fontStyle: 'italic'
-                        }}
-                      >
-                        {species.common_name ? species.common_name : '-'}
-                      </Typography>
-                    </>
-                  }
-                />
-              </ListItem>
-            ))}
+                </SpeciesCardItem>
+              ))
+            ) : (
+              <Box
+                sx={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  height: '70%',
+                  textAlign: 'center'
+                }}
+              >
+                <img src='/images/no_data_animal_2.png' alt='Grocery Icon' width='250px' />
+                <Typography sx={{ textAlign: 'center', fontWeight: '500' }}>No Species Found</Typography>
+              </Box>
+            )}
+            {isLoadingMore && (
+              <Box
+                sx={{
+                  position: 'fixed',
+                  bottom: '135px',
+                  transform: 'translateX(217px)',
+                  zIndex: 999,
+                  justifyContent: 'center',
+                  display: 'flex'
+                }}
+              >
+                <CircularProgress />
+              </Box>
+            )}
+          </List>
+        ) : (
+          <List>
+            {speciesData.length > 0 ? (
+              speciesData.map(species => (
+                <AnimalCardItem
+                  species={species}
+                  theme={theme}
+                  tempSelectedSpecies={tempSelectedSpecies}
+                  selectionType={selectionType}
+                >
+                  <Checkbox
+                    disabled={species.mapped_to_diet}
+                    edge='end'
+                    checked={
+                      selectionType === 'species'
+                        ? tempSelectedSpecies.includes(species.species_id) || species.mapped_to_diet
+                        : tempSelectedSpecies.includes(species.animal_id) || species.mapped_to_diet
+                    }
+                    onChange={() => handleToggle(species)}
+                    sx={{
+                      '&.Mui-checked': {
+                        color: theme.palette.primary.main
+                      },
+                      '& .MuiSvgIcon-root': {
+                        borderRadius: '4px',
+                        width: '22px',
+                        height: '22px',
+                        color: species.mapped_to_diet ? '#7A8684' : theme.palette.primary.main
+                      }
+                    }}
+                  />
+                </AnimalCardItem>
+              ))
+            ) : (
+              <Box
+                sx={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  height: '70%',
+                  textAlign: 'center'
+                }}
+              >
+                <img src='/images/no_data_animal_2.png' alt='Grocery Icon' width='250px' />
+                <Typography sx={{ textAlign: 'center', fontWeight: '500' }}>No Animals Found</Typography>
+              </Box>
+            )}
             {isLoadingMore && (
               <Box
                 sx={{
@@ -500,50 +613,15 @@ const SpeciesMappedtoDiet = ({
           pl: 7
         }}
       >
-        {tempSelectedSpecies?.length > 0 ? (
-          <Box
-            sx={{
-              display: 'flex',
-              alignItems: 'center',
-              width: '35%',
-              color: theme.palette.primary.main
-            }}
-          >
-            <Typography
-              sx={{
-                color: theme.palette.primary.main,
-                fontWeight: 600,
-                fontSize: '14px',
-                mr: 1,
-                cursor: 'pointer'
-              }}
-              onClick={() => handleSelectedclick('select')}
-            >
-              {/* {speciesData.filter(species => species.mapped_to_diet)?.length} Selected */}
-              {tempSelectedSpecies?.length} Selected
-            </Typography>
-            <Icon icon='mdi:chevron-down' />
-          </Box>
-        ) : (
-          ''
-        )}
-
         <LoadingButton
           fullWidth
           variant='contained'
           size='large'
-          disabled={tempSelectedSpecies?.length === 0}
-          onClick={handleAdd}
-          loading={loader}
-          sx={{ height: '42px' }}
-          loadingIndicator={
-            <span style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              ASSIGN
-              <CircularProgress size={20} sx={{ color: '#ccc' }} />
-            </span>
-          }
+          disabled={tempSelectedSpecies?.length === 0 || speciesData?.length === 0}
+          onClick={() => handleSelectedclick('select')}
+          sx={{ height: '45px' }}
         >
-          {!loader && 'ASSIGN'}
+          ADD
         </LoadingButton>
       </Box>
     </Drawer>

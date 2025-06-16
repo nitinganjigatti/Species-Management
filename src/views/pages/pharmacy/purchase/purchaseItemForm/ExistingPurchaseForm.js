@@ -80,18 +80,27 @@ const ExistingPurchaseForm = props => {
 
   const schema = yup.object().shape({
     // product: yup.string().required('Product name is required'),
-    product: yup.object().shape({
-      value: yup.string().required('Product name is required'),
-      label: yup.string().required('Product name is required'),
-      stock_type: yup.string().nullable()
-    }),
+    product: yup
+      .object()
+      .shape({
+        label: yup.string().required('Product Name is required'),
+        value: yup.string().required('Product Name is required'),
+        stock_type: yup.string().nullable()
+      })
+      .required('Product Name is required'),
 
-    purchase_expiry_date: yup.string().when('[product.stock_type]', (stockType, schema) => {
-      const result =
-        stockType[0] === 'non_medical' ? yup.string().notRequired() : yup.date().typeError('Select a valid expiry date')
+    purchase_expiry_date: yup
+      .mixed()
+      .transform((value, originalValue) => {
+        return originalValue === '' ? null : value
+      })
+      .when('product.stock_type', (stockType, schema) => {
+        if (stockType === 'non_medical') {
+          return schema.notRequired()
+        }
 
-      return result
-    }),
+        return yup.date().typeError('Select a valid expiry date').required('Expiry date is required')
+      }),
 
     purchase_batch_no: yup
       .string()
@@ -355,8 +364,11 @@ const ExistingPurchaseForm = props => {
 
   useEffect(() => {
     if (productExpiryDate !== '') {
-      setValue('purchase_expiry_date', dayjs(productExpiryDate))
-      setValue('purchase_variant_id', nestedRowMedicine?.purchase_variant_id)
+      setValue('purchase_expiry_date', dayjs(productExpiryDate), { shouldValidate: true })
+      if(nestedRowMedicine?.purchase_variant_id != 0)
+        setValue('purchase_variant_id', nestedRowMedicine?.purchase_variant_id, { shouldValidate: true })
+      else
+        setValue('purchase_variant_id', nestedRowMedicine?.purchase_variant_id)
       setValue('purchase_variant_ratio', nestedRowMedicine?.purchase_variant_ratio)
       const totalUnitQty = checkNumber(nestedRowMedicine?.purchase_variant_ratio * nestedRowMedicine?.purchase_qty)
       setValue('isVariantIdPresent', true)
@@ -432,11 +444,11 @@ const ExistingPurchaseForm = props => {
                   isOptionEqualToValue={(option, value) => option.value === value.value}
                   onChange={(e, val) => {
                     if (val === null) {
-                      setValue('purchase_batch_no', '')
-                      setValue('purchase_expiry_date', null)
+                      setValue('purchase_batch_no', '', { shouldValidate: true })
+                      setValue('purchase_expiry_date', null, { shouldValidate: true })
                       setValue('package_details', '')
                       setValue('manufacture', '')
-                      setValue('purchase_variant_id', '')
+                      setValue('purchase_variant_id', '', { shouldValidate: true })
                       setProductVariantOptions([])
                       setValue('isVariantIdPresent', false)
 
@@ -446,9 +458,9 @@ const ExistingPurchaseForm = props => {
                         setNonMedicalProduct(true)
                         setValue('package_details', val?.package_details)
                         setValue('manufacture', val?.manufacture)
-                        setValue('purchase_expiry_date', dayjs(Date()))
+                        setValue('purchase_expiry_date', dayjs(Date()), { shouldValidate: true })
                         setProductVariantOptions([])
-                        setValue('purchase_variant_id', '')
+                        setValue('purchase_variant_id', '', { shouldValidate: true })
                         getProductVariantByproductId(val?.value)
                       } else {
                         setNonMedicalProduct(false)
@@ -483,6 +495,9 @@ const ExistingPurchaseForm = props => {
                 />
               )}
             />
+            {errors.product && (
+              <FormHelperText sx={{ color: 'error.main' }}>{errors?.product?.value?.message}</FormHelperText>
+            )}
             {watch('package_details') && (
               <Box sx={{ mx: 1, my: 2, display: 'flex' }}>
                 <Chip
@@ -525,7 +540,7 @@ const ExistingPurchaseForm = props => {
                       } else {
                         setValue('purchase_qty', '')
                         setValue('purchase_unit_qty', '')
-                        setValue('purchase_variant_id', '')
+                        setValue('purchase_variant_id', '', { shouldValidate: true })
                         setValue('purchase_variant_ratio', ''), setValue('isVariantIdPresent', false)
                       }
                     }
@@ -554,9 +569,13 @@ const ExistingPurchaseForm = props => {
                       inputFormat='MM/DD/YYYY'
                       value={value}
                       onChange={onChange}
-                      renderInput={params => <TextField {...params} />}
+                      renderInput={params => <TextField {...params} error={Boolean(errors.purchase_expiry_date)} />}
+                      slotProps={{
+                        textField: {
+                          error: Boolean(errors.purchase_expiry_date)
+                        }
+                      }}
                       error={Boolean(errors.purchase_expiry_date)}
-                      helperText={errors.purchase_expiry_date?.message}
                     />
                   </LocalizationProvider>
                 )}
@@ -595,7 +614,7 @@ const ExistingPurchaseForm = props => {
         </Grid>
         <Grid item xs={12} sm={6}>
           <FormControl fullWidth>
-            <InputLabel error={Boolean(errors.supplier_id)}>Product Variant*</InputLabel>
+            <InputLabel error={Boolean(errors.purchase_variant_id)}>Product Variant*</InputLabel>
             <Controller
               name='purchase_variant_id'
               control={control}

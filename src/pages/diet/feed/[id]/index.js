@@ -162,8 +162,8 @@ const FeedDetails = () => {
       )
     },
     {
-      flex: 0.5,
-      minWidth: 30,
+      flex: 0.9,
+      minWidth: 40,
       field: 'ingredient_name',
       headerName: 'INGREDIENTS',
       renderCell: params => (
@@ -343,9 +343,20 @@ const FeedDetails = () => {
                           {(dietModuleAccess === 'EDIT' || dietModuleAccess === 'DELETE') && (
                             <Tooltip title='Edit' placement='top'>
                               <Box sx={{ pr: 3 }}>
-                                <Icon
+                                {/* <Icon
                                   icon='bx:pencil'
                                   style={{ cursor: 'pointer' }}
+                                  onClick={() =>
+                                    Router.push({
+                                      pathname: '/diet/feed/add-feed',
+                                      query: { id: FeedDetailsValue?.id }
+                                    })
+                                  }
+                                /> */}
+                                <Avatar
+                                  sx={{ width: '100%', height: '100%', borderRadius: '8px', cursor: 'pointer' }}
+                                  src={'/icons/pencil_outlined.svg'}
+                                  variant='square'
                                   onClick={() =>
                                     Router.push({
                                       pathname: '/diet/feed/add-feed',
@@ -359,9 +370,27 @@ const FeedDetails = () => {
                           {dietModuleAccess === 'DELETE' && (
                             <Tooltip title='Delete' placement='top'>
                               <Box>
-                                <Icon
+                                {/* <Icon
                                   icon='material-symbols:delete-outline'
                                   style={{ cursor: 'pointer', marginLeft: '15px' }}
+                                  onClick={() => {
+                                    if (Number(FeedDetailsValue?.ingredients) > 0) {
+                                      setstatusDialog(true)
+                                    } else {
+                                      setDeleteDialogBox(true)
+                                    }
+                                  }}
+                                /> */}
+                                <Avatar
+                                  sx={{
+                                    width: '100%',
+                                    height: '100%',
+                                    borderRadius: '8px',
+                                    cursor: 'pointer',
+                                    marginLeft: '15px'
+                                  }}
+                                  src={'/icons/delete_outlined.svg'}
+                                  variant='square'
                                   onClick={() => {
                                     if (Number(FeedDetailsValue?.ingredients) > 0) {
                                       setstatusDialog(true)
@@ -382,7 +411,7 @@ const FeedDetails = () => {
                           FeedDetailsValue={FeedDetailsValue}
                           permission={dietModuleAccess === 'EDIT' || dietModuleAccess === 'DELETE' ? true : false}
                         />
-                        <Grid item xs={8}>
+                        <Grid item md={8} xs={12}>
                           <TabContext value={value}>
                             <TabList onChange={handleChange} aria-label='customized tabs example'>
                               <Tab

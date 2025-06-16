@@ -19,9 +19,8 @@ import React, { useCallback, useState } from 'react'
 import Icon from 'src/@core/components/icon'
 
 const leftMenu = [
-  // { id: 1, name: 'Pharmacy' },
-  { id: 2, name: 'User' },
-  { id: 3, name: 'Drug Type' }
+  { id: 1, name: 'User' },
+  { id: 2, name: 'Drug Type' }
 ]
 
 const drugTypeOptions = [
@@ -53,9 +52,6 @@ const DispenseReportFilterDrawer = ({
   const [searchQuery, setSearchQuery] = useState('')
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  const isAllPharmaciesSelected =
-    pharmacyList?.length > 0 && selectedOptions['Pharmacy']?.length === pharmacyList?.length
-
   const isAllUsersSelected = users?.length > 0 && selectedOptions['User']?.length === users?.length
 
   const handleCloseDrawer = () => {
@@ -69,7 +65,6 @@ const DispenseReportFilterDrawer = ({
 
   const handleClearAll = () => {
     setSelectedOptions({
-      Pharmacy: [],
       User: [],
       'Drug Type': 'all'
     })
@@ -107,11 +102,6 @@ const DispenseReportFilterDrawer = ({
     setIsSubmitting(true)
     const filterData = {}
 
-    //Attach Pharmacy filters to object to send
-    if (selectedOptions['Pharmacy'] && selectedOptions['Pharmacy'].length > 0) {
-      filterData.pharmacy = selectedOptions['Pharmacy']
-    }
-
     if (selectedOptions['User'] && selectedOptions['User'].length > 0) {
       filterData.user = selectedOptions['User']
     }
@@ -133,15 +123,7 @@ const DispenseReportFilterDrawer = ({
     return selectedOptions[menuName] ? selectedOptions[menuName].length : 0
   }
 
-  const filteredPharmacyList = pharmacyList?.filter(pharmacy =>
-    pharmacy.name.toLowerCase().includes(searchQuery.toLowerCase())
-  )
-
   const filteredUsersList = users?.filter(user => user.name.toLowerCase().includes(searchQuery.toLowerCase()))
-
-  const handlePharmacySelectAll = () => {
-    handleSelectAllPharmacy()
-  }
 
   const handleUserSelectAll = () => {
     handleSelectAllUser()
@@ -235,63 +217,7 @@ const DispenseReportFilterDrawer = ({
                 scrollbarWidth: 'none'
               }}
             >
-              {selectedMenu.name === 'Pharmacy' ? (
-                <>
-                  <Box
-                    sx={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      border: '1px solid #C3CEC7',
-                      borderRadius: '4px',
-                      padding: '0 8px',
-                      height: '40px',
-                      mb: 4
-                    }}
-                  >
-                    <Icon icon='mi:search' color={theme.palette.customColors.OnSurfaceVariant} />
-                    <TextField
-                      variant='outlined'
-                      placeholder='Search'
-                      value={searchQuery}
-                      onChange={handleSearch}
-                      InputProps={{
-                        disableUnderline: false
-                      }}
-                      sx={{
-                        '& .MuiOutlinedInput-root': {
-                          border: 'none',
-                          padding: '0',
-                          '& fieldset': {
-                            border: 'none'
-                          }
-                        }
-                      }}
-                    />
-                  </Box>
-                  <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }}>
-                    <Checkbox
-                      checked={isAllPharmaciesSelected}
-                      indeterminate={selectedOptions['Pharmacy']?.length > 0 && !isAllPharmaciesSelected}
-                      inputProps={{ 'aria-label': 'controlled' }}
-                      onChange={handlePharmacySelectAll}
-                    />
-                    <Typography sx={{ fontSize: '16px', fontWeight: 400, color: '#839D8D' }}>Select All</Typography>
-                  </Box>
-                  <Divider sx={{ mb: 3 }} />
-                  {filteredPharmacyList?.map(pharmacy => (
-                    <Box sx={{ display: 'flex', alignItems: 'center', mb: 3 }} key={pharmacy?.id}>
-                      <Checkbox
-                        inputProps={{ 'aria-label': 'controlled' }}
-                        checked={selectedOptions['Pharmacy']?.includes(pharmacy?.id)}
-                        onChange={() => handleCheckbox(pharmacy?.id, 'Pharmacy')}
-                      />
-                      <Typography sx={{ fontSize: '16px', fontWeight: 400, color: '#839D8D' }}>
-                        {pharmacy?.name}
-                      </Typography>
-                    </Box>
-                  ))}
-                </>
-              ) : selectedMenu.name === 'User' ? (
+              {selectedMenu.name === 'User' ? (
                 <>
                   <Box
                     sx={{

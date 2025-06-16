@@ -30,6 +30,7 @@ import { getSuppliers } from 'src/lib/api/pharmacy/getSupplierList'
 import { readAsync } from 'src/lib/windows/utils'
 import { getUserList } from 'src/lib/api/pharmacy/dispenseProduct'
 import { ExportButton, FilterButton } from 'src/views/utility/render-snippets'
+import PharmacyProductCard from 'src/views/utility/PharmacyProductCard'
 
 const ReturnSupplier = () => {
   const router = useRouter()
@@ -190,7 +191,7 @@ const ReturnSupplier = () => {
         setLoading(false)
       }
     },
-    [paginationModel, filterDates]
+    [paginationModel, filterDates, filteredData]
   )
 
   useEffect(() => {
@@ -199,8 +200,9 @@ const ReturnSupplier = () => {
       q: searchValue,
       column: sortColumn,
       page: paginationModel?.page,
-      limit: paginationModel?.pageSize,
-      filteredData: filteredData
+      limit: paginationModel?.pageSize
+
+      // filteredData: filteredData
     })
 
     updateUrlParams({
@@ -212,7 +214,7 @@ const ReturnSupplier = () => {
       startDate: filterDates?.startDate,
       endDate: filterDates?.endDate
     })
-  }, [paginationModel.page, paginationModel.pageSize, sort, sortColumn, filterDates, filteredData])
+  }, [paginationModel.page, paginationModel.pageSize, sort, sortColumn, filterDates])
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
@@ -227,10 +229,11 @@ const ReturnSupplier = () => {
       minWidth: 20,
       field: 'id',
       sortable: false,
-      headerName: 'SL NO',
-
+      headerName: 'SL.NO',
+      align: 'center',
+      headerAlign: 'center',
       renderCell: params => (
-        <Box sx={{ minWidth: 40 }}>
+        <Box sx={{ minWidth: 40, textAlign: 'center' }}>
           <Typography sx={{ color: 'text.primary', fontSize: '14px', fontWeight: '400px' }}>
             {params.row.id + '.'}
           </Typography>
@@ -259,7 +262,7 @@ const ReturnSupplier = () => {
     },
     {
       minWidth: 20,
-      width: 180,
+      width: 160,
       field: 'discarded_date',
       headerName: 'RETURN DATE',
       sortable: true,
@@ -278,7 +281,7 @@ const ReturnSupplier = () => {
       )
     },
     {
-      width: 250,
+      width: 340,
       minWidth: 20,
       field: 'stock_name',
       align: 'left',
@@ -287,58 +290,13 @@ const ReturnSupplier = () => {
 
       renderCell: params => (
         <Box>
-          <StyleWithIconCardComponent
-            value={
-              <>
-                <Box sx={{ display: 'flex', alignItems: 'center' }}>
-                  <Typography
-                    sx={{
-                      color: 'customColors.OnSecondaryContainer',
-                      display: 'flex',
-
-                      alignItems: 'center',
-                      fontWeight: 500,
-                      fontSize: '14px',
-                      ...RenderUtility?.getEllipsisStyleForText()
-                    }}
-                  >
-                    {RenderUtility?.renderControlLabel(
-                      !isNaN(params.row?.controlled_substance) && parseInt(params.row?.controlled_substance) === 1,
-                      'CS'
-                    )}
-                    {RenderUtility?.renderControlLabel(
-                      !isNaN(params.row?.prescription_required) && parseInt(params.row?.prescription_required) === 1,
-                      'PR'
-                    )}
-                  </Typography>
-                  <Typography
-                    sx={{
-                      color: 'customColors.customHeadingTextColor',
-                      fontWeight: 500,
-                      fontSize: '14px',
-                      overflow: 'hidden',
-                      whiteSpace: 'nowrap',
-                      textOverflow: 'ellipsis',
-                      maxWidth: 250
-                    }}
-                  >
-                    <span>{params.row.stock_name}</span>
-                  </Typography>
-                </Box>
-              </>
-            }
-            description={params.row.generic_name ? params.row.generic_name : 'NA'}
-            icon={params.row.image ? `${params.row.image}` : '/images/Medicine_Icon.png'}
-            showIcon={false}
-            customCss={{
-              p: '0px',
-              width: '100%',
-              height: '100%',
-              fontSize: '14px',
-              avtBorderRadius: '10px',
-              iconWidth: '44px',
-              iconHeight: '44px'
-            }}
+          <PharmacyProductCard
+            title={params?.row?.stock_name}
+            subTitle={params?.row?.generic_name ? params?.row?.generic_name : 'NA'}
+            icon={params?.row?.image}
+            controlSubstance={params?.row?.controlled_substance === '1' && true}
+            prescriptionRequired={params?.row?.prescription_required === '1' && true}
+            rowWidth={320}
           />
         </Box>
       )
@@ -365,7 +323,27 @@ const ReturnSupplier = () => {
     },
     {
       minWidth: 20,
-      width: 180,
+      width: 160,
+      field: 'expiry_date',
+      headerName: 'EXPIRY DATE',
+      sortable: true,
+      renderCell: params => (
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
+          {Utility.formatDisplayDate(params.row.expiry_date)}
+        </Typography>
+      )
+    },
+    {
+      minWidth: 20,
+      width: 160,
       field: 'unit_price',
       headerName: 'NET UNIT PRICE',
       sortable: true,
@@ -387,7 +365,7 @@ const ReturnSupplier = () => {
     },
     {
       minWidth: 20,
-      width: 180,
+      width: 160,
       field: 'discarded_value',
       headerName: 'TOTAL VALUE',
       sortable: true,
@@ -486,7 +464,7 @@ const ReturnSupplier = () => {
     },
     {
       minWidth: 20,
-      width: 220,
+      width: 260,
       field: 'manufacturer_name',
       sortable: true,
       headerName: 'MANUFACTURER NAME',
@@ -502,7 +480,7 @@ const ReturnSupplier = () => {
               overflow: 'hidden',
               whiteSpace: 'nowrap',
               textOverflow: 'ellipsis',
-              maxWidth: 200
+              maxWidth: 240
             }}
           >
             <span alt={params.row.manufacturer_name}> {params.row.manufacturer_name}</span>
@@ -512,29 +490,51 @@ const ReturnSupplier = () => {
     },
     {
       minWidth: 20,
-      width: 250,
+      width: 200,
       field: 'comments',
-      sortable: true,
+      sortable: false,
       headerName: 'COMMENTS',
-      renderCell: params => (
-        <Tooltip title={params.row.comments}>
-          <Typography
-            variant='body2'
-            sx={{
-              color: theme.palette.customColors.customHeadingTextColor,
-              fontSize: '14px',
-              fontWeight: 400,
-              fontFamily: 'Inter',
-              overflow: 'hidden',
-              whiteSpace: 'nowrap',
-              textOverflow: 'ellipsis',
-              maxWidth: 200
-            }}
-          >
-            <span alt={params.row.comments}> {params.row.comments ? params.row.comments : '-'}</span>
-          </Typography>
-        </Tooltip>
-      )
+      renderCell: params => {
+        const comment = params.row.comments
+
+        return (
+          <Tooltip title={comment || '-'}>
+            {comment ? (
+              <Typography
+                variant='body2'
+                sx={{
+                  color: theme.palette.customColors.customHeadingTextColor,
+                  fontSize: '14px',
+                  fontWeight: 400,
+                  fontFamily: 'Inter',
+                  overflow: 'hidden',
+                  whiteSpace: 'nowrap',
+                  textOverflow: 'ellipsis',
+                  maxWidth: 200
+                }}
+              >
+                {comment}
+              </Typography>
+            ) : (
+              <Box
+                sx={{
+                  display: 'flex',
+                  justifyContent: 'center',
+                  alignItems: 'center',
+                  height: '100%',
+                  width: '100%',
+                  fontSize: '14px',
+                  color: theme.palette.text.secondary,
+                  fontFamily: 'Inter',
+                  fontWeight: 400
+                }}
+              >
+                -
+              </Box>
+            )}
+          </Tooltip>
+        )
+      }
     },
     {
       minWidth: 200,
@@ -587,14 +587,15 @@ const ReturnSupplier = () => {
     if (newModel.length) {
       setSort(newModel[0].sort)
       setSortColumn(newModel[0].field)
-      fetchTableData({
-        sort: newModel[0].sort,
-        q: searchValue,
-        column: newModel[0].field,
-        page: paginationModel?.page,
-        limit: paginationModel?.pageSize,
-        filteredData: filteredData
-      })
+
+      // fetchTableData({
+      //   sort: newModel[0].sort,
+      //   q: searchValue,
+      //   column: newModel[0].field,
+      //   page: paginationModel?.page,
+      //   limit: paginationModel?.pageSize,
+      //   filteredData: filteredData
+      // })
       updateUrlParams({
         sort: newModel[0].sort,
         q: searchValue,
@@ -686,6 +687,18 @@ const ReturnSupplier = () => {
     } finally {
       setExportLoading(false)
     }
+  }
+
+  const handleFilter = async filterList => {
+    setFilteredData(filterList)
+    await fetchTableData({
+      sort: sort,
+      q: searchValue,
+      column: sortColumn,
+      page: paginationModel?.page,
+      limit: paginationModel?.pageSize,
+      filteredData: filterList
+    })
   }
 
   const calculateAppliedFiltersCount = () => {
@@ -828,7 +841,7 @@ const ReturnSupplier = () => {
             <ReturnToSupplierFilter
               setOpenFilterDrawer={setOpenFilterDrawer}
               openFilterDrawer={openFilterDrawer}
-              onApplyFilter={filterList => setFilteredData(filterList)}
+              onApplyFilter={handleFilter}
               selectedOptions={selectedOptions}
               setSelectedOptions={setSelectedOptions}
               supplierData={supplierData}

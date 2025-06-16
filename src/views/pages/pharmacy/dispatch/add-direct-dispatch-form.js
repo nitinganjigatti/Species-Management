@@ -72,25 +72,32 @@ const defaultValues = {
 const schema = yup.object().shape({
   request_item: yup
     .object()
-    .required('Product Name is required')
+    .transform(value => (value === '' ? null : value))
     .shape({
       label: yup.string().required('Product Name is required'),
       value: yup.string().required('Product Name is required')
+    })
+    .required('Product Name is required'),
+
+  request_item_batch_no: yup
+    .object()
+    .transform((value, originalValue) => (originalValue === '' ? null : value))
+    .nullable()
+    .required('Batch number is required')
+    .test('is-valid-object', 'Batch number is required', value => {
+      return value !== null && typeof value === 'object' && value.label && value.value && value.expiry_date
     }),
 
-  // request_item_batch_no: yup.object().shape({
-  //   label: yup.string().required('Batch no is required'),
-  //   value: yup.string().required('Batch no is required'),
-  //   expiry_date: yup.string().required('Batch no is required')
-  // }),
-  request_item_batch_no: yup
-    .mixed()
-    .required('Batch number is required')
-    .test('is-object-with-properties', 'Batch number is required', value => {
-      return (
-        value !== null && typeof value === 'object' && 'label' in value && 'value' in value && 'expiry_date' in value
-      )
-    }),
+  // request_item_batch_no: yup
+  //   .mixed()
+  //   .required('Batch number is required')
+  //   .test('is-object-with-properties', 'Batch number is required', value => {
+  //     debugger
+
+  //     return (
+  //       value !== null && typeof value === 'object' && 'label' in value && 'value' in value && 'expiry_date' in value
+  //     )
+  //   }),
   request_item_qty: yup
     .number()
     .typeError('Quantity must be a positive number')
@@ -279,6 +286,7 @@ export const AddItemsForm = ({
         variant_id,
         multiplier,
         unit_price
+
         // to_store_id: '14'
       },
       type
@@ -312,7 +320,9 @@ export const AddItemsForm = ({
       nestedItemQuantity = nestedMedicine?.request_item_qty
     }
 
-    const available_qty = parseInt(totalQuantity) - (totalCount - nestedItemQuantity + enteredCount)
+    const available_qty = parseInt(totalQuantity)
+
+    //  - (totalCount - nestedItemQuantity + enteredCount)
 
     setTotalAvailableCount(available_qty)
   }
@@ -406,14 +416,17 @@ export const AddItemsForm = ({
                       searchMedicineData(e.target.value)
                     }}
                     onChange={(e, value) => {
-                      setValue('request_item', value)
-                      setValue('request_item_batch_no', '')
-                      setValue('expiry_date', '')
-                      setValue('available_item_qty', '')
-                      setValue('stock_type', '')
-                      setValue('packageDetails', '')
-                      setValue('manufacture', '')
-                      setValue('unit_price', '')
+                      setValue('request_item', value, { shouldValidate: true })
+                      if (!value) {
+                        setValue('request_item', value, { shouldValidate: true })
+                        setValue('request_item_batch_no', '', { shouldValidate: true })
+                        setValue('expiry_date', '', { shouldValidate: true })
+                        setValue('available_item_qty', '')
+                        setValue('stock_type', '')
+                        setValue('packageDetails', '')
+                        setValue('manufacture', '')
+                        setValue('unit_price', '')
+                      }
 
                       if (value === null || value.status === 0) {
                         return onChange(null)
@@ -455,9 +468,10 @@ export const AddItemsForm = ({
                           {/* <Typography>{option.label}</Typography> */}
                           <Typography variant='body2'>{option.packageDetails}</Typography>
                           <Typography variant='body2'>{option.manufacture}</Typography>
-                          {option.control_substance === true && (
+                          {RenderUtility?.renderControlLabel(option.control_substance === true, 'CS')}
+                          {/* {option.control_substance === true && (
                             <CustomChip label='CS' skin='light' color='success' size='small' />
-                          )}{' '}
+                          )}{' '} */}
                           {option.prescription_required === true && (
                             <CustomChip label='PR' skin='light' color='success' size='small' />
                           )}
@@ -478,7 +492,9 @@ export const AddItemsForm = ({
                 )}
               />
               {errors?.request_item && (
-                <FormHelperText sx={{ color: 'error.main' }}>{errors?.request_item?.message}</FormHelperText>
+                <FormHelperText sx={{ color: 'error.main' }}>
+                  {errors?.request_item?.value?.message || errors?.request_item?.message}
+                </FormHelperText>
               )}
               {/* {watch('packageDetails') && (
                 <Box sx={{ mx: 1, my: 2, display: 'flex' }}>
@@ -535,7 +551,7 @@ export const AddItemsForm = ({
                       color='customColors.neutralSecondary'
                       sx={{ fontWeight: 400, fontFamily: 'Inter', fontSize: '12px', mb: 1 }}
                     >
-                      Available Packing:
+                      Package:
                     </Typography>
                     <Typography
                       color='primary.light'
@@ -574,7 +590,6 @@ export const AddItemsForm = ({
                       {batchLoading ? <LoaderIcon /> : `${totalAvailableCount}`}
                     </Typography>
                   </Box>
-
                   <Box
                     sx={{
                       backgroundColor: 'customColors.OnPrimaryContainer',
@@ -596,6 +611,7 @@ export const AddItemsForm = ({
                       Unit Price - {Utility.formatAmountToReadableDigit(watch('unit_price'))}
                     </Typography>
                   </Box>
+
                   {/* <Box sx={{ display: 'flex', gap: 1, alignItems: 'center' }}>
                     <Typography
                       color='customColors.neutralSecondary'
@@ -676,7 +692,6 @@ export const AddItemsForm = ({
                 Available Quantity:{getValues('available_item_qty')}
               </Typography>
             ) : null} */}
-
             <FormControl fullWidth>
               <Controller
                 name='request_item_batch_no'
@@ -692,7 +707,7 @@ export const AddItemsForm = ({
                     isOptionEqualToValue={(option, value) => option.value === value.value}
                     onChange={(e, value) => {
                       setValue('request_item_batch_no', value)
-                      setValue('expiry_date', value?.expiry_date)
+                      setValue('expiry_date', value?.expiry_date, { shouldValidate: true })
                       setValue('available_item_qty', value?.available_item_qty)
                       setValue('multiplier', value?.multiplier)
                       setValue('variant_id', value?.variant_id)
@@ -706,12 +721,8 @@ export const AddItemsForm = ({
                       <TextField
                         {...params}
                         placeholder='Enter Batch No'
+                        label={Boolean(errors.request_item_batch_no) ? 'Enter Batch No*' : 'Enter Batch No'}
                         error={Boolean(errors.request_item_batch_no)}
-                        sx={{
-                          '& .MuiOutlinedInput-root': {
-                            backgroundColor: 'white'
-                          }
-                        }}
                       />
                     )}
                     renderOption={(props, option) => (
@@ -742,7 +753,7 @@ export const AddItemsForm = ({
                           <Typography variant='body2' color='customColors.neutralSecondary'>
                             Expiry Date: {Utility.formatDisplayDate(option.expiry_date)}
                           </Typography>
-                          <Typography variant='body2' color='customColors.Tertiary'>
+                          <Typography variant='body2' color='primary.main'>
                             Availability: {option.available_item_qty}
                           </Typography>
                         </Box>
@@ -814,14 +825,19 @@ export const AddItemsForm = ({
                       name='expiry_date'
                       error={Boolean(errors.expiry_date)}
                       onChange={onChange}
-                      disabled
+                      variant='outlined'
+                      slotProps={{
+                        textField: {
+                          error: Boolean(errors.expiry_date)
+                        }
+                      }}
+                      inputProps={{ disabled: true }}
                     />
                   )}
-                >
-                  {errors.expiry_date && (
-                    <FormHelperText sx={{ color: 'error.main' }}>{errors?.expiry_date?.message}</FormHelperText>
-                  )}
-                </Controller>
+                />
+                {errors.expiry_date && (
+                  <FormHelperText sx={{ color: 'error.main' }}>{errors?.expiry_date?.message}</FormHelperText>
+                )}
               </FormControl>
             </Grid>
           )}
@@ -849,11 +865,10 @@ export const AddItemsForm = ({
                     onInput={checkTotalCount}
                   />
                 )}
-              >
-                {errors.request_item_qty && (
-                  <FormHelperText sx={{ color: 'error.main' }}>{errors?.request_item_qty?.message}</FormHelperText>
-                )}
-              </Controller>
+              />
+              {errors.request_item_qty && (
+                <FormHelperText sx={{ color: 'error.main' }}>{errors?.request_item_qty?.message}</FormHelperText>
+              )}
             </FormControl>
           </Grid>
           <Grid item xs={12} sm={12}>

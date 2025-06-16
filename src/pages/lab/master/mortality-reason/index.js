@@ -8,7 +8,7 @@ import {
   updateMortalityReasons,
   deleteMortalityReasons
 } from 'src/lib/api/lab/mortality'
-import { Box, Breadcrumbs, Button, Card, IconButton, Typography } from '@mui/material'
+import { Box, Breadcrumbs, Button, Card, CardHeader, IconButton, Typography } from '@mui/material'
 import Icon from 'src/@core/components/icon'
 
 // import ConfirmationDeleteDialog from 'src/components/ConfirmationDeleteDialog'
@@ -16,8 +16,16 @@ import { AuthContext } from 'src/context/AuthContext'
 import Error404 from 'src/pages/404'
 import AddMortalityReasons from 'src/views/pages/lab/mortality-reason'
 import TableWithFilter from 'src/components/TableWithFilter'
+import { useTheme } from '@mui/material/styles'
+import { DataGrid } from '@mui/x-data-grid'
+import QuickSearchToolbar from 'src/views/table/data-grid/QuickSearchToolbar'
+
+const escapeRegExp = value => {
+  return value.replace(/[-[\]{}()*+?.,\\^$|#\s]/g, '\\$&')
+}
 
 const MortalityReason = () => {
+  const theme = useTheme()
   const authData = useContext(AuthContext)
   const [openDrawer, setOpenDrawer] = useState(false)
   const [rows, setRows] = useState([])
@@ -28,7 +36,35 @@ const MortalityReason = () => {
   const [isModalOpenDelete, setIsModalOpenDelete] = useState(false)
   const [selectedId, setSelectedId] = useState(null)
 
+  const [data, setData] = useState([])
+  const [searchText, setSearchText] = useState('')
+  const [filteredData, setFilteredData] = useState([])
+  const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
+
   const medical_add_mortality_reasons = authData?.userData?.permission?.user_settings?.medical_add_mortality_reasons
+
+  const handleSearch = searchValue => {
+    setSearchText(searchValue)
+    const searchRegex = new RegExp(escapeRegExp(searchValue), 'i')
+
+    const filteredRows = data.filter(row => {
+      return Object.keys(row).some(field => {
+        // @ts-ignore
+        //   return searchRegex.test(row[field].toString())
+        // })
+        return row[field]?.toString() && searchRegex.test(row[field].toString())
+      })
+    })
+    if (searchValue.length) {
+      setFilteredData(filteredRows)
+    } else {
+      setFilteredData([])
+    }
+  }
+
+  useEffect(() => {
+    setData(rows)
+  }, [rows])
 
   const fetchTableData = useCallback(async q => {
     try {
@@ -163,7 +199,7 @@ const MortalityReason = () => {
     //           height: 30,
     //           mr: 4,
     //           borderRadius: '50%',
-    //           background: '#E8F4F2',
+    //           background: theme.palette.customColors.displaybgPrimary,
     //           overflow: 'hidden'
     //         }}
     //       >
@@ -181,7 +217,7 @@ const MortalityReason = () => {
     //         <Typography noWrap variant='body2' sx={{ color: 'text.primary', fontSize: 14 }}>
     //           {params.row.created_by_user?.user_name ? params.row.created_by_user?.user_name : '-'}
     //         </Typography>
-    //         <Typography noWrap variant='body2' sx={{ color: '#44544a9c', fontSize: 12 }}>
+    //         <Typography noWrap variant='body2' sx={{ color:  theme.palette.customColors.neutralSecondary, fontSize: 12 }}>
     //           {params.row.created_at ? moment(params.row.created_at).format('DD/MM/YYYY') : '-'}
     //         </Typography>
     //       </Box>
@@ -238,11 +274,44 @@ const MortalityReason = () => {
             </Typography>
           </Breadcrumbs>
           <Card>
-            <TableWithFilter
+            {/* <TableWithFilter
               TableTitle='Mortality Reason'
               columns={columns || []}
               rows={rows || []}
               headerActions={headerAction}
+            /> */}
+            <CardHeader title={'Mortality Reason'} action={headerAction !== undefined ? headerAction : null} />
+            <DataGrid
+              sx={{
+                '.MuiDataGrid-cell:focus': {
+                  outline: 'none'
+                },
+
+                '& .MuiDataGrid-row:hover': {
+                  cursor: 'pointer'
+                }
+              }}
+              autoHeight
+              disableColumnFilter
+              hideFooterSelectedRowCount
+              disableColumnMenu
+              disableColumnSelector={true}
+              columns={columns || []}
+              pageSizeOptions={[7, 10, 25, 50]}
+              paginationModel={paginationModel}
+              slots={{ toolbar: QuickSearchToolbar }}
+              onPaginationModelChange={setPaginationModel}
+              rows={filteredData.length ? filteredData : data}
+              slotProps={{
+                baseButton: {
+                  variant: 'outlined'
+                },
+                toolbar: {
+                  value: searchText,
+                  clearSearch: () => handleSearch(''),
+                  onChange: event => handleSearch(event.target.value)
+                }
+              }}
             />
           </Card>
           {openDrawer && (

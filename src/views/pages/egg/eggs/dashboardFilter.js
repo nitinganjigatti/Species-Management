@@ -377,7 +377,7 @@ const DashboardFilter = ({
           <Grid item md={8} sm={8} xs={8}>
             <Box
               sx={{
-                bgcolor: '#FFFFFF',
+                bgcolor: theme.palette.primary.contrastText,
                 p: '16px',
                 borderRadius: '8px',
                 width: '345px',
@@ -399,7 +399,7 @@ const DashboardFilter = ({
                     sx={{
                       display: 'flex',
                       alignItems: 'center',
-                      border: '1px solid #C3CEC7',
+                      border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                       borderRadius: '4px',
                       padding: '0 8px',
                       height: '40px',
@@ -436,7 +436,9 @@ const DashboardFilter = ({
                     onChange={handleSelectAllChange}
                     inputProps={{ 'aria-label': 'controlled' }}
                   />
-                  <Typography sx={{ fontSize: '16px', fontWeight: 400, color: '#839D8D' }}>Select All</Typography>
+                  <Typography sx={{ fontSize: '16px', fontWeight: 400, color: theme.palette.customColors.Outline }}>
+                    Select All
+                  </Typography>
                 </Box>
                 <Divider sx={{ mb: 3 }} />
               </>
@@ -451,7 +453,12 @@ const DashboardFilter = ({
                         inputProps={{ 'aria-label': 'controlled' }}
                       />
                       <Typography
-                        sx={{ fontSize: '16px', fontWeight: 400, color: '#839D8D', textTransform: 'capitalize' }}
+                        sx={{
+                          fontSize: '16px',
+                          fontWeight: 400,
+                          color: theme.palette.customColors.Outline,
+                          textTransform: 'capitalize'
+                        }}
                       >
                         {option.name}
                       </Typography>

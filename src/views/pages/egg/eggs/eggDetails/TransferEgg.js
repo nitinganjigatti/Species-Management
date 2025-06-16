@@ -285,7 +285,7 @@ const TransferEgg = ({ transferEggSideBar, setTransferEggSideBar, eggDetails, ge
                 sx={{
                   backgroundColor: theme.palette.primary.contrastText,
                   borderRadius: '8px',
-                  border: '1px solid #C3CEC7',
+                  border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                   paddingY: '20px',
                   paddingX: '16px',
                   display: 'flex',
@@ -422,7 +422,7 @@ const TransferEgg = ({ transferEggSideBar, setTransferEggSideBar, eggDetails, ge
                 sx={{
                   backgroundColor: theme.palette.primary.contrastText,
                   borderRadius: '8px',
-                  border: '1px solid #C3CEC7',
+                  border: `1px solid ${theme.palette.customColors.OutlineVariant}`,
                   paddingY: '20px',
                   paddingX: '16px',
                   display: 'flex',

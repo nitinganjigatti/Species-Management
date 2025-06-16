@@ -171,7 +171,9 @@ const AddLab = () => {
       const res = await getLabDeatilsById(id)
       if (res) {
         // setUploadedImage(res?.data?.image ? res?.data?.image : '/images/tablet.png')
-        setUploadedImage(res?.data[0]?.image || '/images/Lab1.png')
+        // setUploadedImage(res?.data[0]?.image || '/images/Lab1.png')
+        setImgSrc(pre => [...pre, res?.data[0]?.image])
+        // setImgSrc(pre => [...pre, res?.data[0]?.image || '/images/Lab1.png'])
         setValue('lab_name', res?.data[0]?.lab_name)
 
         setValue('type', res?.data[0]?.type)
@@ -354,11 +356,13 @@ const AddLab = () => {
       const files = acceptedFiles
       if (files && files.length !== 0) {
         reader.onload = () => {
-          setImgSrc(pre => [...pre, reader?.result])
+          // setImgSrc(pre => [...pre, reader?.result])
+          setImgSrc(pre => [reader?.result])
         }
         setDisplayFile(files[0]?.name)
         reader?.readAsDataURL(files[0])
-        setImgArr(pre => [...pre, files[0]])
+        setImgSrc(pre => [files[0]])
+        // setImgArr(pre => [...pre, files[0]])
         setValue('image', files)
 
         clearErrors('image')
@@ -376,11 +380,13 @@ const AddLab = () => {
 
     if (files && files.length !== 0) {
       reader.onload = () => {
-        setImgSrc(pre => [...pre, reader?.result])
+        // setImgSrc(pre => [...pre, reader?.result])
+        setImgSrc(pre => [reader?.result])
       }
       setDisplayFile(files[0]?.name)
       reader?.readAsDataURL(files[0])
-      setImgArr(pre => [...pre, files[0]])
+      // setImgArr(pre => [...pre, files[0]])
+      setImgArr(pre => [files[0]])
       setValue('image', files)
       clearErrors('image')
     }
@@ -434,9 +440,12 @@ const AddLab = () => {
       // lab: JSON.stringify(dataToUpdate),
       lab: JSON.stringify(showLabTests),
       is_default: isDefault,
-      image: imgArr[0]
+      // image: imgArr[0]
+      image: imgSrc[0]
       // user_id: '58'
     }
+
+    console.log('imgSrc', imgSrc[0])
 
     if (labTestsEmpty) return
     setSubmitLoader(true)
@@ -1104,7 +1113,7 @@ const AddLab = () => {
                                     cursor: 'pointer',
                                     display: 'flex',
                                     justifyContent: 'center',
-                                    bgcolor: '#20de67',
+                                    bgcolor: theme.palette.customColors.mainBg,
                                     borderRadius: '8px',
                                     p: 2,
                                     width: '100%'
@@ -1155,7 +1164,7 @@ const AddLab = () => {
                                                   gap={2}
                                                   sx={{ display: 'flex', alignItems: 'center', p: 1 }}
                                                 >
-                                                  <Icon icon='ic:baseline-check' fontSize={20} color='#20de67' />
+                                                  <Icon icon='ic:baseline-check' fontSize={20} color={theme.palette.customColors.mainBg} />
                                                   <Typography sx>{child.test_name}</Typography>
                                                 </Stack>
                                               ) : null
@@ -1204,7 +1213,11 @@ const AddLab = () => {
                                                   gap={2}
                                                   sx={{ display: 'flex', alignItems: 'center', p: 1 }}
                                                 >
-                                                  <Icon icon='ic:baseline-check' fontSize={20} color='#20de67' />
+                                                  <Icon
+                                                    icon='ic:baseline-check'
+                                                    fontSize={20}
+                                                    color={theme.palette.customColors.mainBg}
+                                                  />
                                                   <Typography>{child.test_name}</Typography>
                                                 </Stack>
                                               ) : null
@@ -1228,7 +1241,7 @@ const AddLab = () => {
                             <Card sx={{ p: 2 }}>
                               <Box
                                 sx={{
-                                  bgcolor: '#20de67',
+                                  bgcolor: theme.palette.customColors.mainBg,
                                   borderRadius: '8px',
                                   p: 2,
                                   mb: 2
@@ -1261,7 +1274,9 @@ const AddLab = () => {
                                       placeholder='Longitude'
                                       error={Boolean(errors?.longitude)}
                                       name='longitude'
-                                      disabled
+                                      type='number'
+                                      // inputProps={{ min: -180, max: 180, step: 'any' }}
+                                      // disabled
                                     />
                                   )}
                                 />
@@ -1284,7 +1299,9 @@ const AddLab = () => {
                                         placeholder='Latitude'
                                         error={Boolean(errors?.latitude)}
                                         name='latitude'
-                                        disabled
+                                        type='number'
+                                        // inputProps={{ min: -90, max: 90, step: 'any' }}
+                                        // disabled
                                       />
                                     )}
                                   />
@@ -1342,7 +1359,7 @@ const AddLab = () => {
                                     sx={{ display: 'flex', justifyContent: 'flex-start' }}
                                   >
                                     <Stack direction='row' sx={{ px: 2, display: 'flex', flexWrap: 'wrap', gap: 3 }}>
-                                      {uploadedImage && (
+                                      {/* {uploadedImage && (
                                         <Box sx={{ display: 'flex', mt: 3 }}>
                                           <Box
                                             sx={{
@@ -1380,15 +1397,15 @@ const AddLab = () => {
                                                 backgroundColor: theme.palette.customColors.secondaryBg
                                               }}
                                             >
-                                              {/* <Icon
-                                            icon='material-symbols-light:close'
-                                            color='#fff'
-                                            // onClick={() => removeSelectedImage(index)}
-                                          ></Icon> */}
+                                              <Icon
+                                                icon='material-symbols-light:close'
+                                                color={theme.palette.primary.contrastText}
+                                                // onClick={() => removeSelectedImage(index)}
+                                              ></Icon>
                                             </Box>
                                           </Box>
                                         </Box>
-                                      )}
+                                      )} */}
 
                                       <>
                                         {imgSrc?.length > 0 &&
@@ -1411,7 +1428,11 @@ const AddLab = () => {
                                                     borderRadius: '5%'
                                                   }}
                                                   alt='image'
-                                                  src={img.startsWith('data:image/') ? img : '/icons/document_icon.png'}
+                                                  src={
+                                                    img?.startsWith('data:image/') || img?.startsWith('https://')
+                                                      ? img
+                                                      : '/icons/document_icon.png'
+                                                  }
                                                 />
                                                 <Box
                                                   sx={{
@@ -1427,7 +1448,7 @@ const AddLab = () => {
                                                 >
                                                   <Icon
                                                     icon='material-symbols-light:close'
-                                                    color='#fff'
+                                                    color={theme.palette.primary.contrastText}
                                                     onClick={() => removeSelectedImage(index)}
                                                   >
                                                     {' '}
@@ -1443,8 +1464,15 @@ const AddLab = () => {
                               </CardContent>
                             </Card>
                           </Grid>
-                          <Grid item xs={12} md={12} sm={6}>
-                            <Box sx={{ display: 'flex', justifyContent: 'flex-end' }}>
+                          <Grid item xs={12} md={12}>
+                            <Box sx={{ display: 'flex', gap: 2, justifyContent: 'flex-end' }}>
+                              <LoadingButton
+                                onClick={() => router.push('/lab/lab-list/')}
+                                loading={submitLoader}
+                                variant='outlined'
+                              >
+                                Cancel
+                              </LoadingButton>
                               <LoadingButton
                                 loading={submitLoader}
                                 onClick={handleSubmitData}

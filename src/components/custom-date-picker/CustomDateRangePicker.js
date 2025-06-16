@@ -39,6 +39,7 @@ const CustomDateRangePicker = ({
 
   // Calculate the initial month to display
   const currentDate = new Date()
+
   const initialMonth = selectFutureDates
     ? addMonths(currentDate, monthsShown - 2)
     : subMonths(currentDate, monthsShown - 1)
@@ -50,7 +51,6 @@ const CustomDateRangePicker = ({
       <Box p={2} sx={{ width: '100%' }}>
         <DatePicker
           selectsRange
-          // selectsRange={!allowSingleDate}
           monthsShown={monthsShown}
           endDate={endDate}
           selected={startDate}
@@ -63,9 +63,7 @@ const CustomDateRangePicker = ({
           minDate={selectFutureDates ? currentDate : null}
           maxDate={disableFutureDates ? disableFutureDates : null}
           showDisabledMonthNavigation
-          // Set the initial month to show previous month(s)
           openToDate={monthsShown ? initialMonth : null}
-          // Reverse the month order
           showPreviousMonths={false}
           style={{ border: '1px solid red' }}
         />

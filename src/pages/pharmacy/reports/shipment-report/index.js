@@ -27,6 +27,7 @@ import ShipmentFilterDrawer from 'src/views/pages/pharmacy/reports/ShipmentFilte
 import { format, subMonths } from 'date-fns'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import { ExportButton, FilterButton } from 'src/views/utility/render-snippets'
+import PharmacyProductCard from 'src/views/utility/PharmacyProductCard'
 
 const ShipmentReport = () => {
   const router = useRouter()
@@ -41,8 +42,8 @@ const ShipmentReport = () => {
   const [rows, setRows] = useState([])
   const [total, setTotal] = useState(0)
   const [loading, setLoading] = useState(false)
-  const [sort, setSort] = useState(router.query.sort || 'asc')
-  const [sortColumn, setSortColumn] = useState(router.query.column || 'stock_name')
+  const [sort, setSort] = useState(router.query.sort || 'desc')
+  const [sortColumn, setSortColumn] = useState(router.query.column || 'shipment_date')
   const [searchValue, setSearchValue] = useState(router.query.q || '')
   const [openFilterDrawer, setOpenFilterDrawer] = useState(false)
   const [filteredData, setFilteredData] = useState({ pharmacy: [] })
@@ -51,7 +52,6 @@ const ShipmentReport = () => {
   const [selectAllPharmacy, setSelectAllPharmacy] = useState(false)
 
   const [selectedOptions, setSelectedOptions] = useState({
-    'Batch Number': [],
     Pharmacy: [],
     'Drug Type': 'all'
   })
@@ -68,7 +68,6 @@ const ShipmentReport = () => {
 
   useEffect(() => {
     setSelectedOptions({
-      'Batch Number': [],
       Pharmacy: [],
       'Drug Type': 'all'
     })
@@ -97,7 +96,7 @@ const ShipmentReport = () => {
       }
     }
     pharmacyList()
-  }, [selectedPharmacy])
+  }, [selectedPharmacy?.id])
 
   const handleSelectAllPharmacy = () => {
     setSelectAllPharmacy(!selectAllPharmacy)
@@ -156,7 +155,7 @@ const ShipmentReport = () => {
         setLoading(false)
       }
     },
-    [paginationModel, filterDates]
+    [paginationModel, filterDates, filteredData]
   )
 
   useEffect(() => {
@@ -164,9 +163,10 @@ const ShipmentReport = () => {
       sort: sort,
       q: searchValue,
       column: sortColumn,
-      filteredData: filteredData,
       page: paginationModel?.page,
       limit: paginationModel?.pageSize
+
+      // filteredData: filteredData,
     })
     updateUrlParams({
       sort,
@@ -177,15 +177,7 @@ const ShipmentReport = () => {
       startDate: filterDates?.startDate,
       endDate: filterDates?.endDate
     })
-  }, [
-    paginationModel.page,
-    paginationModel.pageSize,
-    filterDates,
-    filteredData,
-    sort,
-    sortColumn,
-    selectedPharmacy?.id
-  ])
+  }, [paginationModel.page, paginationModel.pageSize, filterDates, sort, sortColumn, selectedPharmacy?.id])
 
   //   console.log('rows data :', rows)
 
@@ -202,10 +194,12 @@ const ShipmentReport = () => {
       minWidth: 20,
       field: 'id',
       sortable: false,
-      headerName: 'SL NO',
+      headerName: 'SL.NO',
+      align: 'center',
+      headerAlign: 'center',
 
       renderCell: params => (
-        <Box sx={{ minWidth: 40 }}>
+        <Box sx={{ minWidth: 40, textAlign: 'center' }}>
           <Typography sx={{ color: 'text.primary', fontSize: '14px', fontWeight: '400px' }}>
             {params.row.id + '.'}
           </Typography>
@@ -252,36 +246,8 @@ const ShipmentReport = () => {
         </Typography>
       )
     },
-
-    // {
-    //   width: 5,
-    //   field: 'label',
-    //   headerName: '',
-    //   sortable: false,
-    //   renderCell: params => (
-    //     <Typography
-    //       sx={{
-    //         color: 'customColors.OnSecondaryContainer',
-    //         display: 'flex',
-    //         alignItems: 'center',
-    //         fontWeight: 500,
-    //         fontSize: '14px',
-    //         ...RenderUtility?.getEllipsisStyleForText()
-    //       }}
-    //     >
-    //       {RenderUtility?.renderControlLabel(
-    //         !isNaN(params.row?.controlled_substance) && parseInt(params.row?.controlled_substance) === 1,
-    //         'CS'
-    //       )}
-    //       {RenderUtility?.renderControlLabel(
-    //         !isNaN(params.row?.prescription_required) && parseInt(params.row?.prescription_required) === 1,
-    //         'PR'
-    //       )}
-    //     </Typography>
-    //   )
-    // },
     {
-      width: 250,
+      width: 340,
       minWidth: 20,
       field: 'stock_name',
       align: 'left',
@@ -290,95 +256,60 @@ const ShipmentReport = () => {
 
       renderCell: params => (
         <Box>
-          <StyleWithIconCardComponent
-            value={
-              <>
-                <Typography sx={{ display: 'flex', alignItems: 'center' }}>
-                  <Typography
-                    sx={{
-                      color: 'customColors.OnSecondaryContainer',
-                      display: 'flex',
-
-                      alignItems: 'center',
-                      fontWeight: 500,
-                      fontSize: '14px',
-                      ...RenderUtility?.getEllipsisStyleForText()
-                    }}
-                  >
-                    {RenderUtility?.renderControlLabel(
-                      !isNaN(params.row?.controlled_substance) && parseInt(params.row?.controlled_substance) === 1,
-                      'CS'
-                    )}
-                    {RenderUtility?.renderControlLabel(
-                      !isNaN(params.row?.prescription_required) && parseInt(params.row?.prescription_required) === 1,
-                      'PR'
-                    )}
-                  </Typography>
-                  <Typography
-                    sx={{
-                      color: 'customColors.customHeadingTextColor',
-                      fontWeight: 500,
-                      fontSize: '14px',
-                      overflow: 'hidden',
-                      whiteSpace: 'nowrap',
-                      textOverflow: 'ellipsis',
-                      maxWidth: 250
-                    }}
-                  >
-                    {params.row.stock_name}
-                  </Typography>
-                </Typography>
-              </>
-            }
-            description={params.row.generic_name}
-            icon={params.row.image ? `${params.row.image}` : '/images/Medicine_Icon.png'}
-            showIcon={false}
-            customCss={{
-              p: '0px',
-              width: '100%',
-              height: '100%',
-              fontSize: '14px',
-              avtBorderRadius: '10px',
-              iconWidth: '44px',
-              iconHeight: '44px'
-            }}
+          <PharmacyProductCard
+            title={params?.row?.stock_name}
+            subTitle={params?.row?.generic_name ? params?.row?.generic_name : 'NA'}
+            icon={params?.row?.image}
+            controlSubstance={params?.row?.controlled_substance === '1' && true}
+            prescriptionRequired={params?.row?.prescription_required === '1' && true}
+            rowWidth={320}
           />
         </Box>
       )
     },
     {
       minWidth: 20,
-      width: 200,
-      field: 'package',
-      headerName: 'PACKAGE',
+      width: 160,
+      field: 'batch',
       sortable: false,
+      headerName: 'BATCH NUMBER',
       renderCell: params => (
-        <Tooltip
-          title={`${params.row.package} of ${Utility.formatNumber(params.row.package_qty)}
-          ${params.row.package_uom_label} ${params.row.product_form_label}`}
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
         >
-          <Typography
-            variant='body2'
-            sx={{
-              color: theme.palette.customColors.customHeadingTextColor,
-              fontSize: '14px',
-              fontWeight: 400,
-              fontFamily: 'Inter',
-              overflow: 'hidden',
-              whiteSpace: 'nowrap',
-              textOverflow: 'ellipsis',
-              maxWidth: 240
-            }}
-          >
-            {`${params.row.package} of ${Utility.formatNumber(params.row.package_qty)}
-          ${params.row.package_uom_label} ${params.row.product_form_label}`}
-          </Typography>
-        </Tooltip>
+          {params.row.batch}
+        </Typography>
       )
     },
     {
       minWidth: 20,
       width: 180,
+      field: 'expiry_date',
+      headerName: 'EXPIRY DATE',
+      sortable: true,
+      renderCell: params => (
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
+          {Utility.formatDisplayDate(params.row.expiry_date)}
+        </Typography>
+      )
+    },
+    {
+      minWidth: 20,
+      width: 160,
       field: 'shipment_date',
       headerName: 'SHIPMENT DATE',
       sortable: true,
@@ -419,7 +350,7 @@ const ShipmentReport = () => {
     },
     {
       minWidth: 20,
-      width: 180,
+      width: 160,
       field: 'net_unit_price',
       headerName: 'NET UNIT PRICE',
       sortable: true,
@@ -461,29 +392,10 @@ const ShipmentReport = () => {
         </Typography>
       )
     },
+
     {
       minWidth: 20,
-      width: 200,
-      field: 'batch',
-      sortable: false,
-      headerName: 'BATCH NUMBER',
-      renderCell: params => (
-        <Typography
-          variant='body2'
-          sx={{
-            color: theme.palette.customColors.customHeadingTextColor,
-            fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
-          }}
-        >
-          {params.row.batch}
-        </Typography>
-      )
-    },
-    {
-      minWidth: 20,
-      width: 250,
+      width: 220,
       field: 'manufacturer_name',
       headerName: 'MANUFACTURER NAME',
       sortable: true,
@@ -499,7 +411,7 @@ const ShipmentReport = () => {
               overflow: 'hidden',
               whiteSpace: 'nowrap',
               textOverflow: 'ellipsis',
-              maxWidth: 200
+              maxWidth: 220
             }}
           >
             <span alt={params.row.manufacturer_name}> {params.row.manufacturer_name}</span>
@@ -509,27 +421,63 @@ const ShipmentReport = () => {
     },
     {
       minWidth: 20,
-      width: 160,
-      field: 'to_store',
-      headerName: 'TO STORE',
-      sortable: true,
+      width: 220,
+      field: 'package',
+      headerName: 'PACKAGE',
+      sortable: false,
       renderCell: params => (
-        <Typography
-          variant='body2'
-          sx={{
-            color: theme.palette.customColors.customHeadingTextColor,
-            fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
-          }}
+        <Tooltip
+          title={`${params.row.package} of ${Utility.formatNumber(params.row.package_qty)}
+          ${params.row.package_uom_label} ${params.row.product_form_label}`}
         >
-          {params.row.to_store}
-        </Typography>
+          <Typography
+            variant='body2'
+            sx={{
+              color: theme.palette.customColors.customHeadingTextColor,
+              fontSize: '14px',
+              fontWeight: 400,
+              fontFamily: 'Inter',
+              overflow: 'hidden',
+              whiteSpace: 'nowrap',
+              textOverflow: 'ellipsis',
+              maxWidth: 220
+            }}
+          >
+            {`${params.row.package} of ${Utility.formatNumber(params.row.package_qty)}
+          ${params.row.package_uom_label} ${params.row.product_form_label}`}
+          </Typography>
+        </Tooltip>
       )
     },
     {
       minWidth: 20,
       width: 180,
+      field: 'to_store',
+      headerName: 'TO STORE',
+      sortable: true,
+      renderCell: params => (
+        <Tooltip title={params.row.to_store}>
+          <Typography
+            variant='body2'
+            sx={{
+              color: theme.palette.customColors.customHeadingTextColor,
+              fontSize: '14px',
+              fontWeight: 400,
+              fontFamily: 'Inter',
+              overflow: 'hidden',
+              whiteSpace: 'nowrap',
+              textOverflow: 'ellipsis',
+              maxWidth: 220
+            }}
+          >
+            {params.row.to_store}
+          </Typography>
+        </Tooltip>
+      )
+    },
+    {
+      minWidth: 20,
+      width: 160,
       field: 'shipment_status',
       sortable: false,
       headerName: 'SHIPMENT TYPE',
@@ -603,7 +551,7 @@ const ShipmentReport = () => {
             fontFamily: 'Inter'
           }}
         >
-          {params.row.phone_number ? params.row.phone_number : '-'}
+          {params.row.phone_number}
         </Typography>
       )
     },
@@ -720,14 +668,15 @@ const ShipmentReport = () => {
     if (newModel.length) {
       setSort(newModel[0].sort)
       setSortColumn(newModel[0].field)
-      fetchTableData({
-        sort: newModel[0].sort,
-        q: searchValue,
-        column: newModel[0].field,
-        filteredData: filteredData,
-        page: paginationModel?.page,
-        limit: paginationModel?.pageSize
-      })
+
+      // fetchTableData({
+      //   sort: newModel[0].sort,
+      //   q: searchValue,
+      //   column: newModel[0].field,
+      //   filteredData: filteredData,
+      //   page: paginationModel?.page,
+      //   limit: paginationModel?.pageSize
+      // })
       updateUrlParams({
         sort: newModel[0].sort,
         q: searchValue,
@@ -808,6 +757,18 @@ const ShipmentReport = () => {
     } finally {
       setExportLoading(false)
     }
+  }
+
+  const handleFilter = async filterList => {
+    setFilteredData(filterList)
+    await fetchTableData({
+      sort: sort,
+      q: searchValue,
+      column: sortColumn,
+      filteredData: filterList,
+      page: paginationModel?.page,
+      limit: paginationModel?.pageSize
+    })
   }
 
   const calculateAppliedFiltersCount = () => {
@@ -894,11 +855,7 @@ const ShipmentReport = () => {
                     }}
                   >
                     <ExportButton loading={loading || exportLoading} onClick={handleExport} />
-                    <FilterButton
-                      tooltip='Filters'
-                      onClick={() => setOpenFilterDrawer(true)}
-                      appliedFiltersCount={appliedFiltersCount}
-                    />
+                    <FilterButton onClick={() => setOpenFilterDrawer(true)} appliedFiltersCount={appliedFiltersCount} />
                   </Grid>
                 </Grid>
               </Grid>
@@ -936,7 +893,7 @@ const ShipmentReport = () => {
         <ShipmentFilterDrawer
           setOpenFilterDrawer={setOpenFilterDrawer}
           openFilterDrawer={openFilterDrawer}
-          onApplyFilter={filterList => setFilteredData(filterList)}
+          onApplyFilter={handleFilter}
           selectedOptions={selectedOptions}
           setSelectedOptions={setSelectedOptions}
           pharmacyList={pharmacyList}

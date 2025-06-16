@@ -718,7 +718,7 @@ const AddDirectDispatch = () => {
         const result = await cancelDirectDispatchItems(id)
         if (result?.data?.success === true) {
           toast.success(result?.data?.data)
-          Router.replace(`/pharmacy/direct-dispatch/direct-dispatch-list/`)
+          Router.replace(`/pharmacy/direct-dispatch/`)
         } else {
           toast.error(result?.data?.data)
           setDeleteDialog(false)
@@ -739,7 +739,7 @@ const AddDirectDispatch = () => {
   //       console.log('cancelRequest result', result)
   //       if (result?.data?.success === true) {
   //         toast.success(result?.data?.data)
-  //         Router.push(`/pharmacy/direct-dispatch/direct-dispatch-list/`)
+  //         Router.push(`/pharmacy/direct-dispatch/`)
   //       } else {
   //         toast.error(result.data)
   //       }
@@ -776,7 +776,7 @@ const AddDirectDispatch = () => {
                 <Icon
                   style={{ cursor: 'pointer' }}
                   onClick={() => {
-                    Router.back('/pharmacy/direct-dispatch/direct-dispatch-list/')
+                    Router.back('/pharmacy/direct-dispatch/')
                   }}
                   icon='ep:back'
                 />
@@ -1079,7 +1079,6 @@ const AddDirectDispatch = () => {
                         <TableCell>Product Name</TableCell>
                         <TableCell>Batch No</TableCell>
                         <TableCell>Expiry Date</TableCell>
-                        <TableCell>Priority</TableCell>
                         <TableCell>Quantity</TableCell>
                         <TableCell>Unit Price</TableCell>
                         <TableCell>Total Value</TableCell>
@@ -1125,9 +1124,6 @@ const AddDirectDispatch = () => {
                                       ? 'NA'
                                       : Utility?.formatDisplayDate(el?.expiry_date)}
                                   </Typography>
-                                </TableCell>
-                                <TableCell sx={{ borderBottomColor: 'customColors.customTableBorderBg' }}>
-                                  {el.priority_item}
                                 </TableCell>
 
                                 <TableCell sx={{ borderBottomColor: 'customColors.customTableBorderBg' }}>

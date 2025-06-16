@@ -27,10 +27,8 @@ import Grid from '@mui/material/Grid'
 
 // ** Icon Imports
 import Icon from 'src/@core/components/icon'
+import Utility from 'src/utility'
 import Router from 'next/router'
-import ServerSideToolbarWithFilter from 'src/views/table/data-grid/ServerSideToolbarWithFilter'
-import { updateIngredientStatus } from 'src/lib/api/diet/getIngredients'
-import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
 
 // Styled TabList component
 
@@ -220,7 +218,7 @@ const IngredientsListforRecipeDetail = ({ IngredientsDetailsval }) => {
       headerName: 'QUANTITY (100%)',
       renderCell: params => (
         <Typography variant='body2' sx={{ color: 'text.primary', pl: 2 }}>
-          {params.row.quantity ? parseFloat(params.row.quantity).toFixed(2) : '-'}
+          {params.row.quantity ? Utility.formatNumber(params.row.quantity) : '-'}
           {params.row.uom_text ? ` ${params.row.uom_text}` : '%'}
         </Typography>
       )

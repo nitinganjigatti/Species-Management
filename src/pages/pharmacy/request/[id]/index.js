@@ -132,6 +132,7 @@ const IndividualRequest = () => {
   const [status, setStatus] = useState('Pending')
   const [detailsTab, setDetailsTab] = useState(router?.query?.detailsTab || 'Pending')
   const [shipmentTab, setShipmentTab] = useState(router?.query?.shipmentTab || 'Ready To Ship')
+
   const theme = useTheme()
 
   const TabBadge = ({ label, totalCount }) => (
@@ -214,14 +215,13 @@ const IndividualRequest = () => {
   const getRequestItemLists = async id => {
     setLoader(true)
     const response = await getRequestItemsListById(id)
-    if (response.success) {
-      const responseData = response.data
+    if (response?.success) {
+      const responseData = response?.data
 
       const mappedWithUid = response?.data?.request_item_details?.map((item, index) => ({
         ...item,
         sl_no: index + 1
       }))
-
       responseData['request_item_details'] = mappedWithUid
 
       // setRequestItems(response.data)
@@ -273,10 +273,12 @@ const IndividualRequest = () => {
 
         return items
       })
+
       var dispatches = data?.filter(item => item.dispatch_status !== 'Shipped' && item.dispatch_status !== 'PickedUp')
       responseData['dispatch_items'] = dispatches
 
       setDispatchedItems(responseData.dispatch_items)
+
       setLoader(false)
     } else {
       setLoader(false)
@@ -375,10 +377,23 @@ const IndividualRequest = () => {
   const init = async id => {
     if (id !== undefined) {
       await getRequestItemLists(id)
+
       await getDispatchedItems(id)
       await getShippedItems(id)
     }
   }
+
+  // useEffect(() => {
+  //   if (router?.query?.detailsTab === 'Shipped') {
+  //     getDispatchedItems(id)
+  //   }
+  // }, [router?.query?.detailsTab, getDispatchedItems, id])
+
+  // useEffect(() => {
+  //   if (router?.query?.shipmentTab === 'Shipped') {
+  //     getShippedItems(id)
+  //   }
+  // }, [router?.query?.shipmentTab, getShippedItems, id])
 
   useEffect(() => {
     if (id !== undefined) {
@@ -1074,13 +1089,7 @@ const IndividualRequest = () => {
             }}
             disabled={selectedPharmacy?.permission.key === 'VIEW'}
           >
-            <Icon
-              // onClick={() => {
-              //   setDeleteDialog(true)
-              //   setDeleteFullFillId(params.row.dispatch_item_id)
-              // }}
-              icon='mdi:delete-outline'
-            />
+            <Icon icon='mdi:delete-outline' />
           </Button>
           {/* </Box> */}
         </Typography>
@@ -1491,7 +1500,7 @@ const IndividualRequest = () => {
                           requestItems?.status === 'request' &&
                           requestItems?.is_modified !== '1'
                         ) {
-                          Router.push('/pharmacy/request/request-list')
+                          Router.push('/pharmacy/request')
                         } else {
                           Router.back()
                         }
@@ -1503,7 +1512,8 @@ const IndividualRequest = () => {
                   action={
                     selectedPharmacy?.type === 'local' &&
                     requestItems?.status === 'request' &&
-                    requestItems?.is_modified !== '1' ? (
+                    requestItems?.is_modified !== '1' &&
+                    Number(requestItems?.shipped_product_count) === 0 && (
                       <Button
                         size='big'
                         variant='contained'
@@ -1513,8 +1523,6 @@ const IndividualRequest = () => {
                       >
                         Edit
                       </Button>
-                    ) : (
-                      <></>
                     )
                   }
                 />
@@ -1574,7 +1582,7 @@ const IndividualRequest = () => {
                             color: 'customColors.neutralSecondary'
                           }}
                         >
-                          Requested By:
+                          Requested By :
                           <Box
                             component='span'
                             sx={{
@@ -1583,7 +1591,9 @@ const IndividualRequest = () => {
                               color: 'customColors.OnSurfaceVariant',
                               lineHeight: '19.36px',
                               mx: 2,
-                              ...RenderUtility?.getEllipsisStyleForText('100')
+                              [theme.breakpoints.up('lg')]: {
+                                ...RenderUtility?.getEllipsisStyleForText('140')
+                              }
                             }}
                           >
                             {RenderUtility?.getToolTipForText(requestItems?.to_store)}
@@ -1606,7 +1616,9 @@ const IndividualRequest = () => {
                               color: 'customColors.OnSurfaceVariant',
                               lineHeight: '19.36px',
                               mx: 2,
-                              ...RenderUtility?.getEllipsisStyleForText('100')
+                              [theme.breakpoints.up('lg')]: {
+                                ...RenderUtility?.getEllipsisStyleForText('140')
+                              }
                             }}
                           >
                             {RenderUtility?.getToolTipForText(requestItems?.request_number)}
@@ -1665,16 +1677,29 @@ const IndividualRequest = () => {
                             </Box>
                           </Typography>
                         )}
-
-                        <Typography
+                        <Box
                           sx={{
-                            fontSize: '14px',
-                            fontWeight: '400',
-                            lineHeight: '16.94px',
-                            color: 'customColors.neutralSecondary'
+                            display: 'flex',
+                            alignItems: 'center',
+                            marginLeft: { xs: 0, md: 0, sm: '47px' }
+
+                            // overflow: 'hidden' // optional, if you want to clip long content
                           }}
                         >
-                          Total Requested Value:
+                          <Typography
+                            component='span'
+                            sx={{
+                              fontSize: '14px',
+                              fontWeight: '400',
+                              lineHeight: '16.94px',
+                              color: 'customColors.neutralSecondary',
+                              whiteSpace: 'nowrap' // optional if this label might wrap
+                              // ml: { xs: 0, sm: 0 }
+                            }}
+                          >
+                            Total Requested Value:
+                          </Typography>
+
                           <Tooltip title={Utility.formatAmountToReadableDigit(requestItems?.requested_amount)}>
                             <Box
                               component='span'
@@ -1683,18 +1708,15 @@ const IndividualRequest = () => {
                                 fontSize: '16px',
                                 color: 'primary.light',
                                 lineHeight: '19.36px',
-                                mx: 2,
-                                ...RenderUtility?.getEllipsisStyleForText('100')
+                                whiteSpace: 'nowrap',
+                                overflow: 'hidden',
+                                textOverflow: 'ellipsis'
                               }}
                             >
                               {Utility.formatAmountToReadableDigit(requestItems?.requested_amount)}
-                              {/* ₹
-                            {RenderUtility?.getToolTipForText(
-                              Utility.formatNumberToDisplay(requestItems?.requested_amount)
-                            )} */}
                             </Box>
                           </Tooltip>
-                        </Typography>
+                        </Box>
 
                         {/* <Typography
                           sx={{
@@ -1709,12 +1731,12 @@ const IndividualRequest = () => {
                             component='span'
                             sx={{
                               fontWeight: '500',
+                          >
                               fontSize: '16px',
                               color: 'primary.OnSurface',
                               lineHeight: '19.36px',
                               mx: 2
                             }}
-                          >
                             {requestItems?.shipped_qty}
                           </Box>
                         </Typography> */}
@@ -2729,7 +2751,7 @@ const IndividualRequest = () => {
               You don't have an access to view this request
               <Button
                 onClick={() => {
-                  router.push('/pharmacy/request/request-list/')
+                  router.push('/pharmacy/request')
                 }}
                 variant='contained'
                 size='small'
@@ -2746,4 +2768,4 @@ const IndividualRequest = () => {
   )
 }
 
-export default IndividualRequest
+export default React.memo(IndividualRequest)

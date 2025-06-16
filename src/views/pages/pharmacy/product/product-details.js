@@ -47,6 +47,7 @@ export const ProductDetail = ({
       {detailsData?.map((item, index) => {
         return (
           <div key={index}>
+            {console.log('Item >>', item)}
             <Grid container spacing={6} sx={{ mb: '30px' }} xs={12}>
               {selectedPharmacy.type === 'central' && (
                 <Grid item xs={6}>
@@ -88,6 +89,13 @@ export const ProductDetail = ({
                 </Typography>
                 {item?.priority}
               </Grid>
+              <Grid item xs={6}>
+                <Typography variant='subtitle2' sx={{ mr: 2, color: 'text.primary' }}>
+                  Reason of Rejecting
+                </Typography>
+                {productDetails?.reject_reason ? productDetails?.reject_reason : 'NA'}
+              </Grid>
+
               {productDetails?.status !== 'Pending' && (
                 <Grid item xs={6} key={statusCall}>
                   <Typography variant='subtitle2' sx={{ mr: 2, color: 'text.primary' }}>

@@ -44,6 +44,7 @@ import { getVariantFOrProduct, getVariants, mapVariantForProduct } from 'src/lib
 import CloseIcon from '@mui/icons-material/Close'
 import SearchIcon from '@mui/icons-material/Search'
 import { useTheme } from '@emotion/react'
+import Error404 from 'src/pages/404'
 
 const ProductDetailsList = () => {
   const theme = useTheme()
@@ -291,378 +292,390 @@ const ProductDetailsList = () => {
 
   return (
     <>
-      {loader ? (
-        <FallbackSpinner />
-      ) : (
+      {selectedPharmacy.type === 'central' ? (
         <>
-          <Card sx={{ p: 6, mb: 4 }}>
-            <Grid container spacing={2}>
-              <Grid item xs={12} mb={6}>
-                <CardHeader
-                  sx={{ p: 0, m: 0 }}
-                  avatar={
-                    <Icon
-                      icon='ep:back'
-                      style={{ cursor: 'pointer' }}
-                      onClick={() => {
-                        router.back()
-                      }}
+          {loader ? (
+            <FallbackSpinner />
+          ) : (
+            <>
+              <Card sx={{ p: 6, mb: 4 }}>
+                <Grid container spacing={2}>
+                  <Grid item xs={12} mb={6}>
+                    <CardHeader
+                      sx={{ p: 0, m: 0 }}
+                      avatar={
+                        <Icon
+                          icon='ep:back'
+                          style={{ cursor: 'pointer' }}
+                          onClick={() => {
+                            router.back()
+                          }}
+                        />
+                      }
+                      action={
+                        <>
+                          {selectedPharmacy.type === 'central' &&
+                            (selectedPharmacy.permission.key === 'allow_full_access' ||
+                              selectedPharmacy.permission.key === 'ADD') && (
+                              <Button
+                                variant='contained'
+                                startIcon={<Icon icon='material-symbols:edit-outline' />}
+                                onClick={handleEdit}
+                              >
+                                Edit
+                              </Button>
+                            )}
+                        </>
+                      }
                     />
-                  }
-                  action={
-                    <>
-                      {selectedPharmacy.type === 'central' &&
-                        (selectedPharmacy.permission.key === 'allow_full_access' ||
-                          selectedPharmacy.permission.key === 'ADD') && (
-                          <Button
-                            variant='contained'
-                            startIcon={<Icon icon='material-symbols:edit-outline' />}
-                            onClick={handleEdit}
-                          >
-                            Edit
-                          </Button>
-                        )}
-                    </>
-                  }
-                />
-              </Grid>
-            </Grid>
-
-            <Grid container spacing={4}>
-              {/* Image Section */}
-              <Grid item xs={12} sm={3} mb={6}>
-                <Avatar
-                  variant='square'
-                  src={uploadedImage}
-                  alt='Medicine Image'
-                  sx={{ objectFit: 'contain', width: 'auto', height: 'auto', borderRadius: 2 }}
-                />
-              </Grid>
-
-              {/* Details Section */}
-              <Grid item xs={12} sm={9}>
-                <Grid container spacing={4} mb={6}>
-                  <Grid item xs={6}>
-                    <Box>
-                      <Typography sx={{ color: 'secondary.dark', fontWeight: 500, fontSize: '20px' }}>
-                        {productDetails?.name}
-                      </Typography>
-                      <Typography variant='body2' component='div' color='text.secondary'>
-                        <Box
-                          component='span'
-                          sx={{ color: 'customColors.neutralSecondary', fontWeight: 400, fontSize: '14px' }}
-                        >
-                          Generic Name
-                        </Box>{' '}
-                        -{' '}
-                        <Box
-                          component='span'
-                          sx={{ color: 'customColors.customHeadingTextColor', fontWeight: 500, fontSize: '14px' }}
-                        >
-                          {productDetails?.generic_name || 'NA'}
-                        </Box>
-                      </Typography>
-                      <Typography
-                        variant='body2'
-                        sx={{ color: 'customColors.customHeadingTextColor', fontWeight: 400, fontSize: '14px' }}
-                        mt={0.5}
-                      >
-                        Composition -{' '}
-                        {productDetails?.salts && productDetails?.salts?.length > 0
-                          ? productDetails?.salts?.map((salt, index) => (
-                              <span key={salt?.id}>
-                                {salt?.label} {salt?.qty}
-                                {index < productDetails?.salts?.length - 1 && ', '}
-                              </span>
-                            ))
-                          : 'NA'}
-                      </Typography>
-                    </Box>
-                  </Grid>
-
-                  {/* Package Options */}
-                  <Grid item xs={12} sm={6}>
-                    <Box>
-                      {/* Row with Available Packages and Add Variant Button */}
-                      <Box display='flex' justifyContent='space-between' alignItems='center' mb={2}>
-                        <Typography variant='body2' component='div'>
-                          <Box
-                            component='span'
-                            sx={{
-                              color: 'customColors.neutralSecondary',
-                              fontWeight: 400,
-                              fontSize: '14px'
-                            }}
-                          >
-                            Available Packages:
-                          </Box>{' '}
-                          <Box
-                            component='span'
-                            sx={{
-                              color: 'primary.light',
-                              fontWeight: 500,
-                              fontSize: '14px'
-                            }}
-                          >
-                            ({productDetails?.package}) of
-                          </Box>
-                        </Typography>
-                        {selectedPharmacy.type === 'central' &&
-                          (selectedPharmacy.permission.key === 'allow_full_access' ||
-                            selectedPharmacy.permission.key === 'ADD') && (
-                            <Button
-                              variant='outlined'
-                              color='primary'
-                              onClick={handleDrawerOpen}
-                              sx={{
-                                ml: 1
-                              }}
-                              size='small'
-                            >
-                              Add Variant
-                            </Button>
-                          )}
-                      </Box>
-                      {/* Chips for Variant List */}
-                      <Box mt={1} display='flex' gap={1} flexWrap='wrap'>
-                        {variantProductList.map((option, inx) => (
-                          <Chip
-                            key={option?.id}
-                            label={`${option?.unit_multiplier}  ${productDetails?.product_form_label}`}
-                            variant='outlined'
-                            clickable
-                            sx={{
-                              '&.MuiChip-outlined': {
-                                // borderColor: '#006D3566',
-                                borderColor: theme => alpha(theme.palette.primary.OnSurface, 0.4),
-                                backgroundColor: 'customColors.displaybgPrimary'
-                              },
-                              marginBottom: '8px'
-                            }}
-                          />
-                        ))}
-                      </Box>
-                    </Box>
                   </Grid>
                 </Grid>
 
-                {/* Additional Info */}
-                <Box
-                  sx={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    alignItems: 'flex-start',
-                    bgcolor: 'customColors.tableHeaderBg',
-                    p: 3,
-                    borderRadius: '8px'
-                  }}
-                >
-                  <Grid container spacing={2}>
-                    <Grid item xs={12} sm={4}>
-                      <Typography
-                        variant='caption'
-                        sx={{ color: 'customColors.neutralSecondary', fontWeight: 400, fontSize: '14px' }}
-                      >
-                        Manufacturer
-                      </Typography>
-                      <Typography
-                        variant='body2'
-                        sx={{ color: 'customColors.customHeadingTextColor', fontWeight: 500, fontSize: '14px' }}
-                      >
-                        {productDetails?.manufacturer_name}
-                      </Typography>
-                    </Grid>
-                    <Grid item xs={12} sm={4}>
-                      <Typography
-                        variant='caption'
-                        sx={{ color: 'customColors.neutralSecondary', fontWeight: 400, fontSize: '14px' }}
-                      >
-                        Drugs Class
-                      </Typography>
-                      <Typography
-                        variant='body2'
-                        sx={{ color: 'customColors.customHeadingTextColor', fontWeight: 500, fontSize: '14px' }}
-                      >
-                        {/* Non-steroidal anti-inflammatory */}
-                        {productDetails?.drug_class_label || 'NA'}
-                      </Typography>
-                    </Grid>
-                    <Grid item xs={12} sm={4}>
-                      <Typography
-                        variant='caption'
-                        sx={{ color: 'customColors.neutralSecondary', fontWeight: 400, fontSize: '14px' }}
-                      >
-                        Storage
-                      </Typography>
-                      <Typography
-                        variant='body2'
-                        sx={{ color: 'customColors.customHeadingTextColor', fontWeight: 500, fontSize: '14px' }}
-                      >
-                        {/* Below 25°C */}
-                        {productDetails?.storage_value || 'NA'}
-                      </Typography>
-                    </Grid>
+                <Grid container spacing={4}>
+                  {/* Image Section */}
+                  <Grid item xs={12} sm={3} mb={6}>
+                    <Avatar
+                      variant='square'
+                      src={uploadedImage}
+                      alt='Medicine Image'
+                      sx={{
+                        objectFit: 'contain',
+                        width: 'auto',
+                        height: 'auto',
+                        maxHeight: 200,
+                        borderRadius: 2
+                      }}
+                    />
                   </Grid>
-                </Box>
-              </Grid>
-            </Grid>
-          </Card>
-          <Card sx={{ p: 6 }}>
-            {/* <TabsSimple productDetails={productDetails} /> */}
-            <TabContext value={value}>
-              <TabList
-                onChange={handleChange}
-                sx={{
-                  '& .MuiTabs-flexContainer': {
-                    borderBottom: '1px solid',
-                    borderColor: 'customColors.neutral05'
-                  }
-                }}
-              >
-                <Tab value='overview' label='Overview' />
-                <Tab value='purchase' label='Purchase' />
-                <Tab value='dispatch' label='Dispatch' />
-                <Tab value='ledger' label='Ledger' />
-              </TabList>
-              <TabPanel value='overview' sx={{ p: 0 }}>
-                <Overview
-                  productDetails={productDetails}
-                  tabValue={value}
-                  productDashboardData={productDashboardData}
-                  purchaseData={purchaseData}
-                  dispatchData={dispatchData}
-                  updateUrlParams={updateUrlParams}
-                />
-              </TabPanel>
-              <TabPanel value='purchase' sx={{ p: 0 }}>
-                <Purchase tabValue={value} updateUrlParams={updateUrlParams} />
-              </TabPanel>
-              <TabPanel value='dispatch' sx={{ p: 0 }}>
-                <Dispatch tabValue={value} updateUrlParams={updateUrlParams} />
-              </TabPanel>
-              <TabPanel value='ledger' sx={{ p: 0 }}>
-                <Ledger tabValue={value} updateUrlParams={updateUrlParams} />
-              </TabPanel>
-            </TabContext>
-          </Card>
-        </>
-      )}
-      <Drawer
-        anchor='right'
-        open={isDrawerOpen}
-        onClose={handleDrawerClose}
-        PaperProps={{
-          sx: {
-            width: 460,
-            backgroundColor: '#F5F9F6',
-            display: 'flex',
-            flexDirection: 'column',
-            height: '100%'
-          }
-        }}
-      >
-        {/* Sticky Header */}
-        <Box
-          sx={{
-            position: 'sticky',
-            top: 0,
-            zIndex: 1,
-            backgroundColor: '#F5F9F6',
-            px: 4,
-            py: 2
-          }}
-        >
-          <Box display='flex' justifyContent='space-between' alignItems='center'>
-            <Typography variant='h6'>Select Variants</Typography>
-            <IconButton onClick={handleDrawerClose}>
-              <CloseIcon />
-            </IconButton>
-          </Box>
-          <Box sx={{ mt: 4 }}>
-            <TextField
-              fullWidth
-              variant='outlined'
-              size='small'
-              placeholder='Search Variants...'
-              value={searchQuery}
-              onChange={handleSearchChange}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position='start'>
-                    <SearchIcon />
-                  </InputAdornment>
-                )
-              }}
-            />
-          </Box>
-        </Box>
-        {/* Scrollable Content */}
-        <Box sx={{ p: 4, overflowY: 'auto', height: 'calc(100vh - 80px)' }}>
-          <Card sx={{ p: 4 }}>
-            {mainLoader ? (
-              <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 100 }}>
-                <CircularProgress />
-              </Box>
-            ) : filteredListAllVariant.length > 0 ? (
-              <List>
-                {filteredListAllVariant.map(variant => (
-                  <ListItem
-                    key={variant.id}
-                    disablePadding
+
+                  {/* Details Section */}
+                  <Grid item xs={12} sm={9}>
+                    <Grid container spacing={4} mb={6}>
+                      <Grid item xs={6}>
+                        <Box>
+                          <Typography sx={{ color: 'secondary.dark', fontWeight: 500, fontSize: '20px' }}>
+                            {productDetails?.name}
+                          </Typography>
+                          <Typography variant='body2' component='div' color='text.secondary'>
+                            <Box
+                              component='span'
+                              sx={{ color: 'customColors.neutralSecondary', fontWeight: 400, fontSize: '14px' }}
+                            >
+                              Generic Name
+                            </Box>{' '}
+                            -{' '}
+                            <Box
+                              component='span'
+                              sx={{ color: 'customColors.customHeadingTextColor', fontWeight: 500, fontSize: '14px' }}
+                            >
+                              {productDetails?.generic_name || 'NA'}
+                            </Box>
+                          </Typography>
+                          <Typography
+                            variant='body2'
+                            sx={{ color: 'customColors.customHeadingTextColor', fontWeight: 400, fontSize: '14px' }}
+                            mt={0.5}
+                          >
+                            Composition -{' '}
+                            {productDetails?.salts && productDetails?.salts?.length > 0
+                              ? productDetails?.salts?.map((salt, index) => (
+                                  <span key={salt?.id}>
+                                    {salt?.label} {salt?.qty}
+                                    {index < productDetails?.salts?.length - 1 && ', '}
+                                  </span>
+                                ))
+                              : 'NA'}
+                          </Typography>
+                        </Box>
+                      </Grid>
+
+                      {/* Package Options */}
+                      <Grid item xs={12} sm={6}>
+                        <Box>
+                          {/* Row with Available Packages and Add Variant Button */}
+                          <Box display='flex' justifyContent='space-between' alignItems='center' mb={2}>
+                            <Typography variant='body2' component='div'>
+                              <Box
+                                component='span'
+                                sx={{
+                                  color: 'customColors.neutralSecondary',
+                                  fontWeight: 400,
+                                  fontSize: '14px'
+                                }}
+                              >
+                                Available Packages:
+                              </Box>{' '}
+                              <Box
+                                component='span'
+                                sx={{
+                                  color: 'primary.light',
+                                  fontWeight: 500,
+                                  fontSize: '14px'
+                                }}
+                              >
+                                ({productDetails?.package}) of
+                              </Box>
+                            </Typography>
+                            {selectedPharmacy.type === 'central' &&
+                              (selectedPharmacy.permission.key === 'allow_full_access' ||
+                                selectedPharmacy.permission.key === 'ADD') && (
+                                <Button
+                                  variant='outlined'
+                                  color='primary'
+                                  onClick={handleDrawerOpen}
+                                  sx={{
+                                    ml: 1
+                                  }}
+                                  size='small'
+                                >
+                                  Add Variant
+                                </Button>
+                              )}
+                          </Box>
+                          {/* Chips for Variant List */}
+                          <Box mt={1} display='flex' gap={1} flexWrap='wrap'>
+                            {variantProductList.map((option, inx) => (
+                              <Chip
+                                key={option?.id}
+                                label={`${option?.unit_multiplier}  ${productDetails?.product_form_label}`}
+                                variant='outlined'
+                                clickable
+                                sx={{
+                                  '&.MuiChip-outlined': {
+                                    // borderColor: '#006D3566',
+                                    borderColor: theme => alpha(theme.palette.primary.OnSurface, 0.4),
+                                    backgroundColor: 'customColors.displaybgPrimary'
+                                  },
+                                  marginBottom: '8px'
+                                }}
+                              />
+                            ))}
+                          </Box>
+                        </Box>
+                      </Grid>
+                    </Grid>
+
+                    {/* Additional Info */}
+                    <Box
+                      sx={{
+                        display: 'flex',
+                        justifyContent: 'space-between',
+                        alignItems: 'flex-start',
+                        bgcolor: 'customColors.tableHeaderBg',
+                        p: 3,
+                        borderRadius: '8px'
+                      }}
+                    >
+                      <Grid container spacing={2}>
+                        <Grid item xs={12} sm={4}>
+                          <Typography
+                            variant='caption'
+                            sx={{ color: 'customColors.neutralSecondary', fontWeight: 400, fontSize: '14px' }}
+                          >
+                            Manufacturer
+                          </Typography>
+                          <Typography
+                            variant='body2'
+                            sx={{ color: 'customColors.customHeadingTextColor', fontWeight: 500, fontSize: '14px' }}
+                          >
+                            {productDetails?.manufacturer_name}
+                          </Typography>
+                        </Grid>
+                        <Grid item xs={12} sm={4}>
+                          <Typography
+                            variant='caption'
+                            sx={{ color: 'customColors.neutralSecondary', fontWeight: 400, fontSize: '14px' }}
+                          >
+                            Drugs Class
+                          </Typography>
+                          <Typography
+                            variant='body2'
+                            sx={{ color: 'customColors.customHeadingTextColor', fontWeight: 500, fontSize: '14px' }}
+                          >
+                            {/* Non-steroidal anti-inflammatory */}
+                            {productDetails?.drug_class_label || 'NA'}
+                          </Typography>
+                        </Grid>
+                        <Grid item xs={12} sm={4}>
+                          <Typography
+                            variant='caption'
+                            sx={{ color: 'customColors.neutralSecondary', fontWeight: 400, fontSize: '14px' }}
+                          >
+                            Storage
+                          </Typography>
+                          <Typography
+                            variant='body2'
+                            sx={{ color: 'customColors.customHeadingTextColor', fontWeight: 500, fontSize: '14px' }}
+                          >
+                            {/* Below 25°C */}
+                            {productDetails?.storage_value || 'NA'}
+                          </Typography>
+                        </Grid>
+                      </Grid>
+                    </Box>
+                  </Grid>
+                </Grid>
+              </Card>
+              <Card sx={{ p: 6 }}>
+                {/* <TabsSimple productDetails={productDetails} /> */}
+                <TabContext value={value}>
+                  <TabList
+                    onChange={handleChange}
                     sx={{
-                      border: '1px solid #ccc',
-                      borderRadius: '4px',
-                      marginBottom: '8px',
-                      px: 4
+                      '& .MuiTabs-flexContainer': {
+                        borderBottom: '1px solid',
+                        borderColor: 'customColors.neutral05'
+                      }
                     }}
                   >
-                    <Checkbox
-                      edge='start'
-                      checked={selectedVariants.some(item => item.id === variant.id)}
-                      tabIndex={-1}
-                      disableRipple
-                      onChange={() => handleToggle(variant)}
+                    <Tab value='overview' label='Overview' />
+                    <Tab value='purchase' label='Purchase' />
+                    <Tab value='dispatch' label='Dispatch' />
+                    <Tab value='ledger' label='Ledger' />
+                  </TabList>
+                  <TabPanel value='overview' sx={{ p: 0 }}>
+                    <Overview
+                      productDetails={productDetails}
+                      tabValue={value}
+                      productDashboardData={productDashboardData}
+                      purchaseData={purchaseData}
+                      dispatchData={dispatchData}
+                      updateUrlParams={updateUrlParams}
                     />
-                    <ListItemText
-                      primary={`Unit Multiplier: ${variant.unit_multiplier}`}
-                      secondary={`${variant.description}` ? `Description: ${variant.description}` : null}
-                    />
-                  </ListItem>
-                ))}
-              </List>
-            ) : (
-              <Box sx={{ textAlign: 'center', m: 4 }}>
-                <Typography variant='body2' color='text.secondary'>
-                  No data found
-                </Typography>
-              </Box>
-            )}
-          </Card>
-        </Box>
-        <Box
-          sx={{
-            position: 'sticky',
-            bottom: 0,
-            zIndex: 1,
-            px: 4,
-            py: 4,
-            boxShadow: '0px -1px 5px rgba(0, 0, 0, 0.1)'
-          }}
-        >
-          <Button
-            variant='contained'
-            color='primary'
-            fullWidth
-            onClick={handleAddVariants}
-            sx={{
-              textTransform: 'capitalize'
+                  </TabPanel>
+                  <TabPanel value='purchase' sx={{ p: 0 }}>
+                    <Purchase tabValue={value} updateUrlParams={updateUrlParams} />
+                  </TabPanel>
+                  <TabPanel value='dispatch' sx={{ p: 0 }}>
+                    <Dispatch tabValue={value} updateUrlParams={updateUrlParams} />
+                  </TabPanel>
+                  <TabPanel value='ledger' sx={{ p: 0 }}>
+                    <Ledger tabValue={value} updateUrlParams={updateUrlParams} />
+                  </TabPanel>
+                </TabContext>
+              </Card>
+            </>
+          )}
+          <Drawer
+            anchor='right'
+            open={isDrawerOpen}
+            onClose={handleDrawerClose}
+            PaperProps={{
+              sx: {
+                width: 460,
+                backgroundColor: '#F5F9F6',
+                display: 'flex',
+                flexDirection: 'column',
+                height: '100%'
+              }
             }}
-            disabled={selectedVariants.length === 0}
           >
-            Add Variant
-          </Button>
-        </Box>
-      </Drawer>
+            {/* Sticky Header */}
+            <Box
+              sx={{
+                position: 'sticky',
+                top: 0,
+                zIndex: 1,
+                backgroundColor: '#F5F9F6',
+                px: 4,
+                py: 2
+              }}
+            >
+              <Box display='flex' justifyContent='space-between' alignItems='center'>
+                <Typography variant='h6'>Select Variants</Typography>
+                <IconButton onClick={handleDrawerClose}>
+                  <CloseIcon />
+                </IconButton>
+              </Box>
+              <Box sx={{ mt: 4 }}>
+                <TextField
+                  fullWidth
+                  variant='outlined'
+                  size='small'
+                  placeholder='Search Variants...'
+                  value={searchQuery}
+                  onChange={handleSearchChange}
+                  InputProps={{
+                    startAdornment: (
+                      <InputAdornment position='start'>
+                        <SearchIcon />
+                      </InputAdornment>
+                    )
+                  }}
+                />
+              </Box>
+            </Box>
+            {/* Scrollable Content */}
+            <Box sx={{ p: 4, overflowY: 'auto', height: 'calc(100vh - 80px)' }}>
+              <Card sx={{ p: 4 }}>
+                {mainLoader ? (
+                  <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 100 }}>
+                    <CircularProgress />
+                  </Box>
+                ) : filteredListAllVariant.length > 0 ? (
+                  <List>
+                    {filteredListAllVariant.map(variant => (
+                      <ListItem
+                        key={variant.id}
+                        disablePadding
+                        sx={{
+                          border: '1px solid #ccc',
+                          borderRadius: '4px',
+                          marginBottom: '8px',
+                          px: 4
+                        }}
+                      >
+                        <Checkbox
+                          edge='start'
+                          checked={selectedVariants.some(item => item.id === variant.id)}
+                          tabIndex={-1}
+                          disableRipple
+                          onChange={() => handleToggle(variant)}
+                        />
+                        <ListItemText
+                          primary={`Unit Multiplier: ${variant.unit_multiplier}`}
+                          secondary={`${variant.description}` ? `Description: ${variant.description}` : null}
+                        />
+                      </ListItem>
+                    ))}
+                  </List>
+                ) : (
+                  <Box sx={{ textAlign: 'center', m: 4 }}>
+                    <Typography variant='body2' color='text.secondary'>
+                      No data found
+                    </Typography>
+                  </Box>
+                )}
+              </Card>
+            </Box>
+            <Box
+              sx={{
+                position: 'sticky',
+                bottom: 0,
+                zIndex: 1,
+                px: 4,
+                py: 4,
+                boxShadow: '0px -1px 5px rgba(0, 0, 0, 0.1)'
+              }}
+            >
+              <Button
+                variant='contained'
+                color='primary'
+                fullWidth
+                onClick={handleAddVariants}
+                sx={{
+                  textTransform: 'capitalize'
+                }}
+                disabled={selectedVariants.length === 0}
+              >
+                Add Variant
+              </Button>
+            </Box>
+          </Drawer>
+        </>
+      ) : (
+        <Error404></Error404>
+      )}
     </>
   )
 }

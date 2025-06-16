@@ -29,6 +29,7 @@ import ReturnReportDrawer from 'src/views/pages/pharmacy/reports/ReturnReportDra
 import { format, subMonths } from 'date-fns'
 import { usePharmacyContext } from 'src/context/PharmacyContext'
 import { ExportButton, FilterButton } from 'src/views/utility/render-snippets'
+import PharmacyProductCard from 'src/views/utility/PharmacyProductCard'
 
 const ReturnReport = () => {
   const router = useRouter()
@@ -92,16 +93,6 @@ const ReturnReport = () => {
     })
     setFilteredData({
       pharmacy: []
-    })
-
-    setExpiryFilterDates({
-      startDate: '',
-      endDate: ''
-    })
-
-    setNearExpiryFilterDates({
-      startDate: '',
-      endDate: ''
     })
   }, [selectedPharmacy.id])
 
@@ -189,7 +180,7 @@ const ReturnReport = () => {
         setLoading(false)
       }
     },
-    [paginationModel, filterDates]
+    [paginationModel, filterDates, filteredData]
   )
 
   useEffect(() => {
@@ -197,10 +188,11 @@ const ReturnReport = () => {
       sort: sort,
       q: searchValue,
       column: sortColumn,
-      filteredData: filteredData,
       expired: expired,
       page: paginationModel?.page,
       limit: paginationModel?.pageSize
+
+      // filteredData: filteredData,
     })
     updateUrlParams({
       sort,
@@ -211,7 +203,7 @@ const ReturnReport = () => {
       startDate: filterDates?.startDate,
       endDate: filterDates?.endDate
     })
-  }, [paginationModel.page, paginationModel.pageSize, filterDates, filteredData, expired, selectedPharmacy?.id])
+  }, [paginationModel.page, paginationModel.pageSize, filterDates, expired, selectedPharmacy?.id])
 
   const getSlNo = index => (paginationModel.page + 1 - 1) * paginationModel.pageSize + index + 1
 
@@ -226,10 +218,12 @@ const ReturnReport = () => {
       minWidth: 20,
       field: 'id',
       sortable: false,
-      headerName: 'SL NO',
+      headerName: 'SL.NO',
+      align: 'center',
+      headerAlign: 'center',
 
       renderCell: params => (
-        <Box sx={{ minWidth: 40 }}>
+        <Box sx={{ minWidth: 40, textAlign: 'center' }}>
           <Typography sx={{ color: 'text.primary', fontSize: '14px', fontWeight: '400px' }}>
             {params.row.id + '.'}
           </Typography>
@@ -276,32 +270,8 @@ const ReturnReport = () => {
         </Typography>
       )
     },
-
-    // {
-    //   width: 5,
-    //   field: 'label',
-    //   headerName: '',
-    //   sortable: false,
-    //   renderCell: params => (
-    //     <Typography
-    //       sx={{
-    //         color: 'customColors.OnSecondaryContainer',
-    //         display: 'flex',
-    //         alignItems: 'center',
-    //         fontWeight: 500,
-    //         fontSize: '14px',
-    //         ...RenderUtility?.getEllipsisStyleForText()
-    //       }}
-    //     >
-    //       {RenderUtility?.renderControlLabel(
-    //         !isNaN(params.row?.controlled_substance) && parseInt(params.row?.controlled_substance) === 1,
-    //         'CS'
-    //       )}
-    //     </Typography>
-    //   )
-    // },
     {
-      width: 250,
+      width: 340,
       minWidth: 20,
       field: 'stock_name',
       align: 'left',
@@ -310,60 +280,186 @@ const ReturnReport = () => {
 
       renderCell: params => (
         <Box>
-          <StyleWithIconCardComponent
-            value={
-              <Box>
-                <Typography sx={{ display: 'flex', alignItems: 'center' }}>
-                  <Typography
-                    sx={{
-                      color: 'customColors.OnSecondaryContainer',
-                      display: 'flex',
-
-                      alignItems: 'center',
-                      fontWeight: 500,
-                      fontSize: '14px',
-                      ...RenderUtility?.getEllipsisStyleForText()
-                    }}
-                  >
-                    {RenderUtility?.renderControlLabel(
-                      !isNaN(params.row?.controlled_substance) && parseInt(params.row?.controlled_substance) === 1,
-                      'CS'
-                    )}
-                    {RenderUtility?.renderControlLabel(
-                      !isNaN(params.row?.prescription_required) && parseInt(params.row?.prescription_required) === 1,
-                      'PR'
-                    )}
-                  </Typography>
-                  <Typography
-                    sx={{
-                      color: 'customColors.customHeadingTextColor',
-                      fontWeight: 500,
-                      fontSize: '14px',
-                      overflow: 'hidden',
-                      whiteSpace: 'nowrap',
-                      textOverflow: 'ellipsis',
-                      maxWidth: 250
-                    }}
-                  >
-                    {params.row.stock_name}
-                  </Typography>
-                </Typography>
-              </Box>
-            }
-            description={params.row.generic_name}
-            icon={params.row.image ? `${params.row.image}` : '/images/Medicine_Icon.png'}
-            showIcon={false}
-            customCss={{
-              p: '0px',
-              width: '100%',
-              height: '100%',
-              fontSize: '14px',
-              avtBorderRadius: '10px',
-              iconWidth: '44px',
-              iconHeight: '44px'
-            }}
+          <PharmacyProductCard
+            title={params?.row?.stock_name}
+            subTitle={params?.row?.generic_name ? params?.row?.generic_name : 'NA'}
+            icon={params?.row?.image}
+            controlSubstance={params?.row?.controlled_substance === '1' && true}
+            prescriptionRequired={params?.row?.prescription_required === '1' && true}
+            rowWidth={320}
           />
         </Box>
+      )
+    },
+    {
+      minWidth: 20,
+      width: 160,
+      field: 'batch_no',
+      sortable: false,
+      headerName: 'BATCH NUMBER',
+      renderCell: params => (
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
+          {params.row.batch_no}
+        </Typography>
+      )
+    },
+    {
+      minWidth: 20,
+      width: 160,
+      field: 'expiry_date',
+      headerName: 'EXPIRY DATE',
+      sortable: true,
+      renderCell: params => (
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
+          {Utility.formatDisplayDate(params.row.expiry_date)}
+        </Typography>
+      )
+    },
+    {
+      minWidth: 20,
+      width: 180,
+      field: 'return_date',
+      headerName: 'RETURN DATE',
+      sortable: true,
+      renderCell: params => (
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
+          {Utility.formatDisplayDate(params.row.return_date)}
+        </Typography>
+      )
+    },
+    {
+      minWidth: 20,
+      width: 200,
+      field: 'return_qty',
+      headerName: 'TOTAL RETURN QUANTITY',
+      sortable: true,
+      align: 'center',
+      renderCell: params => (
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
+          {params.row?.return_qty ? Utility.formatNumber(params.row.return_qty) : 0}
+        </Typography>
+      )
+    },
+    {
+      minWidth: 20,
+      width: 160,
+      field: 'net_unit_price',
+      headerName: 'NET UNIT PRICE',
+      sortable: true,
+      align: 'right',
+      headerAlign: 'right',
+      renderCell: params => (
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
+          {Utility.formatAmountToReadableDigit(params.row.net_unit_price)}
+        </Typography>
+      )
+    },
+    {
+      minWidth: 20,
+      width: 180,
+      field: 'return_value',
+      headerName: 'TOTAL RETURN VALUE',
+      align: 'right',
+      headerAlign: 'right',
+      sortable: true,
+      renderCell: params => (
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
+          {Utility.formatAmountToReadableDigit(params.row.return_value)}
+        </Typography>
+      )
+    },
+    {
+      minWidth: 20,
+      width: 160,
+      field: `${selectedPharmacy?.type === 'central' ? 'from_store' : 'to_store'}`,
+      sortable: true,
+      headerName: `${selectedPharmacy?.type === 'central' ? 'FROM STORE' : 'TO STORE'}`,
+      renderCell: params => (
+        <Typography
+          variant='body2'
+          sx={{
+            color: theme.palette.customColors.customHeadingTextColor,
+            fontSize: '14px',
+            fontWeight: 500,
+            fontFamily: 'Inter'
+          }}
+        >
+          {selectedPharmacy?.type === 'central' ? params.row.from_store : params.row.to_store}
+        </Typography>
+      )
+    },
+    {
+      minWidth: 20,
+      width: 200,
+      field: 'manufacturer_name',
+      sortable: false,
+      headerName: 'MANUFACTURER NAME',
+      renderCell: params => (
+        <Tooltip title={params.row.manufacturer_name}>
+          <Typography
+            variant='body2'
+            sx={{
+              color: theme.palette.customColors.customHeadingTextColor,
+              fontSize: '14px',
+              fontWeight: 400,
+              fontFamily: 'Inter',
+              overflow: 'hidden',
+              whiteSpace: 'nowrap',
+              textOverflow: 'ellipsis',
+              maxWidth: 200
+            }}
+          >
+            <span alt={params.row.manufacturer_name}> {params.row.manufacturer_name}</span>
+          </Typography>
+        </Tooltip>
       )
     },
     {
@@ -392,178 +488,6 @@ const ReturnReport = () => {
           >
             {`${params.row.package} of ${Utility.formatNumber(params.row.package_qty)}
               ${params.row.package_uom_label} ${params.row.product_form_label}`}
-          </Typography>
-        </Tooltip>
-      )
-    },
-    {
-      minWidth: 20,
-      width: 180,
-      field: 'expiry_date',
-      headerName: 'EXPIRY DATE',
-      sortable: true,
-      renderCell: params => (
-        <Typography
-          variant='body2'
-          sx={{
-            color: theme.palette.customColors.customHeadingTextColor,
-            fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
-          }}
-        >
-          {Utility.formatDisplayDate(params.row.expiry_date)}
-        </Typography>
-      )
-    },
-    {
-      minWidth: 20,
-      width: 180,
-      field: 'return_qty',
-      headerName: 'TOTAL RETURN QUANTITY',
-      sortable: true,
-      align: 'center',
-      renderCell: params => (
-        <Typography
-          variant='body2'
-          sx={{
-            color: theme.palette.customColors.customHeadingTextColor,
-            fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
-          }}
-        >
-          {params.row?.return_qty ? Utility.formatNumber(params.row.return_qty) : 0}
-        </Typography>
-      )
-    },
-    {
-      minWidth: 20,
-      width: 180,
-      field: 'net_unit_price',
-      headerName: 'NET UNIT PRICE',
-      sortable: true,
-      align: 'right',
-      headerAlign: 'right',
-      renderCell: params => (
-        <Typography
-          variant='body2'
-          sx={{
-            color: theme.palette.customColors.customHeadingTextColor,
-            fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
-          }}
-        >
-          {Utility.formatAmountToReadableDigit(params.row.net_unit_price)}
-        </Typography>
-      )
-    },
-    {
-      minWidth: 20,
-      width: 180,
-      field: 'return_value',
-      headerName: 'TOTAL RETURN VALUE',
-      align: 'right',
-      sortable: true,
-      headerAlign: 'right',
-      renderCell: params => (
-        <Typography
-          variant='body2'
-          sx={{
-            color: theme.palette.customColors.customHeadingTextColor,
-            fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
-          }}
-        >
-          {Utility.formatAmountToReadableDigit(params.row.return_value)}
-        </Typography>
-      )
-    },
-    {
-      minWidth: 20,
-      width: 180,
-      field: 'return_date',
-      headerName: 'RETURN DATE',
-      sortable: true,
-      renderCell: params => (
-        <Typography
-          variant='body2'
-          sx={{
-            color: theme.palette.customColors.customHeadingTextColor,
-            fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
-          }}
-        >
-          {Utility.formatDisplayDate(params.row.return_date)}
-        </Typography>
-      )
-    },
-
-    {
-      minWidth: 20,
-      width: 160,
-      field: 'batch_no',
-      sortable: false,
-      headerName: 'BATCH NUMBER',
-      renderCell: params => (
-        <Typography
-          variant='body2'
-          sx={{
-            color: theme.palette.customColors.customHeadingTextColor,
-            fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
-          }}
-        >
-          {params.row.batch_no}
-        </Typography>
-      )
-    },
-    {
-      minWidth: 20,
-      width: 160,
-      field: 'from_store',
-      sortable: true,
-      headerName: 'FROM STORE',
-      renderCell: params => (
-        <Typography
-          variant='body2'
-          sx={{
-            color: theme.palette.customColors.customHeadingTextColor,
-            fontSize: '14px',
-            fontWeight: 500,
-            fontFamily: 'Inter'
-          }}
-        >
-          {params.row.from_store}
-        </Typography>
-      )
-    },
-    {
-      minWidth: 20,
-      width: 250,
-      field: 'manufacturer_name',
-      sortable: false,
-      headerName: 'MANUFACTURER NAME',
-      renderCell: params => (
-        <Tooltip title={params.row.manufacturer_name}>
-          <Typography
-            variant='body2'
-            sx={{
-              color: theme.palette.customColors.customHeadingTextColor,
-              fontSize: '14px',
-              fontWeight: 400,
-              fontFamily: 'Inter',
-              overflow: 'hidden',
-              whiteSpace: 'nowrap',
-              textOverflow: 'ellipsis',
-              maxWidth: 200
-            }}
-          >
-            <span alt={params.row.manufacturer_name}> {params.row.manufacturer_name}</span>
           </Typography>
         </Tooltip>
       )
@@ -600,6 +524,8 @@ const ReturnReport = () => {
       )
     }
   ]
+
+  console.log(indexedRows)
 
   const handleSwitchChange = event => {
     setExpired(event.target.checked)
@@ -641,6 +567,7 @@ const ReturnReport = () => {
     if (newModel.length) {
       setSort(newModel[0].sort)
       setSortColumn(newModel[0].field)
+
       fetchReturnReport({
         sort: newModel[0].sort,
         q: searchValue,
@@ -757,6 +684,19 @@ const ReturnReport = () => {
     } finally {
       setExportLoading(false)
     }
+  }
+
+  const handleFilter = async filterList => {
+    setFilteredData(filterList)
+    await fetchReturnReport({
+      sort: sort,
+      q: searchValue,
+      column: sortColumn,
+      expired: expired,
+      page: paginationModel?.page,
+      limit: paginationModel?.pageSize,
+      filteredData: filterList
+    })
   }
 
   const calculateAppliedFiltersCount = () => {
@@ -893,7 +833,7 @@ const ReturnReport = () => {
         <ReturnReportDrawer
           setOpenFilterDrawer={setOpenFilterDrawer}
           openFilterDrawer={openFilterDrawer}
-          onApplyFilter={filterList => setFilteredData(filterList)}
+          onApplyFilter={handleFilter}
           selectedOptions={selectedOptions}
           setSelectedOptions={setSelectedOptions}
           expiryFilterDates={expiryFilterDates}
