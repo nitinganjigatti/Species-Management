@@ -396,7 +396,7 @@ const AnimalAssessment = () => {
               })
               setShowDetailsPopUp(true)
             }}
-            sx={{ p: 4, cursor: 'poiner' }}
+            sx={{ p: 4, cursor: 'pointer' }}
           >
             <Tooltip title={record.value} placement='top'>
               <Typography
