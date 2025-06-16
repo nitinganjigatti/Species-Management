@@ -444,7 +444,6 @@ export default function ShipmentRequests({ updateUrlParams }) {
       >
         <Grid item xs={12} sm={6} md={6}>
           <TabLists
-            container
             variant='scrollable'
             allowScrollButtonsMobile
             onChange={(event, newValue) => {

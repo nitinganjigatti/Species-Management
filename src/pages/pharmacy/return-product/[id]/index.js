@@ -100,7 +100,7 @@ const IndividualReturnRequest = () => {
 
   // const { id, request_number } = router.query
   const { id, request_number } = router.query
- 
+
   const base_url = `${process.env.NEXT_PUBLIC_BASE_URL}`
   const base_image_url = '/uploads/control_substance/'
 
@@ -575,7 +575,7 @@ const IndividualReturnRequest = () => {
       renderCell: (params, rowId) => (
         <div>
           <Typography variant='body2' sx={{ color: 'text.primary' }}>
-            <div>{params.row.shipment_id}</div>
+            {params.row.shipment_id}
           </Typography>
         </div>
       )

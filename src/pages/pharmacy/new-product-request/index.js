@@ -209,10 +209,10 @@ export default function NewProductList() {
       field: 'product_name',
       headerName: 'Product Name',
       renderCell: params => (
-        <div>
+        <Box>
           {params?.row.request_items?.map((item, index) => (
             <Typography
-              key={index}
+              key={`product-${params.row.id}-${index}`}
               sx={{
                 color: theme.palette.customColors.customHeadingTextColor,
                 fontSize: '14px',
@@ -223,7 +223,7 @@ export default function NewProductList() {
               {item?.product_name}
             </Typography>
           ))}
-        </div>
+        </Box>
       )
     },
 
@@ -274,10 +274,10 @@ export default function NewProductList() {
       headerAlign: 'left',
       align: 'left',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Box>
           {params?.row.request_items?.map((item, index) => (
             <Typography
-              key={index}
+              key={`quantity-${params.row.id}-${index}`}
               sx={{
                 color: theme.palette.customColors.customHeadingTextColor,
                 fontSize: '14px',
@@ -288,7 +288,7 @@ export default function NewProductList() {
               {item?.quantity}
             </Typography>
           ))}
-        </Typography>
+        </Box>
       )
     },
 
@@ -942,7 +942,7 @@ export default function NewProductList() {
           </>
         )}
       </>
-    );
+    )
   }
 
   return (

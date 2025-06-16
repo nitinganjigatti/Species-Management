@@ -98,7 +98,7 @@ const ShipRequest = ({ dispatchedItems, storeDetails, resetForm }) => {
           .string()
           .required('Mobile Number is required')
           .test('is-valid-number', 'Only numbers are allowed', value => {
-            return /^\d*$/.test(value);
+            return /^\d*$/.test(value)
           })
           .test('is-valid-length', 'Mobile Number must be exactly 10 digits', value => {
             return value?.length === 10
@@ -127,7 +127,7 @@ const ShipRequest = ({ dispatchedItems, storeDetails, resetForm }) => {
           .string()
           .required('Mobile Number is required')
           .test('is-valid-number', 'Only numbers are allowed', value => {
-            return /^\d*$/.test(value);
+            return /^\d*$/.test(value)
           })
           .test('is-valid-length', 'Mobile Number must be exactly 10 digits', value => {
             return value?.length === 10
@@ -271,7 +271,7 @@ const ShipRequest = ({ dispatchedItems, storeDetails, resetForm }) => {
           }
         }}
       />
-    );
+    )
   })
 
   const columns = [
@@ -584,9 +584,13 @@ const ShipRequest = ({ dispatchedItems, storeDetails, resetForm }) => {
                   Shipment Details
                 </Typography>
                 {deliveryType.Ship ? (
-                  <Grid item size={{ xs: 12, sm: 3 }} sx={{
-                    mb: 6
-                  }}>
+                  <Grid
+                    item
+                    size={{ xs: 12, sm: 3 }}
+                    sx={{
+                      mb: 6
+                    }}
+                  >
                     <FormControl fullWidth>
                       <Controller
                         name='name'
@@ -595,15 +599,19 @@ const ShipRequest = ({ dispatchedItems, storeDetails, resetForm }) => {
                           <Autocomplete
                             options={options}
                             value={value}
-                            renderOption={(props, option) => (
-                              <li {...props}>
-                                <Box>
-                                  <Typography>{option.driver_name}</Typography>
-                                  <Typography variant='body2'>{option.phone_number}</Typography>
-                                  <Typography variant='body2'>{option.vehicle_number}</Typography>
-                                </Box>
-                              </li>
-                            )}
+                            renderOption={(props, option) => {
+                              const { key, ...otherProps } = props
+
+                              return (
+                                <li key={`${option.driver_name}-${option.phone_number}`} {...otherProps}>
+                                  <Box>
+                                    <Typography>{option.driver_name}</Typography>
+                                    <Typography variant='body2'>{option.phone_number}</Typography>
+                                    <Typography variant='body2'>{option.vehicle_number}</Typography>
+                                  </Box>
+                                </li>
+                              )
+                            }}
                             getOptionLabel={option => (option.driver_name ? option.driver_name : '')}
                             isOptionEqualToValue={(option, value) => option.value === value.driver_name}
                             onChange={(e, val) => {
@@ -613,16 +621,12 @@ const ShipRequest = ({ dispatchedItems, storeDetails, resetForm }) => {
                                 setValue('receiver_name', '')
                                 setValue('phone_number', '')
 
-                                // setValue('driver_name', '')
-
                                 return onChange(null)
                               } else {
                                 setValue('person_shipping', val.driver_name)
                                 setValue('vehicle_no', val.vehicle_number)
                                 setValue('receiver_name', val.driver_name)
                                 setValue('phone_number', val.phone_number)
-
-                                // setValue('driver_name', val.driver_name)
 
                                 return onChange(val)
                               }
@@ -670,9 +674,13 @@ const ShipRequest = ({ dispatchedItems, storeDetails, resetForm }) => {
                   //     )}
                   //   </FormControl>
                   // </Grid> */}
-                    <Grid item size={{ xs: 12, sm: 3 }} sx={{
-                      mb: 6
-                    }}>
+                    <Grid
+                      item
+                      size={{ xs: 12, sm: 3 }}
+                      sx={{
+                        mb: 6
+                      }}
+                    >
                       <FormControl fullWidth>
                         <Controller
                           name='person_shipping'
@@ -700,9 +708,13 @@ const ShipRequest = ({ dispatchedItems, storeDetails, resetForm }) => {
                   </>
                 )}
                 {!deliveryType.Ship && (
-                  <Grid item size={{ xs: 12, sm: 6 }} sx={{
-                    mb: 6
-                  }}>
+                  <Grid
+                    item
+                    size={{ xs: 12, sm: 6 }}
+                    sx={{
+                      mb: 6
+                    }}
+                  >
                     <FormControl fullWidth>
                       <SingleDatePicker
                         fullWidth
@@ -724,9 +736,13 @@ const ShipRequest = ({ dispatchedItems, storeDetails, resetForm }) => {
                     </FormControl>
                   </Grid>
                 )}
-                <Grid item size={{ xs: 12, sm: deliveryType.Ship ? 3 : 6 }} sx={{
-                  mb: 6
-                }}>
+                <Grid
+                  item
+                  size={{ xs: 12, sm: deliveryType.Ship ? 3 : 6 }}
+                  sx={{
+                    mb: 6
+                  }}
+                >
                   <FormControl fullWidth>
                     <Controller
                       name='phone_number'
@@ -757,9 +773,13 @@ const ShipRequest = ({ dispatchedItems, storeDetails, resetForm }) => {
                 </Grid>
                 {deliveryType.Ship ? (
                   <>
-                    <Grid item size={{ xs: 12, sm: 3 }} sx={{
-                      mb: 6
-                    }}>
+                    <Grid
+                      item
+                      size={{ xs: 12, sm: 3 }}
+                      sx={{
+                        mb: 6
+                      }}
+                    >
                       <FormControl fullWidth>
                         <Controller
                           name='vehicle_no'
@@ -784,9 +804,13 @@ const ShipRequest = ({ dispatchedItems, storeDetails, resetForm }) => {
                         )}
                       </FormControl>
                     </Grid>
-                    <Grid item size={{ xs: 12, sm: 6 }} sx={{
-                      mb: 6
-                    }}>
+                    <Grid
+                      item
+                      size={{ xs: 12, sm: 6 }}
+                      sx={{
+                        mb: 6
+                      }}
+                    >
                       <FormControl fullWidth>
                         <SingleDatePicker
                           fullWidth
@@ -1059,7 +1083,7 @@ const ShipRequest = ({ dispatchedItems, storeDetails, resetForm }) => {
         </Grid>
       </Grid>
     </>
-  );
+  )
 }
 
 export default ShipRequest

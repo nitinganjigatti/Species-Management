@@ -42,10 +42,11 @@ export default function DetailsTable({ ...props }) {
 
   const renderTableCellContent = (el, props) => (
     <>
-      <Typography variant='body1' sx={{ fontWeight: 600 }}>
+      <Box sx={{ fontWeight: 600 }}>
         <Tooltip title={el.stock_name} placement='top'>
           <Typography
             variant='body1'
+            component='span'
             sx={{
               fontWeight: 600,
               color: 'customColors.OnSecondaryContainer',
@@ -67,7 +68,7 @@ export default function DetailsTable({ ...props }) {
             {el.stock_name}
           </Typography>
         </Tooltip>
-      </Typography>
+      </Box>
 
       <Tooltip
         title={`${el?.package} of ${el?.package_qty} ${el?.package_uom_label} ${el?.product_form_label}`}
@@ -75,6 +76,7 @@ export default function DetailsTable({ ...props }) {
       >
         <Typography
           variant='body1'
+          component='span'
           sx={{
             color: 'text.primary',
             fontSize: '14px !important',
@@ -244,7 +246,7 @@ export default function DetailsTable({ ...props }) {
                           ? el.alt_parent.map((el, index) => {
                               return (
                                 <Grid
-                                  key={index}
+                                  key={`alt-parent-${el.id || index}`}
                                   sx={{
                                     minHeight: 104,
                                     maxHeight: 104,
@@ -318,9 +320,7 @@ export default function DetailsTable({ ...props }) {
                         {el?.alt_parent?.length > 0 &&
                           el.alt_parent.map((altEl, index) => (
                             <Grid
-                              key={index}
-                              container
-                              direction='column'
+                              key={`alt-content-${altEl.id || index}`}
                               sx={{
                                 minHeight: 104,
                                 maxHeight: 104,
@@ -387,9 +387,7 @@ export default function DetailsTable({ ...props }) {
                           ? el.alt_parent.map((el, index) => {
                               return (
                                 <Box
-                                  key={index}
-                                  container
-                                  direction='column'
+                                  key={`alt-quantity-${el.id || index}`}
                                   sx={{
                                     minHeight: 104,
                                     maxHeight: 104,
@@ -707,7 +705,7 @@ export default function DetailsTable({ ...props }) {
                             ? el.alt_parent?.map((el, index) => {
                                 return (
                                   <Grid
-                                    key={index}
+                                    key={`alt-action-${el.id || index}`}
                                     container
                                     direction='column'
                                     sx={{
@@ -736,6 +734,7 @@ export default function DetailsTable({ ...props }) {
 
                                     {el?.alternate_comments !== '' && (
                                       <TextEllipsisWithModal
+                                        key={`alt-comments-${el.id || index}`}
                                         text={el?.alternate_comments}
                                         icon={'material-symbols:sticky-note-2-outline-sharp'}
                                         style={{ opacity: 0.5 }}
@@ -777,7 +776,7 @@ export default function DetailsTable({ ...props }) {
                                 .map((nesEl, index) => {
                                   return (
                                     <Grid
-                                      key={index}
+                                      key={`alt-request-${nesEl.id || index}`}
                                       container
                                       direction='column'
                                       sx={{
@@ -801,6 +800,7 @@ export default function DetailsTable({ ...props }) {
                                             nesEl?.request_status !== 'Not Available' &&
                                             nesEl?.request_status !== 'Rejected' && (
                                               <MenuWithDots
+                                                key={`alt-menu-${nesEl.id || index}`}
                                                 options={props?.generateOptions(nesEl, nesEl?.id)}
                                                 disabled={props?.selectedPharmacy?.permission?.key === 'VIEW'}
                                               />
@@ -812,9 +812,9 @@ export default function DetailsTable({ ...props }) {
                                 })
                             : null}
                           {el?.alt_parent?.length > 0 &&
-                            el?.alt_parent?.map(nestElt => {
+                            el?.alt_parent?.map((nestElt, index) => {
                               return (
-                                <>
+                                <React.Fragment key={`alt-status-${nestElt.id || index}`}>
                                   {nestElt?.request_status === 'Not Available' && (
                                     <Grid
                                       sx={{
@@ -838,6 +838,7 @@ export default function DetailsTable({ ...props }) {
                                       </Typography>
                                       {nestElt?.alternate_comments && (
                                         <TextEllipsisWithModal
+                                          key={`alt-stock-comments-${nestElt.id || index}`}
                                           text={nestElt?.alternate_comments}
                                           icon={'material-symbols:sticky-note-2-outline-sharp'}
                                           style={{ opacity: 0.5 }}
@@ -868,6 +869,7 @@ export default function DetailsTable({ ...props }) {
                                       </Typography>
                                       {nestElt?.alternate_comments && (
                                         <TextEllipsisWithModal
+                                          key={`alt-reject-comments-${nestElt.id || index}`}
                                           text={nestElt?.alternate_comments}
                                           icon={'material-symbols:sticky-note-2-outline-sharp'}
                                           style={{ opacity: 0.5 }}
@@ -875,7 +877,7 @@ export default function DetailsTable({ ...props }) {
                                       )}
                                     </Grid>
                                   )}
-                                </>
+                                </React.Fragment>
                               )
                             })}
                           {el?.request_status === 'Not Available' && (

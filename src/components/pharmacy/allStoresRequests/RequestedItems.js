@@ -917,7 +917,7 @@ export default function RequestedItems({ selectedStoreDetails, setSelectedStoreD
           />
         </Grid>
       </Box>
-    );
+    )
   }
 
   useEffect(() => {

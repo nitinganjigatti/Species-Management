@@ -359,24 +359,30 @@ function AlternativeMedicine({ parentId, updateRequestItems, existingListItems, 
               <Autocomplete
                 id='autocomplete-controlled'
                 options={optionsMedicineList}
-                renderOption={(props, option) => (
-                  <li
-                    {...props}
-                    style={{
-                      opacity: getOptionStyle(option) === false ? 1 : 0.5,
+                renderOption={(props, option) => {
+                  const { key, ...otherProps } = props
 
-                      pointerEvents: getOptionStyle(option) === false ? 'auto' : 'none'
-                    }}
-                  >
-                    <Box>
-                      <Typography>{option?.name}</Typography>
-                      <Typography variant='body2'>{option?.package}</Typography>
-                      <Typography variant='body2'>{option?.manufacture}</Typography>
-                      {RenderUtility?.renderControlLabel(option?.control_substance === true, 'CS')}
-                      {RenderUtility?.renderPrescriptionLabel(option?.prescription_required === true, 'PR')}
-                    </Box>
-                  </li>
-                )}
+                  return (
+                    <li
+                      key={`${option.value || ''}-${option.name || ''}-${option.package || ''}-${
+                        option.manufacture || ''
+                      }`}
+                      {...otherProps}
+                      style={{
+                        opacity: getOptionStyle(option) === false ? 1 : 0.5,
+                        pointerEvents: getOptionStyle(option) === false ? 'auto' : 'none'
+                      }}
+                    >
+                      <Box>
+                        <Typography>{option?.name}</Typography>
+                        <Typography variant='body2'>{option?.package}</Typography>
+                        <Typography variant='body2'>{option?.manufacture}</Typography>
+                        {RenderUtility?.renderControlLabel(option?.control_substance === true, 'CS')}
+                        {RenderUtility?.renderPrescriptionLabel(option?.prescription_required === true, 'PR')}
+                      </Box>
+                    </li>
+                  )
+                }}
                 value={nestedRowMedicine.medicine_name ? nestedRowMedicine.medicine_name : ''}
                 onChange={(event, newValue) => {
                   setNestedRowMedicine({
@@ -451,44 +457,33 @@ function AlternativeMedicine({ parentId, updateRequestItems, existingListItems, 
               <Autocomplete
                 id='autocomplete-controlled'
                 options={optionsGenericMedicineList}
-                renderOption={(props, option) => (
-                  <li
-                    {...props}
-                    style={{
-                      opacity: getOptionStyle(option) === false ? 1 : 0.5,
+                renderOption={(props, option) => {
+                  const { key, ...otherProps } = props
 
-                      pointerEvents: getOptionStyle(option) === false ? 'auto' : 'none'
-                    }}
-                  >
-                    <Box>
-                      <Typography>{option.genericName ? option.genericName : 'Generic name not available'}</Typography>
-                      <Typography variant='body2'>{`Product - ${option.name}`}</Typography>
-                      <Typography variant='body2'>{option.package}</Typography>
-                      <Typography variant='body2'>{option.manufacture}</Typography>
-                      {/* {option.control_substance === true && (
-                        <CustomChip label='CS' skin='light' color='success' size='small' />
-                      )} */}
-                      {RenderUtility?.renderControlLabel(option.control_substance === true, 'CS')}
-                      {RenderUtility?.renderPrescriptionLabel(option.prescription_required === true, 'PR')}
-                      {/* {option.prescription_required === true && (
-                        <CustomChip label='PR' skin='light' color='success' size='small' />
-                      )} */}
-                      {/* <Typography
-                        sx={{
-                          color: 'customColors.OnSecondaryContainer',
-                          display: 'flex',
-                          alignItems: 'center',
-                          fontSize: '16px',
-                          fontWeight: 400
-                        }}
-                      >
+                  return (
+                    <li
+                      key={`${option.value || ''}-${option.genericName || ''}-${option.package || ''}-${
+                        option.manufacture || ''
+                      }`}
+                      {...otherProps}
+                      style={{
+                        opacity: getOptionStyle(option) === false ? 1 : 0.5,
+                        pointerEvents: getOptionStyle(option) === false ? 'auto' : 'none'
+                      }}
+                    >
+                      <Box>
+                        <Typography>
+                          {option.genericName ? option.genericName : 'Generic name not available'}
+                        </Typography>
+                        <Typography variant='body2'>{`Product - ${option.name}`}</Typography>
+                        <Typography variant='body2'>{option.package}</Typography>
+                        <Typography variant='body2'>{option.manufacture}</Typography>
                         {RenderUtility?.renderControlLabel(option.control_substance === true, 'CS')}
-                        {RenderUtility?.renderControlLabel(option.prescription_required === true, 'PR')}
-                        {option.name}({option.package})
-                      </Typography> */}
-                    </Box>
-                  </li>
-                )}
+                        {RenderUtility?.renderPrescriptionLabel(option.prescription_required === true, 'PR')}
+                      </Box>
+                    </li>
+                  )
+                }}
                 value={nestedRowMedicine.genericName ? nestedRowMedicine.genericName : ''}
                 onChange={(event, newValue) => {
                   setNestedRowMedicine({
@@ -1188,7 +1183,7 @@ function AlternativeMedicine({ parentId, updateRequestItems, existingListItems, 
         </LoadingButton>
       </Grid>
     </form>
-  );
+  )
 }
 
 export default React.memo(AlternativeMedicine)

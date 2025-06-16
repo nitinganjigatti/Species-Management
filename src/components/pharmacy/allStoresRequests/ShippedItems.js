@@ -51,7 +51,7 @@ export default function ShippedItems({ updateUrlParams, setTotalShippedCounts, o
       renderCell: (params, rowId) => (
         <div>
           <Typography variant='body2' sx={{ color: 'text.primary' }}>
-            <div>{params.row.shipment_id}</div>
+            {params.row.shipment_id}
           </Typography>
         </div>
       )
@@ -102,7 +102,7 @@ export default function ShippedItems({ updateUrlParams, setTotalShippedCounts, o
       field: 'status',
       headerName: 'Status',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography component='div' variant='body2' sx={{ color: 'text.primary' }}>
           <div style={{ display: 'flex', alignItems: 'center' }}>
             {params?.row?.dispute_status === 'Dispute Pending' && (
               <Box sx={{ color: 'error.main', mr: 2 }}>

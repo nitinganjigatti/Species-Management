@@ -30,13 +30,9 @@ import Router from 'next/router'
 import { useRouter } from 'next/router'
 import { LoadingButton } from '@mui/lab'
 import toast from 'react-hot-toast'
-import Chip from '@mui/material/Chip'
-import Avatar from '@mui/material/Avatar'
+
 // ** React Imports
 import { forwardRef, useState, useEffect, useCallback } from 'react'
-import ToggleButton from '@mui/material/ToggleButton'
-import ToggleButtonGroup from '@mui/material/ToggleButtonGroup'
-import CustomChip from 'src/@core/components/mui/chip'
 
 import { v4 as uuidv4 } from 'uuid'
 
@@ -683,7 +679,7 @@ const AddLocalDispatch = () => {
     <>
       {selectedPharmacy.type === 'local' ? (
         // (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') ? (
-        (<Card>
+        <Card>
           <Grid
             container
             size={{ xs: 12, sm: 12 }}
@@ -798,6 +794,15 @@ const AddLocalDispatch = () => {
                     value={users?.find(user => user?.value === editParams?.user_id) || null}
                     getOptionLabel={option => option?.label || ''}
                     isOptionEqualToValue={(option, value) => option.value === value.value}
+                    renderOption={(props, option) => {
+                      const { key, ...otherProps } = props
+
+                      return (
+                        <li key={`${option.value}-${option.label}`} {...otherProps}>
+                          {option.label}
+                        </li>
+                      )
+                    }}
                     onKeyUp={e => {
                       searchUsersList(e.target.value)
                     }}
@@ -971,14 +976,20 @@ const AddLocalDispatch = () => {
                                   {/* {el.control_substance ? (
                                     <CustomChip label='CS' skin='light' color='success' size='small' />
                                   ) : null} */}
-                                  <Typography variant='body2' sx={{
-                                    color: 'customColors.customHeadingTextColor'
-                                  }}>
+                                  <Typography
+                                    variant='body2'
+                                    sx={{
+                                      color: 'customColors.customHeadingTextColor'
+                                    }}
+                                  >
                                     {el.packageDetails}
                                   </Typography>
-                                  <Typography variant='body2' sx={{
-                                    color: 'customColors.customHeadingTextColor'
-                                  }}>
+                                  <Typography
+                                    variant='body2'
+                                    sx={{
+                                      color: 'customColors.customHeadingTextColor'
+                                    }}
+                                  >
                                     {el.manufacture}
                                   </Typography>
                                 </TableCell>
@@ -1030,7 +1041,7 @@ const AddLocalDispatch = () => {
                                   </IconButton>
                                 </TableCell>
                               </TableRow>
-                            );
+                            )
                           })
                         : null}
                     </TableBody>
@@ -1197,14 +1208,14 @@ const AddLocalDispatch = () => {
               </Box>
             }
           />
-        </Card>)
+        </Card>
       ) : (
         <>
           <Error404></Error404>
         </>
       )}
     </>
-  );
+  )
 }
 
 export default AddLocalDispatch
