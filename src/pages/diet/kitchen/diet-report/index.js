@@ -335,11 +335,13 @@ const DietReportPage = () => {
         <Card>
           <CardHeader
             title={RenderUtility.pageTitle('Diet Reports')}
-            titleTypographyProps={{ variant: 'h5' }}
             sx={{
               '& .MuiCardHeader-title': {
                 color: theme => theme.palette.primary.main
               }
+            }}
+            slotProps={{
+              title: { variant: 'h5' }
             }}
           />
           <CardContent>
