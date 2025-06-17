@@ -32,7 +32,7 @@ const ControlledTextField = ({
         <TextField
           {...field}
           fullWidth={fullWidth}
-          value={field.value}
+          value={field.value ?? ''}
           type={type}
           label={label}
           onWheel={event => event.target.blur()}

@@ -17,7 +17,10 @@ const ControlledAutocomplete = ({
   onBlur = () => {},
   getOptionLabel = option => option.label || '',
   isOptionEqualToValue = (option, value) => option.value === value?.value,
-  renderOption = null
+  renderOption = null,
+  textFieldProps = {},
+  autocompleteProps = {},
+  sx = {}
 }) => {
   if (!options) return
 
@@ -34,16 +37,19 @@ const ControlledAutocomplete = ({
             {...field}
             options={options}
             getOptionLabel={getOptionLabel}
-            value={field.value}
+            value={field.value ?? null} // ensures Autocomplete is always controlled
             isOptionEqualToValue={isOptionEqualToValue}
             onChange={(e, value) => {
               field.onChange(value)
               onChangeOverride(value)
             }}
-            onKeyUp={e => onKeyUp(e)}
+            onKeyUp={onKeyUp}
             onBlur={onBlur}
             loading={loading}
             noOptionsText='Type to search'
+            renderOption={renderOption}
+            sx={sx}
+            {...autocompleteProps}
             renderInput={params => (
               <TextField
                 {...params}
@@ -51,9 +57,25 @@ const ControlledAutocomplete = ({
                 placeholder='Search & Select'
                 error={Boolean(fieldError)}
                 helperText={fieldError?.value?.message || fieldError?.label?.message || fieldError?.message}
+                {...textFieldProps}
+                InputProps={{
+                  ...params.InputProps, // ensures dropdown arrow and anchor remain
+                  ...(textFieldProps?.InputProps || {}),
+                  sx: {
+                    ...params.InputProps?.sx,
+                    ...textFieldProps?.InputProps?.sx
+                  }
+                }}
+                InputLabelProps={{
+                  ...params.InputLabelProps,
+                  ...(textFieldProps?.InputLabelProps || {}),
+                  sx: {
+                    ...params.InputLabelProps?.sx,
+                    ...textFieldProps?.InputLabelProps?.sx
+                  }
+                }}
               />
             )}
-            renderOption={renderOption}
           />
         )}
       />

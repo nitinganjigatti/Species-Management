@@ -1,10 +1,9 @@
 import {
-    GET_DOCUMENT_TYPE_LIST,
-    CREATE_DOCUMENT_TYPE,
-    UPDATE_DOCUMENT_TYPE,
-    GET_TRADE_CONTEXT_TYPE,
-    GET_DOCUMENT_TYPE_BY_ID
-  } from 'src/constants/ApiConstant'
+  GET_DOCUMENT_TYPE_LIST,
+  CREATE_DOCUMENT_TYPE,
+  UPDATE_DOCUMENT_TYPE,
+  GET_TRADE_CONTEXT_TYPE
+} from 'src/constants/ApiConstant'
   
   import { axiosGet, axiosPost } from '/src/lib/api/utility'
   

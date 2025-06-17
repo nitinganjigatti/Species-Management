@@ -550,3 +550,5 @@ export const UPDATE_DOCUMENT_TYPE = 'v1/document-types' // Add `/id` dynamically
 
 export const GET_TRADE_CONTEXT_TYPE = 'v1/trade/context/types' // Add `/id` dynamically
 
+export const GET_EXPORTS_LIST = 'v1/trade/exports'
+

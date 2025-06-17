@@ -4,16 +4,25 @@ import Typography from '@mui/material/Typography'
 import IconButton from '@mui/material/IconButton'
 import Icon from 'src/@core/components/icon'
 import DocumentTypeForm, { useDocumentTypeForm } from './DocumentTypeForm'
+import { useEffect } from 'react'
+import { useTheme } from '@mui/material/styles'
 
-const EditDocumentType = ({
-  editOpen,
+const defaultValues = {
+  name: '',
+  description: '',
+  contexts: [],
+  active: '1'
+}
+
+const AddEditDocumentType = ({
+  open,
   handleClose,
-  editId,
   handleSubmitData,
   submitLoader,
   tradeContextTypes = [],
   contextLoading = false,
-  defaultValues
+  editId = null,
+  initialValues = null
 }) => {
   const {
     control,
@@ -21,6 +30,16 @@ const EditDocumentType = ({
     formState: { errors },
     reset
   } = useDocumentTypeForm(defaultValues)
+
+  const theme = useTheme()
+
+  useEffect(() => {
+    if (initialValues) {
+      reset(initialValues)
+    } else {
+      reset(defaultValues)
+    }
+  }, [initialValues, reset])
 
   const onSubmit = async data => {
     const payload = {
@@ -31,21 +50,32 @@ const EditDocumentType = ({
   }
 
   return (
-    <Drawer anchor='right' open={editOpen} onClose={handleClose} sx={{ '& .MuiDrawer-paper': { width: 400 } }}>
-      <Box className='sidebar-header' sx={{ p: 4, display: 'flex', justifyContent: 'space-between' }}>
-        <Typography variant='h6'>Edit Document Type</Typography>
+    <Drawer
+      anchor='right'
+      open={open}
+      onClose={handleClose}
+      sx={{
+        '& .MuiDrawer-paper': { width: ['100%', '550px'] }
+      }}
+    >
+      <Box
+        className='sidebar-header'
+        sx={{ p: 4, display: 'flex', justifyContent: 'space-between', bgcolor: theme.palette.customColors.Background }}
+      >
+        <Typography variant='h6'>{editId ? 'Edit Document Type' : 'Add Document Type'}</Typography>
         <IconButton size='small' onClick={handleClose}>
           <Icon icon='mdi:close' />
         </IconButton>
       </Box>
-      <Box sx={{ p: 4 }}>
+
+      <Box sx={{ bgcolor: theme.palette.customColors.Background, height: '100vh' }}>
         <DocumentTypeForm
           control={control}
           handleSubmit={handleSubmit}
           errors={errors}
           onSubmit={onSubmit}
           submitLoader={submitLoader}
-          isEdit
+          isEdit={Boolean(editId)}
           tradeContextTypes={tradeContextTypes}
           contextLoading={contextLoading}
         />
@@ -54,4 +84,4 @@ const EditDocumentType = ({
   )
 }
 
-export default EditDocumentType
+export default AddEditDocumentType

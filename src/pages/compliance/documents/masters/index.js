@@ -1,5 +1,5 @@
-import { Card, CardHeader, Box, debounce, IconButton, Typography, useTheme, Grid } from '@mui/material'
-import React, { useCallback, useEffect, useState } from 'react'
+import { Card, CardHeader, Box, debounce, IconButton, Typography, useTheme, Grid, Breadcrumbs } from '@mui/material'
+import React, { useCallback, useEffect, useState, useContext } from 'react'
 import { AddButton } from 'src/components/Buttons'
 import Icon from 'src/@core/components/icon'
 import UserSnackbar from 'src/components/utility/snackbar'
@@ -8,12 +8,12 @@ import {
   addDocumentType,
   updateDocumentType,
   getTradeContextTypes
-} from 'src/lib/api/compliance/settings/documentTypes'
-import AddDocumentType from 'src/views/pages/compliance/documentTypes/AddDocumentType'
-import EditDocumentType from 'src/views/pages/compliance/documentTypes/EditDocumentType'
+} from 'src/lib/api/compliance/masters'
 import Toaster from 'src/components/Toaster'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import Search from 'src/views/utility/Search'
+import { AuthContext } from 'src/context/AuthContext'
+import AddEditDocumentType from 'src/views/pages/compliance/documents/masters/AddEditDocumentType'
 
 const DocumentTypes = () => {
   const theme = useTheme()
@@ -26,15 +26,25 @@ const DocumentTypes = () => {
   const [severity, setSeverity] = useState('success')
 
   const [total, setTotal] = useState(0)
-  const [sort, setSort] = useState('asc')
   const [rows, setRows] = useState([])
   const [searchValue, setSearchValue] = useState('')
+  const [sort, setSort] = useState('asc')
   const [sortColumn, setSortColumn] = useState('')
   const [paginationModel, setPaginationModel] = useState({ page: 0, pageSize: 10 })
   const [loading, setLoading] = useState(false)
 
   const [tradeContextTypes, setTradeContextTypes] = useState([])
   const [contextLoading, setContextLoading] = useState(false)
+
+  const complianceModuleAccessContext = useContext(AuthContext)
+  const complianceModuleAccess = complianceModuleAccessContext?.userData?.roles?.settings?.compliance_module || ''
+
+  const hasAddAccess =
+    complianceModuleAccess === 'ADD' || complianceModuleAccess === 'EDIT' || complianceModuleAccess === 'DELETE'
+  const hasEditAccess = complianceModuleAccess === 'EDIT' || complianceModuleAccess === 'DELETE'
+  const hasFullAccess = complianceModuleAccess === 'allow_full_access'
+
+  console.log('complianceModuleAccess', complianceModuleAccess)
 
   const handleClose = (_, reason) => {
     if (reason !== 'clickaway') setOpenSnackbar(false)
@@ -72,11 +82,82 @@ const DocumentTypes = () => {
       active: row.active
     })
     setOpenDrawer(true)
-    if(!tradeContextTypes.length)
-      await fetchTradeContextTypes()
+    if (!tradeContextTypes.length) await fetchTradeContextTypes()
   }
 
+  const baseColumns = [
+    {
+      flex: 0.07,
+      width: 40,
+      field: 'uid',
+      headerName: 'SL No',
+      sortable: false,
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary', px: 2 }}>
+          {parseInt(params.row.uid)}
+        </Typography>
+      )
+    },
+    {
+      flex: 0.4,
+      minWidth: 20,
+      field: 'name',
+      headerName: 'Name',
+      sortable: false,
+      renderCell: params => (
+        <Typography
+          variant='body2'
+          sx={{
+            color: 'text.primary',
+            overflow: 'hidden',
+            whiteSpace: 'nowrap',
+            textOverflow: 'ellipsis',
+            px: 2
+          }}
+        >
+          {params.row.name}
+        </Typography>
+      )
+    },
+    {
+      flex: 0.2,
+      minWidth: 20,
+      field: 'active',
+      headerName: 'Status',
+      sortable: false,
+      renderCell: params => (
+        <Typography variant='body2' sx={{ color: 'text.primary', px: 2 }}>
+          {params.row.active === '1' ? 'Active' : 'Inactive'}
+        </Typography>
+      )
+    }
+  ]
+
+  // Conditionally add Action column based on access permissions
+  // if (hasAddAccess || hasEditAccess || hasFullAccess) {
+  baseColumns.push({
+    flex: 0.2,
+    minWidth: 20,
+    headerName: 'Action',
+    sortable: false,
+    renderCell: params => (
+      <Box sx={{ display: 'flex', alignItems: 'right', textAlign: 'right', px: 2 }}>
+        {parseInt(params.row.zoo_id) === 0 ? null : (
+          <IconButton size='small' sx={{ mr: 0.5 }} onClick={() => handleEdit(params.row)} aria-label='Edit'>
+            <Icon icon='mdi:pencil-outline' />
+          </IconButton>
+        )}
+      </Box>
+    )
+  })
+
+  const columns = baseColumns
+
+  // Conditionally show Add button based on access permissions
   const headerAction = <AddButton title='Add Document Type' action={addEventSidebarOpen} />
+
+  // const headerAction =
+  //   hasAddAccess || hasEditAccess || hasFullAccess ? <AddButton title='Add Document Type' action={addEventSidebarOpen} /> : null
 
   const fetchTableData = useCallback(
     async (sort, q, column) => {
@@ -86,11 +167,7 @@ const DocumentTypes = () => {
         const params = {
           q,
           page_no: paginationModel.page + 1,
-          limit: paginationModel.pageSize,
-
-          // status: "",
-          // sort,
-          // column,
+          limit: paginationModel.pageSize
         }
         const res = await getDocumentTypeList(params)
         const startingIndex = paginationModel.page * paginationModel.pageSize
@@ -170,69 +247,19 @@ const DocumentTypes = () => {
     }
   }
 
-  const columns = [
-    {
-      flex: 0.07,
-      width: 40,
-      field: 'uid',
-      headerName: 'SL No',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary', px: 2  }}>
-          {parseInt(params.row.uid)}
-        </Typography>
-      )
-    },
-    {
-      flex: 0.4,
-      minWidth: 20,
-      field: 'name',
-      headerName: 'Name',
-      renderCell: params => (
-        <Typography
-          variant='body2'
-          sx={{
-            color: 'text.primary',
-            overflow: 'hidden',
-            whiteSpace: 'nowrap',
-            textOverflow: 'ellipsis',
-            px: 2
-          }}
-        >
-          {params.row.name}
-        </Typography>
-      )
-    },
-    {
-      flex: 0.2,
-      minWidth: 20,
-      field: 'active',
-      headerName: 'Status',
-      renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary', px: 2 }}>
-          {params.row.active === '1' ? 'Active' : 'Inactive'}
-        </Typography>
-      )
-    },
-    {
-      flex: 0.2,
-      minWidth: 20,
-      headerName: 'Action',
-      renderCell: params => (
-        <Box sx={{ display: 'flex', alignItems: 'right', textAlign: 'right', px: 2 }}>
-          {parseInt(params.row.zoo_id) === 0 ? null : (
-            <IconButton size='small' sx={{ mr: 0.5 }} onClick={() => handleEdit(params.row)} aria-label='Edit'>
-              <Icon icon='mdi:pencil-outline' />
-            </IconButton>
-          )}
-        </Box>
-      )
-    }
-  ]
-
   return (
     <>
+      <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
+        <Typography sx={{ cursor: 'pointer', color: 'inherit' }}>Documents</Typography>
+        <Typography sx={{ cursor: 'pointer', color: 'text.primary' }}>Masters</Typography>
+      </Breadcrumbs>
       <Card>
-        <CardHeader title='Document Type List' action={headerAction} sx={{ px: 5 }} />
+        <CardHeader
+          title='Document Types'
+          titleTypographyProps={{ fontSize: '1.5rem !important', fontWeight: 'bold' }}
+          action={headerAction}
+          sx={{ px: 5, display: 'flex', flexWrap: 'wrap', gap: 2 }}
+        />
         <Grid sx={{ mx: 5 }}>
           <Search
             value={searchValue}
@@ -257,27 +284,16 @@ const DocumentTypes = () => {
         </Grid>
       </Card>
 
-      {openDrawer && !editParams.id && (
-        <AddDocumentType
-          addOpen={openDrawer}
+      {openDrawer && (
+        <AddEditDocumentType
+          open={openDrawer}
           handleClose={handleSidebarClose}
           handleSubmitData={handleSubmitData}
           submitLoader={submitLoader}
           tradeContextTypes={tradeContextTypes}
           contextLoading={contextLoading}
-        />
-      )}
-
-      {openDrawer && editParams.id && (
-        <EditDocumentType
-          editOpen={openDrawer}
-          handleClose={handleSidebarClose}
-          handleSubmitData={handleSubmitData}
-          submitLoader={submitLoader}
-          editId={editParams.id}
-          tradeContextTypes={tradeContextTypes}
-          contextLoading={contextLoading}
-          defaultValues={editParams}
+          editId={editParams?.id || null}
+          initialValues={editParams?.id ? editParams : null}
         />
       )}
 
