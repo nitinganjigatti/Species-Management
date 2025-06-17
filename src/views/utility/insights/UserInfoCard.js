@@ -12,8 +12,10 @@ const UserInfoCard = ({ avatarUrl, name, description, textColor, fontWeight }) =
               <>
                 <Tooltip title={name}>
                   <Typography
-                    sx={{ color: theme => textColor ?? theme.palette.common.white }}
-                    fontWeight={fontWeight ?? 600}
+                    sx={{
+                      fontWeight: fontWeight ?? 600,
+                      color: theme => textColor ?? theme.palette.common.white
+                    }}
                   >
                     {name}
                   </Typography>
@@ -33,8 +35,11 @@ const UserInfoCard = ({ avatarUrl, name, description, textColor, fontWeight }) =
         </>
       ) : (
         <Typography
-          sx={{ ml: 3, color: theme => textColor ?? theme.palette.common.white }}
-          fontWeight={fontWeight ?? 600}
+          sx={{
+            fontWeight: fontWeight ?? 600,
+            ml: 3,
+            color: theme => textColor ?? theme.palette.common.white
+          }}
         ></Typography>
       )}
     </Box>

@@ -474,7 +474,14 @@ const CreateMealGroup = ({
               Selected enclosures
             </Typography>
             {mealType.type !== 'view' && (
-              <Box display='flex' gap={1} mt={2} flexDirection={{ xs: 'column', sm: 'row' }}>
+              <Box
+                sx={{
+                  display: 'flex',
+                  gap: 1,
+                  mt: 2,
+                  flexDirection: { xs: 'column', sm: 'row' }
+                }}
+              >
                 <TextField
                   placeholder='Search...'
                   value={Object.keys(editParam).length > 0 ? editSearchValue : searchTerm}

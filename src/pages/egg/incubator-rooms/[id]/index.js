@@ -562,7 +562,12 @@ const RoomDetails = () => {
                 >
                   Incubator Room
                 </Typography>
-                <Typography color='text.primary' sx={{ cursor: 'pointer' }}>
+                <Typography
+                  sx={{
+                    color: 'text.primary',
+                    cursor: 'pointer'
+                  }}
+                >
                   Room Details
                 </Typography>
               </Breadcrumbs>

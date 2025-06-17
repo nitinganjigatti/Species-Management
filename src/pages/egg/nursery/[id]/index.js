@@ -553,7 +553,12 @@ const NurseryDetails = () => {
             <Typography sx={{ cursor: 'pointer' }} color='inherit ' onClick={() => Router.push('/egg/nursery/')}>
               Nursery List
             </Typography>
-            <Typography sx={{ cursor: 'pointer' }} color='text.primary'>
+            <Typography
+              sx={{
+                color: 'text.primary',
+                cursor: 'pointer'
+              }}
+            >
               Nursery Details
             </Typography>
           </Breadcrumbs>

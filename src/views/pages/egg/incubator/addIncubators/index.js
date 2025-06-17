@@ -230,7 +230,12 @@ const AddIncubators = ({
               <Icon icon='mdi:close' fontSize={20} />
             </IconButton>
           </Box>
-          <Box flexGrow={1} sx={{ alignSelf: 'stretch' }}>
+          <Box
+            sx={{
+              flexGrow: 1,
+              alignSelf: 'stretch'
+            }}
+          >
             <Box
               sx={{
                 mx: '20px',

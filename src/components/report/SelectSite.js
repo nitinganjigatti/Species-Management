@@ -28,6 +28,7 @@ const SelectSites = ({
 }) => {
   const theme = useTheme()
   const [pendingSelections, setPendingSelections] = useState({ Site: [] })
+
   const handleCloseDrawer = () => {
     setSiteListDrawer(false)
     setTempSelectedItems(pendingSelections)
@@ -96,7 +97,13 @@ const SelectSites = ({
         {/* Header */}
         <Box sx={{ p: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <Box>
-            <Typography variant='h6' fontWeight='500' sx={{ color: theme.palette.customColors.OnPrimaryContainer }}>
+            <Typography
+              variant='h6'
+              sx={{
+                fontWeight: '500',
+                color: theme.palette.customColors.OnPrimaryContainer
+              }}
+            >
               Choose Site
             </Typography>
             <Typography variant='body2' sx={{ color: theme.palette.customColors.onSurfaceVariant }}>
@@ -276,6 +283,7 @@ const SelectSites = ({
               color: theme.palette.primary.contrastText,
               p: 2,
               borderRadius: '8px'
+
               // height: '58px' // to be this value according to figma but using continue 3 component from 2 place and there has different value, need to be samea at all the places
             }}
             onClick={handleCloseDrawer}

@@ -733,7 +733,14 @@ const MealGroup = () => {
       headerAlign: 'left',
       align: 'left',
       renderHeader: () => (
-        <Box display='flex' alignItems='center' justifyContent='start' gap={1}>
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'start',
+            gap: 1
+          }}
+        >
           <Typography
             variant='subtitle2'
             sx={{
@@ -753,8 +760,8 @@ const MealGroup = () => {
           <Tooltip title={params?.row.group_name}>
             <Typography
               variant='body2'
-              textAlign='center'
               sx={{
+                textAlign: 'center',
                 color: theme.palette.customColors.customHeadingTextColor,
                 fontSize: '16px',
                 fontWeight: 500,
@@ -778,7 +785,14 @@ const MealGroup = () => {
       headerAlign: 'center',
       align: 'center',
       renderHeader: () => (
-        <Box display='flex' alignItems='center' justifyContent='start' gap={3}>
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'start',
+            gap: 3
+          }}
+        >
           <Typography
             variant='subtitle2'
             sx={{
@@ -796,8 +810,8 @@ const MealGroup = () => {
       renderCell: params => (
         <Typography
           variant='body2'
-          textAlign='center'
           sx={{
+            textAlign: 'center',
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '16px',
             color: theme.palette.customColors.OnSurfaceVariant,
@@ -819,7 +833,14 @@ const MealGroup = () => {
       headerAlign: 'center',
       align: 'center',
       renderHeader: () => (
-        <Box display='flex' alignItems='center' justifyContent='start' gap={1}>
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'start',
+            gap: 1
+          }}
+        >
           <Typography
             variant='subtitle2'
             sx={{
@@ -837,8 +858,8 @@ const MealGroup = () => {
       renderCell: params => (
         <Typography
           variant='body2'
-          textAlign='center'
           sx={{
+            textAlign: 'center',
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '16px',
             color: '#44544A',
@@ -859,7 +880,14 @@ const MealGroup = () => {
       headerAlign: 'center',
       align: 'center',
       renderHeader: () => (
-        <Box display='flex' alignItems='center' justifyContent='start' gap={1}>
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'start',
+            gap: 1
+          }}
+        >
           <Typography
             variant='subtitle2'
             sx={{
@@ -877,8 +905,8 @@ const MealGroup = () => {
       renderCell: params => (
         <Typography
           variant='body2'
-          textAlign='center'
           sx={{
+            textAlign: 'center',
             color: theme.palette.customColors.customHeadingTextColor,
             fontSize: '16px',
             fontWeight: 400,
@@ -899,7 +927,14 @@ const MealGroup = () => {
       align: 'center',
       renderHeader: () => (
         <>
-          <Box display='flex' alignItems='center' justifyContent='start' gap={1}>
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'start',
+              gap: 1
+            }}
+          >
             <Typography
               variant='subtitle2'
               sx={{
@@ -917,11 +952,12 @@ const MealGroup = () => {
       ),
       renderCell: params => (
         <Box
-          display='flex'
-          // flexWrap='wrap' // allow wrapping on smaller screens
-          gap={1}
-          justifyContent='center'
-          width='100%'
+          sx={{
+            display: 'flex',
+            gap: 1,
+            justifyContent: 'center',
+            width: '100%'
+          }}
         >
           {siteStats.unmapped_enclosures !== '0' && (
             <Button
@@ -966,7 +1002,14 @@ const MealGroup = () => {
       flex: 1,
       minWidth: 180,
       renderHeader: () => (
-        <Box display='flex' alignItems='center' justifyContent='start' gap={1}>
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'start',
+            gap: 1
+          }}
+        >
           <Checkbox
             sx={{
               '&.Mui-checked': {
@@ -999,7 +1042,15 @@ const MealGroup = () => {
         </Box>
       ),
       renderCell: params => (
-        <Box sx={{ ml: 2 }} display='flex' alignItems='center' gap={1} width='100%'>
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            gap: 1,
+            width: '100%',
+            ml: 2
+          }}
+        >
           <Checkbox
             size='small'
             checked={checkedRows.includes(params.row.enclosure_id)}
@@ -1034,7 +1085,14 @@ const MealGroup = () => {
       flex: 0.5,
       minWidth: 60,
       renderHeader: () => (
-        <Box display='flex' alignItems='center' justifyContent='start' gap={1}>
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'start',
+            gap: 1
+          }}
+        >
           <Typography
             variant='subtitle2'
             sx={{
@@ -1055,8 +1113,8 @@ const MealGroup = () => {
           <Tooltip title={params.row.section_name}>
             <Typography
               variant='body2'
-              textAlign='center'
               sx={{
+                textAlign: 'center',
                 fontSize: '16px',
                 fontWeight: 400,
                 color: '#44544A',
@@ -1082,7 +1140,14 @@ const MealGroup = () => {
       flex: 0.4,
       minWidth: 80,
       renderHeader: () => (
-        <Box display='flex' alignItems='center' justifyContent='start' gap={1}>
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'start',
+            gap: 1
+          }}
+        >
           <Typography
             variant='subtitle2'
             sx={{
@@ -1100,8 +1165,13 @@ const MealGroup = () => {
       renderCell: params => (
         <Typography
           variant='body2'
-          textAlign='center'
-          sx={{ fontSize: '16px', fontWeight: 400, color: '#44544A', fontFamily: 'Inter' }}
+          sx={{
+            textAlign: 'center',
+            fontSize: '16px',
+            fontWeight: 400,
+            color: '#44544A',
+            fontFamily: 'Inter'
+          }}
         >
           {params.row.species_count ?? 0}
         </Typography>
@@ -1116,7 +1186,14 @@ const MealGroup = () => {
       flex: 0.4,
       minWidth: 80,
       renderHeader: () => (
-        <Box display='flex' alignItems='center' justifyContent='start' gap={1}>
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'start',
+            gap: 1
+          }}
+        >
           <Typography
             variant='subtitle2'
             sx={{
@@ -1134,8 +1211,13 @@ const MealGroup = () => {
       renderCell: params => (
         <Typography
           variant='body2'
-          textAlign='center'
-          sx={{ fontSize: '16px', fontWeight: 400, color: '#44544A', fontFamily: 'Inter' }}
+          sx={{
+            textAlign: 'center',
+            fontSize: '16px',
+            fontWeight: 400,
+            color: '#44544A',
+            fontFamily: 'Inter'
+          }}
         >
           {params.row.animal_count ?? 0}
         </Typography>
@@ -1150,7 +1232,14 @@ const MealGroup = () => {
       flex: 0.6,
       minWidth: 150,
       renderHeader: () => (
-        <Box display='flex' alignItems='center' justifyContent='start' gap={1}>
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'start',
+            gap: 1
+          }}
+        >
           <Typography
             variant='subtitle2'
             sx={{
@@ -1168,11 +1257,12 @@ const MealGroup = () => {
       renderCell: params => (
         <Typography
           variant='body2'
-          textAlign='center'
           sx={{
+            textAlign: 'center',
             fontSize: '14px',
             fontWeight: 500,
             fontFamily: 'Inter',
+
             color: params.row.group_name
               ? theme.palette.customColors.OnSurfaceVariant
               : theme.palette.customColors.customDropdownColor
@@ -1588,7 +1678,12 @@ const MealGroup = () => {
                 if (!dataRows || dataRows.length === 0) {
                   return (
                     <Box sx={{ display: 'flex', justifyContent: 'center', py: 10 }}>
-                      <Typography sx={{ fontSize: '16px' }} color='text.secondary'>
+                      <Typography
+                        sx={{
+                          color: 'text.secondary',
+                          fontSize: '16px'
+                        }}
+                      >
                         No record found
                       </Typography>
                     </Box>
@@ -1650,13 +1745,21 @@ const MealGroup = () => {
               p: { xs: 2, sm: 4 }
             }}
           >
-            <Box display='flex' justifyContent='space-between' alignItems='center' mx='auto' flexWrap='wrap'>
+            <Box
+              sx={{
+                display: 'flex',
+                justifyContent: 'space-between',
+                alignItems: 'center',
+                mx: 'auto',
+                flexWrap: 'wrap'
+              }}
+            >
               {checkedRows?.length > 0 ? <FooterCard count={checkedRows.length} /> : <Box />}
 
               <Box
-                display='flex'
-                gap={3}
                 sx={{
+                  display: 'flex',
+                  gap: 3,
                   ml: { xs: 0, sm: 25 },
                   mr: { xs: 10, sm: 0 },
                   justifyContent: { xs: 'center', sm: 'center', md: 'flex-end' }

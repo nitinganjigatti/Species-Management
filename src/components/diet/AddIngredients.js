@@ -368,6 +368,7 @@ const AddIngredients = props => {
       setSearchValue('')
       onChange(selectedCard)
       setSelectedIngredient(selectedCard)
+
       return toast.success('Ingredient selected')
     }
   }
@@ -630,12 +631,14 @@ const AddIngredients = props => {
       setSelectFeed(prev => {
         const newFeed = { ...prev }
         delete newFeed[itemId]
+
         return newFeed
       })
 
       setSize(prev => {
         const newSize = { ...prev }
         delete newSize[itemId]
+
         return newSize
       })
     }
@@ -1043,7 +1046,14 @@ const AddIngredients = props => {
                     <Box>
                       <Typography sx={{ py: 3, px: 2 }}>Feeding Days</Typography>
 
-                      <Stack direction='row' gap={3} mb={2} sx={{ px: 2 }}>
+                      <Stack
+                        direction='row'
+                        sx={{
+                          gap: 3,
+                          mb: 2,
+                          px: 2
+                        }}
+                      >
                         {Day?.map(day => (
                           <Box
                             key={day.id}

@@ -153,7 +153,13 @@ const SelectEnclosureList = ({
         {/* Header */}
         <Box sx={{ p: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <Box>
-            <Typography variant='h6' fontWeight='500' sx={{ color: theme.palette.customColors.OnPrimaryContainer }}>
+            <Typography
+              variant='h6'
+              sx={{
+                fontWeight: '500',
+                color: theme.palette.customColors.OnPrimaryContainer
+              }}
+            >
               Choose Enclosure
             </Typography>
             <Typography variant='body2' sx={{ color: theme.palette.customColors.OnSurfaceVariant }}>

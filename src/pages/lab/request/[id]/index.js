@@ -1213,7 +1213,11 @@ const RequestDetails = () => {
               </Typography>
             </Box> */}
 
-              <Box mt={2}>
+              <Box
+                sx={{
+                  mt: 2
+                }}
+              >
                 <TableContainer component={Paper} style={{ maxHeight: 400, overflow: 'auto' }}>
                   <Table>
                     <TableHead>
@@ -1309,7 +1313,12 @@ const RequestDetails = () => {
             >
               Requests list
             </Typography>
-            <Typography sx={{ cursor: 'pointer' }} color='text.primary'>
+            <Typography
+              sx={{
+                color: 'text.primary',
+                cursor: 'pointer'
+              }}
+            >
               Lab request details
             </Typography>
           </Breadcrumbs>

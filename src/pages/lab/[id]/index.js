@@ -1092,7 +1092,12 @@ const RequestDetails = () => {
             >
               Requests list
             </Typography>
-            <Typography sx={{ cursor: 'pointer' }} color='text.primary'>
+            <Typography
+              sx={{
+                color: 'text.primary',
+                cursor: 'pointer'
+              }}
+            >
               Lab request details
             </Typography>
           </Breadcrumbs>
@@ -1551,7 +1556,11 @@ const RequestDetails = () => {
           </Box>
           {requestById?.map((item, index) => (
             <Box key={index} sx={{ p: 2, minWidth: 600, m: 4 }}>
-              <Box ml={3}>
+              <Box
+                sx={{
+                  ml: 3
+                }}
+              >
                 <Typography variant='h6'>
                   Request -{' '}
                   <span style={{ color: theme.palette.primary.main, fontWeight: 'bold' }}>{item.request_id}</span>
@@ -1562,7 +1571,13 @@ const RequestDetails = () => {
                 </Typography>
               </Box>
               <Box sx={{ display: 'flex', justifyContent: 'space-between', ml: 3, mr: 3 }}>
-                <Box gap={4} sx={{ display: 'flex', alignItems: 'center' }}>
+                <Box
+                  sx={{
+                    gap: 4,
+                    display: 'flex',
+                    alignItems: 'center'
+                  }}
+                >
                   <Typography>
                     No. of Tests : <span style={{ fontWeight: 'bold' }}>{item?.test_count}</span>
                   </Typography>
@@ -1575,7 +1590,11 @@ const RequestDetails = () => {
                 </Typography>
               </Box>
 
-              <Box mt={2}>
+              <Box
+                sx={{
+                  mt: 2
+                }}
+              >
                 <TableContainer component={Paper} style={{ maxHeight: 400, overflow: 'auto' }}>
                   <Table>
                     <TableHead>

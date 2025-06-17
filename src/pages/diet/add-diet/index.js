@@ -687,11 +687,14 @@ const AddDiet = () => {
             Diet
           </Link>
 
-          <Typography color='text.primary'>
+          <Typography
+            sx={{
+              color: 'text.primary'
+            }}
+          >
             {id && urlType === 'copy' ? 'Add new diet' : id && urlType === 'update' ? 'Edit diet' : 'Add new diet'}
           </Typography>
         </Breadcrumbs>
-
         <Card sx={{ borderBottomLeftRadius: 0, borderBottomRightRadius: 0, boxShadow: 'none' }}>
           <CardContent>
             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>

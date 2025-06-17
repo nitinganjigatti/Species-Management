@@ -289,7 +289,14 @@ export const CellInfo = ({
   const hasExtraInfo = subtitle || inchagename
 
   return (
-    <Box display='flex' alignItems='center' gap={2} width='100%'>
+    <Box
+      sx={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: 2,
+        width: '100%'
+      }}
+    >
       {/* Thumbnail Image */}
       {imgUrl && !imgError ? (
         <>
@@ -326,14 +333,15 @@ export const CellInfo = ({
           }}
         />
       )}
-
       {/* Text Info */}
       <Box
-        display='flex'
-        flexDirection='column'
-        overflow='hidden'
-        alignSelf={hasExtraInfo ? 'flex-start' : 'center'}
-        mt={hasExtraInfo ? 0.25 : 0}
+        sx={{
+          display: 'flex',
+          flexDirection: 'column',
+          overflow: 'hidden',
+          alignSelf: hasExtraInfo ? 'flex-start' : 'center',
+          mt: hasExtraInfo ? 0.25 : 0
+        }}
       >
         {value && (
           <Tooltip title={value}>
@@ -377,7 +385,14 @@ export const CellInfo = ({
         )}
 
         {inchagename && (
-          <Box display='flex' alignItems='center' gap={0.5} mt={0.5}>
+          <Box
+            sx={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: 0.5,
+              mt: 0.5
+            }}
+          >
             <Avatar
               src={avatarUrl}
               sx={{
@@ -442,7 +457,13 @@ export const DateInfoDisplay = ({ date }) => {
   )
 
   return (
-    <Box display='flex' flexDirection='column' sx={{ cursor: 'default' }}>
+    <Box
+      sx={{
+        display: 'flex',
+        flexDirection: 'column',
+        cursor: 'default'
+      }}
+    >
       <Typography
         sx={{
           fontSize: '14px',

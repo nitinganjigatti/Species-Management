@@ -99,7 +99,6 @@ function AttachmentSheet({
           <Icon icon='mdi:close' fontSize={20} />
         </IconButton>
       </Box>
-
       <Box
         sx={{
           pt: 22,
@@ -110,6 +109,7 @@ function AttachmentSheet({
           flexWrap: 'wrap',
           flexDirection: 'row',
           gap: 4
+
           // justifyContent: 'center'
         }}
       >
@@ -354,7 +354,12 @@ function AttachmentSheet({
             height='24'
             color={theme.palette.customColors.Error}
           />
-          <Typography variant='h6' fontWeight='bold'>
+          <Typography
+            variant='h6'
+            sx={{
+              fontWeight: 'bold'
+            }}
+          >
             Delete File!
           </Typography>
         </DialogTitle>

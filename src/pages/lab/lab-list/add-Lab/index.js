@@ -926,7 +926,13 @@ const AddLab = () => {
                 >
                   Lab list
                 </Typography>
-                <Typography color='text.primary'>Add lab</Typography>
+                <Typography
+                  sx={{
+                    color: 'text.primary'
+                  }}
+                >
+                  Add lab
+                </Typography>
               </Breadcrumbs>
               <Grid container spacing={6} className='match-height'>
                 <Grid item size={{ xs: 12 }}>
@@ -1188,9 +1194,9 @@ const AddLab = () => {
                                       {sample?.tests?.map(parent => (
                                         <Card key={parent.test_id} sx={{ p: 2, mb: 2 }}>
                                           <Stack
-                                            gap={1}
                                             direction='row'
                                             sx={{
+                                              gap: 1,
                                               display: 'flex',
                                               alignItems: 'center',
                                               justifyContent: 'space-between'
@@ -1210,10 +1216,15 @@ const AddLab = () => {
                                             {parent.child_tests?.map((child, childId) =>
                                               child.value === true ? (
                                                 <Stack
-                                                  key={child.test_id} // Provide a unique key for each child test
+                                                  // Provide a unique key for each child test
+                                                  key={child.test_id}
                                                   direction='row'
-                                                  gap={2}
-                                                  sx={{ display: 'flex', alignItems: 'center', p: 1 }}
+                                                  sx={{
+                                                    gap: 2,
+                                                    display: 'flex',
+                                                    alignItems: 'center',
+                                                    p: 1
+                                                  }}
                                                 >
                                                   <Icon
                                                     icon='ic:baseline-check'
@@ -1288,7 +1299,11 @@ const AddLab = () => {
                                   </FormHelperText>
                                 )}
                               </FormControl>
-                              <Box mt={2}>
+                              <Box
+                                sx={{
+                                  mt: 2
+                                }}
+                              >
                                 <FormControl fullWidth>
                                   <Controller
                                     name='latitude'
@@ -1625,8 +1640,8 @@ const AddLab = () => {
                           >
                             <Tooltip title={parent?.test_name ? parent?.test_name : '-'}>
                               <Typography
-                                ml={4}
                                 sx={{
+                                  ml: 4,
                                   whiteSpace: 'nowrap',
                                   overflow: 'hidden',
                                   textOverflow: 'ellipsis',

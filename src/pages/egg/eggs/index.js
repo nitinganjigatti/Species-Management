@@ -2311,7 +2311,11 @@ const EggList = () => {
               Egg
             </Typography>
 
-            <Typography sx={{ cursor: 'pointer' }} color='text.primary'>
+            <Typography
+              sx={{
+                color: 'text.primary',
+                cursor: 'pointer'
+              }}>
               Egg List
             </Typography>
           </Breadcrumbs>
@@ -2497,7 +2501,7 @@ const EggList = () => {
         <ErrorScreen></ErrorScreen>
       )}
     </>
-  )
+  );
 }
 
 export default EggList

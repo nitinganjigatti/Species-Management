@@ -142,7 +142,6 @@ const EnclosureDrawer = ({ open, onClose, data }) => {
           />
         </Box>
       )}
-
       <Typography sx={{ fontSize: '1.25rem', fontWeight: 500, color: theme.palette.customColors.OnSurfaceVariant }}>
         Enclosures {total ? `(${total})` : ''}
       </Typography>
@@ -162,7 +161,6 @@ const EnclosureDrawer = ({ open, onClose, data }) => {
           backgroundColor={theme.palette.common.white}
         />
       </Box>
-
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4, pb: 4 }}>
         {list.map(enclosure => (
           <Box key={enclosure?.enclosure_id}>
@@ -171,13 +169,28 @@ const EnclosureDrawer = ({ open, onClose, data }) => {
         ))}
 
         {isFetching && list.length === 0 && (
-          <Box display='flex' justifyContent='center' p={2} mt={2}>
+          <Box
+            sx={{
+              display: 'flex',
+              justifyContent: 'center',
+              p: 2,
+              mt: 2
+            }}
+          >
             <CircularProgress />
           </Box>
         )}
 
         {(isFetchingNextPage || hasNextPage) && list.length > 0 && (
-          <Box ref={loaderRef} display='flex' justifyContent='center' p={2} mt={2}>
+          <Box
+            ref={loaderRef}
+            sx={{
+              display: 'flex',
+              justifyContent: 'center',
+              p: 2,
+              mt: 2
+            }}
+          >
             <CircularProgress />
           </Box>
         )}

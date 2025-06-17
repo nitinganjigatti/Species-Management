@@ -439,7 +439,12 @@ const RoomsList = () => {
                   Egg
                 </Typography>
 
-                <Typography sx={{ cursor: 'pointer' }} color='text.primary'>
+                <Typography
+                  sx={{
+                    color: 'text.primary',
+                    cursor: 'pointer'
+                  }}
+                >
                   Incubator Room
                 </Typography>
               </Breadcrumbs>

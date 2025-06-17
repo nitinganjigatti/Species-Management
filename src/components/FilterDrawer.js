@@ -41,7 +41,13 @@ const FilterDrawer = ({
           flexShrink: 0
         }}
       >
-        <Typography variant='h6' fontWeight='bold' ml={3}>
+        <Typography
+          variant='h6'
+          sx={{
+            fontWeight: 'bold',
+            ml: 3
+          }}
+        >
           Filter
         </Typography>
         <IconButton onClick={onClose}>
@@ -129,7 +135,7 @@ const FilterDrawer = ({
         </Button>
       </Box>
     </Drawer>
-  );
+  )
 }
 
 export default FilterDrawer

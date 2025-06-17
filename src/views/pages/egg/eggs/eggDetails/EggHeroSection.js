@@ -148,7 +148,13 @@ const EggHeroSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGaller
         alignItems: 'center'
       }}
     >
-      <Grid container gap={4} alignItems='center'>
+      <Grid
+        container
+        sx={{
+          gap: 4,
+          alignItems: 'center'
+        }}
+      >
         <Box
           sx={{
             width: '64px',
@@ -222,7 +228,13 @@ const EggHeroSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGaller
         alignItems: 'center'
       }}
     >
-      <Grid container gap={4} alignItems='center'>
+      <Grid
+        container
+        sx={{
+          gap: 4,
+          alignItems: 'center'
+        }}
+      >
         <Box
           sx={{
             width: '64px',
@@ -577,8 +589,10 @@ const EggHeroSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGaller
               </Box>
               <Grid
                 container
-                gap={{ xs: '24px', sm: '16px', md: '16px', lg: '0px', xl: '2px', xxl: '2px' }}
-                sx={{ justifyContent: 'space-between' }}
+                sx={{
+                  gap: { xs: '24px', sm: '16px', md: '16px', lg: '0px', xl: '2px', xxl: '2px' },
+                  justifyContent: 'space-between'
+                }}
               >
                 <Grid item size={{ xs: 12, sm: 5.8, md: 12, lg: 3.9, xl: 3.75 }}>
                   <TimeCard />
@@ -594,7 +608,6 @@ const EggHeroSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGaller
           </Grid>
         </CardContent>
       </Card>
-
       {openDrawer && (
         <ConditionSlider
           GetGalleryImgList={GetGalleryImgList}
@@ -606,7 +619,6 @@ const EggHeroSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGaller
           getActivityLogsFunc={getActivityLogsFunc}
         />
       )}
-
       {openAllocate && (
         <AllocationSlider
           getDetails={getDetails}
@@ -615,7 +627,6 @@ const EggHeroSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGaller
           allocateEggId={eggDetails?.egg_id}
         />
       )}
-
       <DiscardForm
         GetGalleryImgList={GetGalleryImgList}
         getDetails={getDetails}
@@ -623,7 +634,6 @@ const EggHeroSection = ({ getActivityLogsFunc, eggDetails, getDetails, GetGaller
         setIsOpen={setOpenDiscard}
         eggID={eggDetails?.egg_id}
       />
-
       {openEditDrawer && (
         <EditEggInfo
           openEditDrawer={openEditDrawer}

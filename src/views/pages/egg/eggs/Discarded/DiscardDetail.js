@@ -341,6 +341,7 @@ const DiscardDetail = ({ setDetailDrawer, detailDrawer, eggDiscardedId, fetchTab
                             maxHeight: 150,
                             overflowY: 'auto',
                             whiteSpace: 'normal',
+
                             /* Firefox scrollbar */
                             scrollbarWidth: 'thin',
                             scrollbarColor: 'rgba(255, 255, 255, 0.2) transparent'
@@ -353,6 +354,7 @@ const DiscardDetail = ({ setDetailDrawer, detailDrawer, eggDiscardedId, fetchTab
                               width: '100%',
                               height: '100%',
                               scrollbarWidth: 'thin',
+
                               /* These only apply in WebKit browsers */
                               WebkitScrollbarWidth: 'thin'
                             }}
@@ -430,7 +432,13 @@ const DiscardDetail = ({ setDetailDrawer, detailDrawer, eggDiscardedId, fetchTab
                     bottom: 0
                   }}
                 >
-                  <Stack direction='row' gap={2} alignItems={'center'}>
+                  <Stack
+                    direction='row'
+                    sx={{
+                      gap: 2,
+                      alignItems: 'center'
+                    }}
+                  >
                     <Box sx={{ width: '24px', height: '24px' }}>
                       <img src='/icons/pending_security_check_icon.png' style={{ width: '100%' }} alt='Pending' />
                     </Box>
@@ -518,7 +526,13 @@ const DiscardDetail = ({ setDetailDrawer, detailDrawer, eggDiscardedId, fetchTab
                     </Box>
                   </Box>
                   <Box>
-                    <Stack direction='row' gap={2} alignItems={'center'}>
+                    <Stack
+                      direction='row'
+                      sx={{
+                        gap: 2,
+                        alignItems: 'center'
+                      }}
+                    >
                       <Box sx={{ width: '24px', height: '24px' }}>
                         <img
                           src='/icons/security_check_icon.png'
@@ -625,7 +639,13 @@ const DiscardDetail = ({ setDetailDrawer, detailDrawer, eggDiscardedId, fetchTab
                       </Box>
                     </Box>
                     <Box>
-                      <Stack direction='row' gap={2} alignItems={'center'}>
+                      <Stack
+                        direction='row'
+                        sx={{
+                          gap: 2,
+                          alignItems: 'center'
+                        }}
+                      >
                         <Box sx={{ width: '24px', height: '24px' }}>
                           <img
                             src='/icons/pending_security_check_icon.png'

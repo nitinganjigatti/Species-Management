@@ -828,7 +828,13 @@ const ConditionSlider = ({
                                 justifyContent: 'space-between'
                               }}
                             >
-                              <Typography ml={2}>Normal Hatch</Typography>
+                              <Typography
+                                sx={{
+                                  ml: 2
+                                }}
+                              >
+                                Normal Hatch
+                              </Typography>
                               <FormControlLabel value='normal_hatch' control={<Radio />} />
                             </Box>
                             <Box
@@ -845,7 +851,13 @@ const ConditionSlider = ({
                                 justifyContent: 'space-between'
                               }}
                             >
-                              <Typography ml={2}>Assisted Hatch</Typography>
+                              <Typography
+                                sx={{
+                                  ml: 2
+                                }}
+                              >
+                                Assisted Hatch
+                              </Typography>
                               <FormControlLabel value='assisted_hatch' control={<Radio />} />
                             </Box>
                           </Box>
@@ -1147,7 +1159,11 @@ const ConditionSlider = ({
                 )}
 
                 {isAnimal && statusID === '4' && checkAddPermission() && (
-                  <Box mb={35}>
+                  <Box
+                    sx={{
+                      mb: 35
+                    }}
+                  >
                     <Typography sx={{ fontSize: 20, fontWeight: 500, mb: 2 }}>Add Animal Details</Typography>
                     <Box
                       fullWidth

@@ -367,7 +367,13 @@ const DietReportPage = () => {
                 </Grid>
 
                 <Grid item size={{ xs: 4, sm: 4 }}>
-                  <Grid container spacing={2} justifyContent={{ xs: 'flex-end' }}>
+                  <Grid
+                    container
+                    spacing={2}
+                    sx={{
+                      justifyContent: { xs: 'flex-end' }
+                    }}
+                  >
                     <Grid
                       item
                       sx={{

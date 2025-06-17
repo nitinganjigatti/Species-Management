@@ -28,6 +28,7 @@ const SelectSiteList = ({
 }) => {
   const theme = useTheme()
   const [pendingSelections, setPendingSelections] = useState({ Site: [] })
+
   const handleCloseDrawer = () => {
     setSiteListDrawer(false)
     setTempSelectedItems(pendingSelections)
@@ -39,6 +40,7 @@ const SelectSiteList = ({
 
   const handleSiteCheckboxChange = site => {
     const isSelected = pendingSelections.Site.includes(site.site_id)
+
     const updatedSelection = isSelected
       ? pendingSelections.Site.filter(id => id !== site.site_id)
       : [...pendingSelections.Site, site.site_id]
@@ -96,7 +98,13 @@ const SelectSiteList = ({
         {/* Header */}
         <Box sx={{ p: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <Box>
-            <Typography variant='h6' fontWeight='500' sx={{ color: theme.palette.customColors.OnPrimaryContainer }}>
+            <Typography
+              variant='h6'
+              sx={{
+                fontWeight: '500',
+                color: theme.palette.customColors.OnPrimaryContainer
+              }}
+            >
               Choose Site
             </Typography>
             <Typography variant='body2' sx={{ color: theme.palette.customColors.OnSurfaceVariant }}>
@@ -130,6 +138,7 @@ const SelectSiteList = ({
                       size='small'
                       onClick={() => {
                         setSearchTerm('')
+
                         //fetchSections('')
                       }}
                     >
@@ -189,6 +198,7 @@ const SelectSiteList = ({
                   width: '19px',
                   height: '19px',
                   border: '2px dotted'
+
                   //   borderColor:
                   //     tempSelectedSpecies?.length === speciesData.filter(species => !species.mapped_to_diet).length
                   //       ? theme.palette.primary.main
@@ -211,6 +221,7 @@ const SelectSiteList = ({
             flex: 1,
             overflowY: 'auto',
             overflowX: 'hidden',
+
             // height: '60%',
             p: 2,
             '&::-webkit-scrollbar': {
@@ -260,6 +271,7 @@ const SelectSiteList = ({
                       }
                     }
                   }}
+
                   // primaryTypographyProps={{ fontWeight: 'bold', color: theme.palette.customColors.OnPrimaryContainer }}
                   // secondaryTypographyProps={{ color: theme.palette.customColors.OnSurfaceVariant }}
                 />
@@ -298,7 +310,7 @@ const SelectSiteList = ({
         </Box>
       </Box>
     </Drawer>
-  );
+  )
 }
 
 export default SelectSiteList

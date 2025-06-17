@@ -396,7 +396,12 @@ const IncubatorsList = () => {
           <>
             <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
               <Typography color='inherit'>Egg</Typography>
-              <Typography sx={{ cursor: 'pointer' }} color='text.primary'>
+              <Typography
+                sx={{
+                  color: 'text.primary',
+                  cursor: 'pointer'
+                }}
+              >
                 Incubator List
               </Typography>
             </Breadcrumbs>

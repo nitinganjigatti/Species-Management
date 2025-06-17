@@ -606,7 +606,14 @@ const EggSecondSecion = ({
 
   return (
     <>
-      <Grid justifyContent='space-between' container alignItems='stretch' spacing={6}>
+      <Grid
+        container
+        spacing={6}
+        sx={{
+          justifyContent: 'space-between',
+          alignItems: 'stretch'
+        }}
+      >
         <Grid item size={{ xs: 12, md: 4 }}>
           <Card>
             <CardContent>
@@ -780,7 +787,13 @@ const EggSecondSecion = ({
               action={headerAction}
             />
             <CardContent>
-              <Grid container spacing={6} justifyContent={'space-between'}>
+              <Grid
+                container
+                spacing={6}
+                sx={{
+                  justifyContent: 'space-between'
+                }}
+              >
                 <Grid item size={{ xs: 12, sm: 6, md: 6, lg: 6, xl: 6 }}>
                   <Box
                     sx={{
@@ -919,7 +932,12 @@ const EggSecondSecion = ({
                   <Divider />
                 </Box>
                 <Box>
-                  <Grid gap='24px' container>
+                  <Grid
+                    container
+                    sx={{
+                      gap: '24px'
+                    }}
+                  >
                     <Grid
                       item
                       size={{ xs: 12, sm: 3.55, md: 3.5, lg: 3.55, xl: 3.72, xxl: 3.72 }}
@@ -1191,9 +1209,7 @@ const EggSecondSecion = ({
         </Grid>
       </Grid>
       <ViewAllWeightSideBar />
-
       <AddWeightSideBar />
-
       <EggActivityLogs
         activtyLogSideBar={activtyLogSideBar}
         setActivtyLogSideBar={setActivtyLogSideBar}
