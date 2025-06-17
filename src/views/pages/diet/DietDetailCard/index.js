@@ -166,7 +166,17 @@ const DietDetailCard = ({
   return (
     <Card>
       <CardContent>
-        <Box sx={{ display: 'flex', gap: '16px', alignItems: 'center', pb: 4, pl: 1 }}>
+        <Box
+          sx={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            float: 'left',
+            gap: '16px',
+            alignItems: 'center',
+            pb: 4,
+            pl: 1
+          }}
+        >
           <Icon
             style={{ cursor: 'pointer' }}
             onClick={handlebackClick}
@@ -183,6 +193,100 @@ const DietDetailCard = ({
           >
             Diet Details
           </Typography>
+        </Box>
+        <Box
+          sx={{
+            display: 'flex',
+            gap: isSmallDevice ? '16px' : '24px',
+            alignItems: 'center',
+            flexDirection: isSmallDevice ? 'row' : 'row',
+            flexWrap: isSmallDevice ? 'row' : 'nowrap',
+            float: 'right'
+          }}
+        >
+          <Box>
+            <FormControlLabel
+              control={
+                <Switch
+                  checked={isActive === '1' ? true : false}
+                  onChange={handleSwitchChange}
+                  fontSize={2}
+                  disabled={!(dietModuleAccess === 'EDIT' || dietModuleAccess === 'DELETE')}
+                  sx={{
+                    '&.Mui-disabled': {
+                      color: 'grey'
+                    },
+                    '& .MuiSwitch-switchBase.Mui-disabled + .MuiSwitch-track': {
+                      backgroundColor: '#ccc',
+                      opacity: 0.7
+                    }
+                  }}
+                />
+              }
+              labelPlacement='start'
+              label={isActive === '1' ? 'Active' : 'InActive'}
+              sx={{ marginLeft: isSmallDevice ? '0px' : '16px' }}
+            />
+          </Box>
+          {(dietModuleAccess === 'ADD' || dietModuleAccess === 'EDIT' || dietModuleAccess === 'DELETE') && (
+            <Tooltip title='Copy' placement='top'>
+              <Box>
+                {/* <Icon
+                          icon='fluent:copy-32-regular'
+                          style={{ fontSize: 24, transform: 'rotate(180deg)', cursor: 'pointer' }}
+                          onClick={handleDietClick}
+                        /> */}
+                <Avatar
+                  sx={{ width: '100%', height: '100%', borderRadius: '8px', cursor: 'pointer', fontSize: 24 }}
+                  src={'/icons/icon_copy.svg'}
+                  variant='square'
+                  onClick={handleDietClick}
+                />
+              </Box>
+            </Tooltip>
+          )}
+          {(dietModuleAccess === 'EDIT' || dietModuleAccess === 'DELETE') && (
+            <Tooltip title='Edit' placement='top'>
+              <Box>
+                {/* <Icon
+                          icon='bx:pencil'
+                          style={{ fontSize: 24, cursor: 'pointer' }}
+                          onClick={() =>
+                            Router.push({ pathname: '/diet/add-diet', query: { id: dietDetails.id, action: 'update' } })
+                          }
+                        /> */}
+                <Avatar
+                  sx={{ width: '100%', height: '100%', cursor: 'pointer' }}
+                  src={'/icons/pencil_outlined.svg'}
+                  variant='square'
+                  onClick={() =>
+                    Router.push({ pathname: '/diet/add-diet', query: { id: dietDetails.id, action: 'update' } })
+                  }
+                />
+              </Box>
+            </Tooltip>
+          )}
+          {dietModuleAccess === 'DELETE' && (
+            <Tooltip title='Delete' placement='top'>
+              <Box>
+                {/* <Icon
+                          onClick={() => {
+                            handlelOpenDelete()
+                          }}
+                          icon='material-symbols:delete-outline'
+                          style={{ fontSize: 24, cursor: 'pointer' }}
+                        /> */}
+                <Avatar
+                  sx={{ width: '100%', height: '100%', borderRadius: '8px', cursor: 'pointer' }}
+                  src={'/icons/delete_outlined.svg'}
+                  variant='square'
+                  onClick={() => {
+                    handlelOpenDelete()
+                  }}
+                />
+              </Box>
+            </Tooltip>
+          )}
         </Box>
         <Grid
           sx={{
@@ -426,99 +530,6 @@ const DietDetailCard = ({
                   >
                     {dietDetails?.diet_name}
                   </Typography>
-                </Box>
-                <Box
-                  sx={{
-                    display: 'flex',
-                    gap: isSmallDevice ? '16px' : '24px',
-                    alignItems: 'center',
-                    flexDirection: isSmallDevice ? 'row' : 'row',
-                    flexWrap: isSmallDevice ? 'row' : 'nowrap'
-                  }}
-                >
-                  <Box>
-                    <FormControlLabel
-                      control={
-                        <Switch
-                          checked={isActive === '1' ? true : false}
-                          onChange={handleSwitchChange}
-                          fontSize={2}
-                          disabled={!(dietModuleAccess === 'EDIT' || dietModuleAccess === 'DELETE')}
-                          sx={{
-                            '&.Mui-disabled': {
-                              color: 'grey'
-                            },
-                            '& .MuiSwitch-switchBase.Mui-disabled + .MuiSwitch-track': {
-                              backgroundColor: '#ccc',
-                              opacity: 0.7
-                            }
-                          }}
-                        />
-                      }
-                      labelPlacement='start'
-                      label={isActive === '1' ? 'Active' : 'InActive'}
-                      sx={{ marginLeft: isSmallDevice ? '0px' : '16px' }}
-                    />
-                  </Box>
-                  {(dietModuleAccess === 'ADD' || dietModuleAccess === 'EDIT' || dietModuleAccess === 'DELETE') && (
-                    <Tooltip title='Copy' placement='top'>
-                      <Box>
-                        {/* <Icon
-                          icon='fluent:copy-32-regular'
-                          style={{ fontSize: 24, transform: 'rotate(180deg)', cursor: 'pointer' }}
-                          onClick={handleDietClick}
-                        /> */}
-                        <Avatar
-                          sx={{ width: '100%', height: '100%', borderRadius: '8px', cursor: 'pointer', fontSize: 24 }}
-                          src={'/icons/icon_copy.svg'}
-                          variant='square'
-                          onClick={handleDietClick}
-                        />
-                      </Box>
-                    </Tooltip>
-                  )}
-                  {(dietModuleAccess === 'EDIT' || dietModuleAccess === 'DELETE') && (
-                    <Tooltip title='Edit' placement='top'>
-                      <Box>
-                        {/* <Icon
-                          icon='bx:pencil'
-                          style={{ fontSize: 24, cursor: 'pointer' }}
-                          onClick={() =>
-                            Router.push({ pathname: '/diet/add-diet', query: { id: dietDetails.id, action: 'update' } })
-                          }
-                        /> */}
-                        <Avatar
-                          sx={{ width: '100%', height: '100%', cursor: 'pointer' }}
-                          src={'/icons/pencil_outlined.svg'}
-                          variant='square'
-                          onClick={() =>
-                            Router.push({ pathname: '/diet/add-diet', query: { id: dietDetails.id, action: 'update' } })
-                          }
-                        />
-                      </Box>
-                    </Tooltip>
-                  )}
-                  {dietModuleAccess === 'DELETE' && (
-                    <Tooltip title='Delete' placement='top'>
-                      <Box>
-                        {/* <Icon
-                          onClick={() => {
-                            handlelOpenDelete()
-                          }}
-                          icon='material-symbols:delete-outline'
-                          style={{ fontSize: 24, cursor: 'pointer' }}
-                        /> */}
-                        <Avatar
-                          sx={{ width: '100%', height: '100%', borderRadius: '8px', cursor: 'pointer' }}
-                          src={'/icons/delete_outlined.svg'}
-                          variant='square'
-                          onClick={() => {
-                            handlelOpenDelete()
-                          }}
-                        />
-                      </Box>
-                    </Tooltip>
-                  )}
                 </Box>
               </Box>
               {/* <Typography sx={{ fontWeight: 400, fontSize: '16px', color: '#44544A' }}>

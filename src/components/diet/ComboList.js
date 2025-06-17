@@ -274,7 +274,7 @@ const ComboList = props => {
         />
 
         {/* End Card Section */}
-        {reachedEnd ? (
+        {reachedEnd && !loading ? (
           <Box
             sx={{
               display: 'flex',
