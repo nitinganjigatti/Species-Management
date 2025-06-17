@@ -128,6 +128,7 @@ const RoomDetails = () => {
   const fetchTableData = useCallback(
     async (q = '', availability) => {
       setLoading(true)
+
       const params = {
         sort,
         q,
@@ -162,6 +163,7 @@ const RoomDetails = () => {
         console.error(error)
       }
     }, 1000),
+
     // []
     [fetchTableData]
   )
@@ -645,9 +647,6 @@ const RoomDetails = () => {
                       <TextField
                         variant='outlined'
                         placeholder='Search...'
-                        InputProps={{
-                          disableunderline: true
-                        }}
                         onChange={e => handleSearch(e.target.value, defaultAvailibility?.key)}
                         sx={{
                           '& .MuiOutlinedInput-root': {
@@ -656,6 +655,11 @@ const RoomDetails = () => {
                             '& fieldset': {
                               border: 'none'
                             }
+                          }
+                        }}
+                        slotProps={{
+                          input: {
+                            disableunderline: true
                           }
                         }}
                       />

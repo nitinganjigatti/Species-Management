@@ -109,6 +109,7 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
     setLoader(true)
     setListCount('')
     const currentDate = moment().format('YYYY-MM-DD')
+
     const fromDate = moment()
       .subtract(value - 1, 'days')
       .format('YYYY-MM-DD')
@@ -348,9 +349,6 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
                   variant='outlined'
                   placeholder='Search'
                   value={search}
-                  InputProps={{
-                    disableUnderline: true
-                  }}
                   onChange={e => {
                     setSearch(e.target.value)
                     handleSearch(e.target.value)
@@ -363,6 +361,11 @@ const DiscardEggSlider = ({ openDiscard, setOpenDiscard }) => {
                       '& fieldset': {
                         border: 'none'
                       }
+                    }
+                  }}
+                  slotProps={{
+                    input: {
+                      disableUnderline: true
                     }
                   }}
                 />

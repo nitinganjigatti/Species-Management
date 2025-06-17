@@ -244,9 +244,6 @@ const SpeciesAnimalsMapped = ({
                         placeholder='Search'
                         value={searchQuery}
                         onChange={handleSearch}
-                        InputProps={{
-                          disableUnderline: false
-                        }}
                         sx={{
                           flex: 1,
                           mx: 1,
@@ -256,6 +253,11 @@ const SpeciesAnimalsMapped = ({
                             '& fieldset': {
                               border: 'none'
                             }
+                          }
+                        }}
+                        slotProps={{
+                          input: {
+                            disableUnderline: false
                           }
                         }}
                       />
@@ -476,9 +478,6 @@ const SpeciesAnimalsMapped = ({
                         placeholder='Search'
                         value={searchQuery}
                         onChange={handleSearch}
-                        InputProps={{
-                          disableUnderline: false
-                        }}
                         sx={{
                           flex: 1,
                           mx: 1,
@@ -488,6 +487,11 @@ const SpeciesAnimalsMapped = ({
                             '& fieldset': {
                               border: 'none'
                             }
+                          }
+                        }}
+                        slotProps={{
+                          input: {
+                            disableUnderline: false
                           }
                         }}
                       />
@@ -597,13 +601,14 @@ const SpeciesAnimalsMapped = ({
                   {!loading ? (
                     speciesview === 'select' ? (
                       // <Typography>You have selected {speciestotalcount || ''} species</Typography>
-                      (<Typography
+                      <Typography
                         sx={{
                           color: theme.palette.customColors.OnSurfaceVariant,
                           pb: 1
                         }}
-                      >You have selected {tempSelectedSpecies?.length}species
-                                              </Typography>)
+                      >
+                        You have selected {tempSelectedSpecies?.length}species
+                      </Typography>
                     ) : (
                       <Typography
                         variant='body2'
@@ -666,7 +671,7 @@ const SpeciesAnimalsMapped = ({
       </Grid>
       {/* bottom buttons */}
     </Drawer>
-  );
+  )
 }
 
 export default SpeciesAnimalsMapped

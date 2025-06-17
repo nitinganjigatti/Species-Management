@@ -43,25 +43,27 @@ const InputwithMultipleValues = ({ name }) => {
           handleKeyDown(e)
         }
       }}
-      InputProps={{
-        startAdornment:
-          selectedValues?.length > 0 ? (
-            <Box sx={{ display: 'inline', mt: selectedValues?.length > 0 && 1.4 }}>
-              {selectedValues.map(value => (
-                <Chip
-                  key={value.title}
-                  label={value.title}
-                  onDelete={() => handleDelete(value)}
-                  color='primary'
-                  style={{ margin: '4px' }}
-                />
-              ))}
-            </Box>
-          ) : null
-      }}
       placeholder='Prepration Types'
+      slotProps={{
+        input: {
+          startAdornment:
+            selectedValues?.length > 0 ? (
+              <Box sx={{ display: 'inline', mt: selectedValues?.length > 0 && 1.4 }}>
+                {selectedValues.map(value => (
+                  <Chip
+                    key={value.title}
+                    label={value.title}
+                    onDelete={() => handleDelete(value)}
+                    color='primary'
+                    style={{ margin: '4px' }}
+                  />
+                ))}
+              </Box>
+            ) : null
+        }
+      }}
     />
-  )
+  );
 }
 
 export default InputwithMultipleValues

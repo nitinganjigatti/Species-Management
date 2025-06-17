@@ -1518,7 +1518,6 @@ const RequestDetails = () => {
           )}
         </>
       )}
-
       <Card sx={{ mt: 5 }}>
         <Box sx={{ py: 5, px: 7 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: '4px', mb: 3 }}>
@@ -1531,7 +1530,6 @@ const RequestDetails = () => {
           <MedicalRecordNotes notes={medicalRecordNotes} />
         </Box>
       </Card>
-
       <>
         {/* Open PopUp On Clicking Request Id */}
         <Dialog open={open} onClose={handleClose} maxWidth='md' fullWidth>
@@ -1646,7 +1644,6 @@ const RequestDetails = () => {
           ))}
         </Dialog>
       </>
-
       <>
         <Dialog
           open={openTransfer}
@@ -1826,8 +1823,10 @@ const RequestDetails = () => {
                             name='lab_name'
                             error={Boolean(errors.lab_name)}
                             onChange={onChange}
-                            InputProps={{ readOnly: true }}
                             placeholder=''
+                            slotProps={{
+                              input: { readOnly: true }
+                            }}
                           />
                         )}
                       />

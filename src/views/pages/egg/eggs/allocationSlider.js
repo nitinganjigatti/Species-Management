@@ -504,9 +504,11 @@ const AllocationSlider = ({ setOpenDrawer, allocateEggId, callApi, allocationVal
                                     }
                                   }}
                                   name={`measurements[${index}].assessment_value`}
-                                  inputProps={{ type: 'number', step: 'any' }}
                                   error={!!error}
                                   fullWidth
+                                  slotProps={{
+                                    htmlInput: { type: 'number', step: 'any' }
+                                  }}
                                 />
                                 {error && error.type === 'validate' && (
                                   <FormHelperText sx={{ color: 'error.main' }}>{error.message}</FormHelperText>

@@ -615,10 +615,12 @@ const AddIngredient = () => {
                                   onChange(e.target.value)
                                   handleKeyUp(value)
                                 }}
-                                inputProps={{ min: 0, max: 100 }}
                                 placeholder='Percentage(%) of water'
                                 error={Boolean(errors.waterPercentage)}
                                 name='waterPercentage'
+                                slotProps={{
+                                  htmlInput: { min: 0, max: 100 }
+                                }}
                               />
                             )}
                           />
@@ -645,10 +647,12 @@ const AddIngredient = () => {
                                   onChange(e.target.value)
                                   handleKeyUp(value)
                                 }}
-                                inputProps={{ min: 0, max: 100 }}
                                 placeholder='Percentage(%) of dry matter'
                                 error={Boolean(errors.dryMatterPercentage)}
                                 name='dryMatterPercentage'
+                                slotProps={{
+                                  htmlInput: { min: 0, max: 100 }
+                                }}
                               />
                             )}
                           />
@@ -676,7 +680,6 @@ const AddIngredient = () => {
                             rules={{ required: true }}
                             render={({ field: { value, onChange } }) => (
                               <TextField
-                                inputProps={{ min: 0 }}
                                 type='number'
                                 label='Enter nutritional values per'
                                 value={value}
@@ -684,6 +687,9 @@ const AddIngredient = () => {
                                 placeholder='Enter nutritional values per'
                                 error={Boolean(errors.nutritionalValuesPer)}
                                 name='nutritionalValuesPer'
+                                slotProps={{
+                                  htmlInput: { min: 0 }
+                                }}
                               />
                             )}
                           />
@@ -744,13 +750,15 @@ const AddIngredient = () => {
                             render={({ field: { value, onChange } }) => (
                               <TextField
                                 type='number'
-                                inputProps={{ min: 0 }}
                                 label='Enter total calories'
                                 value={value}
                                 onChange={onChange}
                                 placeholder='Enter total calories'
                                 error={Boolean(errors.calorie)}
                                 name='calorie'
+                                slotProps={{
+                                  htmlInput: { min: 0 }
+                                }}
                               />
                             )}
                           />

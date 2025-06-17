@@ -334,9 +334,6 @@ const EggTableHeader = ({
               variant='outlined'
               placeholder='Search'
               value={searchQuery}
-              InputProps={{
-                disableunderline: true
-              }}
               onChange={e => {
                 setSearchQuery(e.target.value)
                 handleSearch(e.target.value)
@@ -350,6 +347,11 @@ const EggTableHeader = ({
                   '& fieldset': {
                     border: 'none'
                   }
+                }
+              }}
+              slotProps={{
+                input: {
+                  disableunderline: true
                 }
               }}
             />

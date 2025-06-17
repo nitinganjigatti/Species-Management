@@ -231,7 +231,6 @@ const SpeciesDietFilterDrawer = ({
           </IconButton>
         </Box>
       </Box>
-
       <Box
         sx={{
           '& .MuiDrawer-paper': { width: ['100%', '562px'] },
@@ -298,9 +297,6 @@ const SpeciesDietFilterDrawer = ({
                     placeholder='Search'
                     value={searchQuery}
                     onChange={handleSearchChange}
-                    InputProps={{
-                      disableUnderline: false
-                    }}
                     sx={{
                       '& .MuiOutlinedInput-root': {
                         border: 'none',
@@ -308,6 +304,11 @@ const SpeciesDietFilterDrawer = ({
                         '& fieldset': {
                           border: 'none'
                         }
+                      }
+                    }}
+                    slotProps={{
+                      input: {
+                        disableUnderline: false
                       }
                     }}
                   />
@@ -351,7 +352,6 @@ const SpeciesDietFilterDrawer = ({
           </Grid>
         </Grid>
       </Box>
-
       {/* bottom buttons */}
       <Box
         sx={{

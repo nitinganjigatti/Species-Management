@@ -51,13 +51,14 @@ const SwapIngredient = ({ setActivitySidebarOpen, handleSidebarClose }) => {
           value={searchValue}
           fullWidth
           label='Search ingredients'
-          InputProps={{
-            startAdornment: <Icon style={{ marginRight: 10 }} icon={'ion:search-outline'} />
-          }}
           onChange={e => setSearchValue(e.target.value)}
+          slotProps={{
+            input: {
+              startAdornment: <Icon style={{ marginRight: 10 }} icon={'ion:search-outline'} />
+            }
+          }}
         />
       </Box>
-
       {/* <IngredientOverview /> */}
       <Box sx={{ display: 'flex', flexDirection: 'column', gap: '14px', alignItems: 'center' }}>
         {data?.map((item, index) => (

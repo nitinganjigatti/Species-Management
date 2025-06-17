@@ -897,10 +897,11 @@ const ConditionSlider = ({
                                   margin: 0
                                 }
                               }}
-                              InputProps={{
-                                endAdornment: <InputAdornment position='end'>mm</InputAdornment>
+                              slotProps={{
+                                input: {
+                                  endAdornment: <InputAdornment position='end'>mm</InputAdornment>
+                                }
                               }}
-                              // inputProps={{ min: 1 }}
                             />
                           )}
                         />
@@ -1355,22 +1356,24 @@ const ConditionSlider = ({
                                   placeholder=''
                                   onClick={() => setOpen(true)}
                                   disabled
-                                  InputProps={{
-                                    endAdornment: (
-                                      <InputAdornment position='end'>
-                                        <Icon
-                                          icon={'material-symbols:add-circle-outline'}
-                                          style={{ color: theme.palette.primary.main }}
-                                        ></Icon>
-                                      </InputAdornment>
-                                    )
-                                  }}
                                   sx={{
                                     '& .MuiInputLabel-root': {
                                       color: 'rgba(76, 78, 100, 0.6)'
                                     },
                                     '& .MuiOutlinedInput-root.Mui-disabled .MuiOutlinedInput-notchedOutline': {
                                       borderColor: errors.enclosure_id ? 'red' : undefined
+                                    }
+                                  }}
+                                  slotProps={{
+                                    input: {
+                                      endAdornment: (
+                                        <InputAdornment position='end'>
+                                          <Icon
+                                            icon={'material-symbols:add-circle-outline'}
+                                            style={{ color: theme.palette.primary.main }}
+                                          ></Icon>
+                                        </InputAdornment>
+                                      )
                                     }
                                   }}
                                 />
@@ -1523,9 +1526,11 @@ const ConditionSlider = ({
                                 label='Enter Age'
                                 name='age'
                                 type='number'
-                                inputProps={{ min: 1 }}
                                 onChange={onChange}
                                 placeholder=''
+                                slotProps={{
+                                  htmlInput: { min: 1 }
+                                }}
                               />
                             )}
                           />

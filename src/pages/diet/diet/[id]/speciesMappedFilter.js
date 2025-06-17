@@ -405,14 +405,6 @@ const SpeciesMappedtoDietFilter = ({
                         placeholder='Search'
                         value={activeTab === 'Taxonomy' ? taxonomySearchQuery : searchQuery}
                         onChange={handleSearch}
-                        InputProps={{
-                          disableUnderline: false,
-                          endAdornment: (activeTab === 'Taxonomy' ? taxonomySearchQuery : searchQuery) && (
-                            <IconButton size='small' onClick={handlesearchClose} sx={{ left: '35px' }}>
-                              <Icon icon='mdi:close' fontSize={20} />
-                            </IconButton>
-                          )
-                        }}
                         sx={{
                           '& .MuiOutlinedInput-root': {
                             border: 'none',
@@ -420,6 +412,16 @@ const SpeciesMappedtoDietFilter = ({
                             '& fieldset': {
                               border: 'none'
                             }
+                          }
+                        }}
+                        slotProps={{
+                          input: {
+                            disableUnderline: false,
+                            endAdornment: (activeTab === 'Taxonomy' ? taxonomySearchQuery : searchQuery) && (
+                              <IconButton size='small' onClick={handlesearchClose} sx={{ left: '35px' }}>
+                                <Icon icon='mdi:close' fontSize={20} />
+                              </IconButton>
+                            )
                           }
                         }}
                       />
