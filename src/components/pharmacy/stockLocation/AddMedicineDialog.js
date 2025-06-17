@@ -345,7 +345,9 @@ const AddMedicineDialog = ({ close, setDialogCheck, productData, selectedPharmac
 
   return (
     <>
-      <Grid container spacing={2} justifyContent='center'>
+      <Grid container spacing={2} sx={{
+        justifyContent: 'center'
+      }}>
         <Grid item size={{ xs: 12, md: 12, sm: 12 }}>
           {isConfigLoading ? (
             <Box sx={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '200px' }}>
@@ -455,7 +457,14 @@ const AddMedicineDialog = ({ close, setDialogCheck, productData, selectedPharmac
                 </Box>
               ) : (
                 fields.map((field, index) => (
-                  <Grid container spacing={2} key={field.id} alignItems='flex-start' sx={{ mb: 0 }}>
+                  <Grid
+                    container
+                    spacing={2}
+                    key={field.id}
+                    sx={{
+                      alignItems: 'flex-start',
+                      mb: 0
+                    }}>
                     {/* Rack Field */}
                     <Grid item size={{ xs: 12, sm: 5 }}>
                       <FormControl fullWidth sx={{ mb: 6 }}>
@@ -669,7 +678,13 @@ const AddMedicineDialog = ({ close, setDialogCheck, productData, selectedPharmac
               )}
 
               <Divider sx={{ my: 4 }} />
-              <Grid container spacing={2} justifyContent='flex-end' sx={{ mt: 2 }}>
+              <Grid
+                container
+                spacing={2}
+                sx={{
+                  justifyContent: 'flex-end',
+                  mt: 2
+                }}>
                 <Grid item size={{ xs: 12, sm: 'auto' }}>
                   <Box>
                     <Button
@@ -703,7 +718,7 @@ const AddMedicineDialog = ({ close, setDialogCheck, productData, selectedPharmac
         </Grid>
       </Grid>
     </>
-  )
+  );
 }
 
 export default AddMedicineDialog

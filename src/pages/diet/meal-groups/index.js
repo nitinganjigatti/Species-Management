@@ -47,10 +47,12 @@ import { debounce } from 'lodash'
 import select from 'src/@core/theme/overrides/select'
 import FixedFooterWrapper from 'src/components/diet/FixedFooterWrapper'
 import TextEllipsisWithModal from 'src/components/TextEllipsisWithModal'
+import Error404 from 'src/pages/404'
 
 const MealGroup = () => {
   const router = useRouter()
   const authData = useContext(AuthContext)
+  const dietModule = authData?.userData?.roles?.settings?.diet_module
   const theme = useTheme()
   const firstSite = authData?.userData?.user?.zoos[0]?.sites?.[0] || null
 
@@ -60,6 +62,7 @@ const MealGroup = () => {
   }
 
   const [defaultSite, setDefaultSite] = useState(firstSite)
+
   const [selectedOption, setSelectedOption] = useState(
     router.query.site_id ? router.query.site_id : firstSite?.site_id || ''
   )
@@ -74,14 +77,16 @@ const MealGroup = () => {
   const [total, setTotal] = useState(0)
   const [loading, setLoading] = useState(true)
   const [Loader, setLoader] = useState(false)
+
   const [paginationModel, setPaginationModel] = useState({
     page: parseInt(router.query.page) || 0,
-    pageSize: parseInt(router.query.limit) || 10
+    pageSize: parseInt(router.query.limit) || 50
   })
   const [originalItems, setOriginalItems] = useState([])
   const [selectedItems, setSelectedItems] = useState([])
   const [enclosureDrawer, setEnclosureDrawer] = useState(false)
   const [editeditems, setEditItems] = useState([])
+
   const [siteStats, setSiteStats] = useState({
     meal_groups_count: '',
     unmapped_enclosures: '',
@@ -101,6 +106,7 @@ const MealGroup = () => {
   const [editSearchValue, setEditSearchValue] = useState('')
   const [selectedForDrawer, setSelectedForDrawer] = useState([])
   const [mealId, setMealId] = useState(null)
+
   const [mealType, setmealType] = useState({
     type: 'view'
   })
@@ -120,6 +126,7 @@ const MealGroup = () => {
         if (matchedSite) {
           setDefaultSite(matchedSite)
           setSelectedOption(matchedSite.site_id)
+
           return
         }
       }
@@ -197,6 +204,7 @@ const MealGroup = () => {
 
     if (status === 'mealgroup') {
       debugger
+
       const groupparams = {
         site_id: selectedOption,
         page_no: paginationModel.page + 1
@@ -351,6 +359,7 @@ const MealGroup = () => {
       console.error('Error fetching site stats:', error)
     }
   }
+
   const fetchSectionList = async () => {
     if (!selectedOption) return
     try {
@@ -506,6 +515,7 @@ const MealGroup = () => {
               backgroundColor: theme.palette.customColors.tableHeaderBg,
               borderRadius: '4px',
               boxShadow: 'none',
+
               // px: 2,
               // py: 0.5,
               display: 'inline-flex',
@@ -563,6 +573,7 @@ const MealGroup = () => {
         q: searchValue,
         type: 'unmapped',
         site_id: selectedOption
+
         // meal_group_ids: JSON.stringify([id]) // Send as array
       }
 
@@ -598,6 +609,7 @@ const MealGroup = () => {
         site_id: selectedOption,
         meal_group_id: deleteId
       }
+
       // Call delete API with deleteId
       const response = await removeMealGroup(params) // <-- your API
       if (response.success) {
@@ -624,6 +636,7 @@ const MealGroup = () => {
       setLoader(true)
       setMealId(row.id)
       setOpenDrawer(true) // 👈 open the drawer
+
       const params = {
         type: 'mapped',
         site_id: selectedOption,
@@ -691,6 +704,7 @@ const MealGroup = () => {
       const params = {
         type: 'unmapped',
         site_id: selectedOption
+
         // meal_group_ids: JSON.stringify([id]) // Send as array
       }
 
@@ -915,6 +929,7 @@ const MealGroup = () => {
                 borderColor: theme.palette.primary.main,
                 color: theme.palette.primary.main,
                 borderRadius: '4px',
+
                 // minWidth: '120px',
                 height: '36px',
                 fontSize: '12px'
@@ -1235,6 +1250,7 @@ const MealGroup = () => {
     setEditParam(parm.row)
     setmealType({ type: 'view' })
     console.log('params >', parm)
+
     const params = {
       type: 'mapped',
       site_id: selectedOption,
@@ -1252,7 +1268,7 @@ const MealGroup = () => {
     }
   }
 
-  return (
+  return dietModule ? (
     <React.Fragment>
       <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
         <Typography color='inherit'>Diet</Typography>
@@ -1328,7 +1344,9 @@ const MealGroup = () => {
                         color: '#fff'
                       }
                     }}
-                    InputLabelProps={{ shrink: false }}
+                    slotProps={{
+                      inputLabel: { shrink: false }
+                    }}
                   />
                 )}
               />
@@ -1424,18 +1442,20 @@ const MealGroup = () => {
               value={searchValue}
               onChange={e => handleSearch(e.target.value)}
               variant='outlined'
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position='start'>
-                    <Icon icon='mi:search' />
-                  </InputAdornment>
-                )
-              }}
               sx={{
                 flexGrow: 1,
                 minWidth: { xs: '100%', sm: '200px', md: '300px' },
                 height: '40px',
                 backgroundColor: 'white'
+              }}
+              slotProps={{
+                input: {
+                  startAdornment: (
+                    <InputAdornment position='start'>
+                      <Icon icon='mi:search' />
+                    </InputAdornment>
+                  )
+                }
               }}
             />
             {/* Section Dropdown */}
@@ -1446,6 +1466,7 @@ const MealGroup = () => {
               renderValue={selected => {
                 if (selected === 'all') return <Typography>All Sections</Typography>
                 const selectedItem = sectionList.find(item => item.section_id === selected)
+
                 return selectedItem?.section_name || ''
               }}
               size='small'
@@ -1513,6 +1534,7 @@ const MealGroup = () => {
                 flexGrow: 1,
                 minWidth: { xs: '100%', sm: '200px', md: '240px' },
                 backgroundColor: 'white'
+
                 // borderRadius: '4px'
               }}
             />
@@ -1525,6 +1547,7 @@ const MealGroup = () => {
                 renderValue={selected => {
                   if (selected === 'all') return <Typography>All Meal groups</Typography>
                   const selectedItem = groupList.find(item => item.id === selected)
+
                   return selectedItem?.group_name || ''
                 }}
                 size='small'
@@ -1571,6 +1594,7 @@ const MealGroup = () => {
                     </Box>
                   )
                 }
+
                 return (
                   <CommonTable
                     onRowClick={status === 'mealgroup' ? handleView : undefined}
@@ -1693,7 +1717,7 @@ const MealGroup = () => {
               </Box>
             </Box>
           </Box>
-        </FixedFooterWrapper> 
+        </FixedFooterWrapper>
       )}
 
       {openDrawer && (
@@ -1743,6 +1767,9 @@ const MealGroup = () => {
         />
       )}
     </React.Fragment>
+  ) : (
+    <Error404 />
   )
 }
+
 export default MealGroup

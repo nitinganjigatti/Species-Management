@@ -569,7 +569,9 @@ const AllStoresRequestList = () => {
           </Box>
         ) : (
           <Box sx={{ flexGrow: 1 }}>
-            <Grid container direction='column' gap={1}>
+            <Grid container direction='column' sx={{
+              gap: 1
+            }}>
               {uniquePendingData.map((med, index) => (
                 <Grid item size={{ xs: 12 }} key={index} sx={{ padding: 0, margin: 0 }}>
                   <MedicineCard
@@ -715,8 +717,18 @@ const AllStoresRequestList = () => {
                 mb: 0.5
               }}
             >
-              <Box display='flex' justifyContent='space-between' alignItems='center'>
-                <Box display='flex' alignItems='center' gap={2}>
+              <Box
+                sx={{
+                  display: 'flex',
+                  justifyContent: 'space-between',
+                  alignItems: 'center'
+                }}>
+                <Box
+                  sx={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 2
+                  }}>
                   <Typography sx={{ fontSize: '20px', fontWeight: 500, color: 'customColors.OnSurfaceVariant' }}>
                     Unique Pending items
                   </Typography>

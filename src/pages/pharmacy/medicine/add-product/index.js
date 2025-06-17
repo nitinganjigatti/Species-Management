@@ -870,7 +870,7 @@ const AddMedicine = () => {
           icon='material-symbols-light:close'
         />
       </Box>
-    )
+    );
   }
 
   const clearSaltFields = index => {
@@ -901,7 +901,7 @@ const AddMedicine = () => {
           icon='material-symbols-light:close'
         />
       </Box>
-    )
+    );
   }
 
   const handleAddRemoveSalts = (fields, index) => {
@@ -1182,7 +1182,13 @@ const AddMedicine = () => {
                             </Grid>
                           )}
                           {pharmacyRole && medicineType !== 'non_medical' && (
-                            <Grid item size={{ xs: 12, sm: 6 }} justifyContent='flex-end' alignSelf='center'>
+                            <Grid
+                              item
+                              size={{ xs: 12, sm: 6 }}
+                              sx={{
+                                justifyContent: 'flex-end',
+                                alignSelf: 'center'
+                              }}>
                               <Box sx={{ display: 'flex', alignItems: 'right', textAlign: 'right' }}>
                                 <AddButton
                                   title='Add Generic Name'
@@ -1248,7 +1254,13 @@ const AddMedicine = () => {
                             </FormControl>
                           </Grid>
                           {pharmacyRole && (
-                            <Grid item size={{ xs: 12, sm: 6 }} justifyContent='flex-end' alignSelf='center'>
+                            <Grid
+                              item
+                              size={{ xs: 12, sm: 6 }}
+                              sx={{
+                                justifyContent: 'flex-end',
+                                alignSelf: 'center'
+                              }}>
                               <Box sx={{ display: 'flex', alignItems: 'right', textAlign: 'right' }}>
                                 <AddButton
                                   title='Add Manufacturer'
@@ -1437,7 +1449,9 @@ const AddMedicine = () => {
                           {medicineType !== 'non_medical' && (
                             <Grid item size={{ xs: 12, sm: 12 }}>
                               <FormGroup>
-                                <Grid container item xs={12} sm={12} alignItems='center' spacing={2}>
+                                <Grid container item xs={12} sm={12} spacing={2} sx={{
+                                  alignItems: 'center'
+                                }}>
                                   <Grid item size={{ xs: 6 }}>
                                     <span style={{ marginRight: '10px' }}>Salt Composition</span>
                                     {pharmacyRole && (
@@ -1551,16 +1565,12 @@ const AddMedicine = () => {
                                     <Grid
                                       item
                                       xs={4}
-                                      // eslint-disable-next-line lines-around-comment
-                                      // justifyContent='flex-end'
-
-                                      alignSelf='center'
                                       sx={{
+                                        alignSelf: 'center',
                                         display: 'flex',
                                         justifyItems: 'center',
                                         alignItems: 'center'
-                                      }}
-                                    >
+                                      }}>
                                       {handleAddRemoveSalts(fields, index)}
                                     </Grid>
                                   </Grid>
@@ -2036,7 +2046,7 @@ const AddMedicine = () => {
         </>
       )}
     </>
-  )
+  );
 }
 
 export default AddMedicine

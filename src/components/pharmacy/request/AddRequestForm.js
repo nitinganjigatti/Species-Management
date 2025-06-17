@@ -845,39 +845,25 @@ const AddRequestForm = () => {
                   // disablePortal
                   id='autocomplete-controlled'
                   options={optionsMedicineList}
-                  renderOption={(props, option) => (
-                    <li
-                      {...props}
-                      style={{ opacity: option.status ? 1 : 0.5, pointerEvents: option.status ? 'auto' : 'none' }}
-                    >
-                      <Box>
-                        <Typography>{option.name}</Typography>
-                        <Typography variant='body2'>{option.package}</Typography>
-                        <Typography variant='body2'>{option.manufacture}</Typography>
-                        {/* {option.control_substance === true && (
-                          <CustomChip label='CS' skin='light' color='success' size='small' />
-                        )}{' '} */}
-                        {RenderUtility?.renderControlLabel(option.control_substance === true, 'CS')}
-                        {RenderUtility?.renderPrescriptionLabel(option.prescription_required === true, 'PR')}
-                        {/* {option.prescription_required === true && (
-                          <CustomChip label='PR' skin='light' color='success' size='small' />
-                        )} */}
-                        {/* <Typography
-                          sx={{
-                            color: 'customColors.OnSecondaryContainer',
-                            display: 'flex',
-                            alignItems: 'center',
-                            fontSize: '16px',
-                            fontWeight: 400
-                          }}
-                        >
+                  renderOption={(props, option) => {
+                    const { key, ...otherProps } = props
+
+                    return (
+                      <li
+                        key={`${option.id || ''}-${option.name}-${option.package}-${option.manufacture}`}
+                        {...otherProps}
+                        style={{ opacity: option.status ? 1 : 0.5, pointerEvents: option.status ? 'auto' : 'none' }}
+                      >
+                        <Box>
+                          <Typography>{option.name}</Typography>
+                          <Typography variant='body2'>{option.package}</Typography>
+                          <Typography variant='body2'>{option.manufacture}</Typography>
                           {RenderUtility?.renderControlLabel(option.control_substance === true, 'CS')}
-                          {RenderUtility?.renderControlLabel(option.prescription_required === true, 'PR')}
-                          {option.name}({option.package})
-                        </Typography> */}
-                      </Box>
-                    </li>
-                  )}
+                          {RenderUtility?.renderPrescriptionLabel(option.prescription_required === true, 'PR')}
+                        </Box>
+                      </li>
+                    )
+                  }}
                   value={nestedRowMedicine.medicine_name ? nestedRowMedicine.medicine_name : ''}
                   onChange={(event, newValue) => {
                     if (newValue?.value) {
@@ -984,35 +970,25 @@ const AddRequestForm = () => {
                   // disablePortal
                   id='autocomplete-controlled'
                   options={optionsGenericMedicineList}
-                  renderOption={(props, option) => (
-                    <li
-                      {...props}
-                      style={{ opacity: option.status ? 1 : 0.5, pointerEvents: option.status ? 'auto' : 'none' }}
-                    >
-                      <Box>
-                        <Typography>
-                          {option.genericName ? option.genericName : 'Generic name not available'}
-                        </Typography>
-                        <Typography variant='body2'>{`Product - ${option.name}`}</Typography>
+                  renderOption={(props, option) => {
+                    const { key, ...otherProps } = props
 
-                        <Typography variant='body2'>{option.package}</Typography>
-                        <Typography variant='body2'>{option.manufacture}</Typography>
-                        {/* <Typography
-                          sx={{
-                            color: 'customColors.OnSecondaryContainer',
-                            display: 'flex',
-                            alignItems: 'center',
-                            fontSize: '16px',
-                            fontWeight: 400
-                          }}
-                        >
+                    return (
+                      <li
+                        key={`${option.id || ''}-${option.genericName}-${option.package}-${option.manufacture}`}
+                        {...otherProps}
+                        style={{ opacity: option.status ? 1 : 0.5, pointerEvents: option.status ? 'auto' : 'none' }}
+                      >
+                        <Box>
+                          <Typography>{option.genericName}</Typography>
+                          <Typography variant='body2'>{option.package}</Typography>
+                          <Typography variant='body2'>{option.manufacture}</Typography>
                           {RenderUtility?.renderControlLabel(option.control_substance === true, 'CS')}
-                          {RenderUtility?.renderControlLabel(option.prescription_required === true, 'PR')}
-                          {option.genericName}({option.package})
-                        </Typography> */}
-                      </Box>
-                    </li>
-                  )}
+                          {RenderUtility?.renderPrescriptionLabel(option.prescription_required === true, 'PR')}
+                        </Box>
+                      </li>
+                    )
+                  }}
                   value={nestedRowMedicine.genericName ? nestedRowMedicine.genericName : ''}
                   onChange={(event, newValue) => {
                     if (newValue?.value) {
@@ -1111,19 +1087,21 @@ const AddRequestForm = () => {
           )}
           <Grid item size={{ xs: 12, sm: 12 }}>
             {showWarning.count && (
-              (<Typography
+              <Typography
                 sx={{
                   mb: 2,
                   fontSize: '12px',
                   fontWeight: 400,
                   color: 'customColors.Tertiary'
                 }}
-              >*You have{' '}
+              >
+                *You have{' '}
                 <Box component='span' sx={{ fontWeight: 600 }}>
                   {showWarning?.count || 0} ongoing requests
-                </Box>{' '}for this product (Qty: {showWarning?.total_pending_quantity || 0}). Please review before proceeding to
-                                avoid duplicate requests.
-                              </Typography>)
+                </Box>{' '}
+                for this product (Qty: {showWarning?.total_pending_quantity || 0}). Please review before proceeding to
+                avoid duplicate requests.
+              </Typography>
               // <Typography
               //   sx={{
               //     mb: 2,
@@ -1756,7 +1734,7 @@ const AddRequestForm = () => {
                   //     })
                   //   }}
                   // />
-                  (<Chip
+                  <Chip
                     sx={{
                       backgroundColor: 'customColors.lightBg',
                       height: '56px',
@@ -1809,7 +1787,7 @@ const AddRequestForm = () => {
                         }}
                       />
                     }
-                  />)
+                  />
                 )}
               </Grid>
             ) : (
@@ -1856,13 +1834,9 @@ const AddRequestForm = () => {
                 <FormControl fullWidth>
                   <input
                     type='file'
-                    // aria-hidden
-                    // id='file-upload'
                     ref={fileInputRef}
                     style={{ display: 'none' }}
                     accept='.pdf, .jpeg, .jpg, .png'
-                    // onClick={handleClick}
-                    error={Boolean(itemErrors.prescription_required_file)}
                     onChange={e => {
                       const file = e.target.files[0]
                       if (!file) return
@@ -1883,8 +1857,6 @@ const AddRequestForm = () => {
                   />
 
                   <TextField
-                    // htmlFor='file-upload'
-                    // id='file-upload'
                     onClick={handleClick}
                     placeholder='Add Prescription *'
                     error={Boolean(itemErrors.prescription_required_file)}
@@ -1989,7 +1961,7 @@ const AddRequestForm = () => {
           </Grid>
         </Grid>
       </form>
-    );
+    )
   }
 
   return (

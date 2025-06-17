@@ -601,7 +601,13 @@ function AddDispense() {
             </Card>
             <CardContent>
               <Grid item size={{ xs: 12, sm: 12, md: 6 }}>
-                <Grid container sx={{ height: '100%' }} alignItems='flex-end' justifyContent='flex-end'>
+                <Grid
+                  container
+                  sx={{
+                    alignItems: 'flex-end',
+                    justifyContent: 'flex-end',
+                    height: '100%'
+                  }}>
                   <Button
                     sx={{ width: '100px', height: '40px' }}
                     disabled={productArrayUi?.length === 0 || errors.user_id || submitLoading}
@@ -642,7 +648,7 @@ function AddDispense() {
         </>
       )}
     </>
-  )
+  );
 }
 
 export default AddDispense

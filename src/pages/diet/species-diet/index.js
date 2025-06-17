@@ -817,11 +817,6 @@ const SpeciesDietList = () => {
                           onChange={event => handleSearch(event.target.value)}
                           variant='outlined'
                           placeholder='Search...'
-                          InputProps={
-                            {
-                              // disableUnderline: true
-                            }
-                          }
                           sx={{
                             '& .MuiOutlinedInput-root': {
                               border: 'none',
@@ -829,6 +824,11 @@ const SpeciesDietList = () => {
                               '& fieldset': {
                                 border: 'none'
                               }
+                            }
+                          }}
+                          slotProps={{
+                            input: {
+                              // disableUnderline: true
                             }
                           }}
                         />

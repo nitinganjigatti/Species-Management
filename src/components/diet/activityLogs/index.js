@@ -162,12 +162,14 @@ const ActivityLogs = ({
                   value={searchValue}
                   fullWidth
                   label='Search activity'
-                  InputProps={{
-                    startAdornment: <Icon style={{ marginRight: 10 }} icon={'ion:search-outline'} />
-                  }}
                   onChange={e => {
                     setSearchValue(e.target.value)
                     activityLogSearch(e.target.value)
+                  }}
+                  slotProps={{
+                    input: {
+                      startAdornment: <Icon style={{ marginRight: 10 }} icon={'ion:search-outline'} />
+                    }
                   }}
                 />
               </Box>

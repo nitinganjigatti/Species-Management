@@ -23,18 +23,33 @@ const BatchOption = ({ option, ...props }) => {
       }}
     >
       <Box sx={{ p: 1 }}>
-        <Typography sx={{ fontSize: '0.875rem', fontWeight: 600 }} color='customColors.customHeadingTextColor'>
+        <Typography
+          sx={{
+            color: 'customColors.customHeadingTextColor',
+            fontSize: '0.875rem',
+            fontWeight: 600
+          }}>
           {option.label}
         </Typography>
-        <Typography sx={{ fontSize: '0.875rem', fontWeight: 400 }} color='customColors.neutralSecondary'>
+        <Typography
+          sx={{
+            color: 'customColors.neutralSecondary',
+            fontSize: '0.875rem',
+            fontWeight: 400
+          }}>
           Expiry Date: {Utility.formatDisplayDate(option.expiry_date)}
         </Typography>
-        <Typography sx={{ fontSize: '0.875rem', fontWeight: 400 }} color='primary.main'>
+        <Typography
+          sx={{
+            color: 'primary.main',
+            fontSize: '0.875rem',
+            fontWeight: 400
+          }}>
           Availability: {option.available_item_qty}
         </Typography>
       </Box>
     </Box>
-  )
+  );
 }
 
 export default React.memo(BatchOption)

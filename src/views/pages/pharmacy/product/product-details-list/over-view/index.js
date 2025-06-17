@@ -326,9 +326,12 @@ const Overview = props => {
             <Card sx={{ p: 4 }}>
               <Typography
                 variant='subtitle1'
-                marginBottom={2}
-                sx={{ color: 'customColors.customHeadingTextColor', fontWeight: 500, fontSize: '14px' }}
-              >
+                sx={{
+                  marginBottom: 2,
+                  color: 'customColors.customHeadingTextColor',
+                  fontWeight: 500,
+                  fontSize: '14px'
+                }}>
                 Other Pharmacy Quantity Details
               </Typography>
               <Card
@@ -395,7 +398,7 @@ const Overview = props => {
           </>
         )}
       </>
-    )
+    );
   }
 
   const AboutToExpireContent = ({ data, isLoading }) => (
@@ -859,7 +862,9 @@ const Overview = props => {
 
   return (
     <>
-      <Grid container spacing={4} pt={5}>
+      <Grid container spacing={4} sx={{
+        pt: 5
+      }}>
         {drawerData.map(card => (
           <StyleWithIconCardComponent
             key={card.name}
@@ -872,9 +877,7 @@ const Overview = props => {
           />
         ))}
       </Grid>
-
       <Divider sx={{ my: 5 }} />
-
       <Grid container spacing={4} sx={{ display: 'flex', alignItems: 'stretch' }}>
         <Grid item size={{ xs: 12, md: 6 }} sx={{ flexDirection: 'column' }}>
           <Card sx={{ height: '100%' }}>
@@ -977,7 +980,6 @@ const Overview = props => {
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1, flexGrow: 1 }}>
                 {isLoading && !alternativeMedicinesList?.active?.list_items?.length ? (
                   <Typography
-                    color='primary.light'
                     style={{
                       fontWeight: 400,
                       fontSize: '0.875rem',
@@ -985,6 +987,9 @@ const Overview = props => {
                       display: 'flex',
                       justifyContent: 'center',
                       alignItems: 'center'
+                    }}
+                    sx={{
+                      color: 'primary.light'
                     }}
                   >
                     <CircularProgress />
@@ -1159,7 +1164,6 @@ const Overview = props => {
           </Card>
         </Grid>
       </Grid>
-
       {activeDrawerData && (
         <CommonDrawerBox
           title={activeDrawerData.title}
@@ -1174,7 +1178,6 @@ const Overview = props => {
           width={700}
         />
       )}
-
       <CommonDrawerBox
         imageUrl={productDetails?.image}
         title={productDetails?.name}
@@ -1190,7 +1193,6 @@ const Overview = props => {
         }
         style='customColors.Background'
       />
-
       {addMedicinesDrawerOpen && (
         <AddAlternativeMedicineDrawer
           open={addMedicinesDrawerOpen}
@@ -1208,7 +1210,6 @@ const Overview = props => {
           searchMedicineData={searchMedicineData}
         />
       )}
-
       {editMedicinesDrawerOpen && (
         <EditAlternativeMedicineDrawer
           open={editMedicinesDrawerOpen}
@@ -1224,7 +1225,7 @@ const Overview = props => {
         />
       )}
     </>
-  )
+  );
 }
 
 export default Overview

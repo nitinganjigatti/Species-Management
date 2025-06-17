@@ -342,7 +342,7 @@ const CommonMediaView = ({
             height='24'
             color={theme.palette.customColors.Error}
           />
-          <Typography variant='h6' fontWeight='bold'>
+          <Typography fontSize={20} fontWeight='bold'>
             Delete File!
           </Typography>
         </DialogTitle>

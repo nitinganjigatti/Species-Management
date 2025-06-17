@@ -77,6 +77,7 @@ const RoomsList = () => {
   function loadServerRows(currentPage, data) {
     return data
   }
+
   // it can be removeed if there is no issue after long time
   // const fetchTableData = useCallback(
   //   async (q, nurseryId, status) => {
@@ -105,6 +106,7 @@ const RoomsList = () => {
   const fetchTableData = useCallback(
     async (q = '', nurseryId, status) => {
       setLoading(true)
+
       const params = {
         sort,
         search: q ?? '',
@@ -136,6 +138,7 @@ const RoomsList = () => {
         console.error(error)
       }
     }, 1000),
+
     // []  // it can be removeed if there is no issue after long time
     [fetchTableData]
   )
@@ -461,11 +464,6 @@ const RoomsList = () => {
                           <TextField
                             variant='outlined'
                             placeholder='Search...'
-                            InputProps={
-                              {
-                                // disableUnderline: true
-                              }
-                            }
                             onChange={e => handleSearch(e.target.value, defaultNursery?.nursery_id, defaultStatus?.key)}
                             sx={{
                               '& .MuiOutlinedInput-root': {
@@ -474,6 +472,11 @@ const RoomsList = () => {
                                 '& fieldset': {
                                   border: 'none'
                                 }
+                              }
+                            }}
+                            slotProps={{
+                              input: {
+                                // disableUnderline: true
                               }
                             }}
                           />

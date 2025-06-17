@@ -481,7 +481,9 @@ const DirectDispatchList = () => {
               {/* Search Field and Filters */}
               <Grid container spacing={3}>
                 {/* Search Field */}
-                <Grid item size={{ xs: 12, sm: 6 }} spacing={3} gap={3}>
+                <Grid item size={{ xs: 12, sm: 6 }} spacing={3} sx={{
+                  gap: 3
+                }}>
                   <Box
                     sx={{
                       display: 'flex',
@@ -552,7 +554,7 @@ const DirectDispatchList = () => {
           </Card>
         )}
       </>
-    )
+    );
   }
 
   return (

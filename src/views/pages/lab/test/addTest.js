@@ -367,7 +367,7 @@ const AddTest = props => {
                 </Typography>
                 <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: 1 }}>
                   {selectedSampleIds?.map(sample => (
-                    <>
+                    <Box key={sample.id}>
                       {editParams?.id ? (
                         <Chip
                           key={sample.id}
@@ -394,7 +394,7 @@ const AddTest = props => {
                           }}
                         />
                       )}
-                    </>
+                    </Box>
                   ))}
                 </Box>
               </Box>
@@ -416,14 +416,16 @@ const AddTest = props => {
                           variant='outlined'
                           placeholder='Search Add Sample Type'
                           error={Boolean(errors.sample_ids)}
-                          InputProps={{
-                            ...params.InputProps,
-                            startAdornment: (
-                              <>
-                                <Icon icon='mdi:magnify' sx={{ color: 'action.active', mr: 1 }} />
-                                {params.InputProps.startAdornment}
-                              </>
-                            )
+                          slotProps={{
+                            input: {
+                              ...params.InputProps,
+                              startAdornment: (
+                                <>
+                                  <Icon icon='mdi:magnify' sx={{ color: 'action.active', mr: 1 }} />
+                                  {params.InputProps.startAdornment}
+                                </>
+                              )
+                            }
                           }}
                         />
                       )}
@@ -473,44 +475,46 @@ const AddTest = props => {
                       {...field}
                       variant='outlined'
                       placeholder='Enter Sub Test Type'
-                      InputProps={{
-                        endAdornment: (
-                          <InputAdornment position='end'>
-                            <IconButton
-                              onClick={() => addSubTest(field.value)}
-                              edge='end'
-                              disabled={submitLoader}
-                              sx={{
-                                backgroundColor: '#4CAF50',
-                                borderRadius: '0 8px 8px 0',
-                                '&:hover': { backgroundColor: '#45a049' },
-                                height: '52px',
-                                width: '52px'
-                              }}
-                            >
-                              <Box
+                      slotProps={{
+                        input: {
+                          endAdornment: (
+                            <InputAdornment position='end'>
+                              <IconButton
+                                onClick={() => addSubTest(field.value)}
+                                edge='end'
+                                disabled={submitLoader}
                                 sx={{
-                                  display: 'flex',
-                                  alignItems: 'center',
-                                  justifyContent: 'center',
-                                  color: 'white'
+                                  backgroundColor: '#4CAF50',
+                                  borderRadius: '0 8px 8px 0',
+                                  '&:hover': { backgroundColor: '#45a049' },
+                                  height: '52px',
+                                  width: '52px'
                                 }}
                               >
-                                <Icon icon='formkit:submit' />
-                              </Box>
-                            </IconButton>
-                          </InputAdornment>
-                        ),
-                        sx: {
-                          borderRadius: '8px',
-                          '& .MuiOutlinedInput-notchedOutline': {
-                            borderColor: '#e0e0e0'
-                          },
-                          '&:hover .MuiOutlinedInput-notchedOutline': {
-                            borderColor: '#e0e0e0'
-                          },
-                          '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
-                            borderColor: '#e0e0e0'
+                                <Box
+                                  sx={{
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    color: 'white'
+                                  }}
+                                >
+                                  <Icon icon='formkit:submit' />
+                                </Box>
+                              </IconButton>
+                            </InputAdornment>
+                          ),
+                          sx: {
+                            borderRadius: '8px',
+                            '& .MuiOutlinedInput-notchedOutline': {
+                              borderColor: '#e0e0e0'
+                            },
+                            '&:hover .MuiOutlinedInput-notchedOutline': {
+                              borderColor: '#e0e0e0'
+                            },
+                            '&.Mui-focused .MuiOutlinedInput-notchedOutline': {
+                              borderColor: '#e0e0e0'
+                            }
                           }
                         }
                       }}

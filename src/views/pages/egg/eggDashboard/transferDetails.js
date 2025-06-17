@@ -562,11 +562,6 @@ const TransferDetails = () => {
             <TextField
               variant='outlined'
               placeholder='Search'
-              InputProps={
-                {
-                  // disableUnderline: true
-                }
-              }
               onChange={e =>
                 searchTableData(
                   e.target.value,
@@ -584,6 +579,11 @@ const TransferDetails = () => {
                   '& fieldset': {
                     border: 'none'
                   }
+                }
+              }}
+              slotProps={{
+                input: {
+                  // disableUnderline: true
                 }
               }}
             />

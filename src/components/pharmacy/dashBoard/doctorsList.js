@@ -116,7 +116,9 @@ const MedicineNamedoctorsList = ({
                   height: '70px'
                 }}
               >
-                <Grid container alignItems='center'>
+                <Grid container sx={{
+                  alignItems: 'center'
+                }}>
                   <Grid item>
                     <CalendarTodayIcon
                       sx={{ marginRight: 1, color: '#5F6D55', fontSize: '18px', position: 'relative', top: '-8px' }}

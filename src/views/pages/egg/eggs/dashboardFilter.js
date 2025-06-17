@@ -416,9 +416,6 @@ const DashboardFilter = ({
                       placeholder='Search'
                       value={searchQuery}
                       onChange={handleSearchChange}
-                      InputProps={{
-                        disableunderline: false
-                      }}
                       sx={{
                         '& .MuiOutlinedInput-root': {
                           border: 'none',
@@ -426,6 +423,11 @@ const DashboardFilter = ({
                           '& fieldset': {
                             border: 'none'
                           }
+                        }
+                      }}
+                      slotProps={{
+                        input: {
+                          disableunderline: false
                         }
                       }}
                     />
@@ -473,7 +475,6 @@ const DashboardFilter = ({
           </Grid>
         </Grid>
       </Box>
-
       {/* bottom buttons */}
       <Box
         sx={{

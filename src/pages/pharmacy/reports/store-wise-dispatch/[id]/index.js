@@ -754,7 +754,9 @@ const StoreWiseDispatchDetail = () => {
                       Store wise dispatch
                     </Typography>
 
-                    <Typography color='text.primary'>{store_name}</Typography>
+                    <Typography sx={{
+                      color: 'text.primary'
+                    }}>{store_name}</Typography>
                   </Breadcrumbs>
                 </Box>
               )}
@@ -944,7 +946,7 @@ const StoreWiseDispatchDetail = () => {
         </>
       )}
     </>
-  )
+  );
 }
 
 export default StoreWiseDispatchDetail

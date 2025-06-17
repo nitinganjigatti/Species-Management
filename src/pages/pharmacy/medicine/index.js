@@ -317,7 +317,7 @@ const ListOfMedicine = () => {
       headerName: 'Action',
 
       renderCell: params => (
-        <>
+        (<>
           {selectedPharmacy.type === 'central' &&
             (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') && (
               <Box>
@@ -332,7 +332,7 @@ const ListOfMedicine = () => {
                 </IconButton>
               </Box>
             )}
-        </>
+        </>)
 
         //     // {selectedPharmacy.type === 'central' && (selectedPharmacy.permission.key === 'allow_full_access' || selectedPharmacy.permission.key === 'ADD') &&(<Box>
         //     //   <IconButton size='small' onClick={() => handleEdit(params.row.id)} aria-label='Edit'>

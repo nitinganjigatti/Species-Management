@@ -145,6 +145,7 @@ const IncubatorsList = () => {
       )
     }
   }, [paginationModel])
+
   // }, [fetchTableData])  // use this line if there happen any issue while fetching table data
 
   const columns = [
@@ -418,11 +419,6 @@ const IncubatorsList = () => {
                     <TextField
                       variant='outlined'
                       placeholder='Search...'
-                      InputProps={
-                        {
-                          // disableUnderline: true
-                        }
-                      }
                       onChange={e =>
                         handleSearch(
                           e.target.value,
@@ -439,6 +435,11 @@ const IncubatorsList = () => {
                           '& fieldset': {
                             border: 'none'
                           }
+                        }
+                      }}
+                      slotProps={{
+                        input: {
+                          // disableUnderline: true
                         }
                       }}
                     />

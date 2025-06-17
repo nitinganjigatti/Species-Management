@@ -288,7 +288,9 @@ const StockMedicineConfigure = ({ configureMedId, storeId, close }) => {
 
   return (
     <>
-      <Grid container spacing={2} alignItems='center'>
+      <Grid container spacing={2} sx={{
+        alignItems: 'center'
+      }}>
         <DialogConfirmation
           handleClose={handleClose}
           action={confirmDeleteAction}
@@ -528,7 +530,7 @@ const StockMedicineConfigure = ({ configureMedId, storeId, close }) => {
         </Grid>
       </Grid>
     </>
-  )
+  );
 }
 
 export default StockMedicineConfigure

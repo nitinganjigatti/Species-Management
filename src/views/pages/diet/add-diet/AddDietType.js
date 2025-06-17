@@ -295,10 +295,12 @@ const AddDietType = ({ activitySidebarOpen, setActivitySidebarOpen, onReceiveDie
                                   }}
                                   error={Boolean(errors?.diet_types?.[index]?.weight)}
                                   type='number'
-                                  inputProps={{ min: 1 }}
                                   name={`diet_types[${index}].weight`}
                                   onKeyUp={() => {
                                     handleKeyUp(index)
+                                  }}
+                                  slotProps={{
+                                    htmlInput: { min: 1 }
                                   }}
                                 />
                               </>

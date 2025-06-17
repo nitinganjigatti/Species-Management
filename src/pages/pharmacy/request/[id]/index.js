@@ -1115,7 +1115,7 @@ const IndividualRequest = () => {
       renderCell: (params, rowId) => (
         <div>
           <Typography variant='body2' sx={{ color: 'text.primary' }}>
-            <div>{params.row.shipment_id}</div>
+            {params.row.shipment_id}
           </Typography>
         </div>
       )
@@ -1166,7 +1166,7 @@ const IndividualRequest = () => {
       field: 'status',
       headerName: 'Status',
       renderCell: params => (
-        <Typography variant='body2' sx={{ color: 'text.primary' }}>
+        <Typography component='div' variant='body2' sx={{ color: 'text.primary' }}>
           <div style={{ display: 'flex', alignItems: 'center' }}>
             {params?.row?.dispute_status === 'Dispute Pending' && (
               <Box sx={{ color: 'error.main', mr: 2 }}>
@@ -2512,8 +2512,11 @@ const IndividualRequest = () => {
                               <Box>
                                 <Typography
                                   variant='body2'
-                                  color='customColors.neutralSecondary'
-                                  sx={{ fontSize: '12px', fontWeight: 400 }}
+                                  sx={{
+                                    color: 'customColors.neutralSecondary',
+                                    fontSize: '12px',
+                                    fontWeight: 400
+                                  }}
                                 >
                                   Shipping ID:
                                 </Typography>
@@ -2531,8 +2534,11 @@ const IndividualRequest = () => {
                               <Box>
                                 <Typography
                                   variant='body2'
-                                  color='customColors.neutralSecondary'
-                                  sx={{ fontSize: '12px', fontWeight: 400 }}
+                                  sx={{
+                                    color: 'customColors.neutralSecondary',
+                                    fontSize: '12px',
+                                    fontWeight: 400
+                                  }}
                                 >
                                   Batch No:
                                 </Typography>
@@ -2550,8 +2556,11 @@ const IndividualRequest = () => {
                               <Box>
                                 <Typography
                                   variant='body2'
-                                  color='customColors.neutralSecondary'
-                                  sx={{ fontSize: '12px', fontWeight: 400 }}
+                                  sx={{
+                                    color: 'customColors.neutralSecondary',
+                                    fontSize: '12px',
+                                    fontWeight: 400
+                                  }}
                                 >
                                   Shipped Quantity:
                                 </Typography>

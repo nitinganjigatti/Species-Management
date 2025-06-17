@@ -92,7 +92,14 @@ const RequestedProductDetails = props => {
       <Box>
         {requestedProducts?.alt_parent?.length > 0 &&
           requestedProducts?.alt_parent?.map((nestedChildElm, index) => (
-            <Grid key={index} item size={{ xs: 12, sm: 12 }} mb={2}>
+            <Grid
+              key={index}
+              item
+              size={{ xs: 12, sm: 12 }}
+              sx={{
+                mb: 2
+              }}
+            >
               <Card
                 sx={{
                   border: `0.5px solid${theme.palette.customColors.Notes}`,
@@ -153,6 +160,7 @@ const RequestedProductDetails = props => {
                       </Box>
                       <Box>
                         <Typography
+                          component='div'
                           sx={{
                             color: theme.palette.customColors.OnPrimaryContainer,
                             fontSize: '16px',
@@ -232,10 +240,10 @@ const RequestedProductDetails = props => {
                     selectedPharmacy.type !== 'local' && (
                       // eslint-disable-next-line lines-around-comment
 
-                      (<MenuWithDots
+                      <MenuWithDots
                         options={generateOptions(nestedChildElm, nestedChildElm?.id)}
                         disabled={selectedPharmacy.type === 'local'}
-                      />)
+                      />
                     )
                   }
                   slotProps={{
@@ -369,7 +377,7 @@ const RequestedProductDetails = props => {
             </Grid>
           ))}
       </Box>
-    );
+    )
   }
 
   return (
@@ -621,7 +629,14 @@ const RequestedProductDetails = props => {
 
               {requestedProducts?.list_items?.length > 0 &&
                 requestedProducts?.list_items?.map((parentItems, index) => (
-                  <Grid key={index} item size={{ xs: 12, sm: 12 }} mb={2}>
+                  <Grid
+                    key={index}
+                    item
+                    size={{ xs: 12, sm: 12 }}
+                    sx={{
+                      mb: 2
+                    }}
+                  >
                     <Card
                       sx={{
                         padding: '16px',
@@ -638,6 +653,7 @@ const RequestedProductDetails = props => {
                         title={
                           <>
                             <Typography
+                              component='div'
                               sx={{
                                 color: theme.palette.customColors.OnPrimaryContainer,
                                 fontSize: '16px',
@@ -720,10 +736,10 @@ const RequestedProductDetails = props => {
                             //   options={['Add Alternative', 'Decline Request', 'Supply Stopped']}
                             //   iconButtonProps={{ size: 'small', className: 'card-more-options' }}
                             // />
-                            (<MenuWithDots
+                            <MenuWithDots
                               options={generateOptions(parentItems, parentItems?.id)}
                               disabled={selectedPharmacy.type === 'local'}
-                            />)
+                            />
                           )
                         }
                         slotProps={{
@@ -876,7 +892,7 @@ const RequestedProductDetails = props => {
         </>
       )}
     </Drawer>
-  );
+  )
 }
 
 export default RequestedProductDetails

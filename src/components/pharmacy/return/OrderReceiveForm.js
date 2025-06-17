@@ -1485,7 +1485,9 @@ function OrderReceiveForm({ orderId, requestId }) {
     <>
       <div>
         <Box sx={{ pb: 6 }}>
-          <Grid container justifyContent='space-between'>
+          <Grid container sx={{
+            justifyContent: 'space-between'
+          }}>
             <Grid item size={{ xs: 12, sm: 'auto' }}>
               <CardHeader
                 sx={{ padding: 0 }}
@@ -1549,7 +1551,6 @@ function OrderReceiveForm({ orderId, requestId }) {
 
         {commentDialog && commentDialogBox()}
       </div>
-
       {orderData &&
         ((Array.isArray(orderData) && orderData.length > 0) ||
           (typeof orderData === 'object' && orderData !== null && Object.keys(orderData).length > 0)) && (
@@ -1561,7 +1562,7 @@ function OrderReceiveForm({ orderId, requestId }) {
           </div>
         )}
     </>
-  )
+  );
 }
 
 export default OrderReceiveForm

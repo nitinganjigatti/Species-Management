@@ -550,7 +550,6 @@ const EggSecondSecion = ({
                             label='Weight in Grams'
                             value={value}
                             autoFocus
-                            inputProps={{ min: 1 }}
                             onChange={event => {
                               const newValue = event.target.value
 
@@ -562,6 +561,9 @@ const EggSecondSecion = ({
                             placeholder={`${editWeight ? 'Edit' : 'Add'} Weight`}
                             error={Boolean(errors.assessment_value)}
                             name='assessment_value'
+                            slotProps={{
+                              htmlInput: { min: 1 }
+                            }}
                           />
                         )}
                       />

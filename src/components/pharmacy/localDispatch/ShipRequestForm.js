@@ -703,12 +703,16 @@ const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
                 <Divider />
               </Grid>
             </form>
-            <Box mt={6}>
+            <Box sx={{
+              mt: 6
+            }}>
               <Typography sx={{ fontSize: '16px', fontWeight: 500, color: 'customColors.customHeadingTextColor' }}>
                 Items to be Shipped{' '}
               </Typography>
             </Box>
-            <Box mt={6}>
+            <Box sx={{
+              mt: 6
+            }}>
               {dispatchedItems?.length > 0 ? (
                 <Grid md={12} size={{ xs: 12, sm: 12, md: 12 }} sx={{ mb: 14 }}>
                   <TableBasic

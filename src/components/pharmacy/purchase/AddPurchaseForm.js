@@ -2108,10 +2108,12 @@ const AddPurchaseForm = () => {
                             setRoundUpValue(e.target.value) // Update local state with numeric value
                           }
                         }}
-                        InputProps={{
-                          sx: {
-                            borderTopLeftRadius: 0,
-                            borderBottomLeftRadius: 0
+                        slotProps={{
+                          input: {
+                            sx: {
+                              borderTopLeftRadius: 0,
+                              borderBottomLeftRadius: 0
+                            }
                           }
                         }}
                       />
@@ -2206,111 +2208,70 @@ const AddPurchaseForm = () => {
               }}
               aria-label='simple table'
             >
-              <TableHead sx={{ backgroundColor: '#F5F5F7' }}>
+              <TableHead sx={{ backgroundColor: 'customColors.customTableHeaderBg' }}>
                 <TableRow>
-                  <TableCell
-                    sx={{
-                      minWidth: 20
-                    }}
-                  >
+                  <TableCell rowSpan={2} sx={{ minWidth: 20 }}>
                     SL.No
                   </TableCell>
-                  <TableCell
-                    sx={{
-                      minWidth: 300
-                    }}
-                  >
+                  <TableCell rowSpan={2} sx={{ minWidth: 300 }}>
                     Product Name
                   </TableCell>
-
-                  <TableCell
-                    sx={{
-                      textAlign: 'center'
-                    }}
-                  >
+                  <TableCell rowSpan={2} sx={{ textAlign: 'center' }}>
                     Batch
                   </TableCell>
-                  <TableCell
-                    sx={{
-                      minWidth: 130,
-                      textAlign: 'center'
-                    }}
-                  >
+                  <TableCell rowSpan={2} sx={{ minWidth: 130, textAlign: 'center' }}>
                     Expiry Date
                   </TableCell>
-                  <TableCell align='right'>Quantity</TableCell>
-                  {/* <TableCell align='right'>Free Quantity</TableCell> */}
-                  <TableCell align='right'>Rate</TableCell>
-                  <TableCell
-                    align='right'
-                    sx={{
-                      minWidth: 130
-                    }}
-                  >
+                  <TableCell rowSpan={2} align='right'>
+                    Quantity
+                  </TableCell>
+                  <TableCell rowSpan={2} align='right'>
+                    Rate
+                  </TableCell>
+                  <TableCell rowSpan={2} align='right' sx={{ minWidth: 130 }}>
                     Discount in %
                   </TableCell>
-                  {/* <TableCell align='right'>GST in %</TableCell> */}
-                  <TableCell
-                    align='right'
-                    sx={{
-                      minWidth: 130
-                    }}
-                  >
+                  <TableCell rowSpan={2} align='right' sx={{ minWidth: 130 }}>
                     Net Amount
                   </TableCell>
-                  <TableCell
-                    align='right'
-                    sx={{
-                      minWidth: 130,
-                      whiteSpace: 'nowrap'
-                    }}
-                  >
+                  <TableCell rowSpan={2} align='right' sx={{ minWidth: 130, whiteSpace: 'nowrap' }}>
                     Gross Amount
                   </TableCell>
 
-                  <TableCell sx={{ minWidth: 130, textAlign: 'center' }}>
-                    <Box>
-                      CGST
-                      <Grid container justifyContent='space-between'>
-                        <Grid item xs={6} sx={{ textAlign: 'center' }}>
-                          Rate
-                        </Grid>
-                        <Grid item xs={6} sx={{ textAlign: 'center' }}>
-                          Amount
-                        </Grid>
-                      </Grid>
-                    </Box>
+                  <TableCell colSpan={2} align='center'>
+                    CGST
                   </TableCell>
-
-                  <TableCell sx={{ minWidth: 130, textAlign: 'center' }}>
-                    <Box>
-                      SGST
-                      <Grid container justifyContent='space-between'>
-                        <Grid item xs={6} sx={{ textAlign: 'center' }}>
-                          Rate
-                        </Grid>
-                        <Grid item xs={6} sx={{ textAlign: 'center' }}>
-                          Amount
-                        </Grid>
-                      </Grid>
-                    </Box>
+                  <TableCell colSpan={2} align='center'>
+                    SGST
                   </TableCell>
-
-                  <TableCell sx={{ minWidth: 130, textAlign: 'center' }}>
-                    <Box>
-                      IGST
-                      <Grid container justifyContent='space-between'>
-                        <Grid item xs={6} sx={{ textAlign: 'center' }}>
-                          Rate
-                        </Grid>
-                        <Grid item xs={6} sx={{ textAlign: 'center' }}>
-                          Amount
-                        </Grid>
-                      </Grid>
-                    </Box>
+                  <TableCell colSpan={2} align='center'>
+                    IGST
                   </TableCell>
-
-                  <TableCell align='right'>Action</TableCell>
+                  <TableCell rowSpan={2} align='right'>
+                    Action
+                  </TableCell>
+                </TableRow>
+                <TableRow>
+                  <TableCell
+                    sx={{
+                      borderTopLeftRadius: '0px !important'
+                    }}
+                    align='center'
+                  >
+                    Rate
+                  </TableCell>
+                  <TableCell align='center'>Amount</TableCell>
+                  <TableCell align='center'>Rate</TableCell>
+                  <TableCell align='center'>Amount</TableCell>
+                  <TableCell align='center'>Rate</TableCell>
+                  <TableCell
+                    sx={{
+                      borderTopRightRadius: '0px !important'
+                    }}
+                    align='center'
+                  >
+                    Amount
+                  </TableCell>
                 </TableRow>
               </TableHead>
               <TableBody>
@@ -2327,15 +2288,8 @@ const AddPurchaseForm = () => {
                             >
                               {el?.medicine_name}
                             </Typography>
-
                             <Typography variant='body2'>{el?.package_details}</Typography>
-
                             <Typography variant='body2'>{el?.manufacture}</Typography>
-                            {/* {(!el?.purchase_stock_item_id || !el?.medicine_name) && (
-                              <Typography sx={{ color: 'error.main', fontSize: '12px' }}>
-                                Some product information appears to be missing. Kindly update the details.
-                              </Typography>
-                            )} */}
                           </TableCell>
                           <TableCell>{el?.purchase_batch_no}</TableCell>
                           <TableCell>
@@ -2344,53 +2298,30 @@ const AddPurchaseForm = () => {
                               : Utility.formatDisplayDate(el?.purchase_expiry_date)}
                           </TableCell>
                           <TableCell align='right'>{el?.purchase_qty}</TableCell>
-                          {/* <TableCell align='right'>{el.purchase_free_quantity}</TableCell> */}
                           <TableCell align='right'>
                             {Utility.formatAmountToReadableDigit(el?.purchase_unit_price)}
                           </TableCell>
                           <TableCell align='right'>{el?.purchase_discount}%</TableCell>
-                          {/* <TableCell align='right'>{el.purchase_igst}%</TableCell> */}
                           <TableCell align='right'>
                             {Utility.formatAmountToReadableDigit(el?.purchase_net_amount)}
                           </TableCell>
                           <TableCell align='right'>
                             {Utility.formatAmountToReadableDigit(el?.purchase_gross_amount)}
                           </TableCell>
-                          <TableCell
-                            sx={{
-                              textAlign: 'center'
-                            }}
-                          >
-                            <TableCell sx={{ borderBottom: 'none', backgroundColor: 'transparent' }}>
-                              {el?.purchase_cgst}%
-                            </TableCell>
-                            <TableCell sx={{ borderBottom: 'none', backgroundColor: 'transparent' }}>
-                              {Utility.formatAmountToReadableDigit(el?.purchase_cgst_amount)}
-                            </TableCell>
+
+                          <TableCell align='center'>{el?.purchase_cgst}%</TableCell>
+                          <TableCell align='center'>
+                            {Utility.formatAmountToReadableDigit(el?.purchase_cgst_amount)}
                           </TableCell>
-                          <TableCell
-                            sx={{
-                              textAlign: 'center'
-                            }}
-                          >
-                            <TableCell sx={{ borderBottom: 'none', backgroundColor: 'transparent' }}>
-                              {el?.purchase_sgst}%
-                            </TableCell>
-                            <TableCell sx={{ borderBottom: 'none', backgroundColor: 'transparent' }}>
-                              {Utility.formatAmountToReadableDigit(el?.purchase_sgst_amount)}
-                            </TableCell>
+
+                          <TableCell align='center'>{el?.purchase_sgst}%</TableCell>
+                          <TableCell align='center'>
+                            {Utility.formatAmountToReadableDigit(el?.purchase_sgst_amount)}
                           </TableCell>
-                          <TableCell
-                            sx={{
-                              textAlign: 'center'
-                            }}
-                          >
-                            <TableCell sx={{ borderBottom: 'none', backgroundColor: 'transparent' }}>
-                              {el?.purchase_igst}%
-                            </TableCell>
-                            <TableCell sx={{ borderBottom: 'none', backgroundColor: 'transparent' }}>
-                              {Utility.formatAmountToReadableDigit(el?.purchase_igst_amount)}
-                            </TableCell>
+
+                          <TableCell align='center'>{el?.purchase_igst}%</TableCell>
+                          <TableCell align='center'>
+                            {Utility.formatAmountToReadableDigit(el?.purchase_igst_amount)}
                           </TableCell>
                           <TableCell align='center'>
                             <Box sx={{ display: 'flex' }}>
@@ -2856,19 +2787,23 @@ const AddPurchaseForm = () => {
                             }
                           }
                         }}
-                        inputProps={{
-                          style: { textAlign: 'right' } // Aligns text and placeholder to the right
+                        // Highlights the field in red if there's an error
+                        error={isError}
+                        slotProps={{
+                          input: {
+                            startAdornment: (
+                              <InputAdornment position='start'>
+                                <IconButton edge='start'>
+                                  <Icon icon='mdi:rupee' width='15px' height='15px' color='#000' />
+                                </IconButton>
+                              </InputAdornment>
+                            )
+                          },
+
+                          htmlInput: {
+                            style: { textAlign: 'right' } // Aligns text and placeholder to the right
+                          }
                         }}
-                        InputProps={{
-                          startAdornment: (
-                            <InputAdornment position='start'>
-                              <IconButton edge='start'>
-                                <Icon icon='mdi:rupee' width='15px' height='15px' color='#000' />
-                              </IconButton>
-                            </InputAdornment>
-                          )
-                        }}
-                        error={isError} // Highlights the field in red if there's an error
                       />
                     </CalcWrapper>
                   </Box>

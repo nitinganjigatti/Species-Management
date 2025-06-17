@@ -720,7 +720,9 @@ const MonthWiseDispatch = () => {
                     >
                       Pharmacy Dashboard
                     </Typography>
-                    <Typography color='text.primary'>Month wise dispatch</Typography>
+                    <Typography sx={{
+                      color: 'text.primary'
+                    }}>Month wise dispatch</Typography>
                   </Breadcrumbs>
                 </Box>
               )}
@@ -912,7 +914,7 @@ const MonthWiseDispatch = () => {
         </>
       )}
     </>
-  )
+  );
 }
 
 export default MonthWiseDispatch

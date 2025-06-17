@@ -50,8 +50,15 @@ const StockConfigDetails = ({ open, configMed, setConfigMed, close }) => {
           borderBottom: '1px solid #e0e0e0'
         }}
       >
-        <Box display='flex' justifyContent='space-between' alignItems='center'>
-          <Typography variant='h6' fontWeight='bold'>
+        <Box
+          sx={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center'
+          }}>
+          <Typography variant='h6' sx={{
+            fontWeight: 'bold'
+          }}>
             Rack and Shelves
           </Typography>
           <IconButton onClick={close}>
@@ -93,9 +100,12 @@ const StockConfigDetails = ({ open, configMed, setConfigMed, close }) => {
         >
           <Typography
             variant='subtitle1'
-            marginBottom={2}
-            sx={{ color: 'customColors.customHeadingTextColor', fontWeight: 500, fontSize: '14px' }}
-          >
+            sx={{
+              marginBottom: 2,
+              color: 'customColors.customHeadingTextColor',
+              fontWeight: 500,
+              fontSize: '14px'
+            }}>
             Rack and Shelves Details
           </Typography>
           <Card

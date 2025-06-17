@@ -1057,7 +1057,9 @@ const AddLab = () => {
                                     placeholder=''
                                     error={Boolean(errors?.lab_contact_number)}
                                     name='lab_contact_number'
-                                    inputProps={{ inputMode: 'numeric', pattern: '[0-9]*' }} // Allow only numeric input
+                                    slotProps={{
+                                      htmlInput: { inputMode: 'numeric', pattern: '[0-9]*' }
+                                    }}
                                   />
                                 )}
                               />
@@ -1513,7 +1515,7 @@ const AddLab = () => {
               {/* drawer */}
               <Stack sx={{ p: 5 }} spacing={3}>
                 {TestData?.map((sample, index) => (
-                  <>
+                  <Box key={index}>
                     <Stack
                       key={index}
                       direction='row'
@@ -1643,7 +1645,7 @@ const AddLab = () => {
                         </Card>
                       )
                     )}
-                  </>
+                  </Box>
                 ))}
               </Stack>
             </div>

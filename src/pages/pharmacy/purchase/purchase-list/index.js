@@ -606,7 +606,9 @@ const ListOfPurchase = () => {
                   </Grid>
 
                   <Grid item size={{ xs: 12, sm: 6 }}>
-                    <Grid container spacing={2} justifyContent={{ xs: 'flex-end' }}>
+                    <Grid container spacing={2} sx={{
+                      justifyContent: { xs: 'flex-end' }
+                    }}>
                       <Grid item size={{ xs: 12, sm: 8 }} sx={{ flex: 1 }}>
                         <TextField
                           variant='outlined'

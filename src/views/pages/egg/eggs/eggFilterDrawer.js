@@ -528,7 +528,6 @@ const EggFilterDrawer = ({
           </IconButton>
         </Box>
       </Box>
-
       {/* container */}
       <Box
         sx={{
@@ -615,9 +614,6 @@ const EggFilterDrawer = ({
                       placeholder='Search'
                       value={searchQuery}
                       onChange={handleSearchChange}
-                      InputProps={{
-                        disableUnderline: false
-                      }}
                       sx={{
                         '& .MuiOutlinedInput-root': {
                           border: 'none',
@@ -625,6 +621,11 @@ const EggFilterDrawer = ({
                           '& fieldset': {
                             border: 'none'
                           }
+                        }
+                      }}
+                      slotProps={{
+                        input: {
+                          disableUnderline: false
                         }
                       }}
                     />
@@ -702,7 +703,6 @@ const EggFilterDrawer = ({
           </Grid>
         </Grid>
       </Box>
-
       {/* bottom buttons */}
       <Box
         sx={{

@@ -15,7 +15,8 @@ import {
   Autocomplete,
   Box,
   CardHeader,
-  Divider
+  Divider,
+  InputAdornment
 } from '@mui/material'
 
 import { LoadingButton } from '@mui/lab'
@@ -99,7 +100,7 @@ const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
           .string()
           .required('Mobile Number is required')
           .test('is-valid-number', 'Only numbers are allowed', value => {
-            return /^\d*$/.test(value);
+            return /^\d*$/.test(value)
           })
           .test('is-valid-length', 'Mobile Number must be exactly 10 digits', value => {
             return value?.length === 10
@@ -129,7 +130,7 @@ const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
           .string()
           .required('Mobile Number is required')
           .test('is-valid-number', 'Only numbers are allowed', value => {
-            return /^\d*$/.test(value);
+            return /^\d*$/.test(value)
           })
           .test('is-valid-length', 'Mobile Number must be exactly 10 digits', value => {
             return value?.length === 10
@@ -160,8 +161,52 @@ const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
   const router = useRouter()
   const { id, action } = router.query
 
-  const getDriverList = useCallback(
-    async (sort, q, column) => {
+  const loadServerRows = async params => {
+    try {
+      const response = await getDrivers({ params })
+      if (response.success) {
+        setTotal(parseInt(response.data.total_count))
+        setOptions(response.data.list_items)
+
+        return {
+          rows: response.data.list_items,
+          rowCount: response.data.total_count
+        }
+      }
+
+      return {
+        rows: [],
+        rowCount: 0
+      }
+    } catch (error) {
+      console.error('Error loading driver list:', error)
+
+      return {
+        rows: [],
+        rowCount: 0
+      }
+    }
+  }
+
+  const getDriverList = useCallback(async params => {
+    try {
+      const response = await loadServerRows(params)
+      setRows(response.rows)
+
+      return response
+    } catch (error) {
+      console.error('Error in getDriverList:', error)
+
+      return {
+        rows: [],
+        rowCount: 0
+      }
+    }
+  }, [])
+
+  const searchDriver = useCallback(
+    debounce(async (sort, q, column) => {
+      setSearchValue(q)
       try {
         const params = {
           sort,
@@ -170,30 +215,24 @@ const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
           page: paginationModel.page + 1,
           limit: paginationModel.pageSize
         }
-
-        await getDrivers({ params: params }).then(res => {
-          setTotal(parseInt(res?.data?.total_count))
-          setOptions(res?.data?.list_items)
-          setRows(loadServerRows(paginationModel.page, res?.data?.list_items))
-        })
-      } catch (e) {
-        console.error(e)
-      }
-    },
-    [paginationModel]
-  )
-
-  const searchDriver = useCallback(
-    debounce(async (sort, q, column) => {
-      setSearchValue(q)
-      try {
-        await getDriverList(sort, q, column)
+        await getDriverList(params)
       } catch (error) {
         console.error(error)
       }
-    }, 1000),
-    []
+    }, 500),
+    [getDriverList, paginationModel]
   )
+
+  useEffect(() => {
+    const params = {
+      sort,
+      q: searchValue,
+      column: sortColumn,
+      page: paginationModel.page + 1,
+      limit: paginationModel.pageSize
+    }
+    getDriverList(params)
+  }, [getDriverList, sort, searchValue, sortColumn, paginationModel])
 
   const shipRequest = async payload => {
     try {
@@ -218,11 +257,6 @@ const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
       setOpenSnackbar({ ...openSnackbar, open: true, message: 'Error', severity: 'error' })
     }
   }
-
-  useEffect(() => {
-    getDriverList(sort, searchValue, sortColumn)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [getDriverList])
 
   const onSubmit = async params => {
     setSubmitLoader(true)
@@ -267,7 +301,7 @@ const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
           }
         }}
       />
-    );
+    )
   })
 
   const columns = [
@@ -485,26 +519,49 @@ const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
                   Shipment Details
                 </Typography>
                 {deliveryType.Ship ? (
-                  <Grid item size={{ xs: 12, sm: 3 }} mb={6}>
+                  <Grid
+                    item
+                    size={{ xs: 12, sm: 3 }}
+                    sx={{
+                      mb: 6
+                    }}
+                  >
                     <FormControl fullWidth>
                       <Controller
                         name='name'
                         control={control}
+                        defaultValue=''
                         render={({ field: { value, onChange } }) => (
                           <Autocomplete
                             options={options}
-                            value={value}
-                            renderOption={(props, option) => (
-                              <li {...props}>
-                                <Box>
-                                  <Typography>{option.driver_name}</Typography>
-                                  <Typography variant='body2'>{option.phone_number}</Typography>
-                                  <Typography variant='body2'>{option.vehicle_number}</Typography>
-                                </Box>
-                              </li>
-                            )}
-                            getOptionLabel={option => (option.driver_name ? option.driver_name : '')}
-                            isOptionEqualToValue={(option, value) => option.value === value.driver_name}
+                            value={value || ''}
+                            renderOption={(props, option) => {
+                              const { key, ...otherProps } = props
+
+                              // Create a unique key using multiple fields to ensure uniqueness
+                              const uniqueKey = `${option.driver_name}-${option.phone_number}-${
+                                option.vehicle_number
+                              }-${option.id || Math.random()}`
+
+                              return (
+                                <li key={uniqueKey} {...otherProps}>
+                                  <Box>
+                                    <Typography>{option.driver_name}</Typography>
+                                    <Typography variant='body2'>{option.phone_number}</Typography>
+                                    <Typography variant='body2'>{option.vehicle_number}</Typography>
+                                  </Box>
+                                </li>
+                              )
+                            }}
+                            getOptionLabel={option => (option?.driver_name ? option.driver_name : '')}
+                            isOptionEqualToValue={(option, value) => {
+                              // Use multiple fields to ensure unique comparison
+                              return (
+                                option?.driver_name === value?.driver_name &&
+                                option?.phone_number === value?.phone_number &&
+                                option?.vehicle_number === value?.vehicle_number
+                              )
+                            }}
                             onChange={(e, val) => {
                               if (val === null) {
                                 setValue('person_shipping', '')
@@ -512,16 +569,12 @@ const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
                                 setValue('receiver_name', '')
                                 setValue('phone_number', '')
 
-                                // setValue('driver_name', '')
-
                                 return onChange(null)
                               } else {
                                 setValue('person_shipping', val.driver_name)
                                 setValue('vehicle_no', val.vehicle_number)
                                 setValue('receiver_name', val.driver_name)
                                 setValue('phone_number', val.phone_number)
-
-                                // setValue('driver_name', val.driver_name)
 
                                 return onChange(val)
                               }
@@ -546,35 +599,41 @@ const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
                 ) : null}
 
                 {deliveryType.Ship && (
-                  <Grid item size={{ xs: 12, sm: 3 }} mb={6}>
+                  <Grid
+                    item
+                    size={{ xs: 12, sm: 3 }}
+                    sx={{
+                      mb: 6
+                    }}
+                  >
                     <FormControl fullWidth>
                       <Controller
                         name='person_shipping'
                         control={control}
-                        rules={{ required: true }}
-                        render={({ field: { value, onChange } }) => (
+                        defaultValue=''
+                        render={({ field }) => (
                           <TextField
-                            value={value}
+                            {...field}
+                            fullWidth
                             label='Driver Name*'
-                            onChange={onChange}
-                            placeholder=''
+                            value={field.value || ''}
                             error={Boolean(errors.person_shipping)}
-                            name='person_shipping'
-                            slotProps={{
-                              inputLabel: { shrink: true }
-                            }}
+                            helperText={errors.person_shipping?.message}
                           />
                         )}
                       />
-                      {errors.person_shipping && (
-                        <FormHelperText sx={{ color: 'error.main' }}>{errors.person_shipping.message}</FormHelperText>
-                      )}
                     </FormControl>
                   </Grid>
                 )}
 
                 {!deliveryType.Ship && (
-                  <Grid item size={{ xs: 12, sm: 6 }} mb={6}>
+                  <Grid
+                    item
+                    size={{ xs: 12, sm: 6 }}
+                    sx={{
+                      mb: 6
+                    }}
+                  >
                     <FormControl fullWidth>
                       <SingleDatePicker
                         fullWidth
@@ -598,60 +657,66 @@ const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
                   </Grid>
                 )}
 
-                <Grid item size={{ xs: 12, sm: deliveryType.Ship ? 3 : 6 }} mb={6}>
+                <Grid
+                  item
+                  size={{ xs: 12, sm: deliveryType.Ship ? 3 : 6 }}
+                  sx={{
+                    mb: 6
+                  }}
+                >
                   <FormControl fullWidth>
                     <Controller
                       name='phone_number'
                       control={control}
-                      rules={{ required: true }}
-                      render={({ field: { value, onChange } }) => (
+                      defaultValue=''
+                      render={({ field }) => (
                         <TextField
-                          value={value}
-                          label='Mobile Number*'
-                          onChange={onChange}
-                          placeholder=''
+                          {...field}
+                          fullWidth
+                          label='Phone Number*'
+                          value={field.value || ''}
                           error={Boolean(errors.phone_number)}
-                          name='phone_number'
-                          slotProps={{
-                            inputLabel: { shrink: true }
-                          }}
+                          helperText={errors.phone_number?.message}
                         />
                       )}
                     />
-                    {errors.phone_number && (
-                      <FormHelperText sx={{ color: 'error.main' }}>{errors.phone_number.message}</FormHelperText>
-                    )}
                   </FormControl>
                 </Grid>
 
                 {deliveryType.Ship ? (
                   <>
-                    <Grid item size={{ xs: 12, sm: 3 }} mb={6}>
+                    <Grid
+                      item
+                      size={{ xs: 12, sm: 3 }}
+                      sx={{
+                        mb: 6
+                      }}
+                    >
                       <FormControl fullWidth>
                         <Controller
                           name='vehicle_no'
                           control={control}
-                          rules={{ required: true }}
-                          render={({ field: { value, onChange } }) => (
+                          defaultValue=''
+                          render={({ field }) => (
                             <TextField
-                              value={value}
-                              label='Vehicle Number'
-                              onChange={onChange}
-                              placeholder=''
+                              {...field}
+                              fullWidth
+                              label='Vehicle No*'
+                              value={field.value || ''}
                               error={Boolean(errors.vehicle_no)}
-                              name='vehicle_no'
-                              slotProps={{
-                                inputLabel: { shrink: true }
-                              }}
+                              helperText={errors.vehicle_no?.message}
                             />
                           )}
                         />
-                        {errors.vehicle_no && (
-                          <FormHelperText sx={{ color: 'error.main' }}>{errors.vehicle_no.message}</FormHelperText>
-                        )}
                       </FormControl>
                     </Grid>
-                    <Grid item size={{ xs: 12, sm: 6 }} mb={6}>
+                    <Grid
+                      item
+                      size={{ xs: 12, sm: 6 }}
+                      sx={{
+                        mb: 6
+                      }}
+                    >
                       <FormControl fullWidth>
                         <SingleDatePicker
                           fullWidth
@@ -681,29 +746,22 @@ const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
                         <Controller
                           name='receiver_name'
                           control={control}
-                          rules={{ required: true }}
-                          render={({ field: { value, onChange } }) => (
+                          defaultValue=''
+                          render={({ field }) => (
                             <TextField
-                              value={value}
+                              {...field}
+                              fullWidth
                               label='Receiver Name*'
-                              onChange={onChange}
-                              placeholder=''
+                              value={field.value || ''}
                               error={Boolean(errors.receiver_name)}
-                              name='receiver_name'
-                              slotProps={{
-                                inputLabel: { shrink: true }
-                              }}
+                              helperText={errors.receiver_name?.message}
                             />
                           )}
                         />
-                        {errors.receiver_name && (
-                          <FormHelperText sx={{ color: 'error.main' }}>{errors.receiver_name.message}</FormHelperText>
-                        )}
                       </FormControl>
                     </Grid>
                   </>
                 )}
-                {/* {deliveryType.Ship && ( */}
                 <Grid item size={{ xs: 12, sm: 6 }}>
                   <FormControl fullWidth>
                     <Controller
@@ -754,7 +812,7 @@ const ShipRequest = ({ dispatchedItems, storeDetails, close }) => {
         </Grid>
       </Grid>
     </>
-  );
+  )
 }
 
 export default ShipRequest

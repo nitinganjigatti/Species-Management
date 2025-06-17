@@ -23,6 +23,7 @@ export const getEllipsisStyleForText = width => {
 export const renderControlLabel = (condition, label) =>
   condition ? (
     <Typography
+      component='span'
       sx={{
         height: '16px',
         width: '18px',
@@ -115,9 +116,17 @@ export function renderUserAvatarDetails(image, userName, date, textColor, fontSi
 
 export function getPriorityIcons(priority) {
   if (priority === 'high') {
-    return <Avatar src={'/images/High_Priority.png'} style={{ width: '24px', height: '24px' }} />
+    return (
+      <Box>
+        <Avatar src={'/images/High_Priority.png'} style={{ width: '24px', height: '24px' }} />
+      </Box>
+    )
   } else if (priority === 'emergency') {
-    return <Avatar src={'/images/Emergency.png'} style={{ width: '24px', height: '24px' }} />
+    return (
+      <Box>
+        <Avatar src={'/images/Emergency.png'} style={{ width: '24px', height: '24px' }} />
+      </Box>
+    )
   } else return null
 }
 
@@ -559,6 +568,7 @@ export const GenderInfoCard = ({ value, bgcolor, color }) => {
 export const renderPrescriptionLabel = (condition, label) =>
   condition ? (
     <Typography
+      component='span'
       sx={{
         height: '16px',
         width: '18px',

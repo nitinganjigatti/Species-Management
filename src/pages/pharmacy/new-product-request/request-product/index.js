@@ -544,7 +544,9 @@ export default function AddProduct() {
                       </FormControl>
                     </Grid>
                   </Grid>
-                  <Grid container mt={4} size={{ xs: 12 }}>
+                  <Grid container size={{ xs: 12 }} sx={{
+                    mt: 4
+                  }}>
                     <Grid container spacing={6}>
                       {
                         <Grid item size={{ xs: 12, sm: 6 }}>
@@ -837,14 +839,13 @@ export default function AddProduct() {
                     container
                     size={{ sm: 12 }}
                     spacing={6}
-                    mt={5}
                     item
                     sx={{
+                      mt: 5,
                       display: 'flex',
                       justifyContent: 'flex-end',
                       alignItems: 'center'
-                    }}
-                  >
+                    }}>
                     {id && (
                       <Button
                         styles={{ color: theme.palette.error.dark, border: '1px solid red', margin: '5px' }}
@@ -878,5 +879,5 @@ export default function AddProduct() {
         </>
       )}
     </>
-  )
+  );
 }
