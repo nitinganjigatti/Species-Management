@@ -17,6 +17,12 @@ const ComposeReportNavigation = ({
     icon: 'mdi:paw-outline'
   }
 
+  const animalAssessment = {
+    title: 'Animal Assessment',
+    path: '/report/animalAssessment',
+    icon: 'mdi:paw-outline'
+  }
+
   const animal = {
     title: 'Daily Report',
     path: '/report/daily',
@@ -43,6 +49,7 @@ const ComposeReportNavigation = ({
 
   if (enable_animal_report) {
     reportNavigationArray.push(animalList)
+    reportNavigationArray.push(animalAssessment)
   }
 
   return reportNavigationArray

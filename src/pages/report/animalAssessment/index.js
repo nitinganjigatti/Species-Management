@@ -29,10 +29,13 @@ import AssessmentSpeciesFilter from 'src/views/pages/report/AssessmentSpeciesFil
 import AssessmentTypeFilter from 'src/views/pages/report/AssessmentTypeFilter'
 
 import { getAnimalAssessment, getAnimalAssessmentReport } from 'src/lib/api/report'
+import Error404 from 'src/pages/404'
 
 const AnimalAssessment = () => {
   const theme = useTheme()
   const authData = useContext(AuthContext)
+  const reports_module = authData?.userData?.roles?.settings?.enable_reports_module
+  const enable_animal_report = authData?.userData?.permission?.user_settings?.enable_animal_report
 
   const [selectedSpecie, setSelectedSpecie] = useState(null)
   const [openspeciesFilter, setOpenspeciesFilter] = useState(false)
@@ -470,7 +473,9 @@ const AnimalAssessment = () => {
   }
 
   useEffect(() => {
-    siteList()
+    if (reports_module && enable_animal_report) {
+      siteList()
+    }
   }, [openFilterDrawer])
 
   const downloadNewCSVFile = csvContent => {
@@ -663,220 +668,244 @@ const AnimalAssessment = () => {
 
   return (
     <>
-      <Card>
-        <Box sx={{ display: 'flex', flexDirection: 'column', px: 4, gap: 4, my: 4 }}>
-          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-            <Typography sx={{ color: theme.palette.customColors.OnSurfaceVariant }} variant='h5'>
-              Animal Assessment Report
-            </Typography>
-          </Box>
+      {reports_module && enable_animal_report ? (
+        <>
+          <Card>
+            <Box sx={{ display: 'flex', flexDirection: 'column', px: 4, gap: 4, my: 4 }}>
+              <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <Typography sx={{ color: theme.palette.customColors.OnSurfaceVariant }} variant='h5'>
+                  Animal Assessment Report
+                </Typography>
+              </Box>
 
-          <Box
-            sx={{
-              backgroundColor: theme.palette.customColors.tableHeaderBg,
-              borderRadius: '8px',
-              padding: '24px',
-              display: 'flex',
-              alignItems: 'end',
-              gap: '24px',
-              flexWrap: 'wrap'
-            }}
-          >
-            {/* Species Side Sheet */}
-            <Box
-              onClick={() => setOpenspeciesFilter(true)}
-              sx={{ cursor: 'pointer', flex: 1, display: 'flex', flexDirection: 'column', gap: '8px', minWidth: 200 }}
-            >
-              <Typography
-                sx={{
-                  fontWeight: 600,
-                  fontSize: '14px',
-                  lineHeight: '100%',
-                  letterSpacing: '0%',
-                  color: theme.palette.customColors.OnSurfaceVariant
-                }}
-              >
-                Species
-              </Typography>
               <Box
                 sx={{
-                  bgcolor: theme.palette.primary.contrastText,
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  padding: '16px',
-                  height: '56px',
+                  backgroundColor: theme.palette.customColors.tableHeaderBg,
                   borderRadius: '8px',
-                  border: `1px solid ${theme.palette.customColors.OutlineVariant}`
+                  padding: '24px',
+                  display: 'flex',
+                  alignItems: 'end',
+                  gap: '24px',
+                  flexWrap: 'wrap'
                 }}
               >
-                {selectedSpecie?.tsn_id ? (
+                {/* Species Side Sheet */}
+                <Box
+                  onClick={() => setOpenspeciesFilter(true)}
+                  sx={{
+                    cursor: 'pointer',
+                    flex: 1,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '8px',
+                    minWidth: 200
+                  }}
+                >
                   <Typography
                     sx={{
-                      fontWeight: 500,
-                      fontSize: '16px',
+                      fontWeight: 600,
+                      fontSize: '14px',
                       lineHeight: '100%',
                       letterSpacing: '0%',
-                      color: theme.palette.primary.light,
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                      whiteSpace: 'nowrap'
+                      color: theme.palette.customColors.OnSurfaceVariant
                     }}
                   >
-                    {`${selectedSpecie?.common_name} (${selectedSpecie?.complete_name})`}
+                    Species
                   </Typography>
-                ) : (
-                  <Typography
+                  <Box
                     sx={{
-                      fontWeight: 400,
-                      fontSize: '16px',
-                      lineHeight: '100%',
-                      letterSpacing: '0%',
-                      color: theme.palette.customColors.neutralSecondary,
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                      whiteSpace: 'nowrap'
+                      bgcolor: theme.palette.primary.contrastText,
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      padding: '16px',
+                      height: '56px',
+                      borderRadius: '8px',
+                      border: `1px solid ${theme.palette.customColors.OutlineVariant}`
                     }}
                   >
-                    Select Species
-                  </Typography>
-                )}
-                <IconButton sx={{ mr: -4, width: '37px' }}>
-                  <Icon icon='fa:angle-right' fontSize={20} color={theme.palette.primary.light} />
-                </IconButton>
-              </Box>
-            </Box>
-
-            {/* Assessment Side Sheet */}
-            <Box
-              onClick={() => setOpenAssessmentFilter(true)}
-              sx={{ cursor: 'pointer', flex: 1, display: 'flex', flexDirection: 'column', gap: '8px', minWidth: 200 }}
-            >
-              <Typography
-                sx={{
-                  fontWeight: 600,
-                  fontSize: '14px',
-                  lineHeight: '100%',
-                  letterSpacing: '0%',
-                  color: theme.palette.customColors.OnSurfaceVariant
-                }}
-              >
-                Assessment Type
-              </Typography>
-              <Box
-                sx={{
-                  bgcolor: theme.palette.primary.contrastText,
-                  display: 'flex',
-                  justifyContent: 'space-between',
-                  alignItems: 'center',
-                  padding: '16px',
-                  height: '56px',
-                  borderRadius: '8px',
-                  border: `1px solid ${theme.palette.customColors.OutlineVariant}`
-                }}
-              >
-                {selectedAssessmentType?.assessments_type_label ? (
-                  <Typography
-                    sx={{
-                      fontWeight: 500,
-                      fontSize: '16px',
-                      letterSpacing: '0%',
-                      color: theme.palette.primary.light,
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                      whiteSpace: 'nowrap'
-                    }}
-                  >
-                    {`${selectedAssessmentType?.assessments_type_label} `}
-                  </Typography>
-                ) : (
-                  <Typography
-                    sx={{
-                      fontWeight: 400,
-                      fontSize: '16px',
-                      letterSpacing: '0%',
-                      color: theme.palette.customColors.neutralSecondary,
-                      overflow: 'hidden',
-                      textOverflow: 'ellipsis',
-                      whiteSpace: 'nowrap'
-                    }}
-                  >
-                    Select Assessment Type
-                  </Typography>
-                )}
-
-                <IconButton sx={{ mr: -4, width: '37px' }}>
-                  <Icon icon='fa:angle-right' fontSize={20} color={theme.palette.primary.light} />
-                </IconButton>
-              </Box>
-            </Box>
-
-            {/* Generate Button */}
-            <Box sx={{ minWidth: 120 }}>
-              <Button
-                variant='contained'
-                disabled={!selectedSpecie || !selectedAssessmentType || isLoading}
-                sx={{ width: '127px', height: '56px', borderRadius: '8px' }}
-                fullWidth
-                onClick={() => animalAssessmentReport()}
-              >
-                Generate
-              </Button>
-            </Box>
-          </Box>
-
-          {dataList?.length > 0 && (
-            <>
-              <Box sx={{ display: 'flex', gap: 4, justifyContent: 'space-between', alignItems: 'center', mt: 1 }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0 }}>
-                  <TextField
-                    value={search}
-                    onChange={e => handleSearchChange(e)}
-                    variant='outlined'
-                    disabled={isLoading}
-                    size='small'
-                    placeholder='Search'
-                    InputProps={{
-                      startAdornment: (
-                        <InputAdornment position='start'>
-                          <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
-                        </InputAdornment>
-                      )
-                    }}
-                    sx={{
-                      width: '240px',
-                      backgroundColor: theme.palette.primary.contrastText,
-                      borderRadius: '4px', // Applies to the container
-                      '& .MuiOutlinedInput-root': {
-                        borderRadius: '4px' // Applies to the input field
-                      }
-                    }}
-                  />
+                    {selectedSpecie?.tsn_id ? (
+                      <Typography
+                        sx={{
+                          fontWeight: 500,
+                          fontSize: '16px',
+                          lineHeight: '100%',
+                          letterSpacing: '0%',
+                          color: theme.palette.primary.light,
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap'
+                        }}
+                      >
+                        {`${selectedSpecie?.common_name} (${selectedSpecie?.complete_name})`}
+                      </Typography>
+                    ) : (
+                      <Typography
+                        sx={{
+                          fontWeight: 400,
+                          fontSize: '16px',
+                          lineHeight: '100%',
+                          letterSpacing: '0%',
+                          color: theme.palette.customColors.neutralSecondary,
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap'
+                        }}
+                      >
+                        Select Species
+                      </Typography>
+                    )}
+                    <IconButton sx={{ mr: -4, width: '37px' }}>
+                      <Icon icon='fa:angle-right' fontSize={20} color={theme.palette.primary.light} />
+                    </IconButton>
+                  </Box>
                 </Box>
-                <Box sx={{ display: 'flex', gap: 4, justifyContent: 'end', alignItems: 'center' }}>
-                  <CommonDateRangePickers disabled={true} onChange={handleDateRangeChange} filterDates={filterDates} />
 
-                  {authData?.userData?.user?.zoos[0]?.sites.length > 0 && (
-                    <Box
-                      sx={{
-                        position: 'relative',
-                        display: 'flex',
-                        justifyContent: 'center',
-                        width: '60px',
-                        height: '40px',
-                        borderRadius: '4px',
-                        bgcolor: theme?.palette.customColors?.lightBg,
-                        alignItems: 'center',
-                        cursor: 'pointer'
-                      }}
-                      onClick={() => {
-                        if (!isLoading) {
-                          setOpenFilterDrawer(true)
-                        }
-                      }}
-                    >
-                      <Icon icon='mage:filter' fontSize={24} />
-                      {/* <Typography
+                {/* Assessment Side Sheet */}
+                <Box
+                  onClick={() => setOpenAssessmentFilter(true)}
+                  sx={{
+                    cursor: 'pointer',
+                    flex: 1,
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '8px',
+                    minWidth: 200
+                  }}
+                >
+                  <Typography
+                    sx={{
+                      fontWeight: 600,
+                      fontSize: '14px',
+                      lineHeight: '100%',
+                      letterSpacing: '0%',
+                      color: theme.palette.customColors.OnSurfaceVariant
+                    }}
+                  >
+                    Assessment Type
+                  </Typography>
+                  <Box
+                    sx={{
+                      bgcolor: theme.palette.primary.contrastText,
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center',
+                      padding: '16px',
+                      height: '56px',
+                      borderRadius: '8px',
+                      border: `1px solid ${theme.palette.customColors.OutlineVariant}`
+                    }}
+                  >
+                    {selectedAssessmentType?.assessments_type_label ? (
+                      <Typography
+                        sx={{
+                          fontWeight: 500,
+                          fontSize: '16px',
+                          letterSpacing: '0%',
+                          color: theme.palette.primary.light,
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap'
+                        }}
+                      >
+                        {`${selectedAssessmentType?.assessments_type_label} `}
+                      </Typography>
+                    ) : (
+                      <Typography
+                        sx={{
+                          fontWeight: 400,
+                          fontSize: '16px',
+                          letterSpacing: '0%',
+                          color: theme.palette.customColors.neutralSecondary,
+                          overflow: 'hidden',
+                          textOverflow: 'ellipsis',
+                          whiteSpace: 'nowrap'
+                        }}
+                      >
+                        Select Assessment Type
+                      </Typography>
+                    )}
+
+                    <IconButton sx={{ mr: -4, width: '37px' }}>
+                      <Icon icon='fa:angle-right' fontSize={20} color={theme.palette.primary.light} />
+                    </IconButton>
+                  </Box>
+                </Box>
+
+                {/* Generate Button */}
+                <Box sx={{ minWidth: 120 }}>
+                  <Button
+                    variant='contained'
+                    disabled={!selectedSpecie || !selectedAssessmentType || isLoading}
+                    sx={{ width: '127px', height: '56px', borderRadius: '8px' }}
+                    fullWidth
+                    onClick={() => animalAssessmentReport()}
+                  >
+                    Generate
+                  </Button>
+                </Box>
+              </Box>
+
+              {dataList?.length > 0 && (
+                <>
+                  <Box sx={{ display: 'flex', gap: 4, justifyContent: 'space-between', alignItems: 'center', mt: 1 }}>
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0 }}>
+                      <TextField
+                        value={search}
+                        onChange={e => handleSearchChange(e)}
+                        variant='outlined'
+                        disabled={isLoading}
+                        size='small'
+                        placeholder='Search'
+                        InputProps={{
+                          startAdornment: (
+                            <InputAdornment position='start'>
+                              <Icon
+                                icon='mi:search'
+                                fontSize={24}
+                                color={theme.palette.customColors.neutralSecondary}
+                              />
+                            </InputAdornment>
+                          )
+                        }}
+                        sx={{
+                          width: '240px',
+                          backgroundColor: theme.palette.primary.contrastText,
+                          borderRadius: '4px', // Applies to the container
+                          '& .MuiOutlinedInput-root': {
+                            borderRadius: '4px' // Applies to the input field
+                          }
+                        }}
+                      />
+                    </Box>
+                    <Box sx={{ display: 'flex', gap: 4, justifyContent: 'end', alignItems: 'center' }}>
+                      <CommonDateRangePickers
+                        disabled={true}
+                        onChange={handleDateRangeChange}
+                        filterDates={filterDates}
+                      />
+
+                      {authData?.userData?.user?.zoos[0]?.sites.length > 0 && (
+                        <Box
+                          sx={{
+                            position: 'relative',
+                            display: 'flex',
+                            justifyContent: 'center',
+                            width: '60px',
+                            height: '40px',
+                            borderRadius: '4px',
+                            bgcolor: theme?.palette.customColors?.lightBg,
+                            alignItems: 'center',
+                            cursor: 'pointer'
+                          }}
+                          onClick={() => {
+                            if (!isLoading) {
+                              setOpenFilterDrawer(true)
+                            }
+                          }}
+                        >
+                          <Icon icon='mage:filter' fontSize={24} />
+                          {/* <Typography
                         sx={{
                           position: 'absolute',
                           top: '-15px',
@@ -896,136 +925,140 @@ const AnimalAssessment = () => {
                       >
                         {filterCount}
                       </Typography> */}
+                        </Box>
+                      )}
+
+                      <Box
+                        sx={{
+                          display: 'flex',
+                          justifyContent: 'center',
+                          width: '60px',
+                          height: '40px',
+                          borderRadius: '4px',
+                          bgcolor: theme?.palette.customColors?.lightBg,
+                          alignItems: 'center',
+                          cursor: 'pointer'
+                        }}
+                        onClick={() => getDataToExport()}
+                      >
+                        {isLoading ? (
+                          <CircularProgress color='success' size={30} />
+                        ) : (
+                          <Icon icon='ic:round-download' fontSize={20} />
+                        )}
+                      </Box>
+                    </Box>
+                  </Box>
+                  {columns?.length > 0 ? (
+                    <StickyTable
+                      rows={dataList}
+                      rowCount={total}
+                      rowHeight={127.5}
+                      headerHeight={50}
+                      pagination={true}
+                      columns={columns}
+                      pageSizeOptions={[5, 10, 25, 50]}
+                      rowsInView={10}
+                      rowsInViewOptions={[5, 10, 25]}
+                      paginationModel={paginationModel}
+                      onPaginationModelChange={setPaginationModel}
+                      loading={isLoading}
+                      downloadExcel
+                      searchMode='server'
+                      disableColumnSorting={true}
+                    />
+                  ) : (
+                    <Box sx={{ py: 4, textAlign: 'center' }}>
+                      <CircularProgress />
                     </Box>
                   )}
-
-                  <Box
-                    sx={{
-                      display: 'flex',
-                      justifyContent: 'center',
-                      width: '60px',
-                      height: '40px',
-                      borderRadius: '4px',
-                      bgcolor: theme?.palette.customColors?.lightBg,
-                      alignItems: 'center',
-                      cursor: 'pointer'
-                    }}
-                    onClick={() => getDataToExport()}
-                  >
-                    {isLoading ? (
-                      <CircularProgress color='success' size={30} />
-                    ) : (
-                      <Icon icon='ic:round-download' fontSize={20} />
-                    )}
-                  </Box>
-                </Box>
-              </Box>
-              {columns?.length > 0 ? (
-                <StickyTable
-                  rows={dataList}
-                  rowCount={total}
-                  rowHeight={127.5}
-                  headerHeight={50}
-                  pagination={true}
-                  columns={columns}
-                  pageSizeOptions={[5, 10, 25, 50]}
-                  rowsInView={10}
-                  rowsInViewOptions={[5, 10, 25]}
-                  paginationModel={paginationModel}
-                  onPaginationModelChange={setPaginationModel}
-                  loading={isLoading}
-                  downloadExcel
-                  searchMode='server'
-                  disableColumnSorting={true}
-                />
-              ) : (
-                <Box sx={{ py: 4, textAlign: 'center' }}>
-                  <CircularProgress />
-                </Box>
+                </>
               )}
-            </>
-          )}
-        </Box>
-      </Card>
+            </Box>
+          </Card>
 
-      {!dataList?.length > 0 && (
-        <Box
-          sx={{
-            mt: 4,
-            bgcolor: theme.palette.customColors.Surface,
-            height: '216px',
-            borderRadius: '8px',
-            display: 'flex',
-            justifyContent: 'center',
-            alignItems: 'center'
-          }}
-        >
-          {isLoading ? (
-            <CircularProgress color='success' size={30} />
-          ) : (
-            <Typography
+          {!dataList?.length > 0 && (
+            <Box
               sx={{
-                fontSize: '20px',
-                fontWeight: 500,
-                lineHeight: '100%',
-                letterSpacing: 0,
-                color: theme.palette.primary.light
+                mt: 4,
+                bgcolor: theme.palette.customColors.Surface,
+                height: '216px',
+                borderRadius: '8px',
+                display: 'flex',
+                justifyContent: 'center',
+                alignItems: 'center'
               }}
             >
-              Select Species and Assessment Type to Generate Report
-            </Typography>
+              {isLoading ? (
+                <CircularProgress color='success' size={30} />
+              ) : (
+                <Typography
+                  sx={{
+                    fontSize: '20px',
+                    fontWeight: 500,
+                    lineHeight: '100%',
+                    letterSpacing: 0,
+                    color: theme.palette.primary.light
+                  }}
+                >
+                  Select Species and Assessment Type to Generate Report
+                </Typography>
+              )}
+            </Box>
           )}
-        </Box>
-      )}
 
-      {openFilterDrawer && (
-        <AssessmentReportFilterDrawer
-          setOpenFilterDrawer={setOpenFilterDrawer}
-          searchQuery={searchQuery}
-          setSearchQuery={setSearchQuery}
-          openFilterDrawer={openFilterDrawer}
-          setFilterCount={setFilterCount}
-          tabsforfilter={tabsforfilter}
-          openSiteListDrawer={openSiteListDrawer}
-          setSiteListDrawer={setSiteListDrawer}
-          sectionsData={sectionsData}
-          setSectionsData={setSectionsData}
-          enclosuresData={enclosuresData}
-          setEnclosuresData={setEnclosuresData}
-          selectedSections={selectedSections}
-          setSelectedSections={setSelectedSections}
-          selectedEnclosures={selectedEnclosures}
-          setSelectedEnclosures={setSelectedEnclosures}
-          siteData={siteData}
-          setActiveTab={setActiveTab}
-          activeTab={activeTab}
-          searchTerm={searchTerm}
-          setSearchTerm={setSearchTerm}
-          selectedItems={selectedItems}
-          setSelectedItems={setSelectedItems}
-          tempSelectedItems={tempSelectedItems}
-          setTempSelectedItems={setTempSelectedItems}
-        />
+          {openFilterDrawer && (
+            <AssessmentReportFilterDrawer
+              setOpenFilterDrawer={setOpenFilterDrawer}
+              searchQuery={searchQuery}
+              setSearchQuery={setSearchQuery}
+              openFilterDrawer={openFilterDrawer}
+              setFilterCount={setFilterCount}
+              tabsforfilter={tabsforfilter}
+              openSiteListDrawer={openSiteListDrawer}
+              setSiteListDrawer={setSiteListDrawer}
+              sectionsData={sectionsData}
+              setSectionsData={setSectionsData}
+              enclosuresData={enclosuresData}
+              setEnclosuresData={setEnclosuresData}
+              selectedSections={selectedSections}
+              setSelectedSections={setSelectedSections}
+              selectedEnclosures={selectedEnclosures}
+              setSelectedEnclosures={setSelectedEnclosures}
+              siteData={siteData}
+              setActiveTab={setActiveTab}
+              activeTab={activeTab}
+              searchTerm={searchTerm}
+              setSearchTerm={setSearchTerm}
+              selectedItems={selectedItems}
+              setSelectedItems={setSelectedItems}
+              tempSelectedItems={tempSelectedItems}
+              setTempSelectedItems={setTempSelectedItems}
+            />
+          )}
+          {openspeciesFilter && (
+            <AssessmentSpeciesFilter
+              selectedSpecie={selectedSpecie}
+              setSelectedSpecie={setSelectedSpecie}
+              openspeciesFilter={openspeciesFilter}
+              setOpenspeciesFilter={setOpenspeciesFilter}
+            />
+          )}
+          {openassessmentFilter && (
+            <AssessmentTypeFilter
+              selectedCategory={selectedCategory}
+              setSelectedCategory={setSelectedCategory}
+              selectedAssessmentType={selectedAssessmentType}
+              setSelectedAssessmentType={setSelectedAssessmentType}
+              openassessmentFilter={openassessmentFilter}
+              setOpenAssessmentFilter={setOpenAssessmentFilter}
+            />
+          )}
+          {showDetailsPopUp && <DetailsDialog animalDetailsData={animalDetailsData} />}
+        </>
+      ) : (
+        <Error404 />
       )}
-      {openspeciesFilter && (
-        <AssessmentSpeciesFilter
-          selectedSpecie={selectedSpecie}
-          setSelectedSpecie={setSelectedSpecie}
-          openspeciesFilter={openspeciesFilter}
-          setOpenspeciesFilter={setOpenspeciesFilter}
-        />
-      )}
-      {openassessmentFilter && (
-        <AssessmentTypeFilter
-          selectedCategory={selectedCategory}
-          setSelectedCategory={setSelectedCategory}
-          selectedAssessmentType={selectedAssessmentType}
-          setSelectedAssessmentType={setSelectedAssessmentType}
-          openassessmentFilter={openassessmentFilter}
-          setOpenAssessmentFilter={setOpenAssessmentFilter}
-        />
-      )}
-      {showDetailsPopUp && <DetailsDialog animalDetailsData={animalDetailsData} />}
     </>
   )
 }
