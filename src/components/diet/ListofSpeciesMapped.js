@@ -68,6 +68,7 @@ const ListOfSpeciesMapped = ({
   const [endDate, setEndDate] = useState(null)
   const [errors, setErrors] = useState({})
   const [openModal, setOpenModal] = useState(false)
+
   const handleClickOpen = () => {
     setOpenModal(true)
   }
@@ -130,6 +131,7 @@ const ListOfSpeciesMapped = ({
     setspeciesview('')
     setStartDate(null)
     setEndDate(null)
+
     //setSearchQuery('')
     // setPrimaryStatus({}) // Reset primary status when closing
   }
@@ -199,6 +201,7 @@ const ListOfSpeciesMapped = ({
       setLoader(false)
     }
   }
+
   // Handle date changes
   const handleStartDateChange = date => {
     setStartDate(date)
@@ -307,9 +310,6 @@ const ListOfSpeciesMapped = ({
                   placeholder='Search'
                   value={searchQuery}
                   onChange={handleSearch}
-                  InputProps={{
-                    disableUnderline: false
-                  }}
                   sx={{
                     flex: 1,
                     mx: 1,
@@ -321,6 +321,11 @@ const ListOfSpeciesMapped = ({
                       }
                     }
                   }}
+                  slotProps={{
+                    input: {
+                      disableUnderline: false
+                    }
+                  }}
                 />
                 {searchQuery ? <Icon style={{ marginRight: '14px' }} icon='mdi:close' onClick={searchClose} /> : ''}
               </Box>
@@ -330,7 +335,6 @@ const ListOfSpeciesMapped = ({
       ) : (
         ''
       )}
-
       <Box
         sx={{
           backgroundColor: theme.palette.background.default,
@@ -422,20 +426,6 @@ const ListOfSpeciesMapped = ({
                           label='From Date'
                           value={formatDisplayDate(startDate)}
                           error={Boolean(errors.startDate)}
-                          InputLabelProps={{
-                            shrink: true,
-                            sx: {
-                              color: '#44544A'
-                            }
-                          }}
-                          InputProps={{
-                            sx: {
-                              mt: 1,
-                              height: '40px',
-                              padding: '0 14px',
-                              alignItems: 'center'
-                            }
-                          }}
                           sx={{
                             '& .MuiInputBase-input': {
                               padding: '14px'
@@ -446,6 +436,23 @@ const ListOfSpeciesMapped = ({
                               }
                             },
                             width: '100%'
+                          }}
+                          slotProps={{
+                            input: {
+                              sx: {
+                                mt: 1,
+                                height: '40px',
+                                padding: '0 14px',
+                                alignItems: 'center'
+                              }
+                            },
+
+                            inputLabel: {
+                              shrink: true,
+                              sx: {
+                                color: '#44544A'
+                              }
+                            }
                           }}
                         />
                       }
@@ -465,20 +472,6 @@ const ListOfSpeciesMapped = ({
                           label='To Date'
                           value={formatDisplayDate(endDate)}
                           error={Boolean(errors.endDate)}
-                          InputLabelProps={{
-                            shrink: true,
-                            sx: {
-                              color: '#44544A'
-                            }
-                          }}
-                          InputProps={{
-                            sx: {
-                              mt: 1,
-                              height: '40px',
-                              padding: '0 14px',
-                              alignItems: 'center'
-                            }
-                          }}
                           sx={{
                             '& .MuiInputBase-input': {
                               padding: '14px'
@@ -489,6 +482,23 @@ const ListOfSpeciesMapped = ({
                               }
                             },
                             width: '100%'
+                          }}
+                          slotProps={{
+                            input: {
+                              sx: {
+                                mt: 1,
+                                height: '40px',
+                                padding: '0 14px',
+                                alignItems: 'center'
+                              }
+                            },
+
+                            inputLabel: {
+                              shrink: true,
+                              sx: {
+                                color: '#44544A'
+                              }
+                            }
                           }}
                         />
                       }
@@ -840,9 +850,7 @@ const ListOfSpeciesMapped = ({
           </>
         )}
       </Box>
-
       {/* bottom buttons */}
-
       <Box
         sx={{
           width: '100%',

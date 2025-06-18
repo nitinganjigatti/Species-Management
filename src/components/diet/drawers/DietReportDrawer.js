@@ -288,9 +288,6 @@ const DietReportDrawer = ({
                     placeholder='Search'
                     value={searchQuery}
                     onChange={handleSearch}
-                    InputProps={{
-                      disableUnderline: false
-                    }}
                     sx={{
                       '& .MuiOutlinedInput-root': {
                         border: 'none',
@@ -298,6 +295,11 @@ const DietReportDrawer = ({
                         '& fieldset': {
                           border: 'none'
                         }
+                      }
+                    }}
+                    slotProps={{
+                      input: {
+                        disableUnderline: false
                       }
                     }}
                   />
@@ -362,9 +364,6 @@ const DietReportDrawer = ({
                     onChange={event => {
                       handleTaxonomySearch(event.target.value)
                     }}
-                    InputProps={{
-                      disableUnderline: false
-                    }}
                     sx={{
                       '& .MuiOutlinedInput-root': {
                         border: 'none',
@@ -372,6 +371,11 @@ const DietReportDrawer = ({
                         '& fieldset': {
                           border: 'none'
                         }
+                      }
+                    }}
+                    slotProps={{
+                      input: {
+                        disableUnderline: false
                       }
                     }}
                   />
@@ -481,7 +485,7 @@ const DietReportDrawer = ({
         </LoadingButton>
       </Box>
     </Drawer>
-  )
+  );
 }
 
 export default DietReportDrawer

@@ -276,7 +276,6 @@ const EditAnimalSpeciesMapped = ({
           </IconButton>
         </Box>
       </Box>
-
       <Grid item size={{ md: 8, xs: 12 }} sx={{ mb: 14 }}>
         <TabContext value={selectionType}>
           <TabList onChange={handleChange} aria-label='customized tabs example' sx={{ background: '#fff' }}>
@@ -329,9 +328,6 @@ const EditAnimalSpeciesMapped = ({
                       placeholder='Search'
                       value={searchQuery}
                       onChange={handleSearch}
-                      InputProps={{
-                        disableUnderline: false
-                      }}
                       sx={{
                         flex: 1,
                         mx: 1,
@@ -341,6 +337,11 @@ const EditAnimalSpeciesMapped = ({
                           '& fieldset': {
                             border: 'none'
                           }
+                        }
+                      }}
+                      slotProps={{
+                        input: {
+                          disableUnderline: false
                         }
                       }}
                     />
@@ -947,9 +948,7 @@ const EditAnimalSpeciesMapped = ({
           </TabPanel>
         </TabContext>
       </Grid>
-
       {/* bottom buttons */}
-
       <Box
         sx={{
           width: '100%',

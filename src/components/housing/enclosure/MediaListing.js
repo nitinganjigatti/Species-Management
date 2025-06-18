@@ -124,7 +124,13 @@ const MediaListing = () => {
           </Grid>
 
           {isFetching && media.length === 0 && (
-            <Box display='flex' justifyContent='center' p={2}>
+            <Box
+              sx={{
+                display: 'flex',
+                justifyContent: 'center',
+                p: 2
+              }}
+            >
               <CircularProgress />
             </Box>
           )}
@@ -136,7 +142,14 @@ const MediaListing = () => {
           )}
 
           {(isFetchingNextPage || hasNextPage) && media.length > 0 && (
-            <Box ref={loaderRef} display='flex' justifyContent='center' p={2}>
+            <Box
+              ref={loaderRef}
+              sx={{
+                display: 'flex',
+                justifyContent: 'center',
+                p: 2
+              }}
+            >
               <CircularProgress />
             </Box>
           )}

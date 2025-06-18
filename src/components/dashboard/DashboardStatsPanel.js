@@ -46,7 +46,11 @@ const StatCard = ({ icon, value, label, bgColor }) => {
           }}
           src={icon}
         />
-        <Box textAlign={'start'}>
+        <Box
+          sx={{
+            textAlign: 'start'
+          }}
+        >
           <Typography sx={{ fontSize: '34px', fontWeight: 600, color: '#44544A' }}>
             {Utility.formatAmountCompactDisplay(value)}
           </Typography>

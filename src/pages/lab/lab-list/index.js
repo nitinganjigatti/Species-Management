@@ -119,6 +119,7 @@ const ListOfLab = () => {
         </Tooltip>
       )
     },
+
     // {
     //   flex: 0.2,
     //   minWidth: 20,
@@ -153,6 +154,7 @@ const ListOfLab = () => {
 
   const [searchValue, setSearchValue] = useState(router.query.q || '')
   const [sortColumn, setSortColumn] = useState('name')
+
   const [paginationModel, setPaginationModel] = useState({
     page: router?.query?.page ? parseInt(router?.query?.page) : 0,
     pageSize: router?.query?.pageSize ? parseInt(router?.query?.pageSize) : 10
@@ -247,6 +249,7 @@ const ListOfLab = () => {
           onClick={() => {
             Router.push({
               pathname: '/lab/lab-list/add-Lab',
+
               // query: { id: data?.id, page: router.query?.page, pageSize: router.query?.pageSize, q: searchValue }
               query: { page: router.query?.page, pageSize: router.query?.pageSize, q: searchValue }
             })
@@ -296,7 +299,13 @@ const ListOfLab = () => {
           /> */}
               <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
                 <Typography color='inherit'>Lab</Typography>
-                <Typography color='text.primary'>Lab list</Typography>
+                <Typography
+                  sx={{
+                    color: 'text.primary'
+                  }}
+                >
+                  Lab list
+                </Typography>
               </Breadcrumbs>
               <Card>
                 <CardHeader title='Lab List' sx={{ paddingX: 5 }} action={headerAction} />

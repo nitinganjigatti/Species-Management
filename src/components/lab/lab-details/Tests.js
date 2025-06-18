@@ -155,8 +155,8 @@ const Tests = ({ labTest }) => {
                     }}
                   >
                     <Typography
-                      ml={4}
                       sx={{
+                        ml: 4,
                         display: 'flex',
                         py: 2,
                         justifyContent: 'space-between',
@@ -247,8 +247,8 @@ const Tests = ({ labTest }) => {
                     }}
                   >
                     <Typography
-                      ml={4}
                       sx={{
+                        ml: 4,
                         display: 'flex',
                         py: 2,
                         justifyContent: 'space-between',

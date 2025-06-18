@@ -41,9 +41,13 @@ const DiscardStatusCell = ({
           </Button>
         )}
       </Stack>
-
       <Box className={hideField} sx={{ display: 'flex', alignItems: 'center' }}>
-        <Stack direction='row' gap={'12px'}>
+        <Stack
+          direction='row'
+          sx={{
+            gap: '12px'
+          }}
+        >
           <Avatar
             variant='square'
             alt='Medicine Image'

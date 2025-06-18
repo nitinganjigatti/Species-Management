@@ -574,7 +574,13 @@ const SpeciesDetail = () => {
               <Typography sx={{ cursor: 'pointer' }} color='inherit' onClick={() => Router.push('/egg/dashboard')}>
                 Dashboard
               </Typography>
-              <Typography color='text.primary'>Species Egg Module</Typography>
+              <Typography
+                sx={{
+                  color: 'text.primary'
+                }}
+              >
+                Species Egg Module
+              </Typography>
             </Breadcrumbs>
             <SpeciesfirstSection eggDetails={eggDetails} />
           </Box>

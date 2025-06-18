@@ -153,7 +153,13 @@ const SelectEnclosureList = ({
         {/* Header */}
         <Box sx={{ p: 2, display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
           <Box>
-            <Typography variant='h6' fontWeight='500' sx={{ color: theme.palette.customColors.OnPrimaryContainer }}>
+            <Typography
+              variant='h6'
+              sx={{
+                fontWeight: '500',
+                color: theme.palette.customColors.OnPrimaryContainer
+              }}
+            >
               Choose Enclosure
             </Typography>
             <Typography variant='body2' sx={{ color: theme.palette.customColors.OnSurfaceVariant }}>
@@ -174,30 +180,32 @@ const SelectEnclosureList = ({
             size='small'
             value={searchTerm}
             onChange={handleSearchChange}
-            InputProps={{
-              startAdornment: (
-                <InputAdornment position='start'>
-                  <SearchIcon sx={{ color: theme.palette.customColors.OnPrimaryContainer }} />
-                </InputAdornment>
-              ),
-              endAdornment: searchTerm && (
-                <InputAdornment position='end'>
-                  <IconButton
-                    size='small'
-                    onClick={() => {
-                      setSearchTerm('')
-                      fetchEnclosures('')
-                    }}
-                  >
-                    <Icon icon='mdi:close' fontSize={20} />
-                  </IconButton>
-                </InputAdornment>
-              ),
-              style: {
-                background: theme.palette.customColors.Background,
-                borderRadius: '4px',
-                padding: '4px 8px',
-                color: theme.palette.customColors.OnPrimaryContainer
+            slotProps={{
+              input: {
+                startAdornment: (
+                  <InputAdornment position='start'>
+                    <SearchIcon sx={{ color: theme.palette.customColors.OnPrimaryContainer }} />
+                  </InputAdornment>
+                ),
+                endAdornment: searchTerm && (
+                  <InputAdornment position='end'>
+                    <IconButton
+                      size='small'
+                      onClick={() => {
+                        setSearchTerm('')
+                        fetchEnclosures('')
+                      }}
+                    >
+                      <Icon icon='mdi:close' fontSize={20} />
+                    </IconButton>
+                  </InputAdornment>
+                ),
+                style: {
+                  background: theme.palette.customColors.Background,
+                  borderRadius: '4px',
+                  padding: '4px 8px',
+                  color: theme.palette.customColors.OnPrimaryContainer
+                }
               }
             }}
           />
@@ -266,6 +274,7 @@ const SelectEnclosureList = ({
             flex: 1,
             overflowY: 'auto',
             overflowX: 'hidden',
+
             //height: '60%',
             p: 2,
             '&::-webkit-scrollbar': {
@@ -317,6 +326,7 @@ const SelectEnclosureList = ({
                         }
                       }
                     }}
+
                     // primaryTypographyProps={{
                     //   fontWeight: 'bold',
                     //   color: theme.palette.customColors.OnPrimaryContainer

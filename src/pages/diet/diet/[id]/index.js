@@ -626,7 +626,13 @@ const DietDetail = () => {
                 <Typography sx={{ cursor: 'pointer' }} color='inherit' onClick={() => router.back()}>
                   Diet
                 </Typography>
-                <Typography color='text.primary'>Diet Details</Typography>
+                <Typography
+                  sx={{
+                    color: 'text.primary'
+                  }}
+                >
+                  Diet Details
+                </Typography>
               </Breadcrumbs>
               <Box sx={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
                 <DietDetailCard
@@ -1587,6 +1593,7 @@ const DietDetail = () => {
                                                       background: theme.palette.primary.contrastText,
                                                       height: '185px',
                                                       pl: '1rem !important',
+
                                                       //display: 'flex',
                                                       //flexDirection: 'column',
                                                       justifyContent: 'center',
@@ -2111,6 +2118,26 @@ const DietDetail = () => {
                                                                             : ''
                                                                         })
                                                                       : ''}
+                                                                    {item.meal_type
+                                                                      ? item.meal_type.map((meal, i) =>
+                                                                          meal.meal_value_header === 'Generic' &&
+                                                                          meal.notes &&
+                                                                          meal.notes.trim() !== '' ? (
+                                                                            <Typography
+                                                                              key={i}
+                                                                              sx={{ textAlign: 'center' }}
+                                                                            >
+                                                                              <Tooltip title={meal.notes}>
+                                                                                <img
+                                                                                  src='/icons/Notes.svg'
+                                                                                  alt='Grocery Icon'
+                                                                                  width='35px'
+                                                                                />
+                                                                              </Tooltip>
+                                                                            </Typography>
+                                                                          ) : null
+                                                                        )
+                                                                      : null}
                                                                   </Typography>
                                                                 </Box>
                                                               </Box>
@@ -2200,6 +2227,116 @@ const DietDetail = () => {
                                                                                           : '')
                                                                                     : ''
                                                                                 })
+                                                                              : ''}
+                                                                            {dietDetails.diet_type_name ===
+                                                                              'By Weight' && item.meal_type
+                                                                              ? item.meal_type
+                                                                                  .map((meal, i) => {
+                                                                                    if (
+                                                                                      all.includes(
+                                                                                        meal.meal_value_header
+                                                                                      ) &&
+                                                                                      meal.notes &&
+                                                                                      meal.notes.trim() !== ''
+                                                                                    ) {
+                                                                                      return (
+                                                                                        <Typography
+                                                                                          key={i}
+                                                                                          sx={{ textAlign: 'center' }}
+                                                                                        >
+                                                                                          <Tooltip title={meal.notes}>
+                                                                                            <img
+                                                                                              src='/icons/Notes.svg'
+                                                                                              alt='Grocery Icon'
+                                                                                              width='35px'
+                                                                                            />
+                                                                                          </Tooltip>
+                                                                                        </Typography>
+                                                                                      )
+                                                                                    }
+
+                                                                                    return null
+                                                                                  })
+                                                                                  .filter(Boolean).length === 0
+                                                                                ? ''
+                                                                                : item.meal_type.map((meal, i) => {
+                                                                                    if (
+                                                                                      all.includes(
+                                                                                        meal.meal_value_header
+                                                                                      ) &&
+                                                                                      meal.notes &&
+                                                                                      meal.notes.trim() !== ''
+                                                                                    ) {
+                                                                                      return (
+                                                                                        <Typography
+                                                                                          key={i}
+                                                                                          sx={{ textAlign: 'center' }}
+                                                                                        >
+                                                                                          <Tooltip title={meal.notes}>
+                                                                                            <img
+                                                                                              src='/icons/Notes.svg'
+                                                                                              alt='Grocery Icon'
+                                                                                              width='35px'
+                                                                                            />
+                                                                                          </Tooltip>
+                                                                                        </Typography>
+                                                                                      )
+                                                                                    }
+
+                                                                                    return null
+                                                                                  })
+                                                                              : item.meal_type
+                                                                              ? item.meal_type
+                                                                                  .map((meal, i) => {
+                                                                                    if (
+                                                                                      meal.meal_value_header === all &&
+                                                                                      meal.notes &&
+                                                                                      meal.notes.trim() !== ''
+                                                                                    ) {
+                                                                                      return (
+                                                                                        <Typography
+                                                                                          key={i}
+                                                                                          sx={{ textAlign: 'center' }}
+                                                                                        >
+                                                                                          <Tooltip title={meal.notes}>
+                                                                                            <img
+                                                                                              src='/icons/Notes.svg'
+                                                                                              alt='Grocery Icon'
+                                                                                              width='35px'
+                                                                                            />
+                                                                                          </Tooltip>
+                                                                                        </Typography>
+                                                                                      )
+                                                                                    }
+
+                                                                                    return null
+                                                                                  })
+                                                                                  .filter(Boolean).length === 0
+                                                                                ? ''
+                                                                                : item.meal_type.map((meal, i) => {
+                                                                                    if (
+                                                                                      meal.meal_value_header === all &&
+                                                                                      meal.notes &&
+                                                                                      meal.notes.trim() !== ''
+                                                                                    ) {
+                                                                                      return (
+                                                                                        <Typography
+                                                                                          key={i}
+                                                                                          sx={{ textAlign: 'center' }}
+                                                                                        >
+                                                                                          <Tooltip title={meal.notes}>
+                                                                                            <img
+                                                                                              src='/icons/Notes.svg'
+                                                                                              alt='Grocery Icon'
+                                                                                              width='35px'
+                                                                                            />
+                                                                                          </Tooltip>
+                                                                                        </Typography>
+                                                                                      )
+                                                                                    }
+
+                                                                                    return null
+                                                                                  })
                                                                               : ''}
                                                                           </Typography>
                                                                         </Box>
@@ -2671,6 +2808,26 @@ const DietDetail = () => {
                                                                             : ''
                                                                         })
                                                                       : ''}
+                                                                    {item.meal_type
+                                                                      ? item.meal_type.map((meal, i) =>
+                                                                          meal.meal_value_header === 'Generic' &&
+                                                                          meal.notes &&
+                                                                          meal.notes.trim() !== '' ? (
+                                                                            <Typography
+                                                                              key={i}
+                                                                              sx={{ textAlign: 'center' }}
+                                                                            >
+                                                                              <Tooltip title={meal.notes}>
+                                                                                <img
+                                                                                  src='/icons/Notes.svg'
+                                                                                  alt='Grocery Icon'
+                                                                                  width='35px'
+                                                                                />
+                                                                              </Tooltip>
+                                                                            </Typography>
+                                                                          ) : null
+                                                                        )
+                                                                      : null}
                                                                   </Typography>
                                                                 </Box>
                                                               </Box>
@@ -2760,6 +2917,116 @@ const DietDetail = () => {
                                                                                           : '')
                                                                                     : ''
                                                                                 })
+                                                                              : ''}
+                                                                            {dietDetails.diet_type_name ===
+                                                                              'By Weight' && item.meal_type
+                                                                              ? item.meal_type
+                                                                                  .map((meal, i) => {
+                                                                                    if (
+                                                                                      all.includes(
+                                                                                        meal.meal_value_header
+                                                                                      ) &&
+                                                                                      meal.notes &&
+                                                                                      meal.notes.trim() !== ''
+                                                                                    ) {
+                                                                                      return (
+                                                                                        <Typography
+                                                                                          key={i}
+                                                                                          sx={{ textAlign: 'center' }}
+                                                                                        >
+                                                                                          <Tooltip title={meal.notes}>
+                                                                                            <img
+                                                                                              src='/icons/Notes.svg'
+                                                                                              alt='Grocery Icon'
+                                                                                              width='35px'
+                                                                                            />
+                                                                                          </Tooltip>
+                                                                                        </Typography>
+                                                                                      )
+                                                                                    }
+
+                                                                                    return null
+                                                                                  })
+                                                                                  .filter(Boolean).length === 0
+                                                                                ? ''
+                                                                                : item.meal_type.map((meal, i) => {
+                                                                                    if (
+                                                                                      all.includes(
+                                                                                        meal.meal_value_header
+                                                                                      ) &&
+                                                                                      meal.notes &&
+                                                                                      meal.notes.trim() !== ''
+                                                                                    ) {
+                                                                                      return (
+                                                                                        <Typography
+                                                                                          key={i}
+                                                                                          sx={{ textAlign: 'center' }}
+                                                                                        >
+                                                                                          <Tooltip title={meal.notes}>
+                                                                                            <img
+                                                                                              src='/icons/Notes.svg'
+                                                                                              alt='Grocery Icon'
+                                                                                              width='35px'
+                                                                                            />
+                                                                                          </Tooltip>
+                                                                                        </Typography>
+                                                                                      )
+                                                                                    }
+
+                                                                                    return null
+                                                                                  })
+                                                                              : item.meal_type
+                                                                              ? item.meal_type
+                                                                                  .map((meal, i) => {
+                                                                                    if (
+                                                                                      meal.meal_value_header === all &&
+                                                                                      meal.notes &&
+                                                                                      meal.notes.trim() !== ''
+                                                                                    ) {
+                                                                                      return (
+                                                                                        <Typography
+                                                                                          key={i}
+                                                                                          sx={{ textAlign: 'center' }}
+                                                                                        >
+                                                                                          <Tooltip title={meal.notes}>
+                                                                                            <img
+                                                                                              src='/icons/Notes.svg'
+                                                                                              alt='Grocery Icon'
+                                                                                              width='35px'
+                                                                                            />
+                                                                                          </Tooltip>
+                                                                                        </Typography>
+                                                                                      )
+                                                                                    }
+
+                                                                                    return null
+                                                                                  })
+                                                                                  .filter(Boolean).length === 0
+                                                                                ? ''
+                                                                                : item.meal_type.map((meal, i) => {
+                                                                                    if (
+                                                                                      meal.meal_value_header === all &&
+                                                                                      meal.notes &&
+                                                                                      meal.notes.trim() !== ''
+                                                                                    ) {
+                                                                                      return (
+                                                                                        <Typography
+                                                                                          key={i}
+                                                                                          sx={{ textAlign: 'center' }}
+                                                                                        >
+                                                                                          <Tooltip title={meal.notes}>
+                                                                                            <img
+                                                                                              src='/icons/Notes.svg'
+                                                                                              alt='Grocery Icon'
+                                                                                              width='35px'
+                                                                                            />
+                                                                                          </Tooltip>
+                                                                                        </Typography>
+                                                                                      )
+                                                                                    }
+
+                                                                                    return null
+                                                                                  })
                                                                               : ''}
                                                                           </Typography>
                                                                         </Box>
@@ -3136,6 +3403,26 @@ const DietDetail = () => {
                                                                             : ''
                                                                         })
                                                                       : ''}
+                                                                    {item.meal_type
+                                                                      ? item.meal_type.map((meal, i) =>
+                                                                          meal.meal_value_header === 'Generic' &&
+                                                                          meal.notes &&
+                                                                          meal.notes.trim() !== '' ? (
+                                                                            <Typography
+                                                                              key={i}
+                                                                              sx={{ textAlign: 'center' }}
+                                                                            >
+                                                                              <Tooltip title={meal.notes}>
+                                                                                <img
+                                                                                  src='/icons/Notes.svg'
+                                                                                  alt='Grocery Icon'
+                                                                                  width='35px'
+                                                                                />
+                                                                              </Tooltip>
+                                                                            </Typography>
+                                                                          ) : null
+                                                                        )
+                                                                      : null}
                                                                   </Typography>
                                                                 </Box>
                                                               </Box>
@@ -3227,6 +3514,116 @@ const DietDetail = () => {
                                                                                           : '')
                                                                                     : ''
                                                                                 })
+                                                                              : ''}
+                                                                            {dietDetails.diet_type_name ===
+                                                                              'By Weight' && item.meal_type
+                                                                              ? item.meal_type
+                                                                                  .map((meal, i) => {
+                                                                                    if (
+                                                                                      all.includes(
+                                                                                        meal.meal_value_header
+                                                                                      ) &&
+                                                                                      meal.notes &&
+                                                                                      meal.notes.trim() !== ''
+                                                                                    ) {
+                                                                                      return (
+                                                                                        <Typography
+                                                                                          key={i}
+                                                                                          sx={{ textAlign: 'center' }}
+                                                                                        >
+                                                                                          <Tooltip title={meal.notes}>
+                                                                                            <img
+                                                                                              src='/icons/Notes.svg'
+                                                                                              alt='Grocery Icon'
+                                                                                              width='35px'
+                                                                                            />
+                                                                                          </Tooltip>
+                                                                                        </Typography>
+                                                                                      )
+                                                                                    }
+
+                                                                                    return null
+                                                                                  })
+                                                                                  .filter(Boolean).length === 0
+                                                                                ? ''
+                                                                                : item.meal_type.map((meal, i) => {
+                                                                                    if (
+                                                                                      all.includes(
+                                                                                        meal.meal_value_header
+                                                                                      ) &&
+                                                                                      meal.notes &&
+                                                                                      meal.notes.trim() !== ''
+                                                                                    ) {
+                                                                                      return (
+                                                                                        <Typography
+                                                                                          key={i}
+                                                                                          sx={{ textAlign: 'center' }}
+                                                                                        >
+                                                                                          <Tooltip title={meal.notes}>
+                                                                                            <img
+                                                                                              src='/icons/Notes.svg'
+                                                                                              alt='Grocery Icon'
+                                                                                              width='35px'
+                                                                                            />
+                                                                                          </Tooltip>
+                                                                                        </Typography>
+                                                                                      )
+                                                                                    }
+
+                                                                                    return null
+                                                                                  })
+                                                                              : item.meal_type
+                                                                              ? item.meal_type
+                                                                                  .map((meal, i) => {
+                                                                                    if (
+                                                                                      meal.meal_value_header === all &&
+                                                                                      meal.notes &&
+                                                                                      meal.notes.trim() !== ''
+                                                                                    ) {
+                                                                                      return (
+                                                                                        <Typography
+                                                                                          key={i}
+                                                                                          sx={{ textAlign: 'center' }}
+                                                                                        >
+                                                                                          <Tooltip title={meal.notes}>
+                                                                                            <img
+                                                                                              src='/icons/Notes.svg'
+                                                                                              alt='Grocery Icon'
+                                                                                              width='35px'
+                                                                                            />
+                                                                                          </Tooltip>
+                                                                                        </Typography>
+                                                                                      )
+                                                                                    }
+
+                                                                                    return null
+                                                                                  })
+                                                                                  .filter(Boolean).length === 0
+                                                                                ? ''
+                                                                                : item.meal_type.map((meal, i) => {
+                                                                                    if (
+                                                                                      meal.meal_value_header === all &&
+                                                                                      meal.notes &&
+                                                                                      meal.notes.trim() !== ''
+                                                                                    ) {
+                                                                                      return (
+                                                                                        <Typography
+                                                                                          key={i}
+                                                                                          sx={{ textAlign: 'center' }}
+                                                                                        >
+                                                                                          <Tooltip title={meal.notes}>
+                                                                                            <img
+                                                                                              src='/icons/Notes.svg'
+                                                                                              alt='Grocery Icon'
+                                                                                              width='35px'
+                                                                                            />
+                                                                                          </Tooltip>
+                                                                                        </Typography>
+                                                                                      )
+                                                                                    }
+
+                                                                                    return null
+                                                                                  })
                                                                               : ''}
                                                                           </Typography>
                                                                         </Box>
@@ -3547,6 +3944,26 @@ const DietDetail = () => {
                                                                           : ''
                                                                       })
                                                                     : ''}
+                                                                  {item.meal_type
+                                                                    ? item.meal_type.map((meal, i) =>
+                                                                        meal.meal_value_header === 'Generic' &&
+                                                                        meal.notes &&
+                                                                        meal.notes.trim() !== '' ? (
+                                                                          <Typography
+                                                                            key={i}
+                                                                            sx={{ textAlign: 'center' }}
+                                                                          >
+                                                                            <Tooltip title={meal.notes}>
+                                                                              <img
+                                                                                src='/icons/Notes.svg'
+                                                                                alt='Grocery Icon'
+                                                                                width='35px'
+                                                                              />
+                                                                            </Tooltip>
+                                                                          </Typography>
+                                                                        ) : null
+                                                                      )
+                                                                    : null}
                                                                 </Typography>
                                                               </Box>
                                                             </Box>
@@ -3635,6 +4052,116 @@ const DietDetail = () => {
                                                                                         : '')
                                                                                   : ''
                                                                               })
+                                                                            : ''}
+                                                                          {dietDetails.diet_type_name === 'By Weight' &&
+                                                                          item.meal_type
+                                                                            ? item.meal_type
+                                                                                .map((meal, i) => {
+                                                                                  if (
+                                                                                    all.includes(
+                                                                                      meal.meal_value_header
+                                                                                    ) &&
+                                                                                    meal.notes &&
+                                                                                    meal.notes.trim() !== ''
+                                                                                  ) {
+                                                                                    return (
+                                                                                      <Typography
+                                                                                        key={i}
+                                                                                        sx={{ textAlign: 'center' }}
+                                                                                      >
+                                                                                        <Tooltip title={meal.notes}>
+                                                                                          <img
+                                                                                            src='/icons/Notes.svg'
+                                                                                            alt='Grocery Icon'
+                                                                                            width='35px'
+                                                                                          />
+                                                                                        </Tooltip>
+                                                                                      </Typography>
+                                                                                    )
+                                                                                  }
+
+                                                                                  return null
+                                                                                })
+                                                                                .filter(Boolean).length === 0
+                                                                              ? ''
+                                                                              : item.meal_type.map((meal, i) => {
+                                                                                  if (
+                                                                                    all.includes(
+                                                                                      meal.meal_value_header
+                                                                                    ) &&
+                                                                                    meal.notes &&
+                                                                                    meal.notes.trim() !== ''
+                                                                                  ) {
+                                                                                    return (
+                                                                                      <Typography
+                                                                                        key={i}
+                                                                                        sx={{ textAlign: 'center' }}
+                                                                                      >
+                                                                                        <Tooltip title={meal.notes}>
+                                                                                          <img
+                                                                                            src='/icons/Notes.svg'
+                                                                                            alt='Grocery Icon'
+                                                                                            width='35px'
+                                                                                          />
+                                                                                        </Tooltip>
+                                                                                      </Typography>
+                                                                                    )
+                                                                                  }
+
+                                                                                  return null
+                                                                                })
+                                                                            : item.meal_type
+                                                                            ? item.meal_type
+                                                                                .map((meal, i) => {
+                                                                                  if (
+                                                                                    meal.meal_value_header === all &&
+                                                                                    meal.notes &&
+                                                                                    meal.notes.trim() !== ''
+                                                                                  ) {
+                                                                                    return (
+                                                                                      <Typography
+                                                                                        key={i}
+                                                                                        sx={{ textAlign: 'center' }}
+                                                                                      >
+                                                                                        <Tooltip title={meal.notes}>
+                                                                                          <img
+                                                                                            src='/icons/Notes.svg'
+                                                                                            alt='Grocery Icon'
+                                                                                            width='35px'
+                                                                                          />
+                                                                                        </Tooltip>
+                                                                                      </Typography>
+                                                                                    )
+                                                                                  }
+
+                                                                                  return null
+                                                                                })
+                                                                                .filter(Boolean).length === 0
+                                                                              ? ''
+                                                                              : item.meal_type.map((meal, i) => {
+                                                                                  if (
+                                                                                    meal.meal_value_header === all &&
+                                                                                    meal.notes &&
+                                                                                    meal.notes.trim() !== ''
+                                                                                  ) {
+                                                                                    return (
+                                                                                      <Typography
+                                                                                        key={i}
+                                                                                        sx={{ textAlign: 'center' }}
+                                                                                      >
+                                                                                        <Tooltip title={meal.notes}>
+                                                                                          <img
+                                                                                            src='/icons/Notes.svg'
+                                                                                            alt='Grocery Icon'
+                                                                                            width='35px'
+                                                                                          />
+                                                                                        </Tooltip>
+                                                                                      </Typography>
+                                                                                    )
+                                                                                  }
+
+                                                                                  return null
+                                                                                })
                                                                             : ''}
                                                                         </Typography>
                                                                       </Box>

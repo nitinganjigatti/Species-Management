@@ -64,6 +64,7 @@ const CreateMealGroup = ({
   const handleCreateGroup = async () => {
     if (!groupName.trim()) {
       setGroupNameError(true)
+
       return
     }
 
@@ -99,6 +100,7 @@ const CreateMealGroup = ({
         const data = [...selectedItems] // your original full unmapped list (store this when fetching the full list)
         const filteredData = data.filter(item => checkedRows.includes(item.id)) // adjust key if needed
         setSelectedItems(filteredData)
+
         return
       }
 
@@ -130,6 +132,7 @@ const CreateMealGroup = ({
     const updatedEnclosure = editeditems?.map(item => item?.enclosure_id)
     if (!groupName.trim()) {
       setGroupNameError(true)
+
       return
     }
 
@@ -229,6 +232,7 @@ const CreateMealGroup = ({
           variant='contained'
           type='submit'
           size='large'
+
           //   loading={loading}
         >
           {Object.keys(editParam).length > 0 ? 'Update' : 'Create'}
@@ -267,6 +271,7 @@ const CreateMealGroup = ({
             //   lg: '562px'
             // },
             maxHeight: '100vh'
+
             // overflow: 'auto'
           }}
         >
@@ -296,6 +301,7 @@ const CreateMealGroup = ({
                 size='small'
                 onClick={() => {
                   handleCloseSideBar()
+
                   //   setSearchValue('')
                 }}
                 sx={{ color: theme.palette.primary.light }}
@@ -468,7 +474,14 @@ const CreateMealGroup = ({
               Selected enclosures
             </Typography>
             {mealType.type !== 'view' && (
-              <Box display='flex' gap={1} mt={2} flexDirection={{ xs: 'column', sm: 'row' }}>
+              <Box
+                sx={{
+                  display: 'flex',
+                  gap: 1,
+                  mt: 2,
+                  flexDirection: { xs: 'column', sm: 'row' }
+                }}
+              >
                 <TextField
                   placeholder='Search...'
                   value={Object.keys(editParam).length > 0 ? editSearchValue : searchTerm}
@@ -481,23 +494,25 @@ const CreateMealGroup = ({
                       handleCreateSearch(e.target.value)
                     }
                   }}
-                  InputProps={{
-                    startAdornment: (
-                      <InputAdornment position='start'>
-                        <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
-                      </InputAdornment>
-                    ),
-                    sx: {
-                      backgroundColor: 'white',
-                      borderRadius: '8px',
-                      m: { md: 5 },
-                      mt: { md: 0 },
-                      ml: { xs: 0, sm: 2, md: 1 },
-                      width: { xs: '96%', sm: '520px', md: '524px' },
-                      height: '48px',
-                      input: {
-                        color: theme.palette.customColors.Outline,
-                        padding: '10px 0'
+                  slotProps={{
+                    input: {
+                      startAdornment: (
+                        <InputAdornment position='start'>
+                          <Icon icon='mi:search' fontSize={24} color={theme.palette.customColors.neutralSecondary} />
+                        </InputAdornment>
+                      ),
+                      sx: {
+                        backgroundColor: 'white',
+                        borderRadius: '8px',
+                        m: { md: 5 },
+                        mt: { md: 0 },
+                        ml: { xs: 0, sm: 2, md: 1 },
+                        width: { xs: '96%', sm: '520px', md: '524px' },
+                        height: '48px',
+                        input: {
+                          color: theme.palette.customColors.Outline,
+                          padding: '10px 0'
+                        }
                       }
                     }
                   }}
@@ -508,15 +523,19 @@ const CreateMealGroup = ({
             <Card
               sx={{
                 p: { xs: 2, sm: 5 },
+
                 // mt: 4,
                 width: { xs: '93vw', sm: '514px', md: '524px' },
+
                 //  width: '100%',
                 height: { xs: '100vh ', sx: 'calc(100dvh - 200px)', md: 'calc(100dvh - 100px)' },
+
                 // ml: 2,
                 mb: 10,
                 m: { xs: 2, sm: 3, md: 2 },
                 mt: { xs: 3, sm: 4, md: 0 },
                 ml: { xs: 0, sm: 2.5, md: 1 },
+
                 // mr:{xs:3},
                 boxShadow: 'none',
                 display: 'flex',
@@ -658,4 +677,5 @@ const CreateMealGroup = ({
     <Error404 />
   )
 }
+
 export default CreateMealGroup

@@ -230,7 +230,12 @@ const AddIncubators = ({
               <Icon icon='mdi:close' fontSize={20} />
             </IconButton>
           </Box>
-          <Box flexGrow={1} sx={{ alignSelf: 'stretch' }}>
+          <Box
+            sx={{
+              flexGrow: 1,
+              alignSelf: 'stretch'
+            }}
+          >
             <Box
               sx={{
                 mx: '20px',
@@ -263,6 +268,7 @@ const AddIncubators = ({
                       onChange={(e, val) => {
                         if (val === null) {
                           setDefaultNursery(null)
+
                           return onChange('')
                         } else {
                           setDefaultNursery(val)
@@ -311,10 +317,12 @@ const AddIncubators = ({
                       onChange={(e, val) => {
                         if (val === null) {
                           setDefaultRoom(null)
+
                           return onChange('')
                         } else {
                           setDefaultRoom(val)
                           setValue('room', '')
+
                           return onChange(val.room_id)
                         }
                       }}
@@ -364,11 +372,13 @@ const AddIncubators = ({
                       label='Max Number Of Eggs *'
                       value={value}
                       type='number'
-                      inputProps={{ min: 1 }}
                       onChange={onChange}
                       placeholder='Max Number Of Eggs'
                       error={Boolean(errors.maxNumberOfEggs)}
                       name='maxNumberOfEggs'
+                      slotProps={{
+                        htmlInput: { min: 1 }
+                      }}
                     />
                   )}
                 />

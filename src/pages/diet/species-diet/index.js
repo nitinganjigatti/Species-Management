@@ -734,7 +734,12 @@ const SpeciesDietList = () => {
           <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
             <Typography color='inherit'>Diet</Typography>
 
-            <Typography sx={{ cursor: 'pointer' }} color='text.primary'>
+            <Typography
+              sx={{
+                color: 'text.primary',
+                cursor: 'pointer'
+              }}
+            >
               Species Diet List
             </Typography>
           </Breadcrumbs>
@@ -817,11 +822,6 @@ const SpeciesDietList = () => {
                           onChange={event => handleSearch(event.target.value)}
                           variant='outlined'
                           placeholder='Search...'
-                          InputProps={
-                            {
-                              // disableUnderline: true
-                            }
-                          }
                           sx={{
                             '& .MuiOutlinedInput-root': {
                               border: 'none',
@@ -829,6 +829,11 @@ const SpeciesDietList = () => {
                               '& fieldset': {
                                 border: 'none'
                               }
+                            }
+                          }}
+                          slotProps={{
+                            input: {
+                              // disableUnderline: true
                             }
                           }}
                         />

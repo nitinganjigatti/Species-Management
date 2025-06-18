@@ -34,7 +34,7 @@ const AnimalLabelCard = ({
       >
         {children}
       </Tooltip>
-    );
+    )
   }
 
   return (
@@ -75,7 +75,12 @@ const AnimalLabelCard = ({
           alt='Animal'
         />
       </Box>
-      <Box flex='1' ml={marginLeft}>
+      <Box
+        sx={{
+          flex: '1',
+          ml: marginLeft
+        }}
+      >
         {title && (
           <ToolTip title={title}>
             <Typography

@@ -139,6 +139,7 @@ const LabTest = () => {
     setResetForm(true)
     setEditParams(params)
     setOpenDrawer(true)
+
     // console.log('params >>', params)
   }
 
@@ -321,7 +322,12 @@ const LabTest = () => {
             <Typography sx={{ cursor: 'pointer' }} color='inherit'>
               Lab Master
             </Typography>
-            <Typography sx={{ cursor: 'pointer' }} color='text.primary'>
+            <Typography
+              sx={{
+                color: 'text.primary',
+                cursor: 'pointer'
+              }}
+            >
               Lab Tests
             </Typography>
           </Breadcrumbs>

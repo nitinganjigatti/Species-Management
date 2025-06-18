@@ -190,7 +190,13 @@ const RecipeDetail = () => {
               <Typography color='inherit' sx={{ cursor: 'pointer' }} onClick={() => router.back()}>
                 Recipe
               </Typography>
-              <Typography color='text.primary'>Recipe Details</Typography>
+              <Typography
+                sx={{
+                  color: 'text.primary'
+                }}
+              >
+                Recipe Details
+              </Typography>
             </Breadcrumbs>
             {Object.keys(IngredientsDetailsval).length !== 0 ? (
               <>

@@ -13,6 +13,7 @@ import { DataGrid } from '@mui/x-data-grid'
 import Card from '@mui/material/Card'
 import ServerSideToolbar from 'src/views/table/data-grid/ServerSideToolbar'
 import { debounce } from 'lodash'
+
 // import { useTheme } from '@emotion/react'
 import { useTheme } from '@mui/material/styles'
 
@@ -146,7 +147,15 @@ const ListOfRequest = () => {
       sortable: false,
       headerName: 'Status',
       renderCell: params => (
-        <Stack direction='row' spacing={2} gap={2} sx={{ display: 'flex', alignItems: 'center' }}>
+        <Stack
+          direction='row'
+          spacing={2}
+          sx={{
+            gap: 2,
+            display: 'flex',
+            alignItems: 'center'
+          }}
+        >
           {params.row.total_tests_pending > 0 && (
             <Box
               sx={{
@@ -244,6 +253,7 @@ const ListOfRequest = () => {
   const [rows, setRows] = useState([])
   const [searchValue, setSearchValue] = useState(router.query.q || '')
   const [sortColumn, setSortColumn] = useState('name')
+
   const [paginationModel, setPaginationModel] = useState({
     page: router?.query?.page ? parseInt(router?.query?.page) : 0,
     pageSize: router?.query?.pageSize ? parseInt(router?.query?.pageSize) : 10
@@ -392,6 +402,7 @@ const ListOfRequest = () => {
     } else {
       setSelectedLab(value)
     }
+
     // updateUrlParams({
     //   q: searchValue,
     //   page: paginationModel.page + 1,
@@ -490,7 +501,12 @@ const ListOfRequest = () => {
             <Typography sx={{ cursor: 'pointer' }} color='inherit'>
               Labs
             </Typography>
-            <Typography sx={{ cursor: 'pointer' }} color='text.primary'>
+            <Typography
+              sx={{
+                color: 'text.primary',
+                cursor: 'pointer'
+              }}
+            >
               Requests list
             </Typography>
           </Breadcrumbs>
@@ -539,8 +555,11 @@ const ListOfRequest = () => {
               <Stack
                 direction={{ md: 'row', sm: 'row', sx: 'column' }}
                 spacing={2}
-                gap={2}
-                sx={{ display: 'flex', alignItems: 'center' }}
+                sx={{
+                  gap: 2,
+                  display: 'flex',
+                  alignItems: 'center'
+                }}
               >
                 <Typography>
                   Total Requests -{' '}
@@ -598,15 +617,33 @@ const ListOfRequest = () => {
               <>
                 <Typography sx={{ fontWeight: 'bold' }}>Status : </Typography>
               </>
-              <Box gap={1} sx={{ display: 'flex', alignItems: 'center' }}>
+              <Box
+                sx={{
+                  gap: 1,
+                  display: 'flex',
+                  alignItems: 'center'
+                }}
+              >
                 <Icon icon='ic:baseline-circle' fontSize={15} color={theme.palette.customColors.customDropdownColor} />
                 <Typography variant='subtitle1'>Pending</Typography>
               </Box>
-              <Box gap={1} sx={{ display: 'flex', alignItems: 'center' }}>
+              <Box
+                sx={{
+                  gap: 1,
+                  display: 'flex',
+                  alignItems: 'center'
+                }}
+              >
                 <Icon icon='ic:baseline-circle' fontSize={15} color={theme.palette.customColors.moderateSecondary} />
                 <Typography variant='subtitle1'>In Progress</Typography>
               </Box>
-              <Box gap={1} sx={{ display: 'flex', alignItems: 'center' }}>
+              <Box
+                sx={{
+                  gap: 1,
+                  display: 'flex',
+                  alignItems: 'center'
+                }}
+              >
                 <Icon icon='ic:baseline-circle' fontSize={15} color={theme.palette.primary.main} />
                 <Typography variant='subtitle1'>Completed</Typography>
               </Box>

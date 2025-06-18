@@ -824,7 +824,12 @@ const IncubatorDetails = () => {
             <Typography sx={{ cursor: 'pointer' }} color='inherit' onClick={() => Router.push('/egg/incubators/')}>
               Incubator List
             </Typography>
-            <Typography sx={{ cursor: 'pointer' }} color='text.primary'>
+            <Typography
+              sx={{
+                color: 'text.primary',
+                cursor: 'pointer'
+              }}
+            >
               Incubator Details
             </Typography>
           </Breadcrumbs>

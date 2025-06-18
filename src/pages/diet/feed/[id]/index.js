@@ -330,7 +330,13 @@ const FeedDetails = () => {
                   >
                     Feed
                   </Typography>
-                  <Typography color='text.primary'>Feed Details</Typography>
+                  <Typography
+                    sx={{
+                      color: 'text.primary'
+                    }}
+                  >
+                    Feed Details
+                  </Typography>
                 </Breadcrumbs>
                 <>
                   <Card>

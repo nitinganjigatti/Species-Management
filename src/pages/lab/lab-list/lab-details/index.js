@@ -64,7 +64,12 @@ const LabDetails = () => {
             >
               Labs list
             </Typography>
-            <Typography sx={{ cursor: 'pointer' }} color='text.primary'>
+            <Typography
+              sx={{
+                color: 'text.primary',
+                cursor: 'pointer'
+              }}
+            >
               Lab details
             </Typography>
           </Breadcrumbs>

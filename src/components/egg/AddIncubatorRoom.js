@@ -131,6 +131,7 @@ const AddIncubatorRoom = ({ isOpen, setIsOpen, editParams, callApi, isPreFilled,
           handleClose()
         } else {
           setLoader(false)
+
           // reset()
           Toaster({ type: 'error', message: response.message })
         }
@@ -150,6 +151,7 @@ const AddIncubatorRoom = ({ isOpen, setIsOpen, editParams, callApi, isPreFilled,
           handleClose()
         } else {
           setLoader(false)
+
           // reset()
           Toaster({ type: 'error', message: response.message })
         }
@@ -254,10 +256,12 @@ const AddIncubatorRoom = ({ isOpen, setIsOpen, editParams, callApi, isPreFilled,
                       onChange={(e, val) => {
                         if (val === null) {
                           setDefaultNursery(null)
+
                           return onChange('')
                         } else {
                           setDefaultNursery(val)
                           setValue('room', '')
+
                           return onChange(val.nursery_id)
                         }
                       }}
@@ -328,7 +332,9 @@ const AddIncubatorRoom = ({ isOpen, setIsOpen, editParams, callApi, isPreFilled,
                       placeholder='Room Name'
                       error={Boolean(errors.room_name)}
                       name='room_name'
-                      inputProps={{ autoComplete: 'off' }}
+                      slotProps={{
+                        htmlInput: { autoComplete: 'off' }
+                      }}
                     />
                   )}
                 />

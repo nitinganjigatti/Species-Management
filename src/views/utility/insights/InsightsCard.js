@@ -76,7 +76,6 @@ const InsightsCard = ({
           }}
         />
       )}
-
       {/* Foreground content */}
       <Box sx={{ position: 'relative', zIndex: 2, p: 6 }}>
         {isListingPage && (
@@ -96,7 +95,13 @@ const InsightsCard = ({
             >
               <InsightsOutlinedIcon />
             </Box> */}
-            <Typography sx={{ color: theme => theme.palette.common.white, fontSize: '1.5rem' }} fontWeight={600}>
+            <Typography
+              sx={{
+                fontWeight: 600,
+                color: theme => theme.palette.common.white,
+                fontSize: '1.5rem'
+              }}
+            >
               {pageTitle || ''}
             </Typography>
           </Box>
@@ -106,7 +111,12 @@ const InsightsCard = ({
         {showUserInfo && (
           <Box sx={{ mt: 4, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
             <UserInfoCard avatarUrl={userImage || ''} name={userName || ''} description={description || ''} />
-            <Box display='flex' gap={2}>
+            <Box
+              sx={{
+                display: 'flex',
+                gap: 2
+              }}
+            >
               {onCallClick && (
                 <IconButton
                   onClick={onCallClick}
@@ -149,7 +159,13 @@ const InsightsCard = ({
               WebkitBackdropFilter: 'blur(0.5rem)'
             }}
           >
-            <Grid container spacing={3} justifyContent='flex-start'>
+            <Grid
+              container
+              spacing={3}
+              sx={{
+                justifyContent: 'flex-start'
+              }}
+            >
               {statsData.map((item, index) => {
                 const length = statsData.length
 
@@ -170,7 +186,14 @@ const InsightsCard = ({
                 }
 
                 return (
-                  <Grid size={{ xs: xs, sm: sm, md: md }} key={index} display='flex' justifyContent='flex-start'>
+                  <Grid
+                    size={{ xs: xs, sm: sm, md: md }}
+                    key={index}
+                    sx={{
+                      display: 'flex',
+                      justifyContent: 'flex-start'
+                    }}
+                  >
                     <InfoStatCard
                       imagePath={item.imagePath}
                       value={item.value}

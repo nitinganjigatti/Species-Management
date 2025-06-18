@@ -1213,7 +1213,11 @@ const RequestDetails = () => {
               </Typography>
             </Box> */}
 
-              <Box mt={2}>
+              <Box
+                sx={{
+                  mt: 2
+                }}
+              >
                 <TableContainer component={Paper} style={{ maxHeight: 400, overflow: 'auto' }}>
                   <Table>
                     <TableHead>
@@ -1309,7 +1313,12 @@ const RequestDetails = () => {
             >
               Requests list
             </Typography>
-            <Typography sx={{ cursor: 'pointer' }} color='text.primary'>
+            <Typography
+              sx={{
+                color: 'text.primary',
+                cursor: 'pointer'
+              }}
+            >
               Lab request details
             </Typography>
           </Breadcrumbs>
@@ -1685,7 +1694,6 @@ const RequestDetails = () => {
           )}
         </>
       )}
-
       <Card sx={{ mt: 5 }}>
         <Box sx={{ py: 5, px: 5 }}>
           <Box sx={{ display: 'flex', alignItems: 'center', gap: '4px', mb: 3 }}>
@@ -1697,14 +1705,12 @@ const RequestDetails = () => {
           <MedicalRecordNotes notes={medicalRecordNotes} />
         </Box>
       </Card>
-
       <TestListPopup
         open={open}
         handleClose={handleClose}
         requestById={requestById}
         selectedSample={selectedSample}
       ></TestListPopup>
-
       <>
         <Dialog
           open={openTransfer}
@@ -1900,8 +1906,10 @@ const RequestDetails = () => {
                             name='lab_name'
                             error={Boolean(errors.lab_name)}
                             onChange={onChange}
-                            InputProps={{ readOnly: true }}
                             placeholder=''
+                            slotProps={{
+                              input: { readOnly: true }
+                            }}
                           />
                         )}
                       />

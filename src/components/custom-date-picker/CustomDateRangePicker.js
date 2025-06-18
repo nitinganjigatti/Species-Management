@@ -48,7 +48,12 @@ const CustomDateRangePicker = ({
 
   return (
     <DatePickerWrapper>
-      <Box p={2} sx={{ width: '100%' }}>
+      <Box
+        sx={{
+          p: 2,
+          width: '100%'
+        }}
+      >
         <DatePicker
           selectsRange
           monthsShown={monthsShown}

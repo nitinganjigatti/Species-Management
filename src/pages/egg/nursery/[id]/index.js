@@ -553,7 +553,12 @@ const NurseryDetails = () => {
             <Typography sx={{ cursor: 'pointer' }} color='inherit ' onClick={() => Router.push('/egg/nursery/')}>
               Nursery List
             </Typography>
-            <Typography sx={{ cursor: 'pointer' }} color='text.primary'>
+            <Typography
+              sx={{
+                color: 'text.primary',
+                cursor: 'pointer'
+              }}
+            >
               Nursery Details
             </Typography>
           </Breadcrumbs>
@@ -639,9 +644,6 @@ const NurseryDetails = () => {
                     <TextField
                       variant='outlined'
                       placeholder='Search...'
-                      InputProps={{
-                        disableunderline: true
-                      }}
                       onChange={e => handleSearch(e.target.value, defaultStatus?.key)}
                       sx={{
                         '& .MuiOutlinedInput-root': {
@@ -650,6 +652,11 @@ const NurseryDetails = () => {
                           '& fieldset': {
                             border: 'none'
                           }
+                        }
+                      }}
+                      slotProps={{
+                        input: {
+                          disableunderline: true
                         }
                       }}
                     />

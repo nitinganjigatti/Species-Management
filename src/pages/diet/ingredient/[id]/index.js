@@ -190,7 +190,13 @@ const IngredientDetail = () => {
                   >
                     Items
                   </Typography>
-                  <Typography color='text.primary'>Item Details</Typography>
+                  <Typography
+                    sx={{
+                      color: 'text.primary'
+                    }}
+                  >
+                    Item Details
+                  </Typography>
                 </Breadcrumbs>
                 {Object.keys(IngredientsDetailsval).length !== 0 ? (
                   <Card>

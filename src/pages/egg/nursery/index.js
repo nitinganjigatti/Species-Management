@@ -149,6 +149,7 @@ const NurseryList = () => {
   }
 
   const addEventSidebarOpen = () => setOpenDrawer(true)
+
   const columns = [
     {
       minWidth: 80,
@@ -378,7 +379,12 @@ const NurseryList = () => {
               Egg
             </Typography>
 
-            <Typography sx={{ cursor: 'pointer' }} color='text.primary'>
+            <Typography
+              sx={{
+                color: 'text.primary',
+                cursor: 'pointer'
+              }}
+            >
               Nursery List
             </Typography>
           </Breadcrumbs>

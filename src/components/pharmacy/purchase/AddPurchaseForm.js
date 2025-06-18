@@ -2108,10 +2108,12 @@ const AddPurchaseForm = () => {
                             setRoundUpValue(e.target.value) // Update local state with numeric value
                           }
                         }}
-                        InputProps={{
-                          sx: {
-                            borderTopLeftRadius: 0,
-                            borderBottomLeftRadius: 0
+                        slotProps={{
+                          input: {
+                            sx: {
+                              borderTopLeftRadius: 0,
+                              borderBottomLeftRadius: 0
+                            }
                           }
                         }}
                       />
@@ -2785,19 +2787,23 @@ const AddPurchaseForm = () => {
                             }
                           }
                         }}
-                        inputProps={{
-                          style: { textAlign: 'right' } // Aligns text and placeholder to the right
+                        // Highlights the field in red if there's an error
+                        error={isError}
+                        slotProps={{
+                          input: {
+                            startAdornment: (
+                              <InputAdornment position='start'>
+                                <IconButton edge='start'>
+                                  <Icon icon='mdi:rupee' width='15px' height='15px' color='#000' />
+                                </IconButton>
+                              </InputAdornment>
+                            )
+                          },
+
+                          htmlInput: {
+                            style: { textAlign: 'right' } // Aligns text and placeholder to the right
+                          }
                         }}
-                        InputProps={{
-                          startAdornment: (
-                            <InputAdornment position='start'>
-                              <IconButton edge='start'>
-                                <Icon icon='mdi:rupee' width='15px' height='15px' color='#000' />
-                              </IconButton>
-                            </InputAdornment>
-                          )
-                        }}
-                        error={isError} // Highlights the field in red if there's an error
                       />
                     </CalcWrapper>
                   </Box>

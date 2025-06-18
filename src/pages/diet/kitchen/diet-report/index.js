@@ -335,11 +335,13 @@ const DietReportPage = () => {
         <Card>
           <CardHeader
             title={RenderUtility.pageTitle('Diet Reports')}
-            titleTypographyProps={{ variant: 'h5' }}
             sx={{
               '& .MuiCardHeader-title': {
                 color: theme => theme.palette.primary.main
               }
+            }}
+            slotProps={{
+              title: { variant: 'h5' }
             }}
           />
           <CardContent>
@@ -367,7 +369,13 @@ const DietReportPage = () => {
                 </Grid>
 
                 <Grid item size={{ xs: 4, sm: 4 }}>
-                  <Grid container spacing={2} justifyContent={{ xs: 'flex-end' }}>
+                  <Grid
+                    container
+                    spacing={2}
+                    sx={{
+                      justifyContent: { xs: 'flex-end' }
+                    }}
+                  >
                     <Grid
                       item
                       sx={{

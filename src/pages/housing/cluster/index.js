@@ -407,9 +407,9 @@ const Clusters = () => {
         return isSmallScreen ? (
           phoneNumber ? (
             <Box
-              display='flex'
-              gap={4}
               sx={{
+                display: 'flex',
+                gap: 4,
                 width: '100%',
                 height: '100%',
                 display: 'flex',
@@ -457,7 +457,12 @@ const Clusters = () => {
             Housing
           </Typography>
 
-          <Typography sx={{ cursor: 'pointer' }} color='text.primary'>
+          <Typography
+            sx={{
+              color: 'text.primary',
+              cursor: 'pointer'
+            }}
+          >
             Cluster List
           </Typography>
         </Breadcrumbs>

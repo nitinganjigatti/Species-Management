@@ -153,7 +153,12 @@ const TestDetails = props => {
                   <Box>
                     <CardContent>
                       <Box sx={{ bgcolor: '#E1F9ED', p: 3, mb: 6, borderRadius: 1 }}>
-                        <Typography variant='caption' color='text.secondary'>
+                        <Typography
+                          variant='caption'
+                          sx={{
+                            color: 'text.secondary'
+                          }}
+                        >
                           Test Name
                         </Typography>
                         <Typography variant='h5' component='div'>
@@ -161,7 +166,14 @@ const TestDetails = props => {
                         </Typography>
                       </Box>
 
-                      <Typography variant='subtitle2' color='text.secondary' mt={2} mb={2}>
+                      <Typography
+                        variant='subtitle2'
+                        sx={{
+                          color: 'text.secondary',
+                          mt: 2,
+                          mb: 2
+                        }}
+                      >
                         Sample Types
                       </Typography>
                       <Box sx={{ display: 'flex', flexWrap: 'wrap', gap: '8px', mb: 6 }}>
@@ -181,7 +193,14 @@ const TestDetails = props => {
                       </Box>
 
                       {testDetails.child_tests?.length > 0 && (
-                        <Typography variant='subtitle2' color='text.secondary' mt={2} mb={2}>
+                        <Typography
+                          variant='subtitle2'
+                          sx={{
+                            color: 'text.secondary',
+                            mt: 2,
+                            mb: 2
+                          }}
+                        >
                           Sub Tests
                         </Typography>
                       )}

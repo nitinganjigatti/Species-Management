@@ -43,6 +43,7 @@ const AnimalAssessment = () => {
   const [search, setSearch] = useState()
   const defaultEndDate = dayjs().format('YYYY-MM-DD')
   const defaultStartDate = dayjs().subtract(6, 'month').format('YYYY-MM-DD')
+
   const [filterDates, setFilterDates] = useState({
     startDate: defaultStartDate,
     endDate: defaultEndDate
@@ -88,10 +89,12 @@ const AnimalAssessment = () => {
   // api call for table data
   const animalAssessmentReport = async searchValue => {
     setIsLoading(true)
+
     const params = {
       page: paginationModel.page + 1,
       limit: paginationModel.pageSize
     }
+
     const payload = {
       taxonomy_ids: selectedSpecie?.tsn_id,
       assessment_type_ids: selectedAssessmentType?.assessment_type_id,
@@ -147,6 +150,7 @@ const AnimalAssessment = () => {
   // Transform raw animal data
   const transformAnimalData = () => {
     const animals = assessmentData || []
+
     const transformed = animals?.map(animal => {
       const age =
         animal.birth_date && moment(animal.birth_date).isValid()
@@ -182,6 +186,7 @@ const AnimalAssessment = () => {
     })
 
     setDataList(transformed)
+
     // setTotal(transformed.length)
 
     const headers = [
@@ -364,6 +369,7 @@ const AnimalAssessment = () => {
         )
       }
     }
+
     return {
       field: header.key,
       headerName: header.label,
@@ -381,6 +387,7 @@ const AnimalAssessment = () => {
       renderCell: params => {
         // console.log('params', params)
         const record = params?.row[header.key]
+
         return record ? (
           <Box
             onClick={() => {
@@ -400,9 +407,9 @@ const AnimalAssessment = () => {
           >
             <Tooltip title={record.value} placement='top'>
               <Typography
-                fontSize={14}
-                fontWeight={600}
                 sx={{
+                  fontSize: 14,
+                  fontWeight: 600,
                   display: '-webkit-box',
                   WebkitLineClamp: 3,
                   WebkitBoxOrient: 'vertical',
@@ -414,7 +421,12 @@ const AnimalAssessment = () => {
                 {record.value}
               </Typography>
             </Tooltip>
-            <Typography fontSize={12} color='textSecondary'>
+            <Typography
+              color='textSecondary'
+              sx={{
+                fontSize: 12
+              }}
+            >
               {record.date}
             </Typography>
           </Box>
@@ -424,6 +436,7 @@ const AnimalAssessment = () => {
               flex: 1,
               backgroundColor: theme.palette.customColors.cardHeaderBg,
               height: '100%'
+
               // mr: headerList.length === i + 1 ? '-20px' : 0
             }}
           ></Box>
@@ -485,6 +498,7 @@ const AnimalAssessment = () => {
   const getDataToExport = async type => {
     if (selectedSpecie && selectedAssessmentType) {
       setIsLoading(true)
+
       const params = {
         page: paginationModel.page + 1,
         limit: paginationModel.pageSize,

@@ -145,6 +145,7 @@ const IncubatorsList = () => {
       )
     }
   }, [paginationModel])
+
   // }, [fetchTableData])  // use this line if there happen any issue while fetching table data
 
   const columns = [
@@ -395,7 +396,12 @@ const IncubatorsList = () => {
           <>
             <Breadcrumbs aria-label='breadcrumb' sx={{ mb: 5 }}>
               <Typography color='inherit'>Egg</Typography>
-              <Typography sx={{ cursor: 'pointer' }} color='text.primary'>
+              <Typography
+                sx={{
+                  color: 'text.primary',
+                  cursor: 'pointer'
+                }}
+              >
                 Incubator List
               </Typography>
             </Breadcrumbs>
@@ -418,11 +424,6 @@ const IncubatorsList = () => {
                     <TextField
                       variant='outlined'
                       placeholder='Search...'
-                      InputProps={
-                        {
-                          // disableUnderline: true
-                        }
-                      }
                       onChange={e =>
                         handleSearch(
                           e.target.value,
@@ -439,6 +440,11 @@ const IncubatorsList = () => {
                           '& fieldset': {
                             border: 'none'
                           }
+                        }
+                      }}
+                      slotProps={{
+                        input: {
+                          // disableUnderline: true
                         }
                       }}
                     />
