@@ -135,10 +135,7 @@ return all.filter(species => !prevSelectedItems.some(item => item.tsn_id === spe
         {/* Header */}
         <Box sx={{ px: 5, pt: 4, pb: 2 }}>
           <Box display='flex' justifyContent='space-between' alignItems='center'>
-            <Box display='flex' alignItems='center' gap={3}>
-              <Box component='img' src='/images/housing/Enclosure icon.png' alt='icon' sx={{ width: 32, height: 32 }} />
-              <Typography sx={{ fontSize: '1.5rem', fontWeight: 500 }}>{title}</Typography>
-            </Box>
+            <Typography sx={{ fontSize: '1.5rem', fontWeight: 500 }}>{title}</Typography>
             <IconButton onClick={onClose}>
               <CloseIcon />
             </IconButton>
@@ -187,7 +184,7 @@ return all.filter(species => !prevSelectedItems.some(item => item.tsn_id === spe
             Species {total ? `(${total})` : ''}
           </Typography>
 
-          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, pb: 2 }}>
+          <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3, pb: 2 }}>
             {list.map(species => {
               const isSelected = newlySelectedItems.some(item => item.tsn_id === species.tsn_id)
 
@@ -234,7 +231,7 @@ return all.filter(species => !prevSelectedItems.some(item => item.tsn_id === spe
             position: 'sticky',
             bottom: 0,
             px: 5,
-            py: 4,
+            py: 6,
             backgroundColor: theme.palette.common.white,
             boxShadow: `0px -4px 21px 0px ${
               theme.palette.mode === 'light' ? 'rgba(0,0,0,0.1)' : 'rgba(255,255,255,0.05)'
@@ -242,12 +239,7 @@ return all.filter(species => !prevSelectedItems.some(item => item.tsn_id === spe
             zIndex: 1
           }}
         >
-          <Button
-            fullWidth
-            variant='contained'
-            onClick={handleDone}
-            disabled={newlySelectedItems.length === 0}
-          >
+          <Button fullWidth variant='contained' onClick={handleDone} disabled={newlySelectedItems.length === 0}>
             Done ({newlySelectedItems.length})
           </Button>
         </Box>

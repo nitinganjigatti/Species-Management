@@ -38,11 +38,20 @@ const ExportPermitAnimals = ({
 
   // Calculate totals
   const totalSpeciesCount = speciesList.length
-  const totalAnimalCount = speciesList.reduce((sum, species) => sum + (species.totalCount || 0), 0)
+
+  const totalAnimalCount = speciesList.reduce((sum, species) => {
+    const count = species.animalDetails?.reduce((s, a) => s + (parseInt(a.animal_count) || 0), 0)
+
+    return sum + count
+  }, 0)
 
   // Validation helper
   const validateAnimalCounts = species => {
-    const totalCount = species.maleCount + species.femaleCount + species.undeterminedCount
+    const male = parseInt(species.male_count) || 0
+    const female = parseInt(species.female_count) || 0
+    const undetermined = parseInt(species.undeterminate_count) || 0
+
+    const totalCount = male + female + undetermined
 
     const animalDetailsCount = species.animalDetails.reduce(
       (sum, detail) => sum + (parseInt(detail.animal_count) || 0),
@@ -59,7 +68,8 @@ const ExportPermitAnimals = ({
     let updatedSpecies = { ...species, [field]: intValue }
 
     // Recalculate total count
-    updatedSpecies.totalCount = updatedSpecies.maleCount + updatedSpecies.femaleCount + updatedSpecies.undeterminedCount
+    updatedSpecies.total_count =
+      updatedSpecies.male_count + updatedSpecies.female_count + updatedSpecies.undeterminate_count
 
     handleSpeciesUpdate(species.id, updatedSpecies)
   }
@@ -76,9 +86,8 @@ const ExportPermitAnimals = ({
 
     const newAnimal = {
       id: '',
-
-      // animalType: 'single',
-      // animal_count: 1,
+      animalType: 'single',
+      animal_count: 1,
       gender: { label: '', value: null },
       identifierType: { label: '', value: null },
       identifierValue: ''
@@ -122,11 +131,11 @@ const ExportPermitAnimals = ({
 
   return (
     <Box sx={{ mt: 8 }}>
-      <Typography variant='h6' gutterBottom sx={{ fontWeight: 600, mb: 3 }}>
+      <Typography variant='h6' gutterBottom sx={{ fontWeight: 600, mb: 4 }}>
         2. Animals
       </Typography>
 
-      <Box sx={{ display: 'flex', gap: 2, mb: 3 }}>
+      <Box sx={{ display: 'flex', gap: 2, mb: 4 }}>
         <Typography
           variant='body2'
           sx={{ color: theme.palette.customColors.neutralSecondary, fontSize: '1.25rem', fontWeight: 500 }}
@@ -148,206 +157,210 @@ const ExportPermitAnimals = ({
         </Alert>
       )}
 
-      <Box>
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-          {speciesList?.map((speciesItem, speciesIndex) => {
-            const isValidCount = validateAnimalCounts(speciesItem)
-            const speciesErrors = errors.speciesList?.[speciesIndex] || {}
+      <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+        {speciesList?.map((speciesItem, speciesIndex) => {
+          const isValidCount = validateAnimalCounts(speciesItem)
+          const speciesErrors = errors.speciesList?.[speciesIndex] || {}
 
-            return (
-              <Card
-                key={speciesItem.id}
-                variant='outlined'
-                sx={{
-                  width: '100%',
-                  backgroundColor: alpha(theme.palette.customColors.displaybgPrimary, 0.4),
-                  p: 4,
-                  borderRadius: 2
-                }}
-              >
-                <CardContent>
-                  {/* Species Card */}
-                  <SelectableSpeciesCard
-                    species={{
-                      common_name: speciesItem.species.common_name,
-                      scientific_name: speciesItem.species.scientific_name
-                    }}
-                    selectionType='cross'
-                    onClick={() => handleRemoveSpecies(speciesItem.id)}
-                  />
+          return (
+            <Card
+              key={speciesItem.id}
+              variant='outlined'
+              sx={{
+                width: '100%',
+                backgroundColor: alpha(theme.palette.customColors.displaybgPrimary, 0.4),
+                p: 2,
+                borderRadius: 2
+              }}
+            >
+              <CardContent>
+                {/* Species Card */}
+                <Grid container spacing={4} sx={{ mb: 2 }}>
+                  <Grid item xs={12} md={5} lg={5}>
+                    <SelectableSpeciesCard
+                      species={{
+                        common_name: speciesItem.species.common_name,
+                        scientific_name:
+                          speciesItem?.species?.scientific_name || speciesItem?.species?.complete_name || '',
+                        default_icon: speciesItem.species.default_icon
+                      }}
+                      selectionType='cross'
+                      selected={true}
+                      borderColor={theme.palette.customColors.OutlineVariant}
+                      onClick={() => handleRemoveSpecies(speciesItem.id)}
+                    />
+                  </Grid>
+                </Grid>
 
-                  {/* Animal Counts Section */}
+                {/* Animal Counts Section */}
+                <Typography
+                  variant='subtitle2'
+                  gutterBottom
+                  sx={{
+                    fontWeight: 500,
+                    color: theme.palette.customColors.OnSurfaceVariant,
+                    fontSize: '1rem',
+                    mt: 6,
+                    mb: 4
+                  }}
+                >
+                  Cites Details & Animal Count
+                </Typography>
+
+                <Grid container spacing={4} sx={{ mb: 2 }}>
+                  <Grid item xs={12} md={4.5}>
+                    <ControlledAutocomplete
+                      name={`speciesList.${speciesIndex}.appendix`}
+                      label='Select Appendix'
+                      control={control}
+                      errors={errors}
+                      options={appendixOptions}
+                      getOptionLabel={option => option.label}
+                      isOptionEqualToValue={(option, value) => option.value === value?.value}
+                      onChangeOverride={value => handleSpecieUpdate(speciesIndex, 'appendix', value)}
+                      sx={{ backgroundColor: theme.palette.common.white }}
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={2.5}>
+                    <ControlledTextField
+                      name={`speciesList.${speciesIndex}.male_count`}
+                      label='# Male'
+                      type='number'
+                      control={control}
+                      errors={errors}
+                      onChangeOverride={e => handleCountChange(speciesIndex, 'male_count', e.target.value)}
+                      inputProps={{ min: 0 }}
+                      sx={{ backgroundColor: theme.palette.common.white }}
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={2.5}>
+                    <ControlledTextField
+                      name={`speciesList.${speciesIndex}.female_count`}
+                      label='# Female'
+                      type='number'
+                      control={control}
+                      errors={errors}
+                      onChangeOverride={e => handleCountChange(speciesIndex, 'female_count', e.target.value)}
+                      inputProps={{ min: 0 }}
+                      sx={{ backgroundColor: theme.palette.common.white }}
+                    />
+                  </Grid>
+                  <Grid item xs={12} md={2.5}>
+                    <ControlledTextField
+                      name={`speciesList.${speciesIndex}.undeterminate_count`}
+                      label='# Undetermined'
+                      type='number'
+                      control={control}
+                      errors={errors}
+                      onChangeOverride={e => handleCountChange(speciesIndex, 'undeterminate_count', e.target.value)}
+                      inputProps={{ min: 0 }}
+                      sx={{ backgroundColor: theme.palette.common.white }}
+                    />
+                  </Grid>
+                </Grid>
+
+                {/* Total Count Display */}
+                {/* <Typography variant='body2' sx={{ mb: 2, fontWeight: 500 }}>
+                  Total Count: {speciesItem.total_count}
+                </Typography> */}
+
+                {/* Count Mismatch Warning */}
+                {!isValidCount && (
+                  <Alert severity='error' sx={{ mb: 2, mt: 4 }}>
+                    Animal details count (
+                    {speciesItem.animalDetails.reduce((sum, detail) => sum + (parseInt(detail.animal_count) || 0), 0)})
+                    must be less than total count ({speciesItem.total_count})
+                  </Alert>
+                )}
+
+                <Divider sx={{ my: 6, color: theme.palette.customColors.OutlineVariant }} />
+
+                {/* Animal Details Section */}
+                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <Typography
                     variant='subtitle2'
                     gutterBottom
                     sx={{
                       fontWeight: 500,
                       color: theme.palette.customColors.OnSurfaceVariant,
-                      fontSize: '1rem',
-                      mt: 6,
-                      mb: 4
+                      fontSize: '1rem'
                     }}
                   >
-                    Animal Counts
+                    Animal Details
                   </Typography>
+                  <Button startIcon={<AddIcon />} onClick={() => handleAddAnimal(speciesIndex)}>
+                    Add Animal
+                  </Button>
+                </Box>
 
-                  <Grid container spacing={4} sx={{ mb: 2 }}>
-                    <Grid item xs={12} md={3}>
-                      <ControlledAutocomplete
-                        name={`speciesList.${speciesIndex}.appendix`}
-                        label='Select Appendix'
-                        control={control}
-                        errors={errors}
-                        options={appendixOptions}
-                        getOptionLabel={option => option.label}
-                        isOptionEqualToValue={(option, value) => option.value === value?.value}
-                        onChangeOverride={value => handleSpecieUpdate(speciesIndex, 'appendix', value)}
-                        sx={{ backgroundColor: theme.palette.common.white }}
-                      />
-                    </Grid>
-                    <Grid item xs={12} md={3}>
-                      <ControlledTextField
-                        name={`speciesList.${speciesIndex}.male_count`}
-                        label='# Male'
-                        type='number'
-                        control={control}
-                        errors={errors}
-                        onChangeOverride={e => handleCountChange(speciesIndex, 'maleCount', e.target.value)}
-                        inputProps={{ min: 0 }}
-                        sx={{ backgroundColor: theme.palette.common.white }}
-                      />
-                    </Grid>
-                    <Grid item xs={12} md={3}>
-                      <ControlledTextField
-                        name={`speciesList.${speciesIndex}.female_count`}
-                        label='# Female'
-                        type='number'
-                        control={control}
-                        errors={errors}
-                        onChangeOverride={e => handleCountChange(speciesIndex, 'femaleCount', e.target.value)}
-                        inputProps={{ min: 0 }}
-                        sx={{ backgroundColor: theme.palette.common.white }}
-                      />
-                    </Grid>
-                    <Grid item xs={12} md={3}>
-                      <ControlledTextField
-                        name={`speciesList.${speciesIndex}.undeterminate_count`}
-                        label='# Undetermined'
-                        type='number'
-                        control={control}
-                        errors={errors}
-                        onChangeOverride={e => handleCountChange(speciesIndex, 'undeterminedCount', e.target.value)}
-                        inputProps={{ min: 0 }}
-                        sx={{ backgroundColor: theme.palette.common.white }}
-                      />
-                    </Grid>
-                  </Grid>
-
-                  {/* Total Count Display */}
-                  <Typography variant='body2' sx={{ mb: 2, fontWeight: 500 }}>
-                    Total Count: {speciesItem.totalCount}
-                  </Typography>
-
-                  {/* Count Mismatch Warning */}
-                  {!isValidCount && speciesItem.totalCount > 0 && (
-                    <Alert severity='error' sx={{ mb: 2 }}>
-                      Animal details count (
-                      {speciesItem.animalDetails.reduce((sum, detail) => sum + (parseInt(detail.animal_count) || 0), 0)}
-                      ) must be less than total count ({speciesItem.totalCount})
-                    </Alert>
-                  )}
-
-                  <Divider sx={{ my: 6, color: theme.palette.customColors.OutlineVariant }} />
-
-                  {/* Animal Details Section */}
-                  <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <Typography
-                      variant='subtitle2'
-                      gutterBottom
-                      sx={{
-                        fontWeight: 500,
-                        color: theme.palette.customColors.OnSurfaceVariant,
-                        fontSize: '1rem'
-                      }}
-                    >
-                      Animal Details (Count:{' '}
-                      {speciesItem.animalDetails.reduce((sum, detail) => sum + (parseInt(detail.animal_count) || 0), 0)}
-                      )
-                    </Typography>
-                    <Button startIcon={<AddIcon />} onClick={() => handleAddAnimal(speciesIndex)}>
-                      Add Animal
-                    </Button>
-                  </Box>
-
-                  {/* Animal Details List */}
-                  {speciesItem.animalDetails.map((detail, animalIndex) => {
-                    return (
-                      <Box key={animalIndex} sx={{ mb: 3 }}>
-                        <Grid container spacing={4} alignItems='center'>
-                          <Grid item xs={12} md={4}>
-                            <ControlledAutocomplete
-                              name={`speciesList.${speciesIndex}.animalDetails.${animalIndex}.gender`}
-                              label='Gender'
-                              control={control}
-                              errors={errors}
-                              options={genderOptions}
-                              getOptionLabel={option => option.label}
-                              isOptionEqualToValue={(option, value) => option.value === value?.value}
-                              onChangeOverride={value =>
-                                handleAnimalDetailChange(speciesIndex, animalIndex, 'gender', value)
-                              }
-                              sx={{ backgroundColor: theme.palette.common.white }}
-                            />
-                          </Grid>
-                          <Grid item xs={12} md={4}>
-                            <ControlledAutocomplete
-                              name={`speciesList.${speciesIndex}.animalDetails.${animalIndex}.identifier_type`}
-                              label='Identifier Type'
-                              control={control}
-                              errors={errors}
-                              options={identifierOptions}
-                              getOptionLabel={option => option.label}
-                              isOptionEqualToValue={(option, value) => option.value === value?.value}
-                              onChangeOverride={value =>
-                                handleAnimalDetailChange(speciesIndex, animalIndex, 'identifier_type', value)
-                              }
-                              sx={{ backgroundColor: theme.palette.common.white }}
-                            />
-                          </Grid>
-                          <Grid item xs={12} md={3}>
-                            <ControlledTextField
-                              name={`speciesList.${speciesIndex}.animalDetails.${animalIndex}.identifier_value`}
-                              label='Identifier Value'
-                              control={control}
-                              errors={errors}
-                              onChangeOverride={e =>
-                                handleAnimalDetailChange(speciesIndex, animalIndex, 'identifier_value', e.target.value)
-                              }
-                              sx={{ backgroundColor: theme.palette.common.white }}
-                            />
-                          </Grid>
-                          <Grid
-                            item
-                            xs={12}
-                            md={1}
-                            sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-                          >
-                            <IconButton
-                              onClick={() => handleRemoveAnimal(speciesIndex, animalIndex)}
-                              sx={{ backgroundColor: theme.palette.customColors.neutral05 }}
-                            >
-                              <CloseIcon />
-                            </IconButton>
-                          </Grid>
+                {/* Animal Details List */}
+                {speciesItem.animalDetails.map((detail, animalIndex) => {
+                  return (
+                    <Box key={animalIndex} sx={{ mt: 4 }}>
+                      <Grid container spacing={4} alignItems='center'>
+                        <Grid item xs={12} md={4}>
+                          <ControlledAutocomplete
+                            name={`speciesList.${speciesIndex}.animalDetails.${animalIndex}.gender`}
+                            label='Gender'
+                            control={control}
+                            errors={errors}
+                            options={genderOptions}
+                            getOptionLabel={option => option.label}
+                            isOptionEqualToValue={(option, value) => option.value === value?.value}
+                            onChangeOverride={value =>
+                              handleAnimalDetailChange(speciesIndex, animalIndex, 'gender', value)
+                            }
+                            sx={{ backgroundColor: theme.palette.common.white }}
+                          />
                         </Grid>
-                      </Box>
-                    )
-                  })}
-                </CardContent>
-              </Card>
-            )
-          })}
-        </Box>
+                        <Grid item xs={12} md={4}>
+                          <ControlledAutocomplete
+                            name={`speciesList.${speciesIndex}.animalDetails.${animalIndex}.identifier_type`}
+                            label='Identifier Type'
+                            control={control}
+                            errors={errors}
+                            options={identifierOptions}
+                            getOptionLabel={option => option.label}
+                            isOptionEqualToValue={(option, value) => option.value === value?.value}
+                            onChangeOverride={value =>
+                              handleAnimalDetailChange(speciesIndex, animalIndex, 'identifier_type', value)
+                            }
+                            sx={{ backgroundColor: theme.palette.common.white }}
+                          />
+                        </Grid>
+                        <Grid item xs={12} md={3}>
+                          <ControlledTextField
+                            name={`speciesList.${speciesIndex}.animalDetails.${animalIndex}.identifier_value`}
+                            label='Identifier Value'
+                            control={control}
+                            errors={errors}
+                            onChangeOverride={e =>
+                              handleAnimalDetailChange(speciesIndex, animalIndex, 'identifier_value', e.target.value)
+                            }
+                            sx={{ backgroundColor: theme.palette.common.white }}
+                          />
+                        </Grid>
+                        <Grid
+                          item
+                          xs={12}
+                          md={1}
+                          sx={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+                        >
+                          <IconButton
+                            onClick={() => handleRemoveAnimal(speciesIndex, animalIndex)}
+                            sx={{ backgroundColor: theme.palette.customColors.neutral05 }}
+                          >
+                            <CloseIcon />
+                          </IconButton>
+                        </Grid>
+                      </Grid>
+                    </Box>
+                  )
+                })}
+              </CardContent>
+            </Card>
+          )
+        })}
       </Box>
 
       <Box
@@ -382,7 +395,7 @@ const ExportPermitAnimals = ({
       </Box>
 
       {speciesList.length === 0 && (
-        <Alert severity='info' sx={{ mt: 2 }}>
+        <Alert severity='info' sx={{ my: 4 }}>
           At least one species must be selected to proceed with the form submission.
         </Alert>
       )}

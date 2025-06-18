@@ -1,5 +1,5 @@
-import { GET_EXPORTS_DETAILS, GET_EXPORTS_LIST } from 'src/constants/ApiConstant'
-import { axiosGet } from '../../utility'
+import { ADD_EXPORT, EDIT_EXPORT, GET_EXPORTS_DETAILS, GET_EXPORTS_LIST } from 'src/constants/ApiConstant'
+import { axiosGet, axiosPost } from '../../utility'
 
 export const getExportCountries = async () => {
   return {
@@ -38,4 +38,40 @@ export const getExportDetails = async id => {
   })
 
   return response.data
+}
+
+export async function addExport(payload) {
+  try {
+    const url = `${ADD_EXPORT}`
+    const response = await axiosPost({ url, body: payload })
+
+    return response?.data
+  } catch (error) {
+    if (error.response) {
+      console.info('Request made and server responded')
+      console.error(error.response.data)
+      console.error(error.response.status)
+      console.error(error.response.headers)
+    }
+
+    return error
+  }
+}
+
+export async function updateExport(id, payload) {
+  try {
+    const url = `${EDIT_EXPORT}/${id}`
+    const response = await axiosPost({ url, body: payload })
+
+    return response?.data
+  } catch (error) {
+    if (error.response) {
+      console.info('Request made and server responded')
+      console.error(error.response.data)
+      console.error(error.response.status)
+      console.error(error.response.headers)
+    }
+
+    return error
+  }
 }

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react'
-import { Box, Button } from '@mui/material'
+import { Box, Button, CircularProgress } from '@mui/material'
 import { useForm } from 'react-hook-form'
 import { yupResolver } from '@hookform/resolvers/yup'
 import * as yup from 'yup'
@@ -7,8 +7,10 @@ import ExportPermitDetails from './ExportPermitDetails'
 import ExportPermitAnimals from './ExportPermitAnimals'
 import SpeciesDrawer from '../drawer/SpeciesDrawer'
 import { useRouter } from 'next/router'
-import { getExportDetails } from 'src/lib/api/compliance/exports'
+import { getExportDetails, addExport, updateExport } from 'src/lib/api/compliance/exports'
 import dayjs from 'dayjs'
+import Toaster from 'src/components/Toaster'
+import { LoadingButton } from '@mui/lab'
 
 export const exportPermitValidationSchema = yup.object().shape({
   export_number: yup
@@ -23,13 +25,13 @@ export const exportPermitValidationSchema = yup.object().shape({
     .required('Valid until date is required')
     .min(yup.ref('issued_date'), 'Valid until date must be after issued date'),
 
-  destination_country: yup
+  origin_country: yup
     .object()
     .shape({
-      label: yup.string().required('Destination country is required'),
-      value: yup.string().required('Destination country is required')
+      label: yup.string().required('Origin country is required'),
+      value: yup.string().required('Origin country is required')
     })
-    .required('Destination country is required'),
+    .required('Origin country is required'),
 
   exporting_country: yup
     .object()
@@ -79,9 +81,21 @@ export const exportPermitValidationSchema = yup.object().shape({
     .of(
       yup.object().shape({
         species: yup.object().required(),
-        male_count: yup.number().min(0, 'Must be 0 or more').required(),
-        female_count: yup.number().min(0, 'Must be 0 or more').required(),
-        undeterminate_count: yup.number().min(0, 'Must be 0 or more').required(),
+        male_count: yup
+          .number()
+          .transform((value, originalValue) => (originalValue === '' ? 0 : value))
+          .min(0, 'Must be 0 or more')
+          .required(),
+        female_count: yup
+          .number()
+          .transform((value, originalValue) => (originalValue === '' ? 0 : value))
+          .min(0, 'Must be 0 or more')
+          .required(),
+        undeterminate_count: yup
+          .number()
+          .transform((value, originalValue) => (originalValue === '' ? 0 : value))
+          .min(0, 'Must be 0 or more')
+          .required(),
         total_count: yup.number().min(1, 'Total count must be at least 1').required(),
         animalDetails: yup
           .array()
@@ -101,21 +115,22 @@ export const exportPermitValidationSchema = yup.object().shape({
                   value: yup.string().required('Identifier type is required')
                 })
                 .required('Identifier type is required'),
-              identifier_value: yup.string().required('Identifier value is required')
+              identifier_value: yup.string().required('Identifier value is required'),
 
-              // animalType: yup.string().required('Animal type is required'),
-              // animalCount: yup.number().min(1, 'Animal count must be at least 1').required()
+              // animal_type: yup.string().required('Animal type is required'),
+              animal_count: yup.number().min(1, 'Animal count must be at least 1').required()
             })
           )
           .test(
             'count-match',
             'Total animal details count must less than or equals to the sum of male, female and undetermined counts',
             function (animalDetails) {
-              const { maleCount = 0, femaleCount = 0, undeterminedCount = 0 } = this.parent
-              const totalCount = maleCount + femaleCount + undeterminedCount
+              const { male_count = 0, female_count = 0, undeterminate_count = 0 } = this.parent
+              const totalCount = male_count + female_count + undeterminate_count
+              console.log('totalCount', totalCount)
 
               const animalDetailsCount =
-                animalDetails?.reduce((sum, detail) => sum + (parseInt(detail.animalCount) || 0), 0) || 0
+                animalDetails?.reduce((sum, detail) => sum + (parseInt(detail.animal_count) || 0), 0) || 0
 
               return animalDetailsCount <= totalCount
             }
@@ -129,6 +144,7 @@ const ExportPermitForm = ({ onSubmit, onReset, id }) => {
   const [speciesDrawerOpen, setSpeciesDrawerOpen] = useState(false)
   const [speciesList, setSpeciesList] = useState([])
   const [isLoading, setIsLoading] = useState(false)
+  const [submitLoader, setSubmitLoader] = useState(false)
 
   const {
     setValue,
@@ -173,7 +189,7 @@ const ExportPermitForm = ({ onSubmit, onReset, id }) => {
         setValue('issued_date', data.issued_date !== '0000-00-00' ? dayjs(data.issued_date) : null)
         setValue('valid_until', data.valid_until !== '0000-00-00' ? dayjs(data.valid_until) : null)
         setValue('export_purpose', { label: data.export_purpose, value: data.export_purpose })
-        setValue('destination_country', { label: data.destination_country, value: data.destination_country })
+        setValue('origin_country', { label: data.origin_country, value: data.origin_country })
         setValue('exporting_country', { label: data.exporting_country, value: data.exporting_country })
         setValue('importer_name', { label: data.importer_name, value: data.importer_name })
         setValue('exporter_name', { label: data.exporter_name, value: data.exporter_name })
@@ -220,12 +236,13 @@ const ExportPermitForm = ({ onSubmit, onReset, id }) => {
           id: species.tsn_id,
           tsn_id: species.tsn_id,
           common_name: species.common_name,
-          scientific_name: species.scientific_name
+          scientific_name: species.scientific_name,
+          default_icon: species.default_icon
         },
-        maleCount: 0,
-        femaleCount: 0,
-        undeterminedCount: 0,
-        totalCount: 0,
+        male_count: 0,
+        female_count: 0,
+        undeterminate_count: 0,
+        total_count: 0,
         animalDetails: []
       }))
 
@@ -248,43 +265,71 @@ const ExportPermitForm = ({ onSubmit, onReset, id }) => {
     setValue('speciesList', updatedList)
   }
 
-  const handleFormSubmit = data => {
-    // Validate that all species have matching animal details count
+  const handleFormSubmit = async data => {
     console.log('handleFormSubmit data', data)
 
+    // Validate that all species have matching animal details count
     const hasInvalidCounts = data.speciesList.some(species => {
-      const totalCount = species.maleCount + species.femaleCount + species.undeterminedCount
+      const totalCount =
+        (parseInt(species.male_count) || 0) +
+        (parseInt(species.female_count) || 0) +
+        (parseInt(species.undeterminate_count) || 0)
 
-      const animalDetailsCount = species.animalDetails.reduce(
-        (sum, detail) => sum + (parseInt(detail.animalCount) || 0),
+      const animalDetailsCount = species.animalDetails?.reduce(
+        (sum, detail) => sum + (parseInt(detail.animal_count) || 0),
         0
       )
 
       return totalCount !== animalDetailsCount
     })
 
-    if (hasInvalidCounts) {
-      return // Validation errors will be shown
-    }
-
     // Transform data for API
     const transformedData = {
-      ...data,
-      destination_country: data.destination_country.value,
-      exporting_country: data.exporting_country.value,
+      export_number: data.export_number,
+      origin_country: data.origin_country?.value || '',
+      exporting_country: data.exporting_country?.value || '',
+      exporter_name: data.exporter_name?.value || '',
+      importer_name: data.importer_name?.value || '',
+      export_purpose: data.export_purpose?.value || '',
+      export_date: dayjs(data.export_date).format('YYYY-MM-DD'),
+      issued_date: data.issued_date ? dayjs(data.issued_date).format('YYYY-MM-DD') : null,
+      valid_until: data.valid_until ? dayjs(data.valid_until).format('YYYY-MM-DD') : null,
       species: data.speciesList.map(item => ({
-        taxonomy_id: item.species.tsn_id || item.species.id,
-        male_count: item.maleCount,
-        female_count: item.femaleCount,
-        undeterminate_count: item.undeterminedCount,
+        taxonomy_id: item.species?.tsn_id || item.species?.id || '',
+        male_count: parseInt(item.male_count) || 0,
+        female_count: parseInt(item.female_count) || 0,
+        undeterminate_count: parseInt(item.undeterminate_count) || 0,
         animals: item.animalDetails.map(detail => ({
-          gender: detail.gender,
-          identifier_type: detail.identifierType,
-          identifier_value: detail.identifierValue
+          id: detail.id,
+          gender: detail.gender?.value || '',
+          identifier_type: detail.identifier_type?.value || '',
+          identifier_value: detail.identifier_value || '',
+          animal_type: detail.animal_type || '',
+          animal_count: parseInt(detail.animal_count) || 0
         }))
       }))
     }
 
+    try {
+      setSubmitLoader(true)
+
+      const response = id ? await addExport(id, transformedData) : await updateExport(transformedData)
+
+      if (response?.success) {
+        Toaster({ type: 'success', message: 'Document type ' + response?.message })
+        setSubmitLoader(false)
+
+        // TODO: route to detail page check with backend for response
+        router.push(`/compliance/documents/exports/ExportPermitDetails?id=${id}`)
+      } else {
+        setSubmitLoader(false)
+        Toaster({ type: 'error', message: response?.message })
+      }
+    } catch (e) {
+      console.log(e)
+      setSubmitLoader(false)
+      Toaster({ type: 'error', message: JSON.stringify(e) })
+    }
     onSubmit(transformedData)
   }
 
@@ -306,7 +351,17 @@ const ExportPermitForm = ({ onSubmit, onReset, id }) => {
   }
 
   if (isLoading) {
-    return <Box>Loading...</Box>
+    return (
+      <Box
+        display='flex'
+        justifyContent='center'
+        alignItems='center'
+
+        // minHeight='300px' // or '100vh' if you want full page center
+      >
+        <CircularProgress />
+      </Box>
+    )
   }
 
   return (
@@ -353,9 +408,9 @@ const ExportPermitForm = ({ onSubmit, onReset, id }) => {
         <Button variant='outlined' type='reset'>
           Reset
         </Button>
-        <Button variant='contained' type='submit'>
-          {id ? 'Update' : 'Save'} Details
-        </Button>
+        <LoadingButton type='submit' variant='contained' loading={submitLoader} sx={{ py: 3, width: '8rem' }} fullWidth>
+          {id ? 'Update' : 'Save'}
+        </LoadingButton>
       </Box>
     </Box>
   )

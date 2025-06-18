@@ -39,11 +39,11 @@ const ExportPermitDetails = ({ control, errors, isEdit }) => {
 
   return (
     <Box>
-      <Typography variant='h6' gutterBottom sx={{ fontWeight: 600, mb: 3 }}>
+      <Typography variant='h6' gutterBottom sx={{ fontWeight: 600, mb: 4 }}>
         1. Export Permit Details
       </Typography>
 
-      <Grid container spacing={3}>
+      <Grid container spacing={4}>
         <Grid item xs={12} md={6}>
           <ControlledTextField
             name='export_number'
@@ -72,7 +72,7 @@ const ExportPermitDetails = ({ control, errors, isEdit }) => {
 
         <Grid item xs={12} md={6}>
           <ControlledAutocomplete
-            name='exporting_country'
+            name='origin_country'
             label='Country of origin*'
             control={control}
             errors={errors}
@@ -86,7 +86,7 @@ const ExportPermitDetails = ({ control, errors, isEdit }) => {
 
         <Grid item xs={12} md={6}>
           <ControlledAutocomplete
-            name='destination_country'
+            name='exporting_country'
             label='Exporting Country*'
             control={control}
             errors={errors}

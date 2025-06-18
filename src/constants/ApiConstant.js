@@ -554,3 +554,7 @@ export const GET_EXPORTS_LIST = 'v1/trade/exports'
 
 export const GET_EXPORTS_DETAILS = 'v1/trade/exports'
 
+export const ADD_EXPORT = 'v1/trade/exports'
+
+export const EDIT_EXPORT = 'v1/trade/exports'
+

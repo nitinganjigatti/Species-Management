@@ -1,9 +1,7 @@
-import React, { useState, useEffect, useContext } from 'react'
+import React, { useState, useContext } from 'react'
 import { useRouter } from 'next/router'
-import { CardHeader, Box, Breadcrumbs, Typography, Button } from '@mui/material'
-import { useForm } from 'react-hook-form'
+import { CardHeader, Box, Breadcrumbs, Typography } from '@mui/material'
 import { AuthContext } from 'src/context/AuthContext'
-import Toaster from 'src/components/Toaster'
 
 // import { citesExportPermitAPI } from 'src/services/api'
 
@@ -15,55 +13,7 @@ const AddEditExportPermit = () => {
   const { id } = router.query
   const isEdit = Boolean(id && id !== 'new')
   const { userData } = useContext(AuthContext)
-
-  const [loading, setLoading] = useState(false)
   const [expanded, setExpanded] = useState('permit-details') // Accordion open state
-
-  useEffect(() => {
-    // if (isEdit) {
-    // fetchPermitData()
-    // }
-    console.log('id', id)
-  }, [id, isEdit])
-
-  const fetchPermitData = async () => {
-    try {
-      setLoading(true)
-
-      // const res = await citesExportPermitAPI.getById(id)
-      // if (res.success) {
-      //   Object.keys(res.data).forEach(key => {
-      //     setValue(key, res.data[key])
-      //   })
-      // }
-    } catch (error) {
-      console.error('Error fetching permit data:', error)
-      Toaster({ type: 'error', message: 'Failed to fetch permit data' })
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  const handlePermitDetailsSubmit = data => {
-    const permitDetails = {
-      certificate_id: data.certificate_id,
-      date_of_issue: data.date_of_issue,
-      last_day_of_validity: data.last_day_of_validity,
-      country_of_origin: data.country_of_origin,
-      exporter_name: data.exporter_name,
-      importer: data.importer,
-      purpose_of_transfer: data.purpose_of_transfer,
-      species: data.species,
-      animals: data.animals
-    }
-
-    console.log('Permit Details Submitted:', permitDetails)
-    Toaster({ type: 'success', message: 'Permit Details Saved' })
-  }
-
-  const handlePermitDetailsReset = () => {
-    Toaster({ type: 'info', message: 'Permit Details Reset' })
-  }
 
   return (
     <>
@@ -91,7 +41,7 @@ const AddEditExportPermit = () => {
         expanded={expanded}
         onChange={panelId => setExpanded(prev => (prev === panelId ? null : panelId))}
       >
-        <ExportPermitForm onSubmit={handlePermitDetailsSubmit} onReset={handlePermitDetailsReset} id={id} />
+        <ExportPermitForm id={id} />
       </CustomAccordion>
 
       {/* <CustomAccordion
