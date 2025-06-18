@@ -87,9 +87,6 @@ const addValidationSchema = yup.object().shape({
 
               const hasDuplicates = duplicates.length > 0
 
-              // console.log('Duplicate Count (excluding self):', duplicates.length)
-              // console.log('Validation Result:', !hasDuplicates)
-
               return !hasDuplicates // Return false if duplicates exist, causing an error
             })
         })
@@ -113,7 +110,6 @@ const editValidationSchema = yup.object().shape({
 const Overview = props => {
   const { productDetails, productDashboardData, purchaseData, dispatchData, tabValue, updateUrlParams } = props
   const theme = useTheme()
-
   const router = useRouter()
   const { id } = router.query
   const { selectedPharmacy } = usePharmacyContext()
@@ -239,16 +235,6 @@ const Overview = props => {
           const totalPages = Math.ceil(totalCount / limit)
           const hasMore = pageNum < totalPages
 
-          console.log('data setAlternativeMedicinesList', {
-            ...prev,
-            [tab]: {
-              list_items: updatedList,
-              total_count: totalCount,
-              page: pageNum,
-              hasMore
-            }
-          })
-
           return {
             ...prev,
             [tab]: {
@@ -331,7 +317,8 @@ const Overview = props => {
                   color: 'customColors.customHeadingTextColor',
                   fontWeight: 500,
                   fontSize: '14px'
-                }}>
+                }}
+              >
                 Other Pharmacy Quantity Details
               </Typography>
               <Card
@@ -398,7 +385,7 @@ const Overview = props => {
           </>
         )}
       </>
-    );
+    )
   }
 
   const AboutToExpireContent = ({ data, isLoading }) => (
@@ -591,19 +578,21 @@ const Overview = props => {
       totalBatches: totalValue?.totalBatches,
       totalValue: totalValue?.totalValue
     },
-    {
-      name: 'expiredBatches',
-      title: 'Expired Batches',
-      style: 'customColors.Background',
-
-      // bgColor: '#E933531A',
-      bgColor: theme => alpha(theme.palette.customColors.Error, 0.1),
-      icon: '/images/Incubator_ICON.svg',
-      value: productDashboardData?.expired,
-      description: 'Expired Quantity',
-      totalBatches: totalValue?.totalBatches,
-      totalValue: totalValue?.totalValue
-    }
+    ...(productDetails?.stock_type !== 'non_medical'
+      ? [
+          {
+            name: 'expiredBatches',
+            title: 'Expired Batches',
+            style: 'customColors.Background',
+            bgColor: theme => alpha(theme.palette.customColors.Error, 0.1),
+            icon: '/images/Incubator_ICON.svg',
+            value: productDashboardData?.expired,
+            description: 'Expired Quantity',
+            totalBatches: totalValue?.totalBatches,
+            totalValue: totalValue?.totalValue
+          }
+        ]
+      : [])
   ]
 
   const closeDrawer = () => {
@@ -683,7 +672,11 @@ const Overview = props => {
       return <AboutToExpireContent data={drawerDataArray} isLoading={isLoading} />
     }
     if (activeDrawer === 'expiredBatches') {
-      return <ExpiredBatchesContent data={drawerDataArray} isLoading={isLoading} />
+      return (
+        productDetails?.stock_type !== 'non_medical' && (
+          <ExpiredBatchesContent data={drawerDataArray} isLoading={isLoading} />
+        )
+      )
     }
 
     return null
@@ -862,9 +855,13 @@ const Overview = props => {
 
   return (
     <>
-      <Grid container spacing={4} sx={{
-        pt: 5
-      }}>
+      <Grid
+        container
+        spacing={4}
+        sx={{
+          pt: 5
+        }}
+      >
         {drawerData.map(card => (
           <StyleWithIconCardComponent
             key={card.name}
@@ -1225,7 +1222,7 @@ const Overview = props => {
         />
       )}
     </>
-  );
+  )
 }
 
-export default Overview
+export default React.memo(Overview)

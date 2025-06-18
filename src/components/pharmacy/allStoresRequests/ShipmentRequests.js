@@ -128,13 +128,26 @@ export default function ShipmentRequests({ updateUrlParams }) {
         </Typography>
       )
     },
+
     {
-      width: 5,
+      width: 100,
       field: 'priority',
-      headerName: '',
-      headerAlign: 'left',
-      textAlign: 'center',
-      renderCell: params => <Box>{RenderUtility.getPriorityIcons(params.row?.priority)}</Box>
+      headerName: 'Priority',
+      headerAlign: 'center',
+      align: 'center',
+      renderCell: params => (
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: '100%',
+            height: '100%'
+          }}
+        >
+          {RenderUtility.getPriorityIcons(params?.row?.priority)}
+        </Box>
+      )
     },
     {
       width: 300,

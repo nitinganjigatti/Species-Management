@@ -644,7 +644,7 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
                               rules={{
                                 required: true,
                                 validate: {
-                                  positiveNumber: value => ParseInt(value) > 0 || 'Please enter a number greater than 0'
+                                  positiveNumber: value => parseInt(value) > 0 || 'Please enter a number greater than 0'
                                 }
                               }}
                               render={({ field: { value, onChange } }) => (
@@ -688,7 +688,8 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
                             display: 'flex',
                             justifyItems: 'center',
                             alignItems: 'center'
-                          }}>
+                          }}
+                        >
                           {handleAddRemoveSalts(fields, index)}
                         </Grid>
                       </Grid>
@@ -711,16 +712,24 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
                 ) : null}
                 {quantityError && (
                   <Grid item size={{ xs: 12 }}>
-                    <Typography sx={{
-                      color: 'error.main'
-                    }}>Quantity should be lesser than available Quantity.</Typography>
+                    <Typography
+                      sx={{
+                        color: 'error.main'
+                      }}
+                    >
+                      Quantity should be lesser than available Quantity.
+                    </Typography>
                   </Grid>
                 )}
                 {batchItems.length === 0 ? (
                   <Grid item size={{ xs: 12 }} sx={{ my: 2 }}>
-                    <Typography sx={{
-                      color: 'error.main'
-                    }}>This product is out of stock</Typography>
+                    <Typography
+                      sx={{
+                        color: 'error.main'
+                      }}
+                    >
+                      This product is out of stock
+                    </Typography>
                   </Grid>
                 ) : null}
                 <Grid item size={{ xs: 12 }} style={{ alignSelf: 'flex-end', marginTop: '10px' }}>
@@ -746,7 +755,7 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
               </>
             </form>
           </CardContent>
-          <ConfirmDialogBox
+          {/* <ConfirmDialogBox
             open={invalidQtyDialog}
             closeDialog={() => {
               closeConfirmationDialog()
@@ -802,11 +811,11 @@ const FulfillDialog = ({ title, dialogBoxStatus, close, fulfillMedicine, storeDe
                 </>
               </Box>
             }
-          />
+          /> */}
         </>
       )}
     </>
-  );
+  )
 }
 
 export default FulfillDialog

@@ -262,7 +262,7 @@ const RequestList = () => {
           sort,
           q: searchValue,
           column: sortColumn,
-          status: currentStatus,
+          status: status,
           startDate: filterDates.startDate,
           endDate: filterDates.endDate,
           store: filterByStoreId,
@@ -406,36 +406,25 @@ const RequestList = () => {
     },
 
     {
-      width: 90,
+      width: 100,
       field: 'priority',
       headerName: 'Priority',
       headerAlign: 'center',
-      textAlign: 'center',
-      renderCell: params => <Box>{RenderUtility.getPriorityIcons(params?.row?.priority)}</Box>
+      align: 'center',
+      renderCell: params => (
+        <Box
+          sx={{
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            width: '100%',
+            height: '100%'
+          }}
+        >
+          {RenderUtility?.getPriorityIcons(params?.row?.priority)}
+        </Box>
+      )
     },
-
-    // {
-    //   width: 4,
-    //   field: 'priority',
-    //   headerName: '',
-    //   headerAlign: 'left',
-    //   textAlign: 'center',
-    //   renderCell: params => (
-    //     <Box>
-    //       {params.row.priority !== null && (
-    //         <span
-    //           style={{
-    //             width: '10px',
-    //             height: '10px',
-    //             borderRadius: '100%',
-    //             background: theme.palette.customColors.Error,
-    //             display: 'inline-block'
-    //           }}
-    //         ></span>
-    //       )}
-    //     </Box>
-    //   )
-    // },
 
     {
       width: 120,

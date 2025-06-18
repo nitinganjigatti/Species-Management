@@ -719,43 +719,43 @@ const AddExistingPurchase = () => {
   // ****** edit section //////
   // data posting section
 
-  const postItemsData = async () => {
-    setSubmitLoader(true)
+  // const postItemsData = async () => {
+  //   setSubmitLoader(true)
 
-    const postData = editParams
-    postData.total_amount = totalLineItemsPurchase + calculateTotalTaxAmount
+  //   const postData = editParams
+  //   postData.total_amount = totalLineItemsPurchase + calculateTotalTaxAmount
 
-    if (id) {
-      postData.antz_pharmacy_purchase_id = id
-      const response = await updatePurchase(id, postData)
+  //   if (id) {
+  //     postData.antz_pharmacy_purchase_id = id
+  //     const response = await updatePurchase(id, postData)
 
-      if (response?.success) {
-        toast.success(response.message)
-        setSubmitLoader(false)
-        // getListOfItemsById(id)
-        Router.push('/pharmacy/purchase/')
-      } else {
-        setSubmitLoader(false)
-        toast.error(response.message)
-      }
-    } else {
-      const response = await addPurchase(postData)
-      if (response?.success) {
-        toast.success(response.message)
-        setEditParams(editParamsInitialState)
-        setSubmitLoader(false)
-        Router.push('/pharmacy/purchase/')
-      } else {
-        setSubmitLoader(false)
-        if (response.data?.po_no) {
-          toast.error('Purchase number already exist ')
-        }
-        if (response?.message) {
-          toast.error(response.message)
-        }
-      }
-    }
-  }
+  //     if (response?.success) {
+  //       toast.success(response.message)
+  //       setSubmitLoader(false)
+  //       // getListOfItemsById(id)
+  //       Router.push('/pharmacy/purchase/')
+  //     } else {
+  //       setSubmitLoader(false)
+  //       toast.error(response.message)
+  //     }
+  //   } else {
+  //     const response = await addPurchase(postData)
+  //     if (response?.success) {
+  //       toast.success(response.message)
+  //       setEditParams(editParamsInitialState)
+  //       setSubmitLoader(false)
+  //       Router.push('/pharmacy/purchase/')
+  //     } else {
+  //       setSubmitLoader(false)
+  //       if (response.data?.po_no) {
+  //         toast.error('Purchase number already exist ')
+  //       }
+  //       if (response?.message) {
+  //         toast.error(response.message)
+  //       }
+  //     }
+  //   }
+  // }
 
   // data posting section
   const createForm = () => {
