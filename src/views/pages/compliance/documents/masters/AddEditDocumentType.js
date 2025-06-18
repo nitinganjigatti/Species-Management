@@ -9,7 +9,7 @@ import { useTheme } from '@mui/material/styles'
 
 const defaultValues = {
   name: '',
-  description: '',
+  description: '', 
   contexts: [],
   active: '1'
 }

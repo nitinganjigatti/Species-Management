@@ -29,27 +29,32 @@ const ControlledTextField = ({
       control={control}
       rules={{ required }}
       render={({ field }) => (
-        <TextField
-          {...field}
-          fullWidth={fullWidth}
-          value={field.value ?? ''}
-          type={type}
-          label={label}
-          onWheel={event => event.target.blur()}
-          disabled={disabled}
-          InputProps={{ readOnly }}
-          error={Boolean(error)}
-          helperText={helperText}
-          inputProps={inputProps}
-          onChange={e => {
-            field.onChange(e)
-            if (onChangeOverride) onChangeOverride(e)
-          }}
-          onKeyDown={onKeyDown}
-          onPaste={onPaste}
-          onInput={onInput}
-          sx={sx}
-        />
+        console.log('Field >', field),
+        (
+          <>
+            <TextField
+              {...field}
+              fullWidth={fullWidth}
+              value={field.value ?? ''}
+              type={type}
+              label={label}
+              onWheel={event => event.target.blur()}
+              disabled={disabled}
+              InputProps={{ readOnly }}
+              error={Boolean(error)}
+              helperText={helperText}
+              inputProps={inputProps}
+              onChange={e => {
+                field.onChange(e)
+                if (onChangeOverride) onChangeOverride(e)
+              }}
+              onKeyDown={onKeyDown}
+              onPaste={onPaste}
+              onInput={onInput}
+              sx={sx}
+            />
+          </>
+        )
       )}
     />
   )
