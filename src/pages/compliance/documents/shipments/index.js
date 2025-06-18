@@ -13,6 +13,7 @@ import {
   Typography
 } from '@mui/material'
 import Icon from 'src/@core/components/icon'
+import { useRouter } from 'next/router'
 import CommonTable from 'src/views/table/data-grid/CommonTable'
 import CommonDateRangePickers from 'src/components/custom-date-picker/CommonDateRangePickers'
 import Search from 'src/views/utility/Search'
@@ -20,6 +21,7 @@ import { AddButtonContained } from 'src/components/ButtonContained'
 import FilterListIcon from '@mui/icons-material/FilterList'
 
 const ShipmentPage = () => {
+  const router = useRouter()
   const [activeTab, setActiveTab] = useState('cities')
   const [searchValue, setSearchValue] = useState('')
   const [filterDate, setFilterDate] = useState({})
@@ -94,7 +96,12 @@ const ShipmentPage = () => {
         <CardHeader
           title='Shipment Documents'
           titleTypographyProps={{ fontSize: '1.5rem !important', fontWeight: 'bold' }}
-          action={<AddButtonContained title='Add New' action={() => {}} />}
+          action={
+            <AddButtonContained
+              title='Add New'
+              action={() => router.push('/compliance/documents/shipments/AddEditShipment')}
+            />
+          }
           sx={{ px: 5, pb: 0 }}
         />
         <Box sx={{ px: 5, borderBottom: theme => `1px solid ${theme.palette.divider}`, mt: 2, mb: 4 }}>

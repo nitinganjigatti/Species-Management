@@ -43,7 +43,6 @@ const AddEditExportPermit = () => {
     }
   }
 
-
   const handlePermitDetailsSubmit = data => {
     const permitDetails = {
       certificate_id: data.certificate_id,
@@ -94,7 +93,6 @@ const AddEditExportPermit = () => {
         <ExportPermitForm onSubmit={handlePermitDetailsSubmit} onReset={handlePermitDetailsReset} />
       </CustomAccordion>
 
-      {/* FUTURE ACCORDIONS */}
       {/* <CustomAccordion
         id='supporting-documents'
         title='Supporting Documents'

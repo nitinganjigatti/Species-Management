@@ -67,6 +67,9 @@
   .recipe_name {
     width: 100px;
   }
+  .edit_contxt {
+    gap: 400px !important;
+  }
   .diet_steps .MuiStepper-root {
     display: -webkit-inline-box;
     align-items: center;
